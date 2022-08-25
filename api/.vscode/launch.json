@@ -1,0 +1,52 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Attach DevServer",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "/app/api"
+                }
+            ],
+            "django": true,
+            "justMyCode": false
+        },
+        {
+            "name": "DevServer",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/manage.py",
+            "cwd": "${workspaceFolder}/src",
+            "args": [
+                "runserver"
+            ],
+            "env": {
+                "DEBUG": "on"
+            },
+            "django": true,
+            "justMyCode": false
+        },
+        {
+            "name": "Tests",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/manage.py",
+            "cwd": "${workspaceFolder}/src",
+            "args": [
+                "test"
+            ],
+            "django": true,
+            "justMyCode": false
+        }
+    ]
+}

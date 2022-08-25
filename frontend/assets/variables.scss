@@ -1,0 +1,28 @@
+// Ref: https://github.com/nuxt-community/vuetify-module#customvariables
+//
+// The variables you want to modify
+// $font-size-root: 20px;
+
+$body-font-family: 'Exo';
+
+
+// Colors
+$risk-color-none: #2d5f2e;
+$risk-color-low: #4d82a8;
+$risk-color-medium: #cf8e2b;
+$risk-color-high: #eb6020;
+$risk-color-critical: #e21212;
+
+$risk-color-levels: (
+  1: $risk-color-none,
+  2: $risk-color-low,
+  3: $risk-color-medium,
+  4: $risk-color-high,
+  5: $risk-color-critical
+);
+
+$syslifters-darkblue: #001827;
+$syslifters-lightblue: #0098DB;
+$syslifters-orange: #E65E00;
+$syslifters-white: #F9FDFF;
+$syslifters-black: #262626;

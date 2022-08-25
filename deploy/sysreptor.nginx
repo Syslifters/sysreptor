@@ -1,0 +1,19 @@
+server {
+	listen 80 default_server;
+	server_name _;
+	# redirect all HTTP to HTTPS
+	return 301 https://$host$request_uri;
+}
+
+server {
+	listen 443 ssl default_server;
+	server_name _;
+
+	ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
+	ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+
+	location / {
+		include proxy_params;
+		proxy_pass http://127.0.0.1:8000;
+	}
+}

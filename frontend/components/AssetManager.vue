@@ -1,0 +1,160 @@
+<template>
+  <div 
+    @drop.prevent="performFileUpload($event.dataTransfer.files)" 
+    @dragover.prevent="showDropArea = true" 
+    @dragenter.prevent="showDropArea = true" 
+    @dragleave.prevent="showDropArea = false"
+  >
+    <!-- Upload files with drag-and-drop here -->
+    <v-row>
+      <v-col :cols="12" :md="3">
+        <v-card outlined>
+          <v-card-actions>
+            <s-btn :disabled="uploadInProgress" :loading="uploadInProgress" @click="$refs.fileInput.click()" color="primary" block>
+              <v-icon>mdi-upload</v-icon>
+              Upload
+              <template #loader>
+                <saving-loader-spinner />
+                Uploading
+              </template>
+            </s-btn>
+            <input ref="fileInput" type="file" multiple @change="performFileUpload($event.target.files)" class="d-none" />
+          </v-card-actions>
+        </v-card>
+      </v-col>
+
+      <v-col v-for="asset in assets" :key="asset.id" :cols="12" :md="3">
+        <v-card outlined>
+          <v-img v-if="isImage(asset)" :src="imageUrl(asset)" aspect-ratio="2" />
+          <v-card-title>{{ asset.name }}</v-card-title>
+          <v-card-text class="text--small">
+            {{ assetUrl(asset) }}
+          </v-card-text>
+          <v-card-actions>
+            <s-tooltip>
+              <template #activator="{on, attrs}">
+                <s-btn @click="copyAssetUrl(asset)" v-bind="attrs" v-on="on" icon>
+                  <v-icon>mdi-clipboard-outline</v-icon>
+                </s-btn>
+              </template>
+              <span>Copy URL to clipboard</span>
+            </s-tooltip>
+            <s-tooltip>
+              <template #activator="{on, attrs}">
+                <s-btn @click="downloadAsset(asset)" v-bind="attrs" v-on="on" icon>
+                  <v-icon>mdi-download</v-icon>
+                </s-btn>
+              </template>
+              <span>Download asset</span>
+            </s-tooltip>
+            
+            <v-spacer />
+            <delete-button icon @delete="performDelete(asset)" />
+          </v-card-actions>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <v-fade-transition>
+      <v-overlay v-if="showDropArea" absolute>
+        <div class="text-center mt-10">
+          <h2>Drop files to upload</h2>
+        </div>
+      </v-overlay>
+    </v-fade-transition>
+  </div>
+</template>
+
+<script>
+// TODO: pagination (page size: 100?) + infinite scroll
+import { last } from 'lodash'
+import FileDownload from 'js-file-download';
+import SavingLoaderSpinner from './SavingLoaderSpinner.vue';
+import DeleteButton from './DeleteButton.vue';
+import { uploadFile } from '~/utils/upload';
+
+export default {
+  components: { SavingLoaderSpinner, DeleteButton },
+  props: {
+    projectType: {
+      type: Object,
+      required: true,
+    }
+  },
+  data() {
+    return {
+      assets: [],
+      uploadInProgress: false,
+      showDropArea: false,
+    }
+  },
+  computed: {
+    projectTypeBaseUrl() {
+      return `projecttypes/${this.projectType.id}`;
+    }
+  },
+  async mounted() {
+    this.assets = await this.$axios.$get(`/projecttypes/${this.projectType.id}/assets/`);
+  },
+  methods: {
+    isImage(asset) {
+      // Detect file type by extension
+      // Used for displaying image previews
+      return ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(last(asset.name.split('.')))
+    },
+    assetUrl(asset) {
+      return `/assets/name/${asset.name}`;
+    },
+    imageUrl(asset) {
+      return this.$axios.defaults.baseURL + this.projectTypeBaseUrl + this.assetUrl(asset);
+    },
+    async uploadSingleFile(file) {
+      try {
+        const asset = await uploadFile(this.$axios, this.projectTypeBaseUrl + '/assets/', file);
+        this.assets.unshift(asset);
+      } catch (error) {
+        this.$toast.global.requestError({ error, message: 'Failed to upload ' + file.name });
+      }
+    },
+    async performFileUpload(files) {
+      this.uploadInProgress = true;
+      this.showDropArea = false;
+
+      // upload all files
+      await Promise.all(Array.from(files).map(f => this.uploadSingleFile(f)));
+
+      // clear file input
+      this.$refs.fileInput.files = null;
+
+      this.uploadInProgress = false;
+    },
+    async performDelete(asset) {
+      try {
+        await this.$axios.$delete(this.projectTypeBaseUrl + `/assets/${asset.id}/`, { progess: false });
+        this.assets = this.assets.filter(a => a.id !== asset.id);
+      } catch (error) {
+        this.$toast.global.requestError({ error });
+      }
+    },
+    copyAssetUrl(asset) {
+      window.navigator.clipboard.writeText(this.assetUrl(asset));
+    },
+    async downloadAsset(asset) {
+      try {
+        const res = await this.$axios.$get(this.projectTypeBaseUrl + this.assetUrl(asset), {
+          responseType: 'arraybuffer'
+        });
+        FileDownload(res, asset.name || asset.id);
+      } catch (error) {
+        this.$toast.global.requestError({ error });
+      }
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+  .text--small {
+    font-size: smaller;
+  }
+</style>

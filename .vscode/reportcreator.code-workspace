@@ -1,0 +1,36 @@
+{
+	"folders": [
+		{
+			"path": "../",
+			"name": "ROOT"
+		},
+		{
+			"path": "../api"
+		},
+		{
+			"path": "../frontend"
+		},
+		{
+			"path": "../rendering"
+		}
+	],
+	"settings": {
+		"files.autoSave": "afterDelay",
+		"editor.tabSize": 2,
+		"[python]": {
+			"editor.tabSize": 4
+		},
+		"eslint.format.enable": true
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"ms-python.vscode-pylance",
+			"octref.vetur",
+			"ms-azuretools.vscode-docker",
+			"dbaeumer.vscode-eslint",
+			"syler.sass-indented",
+			"gruntfuggly.todo-tree"
+		]
+	}
+}

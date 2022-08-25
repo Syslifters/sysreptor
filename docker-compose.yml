@@ -1,0 +1,87 @@
+version: '3.9'
+
+services:
+  db:
+    image: 'postgres:14'
+    environment:
+      POSTGRES_USER: reportcreator
+      POSTGRES_PASSWORD: reportcreator
+      POSTGRES_DB: reportcreator
+      PGDATA: /data
+    volumes:
+      - type: volume
+        source: db-data
+        target: /data
+    expose:
+      - 5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reportcreator"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  rendering:
+    build: 
+      context: .
+      target: rendering-dev
+    command: npm run build-watch
+    volumes:
+      - type: bind
+        source: rendering/
+        target: /app/rendering/
+  api:
+    build:
+      context: .
+      target: api-dev
+    command: sh -c "python3 manage.py migrate && python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - type: volume
+        source: app-data
+        target: /data
+      - type: bind
+        source: api/src/
+        target: /app/api/
+      - type: bind
+        source: rendering/dist
+        target: /app/rendering/dist/
+    ports:
+      - 8000:8000
+      - 5678:5678
+    environment:
+      DEBUG: "on"
+      DATABASE_ENGINE: django.db.backends.postgresql
+      DATABASE_HOST: db
+      DATABASE_NAME: reportcreator
+      DATABASE_USER: reportcreator
+      DATABASE_PASSWORD: reportcreator
+      PDF_RENDER_SCRIPT_PATH: /app/rendering/dist/bundle.js
+      MEDIA_ROOT: /data/
+    depends_on:
+      db:
+        condition: service_healthy
+      rendering:
+        condition: service_started
+  frontend:
+    build: 
+      context: .
+      target: frontend-dev
+    command: npm run dev
+    volumes:
+      - type: bind
+        source: frontend/
+        target: /app/frontend/
+      - type: bind
+        source: rendering/
+        target: /app/rendering/
+    ports:
+      - 3000:3000
+    environment:
+      HOST: 0.0.0.0
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  db-data:
+    name: reportcreator-db-data
+  app-data:
+    name: reportcreator-app-data

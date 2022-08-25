@@ -1,0 +1,66 @@
+site_name: "SysReptor Docs"
+site_url: "https://docs.sysreptor.com/"
+nav:
+  - Getting Started: index.md
+  - User Permissions: user-permissions.md
+  - Reporting:
+    - Markdown Features: reporting/markdown-features.md
+    - Writing Findings: reporting/writing-findings.md
+  - Report Designer:
+    - Page Layout: designer/page-layout.md
+    - Headings and ToC: designer/headings-and-table-of-contents.md
+    - Tables: designer/tables.md
+    - Figures: designer/figures.md
+    - Footnotes: designer/footnotes.md
+    - Design Guides: designer/design-guides.md
+    - Debugging: designer/debugging.md
+    - Security Concerns: designer/security-concerns.md
+  - Development Roadmap: roadmap.md
+    
+theme:
+  name: "material"
+  logo: images/Logo-only.png
+  features:
+    - content.code.annotate
+    #- navigation.expand
+
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/hint.min.css
+
+plugins:
+  - social:
+      cards_color:
+        fill: "#001827"
+        text: "#F9FDFF"
+      cards_font: Exo
+  - tooltips
+  - search
+  - privacy
+
+markdown_extensions:
+  - attr_list
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:materialx.emoji.twemoji
+  - pymdownx.magiclink
+  - pymdownx.highlight:
+      use_pygments: true
+      anchor_linenums: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - md_in_html
+      
+
+extra:
+  social:
+    - icon: fontawesome/brands/twitter 
+      link: https://twitter.com/syslifters
+    - icon: fontawesome/brands/linkedin 
+      link: https://www.linkedin.com/company/syslifters/
+
+copyright: "<a href=\"https://www.syslifters.com/\" target=\"_blank\">Our Website</a> | <a href=\"https://www.syslifters.com/impressum\" target=\"_blank\">Imprint</a> | <a href=\"/data-privacy\">Data Privacy</a> | <a href=\"https://docs.syslifters.com/contact-us\" target=\"blank\">Contact</a>"
