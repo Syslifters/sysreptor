@@ -6,26 +6,37 @@
           <v-list-item-title class="text-h6 pl-2">{{ projectType.name }}</v-list-item-title>
 
           <v-list-item-group v-model="currentItem" mandatory>
-            <draggable :value="reportSections" @input="updateSectionOrder" group="sections" draggable=".draggable-section">
+            <draggable 
+              :value="reportSections" 
+              @input="updateSectionOrder" 
+              group="sections" 
+              draggable=".draggable-section"
+              :disabled="readonly"
+            >
               <div v-for="s in reportSections" :key="s.id" class="draggable-section">
                 <v-list-item :value="s" :ripple="false" link>
                   <v-list-item-title>{{ s.label }}</v-list-item-title>
                   <v-list-item-action>
-                    <delete-button v-if="s.fields.length === 0" @delete="deleteSection(s)" icon small />
+                    <delete-button v-if="s.fields.length === 0" @delete="deleteSection(s)" :disabled="readonly" icon small />
                   </v-list-item-action>
                 </v-list-item>
                 <v-list class="sublist" dense>
-                  <draggable :value="s.fields" @input="updateFieldOrder(s, $event)" group="fields" draggable=".draggable-field">
+                  <draggable 
+                    :value="s.fields" @input="updateFieldOrder(s, $event)" 
+                    group="fields" 
+                    draggable=".draggable-field"
+                    :disabled="readonly"
+                  >
                     <v-list-item v-for="f in s.fields" :key="f.id" :value="f" class="draggable-field" :ripple="false" link>
                       <v-list-item-title>{{ f.id }}</v-list-item-title>
                       <v-list-item-action>
-                        <delete-button v-if="f.origin !== 'core'" @delete="deleteField(s, f)" icon x-small />
+                        <delete-button v-if="f.origin !== 'core'" @delete="deleteField(s, f)" :disabled="readonly" icon x-small />
                       </v-list-item-action>
                     </v-list-item>
                   </draggable>
 
                   <v-list-item>
-                    <s-btn @click.stop="addField(s)" color="secondary" x-small>
+                    <s-btn @click.stop="addField(s)" color="secondary" :disabled="readonly" x-small>
                       <v-icon left>mdi-plus</v-icon>
                       Add Field
                     </s-btn>
@@ -36,7 +47,7 @@
               </div>
             </draggable>
             <v-list-item>
-              <s-btn @click.stop="addSection" color="secondary" small>
+              <s-btn @click.stop="addSection" :disabled="readonly" color="secondary" small>
                 <v-icon left>mdi-plus</v-icon>
                 Add Section
               </s-btn>
@@ -46,10 +57,11 @@
       </template>
 
       <template #default>
-        <edit-toolbar ref="toolbar" class="mb-5" :data="projectType" :form="$refs.form" :save="saveForm" />
+        <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form" />
+        <v-alert v-if="errorMessageLocked" type="warning">{{ errorMessageLocked }}</v-alert>
 
         <template v-if="currentItemIsSection">
-          <v-card outlined>
+          <s-card>
             <v-card-title>Section: {{ currentItem.label }}</v-card-title>
             <v-card-text>
               <v-row>
@@ -59,6 +71,7 @@
                     label="Section ID"
                     :rules="rules.sectionId"
                     required
+                    :disabled="readonly"
                   />
                 </v-col>
                 <v-col>
@@ -66,29 +79,34 @@
                     :value="currentItem.label" @input="updateCurrentSection('label', $event)"
                     label="Label"
                     required
+                    :disabled="readonly"
                   />
                 </v-col>
               </v-row>
             </v-card-text>
-          </v-card>
-          <v-card>
+          </s-card>
+          <s-card>
             <v-card-text>
               <input-field-definition
                 v-for="f in currentItem.fields" :key="f.id"
                 :value="f" @input="updateCurrentSectionField(f, $event)"
                 :can-change-structure="!['core', 'predefined'].includes(f.origin)"
+                :lang="projectType.language"
+                :disabled="readonly"
               />
-              <s-btn @click.stop="addField(currentItem)" class="mt-4" color="secondary">
+              <s-btn @click.stop="addField(currentItem)" :disabled="readonly" class="mt-4" color="secondary">
                 <v-icon left>mdi-plus</v-icon>
                 Add Field
               </s-btn>
             </v-card-text>
-          </v-card>
+          </s-card>
         </template>
         <template v-else-if="currentItemIsField">
           <input-field-definition 
             :value="currentItem" @input="updateCurrentField"
             :can-change-structure="!['core', 'predefined'].includes(currentItem.origin)" 
+            :lang="projectType.language"
+            :disabled="readonly"
           />
         </template>
       </template>
@@ -101,18 +119,18 @@ import Draggable from 'vuedraggable';
 import { omit } from 'lodash';
 import Vue from 'vue';
 import { uniqueName } from '~/utils/state';
+import LockEditMixin from '~/mixins/LockEditMixin';
+
+function getProjectTypeUrl(params) {
+  return `/projecttypes/${params.projectTypeId}/`;
+}
 
 export default {
   components: { Draggable },
-  beforeRouteLeave(to, from, next) {
-    this.$refs.toolbar.beforeLeave(to, from, next);
-  },
-  beforeRouteUpdate(to, from, next) {
-    this.$refs.toolbar.beforeLeave(to, from, next);
-  },
+  mixins: [LockEditMixin],
   async asyncData({ $axios, params }) {
     return {
-      projectType: await $axios.$get(`/projecttypes/${params.projectTypeId}/`),
+      projectType: await $axios.$get(getProjectTypeUrl(params)),
     }
   },
   data() {
@@ -126,6 +144,9 @@ export default {
     }
   },
   computed: {
+    data() {
+      return this.projectType;
+    },
     menuSize: {
       get() {
         return this.$store.state.settings.reportFieldDefinitionMenuSize;
@@ -148,6 +169,12 @@ export default {
     }
   },
   methods: {
+    getBaseUrl(data) {
+      return getProjectTypeUrl({ projectTypeId: data.id });
+    },
+    getHasEditPermissions() {
+      return this.$auth.hasScope('designer');
+    },
     updateField(field, val) {
       // Update field order in section
       const section = this.projectType.report_sections.find(s => s.fields.includes(field.id));
@@ -214,7 +241,7 @@ export default {
     deleteSection(section) {
       this.projectType.report_sections = this.projectType.report_sections.filter(s => s.id !== section.id);
     },
-    async saveForm(data) {
+    async performSave(data) {
       await this.$store.dispatch('projecttypes/partialUpdate', { obj: data, fields: ['report_sections', 'report_fields'] });
     }
   }

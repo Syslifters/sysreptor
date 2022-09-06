@@ -40,6 +40,9 @@ export default {
   mounted() {
     this.reloadImmediate();
   },
+  destroyed() {
+    this.reloadDebounced.cancel();
+  },
   methods: {
     async reload() {
       this.$emit('renderprogress', true);
@@ -65,7 +68,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-::v-deep .v-overlay__content {
+:deep(.v-overlay__content) {
   width: 100%;
   height: 100%;
 }

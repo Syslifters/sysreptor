@@ -8,9 +8,9 @@
     <!-- Upload files with drag-and-drop here -->
     <v-row>
       <v-col :cols="12" :md="3">
-        <v-card outlined>
+        <s-card>
           <v-card-actions>
-            <s-btn :disabled="uploadInProgress" :loading="uploadInProgress" @click="$refs.fileInput.click()" color="primary" block>
+            <s-btn :disabled="disabled || uploadInProgress" :loading="uploadInProgress" @click="$refs.fileInput.click()" color="primary" block>
               <v-icon>mdi-upload</v-icon>
               Upload
               <template #loader>
@@ -18,13 +18,13 @@
                 Uploading
               </template>
             </s-btn>
-            <input ref="fileInput" type="file" multiple @change="performFileUpload($event.target.files)" class="d-none" />
+            <input ref="fileInput" type="file" multiple @change="performFileUpload($event.target.files)" :disabled="disabled || uploadInProgress" class="d-none" />
           </v-card-actions>
-        </v-card>
+        </s-card>
       </v-col>
 
       <v-col v-for="asset in assets" :key="asset.id" :cols="12" :md="3">
-        <v-card outlined>
+        <s-card>
           <v-img v-if="isImage(asset)" :src="imageUrl(asset)" aspect-ratio="2" />
           <v-card-title>{{ asset.name }}</v-card-title>
           <v-card-text class="text--small">
@@ -49,13 +49,13 @@
             </s-tooltip>
             
             <v-spacer />
-            <delete-button icon @delete="performDelete(asset)" />
+            <delete-button icon @delete="performDelete(asset)" :disabled="disabled" />
           </v-card-actions>
-        </v-card>
+        </s-card>
       </v-col>
     </v-row>
 
-    <v-fade-transition>
+    <v-fade-transition v-if="!disabled">
       <v-overlay v-if="showDropArea" absolute>
         <div class="text-center mt-10">
           <h2>Drop files to upload</h2>
@@ -66,9 +66,9 @@
 </template>
 
 <script>
-// TODO: pagination (page size: 100?) + infinite scroll
 import { last } from 'lodash'
 import FileDownload from 'js-file-download';
+import urlJoin from 'url-join';
 import SavingLoaderSpinner from './SavingLoaderSpinner.vue';
 import DeleteButton from './DeleteButton.vue';
 import { uploadFile } from '~/utils/upload';
@@ -79,6 +79,10 @@ export default {
     projectType: {
       type: Object,
       required: true,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     }
   },
   data() {
@@ -88,13 +92,14 @@ export default {
       showDropArea: false,
     }
   },
+  async fetch() {
+    // TODO: pagination (page size: 100?) + infinite scroll
+    this.assets = await this.$axios.$get(`/projecttypes/${this.projectType.id}/assets/`);
+  },
   computed: {
     projectTypeBaseUrl() {
-      return `projecttypes/${this.projectType.id}`;
+      return `/projecttypes/${this.projectType.id}/`;
     }
-  },
-  async mounted() {
-    this.assets = await this.$axios.$get(`/projecttypes/${this.projectType.id}/assets/`);
   },
   methods: {
     isImage(asset) {
@@ -106,17 +111,21 @@ export default {
       return `/assets/name/${asset.name}`;
     },
     imageUrl(asset) {
-      return this.$axios.defaults.baseURL + this.projectTypeBaseUrl + this.assetUrl(asset);
+      return urlJoin(this.$axios.defaults.baseURL, this.projectTypeBaseUrl, this.assetUrl(asset));
     },
     async uploadSingleFile(file) {
       try {
-        const asset = await uploadFile(this.$axios, this.projectTypeBaseUrl + '/assets/', file);
+        const asset = await uploadFile(this.$axios, urlJoin(this.projectTypeBaseUrl, '/assets/'), file);
         this.assets.unshift(asset);
       } catch (error) {
         this.$toast.global.requestError({ error, message: 'Failed to upload ' + file.name });
       }
     },
     async performFileUpload(files) {
+      if (this.uploadInProgress || this.disabled) {
+        return;
+      }
+
       this.uploadInProgress = true;
       this.showDropArea = false;
 
@@ -130,7 +139,7 @@ export default {
     },
     async performDelete(asset) {
       try {
-        await this.$axios.$delete(this.projectTypeBaseUrl + `/assets/${asset.id}/`, { progess: false });
+        await this.$axios.$delete(urlJoin(this.projectTypeBaseUrl, `/assets/${asset.id}/`), { progess: false });
         this.assets = this.assets.filter(a => a.id !== asset.id);
       } catch (error) {
         this.$toast.global.requestError({ error });

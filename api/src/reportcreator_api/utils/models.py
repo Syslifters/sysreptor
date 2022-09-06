@@ -49,7 +49,7 @@ class ModelDiffMixin(object):
         return model_to_dict(self, fields=[field.name for field in self._meta.fields])
 
 
-class BaseModel(models.Model, ModelDiffMixin):
+class BaseModel(ModelDiffMixin, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     updated = models.DateTimeField(auto_now=True, editable=False)
@@ -58,4 +58,15 @@ class BaseModel(models.Model, ModelDiffMixin):
         abstract = True
         ordering = ['-created']
 
+
+class Language(models.TextChoices):
+    ENGLISH = 'en-US', 'English'
+    GERMAN = 'de-DE', 'German'
+
+
+class LanguageMixin(models.Model):
+    language = models.CharField(choices=Language.choices, default=Language.GERMAN, max_length=5, db_index=True)
+    
+    class Meta:
+        abstract = True
 

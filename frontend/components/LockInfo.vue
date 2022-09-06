@@ -6,7 +6,7 @@
       </v-list-item-icon>
     </template>
 
-    <span>{{ value.user.name }} is editing</span>
+    <span>{{ value.user.username }} ({{ value.user.name }}) is editing</span>
   </s-tooltip>
 </template>
 

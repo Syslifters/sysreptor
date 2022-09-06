@@ -2,7 +2,7 @@
   <v-container fluid fill-height>
     <v-layout align-center justify-center>
       <v-flex xs12 sm8 md4>
-        <v-card>
+        <s-card>
           <v-form ref="form" @submit.prevent="login">
             <v-toolbar dark class="login-header" flat tile>
               <v-toolbar-title>Login</v-toolbar-title>
@@ -14,6 +14,8 @@
                 name="username"
                 label="Username"
                 prepend-icon="mdi-account"
+                spellcheck="false"
+                autocomplete="off"
                 required
               />
               <v-text-field
@@ -34,7 +36,7 @@
               <s-btn type="submit" color="primary">Login</s-btn>
             </v-card-actions>
           </v-form>
-        </v-card>
+        </s-card>
       </v-flex>
     </v-layout>
   </v-container>

@@ -56,11 +56,11 @@ export class CursorPaginationFetcher {
 }
 
 export class SearchableCursorPaginationFetcher {
-  constructor({ baseURL, searchQuery = '', axios, toast }) {
+  constructor({ baseURL, searchFilters = { search: '' }, axios, toast }) {
     this.axios = axios;
     this.toast = toast;
     this.baseURL = baseURL;
-    this._searchQuery = searchQuery;
+    this._searchFilters = searchFilters;
 
     this._fetchNextPageDebounced = debounce(function() { this._fetchNextPage(); }, 500);
 
@@ -70,23 +70,37 @@ export class SearchableCursorPaginationFetcher {
 
   _createFetcher() {
     const searchParams = new URLSearchParams(this.baseURL.split('?')[1]);
-    searchParams.set('search', this.searchQuery || '');
+    for (const [k, v] of Object.entries(this.searchFilters)) {
+      if (v) { 
+        searchParams.set(k, v);
+      }
+    }
     const searchUrl = this.baseURL.split('?')[0] + '?' + searchParams.toString();
     this.fetcher = new CursorPaginationFetcher(searchUrl, this.axios, this.toast);
   }
 
   search(val) {
-    this._searchQuery = val;
+    this._searchFilters = Object.assign(this._searchFilters, { search: val })
     this._createFetcher();
     this.fetchNextPage();
   }
 
+  applyFilters(filters) {
+    Object.assign(this._searchFilters, filters);
+    this._createFetcher();
+    this.fetchNextPageImmediate()
+  }
+
+  get searchFilters() {
+    return this._searchFilters;
+  }
+
   get searchQuery() {
-    return this._searchQuery;
+    return this.searchFilters.search;
   }
 
   set searchQuery(val) {
-    this.search(val);
+    this.search(val, this._searchFilters);
   }
 
   get hasNextPage() {

@@ -29,6 +29,17 @@ def omit_keys(d: dict, keys: list[str]) -> dict:
     return dict(filter(lambda t: t[0] not in keys, d.items()))
 
 
+def omit_items(l: list, items: list):
+    l = list(l)
+    for i in items:
+        while True:
+            try:
+                l.remove(i)
+            except ValueError:
+                break
+    return l
+
+
 def is_uuid(val):
     try:
         uuid.UUID(val)

@@ -53,6 +53,7 @@ services:
       DATABASE_NAME: reportcreator
       DATABASE_USER: reportcreator
       DATABASE_PASSWORD: reportcreator
+      SPELLCHECK_URL: http://languagetool:8010/
       PDF_RENDER_SCRIPT_PATH: /app/rendering/dist/bundle.js
       MEDIA_ROOT: /data/
     depends_on:

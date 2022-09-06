@@ -10,11 +10,17 @@
               <v-list-item-title>All Fields</v-list-item-title>
             </v-list-item>
 
-            <draggable v-model="findingFields" :group="{name: 'findingFields', put: ['predefinedFindingFields']}" draggable=".draggable-item" @add="addPredefinedField">
+            <draggable 
+              v-model="findingFields" 
+              :group="{name: 'findingFields', put: ['predefinedFindingFields']}" 
+              draggable=".draggable-item" 
+              @add="addPredefinedField"
+              :disabled="readonly"
+            >
               <v-list-item v-for="f in findingFields" :key="f.id" :value="f" class="draggable-item" link :ripple="false">
                 <v-list-item-title>{{ f.id }}</v-list-item-title>
                 <v-list-item-action>
-                  <delete-button v-if="f.origin !== 'core'" @delete="deleteField(f.id)" icon x-small />
+                  <delete-button v-if="f.origin !== 'core'" @delete="deleteField(f.id)" icon x-small :disabled="readonly" />
                 </v-list-item-action>
               </v-list-item>
             </draggable>
@@ -25,7 +31,11 @@
             <template #activator>
               <v-list-item-title>Predefined Fields</v-list-item-title>
             </template>
-            <draggable draggable=".draggable-item" :sort="false" :group="{name: 'predefinedFindingFields'}">
+            <draggable 
+              draggable=".draggable-item" 
+              :sort="false" 
+              :group="{name: 'predefinedFindingFields'}"
+            >
               <v-list-item v-for="f in availablePredefinedFields" :key="f.id" class="draggable-item" :ripple="false">
                 <v-list-item-title>{{ f.id }}</v-list-item-title>
               </v-list-item>
@@ -34,7 +44,7 @@
 
           <v-divider />
           <v-list-item>
-            <s-btn @click.stop="addField" color="secondary" x-small>
+            <s-btn @click.stop="addField" color="secondary" x-small :disabled="readonly">
               <v-icon left>mdi-plus</v-icon>
               Add Custom Field
             </s-btn>
@@ -43,19 +53,24 @@
       </template>
 
       <template #default>
-        <edit-toolbar ref="toolbar" class="mb-5" :data="projectType" :form="$refs.form" :save="saveForm" />
+        <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form" />
+        <v-alert v-if="errorMessageLocked" type="warning">{{ errorMessageLocked }}</v-alert>
 
         <template v-if="currentField === null">
           <input-field-definition
             v-for="f in findingFields" :key="f.id"
             :value="f" @input="updateField(f, $event)"
             :can-change-structure="!['core', 'predefined'].includes(f.origin)"
+            :lang="projectType.language"
+            :disabled="readonly"
           />
         </template>
         <input-field-definition 
           v-else-if="currentField.type"
           :value="currentField" @input="updateCurrentField"
           :can-change-structure="!['core', 'predefined'].includes(currentField.origin)" 
+          :lang="projectType.language"
+          :disabled="readonly"
         />
       </template>
     </split-menu>
@@ -67,18 +82,18 @@ import Vue from 'vue';
 import { omit, cloneDeep, sortBy } from 'lodash';
 import Draggable from 'vuedraggable';
 import { uniqueName } from '~/utils/state';
+import LockEditMixin from '~/mixins/LockEditMixin';
+
+function getProjectTypeUrl(params) {
+  return `/projecttypes/${params.projectTypeId}/`;
+}
 
 export default {
   components: { Draggable },
-  beforeRouteLeave(to, from, next) {
-    this.$refs.toolbar.beforeLeave(to, from, next);
-  },
-  beforeRouteUpdate(to, from, next) {
-    this.$refs.toolbar.beforeLeave(to, from, next);
-  },
+  mixins: [LockEditMixin],
   async asyncData({ $axios, params, store }) {
     return {
-      projectType: await $axios.$get(`/projecttypes/${params.projectTypeId}/`),
+      projectType: await $axios.$get(getProjectTypeUrl(params)),
       predefinedFindingFields: await store.dispatch('projecttypes/getPredefinedFindingFields'),
     }
   },
@@ -88,6 +103,9 @@ export default {
     }
   },
   computed: {
+    data() {
+      return this.projectType;
+    },
     findingFields: {
       get() {
         return this.projectType.finding_field_order.map(f => ({ id: f, ...this.projectType.finding_fields[f] }));
@@ -113,6 +131,12 @@ export default {
     },
   },
   methods: {
+    getBaseUrl(data) {
+      return getProjectTypeUrl({ projectTypeId: data.id });
+    },
+    getHasEditPermissions() {
+      return this.$auth.hasScope('designer');
+    },
     updateField(field, val) {
       // Update field order
       const oldFieldIdx = this.projectType.finding_field_order.indexOf(field.id);
@@ -150,7 +174,7 @@ export default {
       delete this.projectType.finding_fields[fieldId];
       this.projectType.finding_field_order = this.projectType.finding_field_order.filter(f => f !== fieldId);
     },
-    async saveForm(data) {
+    async performSave(data) {
       await this.$store.dispatch('projecttypes/partialUpdate', { obj: data, fields: ['finding_fields', 'finding_field_order'] });
     }
   }

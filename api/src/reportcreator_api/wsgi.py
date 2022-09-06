@@ -20,5 +20,7 @@ application = get_wsgi_application()
 
 # Serve static frontend files
 BASE_DIR = Path(__file__).resolve().parent.parent
-application = WhiteNoise(application, index_file=True, root=BASE_DIR / 'frontend')
+# Serve SPA frontend files (generated JS files)
+application = WhiteNoise(application, root=BASE_DIR / 'frontend')
+# Serve django static files (required by admin and API browser)
 application = WhiteNoise(application, prefix='/static/', root=BASE_DIR / 'static')

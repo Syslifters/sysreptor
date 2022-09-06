@@ -1,6 +1,16 @@
 <template>
   <div>
-    <edit-toolbar v-bind="toolbarAttrs" />
+    <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
+      <div class="assignee-container">
+        <user-selection 
+          v-model="section.assignee" 
+          :selectable-users="project.pentesters" 
+          :disabled="readonly" 
+          label="Assignee"
+          :outlined="false" dense
+        />
+      </div>
+    </edit-toolbar>
 
     <v-alert v-if="errorMessageLocked" type="warning">
       {{ errorMessageLocked }}
@@ -8,11 +18,13 @@
 
     <div v-for="fieldId in section.fields" :key="fieldId">
       <dynamic-input-field 
-        v-model="section.data[fieldId]" :disabled="editMode === 'READONLY'"
+        v-model="section.data[fieldId]" 
+        :disabled="readonly"
         :id="fieldId" 
         :definition="projectType.report_fields[fieldId]" 
-        :upload-image="uploadImage" :image-urls-relative-to="`/pentestprojects/${$route.params.projectId}/`" 
+        :upload-image="uploadImage" :image-urls-relative-to="projectUrl" 
         :selectable-users="project.pentesters"
+        :lang="section.language"
       />
     </div>
   </div>
@@ -60,9 +72,14 @@ export default {
       return `/images/name/${img.name}`;
     },
     updateInStore(data) {
-      console.log('Section.updateInStore', data.id, data.lock_info);
       this.$store.commit('projects/setSection', { projectId: this.section.project, section: data });
     },
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.assignee-container {
+  width: 17em;
+}
+</style>

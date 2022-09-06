@@ -67,6 +67,7 @@ export default {
 
   auth: {
     cookie: false,
+    scopeKey: 'roles',
     strategies: {
       local: {
         scheme: 'refresh',
@@ -140,12 +141,15 @@ export default {
           // console.log('Request error', error);
 
           if (!message && error && error.config) {
+            let details = error?.response?.data?.detail;
+            details = details ? ': ' + details : '';
+
             if (error.config.method === 'get') {
-              message = 'Failed to load data';
+              message = 'Failed to load data' + details;
             } else if (['post', 'put', 'patch'].includes(error.config.method)) {
-              message = 'Failed to save data';
+              message = 'Failed to save data' + details;
             } else if (error.config.method === 'delete') {
-              message = 'Failed to delete data';
+              message = 'Failed to delete data' + details;
             }
           }
           if (!message) {

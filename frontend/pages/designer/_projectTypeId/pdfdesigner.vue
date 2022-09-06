@@ -2,7 +2,7 @@
   <div>
     <splitpanes class="default-theme">
       <pane :size="previewSplitSize">
-        <edit-toolbar ref="toolbar" :data="projectType" :save="performSave">
+        <edit-toolbar v-bind="toolbarAttrs">
           <template #title>{{ projectType.name }}</template>
 
           <template #default>
@@ -23,33 +23,44 @@
             </s-btn>
           </template>
         </edit-toolbar>
+        <v-alert v-if="errorMessageLocked" type="warning">{{ errorMessageLocked }}</v-alert>
 
         <v-tabs grow>
           <v-tab>HTML</v-tab>
           <v-tab-item>
             <fill-screen-height>
-              <code-editor v-model="projectType.report_template" language="html" class="pdf-code-editor" />
+              <code-editor 
+                v-model="projectType.report_template" 
+                language="html" 
+                class="pdf-code-editor" 
+                :disabled="readonly"
+              />
             </fill-screen-height>
           </v-tab-item>
 
           <v-tab>CSS</v-tab>
           <v-tab-item>
             <fill-screen-height>
-              <code-editor v-model="projectType.report_styles" language="css" class="pdf-code-editor" />
+              <code-editor 
+                v-model="projectType.report_styles" 
+                language="css" 
+                class="pdf-code-editor" 
+                :disabled="readonly"
+              />
             </fill-screen-height>
           </v-tab-item>
 
           <v-tab>Assets</v-tab>
           <v-tab-item>
             <fill-screen-height>
-              <asset-manager :project-type="projectType" />
+              <asset-manager :project-type="projectType" :disabled="readonly" />
             </fill-screen-height>
           </v-tab-item>
 
           <v-tab>Preview Data</v-tab>
           <v-tab-item>
             <fill-screen-height>
-              <pdf-preview-data-form v-model="projectType.report_preview_data" :project-type="projectType" />
+              <pdf-preview-data-form v-model="projectType.report_preview_data" :project-type="projectType" :disabled="readonly" />
             </fill-screen-height>
           </v-tab-item>
         </v-tabs>
@@ -65,27 +76,33 @@
 
 <script>
 import { Splitpanes, Pane } from 'splitpanes';
+import urlJoin from 'url-join';
 import FillScreenHeight from '~/components/FillScreenHeight.vue';
 import AssetManager from '~/components/AssetManager.vue';
 import PdfPreview from '~/components/PdfPreview.vue';
+import LockEditMixin from '~/mixins/LockEditMixin';
+
+function getProjectTypeUrl(params) {
+  return `/projecttypes/${params.projectTypeId}/`;
+}
 
 export default {
   components: { Splitpanes, Pane, FillScreenHeight, AssetManager, PdfPreview },
-  beforeRouteLeave(to, from, next) {
-    this.$refs.toolbar.beforeLeave(to, from, next);
-  },
-  beforeRouteUpdate(to, from, next) {
-    this.$refs.toolbar.beforeLeave(to, from, next);
-  },
+  mixins: [LockEditMixin],
   async asyncData({ $axios, params }) {
     return {
-      projectType: await $axios.$get(`/projecttypes/${params.projectTypeId}/`),
+      projectType: await $axios.$get(getProjectTypeUrl(params)),
     }
   },
   data() {
     return {
       previewSplitSize: 60,
       pdfRenderingInProgress: false,
+    }
+  },
+  computed: {
+    data() {
+      return this.projectType;
     }
   },
   watch: {
@@ -97,8 +114,14 @@ export default {
     }
   },
   methods: {
+    getBaseUrl(data) {
+      return getProjectTypeUrl({ projectTypeId: data.id });
+    },
+    getHasEditPermissions() {
+      return this.$auth.hasScope('designer');
+    },
     async fetchPdf() {
-      return await this.$axios.$post(`/projecttypes/${this.projectType.id}/preview/`, this.projectType, {
+      return await this.$axios.$post(urlJoin(this.getBaseUrl(this.data), '/preview/'), this.projectType, {
         responseType: 'arraybuffer',
       });
     },

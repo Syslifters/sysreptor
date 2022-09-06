@@ -12,7 +12,7 @@
 
       <s-text-field v-model="project.name" label="Name" />
       <project-type-selection v-model="project.project_type" />
-      <user-selection v-model="project.pentesters" :prevent-unselecting-self="true" :required="true" :multiple="true" />
+      <user-selection v-model="project.pentesters" :prevent-unselecting-self="true" :required="true" :multiple="true" class="mt-4" />
     </v-form>
   </v-container>
 </template>

@@ -555,9 +555,7 @@ export function parseVector(vector) {
   const out = {};
   for (const part of (vector || '').slice(9).split('/')) {
     const kv = part.split(':');
-    if (kv[0] in CVSS3_METRICS) { 
-      out[kv[0]] = kv.length > 1 ? kv[1] : null;
-    }
+    out[kv[0]] = kv.length > 1 ? kv[1] : null;
   }
 
   // Set undefined metrics
@@ -607,6 +605,12 @@ export function isValidVector(vector) {
 
 function roundUp(num) {
   return Math.ceil(num * 10.0) / 10.0;
+  // const intNum = Math.round(num * 100000);
+  // if (intNum % 100000 === 0) {
+  //   return intNum / 100000.0;
+  // } else {
+  //   return (Math.floor(intNum / 10000) + 1) / 10.0;
+  // }
 }
 
 export function scoreFromVector(vector) {
@@ -676,18 +680,35 @@ export function scoreFromVector(vector) {
   }
 
   // Environmental Score calculation (this is the final score shown to the customer)
-  let impact = Math.min(1 - ((1 - metric('C') * metric('CR', true)) *
-    (1 - metric('I') * metric('IR', true)) *
-    (1 - metric('A') * metric('AR', true))), 0.915);
-  impact = scopeChanged ?
-    7.52 * (impact - 0.029) - 3.25 * Math.pow(impact - 0.02, 15) :
-    6.42 * impact;
-  const exploitability = 8.22 * metric('AV') * metric('AC') * metric('PR') * metric('UI');
-  let score = (impact <= 0) ? 0 :
-    scopeChanged ? roundUp(Math.min(1.08 * (impact + exploitability), 10)) :
-      roundUp(Math.min(impact + exploitability, 10));
-  score = roundUp(score * metric('E', true) * metric('RL', true) * metric('RC', true));
-  return score;
+  if (vector.startsWith('CVSS:3.0')) {
+    let impact = Math.min(1 - ((1 - metric('C') * metric('CR', true)) *
+      (1 - metric('I') * metric('IR', true)) *
+      (1 - metric('A') * metric('AR', true))), 0.915);
+    impact = scopeChanged ?
+      7.52 * (impact - 0.029) - 3.25 * Math.pow(impact - 0.02, 15) :
+      6.42 * impact;
+    const exploitability = 8.22 * metric('AV') * metric('AC') * metric('PR') * metric('UI');
+    let score = (impact <= 0) ? 0 :
+      scopeChanged ? roundUp(Math.min(1.08 * (impact + exploitability), 10)) :
+        roundUp(Math.min(impact + exploitability, 10));
+    score = roundUp(score * metric('E', true) * metric('RL', true) * metric('RC', true));
+    return score;
+  } else {
+    let impact = Math.min(1 - (
+      (1 - metric('C') * metric('CR', true)) *
+      (1 - metric('I') * metric('IR', true)) *
+      (1 - metric('A') * metric('AR', true))
+    ), 0.915);
+    impact = scopeChanged ?
+      7.52 * (impact - 0.029) - 3.25 * Math.pow(impact * 0.9731 - 0.02, 13) :
+      6.42 * impact;
+    const exploitability = 8.22 * metric('AV') * metric('AC') * metric('PR') * metric('UI');
+    const score = (impact <= 0) ? 0 :
+      scopeChanged ? 
+        roundUp(roundUp(Math.min(1.08 * (impact + exploitability), 10)) * metric('E', true) * metric('RL', true) * metric('RC', true)) :
+        roundUp(roundUp(Math.min(impact + exploitability, 10)) * metric('E', true) * metric('RL', true) * metric('RC', true));
+    return score;
+  }
 }
 
 export function levelNumberFromScore(score) {
@@ -701,7 +722,7 @@ export function levelNumberFromScore(score) {
     return 4;
   } else if (score >= 4.0) {
     return 3;
-  } else if (score >= 0.0) {
+  } else if (score > 0.0) {
     return 2;
   } else {
     return 1;
@@ -709,5 +730,5 @@ export function levelNumberFromScore(score) {
 }
 
 export function levelNameFromScore(score) {
-  return ['None', 'Low', 'Medium', 'High', 'Critical'][levelNumberFromScore(score) - 1];
+  return ['Info', 'Low', 'Medium', 'High', 'Critical'][levelNumberFromScore(score) - 1];
 }

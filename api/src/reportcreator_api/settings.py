@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'django_filters',
 
     'reportcreator_api.users',
     'reportcreator_api.pentests',
@@ -60,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'csp.middleware.CSPMiddleware',
 ]
 
 ROOT_URLCONF = 'reportcreator_api.urls'
@@ -160,7 +162,31 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesSto
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.PentestUser'
 
+
+# HTTP Header settings
 CORS_ALLOW_ALL_ORIGINS = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+SECURE_REFERRER_POLICY = 'same-origin'
+X_FRAME_OPTIONS = 'DENY'
+
+CSP_DEFAULT_SRC = ["'none'"]
+CSP_IMG_SRC = ["'self'", "data:"]
+CSP_PREFETCH_SRC = ["'self'"]
+CSP_FONT_SRC = ["'self'"]
+CSP_WORKER_SRC = ["'self'"]
+CSP_CONNECT_SRC =["'self'"]
+# nuxt, vuetify and markdown preview use inline styles
+CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
+# unsafe-inline: 
+#   Django Rest Framework inserts the CSRF token via an inline script. DRF will be CSP-compliant in version 3.14 (see https://github.com/encode/django-rest-framework/pull/5740)
+#   NuxtJS injects a inline script in index.html
+# unsafe-eval:
+#   Used by nuxt-vuex-localstorage; PR exists, but maintainer is not very active (see https://github.com/rubystarashe/nuxt-vuex-localstorage/issues/37)
+CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
+
+
 
 # Monkey-Patch django to use our modified CSRF middleware everywhere
 # CSRF middlware class is used as middleware and internally by DjangoRestFramework
@@ -169,6 +195,7 @@ from reportcreator_api.utils.middleware import CustomCsrfMiddleware
 csrf.CsrfViewMiddleware = CustomCsrfMiddleware
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='')
 CSRF_TRUSTED_ORIGINS = list(filter(None, CSRF_TRUSTED_ORIGINS.split(';'))) or ['https://*', 'http://*']
+
 
 
 # File storage

@@ -41,7 +41,7 @@ export default {
     display: inline-block;
     text-align: center;
 
-    & ::v-deep .v-chip__content {
+    :deep(.v-chip__content) {
       width: 100%;
     }
 

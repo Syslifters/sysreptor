@@ -10,7 +10,7 @@
       </s-btn>
     </template>
 
-    <v-card>
+    <s-card>
       <v-card-title>Confirm Delete?</v-card-title>
       <v-card-text>
         Do you really want to delete this item? This action is not reversible!
@@ -24,7 +24,7 @@
           Delete
         </s-btn>
       </v-card-actions>
-    </v-card>
+    </s-card>
   </v-dialog>
   <s-btn v-else-if="!confirm && icon" icon v-bind="{...$props, ...$attrs}" @click="performDelete">
     <v-icon>mdi-delete</v-icon>

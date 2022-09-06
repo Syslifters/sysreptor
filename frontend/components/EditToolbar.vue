@@ -7,19 +7,20 @@
 
     <v-switch v-if="canSave && canAutoSave" v-model="autoSaveEnabled" label="Auto Save" class="align-self-center ml-2 mr-2" hide-details />
 
-    <s-tooltip v-if="canSave" :disabled="savingInProgress">
+    <s-tooltip v-if="canSave" :disabled="savingInProgress || data === null">
       <template #activator="{on, attrs}">
         <s-btn :loading="savingInProgress" :disabled="savingInProgress" @click="performSave" v-bind="attrs" v-on="on" color="primary" class="ml-2 mr-2">
           <template #default>
             <v-icon>mdi-content-save</v-icon>
-            <v-badge dot :color="hasChanges? 'error' : 'success'">
-              Save
+            <v-badge v-if="data !== null" dot :color="hasChanges? 'error' : 'success'">
+              <slot name="save-button-text">Save</slot>
             </v-badge>
+            <slot v-else name="save-button-text">Save</slot>
           </template>
 
           <template #loader>
             <saving-loader-spinner />
-            Save
+            <slot name="save-button-text">Save</slot>
           </template>
         </s-btn>
       </template>
@@ -45,7 +46,7 @@ export default {
   props: {
     data: {
       type: Object,
-      required: true,
+      default: null,
     },
     form: {
       type: Object,
@@ -76,10 +77,10 @@ export default {
       default: EditMode.EDIT,
     },
   },
-  events: ['updateEditMode'],
+  events: ['update:editMode'],
   data() {
     return {
-      hasChanges: false,
+      hasChangesValue: false,
       savingInProgress: false,
       deletingInProgress: false,
       lockingInProgress: false,
@@ -107,6 +108,9 @@ export default {
     },
     actionInProgress() {
       return this.savingInProgress || this.deletingInProgress;
+    },
+    hasChanges() {
+      return this.hasChangesValue || this.data === null;
     }
   },
   watch: {
@@ -116,7 +120,7 @@ export default {
       handler(newValue, oldValue) {
         const valueChanged = isEqual(newValue, this.previousData);
         if (!this.wasReset && !valueChanged) {
-          this.hasChanges = true;
+          this.hasChangesValue = true;
           this.previousData = cloneDeep(newValue);
 
           if (this.autoSaveEnabled) {
@@ -176,7 +180,7 @@ export default {
       try {
         await this.save(this.data);
 
-        this.hasChanges = false;
+        this.hasChangesValue = false;
         this.previousData = cloneDeep(this.data);
       } catch (error) {
         this.$toast.global.requestError({ error });
@@ -184,9 +188,16 @@ export default {
       this.savingInProgress = false;
     },
     async performDelete() {
+      if (!this.canDelete || !(this.hasLock || this.lock === null)) {
+        return;
+      }
+
+      const hasLockReset = this.hasLock;
       try {
-        await this.delete(this.data);  
+        this.hasLock = false;
+        await this.delete(this.data);
       } catch (error) {
+        this.hasLock = hasLockReset;
         this.$toast.global.requestError({ error });
       }
     },
@@ -205,7 +216,11 @@ export default {
         await this.lock(this.data);
         this.hasLock = true;
       } catch (error) {
-        this.hasLock = false;
+        // Do not release lock (in frontend) if the user previously had the lock.
+        // Prevent resetting lock on network errors.
+        // If the lock is acquired by another user LockEditMixin sets editMode to READONLY
+        // this.hasLock = false;
+        console.log('Lock error', error);
         this.$toast.global.requestError({ error, message: 'Locking failed' });
       }
       this.lockingInProgress = false;
@@ -226,11 +241,10 @@ export default {
       } catch (error) {
         // silently ignore error
         console.log('Unlock error', error);
-        // this.$toast.global.requestError({ error, message: 'Unlocking failed' });
       }
     },
     beforeLeaveBrowser(event) {
-      if (!this.canSave || !this.hasChanges || this.autoSaveEnabled || this.actionInProgress) {
+      if (!this.canSave || !this.hasChangesValue || this.autoSaveEnabled || this.actionInProgress) {
         return;
       }
       // Browser navigation event onbeforeunload: user navigates to a different site or refreshes pages
@@ -239,7 +253,7 @@ export default {
       return 'Leave?';
     },
     async beforeLeave(to, from, next) {
-      if (!this.canSave || !this.hasChanges || this.actionInProgress) {
+      if (!this.canSave || !this.hasChangesValue || this.actionInProgress) {
         this.resetComponent();
         next();
       } else if (this.autoSaveEnabled) {
@@ -269,7 +283,7 @@ export default {
       }
     },
     resetComponent() {
-      this.hasChanges = false;
+      this.hasChangesValue = false;
       this.previousData = null;
       this.wasReset = true;
 

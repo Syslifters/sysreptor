@@ -4,7 +4,7 @@
       <template #menu>
         <v-list dense>
           <v-list-item-title class="text-h6 pl-2">{{ project.name }}</v-list-item-title>
-
+          
           <v-subheader>Sections</v-subheader>
           <v-list-item
             v-for="section in sections"
@@ -15,6 +15,9 @@
             <lock-info :value="section.lock_info" />
             <v-list-item-content>
               <v-list-item-title>{{ section.label }}</v-list-item-title>
+              <v-list-item-subtitle v-if="section.assignee">
+                @ {{ section.assignee.username }}
+              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
 
@@ -29,6 +32,9 @@
             <lock-info :value="finding.lock_info" />
             <v-list-item-content>
               <v-list-item-title>{{ finding.data.title }}</v-list-item-title>
+              <v-list-item-subtitle v-if="finding.assignee" :class="{'assignee-self': finding.assignee.id == $auth.user.id}">
+                @ {{ finding.assignee.username }}
+              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
 
@@ -112,5 +118,9 @@ export default {
   .finding-level-#{$level} {
     border-left: 0.4em solid map-get($risk-color-levels, $level);
   }
+}
+
+:deep(.v-list-item__subtitle) {
+  font-size: x-small !important;
 }
 </style>

@@ -37,6 +37,10 @@ export default {
       type: String,
       default: null,
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    }
   },
   emits: ['input'],
   data() {
@@ -50,12 +54,18 @@ export default {
         this.editor.setValue(newVal);
       }
     },
+    disabled(newVal) {
+      if (this.editor) {
+        this.editor.updateOptions({ readOnly: newVal });
+      }
+    }
   },
   mounted() {
     // https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.IStandaloneEditorConstructionOptions.html
     this.editor = monaco.editor.create(this.$refs.editor, {
       value: this.value,
       language: this.language,
+      readOnly: this.disabled,
       theme: 'vs',
       minimap: {
         enabled: false,

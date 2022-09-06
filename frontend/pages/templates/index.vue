@@ -1,7 +1,7 @@
 <template>
-  <list-view url="/findingtemplates/" :search="$route.query.search" @update:search="$router.push({path: './', query: {search: $event}})">
+  <list-view url="/findingtemplates/" :search="$route.query.search">
     <template #title>Finding Templates</template>
-    <template #actions>
+    <template #actions v-if="$auth.hasScope('template_editor')">
       <s-btn @click="createTemplate" color="primary">
         <v-icon>mdi-plus</v-icon>
         Create new finding template
@@ -15,6 +15,7 @@
             {{ item.data.title }}
           </v-list-item-title>
           <v-list-item-subtitle>
+            <language-chip :value="item.language" />
             <v-chip v-for="tag in item.tags" :key="tag" class="ma-1" small>
               {{ tag }}
             </v-chip>
@@ -26,9 +27,7 @@
 </template>
 
 <script>
-import ListView from '~/components/ListView.vue';
 export default {
-  components: { ListView },
   methods: {
     async createTemplate() {
       try {

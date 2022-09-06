@@ -12,7 +12,7 @@
           <v-form class="pa-4">
             <!-- Set password for encrypting report -->
             <div>
-              <v-checkbox
+              <s-checkbox
                 v-model="form.encryptReport"
                 label="Encrypt report PDF"
               />
@@ -23,7 +23,8 @@
                 :error-messages="(form.encryptReport && form.password.length === 0) ? ['Password required'] : []"
                 label="PDF password"
                 hint="Encrypt the PDF with this password"
-                append-icon="mdi-refresh" @click:append="form.password = generateNewPassword()"
+                append-icon="mdi-lock-reset" @click:append="form.password = generateNewPassword()"
+                class="mt-4"
               />
             </div>
 

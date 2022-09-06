@@ -2,7 +2,6 @@ FROM node:16-alpine AS frontend-dev
 
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json /app/frontend/
-# TODO: fix peer dependency conflicts in package.json
 RUN npm install
 
 
@@ -37,6 +36,7 @@ RUN apk add --no-cache \
         ttf-freefont \
         font-noto \
         terminus-font \
+        icu-data-full \
         chromium \
         gcc \
         g++ \

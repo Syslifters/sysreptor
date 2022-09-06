@@ -11,9 +11,11 @@ export default {
     this.$refs.toolbar.beforeLeave(to, from, next);
   },
   data() {
+    const hasEditPermissions = this.getHasEditPermissions();
     return {
-      editMode: EditMode.EDIT,
-      lockError: false,
+      editMode: hasEditPermissions ? EditMode.EDIT : EditMode.READONLY,
+      lockError: !hasEditPermissions,
+      lockInfo: null,
     };
   },
   computed: {
@@ -23,9 +25,6 @@ export default {
     baseUrl() {
       return this.getBaseUrl(this.data);
     },
-    lockInfo() {
-      return this.data.lock_info || null;
-    },
     toolbarAttrs() {
       return {
         ref: 'toolbar',
@@ -33,7 +32,6 @@ export default {
         editMode: this.editMode,
         ...(this.performSave ? {
           save: this.performSave,
-          canAutoSave: true,
           lock: this.performLock,
           unlock: this.performUnlock,
         } : {}),
@@ -43,16 +41,25 @@ export default {
       }
     },
     errorMessageLocked() {
-      if (!this.lockError || !this.lockInfo) {
+      if (!this.getHasEditPermissions()) {
+        return 'You do not have permissions to edit this resource.';
+      }
+      if (!this.lockError) {
         return null;
+      } else if (!this.lockInfo) {
+        return 'Could not lock resource for editing.';
       } else if (this.lockInfo.user.id !== this.$auth.user.id) {
         return `${this.lockInfo.user.name} is currenlty editing this page. 
                 To prevent overwriting changes, only one user has write access at a time.
                 Please wait until he is finished or ask him to leave this page.`;
       } else if (this.lockInfo.user.id === this.$auth.user.id) {
-        return `It seems you have are editing this page in another tab or browser session. 
+        return `It seems you like are editing this page in another tab or browser session. 
                 To prevent overwriting changes, only one instance has write access at a time.`;
       }
+      return null;
+    },
+    readonly() {
+      return this.editMode === EditMode.READONLY;
     },
   },
   mounted() {
@@ -63,28 +70,38 @@ export default {
     getBaseUrl(data) {
       throw new Error('Not implemented');
     },
+    getHasEditPermissions() {
+      return true;
+    },
     updateInStore(data) {
-      throw new Error('Not implemented');
+      
     },
     async performLock(data) {
       console.log('LockEditMixin.performLock', data.id);
       this.lockError = false;
       try {
         const response = await this.$axios.post(urlJoin(this.getBaseUrl(data), '/lock/'));
-        if ((response.status !== 201 && !this.$refs.toolbar.hasLock)) {
+        const lockedData = response.data;
+        this.lockInfo = lockedData.lock_info;
+
+        if (response.status !== 201 && !this.$refs.toolbar.hasLock) {
           // Open by current user in another tab or browser session
           this.lockError = true;
           this.editMode = EditMode.READONLY;
-          throw new Error('Locking failed');
+          throw new Error('User did not create a new lock: User has lock in another tab or browser session.');
         }
 
-        const lockedData = response.data;
         this.updateInStore(lockedData);
         return lockedData;
       } catch (error) {
+        console.log('Lock error', error);
         if (error.response && error.response.status === 403) {
-          this.lockError = true;
+          console.log('Lock error: Another user has the lock. Switching to readonly mode.', data.id, this, error);
           this.editMode = EditMode.READONLY;
+          this.lockError = true;
+        }
+        if (error?.response?.data?.lock_info !== undefined) {
+          this.lockInfo = error.response.data.lock_info;
         }
         throw error;
       }
@@ -102,8 +119,16 @@ export default {
           this.$auth.user.id
         );
       } else {
-        const unlockedData = await this.$axios.$post(unlockUrl);
-        this.updateInStore(unlockedData);
+        try {
+          const unlockedData = await this.$axios.$post(unlockUrl);
+          this.lockInfo = unlockedData.lock_info;
+          this.updateInStore(unlockedData);
+        } catch (error) {
+          if (error?.response?.data?.lock_info !== undefined) {
+            this.lockInfo = error.response.data.lock_info;
+          }
+          throw error;
+        }
       }
     }
   },

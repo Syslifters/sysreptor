@@ -7,6 +7,7 @@
         :rules="validCvssVector"
         :label="label"
         :disabled="disabled"
+        spellcheck="false"
       />
     </div>
 
@@ -25,7 +26,7 @@
       </template>
 
       <template #default>
-        <v-card flat tile>
+        <s-card>
           <v-card-title>
             <v-toolbar flat>
               <v-toolbar-title>CVSS Editor</v-toolbar-title>
@@ -55,7 +56,7 @@
           </v-card-title>
 
           <v-card-text class="pa-0">
-            <v-card
+            <s-card
               v-for="metricGroup in metricGroups"
               :key="metricGroup.name"
               outlined
@@ -82,9 +83,9 @@
                   </v-col>
                 </v-row>
               </v-card-text>
-            </v-card>
+            </s-card>
           </v-card-text>
-        </v-card>
+        </s-card>
       </template>
     </v-dialog>
   </div>

@@ -1,7 +1,5 @@
 from django.db import models
-from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
-from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.translation import gettext_lazy as _
 
 from reportcreator_api.utils.models import BaseModel
@@ -16,6 +14,10 @@ class PentestUser(BaseModel, AbstractUser):
     phone = models.CharField(_('Phone number'), max_length=255, null=True, blank=True)
     mobile = models.CharField(_('Phone number (mobile)'), max_length=255, null=True, blank=True)
 
+    is_designer = models.BooleanField(default=False, db_index=True)
+    is_template_editor = models.BooleanField(default=False, db_index=True)
+    is_user_manager = models.BooleanField(default=False, db_index=True)
+
     REQUIRED_FIELDS = []
 
     @property
@@ -26,3 +28,10 @@ class PentestUser(BaseModel, AbstractUser):
             (self.last_name or '') + \
             ((', ' + self.title_after) if self.title_after else '') 
 
+    @property
+    def roles(self):
+        return (['superuser'] if self.is_superuser else []) + \
+               (['template_editor'] if self.is_template_editor or self.is_superuser else []) + \
+               (['designer'] if self.is_designer or self.is_superuser else []) + \
+               (['user_manager'] if self.is_user_manager or self.is_superuser else []) 
+  

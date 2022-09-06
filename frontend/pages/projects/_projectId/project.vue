@@ -5,18 +5,20 @@
         <template #title>Project</template>
       </edit-toolbar>
 
-      <s-text-field v-model="project.name" label="Name" />
+      <s-text-field v-model="project.name" label="Name" class="mt-4" />
       <project-type-selection v-model="project.project_type" />
-      <user-selection v-model="project.pentesters" :prevent-unselecting-self="true" :required="true" :multiple="true" />
+      <language-selection v-model="project.language" />
+      <user-selection v-model="project.pentesters" :prevent-unselecting-self="true" :required="true" :multiple="true" class="mt-4" />
     </v-form>
   </v-container>
 </template>
 
 <script>
+import LanguageSelection from '~/components/LanguageSelection.vue';
 import ProjectTypeSelection from '~/components/ProjectTypeSelection.vue';
 import UserSelection from '~/components/UserSelection.vue';
 export default {
-  components: { ProjectTypeSelection, UserSelection },
+  components: { ProjectTypeSelection, UserSelection, LanguageSelection },
   beforeRouteLeave(to, from, next) {
     this.$refs.toolbar.beforeLeave(to, from, next);
   },

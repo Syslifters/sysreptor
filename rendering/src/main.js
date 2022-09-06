@@ -23,8 +23,8 @@ const DEFAULT_COMPUTED = {
   findings() {
     return this.data.findings;
   },
-  findings_none() {
-    return this.findings.filter(f => f.cvss.level === 'none');
+  findings_info() {
+    return this.findings.filter(f => f.cvss.level === 'info');
   },
   findings_low() {
     return this.findings.filter(f => f.cvss.level === 'low');
@@ -45,7 +45,7 @@ const DEFAULT_COMPUTED = {
         count_high: this.findings_high.length,
         count_medium: this.findings_medium.length,
         count_low: this.findings_low.length,
-        count_none: this.findings_none.length,
+        count_info: this.findings_info.length,
     };
   }
 };
@@ -56,6 +56,25 @@ const DEFAULT_METHODS = {
     value = value.toString()
     return value.charAt(0).toUpperCase() + value.slice(1);
   },
+  formatDate(date, options = 'long', locales = undefined) {
+    if (!date) {
+      return '';
+    }
+    date = new Date(date);
+    if (options === 'iso') {
+      return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split("T")[0];
+    }
+
+    if (typeof options === 'string') {
+      options = {dateStyle: options};
+    }
+    if (!locales) {
+      // Get locale from <html lang="...">, since this locale is not automatically applied when formatting dates 
+      // (at least in headless chrome, which has poor locale support)
+      locales = document.documentElement.lang;
+    }
+    return date.toLocaleDateString(locales, options);
+  }
 }
 
 

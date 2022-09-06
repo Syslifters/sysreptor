@@ -13,13 +13,13 @@
             <v-list-item v-for="finding in projectType.report_preview_data.findings" :key="finding.id" :value="finding" link>
               <v-list-item-title>{{ finding.title }}</v-list-item-title>
               <v-list-item-action>
-                <delete-button @delete="deleteFinding(finding)" icon />
+                <delete-button @delete="deleteFinding(finding)" :disabled="disabled" icon />
               </v-list-item-action>
             </v-list-item>
           </v-list-item-group>
           <v-list-item>
             <v-list-item-action>
-              <s-btn @click="createFinding" color="secondary" x-small>
+              <s-btn @click="createFinding" :disabled="disabled" color="secondary" x-small>
                 <v-icon>mdi-plus</v-icon>
                 Create Finding
               </s-btn>
@@ -39,6 +39,8 @@
               :upload-image="uploadImage" 
               :image-urls-relative-to="`/projecttypes/${projectType.id}/`"
               :selectable-users="[$auth.user]"
+              :lang="projectType.language"
+              :disabled="disabled"
             />
           </div>
         </template>
@@ -52,6 +54,8 @@
               :upload-image="uploadImage" 
               :image-urls-relative-to="`/projecttypes/${projectType.id}/`"
               :selectable-users="[$auth.user]"
+              :lang="projectType.language"
+              :disabled="disabled"
             />
           </div>
         </template>
@@ -75,6 +79,10 @@ export default {
     projectType: {
       type: Object,
       required: true,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     }
   },
   data() {

@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import {Chart} from 'chart.js/auto/auto.js';
+import Chart from 'chart.js/auto';
 
 export default {
   name: "Chart",

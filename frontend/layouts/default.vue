@@ -7,8 +7,9 @@
         </v-tab>
         <template v-if="$auth.loggedIn">
           <v-tab to="/projects/" :ripple="false">Projects</v-tab>
-          <v-tab to="/designer/" :ripple="false">Designer</v-tab>
           <v-tab to="/templates/" :ripple="false">Templates</v-tab>
+          <v-tab to="/designer/" :ripple="false">Designer</v-tab>
+          <v-tab v-if="$auth.hasScope('user_manager')" to="/users/" :ripple="false">Users</v-tab>
           <v-spacer />
 
           <user-info-menu-item />
@@ -23,7 +24,7 @@
 </template>
 
 <style lang="scss" scoped>
-.main-menu ::v-deep {
+.main-menu :deep() {
   font-size: larger;
 
   .v-tabs-bar {

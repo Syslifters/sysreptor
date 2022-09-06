@@ -4,5 +4,6 @@
     persistent-hint
     hide-details="auto" 
     outlined 
+    spellcheck="false"
   />
 </template>

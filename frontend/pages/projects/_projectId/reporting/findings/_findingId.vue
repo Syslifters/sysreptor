@@ -1,6 +1,16 @@
 <template>
   <div>
-    <edit-toolbar v-bind="toolbarAttrs" />
+    <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
+      <div class="assignee-container">
+        <user-selection 
+          v-model="finding.assignee" 
+          :selectable-users="project.pentesters" 
+          :disabled="readonly" 
+          label="Assignee"
+          :outlined="false" dense
+        />
+      </div>
+    </edit-toolbar>
 
     <v-alert v-if="errorMessageLocked" type="warning">
       {{ errorMessageLocked }}
@@ -8,11 +18,13 @@
 
     <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
       <dynamic-input-field 
-        v-model="finding.data[fieldId]" :disabled="editMode === 'READONLY'"
+        v-model="finding.data[fieldId]" 
+        :disabled="readonly"
         :id="fieldId" 
         :definition="projectType.finding_fields[fieldId]" 
         :upload-image="uploadImage" :image-urls-relative-to="projectUrl" 
         :selectable-users="project.pentesters"
+        :lang="finding.language"
       />
     </div>
   </div>
@@ -23,6 +35,7 @@ import urlJoin from 'url-join';
 import DynamicInputField from '~/components/DynamicInputField.vue';
 import LockEditMixin from '~/mixins/LockEditMixin.js';
 import { uploadFile } from '~/utils/upload.js';
+import UserSelection from '~/components/UserSelection.vue';
 
 function getProjectUrl(params) {
   return `/pentestprojects/${params.projectId}/`;
@@ -32,7 +45,7 @@ function getFindingUrl(params) {
 }
 
 export default {
-  components: { DynamicInputField },
+  components: { DynamicInputField, UserSelection },
   mixins: [LockEditMixin],
   async asyncData({ $axios, store, params }) {
     const finding = await $axios.$get(getFindingUrl(params));
@@ -69,3 +82,9 @@ export default {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+.assignee-container {
+  width: 17em;
+}
+</style>

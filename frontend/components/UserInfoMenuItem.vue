@@ -8,14 +8,16 @@
 
     <template #default>
       <v-list>
-        <v-list-item>
+        <v-list-item two-line>
           <v-list-item-content>
-            <v-list-item-title>
-              {{ $auth.user.name }}
-            </v-list-item-title>
+            <v-list-item-title>{{ $auth.user.username }}</v-list-item-title>
+            <v-list-item-subtitle>{{ $auth.user.name }}</v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
         <v-divider />
+        <v-list-item to="/users/self/" nuxt>
+          <v-list-item-title>Profile</v-list-item-title>
+        </v-list-item>
         <v-list-item link @click="logout()">
           <v-list-item-title>Log out</v-list-item-title>
         </v-list-item>

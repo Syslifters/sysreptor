@@ -32,12 +32,12 @@ services:
     ports:
       - 8000:8000
     environment:
-      DEBUG: "off"
       DATABASE_ENGINE: django.db.backends.postgresql
       DATABASE_HOST: db
       DATABASE_NAME: reportcreator
       DATABASE_USER: reportcreator
       DATABASE_PASSWORD: reportcreator
+    env_file: app.env
     restart: always
     depends_on:
       db:

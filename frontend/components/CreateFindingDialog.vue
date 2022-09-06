@@ -8,7 +8,7 @@
     </template>
 
     <template #default>
-      <v-card flat tile>
+      <s-card>
         <v-card-title>
           <v-toolbar flat>
             <v-toolbar-title>Create Finding</v-toolbar-title>
@@ -35,6 +35,7 @@
             no-filter
             clearable
             return-object
+            hide-details="auto"
             outlined
           >
             <template #selection="{item}">
@@ -47,6 +48,7 @@
                 <div class="pt-2 pb-2">
                   {{ item.data.title }}
                   <br />
+                  <language-chip :value="item.language" />
                   <v-chip v-for="tag in item.tags" :key="tag" class="ma-1" small>
                     {{ tag }}
                   </v-chip>
@@ -58,6 +60,11 @@
               <div v-if="templates.hasNextPage" v-intersect="templates.fetchNextPage()" />
             </template>
           </v-autocomplete>
+          <s-checkbox 
+            v-model="showOnlyMatchingLanguage"
+            label="Show only templates with matching language" 
+            dense
+          />
         </v-card-text>
         
         <v-card-actions>
@@ -72,17 +79,15 @@
             Create Empty Finding
           </s-btn>
         </v-card-actions>
-      </v-card>
+      </s-card>
     </template>
   </v-dialog>
 </template>
 
 <script>
-import CvssChip from './CvssChip.vue';
 import { SearchableCursorPaginationFetcher } from '~/utils/urls';
 
 export default {
-  components: { CvssChip },
   props: {
     project: {
       type: Object,
@@ -95,9 +100,20 @@ export default {
       currentTemplate: null,
       templates: new SearchableCursorPaginationFetcher({
         baseURL: '/findingtemplates/', 
+        searchFilters: { language: this.project.language },
         axios: this.$axios, 
         toast: this.$toast
       }),
+    }
+  },
+  computed: {
+    showOnlyMatchingLanguage: {
+      get() {
+        return this.templates.searchFilters.language === this.project.language;
+      },
+      set(val) {
+        this.templates.applyFilters({ language: val ? this.project.language : null });
+      }
     }
   },
   methods: {

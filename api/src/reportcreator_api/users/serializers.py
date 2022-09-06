@@ -1,22 +1,56 @@
 from collections import OrderedDict
 from uuid import UUID
 from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.hashers import make_password
+from reportcreator_api.pentests import models
 from reportcreator_api.users.models import PentestUser
+from reportcreator_api.utils.utils import omit_items
 
 
 class PentestUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = PentestUser
+        fields = ['id', 'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after']
+
+
+class PentestUserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PentestUser
         fields = [
-            'id', 'created', 'updated', 
-            'username', 'is_superuser', 'password',
-            'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
-            'email', 'phone']
+            'id', 'created', 'updated', 'last_login', 'is_active',
+            'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
+            'email', 'phone',
+            'roles', 'is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager',
+        ]
+    
+    def get_extra_kwargs(self):
+        user = self.context['request'].user
+        is_user_manager = not (user.is_user_manager or user.is_superuser)
+        return super().get_extra_kwargs() | {
+            'is_superuser': {'read_only': not user.is_superuser},
+            'is_user_manager': {'read_only': is_user_manager},
+            'is_designer': {'read_only': is_user_manager},
+            'is_template_editor': {'read_only': is_user_manager},
+            'username': {'read_only': is_user_manager},
+        }
+
+
+class CreateUserSerializer(PentestUserDetailSerializer):
+    class Meta(PentestUserDetailSerializer.Meta):
+        fields = PentestUserDetailSerializer.Meta.fields + ['password']
         extra_kwargs = {'password': {'write_only': True}}
+    
+    def validate_password(self, value):
+        validate_password(value, user=self.instance)
+        return make_password(value)
 
 
 class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
-    queryset = PentestUser.objects.filter(is_active=True)
+    queryset = PentestUser.objects.all()
+
+    def use_pk_only_optimization(self):
+        return False
 
     def to_internal_value(self, data):
         if isinstance(data, dict) and 'id' in data:
@@ -41,3 +75,42 @@ class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
 
         return OrderedDict([(str(item.pk), self.display_value(item)) for item in queryset])
 
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = PentestUser
+        fields = ['old_password', 'new_password']
+
+    def validate_old_password(self, value):
+        if not self.instance.check_password(value):
+            raise serializers.ValidationError('Old password is not correct')
+        return value
+
+    def validate_new_password(self, value):
+        validate_password(value, user=self.instance)
+        return value
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return instance
+
+
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = PentestUser
+        fields = ['password']
+    
+    def validate_password(self, value):
+        validate_password(value, user=self.instance)
+        return value
+    
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['password'])
+        instance.save()
+        return instance

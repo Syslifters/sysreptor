@@ -7,6 +7,7 @@
       @input="emitInput"
       :label="label"
       :disabled="disabled"
+      :lang="lang"
     />
 
     <!-- Markdown -->
@@ -19,6 +20,7 @@
         :image-urls-relative-to="imageUrlsRelativeTo"
         :label="label"
         :disabled="disabled"
+        :lang="lang"
       />
     </div>
 
@@ -58,7 +60,7 @@
       item-value="value"
       :label="label"
       :disabled="disabled"
-      hide-details
+      hide-details="auto"
       clearable
     />
 
@@ -72,7 +74,7 @@
     />
 
     <!-- Boolean -->
-    <v-checkbox
+    <s-checkbox
       v-else-if="definition.type === 'boolean'"
       :value="formValue"
       @change="emitInput"
@@ -100,7 +102,7 @@
     />
 
     <!-- Object -->
-    <v-card v-else-if="definition.type === 'object'" outlined>
+    <s-card v-else-if="definition.type === 'object'">
       <div class="mt-4 mb-2 ml-4">{{ label }}</div>
 
       <dynamic-input-field
@@ -113,11 +115,12 @@
         :show-field-ids="showFieldIds"
         :selectable-users="selectableUsers"
         :disabled="disabled"
+        :lang="lang"
       />
-    </v-card>
+    </s-card>
 
     <!-- List -->
-    <v-card v-else-if="definition.type === 'list'" outlined>
+    <s-card v-else-if="definition.type === 'list'">
       <div class="mt-4 mb-2 ml-4">{{ label }}</div>
 
       <v-list>
@@ -131,6 +134,7 @@
               :show-field-ids="showFieldIds"
               :selectable-users="selectableUsers"
               :disabled="disabled"
+              :lang="lang"
             />
           </v-list-item-content>
 
@@ -146,7 +150,7 @@
           </s-btn>
         </v-list-item>
       </v-list>
-    </v-card>
+    </s-card>
 
     <div v-else>
       {{ definition }}
@@ -193,7 +197,11 @@ export default {
     disabled: {
       type: Boolean,
       default: false,
-    }
+    },
+    lang: {
+      type: String,
+      default: null,
+    },
   },
   emits: ["updated"],
   data() {
@@ -212,7 +220,11 @@ export default {
     label() {
       let out = this.definition.label || '';
       if (this.showFieldIds && this.id) {
-        out += ' (' + this.id + ')';  
+        if (out) {
+          out += ' (' + this.id + ')';  
+        } else {
+          out = this.id;
+        }
       }
       return out;
     }

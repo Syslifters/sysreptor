@@ -14,7 +14,7 @@ import { CursorPaginationFetcher } from '~/utils/urls'
 export default {
   props: {
     value: {
-      type: [Array, String],
+      type: [Array, Object, String],
       default: null,
     },
     label: {
@@ -40,7 +40,11 @@ export default {
     selectableUsers: {
       type: Array,
       default: null,
-    }
+    },
+    outlined: {
+      type: Boolean,
+      default: true,
+    },
   },
   emits: ['input'],
   data() {
@@ -54,14 +58,15 @@ export default {
   },
   computed: {
     autocompleteAttrs() {
-      return Object.assign({
+      return Object.assign({}, this.$attrs, {
         label: this.label,
         itemValue: 'id',
-        itemText: u => u.name,
+        itemText: u => `${u.username} (${u.name})`,
         itemDisabled: u => this.preventUnselectingSelf && u.id === this.$auth.user.id,
         hideNoData: true,
+        hideDetails: 'auto',
         returnObject: true,
-        outlined: true,
+        outlined: this.outlined,
         disabled: this.disabled,
       }, 
       this.selectableUsers ? {

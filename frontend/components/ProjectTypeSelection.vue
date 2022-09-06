@@ -8,6 +8,7 @@
     :rules="rules"
     :loading="items.isLoading"
     hide-no-data
+    hide-details="auto"
     outlined
     class="mt-4"
   >

@@ -1,5 +1,5 @@
 <template>
-  <v-card outlined>
+  <s-card>
     <v-card-text>
       <v-row v-if="!isListItem">
         <v-col>
@@ -7,7 +7,7 @@
             :value="value.id"
             @change="emitInputVal('id', $event)"
             :rules="rules.id" 
-            :disabled="!canChangeStructure"
+            :disabled="disabled || !canChangeStructure"
             label="ID" 
             hint="Used to access this field in report templates"
             required
@@ -18,7 +18,7 @@
             :value="value.type"
             @change="updateType($event)"
             :items="DATA_TYPES"
-            :disabled="!canChangeStructure"
+            :disabled="disabled || !canChangeStructure"
             label="Data Type"
             hint="Data type of this field. Controls the allowed values and input form."
             required
@@ -28,6 +28,7 @@
           <s-text-field
             :value="value.label"
             @input="emitInputVal('label', $event)"
+            :disabled="disabled"
             label="Label"
             hint="Friendly name used in input forms for this field"
             required
@@ -39,7 +40,7 @@
         :value="value.type"
         @change="emitInputVal('type', $event)"
         :items="DATA_TYPES"
-        :disabled="!canChangeStructure"
+        :disabled="disabled || !canChangeStructure"
         label="Data Type"
         hint="Data type of this field. Controls the allowed values and input form."
         required
@@ -54,7 +55,7 @@
                 <s-text-field 
                   :value="choice.value"
                   @input="emitInputChoice('updateValue', choice, $event)"
-                  :disabled="!canChangeStructure"
+                  :disabled="disabled || !canChangeStructure"
                   :rules="rules.choice"
                   label="Value"
                   required
@@ -64,6 +65,7 @@
                 <s-text-field 
                   :value="choice.label"
                   @input="emitInputChoice('updateLabel', choice, $event)"
+                  :disabled="disabled"
                   label="Label"
                   required
                 />
@@ -71,12 +73,12 @@
             </v-row>
           </v-list-item-content>
           <v-list-item-action>
-            <delete-button @delete="emitInputChoice('delete', choice)" :disabled="!canChangeStructure" icon />
+            <delete-button @delete="emitInputChoice('delete', choice)" :disabled="disabled || !canChangeStructure" icon />
           </v-list-item-action>
         </v-list-item>
         <v-list-item>
           <v-list-item-action>
-            <s-btn @click="emitInputChoice('add')" :disabled="!canChangeStructure" color="secondary">
+            <s-btn @click="emitInputChoice('add')" :disabled="disabled || !canChangeStructure" color="secondary">
               <v-icon>mdi-plus</v-icon>
               Add Value
             </s-btn>
@@ -89,6 +91,8 @@
         :value="value.default"
         @input="emitInputVal('default', $event)"
         :definition="{label: 'Default Value', type: value.type, choices: value.choices}"
+        :lang="lang"
+        :disabled="disabled"
       />
       <!-- List Item -->
       <input-field-definition
@@ -97,6 +101,8 @@
         @input="emitInputVal('items', $event)"
         :is-list-item="true"
         :can-change-structure="canChangeStructure"
+        :lang="lang"
+        :disabled="disabled"
       />
       <!-- Object -->
       <v-list v-else-if="value.type === 'object'">
@@ -107,23 +113,25 @@
               @input="emitInputObject('update', f.id, $event)" 
               :is-object="false"
               :can-change-structure="canChangeStructure"
+              :lang="lang"
+              :disabled="disabled"
             />
           </v-list-item-content>
           <v-list-item-action>
-            <delete-button :disabled="!canChangeStructure" @delete="emitInputObject('delete', f.id)" icon />
+            <delete-button :disabled="disabled || !canChangeStructure" @delete="emitInputObject('delete', f.id)" icon />
           </v-list-item-action>
         </v-list-item>
 
         <v-divider />
         <v-list-item>
-          <s-btn @click="emitInputObject('add')" :disabled="!canChangeStructure" color="secondary">
+          <s-btn @click="emitInputObject('add')" :disabled="disabled || !canChangeStructure" color="secondary">
             <v-icon>mdi-plus</v-icon>
             Add property
           </s-btn>
         </v-list-item>
       </v-list>
     </v-card-text>
-  </v-card>
+  </s-card>
 </template>
 
 <script>
@@ -156,6 +164,14 @@ export default {
     isListItem: {
       type: Boolean,
       default: false,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    lang: {
+      type: String,
+      default: null,
     },
   },
   emits: ['input', 'updateId', 'updateOrder'],

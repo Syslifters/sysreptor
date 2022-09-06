@@ -30,22 +30,44 @@
       </template>
 
       <template #default>
-        <edit-toolbar ref="toolbar" class="mb-5" :data="template" :can-auto-save="true" :save="saveForm" :delete="deleteForm" />
+        <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true" />
+
+        <v-alert v-if="errorMessageLocked" type="warning">
+          {{ errorMessageLocked }}
+        </v-alert>
 
         <div v-for="d in fieldDefinitionsCore" :key="d.id">
-          <dynamic-input-field v-model="template.data[d.id]" :id="d.id" :definition="d" :selectable-users="[]" />
+          <dynamic-input-field 
+            v-model="template.data[d.id]" 
+            :id="d.id" 
+            :definition="d" 
+            :selectable-users="[]" 
+            :lang="template.language"
+            :disabled="readonly"
+          />
         </div>
+        <language-selection v-model="template.language" :disabled="readonly" />
         <v-combobox
           v-model="template.tags"
           :items="templateTagSuggestions"
+          :disabled="readonly"
           label="Tags"
           multiple
           chips deletable-chips
-          outlined hide-details
+          outlined 
+          hide-details="auto"
           class="mt-4"
+          spellcheck="false"
         />
         <div v-for="d in visibleFieldDefinitionsExceptCore" :key="d.id">
-          <dynamic-input-field v-model="template.data[d.id]" :id="d.id" :definition="d" :selectable-users="[]" />
+          <dynamic-input-field 
+            v-model="template.data[d.id]" 
+            :id="d.id" 
+            :definition="d" 
+            :selectable-users="[]" 
+            :lang="template.language"
+            :disabled="readonly"
+          />
         </div>
       </template>
     </split-menu>
@@ -54,8 +76,15 @@
 
 <script>
 import DynamicInputField from '~/components/DynamicInputField.vue';
+import { EditMode } from '~/components/EditToolbar.vue';
+import LanguageSelection from '~/components/LanguageSelection.vue';
 import SplitMenu from '~/components/SplitMenu.vue';
+import LockEditMixin from '~/mixins/LockEditMixin';
 import { CursorPaginationFetcher } from '~/utils/urls';
+
+function getTemplateUrl(params) {
+  return `/findingtemplates/${params.templateId}/`;
+}
 
 function compareOrigin(a, b) {
   const originOrder = { core: 1, predefined: 2, custom: 3 };
@@ -63,15 +92,10 @@ function compareOrigin(a, b) {
 }
 
 export default {
-  components: { SplitMenu, DynamicInputField },
-  beforeRouteLeave(to, from, next) {
-    this.$refs.toolbar.beforeLeave(to, from, next);
-  },
-  beforeRouteUpdate(to, from, next) {
-    this.$refs.toolbar.beforeLeave(to, from, next);
-  },
+  components: { SplitMenu, DynamicInputField, LanguageSelection },
+  mixins: [LockEditMixin],
   async asyncData({ params, store, $axios }) {
-    const template = await $axios.$get(`/findingtemplates/${params.templateId}/`);
+    const template = await $axios.$get(getTemplateUrl(params));
     const rawFieldDefinition = await store.dispatch('templates/getFieldDefinition');
     const fieldDefinition = Object.keys(rawFieldDefinition)
       .map(id => ({ id, visible: true, ...rawFieldDefinition[id] }))
@@ -80,10 +104,14 @@ export default {
   },
   data() {
     return {
+      editMode: (this.$auth.hasScope('template_editor')) ? EditMode.EDIT : EditMode.READONLY,
       projectTypes: new CursorPaginationFetcher('/projecttypes/', this.$axios, this.$toast),
     }
   },
   computed: {
+    data() {
+      return this.template;
+    },
     templateTagSuggestions() {
       return [
         'web', 'infrastructure', 'organizational', 'hardening', 'internal', 'external', 'third_party',
@@ -140,11 +168,17 @@ export default {
     },
   },
   methods: {
-    async saveForm(data) {
-      await this.$store.dispatch('templates/update', this.template);
+    getBaseUrl(data) {
+      return getTemplateUrl({ templateId: data.id });
     },
-    async deleteForm(data) {
-      await this.$store.dispatch('templates/delete', this.template)
+    getHasEditPermissions() {
+      return this.$auth.hasScope('template_editor');
+    },
+    async performSave(data) {
+      await this.$store.dispatch('templates/update', data);
+    },
+    async performDelete(data) {
+      await this.$store.dispatch('templates/delete', data)
       this.$router.push(`/templates/`);
     },
   }

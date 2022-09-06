@@ -1,7 +1,7 @@
 <template>
   <list-view url="/projecttypes/">
     <template #title>Report Designs</template>
-    <template #actions>
+    <template #actions v-if="$auth.hasScope('designer')">
       <s-btn @click="createProjectType" color="primary">
         <v-icon>mdi-plus</v-icon>
         Create new Report Design

@@ -4,6 +4,7 @@
       class="vue-easymde-textarea"
       :value="value"
       @input="handleInput($event.target.value)"
+      :lang="lang"
     />
   </div>
 </template>
@@ -34,6 +35,10 @@ export default {
     disabled: {
       type: Boolean,
       default: false,
+    },
+    lang: {
+      type: String,
+      default: null,
     }
   },
   emits: ['input'],
@@ -54,9 +59,6 @@ export default {
         sideBySideFullscreen: false,
         uploadImage: true,
         imageUploadFunction: this.uploadImageWrapper,
-        // TODO: support attrlist for image preview in editor; toggle previewImagesInEditor
-        // previewImagesInEditor: true,
-        // overlayMode: { mode: null },
         imagesPreviewHandler: this.rewriteImageSource,
         previewRender: text => DOMPurify.sanitize(md.render(text), { ADD_TAGS: ['footnote'] }),
         errorCallback: errorMessage => this.$toast.error(errorMessage),

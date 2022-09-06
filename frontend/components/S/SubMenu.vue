@@ -5,7 +5,7 @@
 </template>
 
 <style lang="scss" scoped>
-.sub-menu ::v-deep .v-tabs-bar {
+.sub-menu :deep(.v-tabs-bar) {
   height: 30px;
 
   .v-tab {

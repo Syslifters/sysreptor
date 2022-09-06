@@ -14,6 +14,7 @@ class MessageLocationType(enum.Enum):
     REPORT = 'report'
     SECTION = 'section'
     TEMPLATE = 'template'
+    OTHER = 'other'
 
 
 @dataclasses.dataclass
