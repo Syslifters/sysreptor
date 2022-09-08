@@ -51,7 +51,7 @@
     </v-menu>
 
     <!-- Enum -->
-    <s-select
+    <s-autocomplete
       v-else-if="definition.type === 'enum'"
       :value="formValue"
       @change="emitInput"
@@ -60,7 +60,6 @@
       item-value="value"
       :label="label"
       :disabled="disabled"
-      hide-details="auto"
       clearable
     />
 
@@ -103,7 +102,7 @@
 
     <!-- Object -->
     <s-card v-else-if="definition.type === 'object'">
-      <div class="mt-4 mb-2 ml-4">{{ label }}</div>
+      <v-card-title class="text-body-1 pb-2">{{ label }}</v-card-title>
 
       <dynamic-input-field
         v-for="(objectFieldDefinition, objectFieldId) in definition.properties"
@@ -121,9 +120,40 @@
 
     <!-- List -->
     <s-card v-else-if="definition.type === 'list'">
-      <div class="mt-4 mb-2 ml-4">{{ label }}</div>
+      <v-card-title class="text-body-1 pb-2">
+        <span>{{ label }}</span>
 
-      <v-list>
+        <template v-if="definition.items.type === 'string'">
+          <v-spacer />
+          <s-tooltip>
+            <template #activator="{on, attrs}">
+              <s-btn v-bind="attrs" v-on="on" @click="bulkEditList = !bulkEditList" icon>
+                <v-icon v-if="bulkEditList">mdi-format-list-bulleted</v-icon>
+                <v-icon v-else>mdi-playlist-edit</v-icon>
+              </s-btn>
+            </template>
+
+            <template #default>
+              <span v-if="bulkEditList">Edit as list</span>
+              <span v-else>Bulk edit list items</span>
+            </template>
+          </s-tooltip>
+        </template>
+      </v-card-title>
+
+      <template v-if="definition.items.type === 'string' && bulkEditList">
+        <!-- Bulk edit list items of list[string] -->
+        <v-textarea
+          :value="(formValue || []).join('\n')" @input="emitInputStringList"
+          label="Enter one item per line"
+          :disabled="disabled"
+          :lang="lang"
+          auto-grow
+          hide-details="auto"
+          outlined 
+        />
+      </template>
+      <v-list v-else>
         <v-list-item v-for="(entryVal, entryIdx) in formValue" :key="entryIdx">
           <v-list-item-content>
             <dynamic-input-field
@@ -207,6 +237,7 @@ export default {
   data() {
     return {
       datePickerVisible: false,
+      bulkEditList: false,
     };
   },
   computed: {
@@ -264,6 +295,10 @@ export default {
       }
 
       this.$emit("input", newVal);
+    },
+    emitInputStringList(valuesListString) {
+      const values = (valuesListString || '').split('\n').filter(v => !!v);
+      this.$emit('input', values);
     },
     isEmptyOrDefault(value, definition) {
       if (definition.type === 'list') {

@@ -15,6 +15,7 @@
               <s-checkbox
                 v-model="form.encryptReport"
                 label="Encrypt report PDF"
+                class="mb-2"
               />
 
               <s-text-field

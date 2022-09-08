@@ -48,6 +48,7 @@ export default {
     async performSave(data) {
       try {
         await this.$axios.$patch(getUserUrl({ userId: data.id }), data);
+        this.serverErrors = null;
       } catch (error) {
         if (error?.response?.status === 400 && error?.response?.data) {
           this.serverErrors = error.response.data;

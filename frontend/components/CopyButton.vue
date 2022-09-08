@@ -39,16 +39,32 @@
 
 <script>
 export default {
-  emits: ['copy'],
+  props: {
+    copy: {
+      type: Function,
+      required: true,
+    },
+  },
   data() {
     return {
       confirmDialogVisible: false,
+      isCopying: false,
     }
   },
   methods: {
-    performCopy() {
+    async performCopy() {
+      if (this.isCopying) {
+        return;
+      }
+      this.isCopying = true;
       this.confirmDialogVisible = false;
-      this.$emit('copy');
+      try {
+        await this.copy();
+        this.$toast.success('Duplicated successfuly');
+      } catch (error) {
+        this.$toast.global.requestError({ error, message: 'Duplication failed' });
+      }
+      this.isCopying = false;
     }
   }
 }

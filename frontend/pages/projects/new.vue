@@ -1,14 +1,10 @@
 <template>
   <v-container>
     <v-form ref="form" @submit.prevent="performCreate">
-      <v-toolbar flat dense tile>
-        <v-toolbar-title>Create new project</v-toolbar-title>
-        <v-spacer />
-        <s-btn type="submit" color="primary">
-          <v-icon>mdi-content-save</v-icon>
-          Save
-        </s-btn>
-      </v-toolbar>
+      <edit-toolbar :form="$refs.form" :save="performCreate">
+        <template #title>Create new Project</template>
+        <template #save-button-text>Create Project</template>
+      </edit-toolbar>
 
       <s-text-field v-model="project.name" label="Name" />
       <project-type-selection v-model="project.project_type" />
@@ -18,10 +14,7 @@
 </template>
 
 <script>
-import ProjectTypeSelection from '~/components/ProjectTypeSelection.vue'
-import UserSelection from '~/components/UserSelection.vue'
 export default {
-  components: { ProjectTypeSelection, UserSelection },
   data() {
     return {
       project: {

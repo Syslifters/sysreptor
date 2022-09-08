@@ -34,6 +34,7 @@ export default {
         await this.$axios.$patch(`/pentestusers/${this.$route.params.userId}/reset-password/`, {
           password: this.password,
         });
+        this.serverErrors = null;
       } catch (error) {
         if (error?.response?.status === 400 && error?.response?.data) {
           this.serverErrors = error.response.data;

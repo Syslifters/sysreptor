@@ -7,7 +7,7 @@
 
     <v-switch v-if="canSave && canAutoSave" v-model="autoSaveEnabled" label="Auto Save" class="align-self-center ml-2 mr-2" hide-details />
 
-    <s-tooltip v-if="canSave" :disabled="savingInProgress || data === null">
+    <s-tooltip v-if="canSave" :disabled="data === null" :open-on-focus="false">
       <template #activator="{on, attrs}">
         <s-btn :loading="savingInProgress" :disabled="savingInProgress" @click="performSave" v-bind="attrs" v-on="on" color="primary" class="ml-2 mr-2">
           <template #default>

@@ -25,18 +25,15 @@
         </v-card-title>
 
         <v-card-text>
-          <v-autocomplete 
+          <s-autocomplete 
             v-model="currentTemplate"
             label="Finding Templates"
             :items="templates.data"
             item-value="id" item-text="data.title"
             :search-input.sync="templates.searchQuery"
-            hide-no-data
             no-filter
             clearable
             return-object
-            hide-details="auto"
-            outlined
           >
             <template #selection="{item}">
               <cvss-chip :value="item.data.cvss" />
@@ -59,7 +56,7 @@
             <template #append-item>
               <div v-if="templates.hasNextPage" v-intersect="templates.fetchNextPage()" />
             </template>
-          </v-autocomplete>
+          </s-autocomplete>
           <s-checkbox 
             v-model="showOnlyMatchingLanguage"
             label="Show only templates with matching language" 

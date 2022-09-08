@@ -35,6 +35,7 @@ export default {
     async changePassword() {
       try {
         await this.$axios.$post('/pentestusers/self/change-password/', this.formData);
+        this.serverErrors = null;
       } catch (error) {
         if (error?.response?.status === 400 && error?.response?.data) {
           this.serverErrors = error.response.data;

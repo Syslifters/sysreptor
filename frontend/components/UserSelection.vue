@@ -1,12 +1,12 @@
 <template>
-  <v-autocomplete 
+  <s-autocomplete 
     :value="value" @change="$emit('input', $event)"
     v-bind="autocompleteAttrs"
   >
     <template #append-item>
       <div v-if="!selectableUsers && items.hasNextPage" v-intersect="items.fetchNextPage()" />
     </template>
-  </v-autocomplete>
+  </s-autocomplete>
 </template>
 
 <script>
@@ -62,12 +62,10 @@ export default {
         label: this.label,
         itemValue: 'id',
         itemText: u => `${u.username} (${u.name})`,
-        itemDisabled: u => this.preventUnselectingSelf && u.id === this.$auth.user.id,
-        hideNoData: true,
-        hideDetails: 'auto',
+        itemDisabled: u => this.preventUnselectingSelf && u.id === this.$auth.user.id && !!this.value.find(v => v.id === u.id),
+        disabled: this.disabled,
         returnObject: true,
         outlined: this.outlined,
-        disabled: this.disabled,
       }, 
       this.selectableUsers ? {
         items: this.selectableUsers,

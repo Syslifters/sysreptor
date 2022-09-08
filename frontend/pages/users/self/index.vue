@@ -24,6 +24,7 @@ export default {
     async performSave(data) {
       try {
         const user = await this.$axios.$patch('/pentestusers/self/', data);
+        this.serverErrors = null;
         this.$auth.setUser(user);
       } catch (error) {
         if (error?.response?.status === 400 && error?.response?.data) {

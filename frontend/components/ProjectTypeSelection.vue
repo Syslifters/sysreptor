@@ -1,5 +1,6 @@
 <template>
-  <v-autocomplete 
+  <s-autocomplete 
+    v-bind="$attrs"
     :value="value" @change="$emit('input', $event)"
     label="Design"
     :items="items.data"
@@ -7,15 +8,11 @@
     item-value="id"
     :rules="rules"
     :loading="items.isLoading"
-    hide-no-data
-    hide-details="auto"
-    outlined
-    class="mt-4"
   >
     <template #append-item>
       <div v-if="items.hasNextPage" v-intersect="items.fetchNextPage()" />
     </template>
-  </v-autocomplete>
+  </s-autocomplete>
 </template>
 
 <script>

@@ -1,7 +1,7 @@
 <template>
   <s-select 
+    v-bind="$attrs"
     :value="value" @change="$emit('input', $event)" 
-    :disabled="disabled"
     :items="languageInfos"
     item-value="code"
     item-text="name"
@@ -16,10 +16,6 @@ export default {
     value: {
       type: String,
       required: true,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
     },
   },
   data() {

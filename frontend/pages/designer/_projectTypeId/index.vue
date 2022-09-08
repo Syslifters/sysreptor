@@ -2,7 +2,7 @@
   <v-container>
     <v-form ref="form">
       <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form">
-        <copy-button v-if="$auth.hasScope('designer')" @copy="performCopy">
+        <copy-button v-if="$auth.hasScope('designer')" :copy="performCopy">
           <template #tooltip>Duplicate Design</template>
         </copy-button>
       </edit-toolbar>
@@ -56,12 +56,8 @@ export default {
       this.$router.push({ path: '/designer/' });
     },
     async performCopy() {
-      try {
-        const obj = await this.$axios.$post(`/projecttypes/${this.projectType.id}/copy/`, {});
-        this.$router.push(`/designer/${obj.id}/pdfdesigner/`);
-      } catch (error) {
-        this.$toast.global.requestError({ error });
-      }
+      const obj = await this.$axios.$post(`/projecttypes/${this.projectType.id}/copy/`, {});
+      this.$router.push(`/designer/${obj.id}/pdfdesigner/`);
     }
   }
 }
