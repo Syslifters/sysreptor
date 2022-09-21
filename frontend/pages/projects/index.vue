@@ -16,7 +16,7 @@
             
           <v-list-item-subtitle>
             <v-chip v-for="user in item.pentesters" :key="user.id" class="ma-1 mt-2" small>
-              {{ user.username }} ({{ user.name }})
+              {{ user.username }}
             </v-chip>
           </v-list-item-subtitle>
         </v-list-item-content>

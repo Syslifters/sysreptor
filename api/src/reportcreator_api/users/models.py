@@ -23,7 +23,7 @@ class PentestUser(BaseModel, AbstractUser):
     @property
     def name(self):
         return ((self.title_before + ' ') if self.title_before else '') + \
-            (self.first_name or '') + ' ' + \
+            ((self.first_name + ' ') if self.first_name else '') + \
             ((self.middle_name + ' ') if self.middle_name else '') + \
             (self.last_name or '') + \
             ((', ' + self.title_after) if self.title_after else '') 

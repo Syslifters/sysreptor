@@ -88,10 +88,10 @@
           </v-col>
           <v-col :md="6">
             <s-text-field 
-              :value="user.phone_mobile" @input="updateField('phone_mobile', $event)" 
+              :value="user.mobile" @input="updateField('mobile', $event)" 
               type="tel" 
               label="Mobile phone number (optional)" 
-              :error-messages="errors?.phone_mobile"
+              :error-messages="errors?.mobile"
               :disabled="!canEdit"
             />
           </v-col>

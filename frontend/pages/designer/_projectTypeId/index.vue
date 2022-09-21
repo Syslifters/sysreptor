@@ -1,12 +1,11 @@
 <template>
   <v-container>
     <v-form ref="form">
-      <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form">
+      <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :form="$refs.form">
         <copy-button v-if="$auth.hasScope('designer')" :copy="performCopy">
           <template #tooltip>Duplicate Design</template>
         </copy-button>
       </edit-toolbar>
-      <v-alert v-if="errorMessageLocked" type="warning">{{ errorMessageLocked }}</v-alert>
 
       <s-text-field
         v-model="projectType.name" 
@@ -39,6 +38,9 @@ export default {
   computed: {
     data() {
       return this.projectType;
+    },
+    deleteConfirmInput() {
+      return this.projectType.name;
     },
   },
   methods: {

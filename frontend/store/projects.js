@@ -19,6 +19,11 @@ function ensureExists(state, projectId, prop, val = null) {
 export const mutations = {
   set(state, obj) {
     ensureExists(state, obj.id, 'project');
+    // Invalidate cached findings and section that contain inlined values of the project
+    if (obj.project_type !== state.data[obj.id].project?.project_type || obj.language !== state.data[obj.id].project?.language) {
+      Vue.delete(state.data[obj.id], 'findings');
+      Vue.delete(state.data[obj.id], 'sections');
+    }
     state.data[obj.id].project = obj;
   },
   delete(state, obj) {

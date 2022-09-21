@@ -2,6 +2,7 @@
   "name": "reportcreator-rendering",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build --mode=development",
@@ -10,12 +11,8 @@
   "dependencies": {
     "vue": "^3",
     "chart.js": "^3",
-    "markdown-it": "^13",
-    "markdown-it-attrs": "^4",
-    "markdown-it-footnote": "^3",
-    "markdown-it-multimd-table": "^4",
-    "highlight.js": "^11",
-    "uuid": "^8"
+    "uuid": "^8",
+    "reportcreator-markdown": "../packages/markdown"
   },
   "devDependencies": {
     "@vue/cli-service": "~5.0.0",

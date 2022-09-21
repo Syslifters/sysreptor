@@ -10,8 +10,13 @@
           <v-tab to="/templates/" :ripple="false">Templates</v-tab>
           <v-tab to="/designer/" :ripple="false">Designer</v-tab>
           <v-tab v-if="$auth.hasScope('user_manager')" to="/users/" :ripple="false">Users</v-tab>
-          <v-spacer />
+        </template>
 
+        <v-spacer />
+        <s-btn icon dark href="https://docs.sysreptor.com/" target="_blank">
+          <v-icon>mdi-help-circle-outline</v-icon>
+        </s-btn>
+        <template v-if="$auth.loggedIn">
           <user-info-menu-item />
         </template>
       </v-tabs>

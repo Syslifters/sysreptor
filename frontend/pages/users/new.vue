@@ -33,7 +33,7 @@ export default {
         title_after: null,
         email: null,
         phone: null,
-        phone_mobile: null,
+        mobile: null,
         is_superuser: false,
         is_user_manager: false,
         is_designer: false,

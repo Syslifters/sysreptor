@@ -4,7 +4,7 @@
     <v-overlay v-if="pdfRenderErrors" color="grey darken-4" opacity="0.7" absolute>
       <error-list :value="pdfRenderErrors" />
     </v-overlay>
-    <v-overlay v-else-if="!pdfData" absolute>
+    <v-overlay v-else-if="!pdfData || (renderingInProgress && showLoadingSpinnerOnReload)" absolute>
       <div class="initial-loading">
         <v-progress-circular indeterminate />
       </div>
@@ -26,12 +26,17 @@ export default {
     reloadDebounceTime: {
       type: Number,
       default: 10 * 1000,
-    }
+    },
+    showLoadingSpinnerOnReload: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
       pdfData: null,
       pdfRenderErrors: null,
+      renderingInProgress: true,
     }
   },
   created() {
@@ -45,6 +50,7 @@ export default {
   },
   methods: {
     async reload() {
+      this.renderingInProgress = true;
       this.$emit('renderprogress', true);
       try {
         const res = await this.fetchPdf();
@@ -57,6 +63,7 @@ export default {
           this.$toast.global.requestError({ error, message: 'PDF rendering error' });
         }
       }
+      this.renderingInProgress = false;
       this.$emit('renderprogress', false);
     },
     reloadImmediate() {

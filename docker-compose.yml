@@ -28,6 +28,15 @@ services:
       - type: bind
         source: rendering/
         target: /app/rendering/
+      - type: bind
+        source: packages/
+        target: /app/packages/
+  languagetool:
+    build: 
+      context: languagetool
+    init: true
+    expose:
+      - 8010
   api:
     build:
       context: .
@@ -61,6 +70,8 @@ services:
         condition: service_healthy
       rendering:
         condition: service_started
+      languagetool:
+        condition: service_started
   frontend:
     build: 
       context: .
@@ -71,8 +82,8 @@ services:
         source: frontend/
         target: /app/frontend/
       - type: bind
-        source: rendering/
-        target: /app/rendering/
+        source: packages/
+        target: /app/packages/
     ports:
       - 3000:3000
     environment:

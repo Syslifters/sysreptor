@@ -16,8 +16,9 @@ h1, h2, h3, h4, h5, h6 {
 
 ```css linenums="1"
 pre code {
-    border: 1px solid black;
-    padding: 0.2em;
+  display: block !important;
+  border: 1px solid black;
+  padding: 0.2em;
 }
 code {
     background-color: whitesmoke;
@@ -25,7 +26,7 @@ code {
 
 /* Allow line wrapping in code blocks: prevent code from overflowing page */
 pre {
-    white-space: pre-wrap;
+  white-space: pre-wrap;
 }
 ```
 

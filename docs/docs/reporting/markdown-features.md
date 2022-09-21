@@ -12,17 +12,28 @@ Non-standard markdown syntax is described more detailed.
 #### Heading h4
 
 Inline text styling: **bold**, _italic_, ~~strikethrough~~, `code`
+
 Links: [Example Link](https://example.com)
 
 * list
 * items
   * nested list
 
-```html
-multiline code block
-with syntax highlighting
+1. numbered
+2. list
+
+```bash
+echo "muliline code block";
+# with syntax highlighting
 ```
 ~~~
+
+## Underline
+Underline is not supported in markdown. However you can insert HTML `<u>` tags to underline text.
+
+```md linenums="1"
+Text with <u>underlined</u> content.
+```
 
 ## Images
 Images use the standard markdown syntax, but are rendered as figures with captions.
@@ -54,26 +65,18 @@ This syntax supports table captions, grouping rows rows and cols to span multipl
 | table | header |
 | ------- | --------- |
 | cell    | value   |
-[table caption]
-```
 
-```md linenums="1"
-|             |          Grouping           ||
-First Header  | Second Header | Third Header |
- ------------ | :-----------: | -----------: |
-Content       |          *Long Cell*        ||
-Content       |   **Cell**    |         Cell |
-
-New section   |     More      |         Data |
-And more      | With an escaped '\|'         ||  
-[Prototype table]
+: table caption
 ```
 
 ## HTML Attributes
 This extension allows you to set HTML attributes from markdown.
+Place attributes in curly braces directly after the targeted element (without spaces between). 
+Attributes are key value pairs (`attr-name="attr-value"`)
+Shortcuts for setting the attribute `id` (`#id-value`) and `class` (`.class-value`) are supported.
 
 ```md linenums="1"
-![image](img.png){width="50%" id="img1" class="image-highlight"}
+![image](img.png){#img-id .image-class1 .image-class2 width="50%"}
 
 Text with [styled link](https://example.com/){class="link-class" style="color: red"} in it.
 ```
@@ -88,5 +91,5 @@ Text *with* **markdown** `code`.
   <img src="img1.png" />
   <img src="img2.png" />
   <figcaption>Two images side-by-side</figcaption>
-</>
+</figure>
 ```

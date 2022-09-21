@@ -1,6 +1,6 @@
 <template>
   <div>
-    <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
+    <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
       <div class="assignee-container">
         <user-selection 
           v-model="finding.assignee" 
@@ -12,9 +12,10 @@
       </div>
     </edit-toolbar>
 
-    <v-alert v-if="errorMessageLocked" type="warning">
-      {{ errorMessageLocked }}
-    </v-alert>
+    <p v-if="finding.template" class="text-right mt-1">
+      This finding was created from a template:
+      <nuxt-link :to="`/templates/${finding.template}/`">show template</nuxt-link>
+    </p>
 
     <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
       <dynamic-input-field 

@@ -1,41 +1,69 @@
 <template>
-  <v-toolbar flat dense tile>
-    <v-toolbar-title><slot name="title" /></v-toolbar-title>
-    <v-spacer />
+  <div>
+    <v-toolbar flat dense tile>
+      <v-toolbar-title><slot name="title" /></v-toolbar-title>
+      <v-spacer />
 
-    <slot></slot>
+      <slot></slot>
 
-    <v-switch v-if="canSave && canAutoSave" v-model="autoSaveEnabled" label="Auto Save" class="align-self-center ml-2 mr-2" hide-details />
+      <v-switch v-if="canSave && canAutoSave" v-model="autoSaveEnabled" label="Auto Save" class="align-self-center ml-2 mr-2" hide-details />
 
-    <s-tooltip v-if="canSave" :disabled="data === null" :open-on-focus="false">
-      <template #activator="{on, attrs}">
-        <s-btn :loading="savingInProgress" :disabled="savingInProgress" @click="performSave" v-bind="attrs" v-on="on" color="primary" class="ml-2 mr-2">
-          <template #default>
-            <v-icon>mdi-content-save</v-icon>
-            <v-badge v-if="data !== null" dot :color="hasChanges? 'error' : 'success'">
+      <s-tooltip v-if="canSave" :disabled="data === null" :open-on-focus="false">
+        <template #activator="{on, attrs}">
+          <s-btn :loading="savingInProgress" :disabled="savingInProgress" @click="performSave" v-bind="attrs" v-on="on" color="primary" class="ml-2 mr-2">
+            <template #default>
+              <v-icon>mdi-content-save</v-icon>
+              <v-badge v-if="data !== null" dot :color="hasChanges? 'error' : 'success'">
+                <slot name="save-button-text">Save</slot>
+              </v-badge>
+              <slot v-else name="save-button-text">Save</slot>
+            </template>
+
+            <template #loader>
+              <saving-loader-spinner />
               <slot name="save-button-text">Save</slot>
-            </v-badge>
-            <slot v-else name="save-button-text">Save</slot>
-          </template>
-
-          <template #loader>
-            <saving-loader-spinner />
-            <slot name="save-button-text">Save</slot>
-          </template>
-        </s-btn>
-      </template>
-      <template #default>
-        <span v-if="hasChanges">Save with Ctrl+S</span>
-        <span v-else>Everything saved</span>
-      </template>
-    </s-tooltip>
+            </template>
+          </s-btn>
+        </template>
+        <template #default>
+          <span v-if="hasChanges">Save with Ctrl+S</span>
+          <span v-else>Everything saved</span>
+        </template>
+      </s-tooltip>
     
-    <delete-button v-if="canDelete" @delete="performDelete" icon color="error" />
-  </v-toolbar>
+      <delete-button 
+        v-if="canDelete" 
+        @delete="performDelete" 
+        :confirm="true"  
+        :confirm-input="deleteConfirmInput"
+        icon color="error" 
+      />
+    </v-toolbar>
+
+    <v-alert v-if="errorMessage || lockError" type="warning" class="mt-2">
+      <span v-if="errorMessage">
+        {{ errorMessage }}
+      </span>
+      <span v-else-if="!lockInfo">
+        Could not lock resource for editing.
+      </span>
+      <span v-else-if="lockInfo.user.id !== $auth.user.id">
+        {{ lockInfo.user.name }} is currenlty editing this page. 
+        To prevent overwriting changes, only one user has write access at a time.
+        Please wait until he is finished or ask him to leave this page.
+      </span>
+      <span v-else-if="lockInfo.user.id === $auth.user.id">
+        It seems you like are editing this page in another tab or browser session.
+        To prevent overwriting changes, only one instance has write access at a time.
+        <v-btn @click="selfLockedEditAnyway" text small>Edit Anyway</v-btn>
+      </span>
+    </v-alert>
+  </div>
 </template>
 
 <script>
 import { debounce, cloneDeep, isEqual } from 'lodash';
+import { absoluteApiUrl } from '~/utils/urls';
 
 export const EditMode = Object.freeze({
   READONLY: 'READONLY',
@@ -64,20 +92,31 @@ export default {
       type: Function,
       default: null,
     },
-    lock: {
-      type: Function,
+    deleteConfirmInput: {
+      type: String,
       default: null,
     },
-    unlock: {
-      type: Function,
+    lockUrl: {
+      type: String,
+      default: null,
+    },
+    unlockUrl: {
+      type: String,
       default: null,
     },
     editMode: {
       type: String,
       default: EditMode.EDIT,
     },
+    errorMessage: {
+      type: String,
+      default: null,
+    }
   },
-  events: ['update:editMode'],
+  events: [
+    'update:editMode',
+    'update:lockedData',
+  ],
   data() {
     return {
       hasChangesValue: false,
@@ -88,6 +127,8 @@ export default {
       wasReset: true,
       
       hasLock: false,
+      lockInfo: null,
+      lockError: false,
       refreshLockInterval: null,
     }
   },
@@ -188,7 +229,7 @@ export default {
       this.savingInProgress = false;
     },
     async performDelete() {
-      if (!this.canDelete || !(this.hasLock || this.lock === null)) {
+      if (!this.canDelete || !(this.hasLock || this.lockUrl === null)) {
         return;
       }
 
@@ -201,9 +242,16 @@ export default {
         this.$toast.global.requestError({ error });
       }
     },
-    async performLock() {
+    async selfLockedEditAnyway() {
+      await this.performLock(true)
+      console.log('selfLockedEditAnyway', this.hasLock, this);
+      if (this.hasLock) {
+        this.$emit('update:editMode', EditMode.EDIT);
+      }
+    },
+    async performLock(forceLock = false) {
       console.log('EditToolbar.performLock', this);
-      if (this.lockingInProgress || !this.lock || this.editMode === EditMode.READONLY || this.wasReset) {
+      if (this.lockingInProgress || !this.lockUrl || (this.editMode === EditMode.READONLY && !forceLock) || this.wasReset) {
         return;
       }
 
@@ -213,21 +261,48 @@ export default {
       }
 
       try {
-        await this.lock(this.data);
+        const lockResponse = await this.$axios.post(this.lockUrl, {
+          refresh_lock: false
+        });
+        console.log('performLock lockResponse', lockResponse);
+
+        const lockedData = lockResponse.data;
+        this.lockInfo = lockedData.lock_info;
+        this.$emit('update:lockedData', lockedData);
+
+        if (lockResponse.status !== 201 && !this.hasLock && !forceLock) {
+          // Open by current user in another tab or browser session
+          this.lockError = true;
+          this.hasLock = false;
+          this.$emit('update:editMode', EditMode.READONLY);
+          throw new Error('User did not create a new lock: User has lock in another tab or browser session.');
+        }
+
         this.hasLock = true;
+        this.lockError = false;
       } catch (error) {
         // Do not release lock (in frontend) if the user previously had the lock.
         // Prevent resetting lock on network errors.
-        // If the lock is acquired by another user LockEditMixin sets editMode to READONLY
+        // hasLock is only set to false in situations where the API tells us that we do not have the lock.
         // this.hasLock = false;
+
         console.log('Lock error', error);
         this.$toast.global.requestError({ error, message: 'Locking failed' });
+
+        if (error.response?.status === 403 && error.response?.data?.lock_info) {
+          console.log('Lock error: Another user has the lock. Switching to readonly mode.', this.data.id, this, error, error.response.data);
+          this.lockInfo = error.response.data.lock_info;
+          this.lockError = true;
+          this.hasLock = false;
+          this.$emit('update:editMode', EditMode.READONLY);
+          this.$emit('update:lockedData', error.response.data);
+        }
       }
       this.lockingInProgress = false;
     },
     performUnlock(browserUnload = false) {
       console.log('EditToolbar.performUnlock', this.hasLock, this);
-      if (!this.unlock || !this.hasLock) {
+      if (!this.unlockUrl || !this.hasLock) {
         return;
       }
       
@@ -235,9 +310,32 @@ export default {
         clearInterval(this.refreshLockInterval);
       }
       
+      this.hasLock = false;
+      this.lockInfo = null;
+      this.lockError = false;
+
       try {
-        this.hasLock = false;
-        this.unlock(this.data, browserUnload);
+        if (browserUnload) {
+          // sendbeacon does not support setting headers (including Authorization header)
+          // we might want to replace sendBeacon with fetch.keepalive in the future
+          // however, fetch.keepalive is currently not supported by Firefox
+          window.navigator.sendBeacon(
+            absoluteApiUrl(this.unlockUrl, this.$axios),
+            this.$auth.user.id
+          );
+        } else {
+          this.$axios.$post(this.unlockUrl)
+            .then((unlockedData) => {
+              this.lockInfo = unlockedData.lock_info;
+              this.$emit('update:lockedData', unlockedData);
+            })
+            .catch((error) => {
+              if (error?.response?.data?.lock_info !== undefined) {
+                this.lockInfo = error.response.data.lock_info;
+                this.$emit('update:lockedData', error.response.data);
+              }
+            });
+        }
       } catch (error) {
         // silently ignore error
         console.log('Unlock error', error);
@@ -286,6 +384,9 @@ export default {
       this.hasChangesValue = false;
       this.previousData = null;
       this.wasReset = true;
+
+      this.lockInfo = null;
+      this.lockError = false;
 
       this.performUnlock(false);
     }

@@ -4,6 +4,10 @@ import MonacoWebpackPlugin from 'monaco-editor-webpack-plugin'
 import { LicenseWebpackPlugin } from 'license-webpack-plugin';
 import licenseTextOverrides from './licenseTextOverrides.js';
 
+const babelPresets = [
+  ["@babel/preset-env", { targets: ">0.25%, not dead" }]
+];
+
 export default {
   // Build as SPA application
   ssr: false,
@@ -179,7 +183,7 @@ export default {
       new LicenseWebpackPlugin({
         perChunkOutput: false,
         outputFilename: 'NOTICE',
-        excludedPackageTest: packageName => ['reportcreator-rendering'].includes(packageName),
+        excludedPackageTest: packageName => ['reportcreator-rendering', 'reportcreator-markdown'].includes(packageName),
         licenseTextOverrides,
         unacceptableLicenseTest: licenseType => ![
           'Apache-2.0', 'MIT', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC',
@@ -188,7 +192,8 @@ export default {
       }),
     ],
     babel: {
-      babelrc: true,
+      babelrc: false,
+      presets: babelPresets,
     },
     terser: {
       sourceMap: true,
@@ -200,6 +205,9 @@ export default {
           config.devtool = 'source-map';
         }
         
+        // Resolve dependencies of local packages
+        config.resolve.modules.push(resolve(__dirname, '..', 'packages', 'markdown', 'node_modules'));
+
         // Transpile pdfjs and monaco workers to be able to use them
         config.module.rules.push({
           include: [
@@ -209,9 +217,7 @@ export default {
           test: /\.js$/,
           loader: "babel-loader",
           options: {
-            presets: [
-              ["@babel/preset-env", { targets: "defaults" }]
-            ],
+            presets: babelPresets,
             cacheDirectory: false,
             compact: false,
           }

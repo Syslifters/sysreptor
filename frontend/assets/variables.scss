@@ -7,14 +7,14 @@ $body-font-family: 'Exo';
 
 
 // Colors
-$risk-color-none: #2d5f2e;
-$risk-color-low: #4d82a8;
-$risk-color-medium: #cf8e2b;
-$risk-color-high: #eb6020;
-$risk-color-critical: #e21212;
+$risk-color-info: #14AE92;
+$risk-color-low: #4285F5;
+$risk-color-medium: #FBBC05;
+$risk-color-high: #F76226;
+$risk-color-critical: #E83221;
 
 $risk-color-levels: (
-  1: $risk-color-none,
+  1: $risk-color-info,
   2: $risk-color-low,
   3: $risk-color-medium,
   4: $risk-color-high,

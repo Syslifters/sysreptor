@@ -35,9 +35,9 @@ class PentestUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixin
     @action(detail=False, methods=['get', 'put', 'patch'])
     def self(self, request, *args, **kwargs):
         self.kwargs['pk'] = 'self'
-        if request.method == 'put':
+        if request.method == 'PUT':
             return self.update(request, *args, **kwargs)
-        elif request.method == 'patch':
+        elif request.method == 'PATCH':
             return self.partial_update(request, *args, **kwargs)
         else:
             return self.retrieve(request, *args, **kwargs)

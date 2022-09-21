@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-form ref="form">
-      <edit-toolbar ref="toolbar" :data="project" :form="$refs.form" :save="performSave" :delete="performDelete">
+      <edit-toolbar ref="toolbar" :data="project" :form="$refs.form" :save="performSave" :delete="performDelete" :delete-confirm-input="project.name">
         <template #title>Project</template>
         <copy-button :copy="performCopy">
           <template #tooltip>Duplicate Project</template>

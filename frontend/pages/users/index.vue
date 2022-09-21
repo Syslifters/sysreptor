@@ -11,7 +11,12 @@
       <v-list-item :to="`/users/${user.id}/`" nuxt>
         <v-row>
           <v-col md="3">
-            <v-list-item-title>{{ user.username }} ({{ user.name }})</v-list-item-title>
+            <v-list-item-title>
+              {{ user.username }}
+              <template v-if="user.name">
+                ({{ user.name }})
+              </template>
+            </v-list-item-title>
           </v-col>
           <v-col md="3">
             <v-chip small class="ma-1" v-if="user.is_superuser">Superuser</v-chip>

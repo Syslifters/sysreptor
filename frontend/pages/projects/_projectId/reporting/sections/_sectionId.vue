@@ -1,6 +1,6 @@
 <template>
   <div>
-    <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
+    <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
       <div class="assignee-container">
         <user-selection 
           v-model="section.assignee" 
@@ -11,10 +11,6 @@
         />
       </div>
     </edit-toolbar>
-
-    <v-alert v-if="errorMessageLocked" type="warning">
-      {{ errorMessageLocked }}
-    </v-alert>
 
     <div v-for="fieldId in section.fields" :key="fieldId">
       <dynamic-input-field 

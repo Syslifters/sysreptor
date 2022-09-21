@@ -2,7 +2,7 @@
   <div>
     <splitpanes class="default-theme">
       <pane :size="previewSplitSize">
-        <edit-toolbar v-bind="toolbarAttrs">
+        <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents">
           <template #title>{{ projectType.name }}</template>
 
           <template #default>
@@ -23,7 +23,6 @@
             </s-btn>
           </template>
         </edit-toolbar>
-        <v-alert v-if="errorMessageLocked" type="warning">{{ errorMessageLocked }}</v-alert>
 
         <v-tabs grow>
           <v-tab>HTML</v-tab>

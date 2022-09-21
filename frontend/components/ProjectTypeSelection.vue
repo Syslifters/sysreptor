@@ -6,6 +6,7 @@
     :items="items.data"
     item-text="name"
     item-value="id"
+    :return-object="returnObject"
     :rules="rules"
     :loading="items.isLoading"
   >
@@ -20,8 +21,12 @@ import { CursorPaginationFetcher } from '~/utils/urls';
 export default {
   props: {
     value: {
-      type: String,
+      type: [String, Object],
       default: null,
+    },
+    returnObject: {
+      type: Boolean,
+      default: false,
     }
   },
   emits: ['input'],

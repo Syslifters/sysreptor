@@ -16,10 +16,21 @@ The `formatDate()` function takes three arguments:
     * a object for [Intl.DateTimeFormat options](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options){ target=_blank }
 * (optional) locale to override the default locale: see [Intl.DateTimeFormat locales](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#locales){ target=_blank }
 
+Examples:
 ```html
-<p>{{ formatDate(report.report_date) }}</p>
-<p>{{ formatDate(report.report_date, 'iso') }}</p>
-<p>{{ formatDate(report.report_date, 'medium') }}</p>
-<p>{{ formatDate(report.report_date, {year: 'numeric', month: 'long', day: '2-digit'}, 'de-DE') }}</p>
+2022-09-21: {{ formatDate(report.report_date, 'iso') }}
+
+21.09.22: {{ formatDate(report.report_date, 'short', 'de-DE') }}
+21.09.2022: {{ formatDate(report.report_date, 'medium', 'de-DE') }}
+21. September 2022: {{ formatDate(report.report_date, 'long', 'de-DE') }}
+Mittwoch, 21. September 2022: {{ formatDate(report.report_date, 'full', 'de-DE') }}
+
+9/21/22: {{ formatDate(report.report_date, 'short', 'en-US') }}
+Sep 21, 2022: {{ formatDate(report.report_date, 'medium', 'en-US') }}
+September 21, 2022: {{ formatDate(report.report_date, 'long', 'en-US') }}
+Wednesday, September 21, 2022: {{ formatDate(report.report_date, 'full', 'en-US') }}
+
+S 21, 22: {{ formatDate('2022-09-21', {year: '2-digit', month: 'narrow', day: '2-digit', numberingSystem: 'latn'}, 'en-US') }}
+</ul>
 ```
 

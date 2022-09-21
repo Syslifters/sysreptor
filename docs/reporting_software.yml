@@ -1,0 +1,100 @@
+---
+might_be_added:
+  - Canopy
+  - Faraday
+  - Hackuity
+  - PenTest.WS
+  - securityreporter.app
+  - reNgine?
+  - PeTeReport
+  - VulnReport
+
+software:
+  - name: 
+    self: no
+    url: 
+    discontinued: no
+    pros: 
+    cons: 
+    customization: 
+    price: 
+
+  - name: PlexTrac
+    self: no
+    url: https://plextrac.com/
+    discontinued: no
+    pros: Large set of predefined finding templates
+    cons: Intransparent product presentation
+    customization: docx/Jinja2
+    price: Top secret
+
+  - name: Dradis
+    self: no
+    url: https://dradisframework.com/
+    discontinued: no
+    pros: Activity feed and audit trail of reporting activity
+    cons: Cumbersome customizing in MS Word
+    customization: docx (Dradis optionally customizes for you)
+    price: Free or $ 79 or $ 149
+
+  - name: WriteHat
+    self: no
+    url: https://github.com/blacklanternsecurity/writehat
+    discontinued: yes
+    pros: Focused on pentest reporting, from pentesters for pentesters
+    cons: Based on outdated Django version
+    customization: HTML/Django Templating Language
+    price: Free and Open Source
+
+  - name: AttackForge
+    self: no
+    url: https://attackforge.com/
+    discontinued: no
+    pros: Collaboration features
+    cons: Unintuitive project dashboard
+    customization: docx with customized template tags
+    price: Free or $ 30 to $ 50
+
+  - name: Pwndoc
+    self: no
+    url: https://github.com/pwndoc/pwndoc
+    discontinued: no
+    pros: Easy and focused on pentest reporting
+    cons: Cumbersome image upload
+    customization: docx via docxtemplater
+    price: Free and Open Source
+
+  - name: Hexway Hive
+    self: no
+    url: https://hexway.io/hive/
+    discontinued: no
+    pros: Lots of additional features
+    cons: Rather overloaded for reporting requirements
+    customization: docx with jinja-like syntax (Hexway customizes for you)
+    price: Free or $ 78
+
+  - name: Reconmap
+    self: no
+    url: https://github.com/reconmap/reconmap
+    discontinued: no
+    pros: Intuitive, fast results
+    cons: Limited report customization (no conditials, images, etc)
+    customization: docx via PHPWord
+    price: Free and Open Source
+
+  - name: Serpico
+    url: https://github.com/SerpicoProject/Serpico
+    discontinued: yes
+    pros: Fast results
+    cons: Discontinued, unresolved bugs
+    customization: docx with custom Meta Language
+    price: Free and Open Source
+
+  - name: SysReptor
+    self: yes
+    url: https://docs.sysreptor.com
+    discontinued: no
+    pros: Fastest to get started, Tailored to pentesting needs
+    cons: Limited permission management in free tier
+    customization: HTML/CSS/VueJS
+    price: Free or € 70

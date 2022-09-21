@@ -6,7 +6,7 @@ from django.views.generic.base import TemplateView, RedirectView
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from reportcreator_api.api_settings.views import SettingsViewSet
+from reportcreator_api.api_utils.views import UtilsViewSet
 
 from reportcreator_api.pentests.views import FindingTemplateViewSet, PentestFindingViewSet, PentestProjectViewSet, ProjectTypeViewSet, ReportSectionViewSet, UploadedAssetViewSet, UploadedImageViewSet
 from reportcreator_api.users.views import PentestUserViewSet, TokenLogoutView
@@ -16,7 +16,7 @@ router.register('pentestusers', PentestUserViewSet, basename='pentestuser')
 router.register('projecttypes', ProjectTypeViewSet, basename='projecttype')
 router.register('pentestprojects', PentestProjectViewSet, basename='pentestproject')
 router.register('findingtemplates', FindingTemplateViewSet, basename='findingtemplate')
-router.register('settings', SettingsViewSet, basename='settings')
+router.register('utils', UtilsViewSet, basename='utils')
 
 project_router = NestedSimpleRouter(router, 'pentestprojects', lookup='project')
 project_router.register('sections', ReportSectionViewSet, basename='section')

@@ -1,0 +1,182 @@
+import operator
+import yaml
+import requests
+import os
+
+SOFTWARE_FILE = 'reporting_software.yml'
+DOCUMENT_CONTENT = '''---
+{metadata}
+hide:
+  - navigation
+---
+
+# {title}
+
+{preface}
+<br>
+
+{table}
+
+{postface}
+'''
+
+PREFACE = '''
+Similar projects and and alternatives to [{name}]({url}){{target=_blank}} Penetration Test Reporting Tool.
+
+'''
+TABLE_HEADER = '''| Name | Pros | Cons | Report Customization | Costs/User/Month |
+| - | - | - | - | - |'''
+TABLE_ROW = '''| {software_icon} [{name}]({url}){{target=_blank}} | :material-arrow-up-box: {pros} | {cons_icon} {cons} | :material-file-document: {customization} | :material-tag: {price} |
+'''
+POSTFACE = """This overview has been compiled to the best of our knowledge and belief. We do not guarantee that the information is correct or up-to-date.
+
+:octicons-x-circle-fill-12:{ style="color: #e21212;" } We regard software projects without updates for one year or with missing security patches as discontinued.
+
+We welcome tips on other pentest reporting tools.
+For inquiries and tips write us a short message to hello@syslifters.com.
+"""
+
+def generate_software_lists(*args, **kwargs):
+    software_list = get_software()
+    if not kwargs.get('config', dict()).get('site_url'):
+        # Check links at deployment time
+        # site_url is empty during gh-deploy, at server it is 127.0.0.1:8000
+        check_url_availability(software_list)
+
+    if not need_regenerate(software_list):
+        return
+
+    for software in software_list:
+        if software.get('self'):
+            # No alternative to us page
+            continue
+        title = f"Alternatives to {software['name']} Pentesting Reporting Tool"
+        metadata = f'''title: {title.format(name=software['name'])}'''
+        title = title.format(name=f"**{software['name']}")
+        preface = PREFACE.format(
+            name=software['name'],
+            url=software['url'],
+        )
+        table = generate_table(software_list, first_software=software['name'])
+        postface = POSTFACE
+
+        if not table:
+            # If no table generated, do not create page
+            continue
+
+        document = DOCUMENT_CONTENT.format(
+            metadata=metadata,
+            title=title,
+            preface=preface,
+            table=table,
+            postface=postface
+        )
+
+        # write document
+        with open(get_filename(software['name']), 'w', encoding='utf-8') as f:
+            f.write(document)
+
+
+def get_filename(name):
+    replace_chars = [
+        ('/', '-'),
+        (' ', '-'),
+        ('.', ''),
+        ('ö', 'oe'),
+        ('ä', 'ae'),
+        ('ü', 'ue'),
+        ('ß', 'ss'),
+    ]
+    name = name.lower()
+    for replace in replace_chars:
+        name = name.replace(replace[0], replace[1])
+    return f'docs/s/alternative-to-{name}-reporting-tool.md'
+
+
+def need_regenerate(software_list):
+    oldest_md_mtime = float('inf')
+    for software in software_list:
+        try:
+            oldest_md_mtime = min(os.path.getmtime(
+                get_filename(software['name'])), oldest_md_mtime)
+        except FileNotFoundError:
+            return True
+    list_mtime = os.path.getmtime(SOFTWARE_FILE)
+    script_mtime = os.path.getmtime(os.path.realpath(__file__))
+    if list_mtime > oldest_md_mtime or script_mtime > oldest_md_mtime:
+        return True
+
+
+def sort_software(software):
+    # Filter out empty entries
+    software_list = [c for c in software if c['name']]
+    for software in software_list:
+        if 'self' not in software:
+            software['self'] = False
+        if 'discontinued' not in software:
+            software['discontinued'] = False
+        if 'url' not in software:
+            raise KeyError(f"No url specified for {software['name']}")
+        if 'price' not in software:
+            raise KeyError(f"No price specified for {software['name']}")
+
+    software_list.sort(key=lambda k: (k['name'].lower()))
+    software_list.sort(key=operator.itemgetter('discontinued'), reverse=False)
+    software_list.sort(key=operator.itemgetter('self'), reverse=True)
+    return software_list
+
+
+def get_software():
+    # Read all software
+    with open(SOFTWARE_FILE, 'r', encoding='utf-8') as f:
+        software = yaml.safe_load(f).get('software')
+
+    software = sort_software(software)
+    return software
+
+
+def check_url_availability(software_list):
+    errors = 0
+    for s in software_list:
+        try:
+            r = requests.head(s['url'])
+        except requests.exceptions:
+            errors += 1
+            print(f"URL for {s['name']} ist not reachable")
+        if r.status_code != 200:
+            errors += 1
+            print(f"URL for {s['name']} ist not reachable")
+    if errors:
+        raise ValueError("There are URLs that are unreachable")
+
+
+def generate_table(software_list, first_software=None):
+    table_rows = list()
+    for software in software_list:
+        software_icon = "[:fire:]{This is us :-)}" if software.get('self') else ""
+        cons_icon = ":material-arrow-down-box:" if not software.get('discontinued') else ':octicons-x-circle-fill-12:{ style="color: #e21212;" }'
+
+        table_row = TABLE_ROW.format(
+            software_icon=software_icon,
+            name=software['name'],
+            url=software['url'],
+            pros=software['pros'] if software['pros'] else '',
+            cons_icon=cons_icon,
+            cons=software['cons'] if software['cons'] else '',
+            customization=software['customization'] if software['customization'] else '',
+            price=software['price'] if software['price'] else "",
+        )
+        
+        if software['name'] == first_software:
+            # insert empty line
+            empty_line = TABLE_HEADER.split('\n')[1].replace('-', '')
+            table_rows.insert(0, empty_line+"\n")
+            # Insert entry that should appear first
+            table_rows.insert(0, table_row)
+        else:
+            table_rows.append(table_row)
+
+    table = None
+    if table_rows:
+        table = f"{TABLE_HEADER}\n{''.join(table_rows)}"
+    return table

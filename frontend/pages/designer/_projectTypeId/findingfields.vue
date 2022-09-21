@@ -53,8 +53,7 @@
       </template>
 
       <template #default>
-        <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form" />
-        <v-alert v-if="errorMessageLocked" type="warning">{{ errorMessageLocked }}</v-alert>
+        <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :form="$refs.form" />
 
         <template v-if="currentField === null">
           <input-field-definition

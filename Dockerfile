@@ -1,26 +1,35 @@
 FROM node:16-alpine AS frontend-dev
 
+WORKDIR /app/packages/markdown/
+COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
+RUN npm install
+
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json /app/frontend/
 RUN npm install
 
 
 FROM frontend-dev AS frontend
-COPY frontend /app/frontend
-COPY rendering /app/rendering
+COPY packages/markdown/ /app/packages/markdown/
+COPY frontend /app/frontend/
 RUN npm run build
-
 
 
 
 FROM node:16-alpine AS rendering-dev
 
+WORKDIR /app/packages/markdown/
+COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
+RUN npm install
+
 WORKDIR /app/rendering
 COPY rendering/package.json rendering/package-lock.json /app/rendering/
 RUN npm install
 
+
 FROM rendering-dev AS rendering
 COPY rendering /app/rendering/
+COPY packages/markdown/ /app/packages/markdown/
 RUN npm run build
 
 

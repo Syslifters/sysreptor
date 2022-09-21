@@ -13,10 +13,13 @@
 import EasyMDE from 'easymde';
 import urlJoin from 'url-join';
 import { debounce } from 'lodash';
-import DOMPurify from 'dompurify';
-import { getMarkdownRenderer, popAttr } from '../../rendering/src/markdown.js';
+import { renderMarkdown } from 'reportcreator-markdown';
+import codeMirrorLanguageTool from 'reportcreator-markdown/editor/codemirror-languagetool.js';
 import 'highlight.js/styles/default.css';
 import { absoluteApiUrl } from '@/utils/urls';
+
+// TODO: replace EasyMDE by CodeMirror 6 with custom UI (toolbar, preview, etc.)
+//       use remark as CodeMirror language mode => convert micromark or mdast to CodeMirror format
 
 export default {
   props: {
@@ -43,8 +46,6 @@ export default {
   },
   emits: ['input'],
   data() {
-    const md = getMarkdownRenderer(true).use(this.rewriteImageSourcePlugin);
-
     const attrDisabled = this.disabled ? { disabled: 'disabled' } : {};
 
     return {
@@ -53,14 +54,16 @@ export default {
         autoDownloadFontAwesome: false,
         autofocus: false,
         autosave: { enabled: false },
-        spellChecker: false,
+        spellChecker: codeMirrorLanguageTool,
         nativeSpellcheck: false,
-        lineNumbers: false,
+        lineNumbers: true,
         sideBySideFullscreen: false,
         uploadImage: true,
         imageUploadFunction: this.uploadImageWrapper,
         imagesPreviewHandler: this.rewriteImageSource,
-        previewRender: text => DOMPurify.sanitize(md.render(text), { ADD_TAGS: ['footnote'] }),
+        previewRender: (text) => {
+          return renderMarkdown(text, { preview: true, rewriteImageSource: this.rewriteImageSource });
+        },
         errorCallback: errorMessage => this.$toast.error(errorMessage),
         toolbar: [
           {
@@ -147,6 +150,14 @@ export default {
           },
           '|',
           {
+            name: 'spellcheck',
+            action: () => { this.easymde.codemirror.setOption('spellcheck', !this.easymde.codemirror.getOption('spellcheck')) },
+            className: 'mdi mdi-spellcheck',
+            title: 'Spellcheck',
+            attributes: attrDisabled,
+          },
+          '|',
+          {
             name: 'preview',
             action: () => { this.easymde.togglePreview(); this.updateEditorModeFromEditor(); },
             className: 'mdi mdi-image-filter-hdr',
@@ -185,7 +196,7 @@ export default {
   watch: {
     value(val) {
       if (val !== this.easymde.value()) {
-        this.easymde.value(val);
+        this.easymde.value(val || '');
       }
     },
     editorMode(val) {
@@ -194,6 +205,10 @@ export default {
     },
     disabled(val) {
       this.easymde.codemirror.setOption('readOnly', val);
+      this.easymde.codemirror.setOption('spellcheck', !val);
+    },
+    lang(val) {
+      this.easymde.codemirror.setOption('spellcheckLanguage', val);
     }
   },
   created() {
@@ -210,11 +225,12 @@ export default {
     }
 
     this.easymde = new EasyMDE(configs);
+    this.easymde.codemirror.setOption('mode', 'gfm');
+    this.easymde.codemirror.setOption('performSpellcheckRequest', data => this.$axios.$post('/utils/spellcheck/', data));
+    this.easymde.codemirror.setOption('spellcheckLanguage', this.lang);
+    this.easymde.codemirror.setOption('spellcheck', !this.disabled);
+    this.easymde.codemirror.setOption('readOnly', this.disabled);
     this.setEditorModeInEditor(this.editorMode);
-
-    if (this.disabled) {
-      this.easymde.codemirror.setOption('readOnly', true);
-    }
 
     // Bind events
     this.easymde.codemirror.on('change', (instance, changeObj) => {
@@ -297,18 +313,6 @@ export default {
         return absoluteApiUrl(urlJoin(this.imageUrlsRelativeTo, imgSrc), this.$axios);
       }
     },
-    rewriteImageSourcePlugin(md) {
-      const defaultImageRenderer = md.renderer.rules.image;
-      md.renderer.rules.image = (tokens, idx, options, env, self) => {
-        for (const t of tokens) {
-          if (t.type === 'image') {
-            const src = popAttr(t.attrs, 'src') || '';
-            t.attrs.push(['src', this.rewriteImageSource(src)]);
-          }
-        }
-        return defaultImageRenderer(tokens, idx, options, env, self);
-      };
-    },
   }
 }
 </script>
@@ -316,6 +320,13 @@ export default {
 <style lang="scss">
 @import '../node_modules/easymde/dist/easymde.min.css';
 .vue-easymde {
+  .CodeMirror {
+    padding: 0 !important;
+  }
+  .CodeMirror-linenumber {
+    font-family: monospace;
+  }
+
   .markdown-body {
     padding: 0.5em
   }
@@ -335,6 +346,11 @@ export default {
   }
   table {
     caption-side: bottom;
+  }
+
+  .footnotes {
+    border-top: 1px solid black;
+    margin-top: 2em;
   }
 }
 

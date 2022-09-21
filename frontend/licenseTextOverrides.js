@@ -1,6 +1,9 @@
+import { licenseTextOverrides as markdownLicenseTextOverrides } from 'reportcreator-markdown/licenseInfos.js';
+
 // License texts of packages that do not include a license file.
 // The license texts are copied from github, where license files are provided.
 export default {
+  ...markdownLicenseTextOverrides,
   'typo-js': `Copyright (c) 2011, Christopher Finke
 All rights reserved.
 

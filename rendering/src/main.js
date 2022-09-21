@@ -10,7 +10,7 @@ import Chart from './components/ChartVue.vue';
 
 
 // injected as global variables
-const REPORT_TEMPLAE = window.REPORT_TEMPLATE || '';
+const REPORT_TEMPLAE = '<div>' + (window.REPORT_TEMPLATE || '') + '</div>';
 const REPORT_DATA = window.REPORT_DATA || {};
 const REPORT_COMPUTED = window.REPORT_COMPUTED || {};
 const REPORT_METHODS = window.REPORT_METHODS || {};

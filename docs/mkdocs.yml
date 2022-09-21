@@ -32,6 +32,10 @@ extra_css:
   - stylesheets/hint.min.css
 
 plugins:
+  - mkdocs-simple-hooks:
+      enabled: !ENV [ENABLE_MKDOCS_SIMPLE_HOOKS, true]
+      hooks:
+        on_pre_build: "hooks:generate_software_lists"
   - social:
       cards_color:
         fill: "#001827"

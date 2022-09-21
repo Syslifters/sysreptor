@@ -2,7 +2,7 @@
   <div>
     <splitpanes class="default-theme">
       <pane :size="previewSplitSize">
-        <pdf-preview ref="pdfpreview" :fetch-pdf="fetchPreviewPdf" />
+        <pdf-preview ref="pdfpreview" :fetch-pdf="fetchPreviewPdf" :show-loading-spinner-on-reload="true" />
       </pane>
 
       <pane :size="100 - previewSplitSize">
@@ -12,12 +12,7 @@
           <v-form class="pa-4">
             <!-- Set password for encrypting report -->
             <div>
-              <s-checkbox
-                v-model="form.encryptReport"
-                label="Encrypt report PDF"
-                class="mb-2"
-              />
-
+              <s-checkbox v-model="form.encryptReport" label="Encrypt report PDF" />
               <s-text-field
                 v-if="form.encryptReport"
                 v-model="form.password"
@@ -29,12 +24,30 @@
               />
             </div>
 
+            <!-- Render as different design -->
+            <div>
+              <s-checkbox v-model="form.renderWithDifferentProjectType" label="Render report PDF with different design" />
+              <template v-if="form.renderWithDifferentProjectType">
+                <v-alert type="warning" dense>
+                  Different designs might have conflicting report and/or finding fields.<br>
+                  Check the resulting PDF if everything is rendered as expected or if some fields are missing.
+                </v-alert>
+                <project-type-selection
+                  :value="form.projectType || projectType" 
+                  @input="changeDesign"
+                  :return-object="true"
+                  class="mt-4"
+                />
+              </template>
+            </div>
+
             <s-btn
               type="submit"
               :disabled="!canGenerateFinalReport"
               :loading="reportGenerationInProgress"
               @click.prevent="generateFinalReport"
               color="primary"
+              class="mt-4"
             >
               <v-icon>mdi-download</v-icon>
               Generate Final Report
@@ -69,13 +82,14 @@ import { sampleSize } from 'lodash';
 import PdfPreview from '~/components/PdfPreview.vue'
 import ErrorList from '~/components/ErrorList.vue';
 import FillScreenHeight from '~/components/FillScreenHeight.vue';
+import ProjectTypeSelection from '~/components/ProjectTypeSelection.vue';
 
 export default {
-  components: { Splitpanes, Pane, PdfPreview, ErrorList, FillScreenHeight },
+  components: { Splitpanes, Pane, PdfPreview, ErrorList, FillScreenHeight, ProjectTypeSelection },
   async asyncData({ params, store }) {
-    return {
-      project: await store.dispatch('projects/getById', params.projectId),
-    };
+    const project = await store.dispatch('projects/getById', params.projectId);
+    const projectType = await store.dispatch('projecttypes/getById', project.project_type);
+    return { project, projectType };
   },
   data() {
     return {
@@ -85,6 +99,8 @@ export default {
       form: {
         encryptReport: true,
         password: this.generateNewPassword(),
+        renderWithDifferentProjectType: false,
+        projectType: null,
       },
     }
   },
@@ -102,7 +118,9 @@ export default {
   },
   methods: {
     async fetchPreviewPdf() {
-      return await this.$axios.$post(`/pentestprojects/${this.project.id}/preview/`, {}, {
+      return await this.$axios.$post(`/pentestprojects/${this.project.id}/preview/`, {
+        project_type: this.form.renderWithDifferentProjectType ? this.form.projectType?.id : null,
+      }, {
         responseType: 'arraybuffer',
       });
     },
@@ -118,6 +136,7 @@ export default {
       try {
         const res = await this.$axios.$post(`/pentestprojects/${this.project.id}/generate/`, {
           password: this.form.encryptReport ? this.form.password : null,
+          project_type: this.form.renderWithDifferentProjectType ? this.form.projectType?.id : null,
         }, {
           responseType: 'arraybuffer',
         });
@@ -131,11 +150,11 @@ export default {
       if (!msg || !msg.location) {
         return null;
       } else if (msg.location.type === 'section') {
-        return `/projects/${this.project.id}/reporting/sections/${msg.location.id}` + (msg.location.path ? '#' + msg.location.path : '');
+        return `/projects/${this.project.id}/reporting/sections/${msg.location.id}/` + (msg.location.path ? '#' + msg.location.path : '');
       } else if (msg.location.type === 'finding') {
-        return `/projects/${this.project.id}/reporting/findings/${msg.location.id}` + (msg.location.path ? '#' + msg.location.path : '');
+        return `/projects/${this.project.id}/reporting/findings/${msg.location.id}/` + (msg.location.path ? '#' + msg.location.path : '');
       } else if (msg.location.type === 'template') {
-        return `/designer/${this.project.project_type}/pdfdesigner`;
+        return `/designer/${this.project.project_type}/pdfdesigner/`;
       }
 
       return null;
@@ -145,6 +164,10 @@ export default {
       const charset = '23456789' + 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ' + '!#%&+-_';
       return sampleSize(charset, 32).join('');
     },
+    changeDesign(projectType) {
+      this.form.projectType = projectType;
+      this.$refs.pdfpreview.reloadImmediate();
+    }
   }
 }
 </script>

@@ -14,12 +14,23 @@
       <v-card-title>Confirm Delete?</v-card-title>
       <v-card-text>
         Do you really want to delete this item? This action is not reversible!
+        <template v-if="confirmInput">
+          <br><br>
+          Enter the following to confirm deletion: <br>
+          <strong>{{ confirmInput }}</strong>
+          <s-text-field
+            v-model="confirmUserInput"
+            :rules="[v => v === confirmInput || 'Confirmation text does not match']"
+            dense
+            class="mt-2"
+          />
+        </template>
       </v-card-text>
       <v-divider />
       <v-card-actions>
         <v-spacer />
         <s-btn @click="deleteConfirmDialogVisible = false">Cancel</s-btn>
-        <s-btn color="error" @click="performDelete">
+        <s-btn :disabled="confirmInput && confirmInput !== confirmUserInput" color="error" @click="performDelete">
           <v-icon>mdi-delete</v-icon>
           Delete
         </s-btn>
@@ -46,11 +57,16 @@ export default {
       type: Boolean,
       default: true,
     },
+    confirmInput: {
+      type: String,
+      default: null,
+    }
   },
   emits: ['delete'],
   data() {
     return {
       deleteConfirmDialogVisible: false,
+      confirmUserInput: '',
     }
   },
   methods: {

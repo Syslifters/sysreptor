@@ -1,10 +1,12 @@
 <template>
-  <div v-if="text" class="markdown" v-html="compiledMarkdown"></div>
+  <div v-if="text" class="markdown">
+    <component :is="{template: compiledMarkdown, data: () => $root}" />
+  </div>
 </template>
 
 <script>
-import { getMarkdownRenderer } from '@/markdown.js';
-const md = getMarkdownRenderer();
+import { renderMarkdown } from 'reportcreator-markdown';
+import 'highlight.js/styles/default.css';
 
 export default {
   props: {
@@ -15,8 +17,8 @@ export default {
   },
   computed: {
     compiledMarkdown() {
-      return md.render(this.text);
-    }
+      return renderMarkdown(this.text, { preview: false });
+    },
   },
 }
 </script>
@@ -26,7 +28,7 @@ export default {
   white-space: pre-wrap;
 }
 .code-block code {
-  display: inline-block;
+  display: block;
   width: 100%;
 }
 </style>

@@ -13,7 +13,7 @@ export const actions = {
     if (state.languages) {
       return state.languages;
     }
-    const languages = await this.$axios.$get('/settings/languages/');
+    const languages = await this.$axios.$get('/utils/languages/');
     commit('setLanguages', languages);
     return languages;
   },

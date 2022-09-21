@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from datetime import timedelta
+from email.policy import default
 from decouple import config
 from pathlib import Path
 
@@ -212,7 +213,10 @@ PDF_RENDER_SCRIPT_PATH = config('PDF_RENDER_SCRIPT_PATH', cast=Path, default=BAS
 PYPPETEER_EXECUTABLE = config('PYPPETEER_EXECUTABLE', default=None)
 
 
-MAX_LOCK_TIME = timedelta(minutes=5)
+# MAX_LOCK_TIME should not be less than 2min, because some browsers (Chromium) triggers timers only once per minute if the browser tab is inactive
+MAX_LOCK_TIME = timedelta(minutes=2)
+
+SPELLCHECK_URL = config('SPELLCHECK_URL', default=None)
 
 
 if DEBUG:

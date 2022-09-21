@@ -1,6 +1,10 @@
-const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlugin;
+// const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlugin;
+// const resolve = require('path').resolve;
+import {LicenseWebpackPlugin} from 'license-webpack-plugin';
+import {resolve} from 'path';
+import {licenseTextOverrides as markdownLicenseTextOverrides} from 'reportcreator-markdown/licenseInfos.js';
 
-module.exports = {
+export default {
   runtimeCompiler: true,
   productionSourceMap: false,
   css: {
@@ -15,10 +19,17 @@ module.exports = {
       filename: 'bundle.js',
       asyncChunks: false,
     },
+    resolve: {
+      modules: [
+        resolve('..', 'packages', 'markdown', 'node_modules')
+      ],
+      exportsFields: [],
+    },
     plugins: [
       new LicenseWebpackPlugin({
         perChunkOutput: false,
         outputFilename: 'NOTICE',
+        excludedPackageTest: packageName => ['reportcreator-rendering', 'reportcreator-markdown'].includes(packageName),
         unacceptableLicenseTest: licenseType => ![
           'Apache-2.0', 'MIT', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC',
           '(MPL-2.0 OR Apache-2.0)', '(MIT AND BSD-3-Clause)'
@@ -27,6 +38,7 @@ module.exports = {
           'chart.js-auto': 'MIT',
         },
         licenseTextOverrides: {
+          ...markdownLicenseTextOverrides,
           'chart.js-auto': `The MIT License (MIT)
 
 Copyright (c) 2014-2022 Chart.js Contributors
@@ -47,7 +59,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
-THE SOFTWARE.`
+THE SOFTWARE.`,
         }
       }),
     ]

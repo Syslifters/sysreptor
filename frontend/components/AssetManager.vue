@@ -150,7 +150,7 @@ export default {
     },
     async downloadAsset(asset) {
       try {
-        const res = await this.$axios.$get(this.projectTypeBaseUrl + this.assetUrl(asset), {
+        const res = await this.$axios.$get(urlJoin(this.projectTypeBaseUrl, this.assetUrl(asset)), {
           responseType: 'arraybuffer'
         });
         FileDownload(res, asset.name || asset.id);

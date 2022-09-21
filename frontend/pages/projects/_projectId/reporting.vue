@@ -16,7 +16,7 @@
             <v-list-item-content>
               <v-list-item-title>{{ section.label }}</v-list-item-title>
               <v-list-item-subtitle v-if="section.assignee">
-                @ {{ section.assignee.username }}
+                @{{ section.assignee.username }}
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -33,7 +33,7 @@
             <v-list-item-content>
               <v-list-item-title>{{ finding.data.title }}</v-list-item-title>
               <v-list-item-subtitle v-if="finding.assignee" :class="{'assignee-self': finding.assignee.id == $auth.user.id}">
-                @ {{ finding.assignee.username }}
+                @{{ finding.assignee.username }}
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -54,12 +54,9 @@
 </template>
 
 <script>
-import SplitMenu from '~/components/SplitMenu.vue';
 import * as cvss from '@/utils/cvss.js';
-import LockInfo from '~/components/LockInfo.vue';
 
 export default {
-  components: { SplitMenu, LockInfo },
   async asyncData({ params, store }) {
     const project = store.dispatch('projects/getById', params.projectId);
     const findings = store.dispatch('projects/getFindings', params.projectId);
