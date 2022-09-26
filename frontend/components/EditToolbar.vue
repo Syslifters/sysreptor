@@ -262,7 +262,7 @@ export default {
 
       try {
         const lockResponse = await this.$axios.post(this.lockUrl, {
-          refresh_lock: false
+          refresh_lock: this.hasLock || forceLock,
         });
         console.log('performLock lockResponse', lockResponse);
 

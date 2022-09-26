@@ -209,6 +209,7 @@ export default {
       this.projectType.report_fields[fieldId] = {
         type: 'string',
         label: 'New Field',
+        required: true,
         default: 'TODO: fill field in report'
       };
       section.fields.push(fieldId);

@@ -157,7 +157,7 @@ export default {
     },
     addField() {
       const fieldId = uniqueName('new_field', this.projectType.finding_field_order);
-      this.projectType.finding_fields[fieldId] = { type: 'string', origin: 'custom', label: 'New Field', default: 'TODO: fill field in report' };
+      this.projectType.finding_fields[fieldId] = { type: 'string', origin: 'custom', label: 'New Field', required: true, default: 'TODO: fill field in report' };
       this.projectType.finding_field_order.push(fieldId);
       
       this.currentField = this.findingFields.find(f => f.id === fieldId);

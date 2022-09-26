@@ -1,40 +1,55 @@
 <template>
   <s-card>
     <v-card-text>
-      <v-row v-if="!isListItem">
-        <v-col>
-          <s-text-field
-            :value="value.id"
-            @change="emitInputVal('id', $event)"
-            :rules="rules.id" 
-            :disabled="disabled || !canChangeStructure"
-            label="ID" 
-            hint="Used to access this field in report templates"
-            required
-          />
-        </v-col>
-        <v-col>
-          <s-select
-            :value="value.type"
-            @change="updateType($event)"
-            :items="DATA_TYPES"
-            :disabled="disabled || !canChangeStructure"
-            label="Data Type"
-            hint="Data type of this field. Controls the allowed values and input form."
-            required
-          />
-        </v-col>
-        <v-col>
-          <s-text-field
-            :value="value.label"
-            @input="emitInputVal('label', $event)"
-            :disabled="disabled"
-            label="Label"
-            hint="Friendly name used in input forms for this field"
-            required
-          />
-        </v-col>
-      </v-row>
+      <template v-if="!isListItem">
+        <v-row>
+          <v-col>
+            <s-text-field
+              :value="value.id"
+              @change="emitInputVal('id', $event)"
+              :rules="rules.id" 
+              :disabled="disabled || !canChangeStructure"
+              label="ID" 
+              hint="Used to access this field in report templates"
+              required
+            />
+          </v-col>
+          <v-col>
+            <s-select
+              :value="value.type"
+              @change="updateType($event)"
+              :items="DATA_TYPES"
+              :disabled="disabled || !canChangeStructure"
+              label="Data Type"
+              hint="Data type of this field. Controls the allowed values and input form."
+              required
+            />
+          </v-col>
+
+          <v-col>
+            <s-text-field
+              :value="value.label"
+              @input="emitInputVal('label', $event)"
+              :disabled="disabled"
+              label="Label"
+              hint="Friendly name used in input forms for this field"
+              required
+            />
+          </v-col>
+        </v-row>
+        <v-row class="mt-0">
+          <v-col class="mt-0 pt-0">
+            <s-checkbox
+              :value="value.required"
+              @input="emitInputVal('required', $event)"
+              :disabled="disabled"
+              label="Required"
+              hint="Determines whether this field is required must be filled or optional"
+              class="mt-0"
+            />
+          </v-col>
+        </v-row>
+      </template>
       <s-select
         v-else
         :value="value.type"
@@ -269,6 +284,7 @@ export default {
           val = {
             type: 'string',
             label: 'New Field',
+            required: true,
             default: null,
           };
         }

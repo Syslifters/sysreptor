@@ -38,6 +38,7 @@ figure {
 }
 figcaption {
     font-weight: bold;
+    page-break-before: avoid;
 }
 ```
 

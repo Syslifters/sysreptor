@@ -98,8 +98,10 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT_= {
+    'REFRESH_TOKEN_LEFETIME': timedelta(hours=14),  # about 1 work day
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
 }
 
 WSGI_APPLICATION = 'reportcreator_api.wsgi.application'
@@ -213,8 +215,8 @@ PDF_RENDER_SCRIPT_PATH = config('PDF_RENDER_SCRIPT_PATH', cast=Path, default=BAS
 PYPPETEER_EXECUTABLE = config('PYPPETEER_EXECUTABLE', default=None)
 
 
-# MAX_LOCK_TIME should not be less than 2min, because some browsers (Chromium) triggers timers only once per minute if the browser tab is inactive
-MAX_LOCK_TIME = timedelta(minutes=2)
+# MAX_LOCK_TIME should not be less than 1.30min, because some browsers (Chromium) triggers timers only once per minute if the browser tab is inactive
+MAX_LOCK_TIME = timedelta(seconds=90)
 
 SPELLCHECK_URL = config('SPELLCHECK_URL', default=None)
 
