@@ -4,17 +4,14 @@ nav:
   - Getting Started: index.md
   - User Permissions: user-permissions.md
   - Reporting:
-    - Markdown Features: reporting/markdown-features.md
+    - Markdown Syntax: reporting/writing-findings.md
     - Writing Findings: reporting/writing-findings.md
   - Report Designer:
-    - Designer: designer/designer.md
     - Page Layout: designer/page-layout.md
     - Headings and ToC: designer/headings-and-table-of-contents.md
     - Tables: designer/tables.md
     - Figures: designer/figures.md
     - Footnotes: designer/footnotes.md
-    - Charts: designer/charts.md
-    - Formatting Utilities: designer/formatting-utils.md
     - Design Guides: designer/design-guides.md
     - Debugging: designer/debugging.md
     - Security Concerns: designer/security-concerns.md
@@ -32,10 +29,6 @@ extra_css:
   - stylesheets/hint.min.css
 
 plugins:
-  - mkdocs-simple-hooks:
-      enabled: !ENV [ENABLE_MKDOCS_SIMPLE_HOOKS, true]
-      hooks:
-        on_pre_build: "hooks:generate_software_lists"
   - social:
       cards_color:
         fill: "#001827"
@@ -54,14 +47,10 @@ markdown_extensions:
   - pymdownx.magiclink
   - pymdownx.highlight:
       use_pygments: true
-      anchor_linenums: true
   - admonition
   - pymdownx.details
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
   - pymdownx.superfences
   - md_in_html
-      
 
 extra:
   social:

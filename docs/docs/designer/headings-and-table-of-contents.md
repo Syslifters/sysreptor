@@ -124,3 +124,192 @@ h2.numbered-appendix:not([data-toc-level]), .numbered-appendix[data-toc-level="2
 
 
 
+## Table of Contents
+A table of contents can be included in reports via the `<table-of-contents>` component.
+This component collects all elements with the class `in-toc`, and provides them as variables.
+This component uses delayed multi-pass rendering to ensure that all items referenced in the TOC are already rendered and can be referenced.
+
+### Heading Numbers in TOC
+Heading numbers can be added purely with CSS using counters.
+However, in order to use the correct counters, the nesting level of the heading needs to be known by CSS rules.
+These cannot be determined soely in CSS.
+
+The `<table-of-contents>` component determines the nesting level and provides this information.
+`h1` to `h6` tags are assigned the correct level.
+If you want to reference other elements in the TOC or overwrite the level, set it via the `data-toc-level` attribute.
+
+All HTML attributes of the target element are collected and passed to `<table-of-contents>`.
+This can be used to e.g. determine if an item is in an appendix section or regular chapter.
+
+
+### Table of Contents Simple Example
+This example renders a table of contents with
+* heading title
+* page number
+* links entries to the target pages, such that you can click on the TOC entries and jump to the referenced pa
+
+```html
+<table-of-contents v-slot="tocItems">
+  <ul class="toc">
+    <template v-for="item in tocItems">
+      <li :class="'level-' + item.level"><a :href="item.href">{{ item.title }}</a></li>
+    </template>
+  </ul>
+</table-of-contents>
+```
+
+```css
+.toc a {
+    color: black;
+}
+
+.toc a::after {
+    font-weight: normal;
+    content: " " target-counter(attr(href), page);
+    float: right;
+}
+
+.toc ul {
+    list-style: none;
+    padding: 0;
+}
+
+.toc .level-1 {
+    margin-top: 0.7em;
+    font-weight: bold;
+}
+.toc .level-2 {
+    padding-left: 1.5em;
+    margin-top: 0.35em;
+    font-weight: normal;
+}
+.toc .level-3 {
+    padding-left: 3em;
+    margin-top: 0.25em;
+    font-weight: normal;
+}
+```
+
+### Table of Contents Complex Example
+This example renders a table of contents with
+* heading number (via CSS counters)
+* heading title
+* a leader (line of dots between title and page number)
+* page number
+* links entries to the target pages, such that you can click on the TOC entries and jump to the referenced page
+* supports regular chapters and appendix chapters
+
+```html
+<table-of-contents v-slot="tocItems">
+    <ul class="toc">
+        <template v-for="item in tocItems">
+            <li :class="['toc-level-' + item.level, (item.attrs.class || '').split(' ').includes('numbered') ? 'numbered' : '', (item.attrs.class || '').split(' ').includes('numbered-appendix') ? 'numbered-appendix' : '']">
+                <a :href="item.href">{{ item.title }}</a>
+            </li>
+        </template>
+    </ul>
+</table-of-contents>
+```
+
+```css
+.toc {
+    padding-left: 0;
+}
+.toc a {
+    color: black;
+    text-decoration: none;
+    font-style: inherit;
+}
+.toc a::after {
+    content: " " leader(".") " " target-counter(attr(href), page);
+}
+.toc li {
+    list-style: none;
+    padding-left: 0;
+}
+.toc-level-1 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-top: 0.8em;
+}
+.toc-level-1.numbered a::before {
+    content: target-counter(attr(href), h1-counter);
+    padding-right: 5mm;
+}
+.toc-level-1.numbered-appendix a::before {
+    content: target-counter(attr(href), h1-appendix-counter, upper-alpha);
+    padding-right: 5mm;
+}
+
+.toc-level-2 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin-top: 0.5em;
+}
+.toc-level-2.numbered a::before {
+    content: target-counter(attr(href), h1-counter) "." target-counter(attr(href), h2-counter);
+    padding-right: 5mm;
+}
+.toc-level-2.numbered-appendix a::before {
+    content: target-counter(attr(href), h1-appendix-counter, upper-alpha) "." target-counter(attr(href), h2-counter);
+    padding-right: 5mm;
+}
+
+.toc-level-3 {
+    font-size: 10pt;
+    margin-top: 0.4em;
+}
+```
+
+### Include items in TOC
+```html
+<h1 class="in-toc">Table of Contents</h1> <!-- note the missing class "numbered" -->
+<h1 class="in-toc numbered">Section 1</h1>
+<h2 class="in-toc numbered">Subsection 1.1</h2>
+<h2 class="in-toc numbered">Subsubsection 1.1.1</h2>
+<h1 class="numbered">Section 2: Not in TOC</h1>
+<h1 class="in-toc numbered-appendix">Appendix A</h1>
+<h2 class="in-toc numbered-appendix">Appendix A.1</h2>
+```
+
+
+### Referencing sections in text (outside of TOC)
+Headings can not only be referenced in the table of contents, but anywhere in the document.
+References can be added by creating an `<a>` tag that links to the `id` of an heading element.
+
+But there are some limitations in what you can reference: the nesting level cannot be determined automatically via CSS.
+You either have to manually specify the nesting level of the referenced heading or not include the heading number in the referenced text.
+
+
+```css
+/* Reference chapter title */
+.chapter-ref-title::before {
+    content: "Chapter " target-text(attr(href));
+}
+/* Reference appendix with number. It is assumed that all appendix subsections are on the same nesting level */
+.appendix-ref::before {
+    content: "Appendix " target-counter(attr(href), h1-appendix-counter, upper-alpha) "." target-counter(attr(href), h2-counter) " " target-text(attr(href));
+}
+```
+
+Example: reference static sections of the design
+```html
+Detailed descriptions of findings can be found in <a href="#findings" class="chapter-ref-title"/>.
+
+A permission to attack (see <a href="#appendix-pta" class="appendix-ref" />) was ...
+```
+
+Example: reference findings in markdown
+* you need to get the finding ID from the URL
+    * open the other finding that should be linked
+    * copy the last UUID from the URL
+* create a markdown link
+    * set the `href` to `#<copied-finding-id>`
+    * add the previously defined CSS class `.chapter-ref-title` to automatically add the finding title in the rendered text
+    * if you want another text for the link, do not add the class and write the link text yourself in the square brackets
+```md
+See this other finding [](#<finding-id>){.chapter-ref-title} for ...
+```
+
+
+

@@ -1,8 +1,6 @@
 import {gfmTable} from 'micromark-extension-gfm-table';
 import {gfmTableFromMarkdown, gfmTableToMarkdown} from 'mdast-util-gfm-table';
-import {codes} from 'micromark-util-symbol/codes.js'
-import { addRemarkExtension, assert } from './helpers';
-import {resolveAll} from 'micromark-util-resolve-all';
+import { addRemarkExtension } from './helpers';
 import {visit} from 'unist-util-visit';
 import {all} from 'remark-rehype';
 

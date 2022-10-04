@@ -48,7 +48,6 @@ export class CursorPaginationFetcher {
       this.nextPageURL = res.next;
       this.data.push(...res.results);
     } catch (error) {
-      console.log('CursorPaginationFetcher error', error);
       this.toast.global.requestError({ error });
     }
     this.isLoading = false;

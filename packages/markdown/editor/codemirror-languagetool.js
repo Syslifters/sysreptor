@@ -4,6 +4,8 @@ import './codemirror-languagetool.css';
 
 const MAX_REPLACEMENTS = 5;
 const DEBOUNCE_TIME = 500;
+const TOOLTIP_OPEN_DELAY = 350;
+const TOOLTIP_CLOSE_DELAY = 350;
 
 
 const SPELLING_RULE_IDS = [
@@ -85,7 +87,7 @@ function showTooltipFor(cm, e, span, target) {
     tooltip.style.opacity = "0";
 
     // the hider can be canceled by the clearHide function
-    hider = setTimeout(remove, 350); // timeout for fadeout
+    hider = setTimeout(remove, TOOLTIP_CLOSE_DELAY); // timeout for fadeout
   }
 
   target.addEventListener("mouseleave", hide);

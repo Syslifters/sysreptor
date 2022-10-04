@@ -20,7 +20,7 @@ hide:
 {postface}
 '''
 
-PREFACE = '''
+ALTERNATIVE_TO_PREFACE = '''
 Similar projects and and alternatives to [{name}]({url}){{target=_blank}} Penetration Test Reporting Tool.
 
 '''
@@ -28,7 +28,7 @@ TABLE_HEADER = '''| Name | Pros | Cons | Report Customization | Costs/User/Month
 | - | - | - | - | - |'''
 TABLE_ROW = '''| {software_icon} [{name}]({url}){{target=_blank}} | :material-arrow-up-box: {pros} | {cons_icon} {cons} | :material-file-document: {customization} | :material-tag: {price} |
 '''
-POSTFACE = """This overview has been compiled to the best of our knowledge and belief. We do not guarantee that the information is correct or up-to-date.
+POSTFACE = """This overview of penetration testing reporting tools has been compiled to the best of our knowledge and belief. We do not guarantee that the information is correct or up-to-date.
 
 :octicons-x-circle-fill-12:{ style="color: #e21212;" } We regard software projects without updates for one year or with missing security patches as discontinued.
 
@@ -46,6 +46,24 @@ def generate_software_lists(*args, **kwargs):
     if not need_regenerate(software_list):
         return
 
+    # Generate "Pentest Reporting Tools" page
+    title = f"Pentest Reporting Tools - A List of the most popular tools"
+    metadata = f"title: {title}"
+    preface = ""
+    table = generate_table(software_list)
+    postface = POSTFACE
+    document = DOCUMENT_CONTENT.format(
+        metadata=metadata,
+        title=title,
+        preface=preface,
+        table=table,
+        postface=postface
+    )
+    # write document
+    with open("docs/s/pentest-reporting-tools.md", 'w', encoding='utf-8') as f:
+        f.write(document)
+
+    # Generate "Alternative To Pages"
     for software in software_list:
         if software.get('self'):
             # No alternative to us page
@@ -53,11 +71,11 @@ def generate_software_lists(*args, **kwargs):
         title = f"Alternatives to {software['name']} Pentesting Reporting Tool"
         metadata = f'''title: {title.format(name=software['name'])}'''
         title = title.format(name=f"**{software['name']}")
-        preface = PREFACE.format(
+        preface = ALTERNATIVE_TO_PREFACE.format(
             name=software['name'],
             url=software['url'],
         )
-        table = generate_table(software_list, first_software=software['name'])
+        table = generate_table(software_list, skip_software=software['name'])
         postface = POSTFACE
 
         if not table:
@@ -150,7 +168,7 @@ def check_url_availability(software_list):
         raise ValueError("There are URLs that are unreachable")
 
 
-def generate_table(software_list, first_software=None):
+def generate_table(software_list, skip_software=None):
     table_rows = list()
     for software in software_list:
         software_icon = "[:fire:]{This is us :-)}" if software.get('self') else ""
@@ -167,13 +185,7 @@ def generate_table(software_list, first_software=None):
             price=software['price'] if software['price'] else "",
         )
         
-        if software['name'] == first_software:
-            # insert empty line
-            empty_line = TABLE_HEADER.split('\n')[1].replace('-', '')
-            table_rows.insert(0, empty_line+"\n")
-            # Insert entry that should appear first
-            table_rows.insert(0, table_row)
-        else:
+        if software['name'] != skip_software:
             table_rows.append(table_row)
 
     table = None

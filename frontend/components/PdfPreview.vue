@@ -57,7 +57,7 @@ export default {
         this.pdfData = new Uint8Array(res);
         this.pdfRenderErrors = null;
       } catch (error) {
-        if (error.response.status === 400) {
+        if (error?.response?.status === 400) {
           this.pdfRenderErrors = JSON.parse(String.fromCharCode.apply(null, new Uint8Array(error.response.data))) || {};
         } else {
           this.$toast.global.requestError({ error, message: 'PDF rendering error' });

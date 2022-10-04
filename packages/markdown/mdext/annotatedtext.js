@@ -5,6 +5,8 @@ import {assert} from './helpers.js';
 
 
 function micromarkToAnnotatedText(text, events) {
+  // console.log('micromark events', events);
+
   // build enter/exit tree of nested elements
   const tree = [];
   const stack = [];
@@ -37,7 +39,7 @@ function micromarkToAnnotatedText(text, events) {
 
   // extract leaf nodes of tree => this is a sequence of all the text tokens
   const leafNodes = [];
-  const interpretTypesAsLeafNodes = ['codeFenced', 'codeText', 'textAttributes', 'inlineFootnote', 'table', 'resource'];
+  const interpretTypesAsLeafNodes = ['codeFenced', 'codeText', 'textAttributes', 'inlineFootnote', 'table', 'resource', 'templateVariable'];
   function collectLeafNodes(t) {
     for (const n of t) {
       if (n.children.length === 0 || interpretTypesAsLeafNodes.includes(n.type)) {
@@ -52,12 +54,12 @@ function micromarkToAnnotatedText(text, events) {
 
   // convert leaf nodes to annotatedText => either text or markup
   // TODO: support table caption in micromark (instead of mdast)
-  // TODO: support "{{ template variable }}" in micromark (and ignore in spell check)
   const textTypes = ['data', 'lineEnding', 'lineEndingBlank'];
   const markupTypesInterpretAs = {
     'listItemMarker': '\n\n',
     'codeFenced': '\n\n',
     'codeText': '`code`',
+    'templateVariable': '`code`',
   };
   const annotatedText = [];
   for (const n of leafNodes) {

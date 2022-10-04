@@ -142,5 +142,6 @@ export function rehypeRewriteImageSources({rewriteImageSource}) {
     if (node.tagName === 'img' && node.properties.src && rewriteImageSource) {
       node.properties.src = rewriteImageSource(node.properties.src);
     }
-  })
+  });
 }
+

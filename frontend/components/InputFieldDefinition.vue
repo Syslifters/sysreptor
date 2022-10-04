@@ -37,7 +37,7 @@
             />
           </v-col>
         </v-row>
-        <v-row class="mt-0">
+        <v-row v-if="!['boolean', 'object'].includes(value.type)" class="mt-0">
           <v-col class="mt-0 pt-0">
             <s-checkbox
               :value="value.required"
