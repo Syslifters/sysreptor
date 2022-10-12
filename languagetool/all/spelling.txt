@@ -125,3 +125,10 @@ HTTPS
 Kernel
 PtA
 Permission-to-Attack
+Finding
+Cube
+Same-Origin
+Actuator
+FIDO2
+FIDO
+MIME-Type

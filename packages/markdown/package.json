@@ -13,6 +13,14 @@
     "rehype-raw": "^6.1.1",
     "micromark-extension-directive": "^2.1.1",
     "highlight.js": "^11.6.0",
-    "dompurify": "^2.3.10"
+    "dompurify": "^2.3.10",
+    "@codemirror/view": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/commands": "^6.0.0",
+    "@codemirror/lint": "^6.0.0",
+    "@codemirror/language": "^6.0.0",
+    "@codemirror/lang-markdown": "^6.0.0",
+    "@codemirror/lang-html": "^6.0.0",
+    "lodash": "^4.17.21"
   }
 }

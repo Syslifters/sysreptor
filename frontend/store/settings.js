@@ -1,6 +1,7 @@
 export const state = () => ({
   autoSaveEnabled: true,
   markdownEditorMode: 'markdown', // 'markdown', 'preview', 'markdown-preview'
+  spellcheckEnabled: true,
   reportInputMenuSize: 15,
   templateInputMenuSize: 15,
   reportFieldDefinitionMenuSize: 15,
@@ -11,9 +12,6 @@ export const state = () => ({
 export const mutations = {
   updateAutoSaveEnabled(state, val) {
     state.autoSaveEnabled = val;
-  },
-  updateMarkdownEditorPreviewModel(state, val) {
-    state.markdownEditorPreviewMode = val;
   },
   updateReportFieldDefinitionMenuSize(state, val) {
     state.reportFieldDefinitionMenuSize = val;
@@ -29,6 +27,9 @@ export const mutations = {
   },
   updateMarkdownEditorMode(state, val) {
     state.markdownEditorMode = val;
+  },
+  updateSpellcheckEnabled(state, val) {
+    state.spellcheckEnabled = val;
   },
   updateTemplateFieldVisibilityFilter(state, val) {
     state.templateFieldVisibilityFilter = val;

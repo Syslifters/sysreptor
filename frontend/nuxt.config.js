@@ -142,7 +142,8 @@ export default {
       {
         name: 'requestError',
         message: ({ error, message = null }) => {
-          // console.log('Request error', error);
+          // eslint-disable-next-line no-console
+          console.log('Request error', error);
 
           if (!message && error && error.config) {
             let details = error?.response?.data?.detail;

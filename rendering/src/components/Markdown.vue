@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { renderMarkdown } from 'reportcreator-markdown';
+import { renderMarkdownToHtml } from 'reportcreator-markdown';
 import 'highlight.js/styles/default.css';
 
 export default {
@@ -17,7 +17,7 @@ export default {
   },
   computed: {
     compiledMarkdown() {
-      return renderMarkdown(this.text, { preview: false });
+      return renderMarkdownToHtml(this.text, { preview: false });
     },
   },
 }

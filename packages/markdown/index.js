@@ -14,18 +14,18 @@ import { rehypeCode, rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRew
 import { remarkAttrs, remarkToRehypeAttrs } from './mdext/attrs.js';
 import { remarkFigure, remarkToRehypeHandlersFigure } from './mdext/image.js';
 import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './mdext/tables.js';
-import { annotatedTextParse } from './mdext/annotatedtext.js';
+import { annotatedTextParse } from './editor/annotatedtext.js';
 import { remarkTemplateVariables } from './mdext/templates.js';
 
 
-
-export function renderMarkdown(text, {preview = false, to = 'html', rewriteImageSource = null} = {}) {
+export function markdownParser() {
   // TODO: add plugins: 
   // * reference findings: #<finding-id>; current workaround [](#<finding-id>)
   // * enable autolinks?
   // write test cases for custom markdown extensions
   // * "text {{ var **with** _code_ `code` (which should not be interpreted as markdown) }} text {{ var with curly braces () => {"abc"} }} {no var}} {{ no var }"
-  const md = unified()
+  // * etc.
+  return unified()
     .use(remarkFootnotes)
     .use(remarkTables)
     .use(remarkTableCaptions)
@@ -33,9 +33,11 @@ export function renderMarkdown(text, {preview = false, to = 'html', rewriteImage
     .use(remarkTemplateVariables)
     .use(remarkAttrs)
     .use(remarkFigure);
+}
 
-  if (to === 'html') {
-    md
+
+export function renderMarkdownToHtml(text, {preview = false, rewriteImageSource = null} = {}) {
+  const md = markdownParser()
       .use(remarkParse)
       .use(remarkRehype, { 
         allowDangerousHtml: true, 
@@ -65,13 +67,13 @@ export function renderMarkdown(text, {preview = false, to = 'html', rewriteImage
 
     const mdHtml = md.processSync(text).value;
     return DOMPurify.sanitize(mdHtml, { ADD_TAGS: ['footnote'], ADD_ATTR: ['target', 'v-if'] });
-  } else if (to === 'annotatedText') {
-    md.use(annotatedTextParse);
-    
-    const at = md.parse(text);
-    // console.log('AnnotatedText', at);
-    return at;
-  } else {
-    throw Error('Could not render markdown. Unknown target format: ' + to);
-  }
+}
+
+
+export function markdownToAnnotatedText(text) {
+  const md = markdownParser()
+    .use(annotatedTextParse);
+  const at = md.parse(text);
+  // console.log('AnnotatedText', at);
+  return at;
 }

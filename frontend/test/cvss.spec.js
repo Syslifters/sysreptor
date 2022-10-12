@@ -1,4 +1,4 @@
-import { scoreFromVector } from '@/utils/cvss.js';
+import { scoreFromVector } from '@/utils/cvss';
 
 describe('CVSS score calculation', () => {
   for (const [vector, score] of Object.entries({

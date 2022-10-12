@@ -4,8 +4,9 @@ nav:
   - Getting Started: index.md
   - User Permissions: user-permissions.md
   - Reporting:
-    - Markdown Syntax: reporting/writing-findings.md
-    - Writing Findings: reporting/writing-findings.md
+    - Markdown Syntax: reporting/markdown-features.md
+    - Reference Sections: reporting/referencing-sections.md
+    - Locked Findings & Sections: reporting/locking.md
   - Report Designer:
     - Page Layout: designer/page-layout.md
     - Headings and ToC: designer/headings-and-table-of-contents.md

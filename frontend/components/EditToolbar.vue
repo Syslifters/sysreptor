@@ -202,8 +202,9 @@ export default {
     window.removeEventListener('keydown', this.keyboardShortcutListener);
     window.removeEventListener('unload', this.onUnloadBrowser);
 
-    if (this.refreshLockInterval !== null) {
+    if (this.refreshLockInterval) {
       clearInterval(this.refreshLockInterval);
+      this.refreshLockInterval = null;
     }
   },
   methods: {
@@ -308,6 +309,7 @@ export default {
       
       if (this.refreshLockInterval) {
         clearInterval(this.refreshLockInterval);
+        this.refreshLockInterval = null;
       }
       
       this.hasLock = false;

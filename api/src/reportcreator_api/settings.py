@@ -112,10 +112,10 @@ WSGI_APPLICATION = 'reportcreator_api.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.sqlite3'),
-        'NAME': config('DATABASE_NAME', default=MEDIA_ROOT / 'db.sqlite3'),
+        'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
         'HOST': config('DATABASE_HOST', default=''),
         'PORT': config('DATABASE_PORT', default='5432'),
+        'NAME': config('DATABASE_NAME', default=''),
         'USER': config('DATABASE_USER', default=''),
         'PASSWORD': config('DATABASE_PASSWORD', default=''),
     },

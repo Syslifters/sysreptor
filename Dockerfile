@@ -9,9 +9,13 @@ COPY frontend/package.json frontend/package-lock.json /app/frontend/
 RUN npm install
 
 
-FROM frontend-dev AS frontend
+FROM frontend-dev AS frontend-test
 COPY packages/markdown/ /app/packages/markdown/
 COPY frontend /app/frontend/
+CMD npm run test
+
+
+FROM frontend-test AS frontend
 RUN npm run build
 
 
@@ -68,23 +72,23 @@ RUN mkdir -p /app/pyppeteer/ && \
 WORKDIR /app/api/
 
 
-
-FROM api-dev as api
-
+FROM api-dev AS api-test
 # Copy source code
 COPY api/src /app/api
+# Copy generated PDF rendering file
+COPY --from=rendering /app/rendering/dist /app/rendering/
+ENV PDF_RENDER_SCRIPT_PATH=/app/rendering/bundle.js
+CMD python3 manage.py test
 
+
+
+FROM api-test as api
 # Generate static frontend files
 COPY --from=frontend /app/frontend/dist/ /app/api/frontend/
 RUN DEBUG=on python3 manage.py collectstatic --no-input \
     && python3 -m whitenoise.compress /app/api/frontend/ /app/api/static/
-
-# Copy generated PDF rendering file
-COPY --from=rendering /app/rendering/dist /app/rendering/
-
 # Configure application
 ENV DEBUG=off \
-    PDF_RENDER_SCRIPT_PATH=/app/rendering/bundle.js \
     MEDIA_ROOT=/data/ \
     SERVER_WORKERS=3 \
     SERVER_THREADS=4

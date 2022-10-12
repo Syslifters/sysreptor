@@ -11,18 +11,16 @@
     />
 
     <!-- Markdown -->
-    <div v-else-if="definition.type === 'markdown'">
-      <label>{{ label }}</label>
-      <markdown-field
-        :value="formValue"
-        @input="emitInput"
-        :upload-image="uploadImage"
-        :image-urls-relative-to="imageUrlsRelativeTo"
-        :label="label"
-        :disabled="disabled"
-        :lang="lang"
-      />
-    </div>
+    <markdown-field
+      v-else-if="definition.type === 'markdown'"
+      :value="formValue"
+      @input="emitInput"
+      :label="label"
+      :upload-image="uploadImage"
+      :image-urls-relative-to="imageUrlsRelativeTo"
+      :disabled="disabled"
+      :lang="lang"
+    />
 
     <!-- Date -->
     <v-menu
@@ -189,12 +187,7 @@
 </template>
 
 <script>
-import CvssField from "./CvssField.vue";
-import DeleteButton from './DeleteButton.vue';
-import MarkdownField from './MarkdownField.vue';
-import UserSelection from './UserSelection.vue';
 export default {
-  components: { CvssField, MarkdownField, DeleteButton, UserSelection },
   props: {
     value: {
       type: undefined,

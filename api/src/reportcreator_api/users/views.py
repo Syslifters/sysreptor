@@ -47,7 +47,7 @@ class PentestUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixin
         self.kwargs['pk'] = 'self'
         return self.update(request, *args, **kwargs)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, url_path='reset-password', methods=['post'])
     def reset_password(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 

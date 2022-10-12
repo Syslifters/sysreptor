@@ -44,7 +44,7 @@ export default {
         ...(!this.getHasEditPermissions() ? {
           errorMessage: 'You do not have permissions to edit this resource.',
         } : {}),
-        ...(this.performDelete ? {
+        ...(this.performDelete && this.getHasEditPermissions() ? {
           delete: this.performDelete,
           deleteConfirmInput: this.deleteConfirmInput,
         } : {}),

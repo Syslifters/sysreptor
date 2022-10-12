@@ -299,17 +299,20 @@ Detailed descriptions of findings can be found in <a href="#findings" class="cha
 A permission to attack (see <a href="#appendix-pta" class="appendix-ref" />) was ...
 ```
 
-Example: reference findings in markdown
-* you need to get the finding ID from the URL
-    * open the other finding that should be linked
-    * copy the last UUID from the URL
-* create a markdown link
-    * set the `href` to `#<copied-finding-id>`
-    * add the previously defined CSS class `.chapter-ref-title` to automatically add the finding title in the rendered text
-    * if you want another text for the link, do not add the class and write the link text yourself in the square brackets
-```md
-See this other finding [](#<finding-id>){.chapter-ref-title} for ...
-```
+**Example:** Reference findings in markdown
 
 
+1. Get the finding ID from the URL
+    * Open the other finding that should be linked
+    * Copy the last UUID from the URL ![Grab the finding ID](/images/finding_id.png)
 
+2. Create a markdown link
+    * Set the `href` to `#<copied-finding-id>` 
+    * Add the previously defined CSS class `.chapter-ref-title` to automatically add the finding title in the rendered text
+      ```md
+      See this other finding [](#<finding-id>){.chapter-ref-title} for...
+      ```
+    * If you want a different text for the link, do not add the class and write the link text yourself in the square brackets
+      ```md
+      See this other finding [for more information](#<finding-id>)...
+      ```

@@ -1,12 +1,13 @@
 <template>
-  <div 
+  <div
+    class="drag-drop-area"
     @drop.prevent="performFileUpload($event.dataTransfer.files)" 
     @dragover.prevent="showDropArea = true" 
     @dragenter.prevent="showDropArea = true" 
     @dragleave.prevent="showDropArea = false"
   >
     <!-- Upload files with drag-and-drop here -->
-    <v-row>
+    <v-row class="ma-0">
       <v-col :cols="12" :md="3">
         <s-card>
           <v-card-actions>
@@ -20,6 +21,9 @@
             </s-btn>
             <input ref="fileInput" type="file" multiple @change="performFileUpload($event.target.files)" :disabled="disabled || uploadInProgress" class="d-none" />
           </v-card-actions>
+          <v-card-text class="text--small text-center pt-0">
+            Attach files by drag and dropping
+          </v-card-text>
         </s-card>
       </v-col>
 
@@ -163,7 +167,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  .text--small {
-    font-size: smaller;
-  }
+.drag-drop-area {
+  min-height: 100%;
+}
+
+.text--small {
+  font-size: smaller;
+}
 </style>
