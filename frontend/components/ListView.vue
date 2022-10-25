@@ -7,7 +7,7 @@
     <slot name="actions" />
     <v-list v-if="items">
       <slot v-for="item in items.data" name="item" :item="item" />
-      <div v-if="items.hasNextPage" v-intersect="items.fetchNextPageImmediate" class="text-center mt-5 -b">
+      <div v-if="items.hasNextPage" v-intersect="fetchNextPage" class="text-center mt-5 -b">
         <v-progress-circular indeterminate />
       </div>
     </v-list>
@@ -35,7 +35,7 @@ export default {
     }
   },
   async fetch() {
-    await this.items.fetchNextPageImmediate();
+    await this.fetchNextPage();
   },
   watch: {
     '$route.query.search'(val) {
@@ -47,6 +47,9 @@ export default {
       this.$router.replace({ query: { search: search || '' } });
       this.items.search(search);
     },
+    async fetchNextPage() {
+      return await this.items.fetchNextPageImmediate();
+    }
   }
 }
 </script>

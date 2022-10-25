@@ -4,6 +4,7 @@
     v-on="$listeners" 
     hide-no-data
     hide-details="auto" 
+    persistent-hint
     :outlined="outlined"
     class="mt-4"
   >

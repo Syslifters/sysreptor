@@ -3,7 +3,6 @@ import { extractLeafNodesFromMicromarkTree, micromarkEventsToTree, parseMicromar
 
 
 function micromarkToAnnotatedText(text, events) {
-  // console.log('micromark events', events);
   const tree = micromarkEventsToTree(text, events);
 
   // extract leaf nodes of tree => this is a sequence of all the text tokens

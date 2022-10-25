@@ -35,7 +35,7 @@ projecttype_router.trailing_slash = '/?'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('api/', RedirectView.as_view(url='/api/v1/')),
+    re_path(r'^api/?$', RedirectView.as_view(url='/api/v1/')),
     path('api/v1/', include([
         path('auth/', include([
             path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

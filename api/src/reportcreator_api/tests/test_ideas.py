@@ -22,10 +22,12 @@ from django.test import TestCase
 #     * test rendering custom components: compare to expected HTML, no rendering errors
 #     * test formatDate with different languages/locales
 #     * test PDF encryption
-# * create project: project, report and all sections created
+#     * test formatting UserFields: PentestUser and project.imported_pentesters
+# * create project: project and all sections created
 # * test check_definitions_compatible: definitions have no overlapping fields, overlapping fields of same type, overlapping enum with different values, overlapping fields: list vs string
 # * test copy ProjectType and PentestProject: all data, assets, images, sections, findings, etc. exist for the old object and the new one and have the same value
 # * test checks.py: 
 #   * to-dos detected in markdown, string, list, object fields
 #   * empty fields: check string, number, list; only warning when definition.field.required=True
+# * test invalid characters in UploadedAsset and UploadedImage name: e.g. "../test.txt", "..", "/test.txt", "te\x00st.txt"
 

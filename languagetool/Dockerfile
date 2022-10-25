@@ -1,4 +1,4 @@
-FROM erikvl87/languagetool:5.8-dockerupdate-2
+FROM erikvl87/languagetool:5.9
 
 # Add custom words
 USER root
@@ -10,4 +10,4 @@ RUN ls -alR /custom-wordlists/ && for lang in "de" "en"; do \
         (echo; cat /custom-wordlists/all/${file}; echo; cat /custom-wordlists/${lang}/${file}) >> org/languagetool/resource/${lang}/hunspell/${file}; \
       done; \
     done
-USER languagetool
+USER 1000

@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="dialogVisible" max-width="50%">
     <template #activator="{ on, attrs }">
-      <s-btn color="secondary" small v-bind="attrs" v-on="on">
+      <s-btn :disabled="project.readonly" color="secondary" small v-bind="attrs" v-on="on">
         <v-icon>mdi-plus</v-icon>
         Create Finding
       </s-btn>

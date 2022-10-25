@@ -11,7 +11,7 @@ class MessageLevel(enum.Enum):
 
 class MessageLocationType(enum.Enum):
     FINDING = 'finding'
-    REPORT = 'report'
+    PROJECT = 'project'
     SECTION = 'section'
     TEMPLATE = 'template'
     OTHER = 'other'

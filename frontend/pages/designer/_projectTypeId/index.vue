@@ -2,9 +2,10 @@
   <v-container>
     <v-form ref="form">
       <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :form="$refs.form">
-        <copy-button v-if="$auth.hasScope('designer')" :copy="performCopy">
-          <template #tooltip>Duplicate Design</template>
-        </copy-button>
+        <template v-if="$auth.hasScope('designer')">
+          <btn-export :export-url="`/projecttypes/${projectType.id}/export/`" :name="'design-' + projectType.name" />
+          <btn-copy :copy="performCopy" tooltip-text="Duplicate Design" />
+        </template>
       </edit-toolbar>
 
       <s-text-field
@@ -19,8 +20,6 @@
 </template>
 
 <script>
-import EditToolbar from '~/components/EditToolbar.vue'
-import LanguageSelection from '~/components/LanguageSelection.vue';
 import LockEditMixin from '~/mixins/LockEditMixin';
 
 function getProjectTypeUrl(params) {
@@ -28,7 +27,6 @@ function getProjectTypeUrl(params) {
 }
 
 export default {
-  components: { EditToolbar, LanguageSelection },
   mixins: [LockEditMixin],
   async asyncData({ $axios, params }) {
     return {
@@ -51,7 +49,7 @@ export default {
       return this.$auth.hasScope('designer');
     },
     async performSave(data) {
-      await this.$store.dispatch('projecttypes/partialUpdate', { obj: data, fields: ['name'] });
+      await this.$store.dispatch('projecttypes/partialUpdate', { obj: data, fields: ['name', 'language'] });
     },
     async performDelete(data) {
       await this.$store.dispatch('projecttypes/delete', data);

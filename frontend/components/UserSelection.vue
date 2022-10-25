@@ -61,7 +61,7 @@ export default {
       return Object.assign({}, this.$attrs, {
         label: this.label,
         itemValue: 'id',
-        itemText: u => u.username + (u.name ? ` (${u.name})` : ''),
+        itemText: u => (u.username && u.name) ? `${u.username} (${u.name})` : (u.username || u.name || ''),
         itemDisabled: u => this.preventUnselectingSelf && u.id === this.$auth.user.id && !!this.value.find(v => v.id === u.id),
         disabled: this.disabled,
         returnObject: true,

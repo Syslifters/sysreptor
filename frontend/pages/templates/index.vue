@@ -2,10 +2,14 @@
   <list-view url="/findingtemplates/" :search="$route.query.search">
     <template #title>Finding Templates</template>
     <template #actions v-if="$auth.hasScope('template_editor')">
-      <s-btn @click="createTemplate" color="primary">
-        <v-icon>mdi-plus</v-icon>
-        Create new finding template
-      </s-btn>
+      <btn-confirm 
+        :action="createTemplate" 
+        :confirm="false" 
+        button-text="Create new finding template"
+        button-icon="mdi-plus"
+        button-color="primary"
+      />
+      <btn-import :import="performImport" />
     </template>
     <template #item="{item}">
       <v-list-item :to="`/templates/${item.id}/`" nuxt two-line>
@@ -27,20 +31,22 @@
 </template>
 
 <script>
+import { uploadFile } from '~/utils/upload';
+
 export default {
   methods: {
     async createTemplate() {
-      try {
-        const template = await this.$store.dispatch('templates/create', {
-          data: {
-            title: 'New Finding Template',
-          },
-        });
-        this.$router.push({ path: `/templates/${template.id}` });
-      } catch (error) {
-        this.$toast.global.requestError({ error });
-      }
-    }
+      const template = await this.$store.dispatch('templates/create', {
+        data: {
+          title: 'New Finding Template',
+        },
+      });
+      this.$router.push({ path: `/templates/${template.id}` });
+    },
+    async performImport(file) {
+      const templates = await uploadFile(this.$axios, '/findingtemplates/import/', file);
+      this.$router.push({ path: `/templates/${templates[0].id}/` });
+    },
   }
 }
 </script>

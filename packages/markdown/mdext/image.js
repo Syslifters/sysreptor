@@ -4,7 +4,7 @@ import {containerPhrasing} from 'mdast-util-to-markdown/lib/util/container-phras
 import {track} from 'mdast-util-to-markdown/lib/util/track.js'
 import {safe} from 'mdast-util-to-markdown/lib/util/safe.js'
 import {all} from 'remark-rehype';
-import {image as imageToHast} from 'mdast-util-to-hast/lib/handlers/image.js';
+import {normalizeUri} from 'micromark-util-sanitize-uri';
 
 
 function figureFromMarkdown() {
@@ -129,15 +129,15 @@ export function remarkFigure() {
 
 export const remarkToRehypeHandlersFigure = {
   image(h, node) {
-    // only add attributes to <figure> tag, not to <img>
+    // only add attributes to <img> tag, not to <figure>
     const attrs = (node.data || {}).hProperties || {};
     if (!node.data) {
       node.data = {};
     }
     node.data.hProperties = {};
-    
-    return h(node, 'figure', attrs, [
-      imageToHast(h, node),
+
+    return h(node, 'figure', [
+      h(node, 'img', {src: normalizeUri(node.url), alt: node.alt, ...attrs}),
       ...(node.children.length > 0 ? [h(node, 'figcaption', all(h, node))] : [])
     ]);
   }

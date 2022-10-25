@@ -24,7 +24,7 @@
         :id="fieldId" 
         :definition="projectType.finding_fields[fieldId]" 
         :upload-image="uploadImage" :image-urls-relative-to="projectUrl" 
-        :selectable-users="project.pentesters"
+        :selectable-users="project.pentesters.concat(project.imported_pentesters)"
         :lang="finding.language"
       />
     </div>
@@ -65,6 +65,12 @@ export default {
   methods: {
     getBaseUrl(data) {
       return getFindingUrl(this.$route.params);
+    },
+    getHasEditPermissions() {
+      if (this.project) {
+        return !this.project.readonly;
+      }
+      return true;
     },
     async performSave(data) {
       await this.$store.dispatch('projects/updateFinding', { projectId: this.finding.project, finding: data });

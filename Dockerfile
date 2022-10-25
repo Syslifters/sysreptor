@@ -101,4 +101,7 @@ VOLUME [ "/data" ]
 USER 1000
 EXPOSE 8000
 CMD python3 manage.py migrate && \
-    gunicorn --bind=:8000 --workers=${SERVER_WORKERS} --threads=${SERVER_THREADS} reportcreator_api.wsgi:application
+    gunicorn \
+        --bind=:8000 --workers=${SERVER_WORKERS} --threads=${SERVER_THREADS} \
+        --max-requests=500 --max-requests-jitter=100 \
+        reportcreator_api.wsgi:application

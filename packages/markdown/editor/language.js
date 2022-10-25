@@ -31,13 +31,14 @@ const markdownHighlighting = styleTags({
   "resource/...": t.url,
   "inlineFootnote/...": tags.footnote, 
   "templateVariable": tags.inlinecode,
+  "todo/...": tags.todo,
 });
 const nodeTypes = [
   'strong', 'strongSequence', 'emphasis', 'emphasisSequence', 'strikethrough', 'strikethroughSequence', 
   'codeText', 'codeFenced', 'table', 'blockQuote',
   'heading1', 'heading2', 'heading3', 'heading4', 'heading5', 'heading6',
   'link', 'image', 'resource', 'label', 'labelMarker', 'labelText',
-  'inlineFootnote', 'textAttributes', 'templateVariable',
+  'inlineFootnote', 'textAttributes', 'templateVariable', 'todo',
   'htmlText', 'htmlFlow',
   'data', 'paragraph', 'content', 'document', 'lineEnding',
   'listOrdered', 'listUnordered', 'listItem', 'listItemPrefix', 'blockQuotePrefix', 'listItemMarker', 

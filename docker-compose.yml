@@ -19,6 +19,7 @@ services:
       interval: 2s
       timeout: 5s
       retries: 30
+    stop_grace_period: 120s
   rendering:
     build: 
       context: .
@@ -35,6 +36,9 @@ services:
     build: 
       context: languagetool
     init: true
+    environment:
+      Java_Xmx: "2g"
+      JAVA_TOOL_OPTIONS: "-verbose:gc"
     expose:
       - 8010
   api:

@@ -11,11 +11,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from datetime import timedelta
-from email.policy import default
 from decouple import config
 from pathlib import Path
-
-from pytz import timezone
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -49,11 +46,13 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
 
+    'reportcreator_api',
     'reportcreator_api.users',
     'reportcreator_api.pentests',
 ]
 
 MIDDLEWARE = [
+    'reportcreator_api.utils.logging.RequestLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -97,8 +96,9 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100,
 }
 
-SIMPLE_JWT_= {
-    'REFRESH_TOKEN_LEFETIME': timedelta(hours=14),  # about 1 work day
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=14),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
@@ -190,6 +190,9 @@ CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
 CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
 
 
+# Generate HTTPS URIs in responses for requests behind a reverse proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 
 # Monkey-Patch django to use our modified CSRF middleware everywhere
 # CSRF middlware class is used as middleware and internally by DjangoRestFramework
@@ -198,7 +201,6 @@ from reportcreator_api.utils.middleware import CustomCsrfMiddleware
 csrf.CsrfViewMiddleware = CustomCsrfMiddleware
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='')
 CSRF_TRUSTED_ORIGINS = list(filter(None, CSRF_TRUSTED_ORIGINS.split(';'))) or ['https://*', 'http://*']
-
 
 
 # File storage
@@ -229,3 +231,40 @@ if DEBUG:
         'debug_toolbar.middleware.DebugToolbarMiddleware',
     ]
     INTERNAL_IPS = type(str('c'), (), {'__contains__': lambda *a: True})()
+
+
+
+
+LOGGING = {
+    'version': 1,
+    'disabled_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'class': 'logging.Formatter',
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'formatter': 'default',
+            'class': 'logging.StreamHandler',
+        }
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console'],
+    },
+    'loggers': {
+        'weasyprint': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'pyppeteer': {
+            'level': 'WARNING',
+            'hanlders': ['console'],
+            'propagate': False,
+        },
+    }
+}

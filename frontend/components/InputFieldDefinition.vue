@@ -88,7 +88,7 @@
             </v-row>
           </v-list-item-content>
           <v-list-item-action>
-            <delete-button @delete="emitInputChoice('delete', choice)" :disabled="disabled || !canChangeStructure" icon />
+            <btn-delete :delete="() => emitInputChoice('delete', choice)" :disabled="disabled || !canChangeStructure" icon />
           </v-list-item-action>
         </v-list-item>
         <v-list-item>
@@ -133,7 +133,7 @@
             />
           </v-list-item-content>
           <v-list-item-action>
-            <delete-button :disabled="disabled || !canChangeStructure" @delete="emitInputObject('delete', f.id)" icon />
+            <btn-delete :disabled="disabled || !canChangeStructure" :delete="() => emitInputObject('delete', f.id)" icon />
           </v-list-item-action>
         </v-list-item>
 

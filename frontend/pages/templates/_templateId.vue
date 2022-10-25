@@ -30,7 +30,11 @@
       </template>
 
       <template #default>
-        <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true" />
+        <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
+          <template v-if="$auth.hasScope('template_editor')">
+            <btn-export :export-url="`/findingtemplates/${template.id}/export/`" :name="`template-` + template.data.title" />
+          </template>
+        </edit-toolbar>
 
         <div v-for="d in fieldDefinitionsCore" :key="d.id">
           <dynamic-input-field 
@@ -71,10 +75,8 @@
 </template>
 
 <script>
-import DynamicInputField from '~/components/DynamicInputField.vue';
+import { sortBy } from 'lodash';
 import { EditMode } from '~/components/EditToolbar.vue';
-import LanguageSelection from '~/components/LanguageSelection.vue';
-import SplitMenu from '~/components/SplitMenu.vue';
 import LockEditMixin from '~/mixins/LockEditMixin';
 import { CursorPaginationFetcher } from '~/utils/urls';
 
@@ -82,20 +84,17 @@ function getTemplateUrl(params) {
   return `/findingtemplates/${params.templateId}/`;
 }
 
-function compareOrigin(a, b) {
-  const originOrder = { core: 1, predefined: 2, custom: 3 };
-  return (originOrder[a.origin] || 10) - (originOrder[b.origin] || 10);
-}
-
 export default {
-  components: { SplitMenu, DynamicInputField, LanguageSelection },
   mixins: [LockEditMixin],
   async asyncData({ params, store, $axios }) {
     const template = await $axios.$get(getTemplateUrl(params));
     const rawFieldDefinition = await store.dispatch('templates/getFieldDefinition');
-    const fieldDefinition = Object.keys(rawFieldDefinition)
-      .map(id => ({ id, visible: true, ...rawFieldDefinition[id] }))
-      .sort(compareOrigin);
+    const fieldDefinition = sortBy(
+      Object.keys(rawFieldDefinition).map(id => ({ id, visible: true, ...rawFieldDefinition[id] })),
+      [(d) => {
+        const originOrder = { core: 1, predefined: 2, custom: 3 };
+        return originOrder[d.origin] || 10;
+      }]);
     return { template, fieldDefinition };
   },
   data() {

@@ -6,6 +6,7 @@
         <v-icon>mdi-plus</v-icon>
         Create new Report Design
       </s-btn>
+      <btn-import :import="performImport" />
     </template>
     <template #item="{item}">
       <v-list-item :to="`/designer/${item.id}/pdfdesigner/`" nuxt>
@@ -18,10 +19,9 @@
 </template>
 
 <script>
-import ListView from '~/components/ListView.vue';
+import { uploadFile } from '~/utils/upload';
 
 export default {
-  components: { ListView },
   methods: {
     async createProjectType() {
       try {
@@ -32,7 +32,11 @@ export default {
       } catch (error) {
         this.$toast.global.requestError({ error });
       }
-    }
+    },
+    async performImport(file) {
+      const designs = await uploadFile(this.$axios, '/projecttypes/import/', file);
+      this.$router.push({ path: `/designer/${designs[0].id}/` });
+    },
   }
 }
 </script>

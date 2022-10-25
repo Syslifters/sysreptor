@@ -60,6 +60,16 @@ export default {
       return this.editMode === EditMode.READONLY;
     },
   },
+  watch: {
+    data: {
+      handler() {
+        // Update permissions after the data object changed
+        // Called after routeUpdate, but not when entering data into the form
+        this.editMode = this.getHasEditPermissions() ? EditMode.EDIT : EditMode.READONLY;
+      },
+      immediate: true,
+    },
+  },
   mounted() {
     // Set initial value in store to update lock info
     this.updateInStore(cloneDeep(this.data));

@@ -1,8 +1,9 @@
-import {gfmTable} from 'micromark-extension-gfm-table';
-import {gfmTableFromMarkdown, gfmTableToMarkdown} from 'mdast-util-gfm-table';
+import { gfmTable } from 'micromark-extension-gfm-table';
+import { gfmTableFromMarkdown, gfmTableToMarkdown } from 'mdast-util-gfm-table';
 import { addRemarkExtension } from './helpers';
-import {visit} from 'unist-util-visit';
-import {all} from 'remark-rehype';
+import { visit } from 'unist-util-visit';
+import { all } from 'remark-rehype';
+import { containerPhrasing } from 'mdast-util-to-markdown/lib/util/container-phrasing.js'
 
 
 export function remarkTables() {

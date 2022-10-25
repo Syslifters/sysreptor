@@ -10,7 +10,7 @@
 
       <s-tooltip v-if="canSave" :disabled="data === null" :open-on-focus="false">
         <template #activator="{on, attrs}">
-          <s-btn :loading="savingInProgress" :disabled="savingInProgress" @click="performSave" v-bind="attrs" v-on="on" color="primary" class="ml-2 mr-2">
+          <s-btn :loading="savingInProgress" :disabled="savingInProgress" @click="performSave" v-bind="attrs" v-on="on" color="primary" class="ml-1 mr-1">
             <template #default>
               <v-icon>mdi-content-save</v-icon>
               <v-badge v-if="data !== null" dot :color="hasChanges? 'error' : 'success'">
@@ -31,9 +31,9 @@
         </template>
       </s-tooltip>
     
-      <delete-button 
+      <btn-delete
         v-if="canDelete" 
-        @delete="performDelete" 
+        :delete="performDelete" 
         :confirm="true"  
         :confirm-input="deleteConfirmInput"
         icon color="error" 
@@ -53,7 +53,7 @@
         Please wait until he is finished or ask him to leave this page.
       </span>
       <span v-else-if="lockInfo.user.id === $auth.user.id">
-        It seems you like are editing this page in another tab or browser session.
+        It seems like you are editing this page in another tab or browser session.
         To prevent overwriting changes, only one instance has write access at a time.
         <v-btn @click="selfLockedEditAnyway" text small>Edit Anyway</v-btn>
       </span>
@@ -68,7 +68,7 @@ import { absoluteApiUrl } from '~/utils/urls';
 export const EditMode = Object.freeze({
   READONLY: 'READONLY',
   EDIT: 'EDIT',
-})
+});
 
 export default {
   props: {
@@ -240,7 +240,6 @@ export default {
         await this.delete(this.data);
       } catch (error) {
         this.hasLock = hasLockReset;
-        this.$toast.global.requestError({ error });
       }
     },
     async selfLockedEditAnyway() {

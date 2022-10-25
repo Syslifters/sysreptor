@@ -17,7 +17,7 @@
                 <v-list-item :value="s" :ripple="false" link>
                   <v-list-item-title>{{ s.label }}</v-list-item-title>
                   <v-list-item-action>
-                    <delete-button v-if="s.fields.length === 0" @delete="deleteSection(s)" :disabled="readonly" icon small />
+                    <btn-delete v-if="s.fields.length === 0" :delete="() => deleteSection(s)" :disabled="readonly" icon small />
                   </v-list-item-action>
                 </v-list-item>
                 <v-list class="sublist" dense>
@@ -30,7 +30,7 @@
                     <v-list-item v-for="f in s.fields" :key="f.id" :value="f" class="draggable-field" :ripple="false" link>
                       <v-list-item-title>{{ f.id }}</v-list-item-title>
                       <v-list-item-action>
-                        <delete-button v-if="f.origin !== 'core'" @delete="deleteField(s, f)" :disabled="readonly" icon x-small />
+                        <btn-delete v-if="f.origin !== 'core'" :delete="() => deleteField(s, f)" :disabled="readonly" icon x-small />
                       </v-list-item-action>
                     </v-list-item>
                   </draggable>

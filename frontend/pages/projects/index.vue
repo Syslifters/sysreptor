@@ -1,26 +1,35 @@
 <template>
-  <list-view url="/pentestprojects/">
-    <template #title>Projects</template>
-    <template #actions>
-      <s-btn to="/projects/new/" color="primary">
-        <v-icon>mdi-plus</v-icon>
-        Create new project
-      </s-btn>
-    </template>
-    <template #item="{item}">
-      <v-list-item :to="`/projects/${item.id}/reporting/`" nuxt two-line>
-        <v-list-item-content>
-          <v-list-item-title>
-            {{ item.name }}
-          </v-list-item-title>
-            
-          <v-list-item-subtitle>
-            <v-chip v-for="user in item.pentesters" :key="user.id" class="ma-1 mt-2" small>
-              {{ user.username }}
-            </v-chip>
-          </v-list-item-subtitle>
-        </v-list-item-content>
-      </v-list-item>
-    </template>
-  </list-view>
+  <div>
+    <s-sub-menu>
+      <v-tab :to="`/projects/`" exact>Active Projects</v-tab>
+      <v-tab :to="`/projects/finished/`">Finished Projects</v-tab>
+    </s-sub-menu>
+
+    <list-view url="/pentestprojects/?readonly=false">
+      <template #title>Projects</template>
+      <template #actions>
+        <s-btn to="/projects/new/" color="primary">
+          <v-icon>mdi-plus</v-icon>
+          Create new project
+        </s-btn>
+        <btn-import :import="performImport" />
+      </template>
+      <template #item="{item}">
+        <project-list-item :item="item" />
+      </template>
+    </list-view>
+  </div>
 </template>
+
+<script>
+import { uploadFile } from '~/utils/upload';
+
+export default {
+  methods: {
+    async performImport(file) {
+      const projects = await uploadFile(this.$axios, '/pentestprojects/import/', file);
+      this.$router.push({ path: `/projects/${projects[0].id}/project/` });
+    },
+  }
+}
+</script>

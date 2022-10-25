@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 from django.conf import settings
-from django.middleware.csrf import CsrfViewMiddleware
+from django.middleware.csrf import CsrfViewMiddleware, RejectRequest
 
 
 class CustomCsrfMiddleware(CsrfViewMiddleware):
@@ -15,3 +15,14 @@ class CustomCsrfMiddleware(CsrfViewMiddleware):
         
         # Allow skipping origin checks
         return parsed_origin.scheme + '://*' in settings.CSRF_TRUSTED_ORIGINS
+    
+    def _check_token(self, request):
+        try:
+            return super()._check_token(request)
+        except RejectRequest as ex:
+            # Disable CSRF checking if the HTTP Bearer Authorization is used for API access.
+            # Browsers do not set Bearer Authorization, JS is required, therefore CSRF is not possible.
+            if 'HTTP_AUTHORIZATION' in request.META and request.META['HTTP_AUTHORIZATION'].startswith('Bearer'):
+                return None
+            raise ex
+

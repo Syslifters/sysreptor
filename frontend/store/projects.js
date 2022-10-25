@@ -1,6 +1,7 @@
 import Vue from "vue";
 import * as cvss from "@/utils/cvss.js";
 import { updateObjectReactive } from "~/utils/state";
+import { sortFindings } from "~/utils/other";
 
 export const state = () => ({
   data: {},
@@ -19,14 +20,18 @@ function ensureExists(state, projectId, prop, val = null) {
 export const mutations = {
   set(state, obj) {
     ensureExists(state, obj.id, 'project');
+    
     // Invalidate cached findings and section that contain inlined values of the project
-    if (obj.project_type !== state.data[obj.id].project?.project_type || obj.language !== state.data[obj.id].project?.language) {
+    const oldProjectType = state.data[obj.id]?.project?.project_type;
+    const oldLanguage = state.data[obj.id]?.project?.language;
+    if ((oldProjectType && oldProjectType !== obj.project_type) || (oldLanguage && oldLanguage !== obj.language)) {
       Vue.delete(state.data[obj.id], 'findings');
       Vue.delete(state.data[obj.id], 'sections');
     }
+
     state.data[obj.id].project = obj;
   },
-  delete(state, obj) {
+  remove(state, obj) {
     if (obj.id in state.data) {
       Vue.delete(state.data, obj.id);
     }
@@ -133,7 +138,7 @@ export const actions = {
   },
   async delete({ commit }, project) {
     await this.$axios.$delete(`/pentestprojects/${project.id}/`);
-    commit('delete', project);
+    commit('remove', project);
   },
   async updateFinding({ commit }, { projectId, finding }) {
     const updatedFinding = await this.$axios.$put(`/pentestprojects/${projectId}/findings/${finding.id}/`, finding);
@@ -173,8 +178,7 @@ export const getters = {
     if (!project) {
       return [];
     }
-    return Array.from(project.findings || [])
-      .sort((a, b) => cvss.scoreFromVector(b.data.cvss) - cvss.scoreFromVector(a.data.cvss));
+    return sortFindings(project.findings || []);
   },
   sections: state => (projectId) => {
     const project = state.data[projectId];

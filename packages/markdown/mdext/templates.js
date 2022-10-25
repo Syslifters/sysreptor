@@ -1,4 +1,4 @@
-import {codes} from 'micromark-util-symbol/codes.js';
+import { codes } from 'micromark-util-symbol/codes.js';
 import { addRemarkExtension, assert } from './helpers';
 
 
@@ -90,7 +90,7 @@ function templateVariableToMarkdown() {
 
   function templateVariable(node, _, context) {
     const exit = context.enter('templateVariable');
-    const value = node.text;
+    const value = node.value;
     exit();
     return value;
   }

@@ -12,6 +12,7 @@
     "rehype-highlight": "^5.0.2",
     "rehype-raw": "^6.1.1",
     "micromark-extension-directive": "^2.1.1",
+    "micromark-util-sanitize-uri": "^1.1.0",
     "highlight.js": "^11.6.0",
     "dompurify": "^2.3.10",
     "@codemirror/view": "^6.0.0",

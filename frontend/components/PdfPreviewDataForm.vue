@@ -10,10 +10,15 @@
             </v-list-item>
 
             <v-subheader>Findings</v-subheader>
-            <v-list-item v-for="finding in projectType.report_preview_data.findings" :key="finding.id" :value="finding" link>
+            <v-list-item 
+              v-for="finding in projectType.report_preview_data.findings" :key="finding.id" 
+              :value="finding" 
+              :class="'finding-level-' + riskLevel(finding.cvss)"
+              link
+            >
               <v-list-item-title>{{ finding.title }}</v-list-item-title>
               <v-list-item-action>
-                <delete-button @delete="deleteFinding(finding)" :disabled="disabled" icon />
+                <btn-delete :delete="() => deleteFinding(finding)" :disabled="disabled" icon x-small />
               </v-list-item-action>
             </v-list-item>
           </v-list-item-group>
@@ -66,11 +71,11 @@
 
 <script>
 import { v4 as uuidv4 } from 'uuid';
-import DeleteButton from './DeleteButton.vue';
+import * as cvss from "@/utils/cvss.js";
 import { uploadFile } from '~/utils/upload';
+import { sortFindings } from '~/utils/other';
 
 export default {
-  components: { DeleteButton },
   props: {
     value: {
       type: Object,
@@ -112,7 +117,9 @@ export default {
     updateFindingField(fieldId, value) {
       const newVal = Object.assign({}, this.value);
       const newFinding = Object.assign({}, this.currentItem, Object.fromEntries([[fieldId, value]]));
-      newVal.findings = this.value.findings.map(f => f.id === newFinding.id ? newFinding : f);
+      newVal.findings = sortFindings(
+        this.value.findings
+          .map(f => f.id === newFinding.id ? newFinding : f));
       this.$emit('input', newVal);
       this.currentItem = newFinding;
     },
@@ -143,13 +150,22 @@ export default {
       const newVal = Object.assign({}, this.value);
       newVal.findings = this.value.findings.filter(f => f.id !== finding.id);
       this.$emit('input', newVal);
-    }
+    },
+    riskLevel(cvssVector) {
+      return cvss.levelNumberFromScore(cvss.scoreFromVector(cvssVector));
+    },
   }
 }
 </script>
 
 <style lang="scss" scoped>
-  .v-list-item__action {
-    margin: 0;
+@for $level from 1 through 5 {
+  .finding-level-#{$level} {
+    border-left: 0.4em solid map-get($risk-color-levels, $level);
   }
+}
+
+.v-list-item__action {
+  margin: 0;
+}
 </style>

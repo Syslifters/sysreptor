@@ -14,6 +14,11 @@ class PentestUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after']
 
 
+class ImportedPentestUserSerializer(serializers.ModelSerializer):
+    class Meta(PentestUserSerializer.Meta):
+        fields = omit_items(PentestUserSerializer.Meta.fields, ['username'])
+
+
 class PentestUserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PentestUser
@@ -49,6 +54,10 @@ class CreateUserSerializer(PentestUserDetailSerializer):
 class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
     queryset = PentestUser.objects.all()
 
+    def __init__(self, user_serializer=PentestUserSerializer, **kwargs):
+        self.user_serializer=user_serializer
+        super().__init__(**kwargs)
+
     def use_pk_only_optimization(self):
         return False
 
@@ -61,7 +70,7 @@ class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
             return data
 
     def to_representation(self, value):
-        return PentestUserSerializer(value).to_representation(value)
+        return self.user_serializer(value).to_representation(value)
 
     def get_choices(self, cutoff=None):
         queryset = self.get_queryset()

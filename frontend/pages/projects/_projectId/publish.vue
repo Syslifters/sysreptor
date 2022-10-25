@@ -7,7 +7,7 @@
 
       <pane :size="100 - previewSplitSize">
         <fill-screen-height>
-          <h1>Publish Report: {{ project.name }}</h1>
+          <h1>Publish Report: {{ project.name }} <template v-if="project.readonly">(readonly)</template></h1>
 
           <v-form class="pa-4">
             <!-- Set password for encrypting report -->
@@ -22,6 +22,11 @@
                 append-icon="mdi-lock-reset" @click:append="form.password = generateNewPassword()"
                 class="mt-4"
               />
+            </div>
+
+            <!-- Set readonly -->
+            <div>
+              <s-checkbox v-if="!project.readonly" v-model="form.readonly" label="Mark project as finished and set it readonly" />
             </div>
 
             <!-- Render as different design -->
@@ -77,7 +82,7 @@
 
 <script>
 import { Splitpanes, Pane } from 'splitpanes';
-import FileDownload from 'js-file-download';
+import fileDownload from 'js-file-download';
 import { sampleSize } from 'lodash';
 import PdfPreview from '~/components/PdfPreview.vue'
 import ErrorList from '~/components/ErrorList.vue';
@@ -101,6 +106,7 @@ export default {
         password: this.generateNewPassword(),
         renderWithDifferentProjectType: false,
         projectType: null,
+        readonly: false,
       },
     }
   },
@@ -136,11 +142,17 @@ export default {
       try {
         const res = await this.$axios.$post(`/pentestprojects/${this.project.id}/generate/`, {
           password: this.form.encryptReport ? this.form.password : null,
+          readonly: this.form.readonly,
           project_type: this.form.renderWithDifferentProjectType ? this.form.projectType?.id : null,
         }, {
           responseType: 'arraybuffer',
         });
-        FileDownload(res, 'report.pdf');
+        fileDownload(res, 'report.pdf');
+
+        if (this.form.readonly) {
+          // Remove project from store: invalidates cache
+          this.$store.commit('projects/remove', this.project);
+        }
       } catch (error) {
         this.$toast.global.requestError({ error });
       }

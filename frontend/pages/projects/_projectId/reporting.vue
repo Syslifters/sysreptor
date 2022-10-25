@@ -3,7 +3,7 @@
     <split-menu v-model="menuSize">
       <template #menu>
         <v-list dense>
-          <v-list-item-title class="text-h6 pl-2">{{ project.name }}</v-list-item-title>
+          <v-list-item-title class="text-h6 pl-2">{{ project.name }} <template v-if="project.readonly">(readonly)</template></v-list-item-title>
           
           <v-subheader>Sections</v-subheader>
           <v-list-item

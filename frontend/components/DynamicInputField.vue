@@ -28,6 +28,7 @@
       v-model="datePickerVisible"
       :disabled="disabled"
       :close-on-content-click="false"
+      min-width="auto"
       offset-y
     >
       <template #activator="{ on, attrs }">
@@ -36,14 +37,18 @@
           v-bind="attrs" v-on="on"
           :label="label"
           :disabled="disabled"
+          prepend-inner-icon="mdi-calendar"
           readonly
-          clearable @click:clear="emitInput(null)"
+          clearable 
+          @click:clear="emitInput(null)"
         />
       </template>
       <template #default>
         <v-date-picker
           :value="formValue"
           @input="datePickerVisible = false; emitInput($event);"
+          :locale="lang"
+          :first-day-of-week="1"
         />
       </template>
     </v-menu>
@@ -65,7 +70,7 @@
     <s-text-field
       v-else-if="definition.type === 'number'"
       :value="formValue"
-      @input="emitInput"
+      @input="emitInput(parseFloat($event))"
       type="number"
       :disabled="disabled"
     />
@@ -73,7 +78,7 @@
     <!-- Boolean -->
     <s-checkbox
       v-else-if="definition.type === 'boolean'"
-      :value="formValue"
+      :value="formValue || false"
       @change="emitInput"
       :label="label"
       :disabled="disabled"
@@ -167,7 +172,7 @@
           </v-list-item-content>
 
           <v-list-item-action>
-            <delete-button icon @delete="emitInputList('delete', entryIdx)" :disabled="disabled" :confirm="!isEmptyOrDefault(entryVal, definition.items)" />
+            <btn-delete icon :delete="() => emitInputList('delete', entryIdx)" :disabled="disabled" :confirm="!isEmptyOrDefault(entryVal, definition.items)" />
           </v-list-item-action>
         </v-list-item>
 

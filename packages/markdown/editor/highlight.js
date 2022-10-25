@@ -9,6 +9,7 @@ export const tags = {
   inlinecode: Tag.define(),
   footnote: Tag.define(),
   table: Tag.define(),
+  todo: Tag.define(),
 };
 
       
@@ -29,6 +30,7 @@ export const markdownHighlightStyle = tagHighlighter([
   {tag: tags.inlinecode, class: 'tok-inlinecode'},
   {tag: tags.table, class: 'tok-table'},
   {tag: tags.footnote, class: 'tok-footnote'},
+  {tag: tags.todo, class: 'tok-todo'},
 
   {tag: t.tagName, class: 'tok-tagname'},
   {tag: t.angleBracket, class: 'tok-anglebracket'},

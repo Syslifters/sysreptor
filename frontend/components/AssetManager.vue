@@ -53,7 +53,7 @@
             </s-tooltip>
             
             <v-spacer />
-            <delete-button icon @delete="performDelete(asset)" :disabled="disabled" />
+            <btn-delete icon :delete="() => performDelete(asset)" :disabled="disabled" />
           </v-card-actions>
         </s-card>
       </v-col>
@@ -73,12 +73,9 @@
 import { last } from 'lodash'
 import FileDownload from 'js-file-download';
 import urlJoin from 'url-join';
-import SavingLoaderSpinner from './SavingLoaderSpinner.vue';
-import DeleteButton from './DeleteButton.vue';
 import { uploadFile } from '~/utils/upload';
 
 export default {
-  components: { SavingLoaderSpinner, DeleteButton },
   props: {
     projectType: {
       type: Object,
@@ -137,17 +134,13 @@ export default {
       await Promise.all(Array.from(files).map(f => this.uploadSingleFile(f)));
 
       // clear file input
-      this.$refs.fileInput.files = null;
+      this.$refs.fileInput.value = null;
 
       this.uploadInProgress = false;
     },
     async performDelete(asset) {
-      try {
-        await this.$axios.$delete(urlJoin(this.projectTypeBaseUrl, `/assets/${asset.id}/`), { progess: false });
-        this.assets = this.assets.filter(a => a.id !== asset.id);
-      } catch (error) {
-        this.$toast.global.requestError({ error });
-      }
+      await this.$axios.$delete(urlJoin(this.projectTypeBaseUrl, `/assets/${asset.id}/`), { progess: false });
+      this.assets = this.assets.filter(a => a.id !== asset.id);
     },
     copyAssetUrl(asset) {
       window.navigator.clipboard.writeText(this.assetUrl(asset));

@@ -16,6 +16,8 @@ import { remarkFigure, remarkToRehypeHandlersFigure } from './mdext/image.js';
 import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './mdext/tables.js';
 import { annotatedTextParse } from './editor/annotatedtext.js';
 import { remarkTemplateVariables } from './mdext/templates.js';
+import { remarkTodoMarker } from './mdext/todo.js';
+import remarkStringify from 'remark-stringify';
 
 
 export function markdownParser() {
@@ -32,7 +34,16 @@ export function markdownParser() {
     .use(remarkStrikethrough)
     .use(remarkTemplateVariables)
     .use(remarkAttrs)
-    .use(remarkFigure);
+    .use(remarkFigure)
+    .use(remarkTodoMarker);
+}
+
+
+export function formatMarkdown(text) {
+  const md = markdownParser()
+    .use(remarkParse)
+    .use(remarkStringify);
+  return md.processSync(text);
 }
 
 

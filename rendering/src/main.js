@@ -78,8 +78,10 @@ const DEFAULT_METHODS = {
 }
 
 
-const RENDER_FUNCTION = compile(REPORT_TEMPLAE, {
+const templateCompilerOptions = {
   whitespace: 'preserve',
+  isPreTag: () => true,
+  isCustomElement: tag => ['footnote'].includes(tag),
   comments: true,
   ssr: false,
   onError: (err) => {
@@ -90,7 +92,9 @@ const RENDER_FUNCTION = compile(REPORT_TEMPLAE, {
     console.error(error.message, error);
     window.RENDERING_COMPLETED = true;
   }
-});
+};
+
+const RENDER_FUNCTION = compile(REPORT_TEMPLAE, templateCompilerOptions);
 
 
 // Skip rendering on template error
@@ -121,6 +125,17 @@ if (!window.RENDERING_COMPLETED) {
       });
     },
   });
+  app.config.compilerOptions = templateCompilerOptions;
+  app.config.warnHandler = (msg, instance, trace) => {
+    if (msg === 'Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.') {
+      return;
+    }
+    const warning = {
+      message: msg,
+      details: trace
+    };
+    console.warn(warning.message, warning);
+  };
   app.config.errorHandler = (err, instance, info) => {
     const error = {
       message: err.toString(),
@@ -128,7 +143,7 @@ if (!window.RENDERING_COMPLETED) {
     };
     console.error(error.message, error);
     window.RENDERING_COMPLETED = true;
-  }
+  };
   app.mount('body');
 
 }

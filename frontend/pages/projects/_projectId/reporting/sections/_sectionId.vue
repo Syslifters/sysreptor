@@ -19,7 +19,7 @@
         :id="fieldId" 
         :definition="projectType.report_fields[fieldId]" 
         :upload-image="uploadImage" :image-urls-relative-to="projectUrl" 
-        :selectable-users="project.pentesters"
+        :selectable-users="project.pentesters.concat(project.imported_pentesters)"
         :lang="section.language"
       />
     </div>
@@ -59,6 +59,12 @@ export default {
   methods: {
     getBaseUrl(data) {
       return getSectionUrl({ projectId: data.project, sectionId: data.id });
+    },
+    getHasEditPermissions() {
+      if (this.project) {
+        return !this.project.readonly;
+      }
+      return true;
     },
     async performSave(data) {
       await this.$store.dispatch('projects/updateSection', { projectId: this.$route.params.projectId, section: data });

@@ -29,7 +29,6 @@ export default {
       this.items = [];
       for (const el of this.$root.$el.querySelectorAll('.in-toc')) {
         if (!el.id) {
-          console.warn("TOC item has no id attribute", el);
           el.setAttribute('id', uuidv4());
         }
         

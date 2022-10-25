@@ -192,20 +192,17 @@ export default {
     },
   },
   watch: {
-    value: {
-      handler() {
-        this.renderMarkdown();
-        if (this.editorView && this.valueNotNull !== this.editorView.state.doc.toString()) {
-          this.editorView.dispatch({
-            changes: {
-              from: 0,
-              to: this.editorView.state.doc.length,
-              insert: this.valueNotNull,
-            }
-          });
-        }
-      },
-      immediate: true,
+    value() {
+      this.renderMarkdown();
+      if (this.editorView && this.valueNotNull !== this.editorView.state.doc.toString()) {
+        this.editorView.dispatch({
+          changes: {
+            from: 0,
+            to: this.editorView.state.doc.length,
+            insert: this.valueNotNull,
+          }
+        });
+      }
     },
     disabled(val) {
       if (this.editorActions) {
@@ -225,6 +222,10 @@ export default {
       }
     }
   },
+  created() {
+    this.renderMarkdown = throttle(this.renderMarkdown_, 100);
+    this.renderMarkdown_();
+  },
   mounted() {
     this.editorView = new EditorView({
       parent: this.$refs.editor,
@@ -243,6 +244,13 @@ export default {
           markdown(),
           syntaxHighlighting(markdownHighlightStyle),
           markdownHighlightCodeBlocks,
+          EditorView.inputHandler.of((viewUpdate, from, to, text) => {
+            // Force redraw the whole editor when a backtick "`" was entered.
+            // Prevents CodeMirror from displaying a wrong cursor position after entering a backtick.
+            if (text === '`') {
+              this.editorView.setState(this.editorView.state);
+            }
+          }),
           EditorView.updateListener.of((viewUpdate) => {
             // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
             if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== this.valueNotNull) {
@@ -295,13 +303,13 @@ export default {
     handleBlur(val) {
       this.$emit('blur', val);
     },
-    renderMarkdown: throttle(function() {
+    renderMarkdown_() {
       this.renderedMarkdown = renderMarkdownToHtml(this.valueNotNull, {
         to: 'html',
         preview: true,
         rewriteImageSource: this.rewriteImageSource,
       });
-    }, 100),
+    },
     async uploadImages(files) {
       if (!this.uploadImage || !files || files.length === 0 || this.imageUploadInProgress) {
         return;
@@ -321,7 +329,7 @@ export default {
       this.editorView.dispatch({ changes: { from: this.editorView.state.selection.main.from, insert: mdImageText } });
 
       this.imageUploadInProgress = false;
-      this.$refs.fileInput.files = null;
+      this.$refs.fileInput.value = null;
     },
     rewriteImageSource(imgSrc) {
       // TODO: download images from API with authentication (removes requirement for images to be available unauthenticated)
@@ -460,9 +468,6 @@ $mde-min-height: 15em;
       background-color: map-deep-get($material-light, 'code', 'background');
       color: map-deep-get($material-light, 'code', 'color');
     }
-    .tok-inlinecode {
-      padding: $code-padding;
-    }
 
     .tok-table {
       font-family: monospace;
@@ -483,6 +488,14 @@ $mde-min-height: 15em;
 
     .tok-quote {
       color: #7f8c8d;
+    }
+
+    .tok-todo {
+      background-color: $risk-color-critical;
+      color: white;
+      padding-left: 0.2em;
+      padding-right: 0.2em;
+      border-radius: 10%;
     }
 
     // HTML tag highlighting

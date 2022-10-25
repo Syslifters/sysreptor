@@ -20,7 +20,7 @@
               <v-list-item v-for="f in findingFields" :key="f.id" :value="f" class="draggable-item" link :ripple="false">
                 <v-list-item-title>{{ f.id }}</v-list-item-title>
                 <v-list-item-action>
-                  <delete-button v-if="f.origin !== 'core'" @delete="deleteField(f.id)" icon x-small :disabled="readonly" />
+                  <btn-delete v-if="f.origin !== 'core'" :delete="() => deleteField(f.id)" icon x-small :disabled="readonly" />
                 </v-list-item-action>
               </v-list-item>
             </draggable>

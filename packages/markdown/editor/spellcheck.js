@@ -29,7 +29,6 @@ export function spellcheck(performSpellcheckRequest) {
       data: {annotation: annotatedText},
     });
     
-    // TODO: check the rest of the returned languagetool data, especially warnings for errors in processing
     return spellcheckResults.matches.map(m => {
       const severity = SPELLING_RULE_IDS.some(r => m.rule.id.includes(r)) ? 'error' :
                        STYLE_ISSUE_TYPES.some(r => m.rule.id.includes(r)) ? 'info' : 

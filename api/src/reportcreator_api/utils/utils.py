@@ -1,6 +1,5 @@
-
-
 from datetime import date
+from typing import Union, Iterable, OrderedDict
 import uuid
 
 
@@ -19,16 +18,31 @@ def find_all_indices(s: str, find: str):
             idx += 1
 
 
-def copy_keys(d: dict, keys: list[str]) -> dict:
-    return dict(filter(lambda t: t[0] in keys, d.items()))
+def get_key_or_attr(d: Union[dict, object], k: str, default=None):
+    return d.get(k, default) if isinstance(d, (dict, OrderedDict)) else getattr(d, k, default)
 
 
-def omit_keys(d: dict, keys: list[str]) -> dict:
+def copy_keys(d: Union[dict, object], keys: Iterable[str]) -> dict:
+    keys = set(keys)
+    out = {}
+    for k in keys:
+        if isinstance(d, (dict, OrderedDict)):
+            if k in d:
+                out[k] = d[k]
+        else:
+            if hasattr(d, k):
+                out[k] = getattr(d, k)
+    return out
+
+
+def omit_keys(d: dict, keys: Iterable[str]) -> dict:
+    keys = set(keys)
     return dict(filter(lambda t: t[0] not in keys, d.items()))
 
 
-def omit_items(l: list, items: list):
+def omit_items(l: Iterable, items: Iterable) -> list:
     l = list(l)
+    items = set(items)
     for i in items:
         while True:
             try:

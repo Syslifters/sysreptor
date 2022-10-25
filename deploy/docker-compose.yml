@@ -20,10 +20,14 @@ services:
       timeout: 5s
       retries: 30
     restart: always
+    stop_grace_period: 120s
   languagetool:
     build: 
       context: ../languagetool
     init: true
+    environment:
+      Java_Xmx: "2g"
+      JAVA_TOOL_OPTIONS: "-verbose:gc"
     expose:
       - 8010
   app:

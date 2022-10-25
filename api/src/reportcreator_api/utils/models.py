@@ -1,6 +1,8 @@
+import itertools
 import uuid
 from django.db import models
 from django.forms.models import model_to_dict
+from django.utils import timezone
 
 
 class ModelDiffMixin(object):
@@ -46,12 +48,22 @@ class ModelDiffMixin(object):
 
     @property
     def _dict(self):
-        return model_to_dict(self, fields=[field.name for field in self._meta.fields])
+        diff_fields = {field.attname for field in self._meta.fields} - self.get_deferred_fields()
+
+        out = {}
+        for f in itertools.chain(self._meta.concrete_fields, self._meta.private_fields, self._meta.many_to_many):
+            if getattr(f, 'attname', None) in diff_fields:
+                out[f.attname] = f.value_from_object(self)
+        return out
+
+
+def now():
+    return timezone.now()
 
 
 class BaseModel(ModelDiffMixin, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created = models.DateTimeField(auto_now_add=True, editable=False)
+    created = models.DateTimeField(default=now, editable=False)
     updated = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
