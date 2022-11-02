@@ -59,7 +59,7 @@
 
 <script>
 import { Compartment, EditorState, StateEffect } from '@codemirror/state';
-import { crosshairCursor, drawSelection, EditorView, keymap, lineNumbers, rectangularSelection } from '@codemirror/view';
+import { crosshairCursor, drawSelection, EditorView, keymap, lineNumbers, rectangularSelection, dropCursor } from '@codemirror/view';
 import { defaultKeymap, historyKeymap, indentWithTab, history, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 import urlJoin from 'url-join';
 import { renderMarkdownToHtml } from 'reportcreator-markdown';
@@ -235,22 +235,12 @@ export default {
           lineNumbers(),
           history(),
           EditorState.allowMultipleSelections.of(true),
-          drawSelection(),
-          rectangularSelection(),
-          crosshairCursor(),
           EditorState.tabSize.of(4),
           EditorView.lineWrapping,
           keymap.of([defaultKeymap, indentWithTab, historyKeymap]),
           markdown(),
           syntaxHighlighting(markdownHighlightStyle),
           markdownHighlightCodeBlocks,
-          EditorView.inputHandler.of((viewUpdate, from, to, text) => {
-            // Force redraw the whole editor when a backtick "`" was entered.
-            // Prevents CodeMirror from displaying a wrong cursor position after entering a backtick.
-            if (text === '`') {
-              this.editorView.setState(this.editorView.state);
-            }
-          }),
           EditorView.updateListener.of((viewUpdate) => {
             // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
             if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== this.valueNotNull) {
@@ -275,7 +265,8 @@ export default {
           drop: (event, view) => {
             event.stopPropagation();
             event.preventDefault();
-            this.uploadImages(event.dataTransfer.files);
+            const dropPos = this.editorView.posAtCoords({ x: event.clientX, y: event.clientY });
+            this.uploadImages(event.dataTransfer.files, dropPos);
           },
           paste: (event, view) => {
             if (event.clipboardData.files?.length > 0) {
@@ -310,7 +301,7 @@ export default {
         rewriteImageSource: this.rewriteImageSource,
       });
     },
-    async uploadImages(files) {
+    async uploadImages(files, pos = null) {
       if (!this.uploadImage || !files || files.length === 0 || this.imageUploadInProgress) {
         return;
       }
@@ -326,7 +317,10 @@ export default {
       }));
 
       const mdImageText = imageUrls.filter(u => u).map(u => `![](${u})`).join('\n');
-      this.editorView.dispatch({ changes: { from: this.editorView.state.selection.main.from, insert: mdImageText } });
+      if (pos === null) {
+        pos = this.editorView.state.selection.main.from;
+      }
+      this.editorView.dispatch({ changes: { from: pos, insert: mdImageText } });
 
       this.imageUploadInProgress = false;
       this.$refs.fileInput.value = null;

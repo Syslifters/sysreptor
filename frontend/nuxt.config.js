@@ -74,7 +74,7 @@ export default {
     scopeKey: 'roles',
     strategies: {
       local: {
-        scheme: 'refresh',
+        scheme: '@/utils/auth',
         token: {
           property: 'access',
           global: true,
