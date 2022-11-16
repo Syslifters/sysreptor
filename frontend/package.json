@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "nuxt",
-    "build": "nuxt build",
+    "build": "nuxt build --max-old-space-size=8188",
     "start": "nuxt start",
     "generate": "nuxt generate",
     "lint:js": "eslint --ext \".js,.vue\" --ignore-path .gitignore .",
@@ -39,20 +39,20 @@
     "reportcreator-markdown": "../packages/markdown"
   },
   "devDependencies": {
+    "@nuxtjs/vuetify": "^1.12.3",
     "@babel/eslint-parser": "^7.18.9",
     "@nuxtjs/eslint-config": "^6.0.0",
     "@nuxtjs/eslint-module": "^3.1.0",
-    "@nuxtjs/vuetify": "^1.12.3",
-    "@nuxt/test-utils": "^0.2.2",
-    "@babel/core": "^7.18.13",
-    "jest": "^28.0.0",
-    "@vue/vue2-jest": "^28.0.0",
-    "babel-jest": "^28.0.0",
-    "jest-environment-jsdom": "^28.0.0",
     "eslint": "^7.32.0",
     "eslint-plugin-nuxt": "^3.2.0",
     "eslint-plugin-vue": "^9.4.0",
     "license-webpack-plugin": "^4.0.2",
-    "worker-loader": "^3.0.8"
+    "worker-loader": "^3.0.8",
+    "@vue/test-utils": "^1.3.3",
+    "@babel/core": "^7.20.2",
+    "babel-jest": "^28.0.0",
+    "jest": "^28.0.0",
+    "@vue/vue2-jest": "^28.0.0",
+    "jest-environment-jsdom": "^28.0.0"
   }
 }

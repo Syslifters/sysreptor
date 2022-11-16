@@ -56,7 +56,9 @@ export default {
       this.$router.push({ path: '/designer/' });
     },
     async performCopy() {
-      const obj = await this.$axios.$post(`/projecttypes/${this.projectType.id}/copy/`, {});
+      const obj = await this.$store.dispatch('projecttypes/copy', {
+        id: this.projectType.id,
+      });
       this.$router.push(`/designer/${obj.id}/pdfdesigner/`);
     }
   }

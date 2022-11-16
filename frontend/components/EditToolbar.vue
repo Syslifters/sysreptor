@@ -235,22 +235,30 @@ export default {
       }
 
       const hasLockReset = this.hasLock;
+      const hasChangesValueReset = this.hasChangesValue;
       try {
         this.hasLock = false;
+        this.hasChangesValue = false;
         await this.delete(this.data);
       } catch (error) {
         this.hasLock = hasLockReset;
+        this.hasChangesValue = hasChangesValueReset;
       }
     },
     async selfLockedEditAnyway() {
       await this.performLock(true)
-      console.log('selfLockedEditAnyway', this.hasLock, this);
+      console.log('selfLockedEditAnyway', this.hasLock);
       if (this.hasLock) {
         this.$emit('update:editMode', EditMode.EDIT);
       }
     },
+    async performLockRequest(forceLock) {
+      return await this.$axios.post(this.lockUrl, {
+        refresh_lock: this.hasLock || forceLock,
+      });
+    },
     async performLock(forceLock = false) {
-      console.log('EditToolbar.performLock', this);
+      console.log('EditToolbar.performLock');
       if (this.lockingInProgress || !this.lockUrl || (this.editMode === EditMode.READONLY && !forceLock) || this.wasReset) {
         return;
       }
@@ -261,9 +269,7 @@ export default {
       }
 
       try {
-        const lockResponse = await this.$axios.post(this.lockUrl, {
-          refresh_lock: this.hasLock || forceLock,
-        });
+        const lockResponse = await this.performLockRequest(forceLock);
         console.log('performLock lockResponse', lockResponse);
 
         const lockedData = lockResponse.data;
@@ -290,7 +296,7 @@ export default {
         this.$toast.global.requestError({ error, message: 'Locking failed' });
 
         if (error.response?.status === 403 && error.response?.data?.lock_info) {
-          console.log('Lock error: Another user has the lock. Switching to readonly mode.', this.data.id, this, error, error.response.data);
+          console.log('Lock error: Another user has the lock. Switching to readonly mode.', this.data.id, error, error.response.data);
           this.lockInfo = error.response.data.lock_info;
           this.lockError = true;
           this.hasLock = false;
@@ -300,8 +306,21 @@ export default {
       }
       this.lockingInProgress = false;
     },
+    performUnlockRequest(browserUnload) {
+      if (browserUnload) {
+        // sendbeacon does not support setting headers (including Authorization header)
+        // we might want to replace sendBeacon with fetch.keepalive in the future
+        // however, fetch.keepalive is currently not supported by Firefox
+        window.navigator.sendBeacon(
+          absoluteApiUrl(this.unlockUrl, this.$axios),
+          this.$auth.user.id
+        );
+      } else {
+        return this.$axios.$post(this.unlockUrl);
+      }
+    },
     performUnlock(browserUnload = false) {
-      console.log('EditToolbar.performUnlock', this.hasLock, this);
+      console.log('EditToolbar.performUnlock', this.hasLock);
       if (!this.unlockUrl || !this.hasLock) {
         return;
       }
@@ -316,20 +335,12 @@ export default {
       this.lockError = false;
 
       try {
-        if (browserUnload) {
-          // sendbeacon does not support setting headers (including Authorization header)
-          // we might want to replace sendBeacon with fetch.keepalive in the future
-          // however, fetch.keepalive is currently not supported by Firefox
-          window.navigator.sendBeacon(
-            absoluteApiUrl(this.unlockUrl, this.$axios),
-            this.$auth.user.id
-          );
-        } else {
-          this.$axios.$post(this.unlockUrl)
-            .then((unlockedData) => {
-              this.lockInfo = unlockedData.lock_info;
-              this.$emit('update:lockedData', unlockedData);
-            })
+        const res = this.performUnlockRequest(browserUnload);
+        if (!browserUnload) {
+          res.then((unlockedData) => {
+            this.lockInfo = unlockedData.lock_info;
+            this.$emit('update:lockedData', unlockedData);
+          })
             .catch((error) => {
               if (error?.response?.data?.lock_info !== undefined) {
                 this.lockInfo = error.response.data.lock_info;

@@ -33,6 +33,9 @@ footnote {
 ::footnote-call {
   content: counter(footnote);
 }
+.footnote-call-separator {
+  content: ',';
+}
 /* Footnote number in footnote area */
 ::footnote-marker {
   content: counter(footnote) '.';

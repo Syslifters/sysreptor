@@ -23,7 +23,7 @@ MEDIA_ROOT = config('MEDIA_ROOT', default=BASE_DIR / '..' / 'data', cast=Path)
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ygvn9(x==kcv#r%pccf4rlzyz7_1v1b83$19&b2lsj6uz$mbro'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-ygvn9(x==kcv#r%pccf4rlzyz7_1v1b83$19&b2lsj6uz$mbro')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', cast=bool, default=False)
@@ -94,6 +94,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
     'PAGE_SIZE': 100,
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
 SIMPLE_JWT = {
@@ -221,6 +222,16 @@ PYPPETEER_EXECUTABLE = config('PYPPETEER_EXECUTABLE', default=None)
 MAX_LOCK_TIME = timedelta(seconds=90)
 
 SPELLCHECK_URL = config('SPELLCHECK_URL', default=None)
+
+BACKUP_KEY = config('BACKUP_KEY', default=None)
+
+
+# Health checks
+HEALTH_CHECKS = {
+    'cache': 'reportcreator_api.api_utils.healthchecks.check_cache',
+    'database': 'reportcreator_api.api_utils.healthchecks.check_database',
+    'migrations': 'reportcreator_api.api_utils.healthchecks.check_migrations',
+}
 
 
 if DEBUG:

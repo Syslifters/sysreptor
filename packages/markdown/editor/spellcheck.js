@@ -35,7 +35,7 @@ export function spellcheck(performSpellcheckRequest) {
                        'warning';
       return {
         from: m.offset,
-        to: m.offset + m.length,
+        to: Math.min(m.offset + m.length, view.state.doc.length),
         severity: severity,
         renderMessage() {
           return elt('div', {class: 'cm-spellcheck-content'},

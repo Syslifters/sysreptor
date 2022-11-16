@@ -7,7 +7,7 @@
     <slot name="actions" />
     <v-list v-if="items">
       <slot v-for="item in items.data" name="item" :item="item" />
-      <div v-if="items.hasNextPage" v-intersect="fetchNextPage" class="text-center mt-5 -b">
+      <div v-if="items.hasNextPage" v-intersect="(e, o, isIntersecting) => isIntersecting ? fetchNextPage() : null" class="text-center mt-5 -b">
         <v-progress-circular indeterminate />
       </div>
     </v-list>

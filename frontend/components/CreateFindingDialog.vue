@@ -54,7 +54,7 @@
             </template>
 
             <template #append-item>
-              <div v-if="templates.hasNextPage" v-intersect="templates.fetchNextPage()" />
+              <div v-if="templates.hasNextPage" v-intersect="(e, o, isIntersecting) => isIntersecting ? templates.fetchNextPage() : null" />
             </template>
           </s-autocomplete>
           <s-checkbox 

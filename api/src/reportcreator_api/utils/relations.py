@@ -36,7 +36,6 @@ class GenericOneToOneRelation(GenericRelation):
         return '<unknown>'
 
 
-
 class ReverseGenericOneToOneDescriptor(ReverseOneToOneDescriptor):
     def __get__(self, instance, cls=None):
         if instance is None:

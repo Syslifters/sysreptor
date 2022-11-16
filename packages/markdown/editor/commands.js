@@ -273,7 +273,9 @@ function toggleMarkdownAction({state, dispatch}, { isInSelection, enable, disabl
 
 function toggleMarkerType({state, dispatch}, { type, markerTypes = [], startMarker = null, endMarker = null}) {
   return toggleMarkdownAction({state, dispatch}, {
-    isInSelection: n => n.name === type || (n.name === 'data' && state.doc.sliceString(n.from, n.to) === startMarker + endMarker),
+    isInSelection: n => {
+      return n.name === type || (n.name === 'data' && state.doc.sliceString(n.from, n.to) === startMarker + endMarker)
+    },
     enable: (range) => {
       if (range.empty) {
         const insertText = 'text';
@@ -508,34 +510,3 @@ export function insertTable({state, dispatch}) {
   });
 }
 
-
-// TODO: test cases for CodeMirror markdown commands
-// * toggleBold/Italic/Strikethrough: enable/disable + selection moved correctly
-//    * "a |text| b" => "a **|text|** b"
-//    * "a | b" => "a **|text|** b"
-//    * "a **te|xt**" => a te|xt b"
-//    * "a **|text|** b" => "a |text| b"
-//    * "|a **text** b|" => "|a text b|"
-//    * "|a **te|xt** b" => "|a te|xt b"
-//    * "|a *|*text** b" => "|a |text b"
-//    * "|a |**text** b" => "|a |text b"
-//    * "a *|*text*|* b" => "a |text| b"
-//    * "a **|** b" => "a | b"
-// * toggleListUnordered: enable/disable + selection moved correctly
-//    * "|a\nb|" => "|* a\n* b|"
-//    * "a|aa\nb" => "* a|aa\nb"
-//    * "|* a\n* b|" => "|a\nb|"
-//    * "* a|\n* b" => "a|\n* b"
-//    * "|1. a\n2. b|" => "|* a\n* b|"
-//    * "1. |a\n2. b" => "* |a\n2. b"
-//  * toggleLink:
-//    * "a | b" => "a [|](https://) b"
-//    * "a |text| b" => "a [|text|](https://) b"
-//    * "a [|text|]()" => "a |text| b"
-//    * "a [te|xt]()" => "a te|xt"
-//    * "|a [text]() b|" => "|a [text]() b|"  
-//    * "|a [te|xt]() b" => "|a [te|xt]() b"
-//  * toggleCodeBlock:
-//    * "a\n|\nb" => "a\n```\n\n\n```\nb"
-//    * "a\n|code\ncode|\nb" => "a\n```\ncode\ncode\n```\nb"
-//    * "a\nc|od|e\nb" => "a\n```\ncode\n```\nb"

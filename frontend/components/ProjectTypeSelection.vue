@@ -9,9 +9,10 @@
     :return-object="returnObject"
     :rules="rules"
     :loading="items.isLoading"
+    :clearable="!required"
   >
     <template #append-item>
-      <div v-if="items.hasNextPage" v-intersect="items.fetchNextPage()" />
+      <div v-if="items.hasNextPage" v-intersect="(e, o, isIntersecting) => isIntersecting ? items.fetchNextPage() : null" />
     </template>
   </s-autocomplete>
 </template>
@@ -29,6 +30,10 @@ export default {
     returnObject: {
       type: Boolean,
       default: false,
+    },
+    required: {
+      type: Boolean,
+      default: true,
     }
   },
   emits: ['input'],
@@ -47,7 +52,7 @@ export default {
     return {
       items,
       rules: [
-        v => Boolean(v) || 'Item is required',
+        v => !this.required || Boolean(v) || 'Item is required',
       ]
     }
   },

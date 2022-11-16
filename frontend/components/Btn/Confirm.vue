@@ -59,6 +59,7 @@
 
   <s-btn 
     v-else 
+    :icon="icon" 
     :loading="actionInProgress" 
     @click="performAction" 
     :color="$attrs.color || buttonColor || 'secondary'" 
@@ -66,7 +67,7 @@
     v-bind="$attrs"
   >
     <v-icon v-if="buttonIcon">{{ buttonIcon }}</v-icon>
-    {{ buttonText }}
+    <template v-if="!icon">{{ buttonText }}</template>
   </s-btn>
 </template>
 

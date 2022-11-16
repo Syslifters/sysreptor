@@ -31,6 +31,10 @@ function tableCaptionFromMarkdown() {
 
           
           if (captionPrefixLength) {
+            const captionVal = captionText.value.slice(captionPrefixLength);
+            const captionValTrimmed = captionVal.trimStart();
+            captionPrefixLength += captionVal.length - captionValTrimmed.length;
+
             captionText.value = captionText.value.slice(captionPrefixLength);
             captionText.position.start.column += captionPrefixLength;
             captionText.position.start.offset += captionPrefixLength;
@@ -53,7 +57,7 @@ function tableCaptionToMarkdown() {
   function tableCaption(node, _, context, safeOptions) {
     const exit = context.enter('tableCaption');
     const subexit = context.enter('phrasing');
-    const value = 'Table:' + containerPhrasing(node, context, safeOptions);
+    const value = 'Table: ' + containerPhrasing(node, context, safeOptions);
     subexit();
     exit();
     return value;

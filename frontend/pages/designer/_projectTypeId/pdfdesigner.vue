@@ -6,7 +6,6 @@
           <template #title>{{ projectType.name }}</template>
 
           <template #default>
-            <!-- TODO: allow users to enable/disable auto-refresh -->
             <s-btn 
               :loading="pdfRenderingInProgress" 
               :disabled="pdfRenderingInProgress" 

@@ -1,5 +1,5 @@
 import Vue from "vue";
-import * as cvss from "@/utils/cvss.js";
+import { omit } from "lodash";
 import { updateObjectReactive } from "~/utils/state";
 import { sortFindings } from "~/utils/other";
 
@@ -139,6 +139,11 @@ export const actions = {
   async delete({ commit }, project) {
     await this.$axios.$delete(`/pentestprojects/${project.id}/`);
     commit('remove', project);
+  },
+  async copy({ commit }, data) {
+    const copied = await this.$axios.$post(`/pentestprojects/${data.id}/copy/`, omit(data, ['id']));
+    commit('set', copied);
+    return copied;
   },
   async updateFinding({ commit }, { projectId, finding }) {
     const updatedFinding = await this.$axios.$put(`/pentestprojects/${projectId}/findings/${finding.id}/`, finding);

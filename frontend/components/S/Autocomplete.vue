@@ -2,7 +2,6 @@
   <v-autocomplete 
     v-bind="$attrs" 
     v-on="$listeners" 
-    hide-no-data
     hide-details="auto" 
     persistent-hint
     :outlined="outlined"
@@ -10,6 +9,7 @@
   >
     <template v-for="_, name in $scopedSlots" :slot="name" slot-scope="data"><slot :name="name" v-bind="data" /></template>
     <template v-for="_, name in $slots" :slot="name"><slot :name="name" /></template>
+    <template #no-data><div /></template>
   </v-autocomplete>
 </template>
 

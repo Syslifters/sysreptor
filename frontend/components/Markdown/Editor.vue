@@ -59,7 +59,7 @@
 
 <script>
 import { Compartment, EditorState, StateEffect } from '@codemirror/state';
-import { crosshairCursor, drawSelection, EditorView, keymap, lineNumbers, rectangularSelection, dropCursor } from '@codemirror/view';
+import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 import { defaultKeymap, historyKeymap, indentWithTab, history, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 import urlJoin from 'url-join';
 import { renderMarkdownToHtml } from 'reportcreator-markdown';
@@ -71,6 +71,7 @@ import { syntaxHighlighting } from '@codemirror/language';
 import { forceLinting, setDiagnostics } from '@codemirror/lint';
 import { markdownHighlightStyle, markdownHighlightCodeBlocks } from 'reportcreator-markdown/editor/highlight.js';
 import { throttle } from 'lodash';
+import { escapeQuote } from 'xss';
 import { absoluteApiUrl } from '@/utils/urls';
 
 function createEditorCompartment(view) {
@@ -121,7 +122,8 @@ export default {
       editorView: null,
       editorActions: {},
       imageUploadInProgress: false,
-      renderedMarkdown: '',
+      imageCache: [],
+      renderedMarkdownRaw: '',
     };
   },
   computed: {
@@ -189,6 +191,17 @@ export default {
         }
       }
       return count;
+    },
+    renderedMarkdown() {
+      let html = this.renderedMarkdownRaw;
+      for (const imgCacheEntry of this.imageCache) {
+        if (imgCacheEntry.data) {
+          html = html.replaceAll(imgCacheEntry.placeholder, imgCacheEntry.data)
+        } else {
+          html = html.replaceAll(imgCacheEntry.placeholder, '');
+        }
+      }
+      return html;
     },
   },
   watch: {
@@ -295,11 +308,18 @@ export default {
       this.$emit('blur', val);
     },
     renderMarkdown_() {
-      this.renderedMarkdown = renderMarkdownToHtml(this.valueNotNull, {
+      // Render markdown to HTML
+      this.renderedMarkdownRaw = renderMarkdownToHtml(this.valueNotNull, {
         to: 'html',
         preview: true,
         rewriteImageSource: this.rewriteImageSource,
       });
+      // Clean up image cache: remove unused images to reduce memory usage
+      for (const imgCacheEntry of this.imageCache) {
+        if (!this.renderedMarkdownRaw.includes(imgCacheEntry.placeholder)) {
+          this.imageCache = this.imageCache.filter(e => e !== imgCacheEntry);
+        }
+      }
     },
     async uploadImages(files, pos = null) {
       if (!this.uploadImage || !files || files.length === 0 || this.imageUploadInProgress) {
@@ -325,17 +345,41 @@ export default {
       this.imageUploadInProgress = false;
       this.$refs.fileInput.value = null;
     },
+    async fetchImage(imgCacheEntry) {
+      try {
+        const imgRes = await this.$axios.$get(imgCacheEntry.url, {
+          responseType: 'arraybuffer'
+        });
+        const imgData = 'data:image;base64,' + Buffer.from(imgRes).toString('base64');
+        imgCacheEntry.data = `src="${imgData}"`;
+      } catch (error) {
+        // remove from cache
+        this.imageCache = this.imageCache.filter(e => e !== imgCacheEntry);
+      }
+    },
     rewriteImageSource(imgSrc) {
-      // TODO: download images from API with authentication (removes requirement for images to be available unauthenticated)
-      if (!this.imageUrlsRelativeTo) {
+      // Rewrite image source to handle image fetching from markdown.
+      // Images in markdown are referenced with a URL relative to the parent resource (e.g. "/images/name/image.png").
+      // Images require API authentication (JWT Tokens), which cannot be done using just HTML.
+      // Fetch API images with authentication and cache them. 
+      // Fetching is handled async to not block the rendering process and replaced with data-URLs in the HTML in a post-processing step.
+      // The post-processing step is required, because the Markdown rendering is not reactive. Image cache changes do not trigger re-rendering.
+      if (!this.imageUrlsRelativeTo || !imgSrc.startsWith('/')) {
         return imgSrc;
       }
 
-      if (['http', 'data'].some(p => imgSrc.startsWith(p)) || imgSrc.startsWith('/api/')) {
-        return absoluteApiUrl(imgSrc, this.$axios);
-      } else {
-        return absoluteApiUrl(urlJoin(this.imageUrlsRelativeTo, imgSrc), this.$axios);
+      const apiUrl = urlJoin(this.imageUrlsRelativeTo, imgSrc);
+      if (!this.imageCache.some(e => e.url === apiUrl)) {
+        const imgCacheEntry = {
+          url: apiUrl,
+          placeholder: `src="${imgSrc}"`,
+          data: null,
+        };
+        this.imageCache.push(imgCacheEntry);
+        this.fetchImage(imgCacheEntry);
       }
+      
+      return imgSrc;
     },
     async performSpellcheckRequest(data) {
       return await this.$axios.$post('/utils/spellcheck/', {

@@ -5,10 +5,10 @@ import remarkRehype from 'remark-rehype';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeStringify from 'rehype-stringify';
 import rehypeRaw from 'rehype-raw';
-import DOMPurify from 'dompurify';
+import xss from 'xss';
 import 'highlight.js/styles/default.css';
 
-import { remarkFootnotes, remarkToRehypeHandlersFootnotes } from './mdext/footnotes.js';
+import { remarkFootnotes, remarkToRehypeHandlersFootnotes, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './mdext/footnotes.js';
 import { remarkStrikethrough } from './mdext/gfm.js';
 import { rehypeCode, rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources } from './mdext/rehypePlugins.js';
 import { remarkAttrs, remarkToRehypeAttrs } from './mdext/attrs.js';
@@ -24,9 +24,6 @@ export function markdownParser() {
   // TODO: add plugins: 
   // * reference findings: #<finding-id>; current workaround [](#<finding-id>)
   // * enable autolinks?
-  // write test cases for custom markdown extensions
-  // * "text {{ var **with** _code_ `code` (which should not be interpreted as markdown) }} text {{ var with curly braces () => {"abc"} }} {no var}} {{ no var }"
-  // * etc.
   return unified()
     .use(remarkFootnotes)
     .use(remarkTables)
@@ -42,10 +39,15 @@ export function markdownParser() {
 export function formatMarkdown(text) {
   const md = markdownParser()
     .use(remarkParse)
-    .use(remarkStringify);
-  return md.processSync(text);
+    .use(remarkStringify, {
+      fence: '`',
+      fences: true,
+      bullet: '*',
+      strong: '*',
+      emphasis: '_',
+    });
+  return md.processSync(text).value;
 }
-
 
 export function renderMarkdownToHtml(text, {preview = false, rewriteImageSource = null} = {}) {
   const md = markdownParser()
@@ -62,6 +64,7 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteImageSource 
       }) 
       .use(rehypeConvertAttrsToStyle)
       .use(rehypeTableCaptions)
+      .use(preview ? rehypeFootnoteSeparatorPreview : rehypeFootnoteSeparator)
       .use(rehypeHighlight, {subset: false, ignoreMissing: true})
       .use(rehypeRaw)
       .use(rehypeLinkTargetBlank)
@@ -77,7 +80,20 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteImageSource 
     // console.log('HTML', mdHtml);
 
     const mdHtml = md.processSync(text).value;
-    return DOMPurify.sanitize(mdHtml, { ADD_TAGS: ['footnote'], ADD_ATTR: ['target', 'v-if'] });
+    return xss(mdHtml, {
+      allowCommentTag: true,
+      css: false,
+      allowList: {
+        ...xss.whiteList,
+        footnote: [],
+        template: [],
+      },
+      onIgnoreTagAttr(tag, name, value, isWhiteAttr) {
+        if (['id', 'class', 'style', 'v-if', 'v-for'].includes(name) || /^data-.*$/.test(name)) {
+          return `${name}="${xss.escapeAttrValue(value)}"`;
+        }
+      },
+    });
 }
 
 

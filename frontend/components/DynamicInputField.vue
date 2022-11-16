@@ -65,6 +65,15 @@
       :disabled="disabled"
       clearable
     />
+    <s-combobox
+      v-else-if="definition.type === 'combobox'"
+      :value="formValue"
+      @input="emitInput($event)"
+      :items="definition.suggestions"
+      :label="label"
+      :disabled="disabled"
+      clearable
+    />
 
     <!-- Number -->
     <s-text-field

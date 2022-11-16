@@ -1,17 +1,20 @@
+import pytest
 import io
-from django.test import TestCase
+from django.core.files.base import ContentFile
 from rest_framework.exceptions import ValidationError
 from reportcreator_api.pentests.models import PentestProject, ProjectType, SourceEnum, UploadedAsset, UploadedImage
-from reportcreator_api.tests.utils import TestHelperMixin
+from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates, import_project_types, import_projects, import_templates
-from reportcreator_api.tests.mock import create_project, create_project_type, create_template, create_user
+from reportcreator_api.tests.mock import create_project, create_project_type, create_template, create_user, create_finding
 
 
 def archive_to_file(archive_iterator):
     return io.BytesIO(b''.join(archive_iterator))
 
 
-class ImportExportTests(TestHelperMixin, TestCase):
+@pytest.mark.django_db
+class TestImportExport:
+    @pytest.fixture(autouse=True)
     def setUp(self) -> None:
         self.user = create_user()
         self.template = create_template()
@@ -29,68 +32,60 @@ class ImportExportTests(TestHelperMixin, TestCase):
         archive = archive_to_file(export_templates([self.template]))
         imported = import_templates(archive)
 
-        self.assertEqual(len(imported), 1)
+        assert len(imported) == 1
         t = imported[0]
 
-        self.assertKeysEqual(t, self.template, ['created', 'language', 'data', 'data_all'])
-        self.assertEqual(set(t.tags), set(self.template.tags))
-        self.assertEqual(t.source, SourceEnum.IMPORTED)
+        assertKeysEqual(t, self.template, ['created', 'language', 'data', 'data_all'])
+        assert set(t.tags) == set(self.template.tags)
+        assert t.source == SourceEnum.IMPORTED
 
     def test_export_import_project_type(self):
         archive = archive_to_file(export_project_types([self.project_type]))
         imported = import_project_types(archive)
 
-        self.assertEqual(len(imported), 1)
+        assert len(imported) == 1
         t = imported[0]
 
-        self.assertKeysEqual(t, self.project_type, [
+        assertKeysEqual(t, self.project_type, [
             'created', 'name', 'language', 
             'report_fields', 'report_sections', 'finding_fields', 'finding_field_order', 
             'report_template', 'report_styles', 'report_preview_data'])
-        self.assertEqual(t.source, SourceEnum.IMPORTED)
-        
-        self.assertSetEqual(
-            {(a.name, a.file.read()) for a in t.assets.all()}, 
-            {(a.name, a.file.read()) for a in self.project_type.assets.all()}
-        )
+        assert t.source == SourceEnum.IMPORTED
+
+        assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
 
     def test_export_import_project(self):
         archive = archive_to_file(export_projects([self.project]))
         imported = import_projects(archive)
 
-        self.assertEqual(len(imported), 1)
+        assert len(imported) == 1
         p = imported[0]
 
-        self.assertKeysEqual(p, self.project, ['name', 'language'])
-        self.assertSetEqual(set(p.pentesters.all()), set(self.project.pentesters.all()))
-        self.assertEqual(p.data, self.project.data)
-        self.assertEqual(p.data_all, self.project.data_all)
-        self.assertEqual(p.source, SourceEnum.IMPORTED)
+        assertKeysEqual(p, self.project, ['name', 'language'])
+        assert set(p.pentesters.all()) == set(self.project.pentesters.all())
+        assert p.data == self.project.data
+        assert p.data_all == self.project.data_all
+        assert p.source == SourceEnum.IMPORTED
         
-        self.assertEqual(p.sections.count(), self.project.sections.count())
+        assert p.sections.count() == self.project.sections.count()
         for i, s in zip(p.sections.order_by('section_id'), self.project.sections.order_by('section_id')):
-            self.assertKeysEqual(i, s, ['section_id', 'created', 'assignee', 'data'])
+            assertKeysEqual(i, s, ['section_id', 'created', 'assignee', 'data'])
 
-        self.assertEqual(p.findings.count(), self.project.findings.count())
+        assert p.findings.count() == self.project.findings.count()
         for i, s in zip(p.findings.order_by('finding_id'), self.project.findings.order_by('finding_id')):
-            self.assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'template', 'data', 'data_all', 'risk_score', 'risk_level'])
+            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'template', 'data', 'data_all', 'risk_score', 'risk_level'])
 
-        self.assertSetEqual(
-            {(i.name, i.file.read()) for i in p.images.all()}, 
-            {(i.name, i.file.read()) for i in self.project.images.all()}
-        )
+        assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in self.project.images.all()}
 
-        self.assertKeysEqual(p.project_type, self.project.project_type, [
+        assertKeysEqual(p.project_type, self.project.project_type, [
             'created', 'name', 'language', 
             'report_fields', 'report_sections', 'finding_fields', 'finding_field_order', 
             'report_template', 'report_styles', 'report_preview_data'])
-        self.assertEqual(p.project_type.source, SourceEnum.IMPORTED_DEPENDENCY)
-        self.assertEqual(p.project_type.linked_project, p)
+        assert p.project_type.source == SourceEnum.IMPORTED_DEPENDENCY
+        assert p.project_type.linked_project == p
         
-        self.assertSetEqual(
-            {(a.name, a.file.read()) for a in p.project_type.assets.all()}, 
-            {(a.name, a.file.read()) for a in self.project.project_type.assets.all()}
-        )
+        assert {(a.name, a.file.read()) for a in p.project_type.assets.all()} == {(a.name, a.file.read()) for a in self.project.project_type.assets.all()}
+
 
     def test_import_nonexistent_user(self):
         # export project with members and assignee, delete user, import => members and assignee == NULL
@@ -100,19 +95,19 @@ class ImportExportTests(TestHelperMixin, TestCase):
         self.user.delete()
         p = import_projects(archive)[0]
 
-        self.assertEqual(p.pentesters.count(), 0)
-        self.assertEqual(p.sections.exclude(assignee=None).count(), 0)
-        self.assertEqual(p.findings.exclude(assignee=None).count() , 0)
+        assert p.pentesters.count() == 0
+        assert p.sections.exclude(assignee=None).count() == 0
+        assert p.findings.exclude(assignee=None).count() == 0
 
         # Check UUID of nonexistent user is still present in data
-        self.assertEqual(p.data, self.project.data)
+        assert p.data_all == self.project.data_all
         for i, s in zip(p.findings.order_by('created'), self.project.findings.order_by('created')):
-            self.assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'template', 'data', 'data_all', 'risk_score', 'risk_level'])
+            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'template', 'data', 'data_all', 'risk_score', 'risk_level'])
         
         # Test nonexistent user is added to project.imported_pentesters
-        self.assertEqual(len(p.imported_pentesters), 1)
-        self.assertEqual(p.imported_pentesters[0]['id'], str(old_user_id))
-        self.assertKeysEqual(p.imported_pentesters[0], self.user, [
+        assert len(p.imported_pentesters) == 1
+        assert p.imported_pentesters[0]['id'] == str(old_user_id)
+        assertKeysEqual(p.imported_pentesters[0], self.user, [
             'email', 'phone', 'mobile',
             'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
         ])
@@ -122,16 +117,18 @@ class ImportExportTests(TestHelperMixin, TestCase):
         self.template.delete()
         p = import_projects(archive)[0]
 
-        self.assertEqual(p.findings.exclude(template=None).count(), 0)
+        assert p.findings.exclude(template=None).count() == 0
 
     def test_import_wrong_archive(self):
         archive = archive_to_file(export_templates([self.template]))
-        with self.assertRaises(ValidationError):
+        with pytest.raises(ValidationError):
             import_projects(archive)
 
 
-class LinkedProjectTests(TestCase):
-    def setUp(self) -> None:
+@pytest.mark.django_db
+class TestLinkedProject:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
         self.project_type = create_project_type(source=SourceEnum.IMPORTED_DEPENDENCY)
         self.project = create_project(project_type=self.project_type, source=SourceEnum.IMPORTED)
         self.project_type.linked_project = self.project
@@ -140,27 +137,29 @@ class LinkedProjectTests(TestCase):
     def test_delete_linked_project(self):
         # On delete linked_project: project_type should also be deleted
         self.project.delete()
-        self.assertEqual(ProjectType.objects.filter(id=self.project_type.id).exists(), False)
+        assert not ProjectType.objects.filter(id=self.project_type.id).exists()
     
     def test_delete_linked_project_multiple_project_types(self):
         # On delete linked_project
         unused_pt = create_project_type(linked_project=self.project, source=SourceEnum.IMPORTED_DEPENDENCY)
 
         self.project.delete()
-        self.assertEqual(ProjectType.objects.filter(id=self.project_type.id).exists(), False)
-        self.assertEqual(ProjectType.objects.filter(id=unused_pt.id).exists(), False)
+        assert not ProjectType.objects.filter(id=self.project_type.id).exists()
+        assert not ProjectType.objects.filter(id=unused_pt.id).exists()
     
     def test_delete_linked_project_project_type_used_by_another_project(self):
         second_p = create_project(project_type=self.project_type)
 
         self.project.delete()
-        self.assertEqual(ProjectType.objects.filter(id=self.project_type.id).exists(), True)
-        self.assertEqual(PentestProject.objects.filter(id=second_p.id).exists(), True)
+        assert ProjectType.objects.filter(id=self.project_type.id).exists()
+        assert PentestProject.objects.filter(id=second_p.id).exists()
         self.project_type.refresh_from_db()
-        self.assertEqual(self.project_type.linked_project, None)
+        assert self.project_type.linked_project is None
     
 
-class FileDeleteTests(TestCase):
+@pytest.mark.django_db
+class TestFileDelete:
+    @pytest.fixture(autouse=True)
     def setUp(self) -> None:
         p = create_project()
         self.image = p.images.first()
@@ -173,7 +172,7 @@ class FileDeleteTests(TestCase):
                 exists = True
         except ValueError:
             exists = False
-        self.assertEqual(exists, expected)
+        assert exists == expected
     
     def test_delete_file_referenced_only_once(self):
         self.image.delete()
@@ -197,7 +196,7 @@ class FileDeleteTests(TestCase):
 
         images = list(p.images.order_by('name'))
         for o, c in zip(images, p2.images.order_by('name')):
-            self.assertEqual(o.file, c.file)
+            assert o.file == c.file
         p.delete()
         for i in images:
             self.assertFileExists(i.file, True)
@@ -208,7 +207,80 @@ class FileDeleteTests(TestCase):
 
         assets = list(t.assets.order_by('name'))
         for o, c in zip(assets, t2.assets.order_by('name')):
-            self.assertEqual(o.file, c.file)
+            assert o.file == c.file
         t.delete()
         for a in assets:
             self.assertFileExists(a.file, True)
+
+
+@pytest.mark.django_db
+class TestCopyModel:
+    def test_copy_project(self):
+        user = create_user()
+        p = create_project(pentesters=[user], readonly=True, source=SourceEnum.IMPORTED)
+        finding = create_finding(project=p, template=create_template())
+        finding.lock(user)
+        p.sections.first().lock(user)
+        cp = p.copy()
+
+        assert p != cp
+        assert cp.name in cp.name
+        assert cp.source == SourceEnum.CREATED
+        assert not cp.readonly
+        assertKeysEqual(p, cp, [
+            'language', 'project_type', 'imported_pentesters', 'data_all'
+        ])
+        assert set(p.pentesters.values_list('id', flat=True)) == set(cp.pentesters.values_list('id', flat=True))
+
+        assert set(p.images.values_list('id', flat=True)).intersection(cp.images.values_list('id', flat=True)) == set()
+        assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in cp.images.all()}
+
+        for p_s, cp_s in zip(p.sections.order_by('section_id'), cp.sections.order_by('section_id')):
+            assert p_s != cp_s
+            assertKeysEqual(p_s, cp_s, ['section_id', 'assignee', 'data'])
+            assert not cp_s.is_locked
+        
+        for p_f, cp_f in zip(p.findings.order_by('finding_id'), cp.findings.order_by('finding_id')):
+            assert p_f != cp_f
+            assertKeysEqual(p_f, cp_f, ['finding_id', 'assignee', 'data', 'template'])
+            assert not cp_f.is_locked
+
+    def test_copy_project_type(self):
+        user = create_user()
+        project = create_project()
+        pt = create_project_type(source=SourceEnum.IMPORTED, linked_project=project)
+        pt.lock(user)
+        cp = pt.copy()
+
+        assert pt != cp
+        assert pt.name in cp.name
+        assert cp.source == SourceEnum.CREATED
+        assert not cp.is_locked
+        assertKeysEqual(pt, cp, [
+            'language', 'linked_project',
+            'report_template', 'report_styles', 'report_preview_data', 
+            'report_fields', 'report_sections', 'finding_fields', 'finding_field_order',
+        ])
+        
+        assert set(pt.assets.values_list('id', flat=True)).intersection(cp.assets.values_list('id', flat=True)) == set()
+        assert {(a.name, a.file.read()) for a in pt.assets.all()} == {(a.name, a.file.read()) for a in cp.assets.all()}
+
+
+@pytest.mark.parametrize('original,cleaned', [
+    ('test.txt', 'test.txt'),
+    # Attacks
+    ('te\x00st.txt', 'te-st.txt'),
+    ('te/st.txt', 'st.txt'),
+    ('t/../../../est.txt', 'est.txt'),
+    ('../test1.txt', 'test1.txt'),
+    ('..', 'file'),
+    # Markdown conflicts
+    ('/test2.txt', 'test2.txt'),
+    ('t**es**t.txt', 't--es--t.txt'),
+    ('te_st_.txt', 'te-st-.txt'),
+    ('t![e]()st.txt', 't--e---st.txt'),
+])
+@pytest.mark.django_db
+def test_uploadedfile_filename(original, cleaned):
+    actual_name = UploadedAsset.objects.create(name=original, file=ContentFile(b'test'), linked_object=create_project_type()).name
+    assert actual_name == cleaned

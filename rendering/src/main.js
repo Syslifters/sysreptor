@@ -74,7 +74,7 @@ const DEFAULT_METHODS = {
       locales = document.documentElement.lang;
     }
     return date.toLocaleDateString(locales, options);
-  }
+  },
 }
 
 

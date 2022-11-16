@@ -18,7 +18,7 @@
             <s-select
               :value="value.type"
               @change="updateType($event)"
-              :items="DATA_TYPES"
+              :items="Object.values(DATA_TYPES)"
               :disabled="disabled || !canChangeStructure"
               label="Data Type"
               hint="Data type of this field. Controls the allowed values and input form."
@@ -37,7 +37,7 @@
             />
           </v-col>
         </v-row>
-        <v-row v-if="!['boolean', 'object'].includes(value.type)" class="mt-0">
+        <v-row v-if="![DATA_TYPES.boolean, DATA_TYPES.object].includes(value.type)" class="mt-0">
           <v-col class="mt-0 pt-0">
             <s-checkbox
               :value="value.required"
@@ -54,7 +54,7 @@
         v-else
         :value="value.type"
         @change="emitInputVal('type', $event)"
-        :items="DATA_TYPES"
+        :items="Object.values(DATA_TYPES)"
         :disabled="disabled || !canChangeStructure"
         label="Data Type"
         hint="Data type of this field. Controls the allowed values and input form."
@@ -62,14 +62,14 @@
       />
 
       <!-- Enum choices -->
-      <v-list v-if="value.type === 'enum'">
+      <v-list v-if="value.type === DATA_TYPES.enum">
         <v-list-item v-for="choice, choiceIdx in value.choices || []" :key="choiceIdx">
           <v-list-item-content>
             <v-row>
               <v-col>
                 <s-text-field 
                   :value="choice.value"
-                  @input="emitInputChoice('updateValue', choice, $event)"
+                  @input="emitInputEnumChoice('updateValue', choice, $event)"
                   :disabled="disabled || !canChangeStructure"
                   :rules="rules.choice"
                   label="Value"
@@ -79,7 +79,7 @@
               <v-col>
                 <s-text-field 
                   :value="choice.label"
-                  @input="emitInputChoice('updateLabel', choice, $event)"
+                  @input="emitInputEnumChoice('updateLabel', choice, $event)"
                   :disabled="disabled"
                   label="Label"
                   required
@@ -88,12 +88,38 @@
             </v-row>
           </v-list-item-content>
           <v-list-item-action>
-            <btn-delete :delete="() => emitInputChoice('delete', choice)" :disabled="disabled || !canChangeStructure" icon />
+            <btn-delete :delete="() => emitInputEnumChoice('delete', choice)" :disabled="disabled || !canChangeStructure" icon />
           </v-list-item-action>
         </v-list-item>
         <v-list-item>
           <v-list-item-action>
-            <s-btn @click="emitInputChoice('add')" :disabled="disabled || !canChangeStructure" color="secondary">
+            <s-btn @click="emitInputEnumChoice('add')" :disabled="disabled || !canChangeStructure" color="secondary">
+              <v-icon>mdi-plus</v-icon>
+              Add Value
+            </s-btn>
+          </v-list-item-action>
+        </v-list-item>
+      </v-list>
+
+      <!-- Combobox suggestions -->
+      <v-list v-if="value.type === DATA_TYPES.combobox">
+        <v-list-item v-for="suggestion, suggestionIdx in value.suggestions || []" :key="suggestionIdx">
+          <v-list-item-content>
+            <s-text-field 
+              :value="suggestion"
+              @input="emitInputComboboxSuggestion('update', suggestionIdx, $event)"
+              :disabled="disabled || !canChangeStructure"
+              label="Value"
+              required
+            />
+          </v-list-item-content>
+          <v-list-item-action>
+            <btn-delete :delete="() => emitInputComboboxSuggestion('delete', suggestionIdx)" :disabled="disabled || !canChangeStructure" icon />
+          </v-list-item-action>
+        </v-list-item>
+        <v-list-item>
+          <v-list-item-action>
+            <s-btn @click="emitInputComboboxSuggestion('add')" :disabled="disabled || !canChangeStructure" color="secondary">
               <v-icon>mdi-plus</v-icon>
               Add Value
             </s-btn>
@@ -102,16 +128,16 @@
       </v-list>
     
       <dynamic-input-field
-        v-if="!['object', 'list', 'user'].includes(value.type)"
+        v-if="![DATA_TYPES.object, DATA_TYPES.list, DATA_TYPES.user].includes(value.type)"
         :value="value.default"
         @input="emitInputVal('default', $event)"
-        :definition="{label: 'Default Value', type: value.type, choices: value.choices}"
+        :definition="{...value, label: 'Default Value', required: false}"
         :lang="lang"
         :disabled="disabled"
       />
       <!-- List Item -->
       <input-field-definition
-        v-else-if="value.type === 'list'"
+        v-else-if="value.type === DATA_TYPES.list"
         :value="value.items"
         @input="emitInputVal('items', $event)"
         :is-list-item="true"
@@ -120,7 +146,7 @@
         :disabled="disabled"
       />
       <!-- Object -->
-      <v-list v-else-if="value.type === 'object'">
+      <v-list v-else-if="value.type === DATA_TYPES.object">
         <v-list-item v-for="f in objectFields" :key="f.id">
           <v-list-item-content>
             <input-field-definition
@@ -157,6 +183,7 @@ const DATA_TYPES = {
   markdown: 'markdown',
   string: 'string',
   enum: 'enum',
+  combobox: 'combobox',
   date: 'date',
   user: 'user',
   list: 'list',
@@ -196,8 +223,7 @@ export default {
         id: [
           id => (
             // this.parentObject.filter(f => id === f.id).length === 1 && 
-            // TODO: validate ID unique
-            // TODO: validate custom ID not in list of core and predefined field IDs
+            // TODO: validate ID unique abd validate custom ID not in list of core and predefined field IDs
             /^[a-zA-Z_][a-zA-Z0-9_]+$/.test(id)
           ) || 'Invalid field ID',
         ],
@@ -209,9 +235,9 @@ export default {
     };
   },
   computed: {
-    DATA_TYPES: () => Object.keys(DATA_TYPES),
+    DATA_TYPES: () => DATA_TYPES,
     objectFields() {
-      if (this.value.type === 'object') {
+      if (this.value.type === DATA_TYPES.object) {
         return Object.keys(this.value.properties || {}).sort().map(f => ({ id: f, ...this.value.properties[f] }));
       } else {
         return [];
@@ -220,12 +246,14 @@ export default {
   },
   watch: {
     'value.type' (newType, oldType) {
-      if (this.value.type === 'enum' && !this.value.choices) {
+      if (this.value.type === DATA_TYPES.enum && !this.value.choices) {
         this.emitInputVal('choices', [{ value: 'enum_val', label: 'Enum Value' }]);
-      } else if (this.value.type === 'list' && !this.value.items) {
-        this.emitInputVal('items', { type: 'string', default: null });
-      } else if (this.value.type === 'object' && !this.value.properties) {
-        this.emitInputVal('properties', { nested_field: { type: 'string', label: 'Nested Field', default: null } });
+      } else if (this.value.type === DATA_TYPES.combobox && !this.value.suggestions) {
+        this.emitInputVal('suggestions', ['Combobox Value']);
+      } else if (this.value.type === DATA_TYPES.list && !this.value.items) {
+        this.emitInputVal('items', { type: DATA_TYPES.string, default: null });
+      } else if (this.value.type === DATA_TYPES.object && !this.value.properties) {
+        this.emitInputVal('properties', { nested_field: { type: DATA_TYPES.string, label: 'Nested Field', default: null } });
       }
     }
   },
@@ -235,12 +263,12 @@ export default {
 
       // if type changes, ensure that default has the correct data type or set to null
       if (
-        (['string', 'markdown', 'cvss'].includes(val) && !(val instanceof String)) || 
-        (val === 'number' && !(val instanceof Number)) || 
-        (val === 'boolean' && !(val instanceof Boolean)) || 
-        (val === 'enum' && !(this.value.choices || []).find(c => c.id === this.value.default)) ||
-        (val === 'date') ||
-        (val === 'user')
+        ([DATA_TYPES.string, DATA_TYPES.markdown, DATA_TYPES.cvss, DATA_TYPES.combobox].includes(val) && !(val instanceof String)) || 
+        (val === DATA_TYPES.number && !(val instanceof Number)) || 
+        (val === DATA_TYPES.boolean && !(val instanceof Boolean)) || 
+        (val === DATA_TYPES.enum && !(this.value.choices || []).find(c => c.value === this.value.default)) ||
+        (val === DATA_TYPES.date) ||
+        (val === DATA_TYPES.user)
       ) {
         if (this.default !== null) {
           newObj.default = null;
@@ -252,7 +280,7 @@ export default {
       const newObj = Object.assign({}, this.value, Object.fromEntries([[property, val]]));
       this.$emit('input', newObj);
     },
-    emitInputChoice(action, choice, val = null) {
+    emitInputEnumChoice(action, choice, val = null) {
       const newObj = Object.assign({}, this.value, { choices: [...this.value.choices] });
       if (action === 'updateValue') {
         newObj.choices.filter(c => c.value === choice.value)[0].value = val;
@@ -272,6 +300,18 @@ export default {
 
       this.$emit('input', newObj);
     },
+    emitInputComboboxSuggestion(action, suggestionIdx, val = null) {
+      console.log('emitInputComboboxSuggestions', action, suggestionIdx, val, this.value);
+      const newObj = Object.assign({}, this.value, { suggestions: [...this.value.suggestions] });
+      if (action === 'update') {
+        newObj.suggestions.splice(suggestionIdx, 1, val);
+      } else if (action === 'delete') {
+        newObj.suggestions.splice(suggestionIdx, 1);
+      } else if (action === 'add') {
+        newObj.suggestions.push('New Value');
+      }
+      this.$emit('input', newObj);
+    },
     emitInputObject(action, fieldId = null, val = null) {
       const newObj = Object.assign({}, this.value);
       if (action === "update") {
@@ -282,7 +322,7 @@ export default {
       } else if (action === 'add') {
         if (val === null) {
           val = {
-            type: 'string',
+            type: DATA_TYPES.string,
             label: 'New Field',
             required: true,
             default: null,

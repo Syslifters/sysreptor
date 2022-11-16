@@ -4,7 +4,7 @@
     v-bind="autocompleteAttrs"
   >
     <template #append-item>
-      <div v-if="!selectableUsers && items.hasNextPage" v-intersect="items.fetchNextPage()" />
+      <div v-if="!selectableUsers && items.hasNextPage" v-intersect="(e, o, isIntersecting) => isIntersecting ? items.fetchNextPage() : null" />
     </template>
   </s-autocomplete>
 </template>
@@ -83,6 +83,11 @@ export default {
       } : {
         clearable: true
       });
+    }
+  },
+  mounted() {
+    if (this.value) {
+      this.items.fetchNextPage();
     }
   }
 }

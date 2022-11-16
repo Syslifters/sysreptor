@@ -14,4 +14,6 @@ def normalize_filename(name):
             out += '-'
     if Path(name).parent.parts:
         out = Path(name).parts[-1]
+    if all(map(lambda c: c == '.', out)):
+        out = 'file'
     return out

@@ -48,7 +48,7 @@ urlpatterns = [
     ])),
     
     # Fallback URL for SPA
-    re_path('^.*/?$', TemplateView.as_view(template_name='index.html')),
+    re_path(r'^(?!(api|admin)).*/?$', TemplateView.as_view(template_name='index.html')),
 ]
 
 

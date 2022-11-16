@@ -3,7 +3,9 @@ import {codes} from 'micromark-util-symbol/codes.js'
 import {resolveAll} from 'micromark-util-resolve-all'
 import {containerPhrasing} from 'mdast-util-to-markdown/lib/util/container-phrasing.js'
 import {all} from 'remark-rehype';
+import {visit} from 'unist-util-visit';
 import { addRemarkExtension, assert } from './helpers';
+import {h} from 'hastscript';
 
 /**
  * @typedef {import('micromark-util-types').Extension} Extension
@@ -255,3 +257,32 @@ export const remarkToRehypeHandlersFootnotes = {
     return null;
   },
 };
+
+
+export function rehypeFootnoteSeparator() {
+  // add a footnote call separator tag between consecutive <footnote> tags
+  return tree => visit(tree, 'element', (node, index, parent) => {
+    if (node.tagName === 'footnote' && parent.children[index + 1]?.tagName === 'footnote') {
+      console.log(node, parent);
+      parent.children.splice(index + 1, 0, h('sup', {class: 'footnote-call-separator'}));
+    }
+  })
+}
+
+
+export function rehypeFootnoteSeparatorPreview() {
+  return tree => visit(tree, 'element', (node, index, parent) => {
+    // Remove link from footnote call
+    if (node.tagName !== 'sup' || node.children.length !== 1 || !node.children[0]?.properties?.dataFootnoteRef) {
+      return;
+    }
+    node.children = node.children[0].children;
+
+    // Add footnote call separator
+    const nextSibling = parent.children[index + 1];
+    if (nextSibling?.tagName !== 'sup' || nextSibling.children.length !== 1 || !nextSibling.children[0]?.properties?.dataFootnoteRef) {
+      return;
+    }
+    parent.children.splice(index + 1, 0, h('sup', {class: 'footnote-call-separator'}, [',']));
+  })
+}

@@ -46,6 +46,16 @@
               </template>
             </div>
 
+            <!-- Filename -->
+            <div>
+              <s-text-field 
+                v-model="form.filename"
+                label="Filename"
+                :rules="rules.filename"
+                class="mt-4"
+              />
+            </div>
+
             <s-btn
               type="submit"
               :disabled="!canGenerateFinalReport"
@@ -107,7 +117,11 @@ export default {
         renderWithDifferentProjectType: false,
         projectType: null,
         readonly: false,
+        filename: 'report.pdf',
       },
+      rules: {
+        filename: [v => (Boolean(v) && /^[^/\\]+$/.test(v)) || 'Invalid filename'],
+      }
     }
   },
   computed: {
@@ -147,7 +161,7 @@ export default {
         }, {
           responseType: 'arraybuffer',
         });
-        fileDownload(res, 'report.pdf');
+        fileDownload(res, this.form.filename.endsWith('.pdf') ? this.form.filename : this.form.filename + '.pdf');
 
         if (this.form.readonly) {
           // Remove project from store: invalidates cache

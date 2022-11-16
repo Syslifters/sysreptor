@@ -27,9 +27,9 @@
         </s-card>
       </v-col>
 
-      <v-col v-for="asset in assets" :key="asset.id" :cols="12" :md="3">
+      <v-col v-for="asset in assets.data" :key="asset.id" :cols="12" :md="3">
         <s-card>
-          <v-img v-if="isImage(asset)" :src="imageUrl(asset)" aspect-ratio="2" />
+          <s-data-img v-if="isImage(asset)" :src="imageUrl(asset)" aspect-ratio="2" />
           <v-card-title>{{ asset.name }}</v-card-title>
           <v-card-text class="text--small">
             {{ assetUrl(asset) }}
@@ -57,6 +57,13 @@
           </v-card-actions>
         </s-card>
       </v-col>
+
+      <v-col v-if="assets.hasNextPage">
+        <v-card>
+          <v-progress-circular v-if="assets.isLoading" indeterminate />
+          <div v-else v-intersect="(e, o, isIntersecting) => isIntersecting ? assets.fetchNextPage() : null" />
+        </v-card>
+      </v-col>
     </v-row>
 
     <v-fade-transition v-if="!disabled">
@@ -74,6 +81,7 @@ import { last } from 'lodash'
 import FileDownload from 'js-file-download';
 import urlJoin from 'url-join';
 import { uploadFile } from '~/utils/upload';
+import { CursorPaginationFetcher } from '~/utils/urls';
 
 export default {
   props: {
@@ -88,14 +96,10 @@ export default {
   },
   data() {
     return {
-      assets: [],
+      assets: new CursorPaginationFetcher(`/projecttypes/${this.projectType.id}/assets/`, this.$axios, this.$toast),
       uploadInProgress: false,
       showDropArea: false,
     }
-  },
-  async fetch() {
-    // TODO: pagination (page size: 100?) + infinite scroll
-    this.assets = await this.$axios.$get(`/projecttypes/${this.projectType.id}/assets/`);
   },
   computed: {
     projectTypeBaseUrl() {
@@ -112,12 +116,12 @@ export default {
       return `/assets/name/${asset.name}`;
     },
     imageUrl(asset) {
-      return urlJoin(this.$axios.defaults.baseURL, this.projectTypeBaseUrl, this.assetUrl(asset));
+      return urlJoin(this.projectTypeBaseUrl, this.assetUrl(asset));
     },
     async uploadSingleFile(file) {
       try {
         const asset = await uploadFile(this.$axios, urlJoin(this.projectTypeBaseUrl, '/assets/'), file);
-        this.assets.unshift(asset);
+        this.assets.data.unshift(asset);
       } catch (error) {
         this.$toast.global.requestError({ error, message: 'Failed to upload ' + file.name });
       }
@@ -140,7 +144,7 @@ export default {
     },
     async performDelete(asset) {
       await this.$axios.$delete(urlJoin(this.projectTypeBaseUrl, `/assets/${asset.id}/`), { progess: false });
-      this.assets = this.assets.filter(a => a.id !== asset.id);
+      this.assets.data = this.assets.data.filter(a => a.id !== asset.id);
     },
     copyAssetUrl(asset) {
       window.navigator.clipboard.writeText(this.assetUrl(asset));
@@ -153,6 +157,11 @@ export default {
         FileDownload(res, asset.name || asset.id);
       } catch (error) {
         this.$toast.global.requestError({ error });
+      }
+    },
+    async fetchNextPage(entries, observer, isIntersecting) {
+      if (isIntersecting) {
+        return await this.assets.fetchNextPage();
       }
     }
   }

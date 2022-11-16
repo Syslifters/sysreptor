@@ -12,7 +12,7 @@
               :loading="projectTypes.isLoading"
             >
               <template #append-item>
-                <div v-if="projectTypes.hasNextPage" v-intersect="projectTypes.fetchNextPage()" />
+                <div v-if="projectTypes.hasNextPage" v-intersect="(e, o, isIntersecting) => isIntersecting ? projectTypes.fetchNextPage() : null" />
               </template>
             </v-select>
           </v-list-item>
@@ -47,16 +47,13 @@
           />
         </div>
         <language-selection v-model="template.language" :disabled="readonly" />
-        <v-combobox
+        <s-combobox
           v-model="template.tags"
           :items="templateTagSuggestions"
           :disabled="readonly"
           label="Tags"
           multiple
           chips deletable-chips
-          outlined 
-          hide-details="auto"
-          class="mt-4"
           spellcheck="false"
         />
         <div v-for="d in visibleFieldDefinitionsExceptCore" :key="d.id">

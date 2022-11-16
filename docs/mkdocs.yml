@@ -13,7 +13,9 @@ nav:
     - Tables: designer/tables.md
     - Figures: designer/figures.md
     - Footnotes: designer/footnotes.md
+    - Charts: designer/charts.md
     - Design Guides: designer/design-guides.md
+    - Formatting Utilities: designer/formatting-utils.md
     - Debugging: designer/debugging.md
     - Security Concerns: designer/security-concerns.md
   - Development Roadmap: roadmap.md

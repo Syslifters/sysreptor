@@ -14,7 +14,7 @@
     "micromark-extension-directive": "^2.1.1",
     "micromark-util-sanitize-uri": "^1.1.0",
     "highlight.js": "^11.6.0",
-    "dompurify": "^2.3.10",
+    "xss": "^1.0.14",
     "@codemirror/view": "^6.0.0",
     "@codemirror/state": "^6.0.0",
     "@codemirror/commands": "^6.0.0",

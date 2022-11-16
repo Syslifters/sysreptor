@@ -23,7 +23,7 @@ class RequestLoggingMiddleware(object):
     def __call__(self, request):
         response = self.get_response(request)
         user = '<none>'
-        if request.user and not request.user.is_anonymous:
+        if getattr(request, 'user', None) and not request.user.is_anonymous:
             user = request.user.username
         log.info('%s %s %d (user=%s)', request.method, request.get_full_path(), response.status_code, user)
         return response

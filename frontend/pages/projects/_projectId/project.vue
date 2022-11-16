@@ -40,6 +40,8 @@
 </template>
 
 <script>
+import { cloneDeep } from 'lodash';
+
 export default {
   beforeRouteLeave(to, from, next) {
     this.$refs.toolbar.beforeLeave(to, from, next);
@@ -87,11 +89,16 @@ export default {
       await this.$axios.$patch(`/pentestprojects/${this.project.id}/readonly/`, {
         readonly: val,
       });
+      // update in store
+      const storeProject = cloneDeep(this.project);
+      storeProject.readonly = val;
+      this.$store.commit('projects/set', storeProject);
+
       this.$refs.toolbar.resetComponent();
       this.$nuxt.refresh();
     },
     async performCopy() {
-      const obj = await this.$axios.$post(`/pentestprojects/${this.project.id}/copy/`, {});
+      const obj = await this.$store.dispatch('projects/copy', { id: this.project.id });
       this.$router.push({ path: `/projects/${obj.id}/project/` });
     },
     async performDelete() {

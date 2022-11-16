@@ -1,4 +1,3 @@
-import django
 from django.core.cache import cache as django_cache
 
 
