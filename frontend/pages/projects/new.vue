@@ -3,7 +3,7 @@
     <v-form ref="form" @submit.prevent="performCreate">
       <edit-toolbar :form="$refs.form" :save="performCreate">
         <template #title>Create new Project</template>
-        <template #save-button-text>Create Project</template>
+        <template #save-button-text>Create</template>
       </edit-toolbar>
 
       <s-text-field v-model="project.name" label="Name" />

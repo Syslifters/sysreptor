@@ -1,5 +1,5 @@
 import Vue from "vue";
-import { omit } from "lodash";
+import { omit, cloneDeep } from "lodash";
 import { updateObjectReactive } from "~/utils/state";
 import { sortFindings } from "~/utils/other";
 
@@ -144,6 +144,15 @@ export const actions = {
     const copied = await this.$axios.$post(`/pentestprojects/${data.id}/copy/`, omit(data, ['id']));
     commit('set', copied);
     return copied;
+  },
+  async setReadonly({ dispatch, commit }, { projectId, readonly }) {
+    await this.$axios.$patch(`/pentestprojects/${projectId}/readonly/`, {
+      readonly,
+    });
+    // update in store
+    const storeProject = cloneDeep(await dispatch('getById', projectId));
+    storeProject.readonly = readonly;
+    commit('set', storeProject);
   },
   async updateFinding({ commit }, { projectId, finding }) {
     const updatedFinding = await this.$axios.$put(`/pentestprojects/${projectId}/findings/${finding.id}/`, finding);

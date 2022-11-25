@@ -28,3 +28,4 @@ lorem-text == 2.1
 pikepdf == 5.4.2
 zipstream-new == 1.1.8
 boto3==1.26.5
+pillow-heif==0.7.2

@@ -5,7 +5,7 @@
       <btn-confirm 
         :action="createTemplate" 
         :confirm="false" 
-        button-text="Create new finding template"
+        button-text="Create"
         button-icon="mdi-plus"
         button-color="primary"
       />
@@ -19,6 +19,7 @@
             {{ item.data.title }}
           </v-list-item-title>
           <v-list-item-subtitle>
+            <status-chip :value="item.status" />
             <language-chip :value="item.language" />
             <v-chip v-for="tag in item.tags" :key="tag" class="ma-1" small>
               {{ tag }}

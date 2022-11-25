@@ -2,7 +2,7 @@
   <v-container>
     <v-form ref="form">
       <edit-toolbar :form="$refs.form" :save="performCreate">
-        <template #title>Create New User</template>
+        <template #title>Create new User</template>
         <template #save-button-text>Create User</template>
       </edit-toolbar>
 

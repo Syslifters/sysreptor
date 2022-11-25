@@ -4,7 +4,7 @@
     <template #actions v-if="$auth.hasScope('user_manager')">
       <s-btn color="primary" to="/users/new/" nuxt>
         <v-icon>mdi-plus</v-icon>
-        Create User
+        Create
       </s-btn>
     </template>
     <template #item="{item: user}">

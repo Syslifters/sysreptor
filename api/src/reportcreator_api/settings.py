@@ -213,6 +213,9 @@ UPLOADED_IMAGE_LOCATION = config('UPLOADED_IMAGE_LOCATION', default=MEDIA_ROOT /
 UPLOADED_ASSET_STORAGE = 'reportcreator_api.pentests.storages.UploadedAssetFileSystemStorage'
 UPLOADED_ASSET_LOCATION = config('UPLOADED_ASSET_LOCATION', default=MEDIA_ROOT / 'uploadedassets', cast=Path)
 
+from pillow_heif import register_heif_opener
+register_heif_opener()
+
 
 PDF_RENDER_SCRIPT_PATH = config('PDF_RENDER_SCRIPT_PATH', cast=Path, default=BASE_DIR / '..' / '..' / 'rendering' / 'dist' / 'bundle.js')
 PYPPETEER_EXECUTABLE = config('PYPPETEER_EXECUTABLE', default=None)
@@ -224,6 +227,8 @@ MAX_LOCK_TIME = timedelta(seconds=90)
 SPELLCHECK_URL = config('SPELLCHECK_URL', default=None)
 
 BACKUP_KEY = config('BACKUP_KEY', default=None)
+
+COMPRESS_IMAGES = config('COMPRESS_IMAGES', cast=bool, default=True)
 
 
 # Health checks

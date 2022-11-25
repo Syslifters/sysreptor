@@ -1,5 +1,13 @@
 import { formatMarkdown, renderMarkdownToHtml } from 'reportcreator-markdown';
 
+function codeBlock(content, language = null) {
+  return `<pre class="code-block"><code class="${language ? 'language-' + language + ' ' : ''}hljs">${
+    content.split('\n')
+      .map((l, idx) => `<span class="code-block-line" data-line-number="${idx + 1}">${l}</span>`)
+      .join('\n')
+  }\n</code></pre>`;
+}
+
 describe('Markdown extensions', () => {
   for (const [md, html] of Object.entries({
     // Footnote
@@ -32,6 +40,13 @@ describe('Markdown extensions', () => {
     'To-Do': '<p><span class="todo">To-Do</span></p>',
     'TO**DO**': '<p>TO<strong>DO</strong></p>',
     '`TODO`': '<p><code class="code-inline">TODO</code></p>',
+    // Code block highlighting
+    '```\nprint("hello world")\n```': codeBlock('print("hello world")'),
+    '```python\nprint("hello world")\n```': codeBlock('<span class="hljs-built_in">print</span>(<span class="hljs-string">"hello world"</span>)', 'python'),
+    '```python highlight-manual\npr§§int("hel§§lo world")\n```': codeBlock('<span class="hljs-built_in">pr</span><mark><span class="hljs-built_in">int</span>(<span class="hljs-string">"hel</span></mark><span class="hljs-string">lo world"</span>)', 'python'),
+    '```python highlight-manual\npr§<mark><strong>BEGIN</strong><em>§int("hel§</em><strong>END</strong></mark>§lo world")\n```': codeBlock('<span class="hljs-built_in">pr</span><mark><strong>BEGIN</strong><em><span class="hljs-built_in">int</span>(<span class="hljs-string">"hel</span></em><strong>END</strong></mark><span class="hljs-string">lo world"</span>)', 'python'),
+    '```\npr§§int("hel§§lo world")\n```': codeBlock('pr§§int("hel§§lo world")'),
+    '```none highlight-manual="|"\npr||int("hel||lo world")\n```': codeBlock('pr<mark>int("hel</mark>lo world")', 'none'),
   })) {
     test(md, () => {
       expect(renderMarkdownToHtml(md).trim()).toBe(html);

@@ -1,6 +1,6 @@
 <template>
   <v-chip class="ma-1" small>
-    Language: {{ languageInfo.name }}
+    {{ languageInfo.name }}
   </v-chip>
 </template>
 

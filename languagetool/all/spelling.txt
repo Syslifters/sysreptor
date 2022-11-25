@@ -132,3 +132,12 @@ Actuator
 FIDO2
 FIDO
 MIME-Type
+GlobalReader
+GlobalNetworkAdmin
+hCaptcha
+proxychains
+Cross-Site-Request-Forgery
+Same-Site
+Cross-Site
+Bearer
+maven

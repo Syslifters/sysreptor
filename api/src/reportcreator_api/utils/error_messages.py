@@ -13,8 +13,19 @@ class MessageLocationType(enum.Enum):
     FINDING = 'finding'
     PROJECT = 'project'
     SECTION = 'section'
-    TEMPLATE = 'template'
+    DESIGN = 'design'
     OTHER = 'other'
+
+
+def format_path(path: Union[None, str, tuple[str], list[str]]):
+    path_str = path
+    if isinstance(path, (tuple, list)):
+        path_str = ''
+        for p in path:
+            if path_str and p and p[0] != '[':
+                path_str += '.'
+            path_str += p
+    return path_str
 
 
 @dataclasses.dataclass
@@ -33,14 +44,7 @@ class MessageLocationInfo:
         return MessageLocationInfo(**(dataclasses.asdict(self) | {'path': path}))
 
     def for_path(self, path: Union[None, str, tuple[str], list[str]]):
-        path_str = path
-        if isinstance(path, (tuple, list)):
-            path_str = ''
-            for p in path:
-                if path_str and p and p[0] != '[':
-                    path_str += '.'
-                path_str += p
-        return MessageLocationInfo(**(dataclasses.asdict(self)  |{'path': path_str}))
+        return MessageLocationInfo(**(dataclasses.asdict(self)  |{'path': format_path(path)}))
 
 
 @dataclasses.dataclass

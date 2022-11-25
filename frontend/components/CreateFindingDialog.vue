@@ -11,7 +11,7 @@
       <s-card>
         <v-card-title>
           <v-toolbar flat>
-            <v-toolbar-title>Create Finding</v-toolbar-title>
+            <v-toolbar-title>New Finding</v-toolbar-title>
             <v-spacer />
             <s-tooltip>
               <template #activator="{attrs, on}">
@@ -45,7 +45,8 @@
                 <div class="pt-2 pb-2">
                   {{ item.data.title }}
                   <br />
-                  <language-chip :value="item.language" />
+                  <status-chip v-if="item.status !== 'finished'" :value="item.status" />
+                  <language-chip v-if="!showOnlyMatchingLanguage" :value="item.language" />
                   <v-chip v-for="tag in item.tags" :key="tag" class="ma-1" small>
                     {{ tag }}
                   </v-chip>
@@ -54,7 +55,7 @@
             </template>
 
             <template #append-item>
-              <div v-if="templates.hasNextPage" v-intersect="(e, o, isIntersecting) => isIntersecting ? templates.fetchNextPage() : null" />
+              <page-loader :items="templates" />
             </template>
           </s-autocomplete>
           <s-checkbox 
@@ -69,10 +70,10 @@
           <s-btn @click="closeDialog" color="secondary">
             Cancel
           </s-btn>
-          <s-btn v-if="currentTemplate" @click="createFindingFromTemplate" color="primary">
+          <s-btn v-if="currentTemplate" @click="createFindingFromTemplate" :loading="actionInProress" color="primary">
             Create from Template
           </s-btn>
-          <s-btn v-else @click="createEmptyFinding" color="primary">
+          <s-btn v-else @click="createEmptyFinding" :loading="actionInProress" color="primary">
             Create Empty Finding
           </s-btn>
         </v-card-actions>
@@ -82,9 +83,11 @@
 </template>
 
 <script>
+import StatusChip from './StatusChip.vue';
 import { SearchableCursorPaginationFetcher } from '~/utils/urls';
 
 export default {
+  components: { StatusChip },
   props: {
     project: {
       type: Object,
@@ -95,9 +98,10 @@ export default {
     return {
       dialogVisible: false,
       currentTemplate: null,
+      actionInProress: false,
       templates: new SearchableCursorPaginationFetcher({
         baseURL: '/findingtemplates/', 
-        searchFilters: { language: this.project.language },
+        searchFilters: { ordering: '-usage', language: this.project.language },
         axios: this.$axios, 
         toast: this.$toast
       }),
@@ -126,20 +130,26 @@ export default {
     },
     async createEmptyFinding() {
       try {
+        this.actionInProress = true;
         const finding = await this.$store.dispatch('projects/createFinding', this.project.id);
         this.$router.push({ path: `/projects/${finding.project}/reporting/findings/${finding.id}/` });
         this.closeDialog();
       } catch (error) {
         this.$toast.global.requestError({ error });
+      } finally {
+        this.actionInProress = false;
       }
     },
     async createFindingFromTemplate() {
       try {
+        this.actionInProress = true;
         const finding = await this.$store.dispatch('projects/createFindingFromTemplate', { projectId: this.project.id, templateId: this.currentTemplate.id });
         this.$router.push({ path: `/projects/${finding.project}/reporting/findings/${finding.id}/` });
         this.closeDialog();
       } catch (error) {
         this.$toast.global.requestError({ error });
+      } finally {
+        this.actionInProress = false;
       }
     },
   }

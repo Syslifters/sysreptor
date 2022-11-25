@@ -1,7 +1,8 @@
 <template>
   <div>
     <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
-      <div class="assignee-container">
+      <status-selection v-model="section.status" :disabled="readonly" />
+      <div class="assignee-container ml-1 mr-1">
         <user-selection 
           v-model="section.assignee" 
           :selectable-users="project.pentesters" 
@@ -18,7 +19,8 @@
         :disabled="readonly"
         :id="fieldId" 
         :definition="projectType.report_fields[fieldId]" 
-        :upload-image="uploadImage" :image-urls-relative-to="projectUrl" 
+        :upload-image="uploadImage" 
+        :rewrite-image-url="rewriteImageUrl"
         :selectable-users="project.pentesters.concat(project.imported_pentesters)"
         :lang="section.language"
       />
@@ -66,12 +68,24 @@ export default {
       }
       return true;
     },
+    getErrorMessage() {
+      if (this.project?.readonly) {
+        return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'
+      }
+      return LockEditMixin.methods.getErrorMessage();
+    },
     async performSave(data) {
       await this.$store.dispatch('projects/updateSection', { projectId: this.$route.params.projectId, section: data });
     },
     async uploadImage(file) {
       const img = await uploadFile(this.$axios, urlJoin(this.projectUrl, '/images/'), file);
       return `/images/name/${img.name}`;
+    },
+    rewriteImageUrl(imgSrc) {
+      if (imgSrc.startsWith('/assets/')) {
+        return urlJoin(`/projecttypes/${this.projectType.id}/`, imgSrc);
+      }
+      return urlJoin(this.projectUrl, imgSrc);
     },
     updateInStore(data) {
       this.$store.commit('projects/setSection', { projectId: this.section.project, section: data });

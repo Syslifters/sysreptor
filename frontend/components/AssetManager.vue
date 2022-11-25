@@ -58,10 +58,11 @@
         </s-card>
       </v-col>
 
-      <v-col v-if="assets.hasNextPage">
+      <v-col v-if="assets.hasNextPage" :cols="12" :md="3">
         <v-card>
-          <v-progress-circular v-if="assets.isLoading" indeterminate />
-          <div v-else v-intersect="(e, o, isIntersecting) => isIntersecting ? assets.fetchNextPage() : null" />
+          <v-card-text>
+            <page-loader :items="assets" />
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
@@ -80,10 +81,12 @@
 import { last } from 'lodash'
 import FileDownload from 'js-file-download';
 import urlJoin from 'url-join';
+import PageLoader from './PageLoader.vue';
 import { uploadFile } from '~/utils/upload';
 import { CursorPaginationFetcher } from '~/utils/urls';
 
 export default {
+  components: { PageLoader },
   props: {
     projectType: {
       type: Object,
@@ -131,16 +134,17 @@ export default {
         return;
       }
 
-      this.uploadInProgress = true;
-      this.showDropArea = false;
+      try {
+        this.uploadInProgress = true;
+        this.showDropArea = false;
 
-      // upload all files
-      await Promise.all(Array.from(files).map(f => this.uploadSingleFile(f)));
-
-      // clear file input
-      this.$refs.fileInput.value = null;
-
-      this.uploadInProgress = false;
+        // upload all files
+        await Promise.all(Array.from(files).map(f => this.uploadSingleFile(f)));
+      } finally {
+        // clear file input
+        this.$refs.fileInput.value = null;
+        this.uploadInProgress = false;
+      }
     },
     async performDelete(asset) {
       await this.$axios.$delete(urlJoin(this.projectTypeBaseUrl, `/assets/${asset.id}/`), { progess: false });

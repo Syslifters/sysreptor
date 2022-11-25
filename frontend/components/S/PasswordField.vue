@@ -9,6 +9,7 @@
       @click:append="showPassword = !showPassword"
       :loading="showStrength"
       hide-details="auto" 
+      :error-count="100"
       outlined 
       autocomplete="off"
       class="mt-4"
@@ -31,6 +32,7 @@
       @click:append="showPassword = !showPassword"
       :rules="rules.confirmMatches"
       hide-details="auto"
+      :error-count="100"
       outlined
       autocomplete="off"
       class="mt-6"

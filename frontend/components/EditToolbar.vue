@@ -50,7 +50,7 @@
       <span v-else-if="lockInfo.user.id !== $auth.user.id">
         {{ lockInfo.user.name }} is currenlty editing this page. 
         To prevent overwriting changes, only one user has write access at a time.
-        Please wait until he is finished or ask him to leave this page.
+        Please wait until they are finished or ask them to leave this page.
       </span>
       <span v-else-if="lockInfo.user.id === $auth.user.id">
         It seems like you are editing this page in another tab or browser session.
@@ -277,11 +277,7 @@ export default {
         this.$emit('update:lockedData', lockedData);
 
         if (lockResponse.status !== 201 && !this.hasLock && !forceLock) {
-          // Open by current user in another tab or browser session
-          this.lockError = true;
-          this.hasLock = false;
-          this.$emit('update:editMode', EditMode.READONLY);
-          throw new Error('User did not create a new lock: User has lock in another tab or browser session.');
+          throw new Error('Lock error: User has lock in another tab or browser session.');
         }
 
         this.hasLock = true;
@@ -292,9 +288,6 @@ export default {
         // hasLock is only set to false in situations where the API tells us that we do not have the lock.
         // this.hasLock = false;
 
-        console.log('Lock error', error);
-        this.$toast.global.requestError({ error, message: 'Locking failed' });
-
         if (error.response?.status === 403 && error.response?.data?.lock_info) {
           console.log('Lock error: Another user has the lock. Switching to readonly mode.', this.data.id, error, error.response.data);
           this.lockInfo = error.response.data.lock_info;
@@ -302,9 +295,18 @@ export default {
           this.hasLock = false;
           this.$emit('update:editMode', EditMode.READONLY);
           this.$emit('update:lockedData', error.response.data);
+        } else if (error?.message?.includes('User has lock in another tab or browser session')) {
+          // Open by current user in another tab or browser session
+          console.log(error, this.data.id);
+          this.lockError = true;
+          this.hasLock = false;
+          this.$emit('update:editMode', EditMode.READONLY);
+        } else {
+          this.$toast.global.requestError({ error, message: 'Locking failed' });
         }
+      } finally {
+        this.lockingInProgress = false;
       }
-      this.lockingInProgress = false;
     },
     performUnlockRequest(browserUnload) {
       if (browserUnload) {

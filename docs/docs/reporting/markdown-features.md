@@ -56,10 +56,9 @@ Images use the standard markdown syntax, but are rendered as figures with captio
 Text text^[footnote content] text.
 ```
 
-
 ## Tables
-For tables the [MultiMarkdown syntax](https://fletcher.github.io/MultiMarkdown-6/syntax/tables.html){ target=_blank} is used.
-This syntax supports table captions, grouping rows rows and cols to span multiple cells.
+For tables the GFM-like table syntax is used.
+This syntax is extended to support table captions.
 
 ```md linenums="1"
 | table | header |
@@ -68,6 +67,61 @@ This syntax supports table captions, grouping rows rows and cols to span multipl
 
 : table caption
 ```
+
+## Code blocks
+Code blocks allow including source code and highlight it.
+
+
+The following example shows how to apply syntax highlighting to a HTTP request.
+Many other programming languages are also supported.
+````md linenums="1"
+```http
+POST /login.php HTTP/1.1
+Host: sqli.example.com
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 33
+
+username='or'1'='1&password=dummy
+```
+````
+
+Syntax highlighting is great for readability, but it only highlights predefined keywords of the specified language.
+However, it does not allow to manually highlight certain text parts to draw the readers attention to it.
+
+You can enable manual highlighting by adding code-block meta attribute `highlight-manual`. 
+It is now possible to encapsulate highlighted areas with `§§highlighted content§§`.
+In the rendered HTML code, the content inside the two `§§`-placeholders is wrapped by a HTML `<mark>` tag.
+This works in combination with language-based syntax highlighting.
+
+This example highlights the vulnerable POST-parameter `username` in the HTTP body.
+````md linenums="1"
+```http highlight-manual
+POST /login.php HTTP/1.1
+Host: sqli.example.com
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 33
+
+§§username='or'1'='1§§&password=dummy
+```
+````
+
+If you need more advanced highlighting, you can place cutom HTML code inside the `§§` placeholders e.g. `§<mark><em><span class="custom-highlight">§`.
+If your code snippet includes `§`-characters, you cannot use them as escape characters for manual highlighting. 
+It is possible to specify a different escaple character via the `highlight-manual="<escape-character>"` attribute.
+Make sure that the escape character is not present in the code block.
+
+The following example uses `"|"` as escape character and a custom HTML markup for highlighting.
+````md linenums="1"
+```http highlight-manual="|"
+POST /login.php HTTP/1.1
+Host: sqli.example.com
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 33
+
+|<mark><em><span class="custom-highlight">|username='or'1'='1|</span></em></mark>|&password=dummy
+```
+````
+
 
 ## HTML Attributes
 This extension allows you to set HTML attributes from markdown.

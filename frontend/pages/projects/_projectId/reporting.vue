@@ -3,7 +3,7 @@
     <split-menu v-model="menuSize">
       <template #menu>
         <v-list dense>
-          <v-list-item-title class="text-h6 pl-2">{{ project.name }} <template v-if="project.readonly">(readonly)</template></v-list-item-title>
+          <v-list-item-title class="text-h6 pl-2">{{ project.name }}</v-list-item-title>
           
           <v-subheader>Sections</v-subheader>
           <v-list-item
@@ -15,10 +15,13 @@
             <lock-info :value="section.lock_info" />
             <v-list-item-content>
               <v-list-item-title>{{ section.label }}</v-list-item-title>
-              <v-list-item-subtitle v-if="section.assignee">
-                @{{ section.assignee.username }}
+              <v-list-item-subtitle>
+                <span v-if="section.assignee" :class="{'assignee-self': section.assignee.id == $auth.user.id}">
+                  @{{ section.assignee.username }}
+                </span>
               </v-list-item-subtitle>
             </v-list-item-content>
+            <status-info :value="section.status" />
           </v-list-item>
 
           <v-subheader>Findings</v-subheader>
@@ -32,10 +35,13 @@
             <lock-info :value="finding.lock_info" />
             <v-list-item-content>
               <v-list-item-title>{{ finding.data.title }}</v-list-item-title>
-              <v-list-item-subtitle v-if="finding.assignee" :class="{'assignee-self': finding.assignee.id == $auth.user.id}">
-                @{{ finding.assignee.username }}
+              <v-list-item-subtitle>
+                <span v-if="finding.assignee" :class="{'assignee-self': finding.assignee.id == $auth.user.id}">
+                  @{{ finding.assignee.username }}
+                </span>
               </v-list-item-subtitle>
             </v-list-item-content>
+            <status-info :value="finding.status" />
           </v-list-item>
 
           <v-list-item>
@@ -55,8 +61,10 @@
 
 <script>
 import * as cvss from '@/utils/cvss.js';
+import StatusInfo2 from '~/components/StatusInfo.vue';
 
 export default {
+  components: { StatusInfo2 },
   async asyncData({ params, store }) {
     const project = store.dispatch('projects/getById', params.projectId);
     const findings = store.dispatch('projects/getFindings', params.projectId);

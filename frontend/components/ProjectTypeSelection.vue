@@ -3,7 +3,7 @@
     v-bind="$attrs"
     :value="value" @change="$emit('input', $event)"
     label="Design"
-    :items="items.data"
+    :items="additionalItems.concat(items.data)"
     :item-text="pt => pt.name + (pt.source === 'imported_dependency' ? ' (imported)' : '')"
     item-value="id"
     :return-object="returnObject"
@@ -12,7 +12,7 @@
     :clearable="!required"
   >
     <template #append-item>
-      <div v-if="items.hasNextPage" v-intersect="(e, o, isIntersecting) => isIntersecting ? items.fetchNextPage() : null" />
+      <page-loader :items="items" />
     </template>
   </s-autocomplete>
 </template>
@@ -34,14 +34,18 @@ export default {
     required: {
       type: Boolean,
       default: true,
+    },
+    additionalItems: {
+      type: Array,
+      default: () => ([]),
     }
   },
   emits: ['input'],
   data() {
-    const items = new CursorPaginationFetcher('/projecttypes/', this.$axios, this.$toast);
+    const items = new CursorPaginationFetcher('/projecttypes/?ordering=name', this.$axios, this.$toast);
 
     // Always add currently selected item to list
-    if (this.value) {
+    if (this.value && !this.additionalItems.find(i => [this.value, this.value?.id].includes(i.id))) {
       if (isObject(this.value)) {
         items.data.push(this.value);
       } else {

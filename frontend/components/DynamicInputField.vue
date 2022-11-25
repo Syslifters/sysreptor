@@ -17,7 +17,7 @@
       @input="emitInput"
       :label="label"
       :upload-image="uploadImage"
-      :image-urls-relative-to="imageUrlsRelativeTo"
+      :rewrite-image-url="rewriteImageUrl"
       :disabled="disabled"
       :lang="lang"
     />
@@ -223,8 +223,8 @@ export default {
       type: Function,
       default: null,
     },
-    imageUrlsRelativeTo: {
-      type: String,
+    rewriteImageUrl: {
+      type: Function,
       default: null,
     },
     selectableUsers: {

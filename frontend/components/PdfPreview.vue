@@ -14,10 +14,8 @@
 
 <script>
 import { debounce } from 'lodash';
-import ErrorList from './ErrorList.vue';
 
 export default {
-  components: { ErrorList },
   props: {
     fetchPdf: {
       type: Function,

@@ -7,7 +7,7 @@
 
       <pane :size="100 - previewSplitSize">
         <fill-screen-height>
-          <h1>Publish Report: {{ project.name }} <template v-if="project.readonly">(readonly)</template></h1>
+          <h1>{{ project.name }}</h1>
 
           <v-form class="pa-4">
             <!-- Set password for encrypting report -->
@@ -24,14 +24,9 @@
               />
             </div>
 
-            <!-- Set readonly -->
-            <div>
-              <s-checkbox v-if="!project.readonly" v-model="form.readonly" label="Mark project as finished and set it readonly" />
-            </div>
-
             <!-- Render as different design -->
             <div>
-              <s-checkbox v-model="form.renderWithDifferentProjectType" label="Render report PDF with different design" />
+              <s-checkbox v-model="form.renderWithDifferentProjectType" label="Render report PDF with a different design" class="mt-0" />
               <template v-if="form.renderWithDifferentProjectType">
                 <v-alert type="warning" dense>
                   Different designs might have conflicting report and/or finding fields.<br>
@@ -56,28 +51,34 @@
               />
             </div>
 
-            <s-btn
-              type="submit"
-              :disabled="!canGenerateFinalReport"
-              :loading="reportGenerationInProgress"
-              @click.prevent="generateFinalReport"
-              color="primary"
-              class="mt-4"
-            >
-              <v-icon>mdi-download</v-icon>
-              Generate Final Report
-            </s-btn>
+            <div class="mt-4">
+              <btn-confirm
+                :disabled="!canGenerateFinalReport"
+                :action="generateFinalReport"
+                :confirm="false"
+                button-text="Download"
+                button-icon="mdi-download"
+                button-color="primary"
+              />
+            </div>
+            <div class="mt-4">
+              <btn-readonly 
+                v-if="!project.readonly"
+                :value="project.readonly"
+                :set-readonly="setReadonly"
+                :disabled="!canGenerateFinalReport"
+              />
+            </div>
           </v-form>
 
-          <error-list :value="checkMessages">
-            <template #message="{msg}">
-              {{ msg.message }}
-              <NuxtLink v-if="messageLocationUrl(msg)" :to="messageLocationUrl(msg)" class="error-location">
+          <error-list :value="[checkMessages, $refs.pdfpreview?.pdfRenderErrors]" :group="true">
+            <template #location="{msg}">
+              <NuxtLink v-if="messageLocationUrl(msg)" :to="messageLocationUrl(msg)" target="_blank">
                 in {{ msg.location.type }}
                 <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
                 <template v-if="msg.location.path">field "{{ msg.location.path }}"</template>
               </NuxtLink>
-              <span v-else-if="msg.location.name" class="error-location">
+              <span v-else-if="msg.location.name">
                 in {{ msg.location.type }}
                 <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
                 <template v-if="msg.location.path">field "{{ msg.location.path }}"</template>
@@ -94,13 +95,9 @@
 import { Splitpanes, Pane } from 'splitpanes';
 import fileDownload from 'js-file-download';
 import { sampleSize } from 'lodash';
-import PdfPreview from '~/components/PdfPreview.vue'
-import ErrorList from '~/components/ErrorList.vue';
-import FillScreenHeight from '~/components/FillScreenHeight.vue';
-import ProjectTypeSelection from '~/components/ProjectTypeSelection.vue';
 
 export default {
-  components: { Splitpanes, Pane, PdfPreview, ErrorList, FillScreenHeight, ProjectTypeSelection },
+  components: { Splitpanes, Pane },
   async asyncData({ params, store }) {
     const project = await store.dispatch('projects/getById', params.projectId);
     const projectType = await store.dispatch('projecttypes/getById', project.project_type);
@@ -109,14 +106,12 @@ export default {
   data() {
     return {
       previewSplitSize: 50,
-      reportGenerationInProgress: false,
       checkMessages: {},
       form: {
         encryptReport: true,
         password: this.generateNewPassword(),
         renderWithDifferentProjectType: false,
         projectType: null,
-        readonly: false,
         filename: 'report.pdf',
       },
       rules: {
@@ -152,25 +147,16 @@ export default {
       }
     },
     async generateFinalReport() {
-      this.reportGenerationInProgress = true;
-      try {
-        const res = await this.$axios.$post(`/pentestprojects/${this.project.id}/generate/`, {
-          password: this.form.encryptReport ? this.form.password : null,
-          readonly: this.form.readonly,
-          project_type: this.form.renderWithDifferentProjectType ? this.form.projectType?.id : null,
-        }, {
-          responseType: 'arraybuffer',
-        });
-        fileDownload(res, this.form.filename.endsWith('.pdf') ? this.form.filename : this.form.filename + '.pdf');
-
-        if (this.form.readonly) {
-          // Remove project from store: invalidates cache
-          this.$store.commit('projects/remove', this.project);
-        }
-      } catch (error) {
-        this.$toast.global.requestError({ error });
-      }
-      this.reportGenerationInProgress = false;
+      const res = await this.$axios.$post(`/pentestprojects/${this.project.id}/generate/`, {
+        password: this.form.encryptReport ? this.form.password : null,
+        project_type: this.form.renderWithDifferentProjectType ? this.form.projectType?.id : null,
+      }, {
+        responseType: 'arraybuffer',
+      });
+      fileDownload(res, this.form.filename.endsWith('.pdf') ? this.form.filename : this.form.filename + '.pdf');
+    },
+    async setReadonly() {
+      await this.$store.dispatch('projects/setReadonly', { projectId: this.project.id, readonly: true });
     },
     messageLocationUrl(msg) {
       if (!msg || !msg.location) {
@@ -179,7 +165,7 @@ export default {
         return `/projects/${this.project.id}/reporting/sections/${msg.location.id}/` + (msg.location.path ? '#' + msg.location.path : '');
       } else if (msg.location.type === 'finding') {
         return `/projects/${this.project.id}/reporting/findings/${msg.location.id}/` + (msg.location.path ? '#' + msg.location.path : '');
-      } else if (msg.location.type === 'template') {
+      } else if (msg.location.type === 'design') {
         return `/designer/${this.project.project_type}/pdfdesigner/`;
       }
 
@@ -188,7 +174,7 @@ export default {
     generateNewPassword() {
       // Charset does not contain similar-looking characters and numbers; removed: 0,O, 1,l,I
       const charset = '23456789' + 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ' + '!#%&+-_';
-      return sampleSize(charset, 32).join('');
+      return sampleSize(charset, 20).join('');
     },
     changeDesign(projectType) {
       this.form.projectType = projectType;

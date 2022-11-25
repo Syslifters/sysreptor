@@ -1,6 +1,7 @@
 import pytest
 import io
 from django.core.files.base import ContentFile
+from django.test import override_settings
 from rest_framework.exceptions import ValidationError
 from reportcreator_api.pentests.models import PentestProject, ProjectType, SourceEnum, UploadedAsset, UploadedImage
 from reportcreator_api.tests.utils import assertKeysEqual
@@ -27,6 +28,9 @@ class TestImportExport:
                 {'assignee': self.user, 'template': self.template},
                 {'assignee': None, 'template': None},
             ])
+        
+        with override_settings(COMPRESS_IMAGES=False):
+            yield
     
     def test_export_import_template(self):
         archive = archive_to_file(export_templates([self.template]))
@@ -35,7 +39,7 @@ class TestImportExport:
         assert len(imported) == 1
         t = imported[0]
 
-        assertKeysEqual(t, self.template, ['created', 'language', 'data', 'data_all'])
+        assertKeysEqual(t, self.template, ['created', 'language', 'status', 'data', 'data_all'])
         assert set(t.tags) == set(self.template.tags)
         assert t.source == SourceEnum.IMPORTED
 
@@ -69,11 +73,11 @@ class TestImportExport:
         
         assert p.sections.count() == self.project.sections.count()
         for i, s in zip(p.sections.order_by('section_id'), self.project.sections.order_by('section_id')):
-            assertKeysEqual(i, s, ['section_id', 'created', 'assignee', 'data'])
+            assertKeysEqual(i, s, ['section_id', 'created', 'assignee', 'status', 'data'])
 
         assert p.findings.count() == self.project.findings.count()
         for i, s in zip(p.findings.order_by('finding_id'), self.project.findings.order_by('finding_id')):
-            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'template', 'data', 'data_all', 'risk_score', 'risk_level'])
+            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'template', 'data', 'data_all', 'risk_score', 'risk_level'])
 
         assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in self.project.images.all()}
 

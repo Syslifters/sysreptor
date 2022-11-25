@@ -42,7 +42,7 @@
               :definition="projectType.report_fields[fieldId]" 
               :show-field-ids="true"
               :upload-image="uploadImage" 
-              :image-urls-relative-to="`/projecttypes/${projectType.id}/`"
+              :rewrite-image-url="rewriteImageUrl"
               :selectable-users="[$auth.user]"
               :lang="projectType.language"
               :disabled="disabled"
@@ -57,7 +57,7 @@
               :definition="projectType.finding_fields[fieldId]" 
               :show-field-ids="true"
               :upload-image="uploadImage" 
-              :image-urls-relative-to="`/projecttypes/${projectType.id}/`"
+              :rewrite-image-url="rewriteImageUrl"
               :selectable-users="[$auth.user]"
               :lang="projectType.language"
               :disabled="disabled"
@@ -71,6 +71,7 @@
 
 <script>
 import { v4 as uuidv4 } from 'uuid';
+import urlJoin from 'url-join';
 import * as cvss from "@/utils/cvss.js";
 import { uploadFile } from '~/utils/upload';
 import { sortFindings } from '~/utils/other';
@@ -108,6 +109,9 @@ export default {
     async uploadImage(file) {
       const img = await uploadFile(this.$axios, `/projecttypes/${this.projectType.id}/assets/`, file);
       return `/assets/name/${img.name}`;
+    },
+    rewriteImageUrl(imgSrc) {
+      return urlJoin(`/projecttypes/${this.projectType.id}/`, imgSrc);
     },
     updateSectionField(fieldId, value) {
       const newVal = Object.assign({}, this.value);

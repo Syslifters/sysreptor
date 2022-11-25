@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "nuxt",
+    "dev": "nuxt --hostname 0.0.0.0",
     "build": "nuxt build --max-old-space-size=8188",
     "start": "nuxt start",
     "generate": "nuxt generate",
@@ -13,7 +13,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@mdi/font": "^6.9.96",
+    "@mdi/font": "^7.0.96",
     "@nuxtjs/auth-next": "^5.0.0-1648802546.c9880dc",
     "@nuxtjs/axios": "^5.13.6",
     "@nuxtjs/toast": "^3.3.1",

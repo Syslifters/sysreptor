@@ -1,4 +1,5 @@
 import pytest
+from reportcreator_api.pentests.models import ReviewStatus
 from reportcreator_api.tests.mock import create_finding, create_project, create_project_type
 from reportcreator_api.utils.error_messages import MessageLevel, MessageLocationInfo, MessageLocationType, ErrorMessage
 
@@ -134,4 +135,31 @@ def test_invalid_cvss():
     assertNotContainsCheckResults(project.perform_checks(), [
         ErrorMessage(level=MessageLevel.WARNING, message='Invalid CVSS vector', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id, path='cvss'))
         for f in [finding_valid1, finding_valid2, finding_valid3]
+    ])
+
+
+def test_review_status():
+    project = create_project()
+    finding_valid = create_finding(project=project, status=ReviewStatus.FINISHED)
+    finding_invalid1 = create_finding(project=project, status=ReviewStatus.IN_PROGRESS)
+    finding_invalid2 = create_finding(project=project, status=ReviewStatus.READY_FOR_REVIEW)
+    finding_invalid3 = create_finding(project=project, status=ReviewStatus.NEEDS_IMPROVEMENT)
+
+    section_valid = project.sections.first()
+    section_valid.status = ReviewStatus.FINISHED
+    section_valid.save()
+    section_invalid = project.sections.exclude(id=section_valid.id).first()
+    section_invalid.status = ReviewStatus.IN_PROGRESS
+    section_invalid.save()
+
+    assertContainsCheckResults(project.perform_checks(), [
+        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id))
+        for f in [finding_invalid1, finding_invalid2, finding_invalid3]
+    ] + [
+        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(type=MessageLocationType.SECTION, id=s.section_id))
+        for s in [section_invalid]
+    ])
+    assertNotContainsCheckResults(project.perform_checks(), [
+        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=finding_valid.finding_id)),
+        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(type=MessageLocationType.SECTION, id=section_valid.section_id)),
     ])

@@ -10,7 +10,7 @@
       <template #actions>
         <s-btn to="/projects/new/" color="primary">
           <v-icon>mdi-plus</v-icon>
-          Create new project
+          Create
         </s-btn>
         <btn-import :import="performImport" />
       </template>

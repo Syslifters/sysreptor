@@ -2,7 +2,6 @@
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
-import rehypeHighlight from 'rehype-highlight';
 import rehypeStringify from 'rehype-stringify';
 import rehypeRaw from 'rehype-raw';
 import xss from 'xss';
@@ -10,13 +9,14 @@ import 'highlight.js/styles/default.css';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './mdext/footnotes.js';
 import { remarkStrikethrough } from './mdext/gfm.js';
-import { rehypeCode, rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources } from './mdext/rehypePlugins.js';
+import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources } from './mdext/rehypePlugins.js';
 import { remarkAttrs, remarkToRehypeAttrs } from './mdext/attrs.js';
 import { remarkFigure, remarkToRehypeHandlersFigure } from './mdext/image.js';
 import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './mdext/tables.js';
 import { annotatedTextParse } from './editor/annotatedtext.js';
 import { remarkTemplateVariables } from './mdext/templates.js';
 import { remarkTodoMarker } from './mdext/todo.js';
+import { rehypeHighlightCode } from './mdext/codeHighlight.js';
 import remarkStringify from 'remark-stringify';
 
 
@@ -65,10 +65,9 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteImageSource 
       .use(rehypeConvertAttrsToStyle)
       .use(rehypeTableCaptions)
       .use(preview ? rehypeFootnoteSeparatorPreview : rehypeFootnoteSeparator)
-      .use(rehypeHighlight, {subset: false, ignoreMissing: true})
+      .use(rehypeHighlightCode)
       .use(rehypeRaw)
       .use(rehypeLinkTargetBlank)
-      .use(rehypeCode)
       .use(rehypeRewriteImageSources, {rewriteImageSource})
       .use(rehypeStringify);
 

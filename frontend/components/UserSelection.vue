@@ -4,13 +4,14 @@
     v-bind="autocompleteAttrs"
   >
     <template #append-item>
-      <div v-if="!selectableUsers && items.hasNextPage" v-intersect="(e, o, isIntersecting) => isIntersecting ? items.fetchNextPage() : null" />
+      <page-loader v-if="!selectableUsers" :items="items" />
     </template>
   </s-autocomplete>
 </template>
 
 <script>
 import { CursorPaginationFetcher } from '~/utils/urls'
+
 export default {
   props: {
     value: {

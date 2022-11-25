@@ -263,7 +263,6 @@ export function rehypeFootnoteSeparator() {
   // add a footnote call separator tag between consecutive <footnote> tags
   return tree => visit(tree, 'element', (node, index, parent) => {
     if (node.tagName === 'footnote' && parent.children[index + 1]?.tagName === 'footnote') {
-      console.log(node, parent);
       parent.children.splice(index + 1, 0, h('sup', {class: 'footnote-call-separator'}));
     }
   })

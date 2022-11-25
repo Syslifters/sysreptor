@@ -7,6 +7,7 @@ from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsO
 from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, ReportSection, SourceEnum, UploadedAsset, UploadedImage
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
+from reportcreator_api.utils.files import compress_image
 
 
 class ExportImportSerializer(serializers.ModelSerializer):
@@ -101,7 +102,7 @@ class FindingTemplateExportImportSerializer(ExportImportSerializer):
 
     class Meta:
         model = FindingTemplate
-        fields = ['format', 'id', 'created', 'updated', 'tags', 'language', 'data']
+        fields = ['format', 'id', 'created', 'updated', 'tags', 'language', 'status', 'data']
         extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False}}
     
     def create(self, validated_data):
@@ -125,7 +126,7 @@ class FileListExportImportSerializer(serializers.ListSerializer):
         objs = [
             child_model_class(**attrs | {
             'file': File(
-                file=self.context['archive'].extractfile(self.child.get_path_in_archive(attrs['name'])), 
+                file=compress_image(self.context['archive'].extractfile(self.child.get_path_in_archive(attrs['name'])))[0], 
                 name=attrs['name']), 
             'linked_object': self.child.get_linked_object()
         }) for attrs in validated_data]
@@ -220,7 +221,7 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
     class Meta:
         model = PentestFinding
         fields = [
-            'id', 'created', 'updated', 'assignee', 'template', 'data',
+            'id', 'created', 'updated', 'assignee', 'status', 'template', 'data',
         ]
         extra_kwargs = {'created': {'read_only': False}}
 
@@ -247,7 +248,7 @@ class ReportSectionExportImportSerializer(ExportImportSerializer):
     class Meta:
         model = ReportSection
         fields = [
-            'id', 'created', 'updated', 'assignee',
+            'id', 'created', 'updated', 'assignee', 'status',
         ]
         extra_kwargs = {'created': {'read_only': False}}
 

@@ -301,7 +301,6 @@ export default {
       this.$emit('input', newObj);
     },
     emitInputComboboxSuggestion(action, suggestionIdx, val = null) {
-      console.log('emitInputComboboxSuggestions', action, suggestionIdx, val, this.value);
       const newObj = Object.assign({}, this.value, { suggestions: [...this.value.suggestions] });
       if (action === 'update') {
         newObj.suggestions.splice(suggestionIdx, 1, val);

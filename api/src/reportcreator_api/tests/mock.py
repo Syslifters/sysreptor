@@ -11,10 +11,20 @@ from reportcreator_api.utils.models import Language
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
+def create_png_file() -> bytes:
+    # 1x1 pixel PNG file
+    # Source: https://commons.wikimedia.org/wiki/File:1x1.png
+    return b'\x89PNG\r\n\x1a\n\x00\x00\x00\r' + \
+           b'IHDR\x00\x00\x00\x01\x00\x00\x00\x01\x01\x03\x00\x00\x00%\xdbV\xca\x00\x00\x00\x03' + \
+           b'PLTE\x00\x00\x00\xa7z=\xda\x00\x00\x00\x01tRNS\x00@\xe6\xd8f\x00\x00\x00\n' + \
+           b'IDAT\x08\xd7c`\x00\x00\x00\x02\x00\x01\xe2!\xbc3\x00\x00\x00\x00IEND\xaeB`\x82'
+
+
 def create_user(**kwargs) -> PentestUser:
     username = f'user{random.randint(0, 100000)}'
-    return PentestUser.objects.create(**{
+    return PentestUser.objects.create_user(**{
         'username': username,
+        'password': None,
         'email': username + '@example.com',
         'first_name': 'Herbert',
         'last_name': 'Testinger',
@@ -109,8 +119,8 @@ def create_project(project_type=None, pentesters=[], report_data={}, findings_kw
     for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 3:
         create_finding(project=project, **finding_kwargs)
 
-    UploadedImage.objects.create(linked_object=project, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=b'\x89PNG\x0d\x0a\x1a\x0afile1'))
-    UploadedImage.objects.create(linked_object=project, name='file2.png', file=SimpleUploadedFile(name='file2.png', content=b'\x89PNG\x0d\x0a\x1a\x0afile2'))
+    UploadedImage.objects.create(linked_object=project, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=create_png_file()))
+    UploadedImage.objects.create(linked_object=project, name='file2.png', file=SimpleUploadedFile(name='file2.png', content=create_png_file()))
 
     return project
 

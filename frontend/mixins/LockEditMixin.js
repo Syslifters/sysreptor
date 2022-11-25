@@ -42,7 +42,7 @@ export default {
           unlockUrl: this.unlockUrl,
         } : {}),
         ...(!this.getHasEditPermissions() ? {
-          errorMessage: 'You do not have permissions to edit this resource.',
+          errorMessage: this.getErrorMessage(),
         } : {}),
         ...(this.performDelete && this.getHasEditPermissions() ? {
           delete: this.performDelete,
@@ -80,6 +80,9 @@ export default {
     },
     getHasEditPermissions() {
       return true;
+    },
+    getErrorMessage() {
+      return 'You do not have permissions to edit this resource.';
     },
     updateInStore(data) {
       

@@ -158,7 +158,7 @@ def test_update_field_values(definition, old_value, new_value):
     (True, {'a': {'type': 'combobox', 'suggestions': ['a']}}, {'a': {'type': 'combobox', 'choices': ['b']}}),
 ])
 def test_definitions_compatible(compatible, a, b):
-    assert check_definitions_compatible(parse_field_definition(a), parse_field_definition(b)) == compatible
+    assert check_definitions_compatible(parse_field_definition(a), parse_field_definition(b))[0] == compatible
 
 
 @pytest.mark.django_db

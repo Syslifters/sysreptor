@@ -1,10 +1,14 @@
 import json
+import logging
 import requests
 from urllib.parse import urljoin
 from django.conf import settings
 from rest_framework import serializers, exceptions
 
 from reportcreator_api.utils.models import Language
+
+
+log = logging.getLogger(__name__)
 
 
 class TextAnnotationField(serializers.Serializer):
@@ -39,4 +43,24 @@ class LanguageToolSerializer(serializers.Serializer):
                 'data': json.dumps(data['data'], ensure_ascii=False),
             })
         return res.json()
+
+
+class S3ParamsSerializer(serializers.Serializer):
+    bucket_name = serializers.CharField()
+    key = serializers.CharField()
+    boto3_params = serializers.JSONField(required=False)
+
+
+class BackupSerializer(serializers.Serializer):
+    key = serializers.CharField()
+    s3_params = S3ParamsSerializer(required=False, allow_null=True)
+
+    def validate_key(self, key):
+        if not settings.BACKUP_KEY or len(settings.BACKUP_KEY) < 20:
+            log.error('Backup key not set or too short (min 20 chars)')
+            raise serializers.ValidationError()
+        if key != settings.BACKUP_KEY:
+            log.error('Invalid backup key')
+            raise serializers.ValidationError()
+        return key
 

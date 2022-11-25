@@ -2,7 +2,7 @@
   <v-container>
     <v-form ref="form">
       <edit-toolbar v-bind="toolbarAttrs">
-        <template #title>Project <template v-if="project.readonly">(readonly)</template></template>
+        <template #title>Project</template>
         <btn-readonly :value="project.readonly" :set-readonly="setReadonly" />
         <btn-export :export-url="`/pentestprojects/${project.id}/export/`" :name="'project-' + project.name" />
         <btn-copy :copy="performCopy" tooltip-text="Duplicate Project" confirm-text="The whole project will be copied including all pentesters, sections, findings and images." />
@@ -40,8 +40,6 @@
 </template>
 
 <script>
-import { cloneDeep } from 'lodash';
-
 export default {
   beforeRouteLeave(to, from, next) {
     this.$refs.toolbar.beforeLeave(to, from, next);
@@ -86,14 +84,7 @@ export default {
       }
     },
     async setReadonly(val) {
-      await this.$axios.$patch(`/pentestprojects/${this.project.id}/readonly/`, {
-        readonly: val,
-      });
-      // update in store
-      const storeProject = cloneDeep(this.project);
-      storeProject.readonly = val;
-      this.$store.commit('projects/set', storeProject);
-
+      await this.$store.dispatch('projects/setReadonly', { projectId: this.project.id, readonly: val });
       this.$refs.toolbar.resetComponent();
       this.$nuxt.refresh();
     },

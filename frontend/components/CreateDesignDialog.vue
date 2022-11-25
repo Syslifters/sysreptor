@@ -3,7 +3,7 @@
     <template #activator="{ on, attrs }">
       <s-btn color="primary" :loading="actionInProgress" v-bind="attrs" v-on="on">
         <v-icon>mdi-plus</v-icon>
-        Create Design
+        Create
       </s-btn>
     </template>
 
@@ -11,7 +11,7 @@
       <s-card>
         <v-card-title>
           <v-toolbar flat>
-            <v-toolbar-title>Create Design</v-toolbar-title>
+            <v-toolbar-title>New Design</v-toolbar-title>
             <v-spacer />
             <s-tooltip>
               <template #activator="{attrs, on}">

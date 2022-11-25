@@ -4,17 +4,12 @@
       <template #menu>
         <v-list dense>
           <v-list-item>
-            <v-select 
+            <project-type-selection
               v-model="fieldVisibilityFilter"
               label="Show fields of"
-              :items="[{id: 'all', name: 'All Designs'}].concat(projectTypes.data)"
-              item-value="id" item-text="name"
-              :loading="projectTypes.isLoading"
-            >
-              <template #append-item>
-                <div v-if="projectTypes.hasNextPage" v-intersect="(e, o, isIntersecting) => isIntersecting ? projectTypes.fetchNextPage() : null" />
-              </template>
-            </v-select>
+              :outlined="false"
+              :additional-items="[{id: 'all', name: 'All Designs'}]"
+            />
           </v-list-item>
 
           <v-list-item v-for="d in fieldDefinition" :key="d.id">
@@ -31,6 +26,7 @@
 
       <template #default>
         <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
+          <status-selection v-model="template.status" :disabled="readonly" />
           <template v-if="$auth.hasScope('template_editor')">
             <btn-export :export-url="`/findingtemplates/${template.id}/export/`" :name="`template-` + template.data.title" />
           </template>
@@ -75,13 +71,15 @@
 import { sortBy } from 'lodash';
 import { EditMode } from '~/components/EditToolbar.vue';
 import LockEditMixin from '~/mixins/LockEditMixin';
-import { CursorPaginationFetcher } from '~/utils/urls';
+import StatusSelection from '~/components/StatusSelection.vue';
+import ProjectTypeSelection from '~/components/ProjectTypeSelection.vue';
 
 function getTemplateUrl(params) {
   return `/findingtemplates/${params.templateId}/`;
 }
 
 export default {
+  components: { StatusSelection, ProjectTypeSelection },
   mixins: [LockEditMixin],
   async asyncData({ params, store, $axios }) {
     const template = await $axios.$get(getTemplateUrl(params));
@@ -97,7 +95,6 @@ export default {
   data() {
     return {
       editMode: (this.$auth.hasScope('template_editor')) ? EditMode.EDIT : EditMode.READONLY,
-      projectTypes: new CursorPaginationFetcher('/projecttypes/', this.$axios, this.$toast),
     }
   },
   computed: {

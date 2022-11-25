@@ -61,7 +61,6 @@
 import { Compartment, EditorState, StateEffect } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 import { defaultKeymap, historyKeymap, indentWithTab, history, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
-import urlJoin from 'url-join';
 import { renderMarkdownToHtml } from 'reportcreator-markdown';
 import { markdown } from 'reportcreator-markdown/editor/language.js';
 import { spellcheck, spellcheckTheme } from 'reportcreator-markdown/editor/spellcheck.js';
@@ -71,8 +70,6 @@ import { syntaxHighlighting } from '@codemirror/language';
 import { forceLinting, setDiagnostics } from '@codemirror/lint';
 import { markdownHighlightStyle, markdownHighlightCodeBlocks } from 'reportcreator-markdown/editor/highlight.js';
 import { throttle } from 'lodash';
-import { escapeQuote } from 'xss';
-import { absoluteApiUrl } from '@/utils/urls';
 
 function createEditorCompartment(view) {
   const compartment = new Compartment();
@@ -103,8 +100,8 @@ export default {
       type: Function,
       default: null,
     },
-    imageUrlsRelativeTo: {
-      type: String,
+    rewriteImageUrl: {
+      type: Function,
       default: null,
     },
     disabled: {
@@ -326,24 +323,26 @@ export default {
         return;
       }
 
-      this.imageUploadInProgress = true;
-      const imageUrls = await Promise.all(Array.from(files).map((file) => {
-        try {
-          return this.uploadImage(file);
-        } catch (error) {
-          this.$toast.global.requestError({ error, message: 'Failed to upload ' + file.name });
-          return null;
+      try {
+        this.imageUploadInProgress = true;
+        const imageUrls = await Promise.all(Array.from(files).map((file) => {
+          try {
+            return this.uploadImage(file);
+          } catch (error) {
+            this.$toast.global.requestError({ error, message: 'Failed to upload ' + file.name });
+            return null;
+          }
+        }));
+
+        const mdImageText = imageUrls.filter(u => u).map(u => `![](${u})`).join('\n');
+        if (pos === null) {
+          pos = this.editorView.state.selection.main.from;
         }
-      }));
-
-      const mdImageText = imageUrls.filter(u => u).map(u => `![](${u})`).join('\n');
-      if (pos === null) {
-        pos = this.editorView.state.selection.main.from;
+        this.editorView.dispatch({ changes: { from: pos, insert: mdImageText } });
+      } finally {
+        this.imageUploadInProgress = false;
+        this.$refs.fileInput.value = null;
       }
-      this.editorView.dispatch({ changes: { from: pos, insert: mdImageText } });
-
-      this.imageUploadInProgress = false;
-      this.$refs.fileInput.value = null;
     },
     async fetchImage(imgCacheEntry) {
       try {
@@ -364,11 +363,11 @@ export default {
       // Fetch API images with authentication and cache them. 
       // Fetching is handled async to not block the rendering process and replaced with data-URLs in the HTML in a post-processing step.
       // The post-processing step is required, because the Markdown rendering is not reactive. Image cache changes do not trigger re-rendering.
-      if (!this.imageUrlsRelativeTo || !imgSrc.startsWith('/')) {
+      if (!this.rewriteImageUrl || !imgSrc.startsWith('/')) {
         return imgSrc;
       }
 
-      const apiUrl = urlJoin(this.imageUrlsRelativeTo, imgSrc);
+      const apiUrl = this.rewriteImageUrl(imgSrc);
       if (!this.imageCache.some(e => e.url === apiUrl)) {
         const imgCacheEntry = {
           url: apiUrl,

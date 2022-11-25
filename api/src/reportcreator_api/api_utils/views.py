@@ -1,21 +1,38 @@
 import json
-
+import logging
 import boto3
 import zipstream
 from django.http import StreamingHttpResponse
 from django.conf import settings
 from rest_framework import views, viewsets, routers
+from rest_framework.serializers import Serializer
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from reportcreator_api.api_utils.serializers import LanguageToolSerializer
+from rest_framework.settings import api_settings
+from reportcreator_api.api_utils.serializers import LanguageToolSerializer, BackupSerializer
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
+from reportcreator_api.api_utils.permissions import IsSuperuser
 from reportcreator_api.pentests.models import UploadedImage, UploadedAsset
-from reportcreator_api.utils import logging, backup_utils
+from reportcreator_api.utils import backup_utils
 
 from reportcreator_api.utils.models import Language
 
 
+log = logging.getLogger(__name__)
+
+
 class UtilsViewSet(viewsets.ViewSet):
+    def get_serializer_class(self):
+        if self.action == 'backup':
+            return BackupSerializer
+        elif self.action == 'spellcheck':
+            return LanguageToolSerializer
+        else:
+            return Serializer
+
+    def get_serializer(self, *args, **kwargs):
+        return self.get_serializer_class()(*args, **kwargs)
+
     def list(self, *args, **kwargs):
         return routers.APIRootView(api_root_dict={
             'languages': 'utils-languages',
@@ -31,36 +48,27 @@ class UtilsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def spellcheck(self, request, *args, **kwargs):
-        serializer = LanguageToolSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(data=serializer.spellcheck())
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsSuperuser])
     def backup(self, request, *args, **kwargs):
-        if not settings.BACKUP_KEY or len(settings.BACKUP_KEY) < 20:
-            logging.log.error('Backup key not set or too short (min 20 chars)')
-            return Response(status=403)
-        if request.POST.get('key') != settings.BACKUP_KEY:
-            logging.log.error('Invalid backup key')
-            return Response(status=403)
-        if not request.user.is_authenticated or not request.user.is_superuser:
-            logging.log.error('User not authenticated or not superuser')
-            return Response(status=403)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.data
 
-        logging.log.info('Backup requested')
+        log.info('Backup requested')
         z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
         z.write_iter('backup.json', backup_utils.create_dump())
 
         for image in UploadedImage.objects.all():
             z.write_iter("uploadedimages/" + image.file.name, image.file)
-
         for image in UploadedAsset.objects.all():
             z.write_iter("uploadedassets/" + image.file.name, image.file)
-        if request.POST.get('s3_params'):
-            s3_params = json.loads(request.POST.get('s3_params'))
-            s3 = boto3.resource('s3',
-                                **s3_params.get('broto3_params', {}),
-                                )
+
+        if s3_params := data.get('s3_params'):
+            s3 = boto3.resource('s3', **s3_params.get('boto3_params', {}))
             bucket = s3.Bucket(s3_params['bucket_name'])
 
             class Wrapper:
@@ -86,7 +94,7 @@ class UtilsViewSet(viewsets.ViewSet):
 
         response = StreamingHttpResponse(z, content_type='application/zip')
         response['Content-Disposition'] = 'attachment; filename={}'.format('files.zip')
-        logging.log.info('Sending Backup')
+        log.info('Sending Backup')
         return response
 
     @action(detail=False, methods=['get'], permission_classes=[])

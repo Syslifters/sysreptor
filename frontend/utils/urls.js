@@ -31,6 +31,8 @@ export class CursorPaginationFetcher {
     this.nextPageURL = this.baseURL;
     this.isLoading = false;
     this.data = [];
+    this.hasError = false;
+    this.errorData = null;
   }
 
   get hasNextPage() {
@@ -42,15 +44,23 @@ export class CursorPaginationFetcher {
       return;
     }
 
-    this.isLoading = true;
     try {
+      this.isLoading = true;
+
       const res = await this.axios.$get(this.nextPageURL);
       this.nextPageURL = res.next;
       this.data.push(...res.results);
+
+      this.hasError = false;
+      this.errorData = null;
     } catch (error) {
+      this.hasError = true;
+      this.errorData = error?.response?.data || null;
+
       this.toast.global.requestError({ error });
+    } finally {
+      this.isLoading = false;
     }
-    this.isLoading = false;
   }
 }
 
@@ -104,6 +114,14 @@ export class SearchableCursorPaginationFetcher {
 
   get hasNextPage() {
     return this.fetcher.hasNextPage;
+  }
+
+  get hasError() {
+    return this.fetcher.hasError;
+  }
+
+  get errorData() {
+    return this.fetcher.errorData;
   }
 
   get data() {

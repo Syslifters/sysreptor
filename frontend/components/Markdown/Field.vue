@@ -20,8 +20,8 @@ export default baseMixins.extend({
       type: Function,
       default: null,
     },
-    imageUrlsRelativeTo: {
-      type: String,
+    rewriteImageUrl: {
+      type: Function,
       default: null,
     },
   },
@@ -38,8 +38,7 @@ export default baseMixins.extend({
           disabled: this.disabled,
           lang: this.lang,
           uploadImage: this.uploadImage,
-          imageUrlsRelativeTo: this.imageUrlsRelativeTo,
-          
+          rewriteImageUrl: this.rewriteImageUrl,
         },
         attrs: {
           class: 'markdown-editor'
@@ -58,6 +57,7 @@ export default baseMixins.extend({
 <style lang="scss" scoped>
 .v-input__slot {
   padding: 0 1px !important;
+  cursor: initial !important;
 }
 .v-text-field__slot {
   margin-right: 0 !important;

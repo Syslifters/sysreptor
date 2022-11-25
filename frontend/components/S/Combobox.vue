@@ -2,7 +2,8 @@
   <v-combobox
     v-bind="$attrs" 
     v-on="$listeners" 
-    hide-details="auto" 
+    hide-details="auto"
+    :error-count="100"
     persistent-hint
     :outlined="outlined"
     class="mt-4"

@@ -2,7 +2,7 @@
   <v-list-item :to="`/projects/${item.id}/reporting/`" nuxt two-line>
     <v-list-item-content>
       <v-list-item-title>
-        {{ item.name }} <template v-if="item.readonly">(readonly)</template>
+        {{ item.name }}
       </v-list-item-title>
             
       <v-list-item-subtitle>

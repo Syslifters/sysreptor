@@ -2,8 +2,9 @@
 //
 // The variables you want to modify
 // $font-size-root: 20px;
-
 $body-font-family: 'Exo';
+
+@import '~vuetify/src/styles/styles.sass';
 
 
 // Colors
@@ -27,6 +28,6 @@ $syslifters-orange: #E65E00;
 $syslifters-white: #F9FDFF;
 $syslifters-black: #262626;
 
+$status-color-finished: map-get($green, 'base');
 
 
-@import '~vuetify/src/styles/styles.sass';
