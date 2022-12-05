@@ -61,10 +61,8 @@
 
 <script>
 import * as cvss from '@/utils/cvss.js';
-import StatusInfo2 from '~/components/StatusInfo.vue';
 
 export default {
-  components: { StatusInfo2 },
   async asyncData({ params, store }) {
     const project = store.dispatch('projects/getById', params.projectId);
     const findings = store.dispatch('projects/getFindings', params.projectId);

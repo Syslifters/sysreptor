@@ -444,7 +444,7 @@ export function toggleLink({state, dispatch}) {
         range: EditorSelection.range(range.from + 1, range.to + 1),
         changes: [
           {from: range.from, insert: '['},
-          {from: range.to, insert: '](https://)'},
+          {from: range.to, insert: '](' + (range.from === range.to ? 'https://' : state.doc.sliceString(range.from, range.to)) + ')'},
         ]
       };
     },

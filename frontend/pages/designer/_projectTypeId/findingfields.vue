@@ -134,7 +134,7 @@ export default {
       return getProjectTypeUrl({ projectTypeId: data.id });
     },
     getHasEditPermissions() {
-      return this.$auth.hasScope('designer');
+      return this.$auth.hasScope('designer') || this.projectType?.source === 'customized';
     },
     updateField(field, val) {
       // Update field order

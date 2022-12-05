@@ -1,11 +1,12 @@
 <template>
   <btn-confirm 
-    button-text="Duplicate"
-    button-icon="mdi-clipboard-multiple-outline"
+    :button-text="buttonText"
+    :button-icon="buttonIcon"
     :tooltip-text="tooltipText"
     dialog-title="Confirm Duplication"
     :dialog-text="confirmText"
     :action="performCopy"
+    v-bind="$attrs"
   />
 </template>
 
@@ -16,6 +17,14 @@ export default {
       type: Function,
       required: true,
     },
+    buttonText: {
+      type: String,
+      default: 'Duplicate',
+    },
+    buttonIcon: {
+      type: String,
+      default: 'mdi-clipboard-multiple-outline',
+    },
     tooltipText: {
       type: String,
       default: 'Duplicate',
@@ -23,11 +32,6 @@ export default {
     confirmText: {
       type: String,
       default: null,
-    }
-  },
-  data() {
-    return {
-      copyInProgress: false,
     }
   },
   methods: {

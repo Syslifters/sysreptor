@@ -96,10 +96,12 @@ describe('toggleListOrdered', () => {
 describe('toggleLink', () => {
   for (const [before, after] of Object.entries({
     "a | b": "a [|](https://) b",
-    "a |text| b": "a [|text|](https://) b",
+    "a |https://example.com/| b": "a [|https://example.com/|](https://example.com/) b",
     "a [|text|]() b": "a |text| b",
+    "a [|text|](https://example.com/) b": "a |text| b",
     "a [te|xt]() b": "a te|xt b",
     "|a [text]() b|": "|a [text]() b|",
+    "|a [text](https://example.com/) b|": "|a [text](https://example.com/) b|",
     "|a [te|xt]() b": "|a [te|xt]() b",
   })) {
     testCommand(toggleLink, before, after);

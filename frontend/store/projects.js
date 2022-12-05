@@ -1,5 +1,5 @@
 import Vue from "vue";
-import { omit, cloneDeep } from "lodash";
+import { omit } from "lodash";
 import { updateObjectReactive } from "~/utils/state";
 import { sortFindings } from "~/utils/other";
 
@@ -30,6 +30,16 @@ export const mutations = {
     }
 
     state.data[obj.id].project = obj;
+  },
+  setGetByIdSync(state, { projectId, sync }) {
+    ensureExists(state, projectId, 'getByIdSync', sync);
+  },
+  update(state, obj) {
+    if (!(obj.id in state.data) || !state.data[obj.id].project) {
+      return;
+    }
+
+    updateObjectReactive(state.data[obj.id].project, obj);
   },
   remove(state, obj) {
     if (obj.id in state.data) {
@@ -96,13 +106,22 @@ export const actions = {
     commit('set', obj);
     return obj;
   },
-  async getById({ dispatch, state }, projectId) {
+  async getById({ dispatch, state, commit }, projectId) {
     if (projectId in state.data && state.data[projectId].project) {
       return state.data[projectId].project;
+    } else if (projectId in state.data && state.data[projectId].getByIdSync) {
+      return await state.data[projectId].getByIdSync;
+    } else {
+      try {
+        const fetchById = dispatch('fetchById', projectId);
+        commit('setGetByIdSync', { projectId, sync: fetchById });
+        return await fetchById;
+      } finally {
+        commit('setGetByIdSync', { projectId, sync: null });
+      }
     }
-    return await dispatch('fetchById', projectId);
   },
-  async fetchFindings({ commit, state }, projectId) {
+  async fetchFindings({ commit }, projectId) {
     const findings = await this.$axios.$get(`/pentestprojects/${projectId}/findings/`);
     commit('setFindings', { projectId, findings });
     return findings;
@@ -129,11 +148,9 @@ export const actions = {
     commit('set', obj);
     return obj;
   },
-  async update({ commit, state }, project) {
+  async update({ commit }, project) {
     const obj = await this.$axios.$put(`/pentestprojects/${project.id}/`, project);
-    if (obj.id in state.data) {
-      commit('set', obj);
-    }
+    commit('set', obj);
     return obj;
   },
   async delete({ commit }, project) {
@@ -145,14 +162,15 @@ export const actions = {
     commit('set', copied);
     return copied;
   },
-  async setReadonly({ dispatch, commit }, { projectId, readonly }) {
-    await this.$axios.$patch(`/pentestprojects/${projectId}/readonly/`, {
+  async setReadonly({ commit }, { projectId, readonly }) {
+    const res = await this.$axios.$patch(`/pentestprojects/${projectId}/readonly/`, {
       readonly,
     });
-    // update in store
-    const storeProject = cloneDeep(await dispatch('getById', projectId));
-    storeProject.readonly = readonly;
-    commit('set', storeProject);
+    commit('update', { id: projectId, ...res });
+  },
+  async customizeDesign({ commit }, { projectId }) {
+    const res = await this.$axios.$post(`/pentestprojects/${projectId}/customize-projecttype/`);
+    commit('update', { id: projectId, ...res });
   },
   async updateFinding({ commit }, { projectId, finding }) {
     const updatedFinding = await this.$axios.$put(`/pentestprojects/${projectId}/findings/${finding.id}/`, finding);
@@ -187,6 +205,9 @@ export const actions = {
 }
 
 export const getters = {
+  project: state => (projectId) => {
+    return state.data[projectId]?.project;
+  },
   findings: state => (projectId) => {
     const project = state.data[projectId];
     if (!project) {

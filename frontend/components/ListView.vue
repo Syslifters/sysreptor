@@ -8,6 +8,11 @@
     <v-list v-if="items">
       <slot v-for="item in items.data" name="item" :item="item" />
       <page-loader :items="items" />
+      <v-list-item v-if="items.data.length === 0 && !items.hasNextPage">
+        <v-list-item-title>
+          No data found
+        </v-list-item-title>
+      </v-list-item>
     </v-list>
   </v-container>
 </template>

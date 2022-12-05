@@ -20,12 +20,13 @@ brotli == 1.0.9
 jsonschema == 4.17.0
 python-decouple == 3.6
 pytest-django == 4.5.2
+pytest-xdist == 3.0.2
 
 pyppeteer == 1.0.2
 # check weasyprint performance before updating: https://kozea.github.io/WeasyPerf/
 weasyprint == 57.1
 lorem-text == 2.1
-pikepdf == 5.4.2
+pikepdf == 6.0.2
 zipstream-new == 1.1.8
 boto3==1.26.5
 pillow-heif==0.7.2

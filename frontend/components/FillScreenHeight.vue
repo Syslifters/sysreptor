@@ -21,11 +21,13 @@ export default {
   methods: {
     updateHeight() {
       const clientRects = this.$refs.container?.getClientRects();
+      console.log('FillScreenHeight.updateHeight', clientRects);
       if (!clientRects || clientRects.length === 0) {
         return;
       }
       const startY = clientRects[0].top;
       this.height = window.innerHeight - startY;
+      console.log('FillScreenHeight.updateHeight', clientRects[0].top, window.innerHeight, this.height);
     },
   }
 }

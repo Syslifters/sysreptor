@@ -141,6 +141,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = timedelta(hours=14).seconds
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
@@ -280,6 +283,16 @@ LOGGING = {
         'pyppeteer': {
             'level': 'WARNING',
             'hanlders': ['console'],
+            'propagate': False,
+        },
+        'pikepdf': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'fontTools': {
+            'level': 'WARNING',
+            'handlers': ['console'],
             'propagate': False,
         },
     }

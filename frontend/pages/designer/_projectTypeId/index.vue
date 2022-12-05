@@ -46,7 +46,7 @@ export default {
       return getProjectTypeUrl({ projectTypeId: data.id });
     },
     getHasEditPermissions() {
-      return this.$auth.hasScope('designer');
+      return this.$auth.hasScope('designer') || this.projectType?.source === 'customized';
     },
     async performSave(data) {
       await this.$store.dispatch('projecttypes/partialUpdate', { obj: data, fields: ['name', 'language'] });

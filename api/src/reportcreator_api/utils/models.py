@@ -1,8 +1,8 @@
 import itertools
 import uuid
 from django.db import models
-from django.forms.models import model_to_dict
 from django.utils import timezone
+from django.contrib.contenttypes.fields import GenericRelation
 
 
 class ModelDiffMixin(object):
@@ -48,7 +48,7 @@ class ModelDiffMixin(object):
 
     @property
     def _dict(self):
-        diff_fields = {field.attname for field in self._meta.fields} - self.get_deferred_fields()
+        diff_fields = {field.attname for field in self._meta.fields  if not isinstance(field, GenericRelation)} - self.get_deferred_fields()
 
         out = {}
         for f in itertools.chain(self._meta.concrete_fields, self._meta.private_fields, self._meta.many_to_many):

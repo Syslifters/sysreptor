@@ -4,7 +4,7 @@
     :value="value" @change="$emit('input', $event)"
     label="Design"
     :items="additionalItems.concat(items.data)"
-    :item-text="pt => pt.name + (pt.source === 'imported_dependency' ? ' (imported)' : '')"
+    :item-text="pt => pt.name + ({'imported_dependency': ' (imported)', 'customized': ' (customized)'}[pt.source] || '')"
     item-value="id"
     :return-object="returnObject"
     :rules="rules"
@@ -14,12 +14,32 @@
     <template #append-item>
       <page-loader :items="items" />
     </template>
+    <template #append-outer v-if="appendLink">
+      <s-tooltip>
+        <template #activator="{on, attrs}">
+          <s-btn 
+            :to="`/designer/${returnObject ? value?.id : value}/pdfdesigner/`" 
+            nuxt-link target="_blank"
+            :disabled="!value"
+            icon      
+            class="mr-2"
+            v-bind="attrs" 
+            v-on="on"
+          >
+            <v-icon>mdi-chevron-right-circle-outline</v-icon>
+          </s-btn>
+        </template>
+
+        <template #default>Open Design</template>
+      </s-tooltip>
+    </template>
+    <template v-for="_, name in $scopedSlots" :slot="name" slot-scope="data"><slot :name="name" v-bind="data" /></template>
   </s-autocomplete>
 </template>
 
 <script>
 import { isObject } from 'lodash';
-import { CursorPaginationFetcher } from '~/utils/urls';
+import { SearchableCursorPaginationFetcher } from '~/utils/urls';
 
 export default {
   props: {
@@ -38,18 +58,42 @@ export default {
     additionalItems: {
       type: Array,
       default: () => ([]),
-    }
+    },
+    queryFilters: {
+      type: Object,
+      default: () => ({}),
+    },
+    appendLink: {
+      type: Boolean,
+      default: false
+    },
   },
   emits: ['input'],
   data() {
-    const items = new CursorPaginationFetcher('/projecttypes/?ordering=name', this.$axios, this.$toast);
+    const items = new SearchableCursorPaginationFetcher({
+      baseURL: '/projecttypes/',
+      searchFilters: {
+        ordering: 'name',
+        public: true,
+        ...this.queryFilters,
+      },
+      axios: this.$axios,
+      toast: this.$toast,
+    });
 
     // Always add currently selected item to list
     if (this.value && !this.additionalItems.find(i => [this.value, this.value?.id].includes(i.id))) {
       if (isObject(this.value)) {
         items.data.push(this.value);
       } else {
-        this.$axios.$get(`/projecttypes/${this.value}/`).then(t => items.data.push(t));
+        this.$store.dispatch('projecttypes/getById', this.value)
+          .then((t) => {
+            items.data.push(t);
+            if (this.returnObject) {
+              this.$emit('input', t);
+            }
+          })
+          .catch(this.$toast.requestError);
       }
     }
 

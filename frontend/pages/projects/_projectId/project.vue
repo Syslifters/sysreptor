@@ -9,12 +9,40 @@
       </edit-toolbar>
 
       <s-text-field v-model="project.name" label="Name" :error-messages="serverErrors?.name" :disabled="project.readonly" class="mt-4" />
-      <!-- TODO: how to display linked designs for project in list? @christoph
-        * project can have multiple designs: e.g. imported design and customized design
-        * user should be able to switch back from a customized design to the imported design or global design (easiest via dropdown, chain of previous designs is not stored in DB)
-        * copy project with customized design: copy design or keep reference?
-      -->
-      <project-type-selection v-model="project.project_type" :error-messages="serverErrors?.project_type" :disabled="project.readonly" />
+      <project-type-selection 
+        :value="projectType || project.project_type"
+        @input="projectType = $event"
+        :query-filters="{public: null, linked_project: project.id}" 
+        :error-messages="serverErrors?.project_type" 
+        :disabled="project.readonly" 
+        :append-link="true"
+        return-object
+      >
+        <template #message="{message}">
+          {{ message }}
+          <template v-if="message === 'Designs have incompatible field definitions. Converting might result in data loss.'">
+            <btn-confirm 
+              :action="forceChangeDesign"
+              button-text="Force change"
+              button-color="error"
+              tooltip-text="Force change Design"
+              dialog-text="Force change the Design for this project. WARNING: Data of incompatible fields might get lost."
+              color="error"
+              text
+              x-small
+            />
+            <btn-copy 
+              :copy="() => performCopy({project_type: project.project_type})" 
+              button-text="Duplicate"
+              tooltip-text="Duplicate Project and change Design" 
+              confirm-text="The whole project will be copied including all pentesters, sections, findings and images. All changes are made in the duplicated project. No data will be lost." 
+              text
+              x-small
+              :button-icon="null"
+            />
+          </template>
+        </template>
+      </project-type-selection>
       <language-selection v-model="project.language" :error-messages="serverErrors?.language" :disabled="project.readonly" />
       <user-selection 
         v-model="project.pentesters" 
@@ -55,7 +83,8 @@ export default {
   data() {
     return {
       serverErrors: null,
-    }
+      projectType: null,
+    };
   },
   computed: {
     toolbarAttrs() {
@@ -71,6 +100,11 @@ export default {
       }
     }
   },
+  watch: {
+    projectType(val) {
+      this.project.project_type = val?.id;
+    },
+  },
   methods: {
     async performSave() {
       try {
@@ -83,13 +117,24 @@ export default {
         throw error;
       }
     },
+    async forceChangeDesign() {
+      try {
+        this.project.force_change_project_type = true;
+        await this.$refs.toolbar.save();
+        this.project.force_change_project_type = false;
+        this.$refs.toolbar.resetComponent();
+      } finally {
+        this.project.force_change_project_type = false;
+      }
+    },
     async setReadonly(val) {
       await this.$store.dispatch('projects/setReadonly', { projectId: this.project.id, readonly: val });
       this.$refs.toolbar.resetComponent();
       this.$nuxt.refresh();
     },
-    async performCopy() {
-      const obj = await this.$store.dispatch('projects/copy', { id: this.project.id });
+    async performCopy(data = {}) {
+      const obj = await this.$store.dispatch('projects/copy', { id: this.project.id, ...data });
+      this.$refs.toolbar.resetComponent();
       this.$router.push({ path: `/projects/${obj.id}/project/` });
     },
     async performDelete() {

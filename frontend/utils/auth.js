@@ -16,12 +16,20 @@ export default class CustomRefreshScheme extends RefreshScheme {
     } else if (this.$auth.$storage.getUniversal(this.REFRESH_IN_PROGRESS_STORAGE_KEY)) {
       // Storage is used for synchronizing across multiple tabs
       return await new Promise((resolve, reject) => {
+        const INTERVAL_TIME = 100;
+        const MAX_WAIT_TIME = 10_000;
+        let intervalIterationCount = 0;
         const intervalId = setInterval(() => {
+          intervalIterationCount += 1;
           if (!this.$auth.$storage.getUniversal(this.REFRESH_IN_PROGRESS_STORAGE_KEY)) {
             clearInterval(intervalId);
             resolve();
+          } else if (intervalIterationCount * INTERVAL_TIME >= MAX_WAIT_TIME) {
+            clearInterval(intervalId);
+            this.$auth.$storage.removeUniversal(this.REFRESH_IN_PROGRESS_STORAGE_KEY);
+            reject(new Error('Refresh synchronization took too long'));
           }
-        }, 100);
+        }, INTERVAL_TIME);
       });
     }
       

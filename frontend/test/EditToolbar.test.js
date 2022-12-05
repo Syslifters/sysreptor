@@ -298,7 +298,9 @@ describe('EditToolbar', () => {
     const c = await createEditToolbar({ delete: del });
 
     await c.setProps({ data: { text: 'changed' } });
-    await c.vm.performDelete();
+    try {
+      await c.vm.performDelete();
+    } catch (err) {}
 
     expect(del).toHaveBeenCalled();
     expect(c.vm.hasLock).toBeTruthy();

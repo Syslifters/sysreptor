@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="dialogVisible" max-width="50%">
     <template #activator="{ on, attrs }">
-      <s-btn color="primary" :loading="actionInProgress" v-bind="attrs" v-on="on">
+      <s-btn color="primary" :loading="actionInProgress" class="ml-1 mr-1" v-bind="attrs" v-on="on">
         <v-icon>mdi-plus</v-icon>
         Create
       </s-btn>

@@ -1,6 +1,13 @@
 # Changelog
 
-## TBD
+## v0.12 - 2022-12-05
+* Provide some standard fonts in the docker container
+* Customize designs per project
+* Allow force changing designs of projects if the old and new design are incompatible
+* Update Chromium to fix CVE-2022-4262 (high)
+
+
+## v0.11 - 2022-11-25
 * Compress images to reduce storage size and PDF size
 * Manual highlighting of text in markdown code blocks
 * Add review status to sections, findings and templates

@@ -8,7 +8,7 @@
     <list-view url="/pentestprojects/?readonly=false">
       <template #title>Projects</template>
       <template #actions>
-        <s-btn to="/projects/new/" color="primary">
+        <s-btn to="/projects/new/" color="primary" class="ml-1 mr-1">
           <v-icon>mdi-plus</v-icon>
           Create
         </s-btn>

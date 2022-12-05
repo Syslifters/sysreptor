@@ -3,7 +3,7 @@
     <template #activator="{ on, attrs }">
       <s-btn :disabled="project.readonly" color="secondary" small v-bind="attrs" v-on="on">
         <v-icon>mdi-plus</v-icon>
-        Create Finding
+        Create
       </s-btn>
     </template>
 

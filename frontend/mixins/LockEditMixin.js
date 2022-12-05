@@ -52,6 +52,7 @@ export default {
     },
     toolbarEvents() {
       return {
+        'update:data': this.onUpdateData,
         'update:editMode': (v) => { this.editMode = v; },
         'update:lockedData': this.updateInStore,
       }
@@ -84,8 +85,7 @@ export default {
     getErrorMessage() {
       return 'You do not have permissions to edit this resource.';
     },
-    updateInStore(data) {
-      
-    },
+    onUpdateData(event) {},
+    updateInStore(data) {},
   },
 }

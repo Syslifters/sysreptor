@@ -14,6 +14,13 @@ export function apiCachedStateFactory(buildUrl) {
           Vue.set(state.data, obj.id, obj);
         }
       },
+      update(state, obj) {
+        if (!(obj.id in state.data) || !state.data[obj.id]) {
+          return;
+        }
+    
+        updateObjectReactive(state.data[obj.id], obj);
+      },
       remove(state, obj) {
         if (obj.id in state.data) {
           Vue.delete(state.data, obj.id);

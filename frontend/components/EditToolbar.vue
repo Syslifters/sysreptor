@@ -159,11 +159,13 @@ export default {
       deep: true,
       immediate: true,
       handler(newValue, oldValue) {
+        oldValue = this.previousData;
         const valueChanged = isEqual(newValue, this.previousData);
         if (!this.wasReset && !valueChanged) {
           this.hasChangesValue = true;
           this.previousData = cloneDeep(newValue);
 
+          this.$emit('update:data', { newValue, oldValue });
           if (this.autoSaveEnabled) {
             this.autoSave();
           }
@@ -177,7 +179,9 @@ export default {
       }
     },
     autoSaveEnabled(newValue) {
-      if (newValue === false) {
+      if (newValue) {
+        this.autoSave();
+      } else {
         this.autoSave.cancel();
       }
     },
@@ -217,17 +221,18 @@ export default {
           return;
         }
       }
-
-      this.savingInProgress = true;
+      
       try {
+        this.savingInProgress = true;
         await this.save(this.data);
 
         this.hasChangesValue = false;
         this.previousData = cloneDeep(this.data);
       } catch (error) {
         this.$toast.global.requestError({ error });
+      } finally {
+        this.savingInProgress = false;
       }
-      this.savingInProgress = false;
     },
     async performDelete() {
       if (!this.canDelete || !(this.hasLock || this.lockUrl === null)) {
@@ -243,6 +248,7 @@ export default {
       } catch (error) {
         this.hasLock = hasLockReset;
         this.hasChangesValue = hasChangesValueReset;
+        throw error;
       }
     },
     async selfLockedEditAnyway() {

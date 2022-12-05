@@ -3,7 +3,7 @@
     <splitpanes class="default-theme">
       <pane :size="previewSplitSize">
         <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents">
-          <template #title>{{ projectType.name }}</template>
+          <template #title>{{ project.name }}</template>
 
           <template #default>
             <s-btn 
@@ -54,13 +54,6 @@
               <asset-manager :project-type="projectType" :disabled="readonly" />
             </fill-screen-height>
           </v-tab-item>
-
-          <v-tab>Preview Data</v-tab>
-          <v-tab-item>
-            <fill-screen-height>
-              <pdf-preview-data-form v-model="projectType.report_preview_data" :project-type="projectType" :disabled="readonly" />
-            </fill-screen-height>
-          </v-tab-item>
         </v-tabs>
       </pane>
 
@@ -74,20 +67,16 @@
 
 <script>
 import { Splitpanes, Pane } from 'splitpanes';
-import urlJoin from 'url-join';
+import { pick } from 'lodash';
 import LockEditMixin from '~/mixins/LockEditMixin';
-
-function getProjectTypeUrl(params) {
-  return `/projecttypes/${params.projectTypeId}/`;
-}
 
 export default {
   components: { Splitpanes, Pane },
   mixins: [LockEditMixin],
-  async asyncData({ $axios, params }) {
-    return {
-      projectType: await $axios.$get(getProjectTypeUrl(params)),
-    }
+  async asyncData({ $axios, store, params }) {
+    const project = await store.dispatch('projects/getById', params.projectId);
+    const projectType = await $axios.$get(`/projecttypes/${project.project_type}/`);
+    return { project, projectType };
   },
   data() {
     return {
@@ -110,13 +99,10 @@ export default {
   },
   methods: {
     getBaseUrl(data) {
-      return getProjectTypeUrl({ projectTypeId: data.id });
-    },
-    getHasEditPermissions() {
-      return this.$auth.hasScope('designer') || this.projectType?.source === 'customized';
+      return `/projecttypes/${data.id}/`;
     },
     async fetchPdf() {
-      return await this.$axios.$post(urlJoin(this.getBaseUrl(this.data), '/preview/'), this.projectType, {
+      return await this.$axios.$post(`/pentestprojects/${this.project.id}/preview/`, pick(this.projectType, ['report_template', 'report_styles']), {
         responseType: 'arraybuffer',
       });
     },
@@ -128,7 +114,7 @@ export default {
       }
     },
     async performSave(data) {
-      await this.$store.dispatch('projecttypes/partialUpdate', { obj: data, fields: ['report_template', 'report_styles', 'report_preview_data'] });
+      await this.$store.dispatch('projecttypes/partialUpdate', { obj: data, fields: ['report_template', 'report_styles'] });
     },
   },
 }

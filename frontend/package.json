@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "nuxt --hostname 0.0.0.0",
+    "dev": "nuxt",
     "build": "nuxt build --max-old-space-size=8188",
     "start": "nuxt start",
     "generate": "nuxt generate",

@@ -46,16 +46,17 @@ RUN apk add --no-cache \
         glib-dev \
         pango \
         fontconfig \
-        ttf-freefont \
         font-noto \
-        terminus-font \
         icu-data-full \
         chromium \
         gcc \
         g++ \
         qpdf-dev \
-        postgresql-client \
-    && fc-cache -f
+        postgresql-client
+
+# Install fonts
+COPY scripts/download_fonts.sh /tmp/download_fonts.sh
+RUN chmod +x /tmp/download_fonts.sh && /tmp/download_fonts.sh && rm /tmp/download_fonts.sh
 
 # Install python packages
 ENV PYTHONUNBUFFERED=on \
@@ -96,6 +97,8 @@ ENV DEBUG=off \
 RUN mkdir /data && chown 1000:1000 /data && chmod 777 /data
 VOLUME [ "/data" ]
 
+# Copy changelog
+COPY CHANGELOG.md /app/
 
 # Start server
 USER 1000

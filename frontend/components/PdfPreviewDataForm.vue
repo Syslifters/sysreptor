@@ -26,7 +26,7 @@
             <v-list-item-action>
               <s-btn @click="createFinding" :disabled="disabled" color="secondary" x-small>
                 <v-icon>mdi-plus</v-icon>
-                Create Finding
+                Create
               </s-btn>
             </v-list-item-action>
           </v-list-item>

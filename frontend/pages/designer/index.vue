@@ -1,5 +1,5 @@
 <template>
-  <list-view url="/projecttypes/">
+  <list-view url="/projecttypes/?public=true&ordering=name">
     <template #title>Report Designs</template>
     <template #actions v-if="$auth.hasScope('designer')">
       <create-design-dialog />
@@ -16,11 +16,9 @@
 </template>
 
 <script>
-import CreateDesignDialog from '~/components/CreateDesignDialog.vue';
 import { uploadFile } from '~/utils/upload';
 
 export default {
-  components: { CreateDesignDialog },
   methods: {
     async performImport(file) {
       const designs = await uploadFile(this.$axios, '/projecttypes/import/', file);
