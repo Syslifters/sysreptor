@@ -3,7 +3,7 @@ import io
 from django.core.files.base import ContentFile
 from django.test import override_settings
 from rest_framework.exceptions import ValidationError
-from reportcreator_api.pentests.models import PentestProject, ProjectType, SourceEnum, UploadedAsset, UploadedImage
+from reportcreator_api.pentests.models import PentestProject, ProjectType, SourceEnum, UploadedAsset, UploadedImage, ProjectMemberRole
 from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates, import_project_types, import_projects, import_templates
 from reportcreator_api.tests.mock import create_project, create_project_type, create_template, create_user, create_finding
@@ -11,6 +11,13 @@ from reportcreator_api.tests.mock import create_project, create_project_type, cr
 
 def archive_to_file(archive_iterator):
     return io.BytesIO(b''.join(archive_iterator))
+
+
+def members_equal(a, b):
+    def format_members(m):
+        return sorted([(m['user'], set(m['roles'])) for m in a.values('user', 'roles')], key=lambda i: i[0])
+
+    return format_members(a) == format_members(b)
 
 
 @pytest.mark.django_db
@@ -22,7 +29,7 @@ class TestImportExport:
         self.project_type = create_project_type()
         self.project = create_project(
             project_type=self.project_type, 
-            pentesters=[self.user],
+            members=[self.user],
             report_data={'field_user': str(self.user.id)},  
             findings_kwargs=[
                 {'assignee': self.user, 'template': self.template},
@@ -66,7 +73,7 @@ class TestImportExport:
         p = imported[0]
 
         assertKeysEqual(p, self.project, ['name', 'language'])
-        assert set(p.pentesters.all()) == set(self.project.pentesters.all())
+        assert members_equal(p.members, self.project.members)
         assert p.data == self.project.data
         assert p.data_all == self.project.data_all
         assert p.source == SourceEnum.IMPORTED
@@ -93,13 +100,14 @@ class TestImportExport:
 
     def test_import_nonexistent_user(self):
         # export project with members and assignee, delete user, import => members and assignee == NULL
-        # export project with UserField, delete user, import => user inlined in project.imported_pentesters
+        # export project with UserField, delete user, import => user inlined in project.imported_members
         archive = archive_to_file(export_projects([self.project]))
         old_user_id = self.user.id
+        old_user_roles = self.project.members.all()[0].roles
         self.user.delete()
         p = import_projects(archive)[0]
 
-        assert p.pentesters.count() == 0
+        assert p.members.count() == 0
         assert p.sections.exclude(assignee=None).count() == 0
         assert p.findings.exclude(assignee=None).count() == 0
 
@@ -108,10 +116,11 @@ class TestImportExport:
         for i, s in zip(p.findings.order_by('created'), self.project.findings.order_by('created')):
             assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'template', 'data', 'data_all', 'risk_score', 'risk_level'])
         
-        # Test nonexistent user is added to project.imported_pentesters
-        assert len(p.imported_pentesters) == 1
-        assert p.imported_pentesters[0]['id'] == str(old_user_id)
-        assertKeysEqual(p.imported_pentesters[0], self.user, [
+        # Test nonexistent user is added to project.imported_members
+        assert len(p.imported_members) == 1
+        assert p.imported_members[0]['id'] == str(old_user_id)
+        assert p.imported_members[0]['roles'] == old_user_roles
+        assertKeysEqual(p.imported_members[0], self.user, [
             'email', 'phone', 'mobile',
             'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
         ])
@@ -221,7 +230,7 @@ class TestFileDelete:
 class TestCopyModel:
     def test_copy_project(self):
         user = create_user()
-        p = create_project(pentesters=[user], readonly=True, source=SourceEnum.IMPORTED)
+        p = create_project(members=[user], readonly=True, source=SourceEnum.IMPORTED)
         finding = create_finding(project=p, template=create_template())
         finding.lock(user)
         p.sections.first().lock(user)
@@ -232,9 +241,9 @@ class TestCopyModel:
         assert cp.source == SourceEnum.CREATED
         assert not cp.readonly
         assertKeysEqual(p, cp, [
-            'language', 'project_type', 'imported_pentesters', 'data_all'
+            'language', 'project_type', 'imported_members', 'data_all'
         ])
-        assert set(p.pentesters.values_list('id', flat=True)) == set(cp.pentesters.values_list('id', flat=True))
+        assert members_equal(p.members, cp.members)
 
         assert set(p.images.values_list('id', flat=True)).intersection(cp.images.values_list('id', flat=True)) == set()
         assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in cp.images.all()}

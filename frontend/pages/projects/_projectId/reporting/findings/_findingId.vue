@@ -1,22 +1,28 @@
 <template>
   <div>
     <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
+      <s-tooltip v-if="finding.template">
+        <template #activator="{attrs, on}">
+          <s-btn icon :to="`/templates/${finding.template}/`" target="_blank" class="ml-1 mr-1" v-bind="attrs" v-on="on">
+            <v-icon>mdi-alpha-t-box-outline</v-icon>
+          </s-btn>
+        </template>
+        <template #default>
+          This finding was created from a template: show template
+        </template>
+      </s-tooltip>
+
       <status-selection v-model="finding.status" :disabled="readonly" />
       <div class="assignee-container ml-1 mr-1">
         <user-selection 
           v-model="finding.assignee" 
-          :selectable-users="project.pentesters" 
+          :selectable-users="project.members" 
           :disabled="readonly" 
           label="Assignee"
           :outlined="false" dense
         />
       </div>
     </edit-toolbar>
-
-    <p v-if="finding.template" class="text-right mt-1">
-      This finding was created from a template:
-      <nuxt-link :to="`/templates/${finding.template}/`" target="_blank">show template</nuxt-link>
-    </p>
 
     <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
       <dynamic-input-field 
@@ -26,7 +32,7 @@
         :definition="projectType.finding_fields[fieldId]" 
         :upload-image="uploadImage" 
         :rewrite-image-url="rewriteImageUrl"
-        :selectable-users="project.pentesters.concat(project.imported_pentesters)"
+        :selectable-users="project.members.concat(project.imported_members)"
         :lang="finding.language"
       />
     </div>

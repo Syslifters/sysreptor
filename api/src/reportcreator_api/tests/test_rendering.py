@@ -14,7 +14,7 @@ class TestHtmlRendering:
     def setUp(self):
         self.user = create_user()
         self.project_type = create_project_type()
-        self.project = create_project(project_type=self.project_type, pentesters=[self.user], findings_kwargs=[])
+        self.project = create_project(project_type=self.project_type, members=[self.user], findings_kwargs=[])
         self.finding = create_finding(project=self.project)
     
     def render_html(self, template, additional_data={}):
@@ -27,11 +27,11 @@ class TestHtmlRendering:
                 'id': str(f.finding_id),
                 **f.data,
             } for f in self.project.findings.all()],
-            'pentesters': [format_template_field_user(u) for u in self.project.pentesters.all()],
+            'pentesters': [format_template_field_user(u) for u in self.project.members.all()],
         }
         data = merge(data, additional_data)
 
-        data = format_template_data(data=data, project_type=self.project_type, imported_pentesters=self.project.imported_pentesters)
+        data = format_template_data(data=data, project_type=self.project_type, imported_members=self.project.imported_members)
         html = render_to_html_sync(report_template=template, data=data, language=self.project.language)
         return self.extract_html_part(html)
 
@@ -51,6 +51,7 @@ class TestHtmlRendering:
         ('{{ findings[0].cvss.score }}', lambda self: str(self.finding.risk_score)),
         ('{{ data.pentesters[0].name }}', lambda self: self.user.name),
         ('{{ data.pentesters[0].email }}', lambda self: self.user.email),
+        ('<template v-for="r in data.pentesters[0].roles">{{ r }}</template>', lambda self: ''.join(self.project.members.all()[0].roles)),
         ('<template v-for="f in findings">{{ f.title }}</template>', lambda self: self.finding.title),
         ('{{ capitalize("hello there") }}', "Hello there"),
         ("{{ formatDate('2022-09-21', 'iso') }}", "2022-09-21"),
@@ -67,7 +68,8 @@ class TestHtmlRendering:
     def test_variables_rendering(self, template, html):
         if callable(html):
             html = html(self)
-        assert self.render_html(template) == html
+        actual_html = self.render_html(template)
+        assert actual_html == html
 
     @pytest.mark.parametrize('template', [
         '<markdown></p>',

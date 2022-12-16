@@ -24,7 +24,7 @@ export default {
     }
   },
   async fetch() {
-    this.languageInfos = await this.$store.dispatch('apisettings/getLanguages');
+    this.languageInfos = (await this.$store.dispatch('apisettings/getSettings')).languages;
   },
 }
 </script>

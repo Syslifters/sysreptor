@@ -4,7 +4,8 @@ from unittest import mock
 from django.utils import timezone
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
-from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage
+from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
+    ProjectMemberInfo, ProjectMemberRole
 from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, report_fields_default, report_sections_default
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.models import Language
@@ -102,7 +103,7 @@ def create_finding(project, template=None, **kwargs) -> PentestFinding:
     finding.save()
     return finding
 
-def create_project(project_type=None, pentesters=[], report_data={}, findings_kwargs=None, **kwargs) -> PentestProject:
+def create_project(project_type=None, members=[], report_data={}, findings_kwargs=None, **kwargs) -> PentestProject:
     project_type = project_type or create_project_type()
     project = PentestProject.objects.create(**{
         'project_type': project_type,
@@ -114,7 +115,17 @@ def create_project(project_type=None, pentesters=[], report_data={}, findings_kw
         'undefined_field': 'test',
     } | report_data)
     project.save()
-    project.pentesters.add(*pentesters)
+
+    member_infos = []
+    for m in members:
+        if isinstance(m, PentestUser):
+            member_infos.append(ProjectMemberInfo(project=project, user=m, roles=[ProjectMemberRole.default_roles]))
+        elif isinstance(m, ProjectMemberInfo):
+            m.project = project
+            member_infos.append(m)
+        else:
+            raise Exception('Unsupported member type')
+    ProjectMemberInfo.objects.bulk_create(member_infos)
 
     for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 3:
         create_finding(project=project, **finding_kwargs)

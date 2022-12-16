@@ -12,7 +12,7 @@ class TestLocking:
     def setUp(self) -> None:
         self.user1 = create_user()
         self.user2 = create_user()
-        self.project = create_project(pentesters=[self.user1, self.user2])
+        self.project = create_project(members=[self.user1, self.user2])
         self.finding = self.project.findings.first()
         self.section = self.project.sections.first()
     

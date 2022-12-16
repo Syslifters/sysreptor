@@ -1,5 +1,5 @@
 import Vue from "vue";
-import { omit } from "lodash";
+import { omit, merge } from "lodash";
 import { updateObjectReactive } from "~/utils/state";
 import { sortFindings } from "~/utils/other";
 
@@ -177,14 +177,14 @@ export const actions = {
     commit('setFinding', { projectId, finding: updatedFinding });
     return updatedFinding;
   },
-  async createFinding({ commit }, projectId) {
-    const finding = await this.$axios.$post(`/pentestprojects/${projectId}/findings/`, {
+  async createFinding({ commit }, { projectId, finding = {} }) {
+    const newFinding = await this.$axios.$post(`/pentestprojects/${projectId}/findings/`, merge({
       data: {
         title: 'New finding',
       },
-    });
-    commit('setFinding', { projectId, finding });
-    return finding;
+    }, finding));
+    commit('setFinding', { projectId, finding: newFinding });
+    return newFinding;
   },
   async createFindingFromTemplate({ commit }, { projectId, templateId }) {
     const finding = await this.$axios.$post(`/pentestprojects/${projectId}/findings/fromtemplate/`, {

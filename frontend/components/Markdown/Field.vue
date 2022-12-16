@@ -1,5 +1,6 @@
 <script>
 import VTextArea from 'vuetify/lib/components/VTextarea/VTextarea';
+import VInput from 'vuetify/lib/components/VInput/VInput';
 import mixins from 'vuetify/lib/util/mixins';
 import MarkdownFieldNewVue from './Editor.vue';
 
@@ -48,8 +49,12 @@ export default baseMixins.extend({
             this.$emit('input', value);
           }
         }
-      })
-    }
+      });
+    },
+    onMouseDown(e) {
+      // Allow text selection in markdown editor preview
+      VInput.options.methods.onMouseDown.call(this, e);
+    },
   },
 })
 </script>

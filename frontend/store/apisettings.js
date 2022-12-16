@@ -1,33 +1,33 @@
 export const sate = () => ({
-  languages: null,
-  getLanguagesSync: null,
+  settings: null,
+  getSettingsSync: null,
 });
 
 export const mutations = {
-  setLanguages(state, languages) {
-    state.languages = languages;
+  setSettings(state, settings) {
+    state.settings = settings;
   }
 };
 
 export const actions = {
-  async fetchLanguages({ commit }) {
-    const languages = await this.$axios.$get('/utils/languages/');
-    commit('setLanguages', languages);
-    return languages;
+  async fetchSettings({ commit }) {
+    const settings = await this.$axios.$get('/utils/settings/');
+    commit('setSettings', settings);
+    return settings;
   },
-  async getLanguages({ dispatch, state }) {
-    if (state.languages) {
-      return state.languages;
-    } else if (state.getLanguagesSync) {
-      return await state.getLanguagesSync;
+  async getSettings({ dispatch, state }) {
+    if (state.settings) {
+      return state.settings;
+    } else if (state.getSettingsSync) {
+      return await state.getSettingsSync;
     } else {
       // Use only 1 fetch requests
       // Prevent performing the same requests multiple times when many components want to access data at the same time
       try {
-        state.getLanguagesSync = dispatch('fetchLanguages');
-        return await state.getLanguagesSync;
+        state.getSettingsSync = dispatch('fetchSettings');
+        return await state.getSettingsSync;
       } finally {
-        state.getLanguagesSync = null;
+        state.getSettingsSync = null;
       }
     }
   },

@@ -8,20 +8,22 @@
 
       <s-text-field v-model="project.name" label="Name" />
       <project-type-selection v-model="project.project_type" />
-      <user-selection v-model="project.pentesters" :prevent-unselecting-self="true" :required="true" :multiple="true" class="mt-4" />
+      <member-selection v-model="project.members" :prevent-unselecting-self="true" :required="true" />
     </v-form>
   </v-container>
 </template>
 
 <script>
 export default {
-  data() {
+  async asyncData({ store, $auth }) {
+    const settings = await store.dispatch('apisettings/getSettings');
+
     return {
       project: {
         name: 'New project',
         project_type: null,
-        pentesters: [
-          this.$store.state.auth.user,
+        members: [
+          { ...$auth.user, roles: settings.project_member_roles.filter(r => r.default).map(r => r.role) },
         ],
       }
     }

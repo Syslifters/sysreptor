@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 
 from reportcreator_api.utils.models import BaseModel
+from reportcreator_api.users import querysets
 
 
 class PentestUser(BaseModel, AbstractUser):
@@ -17,8 +18,11 @@ class PentestUser(BaseModel, AbstractUser):
     is_designer = models.BooleanField(default=False, db_index=True)
     is_template_editor = models.BooleanField(default=False, db_index=True)
     is_user_manager = models.BooleanField(default=False, db_index=True)
+    is_guest = models.BooleanField(default=False, db_index=True)
 
     REQUIRED_FIELDS = []
+
+    objects = querysets.PentestUserManager()
 
     @property
     def name(self):
@@ -29,9 +33,10 @@ class PentestUser(BaseModel, AbstractUser):
             ((', ' + self.title_after) if self.title_after else '') 
 
     @property
-    def roles(self):
+    def scope(self):
         return (['superuser'] if self.is_superuser else []) + \
                (['template_editor'] if self.is_template_editor or self.is_superuser else []) + \
                (['designer'] if self.is_designer or self.is_superuser else []) + \
-               (['user_manager'] if self.is_user_manager or self.is_superuser else []) 
+               (['user_manager'] if self.is_user_manager or self.is_superuser else []) + \
+               (['guest'] if self.is_guest and not self.is_superuser else [])
   

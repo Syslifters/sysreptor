@@ -5,6 +5,8 @@ from django.conf import settings
 from pathlib import Path
 from PIL import Image, ImageOps, UnidentifiedImageError
 from django.core.files.base import ContentFile, File
+from reportcreator_api.utils.logging import log_timing
+
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +36,7 @@ def image_contains_transparent_pixels(img):
     return any(map(lambda d: d[a_band_index] != 255, img.getdata()))
 
 
+@log_timing
 def compress_image(file, name=None):
     """
     Compress image files and convert the to JPEG.

@@ -6,10 +6,10 @@
       </v-list-item-title>
             
       <v-list-item-subtitle>
-        <v-chip v-for="user in item.pentesters" :key="user.id" class="ma-1 mt-2" small>
+        <v-chip v-for="user in item.members" :key="user.id" class="ma-1 mt-2" small>
           {{ user.username }}
         </v-chip>
-        <v-chip v-for="user in item.imported_pentesters" :key="user.id" class="ma-1 mt-2" small>
+        <v-chip v-for="user in item.imported_members" :key="user.id" class="ma-1 mt-2" small>
           {{ user.name }} (imported)
         </v-chip>
       </v-list-item-subtitle>

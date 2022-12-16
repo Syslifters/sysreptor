@@ -3,7 +3,9 @@
     <v-app-bar app absolute dense elevation="0">
       <v-tabs class="main-menu" hide-slider>
         <v-tab to="/" active-class="no-highlight" exact :ripple="false">
-          <v-toolbar-title>SysReptor</v-toolbar-title>
+          <v-img src="/logo.svg" contain height="38" width="50" />
+          SysReptor
+          <v-badge content="Beta" color="primary" class="badge-beta" inline />
         </v-tab>
         <template v-if="$auth.loggedIn">
           <v-tab to="/projects/" :ripple="false">Projects</v-tab>
@@ -29,6 +31,14 @@
 </template>
 
 <style lang="scss" scoped>
+.badge-beta {
+  margin-bottom: 0.7em;
+  
+  &:deep(.v-badge__wrapper) {
+    margin-left: 0;
+  }
+}
+
 .main-menu :deep() {
   font-size: larger;
 

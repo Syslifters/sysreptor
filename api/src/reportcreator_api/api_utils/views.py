@@ -1,19 +1,19 @@
 import json
 import logging
-import boto3
 from django.http import StreamingHttpResponse
 from django.conf import settings
-from rest_framework import views, viewsets, routers
+from rest_framework import viewsets, routers
 from rest_framework.serializers import Serializer
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
+
 from reportcreator_api.api_utils.serializers import LanguageToolSerializer, BackupSerializer
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.permissions import IsSuperuser
 from reportcreator_api.utils import backup_utils
-
 from reportcreator_api.utils.models import Language
+from reportcreator_api.pentests.models import ProjectMemberRole
 
 
 log = logging.getLogger(__name__)
@@ -33,16 +33,18 @@ class UtilsViewSet(viewsets.ViewSet):
 
     def list(self, *args, **kwargs):
         return routers.APIRootView(api_root_dict={
-            'languages': 'utils-languages',
+            'settings': 'utils-settings',
             'spellcheck': 'utils-spellcheck',
             'backup': 'utils-backup',
             'healthcheck': 'utils-healthcheck',
         }).get(*args, **kwargs)
 
-    @action(detail=False)
-    def languages(self, *args, **kwargs):
-        langs = [{'code': l[0], 'name': l[1]} for l in Language.choices]
-        return Response(langs)
+    @action(detail=False, url_name='settings', url_path='settings')
+    def settings_endpoint(self, *args, **kwargs):
+        return Response({
+            'languages': [{'code': l[0], 'name': l[1]} for l in Language.choices],
+            'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
+        })
 
     @action(detail=False, methods=['post'])
     def spellcheck(self, request, *args, **kwargs):

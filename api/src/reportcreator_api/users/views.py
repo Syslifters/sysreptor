@@ -10,10 +10,13 @@ from reportcreator_api.users.serializers import ChangePasswordSerializer, Create
 
 
 class PentestUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = PentestUser.objects.filter(is_active=True)
     permission_classes = [UserViewSetPermissions]
     filter_backends = [filters.SearchFilter]
     search_fields = ['username', 'email', 'first_name', 'last_name']
+
+    def get_queryset(self):
+        return PentestUser.objects \
+            .only_permitted(self.request.user)
 
     def get_object(self):
         if self.kwargs.get('pk') == 'self':

@@ -15,7 +15,7 @@
             <v-spacer />
             <s-tooltip>
               <template #activator="{attrs, on}">
-                <s-btn v-bind="attrs" v-on="on" @click="closeDialog" icon x-large>
+                <s-btn v-bind="attrs" v-on="on" @click="dialogVisible = false" icon x-large>
                   <v-icon>mdi-close-thick</v-icon>
                 </s-btn>
               </template>
@@ -54,11 +54,12 @@ export default {
       actionInProgress: false,
     }
   },
-  methods: {
-    closeDialog() {
-      this.dialogVisible = false;
+  watch: {
+    dialogVisible() {
       this.currentDesign = null;
     },
+  },
+  methods: {
     async actionWrapper(action) {
       if (this.actionInProgress) {
         return;

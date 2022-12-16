@@ -130,6 +130,13 @@
           :error-messages="errors?.is_superuser"
           :disabled="!canEditPermissions || !hasSuperuserPermissions"
         />
+        <s-checkbox
+          :value="user.is_guest" @change="updateField('is_guest', $event)" 
+          label="Guest"
+          hint="Guest users are similar to regular users, but have less permissions."
+          :error-messages="errors?.is_guest"
+          :disabled="!canEditPermissions || !hasUserManagerPermissions"
+        />
       </v-card-text>
     </s-card>
   </div>

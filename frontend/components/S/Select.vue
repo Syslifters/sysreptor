@@ -8,6 +8,7 @@
     v-on="$listeners"
   >
     <template v-for="_, name in $scopedSlots" :slot="name" slot-scope="data"><slot :name="name" v-bind="data" /></template>
+    <template v-for="_, name in $slots" :slot="name"><slot :name="name" /></template>
   </v-select>
 </template>
 

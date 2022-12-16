@@ -3,7 +3,6 @@ from uuid import UUID
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
-from reportcreator_api.pentests import models
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.utils import omit_items
 
@@ -14,11 +13,6 @@ class PentestUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after']
 
 
-class ImportedPentestUserSerializer(serializers.ModelSerializer):
-    class Meta(PentestUserSerializer.Meta):
-        fields = omit_items(PentestUserSerializer.Meta.fields, ['username'])
-
-
 class PentestUserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PentestUser
@@ -26,7 +20,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'id', 'created', 'updated', 'last_login', 'is_active',
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
             'email', 'phone', 'mobile',
-            'roles', 'is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager',
+            'scope', 'is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest',
         ]
     
     def get_extra_kwargs(self):
@@ -37,6 +31,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'is_user_manager': {'read_only': read_only},
             'is_designer': {'read_only': read_only},
             'is_template_editor': {'read_only': read_only},
+            'is_guest': {'read_only': read_only},
             'username': {'read_only': read_only},
         }
 
@@ -52,20 +47,26 @@ class CreateUserSerializer(PentestUserDetailSerializer):
 
 
 class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
-    queryset = PentestUser.objects.all()
+    requires_context = True
 
     def __init__(self, user_serializer=PentestUserSerializer, **kwargs):
         self.user_serializer=user_serializer
         super().__init__(**kwargs)
+
+    def get_queryset(self):
+        qs = PentestUser.objects.all()
+        if request := self.context.get('request'):
+            qs = qs.only_permitted(request.user)
+        return qs
 
     def use_pk_only_optimization(self):
         return False
 
     def to_internal_value(self, data):
         if isinstance(data, dict) and 'id' in data:
-            return self.queryset.get(pk=data['id'])
+            return self.get_queryset().get(pk=data['id'])
         elif isinstance(data, (str, UUID)):
-            return self.queryset.get(pk=data)
+            return self.get_queryset().get(pk=data)
         else:
             return data
 

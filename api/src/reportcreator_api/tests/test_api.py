@@ -68,9 +68,12 @@ def file_viewset_urls(basename, get_obj, get_base_kwargs=None, read=False, write
     return out
 
 
-def project_viewset_urls(get_obj, read=False, write=False, create=False, list=False):
+def project_viewset_urls(get_obj, read=False, write=False, create=False, list=False, destory=None, update=None):
+    destory = destory if destory is not None else write
+    update = update if update is not None else write
+
     out = [
-        *viewset_urls('pentestproject', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=write, update_partial=write, destroy=write),
+        *viewset_urls('pentestproject', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=update, update_partial=update, destroy=destory),
         *viewset_urls('section', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'section_id': get_obj(s).sections.first().section_id} if detail else {}), list=read, retrieve=read, update=write, update_partial=write, lock=write, unlock=write),
         *viewset_urls('finding', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'finding_id': get_obj(s).findings.first().finding_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write),
         *file_viewset_urls('uploadedimage', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).images.first(), read=read, write=write),
@@ -84,13 +87,16 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
         ])
     if write:
         out.extend([
-            ('pentestproject customize-projecttype', lambda s, c: c.post(reverse('pentestproject-customize-projecttype', kwargs={'pk': get_obj(s).pk}), data={'project_type': get_obj(s).project_type.id}))
+            ('pentestproject finding-fromtemplate', lambda s, c: c.post(reverse('finding-fromtemplate', kwargs={'project_pk': get_obj(s).pk}), data={'template': s.template.pk})),
+        ])
+    if update:
+        out.extend([
+            ('pentestproject customize-projecttype', lambda s, c: c.post(reverse('pentestproject-customize-projecttype', kwargs={'pk': get_obj(s).pk}), data={'project_type': get_obj(s).project_type.id})),
         ])
     if create:
         out.extend([
-            ('pentestproject import', lambda s, c: c.post(reverse('pentestproject-import'), data={'file': export_archive(get_obj(s))}, format='multipart')),
             ('pentestproject copy', lambda s, c: c.post(reverse('pentestproject-copy', kwargs={'pk': get_obj(s).pk}), data={})),
-            ('pentestproject finding-fromtemplate', lambda s, c: c.post(reverse('finding-fromtemplate', kwargs={'project_pk': get_obj(s).pk}), data={'template': s.template.pk})),
+            ('pentestproject import', lambda s, c: c.post(reverse('pentestproject-import'), data={'file': export_archive(get_obj(s))}, format='multipart')),
         ])
     return out
 
@@ -121,7 +127,7 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create=False, lis
 
 
 def expect_result(urls, allowed_users=None):
-    all_users = {'public', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'}
+    all_users = {'public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'}
 
     for user in allowed_users or []:
         yield from [(user, *u, True) for u in urls]
@@ -136,13 +142,13 @@ def public_urls():
     ]
 
 
-def regular_user_urls():
+def guest_urls():
     return [
         ('utils list', lambda s, c: c.get(reverse('utils-list'))),
-        ('utils languages', lambda s, c: c.get(reverse('utils-languages'))),
+        ('utils settings', lambda s, c: c.get(reverse('utils-settings'))),
 
-        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': 'self'}, retrieve=True, update=True, update_partial=True),
+        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, list=True),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition'))),
@@ -150,8 +156,16 @@ def regular_user_urls():
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type, list=True, read=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, read=True, write=True),
 
-        *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True, create=True, write=True),
+        *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True, write=True, destory=False, update=False),
         *project_viewset_urls(get_obj=lambda s: s.project_readonly, read=True),
+    ]
+
+
+def regular_user_urls():
+    return [
+        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, retrieve=True),
+
+        *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, destory=True),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project.pk}), data={'readonly': True})),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project_readonly.pk}), data={'readonly': False})),
     ]
@@ -197,6 +211,14 @@ def forbidden_urls():
 
 def build_test_parameters():
     yield from expect_result(
+        urls=public_urls(),
+        allowed_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser']
+    )
+    yield from expect_result(
+        urls=guest_urls(),
+        allowed_users=['guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser']
+    )
+    yield from expect_result(
         urls=regular_user_urls(), 
         allowed_users=['regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
     )
@@ -226,12 +248,14 @@ def build_test_parameters():
 class TestApiRequestsAndPermissions:
     @pytest.fixture(autouse=True)
     def setUp(self):
+        self.user_guest = create_user(username='guest', is_guest=True)
         self.user_regular = create_user(username='regular')
         self.user_template_editor = create_user(username='template_editor', is_template_editor=True)
         self.user_designer = create_user(username='designer', is_designer=True)
         self.user_user_manager = create_user(username='user_manager', is_user_manager=True)
         self.user_superuser = create_user(username='superuser', is_superuser=True, is_staff=True)
         self.user_map = {
+            'guest': self.user_guest,
             'regular': self.user_regular,
             'template_editor': self.user_template_editor,
             'designer': self.user_designer,
@@ -241,8 +265,8 @@ class TestApiRequestsAndPermissions:
 
         self.user_other = create_user()
     
-        self.project = create_project(pentesters=self.user_map.values())
-        self.project_readonly = create_project(pentesters=self.user_map.values(), readonly=True)
+        self.project = create_project(members=self.user_map.values())
+        self.project_readonly = create_project(members=self.user_map.values(), readonly=True)
         self.project_unauthorized = create_project()
 
         self.project_type = create_project_type()
@@ -252,7 +276,13 @@ class TestApiRequestsAndPermissions:
         self.template = create_template()
 
         self.backup_key = 'a' * 30
-        with override_settings(BACKUP_KEY=self.backup_key):
+        with override_settings(
+                BACKUP_KEY=self.backup_key,
+                GUEST_USERS_CAN_IMPORT_PROJECTS=False,
+                GUEST_USERS_CAN_CREATE_PROJECTS=False,
+                GUEST_USERS_CAN_DELETE_PROJECTS=False,
+                GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=False,
+            ):
             yield
 
     @pytest.mark.parametrize('user,name,perform_request,expected', sorted(build_test_parameters(), key=lambda t: (t[0], t[1], t[3])))

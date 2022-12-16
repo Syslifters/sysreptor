@@ -15,7 +15,6 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    titleTemplate: '%s - SysReptor',
     title: 'SysReptor',
     htmlAttrs: {
       lang: 'en'
@@ -71,7 +70,7 @@ export default {
 
   auth: {
     cookie: false,
-    scopeKey: 'roles',
+    scopeKey: 'scope',
     strategies: {
       local: {
         scheme: '@/utils/auth',
@@ -143,24 +142,22 @@ export default {
         name: 'requestError',
         message: ({ error, message = null }) => {
           // eslint-disable-next-line no-console
-          console.log('Request error', error);
+          console.log('Request error', error, message, error?.response?.data);
 
-          if (!message && error && error.config) {
-            let details = error?.response?.data?.detail;
-            details = details ? ': ' + details : '';
-
+          if (!message) {
             if (error.config.method === 'get') {
-              message = 'Failed to load data' + details;
+              message = 'Failed to load data';
             } else if (['post', 'put', 'patch'].includes(error.config.method)) {
-              message = 'Failed to save data' + details;
+              message = 'Failed to save data';
             } else if (error.config.method === 'delete') {
-              message = 'Failed to delete data' + details;
+              message = 'Failed to delete data';
+            } else {
+              message = 'Request error';
             }
           }
-          if (!message) {
-            message = 'Request error';
+          if (error?.response?.data?.detail) {
+            message += ': ' + error?.response?.data?.detail;
           }
-
           return message;
         },
         options: {

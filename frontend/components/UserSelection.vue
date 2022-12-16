@@ -3,6 +3,8 @@
     :value="value" @change="$emit('input', $event)"
     v-bind="autocompleteAttrs"
   >
+    <template v-for="_, name in $scopedSlots" :slot="name" slot-scope="data"><slot :name="name" v-bind="data" /></template>
+    <template v-for="_, name in $slots" :slot="name"><slot :name="name" /></template>
     <template #append-item>
       <page-loader v-if="!selectableUsers" :items="items" />
     </template>
@@ -20,7 +22,7 @@ export default {
     },
     label: {
       type: String,
-      default: 'Pentesters',
+      default: 'Users',
     },
     required: {
       type: Boolean,

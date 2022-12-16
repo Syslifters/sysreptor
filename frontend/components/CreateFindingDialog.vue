@@ -25,19 +25,24 @@
         </v-card-title>
 
         <v-card-text>
-          <s-autocomplete 
-            v-model="currentTemplate"
+          <s-combobox 
+            v-model="currentSelection"
+            :search-input.sync="templates.searchQuery"
             label="Finding Templates"
             :items="templates.data"
-            item-value="id" item-text="data.title"
-            :search-input.sync="templates.searchQuery"
+            item-value="id"
             no-filter
             clearable
             return-object
           >
             <template #selection="{item}">
-              <cvss-chip :value="item.data.cvss" />
-              {{ item.data.title }}
+              <template v-if="item?.id">
+                <cvss-chip :value="item.data.cvss" />
+                {{ item.data.title }}
+              </template>
+              <template v-else>
+                {{ item }}
+              </template>
             </template>
             <template #item="{item}">
               <v-list-item-title class="d-flex">
@@ -57,7 +62,7 @@
             <template #append-item>
               <page-loader :items="templates" />
             </template>
-          </s-autocomplete>
+          </s-combobox>
           <s-checkbox 
             v-model="showOnlyMatchingLanguage"
             label="Show only templates with matching language" 
@@ -70,7 +75,7 @@
           <s-btn @click="closeDialog" color="secondary">
             Cancel
           </s-btn>
-          <s-btn v-if="currentTemplate" @click="createFindingFromTemplate" :loading="actionInProress" color="primary">
+          <s-btn v-if="currentSelection?.id" @click="createFindingFromTemplate" :loading="actionInProress" color="primary">
             Create from Template
           </s-btn>
           <s-btn v-else @click="createEmptyFinding" :loading="actionInProress" color="primary">
@@ -97,7 +102,7 @@ export default {
   data() {
     return {
       dialogVisible: false,
-      currentTemplate: null,
+      currentSelection: null,
       actionInProress: false,
       templates: new SearchableCursorPaginationFetcher({
         baseURL: '/findingtemplates/', 
@@ -117,6 +122,12 @@ export default {
       }
     }
   },
+  watch: {
+    dialogVisible() {
+      this.currentSelection = null;
+      this.templates.searchQuery = null;
+    },
+  },
   methods: {
     filterTemplate(template, queryText) {
       const toTokens = s => s.toLocaleLowerCase().split(' ').filter(t => Boolean(t));
@@ -126,12 +137,18 @@ export default {
     },
     closeDialog() {
       this.dialogVisible = false;
-      this.currentTemplate = null;
     },
     async createEmptyFinding() {
       try {
         this.actionInProress = true;
-        const finding = await this.$store.dispatch('projects/createFinding', this.project.id);
+        const finding = await this.$store.dispatch('projects/createFinding', {
+          projectId: this.project.id, 
+          finding: {
+            data: {
+              title: this.currentSelection || this.templates.searchQuery || 'New finding'
+            }
+          }
+        });
         this.$router.push({ path: `/projects/${finding.project}/reporting/findings/${finding.id}/` });
         this.closeDialog();
       } catch (error) {
@@ -143,7 +160,7 @@ export default {
     async createFindingFromTemplate() {
       try {
         this.actionInProress = true;
-        const finding = await this.$store.dispatch('projects/createFindingFromTemplate', { projectId: this.project.id, templateId: this.currentTemplate.id });
+        const finding = await this.$store.dispatch('projects/createFindingFromTemplate', { projectId: this.project.id, templateId: this.currentSelection.id });
         this.$router.push({ path: `/projects/${finding.project}/reporting/findings/${finding.id}/` });
         this.closeDialog();
       } catch (error) {

@@ -5,7 +5,7 @@
         <template #title>Project</template>
         <btn-readonly :value="project.readonly" :set-readonly="setReadonly" />
         <btn-export :export-url="`/pentestprojects/${project.id}/export/`" :name="'project-' + project.name" />
-        <btn-copy :copy="performCopy" tooltip-text="Duplicate Project" confirm-text="The whole project will be copied including all pentesters, sections, findings and images." />
+        <btn-copy :copy="performCopy" tooltip-text="Duplicate Project" confirm-text="The whole project will be copied including all members, sections, findings and images." />
       </edit-toolbar>
 
       <s-text-field v-model="project.name" label="Name" :error-messages="serverErrors?.name" :disabled="project.readonly" class="mt-4" />
@@ -35,7 +35,7 @@
               :copy="() => performCopy({project_type: project.project_type})" 
               button-text="Duplicate"
               tooltip-text="Duplicate Project and change Design" 
-              confirm-text="The whole project will be copied including all pentesters, sections, findings and images. All changes are made in the duplicated project. No data will be lost." 
+              confirm-text="The whole project will be copied including all sections, findings and images. All changes are made in the duplicated project. No data will be lost." 
               text
               x-small
               :button-icon="null"
@@ -44,31 +44,32 @@
         </template>
       </project-type-selection>
       <language-selection v-model="project.language" :error-messages="serverErrors?.language" :disabled="project.readonly" />
-      <user-selection 
-        v-model="project.pentesters" 
+
+      <member-selection 
+        v-model="project.members" 
         :prevent-unselecting-self="true" 
         :required="true"
-        :multiple="true" 
-        :error-messages="serverErrors?.pentesters"
+        :error-messages="serverErrors?.members"
         :disabled="project.readonly"
-        class="mt-4"
+        label="Members"
       />
-      <user-selection
-        v-if="project.imported_pentesters.length > 0"
-        v-model="project.imported_pentesters"
-        :selectable-users="project.imported_pentesters"
-        :multiple="true"
+
+      <member-selection
+        v-if="project.imported_members.length > 0"
+        v-model="project.imported_members"
+        :selectable-users="project.imported_members"
         :disabled="true"
-        label="Pentesters (imported)"
+        label="Members (imported)"
         hint="These users do not exist on this instance, they were imported from somewhere else. They do not have access, but can be included in reports."
-        class="mt-4"
       />
     </v-form>
   </v-container>
 </template>
 
 <script>
+import MemberSelection from '~/components/MemberSelection.vue';
 export default {
+  components: { MemberSelection },
   beforeRouteLeave(to, from, next) {
     this.$refs.toolbar.beforeLeave(to, from, next);
   },

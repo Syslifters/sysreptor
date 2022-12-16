@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.13 - 2022-12-16
+* Add logo and favicon
+* Add per-project user tags
+* UI Improvement: create finding dialog: reset template search input after closing dialog, set search query as finding title for new empty findings
+* UI Improvement: allow text selection in Markdown editor preview area
+
+
 ## v0.12 - 2022-12-05
 * Provide some standard fonts in the docker container
 * Customize designs per project

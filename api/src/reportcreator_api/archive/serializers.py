@@ -4,10 +4,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
-from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, ReportSection, SourceEnum, UploadedAsset, UploadedImage
+from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, ReportSection, \
+    SourceEnum, UploadedAsset, UploadedImage, ProjectMemberInfo
+from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
 from reportcreator_api.utils.files import compress_image
+from reportcreator_api.utils.logging import log_timing
 
 
 class ExportImportSerializer(serializers.ModelSerializer):
@@ -71,13 +74,14 @@ class UserDataSerializer(serializers.ModelSerializer):
         extra_kwargs = {'id': {'read_only': False}}
 
 
-class RelatedUserDataExportImportSerializer(RelatedUserSerializer):
+class RelatedUserDataExportImportSerializer(ProjectMemberInfoSerializer):
     def __init__(self, **kwargs):
         super().__init__(user_serializer=UserDataSerializer, **kwargs)
     
     def to_internal_value(self, data):
         try:
-            return super().to_internal_value(data)
+            print(f'{self.context=}')
+            return ProjectMemberInfo(**super().to_internal_value(data))
         except PentestUser.DoesNotExist:
             return data
 
@@ -121,12 +125,15 @@ class FileListExportImportSerializer(serializers.ListSerializer):
             self.child.instance = e
             yield from self.child.export_files()
 
+    def extract_file(self, name):
+        return compress_image(self.context['archive'].extractfile(self.child.get_path_in_archive(name)))[0]
+
     def create(self, validated_data):
         child_model_class = self.child.Meta.model
         objs = [
             child_model_class(**attrs | {
             'file': File(
-                file=compress_image(self.context['archive'].extractfile(self.child.get_path_in_archive(attrs['name'])))[0], 
+                file=self.extract_file(attrs['name']), 
                 name=attrs['name']), 
             'linked_object': self.child.get_linked_object()
         }) for attrs in validated_data]
@@ -255,7 +262,8 @@ class ReportSectionExportImportSerializer(ExportImportSerializer):
 
 class PentestProjectExportImportSerializer(ExportImportSerializer):
     format = FormatField('projects/v1')
-    pentesters = RelatedUserDataExportImportSerializer(many=True)
+    members = RelatedUserDataExportImportSerializer(many=True, required=False)
+    pentesters = RelatedUserDataExportImportSerializer(many=True, required=False)
     project_type = ProjectTypeExportImportSerializer()
     report_data = serializers.DictField(source='data_all')
     sections = ReportSectionExportImportSerializer(many=True)
@@ -266,7 +274,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         model = PentestProject
         fields = [
             'format', 'id', 'created', 'updated', 'name', 'language', 
-            'pentesters', 'project_type', 
+            'members', 'pentesters', 'project_type', 
             'report_data', 'sections', 'findings', 'images',
 
         ]
@@ -283,7 +291,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
     
     def create(self, validated_data):
         old_id = validated_data.pop('id')
-        pentesters = validated_data.pop('pentesters', [])
+        members = validated_data.pop('members', validated_data.pop('pentesters', []))
         project_type_data = validated_data.pop('project_type', {})
         sections = validated_data.pop('sections', [])
         findings = validated_data.pop('findings', [])
@@ -295,8 +303,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         })
         project = super().create(validated_data | {
             'project_type': project_type,
-            'pentesters': list(filter(lambda u: isinstance(u, PentestUser), pentesters)),
-            'imported_pentesters': list(filter(lambda u: isinstance(u, dict), pentesters)),
+            'imported_members': list(filter(lambda u: isinstance(u, dict), members)),
             'source': SourceEnum.IMPORTED,
             'custom_fields': ensure_defined_structure(
                 value=report_data,
@@ -307,6 +314,11 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         })
         project_type.linked_project = project
         project_type.save()
+
+        member_infos = list(filter(lambda u: isinstance(u, ProjectMemberInfo), members))
+        for mi in member_infos:
+            mi.project = project
+        ProjectMemberInfo.objects.bulk_create(member_infos)
 
         self.context.update({'project': project, 'project_id': old_id})
 

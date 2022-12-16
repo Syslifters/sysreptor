@@ -5,7 +5,7 @@
       <div class="assignee-container ml-1 mr-1">
         <user-selection 
           v-model="section.assignee" 
-          :selectable-users="project.pentesters" 
+          :selectable-users="project.members" 
           :disabled="readonly" 
           label="Assignee"
           :outlined="false" dense
@@ -21,7 +21,7 @@
         :definition="projectType.report_fields[fieldId]" 
         :upload-image="uploadImage" 
         :rewrite-image-url="rewriteImageUrl"
-        :selectable-users="project.pentesters.concat(project.imported_pentesters)"
+        :selectable-users="project.members.concat(project.imported_members)"
         :lang="section.language"
       />
     </div>

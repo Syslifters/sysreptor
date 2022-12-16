@@ -94,6 +94,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
     'PAGE_SIZE': 100,
+    'UNICODE_JSON': False,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
@@ -232,6 +233,12 @@ SPELLCHECK_URL = config('SPELLCHECK_URL', default=None)
 BACKUP_KEY = config('BACKUP_KEY', default=None)
 
 COMPRESS_IMAGES = config('COMPRESS_IMAGES', cast=bool, default=True)
+
+
+GUEST_USERS_CAN_IMPORT_PROJECTS = config('GUEST_USERS_CAN_IMPORT_PROJECTS', default=False)
+GUEST_USERS_CAN_CREATE_PROJECTS = config('GUEST_USERS_CAN_CREATE_PROJECTS', default=True)
+GUEST_USERS_CAN_DELETE_PROJECTS = config('GUEST_USERS_CAN_DELETE_PROJECTS', default=True)
+GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS = config('GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS', default=True)
 
 
 # Health checks
