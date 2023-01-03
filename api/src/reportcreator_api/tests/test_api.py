@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.core.files.base import ContentFile
 from django.http import FileResponse, StreamingHttpResponse
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework.test import APIClient
 from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, SourceEnum
 from reportcreator_api.tests.mock import create_user, create_project, create_project_type, create_template, create_png_file
@@ -148,7 +149,11 @@ def guest_urls():
         ('utils settings', lambda s, c: c.get(reverse('utils-settings'))),
 
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': 'self'}, retrieve=True, update=True, update_partial=True),
-        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, list=True),
+        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {}, list=True),
+        *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.mfa_methods.get(is_primary=True).id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, update=True, update_partial=True, destroy=True),
+        ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': 'self'}))),
+        ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': 'self'}))),
+        ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': 'self'}))),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition'))),
@@ -189,13 +194,12 @@ def user_manager_urls():
     return [
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, create=True, create_data={'username': 'other', 'password': 'D40C4dEyH9Naam6!'}, update=True, update_partial=True),
         ('pentestuser reset-password', lambda s, c: c.post(reverse('pentestuser-reset-password', kwargs={'pk': s.user_other.pk}), data={'password': 'D40C4dEyH9Naam6!'})),
+        *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.mfa_methods.get(is_primary=True).pk} if detail else {}), list=True, retrieve=True, destroy=True),
     ]
 
 
 def superuser_urls():
     return [
-        ('utils backup', lambda s, c: c.post(reverse('utils-backup'), data={'key': s.backup_key})),
-
         # Not a project member
         *project_viewset_urls(get_obj=lambda s: s.project_unauthorized, read=True, write=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized_unauthorized, read=True, write=True),
@@ -206,6 +210,9 @@ def superuser_urls():
 def forbidden_urls():
     return [
         *project_viewset_urls(get_obj=lambda s: s.project_readonly, write=True),
+        ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
+        ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
+        ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
     ]
 
 
@@ -248,12 +255,12 @@ def build_test_parameters():
 class TestApiRequestsAndPermissions:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.user_guest = create_user(username='guest', is_guest=True)
-        self.user_regular = create_user(username='regular')
-        self.user_template_editor = create_user(username='template_editor', is_template_editor=True)
-        self.user_designer = create_user(username='designer', is_designer=True)
-        self.user_user_manager = create_user(username='user_manager', is_user_manager=True)
-        self.user_superuser = create_user(username='superuser', is_superuser=True, is_staff=True)
+        self.user_guest = create_user(username='guest', is_guest=True, mfa=True)
+        self.user_regular = create_user(username='regular', mfa=True)
+        self.user_template_editor = create_user(username='template_editor', is_template_editor=True, mfa=True)
+        self.user_designer = create_user(username='designer', is_designer=True, mfa=True)
+        self.user_user_manager = create_user(username='user_manager', is_user_manager=True, mfa=True)
+        self.user_superuser = create_user(username='superuser', is_superuser=True, is_staff=True, mfa=True)
         self.user_map = {
             'guest': self.user_guest,
             'regular': self.user_regular,
@@ -263,7 +270,8 @@ class TestApiRequestsAndPermissions:
             'superuser': self.user_superuser,
         }
 
-        self.user_other = create_user()
+        self.user_other = create_user(mfa=True)
+        self.current_user = None
     
         self.project = create_project(members=self.user_map.values())
         self.project_readonly = create_project(members=self.user_map.values(), readonly=True)
@@ -275,9 +283,7 @@ class TestApiRequestsAndPermissions:
 
         self.template = create_template()
 
-        self.backup_key = 'a' * 30
         with override_settings(
-                BACKUP_KEY=self.backup_key,
                 GUEST_USERS_CAN_IMPORT_PROJECTS=False,
                 GUEST_USERS_CAN_CREATE_PROJECTS=False,
                 GUEST_USERS_CAN_DELETE_PROJECTS=False,
@@ -290,6 +296,14 @@ class TestApiRequestsAndPermissions:
         client = APIClient()
         if user_obj := self.user_map.get(user):
             client.force_authenticate(user_obj)
+            session = client.session
+            session['authentication_info'] = {
+                'login_time': timezone.now().isoformat(),
+                'reauth_time': timezone.now().isoformat(),
+            }
+            session.save()
+            assert 'authentication_info' in dict(client.session)
+            self.current_user = user_obj
 
         res = perform_request(self, client)
         info = res.data if not isinstance(res, (FileResponse, StreamingHttpResponse)) else res
@@ -297,3 +311,4 @@ class TestApiRequestsAndPermissions:
             assert 200 <= res.status_code < 300, {'message': 'API request failed, but should have succeeded', 'info': info}
         else:
             assert 400 <= res.status_code < 500, {'message': 'API request succeeded, but should have failed', 'info': info}
+

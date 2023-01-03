@@ -1,6 +1,7 @@
 import json
 import logging
 import requests
+from base64 import b64decode
 from urllib.parse import urljoin
 from django.conf import settings
 from rest_framework import serializers, exceptions
@@ -53,6 +54,7 @@ class S3ParamsSerializer(serializers.Serializer):
 
 class BackupSerializer(serializers.Serializer):
     key = serializers.CharField()
+    aes_key = serializers.CharField(required=False, allow_null=True)
     s3_params = S3ParamsSerializer(required=False, allow_null=True)
 
     def validate_key(self, key):
@@ -64,3 +66,16 @@ class BackupSerializer(serializers.Serializer):
             raise serializers.ValidationError()
         return key
 
+    def validate_aes_key(self, value):
+        if not value:
+            return None
+        
+        try:
+            key_bytes = b64decode(value)
+            if len(key_bytes) != 32:
+                raise serializers.ValidationError('Invalid key length: must be a 256-bit AES key')
+            return value
+        except ValueError:
+            raise serializers.ValidationError('Invalid base64 encoding')
+
+        

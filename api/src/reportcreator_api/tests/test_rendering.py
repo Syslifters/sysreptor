@@ -5,7 +5,7 @@ import pikepdf
 from pytest_django.asserts import assertHTMLEqual
 from reportcreator_api.tests.mock import create_project_type, create_project, create_user, create_finding
 from reportcreator_api.pentests.render import render_to_html_sync, format_template_field_user, format_template_data, render_pdf, post_process_pdf, PdfRenderingError
-from reportcreator_api.pentests.customfields.utils import merge
+from reportcreator_api.utils.utils import merge
 
 
 @pytest.mark.django_db

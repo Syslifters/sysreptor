@@ -37,13 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sessions',
 
     'rest_framework',
-    'rest_framework_simplejwt.token_blacklist',
-    'corsheaders',
     'django_filters',
 
     'reportcreator_api',
@@ -55,13 +53,14 @@ MIDDLEWARE = [
     'reportcreator_api.utils.logging.RequestLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'reportcreator_api.utils.middleware.ExtendSessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'csp.middleware.CSPMiddleware',
+    'reportcreator_api.utils.middleware.CacheControlMiddleware',
+    'reportcreator_api.utils.middleware.PermissionsPolicyMiddleware',
 ]
 
 ROOT_URLCONF = 'reportcreator_api.urls'
@@ -89,22 +88,15 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
+    'EXCEPTION_HANDLER': 'reportcreator_api.utils.api.exception_handler',
     'PAGE_SIZE': 100,
     'UNICODE_JSON': False,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(hours=14),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'UPDATE_LAST_LOGIN': True,
-}
 
 WSGI_APPLICATION = 'reportcreator_api.wsgi.application'
 
@@ -142,9 +134,23 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Login URL of SPA frontend
+LOGIN_URL = '/login/'
+
+SESSION_ENGINE = 'reportcreator_api.users.backends.session'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = timedelta(hours=14).seconds
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
 
+MFA_SERVER_NAME = config('MFA_SERVER_NAME', default='SysReptor')
+# FIDO2 RP ID: the domain name of the instance
+MFA_FIDO2_RP_ID = config('MFA_FIDO2_RP_ID', default='localhost')
+MFA_LOGIN_TIMEOUT = timedelta(minutes=5)
+SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT = timedelta(minutes=15)
+
+import fido2.features
+fido2.features.webauthn_json_mapping.enabled = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
@@ -172,8 +178,6 @@ AUTH_USER_MODEL = 'users.PentestUser'
 
 
 # HTTP Header settings
-CORS_ALLOW_ALL_ORIGINS = True
-
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
 SECURE_REFERRER_POLICY = 'same-origin'
@@ -194,18 +198,50 @@ CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
 #   Used by nuxt-vuex-localstorage; PR exists, but maintainer is not very active (see https://github.com/rubystarashe/nuxt-vuex-localstorage/issues/37)
 CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
 
+PERMISSIONS_POLICY = {
+    'publickey-credentials-get': '(self)',
+    'clipboard-write': '(self)',
+    'accelerometer': '()', 
+    'ambient-light-sensor': '()', 
+    'autoplay': '()', 
+    'battery': '()', 
+    'camera': '()', 
+    'cross-origin-isolated': '()', 
+    'display-capture': '()', 
+    'document-domain': '()', 
+    'encrypted-media': '()', 
+    'execution-while-not-rendered': '()', 
+    'execution-while-out-of-viewport': '()', 
+    'fullscreen': '()', 
+    'geolocation': '()', 
+    'gyroscope': '()', 
+    'keyboard-map': '()', 
+    'magnetometer': '()', 
+    'microphone': '()', 
+    'midi': '()', 
+    'navigation-override': '()', 
+    'payment': '()', 
+    'picture-in-picture': '()', 
+    'screen-wake-lock': '()', 
+    'sync-xhr': '()', 
+    'usb': '()', 
+    'web-share': '()', 
+    'xr-spatial-tracking': '()',
+    'clipboard-read': '()', 
+    'gamepad': '()', 
+    'speaker-selection': '()', 
+}
+
 
 # Generate HTTPS URIs in responses for requests behind a reverse proxy
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
-# Monkey-Patch django to use our modified CSRF middleware everywhere
+# Monkey-Patch django to disable CSRF everywhere
 # CSRF middlware class is used as middleware and internally by DjangoRestFramework
 from django.middleware import csrf
-from reportcreator_api.utils.middleware import CustomCsrfMiddleware
-csrf.CsrfViewMiddleware = CustomCsrfMiddleware
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='')
-CSRF_TRUSTED_ORIGINS = list(filter(None, CSRF_TRUSTED_ORIGINS.split(';'))) or ['https://*', 'http://*']
+from reportcreator_api.utils.middleware import DisabledCsrfMiddleware
+csrf.CsrfViewMiddleware = DisabledCsrfMiddleware
 
 
 # File storage
@@ -235,11 +271,15 @@ BACKUP_KEY = config('BACKUP_KEY', default=None)
 COMPRESS_IMAGES = config('COMPRESS_IMAGES', cast=bool, default=True)
 
 
+from reportcreator_api.archive.crypto import EncryptionKey
+ENCRYPTION_KEYS = EncryptionKey.from_json_list(config('ENCRYPTION_KEYS', default=''))
+DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
+ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=bool, default=True)
+
 GUEST_USERS_CAN_IMPORT_PROJECTS = config('GUEST_USERS_CAN_IMPORT_PROJECTS', default=False)
 GUEST_USERS_CAN_CREATE_PROJECTS = config('GUEST_USERS_CAN_CREATE_PROJECTS', default=True)
 GUEST_USERS_CAN_DELETE_PROJECTS = config('GUEST_USERS_CAN_DELETE_PROJECTS', default=True)
 GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS = config('GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS', default=True)
-
 
 # Health checks
 HEALTH_CHECKS = {

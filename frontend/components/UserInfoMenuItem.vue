@@ -30,11 +30,7 @@
 export default {
   methods: {
     async logout() {
-      await this.$auth.logout({
-        data: {
-          refresh: this.$auth.strategy.refreshToken,
-        }
-      });
+      await this.$auth.logout();
     },
   },
 };

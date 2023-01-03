@@ -41,6 +41,9 @@ export default {
       } catch (error) {
         if (error?.response?.status === 400 && error?.response?.data) {
           this.serverErrors = error.response.data;
+        } else if (error?.response?.data?.code === 'reauth-required') {
+          this.$auth.$storage.setUniversal('redirect', this.$route.path);
+          this.$auth.redirect('reauth');
         }
         throw error;
       }

@@ -23,7 +23,7 @@ Links: [Example Link](https://example.com)
 2. list
 
 ```bash
-echo "muliline code block";
+echo "multiline code block";
 # with syntax highlighting
 ```
 ~~~

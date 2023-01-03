@@ -7,7 +7,7 @@ from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsO
 from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
     ProjectMemberInfo, ProjectMemberRole
 from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, report_fields_default, report_sections_default
-from reportcreator_api.users.models import PentestUser
+from reportcreator_api.users.models import PentestUser, MFAMethod
 from reportcreator_api.utils.models import Language
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -21,15 +21,19 @@ def create_png_file() -> bytes:
            b'IDAT\x08\xd7c`\x00\x00\x00\x02\x00\x01\xe2!\xbc3\x00\x00\x00\x00IEND\xaeB`\x82'
 
 
-def create_user(**kwargs) -> PentestUser:
+def create_user(mfa=False, **kwargs) -> PentestUser:
     username = f'user{random.randint(0, 100000)}'
-    return PentestUser.objects.create_user(**{
+    user = PentestUser.objects.create_user(**{
         'username': username,
         'password': None,
         'email': username + '@example.com',
         'first_name': 'Herbert',
         'last_name': 'Testinger',
     } | kwargs)
+    if mfa:
+        MFAMethod.objects.create_totp(user=user, is_primary=True)
+        MFAMethod.objects.create_backup(user=user)
+    return user
 
 
 def create_template(**kwargs) -> FindingTemplate:
@@ -97,7 +101,7 @@ def create_finding(project, template=None, **kwargs) -> PentestFinding:
     finding = PentestFinding.objects.create(**{
         'project': project,
         'assignee': None,
-        'template': template,
+        'template_id': template.id if template else None,
     } | kwargs)
     finding.update_data(data)
     finding.save()

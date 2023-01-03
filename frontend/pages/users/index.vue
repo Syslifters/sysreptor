@@ -24,9 +24,17 @@
             <v-chip small class="ma-1" v-if="user.is_designer">Designer</v-chip>
             <v-chip small class="ma-1" v-if="user.is_template_editor">Template Editor</v-chip>
             <v-chip small class="ma-1" v-if="user.is_guest">Guest</v-chip>
+            <v-chip small class="ma-1" v-if="user.is_system_user">System</v-chip>
+          </v-col>
+          <v-col md="1">
+            <v-chip small class="ma-1" v-if="!user.is_system_user">
+              <v-icon v-if="user.is_mfa_enabled" color="green">mdi-check</v-icon>
+              <v-icon v-else color="red">mdi-close</v-icon>
+              MFA
+            </v-chip>
           </v-col>
           <v-col md="2">
-            <v-chip small class="ma-1">Last Login: {{ (user.last_login || 'never').split('T')[0] }}</v-chip>
+            <v-chip small class="ma-1" v-if="!user.is_system_user">Last Login: {{ (user.last_login || 'never').split('T')[0] }}</v-chip>
           </v-col>
           <v-col md="1">
             <v-chip small class="ma-1" color="warning" v-if="!user.is_active">Inactive</v-chip>

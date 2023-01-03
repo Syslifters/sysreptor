@@ -23,3 +23,15 @@ Secret
 zustandsändernd
 zustandsverändernd
 Dependency-Tree
+zustandsändernde
+Redirects
+Anwendungs-URL
+Social-Engineering-Kampagne
+deprovisionieren
+passwortlos
+autologin
+password
+Autorisierungsverfahren
+mitigierend
+URL-Shortener
+Short-Link

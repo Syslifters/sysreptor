@@ -1,90 +1,78 @@
 <template>
-  <v-dialog v-model="dialogVisible" max-width="50%">
+  <s-dialog v-model="dialogVisible">
     <template #activator="{ on, attrs }">
       <s-btn :disabled="project.readonly" color="secondary" small v-bind="attrs" v-on="on">
         <v-icon>mdi-plus</v-icon>
         Create
       </s-btn>
     </template>
+    <template #title>New Finding</template>
 
     <template #default>
-      <s-card>
-        <v-card-title>
-          <v-toolbar flat>
-            <v-toolbar-title>New Finding</v-toolbar-title>
-            <v-spacer />
-            <s-tooltip>
-              <template #activator="{attrs, on}">
-                <s-btn v-bind="attrs" v-on="on" @click="closeDialog" icon x-large>
-                  <v-icon>mdi-close-thick</v-icon>
-                </s-btn>
-              </template>
-              <span>Cancel</span>
-            </s-tooltip>
-          </v-toolbar>
-        </v-card-title>
-
-        <v-card-text>
-          <s-combobox 
-            v-model="currentSelection"
-            :search-input.sync="templates.searchQuery"
-            label="Finding Templates"
-            :items="templates.data"
-            item-value="id"
-            no-filter
-            clearable
-            return-object
-          >
-            <template #selection="{item}">
-              <template v-if="item?.id">
-                <cvss-chip :value="item.data.cvss" />
+      <v-card-text>
+        <s-combobox 
+          v-model="currentSelection"
+          :search-input.sync="templates.searchQuery"
+          label="Finding Templates"
+          :items="templates.data"
+          item-value="id"
+          no-filter
+          clearable
+          return-object
+        >
+          <template #selection="{item}">
+            <template v-if="item?.id">
+              <cvss-chip :value="item.data.cvss" />
+              {{ item.data.title }}
+            </template>
+            <template v-else>
+              {{ item }}
+            </template>
+          </template>
+          <template #item="{item}">
+            <v-list-item-title class="d-flex">
+              <cvss-chip :value="item.data.cvss" /> 
+              <div class="pt-2 pb-2">
                 {{ item.data.title }}
-              </template>
-              <template v-else>
-                {{ item }}
-              </template>
-            </template>
-            <template #item="{item}">
-              <v-list-item-title class="d-flex">
-                <cvss-chip :value="item.data.cvss" /> 
-                <div class="pt-2 pb-2">
-                  {{ item.data.title }}
-                  <br />
-                  <status-chip v-if="item.status !== 'finished'" :value="item.status" />
-                  <language-chip v-if="!showOnlyMatchingLanguage" :value="item.language" />
-                  <v-chip v-for="tag in item.tags" :key="tag" class="ma-1" small>
-                    {{ tag }}
-                  </v-chip>
-                </div>
-              </v-list-item-title>
-            </template>
+                <br />
+                <status-chip v-if="item.status !== 'finished'" :value="item.status" />
+                <language-chip v-if="!showOnlyMatchingLanguage" :value="item.language" />
+                <v-chip v-for="tag in item.tags" :key="tag" class="ma-1" small>
+                  {{ tag }}
+                </v-chip>
+              </div>
+              <v-spacer />
+              <s-btn :to="`/templates/${item.id}/`" target="_blank" nuxt-link icon class="ma-2">
+                <v-icon>mdi-chevron-right-circle</v-icon>
+              </s-btn>
+            </v-list-item-title>
+          </template>
 
-            <template #append-item>
-              <page-loader :items="templates" />
-            </template>
-          </s-combobox>
-          <s-checkbox 
-            v-model="showOnlyMatchingLanguage"
-            label="Show only templates with matching language" 
-            dense
-          />
-        </v-card-text>
+          <template #append-item>
+            <page-loader :items="templates" />
+          </template>
+        </s-combobox>
+        <s-checkbox 
+          v-model="showOnlyMatchingLanguage"
+          label="Show only templates with matching language" 
+          dense
+        />
+      </v-card-text>
         
-        <v-card-actions>
-          <v-spacer />
-          <s-btn @click="closeDialog" color="secondary">
-            Cancel
-          </s-btn>
-          <s-btn v-if="currentSelection?.id" @click="createFindingFromTemplate" :loading="actionInProress" color="primary">
-            Create from Template
-          </s-btn>
-          <s-btn v-else @click="createEmptyFinding" :loading="actionInProress" color="primary">
-            Create Empty Finding
-          </s-btn>
-        </v-card-actions>
-      </s-card>
+      <v-card-actions>
+        <v-spacer />
+        <s-btn @click="closeDialog" color="secondary">
+          Cancel
+        </s-btn>
+        <s-btn v-if="currentSelection?.id" @click="createFindingFromTemplate" :loading="actionInProress" color="primary">
+          Create from Template
+        </s-btn>
+        <s-btn v-else @click="createEmptyFinding" :loading="actionInProress" color="primary">
+          Create Empty Finding
+        </s-btn>
+      </v-card-actions>
     </template>
-  </v-dialog>
+  </s-dialog>
 </template>
 
 <script>

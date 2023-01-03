@@ -84,7 +84,7 @@ class TestImportExport:
 
         assert p.findings.count() == self.project.findings.count()
         for i, s in zip(p.findings.order_by('finding_id'), self.project.findings.order_by('finding_id')):
-            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'template', 'data', 'data_all', 'risk_score', 'risk_level'])
+            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'template', 'data', 'data_all'])
 
         assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in self.project.images.all()}
 
@@ -114,7 +114,7 @@ class TestImportExport:
         # Check UUID of nonexistent user is still present in data
         assert p.data_all == self.project.data_all
         for i, s in zip(p.findings.order_by('created'), self.project.findings.order_by('created')):
-            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'template', 'data', 'data_all', 'risk_score', 'risk_level'])
+            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'template', 'data', 'data_all'])
         
         # Test nonexistent user is added to project.imported_members
         assert len(p.imported_members) == 1
@@ -130,7 +130,7 @@ class TestImportExport:
         self.template.delete()
         p = import_projects(archive)[0]
 
-        assert p.findings.exclude(template=None).count() == 0
+        assert p.findings.exclude(template_id=None).count() == 0
 
     def test_import_wrong_archive(self):
         archive = archive_to_file(export_templates([self.template]))
@@ -207,8 +207,8 @@ class TestFileDelete:
         p = create_project()
         p2 = p.copy()
 
-        images = list(p.images.order_by('name'))
-        for o, c in zip(images, p2.images.order_by('name')):
+        images = list(p.images.order_by('name_hash'))
+        for o, c in zip(images, p2.images.order_by('name_hash')):
             assert o.file == c.file
         p.delete()
         for i in images:
@@ -218,8 +218,8 @@ class TestFileDelete:
         t = create_project_type()
         t2 = t.copy()
 
-        assets = list(t.assets.order_by('name'))
-        for o, c in zip(assets, t2.assets.order_by('name')):
+        assets = list(t.assets.order_by('name_hash'))
+        for o, c in zip(assets, t2.assets.order_by('name_hash')):
             assert o.file == c.file
         t.delete()
         for a in assets:

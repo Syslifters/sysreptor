@@ -18,76 +18,63 @@
       </div>
     </div>
 
-    <v-dialog v-model="dialogVisible" max-width="70%" scrollable>
+    <s-dialog v-model="dialogVisible" max-width="70%" scrollable>
       <template #activator="{ on, attrs }">
         <s-btn color="secondary" class="ma-3" v-bind="attrs" v-on="on">
           CVSS Editor
         </s-btn>
       </template>
 
-      <template #default>
-        <s-card>
-          <v-card-title>
-            <v-toolbar flat>
-              <v-toolbar-title>CVSS Editor</v-toolbar-title>
-              <v-spacer />
-              <div class="cvss-score ma-3" :class="'level-' + editorLevelNumber">
-                <div class="cvss-score-header">{{ editorScoreFormatted }}</div>
-                <div class="cvss-score-label">{{ editorLevelName }}</div>
-              </div>
+      <template #title>CVSS Editor</template>
+      <template #toolbar>
+        <div class="cvss-score ma-3" :class="'level-' + editorLevelNumber">
+          <div class="cvss-score-header">{{ editorScoreFormatted }}</div>
+          <div class="cvss-score-label">{{ editorLevelName }}</div>
+        </div>
 
-              <s-tooltip :disabled="disabled">
-                <template #activator="{attrs, on}">
-                  <s-btn @click="applyDialog" :disabled="disabled" icon x-large v-bind="attrs" v-on="on">
-                    <v-icon>mdi-check-bold</v-icon>
-                  </s-btn>
-                </template>
-                <span>Apply</span>
-              </s-tooltip>
-              <s-tooltip>
-                <template #activator="{attrs, on}">
-                  <s-btn v-bind="attrs" v-on="on" @click="cancelDialog" icon x-large>
-                    <v-icon>mdi-close-thick</v-icon>
-                  </s-btn>
-                </template>
-                <span>Cancel</span>
-              </s-tooltip>
-            </v-toolbar>
-          </v-card-title>
-
-          <v-card-text class="pa-0">
-            <s-card
-              v-for="metricGroup in metricGroups"
-              :key="metricGroup.name"
-              outlined
-              flat
-              tile
-            >
-              <v-card-title>
-                {{ metricGroup.name }}
-              </v-card-title>
-              <v-card-text>
-                <v-row>
-                  <v-col
-                    v-for="metricGroupCol in metricGroup.cols"
-                    :key="metricGroupCol.toString()"
-                  >
-                    <cvss-metric-input
-                      v-for="m in metricGroupCol"
-                      :key="m"
-                      :value="parsedEditorVector[m]"
-                      @input="updateMetric(m, $event)"
-                      :metric="CVSS_DEFINITON[m]"
-                      :disabled="disabled"
-                    />
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </s-card>
-          </v-card-text>
-        </s-card>
+        <s-tooltip :disabled="disabled">
+          <template #activator="{attrs, on}">
+            <s-btn @click="applyDialog" :disabled="disabled" icon x-large v-bind="attrs" v-on="on">
+              <v-icon>mdi-check-bold</v-icon>
+            </s-btn>
+          </template>
+          <span>Apply</span>
+        </s-tooltip>
       </template>
-    </v-dialog>
+
+      <template #default>
+        <v-card-text class="pa-0">
+          <s-card
+            v-for="metricGroup in metricGroups"
+            :key="metricGroup.name"
+            outlined
+            flat
+            tile
+          >
+            <v-card-title>
+              {{ metricGroup.name }}
+            </v-card-title>
+            <v-card-text>
+              <v-row>
+                <v-col
+                  v-for="metricGroupCol in metricGroup.cols"
+                  :key="metricGroupCol.toString()"
+                >
+                  <cvss-metric-input
+                    v-for="m in metricGroupCol"
+                    :key="m"
+                    :value="parsedEditorVector[m]"
+                    @input="updateMetric(m, $event)"
+                    :metric="CVSS_DEFINITON[m]"
+                    :disabled="disabled"
+                  />
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </s-card>
+        </v-card-text>
+      </template>
+    </s-dialog>
   </div>
 </template>
 

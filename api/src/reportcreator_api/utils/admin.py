@@ -1,8 +1,18 @@
 
 from urllib.parse import urlencode, urlunsplit
 
+from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
+
+
+class BaseAdmin(admin.ModelAdmin):
+    date_hierarchy = 'created'
+    ordering = ['-created']
+
+    def get_readonly_fields(self, request, obj):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        return readonly_fields + tuple(set([f for f in dir(self) if f.startswith('link_')]).difference(readonly_fields))
 
 
 def admin_url(label, app_name, model_name, type_name, params=None, *args, **kwargs):

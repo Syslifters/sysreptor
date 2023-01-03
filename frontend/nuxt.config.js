@@ -46,7 +46,7 @@ export default {
     // https://go.nuxtjs.dev/eslint
     '@nuxtjs/eslint-module',
     // https://go.nuxtjs.dev/vuetify
-    '@nuxtjs/vuetify'
+    '@nuxtjs/vuetify',
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
@@ -59,12 +59,13 @@ export default {
       mode: 'debug',
       localStorage: ['settings'],
     }],
+    ...(process.env.NODE_ENV === 'development' ? ['@nuxtjs/proxy'] : []),
   ],
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: process.env.NODE_ENV === 'development' ? 'http://localhost:8000/api/v1/' : '/api/v1/',
+    baseURL: '/api/v1/',
     progress: false,
   },
 
@@ -72,33 +73,31 @@ export default {
     cookie: false,
     scopeKey: 'scope',
     strategies: {
-      local: {
+      local: false,
+      cookie: {
         scheme: '@/utils/auth',
         token: {
-          property: 'access',
-          global: true,
-          type: 'Bearer',
-        },
-        refreshToken: {
-          property: 'refresh',
-          data: 'refresh',
+          required: false,
+          type: false
         },
         user: {
           property: false,
           autoFetch: true,
         },
         endpoints: {
-          login: { url: '/auth/login/', method: 'post' },
-          refresh: { url: '/auth/refresh/', method: 'post' },
           user: { url: '/pentestusers/self/', method: 'get' },
           logout: { url: '/auth/logout/', method: 'post' },
+          login: false,
+          refresh: false,
         },
-      }
+      },
     },
+    watchLoggedIn: true,
     rewriteRedirects: true,
     redirect: {
-      login: '/login',
-      logout: '/login',
+      login: '/login/',
+      reauth: '/reauth/',
+      logout: '/login/',
       home: '/'
     },
   },
@@ -145,11 +144,11 @@ export default {
           console.log('Request error', error, message, error?.response?.data);
 
           if (!message) {
-            if (error.config.method === 'get') {
+            if (error?.config?.method === 'get') {
               message = 'Failed to load data';
-            } else if (['post', 'put', 'patch'].includes(error.config.method)) {
+            } else if (['post', 'put', 'patch'].includes(error?.config?.method)) {
               message = 'Failed to save data';
-            } else if (error.config.method === 'delete') {
+            } else if (error?.config?.method === 'delete') {
               message = 'Failed to delete data';
             } else {
               message = 'Request error';
@@ -224,4 +223,10 @@ export default {
     }
   },
 
+  // Dev API proxy
+  proxy: {
+    '/api': 'http://api:8000',
+    '/admin': 'http://api:8000',
+    '/static': 'http://api:8000',
+  },
 }

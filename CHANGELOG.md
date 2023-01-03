@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.14 - 2023-01-03
+* Data-at-rest encryption for files and sensitive DB data
+* Use Session cookies instead of JWT tokens
+* Support two factor authentication with FIDO2, TOTP and Backup Codes
+* Add user role and permissions for system users
+* Support encrypting backups
+
+
 ## v0.13 - 2022-12-16
 * Add logo and favicon
 * Add per-project user tags

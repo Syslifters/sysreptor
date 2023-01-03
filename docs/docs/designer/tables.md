@@ -7,7 +7,7 @@ table {
 }
 /* Avoid page breaks inside table rows */
 tr {
-  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 /* Table borders */

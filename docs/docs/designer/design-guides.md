@@ -3,8 +3,8 @@
 ```css linenums="1"
 /* Avoid page breaks in headlines */
 h1, h2, h3, h4, h5, h6 {
-  page-break-inside: avoid;
-  page-break-after: avoid;
+  break-inside: avoid;
+  break-after: avoid;
 }
 ```
 

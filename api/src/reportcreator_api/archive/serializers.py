@@ -5,7 +5,7 @@ from rest_framework import serializers
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
 from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, ReportSection, \
-    SourceEnum, UploadedAsset, UploadedImage, ProjectMemberInfo
+    SourceEnum, UploadedAsset, UploadedImage, UploadedFileBase, ProjectMemberInfo
 from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
@@ -80,7 +80,6 @@ class RelatedUserDataExportImportSerializer(ProjectMemberInfoSerializer):
     
     def to_internal_value(self, data):
         try:
-            print(f'{self.context=}')
             return ProjectMemberInfo(**super().to_internal_value(data))
         except PentestUser.DoesNotExist:
             return data
@@ -132,10 +131,11 @@ class FileListExportImportSerializer(serializers.ListSerializer):
         child_model_class = self.child.Meta.model
         objs = [
             child_model_class(**attrs | {
-            'file': File(
-                file=self.extract_file(attrs['name']), 
-                name=attrs['name']), 
-            'linked_object': self.child.get_linked_object()
+                'name_hash': UploadedFileBase.hash_name(attrs['name']),
+                'file': File(
+                    file=self.extract_file(attrs['name']), 
+                    name=attrs['name']), 
+                'linked_object': self.child.get_linked_object()
         }) for attrs in validated_data]
 
         child_model_class.objects.bulk_create(objs)
@@ -222,7 +222,7 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
 class PentestFindingExportImportSerializer(ExportImportSerializer):
     id = serializers.UUIDField(source='finding_id')
     assignee = RelatedUserIdExportImportSerializer()
-    template = OptionalPrimaryKeyRelatedField(queryset=FindingTemplate.objects.all())
+    template = OptionalPrimaryKeyRelatedField(queryset=FindingTemplate.objects.all(), source='template_id')
     data = serializers.DictField(source='data_all')
 
     class Meta:
@@ -235,8 +235,10 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
     def create(self, validated_data):
         project = self.context['project']
         data = validated_data.pop('data_all', {})
+        template = validated_data.pop('template_id', None)
         finding = PentestFinding(**{
             'project': project,
+            'template_id': template.id if template else None,
         } | validated_data)
         finding.update_data(ensure_defined_structure(
             value=data,

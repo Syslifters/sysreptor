@@ -56,7 +56,7 @@ def is_uuid(val):
     try:
         uuid.UUID(val)
         return True
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, AttributeError):
         return False
 
 
@@ -64,5 +64,30 @@ def is_date_string(val):
     try:
         date.fromisoformat(val)
         return True
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, AttributeError):
         return False
+
+
+def merge(*args):
+    """
+    Recursively merge dicts
+    """
+    out = None
+    for d in args:
+        if isinstance(d, (dict, OrderedDict)) and isinstance(out, (dict, OrderedDict)):
+            for k, v in d.items():
+                if k not in out:
+                    out[k] = v
+                else:
+                    out[k] = merge(out.get(k), v)
+        elif isinstance(d, list) and isinstance(out, list):
+            l = []
+            for i, dv in enumerate(d):
+                if len(out) > i:
+                    l.append(merge(out[i], dv))
+                else:
+                    l.append(dv)
+            out = l
+        else:
+            out = d
+    return out

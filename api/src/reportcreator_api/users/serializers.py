@@ -3,9 +3,9 @@ from uuid import UUID
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
-from reportcreator_api.users.models import PentestUser
+from django.db import transaction
+from reportcreator_api.users.models import PentestUser, MFAMethod, MFAMethodType
 from reportcreator_api.utils.utils import omit_items
-
 
 class PentestUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,14 +14,21 @@ class PentestUserSerializer(serializers.ModelSerializer):
 
 
 class PentestUserDetailSerializer(serializers.ModelSerializer):
+    is_mfa_enabled = serializers.SerializerMethodField()
+
     class Meta:
         model = PentestUser
         fields = [
             'id', 'created', 'updated', 'last_login', 'is_active',
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
             'email', 'phone', 'mobile',
-            'scope', 'is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest',
+            'scope', 'is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user',
+            'is_mfa_enabled',
         ]
+        read_only_fields = ['is_system_user']
+
+    def get_is_mfa_enabled(self, obj):
+        return getattr(obj, 'is_mfa_enabled', False)
     
     def get_extra_kwargs(self):
         user = self.context['request'].user
@@ -86,29 +93,6 @@ class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
         return OrderedDict([(str(item.pk), self.display_value(item)) for item in queryset])
 
 
-class ChangePasswordSerializer(serializers.ModelSerializer):
-    old_password = serializers.CharField(write_only=True)
-    new_password = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = PentestUser
-        fields = ['old_password', 'new_password']
-
-    def validate_old_password(self, value):
-        if not self.instance.check_password(value):
-            raise serializers.ValidationError('Old password is not correct')
-        return value
-
-    def validate_new_password(self, value):
-        validate_password(value, user=self.instance)
-        return value
-
-    def update(self, instance, validated_data):
-        instance.set_password(validated_data['new_password'])
-        instance.save()
-        return instance
-
-
 class ResetPasswordSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -124,3 +108,90 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
         instance.set_password(validated_data['password'])
         instance.save()
         return instance
+
+
+class MFAMethodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MFAMethod
+        fields = ['id', 'method_type', 'is_primary', 'name']
+        read_only_fields = ['method_type']
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        if validated_data.get('is_primary', False):
+            self.instance.user.mfa_methods.update(is_primary=False)
+
+        return super().update(instance, validated_data)
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(style={'input_type': 'password'})
+
+    def validate(self, attrs):
+        try:
+            user = PentestUser.objects.get(username=attrs['username'])
+        except PentestUser.DoesNotExist:
+            user = PentestUser()
+        
+        if not user.check_password(attrs['password']):
+            raise serializers.ValidationError('Invalid username or password')
+
+        return user
+
+
+class MFAMethodRelatedField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        return self.context['request'].user.mfa_methods.all()
+
+
+class LoginMFACodeSerializer(serializers.Serializer):
+    id = MFAMethodRelatedField()
+    code = serializers.CharField()
+
+    def validate(self, attrs):
+        mfa_method = attrs['id']
+        if not mfa_method.verify_code(attrs['code']):
+            raise serializers.ValidationError('Invalid code')
+        return mfa_method
+
+
+
+class MFAMethodRegisterSerializerBase(serializers.Serializer):
+    @property
+    def method_type(self):
+        return None
+
+    def validate(self, attrs):
+        if self.instance.method_type != self.method_type:
+            raise serializers.ValidationError('Invalid MFA Method')
+        if self.instance.user != self.context['user']:
+            raise serializers.ValidationError('Invalid user')
+        return super().validate(attrs)
+
+    def update(self, instance, validated_data):
+        instance.is_primary = self.method_type != MFAMethodType.BACKUP and not instance.user.mfa_methods.filter(is_primary=True).exists()
+        instance.save()
+        return instance
+
+
+class MFAMethodRegisterBackupCodesSerializer(MFAMethodRegisterSerializerBase):
+    method_type = MFAMethodType.BACKUP
+
+
+class MFAMethodRegisterTOTPSerializer(MFAMethodRegisterSerializerBase):
+    method_type = MFAMethodType.TOTP
+    code = serializers.CharField()
+
+    def validate(self, attrs):
+        if not self.instance.verify_code(attrs['code']):
+            raise serializers.ValidationError('Invalid code')
+        return attrs
+
+
+class MFAMethodRegisterFIDO2Serializer(MFAMethodRegisterSerializerBase):
+    method_type = MFAMethodType.FIDO2
+
+    def update(self, instance, validated_data):
+        instance = MFAMethod.objects.create_fido2_complete(instance=instance, response=self.initial_data, save=False)
+        return super().update(instance, validated_data)

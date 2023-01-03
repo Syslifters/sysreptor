@@ -1,32 +1,27 @@
-import subprocess
 import logging
 import zipstream
 import boto3
+import io
+import json
+import itertools
 from pathlib import Path
+from django.apps import apps
+from django.core import serializers
+from django.core.serializers.json import DjangoJSONEncoder
 
+from reportcreator_api.archive import crypto
 from reportcreator_api.pentests.models import UploadedImage, UploadedAsset
 
 
 def create_database_dump():
-
-    """dbuser = settings.DATABASES['default']['USER']
-    dbpass = settings.DATABASES['default']['PASSWORD']
-    dbname = settings.DATABASES['default']['NAME']
-    dbhost = settings.DATABASES['default']['HOST']
-    dbport = settings.DATABASES['default']['PORT']
-    # test if pg_dump is installed
-    try:
-        subprocess.run(['pg_dump', '--version'], check=True)
-    except subprocess.CalledProcessError:
-        raise Exception('pg_dump not installed')
-
-
-    proc = subprocess.Popen(['pg_dump', '-U', dbuser, '-h', dbhost, '-p', dbport, '-d', dbname], stdout=subprocess.PIPE,
-                            env={'PGPASSWORD': dbpass})"""
-
-    proc = subprocess.Popen(['python', 'manage.py', 'dumpdata'], stdout=subprocess.PIPE)
-    for c in iter(lambda: proc.stdout.read(1024), b""):
-        yield c
+    """
+    Return a database dump of django models. It uses the same format as "manage.py dumpdata --format=jsonl".
+    """
+    app_list = [app_config for app_config in apps.get_app_configs() if app_config.models_module is not None]
+    models = list(itertools.chain(*map(lambda a: a.get_models(), app_list)))
+    for model in models:
+        for e in model._default_manager.order_by(model._meta.pk.name).iterator():
+            yield json.dumps(serializers.serialize('python', [e])[0], cls=DjangoJSONEncoder, ensure_ascii=True).encode() + b'\n'
 
 
 def backup_files(z, model, path):
@@ -37,12 +32,24 @@ def backup_files(z, model, path):
 def create_backup():
     logging.info('Backup requested')
     z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
-    z.write_iter('backup.json', create_database_dump())
+    z.write_iter('backup.jsonl', create_database_dump())
 
     backup_files(z, UploadedImage, 'uploadedimages')
     backup_files(z, UploadedAsset, 'uploadedassets')
     
     return z
+
+
+def encrypt_backup(z, aes_key):
+    buf = io.BytesIO()
+    with crypto.open(fileobj=buf, mode='wb', key_id=None, key=crypto.EncryptionKey(id=None, key=aes_key)) as c:
+        for chunk in z:
+            c.write(chunk)
+            yield buf.getvalue()
+            buf.seek(0)
+            buf.truncate()
+    if remaining := buf.getvalue():
+        yield remaining
 
 
 def upload_to_s3_bucket(z, s3_params):
@@ -51,14 +58,13 @@ def upload_to_s3_bucket(z, s3_params):
 
     class Wrapper:
         def __init__(self, z):
-            self.z = z
+            self.z = iter(z)
             self.buffer = b''
-            self.iter = z.__iter__()
 
         def read(self, size=8192):
             while len(self.buffer) < size:
                 try:
-                    self.buffer += next(self.iter)
+                    self.buffer += next(self.z)
                 except StopIteration:
                     break
             ret = self.buffer[:size]

@@ -3,7 +3,7 @@
     <v-form ref="form">
       <edit-toolbar :data="user" :form="$refs.form" :edit-mode="canEdit ? 'EDIT' : 'READONLY'" :save="performSave" />
 
-      <user-info-form v-model="user" :errors="serverErrors" :can-edit-permissions="true" :can-edit-username="true">
+      <user-info-form v-model="user" :errors="serverErrors" :can-edit-permissions="canEdit" :can-edit-username="canEdit">
         <template #login-information>
           <s-btn v-if="canEdit" :to="`/users/${user.id}/reset-password/`" nuxt color="secondary">
             Reset Password
@@ -11,12 +11,20 @@
 
           <s-checkbox 
             v-model="user.is_active" 
+            :disabled="!canEdit"
             label="User is active" 
             hint="Inactive users cannot log in"
           />
-          <p class="mt-4">
-            Last login: {{ user.last_login || 'Never' }}
-          </p>
+          <template v-if="!user.is_system_user">
+            <v-checkbox
+              v-model="user.is_mfa_enabled"
+              label="Is Multi Factor Authentication enabled"
+              disabled
+            />
+            <p class="mt-4">
+              Last login: {{ user.last_login || 'Never' }}
+            </p>
+          </template>
         </template>
       </user-info-form>
     </v-form>
@@ -41,7 +49,7 @@ export default {
   },
   computed: {
     canEdit() {
-      return this.$auth.hasScope('user_manager') || this.user.id === this.$auth.user.id;
+      return this.$auth.hasScope('user_manager') && !this.user.is_system_user;
     }
   },
   methods: {

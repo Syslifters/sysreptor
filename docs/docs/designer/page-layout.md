@@ -84,9 +84,9 @@ The easiest way to add a pagebreak is to include a `<pagebreak />` component in 
 In CSS page breaks can be controlled with 
 ```css linenums="1"
 .selector {
-  page-break-before: always;
-  page-break-inside: avoid;
-  page-break-after: always;
+  break-before: always;
+  break-inside: avoid;
+  break-after: always;
 }
 ```
 

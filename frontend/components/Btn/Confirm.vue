@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-if="confirm" v-model="confirmDialogVisible" max-width="500">
+  <s-dialog v-if="confirm" v-model="confirmDialogVisible" max-width="500">
     <template #activator="{on: dialogOn, attrs: dialogAttrs}">
       <s-tooltip :disabled="!tooltipText">
         <template #activator="{on: tooltipOn, attrs: tooltipAttrs}">
@@ -19,8 +19,8 @@
       </s-tooltip>
     </template>
 
-    <s-card>
-      <v-card-title>{{ dialogTitle }}</v-card-title>
+    <template #title>{{ dialogTitle }}</template>
+    <template #default>
       <v-card-text>
         <template v-if="dialogText">{{ dialogText }}</template>
         <template v-if="confirmInput">
@@ -54,8 +54,8 @@
           {{ buttonText }}
         </s-btn>
       </v-card-actions>
-    </s-card>
-  </v-dialog>
+    </template>
+  </s-dialog>
 
   <s-btn 
     v-else 

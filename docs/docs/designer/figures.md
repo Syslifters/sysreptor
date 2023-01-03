@@ -31,14 +31,14 @@ img {
     max-width: 100%;
 }
 figure {
-    page-break-inside: avoid;
+    break-inside: avoid;
     text-align: center;
     margin-left: 0;
     margin-right: 0;
 }
 figcaption {
     font-weight: bold;
-    page-break-before: avoid;
+    break-before: avoid;
 }
 ```
 

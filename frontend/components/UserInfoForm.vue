@@ -107,35 +107,42 @@
           label="Template Editor"
           hint="Users with Template Editor permission are allowed to create, edit and delete finding templates."
           :error-messages="errors?.is_template_editor"
-          :disabled="!canEditPermissions || !hasUserManagerPermissions"
+          :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
         />
         <s-checkbox 
           :value="user.is_designer" @change="updateField('is_designer', $event)" 
           label="Designer"
           hint="Users with Designer permission have access to the PDF designer and can create and edit PDF designs."
           :error-messages="errors?.is_designer"
-          :disabled="!canEditPermissions || !hasUserManagerPermissions"
+          :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
         />
         <s-checkbox
           :value="user.is_user_manager" @change="updateField('is_user_manager', $event)" 
           label="User Manager"
           hint="User with User Manager permission can create and update other users, assign permissions (except Superuser permissions) and reset passwords (except for Superusers)."
           :error-messages="errors?.is_user_manager"
-          :disabled="!canEditPermissions || !hasUserManagerPermissions"
+          :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
         />
         <s-checkbox 
           :value="user.is_superuser" @change="updateField('is_superuser', $event)" 
           label="Superuser" 
           hint="Superusers have all permissions without explicitly assigning them. They can access all projects, even when they are not members."
           :error-messages="errors?.is_superuser"
-          :disabled="!canEditPermissions || !hasSuperuserPermissions"
+          :disabled="!canEdit || !canEditPermissions || !hasSuperuserPermissions"
         />
         <s-checkbox
           :value="user.is_guest" @change="updateField('is_guest', $event)" 
           label="Guest"
           hint="Guest users are similar to regular users, but have less permissions."
           :error-messages="errors?.is_guest"
-          :disabled="!canEditPermissions || !hasUserManagerPermissions"
+          :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
+        />
+        <s-checkbox
+          v-if="user.is_system_user"
+          :value="user.is_system_user"
+          label="System User"
+          hint="System users have access to internal functions such as creating backups."
+          disabled
         />
       </v-card-text>
     </s-card>
@@ -180,7 +187,7 @@ export default {
       return this.$auth.hasScope('user_manager');
     },
     canEdit() {
-      return this.hasUserManagerPermissions || this.user.id === this.$auth.user.id;
+      return (this.hasUserManagerPermissions && !this.user.is_system_user) || this.user.id === this.$auth.user.id;
     },
   },
   methods: {

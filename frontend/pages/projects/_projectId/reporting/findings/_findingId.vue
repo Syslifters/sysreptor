@@ -107,7 +107,11 @@ export default {
       this.$store.commit('projects/setFinding', { projectId: this.finding.project, finding: data });
     },
     async onUpdateData({ oldValue, newValue }) {
-      if (this.$refs.toolbar?.autoSaveEnabled && (oldValue.status !== newValue.status || oldValue.assignee?.id !== newValue.assignee?.id)) {
+      if (this.$refs.toolbar?.autoSaveEnabled && (
+        oldValue.status !== newValue.status || 
+        oldValue.assignee?.id !== newValue.assignee?.id || 
+        oldValue.data.cvss !== newValue.data.cvss
+      )) {
         await this.$refs.toolbar.performSave();
       }
     },

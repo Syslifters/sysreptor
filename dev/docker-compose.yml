@@ -22,15 +22,15 @@ services:
     stop_grace_period: 120s
   rendering:
     build: 
-      context: .
+      context: ..
       target: rendering-dev
     command: npm run build-watch
     volumes:
       - type: bind
-        source: rendering/
+        source: ../rendering/
         target: /app/rendering/
       - type: bind
-        source: packages/
+        source: ../packages/
         target: /app/packages/
   languagetool:
     build: 
@@ -43,7 +43,7 @@ services:
       - 8010
   api:
     build:
-      context: .
+      context: ..
       target: api-dev
     command: sh -c "python3 manage.py migrate && python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000"
     volumes:
@@ -51,11 +51,13 @@ services:
         source: app-data
         target: /data
       - type: bind
-        source: api/src/
+        source: ../api/src/
         target: /app/api/
       - type: bind
-        source: rendering/dist
+        source: ../rendering/dist
         target: /app/rendering/dist/
+    expose:
+      - 8000
     ports:
       - 8000:8000
       - 5678:5678
@@ -69,6 +71,8 @@ services:
       SPELLCHECK_URL: http://languagetool:8010/
       PDF_RENDER_SCRIPT_PATH: /app/rendering/dist/bundle.js
       MEDIA_ROOT: /data/
+      ENCRYPTION_KEYS: '[{"id": "local-dev-key", "key": "t02ZBxs4cl6xi7aSO46PVhUbEUNcRjIeyr0eF/OUQOg=", "cipher": "AES-GCM"}]'
+      DEFAULT_ENCRYPTION_KEY_ID: local-dev-key
     env_file: app.env
     depends_on:
       db:
@@ -79,16 +83,18 @@ services:
         condition: service_started
   frontend:
     build: 
-      context: .
+      context: ..
       target: frontend-dev
     command: npm run dev
     volumes:
       - type: bind
-        source: frontend/
+        source: ../frontend/
         target: /app/frontend/
       - type: bind
-        source: packages/
+        source: ../packages/
         target: /app/packages/
+    expose:
+      - 3000
     ports:
       - 3000:3000
     environment:
@@ -96,6 +102,9 @@ services:
     depends_on:
       api:
         condition: service_started
+      
+    
+
 
 volumes:
   db-data:

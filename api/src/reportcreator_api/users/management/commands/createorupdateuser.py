@@ -1,35 +1,46 @@
 import os
 
-from django.contrib.auth.management.commands import createsuperuser
-from django.core.management import CommandError
+from django.core.management import CommandError, BaseCommand
+from reportcreator_api.users.models import PentestUser
 
 
-class Command(createsuperuser.Command):
+class Command(BaseCommand):
     help = 'Create a superuser, or update the password for an existing superuser.'
 
     def add_arguments(self, parser):
-        super(Command, self).add_arguments(parser)
+        super().add_arguments(parser)
+        parser.add_argument(
+            '--username', dest='username', default=None,
+        )
         parser.add_argument(
             '--password', dest='password', default=None,
-            help='Specifies the password for the superuser.',
+            help='Specifies the password for the user.',
+        )
+        parser.add_argument(
+            '--superuser', dest='is_superuser', action='store_true', default=False
+        )
+        parser.add_argument(
+            '--system', dest='is_system_user', action='store_true', default=False
         )
 
-    def handle(self, *args, **options):
-        password = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
-        username = options.get('username')
-        database = options.get('database')
-
+    def handle(self, username, password, is_superuser, is_system_user, *args, **kwargs):
+        password = password or os.environ.get('DJANGO_SUPERUSER_PASSWORD')
+        
         if not password or not username:
             raise CommandError("username and password (DJANGO_SUPERUSER_PASSWORD) must be set")
         if len(password) < 15:
             raise CommandError("password must be at least 15 characters")
 
-        exists = self.UserModel._default_manager.db_manager(database).filter(username=username).exists()
-        if exists:
-            user = self.UserModel._default_manager.db_manager(database).filter(username=username).first()
-            user.set_password(password)
-            user.save()
-            self.stdout.write("User exists, updated password.")
-            return
+        user = PentestUser.objects.filter(username=username).first()
+        if not user:
+            user = PentestUser()
+        
+        user.set_password(password)
+        if is_superuser:
+            user.is_superuser = True
+            user.is_staff = True
+        if is_system_user:
+            user.is_system_user = True
+        user.save()
 
-        super(Command, self).handle(*args, **options)
+        self.stdout.write("User created or updated")

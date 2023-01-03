@@ -4,7 +4,7 @@
 
 <style scoped>
 .pagebreak {
-    page-break-after: always;
+    break-after: always;
     display: block;
 }
 </style>

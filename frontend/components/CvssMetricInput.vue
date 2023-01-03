@@ -13,18 +13,18 @@
 
     <v-radio-group :value="value" @change="$emit('input', $event)" :disabled="disabled" row>
       <template v-for="c in metric.choices">
-        <s-tooltip :key="metric.id + '_' + c.id" v-bind="tooltipAttrs">
-          <template #activator="{ on, attrs }">
-            <v-radio :value="c.id" v-bind="attrs" v-on="on">
-              <template #label>
-                {{ c.name }} ({{ c.id }})
+        <v-radio :value="c.id" :key="metric.id + '_' + c.id">
+          <template #label>
+            <s-tooltip v-bind="tooltipAttrs">
+              <template #activator="{ on, attrs }">
+                <span class="label-tooltip" v-bind="attrs" v-on="on">{{ c.name }} ({{ c.id }})</span>
               </template>
-            </v-radio>
+              <template #default>
+                <span>{{ c.description }}</span>
+              </template>
+            </s-tooltip>
           </template>
-          <template #default>
-            <span>{{ c.description }}</span>
-          </template>
-        </s-tooltip>
+        </v-radio>
       </template>
     </v-radio-group>
   </div>
@@ -50,10 +50,16 @@ export default {
   data() {
     return {
       tooltipAttrs: {
-        // openDelay: 500,
+        openDelay: 1000,
         bottom: true,
       }
     }
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.label-tooltip {
+  cursor: help;
+}
+</style>
