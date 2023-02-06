@@ -1,4 +1,5 @@
 version: '3.9'
+name: sysreptor-dev
 
 services:
   db:
@@ -20,7 +21,33 @@ services:
       timeout: 5s
       retries: 30
     stop_grace_period: 120s
-  rendering:
+  rabbitmq:
+    image: rabbitmq:3
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: reportcreator
+      RABBITMQ_DEFAULT_PASS: reportcreator
+    volumes:
+      - type: volume
+        source: mq-data
+        target: /var/lib/rabbitmq
+    expose:
+      - 5672
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics check_port_connectivity"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  pdfviewer-builder:
+    build: 
+      context: ..
+      target: pdfviewer-dev
+    command: npm run build-watch
+    volumes:
+      - type: bind
+        source: ../packages/pdfviewer/
+        target: /app/packages/pdfviewer/
+  rendering-builder:
     build: 
       context: ..
       target: rendering-dev
@@ -32,9 +59,32 @@ services:
       - type: bind
         source: ../packages/
         target: /app/packages/
+  rendering-worker:
+    build:
+      context: ..
+      target: api-dev
+    user: "1000"
+    command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery --app=reportcreator_api.conf.celery --quiet worker -Q rendering --without-heartbeat --without-gossip --without-mingle 
+    environment:
+      PDF_RENDER_SCRIPT_PATH: /app/rendering/dist/bundle.js
+      CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
+      CELERY_RESULT_BACKEND: reportcreator_api.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
+      CELERY_SECURE_WORKER: "on"
+    volumes:
+      - type: bind
+        source: ../api/src/
+        target: /app/api/
+      - type: bind
+        source: ../rendering/dist
+        target: /app/rendering/dist/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      rendering-builder:
+        condition: service_started
   languagetool:
     build: 
-      context: languagetool
+      context: ../languagetool
     init: true
     environment:
       Java_Xmx: "2g"
@@ -45,7 +95,7 @@ services:
     build:
       context: ..
       target: api-dev
-    command: sh -c "python3 manage.py migrate && python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python3 manage.py migrate && python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver --nothreading 0.0.0.0:8000"
     volumes:
       - type: volume
         source: app-data
@@ -69,15 +119,17 @@ services:
       DATABASE_USER: reportcreator
       DATABASE_PASSWORD: reportcreator
       SPELLCHECK_URL: http://languagetool:8010/
-      PDF_RENDER_SCRIPT_PATH: /app/rendering/dist/bundle.js
       MEDIA_ROOT: /data/
       ENCRYPTION_KEYS: '[{"id": "local-dev-key", "key": "t02ZBxs4cl6xi7aSO46PVhUbEUNcRjIeyr0eF/OUQOg=", "cipher": "AES-GCM"}]'
       DEFAULT_ENCRYPTION_KEY_ID: local-dev-key
+      CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
+      CELERY_RESULT_BACKEND: reportcreator_api.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
+      MFA_FIDO2_RP_ID: localhost
     env_file: app.env
     depends_on:
       db:
         condition: service_healthy
-      rendering:
+      rendering-worker:
         condition: service_started
       languagetool:
         condition: service_started
@@ -93,6 +145,9 @@ services:
       - type: bind
         source: ../packages/
         target: /app/packages/
+      - type: bind
+        source: ../packages/pdfviewer/dist/
+        target: /app/frontend/static/pdfviewer/
     expose:
       - 3000
     ports:
@@ -102,6 +157,8 @@ services:
     depends_on:
       api:
         condition: service_started
+      pdfviewer-builder:
+        condition: service_started
       
     
 
@@ -109,5 +166,8 @@ services:
 volumes:
   db-data:
     name: reportcreator-db-data
+  mq-data:
+    name: reportcreator-mq-data
   app-data:
     name: reportcreator-app-data
+

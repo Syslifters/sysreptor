@@ -5,6 +5,7 @@ from django.http import FileResponse, StreamingHttpResponse
 from django.test import override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
+from reportcreator_api.users.models import AuthIdentity
 from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, SourceEnum
 from reportcreator_api.tests.mock import create_user, create_project, create_project_type, create_template, create_png_file
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates
@@ -140,13 +141,13 @@ def expect_result(urls, allowed_users=None):
 def public_urls():
     return [
         ('utils healthcheck', lambda s, c: c.get(reverse('utils-healthcheck'))),
+        ('utils settings', lambda s, c: c.get(reverse('utils-settings'))),
     ]
 
 
 def guest_urls():
     return [
         ('utils list', lambda s, c: c.get(reverse('utils-list'))),
-        ('utils settings', lambda s, c: c.get(reverse('utils-settings'))),
 
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': 'self'}, retrieve=True, update=True, update_partial=True),
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {}, list=True),
@@ -192,9 +193,10 @@ def designer_urls():
 
 def user_manager_urls():
     return [
-        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, create=True, create_data={'username': 'other', 'password': 'D40C4dEyH9Naam6!'}, update=True, update_partial=True),
+        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, create=True, create_data={'username': 'new', 'password': 'D40C4dEyH9Naam6!'}, update=True, update_partial=True),
         ('pentestuser reset-password', lambda s, c: c.post(reverse('pentestuser-reset-password', kwargs={'pk': s.user_other.pk}), data={'password': 'D40C4dEyH9Naam6!'})),
         *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.mfa_methods.get(is_primary=True).pk} if detail else {}), list=True, retrieve=True, destroy=True),
+        *viewset_urls('authidentity', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.auth_identities.first().pk} if detail else {}), list=True, retrieve=True, create=True, create_data={'identifier': 'other.identifier'}, update=True, update_partial=True, destroy=True),
     ]
 
 
@@ -270,7 +272,9 @@ class TestApiRequestsAndPermissions:
             'superuser': self.user_superuser,
         }
 
-        self.user_other = create_user(mfa=True)
+        self.user_other = create_user(username='other', mfa=True)
+        AuthIdentity.objects.create(user=self.user_other, provider='dummy', identifier='other.user@example.com')
+
         self.current_user = None
     
         self.project = create_project(members=self.user_map.values())
@@ -283,11 +287,18 @@ class TestApiRequestsAndPermissions:
 
         self.template = create_template()
 
+        # Override settings
         with override_settings(
+                CELERY_TASK_ALWAYS_EAGER=True,
                 GUEST_USERS_CAN_IMPORT_PROJECTS=False,
                 GUEST_USERS_CAN_CREATE_PROJECTS=False,
                 GUEST_USERS_CAN_DELETE_PROJECTS=False,
                 GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=False,
+                AUTHLIB_OAUTH_CLIENTS={
+                    'dummy': {
+                        'label': 'Dummy',
+                    }
+                }
             ):
             yield
 

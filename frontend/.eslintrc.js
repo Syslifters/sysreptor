@@ -29,6 +29,7 @@ module.exports = {
     "operator-linebreak": "off",
     "quotes": "off",
     "vue/html-self-closing": "off",
+    "vue/valid-v-slot": "off",
 
     "no-unused-vars": "warn",
     "vue/no-unused-components": "warn",

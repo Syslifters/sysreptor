@@ -67,9 +67,7 @@
 </template>
 
 <script>
-import MemberSelection from '~/components/MemberSelection.vue';
 export default {
-  components: { MemberSelection },
   beforeRouteLeave(to, from, next) {
     this.$refs.toolbar.beforeLeave(to, from, next);
   },

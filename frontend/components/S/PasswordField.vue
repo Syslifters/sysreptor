@@ -5,6 +5,7 @@
       :value="value" @input="passwordChanged"
       :type="showPassword ? 'text' : 'password'"
       :label="label"
+      :disabled="disabled"
       :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
       @click:append="showPassword = !showPassword"
       :loading="showStrength"
@@ -28,6 +29,7 @@
       v-model="passwordConfirmValue"
       :type="showPassword ? 'text' : 'password'"
       :label="label + ' (confirm)'"
+      :disabled="disabled"
       :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
       @click:append="showPassword = !showPassword"
       :rules="rules.confirmMatches"
@@ -52,6 +54,10 @@ export default {
     label: {
       type: String,
       default: 'Password',
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
     confirm: {
       type: Boolean,

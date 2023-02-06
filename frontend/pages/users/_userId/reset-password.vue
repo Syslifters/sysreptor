@@ -1,19 +1,18 @@
 <template>
-  <v-container>
-    <v-form ref="form">
-      <edit-toolbar :form="$refs.form" :save="changePassword">
-        <template #title>Reset password of {{ user.username }}<template v-if="user.name"> ({{ user.name }})</template></template>
-        <template #save-button-text>Reset Password</template>
-      </edit-toolbar>
+  <v-form ref="form">
+    <edit-toolbar :form="$refs.form" :save="changePassword">
+      <template #title>Reset password of {{ user.username }}<template v-if="user.name"> ({{ user.name }})</template></template>
+      <template #save-button-text>Reset Password</template>
+    </edit-toolbar>
 
-      <s-password-field 
-        v-model="password" 
-        label="New password"
-        :error-messages="serverErrors?.password" 
-        confirm show-strength
-      />
-    </v-form>
-  </v-container>
+    <s-password-field 
+      v-model="password" 
+      label="New password"
+      :error-messages="serverErrors?.password" 
+      confirm show-strength
+      :disabled="!canEdit"
+    />
+  </v-form>
 </template>
 
 <script>
@@ -29,6 +28,11 @@ export default {
       serverErrors: null,
     }
   },
+  computed: {
+    canEdit() {
+      return this.$auth.hasScope('user_manager') && !this.user.is_system_user;
+    }
+  },
   methods: {
     async changePassword() {
       try {
@@ -41,9 +45,6 @@ export default {
       } catch (error) {
         if (error?.response?.status === 400 && error?.response?.data) {
           this.serverErrors = error.response.data;
-        } else if (error?.response?.data?.code === 'reauth-required') {
-          this.$auth.$storage.setUniversal('redirect', this.$route.path);
-          this.$auth.redirect('reauth');
         }
         throw error;
       }

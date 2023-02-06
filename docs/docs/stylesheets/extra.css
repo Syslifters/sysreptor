@@ -254,10 +254,9 @@
   --md-code-hl-string-color: #0098DB;
 }
 
-:root {
+[data-md-color-scheme="default"] {
     /* Font */
     --md-text-font: "Exo";
-    --md-default-fg-color--light: #001827;
 
     /* Primary color shades */
     --md-primary-fg-color: #001827;
@@ -288,6 +287,14 @@
     --md-footer-fg-color: #F9FDFF;
     --md-footer-fg-color--light: #F9FDFF;
     --md-footer-fg-color--lighter: #F9FDFF;
+  }
+
+  .md-header__button.md-logo {
+    margin: 0.1rem;
+    padding: 0.1rem;
+  }
+  .md-header__button.md-logo img {
+    height: 2.5rem;
   }
 
   .md-footer {

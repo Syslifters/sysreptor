@@ -545,10 +545,35 @@ export const CVSS31_DEFINITION = Object.freeze({
   }
 });
 
-export const CVSS3_METRICS = Object.freeze(Object.fromEntries(Object.values(CVSS31_DEFINITION).map(m => [m.id, m.choices.map(c => c.id)])));
-export const CVSS3_BASE_METRICS = Object.freeze(['AV', 'AC', 'PR', 'UI', 'S', 'C', 'I', 'A']);
-export const CVSS3_TEMPORAL_METRICS = Object.freeze(['E', 'RL', 'RC']);
-export const CVSS3_ENVIRONMENTAL_METRICS = Object.freeze(['CR', 'IR', 'AR', 'MAV', 'MAC', 'MPR', 'MUI', 'MS', 'MC', 'MI', 'MA']);
+const CVSS3_METRICS_BASE = Object.freeze({
+  AV: { N: 0.85, A: 0.62, L: 0.55, P: 0.2 },
+  AC: { L: 0.77, H: 0.44 },
+  PR: { N: { U: 0.85, C: 0.85 }, L: { U: 0.62, C: 0.68 }, H: { U: 0.27, C: 0.5 } },
+  UI: { N: 0.85, R: 0.62 },
+  S: { U: 'U', C: 'C' },
+  C: { N: 0, L: 0.22, H: 0.56 },
+  I: { N: 0, L: 0.22, H: 0.56 },
+  A: { N: 0, L: 0.22, H: 0.56 },
+});
+const CVSS3_METRICS_TEMPORAL = Object.freeze({
+  E: { X: 1, H: 1, F: 0.97, P: 0.94, U: 0.91 },
+  RL: { X: 1, U: 1, W: 0.97, T: 0.96, O: 0.95 },
+  RC: { X: 1, C: 1, R: 0.96, U: 0.92 },
+});
+const CVSS3_METRICS_ENVIRONMENTAL = Object.freeze({
+  CR: { X: 1, L: 0.5, M: 1, H: 1.5 },
+  IR: { X: 1, L: 0.5, M: 1, H: 1.5 },
+  AR: { X: 1, L: 0.5, M: 1, H: 1.5 },
+  MAV: { X: null, N: 0.85, A: 0.62, L: 0.55, P: 0.2 },
+  MAC: { X: null, L: 0.77, H: 0.44 },
+  MPR: { X: null, N: { U: 0.85, C: 0.85 }, L: { U: 0.62, C: 0.68 }, H: { U: 0.27, C: 0.5 } },
+  MUI: { X: null, N: 0.85, R: 0.62 },
+  MS: { X: null, U: 'U', C: 'C' },
+  MC: { X: null, N: 0, L: 0.22, H: 0.56 },
+  MI: { X: null, N: 0, L: 0.22, H: 0.56 },
+  MA: { X: null, N: 0, L: 0.22, H: 0.56 },
+});
+const CVSS3_METRICS = Object.freeze(Object.assign({}, CVSS3_METRICS_BASE, CVSS3_METRICS_TEMPORAL, CVSS3_METRICS_ENVIRONMENTAL));
 
 export function parseVector(vector) {
   // Vector to string
@@ -571,7 +596,7 @@ export function parseVector(vector) {
 export function stringifyVector(parsedVector) {
   let out = 'CVSS:3.1';
   for (const [k, vs] of Object.entries(CVSS3_METRICS)) {
-    if (k in parsedVector && vs.includes(parsedVector[k]) && parsedVector[k] !== 'X') {
+    if (k in parsedVector && parsedVector[k] in vs && parsedVector[k] !== 'X') {
       out += `/${k}:${parsedVector[k]}`;
     }
   }
@@ -588,13 +613,13 @@ export function isValidVector(vector) {
 
   // Only allowed values defined
   for (const [k, v] of Object.entries(parsedVector)) {
-    if (!(k in CVSS3_METRICS) || !CVSS3_METRICS[k].includes(v)) {
+    if (!(k in CVSS3_METRICS && v in CVSS3_METRICS[k])) {
       return false;
     }
   }
 
   // all base metrics defined
-  for (const m of CVSS3_BASE_METRICS) {
+  for (const m of Object.keys(CVSS3_METRICS_BASE)) {
     if (!(m in parsedVector)) {
       return false;
     }
@@ -604,13 +629,109 @@ export function isValidVector(vector) {
 }
 
 function roundUp(num) {
-  return Math.ceil(num * 10.0) / 10.0;
-  // const intNum = Math.round(num * 100000);
-  // if (intNum % 100000 === 0) {
-  //   return intNum / 100000.0;
-  // } else {
-  //   return (Math.floor(intNum / 10000) + 1) / 10.0;
-  // }
+  const intNum = Math.round(num * 100000);
+  if (intNum % 10000 === 0) {
+    return intNum / 100000.0;
+  } else {
+    return (Math.floor(intNum / 10000) + 1) / 10.0;
+  }
+}
+
+function calculateScoreCvss31(vector) {
+  if (!isValidVector(vector)) {
+    return null;
+  }
+  const values = parseVector(vector);
+
+  function hasMetricGroup(group) {
+    return Object.keys(group)
+      .filter(k => k in values && values[k] !== 'X')
+      .length > 0;
+  }
+
+  function metric(name, modified = false) {
+    if (modified) {
+      const m = CVSS3_METRICS['M' + name]?.[values['M' + name]];
+      if (![undefined, null, 'X'].includes(m)) {
+        return m;
+      }
+    }
+    const m = CVSS3_METRICS[name]?.[values[name]];
+    if (![undefined, null].includes(m)) {
+      return m;
+    }
+    return CVSS3_METRICS[name]?.X;
+  }
+
+  // Environmental score
+  if (hasMetricGroup(CVSS3_METRICS_ENVIRONMENTAL)) {
+    const mScopeChanged = metric('S', true) === 'C';
+    const miss = Math.min(1 - (
+      (1 - metric('C', true) * metric('CR')) *
+      (1 - metric('I', true) * metric('IR')) *
+      (1 - metric('A', true) * metric('AR'))
+    ), 0.915);
+    const mImpact = mScopeChanged ?
+      7.52 * (miss - 0.029) - 3.25 * Math.pow(miss * 0.9731 - 0.02, 13) :
+      6.42 * miss;
+    const mExploitability = 8.22 * metric('AV', true) * metric('AC', true) * metric('PR', true)[metric('S', true)] * metric('UI', true);
+    const envScore = (mImpact <= 0) ? 0 : mScopeChanged ? 
+      roundUp(roundUp(Math.min(1.08 * (mImpact + mExploitability), 10)) * metric('E') * metric('RL') * metric('RC')) :
+      roundUp(roundUp(Math.min(mImpact + mExploitability, 10)) * metric('E') * metric('RL') * metric('RC'));
+    return envScore;
+  }
+
+  // Base score
+  const scopeChanged = metric('S') === 'C';
+  const iss = 1 - ((1 - metric('C')) * (1 - metric('I')) * (1 - metric('A')))
+  const impact = scopeChanged ? 
+      (7.52 * (iss - 0.029) - 3.25 * Math.pow(iss - 0.02, 15)) :
+    6.42 * iss;
+  const exploitability = 8.22 * metric('AV') * metric('AC') * metric('PR')[metric('S')] * metric('UI');
+  let score = (impact <= 0) ? 0 : scopeChanged ? 
+    roundUp(Math.min(1.08 * (impact + exploitability), 10)) :
+    roundUp(Math.min(impact + exploitability, 10));
+
+  if (hasMetricGroup(CVSS3_METRICS_TEMPORAL)) {
+    score = roundUp(score * metric('E') * metric('RL') * metric('RC'));
+  }
+  return score;
+}
+
+function calculateScoreCvss30(vector) {
+  if (!isValidVector(vector)) {
+    return null;
+  }
+  const values = parseVector(vector);
+
+  function metric(name, modified = false) {
+    if (modified) {
+      const m = CVSS3_METRICS['M' + name]?.[values['M' + name]];
+      if (![undefined, null, 'X'].includes(m)) {
+        return m;
+      }
+    }
+    const m = CVSS3_METRICS[name]?.[values[name]];
+    if (![undefined, null].includes(m)) {
+      return m;
+    }
+    return CVSS3_METRICS[name]?.X;
+  }
+
+  const mScopeChanged = metric('S', true) === 'C';
+  const isc = Math.min(1 - (
+    (1 - metric('C', true) * metric('CR')) *
+    (1 - metric('I', true) * metric('IR')) *
+    (1 - metric('A', true) * metric('AR'))
+  ), 0.915);
+  const mImpact = mScopeChanged ?
+    7.52 * (isc - 0.029) - 3.25 * Math.pow(isc - 0.02, 15) :
+    6.42 * isc;
+  const mExploitability = 8.22 * metric('AV', true) * metric('AC', true) * metric('PR', true)[metric('S', true)] * metric('UI', true);
+  const envScore = (mImpact <= 0) ? 0 : mScopeChanged ? 
+    roundUp(roundUp(Math.min(1.08 * (mImpact + mExploitability), 10)) * metric('E') * metric('RL') * metric('RC')) :
+    roundUp(roundUp(Math.min(mImpact + mExploitability, 10)) * metric('E') * metric('RL') * metric('RC'));
+  return envScore;
 }
 
 export function scoreFromVector(vector) {
@@ -618,96 +739,12 @@ export function scoreFromVector(vector) {
     return null;
   }
 
-  const parsedVector = parseVector(vector);
-
-  // CVSS calculation based on https://www.first.org/cvss/v3.0/specification-document
-  const scopeChanged = ([undefined, null, 'X'].includes(parsedVector.MS) ? parsedVector.S : parsedVector.MS) === 'C';
-  // PR weight depends on S
-  const prWeights = scopeChanged ? { X: 0.85, N: 0.85, L: 0.68, H: 0.50 } : { X: 0.85, N: 0.85, L: 0.62, H: 0.27 };
-  const avWeights = { N: 0.85, A: 0.62, L: 0.55, P: 0.2 };
-  const acWeights = { L: 0.77, H: 0.44 };
-  const uiWeights = { N: 0.85, R: 0.62 };
-  const ciaWeights = { N: 0, L: 0.22, H: 0.56 };
-  const ciaRequirementsWeights = { X: 1, L: 0.5, M: 1, H: 1.5 };
-  const weights = {
-    // Base score
-    AV: avWeights,
-    AC: acWeights,
-    PR: prWeights,
-    UI: uiWeights,
-    C: ciaWeights,
-    I: ciaWeights,
-    A: ciaWeights,
-
-    // Temporal score
-    E: { X: 1, U: 0.91, P: 0.94, F: 0.97, H: 1 },
-    RL: { X: 1, U: 1, W: 0.97, T: 0.96, O: 0.95 },
-    RC: { X: 1, U: 0.92, R: 0.96, C: 1 },
-
-    // Environmental score
-    CR: ciaRequirementsWeights,
-    IR: ciaRequirementsWeights,
-    AR: ciaRequirementsWeights,
-    MAV: avWeights,
-    MAC: acWeights,
-    MPR: prWeights,
-    MUI: uiWeights,
-    MC: ciaWeights,
-    MI: ciaWeights,
-    MA: ciaWeights,
-  };
-
-  function metric(m, modifiedOnly = false) {
-    let val = null;
-    if (!modifiedOnly) {
-      val = parsedVector['M' + m];
-      if (val === 'X' || val === undefined) {
-        val = null;
-      }
-    }
-
-    if (val === null) {
-      val = parsedVector[m];
-    } else {
-      m = 'M' + m;
-    }
-
-    if (modifiedOnly && [null, undefined].includes(val)) {
-      val = 'X';
-    }
-
-    return weights[m][val];
-  }
-
-  // Environmental Score calculation (this is the final score shown to the customer)
-  if (vector.startsWith('CVSS:3.0')) {
-    let impact = Math.min(1 - ((1 - metric('C') * metric('CR', true)) *
-      (1 - metric('I') * metric('IR', true)) *
-      (1 - metric('A') * metric('AR', true))), 0.915);
-    impact = scopeChanged ?
-      7.52 * (impact - 0.029) - 3.25 * Math.pow(impact - 0.02, 15) :
-      6.42 * impact;
-    const exploitability = 8.22 * metric('AV') * metric('AC') * metric('PR') * metric('UI');
-    let score = (impact <= 0) ? 0 :
-      scopeChanged ? roundUp(Math.min(1.08 * (impact + exploitability), 10)) :
-        roundUp(Math.min(impact + exploitability, 10));
-    score = roundUp(score * metric('E', true) * metric('RL', true) * metric('RC', true));
-    return score;
+  if (vector.startsWith('CVSS:3.1')) {
+    return calculateScoreCvss31(vector);
+  } else if (vector.startsWith('CVSS:3.0')) {
+    return calculateScoreCvss30(vector);
   } else {
-    let impact = Math.min(1 - (
-      (1 - metric('C') * metric('CR', true)) *
-      (1 - metric('I') * metric('IR', true)) *
-      (1 - metric('A') * metric('AR', true))
-    ), 0.915);
-    impact = scopeChanged ?
-      7.52 * (impact - 0.029) - 3.25 * Math.pow(impact * 0.9731 - 0.02, 13) :
-      6.42 * impact;
-    const exploitability = 8.22 * metric('AV') * metric('AC') * metric('PR') * metric('UI');
-    const score = (impact <= 0) ? 0 :
-      scopeChanged ? 
-        roundUp(roundUp(Math.min(1.08 * (impact + exploitability), 10)) * metric('E', true) * metric('RL', true) * metric('RC', true)) :
-        roundUp(roundUp(Math.min(impact + exploitability, 10)) * metric('E', true) * metric('RL', true) * metric('RC', true));
-    return score;
+    return null;
   }
 }
 

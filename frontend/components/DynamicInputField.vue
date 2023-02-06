@@ -1,13 +1,14 @@
 <template>
   <div :id="id" class="mt-4"> 
     <!-- String -->
-    <s-text-field
+    <markdown-text-field
       v-if="definition.type === 'string'"
       :value="formValue"
       @input="emitInput"
       :label="label"
       :disabled="disabled"
       :lang="lang"
+      :spellcheck-supported="definition.spellcheck"
     />
 
     <!-- Markdown -->
@@ -125,6 +126,8 @@
         :id="id ? (id + '.' + objectFieldId) : null"
         :show-field-ids="showFieldIds"
         :selectable-users="selectableUsers"
+        :upload-image="uploadImage"
+        :rewrite-image-url="rewriteImageUrl"
         :disabled="disabled"
         :lang="lang"
       />
@@ -175,6 +178,8 @@
               :id="id ? (id + '[' + entryIdx + ']') : null"
               :show-field-ids="showFieldIds"
               :selectable-users="selectableUsers"
+              :upload-image="uploadImage"
+              :rewrite-image-url="rewriteImageUrl"
               :disabled="disabled"
               :lang="lang"
             />

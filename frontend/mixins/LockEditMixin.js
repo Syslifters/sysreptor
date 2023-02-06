@@ -1,18 +1,42 @@
 import { cloneDeep } from "lodash";
 import urlJoin from "url-join"
-import { EditMode } from '~/components/EditToolbar.vue';
+import { EditMode } from '~/utils/other';
 
 export default {
-  beforeRouteLeave(to, from, next) {
-    this.$refs.toolbar.beforeLeave(to, from, next);
+  async beforeRouteLeave(to, from, next) {
+    if (this.$refs.toolbar) {
+      await this.$refs.toolbar.beforeLeave(to, from, (res = true) => {
+        this.navigationInProgress = res;
+      });
+      await this.$nextTick();
+      next(this.navigationInProgress);
+    } else {
+      next();
+    }
   },
-  beforeRouteUpdate(to, from, next) {
-    this.$refs.toolbar.beforeLeave(to, from, next);
+  async beforeRouteUpdate(to, from, next) {
+    if (this.$refs.toolbar) {
+      await this.$refs.toolbar.beforeLeave(to, from, (res = true) => {
+        this.navigationInProgress = res;
+      });
+      await this.$nextTick();
+      next(this.navigationInProgress);
+      if (this.navigationInProgress) {
+        // Synchronize beforeRouteUpdate and $fetch such that no race conditions occur (and toolbar events for unlocking are not handled)
+        if (this.$fetch) {
+          await this.$fetch();
+        }
+        this.navigationInProgress = false;
+      }
+    } else {
+      next();
+    }
   },
   data() {
     const hasEditPermissions = this.getHasEditPermissions();
     return {
       editMode: hasEditPermissions ? EditMode.EDIT : EditMode.READONLY,
+      navigationInProgress: false,
     };
   },
   computed: {
@@ -20,7 +44,7 @@ export default {
       throw new Error('Not implemented');
     },
     baseUrl() {
-      return this.getBaseUrl(this.data);
+      return this.data ? this.getBaseUrl(this.data) : null;
     },
     lockUrl() {
       return urlJoin(this.baseUrl, '/lock/');
@@ -30,6 +54,14 @@ export default {
     },
     deleteConfirmInput() {
       return null;
+    },
+    fetchLoaderAttrs() {
+      return {
+        fetchState: {
+          ...this.$fetchState,
+          pending: this.$fetchState?.pending || this.navigationInProgress,
+        }
+      };
     },
     toolbarAttrs() {
       return {
@@ -70,10 +102,17 @@ export default {
       },
       immediate: true,
     },
+    '$fetchState.pending'(val) {
+      if (!val && this.data) {
+        this.updateInStore(cloneDeep(this.data));
+      }
+    }
   },
   mounted() {
-    // Set initial value in store to update lock info
-    this.updateInStore(cloneDeep(this.data));
+    if (!this.$fetchState || (!this.$fetchState.pending && this.data)) {
+      // Set initial value in store to update lock info
+      this.updateInStore(cloneDeep(this.data));
+    }
   },
   methods: {
     getBaseUrl(data) {

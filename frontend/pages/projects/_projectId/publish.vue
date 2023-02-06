@@ -24,7 +24,7 @@
                 <s-btn 
                   :to="`/designer/${projectType.id}/pdfdesigner/`" 
                   :disabled="!$auth.hasScope('designer') || ['customized', 'imported_dependency'].includes(projectType.source)"
-                  nuxt-link
+                  nuxt
                   color="secondary"
                 >
                   <v-icon>mdi-file-edit</v-icon>

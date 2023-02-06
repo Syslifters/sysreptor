@@ -1,7 +1,4 @@
-# PolyForm Internal Use License 1.0.0
-
-<https://polyformproject.org/licenses/internal-use/1.0.0>{ target=_blank }
-
+# SysReptor License 1.0
 ## Acceptance
 
 In order to get any license under these terms, you must agree
@@ -13,16 +10,8 @@ your licenses.
 The licensor grants you a copyright license for the software
 to do everything you might do with the software that would
 otherwise infringe the licensor's copyright in it for any
-permitted purpose.  However, you may only make changes or
-new works based on the software according to [Changes and New
-Works License](#changes-and-new-works-license), and you may
-not distribute the software.
-
-## Changes and New Works License
-
-The licensor grants you an additional copyright license to
-make changes and new works based on the software for any
-permitted purpose.
+permitted purpose, other than distributing the software or
+making changes or new works based on the software.
 
 ## Patent License
 
@@ -30,15 +19,23 @@ The licensor grants you a patent license for the software that
 covers patent claims the licensor can license, or becomes able
 to license, that you would infringe by using the software.
 
-## Fair Use
-
-You may have "fair use" rights for the software under the
-law. These terms do not limit them.
-
 ## Internal Business Use
 
 Use of the software for the internal business operations of
 you and your company is use for a permitted purpose.
+
+## Personal Uses
+
+Personal use for research, experiment, and testing for
+the benefit of public knowledge, personal study, private
+entertainment, hobby projects, amateur pursuits, or religious
+observance, without any anticipated commercial application,
+is use for a permitted purpose.
+
+## Fair Use
+
+You may have "fair use" rights for the software under the
+law. These terms do not limit them.
 
 ## No Other Rights
 
@@ -94,3 +91,5 @@ software under these terms.
 
 **Use** means anything you do with the software requiring one
 of your licenses.
+
+**Last Updated:** 20 January 2023

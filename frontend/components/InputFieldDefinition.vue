@@ -48,6 +48,15 @@
               class="mt-0"
             />
           </v-col>
+          <v-col class="mt-0 pt-0" v-if="value.type === DATA_TYPES.string">
+            <s-checkbox 
+              :value="value.spellcheck"
+              @input="emitInputVal('spellcheck', $event)"
+              :disabled="disabled"
+              label="Spellcheck Supported"
+              hint="Support spellchecking for this fields text content."
+            />
+          </v-col>
         </v-row>
       </template>
       <s-select

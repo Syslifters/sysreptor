@@ -1,72 +1,70 @@
 <template>
-  <div>
-    <split-menu v-model="menuSize">
-      <template #menu>
-        <v-list dense>
-          <v-list-item-group v-model="currentItem" mandatory>
-            <v-subheader>Sections</v-subheader>
-            <v-list-item v-for="section in projectType.report_sections" :key="section.id" :value="section" link>
-              <v-list-item-title>{{ section.label }}</v-list-item-title>
-            </v-list-item>
+  <split-menu v-model="menuSize">
+    <template #menu>
+      <v-list dense>
+        <v-list-item-group v-model="currentItem" mandatory>
+          <v-subheader>Sections</v-subheader>
+          <v-list-item v-for="section in projectType.report_sections" :key="section.id" :value="section" link>
+            <v-list-item-title>{{ section.label }}</v-list-item-title>
+          </v-list-item>
 
-            <v-subheader>Findings</v-subheader>
-            <v-list-item 
-              v-for="finding in projectType.report_preview_data.findings" :key="finding.id" 
-              :value="finding" 
-              :class="'finding-level-' + riskLevel(finding.cvss)"
-              link
-            >
-              <v-list-item-title>{{ finding.title }}</v-list-item-title>
-              <v-list-item-action>
-                <btn-delete :delete="() => deleteFinding(finding)" :disabled="disabled" icon x-small />
-              </v-list-item-action>
-            </v-list-item>
-          </v-list-item-group>
-          <v-list-item>
+          <v-subheader>Findings</v-subheader>
+          <v-list-item 
+            v-for="finding in projectType.report_preview_data.findings" :key="finding.id" 
+            :value="finding" 
+            :class="'finding-level-' + riskLevel(finding.cvss)"
+            link
+          >
+            <v-list-item-title>{{ finding.title }}</v-list-item-title>
             <v-list-item-action>
-              <s-btn @click="createFinding" :disabled="disabled" color="secondary" x-small>
-                <v-icon>mdi-plus</v-icon>
-                Create
-              </s-btn>
+              <btn-delete :delete="() => deleteFinding(finding)" :disabled="disabled" icon x-small />
             </v-list-item-action>
           </v-list-item>
-        </v-list>
-      </template>
+        </v-list-item-group>
+        <v-list-item>
+          <v-list-item-action>
+            <s-btn @click="createFinding" :disabled="disabled" color="secondary" x-small>
+              <v-icon>mdi-plus</v-icon>
+              Create
+            </s-btn>
+          </v-list-item-action>
+        </v-list-item>
+      </v-list>
+    </template>
 
-      <template #default>
-        <template v-if="currentItemIsSection">
-          <div v-for="fieldId in currentItem.fields" :key="fieldId">
-            <dynamic-input-field 
-              :value="value.report[fieldId]" @input="updateSectionField(fieldId, $event)" 
-              :id="fieldId"
-              :definition="projectType.report_fields[fieldId]" 
-              :show-field-ids="true"
-              :upload-image="uploadImage" 
-              :rewrite-image-url="rewriteImageUrl"
-              :selectable-users="[$auth.user]"
-              :lang="projectType.language"
-              :disabled="disabled"
-            />
-          </div>
-        </template>
-        <template v-else-if="currentItemIsFinding">
-          <div v-for="fieldId in projectType.finding_field_order" :key="currentItem.id + fieldId">
-            <dynamic-input-field 
-              :value="currentItem[fieldId]" @input="updateFindingField(fieldId, $event)" 
-              :id="fieldId"
-              :definition="projectType.finding_fields[fieldId]" 
-              :show-field-ids="true"
-              :upload-image="uploadImage" 
-              :rewrite-image-url="rewriteImageUrl"
-              :selectable-users="[$auth.user]"
-              :lang="projectType.language"
-              :disabled="disabled"
-            />
-          </div>
-        </template>
+    <template #default>
+      <template v-if="currentItemIsSection">
+        <div v-for="fieldId in currentItem.fields" :key="fieldId">
+          <dynamic-input-field 
+            :value="value.report[fieldId]" @input="updateSectionField(fieldId, $event)" 
+            :id="fieldId"
+            :definition="projectType.report_fields[fieldId]" 
+            :show-field-ids="true"
+            :upload-image="uploadImage" 
+            :rewrite-image-url="rewriteImageUrl"
+            :selectable-users="[$auth.user]"
+            :lang="projectType.language"
+            :disabled="disabled"
+          />
+        </div>
       </template>
-    </split-menu>
-  </div>
+      <template v-else-if="currentItemIsFinding">
+        <div v-for="fieldId in projectType.finding_field_order" :key="currentItem.id + fieldId">
+          <dynamic-input-field 
+            :value="currentItem[fieldId]" @input="updateFindingField(fieldId, $event)" 
+            :id="fieldId"
+            :definition="projectType.finding_fields[fieldId]" 
+            :show-field-ids="true"
+            :upload-image="uploadImage" 
+            :rewrite-image-url="rewriteImageUrl"
+            :selectable-users="[$auth.user]"
+            :lang="projectType.language"
+            :disabled="disabled"
+          />
+        </div>
+      </template>
+    </template>
+  </split-menu>
 </template>
 
 <script>

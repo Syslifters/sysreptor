@@ -4,8 +4,10 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
-from reportcreator_api.users.models import PentestUser, MFAMethod, MFAMethodType
+from django.conf import settings
+from reportcreator_api.users.models import PentestUser, MFAMethod, MFAMethodType, AuthIdentity
 from reportcreator_api.utils.utils import omit_items
+
 
 class PentestUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,12 +25,14 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
             'email', 'phone', 'mobile',
             'scope', 'is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user',
-            'is_mfa_enabled',
+            'is_mfa_enabled', 'can_login_local', 'can_login_oidc',
         ]
         read_only_fields = ['is_system_user']
 
     def get_is_mfa_enabled(self, obj):
-        return getattr(obj, 'is_mfa_enabled', False)
+        if (is_mfa_enabled := getattr(obj, 'is_mfa_enabled', None)) is not None:
+            return is_mfa_enabled
+        return obj.mfa_methods.all().exists()
     
     def get_extra_kwargs(self):
         user = self.context['request'].user
@@ -46,10 +50,13 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
 class CreateUserSerializer(PentestUserDetailSerializer):
     class Meta(PentestUserDetailSerializer.Meta):
         fields = PentestUserDetailSerializer.Meta.fields + ['password']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True, **({'required': False, 'allow_null': True, 'default': None} if settings.AUTHLIB_OAUTH_CLIENTS else {})}
+        }
     
     def validate_password(self, value):
-        validate_password(value, user=self.instance)
+        if value is not None:
+            validate_password(value, user=self.instance)
         return make_password(value)
 
 
@@ -156,7 +163,6 @@ class LoginMFACodeSerializer(serializers.Serializer):
         return mfa_method
 
 
-
 class MFAMethodRegisterSerializerBase(serializers.Serializer):
     @property
     def method_type(self):
@@ -193,5 +199,21 @@ class MFAMethodRegisterFIDO2Serializer(MFAMethodRegisterSerializerBase):
     method_type = MFAMethodType.FIDO2
 
     def update(self, instance, validated_data):
-        instance = MFAMethod.objects.create_fido2_complete(instance=instance, response=self.initial_data, save=False)
+        try:
+            instance = MFAMethod.objects.create_fido2_complete(instance=instance, response=self.initial_data, save=False)
+        except ValueError as ex:
+            if ex.args and len(ex.args) == 1 and isinstance(ex.args[0], str):
+                raise serializers.ValidationError(ex.args[0], 'fido2') from ex
+            else:
+                raise ex
         return super().update(instance, validated_data)
+
+
+class AuthIdentitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AuthIdentity
+        fields = ['provider', 'identifier']
+    
+    def create(self, validated_data):
+        return super().create(validated_data | {'user': self.context['user']})
+    

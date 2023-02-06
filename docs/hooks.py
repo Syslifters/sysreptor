@@ -6,8 +6,8 @@ import os
 SOFTWARE_FILE = 'reporting_software.yml'
 DOCUMENT_CONTENT = '''---
 {metadata}
-hide:
-  - navigation
+search:
+  exclude: true
 ---
 
 # {title}
@@ -24,13 +24,23 @@ ALTERNATIVE_TO_PREFACE = '''
 Similar projects and and alternatives to [{name}]({url}){{target=_blank}} Penetration Test Reporting Tool.
 
 '''
-TABLE_HEADER = '''| Name | Pros | Cons | Report Customization | Costs/User/Month |
-| - | - | - | - | - |'''
-TABLE_ROW = '''| {software_icon} [{name}]({url}){{target=_blank}} | :material-arrow-up-box: {pros} | {cons_icon} {cons} | :material-file-document: {customization} | :material-tag: {price} |
-'''
-POSTFACE = """This overview of penetration testing reporting tools has been compiled to the best of our knowledge and belief. We do not guarantee that the information is correct or up-to-date.
 
-:octicons-x-circle-fill-12:{ style="color: #e21212;" } We regard software projects without updates for one year or with missing security patches as discontinued.
+PREFACE = '''
+SysReptor is a Pentest Reporting Tool written by pentesters, for pentesters. It is built with security in mind, best usability and strongest focus on the needs of pentesters.
+
+However, if it does not fit your needs, here is a list of alternative tools.  
+'''
+
+TABLE_HEADER = '''| Name | Report Customization | Deployment | Costs/User/Month |
+| - | - | - | - |'''
+TABLE_ROW = '''| {software_icon} [{name}]({url}){{target=_blank}} | :material-file-document: {customization} | :material-server: {deployment} | :material-tag: {price} |
+'''
+POSTFACE = """
+<br><div style="text-align:center">[:rocket: Sign Up to SysReptor](#){ .md-button .no-print target="_blank" }</div>
+<br>
+This overview of penetration testing reporting tools has been compiled to the best of our knowledge and belief. We do not guarantee that the information is correct or up-to-date.
+
+❌ We regard software projects without updates for one year, with missing security patches or major dependencies without support as discontinued.
 
 We welcome tips on other pentest reporting tools.
 For inquiries and tips write us a short message to hello@syslifters.com.
@@ -49,7 +59,7 @@ def generate_software_lists(*args, **kwargs):
     # Generate "Pentest Reporting Tools" page
     title = f"Pentest Reporting Tools - A List of the most popular tools"
     metadata = f"title: {title}"
-    preface = ""
+    preface = PREFACE
     table = generate_table(software_list)
     postface = POSTFACE
     document = DOCUMENT_CONTENT.format(
@@ -74,8 +84,8 @@ def generate_software_lists(*args, **kwargs):
         preface = ALTERNATIVE_TO_PREFACE.format(
             name=software['name'],
             url=software['url'],
-        )
-        table = generate_table(software_list, skip_software=software['name'])
+        ) + PREFACE
+        table = generate_table(software_list)
         postface = POSTFACE
 
         if not table:
@@ -171,7 +181,11 @@ def check_url_availability(software_list):
 def generate_table(software_list, skip_software=None):
     table_rows = list()
     for software in software_list:
-        software_icon = "[:fire:]{This is us :-)}" if software.get('self') else ""
+        software_icon = ""
+        if software.get('self'):
+            software_icon = "🔥"
+        elif software.get('discontinued'):
+            software_icon = '❌'
         cons_icon = ":material-arrow-down-box:" if not software.get('discontinued') else ':octicons-x-circle-fill-12:{ style="color: #e21212;" }'
 
         table_row = TABLE_ROW.format(
@@ -182,6 +196,7 @@ def generate_table(software_list, skip_software=None):
             cons_icon=cons_icon,
             cons=software['cons'] if software['cons'] else '',
             customization=software['customization'] if software['customization'] else '',
+            deployment=software['deployment'] if software['deployment'] else '',
             price=software['price'] if software['price'] else "",
         )
         

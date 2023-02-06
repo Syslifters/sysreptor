@@ -41,7 +41,7 @@ class UserViewSetPermissions(permissions.BasePermission):
                 # Prevent user_managers from resetting superuser password
                 # This would be a privilege escalation
                 return False
-            check_sensitive_operation_timeout(request)
+            # check_sensitive_operation_timeout(request)
         return True
 
 
@@ -49,12 +49,27 @@ class MFAMethodViewSetPermissons(permissions.BasePermission):
     def has_permission(self, request, view):
         user = view.get_user()
 
-        check_sensitive_operation_timeout(request)
-        if user == request.user:
+        if view.kwargs.get('pentestuser_pk') == 'self':
+            check_sensitive_operation_timeout(request)
             return True
-        elif (request.user.is_superuser or (request.user.is_user_manager and not user.is_superuser)) and not user.is_system_user and view.action in ['list', 'retrieve', 'destroy']:
-            return True
-        return False
+        
+        if not request.user.is_superuser and not request.user.is_user_manager:
+            return False
+        if view.action not in ['list', 'retrieve', 'destroy']:
+            return False
+        if request.user.is_user_manager and user.is_superuser:
+            return False
+        return True
+
+
+class AuthIdentityViewSetPermissions(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = view.get_user()
+        if not (request.user.is_superuser or (request.user.is_user_manager and not user.is_superuser)):
+            return False
+        if user.is_system_user and request.method not in permissions.SAFE_METHODS:
+            return False
+        return True
 
 
 class MFALoginInProgressAuthentication(authentication.BaseAuthentication):

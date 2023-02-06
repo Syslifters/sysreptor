@@ -19,7 +19,7 @@
         <template #activator="{on, attrs}">
           <s-btn 
             :to="`/designer/${returnObject ? value?.id : value}/pdfdesigner/`" 
-            nuxt-link target="_blank"
+            nuxt target="_blank"
             :disabled="!value"
             icon      
             class="mr-2"

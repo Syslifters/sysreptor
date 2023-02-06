@@ -1,3 +1,4 @@
+import functools
 import hmac
 import pyotp
 import qrcode
@@ -9,6 +10,7 @@ from fido2.server import Fido2Server, _verify_origin_for_rp
 from fido2.webauthn import PublicKeyCredentialRpEntity
 from django.conf import settings
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import AbstractUser
 from django.contrib.sessions.base_session import AbstractBaseSession
 from django.utils.translation import gettext_lazy as _
@@ -55,6 +57,24 @@ class PentestUser(BaseModel, AbstractUser):
                (['user_manager'] if self.is_user_manager or self.is_superuser else []) + \
                (['guest'] if self.is_guest and not self.is_superuser else []) + \
                (['system'] if self.is_system_user else [])
+
+    @property
+    def can_login_local(self):
+        return self.password and self.has_usable_password()
+
+    @functools.cached_property
+    def can_login_oidc(self):
+        return bool(self.auth_identities.all())
+
+
+
+class AuthIdentity(BaseModel):
+    user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='auth_identities')
+    provider = models.CharField(max_length=255)
+    identifier = models.CharField(max_length=255)
+
+    class Meta(BaseModel.Meta):
+        unique_together = ['provider', 'identifier']
 
 
 class Session(AbstractBaseSession):
@@ -122,6 +142,9 @@ class MFAMethod(BaseModel):
         rp_id = settings.MFA_FIDO2_RP_ID
 
         def verify_origin(origin):
+            if not settings.MFA_FIDO2_RP_ID:
+                raise ValueError('The setting MFA_FIDO2_RP_ID is not configured. Set it the server origin where you access your instance e.g. "sysreptor.example.com"')
+
             # Do not require HTTPS for localhost
             url = urlparse(origin)
             if rp_id == 'localhost':

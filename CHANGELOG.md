@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.15 - 2023-02-06
+* Support login via OpenID Connect
+* Support offloading PDF rendering to a pool of worker instances
+* Spellchecking and highlighting TODOs in string fields
+* Make toolbar sticky on top of finding, section and template editor
+* Separate scrollbars for side menu and main content
+* Rework PDF Viewer
+
+
 ## v0.14 - 2023-01-03
 * Data-at-rest encryption for files and sensitive DB data
 * Use Session cookies instead of JWT tokens

@@ -1,12 +1,12 @@
 site_name: "SysReptor Docs"
 site_url: "https://docs.sysreptor.com/"
 nav:
-  - Getting Started: index.md
-  - User Permissions: user-permissions.md
-  - Reporting:
-    - Markdown Syntax: reporting/markdown-features.md
-    - Reference Sections: reporting/referencing-sections.md
-    - Locked Findings & Sections: reporting/locking.md
+  - SysReptor: index.md
+  - Features and Pricing: features-and-pricing.md
+  - Installation: installation.md
+  - Markdown Syntax: reporting/markdown-features.md
+  - Reference Sections: reporting/referencing-sections.md
+  #- Locked Findings & Sections: reporting/locking.md
   - Report Designer:
     - Page Layout: designer/page-layout.md
     - Headings and ToC: designer/headings-and-table-of-contents.md
@@ -17,14 +17,16 @@ nav:
     - Design Guides: designer/design-guides.md
     - Formatting Utilities: designer/formatting-utils.md
     - Debugging: designer/debugging.md
-    - Security Concerns: designer/security-concerns.md
-  - Development Roadmap: roadmap.md
+  - User Permissions: user-permissions.md
+  #- Security Considerations: security-considerations.md
+  #- OSCP Reporting: oscp-reporting-with-sysreptor.md
     
 theme:
   name: "material"
-  logo: images/Logo-only.png
+  logo: images/logo.svg
   features:
     - content.code.annotate
+    - search.share
     #- navigation.expand
 
 extra_css:
@@ -32,7 +34,12 @@ extra_css:
   - stylesheets/hint.min.css
 
 plugins:
+  - mkdocs-simple-hooks:
+      enabled: !ENV [ENABLE_MKDOCS_SIMPLE_HOOKS, true]
+      hooks:
+        on_pre_build: "hooks:generate_software_lists"
   - social:
+      cards: !ENV [CARDS, true]
       cards_color:
         fill: "#001827"
         text: "#F9FDFF"
@@ -54,6 +61,11 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
   - md_in_html
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
 
 extra:
   social:
@@ -61,5 +73,6 @@ extra:
       link: https://twitter.com/syslifters
     - icon: fontawesome/brands/linkedin 
       link: https://www.linkedin.com/company/syslifters/
+  generator: false
 
-copyright: "<a href=\"https://www.syslifters.com/\" target=\"_blank\">Our Website</a> | <a href=\"https://www.syslifters.com/impressum\" target=\"_blank\">Imprint</a> | <a href=\"/data-privacy\">Data Privacy</a> | <a href=\"https://docs.syslifters.com/contact-us\" target=\"blank\">Contact</a>"
+copyright: "<a href=\"https://www.syslifters.com/\" target=\"_blank\">Our Website</a> | <a href=\"https://www.syslifters.com/impressum\" target=\"_blank\">Imprint</a> | <a href=\"/data-privacy\">Data Privacy</a> | <a href=\"https://docs.syslifters.com/contact-us\" target=\"blank\">Contact</a><br><br>Die FFG ist die zentrale nationale Förderorganisation und stärkt Österreichs Innovationskraft.<br>Dieses Projekt wird aus Mitteln der FFG gefördert. <a href=\"https://www.ffg.at\" target=\"_blank\">www.ffg.at</a><br>"

@@ -62,6 +62,12 @@ export default {
     ...(process.env.NODE_ENV === 'development' ? ['@nuxtjs/proxy'] : []),
   ],
 
+  // Loading bar
+  loading: {
+    color: 'white',
+    height: '2px'
+  },
+
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
@@ -96,14 +102,14 @@ export default {
     rewriteRedirects: true,
     redirect: {
       login: '/login/',
-      reauth: '/reauth/',
+      reauth: '/login/reauth/',
       logout: '/login/',
       home: '/'
     },
   },
 
   router: {
-    middleware: ['auth'],
+    middleware: ['auth', 'settings'],
   },
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
@@ -205,10 +211,9 @@ export default {
         // Resolve dependencies of local packages
         config.resolve.modules.push(resolve(__dirname, '..', 'packages', 'markdown', 'node_modules'));
 
-        // Transpile pdfjs and monaco workers to be able to use them
+        // Transpile monaco workers to be able to use them
         config.module.rules.push({
           include: [
-            resolve(__dirname, 'node_modules', 'pdfjs-dist'),
             resolve(__dirname, 'node_modules', 'monaco-editor'),
           ],
           test: /\.js$/,
@@ -225,7 +230,10 @@ export default {
 
   // Dev API proxy
   proxy: {
-    '/api': 'http://api:8000',
+    '/api': {
+      target: 'http://api:8000',
+      changeOrigin: false,
+    },
     '/admin': 'http://api:8000',
     '/static': 'http://api:8000',
   },

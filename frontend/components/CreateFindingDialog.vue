@@ -42,7 +42,7 @@
                 </v-chip>
               </div>
               <v-spacer />
-              <s-btn :to="`/templates/${item.id}/`" target="_blank" nuxt-link icon class="ma-2">
+              <s-btn :to="`/templates/${item.id}/`" target="_blank" nuxt icon class="ma-2">
                 <v-icon>mdi-chevron-right-circle</v-icon>
               </s-btn>
             </v-list-item-title>
@@ -129,13 +129,14 @@ export default {
     async createEmptyFinding() {
       try {
         this.actionInProress = true;
+        const title = this.currentSelection || this.templates.searchQuery;
         const finding = await this.$store.dispatch('projects/createFinding', {
           projectId: this.project.id, 
-          finding: {
+          finding: { 
             data: {
-              title: this.currentSelection || this.templates.searchQuery || 'New finding'
+              ...(title ? { title } : {}) 
             }
-          }
+          },
         });
         this.$router.push({ path: `/projects/${finding.project}/reporting/findings/${finding.id}/` });
         this.closeDialog();

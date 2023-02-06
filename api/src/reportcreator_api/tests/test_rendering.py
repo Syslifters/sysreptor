@@ -2,9 +2,13 @@ import pytest
 import io
 import re
 import pikepdf
+from unittest import mock
 from pytest_django.asserts import assertHTMLEqual
+from django.test import override_settings
+
 from reportcreator_api.tests.mock import create_project_type, create_project, create_user, create_finding
-from reportcreator_api.pentests.render import render_to_html_sync, format_template_field_user, format_template_data, render_pdf, post_process_pdf, PdfRenderingError
+from reportcreator_api.rendering.entry import render_pdf, PdfRenderingError
+from reportcreator_api.rendering.render import render_to_html
 from reportcreator_api.utils.utils import merge
 
 
@@ -16,24 +20,18 @@ class TestHtmlRendering:
         self.project_type = create_project_type()
         self.project = create_project(project_type=self.project_type, members=[self.user], findings_kwargs=[])
         self.finding = create_finding(project=self.project)
+
+        with override_settings(CELERY_TASK_ALWAYS_EAGER=True):
+            yield
     
     def render_html(self, template, additional_data={}):
-        data = {
-            'report': {
-                'id': str(self.project.id),
-                **self.project.data,
-            },
-            'findings': [{
-                'id': str(f.finding_id),
-                **f.data,
-            } for f in self.project.findings.all()],
-            'pentesters': [format_template_field_user(u) for u in self.project.members.all()],
-        }
-        data = merge(data, additional_data)
-
-        data = format_template_data(data=data, project_type=self.project_type, imported_members=self.project.imported_members)
-        html = render_to_html_sync(report_template=template, data=data, language=self.project.language)
-        return self.extract_html_part(html)
+        def render_only_html(data, language, **kwargs):
+            html, msgs = render_to_html(template=template, data=merge(data, additional_data), language=language)
+            return html.encode() if html else None, msgs
+        
+        with mock.patch('reportcreator_api.rendering.render.render_pdf', render_only_html):
+            html = render_pdf(self.project).decode()
+            return self.extract_html_part(html)
 
     def extract_html_part(self, html, start=None, end=None):       
         if not start and not end:
@@ -77,7 +75,8 @@ class TestHtmlRendering:
     ])
     def test_template_error(self, template):
         with pytest.raises(PdfRenderingError):
-            self.render_html(template)
+            self.project_type.report_template = template
+            render_pdf(project=self.project)
 
     def test_markdown_rendering(self):
         assertHTMLEqual(
@@ -150,6 +149,7 @@ class TestHtmlRendering:
         ('', False)
     ])
     def test_pdf_encryption(self, password, encrypted):
-        pdf_data = post_process_pdf(render_pdf(project_type=self.project_type, project=self.project), password=password)
+        pdf_data = render_pdf(project=self.project, password=password)
         with pikepdf.Pdf.open(io.BytesIO(pdf_data), password=password) as pdf:
             assert pdf.is_encrypted == encrypted
+

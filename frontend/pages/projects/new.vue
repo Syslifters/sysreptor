@@ -6,7 +6,7 @@
         <template #save-button-text>Create</template>
       </edit-toolbar>
 
-      <s-text-field v-model="project.name" label="Name" />
+      <s-text-field v-model="project.name" label="Name" class="mt-4" />
       <project-type-selection v-model="project.project_type" />
       <member-selection v-model="project.members" :prevent-unselecting-self="true" :required="true" />
     </v-form>
@@ -15,15 +15,18 @@
 
 <script>
 export default {
-  async asyncData({ store, $auth }) {
-    const settings = await store.dispatch('apisettings/getSettings');
+  data() {
+    const roles = this.$store.getters['apisettings/settings'] 
+      .project_member_roles
+      .filter(r => r.default)
+      .map(r => r.role)
 
     return {
       project: {
-        name: 'New project',
+        name: '',
         project_type: null,
         members: [
-          { ...$auth.user, roles: settings.project_member_roles.filter(r => r.default).map(r => r.role) },
+          { ...this.$auth.user, roles },
         ],
       }
     }

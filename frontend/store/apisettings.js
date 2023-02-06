@@ -32,3 +32,9 @@ export const actions = {
     }
   },
 };
+
+export const getters = {
+  settings(state) {
+    return state.settings;
+  }
+}

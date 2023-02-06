@@ -1,122 +1,120 @@
 <template>
-  <v-container fluid fill-height>
-    <v-layout align-center justify-center>
-      <v-flex xs12 sm8 md4>
-        <s-card>
-          <v-toolbar dark class="login-header" flat tile>
-            <v-toolbar-title><slot name="title">Login</slot></v-toolbar-title>
-          </v-toolbar>
+  <s-card>
+    <v-toolbar dark class="login-header" flat tile>
+      <v-toolbar-title><slot name="title">Login</slot></v-toolbar-title>
+    </v-toolbar>
 
-          <template v-if="step === 'username'">
-            <v-form ref="form" @submit.prevent="loginUsername">
-              <v-card-text>
-                <v-text-field
-                  v-model="formUsername.username"
-                  type="text"
-                  name="username"
-                  label="Username"
-                  prepend-icon="mdi-account"
-                  spellcheck="false"
-                  autocomplete="off"
-                  :autofocus="!username"
-                  :disabled="Boolean(username)"
-                  required
-                />
-                <v-text-field
-                  v-model="formUsername.password"
-                  type="password"
-                  name="password"
-                  label="Password"
-                  prepend-icon="mdi-lock"
-                  :autofocus="Boolean(username)"
-                  required
-                />
+    <template v-if="step === 'username'">
+      <v-form ref="form" @submit.prevent="loginUsername">
+        <v-card-text>
+          <v-text-field
+            v-model="formUsername.username"
+            type="text"
+            name="username"
+            label="Username"
+            prepend-icon="mdi-account"
+            spellcheck="false"
+            autocomplete="off"
+            :autofocus="!username"
+            :disabled="Boolean(username)"
+            required
+          />
+          <v-text-field
+            v-model="formUsername.password"
+            type="password"
+            name="password"
+            label="Password"
+            prepend-icon="mdi-lock"
+            :autofocus="Boolean(username)"
+            required
+          />
 
-                <p v-if="errorMessage" class="red--text">
-                  {{ errorMessage }}
-                </p>
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer />
-                <s-btn type="submit" color="primary">Login</s-btn>
-              </v-card-actions>
-            </v-form>
+          <p v-if="errorMessage" class="red--text">
+            {{ errorMessage }}
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <slot name="actions"></slot>
+          <s-btn type="submit" color="primary">
+            Login
+          </s-btn>
+        </v-card-actions>
+      </v-form>
+    </template>
+
+    <template v-else-if="step === 'mfa'">
+      <v-form ref="form" @submit.prevent="loginCode">
+        <v-card-text :set="methodTypeInfo = mfaMethodChoices.find(c => c.value === currentMfaMethod.method_type)">
+          <v-card-title>
+            <v-icon class="mr-3">{{ methodTypeInfo.icon }}</v-icon>
+            {{ currentMfaMethod.name }}
+          </v-card-title>
+
+          <template v-if="currentMfaMethod.method_type === 'fido2'">
+            <p>Use your security key to log in.</p>
+          </template>
+          <template v-else-if="currentMfaMethod.method_type === 'totp'">
+            <v-otp-input
+              v-model="formCode.code"
+              type="number"
+              length="6"
+              @finish="loginCode"
+              spellcheck="false"
+              autocomplete="off"
+              autofocus
+              required
+            />
+          </template>
+          <template v-else-if="currentMfaMethod.method_type === 'backup'">
+            <v-otp-input
+              v-model="formCode.code"
+              type="text"
+              length="12"
+              @finish="loginCode"
+              spellcheck="false"
+              autocomplete="off"
+              autofocus
+              required
+            />
           </template>
 
-          <template v-else-if="step === 'mfa'">
-            <v-form ref="form" @submit.prevent="loginCode">
-              <v-card-text :set="methodTypeInfo = mfaMethodChoices.find(c => c.value === currentMfaMethod.method_type)">
-                <v-card-title>
-                  <v-icon class="mr-3">{{ methodTypeInfo.icon }}</v-icon>
-                  {{ currentMfaMethod.name }}
-                </v-card-title>
+          <p v-if="errorMessage" class="red--text">
+            {{ errorMessage }}
+          </p>
+        </v-card-text>
 
-                <template v-if="currentMfaMethod.method_type === 'fido2'">
-                  <p>Use your security key to log in.</p>
-                </template>
-                <template v-else-if="currentMfaMethod.method_type === 'totp'">
-                  <v-otp-input
-                    v-model="formCode.code"
-                    type="number"
-                    length="6"
-                    @finish="loginCode"
-                    spellcheck="false"
-                    autocomplete="off"
-                    autofocus
-                    required
-                  />
-                </template>
-                <template v-else-if="currentMfaMethod.method_type === 'backup'">
-                  <v-otp-input
-                    v-model="formCode.code"
-                    type="text"
-                    length="12"
-                    @finish="loginCode"
-                    spellcheck="false"
-                    autocomplete="off"
-                    autofocus
-                    required
-                  />
-                </template>
+        <v-card-actions>
+          <v-spacer />
+          <s-btn v-if="mfaMethods.length > 1" @click="step = 'mfa-select'" color="secondary">
+            Try another MFA method
+          </s-btn>
+          <s-btn v-if="['totp', 'backup'].includes(currentMfaMethod.method_type)" type="submit" color="primary">Login</s-btn>
+          <s-btn v-else-if="currentMfaMethod.method_type === 'fido2'" @click="beginMfaLogin(currentMfaMethod)" color="primary">Try again</s-btn>
+        </v-card-actions>
+      </v-form>
+    </template>
 
-                <p v-if="errorMessage" class="red--text">
-                  {{ errorMessage }}
-                </p>
-              </v-card-text>
+    <template v-else-if="step === 'mfa-select'">
+      <v-card-text>
+        <h2>Choose MFA method</h2>
 
-              <v-card-actions>
-                <v-spacer />
-                <s-btn v-if="mfaMethods.length > 1" @click="step = 'mfa-select'" color="secondary">
-                  Try another MFA method
-                </s-btn>
-                <s-btn v-if="['totp', 'backup'].includes(currentMfaMethod.method_type)" type="submit" color="primary">Login</s-btn>
-                <s-btn v-else-if="currentMfaMethod.method_type === 'fido2'" @click="beginMfaLogin(currentMfaMethod)" color="primary">Try again</s-btn>
-              </v-card-actions>
-            </v-form>
-          </template>
-
-          <template v-else-if="step === 'mfa-select'">
-            <v-card-text>
-              <h2>Choose MFA method</h2>
-
-              <v-list>
-                <v-list-item v-for="mfaMethod in mfaMethods" :key="mfaMethod.id" link @click="beginMfaLogin(mfaMethod)">
-                  <v-list-item-title>
-                    <v-icon class="mr-3">{{ mfaMethodChoices.find(c => c.value === mfaMethod.method_type).icon }}</v-icon>
-                    {{ mfaMethod.name }}
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-card-text>
-          </template>
-        </s-card>
-      </v-flex>
-    </v-layout>
-  </v-container>
+        <v-list>
+          <v-list-item v-for="mfaMethod in mfaMethods" :key="mfaMethod.id" link @click="beginMfaLogin(mfaMethod)">
+            <v-list-item-title>
+              <v-icon class="mr-3">{{ mfaMethodChoices.find(c => c.value === mfaMethod.method_type).icon }}</v-icon>
+              {{ mfaMethod.name }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-card-text>
+    </template>
+  </s-card>
 </template>
 
 <script>
 import { get as navigatorCredentialsGet, parseRequestOptionsFromJSON } from "@github/webauthn-json/browser-ponyfill";
+import { mfaMethodChoices } from '~/utils/other';
 
 export default {
   props: {
@@ -143,11 +141,7 @@ export default {
   },
   computed: {
     mfaMethodChoices() {
-      return [
-        { value: 'fido2', text: 'Security Key (FIDO2)', icon: 'mdi-key' },
-        { value: 'totp', text: 'Authenticator App (TOTP)', icon: 'mdi-cellphone-key' },
-        { value: 'backup', text: 'Backup Codes', icon: 'mdi-lock-reset' },
-      ];
+      return mfaMethodChoices;
     }
   },
   methods: {
@@ -168,7 +162,7 @@ export default {
         if (res.status === 'success') {
           // trigger login in nuxt-auth
           await this.$auth.fetchUser();
-          this.$auth.redirect('home');
+          this.$emit('login', res);
         } else if (res.status === 'mfa-required') {
           this.mfaMethods = res.mfa;
           this.beginMfaLogin(res.mfa.find(m => m.is_primary) || res.mfa[0])
@@ -223,9 +217,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss" scoped>
-.login-header {
-  background-color: $syslifters-darkblue !important;
-}
-</style>

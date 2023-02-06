@@ -1,14 +1,18 @@
 <template>
   <splitpanes @resized="$emit('input', $event[0].size)" class="default-theme">
     <pane :size="value">
-      <v-navigation-drawer permanent left width="100%">
-        <slot name="menu" />
-      </v-navigation-drawer>
+      <fill-screen-height>
+        <v-navigation-drawer permanent left width="100%">
+          <slot name="menu" />
+        </v-navigation-drawer>
+      </fill-screen-height>
     </pane>
     <pane :size="100 - value">
-      <v-container fluid>
-        <slot name="default" />
-      </v-container>
+      <fill-screen-height>
+        <v-container fluid class="pt-0">
+          <slot name="default" />
+        </v-container>
+      </fill-screen-height>
     </pane>
   </splitpanes>
 </template>

@@ -9,8 +9,8 @@
           <v-list-item
             v-for="section in sections"
             :key="section.id"
-            nuxt
             :to="`/projects/${$route.params.projectId}/reporting/sections/${section.id}/`"
+            nuxt
           >
             <lock-info :value="section.lock_info" />
             <v-list-item-content>
@@ -28,8 +28,8 @@
           <v-list-item
             v-for="finding in findings"
             :key="finding.id"
-            nuxt
             :to="`/projects/${$route.params.projectId}/reporting/findings/${finding.id}/`"
+            nuxt
             :class="'finding-level-' + riskLevel(finding.data.cvss)"
           >
             <lock-info :value="finding.lock_info" />

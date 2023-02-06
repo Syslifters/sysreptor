@@ -1,66 +1,70 @@
 <template>
-  <div>
-    <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
-      <status-selection v-model="section.status" :disabled="readonly" />
-      <div class="assignee-container ml-1 mr-1">
-        <user-selection 
-          v-model="section.assignee" 
-          :selectable-users="project.members" 
-          :disabled="readonly" 
-          label="Assignee"
-          :outlined="false" dense
+  <fetch-loader v-bind="fetchLoaderAttrs">
+    <div v-if="section && project && projectType" :key="project.id + section.id">
+      <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
+        <status-selection v-model="section.status" :disabled="readonly" />
+        <div class="assignee-container ml-1 mr-1">
+          <user-selection 
+            v-model="section.assignee" 
+            :selectable-users="project.members" 
+            :disabled="readonly" 
+            label="Assignee"
+            :outlined="false" dense
+          />
+        </div>
+      </edit-toolbar>
+
+      <div v-for="fieldId in section.fields" :key="fieldId">
+        <dynamic-input-field 
+          v-model="section.data[fieldId]" 
+          :disabled="readonly"
+          :id="fieldId" 
+          :definition="projectType.report_fields[fieldId]" 
+          :upload-image="uploadImage" 
+          :rewrite-image-url="rewriteImageUrl"
+          :selectable-users="project.members.concat(project.imported_members)"
+          :lang="section.language"
         />
       </div>
-    </edit-toolbar>
-
-    <div v-for="fieldId in section.fields" :key="fieldId">
-      <dynamic-input-field 
-        v-model="section.data[fieldId]" 
-        :disabled="readonly"
-        :id="fieldId" 
-        :definition="projectType.report_fields[fieldId]" 
-        :upload-image="uploadImage" 
-        :rewrite-image-url="rewriteImageUrl"
-        :selectable-users="project.members.concat(project.imported_members)"
-        :lang="section.language"
-      />
     </div>
-  </div>
+  </fetch-loader>
 </template>
 
 <script>
 import urlJoin from 'url-join';
-import DynamicInputField from '~/components/DynamicInputField.vue';
 import LockEditMixin from '~/mixins/LockEditMixin';
 import { uploadFile } from '~/utils/upload';
 
-function getProjectUrl(params) {
-  return `/pentestprojects/${params.projectId}/`;
-}
-function getSectionUrl(params) {
-  return urlJoin(getProjectUrl(params), `/sections/${params.sectionId}/`);
-}
-
 export default {
-  components: { DynamicInputField },
   mixins: [LockEditMixin],
-  async asyncData({ $axios, store, params }) {
-    const section = await $axios.$get(getSectionUrl(params));
-    const project = await store.dispatch('projects/getById', section.project);
-    const projectType = await store.dispatch('projecttypes/getById', section.project_type);
-    return { section, project, projectType };
+  data() {
+    return {
+      section: null,
+      project: null,
+      projectType: null,
+    }
+  },
+  async fetch() {
+    const section = await this.$axios.$get(this.getBaseUrl({ id: this.$route.params.sectionId }));
+    const [project, projectType] = await Promise.all([
+      await this.$store.dispatch('projects/getById', section.project),
+      await this.$store.dispatch('projecttypes/getById', section.project_type)
+    ]);
+    this.section = section;
+    this.project = project;
+    this.projectType = projectType;
   },
   computed: {
     data() {
       return this.section;
     },
     projectUrl() {
-      return getProjectUrl(this.$route.params);
+      return `/pentestprojects/${this.$route.params.projectId}/`;
     },
   },
   methods: {
     getBaseUrl(data) {
-      return getSectionUrl({ projectId: data.project, sectionId: data.id });
+      return urlJoin(this.projectUrl, `/sections/${data.id}/`)
     },
     getHasEditPermissions() {
       if (this.project) {

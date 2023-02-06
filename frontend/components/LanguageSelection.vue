@@ -18,13 +18,10 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      languageInfos: [],
+  computed: {
+    languageInfos() {
+      return this.$store.getters['apisettings/settings'].languages;
     }
-  },
-  async fetch() {
-    this.languageInfos = (await this.$store.dispatch('apisettings/getSettings')).languages;
-  },
+  }
 }
 </script>

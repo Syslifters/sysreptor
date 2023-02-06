@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div :key="project.id">
     <s-sub-menu>
-      <v-tab :to="`/projects/${$route.params.projectId}/project/`">Project</v-tab>
-      <v-tab :to="`/projects/${$route.params.projectId}/reporting/`">Reporting</v-tab>
-      <v-tab :to="`/projects/${$route.params.projectId}/publish/`">Publish</v-tab>
-      <v-tab :to="`/projects/${$route.params.projectId}/designer/`" v-if="projectType.source === 'customized'">Designer</v-tab>
+      <v-tab :to="`/projects/${$route.params.projectId}/project/`" nuxt>Project</v-tab>
+      <v-tab :to="`/projects/${$route.params.projectId}/reporting/`" nuxt>Reporting</v-tab>
+      <v-tab :to="`/projects/${$route.params.projectId}/publish/`" nuxt>Publish</v-tab>
+      <v-tab :to="`/projects/${$route.params.projectId}/designer/`" nuxt v-if="projectType.source === 'customized'">Designer</v-tab>
     </s-sub-menu>
 
     <nuxt-child />

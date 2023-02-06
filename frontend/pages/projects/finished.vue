@@ -1,8 +1,8 @@
 <template>
   <div>
     <s-sub-menu>
-      <v-tab :to="`/projects/`" exact>Active Projects</v-tab>
-      <v-tab :to="`/projects/finished/`">Finished Projects</v-tab>
+      <v-tab :to="`/projects/`" nuxt exact>Active Projects</v-tab>
+      <v-tab :to="`/projects/finished/`" nuxt>Finished Projects</v-tab>
     </s-sub-menu>
 
     <list-view url="/pentestprojects/?readonly=true">

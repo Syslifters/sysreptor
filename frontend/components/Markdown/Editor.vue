@@ -58,10 +58,11 @@
 </template>
 
 <script>
-import { Compartment, EditorState, StateEffect } from '@codemirror/state';
+import { EditorState } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 import { defaultKeymap, historyKeymap, indentWithTab, history, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 import { renderMarkdownToHtml } from 'reportcreator-markdown';
+import { createEditorExtensionToggler } from 'reportcreator-markdown/editor/utils';
 import { markdown } from 'reportcreator-markdown/editor/language.js';
 import { spellcheck, spellcheckTheme } from 'reportcreator-markdown/editor/spellcheck.js';
 import { isTypeInSelection, toggleStrong, toggleEmphasis, toggleStrikethrough, toggleListUnordered, toggleListOrdered, toggleLink, insertCodeBlock, insertTable } from 'reportcreator-markdown/editor/commands.js';
@@ -70,25 +71,6 @@ import { syntaxHighlighting } from '@codemirror/language';
 import { forceLinting, setDiagnostics } from '@codemirror/lint';
 import { markdownHighlightStyle, markdownHighlightCodeBlocks } from 'reportcreator-markdown/editor/highlight.js';
 import { throttle } from 'lodash';
-
-function createEditorCompartment(view) {
-  const compartment = new Compartment();
-  const run = (extension) => {
-    compartment.get(view.state)
-      ? view.dispatch({ effects: compartment.reconfigure(extension) }) // reconfigure
-      : view.dispatch({ effects: StateEffect.appendConfig.of(compartment.of(extension)) }) // inject
-  }
-  return { compartment, run }
-}
-
-function createEditorExtensionToggler(view, extension) {
-  const { compartment, run } = createEditorCompartment(view)
-  return (targetApply) => {
-    const exExtension = compartment.get(view.state)
-    const apply = targetApply ?? exExtension !== extension
-    run(apply ? extension : [])
-  }
-}
 
 export default {
   props: {
@@ -260,7 +242,6 @@ export default {
         ]
       }),
     });
-    // console.log(this.editorView, this);
     this.editorActions = {
       disabled: createEditorExtensionToggler(this.editorView, [
         EditorView.editable.of(false),
@@ -482,6 +463,10 @@ $mde-min-height: 15em;
 }
 
 :deep(.mde-editor) {
+  .cm-focused {
+    outline: none !important;
+  }
+
   /* inline markdown styles */
   .cm-content {
     font-family: $body-font-family;
@@ -489,11 +474,11 @@ $mde-min-height: 15em;
     .tok-h1, .tok-h2, .tok-h3, .tok-h4, .tok-h5, .tok-h6 {
       font-weight: bold;
     }
-    .tok-h1 { font-size: 3em; }
-    .tok-h2 { font-size: 2.5em; }
-    .tok-h3 { font-size: 2em; }
-    .tok-h4 { font-size: 1.5em; }
-    .tok-h5 { font-size: 1.25em; }
+    .tok-h1 { font-size: 2em; }
+    .tok-h2 { font-size: 1.75em; }
+    .tok-h3 { font-size: 1.5em; }
+    .tok-h4 { font-size: 1.25em; }
+    .tok-h5 { font-size: 1.1em; }
     .tok-h6 { font-size: 1em; }
 
     .tok-strong { font-weight: bold }
@@ -550,11 +535,11 @@ $mde-min-height: 15em;
     h1, h2, h3, h4, h5, h6 {
       font-weight: bold;
     }
-    h1 { font-size: 3em; }
-    h2 { font-size: 2.5em; }
-    h3 { font-size: 2em; }
-    h4 { font-size: 1.5em; }
-    h5 { font-size: 1.25em; }
+    h1 { font-size: 2em; }
+    h2 { font-size: 1.75em; }
+    h3 { font-size: 1.5em; }
+    h4 { font-size: 1.25em; }
+    h5 { font-size: 1.1em; }
     h6 { font-size: 1em; }
 
   .code-block {

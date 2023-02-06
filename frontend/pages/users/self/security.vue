@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <div>
     <s-dialog v-model="reauthDialogVisible">
       <template #title>Re-Authentication required</template>
       <template #default>
@@ -16,7 +16,7 @@
       </template>
     </s-dialog>
 
-    <s-card>
+    <s-card class="mt-4">
       <v-card-title>Change Password</v-card-title>
       <v-card-text>
         <s-dialog v-model="changePasswordWizard.visible">
@@ -48,7 +48,7 @@
       </v-card-text>
     </s-card>
 
-    <s-card>
+    <s-card class="mt-4">
       <v-card-title>Multi Factor Authentication</v-card-title>
       <v-card-text>
         <v-list>
@@ -229,12 +229,13 @@
         </v-list>
       </v-card-text>
     </s-card>
-  </v-container>
+  </div>
 </template>
 
 <script>
 import { create as navigatorCredentialsCreate, parseCreationOptionsFromJSON } from "@github/webauthn-json/browser-ponyfill";
 import { cloneDeep } from 'lodash';
+import { mfaMethodChoices } from '~/utils/other';
 
 function redirectToReAuth({ auth, route }) {
   auth.$storage.setUniversal('redirect', route.path);
@@ -274,11 +275,7 @@ export default {
   },
   computed: {
     mfaMethodChoices() {
-      return [
-        { value: 'fido2', text: 'Security Key (FIDO2)', icon: 'mdi-key' },
-        { value: 'totp', text: 'Authenticator App (TOTP)', icon: 'mdi-cellphone-key' },
-        { value: 'backup', text: 'Backup Codes', icon: 'mdi-lock-reset' },
-      ];
+      return mfaMethodChoices;
     }
   },
   methods: {

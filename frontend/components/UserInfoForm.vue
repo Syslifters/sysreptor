@@ -1,6 +1,6 @@
 <template>
   <div>
-    <s-card>
+    <s-card class="mt-4">
       <v-card-title>Login information</v-card-title>
       <v-card-text>
         <s-text-field 
@@ -17,7 +17,7 @@
       </v-card-text>
     </s-card>
 
-    <s-card>
+    <s-card class="mt-4">
       <v-card-title>Personal information</v-card-title>
       <v-card-text>
         <v-row class="mt-4">
@@ -99,7 +99,7 @@
       </v-card-text>
     </s-card>
 
-    <s-card>
+    <s-card class="mt-4">
       <v-card-title>Permissions</v-card-title>
       <v-card-text>
         <s-checkbox

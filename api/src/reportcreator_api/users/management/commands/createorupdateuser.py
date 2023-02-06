@@ -33,7 +33,7 @@ class Command(BaseCommand):
 
         user = PentestUser.objects.filter(username=username).first()
         if not user:
-            user = PentestUser()
+            user = PentestUser(username=username)
         
         user.set_password(password)
         if is_superuser:

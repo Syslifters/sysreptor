@@ -178,11 +178,7 @@ export const actions = {
     return updatedFinding;
   },
   async createFinding({ commit }, { projectId, finding = {} }) {
-    const newFinding = await this.$axios.$post(`/pentestprojects/${projectId}/findings/`, merge({
-      data: {
-        title: 'New finding',
-      },
-    }, finding));
+    const newFinding = await this.$axios.$post(`/pentestprojects/${projectId}/findings/`, merge({ data: {} }, finding));
     commit('setFinding', { projectId, finding: newFinding });
     return newFinding;
   },

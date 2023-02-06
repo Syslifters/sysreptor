@@ -1,23 +1,31 @@
 import functools
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from authlib.integrations.django_client import OAuth, OAuthError
 from rest_framework.response import Response
-from rest_framework import viewsets, views, status, filters, mixins, serializers, exceptions
+from rest_framework import viewsets, status, filters, mixins, serializers, exceptions
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from django_filters.rest_framework import DjangoFilterBackend
 from django.conf import settings
 from django.forms import model_to_dict
 from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import login, logout
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 
-from reportcreator_api.users.models import PentestUser, MFAMethod, MFAMethodType
-from reportcreator_api.users.permissions import UserViewSetPermissions, MFAMethodViewSetPermissons, MFALoginInProgressAuthentication
+from reportcreator_api.users.models import PentestUser, MFAMethod, AuthIdentity
+from reportcreator_api.users.permissions import UserViewSetPermissions, MFAMethodViewSetPermissons, MFALoginInProgressAuthentication, \
+    AuthIdentityViewSetPermissions
 from reportcreator_api.users.serializers import CreateUserSerializer, PentestUserDetailSerializer, PentestUserSerializer, \
     ResetPasswordSerializer, MFAMethodSerializer, LoginSerializer, LoginMFACodeSerializer, MFAMethodRegisterBackupCodesSerializer, \
-    MFAMethodRegisterTOTPSerializer, MFAMethodRegisterFIDO2Serializer
+    MFAMethodRegisterTOTPSerializer, MFAMethodRegisterFIDO2Serializer, AuthIdentitySerializer
+
+
+oauth = OAuth()
+for name, config in settings.AUTHLIB_OAUTH_CLIENTS.items():
+    oauth.register(name, **config)
 
 
 class APIBadRequestError(exceptions.APIException):
@@ -28,13 +36,15 @@ class APIBadRequestError(exceptions.APIException):
 
 class PentestUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     permission_classes = [UserViewSetPermissions]
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = ['username', 'email', 'first_name', 'last_name']
+    filterset_fields = ['username', 'email']
 
     def get_queryset(self):
         return PentestUser.objects \
             .only_permitted(self.request.user) \
-            .annotate_mfa_enabled()
+            .annotate_mfa_enabled() \
+            .prefetch_related('auth_identities')
 
     def get_object(self):
         if self.kwargs.get('pk') == 'self':
@@ -42,9 +52,7 @@ class PentestUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixin
         return super().get_object()
 
     def get_serializer_class(self):
-        if self.action == 'change_password':
-            return ResetPasswordSerializer
-        elif self.action == 'reset_password':
+        if self.action in ['change_password', 'reset_password']:
             return ResetPasswordSerializer
         elif self.action == 'create':
             return CreateUserSerializer
@@ -160,6 +168,25 @@ class MFAMethodViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.
         return Response(MFAMethodSerializer(instance=instance).data, status=status.HTTP_201_CREATED)
 
 
+class AuthIdentityViewSet(viewsets.ModelViewSet):
+    serializer_class = AuthIdentitySerializer
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [AuthIdentityViewSetPermissions]
+    pagination_class = None
+
+    @functools.cache
+    def get_user(self):
+        qs = PentestUser.objects.all()
+        return get_object_or_404(qs, pk=self.kwargs['pentestuser_pk'])
+
+    def get_queryset(self):
+        return self.get_user().auth_identities.all()
+
+    def get_serializer_context(self):
+        return super().get_serializer_context() | {
+            'user': self.get_user()
+        }
+
+
 class AuthViewSet(viewsets.ViewSet):
     authentication_classes = []
     permission_classes = []
@@ -175,7 +202,7 @@ class AuthViewSet(viewsets.ViewSet):
     def get_serializer(self, *args, **kwargs):
         return self.get_serializer_class()(context={'request': self.request}, *args, **kwargs)
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], authentication_classes=[])
     def login(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -224,11 +251,17 @@ class AuthViewSet(viewsets.ViewSet):
     def login_fido2_complete(self, request, *args, **kwargs):
         self._verify_mfa_preconditions(request)
         state = request.session.get('login_state', {}).pop('fido2_state', None)
-        MFAMethod.get_fido2_server().authenticate_complete(
-            state=state, 
-            credentials=MFAMethod.objects.get_fido2_user_credentials(request.user),
-            response=request.data
-        )
+        try:
+            MFAMethod.get_fido2_server().authenticate_complete(
+                state=state, 
+                credentials=MFAMethod.objects.get_fido2_user_credentials(request.user),
+                response=request.data
+            )
+        except ValueError as ex:
+            if ex.args and len(ex.args) == 1 and isinstance(ex.args[0], str):
+                raise serializers.ValidationError(ex.args[0], 'fido2') from ex
+            else:
+                raise ex
         return self.perform_login(request, request.user)
 
     def _verify_mfa_preconditions(self, request):
@@ -238,10 +271,11 @@ class AuthViewSet(viewsets.ViewSet):
         elif datetime.fromisoformat(login_state.get('start')) + settings.MFA_LOGIN_TIMEOUT < timezone.now():
             raise APIBadRequestError('Login timeout. Please restart login.')
 
-    def perform_login(self, request, user):
+    def perform_login(self, request, user, can_reauth=True):
         request.session.pop('login_state', None)
+        first_login = not user.last_login
         is_reauth = bool(request.session.get('authentication_info', {}).get('login_time')) and str(user.id) == request.session.get('_auth_user_id')
-        if is_reauth:
+        if is_reauth and can_reauth:
             request.session['authentication_info'] |= {
                 'reauth_time': timezone.now().isoformat(),
             }
@@ -250,4 +284,57 @@ class AuthViewSet(viewsets.ViewSet):
                 'login_time': timezone.now().isoformat(),
             }
             login(request=self.request, user=user)
-        return Response({'status': 'success'}, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'success',
+            'first_login': first_login,
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, url_path='login/oidc/(?P<oidc_provider>[a-zA-Z0-9]+)/begin', methods=['get'], authentication_classes=[])
+    def login_oidc_begin(self, request, oidc_provider, *args, **kwargs):
+        if oidc_provider not in settings.AUTHLIB_OAUTH_CLIENTS:
+            raise APIBadRequestError(f'OIDC provider "{oidc_provider}" not supported')
+
+        request.session['login_state'] = {
+            'status': 'oidc-callback-required',
+            'start': timezone.now().isoformat(),
+        }
+        redirect_uri = request.build_absolute_uri(f'/login/oidc/{oidc_provider}/callback')
+        redirect_kwargs = {}
+        if request.GET.get('reauth'):
+            redirect_kwargs |= {
+                'prompt': 'login',
+                'max_age': 0
+            }
+            if login_hint := request.session.get('authentication_info', {}).get(f'oidc_{oidc_provider}_login_hint'):
+                redirect_kwargs |= {'login_hint': login_hint}
+
+        return oauth.create_client(oidc_provider).authorize_redirect(request, redirect_uri, **redirect_kwargs)
+
+    @action(detail=False, url_path='login/oidc/(?P<oidc_provider>[a-zA-Z0-9]+)/complete', methods=['get'], authentication_classes=[])
+    def login_oidc_complete(self, request, oidc_provider, *args, **kwargs):
+        if not request.session.get('login_state', {}).get('status') == 'oidc-callback-required':
+            raise APIBadRequestError('No OIDC login in progress for session')
+        
+        try:
+            token = oauth.create_client(oidc_provider).authorize_access_token(request)
+        except OAuthError as ex:
+            raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error)
+        
+        identity = AuthIdentity.objects \
+            .select_related('user') \
+            .filter(provider=oidc_provider) \
+            .filter(identifier=token['userinfo'].get('email')) \
+            .first()
+        if not identity:
+            raise exceptions.AuthenticationFailed()
+
+        can_reauth = False
+        if (auth_time := token['userinfo'].get('auth_time')):
+            can_reauth &= (timezone.now() - timezone.make_aware(datetime.fromtimestamp(auth_time))) < timedelta(minutes=1)
+        res = self.perform_login(request, identity.user, can_reauth=can_reauth)
+        request.session['authentication_info'] |= {
+            f'oidc_{oidc_provider}_login_hint': token['userinfo'].get('login_hint'),
+        }
+        return res
+
+

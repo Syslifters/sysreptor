@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="toolbar-sticky">
     <v-toolbar flat dense tile>
       <v-toolbar-title><slot name="title" /></v-toolbar-title>
       <v-spacer />
@@ -40,7 +40,7 @@
       />
     </v-toolbar>
 
-    <v-alert v-if="errorMessage || lockError" type="warning" class="mt-2">
+    <v-alert v-if="errorMessage || lockError" type="warning" dense class="mt-0 mb-0">
       <span v-if="errorMessage">
         {{ errorMessage }}
       </span>
@@ -58,17 +58,15 @@
         <v-btn @click="selfLockedEditAnyway" text small>Edit Anyway</v-btn>
       </span>
     </v-alert>
+
+    <v-divider />
   </div>
 </template>
 
 <script>
 import { debounce, cloneDeep, isEqual } from 'lodash';
 import { absoluteApiUrl } from '~/utils/urls';
-
-export const EditMode = Object.freeze({
-  READONLY: 'READONLY',
-  EDIT: 'EDIT',
-});
+import { EditMode } from '~/utils/other';
 
 export default {
   props: {
@@ -201,7 +199,7 @@ export default {
     window.addEventListener('keydown', this.keyboardShortcutListener);
     window.addEventListener('unload', this.onUnloadBrowser);
   },
-  destroyed() {
+  beforeDestroy() {
     window.removeEventListener('beforeunload', this.beforeLeaveBrowser);
     window.removeEventListener('keydown', this.keyboardShortcutListener);
     window.removeEventListener('unload', this.onUnloadBrowser);
@@ -330,7 +328,7 @@ export default {
     performUnlock(browserUnload = false) {
       console.log('EditToolbar.performUnlock', this.hasLock);
       if (!this.unlockUrl || !this.hasLock) {
-        return;
+        return Promise.resolve();
       }
       
       if (this.refreshLockInterval) {
@@ -345,7 +343,7 @@ export default {
       try {
         const res = this.performUnlockRequest(browserUnload);
         if (!browserUnload) {
-          res.then((unlockedData) => {
+          return res.then((unlockedData) => {
             this.lockInfo = unlockedData.lock_info;
             this.$emit('update:lockedData', unlockedData);
           })
@@ -360,6 +358,8 @@ export default {
         // silently ignore error
         console.log('Unlock error', error);
       }
+
+      return Promise.resolve();
     },
     beforeLeaveBrowser(event) {
       if (!this.canSave || !this.hasChangesValue || this.autoSaveEnabled || this.actionInProgress) {
@@ -372,19 +372,19 @@ export default {
     },
     async beforeLeave(to, from, next) {
       if (!this.canSave || !this.hasChangesValue || this.actionInProgress) {
-        this.resetComponent();
         next();
+        await this.resetComponent()
       } else if (this.autoSaveEnabled) {
-        await this.performSave();
-        this.resetComponent();
         next();
+        await this.performSave();
+        await this.resetComponent();
       } else {
         // vue-router navigation event: user navigates to a different SPA page
         const answer = window.confirm('Do you really want to leave? You have unsaved changes!');
-        if (answer) {
-          this.resetComponent();
-        }
         next(answer);
+        if (answer) {
+          await this.resetComponent();
+        }
       }
     },
     onUnloadBrowser() {
@@ -408,8 +408,16 @@ export default {
       this.lockInfo = null;
       this.lockError = false;
 
-      this.performUnlock(false);
+      return this.performUnlock(false);
     }
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.toolbar-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+</style>

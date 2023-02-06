@@ -5,10 +5,11 @@
     :multiple="true"
     :disabled="disabled"
     :prevent-unselecting-self="preventUnselectingSelf"
+    :append-icon="null"
     class="mt-4"
     v-bind="$attrs" 
   >
-    <template #selection="{item: user}">
+    <template #selection="{item: user, index}">
       <v-list-item :disabled="disabled" class="member-item elevation-2 mt-1 mb-1" two-line>
         <v-list-item-content>
           <v-list-item-title>
@@ -51,10 +52,14 @@
 
         <v-list-item-action>
           <s-btn @click.stop="removeMember(user)" :disabled="disabled || (preventUnselectingSelf && user.id === $auth.user.id)" icon>
-            <v-icon>mdi-close</v-icon>
+            <v-icon>mdi-delete</v-icon>
           </s-btn>
         </v-list-item-action>
       </v-list-item>
+
+      <s-btn v-if="index === value.length - 1" small color="secondary">
+        <v-icon>mdi-plus</v-icon> Add
+      </s-btn>
     </template>
   </user-selection>
 </template>
@@ -79,14 +84,13 @@ export default {
   },
   data() {
     return {
-      predefinedRoles: [],
       rolesCache: Object.fromEntries(this.value?.filter(m => Array.isArray(m.roles)).map(m => [m.id, m.roles])),
     };
   },
-  async fetch() {
-    this.predefinedRoles = (await this.$store.dispatch('apisettings/getSettings')).project_member_roles;
-  },
   computed: {
+    predefinedRoles() {
+      return this.$store.getters['apisettings/settings'].project_member_roles;
+    },
     allRoles() {
       return uniq(
         this.predefinedRoles.map(r => r.role)

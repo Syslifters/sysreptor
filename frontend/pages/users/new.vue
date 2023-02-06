@@ -38,6 +38,8 @@ export default {
         is_user_manager: false,
         is_designer: false,
         is_template_editor: false,
+        is_guest: false,
+        is_system_user: false,
       },
       serverErrors: null,
     }

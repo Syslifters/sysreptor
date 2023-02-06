@@ -1,6 +1,6 @@
 <template>
   <fill-screen-height>
-    <pdf v-if="pdfData" :value="pdfData" />
+    <pdf :value="pdfData" />
     <v-overlay v-if="pdfRenderErrors" color="grey darken-4" opacity="0.7" absolute>
       <error-list :value="pdfRenderErrors" />
     </v-overlay>

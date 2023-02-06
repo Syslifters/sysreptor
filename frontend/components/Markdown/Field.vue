@@ -2,7 +2,7 @@
 import VTextArea from 'vuetify/lib/components/VTextarea/VTextarea';
 import VInput from 'vuetify/lib/components/VInput/VInput';
 import mixins from 'vuetify/lib/util/mixins';
-import MarkdownFieldNewVue from './Editor.vue';
+import MarkdownEditor from './Editor.vue';
 
 const baseMixins = mixins(VTextArea);
 export default baseMixins.extend({
@@ -33,7 +33,7 @@ export default baseMixins.extend({
   },
   methods: {
     genInput() {
-      return this.$createElement(MarkdownFieldNewVue, {
+      return this.$createElement(MarkdownEditor, {
         props: {
           value: this.value,
           disabled: this.disabled,

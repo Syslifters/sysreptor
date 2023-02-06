@@ -125,7 +125,7 @@ class FileListExportImportSerializer(serializers.ListSerializer):
             yield from self.child.export_files()
 
     def extract_file(self, name):
-        return compress_image(self.context['archive'].extractfile(self.child.get_path_in_archive(name)))[0]
+        return self.context['archive'].extractfile(self.child.get_path_in_archive(name))
 
     def create(self, validated_data):
         child_model_class = self.child.Meta.model

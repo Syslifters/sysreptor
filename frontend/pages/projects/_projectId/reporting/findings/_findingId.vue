@@ -1,78 +1,80 @@
 <template>
-  <div>
-    <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
-      <s-tooltip v-if="finding.template">
-        <template #activator="{attrs, on}">
-          <s-btn icon :to="`/templates/${finding.template}/`" target="_blank" class="ml-1 mr-1" v-bind="attrs" v-on="on">
-            <v-icon>mdi-alpha-t-box-outline</v-icon>
-          </s-btn>
-        </template>
-        <template #default>
-          This finding was created from a template: show template
-        </template>
-      </s-tooltip>
+  <fetch-loader v-bind="fetchLoaderAttrs">
+    <div v-if="finding && project && projectType" :key="project?.id + finding?.id">
+      <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
+        <s-tooltip v-if="finding.template">
+          <template #activator="{attrs, on}">
+            <s-btn icon :to="`/templates/${finding.template}/`" nuxt target="_blank" class="ml-1 mr-1" v-bind="attrs" v-on="on">
+              <v-icon>mdi-alpha-t-box-outline</v-icon>
+            </s-btn>
+          </template>
+          <template #default>
+            This finding was created from a template: show template
+          </template>
+        </s-tooltip>
 
-      <status-selection v-model="finding.status" :disabled="readonly" />
-      <div class="assignee-container ml-1 mr-1">
-        <user-selection 
-          v-model="finding.assignee" 
-          :selectable-users="project.members" 
-          :disabled="readonly" 
-          label="Assignee"
-          :outlined="false" dense
+        <status-selection v-model="finding.status" :disabled="readonly" />
+        <div class="assignee-container ml-1 mr-1">
+          <user-selection 
+            v-model="finding.assignee" 
+            :selectable-users="project.members" 
+            :disabled="readonly" 
+            label="Assignee"
+            :outlined="false" dense
+          />
+        </div>
+      </edit-toolbar>
+
+      <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
+        <dynamic-input-field 
+          v-model="finding.data[fieldId]" 
+          :disabled="readonly"
+          :id="fieldId" 
+          :definition="projectType.finding_fields[fieldId]" 
+          :upload-image="uploadImage" 
+          :rewrite-image-url="rewriteImageUrl"
+          :selectable-users="project.members.concat(project.imported_members)"
+          :lang="finding.language"
         />
       </div>
-    </edit-toolbar>
-
-    <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
-      <dynamic-input-field 
-        v-model="finding.data[fieldId]" 
-        :disabled="readonly"
-        :id="fieldId" 
-        :definition="projectType.finding_fields[fieldId]" 
-        :upload-image="uploadImage" 
-        :rewrite-image-url="rewriteImageUrl"
-        :selectable-users="project.members.concat(project.imported_members)"
-        :lang="finding.language"
-      />
     </div>
-  </div>
+  </fetch-loader>
 </template>
 
 <script>
 import urlJoin from 'url-join';
-import DynamicInputField from '~/components/DynamicInputField.vue';
 import LockEditMixin from '~/mixins/LockEditMixin.js';
 import { uploadFile } from '~/utils/upload.js';
-import UserSelection from '~/components/UserSelection.vue';
-
-function getProjectUrl(params) {
-  return `/pentestprojects/${params.projectId}/`;
-}
-function getFindingUrl(params) {
-  return urlJoin(getProjectUrl(params), `/findings/${params.findingId}/`);
-}
 
 export default {
-  components: { DynamicInputField, UserSelection },
   mixins: [LockEditMixin],
-  async asyncData({ $axios, store, params }) {
-    const finding = await $axios.$get(getFindingUrl(params));
-    const project = await store.dispatch('projects/getById', finding.project);
-    const projectType = await store.dispatch('projecttypes/getById', finding.project_type);
-    return { finding, project, projectType };
+  data() {
+    return {
+      finding: null,
+      project: null,
+      projectType: null,
+    }
+  },
+  async fetch() {
+    this.finding = await this.$axios.$get(this.getBaseUrl({ id: this.$route.params.findingId }));
+    const [project, projectType] = await Promise.all([
+      this.$store.dispatch('projects/getById', this.finding.project),
+      this.$store.dispatch('projecttypes/getById', this.finding.project_type)
+    ])
+    this.project = project;
+    this.projectType = projectType;
   },
   computed: {
     data() {
       return this.finding;
     },
     projectUrl() {
-      return getProjectUrl(this.$route.params);
-    },
+      return `/pentestprojects/${this.$route.params.projectId}/`;
+    }
   },
   methods: {
     getBaseUrl(data) {
-      return getFindingUrl(this.$route.params);
+      return urlJoin(this.projectUrl, `findings/${data.id}/`);
     },
     getHasEditPermissions() {
       if (this.project) {
@@ -104,7 +106,7 @@ export default {
       return urlJoin(this.projectUrl, imgSrc);
     },
     updateInStore(data) {
-      this.$store.commit('projects/setFinding', { projectId: this.finding.project, finding: data });
+      this.$store.commit('projects/setFinding', { projectId: data.project, finding: data });
     },
     async onUpdateData({ oldValue, newValue }) {
       if (this.$refs.toolbar?.autoSaveEnabled && (

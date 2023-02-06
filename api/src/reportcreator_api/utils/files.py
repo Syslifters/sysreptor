@@ -47,7 +47,8 @@ def compress_image(file, name=None):
 
     try:
         with Image.open(file) as img:
-            if img.format == 'SVG':
+            img_format = img.format
+            if img_format == 'SVG':
                 raise UnidentifiedImageError('Do not compress SVG')
             
             # resize image to a max size
@@ -61,7 +62,7 @@ def compress_image(file, name=None):
 
             # Check if image uses transparency
             out = io.BytesIO()
-            if image_contains_transparent_pixels(img):
+            if img_format in ['PNG', 'GIF'] or image_contains_transparent_pixels(img):
                 # Convert to PNG and reduce quality
                 img.save(out, format='PNG', optimize=True)
                 file_extension = '.png'

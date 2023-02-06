@@ -2,7 +2,7 @@
   <div>
     <s-tooltip v-bind="tooltipAttrs">
       <template #activator="{ on, attrs }">
-        <p v-bind="attrs" v-on="on">
+        <p class="label-tooltip" v-bind="attrs" v-on="on">
           {{ metric.name }} ({{ metric.id }})
         </p>
       </template>

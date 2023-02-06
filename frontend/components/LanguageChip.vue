@@ -12,17 +12,9 @@ export default {
       required: true,
     }
   },
-  data() {
-    return {
-      languageInfos: [],
-    }
-  },
-  async fetch() {
-    this.languageInfos = (await this.$store.dispatch('apisettings/getSettings')).languages;
-  },
   computed: {
     languageInfo() {
-      return this.languageInfos.find(l => l.code === this.value) || { code: '??-??', name: 'Unknown' };
+      return this.$store.getters['apisettings/settings'].languages.find(l => l.code === this.value) || { code: '??-??', name: 'Unknown' };
     }
   }
 }

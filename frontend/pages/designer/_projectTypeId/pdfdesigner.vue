@@ -57,9 +57,7 @@
 
           <v-tab>Preview Data</v-tab>
           <v-tab-item>
-            <fill-screen-height>
-              <pdf-preview-data-form v-model="projectType.report_preview_data" :project-type="projectType" :disabled="readonly" />
-            </fill-screen-height>
+            <pdf-preview-data-form v-model="projectType.report_preview_data" :project-type="projectType" :disabled="readonly" />
           </v-tab-item>
         </v-tabs>
       </pane>

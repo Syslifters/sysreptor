@@ -1,7 +1,8 @@
 import { mount } from '@vue/test-utils';
 import { cloneDeep } from 'lodash';
 import { nextTick } from 'vue';
-import EditToolbar, { EditMode } from '@/components/EditToolbar.vue';
+import EditToolbar from '@/components/EditToolbar.vue';
+import { EditMode } from '~/utils/other';
 
 describe('EditToolbar', () => {
   let data;

@@ -14,12 +14,11 @@ A permission to attack (see <a href="#appendix-pta" class="appendix-ref" />) was
     * Copy the last UUID from the URL ![Grab the finding ID](/images/finding_id.png)
 
 2. Create a markdown link
-    * Set the `href` to `#<copied-finding-id>` 
-    * Add the previously defined CSS class `.chapter-ref-title` to automatically add the finding title in the rendered text
+    * Add the finding title to your running text:
       ```md
-      See this other finding [](#<finding-id>){.chapter-ref-title} for...
+      See the finding [](#<finding-id>){.chapter-ref-title} for...
       ```
-    * If you want a different text for the link, do not add the class and write the link text yourself in the square brackets
+    * Alternative: Add your custom text and the finding is linked in the PDF:
       ```md
       See this other finding [for more information](#<finding-id>)...
       ```

@@ -1,11 +1,9 @@
 <template>
-  <v-container>
-    <v-form ref="form">
-      <edit-toolbar :data="user" :form="$refs.form" :save="performSave" />
+  <v-form ref="form">
+    <edit-toolbar :data="user" :form="$refs.form" :save="performSave" />
 
-      <user-info-form v-model="user" :errors="serverErrors" />
-    </v-form>
-  </v-container>
+    <user-info-form v-model="user" :errors="serverErrors" />
+  </v-form>
 </template>
 
 <script>

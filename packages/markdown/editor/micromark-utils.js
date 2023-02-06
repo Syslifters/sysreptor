@@ -42,19 +42,3 @@ export function micromarkEventsToTree(text, events) {
   // console.log('micromark tree', tree);
   return tree;
 }
-
-export function extractLeafNodesFromMicromarkTree(tree, interpretTypesAsLeafNodes) {
-  const leafNodes = [];
-  collectLeafNodes(tree);
-  return leafNodes;
-
-  function collectLeafNodes(t) {
-    for (const n of t) {
-      if (n.children.length === 0 || interpretTypesAsLeafNodes.includes(n.type)) {
-        leafNodes.push(n);
-      } else {
-        collectLeafNodes(n.children);
-      }
-    }
-  } 
-}

@@ -40,11 +40,12 @@ class UtilsViewSet(viewsets.ViewSet):
             'healthcheck': 'utils-healthcheck',
         }).get(*args, **kwargs)
 
-    @action(detail=False, url_name='settings', url_path='settings')
+    @action(detail=False, url_name='settings', url_path='settings', authentication_classes=[], permission_classes=[])
     def settings_endpoint(self, *args, **kwargs):
         return Response({
             'languages': [{'code': l[0], 'name': l[1]} for l in Language.choices],
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
+            'auth_providers': [{'id': k, 'name': v.get('label', k)} for k, v in settings.AUTHLIB_OAUTH_CLIENTS.items()],
         })
 
     @action(detail=False, methods=['post'])

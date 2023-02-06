@@ -7,6 +7,8 @@ from typing import Optional, Union
 class MessageLevel(enum.Enum):
     ERROR = 'error'
     WARNING = 'warning'
+    INFO = 'info'
+    DEBUG = 'debug'
 
 
 class MessageLocationType(enum.Enum):
