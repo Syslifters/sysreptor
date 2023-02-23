@@ -47,5 +47,8 @@ export default {
 
     return { errorMessage };
   },
+  head: {
+    title: 'Login',
+  },
 }
 </script>

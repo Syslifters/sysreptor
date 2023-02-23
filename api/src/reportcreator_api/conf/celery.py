@@ -8,7 +8,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reportcreator_api.conf.settings
 celery_app = Celery(
     'reportcreator',
     fixups=Celery.builtin_fixups | {
-        'reportcreator_api.rendering.celery_worker:SecureWorkerFixup'
+        'reportcreator_api.tasks.rendering.celery_worker:SecureWorkerFixup'
     }
 )
 

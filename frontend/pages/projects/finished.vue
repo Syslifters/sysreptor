@@ -13,3 +13,11 @@
     </list-view>
   </div>
 </template>
+
+<script>
+export default {
+  head: {
+    title: 'Projects',
+  },
+}
+</script>

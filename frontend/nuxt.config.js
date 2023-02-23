@@ -15,7 +15,8 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'SysReptor',
+    title: null,
+    titleTemplate: title => (title ? `${title} | ` : '') + 'SysReptor',
     htmlAttrs: {
       lang: 'en'
     },
@@ -25,7 +26,7 @@ export default {
       { name: 'format-detection', content: 'telephone=no' }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      { rel: 'icon', type: 'image/x-icon', href: '/static/favicon.ico' }
     ]
   },
 
@@ -36,6 +37,7 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
+    '~/plugins/apisettings.js',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -109,7 +111,7 @@ export default {
   },
 
   router: {
-    middleware: ['auth', 'settings'],
+    middleware: ['auth'],
   },
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
@@ -162,6 +164,8 @@ export default {
           }
           if (error?.response?.data?.detail) {
             message += ': ' + error?.response?.data?.detail;
+          } else if (error?.response?.status === 429) {
+            message += ': Exceeded rate limit. Try again later.';
           }
           return message;
         },
@@ -175,6 +179,7 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
+    publicPath: '/static/_nuxt/',
     plugins: [
       new MonacoWebpackPlugin({
         languages: ['html', 'css'],
@@ -187,9 +192,12 @@ export default {
         perChunkOutput: false,
         outputFilename: 'NOTICE',
         excludedPackageTest: packageName => ['reportcreator-rendering', 'reportcreator-markdown'].includes(packageName),
+        licenseTypeOverrides: {
+          stackframe: 'Unlicense',
+        },
         licenseTextOverrides,
         unacceptableLicenseTest: licenseType => ![
-          'Apache-2.0', 'MIT', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC',
+          'Apache-2.0', 'MIT', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC', 'Unlicense',
           '(MPL-2.0 OR Apache-2.0)', '(MIT AND BSD-3-Clause)'
         ].includes(licenseType),
       }),

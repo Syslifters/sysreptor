@@ -66,6 +66,4 @@ export default baseMixins.extend({
   width: 100%;
   max-width: 100%;
 }
-
-// TODO: if isFocused => text not blue
 </style>

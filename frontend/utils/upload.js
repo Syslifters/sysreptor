@@ -1,4 +1,4 @@
-export async function uploadFile(axios, url, file) {
+export async function uploadFileHelper(axios, url, file) {
   const form = new FormData();
   form.append('file', file);
   return await axios.$post(url, form, {

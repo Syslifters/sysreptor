@@ -31,6 +31,9 @@ export default {
       }
     }
   },
+  head: {
+    title: 'Projects',
+  },
   methods: {
     async performCreate() {
       if (!this.$refs.form.validate()) {

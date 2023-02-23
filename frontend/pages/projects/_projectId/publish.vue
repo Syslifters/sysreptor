@@ -22,7 +22,7 @@
                   :disabled="project.readonly || projectType.source === 'customized'"
                 />
                 <s-btn 
-                  :to="`/designer/${projectType.id}/pdfdesigner/`" 
+                  :to="`/designs/${projectType.id}/pdfdesigner/`" 
                   :disabled="!$auth.hasScope('designer') || ['customized', 'imported_dependency'].includes(projectType.source)"
                   nuxt
                   color="secondary"
@@ -122,6 +122,9 @@ export default {
       }
     }
   },
+  head: {
+    title: 'Publish',
+  },
   computed: {
     hasErrors() {
       return this.$refs.pdfpreview?.pdfRenderErrors?.length > 0 || (this.checkMessages?.error || []).length > 0;
@@ -170,7 +173,7 @@ export default {
       } else if (msg.location.type === 'finding') {
         return `/projects/${this.project.id}/reporting/findings/${msg.location.id}/` + (msg.location.path ? '#' + msg.location.path : '');
       } else if (msg.location.type === 'design') {
-        return `/designer/${this.project.project_type}/pdfdesigner/`;
+        return `/designs/${this.project.project_type}/pdfdesigner/`;
       }
 
       return null;

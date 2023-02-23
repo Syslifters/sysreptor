@@ -4,8 +4,8 @@ from unittest import mock
 from django.utils import timezone
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
-from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
-    ProjectMemberInfo, ProjectMemberRole
+from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
+    ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage
 from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, report_fields_default, report_sections_default
 from reportcreator_api.users.models import PentestUser, MFAMethod
 from reportcreator_api.utils.models import Language
@@ -33,6 +33,10 @@ def create_user(mfa=False, **kwargs) -> PentestUser:
     if mfa:
         MFAMethod.objects.create_totp(user=user, is_primary=True)
         MFAMethod.objects.create_backup(user=user)
+
+    create_notebookpage(user=user)
+    UploadedUserNotebookImage.objects.create(linked_object=user, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=create_png_file()))
+
     return user
 
 
@@ -85,6 +89,7 @@ def create_project_type(**kwargs) -> ProjectType:
     UploadedAsset.objects.create(linked_object=project_type, name='file2.png', file=SimpleUploadedFile(name='file2.png', content=b'file2'))
     return project_type
 
+
 def create_finding(project, template=None, **kwargs) -> PentestFinding:
     data = ensure_defined_structure(
         value={
@@ -107,7 +112,17 @@ def create_finding(project, template=None, **kwargs) -> PentestFinding:
     finding.save()
     return finding
 
-def create_project(project_type=None, members=[], report_data={}, findings_kwargs=None, **kwargs) -> PentestProject:
+
+def create_notebookpage(**kwargs) -> NotebookPage:
+    return NotebookPage.objects.create(**{
+        'title': f'Note #{random.randint(0, 100000)}',
+        'text': 'Note text',
+        'checked': random.choice([None, True, False]),
+        'emoji': random.choice([None, '🦖'])
+    } | kwargs)
+
+
+def create_project(project_type=None, members=[], report_data={}, findings_kwargs=None, notes_kwargs=None, **kwargs) -> PentestProject:
     project_type = project_type or create_project_type()
     project = PentestProject.objects.create(**{
         'project_type': project_type,
@@ -133,9 +148,15 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
 
     for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 3:
         create_finding(project=project, **finding_kwargs)
+    
+    for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}] * 3:
+        create_notebookpage(project=project, **note_kwargs)
 
     UploadedImage.objects.create(linked_object=project, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=create_png_file()))
     UploadedImage.objects.create(linked_object=project, name='file2.png', file=SimpleUploadedFile(name='file2.png', content=create_png_file()))
+
+    UploadedProjectFile.objects.create(linked_object=project, name='file3.pdf', file=SimpleUploadedFile(name='file3.pdf', content=create_png_file()))
+    UploadedProjectFile.objects.create(linked_object=project, name='file4.xlsx', file=SimpleUploadedFile(name='file4.xlsx', content=create_png_file()))
 
     return project
 

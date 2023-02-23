@@ -6,7 +6,7 @@
 
 <script>
 import { EditorState } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import { EditorView, tooltips } from '@codemirror/view';
 import { history } from '@codemirror/commands';
 import { forceLinting, setDiagnostics } from '@codemirror/lint';
 import { createEditorExtensionToggler } from 'reportcreator-markdown/editor/utils';
@@ -85,6 +85,7 @@ export default {
         extensions: [
           history(),
           highlightTodos,
+          tooltips({ parent: document.body }),
           // Prevent newlines
           EditorState.transactionFilter.of(tr => tr.newDoc.lines > 1 ? [] : tr),
           EditorView.domEventHandlers({
@@ -120,6 +121,12 @@ export default {
   },
   methods: {
     async performSpellcheckRequest(data) {
+      if (!this.lang) {
+        return {
+          matches: []
+        };
+      }
+
       return await this.$axios.$post('/utils/spellcheck/', {
         ...data,
         language: this.lang,

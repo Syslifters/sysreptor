@@ -1,6 +1,7 @@
 # Terms of Service SysReptor Professional
 ## Preamble
 SysReptor Professional (hereinafter: the Platform) is a web-based pentest reporting tool developed and operated by us, Syslifters GmbH (FN 578505v).  
+Our order process is conducted by our online reseller Paddle.com. Paddle.com is the Merchant of Record for all our orders. Paddle provides all customer service inquiries and handles returns.  
 These Terms of Service apply to you as a user of the Platform in the Cloud or On-Premise.
 Only business clients as defined in § 1 of the Austrian Consumer Protection Act (Konsumentenschutzgesetz) can be customers. 
 
@@ -46,7 +47,7 @@ You can withdraw from the contract for the reason of a mistake if the subscripti
 ## Governing Law
 Austrian laws apply to the extent permitted by law. Application of the UN Convention for the International Sale of Goods, the referral standards of the IPRG, and Regulation (EC) no. 593/2008 of the European Parliament and of the Council of June 17, 2008, on the law applicable to contractual obligations (Rome I Regulation) is excluded.
 
-# Severability
+## Severability
 If a provision of these Terms of Service agreement is or becomes legally invalid or if there is any gap that needs to be filled, the validity of the remainder of these Terms of Service shall not be affected thereby. Invalid provisions shall be replaced by common consent with such provisions which come as close as possible to the intended result of the invalid provision. In the event of gaps such provision shall come into force by common consent which comes as close as possible to the intended result of these Terms of Service, should the matter have been considered in advance. Any changes of or amendments to these Terms of Service must be in writing to become effective.
 
 

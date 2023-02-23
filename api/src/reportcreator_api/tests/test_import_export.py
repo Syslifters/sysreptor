@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from reportcreator_api.pentests.models import PentestProject, ProjectType, SourceEnum, UploadedAsset, UploadedImage, ProjectMemberRole
 from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates, import_project_types, import_projects, import_templates
-from reportcreator_api.tests.mock import create_project, create_project_type, create_template, create_user, create_finding
+from reportcreator_api.tests.mock import create_notebookpage, create_project, create_project_type, create_template, create_user, create_finding
 
 
 def archive_to_file(archive_iterator):
@@ -34,7 +34,10 @@ class TestImportExport:
             findings_kwargs=[
                 {'assignee': self.user, 'template': self.template},
                 {'assignee': None, 'template': None},
-            ])
+            ],
+            notes_kwargs=[])
+        note1 = create_notebookpage(project=self.project, title='Note 1', text='Note text 1')
+        create_notebookpage(project=self.project, parent=note1, title='Note 1.1', text='Note text 1.1')
         
         with override_settings(COMPRESS_IMAGES=False):
             yield
@@ -52,6 +55,7 @@ class TestImportExport:
 
     def test_export_import_project_type(self):
         archive = archive_to_file(export_project_types([self.project_type]))
+        self.project_type.refresh_from_db()
         imported = import_project_types(archive)
 
         assert len(imported) == 1
@@ -65,38 +69,56 @@ class TestImportExport:
 
         assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
 
-    def test_export_import_project(self):
-        archive = archive_to_file(export_projects([self.project]))
-        imported = import_projects(archive)
-
-        assert len(imported) == 1
-        p = imported[0]
-
-        assertKeysEqual(p, self.project, ['name', 'language'])
-        assert members_equal(p.members, self.project.members)
-        assert p.data == self.project.data
-        assert p.data_all == self.project.data_all
+    def assert_export_import_project(self, project, p):
+        assertKeysEqual(p, project, ['name', 'language'])
+        assert members_equal(p.members, project.members)
+        assert p.data == project.data
+        assert p.data_all == project.data_all
         assert p.source == SourceEnum.IMPORTED
         
-        assert p.sections.count() == self.project.sections.count()
-        for i, s in zip(p.sections.order_by('section_id'), self.project.sections.order_by('section_id')):
+        assert p.sections.count() == project.sections.count()
+        for i, s in zip(p.sections.order_by('section_id'), project.sections.order_by('section_id')):
             assertKeysEqual(i, s, ['section_id', 'created', 'assignee', 'status', 'data'])
 
-        assert p.findings.count() == self.project.findings.count()
-        for i, s in zip(p.findings.order_by('finding_id'), self.project.findings.order_by('finding_id')):
+        assert p.findings.count() == project.findings.count()
+        for i, s in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id')):
             assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'template', 'data', 'data_all'])
 
-        assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in self.project.images.all()}
+        assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in project.images.all()}
 
-        assertKeysEqual(p.project_type, self.project.project_type, [
+        assertKeysEqual(p.project_type, project.project_type, [
             'created', 'name', 'language', 
             'report_fields', 'report_sections', 'finding_fields', 'finding_field_order', 
             'report_template', 'report_styles', 'report_preview_data'])
         assert p.project_type.source == SourceEnum.IMPORTED_DEPENDENCY
         assert p.project_type.linked_project == p
         
-        assert {(a.name, a.file.read()) for a in p.project_type.assets.all()} == {(a.name, a.file.read()) for a in self.project.project_type.assets.all()}
+        assert {(a.name, a.file.read()) for a in p.project_type.assets.all()} == {(a.name, a.file.read()) for a in project.project_type.assets.all()}
 
+    def test_export_import_project(self):
+        archive = archive_to_file(export_projects([self.project]))
+        self.project.refresh_from_db()
+        imported = import_projects(archive)
+        assert len(imported) == 1
+        p = imported[0]
+        self.assert_export_import_project(self.project, p)
+        assert p.notes.count() == 0
+        assert p.files.count() == 0
+
+    def test_export_import_project_all(self):
+        archive = archive_to_file(export_projects([self.project], export_all=True))
+        self.project.refresh_from_db()
+        imported = import_projects(archive)
+        assert len(imported) == 1
+        p = imported[0]
+        self.assert_export_import_project(self.project, p)
+
+        assert p.notes.count() == self.project.notes.count()
+        for i, s in zip(p.notes.order_by('note_id'), self.project.notes.order_by('note_id')):
+            assertKeysEqual(i, s, ['note_id', 'created', 'title', 'text', 'emoji', 'order'])
+            assert i.parent.note_id == s.parent.note_id if s.parent else i.parent is None
+
+        assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in self.project.files.all()}
 
     def test_import_nonexistent_user(self):
         # export project with members and assignee, delete user, import => members and assignee == NULL

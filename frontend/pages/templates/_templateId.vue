@@ -4,7 +4,7 @@
       <v-list dense>
         <v-list-item>
           <project-type-selection
-            v-model="fieldVisibilityFilter"
+            v-model="fieldFilterDesign"
             label="Show fields of"
             :outlined="false"
             :additional-items="[{id: 'all', name: 'All Designs'}]"
@@ -14,7 +14,7 @@
         <v-list-item v-for="d in fieldDefinition" :key="d.id">
           <v-list-item-title>{{ d.id }}</v-list-item-title>
           <v-list-item-action v-if="d.origin !== 'core'">
-            <s-btn @click="d.visible = !d.visible" icon x-small>
+            <s-btn @click="toggleFieldVisible(d)" icon x-small>
               <v-icon v-if="d.visible">mdi-eye</v-icon>
               <v-icon v-else>mdi-eye-off</v-icon>
             </s-btn>
@@ -91,11 +91,17 @@ export default {
 
     this.template = template;
     this.fieldDefinition = sortBy(
-      Object.keys(rawFieldDefinition).map(id => ({ id, visible: true, ...rawFieldDefinition[id] })),
+      Object.keys(rawFieldDefinition).map(id => ({ id, visible: !this.fieldFilterHiddenFields.includes(id), ...rawFieldDefinition[id] })),
       [(d) => {
         const originOrder = { core: 1, predefined: 2, custom: 3 };
         return originOrder[d.origin] || 10;
       }]);
+  },
+  head() {
+    const title = this.template?.data?.title;
+    return {
+      title: (title ? `${title} | ` : '') + 'Templates',
+    };
   },
   computed: {
     data() {
@@ -120,12 +126,20 @@ export default {
     fieldDefinitionsCore() {
       return this.fieldDefinition.filter(f => f.origin === 'core');
     },
-    fieldVisibilityFilter: {
+    fieldFilterDesign: {
       get() {
-        return this.$store.state.settings.templateFieldVisibilityFilter;
+        return this.$store.state.settings.templateFieldFilterDesign;
       },
       set(val) {
-        this.$store.commit('settings/updateTemplateFieldVisibilityFilter', val);
+        this.$store.commit('settings/updateTemplateFieldFilterDesign', val);
+      }
+    },
+    fieldFilterHiddenFields: {
+      get() {
+        return this.$store.state.settings.templateFieldFilterHiddenFields;
+      },
+      set(val) {
+        this.$store.commit('settings/updateTemplateFieldFilterHiddenFields', val);
       }
     },
     menuSize: {
@@ -138,26 +152,26 @@ export default {
     },
   },
   watch: {
-    fieldVisibilityFilter: {
-      immediate: true,
-      async handler(val) {
-        if (val === 'all') {
-          this.fieldDefinition.forEach((d) => {
-            d.visible = true
-          });
-        } else {
-          try {
-            const projectType = await this.$store.dispatch('projecttypes/getById', val);
-            this.fieldDefinition.forEach((d) => {
-              d.visible = Object.keys(projectType.finding_fields).includes(d.id);
-            });
-          } catch (error) {
-            this.$toast.global.requestError({ error });
-            this.fieldVisibilityFilter = 'all';
-          }
+    async fieldFilterDesign(val) {
+      if (val === 'all') {
+        this.fieldFilterHiddenFields = [];
+      } else {
+        try {
+          const projectType = await this.$store.dispatch('projecttypes/getById', val);
+          this.fieldFilterHiddenFields = this.fieldDefinition.filter(d => !Object.keys(projectType.finding_fields).includes(d.id)).map(d => d.id);
+        } catch (error) {
+          this.fieldFilterDesign = 'all';
         }
       }
     },
+    fieldFilterHiddenFields: {
+      immediate: true,
+      handler(val) {
+        this.fieldDefinition.forEach((d) => {
+          d.visible = !val.includes(d.id);
+        });
+      },
+    }
   },
   methods: {
     getBaseUrl(data) {
@@ -173,6 +187,10 @@ export default {
       await this.$store.dispatch('templates/delete', data)
       this.$router.push(`/templates/`);
     },
+    toggleFieldVisible(d) {
+      d.visible = !d.visible;
+      this.fieldFilterHiddenFields = this.fieldDefinition.filter(d => !d.visible).map(d => d.id);
+    }
   }
 }
 </script>

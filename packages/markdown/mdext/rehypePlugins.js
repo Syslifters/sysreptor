@@ -44,8 +44,12 @@ export function rehypeConvertAttrsToStyle() {
 export function addClass(node, className) {
   if (!node.properties.className) {
     node.properties.className = [];
+  }  
+  if (Array.isArray(className)) {
+    node.properties.className.push(...className);
+  } else {
+    node.properties.className.push(className);
   }
-  node.properties.className.push(className);
 }
 
 
@@ -57,3 +61,23 @@ export function rehypeRewriteImageSources({rewriteImageSource}) {
   });
 }
 
+
+export function rehypeRewriteFileLinks({ rewriteFileUrl }) {
+  return tree => visit(tree, 'element', node => {
+    if (node.tagName === 'a' && node.properties?.href?.startsWith('/files/') && rewriteFileUrl) {
+      node.properties.href = rewriteFileUrl(node.properties.href);
+      node.properties.download = true;
+      addClass(node, ['file-download-preview', 'v-icon', 'mdi', 'mdi-file-download']);
+    }
+  });
+}
+
+
+export function rehypeTemplates() {
+  return tree => visit(tree, 'element', node => {
+    if (node.tagName === 'template') {
+      node.children = node.content?.children || [];
+      node.tagName = 'span';
+    }
+  })
+}

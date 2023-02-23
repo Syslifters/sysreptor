@@ -8,10 +8,11 @@ from typing import Iterable, Type
 from django.http import FileResponse
 from rest_framework import serializers
 from django.db import transaction
+from django.db.models import prefetch_related_objects, Prefetch
 from django.core.serializers.json import DjangoJSONEncoder
 
 from reportcreator_api.archive.serializers import FindingTemplateExportImportSerializer, PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer
-from reportcreator_api.pentests.models import FindingTemplate, PentestProject, ProjectType
+from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection
 
 
 log = logging.getLogger(__name__)
@@ -75,33 +76,37 @@ def _tarfile_addfile(buffer, archive: tarfile.TarFile, tarinfo, file_chunks) -> 
     archive.members.append(tarinfo)
 
 
-def export_archive_iter(data, serializer_class: Type[serializers.Serializer]) -> Iterable[bytes]:
-    buffer = io.BytesIO()
+def export_archive_iter(data, serializer_class: Type[serializers.Serializer], context=None) -> Iterable[bytes]:
+    try:
+        buffer = io.BytesIO()
 
-    with tarfile.open(fileobj=buffer, mode='w|gz') as archive:
-        context = {
-            'archive': archive,
-        }
-        for obj in data:
-            serializer = serializer_class(instance=obj, context=context)
-            data = serializer.export()
-            archive_data = json.dumps(data, cls=DjangoJSONEncoder).encode()
-            yield from _tarfile_addfile(
-                buffer=buffer, 
-                archive=archive,
-                tarinfo=build_tarinfo(name=f'{obj.id}.json', size=len(archive_data)), 
-                file_chunks=[archive_data]
-            )
-            
-            for name, file in serializer.export_files():
+        with tarfile.open(fileobj=buffer, mode='w|gz') as archive:
+            context = (context or {}) | {
+                'archive': archive,
+            }
+            for obj in data:
+                serializer = serializer_class(instance=obj, context=context)
+                data = serializer.export()
+                archive_data = json.dumps(data, cls=DjangoJSONEncoder).encode()
                 yield from _tarfile_addfile(
-                    buffer=buffer,
+                    buffer=buffer, 
                     archive=archive,
-                    tarinfo=build_tarinfo(name=name, size=file.size), 
-                    file_chunks=file.chunks()
+                    tarinfo=build_tarinfo(name=f'{obj.id}.json', size=len(archive_data)), 
+                    file_chunks=[archive_data]
                 )
+                
+                for name, file in serializer.export_files():
+                    yield from _tarfile_addfile(
+                        buffer=buffer,
+                        archive=archive,
+                        tarinfo=build_tarinfo(name=name, size=file.size), 
+                        file_chunks=file.chunks()
+                    )
 
-    yield from _yield_chunks(buffer=buffer, last_chunk=True)
+        yield from _yield_chunks(buffer=buffer, last_chunk=True)
+    except Exception as ex:
+            logging.exception('Error while exporting archive')
+            raise ex
 
 
 @transaction.atomic()
@@ -152,10 +157,22 @@ def export_templates(data: Iterable[FindingTemplate]):
     return export_archive_iter(data, serializer_class=FindingTemplateExportImportSerializer)
 
 def export_project_types(data: Iterable[ProjectType]):
+    prefetch_related_objects(data, 'assets')
     return export_archive_iter(data, serializer_class=ProjectTypeExportImportSerializer)
 
-def export_projects(data: Iterable[PentestProject]):
-    return export_archive_iter(data, serializer_class=PentestProjectExportImportSerializer)
+def export_projects(data: Iterable[PentestProject], export_all=False):
+    prefetch_related_objects(
+        data, 
+        Prefetch('findings', PentestFinding.objects.select_related('assignee')), 
+        Prefetch('sections', ReportSection.objects.select_related('assignee')), 
+        Prefetch('notes', NotebookPage.objects.select_related('parent')),
+        Prefetch('members', ProjectMemberInfo.objects.select_related('user')),
+        'images', 
+        'project_type__assets',
+    )
+    return export_archive_iter(data, serializer_class=PentestProjectExportImportSerializer, context={
+        'export_all': export_all,
+    })
 
 
 def import_templates(archive_file):

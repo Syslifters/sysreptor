@@ -1,6 +1,6 @@
 import json
 import logging
-import requests
+import httpx
 from base64 import b64decode
 from urllib.parse import urljoin
 from django.conf import settings
@@ -29,21 +29,24 @@ class TextDataField(serializers.Serializer):
 
 
 class LanguageToolSerializer(serializers.Serializer):
-    language = serializers.ChoiceField(choices=Language.choices)
+    language = serializers.ChoiceField(choices=Language.choices + [('auto', 'auto')])
     data = TextDataField()
 
-    def spellcheck(self):
+    async def spellcheck(self):
         if not settings.SPELLCHECK_URL:
             raise exceptions.PermissionDenied('Spell checker not configured')
 
         data = self.validated_data
-        res = requests.post(
-            url=urljoin(settings.SPELLCHECK_URL, '/v2/check'), 
-            data={
-                'language': data['language'],
-                'data': json.dumps(data['data'], ensure_ascii=False),
-            })
-        return res.json()
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            res = await client.post(
+                url=urljoin(settings.SPELLCHECK_URL, '/v2/check'), 
+                data={
+                    'language': data['language'],
+                    'data': json.dumps(data['data'], ensure_ascii=False),
+                    **({'preferredVariants': Language.values} if data['language'] == 'auto' else {}),
+                })
+            return res.json()
 
 
 class S3ParamsSerializer(serializers.Serializer):

@@ -68,7 +68,7 @@ services:
     environment:
       PDF_RENDER_SCRIPT_PATH: /app/rendering/dist/bundle.js
       CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
-      CELERY_RESULT_BACKEND: reportcreator_api.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
+      CELERY_RESULT_BACKEND: reportcreator_api.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
       CELERY_SECURE_WORKER: "on"
     volumes:
       - type: bind
@@ -91,11 +91,17 @@ services:
       JAVA_TOOL_OPTIONS: "-verbose:gc"
     expose:
       - 8010
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-so", "/dev/null", "http://localhost:8010/v2/languages"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
   api:
     build:
       context: ..
       target: api-dev
-    command: sh -c "python3 manage.py migrate && python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver --nothreading 0.0.0.0:8000"
+    command: sh -c "python3 manage.py migrate && python3 -m debugpy --listen 0.0.0.0:5678 -m uvicorn --reload --host 0.0.0.0 --port 8000 reportcreator_api.conf.asgi:application"
     volumes:
       - type: volume
         source: app-data
@@ -109,8 +115,8 @@ services:
     expose:
       - 8000
     ports:
-      - 8000:8000
-      - 5678:5678
+      - "8000:8000"
+      - "5678:5678"
     environment:
       DEBUG: "on"
       DATABASE_ENGINE: django.db.backends.postgresql
@@ -123,7 +129,7 @@ services:
       ENCRYPTION_KEYS: '[{"id": "local-dev-key", "key": "t02ZBxs4cl6xi7aSO46PVhUbEUNcRjIeyr0eF/OUQOg=", "cipher": "AES-GCM"}]'
       DEFAULT_ENCRYPTION_KEY_ID: local-dev-key
       CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
-      CELERY_RESULT_BACKEND: reportcreator_api.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
+      CELERY_RESULT_BACKEND: reportcreator_api.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
       MFA_FIDO2_RP_ID: localhost
     env_file: app.env
     depends_on:
@@ -147,11 +153,11 @@ services:
         target: /app/packages/
       - type: bind
         source: ../packages/pdfviewer/dist/
-        target: /app/frontend/static/pdfviewer/
+        target: /app/frontend/static/static/pdfviewer/
     expose:
       - 3000
     ports:
-      - 3000:3000
+      - "3000:3000"
     environment:
       HOST: 0.0.0.0
     depends_on:

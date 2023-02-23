@@ -4,13 +4,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
-from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, ReportSection, \
-    SourceEnum, UploadedAsset, UploadedImage, UploadedFileBase, ProjectMemberInfo
+from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectType, ReportSection, \
+    SourceEnum, UploadedAsset, UploadedImage, UploadedFileBase, ProjectMemberInfo, UploadedProjectFile
 from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
-from reportcreator_api.utils.files import compress_image
-from reportcreator_api.utils.logging import log_timing
+from reportcreator_api.utils.utils import omit_keys
 
 
 class ExportImportSerializer(serializers.ModelSerializer):
@@ -176,6 +175,18 @@ class UploadedImageExportImportSerializer(FileExportImportSerializer):
         return str(self.context.get('project_id') or self.get_linked_object().id) + '-images/' + name
 
 
+class UploadedProjectFileExportImportSerializer(FileExportImportSerializer):
+    class Meta(FileExportImportSerializer.Meta):
+        model = UploadedProjectFile
+
+    def get_linked_object(self):
+        return self.context['project']
+    
+    def get_path_in_archive(self, name):
+        # Get ID of old project_type from archive
+        return str(self.context.get('project_id') or self.get_linked_object().id) + '-files/' + name
+
+
 class UploadedAssetExportImportSerializer(FileExportImportSerializer):
     class Meta(FileExportImportSerializer.Meta):
         model = UploadedAsset
@@ -262,6 +273,34 @@ class ReportSectionExportImportSerializer(ExportImportSerializer):
         extra_kwargs = {'created': {'read_only': False}}
 
 
+class NotebookPageExportImportSerializer(ExportImportSerializer):
+    id = serializers.UUIDField(source='note_id')
+    parent = serializers.UUIDField(source='parent.note_id', allow_null=True)
+
+    class Meta:
+        model = NotebookPage
+        fields = [
+            'id', 'created', 'updated',
+            'title', 'text', 'checked', 'emoji',
+            'order', 'parent',
+        ]
+        extra_kwargs = {'created': {'read_only': False}}
+
+
+class NotebookPageListExportImportSerializer(serializers.ListSerializer):
+    child = NotebookPageExportImportSerializer()
+
+    def create(self, validated_data):
+        instances = [NotebookPage(project=self.context['project'], **omit_keys(d, ['parent'])) for d in validated_data]
+        for i, d in zip(instances, validated_data):
+            if d.get('parent'):
+                i.parent = next(filter(lambda e: e.note_id == d.get('parent', {}).get('note_id'), instances), None)
+
+        NotebookPage.objects.check_parent_and_order(instances)
+        NotebookPage.objects.bulk_create(instances)
+        return instances
+
+
 class PentestProjectExportImportSerializer(ExportImportSerializer):
     format = FormatField('projects/v1')
     members = RelatedUserDataExportImportSerializer(many=True, required=False)
@@ -270,26 +309,39 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
     report_data = serializers.DictField(source='data_all')
     sections = ReportSectionExportImportSerializer(many=True)
     findings = PentestFindingExportImportSerializer(many=True)
+    notes = NotebookPageListExportImportSerializer(required=False)
     images = UploadedImageExportImportSerializer(many=True)
+    files = UploadedProjectFileExportImportSerializer(many=True, required=False)
 
     class Meta:
         model = PentestProject
         fields = [
             'format', 'id', 'created', 'updated', 'name', 'language', 
             'members', 'pentesters', 'project_type', 
-            'report_data', 'sections', 'findings', 'images',
-
+            'report_data', 'sections', 'findings', 'notes', 'images', 'files',
         ]
         extra_kwargs = {'id': {'read_only': False}, 'created': {'read_only': False}}
+
+    def get_fields(self):
+        fields = super().get_fields()
+        if not self.context.get('export_all', True):
+            del fields['notes']
+            del fields['files']
+        return fields
 
     def export_files(self) -> Iterable[tuple[str, File]]:
         self.fields['project_type'].instance = self.instance.project_type
         yield from self.fields['project_type'].export_files()
 
-        ff = self.fields['images']
         self.context.update({'project': self.instance})
-        ff.instance = list(ff.get_attribute(self.instance).all())
-        yield from ff.export_files()
+
+        imgf = self.fields['images']
+        imgf.instance = list(imgf.get_attribute(self.instance).all())
+        yield from imgf.export_files()
+
+        if ff := self.fields.get('files'):
+            ff.instance = list(ff.get_attribute(self.instance).all())
+            yield from ff.export_files()
     
     def create(self, validated_data):
         old_id = validated_data.pop('id')
@@ -297,8 +349,10 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         project_type_data = validated_data.pop('project_type', {})
         sections = validated_data.pop('sections', [])
         findings = validated_data.pop('findings', [])
+        notes = validated_data.pop('notes', [])
         report_data = validated_data.pop('data_all', {})
         images_data = validated_data.pop('images', [])
+        files_data = validated_data.pop('files', [])
 
         project_type = self.fields['project_type'].create(project_type_data | {
             'source': SourceEnum.IMPORTED_DEPENDENCY,
@@ -329,7 +383,9 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
                 self.fields['sections'].child.update(section, section_data)
 
         self.fields['findings'].create(findings)
+        self.fields['notes'].create(notes)
         self.fields['images'].create(images_data)
+        self.fields['files'].create(files_data)
 
         return project
 

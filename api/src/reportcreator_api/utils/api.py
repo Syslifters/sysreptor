@@ -1,7 +1,47 @@
-from django.http import Http404
+from asgiref.sync import sync_to_async
+from django.http import FileResponse, Http404
 from django.core.exceptions import PermissionDenied
-from rest_framework import exceptions, status, views
+from adrf.views import APIView as AsyncAPIView
+from rest_framework import exceptions, status, views, generics, viewsets
 from rest_framework.response import Response
+
+
+class GenericAPIViewAsync(generics.GenericAPIView, AsyncAPIView):
+    _action = None
+
+    @property
+    def action(self):
+        return self._action
+    
+    @action.setter
+    def action(self, value):
+        self._action = value
+
+    async def aget_valid_serializer(self, *args, **kwargs):
+        serializer = self.get_serializer(*args, **kwargs)
+        await sync_to_async(serializer.is_valid)(raise_exception=True)
+        return serializer
+
+    async def aget_object(self):
+        return await sync_to_async(super().get_object)()
+
+
+class FileResponseAsync(FileResponse):
+    async def to_async_iterator(self, sync_iter):
+        for chunk in await sync_to_async(list)(sync_iter):
+            yield chunk
+
+    def _set_streaming_content(self, value):
+        if not hasattr(value, "read"):
+            self.file_to_stream = None
+            return super()._set_streaming_content(self.to_async_iterator(value))
+        
+        self.file_to_stream = filelike = value
+        if hasattr(filelike, "close"):
+            self._resource_closers.append(filelike.close)
+        value = iter(lambda: filelike.read(self.block_size), b"")
+        self.set_headers(filelike)
+        super()._set_streaming_content(self.to_async_iterator((value)))
 
 
 def exception_handler(exc, context):

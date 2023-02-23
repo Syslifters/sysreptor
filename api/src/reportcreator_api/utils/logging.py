@@ -1,6 +1,7 @@
 import logging
-from django.utils import timezone
+from django.utils import timezone, deprecation
 from django.utils.functional import wraps
+
 
 log = logging.getLogger()
 
@@ -16,16 +17,12 @@ def log_timing(fn):
     return inner
 
 
-class RequestLoggingMiddleware(object):
-    def __init__(self, get_response):
-        self.get_response = get_response
-
+class RequestLoggingMiddleware(deprecation.MiddlewareMixin):
     def should_log(self, request, response):
         # Do not log healthchecks
         return request.resolver_match and request.resolver_match.url_name not in ['utils-healthcheck']
 
-    def __call__(self, request):
-        response = self.get_response(request)
+    def process_response(self, request, response):
         if self.should_log(request, response):
             user = '<none>'
             if getattr(request, 'user', None) and not request.user.is_anonymous:

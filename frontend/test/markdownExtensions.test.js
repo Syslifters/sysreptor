@@ -15,7 +15,7 @@ describe('Markdown extensions', () => {
     'text^[**foot**[note](#ref)] text': '<p>text<footnote><strong>foot</strong><a href="#ref">note</a></footnote> text</p>',
     // Figure
     '![caption _with_ **markdown** `code`](#img)': '<p></p><figure><img src="#img" alt="caption with markdown code"><figcaption>caption <em>with</em> <strong>markdown</strong> <code class="code-inline">code</code></figcaption></figure><p></p>',
-    '![](#img)': '<p></p><figure><img src="#img" alt></figure><p></p>',
+    '![](#img)': '<p></p><figure><img src="#img" alt=""></figure><p></p>',
     '![caption](#img){#imgId .imgClass width="50%"}': '<p></p><figure><img src="#img" alt="caption" id="imgId" class="imgClass" style="width:50%;"><figcaption>caption</figcaption></figure><p></p>',
     // Table
     '| cell  |\n| ----- |\n| value |\n\nTable: caption': '<table><thead><tr><th>cell</th></tr></thead><tbody><tr><td>value</td></tr></tbody><caption>caption</caption></table>',
@@ -32,7 +32,7 @@ describe('Markdown extensions', () => {
     'text {{ var **with** _code_ `code` }} text': '<p>text {{ var **with** _code_ `code` }} text</p>',
     'text {{ var with curly braces {a: "abc", b: "def"}[var] }} text': '<p>text {{ var with curly braces {a: "abc", b: "def"}[var] }} text</p>',
     'text {no var}} {{ no var } text': '<p>text {no var}} {{ no var } text</p>',
-    'text <template v-if="var">{{ var }} text</template> text': '<p>text <template v-if="var">{{ var }} text</template> text</p>',
+    'text <template v-if="var">{{ var }} text</template> text': '<p>text <span v-if="var">{{ var }} text</span> text</p>',
     'text <span v-for="v in var">{{ v }}</span> text': '<p>text <span v-for="v in var">{{ v }}</span> text</p>',
     // TO-DOs
     'TODO: text': '<p><span class="todo">TODO</span>: text</p>',

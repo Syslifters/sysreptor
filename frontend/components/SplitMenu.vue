@@ -9,7 +9,7 @@
     </pane>
     <pane :size="100 - value">
       <fill-screen-height>
-        <v-container fluid class="pt-0">
+        <v-container fluid class="pt-0 pb-0">
           <slot name="default" />
         </v-container>
       </fill-screen-height>

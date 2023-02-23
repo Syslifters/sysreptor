@@ -1,4 +1,4 @@
-import { GlobalWorkerOptions } from 'pdfjs-dist/webpack';
+import * as pdfjsLib from 'pdfjs-dist/webpack';
 import { PDFViewerApplication } from 'pdfjs-dist/lib/web/app';
 import { DEFAULT_SCALE_VALUE, RenderingStates, ScrollMode, SpreadMode } from 'pdfjs-dist/lib/web/ui_utils';
 import { LinkTarget } from 'pdfjs-dist/lib/web/pdf_link_service';
@@ -14,7 +14,7 @@ window.PDFViewerApplicationOptions = AppOptions;
 
 AppOptions.setAll({
   disablePreferences: true,
-  workerPort: GlobalWorkerOptions.workerPort,
+  workerPort: pdfjsLib.GlobalWorkerOptions.workerPort,
   defaultUrl: '',
   externalLinkTarget: LinkTarget.BLANK,
   enableScripting: false,

@@ -40,8 +40,8 @@
             :id="fieldId"
             :definition="projectType.report_fields[fieldId]" 
             :show-field-ids="true"
-            :upload-image="uploadImage" 
-            :rewrite-image-url="rewriteImageUrl"
+            :upload-file="uploadFile" 
+            :rewrite-file-url="rewriteFileUrl"
             :selectable-users="[$auth.user]"
             :lang="projectType.language"
             :disabled="disabled"
@@ -55,8 +55,8 @@
             :id="fieldId"
             :definition="projectType.finding_fields[fieldId]" 
             :show-field-ids="true"
-            :upload-image="uploadImage" 
-            :rewrite-image-url="rewriteImageUrl"
+            :upload-file="uploadFile" 
+            :rewrite-file-url="rewriteFileUrl"
             :selectable-users="[$auth.user]"
             :lang="projectType.language"
             :disabled="disabled"
@@ -71,7 +71,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import urlJoin from 'url-join';
 import * as cvss from "@/utils/cvss.js";
-import { uploadFile } from '~/utils/upload';
+import { uploadFileHelper } from '~/utils/upload';
 import { sortFindings } from '~/utils/other';
 
 export default {
@@ -104,11 +104,11 @@ export default {
     },
   },
   methods: {
-    async uploadImage(file) {
-      const img = await uploadFile(this.$axios, `/projecttypes/${this.projectType.id}/assets/`, file);
-      return `/assets/name/${img.name}`;
+    async uploadFile(file) {
+      const img = await uploadFileHelper(this.$axios, `/projecttypes/${this.projectType.id}/assets/`, file);
+      return `![](/assets/name/${img.name})`;
     },
-    rewriteImageUrl(imgSrc) {
+    rewriteFileUrl(imgSrc) {
       return urlJoin(`/projecttypes/${this.projectType.id}/`, imgSrc);
     },
     updateSectionField(fieldId, value) {

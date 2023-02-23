@@ -19,6 +19,9 @@
 <script>
 export default {
   auth: false,
+  head: {
+    title: 'Login',
+  },
   mounted() {
     if (this.$store.getters['apisettings/settings'].auth_providers === 0) {
       this.$router.replace('/login/local/');

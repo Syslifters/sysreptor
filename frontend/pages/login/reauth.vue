@@ -21,6 +21,9 @@
 
 <script>
 export default {
+  head: {
+    title: 'Re-Authenticate',
+  },
   mounted() {
     const authProviders = this.$store.getters['apisettings/settings'].auth_providers;
     if (!this.$auth.user.can_login_local && this.$auth.user.can_login_oidc && authProviders.length === 1) {

@@ -1,9 +1,10 @@
 import io
+import json
+import elasticapm
+from django.db import models
+from django.core import checks
 
 from reportcreator_api.archive.crypto import base as crypto
-from django.db import models
-from django.contrib.postgres.fields import ArrayField
-from django.core import checks
 
 
 class EncryptedField(models.BinaryField):
@@ -64,17 +65,21 @@ class EncryptedField(models.BinaryField):
         })
         return name, path, args, kwargs
     
+    @elasticapm.capture_span()
     def get_db_prep_value(self, value, connection, prepared=False):
         if value is None:
             return value
         
-        value = self.base_field.get_db_prep_value(value=value, connection=connection, prepared=prepared)
-        if isinstance(value, bytes):
-            pass
-        elif isinstance(value, str):
-            value = value.encode()
+        if isinstance(self.base_field, models.JSONField):
+            value = json.dumps(value, cls=self.base_field.encoder).encode()
         else:
-            value = str(value).encode()
+            value = self.base_field.get_db_prep_value(value=value, connection=connection, prepared=prepared)
+            if isinstance(value, bytes):
+                pass
+            elif isinstance(value, str):
+                value = value.encode()
+            else:
+                value = str(value).encode()
 
         enc = io.BytesIO()
         with crypto.open(fileobj=enc, mode='wb') as c:
@@ -83,6 +88,7 @@ class EncryptedField(models.BinaryField):
 
         return super().get_db_prep_value(value=value, connection=connection, prepared=prepared)
 
+    @elasticapm.capture_span()
     def from_db_value(self, value, expression, connection):
         value = super().to_python(value)
 

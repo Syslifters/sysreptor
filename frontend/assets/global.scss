@@ -9,6 +9,10 @@ html {
   overflow-y: auto !important;
 }
 
+body {
+  font-family: $body-font-family;
+  line-height: $line-height-root;
+}
 
 .login-header {
   background-color: $syslifters-darkblue !important;

@@ -1,4 +1,5 @@
 import logging
+from asgiref.sync import sync_to_async
 from base64 import b64decode
 from django.http import StreamingHttpResponse
 from django.conf import settings
@@ -12,9 +13,11 @@ from rest_framework.settings import api_settings
 from reportcreator_api.api_utils.serializers import LanguageToolSerializer, BackupSerializer
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.permissions import IsSystemUser
-from reportcreator_api.utils import backup_utils
+from reportcreator_api.api_utils import backup_utils
+from reportcreator_api.utils.api import GenericAPIViewAsync
 from reportcreator_api.utils.models import Language
 from reportcreator_api.pentests.models import ProjectMemberRole
+from reportcreator_api.tasks.models import PeriodicTask
 
 
 log = logging.getLogger(__name__)
@@ -46,13 +49,8 @@ class UtilsViewSet(viewsets.ViewSet):
             'languages': [{'code': l[0], 'name': l[1]} for l in Language.choices],
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
             'auth_providers': [{'id': k, 'name': v.get('label', k)} for k, v in settings.AUTHLIB_OAUTH_CLIENTS.items()],
+            'elastic_apm_rum_config': settings.ELASTIC_APM_RUM_CONFIG if settings.ELASTIC_APM_RUM_ENABLED else None,
         })
-
-    @action(detail=False, methods=['post'])
-    def spellcheck(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response(data=serializer.spellcheck())
 
     @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsSystemUser])
     def backup(self, request, *args, **kwargs):
@@ -82,6 +80,23 @@ class UtilsViewSet(viewsets.ViewSet):
             log.info('Sending Backup')
             return response
 
-    @action(detail=False, methods=['get'], permission_classes=[])
-    def healthcheck(self, request, *args, **kwargs):
-        return run_healthchecks(settings.HEALTH_CHECKS)
+
+class SpellcheckView(GenericAPIViewAsync):
+    serializer_class = LanguageToolSerializer
+
+    async def post(self, request, *args, **kwargs):
+        serializer = await self.aget_valid_serializer(data=request.data)
+        data = await serializer.spellcheck()
+        return Response(data=data)
+
+
+class HealthcheckView(GenericAPIViewAsync):
+    authentication_classes = []
+    permission_classes = []
+
+    async def get(self, *args, **kwargs):
+        # Trigger periodic tasks
+        await PeriodicTask.objects.run_all_pending_tasks()
+
+        return await sync_to_async(run_healthchecks)(settings.HEALTH_CHECKS)
+

@@ -50,12 +50,12 @@ class TestLocking:
         assert client_u2.post(reverse(url_basename + '-unlock', kwargs=url_kwargs)).status_code == 403
         
         # Unlock
-        client_u1.post(reverse(url_basename + '-unlock', kwargs=url_kwargs)).status_code == 200
+        assert client_u1.post(reverse(url_basename + '-unlock', kwargs=url_kwargs)).status_code == 200
         obj = obj.__class__.objects.get(pk=obj.pk)
         assert not obj.is_locked
 
         # Update without locking
-        client_u2.patch(reverse(url_basename + '-detail', kwargs=url_kwargs), data={}).status_code == 200
+        assert client_u2.patch(reverse(url_basename + '-detail', kwargs=url_kwargs), data={}).status_code == 200
         obj = obj.__class__.objects.get(pk=obj.pk)
         assert not obj.is_locked
 

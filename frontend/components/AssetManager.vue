@@ -82,7 +82,7 @@ import { last } from 'lodash'
 import FileDownload from 'js-file-download';
 import urlJoin from 'url-join';
 import PageLoader from './PageLoader.vue';
-import { uploadFile } from '~/utils/upload';
+import { uploadFileHelper } from '~/utils/upload';
 import { CursorPaginationFetcher } from '~/utils/urls';
 
 export default {
@@ -123,7 +123,7 @@ export default {
     },
     async uploadSingleFile(file) {
       try {
-        const asset = await uploadFile(this.$axios, urlJoin(this.projectTypeBaseUrl, '/assets/'), file);
+        const asset = await uploadFileHelper(this.$axios, urlJoin(this.projectTypeBaseUrl, '/assets/'), file);
         this.assets.data.unshift(asset);
       } catch (error) {
         this.$toast.global.requestError({ error, message: 'Failed to upload ' + file.name });

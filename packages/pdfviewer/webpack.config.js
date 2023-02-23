@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 
 exports.default = {
@@ -9,6 +10,12 @@ exports.default = {
     new HtmlWebpackPlugin({
       filename: 'viewer.html',
       template: path.join(__dirname, "./src/viewer.html"),
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        'node_modules/pdfjs-dist/build/pdf.js.map',
+        'node_modules/pdfjs-dist/build/pdf.worker.js.map'
+      ]
     }),
   ],
   module: {

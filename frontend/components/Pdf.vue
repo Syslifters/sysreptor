@@ -1,5 +1,5 @@
 <template>
-  <iframe ref="pdfviewer" src="/pdfviewer/viewer.html" @load="iframeLoaded = true; console.log('iframe load')" class="pdfviewer" :class="{loading: !iframeLoaded}" />
+  <iframe ref="pdfviewer" src="/static/pdfviewer/viewer.html" @load="iframeLoaded = true" class="pdfviewer" :class="{loading: !iframeLoaded}" />
 </template>
 
 <script>
@@ -13,7 +13,6 @@ export default {
   data() {
     return {
       iframeLoaded: false,
-      console,
     };
   },
   watch: {

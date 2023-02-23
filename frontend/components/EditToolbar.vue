@@ -6,7 +6,7 @@
 
       <slot></slot>
 
-      <v-switch v-if="canSave && canAutoSave" v-model="autoSaveEnabled" label="Auto Save" class="align-self-center ml-2 mr-2" hide-details />
+      <v-switch v-if="canSave && canAutoSave" v-model="autoSaveEnabled" label="Auto Save" class="btn-autosave align-self-center ml-2 mr-2" hide-details />
 
       <s-tooltip v-if="canSave" :disabled="data === null" :open-on-focus="false">
         <template #activator="{on, attrs}">
@@ -251,6 +251,7 @@ export default {
     },
     async selfLockedEditAnyway() {
       await this.performLock(true)
+      // eslint-disable-next-line no-console
       console.log('selfLockedEditAnyway', this.hasLock);
       if (this.hasLock) {
         this.$emit('update:editMode', EditMode.EDIT);
@@ -262,6 +263,7 @@ export default {
       });
     },
     async performLock(forceLock = false) {
+      // eslint-disable-next-line no-console
       console.log('EditToolbar.performLock');
       if (this.lockingInProgress || !this.lockUrl || (this.editMode === EditMode.READONLY && !forceLock) || this.wasReset) {
         return;
@@ -274,6 +276,7 @@ export default {
 
       try {
         const lockResponse = await this.performLockRequest(forceLock);
+        // eslint-disable-next-line no-console
         console.log('performLock lockResponse', lockResponse);
 
         const lockedData = lockResponse.data;
@@ -293,6 +296,7 @@ export default {
         // this.hasLock = false;
 
         if (error.response?.status === 403 && error.response?.data?.lock_info) {
+          // eslint-disable-next-line no-console
           console.log('Lock error: Another user has the lock. Switching to readonly mode.', this.data.id, error, error.response.data);
           this.lockInfo = error.response.data.lock_info;
           this.lockError = true;
@@ -301,6 +305,7 @@ export default {
           this.$emit('update:lockedData', error.response.data);
         } else if (error?.message?.includes('User has lock in another tab or browser session')) {
           // Open by current user in another tab or browser session
+          // eslint-disable-next-line no-console
           console.log(error, this.data.id);
           this.lockError = true;
           this.hasLock = false;
@@ -326,6 +331,7 @@ export default {
       }
     },
     performUnlock(browserUnload = false) {
+      // eslint-disable-next-line no-console
       console.log('EditToolbar.performUnlock', this.hasLock);
       if (!this.unlockUrl || !this.hasLock) {
         return Promise.resolve();
@@ -356,7 +362,8 @@ export default {
         }
       } catch (error) {
         // silently ignore error
-        console.log('Unlock error', error);
+        // eslint-disable-next-line no-console
+        console.error('Unlock error', error);
       }
 
       return Promise.resolve();
@@ -391,6 +398,7 @@ export default {
       // Note: the unload event is not triggered in certain situations
       //       e.g. on mobile devices or on Chrome when a user navigates to a different origin
       //       https://developer.mozilla.org/en-US/docs/Web/API/Window/unload_event#usage_notes
+      // eslint-disable-next-line no-console
       console.log('EditToolbar.onUnloadBrowser');
       this.performUnlock(true);
     },
@@ -419,5 +427,11 @@ export default {
   position: sticky;
   top: 0;
   z-index: 1;
+}
+
+.btn-autosave :deep() {
+  .v-label {
+    width: max-content;
+  }
 }
 </style>

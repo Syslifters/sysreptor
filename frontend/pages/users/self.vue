@@ -23,3 +23,13 @@
     </template>
   </split-menu>
 </template>
+
+<script>
+export default {
+  head() {
+    return {
+      titleTemplate: title => this.$root.$options.head.titleTemplate((title ? `${title} | ` : '') + 'Profile'),
+    }
+  }
+}
+</script>

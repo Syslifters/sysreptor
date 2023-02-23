@@ -6,14 +6,20 @@ from django.http import HttpResponse
 from django.views.generic.base import TemplateView, RedirectView
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
-from reportcreator_api.api_utils.views import UtilsViewSet
 
-from reportcreator_api.pentests.views import FindingTemplateViewSet, PentestFindingViewSet, PentestProjectViewSet, ProjectTypeViewSet, ReportSectionViewSet, UploadedAssetViewSet, UploadedImageViewSet
+from reportcreator_api.api_utils.views import UtilsViewSet, SpellcheckView, HealthcheckView
+from reportcreator_api.pentests.views import FindingTemplateViewSet, PentestFindingViewSet, PentestProjectViewSet, ProjectNotebookPageViewSet, \
+    PentestProjectPreviewView, PentestProjectGenerateView, \
+    ProjectTypeViewSet, ProjectTypePreviewView, \
+    ReportSectionViewSet, UploadedAssetViewSet, UploadedImageViewSet, UploadedProjectFileViewSet, UploadedUserNotebookImageViewSet, UserNotebookPageViewSet
 from reportcreator_api.users.views import PentestUserViewSet, MFAMethodViewSet, AuthViewSet, AuthIdentityViewSet
+from reportcreator_api.notifications.views import NotificationViewSet
 
 
 router = DefaultRouter()
 router.register('pentestusers', PentestUserViewSet, basename='pentestuser')
+router.register('pentestusers/self/notes/images', UploadedUserNotebookImageViewSet, basename='uploadedusernotebookimage')
+router.register('pentestusers/self/notes', UserNotebookPageViewSet, basename='usernotebookpage')
 router.register('projecttypes', ProjectTypeViewSet, basename='projecttype')
 router.register('pentestprojects', PentestProjectViewSet, basename='pentestproject')
 router.register('findingtemplates', FindingTemplateViewSet, basename='findingtemplate')
@@ -23,11 +29,14 @@ router.register('auth', AuthViewSet, basename='auth')
 user_router = NestedSimpleRouter(router, 'pentestusers', lookup='pentestuser')
 user_router.register('mfa', MFAMethodViewSet, basename='mfamethod')
 user_router.register('identities', AuthIdentityViewSet, basename='authidentity')
+user_router.register('notifications', NotificationViewSet, basename='notification')
 
 project_router = NestedSimpleRouter(router, 'pentestprojects', lookup='project')
 project_router.register('sections', ReportSectionViewSet, basename='section')
 project_router.register('findings', PentestFindingViewSet, basename='finding')
+project_router.register('notes', ProjectNotebookPageViewSet, basename='projectnotebookpage')
 project_router.register('images', UploadedImageViewSet, basename='uploadedimage')
+project_router.register('files', UploadedProjectFileViewSet, basename='uploadedprojectfile')
 
 projecttype_router = NestedSimpleRouter(router, 'projecttypes', lookup='projecttype')
 projecttype_router.register('assets', UploadedAssetViewSet, basename='uploadedasset')
@@ -47,8 +56,16 @@ urlpatterns = [
         path('', include(user_router.urls)),
         path('', include(project_router.urls)),
         path('', include(projecttype_router.urls)),
+
+        # Async views
+        path('utils/spellcheck/', SpellcheckView.as_view(), name='utils-spellcheck'),
+        path('utils/healthcheck/', HealthcheckView.as_view(), name='utils-healthcheck'),
+        path('pentestprojects/<uuid:pk>/preview/', PentestProjectPreviewView.as_view(), name='pentestproject-preview'),
+        path('pentestprojects/<uuid:pk>/generate/', PentestProjectGenerateView.as_view(), name='pentestproject-generate'),
+        path('projecttypes/<uuid:pk>/preview/', ProjectTypePreviewView.as_view(), name='projecttype-preview'),
     ])),
 
+    # Static files
     path('robots.txt', lambda *args, **kwargs: HttpResponse("User-Agent: *\nDisallow: /\n", content_type="text/plain")),
     
     # Fallback URL for SPA

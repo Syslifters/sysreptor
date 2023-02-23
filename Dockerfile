@@ -27,7 +27,7 @@ RUN npm install
 FROM frontend-dev AS frontend-test
 COPY packages/markdown/ /app/packages/markdown/
 COPY frontend /app/frontend/
-COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/static/pdfviewer/
+COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/static/static/pdfviewer/
 CMD npm run test
 
 
@@ -112,6 +112,7 @@ FROM python:3.10-slim-bullseye AS api-dev
 # Install system dependencies required by weasyprint and chromium
 RUN apt-get update && apt-get install -y --no-install-recommends \
         chromium \
+        curl \
         fontconfig \
         fonts-noto \
         fonts-noto-mono \
@@ -153,15 +154,17 @@ CMD pytest
 
 FROM api-test as api
 # Generate static frontend files
+# Post-process django files (for admin, API browser) and post-process them (e.g. add unique file hash)
+# Do not post-process nuxt files, because they already have hash names (and django failes to post-process them)
+RUN python3 manage.py collectstatic --no-input --clear
 COPY --from=frontend /app/frontend/dist/ /app/api/frontend/
-RUN DEBUG=on python3 manage.py collectstatic --no-input \
+RUN python3 manage.py collectstatic --no-input --no-post-process \
     && python3 -m whitenoise.compress /app/api/frontend/ /app/api/static/
 
 # Configure application
 ENV DEBUG=off \
     MEDIA_ROOT=/data/ \
-    SERVER_WORKERS=3 \
-    SERVER_THREADS=4
+    SERVER_WORKERS=4
 
 RUN mkdir /data && chown 1000:1000 /data && chmod 777 /data
 VOLUME [ "/data" ]
@@ -174,6 +177,6 @@ USER 1000
 EXPOSE 8000
 CMD python3 manage.py migrate && \
     gunicorn \
-        --bind=:8000 --workers=${SERVER_WORKERS} --threads=${SERVER_THREADS} \
+        --bind=:8000 --worker-class=uvicorn.workers.UvicornWorker --workers=${SERVER_WORKERS} \
         --max-requests=500 --max-requests-jitter=100 \
-        reportcreator_api.conf.wsgi:application
+        reportcreator_api.conf.asgi:application

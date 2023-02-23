@@ -45,13 +45,18 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'django_filters',
+    'adrf',
 
     'reportcreator_api',
     'reportcreator_api.users',
     'reportcreator_api.pentests',
+    'reportcreator_api.notifications',
+    'reportcreator_api.tasks',
 ]
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'reportcreator_api.utils.logging.RequestLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -92,6 +97,12 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'reportcreator_api.utils.throttling.ScopedUserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'pdf': '3/10s',
+    },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
     'EXCEPTION_HANDLER': 'reportcreator_api.utils.api.exception_handler',
     'PAGE_SIZE': 100,
@@ -191,9 +202,44 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
+MEDIA_URL = 'data/'
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'static'
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+STATICFILES_DIRS = [
+    BASE_DIR / 'frontend' / 'static',
+]
+
+STORAGES = {
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
+    },
+    'uploaded_images': {
+        'BACKEND': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
+        'OPTIONS': {
+            'location': config('UPLOADED_IMAGE_LOCATION', default=MEDIA_ROOT / 'uploadedimages', cast=Path),
+        },
+    },
+    'uploaded_assets': {
+        'BACKEND': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
+        'OPTIONS': {
+            'location': config('UPLOADED_ASSET_LOCATION', default=MEDIA_ROOT / 'uploadedassets', cast=Path)
+        },
+    },
+    'uploaded_files': {
+        'BACKEND': config('UPLOADED_FILE_STORAGE', default='reportcreator_api.utils.storages.EncryptedFileSystemStorage'),
+        'OPTIONS': {
+            'location': config('UPLOADED_FILE_LOCATION', default=MEDIA_ROOT / 'uploadedfiles', cast=Path),
+            'access_key': config('UPLOADED_FILE_S3_ACCESS_KEY', default=''),
+            'secret_key': config('UPLOADED_FILE_S3_SECRET_KEY', default=''),
+            'bucket_name': config('UPLOADED_FILE_S3_BUCKET_NAME', default=''),
+            'endpoint_url': config('UPLOADED_FILE_S3_ENDPOINT_URL', default=''),
+        },
+    }
+}
+
+from pillow_heif import register_heif_opener
+register_heif_opener()
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -270,19 +316,6 @@ from reportcreator_api.utils.middleware import DisabledCsrfMiddleware
 csrf.CsrfViewMiddleware = DisabledCsrfMiddleware
 
 
-# File storage
-MEDIA_URL = 'data/'
-
-UPLOADED_IMAGE_STORAGE = 'reportcreator_api.pentests.storages.UploadedImageFileSystemStorage'
-UPLOADED_IMAGE_LOCATION = config('UPLOADED_IMAGE_LOCATION', default=MEDIA_ROOT / 'uploadedimages', cast=Path)
-
-UPLOADED_ASSET_STORAGE = 'reportcreator_api.pentests.storages.UploadedAssetFileSystemStorage'
-UPLOADED_ASSET_LOCATION = config('UPLOADED_ASSET_LOCATION', default=MEDIA_ROOT / 'uploadedassets', cast=Path)
-
-from pillow_heif import register_heif_opener
-register_heif_opener()
-
-
 PDF_RENDER_SCRIPT_PATH = config('PDF_RENDER_SCRIPT_PATH', cast=Path, default=BASE_DIR / '..' / 'rendering' / 'dist' / 'bundle.js')
 CHROMIUM_EXECUTABLE = config('CHROMIUM_EXECUTABLE', default=None)
 
@@ -332,6 +365,22 @@ CELERY_TASK_SOFT_TIME_LIMIT = 60 * 5 + 10
 CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 
 
+
+# Periodic tasks
+PERIODIC_TASKS = [
+    {
+        'id': 'fetch_notifications',
+        'task': 'reportcreator_api.notifications.tasks.fetch_notifications',
+        'schedule': timedelta(days=1),
+    },
+    {
+        'id': 'clear_sessions',
+        'task': 'reportcreator_api.utils.tasks.clear_sessions',
+        'schedule': timedelta(days=1),
+    },
+]
+
+
 # MAX_LOCK_TIME should not be less than 1.30min, because some browsers (Chromium) triggers timers only once per minute if the browser tab is inactive
 MAX_LOCK_TIME = timedelta(seconds=90)
 
@@ -359,6 +408,36 @@ HEALTH_CHECKS = {
     'migrations': 'reportcreator_api.api_utils.healthchecks.check_migrations',
 }
 
+# Notifications
+VERSION = config('VERSION', default='dev')
+INSTANCE_TAGS = config('INSTANCE_TAGS', default='on-premise').split(';')
+NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://cloud.sysreptor.com/api/v1/notifications/')
+
+
+# Elastic APM
+ELASTIC_APM_ENABLED = config('ELASTIC_APM_ENABLED', cast=bool, default=False)
+ELASTIC_APM = {
+    'ENABLED': ELASTIC_APM_ENABLED,
+    'SERVICE_NAME': config('ELASTIC_APM_SERVICE_NAME', default=''),
+    'SERVICE_TOKEN': config('ELASTIC_APM_SERVICE_TOKEN', default=''),
+    'SERVER_URL': config('ELASTIC_APM_SERVER_URL', default=''),
+    'SPAN_COMPRESSION_ENABLED': False,
+    'DJANGO_AUTOINSERT_MIDDLEWARE': False,
+}
+if ELASTIC_APM_ENABLED:
+    INSTALLED_APPS.append('elasticapm.contrib.django')
+    MIDDLEWARE.insert(1, 'elasticapm.contrib.django.middleware.TracingMiddleware')
+
+ELASTIC_APM_RUM_ENABLED = config('ELASTIC_APM_RUM_ENABLED', cast=bool, default=False)
+ELASTIC_APM_RUM_CONFIG = {
+    'active': ELASTIC_APM_RUM_ENABLED,
+    'serviceName': config('ELASTIC_APM_RUM_SERVICE_NAME', default=''),
+    'serverUrl': config('ELASTIC_APM_RUM_SERVER_URL', default=''),
+    'serviceVersion': 'dev',
+}
+if ELASTIC_APM_RUM_ENABLED:
+    CSP_CONNECT_SRC.append(ELASTIC_APM_RUM_CONFIG['serverUrl'])
+
 
 if DEBUG:
     INSTALLED_APPS += [
@@ -371,6 +450,7 @@ if DEBUG:
 
 
 
+logging_handlers = ['console'] + (['elasticapm'] if ELASTIC_APM_ENABLED else [])
 LOGGING = {
     'version': 1,
     'disabled_existing_loggers': False,
@@ -385,41 +465,45 @@ LOGGING = {
             'level': 'DEBUG',
             'formatter': 'default',
             'class': 'logging.StreamHandler',
-        }
+        },
+        'elasticapm': {
+            'level': 'WARNING',
+            'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
+        },
     },
     'root': {
         'level': 'INFO',
-        'handlers': ['console'],
+        'handlers': logging_handlers,
     },
     'loggers': {
         'celery': {
             'level': 'WARNING',
-            'handlers': ['console'],
+            'handlers': logging_handlers,
             'propagate': False,
         },
         'celery.worker.strategy': {
             'level': 'INFO',
-            'handlers': ['console'],
+            'handlers': logging_handlers,
             'propagate': False,
         },
         'weasyprint': {
             'level': 'ERROR',
-            'handlers': ['console'],
+            'handlers': logging_handlers,
             'propagate': False,
         },
         'playwright': {
             'level': 'WARNING',
-            'hanlders': ['console'],
+            'hanlders': logging_handlers,
             'propagate': False,
         },
         'pikepdf': {
             'level': 'WARNING',
-            'handlers': ['console'],
+            'handlers': logging_handlers,
             'propagate': False,
         },
         'fontTools': {
             'level': 'WARNING',
-            'handlers': ['console'],
+            'handlers': logging_handlers,
             'propagate': False,
         },
     }

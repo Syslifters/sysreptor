@@ -52,7 +52,7 @@ export default {
       this.actionInProgress = true;
       try {
         const obj = await action();
-        this.$router.push(`/designer/${obj.id}`);
+        this.$router.push(`/designs/${obj.id}`);
         this.$$toast.success('Created new design');
       } catch (error) {
         this.$toast.global.requestError({ error });

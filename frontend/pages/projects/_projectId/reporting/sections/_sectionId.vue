@@ -20,8 +20,8 @@
           :disabled="readonly"
           :id="fieldId" 
           :definition="projectType.report_fields[fieldId]" 
-          :upload-image="uploadImage" 
-          :rewrite-image-url="rewriteImageUrl"
+          :upload-file="uploadFile" 
+          :rewrite-file-url="rewriteFileUrl"
           :selectable-users="project.members.concat(project.imported_members)"
           :lang="section.language"
         />
@@ -32,11 +32,10 @@
 
 <script>
 import urlJoin from 'url-join';
-import LockEditMixin from '~/mixins/LockEditMixin';
-import { uploadFile } from '~/utils/upload';
+import ProjectLockEditMixin from '~/mixins/ProjectLockEditMixin';
 
 export default {
-  mixins: [LockEditMixin],
+  mixins: [ProjectLockEditMixin],
   data() {
     return {
       section: null,
@@ -58,38 +57,13 @@ export default {
     data() {
       return this.section;
     },
-    projectUrl() {
-      return `/pentestprojects/${this.$route.params.projectId}/`;
-    },
   },
   methods: {
     getBaseUrl(data) {
       return urlJoin(this.projectUrl, `/sections/${data.id}/`)
     },
-    getHasEditPermissions() {
-      if (this.project) {
-        return !this.project.readonly;
-      }
-      return true;
-    },
-    getErrorMessage() {
-      if (this.project?.readonly) {
-        return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'
-      }
-      return LockEditMixin.methods.getErrorMessage();
-    },
     async performSave(data) {
       await this.$store.dispatch('projects/updateSection', { projectId: this.$route.params.projectId, section: data });
-    },
-    async uploadImage(file) {
-      const img = await uploadFile(this.$axios, urlJoin(this.projectUrl, '/images/'), file);
-      return `/images/name/${img.name}`;
-    },
-    rewriteImageUrl(imgSrc) {
-      if (imgSrc.startsWith('/assets/')) {
-        return urlJoin(`/projecttypes/${this.projectType.id}/`, imgSrc);
-      }
-      return urlJoin(this.projectUrl, imgSrc);
     },
     updateInStore(data) {
       this.$store.commit('projects/setSection', { projectId: this.section.project, section: data });

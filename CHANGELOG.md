@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.16 - 2023-02-23
+* Personal and per-project notes
+* Use asgi instead of wsgi to support async requests
+* Async PDF rendering and spellcheck request
+* Support Elastic APM for API and frontend monitoring
+* Fetch and display notifications to users
+* Add titles to pages in frontend
+
+
 ## v0.15 - 2023-02-06
 * Support login via OpenID Connect
 * Support offloading PDF rendering to a pool of worker instances

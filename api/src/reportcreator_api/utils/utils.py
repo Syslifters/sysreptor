@@ -1,4 +1,5 @@
 from datetime import date
+from itertools import groupby
 from typing import Union, Iterable, OrderedDict
 import uuid
 
@@ -91,3 +92,7 @@ def merge(*args):
         else:
             out = d
     return out
+
+
+def groupby_to_dict(data, key):
+    return dict(map(lambda t: (t[0], list(t[1])), groupby(sorted(data, key=key), key=key)))

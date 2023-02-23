@@ -6,7 +6,8 @@ from django.test import override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 from reportcreator_api.users.models import AuthIdentity
-from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, SourceEnum
+from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, SourceEnum, UploadedUserNotebookImage
+from reportcreator_api.notifications.models import NotificationSpec
 from reportcreator_api.tests.mock import create_user, create_project, create_project_type, create_template, create_png_file
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates
 
@@ -78,18 +79,24 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
         *viewset_urls('pentestproject', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=update, update_partial=update, destroy=destory),
         *viewset_urls('section', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'section_id': get_obj(s).sections.first().section_id} if detail else {}), list=read, retrieve=read, update=write, update_partial=write, lock=write, unlock=write),
         *viewset_urls('finding', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'finding_id': get_obj(s).findings.first().finding_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write),
+        *viewset_urls('projectnotebookpage', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'note_id': get_obj(s).notes.first().note_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write),
         *file_viewset_urls('uploadedimage', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).images.first(), read=read, write=write),
+        *file_viewset_urls('uploadedprojectfile', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).files.first(), read=read, write=write),
     ]
     if read:
-        out.extend([
+      out.extend([
             ('pentestproject check', lambda s, c: c.get(reverse('pentestproject-check', kwargs={'pk': get_obj(s).pk}))),
             ('pentestproject export', lambda s, c: c.post(reverse('pentestproject-export', kwargs={'pk': get_obj(s).pk}))),
+            ('pentestproject export-all', lambda s, c: c.post(reverse('pentestproject-export-all', kwargs={'pk': get_obj(s).pk}))),
             ('pentestproject preview', lambda s, c: c.post(reverse('pentestproject-preview', kwargs={'pk': get_obj(s).pk}), data={})),
             ('pentestproject generate', lambda s, c: c.post(reverse('pentestproject-generate', kwargs={'pk': get_obj(s).pk}), data={'password': 'pdf-password'})),
         ])
     if write:
         out.extend([
             ('pentestproject finding-fromtemplate', lambda s, c: c.post(reverse('finding-fromtemplate', kwargs={'project_pk': get_obj(s).pk}), data={'template': s.template.pk})),
+            ('projectnotebookpage sort', lambda s, c: c.post(reverse('projectnotebookpage-sort', kwargs={'project_pk': get_obj(s).pk}), data=[])),
+            ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
+            ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
         ])
     if update:
         out.extend([
@@ -133,7 +140,7 @@ def expect_result(urls, allowed_users=None):
 
     for user in allowed_users or []:
         yield from [(user, *u, True) for u in urls]
-    for user in all_users - set(allowed_users):
+    for user in all_users - set(allowed_users or []):
         yield from [(user, *u, False) for u in urls]
 
 
@@ -155,6 +162,11 @@ def guest_urls():
         ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': 'self'}))),
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': 'self'}))),
         ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': 'self'}))),
+        *viewset_urls('notification', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.notifications.first().id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
+
+        *viewset_urls('usernotebookpage', get_kwargs=lambda s, detail: {'note_id': s.current_user.notes.first().note_id if s.current_user else 'fake-uuid'} if detail else {}, list=True, retrieve=True, create=True, update=True, update_partial=True, destroy=True, lock=True, unlock=True),
+        ('usernotebookpage sort', lambda s, c: c.post(reverse('usernotebookpage-sort'), data=[])),
+        *file_viewset_urls('uploadedusernotebookimage', get_obj=lambda s: s.current_user.images.first() if s.current_user else UploadedUserNotebookImage(name='nonexistent.png'), read=True, write=True),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition'))),
@@ -274,6 +286,7 @@ class TestApiRequestsAndPermissions:
 
         self.user_other = create_user(username='other', mfa=True)
         AuthIdentity.objects.create(user=self.user_other, provider='dummy', identifier='other.user@example.com')
+        NotificationSpec.objects.create(text='Test')
 
         self.current_user = None
     

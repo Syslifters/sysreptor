@@ -4,12 +4,11 @@ import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import rehypeRaw from 'rehype-raw';
-import xss from 'xss';
 import 'highlight.js/styles/default.css';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './mdext/footnotes.js';
-import { remarkStrikethrough } from './mdext/gfm.js';
-import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources } from './mdext/rehypePlugins.js';
+import { remarkStrikethrough, remarkTaskListItem } from './mdext/gfm.js';
+import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources, rehypeRewriteFileLinks, rehypeTemplates } from './mdext/rehypePlugins.js';
 import { remarkAttrs, remarkToRehypeAttrs } from './mdext/attrs.js';
 import { remarkFigure, remarkToRehypeHandlersFigure } from './mdext/image.js';
 import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './mdext/tables.js';
@@ -18,6 +17,19 @@ import { remarkTemplateVariables } from './mdext/templates.js';
 import { remarkTodoMarker } from './mdext/todo.js';
 import { rehypeHighlightCode } from './mdext/codeHighlight.js';
 import remarkStringify from 'remark-stringify';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
+import { defaults, merge } from 'lodash';
+
+
+const rehypeSanitizeSchema = merge({}, defaultSchema, {
+  allowComments: true,
+  clobberPrefix: null,
+  tagNames: ['footnote', 'template'].concat(defaultSchema.tagNames),
+  attributes: {
+    '*': ['className', 'style', 'data*', 'v-if', 'v-for'].concat(defaultSchema.attributes['*']),
+    'a': ['download'].concat(defaultSchema.attributes['a']),
+  }
+});
 
 
 export function markdownParser() {
@@ -29,6 +41,7 @@ export function markdownParser() {
     .use(remarkTables)
     .use(remarkTableCaptions)
     .use(remarkStrikethrough)
+    .use(remarkTaskListItem)
     .use(remarkTemplateVariables)
     .use(remarkAttrs)
     .use(remarkFigure)
@@ -49,7 +62,7 @@ export function formatMarkdown(text) {
   return md.processSync(text).value;
 }
 
-export function renderMarkdownToHtml(text, {preview = false, rewriteImageSource = null} = {}) {
+export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource = null} = {}) {
   const md = markdownParser()
       .use(remarkParse)
       .use(remarkRehype, { 
@@ -68,7 +81,10 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteImageSource 
       .use(rehypeHighlightCode)
       .use(rehypeRaw)
       .use(rehypeLinkTargetBlank)
-      .use(rehypeRewriteImageSources, {rewriteImageSource})
+      .use(rehypeTemplates)
+      .use(rehypeRewriteImageSources, {rewriteImageSource: rewriteFileSource})
+      .use(rehypeRewriteFileLinks, {rewriteFileUrl: rewriteFileSource})
+      .use(rehypeSanitize, rehypeSanitizeSchema)
       .use(rehypeStringify);
 
     // const mdAst = md.parse(text);
@@ -77,22 +93,8 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteImageSource 
     // console.log('RehypeAST', rehypeAst);
     // const mdHtml = md.stringify(rehypeAst);
     // console.log('HTML', mdHtml);
-
     const mdHtml = md.processSync(text).value;
-    return xss(mdHtml, {
-      allowCommentTag: true,
-      css: false,
-      allowList: {
-        ...xss.whiteList,
-        footnote: [],
-        template: [],
-      },
-      onIgnoreTagAttr(tag, name, value, isWhiteAttr) {
-        if (['id', 'class', 'style', 'v-if', 'v-for'].includes(name) || /^data-.*$/.test(name)) {
-          return `${name}="${xss.escapeAttrValue(value)}"`;
-        }
-      },
-    });
+    return mdHtml;
 }
 
 

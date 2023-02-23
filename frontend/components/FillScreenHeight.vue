@@ -1,11 +1,12 @@
 <template>
   <div ref="container" class="screen-height-container" v-intersect="updateHeight" :style="{height: height + 'px'}">
-    <slot v-if="height > 0" />
+    <slot />
   </div>
 </template>
 
 <script>
 export default {
+  emits: ['resize'],
   data() {
     return {
       height: 0,
@@ -26,6 +27,7 @@ export default {
       }
       const startY = clientRects[0].top;
       this.height = window.innerHeight - startY;
+      this.$emit('resize');
     },
   }
 }

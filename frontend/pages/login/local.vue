@@ -41,6 +41,9 @@ export default {
       mfaSetupNotificationVisible: false,
     };
   },
+  head: {
+    title: 'Login',
+  },
   computed: {
     oidcEnabled() {
       return this.$store.getters['apisettings/settings'].auth_providers.length > 0;

@@ -22,13 +22,16 @@
 </template>
 
 <script>
-import { uploadFile } from '~/utils/upload';
+import { uploadFileHelper } from '~/utils/upload';
 
 export default {
+  head: {
+    title: 'Projects',
+  },
   methods: {
     async performImport(file) {
-      const projects = await uploadFile(this.$axios, '/pentestprojects/import/', file);
-      this.$router.push({ path: `/projects/${projects[0].id}/project/` });
+      const projects = await uploadFileHelper(this.$axios, '/pentestprojects/import/', file);
+      this.$router.push({ path: `/projects/${projects[0].id}/` });
     },
   }
 }

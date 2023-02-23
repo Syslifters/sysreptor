@@ -32,9 +32,12 @@
 </template>
 
 <script>
-import { uploadFile } from '~/utils/upload';
+import { uploadFileHelper } from '~/utils/upload';
 
 export default {
+  head: {
+    title: 'Templates',
+  },
   methods: {
     async createTemplate() {
       const template = await this.$store.dispatch('templates/create', {
@@ -45,7 +48,7 @@ export default {
       this.$router.push({ path: `/templates/${template.id}` });
     },
     async performImport(file) {
-      const templates = await uploadFile(this.$axios, '/findingtemplates/import/', file);
+      const templates = await uploadFileHelper(this.$axios, '/findingtemplates/import/', file);
       this.$router.push({ path: `/templates/${templates[0].id}/` });
     },
   }

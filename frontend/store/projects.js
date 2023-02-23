@@ -1,5 +1,6 @@
 import Vue from "vue";
-import { omit, merge } from "lodash";
+import { omit, merge, pick } from "lodash";
+import { groupNotes, sortNotes } from "./usernotes";
 import { updateObjectReactive } from "~/utils/state";
 import { sortFindings } from "~/utils/other";
 
@@ -97,7 +98,36 @@ export const mutations = {
         sects.splice(existingSectionIdx, 1);
       }
     }
-  }
+  },
+  setNote(state, { projectId, note }) {
+    const existingNote = ensureExists(state, projectId, 'notes', []).find(n => n.id === note.id);
+    if (existingNote) {
+      updateObjectReactive(existingNote, note);
+    } else {
+      state.data[projectId].notes.push(note);
+    }
+  },
+  removeNote(state, { projectId, noteId }) {
+    if (!(projectId in state.data)) {
+      return;
+    }
+    const notes = state.data[projectId].notes || [];
+    const existingNoteIdx = notes.findIndex(f => f.id === noteId);
+    if (existingNoteIdx !== -1) {
+      notes.splice(existingNoteIdx, 1);
+    }
+  },
+  setNotes(state, { projectId, notes }) {
+    ensureExists(state, projectId, 'notes', []);
+    // Update/add notes
+    for (const note of notes) {
+      this.commit('projects/setNote', { projectId, note });
+    }
+    // Remove deleted notes
+    for (const note of state.data[projectId].notes.filter(n => !notes.map(n2 => n2.id).includes(n.id))) {
+      this.commit('projects/removeNote', { projectId, noteId: note.id });
+    }
+  },
 };
 
 export const actions = {
@@ -142,6 +172,17 @@ export const actions = {
       return state.data[projectId].sections;
     }
     return await dispatch('fetchSections', projectId);
+  },
+  async fetchNotes({ commit }, projectId) {
+    const notes = await this.$axios.$get(`/pentestprojects/${projectId}/notes/`);
+    commit('setNotes', { projectId, notes });
+    return notes;
+  },
+  async getNotes({ dispatch, state }, projectId) {
+    if (projectId in state.data && state.data[projectId].notes) {
+      return state.data[projectId].notes;
+    }
+    return await dispatch('fetchNotes', projectId);
   },
   async create({ commit }, project) {
     const obj = await this.$axios.$post(`/pentestprojects/`, project);
@@ -198,6 +239,33 @@ export const actions = {
     commit('setSection', { projectId, section: updatedSection });
     return updatedSection;
   },
+  async createNote({ commit }, { projectId, note = {} }) {
+    const newNote = await this.$axios.$post(`/pentestprojects/${projectId}/notes/`, note);
+    commit('setNote', { projectId, note: newNote });
+    return newNote;
+  },
+  async updateNote({ commit }, { projectId, note }) {
+    const updatedNote = await this.$axios.$put(`/pentestprojects/${projectId}/notes/${note.id}/`, note);
+    commit('setNote', { projectId, note: updatedNote });
+    return updatedNote;
+  },
+  async partialUpdateNote({ commit }, { projectId, note, fields }) {
+    let updatedData = note;
+    if (fields !== null) {
+      updatedData = pick(note, fields.concat(['id']));
+    }
+    note = await this.$axios.$patch(`/pentestprojects/${projectId}/notes/${note.id}/`, updatedData);
+    commit('setNote', { projectId, note });
+    return note;
+  },
+  async deleteNote({ commit }, { projectId, noteId }) {
+    await this.$axios.$delete(`/pentestprojects/${projectId}/notes/${noteId}/`);
+    commit('removeNote', { projectId, noteId });
+  },
+  async sortNotes({ commit, getters }, { projectId, noteGroups }) {
+    sortNotes(noteGroups, note => commit('setNote', { projectId, note }));
+    await this.$axios.$post(`/pentestprojects/${projectId}/notes/sort/`, getters.notes(projectId));
+  }
 }
 
 export const getters = {
@@ -205,17 +273,15 @@ export const getters = {
     return state.data[projectId]?.project;
   },
   findings: state => (projectId) => {
-    const project = state.data[projectId];
-    if (!project) {
-      return [];
-    }
-    return sortFindings(project.findings || []);
+    return sortFindings(state.data[projectId]?.findings || []);
   },
   sections: state => (projectId) => {
-    const project = state.data[projectId];
-    if (!project) {
-      return [];
-    }
-    return state.data[projectId].sections || [];
-  }
+    return state.data[projectId]?.sections || [];
+  },
+  notes: state => (projectId) => {
+    return state.data[projectId]?.notes || [];
+  },
+  noteGroups: state => (projectId) => {
+    return groupNotes(state.data[projectId]?.notes || []);
+  },
 }

@@ -75,6 +75,9 @@ export default {
       refreshListingsInterval: null,
     }
   },
+  head: {
+    title: 'Reporting',
+  },
   computed: {
     findings() {
       return this.$store.getters['projects/findings'](this.project.id);
@@ -94,7 +97,7 @@ export default {
   mounted() {
     this.refreshListingsInterval = setInterval(this.refreshListings, 10_000);
   },
-  destroyed() {
+  beforeDestroy() {
     if (this.refreshListingsInterval !== null) {
       clearInterval(this.refreshListingsInterval);
       this.refreshListingsInterval = null;

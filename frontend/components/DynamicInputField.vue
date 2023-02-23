@@ -17,8 +17,8 @@
       :value="formValue"
       @input="emitInput"
       :label="label"
-      :upload-image="uploadImage"
-      :rewrite-image-url="rewriteImageUrl"
+      :upload-file="uploadFile"
+      :rewrite-file-url="rewriteFileUrl"
       :disabled="disabled"
       :lang="lang"
     />
@@ -126,8 +126,8 @@
         :id="id ? (id + '.' + objectFieldId) : null"
         :show-field-ids="showFieldIds"
         :selectable-users="selectableUsers"
-        :upload-image="uploadImage"
-        :rewrite-image-url="rewriteImageUrl"
+        :upload-file="uploadFile"
+        :rewrite-file-url="rewriteFileUrl"
         :disabled="disabled"
         :lang="lang"
       />
@@ -178,8 +178,8 @@
               :id="id ? (id + '[' + entryIdx + ']') : null"
               :show-field-ids="showFieldIds"
               :selectable-users="selectableUsers"
-              :upload-image="uploadImage"
-              :rewrite-image-url="rewriteImageUrl"
+              :upload-file="uploadFile"
+              :rewrite-file-url="rewriteFileUrl"
               :disabled="disabled"
               :lang="lang"
             />
@@ -224,11 +224,11 @@ export default {
       type: Boolean,
       default: false,
     },
-    uploadImage: {
+    uploadFile: {
       type: Function,
       default: null,
     },
-    rewriteImageUrl: {
+    rewriteFileUrl: {
       type: Function,
       default: null,
     },

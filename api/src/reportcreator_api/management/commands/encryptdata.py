@@ -4,7 +4,7 @@ import copy
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.test import override_settings
-from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage
+from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, UploadedProjectFile, UploadedUserNotebookImage
 from reportcreator_api.users.models import PentestUser
 
 
@@ -23,7 +23,12 @@ class Command(BaseCommand):
 
         # Encrypt files
         old_files = []
-        for f in itertools.chain(UploadedImage.objects.all(), UploadedAsset.objects.all()):
+        for f in itertools.chain(
+                UploadedImage.objects.all(), 
+                UploadedAsset.objects.all(), 
+                UploadedUserNotebookImage.objects.all(),
+                UploadedProjectFile.objects.all()
+            ):
             # Copy file content. Encryption is performed during content copy to new file by the storage
             old_file = copy.copy(f.file)
             f.file.save(name=f.name, content=old_file, save=False)

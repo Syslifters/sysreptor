@@ -1,6 +1,5 @@
 import dataclasses
 import enum
-from itertools import groupby
 from typing import Optional, Union
 
 

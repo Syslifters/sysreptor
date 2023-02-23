@@ -1,8 +1,7 @@
 <template>
   <s-autocomplete 
-    v-bind="$attrs"
     :value="value" @change="$emit('input', $event)"
-    label="Design"
+    :label="label"
     :items="additionalItems.concat(items.data)"
     :item-text="pt => pt.name + ({'imported_dependency': ' (imported)', 'customized': ' (customized)'}[pt.source] || '')"
     item-value="id"
@@ -10,6 +9,7 @@
     :rules="rules"
     :loading="items.isLoading"
     :clearable="!required"
+    v-bind="$attrs"
   >
     <template #append-item>
       <page-loader :items="items" />
@@ -18,7 +18,7 @@
       <s-tooltip>
         <template #activator="{on, attrs}">
           <s-btn 
-            :to="`/designer/${returnObject ? value?.id : value}/pdfdesigner/`" 
+            :to="`/designs/${returnObject ? value?.id : value}/pdfdesigner/`" 
             nuxt target="_blank"
             :disabled="!value"
             icon      
@@ -67,6 +67,10 @@ export default {
       type: Boolean,
       default: false
     },
+    label: {
+      type: String,
+      default: 'Design',
+    }
   },
   emits: ['input'],
   data() {

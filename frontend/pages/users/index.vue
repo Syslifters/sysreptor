@@ -44,3 +44,11 @@
     </template>
   </list-view>
 </template>
+
+<script>
+export default {
+  head: {
+    title: 'Users',
+  },
+}
+</script>

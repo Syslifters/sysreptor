@@ -2,7 +2,7 @@
 import VTextArea from 'vuetify/lib/components/VTextarea/VTextarea';
 import VInput from 'vuetify/lib/components/VInput/VInput';
 import mixins from 'vuetify/lib/util/mixins';
-import MarkdownEditor from './Editor.vue';
+import MarkdownFieldContent from './FieldContent.vue';
 
 const baseMixins = mixins(VTextArea);
 export default baseMixins.extend({
@@ -17,11 +17,11 @@ export default baseMixins.extend({
       type: String,
       default: null,
     },
-    uploadImage: {
+    uploadFile: {
       type: Function,
       default: null,
     },
-    rewriteImageUrl: {
+    rewriteFileUrl: {
       type: Function,
       default: null,
     },
@@ -33,13 +33,13 @@ export default baseMixins.extend({
   },
   methods: {
     genInput() {
-      return this.$createElement(MarkdownEditor, {
+      return this.$createElement(MarkdownFieldContent, {
         props: {
           value: this.value,
           disabled: this.disabled,
           lang: this.lang,
-          uploadImage: this.uploadImage,
-          rewriteImageUrl: this.rewriteImageUrl,
+          uploadFile: this.uploadFile,
+          rewriteFileUrl: this.rewriteFileUrl,
         },
         attrs: {
           class: 'markdown-editor'

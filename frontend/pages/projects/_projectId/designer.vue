@@ -84,6 +84,9 @@ export default {
       pdfRenderingInProgress: false,
     }
   },
+  head: {
+    title: 'Designs',
+  },
   computed: {
     data() {
       return this.projectType;
