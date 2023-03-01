@@ -72,14 +72,15 @@ code {
 ```
 
 We provide a range of fonts ready to use. Following fonts are available:
-* [Roboto](https://fonts.google.com/specimen/Roboto){target=_blank}
-* [Roboto Serif](https://fonts.google.com/specimen/Roboto+Serif){target=_blank}
+* [Open Sans](https://fonts.google.com/specimen/Open+Sans){target=_blank} - similar to Arial
 * [Noto Sans](https://fonts.google.com/noto/specimen/Noto+Sans){target=_blank}
 * [Noto Serif](https://fonts.google.com/noto/specimen/Noto+Serif){target=_blank}
-* [Open Sans](https://fonts.google.com/specimen/Open+Sans){target=_blank} - similar to Arial
 * [Exo](https://fonts.google.com/specimen/Exo){target=_blank}
-* [Tinos](https://fonts.google.com/specimen/Tinos){target=_blank} - simliar to Times New Roman
 * [Lato](https://fonts.google.com/specimen/Lato){target=_blank}
+* [Roboto](https://fonts.google.com/specimen/Roboto){target=_blank}
+* [Roboto Serif](https://fonts.google.com/specimen/Roboto+Serif){target=_blank}
+* [Tinos](https://fonts.google.com/specimen/Tinos){target=_blank} - simliar to Times New Roman
+
 
 Monospcae fonts (for code blocks):
 * [Roboto Mono](https://fonts.google.com/specimen/Roboto+Mono){target=_blank} - monospace

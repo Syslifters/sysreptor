@@ -15,18 +15,18 @@ while IFS= read -r fontname; do
   fi
   rm -f /tmp/${FONTNAME_FS}.zip
 done << EOF
+Open Sans
 Roboto
 Roboto Serif
 Lato
-Tinos
 Exo
+Tinos
 Source Code Pro
 Roboto Mono
 Courier Prime
 EOF
 # Fonts installed with package manager: 
 # Noto: Noto Sans, Noto Serif, Noto Mono
-# Open Sans
 
 # Update font cache
 fc-cache -f

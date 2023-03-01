@@ -31,6 +31,7 @@ boto3==1.26.5
 pillow-heif==0.7.2
 
 # check weasyprint performance before updating: https://kozea.github.io/WeasyPerf/
+# Do not update to WeasyPrint 58.0 because has an error rendering footnote-calls
 weasyprint == 57.2
 playwright == 1.28.0
 pikepdf == 6.0.2

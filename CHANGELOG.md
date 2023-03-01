@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.17 - 2023-03-01
+* Use variable Open Sans font to fix footnote-call rendering ("font-variant-position: super" not applied)
+
+
 ## v0.16 - 2023-02-23
 * Personal and per-project notes
 * Use asgi instead of wsgi to support async requests

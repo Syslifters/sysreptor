@@ -117,7 +117,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         fonts-noto \
         fonts-noto-mono \
         fonts-noto-ui-core \
-        fonts-open-sans \
         libpango-1.0-0 \
         libpangoft2-1.0-0 \
         unzip \
