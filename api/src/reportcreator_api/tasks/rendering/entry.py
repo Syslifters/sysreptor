@@ -2,6 +2,7 @@ import dataclasses
 import logging
 import uuid
 import asyncio
+import elasticapm
 from asgiref.sync import sync_to_async
 from types import NoneType
 from typing import Any, Optional, Union
@@ -106,6 +107,7 @@ async def get_celery_result_async(task):
     return task.get()
     
 
+@elasticapm.async_capture_span()
 async def render_pdf_task(project_type: ProjectType, report_template: str, report_styles: str, data: dict, password: Optional[str] = None, project: Optional[PentestProject] = None):
     task = await sync_to_async(tasks.render_pdf_task.delay)(
         template=report_template,

@@ -52,7 +52,6 @@
       <member-selection 
         v-model="project.members" 
         :prevent-unselecting-self="true" 
-        :required="true"
         :error-messages="serverErrors?.members"
         :disabled="project.readonly"
         label="Members"
@@ -62,7 +61,8 @@
         v-if="project.imported_members.length > 0"
         v-model="project.imported_members"
         :selectable-users="project.imported_members"
-        :disabled="true"
+        :disabled="project.readonly"
+        :disable-add="true"
         label="Members (imported)"
         hint="These users do not exist on this instance, they were imported from somewhere else. They do not have access, but can be included in reports."
       />

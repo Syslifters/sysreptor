@@ -176,13 +176,14 @@
                       </ul>
                     </p>
 
+                    <p class="mb-0">Confirm TOTP Code:</p>
                     <v-otp-input
                       v-model="setupWizard.completeTotpForm.code"
-                      label="Confirm code"
                       type="number"
                       :length="setupWizard.data.digits"
                       :error-messages="setupWizard.error"
                       @finish="setupWizardCompleteTotp"
+                      class="totp-confirm"
                     />
                   </v-card-text>
                   <v-card-actions>
@@ -235,12 +236,8 @@
 <script>
 import { create as navigatorCredentialsCreate, parseCreationOptionsFromJSON } from "@github/webauthn-json/browser-ponyfill";
 import { cloneDeep } from 'lodash';
+import { redirectToReAuth } from '~/utils/auth';
 import { mfaMethodChoices } from '~/utils/other';
-
-function redirectToReAuth({ auth, route }) {
-  auth.$storage.setUniversal('redirect', route.path);
-  auth.redirect('reauth');
-}
 
 export default {
   async asyncData({ $axios, $auth, route }) {
@@ -419,5 +416,9 @@ export default {
   list-style: none;
   columns: 2;
   color: black;
+}
+
+.totp-confirm {
+  max-width: 30em;
 }
 </style>

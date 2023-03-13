@@ -6,3 +6,8 @@ export default class CustomCookieScheme extends CookieScheme {
     return { valid: true };
   }
 }
+
+export function redirectToReAuth({ auth, route }) {
+  auth.$storage.setUniversal('redirect', route.path);
+  auth.redirect('reauth');
+}

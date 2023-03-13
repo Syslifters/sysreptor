@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.18 - 2023-03-13
+* Allow setting emojis as custom note icons
+* Require re-authentication to enable admin permissions in user sessions
+* Test and improve backup and restore logic
+* Automatically cleanup unreferenced files and images
+* Add words to spellcheck dictionary
+* Allow removing and updating roles of imported project members
+* Fix label not shown for number fields
+
+
 ## v0.17 - 2023-03-01
 * Use variable Open Sans font to fix footnote-call rendering ("font-variant-position: super" not applied)
 

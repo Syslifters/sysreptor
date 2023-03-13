@@ -59,54 +59,6 @@ RUN npm run build
 
 
 
-
-FROM python:3.10-slim-bullseye AS rendering-worker-dev
-
-# Install system dependencies required by PDF rendering
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        chromium \
-        fontconfig \
-        fonts-noto \
-        fonts-noto-mono \
-        fonts-noto-ui-core \
-        fonts-open-sans \
-        libpango-1.0-0 \
-        libpangoft2-1.0-0 \
-        unzip \
-        wget \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install fonts
-WORKDIR /app/rendering-worker/
-COPY rendering-worker/download_fonts.sh /app/rendering-worker/download_fonts.sh
-RUN chmod +x /app/rendering-worker/download_fonts.sh && /app/rendering-worker/download_fonts.sh
-
-# Install python packages
-ENV PYTHONUNBUFFERED=on \
-    PYTHONDONTWRITEBYTECODE=on
-COPY rendering-worker/requirements.txt /app/rendering-worker/requirements.txt
-RUN pip install -r /app/rendering-worker/requirements.txt
-
-# Configure playwright
-ENV CHROMIUM_EXECUTABLE=/usr/lib/chromium/chromium
-
-
-FROM rendering-worker-dev AS rendering-worker
-# Copy source code
-COPY rendering-worker/src /app/rendering-worker/
-
-# Copy generated template rendering script
-COPY --from=rendering /app/rendering/dist /app/rendering/dist/
-ENV PDF_RENDER_SCRIPT_PATH=/app/rendering/dist/bundle.js
-
-USER 1000
-
-CMD celery --app=reportcreator_rendering.celery --quiet worker -Q reportcreator_rendering
-
-
-
-
-
 FROM python:3.10-slim-bullseye AS api-dev
 
 # Install system dependencies required by weasyprint and chromium
@@ -132,8 +84,7 @@ RUN chmod +x /app/api/download_fonts.sh && /app/api/download_fonts.sh
 # Install python packages
 ENV PYTHONUNBUFFERED=on \
     PYTHONDONTWRITEBYTECODE=on \
-    CHROMIUM_EXECUTABLE=/usr/lib/chromium/chromium \
-    DJANGO_SETTINGS_MODULE=reportcreator_api.conf.settings
+    CHROMIUM_EXECUTABLE=/usr/lib/chromium/chromium
 WORKDIR /app/api/
 COPY api/requirements.txt /app/api/requirements.txt
 RUN pip install -r /app/api/requirements.txt

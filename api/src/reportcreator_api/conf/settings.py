@@ -36,7 +36,6 @@ APPEND_SLASH = True
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.messages',
@@ -52,6 +51,8 @@ INSTALLED_APPS = [
     'reportcreator_api.pentests',
     'reportcreator_api.notifications',
     'reportcreator_api.tasks',
+    'reportcreator_api.conf.admin.AdminConfig',
+    'reportcreator_api.api_utils',
 ]
 
 MIDDLEWARE = [
@@ -63,6 +64,7 @@ MIDDLEWARE = [
     'reportcreator_api.utils.middleware.ExtendSessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'reportcreator_api.utils.middleware.AdminSessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'csp.middleware.CSPMiddleware',
@@ -107,7 +109,6 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'reportcreator_api.utils.api.exception_handler',
     'PAGE_SIZE': 100,
     'UNICODE_JSON': False,
-    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
 
@@ -378,6 +379,11 @@ PERIODIC_TASKS = [
         'task': 'reportcreator_api.utils.tasks.clear_sessions',
         'schedule': timedelta(days=1),
     },
+    {
+        'id': 'cleanup_unreferenced_images_and_files',
+        'task': 'reportcreator_api.pentests.tasks.cleanup_unreferenced_images_and_files',
+        'schedule': timedelta(days=1),
+    },
 ]
 
 
@@ -385,6 +391,7 @@ PERIODIC_TASKS = [
 MAX_LOCK_TIME = timedelta(seconds=90)
 
 SPELLCHECK_URL = config('SPELLCHECK_URL', default=None)
+SPELLCHECK_DICTIONARY_PER_USER = config('SPELLCHECK_DICTIONARY_PER_USER', cast=bool, default=False)
 
 BACKUP_KEY = config('BACKUP_KEY', default=None)
 

@@ -1,5 +1,6 @@
 import itertools
 import uuid
+import functools
 from django.db import models
 from django.utils import timezone
 from django.contrib.contenttypes.fields import GenericRelation
@@ -84,4 +85,17 @@ class LanguageMixin(models.Model):
     
     class Meta:
         abstract = True
+
+
+def disable_for_loaddata(signal_handler):
+    """
+    Decorator that turns off signal handlers when loading fixture data.
+    """
+
+    @functools.wraps(signal_handler)
+    def wrapper(*args, **kwargs):
+        if kwargs.get('raw'):
+            return
+        signal_handler(*args, **kwargs)
+    return wrapper
 

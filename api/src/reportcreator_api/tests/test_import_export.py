@@ -115,7 +115,7 @@ class TestImportExport:
 
         assert p.notes.count() == self.project.notes.count()
         for i, s in zip(p.notes.order_by('note_id'), self.project.notes.order_by('note_id')):
-            assertKeysEqual(i, s, ['note_id', 'created', 'title', 'text', 'emoji', 'order'])
+            assertKeysEqual(i, s, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'status_emoji', 'order'])
             assert i.parent.note_id == s.parent.note_id if s.parent else i.parent is None
 
         assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in self.project.files.all()}
@@ -253,6 +253,7 @@ class TestCopyModel:
     def test_copy_project(self):
         user = create_user()
         p = create_project(members=[user], readonly=True, source=SourceEnum.IMPORTED)
+        create_notebookpage(project=p, parent=p.notes.first())
         finding = create_finding(project=p, template=create_template())
         finding.lock(user)
         p.sections.first().lock(user)
@@ -270,6 +271,9 @@ class TestCopyModel:
         assert set(p.images.values_list('id', flat=True)).intersection(cp.images.values_list('id', flat=True)) == set()
         assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in cp.images.all()}
 
+        assert set(p.files.values_list('id', flat=True)).intersection(cp.files.values_list('id', flat=True)) == set()
+        assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in cp.files.all()}
+
         for p_s, cp_s in zip(p.sections.order_by('section_id'), cp.sections.order_by('section_id')):
             assert p_s != cp_s
             assertKeysEqual(p_s, cp_s, ['section_id', 'assignee', 'data'])
@@ -279,6 +283,16 @@ class TestCopyModel:
             assert p_f != cp_f
             assertKeysEqual(p_f, cp_f, ['finding_id', 'assignee', 'data', 'template'])
             assert not cp_f.is_locked
+        
+        for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id')):
+            assert p_n != cp_n
+            assertKeysEqual(p_n, cp_n, ['note_id', 'title', 'text', 'emoji', 'order'])
+            assert not cp_f.is_locked
+            if p_n.parent:
+                assert p_n.parent.note_id == cp_n.parent.note_id
+                assert p_n.parent != cp_n.parent
+            else:
+                assert cp_n.parent is None
 
     def test_copy_project_type(self):
         user = create_user()

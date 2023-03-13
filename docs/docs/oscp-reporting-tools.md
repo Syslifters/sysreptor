@@ -13,7 +13,7 @@ hide:
 
     __Pro tip:__ 🔥 Lowest reporting efforts online!
 
-    [:octicons-arrow-right-24: Signup and start off](https://docs.sysreptor.com/)
+    [:octicons-arrow-right-24: Signup and start off](https://docs.sysreptor.com/oscp-reporting-with-sysreptor/)
     
 
 -   :material-file-word-box:{ .lg .middle } __Microsoft Word__
@@ -56,7 +56,7 @@ hide:
 </figure>
 
 
-<br><div style="text-align:center">[:rocket: Sign Up to SysReptor (Coming Soon)](#){ .md-button }</div>
+<br><div style="text-align:center">[:rocket: Sign Up to SysReptor](https://cloud.sysreptor.com/oscp/signup/){ .md-button }</div>
 
 <br>
 Make sure to test your tool of choice before the exam.

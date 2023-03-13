@@ -1,8 +1,10 @@
 import base64
 import io
 import json
+import sys
 import zipfile
 import pytest
+from unittest import mock
 from uuid import UUID
 from contextlib import contextmanager
 from django.db import connection
@@ -11,14 +13,16 @@ from django.test import override_settings
 from django.urls import reverse
 from django.http import StreamingHttpResponse
 from django.core import serializers
-from rest_framework.test import APIClient
-from django.core.files.storage import get_storage_class
 from django.core import management
+from django.core.files.storage import FileSystemStorage
+from rest_framework.test import APIClient
 
 from reportcreator_api.archive import crypto
-from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage
+from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage
 from reportcreator_api.management.commands import encryptdata
 from reportcreator_api.tests.mock import create_project, create_template, create_user, create_project_type
+from reportcreator_api.users.models import PentestUser
+from reportcreator_api.utils.storages import EncryptedFileSystemStorage
 
 
 def assert_db_field_encrypted(query, expected):
@@ -188,11 +192,8 @@ class TestSymmetricEncryptionTests:
 class TestEncryptedStorage:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        class TestStorage(crypto.EncryptedStorageMixin, get_storage_class()):
-            pass
-        
-        self.storage_plain = get_storage_class()()
-        self.storage_crypto = TestStorage()
+        self.storage_plain = FileSystemStorage(location='/tmp/test/')
+        self.storage_crypto = EncryptedFileSystemStorage(location='/tmp/test/')
         self.plaintext = b'This is a test file content which should be encrypted'
 
         with override_settings(
@@ -204,7 +205,7 @@ class TestEncryptedStorage:
 
     def test_save(self):
         filename = self.storage_crypto.save('test.txt', io.BytesIO(self.plaintext))
-        assert str(UUID(filename)) != 'test.txt'
+        assert str(UUID(filename.replace('/', ''))) != 'test.txt'
         enc = self.storage_plain.open(filename, mode='rb').read()
         assert enc.startswith(crypto.MAGIC)
         dec = self.storage_crypto.open(filename, mode='rb').read()
@@ -324,6 +325,7 @@ class TestBackup:
             self.user_system = create_user(is_system_user=True)
 
             # Data to be backed up
+            self.user = create_user(mfa=True)
             self.project = create_project()
             self.project_type = create_project_type()
             self.template = create_template()
@@ -335,24 +337,33 @@ class TestBackup:
         assert data.object == obj
         assert model_to_dict(data.object) == model_to_dict(obj)
         return data
+    
+    def assert_backup_file(self, backup, z, dir, obj):
+        self.assert_backup_obj(backup, obj)
+        bak_img = z.read(f'{dir}/{obj.file.name}')
+        assert not bak_img.startswith(crypto.MAGIC)
+        assert bak_img == obj.file.open('rb').read()
 
     def assert_backup(self, content):
         with zipfile.ZipFile(io.BytesIO(content), mode='r') as z:
+            # Test that data is not encrypted in backup
+            assert crypto.MAGIC not in z.read('backup.jsonl')
             backup = list(serializers.deserialize('jsonl', z.read('backup.jsonl')))
 
             # Test if objects are present in backup
             self.assert_backup_obj(backup, self.project)
             self.assert_backup_obj(backup, self.project.findings.first())
             self.assert_backup_obj(backup, self.project.sections.first())
+            self.assert_backup_obj(backup, self.project.notes.first())
             self.assert_backup_obj(backup, self.project_type)
             self.assert_backup_obj(backup, self.template)
+            self.assert_backup_obj(backup, self.user.notes.first())
+            self.assert_backup_obj(backup, self.user.mfa_methods.first())
 
-            # Test that data is not encrypted in backup
-            assert crypto.MAGIC not in z.read('backup.jsonl')
-            orig_img = self.project.images.first()
-            bak_img = z.read(f'uploadedimages/{orig_img.file.name}')
-            assert not bak_img.startswith(crypto.MAGIC)
-            assert bak_img == orig_img.file.open('rb').read()
+            self.assert_backup_file(backup, z, 'uploadedimages', self.project.images.all().first())
+            self.assert_backup_file(backup, z, 'uploadedimages', self.user.images.all().first())
+            self.assert_backup_file(backup, z, 'uploadedassets', self.project_type.assets.all().first())
+            self.assert_backup_file(backup, z, 'uploadedfiles', self.project.files.first())
 
     def backup_request(self, user=None, backup_key=None, aes_key=None):
         if not user:
@@ -364,11 +375,33 @@ class TestBackup:
         return client.post(reverse('utils-backup'), data={'key': backup_key, 'aes_key': base64.b64encode(aes_key).decode() if aes_key else None})
     
     def test_backup(self):
+        # Create backup
         res = self.backup_request()
         assert res.status_code == 200
         assert isinstance(res, StreamingHttpResponse)
         z = b''.join(res.streaming_content)
         self.assert_backup(z)
+
+    def test_backup_restore(self):
+        # Create backup
+        backup = b''.join(self.backup_request().streaming_content)
+
+        # Delete data
+        PentestUser.objects.all().delete()
+        PentestProject.objects.all().delete()
+        ProjectType.objects.all().delete()
+        FindingTemplate.objects.all().delete()
+        
+        # Restore backup
+        with zipfile.ZipFile(io.BytesIO(backup), 'r') as z:
+            with mock.patch.object(sys, 'stdin', io.StringIO(z.read('backup.jsonl').decode())):
+                management.call_command('loaddata', '-', format='jsonl')
+        
+        # Validate restored data
+        self.project.refresh_from_db()
+        self.project_type.refresh_from_db()
+        self.template.refresh_from_db()
+        self.user.refresh_from_db()
         
     def test_backup_permissions(self):
         user_regular = create_user()

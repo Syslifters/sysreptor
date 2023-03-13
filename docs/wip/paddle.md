@@ -97,6 +97,9 @@ hide:
   function add_countries() {
     html = "";
     obj_fav = {
+
+    }
+    obj = {
       "Austria": "AT",
       "Germany": "DE",
       "Australia": "AU",
@@ -106,8 +109,6 @@ hide:
       "Switzerland": "CH",
       "United Kingdom": "GB",
       "United States": "US",
-    }
-    obj = {
       "Aland Islands": "AX",
       "Albania": "AL",
       "Algeria": "DZ",

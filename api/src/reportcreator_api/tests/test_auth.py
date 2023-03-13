@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from reportcreator_api.utils.utils import omit_keys
-from reportcreator_api.tests.mock import create_user, mock_time
+from reportcreator_api.tests.mock import create_project, create_user, mock_time
 from reportcreator_api.users.models import MFAMethod, MFAMethodType
 
 
@@ -165,3 +165,60 @@ class TestMfaMethodRegistration:
             res3 = self.client.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': 'self'}))
             assert res3.status_code == 403
 
+
+@pytest.mark.django_db
+class TestEnableAdminPermissions:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.project_not_member = create_project()
+
+        self.password = 'Password1!'
+        self.user = create_user(is_superuser=True, password=self.password)
+        self.client = APIClient()
+        self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
+
+    def has_admin_access(self):
+        return self.client.get(reverse('pentestproject-detail', kwargs={'pk': self.project_not_member.pk})).status_code == 200
+    
+    def test_enable_admin_permissions(self):
+        assert not self.has_admin_access()
+
+        # Try without re-auth
+        res_privesc_failed = self.client.post(reverse('pentestuser-enable-admin-permissions'))
+        assert res_privesc_failed.status_code == 403
+        assert res_privesc_failed.json()['code'] == 'reauth-required'
+
+        # Re-authenticate
+        old_session_id = self.client.session.session_key
+        res_reauth = self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
+        assert res_reauth.status_code == 200
+        assert self.client.session.session_key != old_session_id
+
+        # Enable admin permissions
+        res_privesc_success = self.client.post(reverse('pentestuser-enable-admin-permissions'))
+        assert res_privesc_success.status_code == 200
+        user_data = res_privesc_success.json()
+        assert user_data['id'] == str(self.user.id)
+        assert user_data['is_superuser']
+        assert 'admin' in user_data['scope']
+        assert self.client.session['admin_permissions_enabled']
+
+        assert self.has_admin_access()
+
+    def test_disable_admin_permissions(self):
+        session = self.client.session
+        session['admin_permissions_enabled'] = True
+        session.save()
+
+        assert self.has_admin_access()
+
+        res = self.client.post(reverse('pentestuser-disable-admin-permissions'))
+        assert res.status_code == 200
+        user_data = res.json()
+        assert user_data['id'] == str(self.user.id)
+        assert user_data['is_superuser']
+        assert 'admin' not in user_data['scope']
+        assert not self.client.session.get('admin_permissions_enabled')
+
+        assert not self.has_admin_access()
+        

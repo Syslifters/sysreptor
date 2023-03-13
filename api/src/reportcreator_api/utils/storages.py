@@ -1,6 +1,6 @@
 import os
 
-from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import FileSystemStorage, InMemoryStorage
 from storages.backends.s3boto3 import S3Boto3Storage
 
 from reportcreator_api.archive.crypto.storage import EncryptedStorageMixin
@@ -39,11 +39,17 @@ class EncryptedFileSystemStorage(EncryptedStorageMixin, FileSystemStorage):
 
 
 class EncryptedS3Storage(EncryptedStorageMixin, S3Boto3Storage):
-    def __init__(self, access_key=None, secret_key=None, bucket_name=None, endpoint_url=None, **kwargs) -> None:
+    def __init__(self, access_key=None, secret_key=None, bucket_name=None, endpoint_url=None, location=None, **kwargs) -> None:
         super().__init__(
             access_key=access_key, 
             secret_key=secret_key, 
             bucket_name=bucket_name, 
-            endpoint_url=endpoint_url
+            endpoint_url=endpoint_url,
+            location=location,
         )
+
+
+class EncryptedInMemoryStorage(EncryptedStorageMixin, InMemoryStorage):
+    def __init__(self, **kwargs) -> None:
+        super().__init__()
 

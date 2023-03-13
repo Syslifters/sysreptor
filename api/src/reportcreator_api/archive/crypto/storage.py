@@ -31,10 +31,9 @@ class EncryptedStorageMixin:
                 size -= c.header_len + c.auth_tag_len
         return size
 
-    def get_available_filename(self, name, max_length=None):
-        return super().get_available_filename(name=str(uuid4()), max_length=None)
-    
-    def get_alternative_name(self, *args, **kwargs):
-        return str(uuid4())
-   
+    def get_available_name(self, name, max_length=None):
+        # TODO: test file upload: folder created + random name
+        randname = str(uuid4())
+        randname_with_dir = randname[:2] + '/' + randname[2:]
+        return super().get_available_name(name=randname_with_dir, max_length=None)
 

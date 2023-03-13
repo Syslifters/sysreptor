@@ -128,7 +128,7 @@
           label="Superuser" 
           hint="Superusers have all permissions without explicitly assigning them. They can access all projects, even when they are not members."
           :error-messages="errors?.is_superuser"
-          :disabled="!canEdit || !canEditPermissions || !hasSuperuserPermissions"
+          :disabled="!canEdit || !canEditPermissions || !hasAdminPermissions"
         />
         <s-checkbox
           :value="user.is_guest" @change="updateField('is_guest', $event)" 
@@ -180,8 +180,8 @@ export default {
     user() {
       return this.value;
     },
-    hasSuperuserPermissions() {
-      return this.$auth.hasScope('superuser');
+    hasAdminPermissions() {
+      return this.$auth.hasScope('admin');
     },
     hasUserManagerPermissions() {
       return this.$auth.hasScope('user_manager');

@@ -29,7 +29,11 @@ class UserViewSetPermissions(permissions.BasePermission):
             return True
         elif view.action == 'change_password':
             return check_sensitive_operation_timeout(request)
-        return request.user.is_user_manager or request.user.is_superuser
+        elif view.action == 'enable_admin_permissions':
+            return request.user.is_superuser and check_sensitive_operation_timeout(request)
+        elif view.action == 'disable_admin_permissions':
+            return request.user.is_admin
+        return request.user.is_user_manager or request.user.is_admin
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -37,11 +41,10 @@ class UserViewSetPermissions(permissions.BasePermission):
         if obj.is_system_user and obj != request.user:
             return False
         if view.action == 'reset_password':
-            if obj.is_superuser and not request.user.is_superuser:
+            if obj.is_superuser and not request.user.is_admin:
                 # Prevent user_managers from resetting superuser password
                 # This would be a privilege escalation
                 return False
-            # check_sensitive_operation_timeout(request)
         return True
 
 
@@ -53,7 +56,7 @@ class MFAMethodViewSetPermissons(permissions.BasePermission):
             check_sensitive_operation_timeout(request)
             return True
         
-        if not request.user.is_superuser and not request.user.is_user_manager:
+        if not request.user.is_admin and not request.user.is_user_manager:
             return False
         if view.action not in ['list', 'retrieve', 'destroy']:
             return False
@@ -65,7 +68,7 @@ class MFAMethodViewSetPermissons(permissions.BasePermission):
 class AuthIdentityViewSetPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         user = view.get_user()
-        if not (request.user.is_superuser or (request.user.is_user_manager and not user.is_superuser)):
+        if not (request.user.is_admin or (request.user.is_user_manager and not user.is_superuser)):
             return False
         if user.is_system_user and request.method not in permissions.SAFE_METHODS:
             return False

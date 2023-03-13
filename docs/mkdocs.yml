@@ -1,5 +1,6 @@
 site_name: "SysReptor Docs"
 site_url: "https://docs.sysreptor.com/"
+site_dir: ./site/ # Where to put the HTML files
 nav:
   - SysReptor: index.md
   - Features and Pricing: features-and-pricing.md
@@ -8,18 +9,18 @@ nav:
   - Reference Sections: reporting/referencing-sections.md
   #- Locked Findings & Sections: reporting/locking.md
   - Report Designer:
-    - Page Layout: designer/page-layout.md
-    - Headings and ToC: designer/headings-and-table-of-contents.md
-    - Tables: designer/tables.md
-    - Figures: designer/figures.md
-    - Footnotes: designer/footnotes.md
-    - Charts: designer/charts.md
-    - Design Guides: designer/design-guides.md
-    - Formatting Utilities: designer/formatting-utils.md
-    - Debugging: designer/debugging.md
+      - Page Layout: designer/page-layout.md
+      - Headings and ToC: designer/headings-and-table-of-contents.md
+      - Tables: designer/tables.md
+      - Figures: designer/figures.md
+      - Footnotes: designer/footnotes.md
+      - Charts: designer/charts.md
+      - Design Guides: designer/design-guides.md
+      - Formatting Utilities: designer/formatting-utils.md
+      - Debugging: designer/debugging.md
   - User Permissions: user-permissions.md
   #- Security Considerations: security-considerations.md
-  #- OSCP Reporting: oscp-reporting-with-sysreptor.md
+  - Free OSCP Reporting: oscp-reporting-with-sysreptor.md
     
 theme:
   name: "material"
@@ -34,16 +35,12 @@ extra_css:
   - stylesheets/hint.min.css
 
 plugins:
-  - mkdocs-simple-hooks:
-      enabled: !ENV [ENABLE_MKDOCS_SIMPLE_HOOKS, true]
-      hooks:
-        on_pre_build: "hooks:generate_software_lists"
   - social:
       cards: !ENV [CARDS, true]
       cards_color:
         fill: "#001827"
         text: "#F9FDFF"
-      cards_font: Exo
+      font: Exo
   - tooltips
   - search
   - privacy
@@ -69,10 +66,10 @@ markdown_extensions:
 
 extra:
   social:
-    - icon: fontawesome/brands/twitter 
+    - icon: fontawesome/brands/twitter
       link: https://twitter.com/syslifters
-    - icon: fontawesome/brands/linkedin 
+    - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/company/syslifters/
   generator: false
 
-copyright: "<a href=\"https://www.syslifters.com/\" target=\"_blank\">Our Website</a> | <a href=\"https://www.syslifters.com/impressum\" target=\"_blank\">Imprint</a> | <a href=\"/data-privacy\">Data Privacy</a> | <a href=\"https://docs.syslifters.com/contact-us\" target=\"blank\">Contact</a><br><br>Die FFG ist die zentrale nationale Förderorganisation und stärkt Österreichs Innovationskraft.<br>Dieses Projekt wird aus Mitteln der FFG gefördert. <a href=\"https://www.ffg.at\" target=\"_blank\">www.ffg.at</a><br>"
+copyright: '<a href="https://www.syslifters.com/" target="_blank">Our Website</a> | <a href="https://www.syslifters.com/impressum" target="_blank">Imprint</a> | <a href="/data-privacy">Data Privacy</a> | <a href="https://docs.syslifters.com/contact-us" target="blank">Contact</a><br><br>Die FFG ist die zentrale nationale Förderorganisation und stärkt Österreichs Innovationskraft.<br>Dieses Projekt wird aus Mitteln der FFG gefördert. <a href="https://www.ffg.at" target="_blank">www.ffg.at</a><br>'

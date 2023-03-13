@@ -21,7 +21,7 @@ def create_png_file() -> bytes:
            b'IDAT\x08\xd7c`\x00\x00\x00\x02\x00\x01\xe2!\xbc3\x00\x00\x00\x00IEND\xaeB`\x82'
 
 
-def create_user(mfa=False, **kwargs) -> PentestUser:
+def create_user(mfa=False, notes_kwargs=None, images_kwargs=None, **kwargs) -> PentestUser:
     username = f'user{random.randint(0, 100000)}'
     user = PentestUser.objects.create_user(**{
         'username': username,
@@ -34,8 +34,13 @@ def create_user(mfa=False, **kwargs) -> PentestUser:
         MFAMethod.objects.create_totp(user=user, is_primary=True)
         MFAMethod.objects.create_backup(user=user)
 
-    create_notebookpage(user=user)
-    UploadedUserNotebookImage.objects.create(linked_object=user, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=create_png_file()))
+    for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}]:
+        create_notebookpage(user=user, **note_kwargs)
+    for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
+        UploadedUserNotebookImage.objects.create(linked_object=user, **{
+            'name': f'file{idx}.png', 
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
+        } | image_kwargs)
 
     return user
 
@@ -118,11 +123,12 @@ def create_notebookpage(**kwargs) -> NotebookPage:
         'title': f'Note #{random.randint(0, 100000)}',
         'text': 'Note text',
         'checked': random.choice([None, True, False]),
-        'emoji': random.choice([None, '🦖'])
+        'icon_emoji': random.choice([None, '🦖']),
+        'status_emoji': random.choice([None, '✔️', '🤡']),
     } | kwargs)
 
 
-def create_project(project_type=None, members=[], report_data={}, findings_kwargs=None, notes_kwargs=None, **kwargs) -> PentestProject:
+def create_project(project_type=None, members=[], report_data={}, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, **kwargs) -> PentestProject:
     project_type = project_type or create_project_type()
     project = PentestProject.objects.create(**{
         'project_type': project_type,
@@ -152,11 +158,16 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
     for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}] * 3:
         create_notebookpage(project=project, **note_kwargs)
 
-    UploadedImage.objects.create(linked_object=project, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=create_png_file()))
-    UploadedImage.objects.create(linked_object=project, name='file2.png', file=SimpleUploadedFile(name='file2.png', content=create_png_file()))
-
-    UploadedProjectFile.objects.create(linked_object=project, name='file3.pdf', file=SimpleUploadedFile(name='file3.pdf', content=create_png_file()))
-    UploadedProjectFile.objects.create(linked_object=project, name='file4.xlsx', file=SimpleUploadedFile(name='file4.xlsx', content=create_png_file()))
+    for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}] * 2):
+        UploadedImage.objects.create(linked_object=project, **{
+            'name': f'file{idx}.png', 
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
+        } | image_kwargs)
+    for idx, file_kwargs in enumerate(files_kwargs if files_kwargs is not None else [{}] * 2):
+        UploadedProjectFile.objects.create(linked_object=project, **{
+            'name': f'file{idx}.pdf', 
+            'file': SimpleUploadedFile(name=f'file{idx}.pdf', content=f'%PDF-1.3{idx}'.encode())
+        } | file_kwargs)
 
     return project
 

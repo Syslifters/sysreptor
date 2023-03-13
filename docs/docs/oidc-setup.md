@@ -28,8 +28,23 @@ You should now have the following values:
 * client secret
 * azure tendant id
 
+
 ## SaaS Setup
 
 You are lucky, just send the values from the previous steps to us and we will take care of everything :)
 
+
 ## OnPrem Setup
+
+The values from the previous steps need to be passed as environment variables to the SysReptor docker container.
+You can add them to `<sysreptor-repository>/deploy/app.env`:
+```env
+OIDC_AZURE_TENANT_ID=<azure tenant id>
+OIDC_AZURE_CLIENT_ID=<azure client id>
+OIDC_AZURE_CLIENT_SECRET=<azure client secret>
+```
+
+The OIDC client needs to be able to establish a network connection to Azure AD.
+Make sure to not block outgoing traffic.
+
+Then restart the docker container for the changes to take effect.

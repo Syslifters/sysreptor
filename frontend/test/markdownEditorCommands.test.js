@@ -30,7 +30,7 @@ function createEditorState(textWithSelection, cursorMarker = '|') {
 function testCommand(command, before, after, cursorMarker = '|') {
   test(before, () => {
     const view = new EditorView({ state: createEditorState(before, cursorMarker) })
-    command({ state: view.state, dispatch: view.dispatch });
+    command(view);
     const stateAfterActual = view.state;
 
     const stateAfterExpected = createEditorState(after, cursorMarker);

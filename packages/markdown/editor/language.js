@@ -1,5 +1,5 @@
 import { micromarkEventsToTree, parseMicromarkEvents } from "./micromark-utils";
-import { LanguageSupport, Language, defineLanguageFacet } from '@codemirror/language';
+import { LanguageSupport, Language, defineLanguageFacet, languageDataProp, indentNodeProp } from '@codemirror/language';
 import {html} from "@codemirror/lang-html"
 import {Prec} from "@codemirror/state";
 import { keymap } from '@codemirror/view';
@@ -9,7 +9,7 @@ import { markdownParser } from "..";
 import { tags } from "./highlight";
 import { insertNewlineContinueMarkup, deleteMarkupBackward, toggleStrong, toggleEmphasis } from "./commands";
 
-
+const markdownLanguageFacet = defineLanguageFacet({block: {open: '<!--', close: '-->'}});
 
 const markdownHighlighting = styleTags({
   "strong/...": t.strong,
@@ -44,7 +44,9 @@ const nodeTypes = [
   'listOrdered', 'listUnordered', 'listItem', 'listItemPrefix', 'blockQuotePrefix', 'listItemMarker', 
 ];
 const nodeSet = new NodeSet([NodeType.none].concat(nodeTypes.map((type, idx) => NodeType.define({id: idx + 1, name: type}))))
-  .extend(markdownHighlighting);
+  .extend(markdownHighlighting)
+  .extend(languageDataProp.add({ document: markdownLanguageFacet }))
+  .extend(indentNodeProp.add({ document: () => null }));
 
 
 function modifySyntaxTree(tree) {
@@ -118,7 +120,7 @@ function micromarkToLezerSyntaxTree(text, events) {
   return Tree.build({
     buffer: tree.length > 0 ? toBuffer({children: tree, enter: {type: 'document', start: tree[0].enter.start, end: tree.slice(-1)[0].enter.end}}) : [],
     nodeSet: nodeSet,
-    topID: NodeType.none.id,
+    topID: nodeSet.types.find(t => t.name === 'document').id,
   });
 }
 
@@ -180,8 +182,9 @@ class MarkdownParser extends Parser {
 
 const htmlLanguage = html({matchClosingTags: false});
 
+// TODO: markdownLanguage.isActiveAt does not work after update
 export const markdownLanguage = new Language(
-  defineLanguageFacet({block: {open: '<!--', close: '-->'}}), 
+  markdownLanguageFacet, 
   new MarkdownParser()
 );
 

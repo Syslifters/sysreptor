@@ -2,15 +2,15 @@
 
 Use our cloud service for free to write your Offensive Security OSCP, OSEE, OSEP, OSWE, OSWP reports.
 
-:fontawesome-solid-money-check-dollar: Free  
-:simple-markdown: Write in markdown  
-:fontawesome-solid-gears: Render your report  
-:material-security: OSCP, OSEE, OSEP, OSWE, OSWP  
-:material-file-edit: Fully customizable  
-:material-file-word-box: No need for Word  
-:material-bug-stop: No local software troubleshooting
+💲 Free  
+📝 Write in markdown  
+⚙️ Render your report to PDF  
+🛡️ OSCP, OSEE, OSEP, OSWE, OSWP  
+🚀 Fully customizable  
+🎉 No need for Word  
+👌 No local software troubleshooting
 
-<br><div style="text-align:center">[:rocket: Sign Up Now (Coming Soon)](#){ .md-button }</div>
+<br><div style="text-align:center">[:rocket: Sign Up Now](https://cloud.sysreptor.com/oscp/signup/){ .md-button }</div>
 
 ## Creating an OSCP Exam Report
 <figure markdown>

@@ -6,9 +6,9 @@
     offset-y
   >
     <template #activator="{attrs: menuAttrs, on: menuOn}">
-      <s-btn :disabled="disabled" v-bind="menuAttrs" v-on="menuOn" icon>
-        <v-icon v-if="value" class="emoji-icon">{{ value }}</v-icon>
-        <v-icon v-else>mdi-emoticon-outline</v-icon>
+      <s-btn :disabled="disabled" v-bind="menuAttrs" v-on="menuOn" icon :ripple="false">
+        <s-emoji v-if="value" :value="value" />
+        <v-icon v-else>{{ emptyIcon }}</v-icon>
       </s-btn>
     </template>
 
@@ -16,7 +16,7 @@
       <picker 
         @select="selectEmoji" 
         :data="emojiIndex" 
-        :native="true" :set="null"
+        set="local"
         :show-skin-tones="false"
         :show-preview="false"
       >
@@ -36,7 +36,7 @@
 <script>
 import { Picker, EmojiIndex, Search } from "emoji-mart-vue-fast";
 import frequentlyUsedEmojis from 'emoji-mart-vue-fast/src/utils/frequently';
-import emojiData from "emoji-mart-vue-fast/data/all.json";
+import emojiData from "emoji-mart-vue-fast/data/twitter.json";
 import "emoji-mart-vue-fast/css/emoji-mart.css";
 
 const DEFAULT_EMOJIS = [
@@ -68,6 +68,10 @@ export default {
     disabled: {
       type: Boolean,
       default: false,
+    },
+    emptyIcon: {
+      type: String,
+      default: 'mdi-emoticon-outline',
     }
   },
   data() {
@@ -97,12 +101,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.emoji-icon {
-  font-style: normal;
-  color: black !important;
-}
-
 :deep() {
+  .emoji-type-image.emoji-set-local {
+    background-image: url('~assets/emojis/sheet_twitter_32_indexed_128.png');
+  }
+
   .emoji-mart-emoji {
     span {
       cursor: pointer;

@@ -281,10 +281,14 @@ class NotebookPageExportImportSerializer(ExportImportSerializer):
         model = NotebookPage
         fields = [
             'id', 'created', 'updated',
-            'title', 'text', 'checked', 'emoji',
+            'title', 'text', 'checked', 'icon_emoji', 'status_emoji',
             'order', 'parent',
         ]
-        extra_kwargs = {'created': {'read_only': False}}
+        extra_kwargs = {
+            'created': {'read_only': False},
+            'icon_emoji': {'required': False},
+            'status_emoji': {'required': False},
+        }
 
 
 class NotebookPageListExportImportSerializer(serializers.ListSerializer):

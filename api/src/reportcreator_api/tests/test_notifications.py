@@ -118,7 +118,8 @@ class TestNotificationImport:
         ]
         async def mock_fetch_notifications_request():
             return self.notification_import_data
-        with mock.patch('reportcreator_api.notifications.tasks.fetch_notifications_request', mock_fetch_notifications_request):
+        with mock.patch('reportcreator_api.notifications.tasks.fetch_notifications_request', mock_fetch_notifications_request), \
+             override_settings(NOTIFICATION_IMPORT_URL='https://example.com/'):
             yield
     
     def test_create(self):

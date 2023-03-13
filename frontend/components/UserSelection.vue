@@ -48,6 +48,10 @@ export default {
       type: Boolean,
       default: true,
     },
+    clearable: {
+      type: Boolean,
+      default: true,
+    }
   },
   emits: ['input'],
   data() {
@@ -84,7 +88,7 @@ export default {
       this.required ? {
         rules: this.multiple ? this.rules.multiple : this.rules.single,
       } : {
-        clearable: true
+        clearable: this.clearable,
       });
     }
   },

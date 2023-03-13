@@ -44,7 +44,7 @@ export default {
       return this.value || '';
     },
     spellcheckEnabled() {
-      return this.spellcheckSupported && this.$store.state.settings.spellcheckEnabled;
+      return this.lang !== null && !this.disabled && this.spellcheckSupported && this.$store.state.settings.spellcheckEnabled;
     },
   },
   watch: {
@@ -107,7 +107,7 @@ export default {
         EditorState.readOnly.of(true),
       ]),
       spellcheck: createEditorExtensionToggler(this.editorView, [
-        spellcheck(this.performSpellcheckRequest),
+        spellcheck({ performSpellcheckRequest: this.performSpellcheckRequest, performSpellcheckAddWordRequest: this.performSpellcheckAddWordRequest }),
         spellcheckTheme,
       ]),
     };
@@ -131,6 +131,13 @@ export default {
         ...data,
         language: this.lang,
       });
+    },
+    async performSpellcheckAddWordRequest(data) {
+      try {
+        return await this.$axios.$post('/utils/spellcheck/words/', data);
+      } catch (error) {
+        this.$toast.global.requestError({ error });
+      }
     },
   },
 }

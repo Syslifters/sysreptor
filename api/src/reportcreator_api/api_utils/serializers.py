@@ -28,25 +28,55 @@ class TextDataField(serializers.Serializer):
     annotation = TextAnnotationField(many=True)
 
 
-class LanguageToolSerializer(serializers.Serializer):
+class LanguageToolSerializerBase(serializers.Serializer):
+    def languagetool_auth(self):
+        return {
+            'username': str(self.context['request'].user.id),
+            'apiKey': str(self.context['request'].user.id),
+        } if settings.SPELLCHECK_DICTIONARY_PER_USER else {
+            'username': 'languagetool',
+            'apiKey': 'languagetool',
+        }
+
+    async def languagetool_request(self, path, data):
+        if not settings.SPELLCHECK_URL:
+            raise exceptions.PermissionDenied('Spell checker not configured')
+        
+        async with httpx.AsyncClient(timeout=10) as client:
+            res = await client.post(
+                url=urljoin(settings.SPELLCHECK_URL, path),
+                data=self.languagetool_auth() | data
+            )
+            return res.json()
+
+
+class LanguageToolSerializer(LanguageToolSerializerBase):
     language = serializers.ChoiceField(choices=Language.choices + [('auto', 'auto')])
     data = TextDataField()
 
     async def spellcheck(self):
-        if not settings.SPELLCHECK_URL:
-            raise exceptions.PermissionDenied('Spell checker not configured')
-
         data = self.validated_data
+        return await self.languagetool_request('/v2/check', {
+            'language': data['language'],
+            'data': json.dumps(data['data'], ensure_ascii=False),
+            **({
+                'preferredVariants': Language.values
+            } if data['language'] == 'auto' else {}),
+        })
+        
 
-        async with httpx.AsyncClient(timeout=10) as client:
-            res = await client.post(
-                url=urljoin(settings.SPELLCHECK_URL, '/v2/check'), 
-                data={
-                    'language': data['language'],
-                    'data': json.dumps(data['data'], ensure_ascii=False),
-                    **({'preferredVariants': Language.values} if data['language'] == 'auto' else {}),
-                })
-            return res.json()
+def validate_singe_word(val):
+    if ' ' in val:
+        raise serializers.ValidationError('Only a single word is supported')
+
+
+class LanguageToolAddWordSerializer(LanguageToolSerializerBase):
+    word = serializers.CharField(max_length=255, validators=[validate_singe_word])
+
+    async def save(self):
+        return await self.languagetool_request('/v2/words/add', {
+            'word': self.validated_data['word'],
+        })
 
 
 class S3ParamsSerializer(serializers.Serializer):

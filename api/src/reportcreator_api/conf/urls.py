@@ -7,7 +7,7 @@ from django.views.generic.base import TemplateView, RedirectView
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
-from reportcreator_api.api_utils.views import UtilsViewSet, SpellcheckView, HealthcheckView
+from reportcreator_api.api_utils.views import SpellcheckWordView, UtilsViewSet, SpellcheckView, HealthcheckView
 from reportcreator_api.pentests.views import FindingTemplateViewSet, PentestFindingViewSet, PentestProjectViewSet, ProjectNotebookPageViewSet, \
     PentestProjectPreviewView, PentestProjectGenerateView, \
     ProjectTypeViewSet, ProjectTypePreviewView, \
@@ -59,6 +59,7 @@ urlpatterns = [
 
         # Async views
         path('utils/spellcheck/', SpellcheckView.as_view(), name='utils-spellcheck'),
+        path('utils/spellcheck/words/', SpellcheckWordView.as_view(), name='utils-spellcheck-words'),
         path('utils/healthcheck/', HealthcheckView.as_view(), name='utils-healthcheck'),
         path('pentestprojects/<uuid:pk>/preview/', PentestProjectPreviewView.as_view(), name='pentestproject-preview'),
         path('pentestprojects/<uuid:pk>/generate/', PentestProjectGenerateView.as_view(), name='pentestproject-generate'),

@@ -50,11 +50,11 @@ class PentestUser(BaseModel, AbstractUser):
 
     @property
     def scope(self):
-        return (['superuser'] if self.is_superuser else []) + \
-               (['template_editor'] if self.is_template_editor or self.is_superuser else []) + \
-               (['designer'] if self.is_designer or self.is_superuser else []) + \
-               (['user_manager'] if self.is_user_manager or self.is_superuser else []) + \
-               (['guest'] if self.is_guest and not self.is_superuser else []) + \
+        return (['admin'] if self.is_admin else []) + \
+               (['template_editor'] if self.is_template_editor or self.is_admin else []) + \
+               (['designer'] if self.is_designer or self.is_admin else []) + \
+               (['user_manager'] if self.is_user_manager or self.is_admin else []) + \
+               (['guest'] if self.is_guest and not self.is_admin else []) + \
                (['system'] if self.is_system_user else [])
 
     @property
@@ -64,7 +64,10 @@ class PentestUser(BaseModel, AbstractUser):
     @functools.cached_property
     def can_login_oidc(self):
         return bool(self.auth_identities.all())
-
+    
+    @property
+    def is_admin(self):
+        return self.is_active and self.is_superuser and getattr(self, 'admin_permissions_enabled', False)
 
 
 class AuthIdentity(BaseModel):
@@ -154,4 +157,3 @@ class MFAMethod(BaseModel):
             rp=PublicKeyCredentialRpEntity(id=rp_id, name=settings.MFA_SERVER_NAME),
             verify_origin=verify_origin,
         )
-

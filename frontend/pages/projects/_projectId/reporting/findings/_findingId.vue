@@ -55,13 +55,14 @@ export default {
     }
   },
   async fetch() {
-    this.finding = await this.$axios.$get(this.getBaseUrl({ id: this.$route.params.findingId }));
+    const finding = await this.$axios.$get(this.getBaseUrl({ id: this.$route.params.findingId }));
     const [project, projectType] = await Promise.all([
-      this.$store.dispatch('projects/getById', this.finding.project),
-      this.$store.dispatch('projecttypes/getById', this.finding.project_type)
+      this.$store.dispatch('projects/getById', finding.project),
+      this.$store.dispatch('projecttypes/getById', finding.project_type)
     ])
     this.project = project;
     this.projectType = projectType;
+    this.finding = finding;
   },
   computed: {
     data() {

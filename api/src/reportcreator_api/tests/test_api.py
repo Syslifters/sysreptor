@@ -214,6 +214,9 @@ def user_manager_urls():
 
 def superuser_urls():
     return [
+        ('pentestuser enable-admin-permissions', lambda s, c: c.post(reverse('pentestuser-enable-admin-permissions'))),
+        ('pentestuser disable-admin-permissions', lambda s, c: c.post(reverse('pentestuser-disable-admin-permissions'))),
+
         # Not a project member
         *project_viewset_urls(get_obj=lambda s: s.project_unauthorized, read=True, write=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized_unauthorized, read=True, write=True),
@@ -275,6 +278,7 @@ class TestApiRequestsAndPermissions:
         self.user_designer = create_user(username='designer', is_designer=True, mfa=True)
         self.user_user_manager = create_user(username='user_manager', is_user_manager=True, mfa=True)
         self.user_superuser = create_user(username='superuser', is_superuser=True, is_staff=True, mfa=True)
+        self.user_superuser.admin_permissions_enabled = True
         self.user_map = {
             'guest': self.user_guest,
             'regular': self.user_regular,
@@ -326,7 +330,6 @@ class TestApiRequestsAndPermissions:
                 'reauth_time': timezone.now().isoformat(),
             }
             session.save()
-            assert 'authentication_info' in dict(client.session)
             self.current_user = user_obj
 
         res = perform_request(self, client)

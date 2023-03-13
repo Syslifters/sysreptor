@@ -98,7 +98,7 @@ export default {
         }
 
         try {
-          return fn({ state: this.editorView.state, dispatch: this.editorView.dispatch }); 
+          return fn(this.editorView); 
         } catch (err) {
           // eslint-disable-next-line no-console
           console.error('Error in CodeMirror action', err);

@@ -42,4 +42,5 @@ debugpy == 1.6.3
 watchdog == 2.2.0
 pytest-django == 4.5.2
 pytest-xdist == 3.0.2
+pytest-cov == 4.0.0
 elastic-apm == 6.14.0

@@ -2,6 +2,7 @@ import operator
 import yaml
 import requests
 import os
+import sys
 
 SOFTWARE_FILE = 'reporting_software.yml'
 DOCUMENT_CONTENT = '''---
@@ -47,14 +48,15 @@ For inquiries and tips write us a short message to hello@syslifters.com.
 """
 
 def generate_software_lists(*args, **kwargs):
+    ret = 0
     software_list = get_software()
     if not kwargs.get('config', dict()).get('site_url'):
         # Check links at deployment time
         # site_url is empty during gh-deploy, at server it is 127.0.0.1:8000
-        check_url_availability(software_list)
+        ret = check_url_availability(software_list)
 
     if not need_regenerate(software_list):
-        return
+        sys.exit(ret)
 
     # Generate "Pentest Reporting Tools" page
     title = f"Pentest Reporting Tools - A List of the most popular tools"
@@ -103,6 +105,8 @@ def generate_software_lists(*args, **kwargs):
         # write document
         with open(get_filename(software['name']), 'w', encoding='utf-8') as f:
             f.write(document)
+
+    sys.exit(ret)
 
 
 def get_filename(name):
@@ -167,15 +171,15 @@ def check_url_availability(software_list):
     errors = 0
     for s in software_list:
         try:
-            r = requests.head(s['url'])
+            r = requests.head(s['url'], timeout=4, headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
         except requests.exceptions:
             errors += 1
-            print(f"URL for {s['name']} ist not reachable")
-        if r.status_code != 200:
+            print(f"{r.status_code} URL for {s['name']} ist not reachable: {s['url']}")
+        if r.status_code >= 400:
             errors += 1
-            print(f"URL for {s['name']} ist not reachable")
+            print(f"{r.status_code} URL for {s['name']} ist not reachable: {s['url']}")
     if errors:
-        raise ValueError("There are URLs that are unreachable")
+        return 127
 
 
 def generate_table(software_list, skip_software=None):

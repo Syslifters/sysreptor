@@ -87,8 +87,10 @@ services:
       context: ../languagetool
     init: true
     environment:
-      Java_Xmx: "2g"
-      JAVA_TOOL_OPTIONS: "-verbose:gc"
+      languagetool_dbHost: db
+      languagetool_dbName: reportcreator
+      languagetool_dbUsername: reportcreator
+      languagetool_dbPassword: reportcreator
     expose:
       - 8010
     healthcheck:
@@ -97,11 +99,15 @@ services:
       timeout: 30s
       retries: 5
       start_period: 10s
+    depends_on:
+      db: 
+        condition: service_healthy
   api:
     build:
       context: ..
       target: api-dev
     command: sh -c "python3 manage.py migrate && python3 -m debugpy --listen 0.0.0.0:5678 -m uvicorn --reload --host 0.0.0.0 --port 8000 reportcreator_api.conf.asgi:application"
+    init: true
     volumes:
       - type: volume
         source: app-data

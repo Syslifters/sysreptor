@@ -82,6 +82,7 @@
       :value="formValue"
       @input="emitInput(parseFloat($event))"
       type="number"
+      :label="label"
       :disabled="disabled"
     />
 

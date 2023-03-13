@@ -26,8 +26,10 @@ services:
       context: ../languagetool
     init: true
     environment:
-      Java_Xmx: "2g"
-      JAVA_TOOL_OPTIONS: "-verbose:gc"
+      languagetool_dbHost: db
+      languagetool_dbName: reportcreator
+      languagetool_dbUsername: reportcreator
+      languagetool_dbPassword: reportcreator
     expose:
       - 8010
     healthcheck:
@@ -36,6 +38,10 @@ services:
       timeout: 30s
       retries: 5
       start_period: 10s
+    restart: always
+    depends_on:
+      db: 
+        condition: service_healthy
   app:
     build: 
       context: ../
@@ -74,5 +80,3 @@ volumes:
     name: reportcreator-db-data
   app-data:
     name: reportcreator-app-data
-  nginx-certs:
-    name: reportcreator-nginx-certs

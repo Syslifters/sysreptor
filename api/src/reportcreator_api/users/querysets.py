@@ -61,7 +61,7 @@ class PentestUserManager(UserManager, models.Manager.from_queryset(PentestUserQu
 
 class MFAMethodQuerySet(models.QuerySet):
     def only_permitted(self, user):
-        if user.is_superuser or user.is_user_manager:
+        if user.is_admin or user.is_user_manager:
             return self
         return self.filter(user=user)
 

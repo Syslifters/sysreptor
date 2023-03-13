@@ -1,6 +1,6 @@
-import asyncio
 import logging
-from asgiref.sync import sync_to_async
+import elasticapm
+from asgiref.sync import sync_to_async, iscoroutinefunction
 from datetime import timedelta
 from django.db import models, IntegrityError
 from django.db.models.functions import Rank
@@ -58,10 +58,11 @@ class PeriodicTaskManager(models.Manager.from_queryset(PeriodicTaskQuerySet)):
         log.info(f'Starting periodic task "{task_info["id"]}"')
         try:
             task_fn = import_string(task_info['task'])
-            if asyncio.iscoroutinefunction(task_fn):
-                await task_fn(task_info)
-            else:
-                await sync_to_async(task_fn)(task_info)
+            async with elasticapm.async_capture_span(task_info['id']):
+                if iscoroutinefunction(task_fn):
+                    await task_fn(task_info)
+                else:
+                    await sync_to_async(task_fn)(task_info)
             task_info['model'].status = TaskStatus.SUCCESS
             task_info['model'].last_success = timezone.now()
             task_info['model'].completed = task_info['model'].last_success

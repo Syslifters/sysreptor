@@ -44,4 +44,12 @@ module.exports = {
     '<rootDir>/pages/**/*.vue',
     '<rootDir>/utils/**/*.js',
   ],
-}
+
+  reporters: [
+    'default',
+    ['jest-junit', {
+      outputDirectory: './test-reports',
+      outputName: 'junit.xml',
+    }],
+  ],
+};

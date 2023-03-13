@@ -95,6 +95,7 @@ export default {
           // Insert new note after the currently selected note, or at the end of the list
           parent: currentNote?.parent || null,
           order: currentNote ? currentNote.order + 1 : null,
+          checked: [true, false].includes(currentNote?.checked) ? false : null,
         } 
       });
       // Reload note list to get updated order

@@ -10,6 +10,7 @@ const loadComponents = [
   'Btn/Confirm.vue',
   'S/Tooltip.vue',
   'S/Btn.vue',
+  'S/Dialog.vue',
   'SavingLoaderSpinner.vue',
 ];
 

@@ -56,7 +56,7 @@ class PentestUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixin
             return ResetPasswordSerializer
         elif self.action == 'create':
             return CreateUserSerializer
-        elif self.request.user.is_superuser or self.request.user.is_user_manager or self.action == 'self':
+        elif self.request.user.is_admin or self.request.user.is_user_manager or self.action in ['self', 'enable_admin_permissions', 'disable_admin_permissions']:
             return PentestUserDetailSerializer
         else:
             return PentestUserSerializer
@@ -75,6 +75,20 @@ class PentestUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixin
     def change_password(self, request, *args, **kwargs):
         self.kwargs['pk'] = 'self'
         return self.update(request, *args, **kwargs)
+    
+    @action(detail=False, url_path='self/admin/enable', methods=['post'])
+    def enable_admin_permissions(self, request, *args, **kwargs):
+        request.session['admin_permissions_enabled'] = True
+        request.user.admin_permissions_enabled = True
+        self.kwargs['pk'] = 'self'
+        return self.retrieve(request=request, *args, **kwargs)
+    
+    @action(detail=False, url_path='self/admin/disable', methods=['post'])
+    def disable_admin_permissions(self, request, *args, **kwargs):
+        request.session.pop('admin_permissions_enabled', False)
+        request.user.admin_permissions_enabled = False
+        self.kwargs['pk'] = 'self'
+        return self.retrieve(request=request, *args, **kwargs)
 
     @action(detail=True, url_path='reset-password', methods=['post'])
     def reset_password(self, request, *args, **kwargs):
@@ -213,7 +227,7 @@ class AuthViewSet(viewsets.ViewSet):
             # MFA disabled
             return self.perform_login(request, user)
         else:
-            request.session['login_state'] = {
+            request.session['login_state'] = request.session.get('login_state', {}) | {
                 'status': 'mfa-required',
                 'user_id': str(user.id),
                 'start': timezone.now().isoformat(),
@@ -279,8 +293,9 @@ class AuthViewSet(viewsets.ViewSet):
             request.session['authentication_info'] |= {
                 'reauth_time': timezone.now().isoformat(),
             }
+            request.session.cycle_key()
         else:
-            request.session['authentication_info'] = {
+            request.session['authentication_info'] = request.session.get('authentication_info', {}) | {
                 'login_time': timezone.now().isoformat(),
             }
             login(request=self.request, user=user)

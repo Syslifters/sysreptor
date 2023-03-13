@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 
-from reportcreator_api.api_utils.serializers import LanguageToolSerializer, BackupSerializer
+from reportcreator_api.api_utils.serializers import LanguageToolAddWordSerializer, LanguageToolSerializer, BackupSerializer
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.permissions import IsSystemUser
 from reportcreator_api.api_utils import backup_utils
@@ -87,6 +87,15 @@ class SpellcheckView(GenericAPIViewAsync):
     async def post(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.spellcheck()
+        return Response(data=data)
+    
+
+class SpellcheckWordView(GenericAPIViewAsync):
+    serializer_class = LanguageToolAddWordSerializer
+
+    async def post(self, request, *args, **kwargs):
+        serializer = await self.aget_valid_serializer(data=request.data)
+        data = await serializer.save()
         return Response(data=data)
 
 

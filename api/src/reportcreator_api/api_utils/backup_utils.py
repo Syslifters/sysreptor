@@ -17,12 +17,23 @@ def create_database_dump():
     """
     Return a database dump of django models. It uses the same format as "manage.py dumpdata --format=jsonl".
     """
+    exclude_models = ['contenttypes.ContentType', 'sessions.Session', 'users.Session', 'admin.LogEntry', 'auth.Permission', 'auth.Group', 'pentests.LockInfo']
     try:
         app_list = [app_config for app_config in apps.get_app_configs() if app_config.models_module is not None]
         models = list(itertools.chain(*map(lambda a: a.get_models(), app_list)))
         for model in models:
-            for e in model._default_manager.order_by(model._meta.pk.name).iterator():
-                yield json.dumps(serializers.serialize('python', [e])[0], cls=DjangoJSONEncoder, ensure_ascii=True).encode() + b'\n'
+            natural_key = True
+            if model._meta.label == 'users.PentestUser':
+                natural_key = False
+            if model._meta.label not in exclude_models:
+                for e in model._default_manager.order_by(model._meta.pk.name).iterator():
+                    yield json.dumps(
+                        serializers.serialize(
+                            'python', 
+                            [e], 
+                            use_natural_foreign_keys=natural_key,
+                            use_natural_primary_keys=natural_key
+                        )[0], cls=DjangoJSONEncoder, ensure_ascii=True).encode() + b'\n'
     except Exception as ex:
         logging.exception('Error creating database dump')
         raise ex

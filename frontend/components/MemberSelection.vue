@@ -3,9 +3,10 @@
     :value="value"
     @input="updateMembers"
     :multiple="true"
-    :disabled="disabled"
+    :disabled="disabled || disableAdd"
     :prevent-unselecting-self="preventUnselectingSelf"
     :append-icon="null"
+    :clearable="false"
     class="mt-4"
     v-bind="$attrs" 
   >
@@ -57,10 +58,12 @@
         </v-list-item-action>
       </v-list-item>
 
-      <s-btn v-if="index === value.length - 1" small color="secondary">
+      <s-btn v-if="index === value.length - 1" :disabled="disabled || disableAdd" small color="secondary">
         <v-icon>mdi-plus</v-icon> Add
       </s-btn>
     </template>
+
+    <template #append-icon></template>
   </user-selection>
 </template>
 
@@ -76,6 +79,10 @@ export default {
     disabled: {
       type: Boolean,
       default: false
+    },
+    disableAdd: {
+      type: Boolean,
+      default: false,
     },
     preventUnselectingSelf: {
       type: Boolean,

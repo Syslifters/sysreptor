@@ -1,13 +1,11 @@
-FROM erikvl87/languagetool:5.9
+FROM erikvl87/languagetool:6.0-dockerupdate-3
 
-# Add custom words
+# PostgreSQL support
 USER root
-COPY all /custom-wordlists/all/
-COPY de /custom-wordlists/de/
-COPY en /custom-wordlists/en/
-RUN ls -alR /custom-wordlists/ && for lang in "de" "en"; do \
-      for file in "spelling.txt" "ignore.txt" "prohibited.txt"; do \
-        (echo; cat /custom-wordlists/all/${file}; echo; cat /custom-wordlists/${lang}/${file}) >> org/languagetool/resource/${lang}/hunspell/${file}; \
-      done; \
-    done
-USER 1000
+RUN apk add postgresql-client
+RUN wget https://jdbc.postgresql.org/download/postgresql-42.5.4.jar -P libs
+
+COPY scripts/* .
+COPY wordlists /custom-wordlists/
+RUN bash add_wordlists.sh
+USER 100

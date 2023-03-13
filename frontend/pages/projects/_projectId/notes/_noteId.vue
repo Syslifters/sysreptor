@@ -13,6 +13,12 @@
             color="inherit"
             hide-details
           />
+          <s-emoji-picker-field
+            v-if="note.checked === null"
+            v-model="note.icon_emoji"
+            :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
+            :disabled="readonly"
+          />
 
           <v-toolbar-title class="note-title">
             <markdown-text-field-content
@@ -23,8 +29,8 @@
             />
           </v-toolbar-title>
 
-          <emoji-picker-field 
-            v-model="note.emoji" 
+          <s-emoji-picker-field 
+            v-model="note.status_emoji" 
             :disabled="readonly"
           />
         </template>
@@ -66,6 +72,10 @@ export default {
     data() {
       return this.note;
     },
+    hasChildNotes() {
+      return this.$store.getters['projects/notes'](this.project.id)
+        .some(n => n.parent === this.note.id && n.id !== this.note.id);
+    },
   },
   methods: {
     getBaseUrl(data) {
@@ -92,7 +102,8 @@ export default {
     async onUpdateData({ oldValue, newValue }) {
       if (this.$refs.toolbar?.autoSaveEnabled && (
         oldValue.checked !== newValue.checked ||
-        oldValue.emoji !== newValue.emoji
+        oldValue.status_emoji !== newValue.status_emoji ||
+        oldValue.icon_emoji !== newValue.icon_emoji
       )) {
         await this.$refs.toolbar.performSave();
       }

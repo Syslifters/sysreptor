@@ -31,6 +31,12 @@ class ExtendSessionMiddleware(deprecation.MiddlewareMixin):
             request.session['tmp_extend_session_time'] = request.session.get('tmp_extend_session_time', 0) + 1
 
 
+class AdminSessionMiddleware(deprecation.MiddlewareMixin):
+    def process_request(self, request):
+        if request.user and request.session and request.session.get('admin_permissions_enabled'):
+            setattr(request.user, 'admin_permissions_enabled', True)
+
+
 class CacheControlMiddleware(deprecation.MiddlewareMixin):
     def process_response(self, request, response):
         cache.add_never_cache_headers(response)

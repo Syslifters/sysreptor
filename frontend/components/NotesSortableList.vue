@@ -23,6 +23,8 @@
           <v-list-item-title>
             <v-icon v-if="item.note.checked === true" @click.stop.prevent="updateChecked(item.note, false)" dense class="text--disabled">mdi-checkbox-marked</v-icon>
             <v-icon v-else-if="item.note.checked === false" @click.stop.prevent="updateChecked(item.note, true)" dense class="text--disabled">mdi-checkbox-blank-outline</v-icon>
+            <s-emoji v-else-if="item.note.icon_emoji" :value="item.note.icon_emoji" small />
+            <v-icon v-else-if="item.children.length > 0" dense class="text--disabled">mdi-folder-outline</v-icon>
             <v-icon v-else dense class="text--disabled">mdi-note-text-outline</v-icon>
 
             <lock-info :value="item.note.lock_info" />
@@ -30,8 +32,8 @@
           </v-list-item-title>
         </v-list-item-content>
 
-        <v-list-item-icon v-if="item.note.emoji" class="emoji-icon">
-          <v-icon small>{{ item.note.emoji }}</v-icon>
+        <v-list-item-icon v-if="item.note.status_emoji" class="emoji-status">
+          <s-emoji :value="item.note.status_emoji" small />
         </v-list-item-icon>
       </v-list-item>
 
@@ -140,13 +142,12 @@ export default {
   padding-left: 1rem;
 }
 
-.emoji-icon {
+.emoji-status {
   margin-top: 6px !important;
   margin-bottom: 6px !important;
-
-  :deep(.v-icon) {
-    font-style: normal;
-    color: black !important;
+  
+  &:deep(.emoji-mart-emoji) {
+    padding: 2px;
   }
 }
 </style>
