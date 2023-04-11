@@ -9,6 +9,7 @@ from Cryptodome.Cipher._mode_gcm import _GHASH, _ghash_clmul, _ghash_portable
 from Cryptodome.Util.number import long_to_bytes, bytes_to_long
 
 from django.conf import settings
+from django.core.files.utils import FileProxyMixin
 
 
 # Magic bytes to identify encrypted data
@@ -39,6 +40,16 @@ class EncryptionKey:
             'cipher': EncryptionCipher(e['cipher']),
             'key': base64.b64decode(e['key']),
         }))), json.loads(data)))
+    
+
+class ReadIntoAdapter(FileProxyMixin):
+    def __init__(self, file) -> None:
+        self.file = file
+
+    def readinto(self, b):
+        r = self.file.read(len(b))
+        b[0:len(r)] = r
+        return len(r)
 
 
 def open(fileobj, mode='r', **kwargs):
@@ -48,7 +59,10 @@ def open(fileobj, mode='r', **kwargs):
         key = kwargs.pop('key', None)
         keys = kwargs.pop('keys', settings.ENCRYPTION_KEYS)
 
-        fileobj = io.BufferedReader(fileobj)
+        if not hasattr(fileobj, 'readinto'):
+            fileobj = ReadIntoAdapter(fileobj)
+        if not hasattr(fileobj, 'peek'):
+            fileobj = io.BufferedReader(fileobj)
         if fileobj.peek(len(MAGIC)).startswith(MAGIC):
             return DecryptionStream(fileobj=fileobj, key=key, keys=keys, **kwargs)
         elif plaintext_fallback:

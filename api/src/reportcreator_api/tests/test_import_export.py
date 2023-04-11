@@ -250,6 +250,18 @@ class TestFileDelete:
 
 @pytest.mark.django_db
 class TestCopyModel:
+    def assert_project_type_copy_equal(self, pt, cp, exclude_fields=[]):
+        assert pt != cp
+        assert not cp.is_locked
+        assertKeysEqual(pt, cp, {
+            'name', 'language', 'linked_project',
+            'report_template', 'report_styles', 'report_preview_data', 
+            'report_fields', 'report_sections', 'finding_fields', 'finding_field_order',
+        } - set(exclude_fields))
+        
+        assert set(pt.assets.values_list('id', flat=True)).intersection(cp.assets.values_list('id', flat=True)) == set()
+        assert {(a.name, a.file.read()) for a in pt.assets.all()} == {(a.name, a.file.read()) for a in cp.assets.all()}
+
     def test_copy_project(self):
         user = create_user()
         p = create_project(members=[user], readonly=True, source=SourceEnum.IMPORTED)
@@ -260,12 +272,13 @@ class TestCopyModel:
         cp = p.copy()
 
         assert p != cp
-        assert cp.name in cp.name
-        assert cp.source == SourceEnum.CREATED
         assert not cp.readonly
         assertKeysEqual(p, cp, [
-            'language', 'project_type', 'imported_members', 'data_all'
+            'name', 'source', 'language', 'imported_members', 'data_all'
         ])
+        self.assert_project_type_copy_equal(p.project_type, cp.project_type, exclude_fields=['source', 'linked_project'])
+        assert cp.project_type.source == SourceEnum.SNAPSHOT
+        assert cp.project_type.linked_project == cp
         assert members_equal(p.members, cp.members)
 
         assert set(p.images.values_list('id', flat=True)).intersection(cp.images.values_list('id', flat=True)) == set()
@@ -301,18 +314,7 @@ class TestCopyModel:
         pt.lock(user)
         cp = pt.copy()
 
-        assert pt != cp
-        assert pt.name in cp.name
-        assert cp.source == SourceEnum.CREATED
-        assert not cp.is_locked
-        assertKeysEqual(pt, cp, [
-            'language', 'linked_project',
-            'report_template', 'report_styles', 'report_preview_data', 
-            'report_fields', 'report_sections', 'finding_fields', 'finding_field_order',
-        ])
-        
-        assert set(pt.assets.values_list('id', flat=True)).intersection(cp.assets.values_list('id', flat=True)) == set()
-        assert {(a.name, a.file.read()) for a in pt.assets.all()} == {(a.name, a.file.read()) for a in cp.assets.all()}
+        self.assert_project_type_copy_equal(pt, cp)
 
 
 @pytest.mark.parametrize('original,cleaned', [

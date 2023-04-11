@@ -48,7 +48,7 @@ projecttype_router.trailing_slash = '/?'
 
 
 urlpatterns = [
-    path('admin/login/', RedirectView.as_view(url=settings.LOGIN_URL)),
+    path('admin/login/', RedirectView.as_view(url='/users/self/admin/enable/')),
     path('admin/', admin.site.urls),
     re_path(r'^api/?$', RedirectView.as_view(url='/api/v1/')),
     path('api/v1/', include([

@@ -5,16 +5,49 @@ from django.core.files import File
 from reportcreator_api.archive.crypto import base as crypto
 
 
+class IterableToFileAdapter(File):
+    def __init__(self, iterable, name) -> None:
+        super().__init__(file=None, name=name)
+        self.iterator = iter(iterable)
+        self.buffer = b''
+
+    def read(self, size=-1):
+        while len(self.buffer) < size or size == -1:
+            try:
+                self.buffer += next(self.iterator)
+            except StopIteration:
+                break
+        
+        out = self.buffer[:size]
+        self.buffer = self.buffer[size:]
+        return out
+
+    @property
+    def closed(self) -> bool:
+        return False
+
+    def seekable(self) -> bool:
+        return False
+
+
 class EncryptedFileAdapter(File):
-    def chunks(self, *args, **kwargs) -> Iterator[bytes]:
+    def __init__(self, file, name=None, **kwargs) -> None:
+        self._original_file = file
+        self._crypto_kwargs = kwargs
+        super().__init__(IterableToFileAdapter(self._encrypted_chunks(file), name or file.name))
+
+    def _encrypted_chunks(self, file, chunk_size=None):
         buf = io.BytesIO()
-        with crypto.open(fileobj=buf, mode='wb') as c:
-            for b in self.file.chunks(*args, **kwargs):
+        with crypto.open(fileobj=buf, mode='wb', **self._crypto_kwargs) as c:
+            for b in file.chunks(chunk_size=chunk_size):
                 c.write(b)
                 yield buf.getvalue()
                 buf.truncate(0)
                 buf.seek(0)
         yield buf.getvalue()
+    
+    def chunks(self, chunk_size=None) -> Iterator[bytes]:
+        return self._encrypted_chunks(self._original_file, chunk_size)
 
 
 class EncryptedStorageMixin:
@@ -32,7 +65,6 @@ class EncryptedStorageMixin:
         return size
 
     def get_available_name(self, name, max_length=None):
-        # TODO: test file upload: folder created + random name
         randname = str(uuid4())
         randname_with_dir = randname[:2] + '/' + randname[2:]
         return super().get_available_name(name=randname_with_dir, max_length=None)

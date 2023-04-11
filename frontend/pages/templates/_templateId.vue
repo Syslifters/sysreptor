@@ -6,6 +6,7 @@
           <project-type-selection
             v-model="fieldFilterDesign"
             label="Show fields of"
+            :query-filters="{scope: ['global']}"
             :outlined="false"
             :additional-items="[{id: 'all', name: 'All Designs'}]"
           />

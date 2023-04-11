@@ -21,11 +21,11 @@
         </v-list-item>
         <v-list-item v-if="$auth.hasScope('admin')" to="/users/self/admin/disable/" nuxt>
           <v-list-item-icon><v-icon>mdi-account-arrow-down</v-icon></v-list-item-icon>
-          <v-list-item-title>Disable Admin Permissions</v-list-item-title>
+          <v-list-item-title>Disable Superuser Permissions</v-list-item-title>
         </v-list-item>
         <v-list-item v-else-if="$auth.user.is_superuser" to="/users/self/admin/enable/" nuxt>
           <v-list-item-icon><v-icon>mdi-account-arrow-up</v-icon></v-list-item-icon>
-          <v-list-item-title>Enable Admin Permissions</v-list-item-title>
+          <v-list-item-title>Enable Superuser Permissions</v-list-item-title>
         </v-list-item>
         <v-list-item link @click="logout()">
           <v-list-item-icon><v-icon>mdi-logout</v-icon></v-list-item-icon>

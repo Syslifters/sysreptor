@@ -118,20 +118,11 @@ import Draggable from 'vuedraggable';
 import { omit } from 'lodash';
 import Vue from 'vue';
 import { uniqueName } from '~/utils/state';
-import LockEditMixin from '~/mixins/LockEditMixin';
-
-function getProjectTypeUrl(params) {
-  return `/projecttypes/${params.projectTypeId}/`;
-}
+import ProjectTypeLockEditMixin from '~/mixins/ProjectTypeLockEditMixin';
 
 export default {
   components: { Draggable },
-  mixins: [LockEditMixin],
-  async asyncData({ $axios, params }) {
-    return {
-      projectType: await $axios.$get(getProjectTypeUrl(params)),
-    }
-  },
+  mixins: [ProjectTypeLockEditMixin],
   data() {
     return {
       currentItem: null,
@@ -142,15 +133,7 @@ export default {
       }
     }
   },
-  head() {
-    return {
-      title: this.projectType.name,
-    };
-  },
   computed: {
-    data() {
-      return this.projectType;
-    },
     menuSize: {
       get() {
         return this.$store.state.settings.reportFieldDefinitionMenuSize;
@@ -173,12 +156,6 @@ export default {
     }
   },
   methods: {
-    getBaseUrl(data) {
-      return getProjectTypeUrl({ projectTypeId: data.id });
-    },
-    getHasEditPermissions() {
-      return this.$auth.hasScope('designer') || this.projectType?.source === 'customized';
-    },
     updateField(field, val) {
       // Update field order in section
       const section = this.projectType.report_sections.find(s => s.fields.includes(field.id));

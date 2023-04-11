@@ -156,8 +156,8 @@ export default {
     data: {
       deep: true,
       immediate: true,
-      handler(newValue, oldValue) {
-        oldValue = this.previousData;
+      handler(newValue) {
+        const oldValue = this.previousData;
         const valueChanged = isEqual(newValue, this.previousData);
         if (!this.wasReset && !valueChanged) {
           this.hasChangesValue = true;

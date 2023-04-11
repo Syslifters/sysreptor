@@ -39,14 +39,20 @@ class EncryptedFileSystemStorage(EncryptedStorageMixin, FileSystemStorage):
 
 
 class EncryptedS3Storage(EncryptedStorageMixin, S3Boto3Storage):
-    def __init__(self, access_key=None, secret_key=None, bucket_name=None, endpoint_url=None, location=None, **kwargs) -> None:
+    def __init__(self, access_key=None, secret_key=None, security_token=None, bucket_name=None, endpoint_url=None, location=None, **kwargs) -> None:
         super().__init__(
             access_key=access_key, 
             secret_key=secret_key, 
+            security_token=security_token,
             bucket_name=bucket_name, 
             endpoint_url=endpoint_url,
-            location=location,
+            location=str(location),
         )
+    
+    def get_default_settings(self):
+        return super().get_default_settings() | {
+            'security_token': None,
+        }
 
 
 class EncryptedInMemoryStorage(EncryptedStorageMixin, InMemoryStorage):

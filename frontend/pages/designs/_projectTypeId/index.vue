@@ -2,8 +2,8 @@
   <v-container>
     <v-form ref="form">
       <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :form="$refs.form">
+        <btn-export :export-url="`/projecttypes/${projectType.id}/export/`" :name="'design-' + projectType.name" />
         <template v-if="$auth.hasScope('designer')">
-          <btn-export :export-url="`/projecttypes/${projectType.id}/export/`" :name="'design-' + projectType.name" />
           <btn-copy :copy="performCopy" tooltip-text="Duplicate Design" />
         </template>
       </edit-toolbar>
@@ -20,39 +20,16 @@
 </template>
 
 <script>
-import LockEditMixin from '~/mixins/LockEditMixin';
-
-function getProjectTypeUrl(params) {
-  return `/projecttypes/${params.projectTypeId}/`;
-}
+import ProjectTypeLockEditMixin from '~/mixins/ProjectTypeLockEditMixin';
 
 export default {
-  mixins: [LockEditMixin],
-  async asyncData({ $axios, params }) {
-    return {
-      projectType: await $axios.$get(getProjectTypeUrl(params)),
-    }
-  },
-  head() {
-    return {
-      title: this.projectType.name,
-    };
-  },
+  mixins: [ProjectTypeLockEditMixin],
   computed: {
-    data() {
-      return this.projectType;
-    },
     deleteConfirmInput() {
       return this.projectType.name;
     },
   },
   methods: {
-    getBaseUrl(data) {
-      return getProjectTypeUrl({ projectTypeId: data.id });
-    },
-    getHasEditPermissions() {
-      return this.$auth.hasScope('designer') || this.projectType?.source === 'customized';
-    },
     async performSave(data) {
       await this.$store.dispatch('projecttypes/partialUpdate', { obj: data, fields: ['name', 'language'] });
     },
@@ -63,6 +40,7 @@ export default {
     async performCopy() {
       const obj = await this.$store.dispatch('projecttypes/copy', {
         id: this.projectType.id,
+        scope: 'global',
       });
       this.$router.push(`/designs/${obj.id}/pdfdesigner/`);
     }

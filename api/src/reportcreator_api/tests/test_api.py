@@ -6,7 +6,7 @@ from django.test import override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 from reportcreator_api.users.models import AuthIdentity
-from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, SourceEnum, UploadedUserNotebookImage
+from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, ProjectTypeScope, SourceEnum, UploadedUserNotebookImage
 from reportcreator_api.notifications.models import NotificationSpec
 from reportcreator_api.tests.mock import create_user, create_project, create_project_type, create_template, create_png_file
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates
@@ -110,23 +110,21 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
     return out
 
 
-def projecttype_viewset_urls(get_obj, read=False, write=False, create=False, list=False):
+def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=False, list=False):
     out = [
-        *viewset_urls('projecttype', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=write, update_partial=write, destroy=write, lock=write, unlock=write),
+        *viewset_urls('projecttype', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create_global, create_data={'scope': ProjectTypeScope.GLOBAL}, update=write, update_partial=write, destroy=write, lock=write, unlock=write),
         *file_viewset_urls('uploadedasset', get_base_kwargs=lambda s: {'projecttype_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).assets.first(), read=read, write=write),
     ]
     if read:
         out.extend([
             ('projecttype preview', lambda s, c: c.post(reverse('projecttype-preview', kwargs={'pk': get_obj(s).pk}), data={'report_template': '', 'report_styles': '', 'report_preview_data': {}})),
-        ])
-    if write:
-        out.extend([
             ('projecttype export', lambda s, c: c.post(reverse('projecttype-export', kwargs={'pk': get_obj(s).pk}))),
+            ('projecttype copy private', lambda s, c: c.post(reverse('projecttype-copy', kwargs={'pk': get_obj(s).pk}), data={'scope': ProjectTypeScope.PRIVATE})),
         ])
-    if create:
+    if create_global:
         out.extend([
-            ('projecttype copy', lambda s, c: c.post(reverse('projecttype-copy', kwargs={'pk': get_obj(s).pk}))),
             ('projecttype import', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(get_obj(s))}, format='multipart')),
+            ('projecttype copy global', lambda s, c: c.post(reverse('projecttype-copy', kwargs={'pk': get_obj(s).pk}), data={'scope': ProjectTypeScope.GLOBAL})),
         ])
     if list:
         out.extend([
@@ -171,8 +169,11 @@ def guest_urls():
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition'))),
 
+        ('projecttype create private', lambda s, c: c.post(reverse('projecttype-list'), data=c.get(reverse('projecttype-detail', kwargs={'pk': s.project_type.pk})).data | {'scope': ProjectTypeScope.PRIVATE})),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type, list=True, read=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, read=True, write=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, read=True),
+        *projecttype_viewset_urls(get_obj=lambda s: ProjectType.objects.filter(linked_user=s.current_user or s.user_regular).first(), read=True, write=True),
 
         *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True, write=True, destory=False, update=False),
         *project_viewset_urls(get_obj=lambda s: s.project_readonly, read=True),
@@ -199,7 +200,7 @@ def template_editor_urls():
 
 def designer_urls():
     return [
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type, create=True, write=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type, create_global=True, write=True),
     ]
 
 
@@ -217,9 +218,12 @@ def superuser_urls():
         ('pentestuser enable-admin-permissions', lambda s, c: c.post(reverse('pentestuser-enable-admin-permissions'))),
         ('pentestuser disable-admin-permissions', lambda s, c: c.post(reverse('pentestuser-disable-admin-permissions'))),
 
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, write=True),
+
         # Not a project member
         *project_viewset_urls(get_obj=lambda s: s.project_unauthorized, read=True, write=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized_unauthorized, read=True, write=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private_unauthorized, read=True, write=True),
 
     ]
     
@@ -301,12 +305,16 @@ class TestApiRequestsAndPermissions:
         self.project_type = create_project_type()
         self.project_type_customized = create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=self.project)
         self.project_type_customized_unauthorized = create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=self.project_unauthorized)
+        self.project_type_snapshot = create_project_type(source=SourceEnum.SNAPSHOT, linked_project=self.project)
+        self.project_type_private_unauthorized = create_project_type(source=SourceEnum.CREATED, linked_user=self.user_other)
+        # Personal project_types
+        for u in self.user_map.values():
+            create_project_type(source=SourceEnum.CREATED, linked_user=u)
 
         self.template = create_template()
 
         # Override settings
         with override_settings(
-                CELERY_TASK_ALWAYS_EAGER=True,
                 GUEST_USERS_CAN_IMPORT_PROJECTS=False,
                 GUEST_USERS_CAN_CREATE_PROJECTS=False,
                 GUEST_USERS_CAN_DELETE_PROJECTS=False,

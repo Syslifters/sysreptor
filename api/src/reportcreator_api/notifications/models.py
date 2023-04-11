@@ -25,7 +25,7 @@ class UserNotification(BaseModel):
     """
     Notification assigned to a specific user. Can marked as read.
     """
-    user= models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='notifications')
     notification = models.ForeignKey(to=NotificationSpec, on_delete=models.CASCADE)
 
     visible_until = models.DateTimeField(null=True, blank=True, )

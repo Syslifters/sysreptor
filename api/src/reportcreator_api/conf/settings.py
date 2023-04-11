@@ -232,6 +232,7 @@ STORAGES = {
             'location': config('UPLOADED_FILE_LOCATION', default=MEDIA_ROOT / 'uploadedfiles', cast=Path),
             'access_key': config('UPLOADED_FILE_S3_ACCESS_KEY', default=''),
             'secret_key': config('UPLOADED_FILE_S3_SECRET_KEY', default=''),
+            'security_token': config('UPLOADED_FILE_S3_SESSION_TOKEN', default=None),
             'bucket_name': config('UPLOADED_FILE_S3_BUCKET_NAME', default=''),
             'endpoint_url': config('UPLOADED_FILE_S3_ENDPOINT_URL', default=''),
         },
@@ -407,6 +408,9 @@ GUEST_USERS_CAN_IMPORT_PROJECTS = config('GUEST_USERS_CAN_IMPORT_PROJECTS', defa
 GUEST_USERS_CAN_CREATE_PROJECTS = config('GUEST_USERS_CAN_CREATE_PROJECTS', default=True)
 GUEST_USERS_CAN_DELETE_PROJECTS = config('GUEST_USERS_CAN_DELETE_PROJECTS', default=True)
 GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS = config('GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS', default=True)
+
+ENABLE_PRIVATE_DESIGNS = config('ENABLE_PRIVATE_DESIGNS', cast=bool, default=False)
+
 
 # Health checks
 HEALTH_CHECKS = {

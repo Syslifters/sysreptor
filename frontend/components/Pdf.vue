@@ -1,5 +1,5 @@
 <template>
-  <iframe ref="pdfviewer" src="/static/pdfviewer/viewer.html" @load="iframeLoaded = true" class="pdfviewer" :class="{loading: !iframeLoaded}" />
+  <iframe ref="pdfviewer" src="/static/pdfviewer/viewer.html" @load="iframeLoaded = true" class="pdfviewer" :class="{loading: !iframeLoaded}" title="PDF Viewer" />
 </template>
 
 <script>
@@ -29,7 +29,7 @@ export default {
         return;
       }
       const msg = new Uint8Array(this.value);
-      this.$refs.pdfviewer.contentWindow.postMessage(msg, [msg]);
+      this.$refs.pdfviewer.contentWindow.postMessage(msg, window.origin, [msg.buffer]);
     },
   },
 }

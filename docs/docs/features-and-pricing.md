@@ -1,22 +1,23 @@
 # Features and Pricing
 
 
-| | Community | Professional |
+| | Community | :heart: Professional |
 | ------- | :-------: | :-------: |
 | __Pricing__    | Free    | € 50/user/month    |
-| __Deployment__ | On Premise | On Premise or Cloud |
+| __Deployment__ | Self-Hosted | Self-Hosted or Cloud |
 | __Permissions__ | Superusers only | Role-based |
-| __Spell Checking__ | <span style="color:red;font-weight:bold;">X</span> | <span style="color:green;font-weight:bold;">✓</span> |
+| __Spell Check__ | <span style="color:red;font-weight:bold;">X</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __Reports fully customizable__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
+| __No Watermark__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __Finding Templates__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __Review Procedure__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __Data Encryption at Rest__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __Encrypted Backups via API__ | <span style="color:red;font-weight:bold;">X</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __MFA (FIDO/WebAuthn, TOTP)__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __SSO (oAuth/OIDC)__ | <span style="color:red;font-weight:bold;">X</span> | <span style="color:green;font-weight:bold;">✓</span> |
+| __Note Taking__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
+| __Evidence Archiving__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
 |  | [:fire: Coming Soon](#){ .md-button } | [:rocket: Join our Beta](#join-our-beta){ .md-button } |
-| __Note Taking__ | Coming soon. {: colspan=2} |
-| __Evidence Archiving__ | Coming soon. {: colspan=2} |
 | __Encrypted Archiving (four-eyes principle)__ | Coming soon. {: colspan=2} |
 | __Retention Time Definition__ | Coming soon. {: colspan=2} |
 

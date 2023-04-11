@@ -31,6 +31,12 @@
 
 <script>
 export default {
+  props: {
+    projectTypeScope: {
+      type: String,
+      default: 'global',
+    }
+  },
   data() {
     return {
       dialogVisible: false,
@@ -53,7 +59,7 @@ export default {
       try {
         const obj = await action();
         this.$router.push(`/designs/${obj.id}`);
-        this.$$toast.success('Created new design');
+        this.$toast.success('Created new design');
       } catch (error) {
         this.$toast.global.requestError({ error });
       } finally {
@@ -63,6 +69,7 @@ export default {
     async createEmptyDesign() {
       return await this.actionWrapper(async () => {
         return await this.$store.dispatch('projecttypes/create', {
+          scope: this.projectTypeScope,
           name: 'New Design',
         });
       })
@@ -71,6 +78,7 @@ export default {
       return await this.actionWrapper(async () => {
         return await this.$store.dispatch('projecttypes/copy', {
           id: this.currentDesign.id,
+          scope: this.projectTypeScope,
         });
       })
     },

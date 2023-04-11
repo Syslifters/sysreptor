@@ -16,10 +16,24 @@
         </template>
 
         <v-spacer />
+        <s-tooltip v-if="$auth.loggedIn && $auth.user.is_superuser && !$auth.hasScope('admin')" bottom>
+          <template #activator="{ on, attrs }">
+            <s-btn to="/users/self/admin/enable/" v-bind="attrs" v-on="on" large dark class="btn-sudo">
+              <v-icon>mdi-account-arrow-up</v-icon>
+              Sudo
+            </s-btn>
+          </template>
+          <span>Enable Superuser Permissions</span>
+        </s-tooltip>
         <notification-menu-item v-if="$auth.loggedIn" />
-        <s-btn icon dark href="https://docs.sysreptor.com/" target="_blank">
-          <v-icon>mdi-help-circle-outline</v-icon>
-        </s-btn>
+        <s-tooltip bottom>
+          <template #activator="{ on, attrs }">
+            <s-btn icon dark href="https://docs.sysreptor.com/" target="_blank" v-bind="attrs" v-on="on">
+              <v-icon>mdi-help-circle-outline</v-icon>
+            </s-btn>
+          </template>
+          <span>Documentation</span>
+        </s-tooltip>
         <user-info-menu-item v-if="$auth.loggedIn" />
       </v-tabs>
     </v-app-bar>
@@ -58,5 +72,10 @@
       }
     }
   }
+}
+
+.btn-sudo {
+  height: 48px !important;
+  background-color: inherit !important;
 }
 </style>

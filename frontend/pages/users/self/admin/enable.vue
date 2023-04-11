@@ -4,9 +4,9 @@
       {{ errorMessage }}
     </v-alert>
     <div v-else>
-      <h1>Welcome, Admin</h1>
+      <h1>Welcome, mighty Superuser</h1>
       <v-alert color="success">
-        Your admin permissions are now enabled. Use them responsibly.
+        Your superuser permissions are now enabled. Use them responsibly.
       </v-alert>
       <s-btn to="/" nuxt color="primary">Continue</s-btn>
     </div>
@@ -26,7 +26,7 @@ export default {
       if (error?.response?.data?.code === 'reauth-required') {
         redirectToReAuth({ auth: $auth, route });
       } else {
-        errorMessage = error?.response?.detail || 'Failed to enable admin permissions';
+        errorMessage = error?.response?.detail || 'Failed to enable superuser permissions';
       }
     }
     return { errorMessage };

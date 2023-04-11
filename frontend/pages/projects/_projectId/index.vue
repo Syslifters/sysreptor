@@ -13,10 +13,11 @@
       </edit-toolbar>
 
       <s-text-field v-model="project.name" label="Name" :error-messages="serverErrors?.name" :disabled="project.readonly" class="mt-4" />
+
       <project-type-selection 
         :value="projectType || project.project_type"
         @input="projectType = $event"
-        :query-filters="{public: null, linked_project: project.id}" 
+        :query-filters="{scope: ['global', 'private', 'project'], linked_project: project.id}" 
         :error-messages="serverErrors?.project_type" 
         :disabled="project.readonly" 
         :append-link="true"

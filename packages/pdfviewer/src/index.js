@@ -67,6 +67,10 @@ async function webViewerLoad() {
   });
 
   window.addEventListener('message', async (msg) => {
+    if (msg.origin !== window.origin) {
+      return;
+    }
+
     // Save current scroll and zoom position
     const scrollInfo = await PDFViewerApplication.store?.getMultiple({
       page: null,

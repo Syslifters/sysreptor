@@ -307,6 +307,18 @@
   .md-typeset table:not([class]) {
     display: table;
   }
+  .md-typeset h1 {
+    margin: 0;
+  }
+  .md-typeset h2 {
+    margin: 0.5em 0 0 0;
+  }
+  .md-typeset ul li {
+    margin-bottom: 0;
+  }
+  .md-typeset ol li :is(ul, ol), .md-typeset ul li :is(ul, ol) {
+    margin: 0;
+  }
 
   @media print {
     .no-print {

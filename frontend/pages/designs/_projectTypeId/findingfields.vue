@@ -81,19 +81,15 @@ import Vue from 'vue';
 import { omit, cloneDeep, sortBy } from 'lodash';
 import Draggable from 'vuedraggable';
 import { uniqueName } from '~/utils/state';
-import LockEditMixin from '~/mixins/LockEditMixin';
-
-function getProjectTypeUrl(params) {
-  return `/projecttypes/${params.projectTypeId}/`;
-}
+import ProjectTypeLockEditMixin from '~/mixins/ProjectTypeLockEditMixin';
 
 export default {
   components: { Draggable },
-  mixins: [LockEditMixin],
-  async asyncData({ $axios, params, store }) {
+  mixins: [ProjectTypeLockEditMixin],
+  async asyncData(options) {
     return {
-      projectType: await $axios.$get(getProjectTypeUrl(params)),
-      predefinedFindingFields: await store.dispatch('projecttypes/getPredefinedFindingFields'),
+      ...await ProjectTypeLockEditMixin.asyncData(options),
+      predefinedFindingFields: await options.store.dispatch('projecttypes/getPredefinedFindingFields'),
     }
   },
   data() {
@@ -101,15 +97,7 @@ export default {
       currentField: null,
     }
   },
-  head() {
-    return {
-      title: this.projectType.name,
-    };
-  },
   computed: {
-    data() {
-      return this.projectType;
-    },
     findingFields: {
       get() {
         return this.projectType.finding_field_order.map(f => ({ id: f, ...this.projectType.finding_fields[f] }));
@@ -135,12 +123,6 @@ export default {
     },
   },
   methods: {
-    getBaseUrl(data) {
-      return getProjectTypeUrl({ projectTypeId: data.id });
-    },
-    getHasEditPermissions() {
-      return this.$auth.hasScope('designer') || this.projectType?.source === 'customized';
-    },
     updateField(field, val) {
       // Update field order
       const oldFieldIdx = this.projectType.finding_field_order.indexOf(field.id);

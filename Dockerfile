@@ -1,4 +1,4 @@
-FROM node:16-alpine AS pdfviewer-dev
+FROM node:16-alpine@sha256:43b162893518666b4a08d95dae49153f22a5dba85c229f8b0b8113b609000bc2 AS pdfviewer-dev
 WORKDIR /app/packages/pdfviewer/
 COPY packages/pdfviewer/package.json packages/pdfviewer/package-lock.json /app/packages/pdfviewer//
 RUN npm install
@@ -13,7 +13,7 @@ RUN npm run build
 
 
 
-FROM node:16-alpine AS frontend-dev
+FROM node:16-alpine@sha256:43b162893518666b4a08d95dae49153f22a5dba85c229f8b0b8113b609000bc2 AS frontend-dev
 
 WORKDIR /app/packages/markdown/
 COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
@@ -40,7 +40,7 @@ RUN npm run build
 
 
 
-FROM node:16-alpine AS rendering-dev
+FROM node:16-alpine@sha256:43b162893518666b4a08d95dae49153f22a5dba85c229f8b0b8113b609000bc2 AS rendering-dev
 
 WORKDIR /app/packages/markdown/
 COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
@@ -59,7 +59,7 @@ RUN npm run build
 
 
 
-FROM python:3.10-slim-bullseye AS api-dev
+FROM python:3.10-slim-bullseye@sha256:fcf375288c9348c9708cc7ea3d511b512224219fdc164b6960b3ce85288e1cbf AS api-dev
 
 # Install system dependencies required by weasyprint and chromium
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -69,6 +69,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         fonts-noto \
         fonts-noto-mono \
         fonts-noto-ui-core \
+        fonts-noto-color-emoji \
         libpango-1.0-0 \
         libpangoft2-1.0-0 \
         unzip \

@@ -73,34 +73,15 @@
 <script>
 import { Splitpanes, Pane } from 'splitpanes';
 import urlJoin from 'url-join';
-import LockEditMixin from '~/mixins/LockEditMixin';
-
-function getProjectTypeUrl(params) {
-  return `/projecttypes/${params.projectTypeId}/`;
-}
+import ProjectTypeLockEditMixin from '~/mixins/ProjectTypeLockEditMixin';
 
 export default {
   components: { Splitpanes, Pane },
-  mixins: [LockEditMixin],
-  async asyncData({ $axios, params }) {
-    return {
-      projectType: await $axios.$get(getProjectTypeUrl(params)),
-    }
-  },
+  mixins: [ProjectTypeLockEditMixin],
   data() {
     return {
       previewSplitSize: 60,
       pdfRenderingInProgress: false,
-    }
-  },
-  head() {
-    return {
-      title: this.projectType.name,
-    };
-  },
-  computed: {
-    data() {
-      return this.projectType;
     }
   },
   watch: {
@@ -112,12 +93,6 @@ export default {
     }
   },
   methods: {
-    getBaseUrl(data) {
-      return getProjectTypeUrl({ projectTypeId: data.id });
-    },
-    getHasEditPermissions() {
-      return this.$auth.hasScope('designer') || this.projectType?.source === 'customized';
-    },
     async fetchPdf() {
       return await this.$axios.$post(urlJoin(this.getBaseUrl(this.data), '/preview/'), this.projectType, {
         responseType: 'arraybuffer',

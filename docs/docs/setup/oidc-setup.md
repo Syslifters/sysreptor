@@ -1,9 +1,10 @@
-# Open ID Connect Setup with Azure AD
+# Open ID Connect Setup
+<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
 
 ## Preparation in Azure AD
 1. Open [Microsoft Entra Admin Center](https://entra.microsoft.com)
 2. Select Applications -> App registrations -> New registration
-3. In following Menu: 
+3. In following menu: 
 
     - enter a Name for your reference (1)
     - select the types of accounts who are allowed to login (2) - this is the first option "Sigle tenant" in most cases
@@ -18,9 +19,9 @@
     ![Register application menu](/images/oidc_2_claims.png)
 
 
-5. Next go to the "Certificates & secrets" - Submenu and add a new client secret with 24 months validity(this is the maximum) and any description.
-6. Copy the value of the newly created secret and store it for later use
-7. Finally go to the "Overview" - Submenu and copy the values *Application (client) ID* and *Directory (tenant) ID*
+5. Next go to the "Certificates & Secrets" submenu and add a new client secret with 24 months validity (this is the maximum) and any description.
+6. Copy the value of the newly created secret and store it for later use.
+7. Finally go to the "Overview" submenu and copy the values *Application (client) ID* and *Directory (tenant) ID*.
 
 You should now have the following values:
 
@@ -29,12 +30,14 @@ You should now have the following values:
 * azure tendant id
 
 
-## SaaS Setup
+## Cloud Setup
+:octicons-cloud-24: Cloud
 
-You are lucky, just send the values from the previous steps to us and we will take care of everything :)
+You are lucky. Just send the values from the previous steps to us and we'll take care :smiling_face_with_3_hearts:
 
 
-## OnPrem Setup
+## Self-Hosted Setup
+:octicons-server-24: Self-Hosted
 
 The values from the previous steps need to be passed as environment variables to the SysReptor docker container.
 You can add them to `<sysreptor-repository>/deploy/app.env`:

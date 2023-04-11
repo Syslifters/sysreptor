@@ -1,8 +1,8 @@
 <template>
   <v-container>
-    <h1>Goodbye, Admin</h1>
+    <h1>Goodbye, Superuser</h1>
     <v-alert color="success">
-      You admin permissions have been disabled. You are now a regular user again.
+      You superuser permissions have been disabled. You are now a regular user again.
     </v-alert>
     <s-btn to="/" nuxt color="primary">Continue</s-btn>
   </v-container>

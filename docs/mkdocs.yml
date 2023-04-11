@@ -2,13 +2,17 @@ site_name: "SysReptor Docs"
 site_url: "https://docs.sysreptor.com/"
 site_dir: ./site/ # Where to put the HTML files
 nav:
-  - SysReptor: index.md
   - Features and Pricing: features-and-pricing.md
-  - Installation: installation.md
-  - Markdown Syntax: reporting/markdown-features.md
-  - Reference Sections: reporting/referencing-sections.md
-  #- Locked Findings & Sections: reporting/locking.md
-  - Report Designer:
+  - Setup:
+    - Installation: installation.md
+    - User Permissions: user-permissions.md
+    - Single Sign-On: oidc-setup.md
+  - Writing Reports:
+    - Markdown Syntax: reporting/markdown-features.md
+    - Spell Check: reporting/spell-check.md
+    - Reference Sections: reporting/referencing-sections.md
+    - Locked Sections: reporting/locking.md
+  - Designing Reports:
       - Page Layout: designer/page-layout.md
       - Headings and ToC: designer/headings-and-table-of-contents.md
       - Tables: designer/tables.md
@@ -18,8 +22,7 @@ nav:
       - Design Guides: designer/design-guides.md
       - Formatting Utilities: designer/formatting-utils.md
       - Debugging: designer/debugging.md
-  - User Permissions: user-permissions.md
-  #- Security Considerations: security-considerations.md
+  - Security Considerations: security-considerations.md
   - Free OSCP Reporting: oscp-reporting-with-sysreptor.md
     
 theme:
@@ -40,7 +43,7 @@ plugins:
       cards_color:
         fill: "#001827"
         text: "#F9FDFF"
-      font: Exo
+      cards_font: Exo
   - tooltips
   - search
   - privacy

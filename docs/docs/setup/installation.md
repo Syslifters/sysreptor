@@ -1,12 +1,26 @@
 # Installation
 ## Prerequisites
+### Server
+:octicons-server-24: Self-Hosted
+
 * Ubuntu
 * 8GB RAM (or 4GB + 8GB swap)
 * Latest [Docker](https://docs.docker.com/engine/install/){ target=_blank }
 * Latest [Docker Compose](https://docs.docker.com/compose/install/){ target=_blank }
-* Latest Chrome, Edge, Firefox, Safari
+
+### Client
+:octicons-cloud-24: Cloud · :octicons-server-24: Self-Hosted
+
+* Network connection to the server
+* Up-to-date browser, one of:
+    * Chrome
+    * Edge
+    * Firefox
+    * Safari
 
 ## Install
+:octicons-server-24: Self-Hosted
+
 ```shell linenums="1"
 git clone https://github.com/Syslifters/sysreptor.git
 # Alternative via SSH: git clone git@github.com:Syslifters/sysreptor.git
@@ -23,6 +37,8 @@ docker compose exec app python3 manage.py createsuperuser
 You can now access your application with your favourite browser at http://localhost:8000/.
 
 ## Recommended: Setup nginx Server
+:octicons-server-24: Self-Hosted
+
 It is not recommended to use the Django webserver due to missing transport encryption, missing performance and security tests.  
 We recommend to user a webserver like nginx or Apache and to enable https.
 
@@ -57,6 +73,8 @@ sudo systemctl restart nginx
 ```
 
 ## Update
+:octicons-server-24: Self-Hosted
+
 ```shell linenums="1"
 git pull
 cd deploy
@@ -64,4 +82,6 @@ docker compose up --build -d
 ```
 
 ## License
+:octicons-server-24: Self-Hosted
+
 We offer our software under our [SysReptor License](/license).

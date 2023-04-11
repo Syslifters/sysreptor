@@ -18,6 +18,7 @@ from django.core.files.storage import FileSystemStorage
 from rest_framework.test import APIClient
 
 from reportcreator_api.archive import crypto
+from reportcreator_api.notifications.models import NotificationSpec
 from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage
 from reportcreator_api.management.commands import encryptdata
 from reportcreator_api.tests.mock import create_project, create_template, create_user, create_project_type
@@ -329,7 +330,8 @@ class TestBackup:
             self.project = create_project()
             self.project_type = create_project_type()
             self.template = create_template()
-
+            self.notification = NotificationSpec.objects.create(title='test', text='test')
+            
             yield
 
     def assert_backup_obj(self, backup, obj):
@@ -359,6 +361,8 @@ class TestBackup:
             self.assert_backup_obj(backup, self.template)
             self.assert_backup_obj(backup, self.user.notes.first())
             self.assert_backup_obj(backup, self.user.mfa_methods.first())
+            self.assert_backup_obj(backup, self.notification)
+            self.assert_backup_obj(backup, self.user.notifications.first())
 
             self.assert_backup_file(backup, z, 'uploadedimages', self.project.images.all().first())
             self.assert_backup_file(backup, z, 'uploadedimages', self.user.images.all().first())
@@ -402,6 +406,7 @@ class TestBackup:
         self.project_type.refresh_from_db()
         self.template.refresh_from_db()
         self.user.refresh_from_db()
+        self.notification.refresh_from_db()
         
     def test_backup_permissions(self):
         user_regular = create_user()

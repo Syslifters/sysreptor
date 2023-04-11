@@ -149,7 +149,7 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
             m.project = project
             member_infos.append(m)
         else:
-            raise Exception('Unsupported member type')
+            raise ValueError('Unsupported member type')
     ProjectMemberInfo.objects.bulk_create(member_infos)
 
     for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 3:

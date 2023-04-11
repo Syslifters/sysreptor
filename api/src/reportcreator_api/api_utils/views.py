@@ -50,6 +50,9 @@ class UtilsViewSet(viewsets.ViewSet):
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
             'auth_providers': [{'id': k, 'name': v.get('label', k)} for k, v in settings.AUTHLIB_OAUTH_CLIENTS.items()],
             'elastic_apm_rum_config': settings.ELASTIC_APM_RUM_CONFIG if settings.ELASTIC_APM_RUM_ENABLED else None,
+            'features': {
+                'private_designs': settings.ENABLE_PRIVATE_DESIGNS,
+            }
         })
 
     @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsSystemUser])

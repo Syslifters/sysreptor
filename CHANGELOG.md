@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.19 - 2023-04-11
+* Add private designs visible only to your user
+* Support Postgres with PgBouncer in LanguageTool
+* Allow storing files in S3 buckets
+* Fix backup restore failing for notifications
+
+
 ## v0.18 - 2023-03-13
 * Allow setting emojis as custom note icons
 * Require re-authentication to enable admin permissions in user sessions

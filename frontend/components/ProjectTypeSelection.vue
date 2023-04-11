@@ -3,7 +3,7 @@
     :value="value" @change="$emit('input', $event)"
     :label="label"
     :items="additionalItems.concat(items.data)"
-    :item-text="pt => pt.name + ({'imported_dependency': ' (imported)', 'customized': ' (customized)'}[pt.source] || '')"
+    :item-text="formatItemText"
     item-value="id"
     :return-object="returnObject"
     :rules="rules"
@@ -78,7 +78,7 @@ export default {
       baseURL: '/projecttypes/',
       searchFilters: {
         ordering: 'name',
-        public: true,
+        scope: ['global', 'private'],
         ...this.queryFilters,
       },
       axios: this.$axios,
@@ -108,5 +108,15 @@ export default {
       ]
     }
   },
+  methods: {
+    formatItemText(pt) {
+      return pt.name + ({
+        imported_dependency: ' (imported)', 
+        customized: ' (customized)', 
+        snapshot: ` (from ${pt?.created?.split('T')?.[0]})`,
+      }[pt?.source] || '') +
+        (pt?.scope === 'private' ? ' (private design)' : '');
+    }
+  }
 }
 </script>

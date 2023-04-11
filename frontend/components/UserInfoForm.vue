@@ -105,35 +105,35 @@
         <s-checkbox
           :value="user.is_template_editor" @change="updateField('is_template_editor', $event)" 
           label="Template Editor"
-          hint="Users with Template Editor permission are allowed to create, edit and delete finding templates."
+          hint="Template Editors are allowed to create and edit finding templates."
           :error-messages="errors?.is_template_editor"
           :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
         />
         <s-checkbox 
           :value="user.is_designer" @change="updateField('is_designer', $event)" 
           label="Designer"
-          hint="Users with Designer permission have access to the PDF designer and can create and edit PDF designs."
+          hint="Designers can create and edit report designs. Users without this permission can create and edit private designs."
           :error-messages="errors?.is_designer"
           :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
         />
         <s-checkbox
           :value="user.is_user_manager" @change="updateField('is_user_manager', $event)" 
           label="User Manager"
-          hint="User with User Manager permission can create and update other users, assign permissions (except Superuser permissions) and reset passwords (except for Superusers)."
+          hint="User Managers can create and update other users, assign permissions and reset passwords (except superusers)."
           :error-messages="errors?.is_user_manager"
           :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
         />
         <s-checkbox 
           :value="user.is_superuser" @change="updateField('is_superuser', $event)" 
           label="Superuser" 
-          hint="Superusers have all permissions without explicitly assigning them. They can access all projects, even when they are not members."
+          hint="Superusers have the highest privileges available. They have all permissions without explicitly assigning them."
           :error-messages="errors?.is_superuser"
           :disabled="!canEdit || !canEditPermissions || !hasAdminPermissions"
         />
         <s-checkbox
           :value="user.is_guest" @change="updateField('is_guest', $event)" 
           label="Guest"
-          hint="Guest users are similar to regular users, but have less permissions."
+          hint="Guest are not allowed to list other users and might be further restricted by your system operator."
           :error-messages="errors?.is_guest"
           :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
         />

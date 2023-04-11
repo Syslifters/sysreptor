@@ -25,10 +25,10 @@ Optionally, the backup can be encrypted via a 256-bit AES key provided in the HT
 
 ```
 # Create backup
-curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>"}' -H 'Cookie: sessionid=<session-id>' -o backup.zip
+curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>"}' -H 'Cookie: sessionid=<session-id>' -H "Content-Type: application/json" -o backup.zip
 
 # Create encrypted backup
-curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>", "aes_key": "<aes-key-as-hex>"}' -H 'Cookie: sessionid=<session-id>' -o backup.zip.crypt
+curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>", "aes_key": "<aes-key-as-hex>"}' -H 'Cookie: sessionid=<session-id>' -H "Content-Type: application/json" -o backup.zip.crypt
 ```
 
 
@@ -53,7 +53,8 @@ docker compose down
 
 # Restore database
 docker compose run app python3 manage.py flush --no-input
-echo "select 'TRUNCATE "' || tablename || '" RESTART IDENTITY CASCADE;' from pg_tables where schemaname = 'data' and tablename != 'django_migrations';" | docker compose run --no-TTY app python3 manage.py dbshell
+docker compose run app python3 manage.py migrate
+echo "select 'TRUNCATE \"' || tablename || '\" RESTART IDENTITY CASCADE;' from pg_tables where schemaname = 'public' and tablename != 'django_migrations';" | docker compose run --no-TTY app python3 manage.py dbshell -- -t | docker compose run --no-TTY app python3 manage.py dbshell
 cat backup/backup.jsonl | docker compose run --no-TTY app python3 manage.py loaddata --format=jsonl -
 ```
 

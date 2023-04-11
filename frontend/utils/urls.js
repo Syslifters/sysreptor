@@ -80,8 +80,15 @@ export class SearchableCursorPaginationFetcher {
   _createFetcher() {
     const searchParams = new URLSearchParams(this.baseURL.split('?')[1]);
     for (const [k, v] of Object.entries(this.searchFilters)) {
-      if (v) { 
-        searchParams.set(k, v);
+      if (v) {
+        if (Array.isArray(v)) {
+          searchParams.delete(k);
+          for (const e of v) {
+            searchParams.append(k, e);
+          }
+        } else {
+          searchParams.set(k, v);
+        }
       }
     }
     const searchUrl = this.baseURL.split('?')[0] + '?' + searchParams.toString();
