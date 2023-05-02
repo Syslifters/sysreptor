@@ -1,0 +1,21 @@
+{
+  "name": "reportcreator-rendering",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build --mode=development",
+    "build-watch": "vue-cli-service build --mode=development --watch"
+  },
+  "dependencies": {
+    "vue": "^3",
+    "chart.js": "^4",
+    "uuid": "^9",
+    "reportcreator-markdown": "../packages/markdown"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "~5.0.0",
+    "license-webpack-plugin": "^4"
+  }
+}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="google" content="notranslate">
+    <title>PDF Viewer</title>
+  </head>
+
+  <body tabindex="1">
+    <div id="outerContainer">
+      <div id="mainContainer">
+        
+        <div class="toolbar">
+          <div id="toolbarContainer">
+            <div id="toolbarViewer">
+              <div id="toolbarViewerMiddle">
+                <div id="disabled" class="hidden"></div>
+
+                <input type="number" id="pageNumber" class="toolbarField" title="Page" value="1" min="1" tabindex="15" autocomplete="off">
+                <span id="numPages" class="toolbarLabel"></span>
+
+                <div class="toolbarSpacing"></div>
+
+                <button id="zoomOut" class="toolbarButton" title="Zoom Out" tabindex="21">
+                  <span class="icon"><span class="icon-minus"></span></span>
+                </button>
+                <select id="scaleSelect" class="toolbarField" title="Zoom" tabindex="23">
+                  <option id="pageAutoOption" title="" value="auto" selected="selected">Automatic Zoom</option>
+                  <option id="pageWidthOption" title="" value="page-width">Page Width</option>
+                  <option id="pageActualOption" title="" value="page-actual">Actual Size</option>
+                  <option id="pageFitOption" title="" value="page-fit" >Page Fit</option>
+                  <option id="customScaleOption" title="" value="custom" disabled="disabled" hidden="true"></option>
+                  <option title="" value="0.5">50%</option>
+                  <option title="" value="0.75">75%</option>
+                  <option title="" value="1">100%</option>
+                  <option title="" value="1.25" >125%</option>
+                  <option title="" value="1.5">150%</option>
+                  <option title="" value="2">200%</option>
+                  <option title="" value="3">300%</option>
+                  <option title="" value="4">400%</option>
+                </select>
+                <button id="zoomIn" class="toolbarButton" title="Zoom In" tabindex="22">
+                  <span class="icon"><span class="icon-plus"></span></span>
+                </button>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="viewerContainer" tabindex="0">
+          <div id="viewer" class="pdfViewer"></div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
+    

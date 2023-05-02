@@ -1,0 +1,61 @@
+[tool.poetry]
+name = "reportcreator-api"
+version = "0.1.0"
+description = "Pentest report creator"
+authors = []
+packages = [{include = "reportcreator_api"}]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+django = "4.2"
+djangorestframework = "3.14.0"
+adrf = "0.1.0"
+# check weasyprint performance before updating: https://kozea.github.io/WeasyPerf/
+# do not update to 58.* until text spacing and footnote-call issues are fixed
+weasyprint = "57.2"
+
+django-phonenumber-field = { extras = ["phonenumberslite"], version = "^7.0.0" }
+django-csp = "^3.7"
+django-storages = "^1.13.2"
+drf-nested-routers = "^0.93.4"
+django-filter = "^23.1"
+
+psycopg = { extras = ["binary"], version = "^3.1.8" }
+gunicorn = "^20.1.0"
+uvicorn = "^0.21.1"
+whitenoise = "^6.4.0"
+brotli = "^1.0.9"
+requests = "^2.28.2"
+httpx = "^0.23.3"
+
+jsonschema = "^4.17.3"
+python-decouple = "^3.8"
+pycryptodomex = "^3.17"
+pyotp = "^2.8.0"
+qrcode = { extras = ["pil"], version = "^7.4.2" }
+fido2 = "^1.1.1"
+authlib = "^1.2.0"
+python-gnupg = "^0.5.0"
+
+lorem-text = "^2.1"
+zipstream-new = "^1.1.8"
+boto3 = "^1.26.5"
+pillow-heif = "^0.10.1"
+playwright = "^1.32.1"
+pikepdf = "^7.1.2"
+celery = { extras = ["librabbitmq"], version = "^5.2.7" }
+
+django-debug-toolbar = "^4.0.0"
+debugpy = "^1.6.7"
+watchdog = "^3.0.0"
+pytest-django = "^4.5.2"
+pytest-xdist = "^3.2.1"
+pytest-cov = "^4.0.0"
+elastic-apm = "^6.15.1"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+

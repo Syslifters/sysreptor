@@ -1,0 +1,66 @@
+version: '3.9'
+name: sysreptor
+
+services:
+  db:
+    image: 'postgres:14'
+    container_name: 'sysreptor-db'
+    environment:
+      POSTGRES_USER: reportcreator
+      POSTGRES_PASSWORD: reportcreator
+      POSTGRES_DB: reportcreator
+      PGDATA: /data
+    volumes:
+      - type: volume
+        source: db-data
+        target: /data
+    expose:
+      - 5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reportcreator"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    restart: always
+    stop_grace_period: 120s
+  app:
+    build: 
+      context: ../
+      target: api
+      args: 
+        VERSION: ${SYSREPTOR_VERSION}
+    container_name: 'sysreptor-app'
+    init: true
+    volumes:
+      - type: volume
+        source: app-data
+        target: /data
+    expose:
+      - 8000
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DATABASE_HOST: db
+      DATABASE_NAME: reportcreator
+      DATABASE_USER: reportcreator
+      DATABASE_PASSWORD: reportcreator
+    env_file: app.env
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/healthcheck/"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+    depends_on:
+      db:
+        condition: service_healthy
+        
+
+volumes:
+  db-data:
+    name: sysreptor-db-data
+    external: true
+  app-data:
+    name: sysreptor-app-data
+    external: true

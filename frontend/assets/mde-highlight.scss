@@ -1,0 +1,65 @@
+.cm-focused {
+  outline: none !important;
+}
+
+/* inline markdown styles */
+.cm-content {
+  font-family: $body-font-family;
+
+  .tok-h1, .tok-h2, .tok-h3, .tok-h4, .tok-h5, .tok-h6 {
+    font-weight: bold;
+  }
+  .tok-h1 { font-size: 2em; }
+  .tok-h2 { font-size: 1.75em; }
+  .tok-h3 { font-size: 1.5em; }
+  .tok-h4 { font-size: 1.25em; }
+  .tok-h5 { font-size: 1.1em; }
+  .tok-h6 { font-size: 1em; }
+
+  .tok-strong { font-weight: bold }
+  .tok-emphasis { font-style: italic; }
+  .tok-strikethrough { text-decoration: line-through;}
+
+  .tok-codeblock, .tok-inlinecode {
+    font-family: monospace;
+    background-color: map-deep-get($material-light, 'code', 'background');
+    color: map-deep-get($material-light, 'code', 'color');
+  }
+
+  .tok-table {
+    font-family: monospace;
+  }
+
+  .tok-footnote {
+    vertical-align: super;
+    font-size: 0.9em;
+  }
+
+  .tok-link, .tok-image, .tok-footnote {
+    color: #7f8c8d;
+  }
+  .tok-url {
+    color: #aab2b3;
+    text-decoration: underline;
+  }
+
+  .tok-quote {
+    color: #7f8c8d;
+  }
+
+  .tok-todo {
+    background-color: $risk-color-critical;
+    color: white;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    border-radius: 10%;
+  }
+
+  // HTML tag highlighting
+  .tok-tagname, .tok-anglebracket, .tok-attributename, .tok-attributevalue, .tok-comment { font-family: monospace; }
+  .tok-tagname, .tok-anglebracket { color: #085; }
+  .tok-attributename { color: #795da3; }
+  .tok-attributevalue { color:  #a11; }
+  .tok-comment { color: #940; }
+
+}

@@ -1,0 +1,19 @@
+@import '~/assets/fonts/exo/exo.css';
+@import '@mdi/font/css/materialdesignicons.css';
+
+
+// Hide scrollbar when it is not needed
+// Overrides default Vuetify behavior
+// See https://github.com/vuetifyjs/vuetify/issues/1197
+html {
+  overflow-y: auto !important;
+}
+
+body {
+  font-family: $body-font-family;
+  line-height: $line-height-root;
+}
+
+.login-header {
+  background-color: $syslifters-darkblue !important;
+}

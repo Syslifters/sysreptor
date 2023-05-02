@@ -1,0 +1,29 @@
+{
+  "name": "reportcreator-markdown",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "remark-parse": "^10.0.1",
+    "remark-gfm": "^3.0.1",
+    "remark-stringify": "^10.0.2",
+    "remark-rehype": "^10.1.0",
+    "rehype-stringify": "^9.0.3",
+    "lowlight": "^2.7.0",
+    "rehype-raw": "^6.1.1",
+    "rehype-parse": "^8.0.4",
+    "rehype-sanitize": "^5.0.1",
+    "hast-util-to-string": "^2.0.0",
+    "micromark-extension-directive": "^2.1.1",
+    "micromark-util-sanitize-uri": "^1.1.0",
+    "highlight.js": "^11.6.0",
+    "@codemirror/view": "~6.9",
+    "@codemirror/state": "~6.2",
+    "@codemirror/commands": "~6.2",
+    "@codemirror/lint": "~6.2",
+    "@codemirror/language": "~6.6",
+    "@codemirror/lang-markdown": "~6.1",
+    "@codemirror/lang-html": "~6.4",
+    "lodash": "^4.17.21"
+  }
+}

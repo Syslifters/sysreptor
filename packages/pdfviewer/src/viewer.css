@@ -1,0 +1,201 @@
+ @import 'pdfjs-dist/web/pdf_viewer.css';
+
+ :root {
+  --body-bg-color: #525659;
+  --main-color: rgba(249, 249, 250, 1);
+
+  --toolbar-height: 2em;
+  --toolbar-bg-color: #323639;
+  --toolbar-border-color: rgba(12, 12, 13, 1);
+
+  --field-color: var(--main-color);
+  --field-bg-color: rgba(64, 64, 68, 1);
+  --field-border-color: rgba(115, 115, 115, 1);
+
+  --hover-bg-color: rgba(102, 102, 103, 1);
+ }
+
+ * {
+  padding: 0;
+  margin: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+body {
+  background-color: var(--body-bg-color);
+}
+
+.hidden, [hidden] {
+  display: none !important;
+}
+
+
+#outerContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+#mainContainer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  min-width: 350px;
+}
+#viewerContainer {
+  overflow: auto;
+  position: absolute;
+  top: var(--toolbar-height);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  outline: none;
+}
+
+
+#toolbarContainer {
+  width: 100%;
+  height: var(--toolbar-height);
+  background-color: var(--toolbar-bg-color);
+  box-shadow: 0 1px 0 var(--toolbar-border-color);
+  border-bottom: none;
+}
+#toolbarViewer {
+  height: var(--toolbar-height);
+}
+#toolbarViewerMiddle {
+  width: fit-content;
+  height: var(--toolbar-height);
+  margin-left: auto;
+  margin-right: auto;
+
+  display: flex;
+  align-items: center;
+}
+
+.toolbar {
+  position: relative;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  font: message-box;
+}
+
+.toolbar input,
+.toolbar button,
+.toolbar select {
+  outline: none;
+  font: message-box;
+}
+
+
+
+
+.toolbarField {
+  margin: 0 0.3em;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background-color: var(--field-bg-color);
+  background-clip: padding-box;
+  border: 1px solid var(--field-border-color);
+  box-shadow: none;
+  color: var(--field-color);
+}
+.toolbarField:hover, .toolbarField:focus-visible {
+  color: var(--main-color);
+  background-color: var(--hover-bg-color)
+}
+
+.toolbarLabel {
+  min-width: 1em;
+  color: var(--main-color);
+  text-align: left;
+  user-select: none;
+  cursor: default;
+}
+
+
+
+#pageNumber {
+  text-align: right;
+  width: 2em;
+}
+#pageNumber {
+  appearance: textfield;
+}
+#pageNumber::-webkit-outer-spin-button, #pageNumber::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+#scaleSelect {
+  cursor: pointer;
+}
+#scaleSelect > option {
+  color: var(--main-color);
+  background-color: var(--field-bg-color);
+}
+
+
+.toolbarButton {
+  border: none;
+  background: none;
+  width: 1.5em;
+  height: 1.5em;
+  padding: 0.2em;
+  border-radius: 2px;
+  color: var(--main-color);
+  cursor: pointer;
+  user-select: none;
+}
+.toolbarButton[disabled] {
+  opacity: 0.5;
+}
+.toolbarButton:hover, .toolbarButton:focus-visible {
+  color: var(--main-color);
+  background-color: var(--hover-bg-color);
+}
+
+
+.toolbarSpacing {
+  width: 2em;
+}
+
+
+.icon-plus, .icon-minus {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.icon-plus::before, .icon-minus::before {
+  content: " ";
+  position: absolute;
+  display: block;
+  background-color: #fff;
+  height: 10%;
+  margin-top: -5%;
+  top: 50%;
+  left: 5%;
+  right: 5%;
+}
+.icon-plus::after {
+  content: " ";
+  position: absolute;
+  display: block;
+  background-color: #fff;
+  width: 10%;
+  margin-left: -5%;
+  left: 50%;
+  top: 5%;
+  bottom: 5%;
+}
+
+
+
+
