@@ -63,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'reportcreator_api.utils.middleware.ExtendSessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'reportcreator_api.utils.middleware.AdminSessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -126,6 +127,10 @@ DATABASES = {
         'NAME': config('DATABASE_NAME', default=''),
         'USER': config('DATABASE_USER', default=''),
         'PASSWORD': config('DATABASE_PASSWORD', default=''),
+        'DISABLE_SERVER_SIDE_CURSORS': True,
+        'OPTIONS': {
+            'prepare_threshold': None,
+        }
     },
 }
 
@@ -156,6 +161,8 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = timedelta(hours=14).seconds
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_SAMESITE = 'Strict'
+CSRF_TRUSTED_ORIGINS = ['https://*', 'http://*']
 
 MFA_SERVER_NAME = config('MFA_SERVER_NAME', default='SysReptor')
 # FIDO2 RP ID: the domain name of the instance
@@ -210,6 +217,12 @@ STATICFILES_DIRS = [
     BASE_DIR / 'frontend' / 'static',
 ]
 
+UPLOADED_FILE_STORAGE = config('UPLOADED_FILE_STORAGE', default='filesystem')
+UPLOADED_FILE_STORAGE = {
+    'filesystem': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
+    's3': 'reportcreator_api.utils.storages.EncryptedS3SystemStorage',
+}.get(UPLOADED_FILE_STORAGE, UPLOADED_FILE_STORAGE)
+
 STORAGES = {
     'staticfiles': {
         'BACKEND': 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
@@ -226,8 +239,8 @@ STORAGES = {
             'location': config('UPLOADED_ASSET_LOCATION', default=MEDIA_ROOT / 'uploadedassets', cast=Path)
         },
     },
-    'uploaded_files': {
-        'BACKEND': config('UPLOADED_FILE_STORAGE', default='reportcreator_api.utils.storages.EncryptedFileSystemStorage'),
+    'uploaded_files': { 
+        'BACKEND': UPLOADED_FILE_STORAGE,
         'OPTIONS': {
             'location': config('UPLOADED_FILE_LOCATION', default=MEDIA_ROOT / 'uploadedfiles', cast=Path),
             'access_key': config('UPLOADED_FILE_S3_ACCESS_KEY', default=''),
@@ -236,7 +249,18 @@ STORAGES = {
             'bucket_name': config('UPLOADED_FILE_S3_BUCKET_NAME', default=''),
             'endpoint_url': config('UPLOADED_FILE_S3_ENDPOINT_URL', default=''),
         },
-    }
+    },
+    'archived_files': {
+        'BACKEND': config('ARCHIVED_FILE_STORAGE', default='reportcreator_api.utils.storages.UnencryptedFileSystemStorage'),
+        'OPTIONS': {
+            'location': config('ARCHIVED_FILE_LOCATION', default=MEDIA_ROOT / 'archivedfiles', cast=Path),
+            'access_key': config('ARCHIVED_FILE_S3_ACCESS_KEY', default=''),
+            'secret_key': config('ARCHIVED_FILE_S3_SECRET_KEY', default=''),
+            'security_token': config('ARCHIVED_FILE_S3_SESSION_TOKEN', default=None),
+            'bucket_name': config('ARCHIVED_FILE_S3_BUCKET_NAME', default=''),
+            'endpoint_url': config('ARCHIVED_FILE_S3_ENDPOINT_URL', default=''),
+        },
+    },
 }
 
 from pillow_heif import register_heif_opener
@@ -257,7 +281,6 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 CSP_DEFAULT_SRC = ["'none'"]
 CSP_IMG_SRC = ["'self'", "data:"]
-CSP_PREFETCH_SRC = ["'self'"]
 CSP_FONT_SRC = ["'self'"]
 CSP_WORKER_SRC = ["'self'"]
 CSP_CONNECT_SRC = ["'self'"]
@@ -266,7 +289,7 @@ CSP_FRAME_ANCESTORS = ["'self'"]
 # nuxt, vuetify and markdown preview use inline styles
 CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
 # unsafe-inline: 
-#   Django Rest Framework inserts the CSRF token via an inline script. DRF will be CSP-compliant in version 3.14 (see https://github.com/encode/django-rest-framework/pull/5740)
+#   Django Rest Framework inserts the CSRF token via an inline script. DRF will be CSP-compliant in version 3.15 (see https://github.com/encode/django-rest-framework/pull/8784)
 #   NuxtJS injects a inline script in index.html
 # unsafe-eval:
 #   Used by nuxt-vuex-localstorage; PR exists, but maintainer is not very active (see https://github.com/rubystarashe/nuxt-vuex-localstorage/issues/37)
@@ -314,8 +337,8 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Monkey-Patch django to disable CSRF everywhere
 # CSRF middlware class is used as middleware and internally by DjangoRestFramework
 from django.middleware import csrf
-from reportcreator_api.utils.middleware import DisabledCsrfMiddleware
-csrf.CsrfViewMiddleware = DisabledCsrfMiddleware
+from reportcreator_api.utils.middleware import CustomCsrfMiddleware
+csrf.CsrfViewMiddleware = CustomCsrfMiddleware
 
 
 PDF_RENDER_SCRIPT_PATH = config('PDF_RENDER_SCRIPT_PATH', cast=Path, default=BASE_DIR / '..' / 'rendering' / 'dist' / 'bundle.js')
@@ -385,6 +408,11 @@ PERIODIC_TASKS = [
         'task': 'reportcreator_api.pentests.tasks.cleanup_unreferenced_images_and_files',
         'schedule': timedelta(days=1),
     },
+    {
+        'id': 'reset_stale_archive_restores',
+        'task': 'reportcreator_api.pentests.tasks.reset_stale_archive_restores',
+        'schedule': timedelta(days=1),
+    }
 ]
 
 
@@ -411,6 +439,8 @@ GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS = config('GUEST_USERS_CAN_UPDATE_PROJECT
 
 ENABLE_PRIVATE_DESIGNS = config('ENABLE_PRIVATE_DESIGNS', cast=bool, default=False)
 
+ARCHIVING_THRESHOLD = config('ARCHIVING_THRESHOLD', cast=int, default=2)
+assert ARCHIVING_THRESHOLD > 0
 
 # Health checks
 HEALTH_CHECKS = {
@@ -425,6 +455,15 @@ INSTANCE_TAGS = config('INSTANCE_TAGS', default='on-premise').split(';')
 NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://cloud.sysreptor.com/api/v1/notifications/')
 
 
+# License
+LICENSE = config('LICENSE', default=None)
+LICENSE_VALIDATION_KEYS = [
+    {'id': 'amber', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAkqCS3lZbrzh+2mKTYymqPHtKBrh8glFxnj9OcoQR9xQ='},
+    {'id': 'silver', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAwu/cl0CZSSBFOzFSz/hhUQQjHIKiT4RS3ekPevSKn7w='},
+]
+LICENSE_COMMUNITY_MAX_USERS = 3
+
+
 # Elastic APM
 ELASTIC_APM_ENABLED = config('ELASTIC_APM_ENABLED', cast=bool, default=False)
 ELASTIC_APM = {
@@ -434,6 +473,7 @@ ELASTIC_APM = {
     'SERVER_URL': config('ELASTIC_APM_SERVER_URL', default=''),
     'SPAN_COMPRESSION_ENABLED': False,
     'DJANGO_AUTOINSERT_MIDDLEWARE': False,
+    'DJANGO_TRANSACTION_NAME_FROM_ROUTE': True,
 }
 if ELASTIC_APM_ENABLED:
     INSTALLED_APPS.append('elasticapm.contrib.django')

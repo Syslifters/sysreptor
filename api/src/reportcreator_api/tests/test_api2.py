@@ -4,7 +4,7 @@ import pytest
 from rest_framework.test import APIClient
 from reportcreator_api.pentests.models import ProjectType, ProjectTypeScope, SourceEnum
 
-from reportcreator_api.tests.mock import create_project, create_project_type, create_user
+from reportcreator_api.tests.mock import create_project, create_project_type, create_user, api_client
 
 
 @pytest.mark.django_db
@@ -14,8 +14,7 @@ class TestProjectApi:
         self.user = create_user()
         self.project_type = create_project_type()
 
-        self.client = APIClient()
-        self.client.force_authenticate(self.user)
+        self.client = api_client(self.user) 
 
     def test_create_project(self):
         p = self.client.post(reverse('pentestproject-list'), data={
@@ -87,9 +86,7 @@ class TestProjectTypeApi:
     ])
     def test_create_design(self, user, scope, expected):
         user = create_user(is_designer=user == 'designer')
-        client = APIClient()
-        client.force_authenticate(user)
-        res = client.post(reverse('projecttype-list'), data={'name': 'Test', 'scope': scope})
+        res = api_client(user).post(reverse('projecttype-list'), data={'name': 'Test', 'scope': scope})
         assert (res.status_code == 201) == expected
         if expected:
             assert res.data['scope'] == scope
@@ -112,9 +109,7 @@ class TestProjectTypeApi:
     def test_copy_design(self, user, project_type, scope, expected):
         user = create_user(is_designer=user == 'designer')
         project_type = create_project_type(linked_user=user if project_type == 'private' else None)
-        client = APIClient()
-        client.force_authenticate(user)
-        res = client.post(reverse('projecttype-copy', kwargs={'pk': project_type.id}), data={'scope': scope})
+        res = api_client(user).post(reverse('projecttype-copy', kwargs={'pk': project_type.id}), data={'scope': scope})
         assert (res.status_code == 201) == expected
         if expected:
             assert res.data['scope'] == scope
@@ -122,4 +117,3 @@ class TestProjectTypeApi:
             assert pt.scope == scope
             assert pt.linked_project is None
             assert pt.linked_user == (user if scope == ProjectTypeScope.PRIVATE else None)
-

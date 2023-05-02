@@ -7,10 +7,10 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
-from reportcreator_api.pentests.tasks import cleanup_project_files, cleanup_unreferenced_images_and_files, cleanup_usernotebook_files
+from reportcreator_api.pentests.tasks import cleanup_project_files, cleanup_unreferenced_images_and_files, cleanup_usernotebook_files, reset_stale_archive_restores
 
 from reportcreator_api.tasks.models import PeriodicTask, TaskStatus
-from reportcreator_api.tests.mock import create_project, create_user, mock_time
+from reportcreator_api.tests.mock import create_archived_project, create_project, create_user, mock_time
 
 
 def task_success():
@@ -265,4 +265,65 @@ class TestCleanupUnreferencedFiles:
         assert project_new.images.count() == 0
         assert project_new.files.count() == 0
         assert user_new.images.count() == 0
+
+
+@pytest.mark.django_db
+class TestResetStaleArchiveRestore:
+    def test_reset_stale(self):
+        with mock_time(before=timedelta(days=10)):
+            archive = create_archived_project(project=create_project(members=[create_user(public_key=True) for _ in range(2)]))
+            keypart = archive.key_parts.first()
+            keypart.decrypted_at = timezone.now()
+            keypart.key_part = {'key_id': 'shamir-key-id', 'key': 'dummy-key'}
+            keypart.save()
+
+        reset_stale_archive_restores(None)
+
+        keypart.refresh_from_db()
+        assert not keypart.is_decrypted
+        assert keypart.decrypted_at is None
+        assert keypart.key_part is None
+
+    def test_reset_not_stale(self):
+        with mock_time(before=timedelta(days=10)):
+            archive = create_archived_project(project=create_project(members=[create_user(public_key=True) for _ in range(3)]))
+            keypart1 = archive.key_parts.first()
+            keypart1.decrypted_at = timezone.now()
+            keypart1.key_part = {'key_id': 'shamir-key-id', 'key': 'dummy-key'}
+            keypart1.save()
+        
+        keypart2 = archive.key_parts.exclude(pk=keypart1.pk).first()
+        keypart2.decrypted_at = timezone.now()
+        keypart2.key_part = {'key_id': 'shamir-key-id-2', 'key': 'dummy-key2'}
+        keypart2.save()
+        
+        reset_stale_archive_restores(None)
+
+        keypart1.refresh_from_db()
+        assert keypart1.is_decrypted
+        assert keypart1.decrypted_at is not None
+        assert keypart1.key_part is not None
+        keypart2.refresh_from_db()
+        assert keypart2.is_decrypted
+        assert keypart2.decrypted_at is not None
+        assert keypart2.key_part is not None
+
+    def test_reset_one_but_not_other(self):
+        with mock_time(before=timedelta(days=10)):
+            keypart1 = create_archived_project(project=create_project(members=[create_user(public_key=True) for _ in range(2)])).key_parts.first()
+            keypart1.decrypted_at = timezone.now()
+            keypart1.key_part = {'key_id': 'shamir-key-id', 'key': 'dummy-key'}
+            keypart1.save()
+        
+        keypart2 = create_archived_project(project=create_project(members=[create_user(public_key=True) for _ in range(2)])).key_parts.first()
+        keypart2.decrypted_at = timezone.now()
+        keypart2.key_part = {'key_id': 'shamir-key-id', 'key': 'dummy-key'}
+        keypart2.save()
+
+        reset_stale_archive_restores(None)
+
+        keypart1.refresh_from_db()
+        assert not keypart1.is_decrypted
+        keypart2.refresh_from_db()
+        assert keypart2.is_decrypted
 

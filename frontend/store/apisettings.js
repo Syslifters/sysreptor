@@ -36,5 +36,8 @@ export const actions = {
 export const getters = {
   settings(state) {
     return state.settings;
-  }
+  },
+  is_professional_license(state) {
+    return state.settings?.license?.type === 'professional';
+  },
 }

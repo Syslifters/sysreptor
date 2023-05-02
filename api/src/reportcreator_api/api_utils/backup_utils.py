@@ -10,7 +10,7 @@ from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
 
 from reportcreator_api.archive import crypto
-from reportcreator_api.pentests.models import UploadedImage, UploadedAsset, UploadedProjectFile, UploadedUserNotebookImage
+from reportcreator_api.pentests.models import UploadedImage, UploadedAsset, UploadedProjectFile, UploadedUserNotebookImage, ArchivedProject
 
 
 def create_database_dump():
@@ -41,7 +41,10 @@ def create_database_dump():
 
 def backup_files(z, model, path):
     for f in model.objects.values_list('file', flat=True).distinct().iterator():
-        z.write_iter(str(Path(path) / f), model.file.field.storage.open(f).chunks())
+        try:
+            z.write_iter(str(Path(path) / f), model.file.field.storage.open(f).chunks())
+        except (FileNotFoundError, OSError) as ex:
+            logging.warning(f'Could not backup file {f}: {ex}')
 
 
 def create_backup():
@@ -53,6 +56,7 @@ def create_backup():
     backup_files(z, UploadedUserNotebookImage, 'uploadedimages')
     backup_files(z, UploadedAsset, 'uploadedassets')
     backup_files(z, UploadedProjectFile, 'uploadedfiles')
+    backup_files(z, ArchivedProject, 'archivedfiles')
     
     return z
 

@@ -15,6 +15,12 @@
           </v-list-item-icon>
           <v-list-item-title>Security</v-list-item-title>
         </v-list-item>
+        <v-list-item v-if="archivingEnabled" to="/users/self/publickeys/" nuxt>
+          <v-list-item-icon>
+            <v-icon>mdi-folder-key</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Archiving Public Keys</v-list-item-title>
+        </v-list-item>
       </v-list>
     </template>
     
@@ -30,6 +36,11 @@ export default {
     return {
       titleTemplate: title => this.$root.$options.head.titleTemplate((title ? `${title} | ` : '') + 'Profile'),
     }
-  }
+  },
+  computed: {
+    archivingEnabled() {
+      return this.$store.getters['apisettings/settings'].features.archiving;
+    },
+  },
 }
 </script>

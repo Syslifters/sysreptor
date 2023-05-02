@@ -2,7 +2,12 @@
   <div>
     <splitpanes class="default-theme">
       <pane :size="previewSplitSize">
-        <pdf-preview ref="pdfpreview" :fetch-pdf="fetchPreviewPdf" :show-loading-spinner-on-reload="true" />
+        <pdf-preview 
+          ref="pdfpreview" 
+          :fetch-pdf="fetchPreviewPdf" 
+          :show-loading-spinner-on-reload="true" 
+          @renderprogress="pdfPreviewInProgress = $event"
+        />
       </pane>
 
       <pane :size="100 - previewSplitSize">
@@ -11,8 +16,23 @@
             <h1>{{ project.name }}</h1>
 
             <v-form class="pa-4">
-              <!-- Design actions -->
+              <!-- Action buttons -->
               <div>
+                <s-btn
+                  :loading="checksOrPreviewInProgress"
+                  :disabled="checksOrPreviewInProgress"
+                  @click="refreshPreviewAndChecks"
+                  color="secondary"
+                >
+                  <v-icon>mdi-cached</v-icon>
+                  Refresh PDF
+
+                  <template #loader>
+                    <saving-loader-spinner />
+                    Refresh PDF
+                  </template>
+                </s-btn>
+
                 <btn-confirm
                   :action="customizeDesign"
                   button-text="Customize Design"
@@ -21,15 +41,6 @@
                   dialog-text="Customize the current Design for this project. This allows you to adapt the appearence (HTML, CSS) of the design for this project only. The original design is not affected. Any changes made to the original design will not be automatically applied to the adapted design."
                   :disabled="project.readonly || projectType.source === 'customized'"
                 />
-                <s-btn 
-                  :to="`/designs/${projectType.id}/pdfdesigner/`" 
-                  :disabled="!$auth.hasScope('designer') || ['customized', 'imported_dependency'].includes(projectType.source)"
-                  nuxt
-                  color="secondary"
-                >
-                  <v-icon>mdi-file-edit</v-icon>
-                  Edit Original Design
-                </s-btn>
               </div>
 
               <!-- Set password for encrypting report -->
@@ -111,6 +122,8 @@ export default {
   data() {
     return {
       previewSplitSize: 50,
+      checksInProgress: false,
+      pdfPreviewInProgress: false,
       checkMessages: {},
       form: {
         encryptReport: true,
@@ -130,24 +143,44 @@ export default {
       return this.$refs.pdfpreview?.pdfRenderErrors?.length > 0 || (this.checkMessages?.error || []).length > 0;
     },
     canGenerateFinalReport() {
-      return !this.reportGenerationInProgress && !this.hasErrors && this.$refs.pdfpreview?.pdfData !== null &&
+      return !this.hasErrors && 
+        !this.checksOrPreviewInProgress &&
+        this.$refs.pdfpreview?.pdfData !== null &&
         (this.form.encryptReport ? this.form.password.length > 0 : true);
+    },
+    checksOrPreviewInProgress() {
+      return this.checksInProgress || this.pdfPreviewInProgress;
     },
   },
   mounted() {
     this.performChecks();
   },
   methods: {
+    async refreshPreviewAndChecks() {
+      if (this.checksInProgress || this.pdfPreviewInProgress) {
+        return;
+      }
+
+      this.$refs.pdfpreview.reloadImmediate();
+      await this.performChecks();
+    },
     async fetchPreviewPdf() {
       return await this.$axios.$post(`/pentestprojects/${this.project.id}/preview/`, {}, {
         responseType: 'arraybuffer',
       });
     },
     async performChecks() {
+      if (this.checksInProgress) {
+        return;
+      }
+
       try {
+        this.checksInProgress = true;
         this.checkMessages = await this.$axios.$get(`/pentestprojects/${this.project.id}/check/`);
       } catch (error) {
         this.$toast.global.requestError({ error });
+      } finally {
+        this.checksInProgress = false;
       }
     },
     async generateFinalReport() {

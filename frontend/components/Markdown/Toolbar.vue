@@ -12,10 +12,10 @@
     <markdown-toolbar-button @click="toggleLink" title="Link" icon="mdi-link" :disabled="disabled" :active="isTypeInSelection('link')" />
     <template v-if="uploadFiles">
       <markdown-toolbar-button @click="$refs.fileInput.click()" title="Image" icon="mdi-image" :disabled="disabled || fileUploadInProgress" />
-      <input ref="fileInput" type="file" multiple @change="uploadFiles($event.target.files)" :disabled="disabled || fileUploadInProgress" class="d-none" />
+      <input ref="fileInput" type="file" multiple @change="onUploadFiles" :disabled="disabled || fileUploadInProgress" class="d-none" />
     </template>
     <span class="separator" />
-    <markdown-toolbar-button @click="spellcheckEnabled = !spellcheckEnabled" title="Spellcheck" icon="mdi-spellcheck" :disabled="disabled" :active="spellcheckEnabled" />
+    <markdown-toolbar-button @click="spellcheckEnabled = !spellcheckEnabled" title="Spellcheck" icon="mdi-spellcheck" :disabled="disabled || !spellcheckSupported" :active="spellcheckEnabled" />
     <span class="separator" />
     <markdown-toolbar-button @click="undo" title="Undo" icon="mdi-undo" :disabled="disabled || !canUndo" />
     <markdown-toolbar-button @click="redo" title="Redo" icon="mdi-redo" :disabled="disabled || !canRedo" />
@@ -58,9 +58,12 @@ export default {
         this.$store.commit('settings/updateMarkdownEditorMode', val);
       },
     },
+    spellcheckSupported() {
+      return this.$store.getters['apisettings/settings'].features.spellcheck;
+    },
     spellcheckEnabled: {
       get() {
-        return this.$store.state.settings.spellcheckEnabled;
+        return this.$store.state.settings.spellcheckEnabled && this.spellcheckSupported;
       },
       set(val) {
         this.$store.commit('settings/updateSpellcheckEnabled', val);
@@ -109,7 +112,15 @@ export default {
         return false;
       }
       return isTypeInSelection(this.editorView.state, type);
-    }
+    },
+    async onUploadFiles(event) {
+      const files = event.target.files;
+      try {
+        await this.uploadFiles(files);
+      } finally {
+        this.$refs.fileInput.value = null;
+      }
+    },
   }
 }
 </script>

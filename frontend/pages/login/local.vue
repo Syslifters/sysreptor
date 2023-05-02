@@ -3,6 +3,15 @@
     <v-layout align-center justify-center>
       <v-flex xs12 sm8 md4>
         <login-form @login="onLogin">
+          <template #message>
+            <p v-if="licenseErrorMessage" class="red--text">
+              <v-icon color="red" class="mr-1">mdi-alert-decagram</v-icon>
+              Software License Error: {{ licenseErrorMessage }}.<br>
+              Falling back to a free Community license. Some features are disabled.<br>
+              See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank">https://docs.sysreptor.com/features-and-pricing/</a>
+            </p>
+          </template>
+
           <template #actions>
             <s-btn v-if="oidcEnabled" to="/login/" nuxt color="secondary">
               Back
@@ -47,7 +56,10 @@ export default {
   computed: {
     oidcEnabled() {
       return this.$store.getters['apisettings/settings'].auth_providers.length > 0;
-    }
+    },
+    licenseErrorMessage() {
+      return this.$store.getters['apisettings/settings'].license.error;
+    },
   },
   watch: {
     mfaSetupNotificationVisible(newValue, oldValue) {

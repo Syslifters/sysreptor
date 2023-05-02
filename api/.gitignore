@@ -140,5 +140,8 @@ GitHub.sublime-settings
 
 data
 src/static
-src/frontend
+src/frontend/*
+src/frontend/*/static/*
 !src/frontend/index.html
+!src/frontend/static
+!src/frontend/static/.gitkeep

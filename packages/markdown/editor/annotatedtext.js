@@ -79,7 +79,13 @@ function micromarkToAnnotatedText(text, events) {
   };
   const annotatedText = [];
   for (const n of leafNodes) {
-    if (textTypes.includes(n.type)) {
+    if (n.type === 'lineEnding') {
+      // Workaround for micromark bug: the end position of lineEnding elements is wrong (overlaps with next element)
+      annotatedText.push({
+        text: '\n',
+        offset: n.enter.start.offset,
+      });
+    } else if (textTypes.includes(n.type)) {
       annotatedText.push({
         text: n.text,
         offset: n.enter.start.offset,

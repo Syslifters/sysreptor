@@ -6,7 +6,7 @@ from reportcreator_api.archive.crypto import base as crypto
 
 
 class IterableToFileAdapter(File):
-    def __init__(self, iterable, name) -> None:
+    def __init__(self, iterable, name=None) -> None:
         super().__init__(file=None, name=name)
         self.iterator = iter(iterable)
         self.buffer = b''

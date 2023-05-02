@@ -12,7 +12,7 @@
 export default {
   async asyncData({ $axios, $auth }) {
     try {
-      const user = await $axios.$post('/pentestusers/self/admin/disable/');
+      const user = await $axios.$post('/pentestusers/self/admin/disable/', {});
       $auth.setUser(user);
     } catch (error) {
       

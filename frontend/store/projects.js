@@ -210,7 +210,7 @@ export const actions = {
     commit('update', { id: projectId, ...res });
   },
   async customizeDesign({ commit }, { projectId }) {
-    const res = await this.$axios.$post(`/pentestprojects/${projectId}/customize-projecttype/`);
+    const res = await this.$axios.$post(`/pentestprojects/${projectId}/customize-projecttype/`, {});
     commit('update', { id: projectId, ...res });
   },
   async updateFinding({ commit }, { projectId, finding }) {

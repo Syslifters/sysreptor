@@ -164,6 +164,8 @@ export default {
           }
           if (error?.response?.data?.detail) {
             message += ': ' + error?.response?.data?.detail;
+          } else if (Array.isArray(error?.response?.data) && error?.response?.data?.length === 1) {
+            message += ': ' + error?.response?.data[0];
           } else if (error?.response?.status === 429) {
             message += ': Exceeded rate limit. Try again later.';
           }

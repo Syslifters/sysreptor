@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.76 - 2023-05-02
+* Release Community Edition
+* Add license checks and enforce license limits
+* Project archiving and encryption with 4-eye principle
+* Improve list editing in markdown editor
+* Add a refresh PDF button to the publish project page
+
+
 ## v0.19 - 2023-04-11
 * Add private designs visible only to your user
 * Support Postgres with PgBouncer in LanguageTool

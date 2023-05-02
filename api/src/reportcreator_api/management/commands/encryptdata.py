@@ -4,8 +4,10 @@ import copy
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.test import override_settings
-from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, UploadedProjectFile, UploadedUserNotebookImage
-from reportcreator_api.users.models import PentestUser
+
+from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
+    UploadedProjectFile, UploadedUserNotebookImage, NotebookPage, UserPublicKey, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
+from reportcreator_api.users.models import MFAMethod, PentestUser, Session
 
 
 class Command(BaseCommand):
@@ -19,7 +21,13 @@ class Command(BaseCommand):
         PentestProject.objects.bulk_update(PentestProject.objects.all().iterator(), ['custom_fields'])
         PentestFinding.objects.bulk_update(PentestFinding.objects.all().iterator(), ['custom_fields', 'template_id'])
         ProjectType.objects.bulk_update(ProjectType.objects.all().iterator(), ['report_template', 'report_styles', 'report_preview_data'])
+        NotebookPage.objects.bulk_update(NotebookPage.objects.all(), ['title', 'text'])
         PentestUser.objects.bulk_update(PentestUser.objects.all(), ['password'])
+        Session.objects.bulk_update(Session.objects.all(), ['session_key', 'session_data'])
+        MFAMethod.objects.bulk_update(MFAMethod.objects.all(), ['data'])
+        UserPublicKey.objects.bulk_update(UserPublicKey.objects.all(), ['public_key'])
+        ArchivedProjectKeyPart.objects.bulk_update(ArchivedProjectKeyPart.objects.all(), ['key_part'])
+        ArchivedProjectPublicKeyEncryptedKeyPart.objects.bulk_update(ArchivedProjectPublicKeyEncryptedKeyPart.objects.all(), ['encrypted_data'])
 
         # Encrypt files
         old_files = []

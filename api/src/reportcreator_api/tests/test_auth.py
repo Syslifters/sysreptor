@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from reportcreator_api.utils.utils import omit_keys
-from reportcreator_api.tests.mock import create_project, create_user, mock_time
+from reportcreator_api.tests.mock import create_project, create_user, mock_time, api_client
 from reportcreator_api.users.models import MFAMethod, MFAMethodType
 
 
@@ -21,7 +21,7 @@ class TestLogin:
         self.mfa_backup = MFAMethod.objects.create_backup(user=self.user_mfa)
         self.mfa_totp = MFAMethod.objects.create_totp(user=self.user_mfa)
 
-        self.client = APIClient()
+        self.client = api_client()
 
     def assert_api_access(self, expected):
         res = self.client.get(reverse('pentestuser-self'))
@@ -121,7 +121,7 @@ class TestMfaMethodRegistration:
     def setUp(self):
         self.password = 'Password1!'
         self.user = create_user(username='user', password=self.password)
-        self.client = APIClient()
+        self.client = api_client()
         self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
         self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
 
@@ -174,7 +174,7 @@ class TestEnableAdminPermissions:
 
         self.password = 'Password1!'
         self.user = create_user(is_superuser=True, password=self.password)
-        self.client = APIClient()
+        self.client = api_client()
         self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
 
     def has_admin_access(self):

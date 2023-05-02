@@ -34,7 +34,7 @@ export default {
         email: null,
         phone: null,
         mobile: null,
-        is_superuser: false,
+        is_superuser: !this.$store.getters['apisettings/is_professional_license'],
         is_user_manager: false,
         is_designer: false,
         is_template_editor: false,

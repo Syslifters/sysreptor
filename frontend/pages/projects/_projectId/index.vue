@@ -4,6 +4,15 @@
       <edit-toolbar v-bind="toolbarAttrs">
         <template #title>Project</template>
         <btn-readonly :value="project.readonly" :set-readonly="setReadonly" />
+        <s-btn
+          v-if="project.readonly && archivingEnabled"
+          :to="`/projects/${project.id}/archive/`" nuxt
+          color="secondary"
+          class="mr-1"
+        >
+          <v-icon>mdi-folder-lock-outline</v-icon>
+          Archive
+        </s-btn>
         <btn-export 
           :export-url="`/pentestprojects/${project.id}/export/`" 
           :export-all-url="`/pentestprojects/${project.id}/export/all/`"
@@ -102,7 +111,10 @@ export default {
           deleteConfirmInput: this.project.name,
         } : {}),
       }
-    }
+    },
+    archivingEnabled() {
+      return this.$store.getters['apisettings/settings'].features.archiving;
+    },
   },
   watch: {
     projectType(val) {

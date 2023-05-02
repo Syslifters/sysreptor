@@ -3,65 +3,30 @@ set -e
 # Any subsequent(*) commands which fail will cause the shell script to exit immediately
 
 allow_only="MIT"
-allow_only="$allow_only;Apache Software License"
 allow_only="$allow_only;MIT License"
 allow_only="$allow_only;BSD License"
+allow_only="$allow_only;Apache Software License"
 allow_only="$allow_only;GNU General Public License v2 or later (GPLv2+)"
 allow_only="$allow_only;GNU General Public License v2 (GPLv2)"
 allow_only="$allow_only;GNU General Public License v3 (GPLv3)"
-allow_only="$allow_only;GNU Lesser General Public License v2 or later (LGPLv2+)"
-allow_only="$allow_only;Mozilla Public License 1.1 (MPL 1.1)"
 allow_only="$allow_only;GNU Library or Lesser General Public License (LGPL)"
-allow_only="$allow_only;Historical Permission Notice and Disclaimer (HPND)"
-allow_only="$allow_only;Mozilla Public License 2.0 (MPL 2.0)Apache Software License"
-allow_only="$allow_only;MIT License"
-allow_only="$allow_only;BSD License"
-allow_only="$allow_only;GNU General Public License v2 or later (GPLv2+)"
 allow_only="$allow_only;GNU Lesser General Public License v2 or later (LGPLv2+)"
+allow_only="$allow_only;Mozilla Public License 1.0 (MPL)"
 allow_only="$allow_only;Mozilla Public License 1.1 (MPL 1.1)"
-allow_only="$allow_only;GNU Library or Lesser General Public License (LGPL)"
-allow_only="$allow_only;Historical Permission Notice and Disclaimer (HPND)"
 allow_only="$allow_only;Mozilla Public License 2.0 (MPL 2.0)"
+allow_only="$allow_only;Historical Permission Notice and Disclaimer (HPND)"
+allow_only="$allow_only;Python Software Foundation License"
 
 ignore="jsonschema"
 ignore="$ignore;webencodings"
 
 
-virtualenv licenses
-source licenses/bin/activate
-pip3 install -r requirements.txt
 pip3 install pip-licenses
 pip-licenses --allow-only "$allow_only" >/dev/null
 pip-licenses -l --no-license-path -f plain-vertical --ignore-packages "$ignore" > NOTICE
-deactivate
+
 
 # Those packages do not include valid license files
-jsonschema_license='''Copyright (c) 2013 Julian Berman
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.'''
-echo "" >> NOTICE
-echo "jsonschema" >> NOTICE
-version=`pip freeze | grep jsonschema | cut -d"=" -f 3`
-echo "$version" >> NOTICE
-echo "MIT License" >> NOTICE
-echo "$jsonschema_license" >> NOTICE
-
 webencodings_license='''Copyright (c) 2012 by Simon Sapin.
 
 Some rights reserved.

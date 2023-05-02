@@ -5,6 +5,8 @@ from adrf.views import APIView as AsyncAPIView
 from rest_framework import exceptions, status, views, generics, viewsets
 from rest_framework.response import Response
 
+from reportcreator_api.utils import license
+
 
 class GenericAPIViewAsync(generics.GenericAPIView, AsyncAPIView):
     _action = None
@@ -56,6 +58,8 @@ def exception_handler(exc, context):
         exc = exceptions.NotFound(*(exc.args))
     elif isinstance(exc, PermissionDenied):
         exc = exceptions.PermissionDenied(*(exc.args))
+    elif isinstance(exc, license.LicenseError):
+        exc = exceptions.PermissionDenied(detail=exc.detail, code='license')
 
     if isinstance(exc, exceptions.APIException):
         headers = {}

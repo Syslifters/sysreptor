@@ -23,6 +23,7 @@ class PentestUserAdmin(BaseUserAdmin):
                     "is_designer",
                     "is_template_editor",
                     "is_guest",
+                    "is_global_archiver",
                     "groups",
                     "user_permissions",
                 ),

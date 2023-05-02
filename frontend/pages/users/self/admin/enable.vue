@@ -20,7 +20,7 @@ export default {
   async asyncData({ $axios, $auth, route }) {
     let errorMessage = null;
     try {
-      const user = await $axios.$post('/pentestusers/self/admin/enable/');
+      const user = await $axios.$post('/pentestusers/self/admin/enable/', {});
       $auth.setUser(user);
     } catch (error) {
       if (error?.response?.data?.code === 'reauth-required') {

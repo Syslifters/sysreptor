@@ -327,7 +327,7 @@ export default {
           this.$auth.user.id
         );
       } else {
-        return this.$axios.$post(this.unlockUrl);
+        return this.$axios.$post(this.unlockUrl, {});
       }
     },
     performUnlock(browserUnload = false) {

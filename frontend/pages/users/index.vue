@@ -24,6 +24,7 @@
             <v-chip small class="ma-1" v-if="user.is_designer">Designer</v-chip>
             <v-chip small class="ma-1" v-if="user.is_template_editor">Template Editor</v-chip>
             <v-chip small class="ma-1" v-if="user.is_guest">Guest</v-chip>
+            <v-chip small class="ma-1" v-if="user.is_global_archiver">Global Archiver</v-chip>
             <v-chip small class="ma-1" v-if="user.is_system_user">System</v-chip>
           </v-col>
           <v-col md="1">

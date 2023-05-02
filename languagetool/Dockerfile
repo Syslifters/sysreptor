@@ -1,4 +1,4 @@
-FROM erikvl87/languagetool:6.0-dockerupdate-3@sha256:e458281667850c4817fa91d718dbd18d0cf70460323fa561e6e77e0cd07e80a8
+FROM erikvl87/languagetool:6.1@sha256:15d8cf64b01a15362fdcd4674054fd6b0cb90ab29e515bcf677cd6c65e089d0e
 
 # PostgreSQL support
 USER root

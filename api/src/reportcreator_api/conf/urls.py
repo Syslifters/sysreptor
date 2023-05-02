@@ -8,10 +8,10 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
 from reportcreator_api.api_utils.views import SpellcheckWordView, UtilsViewSet, SpellcheckView, HealthcheckView
-from reportcreator_api.pentests.views import FindingTemplateViewSet, PentestFindingViewSet, PentestProjectViewSet, ProjectNotebookPageViewSet, \
+from reportcreator_api.pentests.views import ArchivedProjectKeyPartViewSet, ArchivedProjectViewSet, FindingTemplateViewSet, PentestFindingViewSet, PentestProjectViewSet, ProjectNotebookPageViewSet, \
     PentestProjectPreviewView, PentestProjectGenerateView, \
     ProjectTypeViewSet, ProjectTypePreviewView, \
-    ReportSectionViewSet, UploadedAssetViewSet, UploadedImageViewSet, UploadedProjectFileViewSet, UploadedUserNotebookImageViewSet, UserNotebookPageViewSet
+    ReportSectionViewSet, UploadedAssetViewSet, UploadedImageViewSet, UploadedProjectFileViewSet, UploadedUserNotebookImageViewSet, UserNotebookPageViewSet, UserPublicKeyViewSet
 from reportcreator_api.users.views import PentestUserViewSet, MFAMethodViewSet, AuthViewSet, AuthIdentityViewSet
 from reportcreator_api.notifications.views import NotificationViewSet
 
@@ -22,6 +22,7 @@ router.register('pentestusers/self/notes/images', UploadedUserNotebookImageViewS
 router.register('pentestusers/self/notes', UserNotebookPageViewSet, basename='usernotebookpage')
 router.register('projecttypes', ProjectTypeViewSet, basename='projecttype')
 router.register('pentestprojects', PentestProjectViewSet, basename='pentestproject')
+router.register('archivedprojects', ArchivedProjectViewSet, basename='archivedproject')
 router.register('findingtemplates', FindingTemplateViewSet, basename='findingtemplate')
 router.register('utils', UtilsViewSet, basename='utils')
 router.register('auth', AuthViewSet, basename='auth')
@@ -30,6 +31,7 @@ user_router = NestedSimpleRouter(router, 'pentestusers', lookup='pentestuser')
 user_router.register('mfa', MFAMethodViewSet, basename='mfamethod')
 user_router.register('identities', AuthIdentityViewSet, basename='authidentity')
 user_router.register('notifications', NotificationViewSet, basename='notification')
+user_router.register('publickeys', UserPublicKeyViewSet, basename='userpublickey')
 
 project_router = NestedSimpleRouter(router, 'pentestprojects', lookup='project')
 project_router.register('sections', ReportSectionViewSet, basename='section')
@@ -41,10 +43,14 @@ project_router.register('files', UploadedProjectFileViewSet, basename='uploadedp
 projecttype_router = NestedSimpleRouter(router, 'projecttypes', lookup='projecttype')
 projecttype_router.register('assets', UploadedAssetViewSet, basename='uploadedasset')
 
+archivedproject_router = NestedSimpleRouter(router, 'archivedprojects', lookup='archivedproject')
+archivedproject_router.register('keyparts', ArchivedProjectKeyPartViewSet, basename='archivedprojectkeypart')
+
 # Make trailing slash in URL optional to support loading images and assets by fielname
 router.trailing_slash = '/?'
 project_router.trailing_slash = '/?'
 projecttype_router.trailing_slash = '/?'
+archivedproject_router.trailing_slash = '/?'
 
 
 urlpatterns = [
@@ -56,6 +62,7 @@ urlpatterns = [
         path('', include(user_router.urls)),
         path('', include(project_router.urls)),
         path('', include(projecttype_router.urls)),
+        path('', include(archivedproject_router.urls)),
 
         # Async views
         path('utils/spellcheck/', SpellcheckView.as_view(), name='utils-spellcheck'),

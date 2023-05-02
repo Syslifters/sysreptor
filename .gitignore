@@ -1,0 +1,5 @@
+.idea
+app.env
+**/app.env
+.DS_Store
+.scannerwork

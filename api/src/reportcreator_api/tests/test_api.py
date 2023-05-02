@@ -8,7 +8,7 @@ from rest_framework.test import APIClient
 from reportcreator_api.users.models import AuthIdentity
 from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, ProjectTypeScope, SourceEnum, UploadedUserNotebookImage
 from reportcreator_api.notifications.models import NotificationSpec
-from reportcreator_api.tests.mock import create_user, create_project, create_project_type, create_template, create_png_file
+from reportcreator_api.tests.mock import create_archived_project, create_user, create_project, create_project_type, create_template, create_png_file
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates
 
 
@@ -161,6 +161,7 @@ def guest_urls():
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': 'self'}))),
         ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': 'self'}))),
         *viewset_urls('notification', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.notifications.first().id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
+        *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.public_keys.first().id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
 
         *viewset_urls('usernotebookpage', get_kwargs=lambda s, detail: {'note_id': s.current_user.notes.first().note_id if s.current_user else 'fake-uuid'} if detail else {}, list=True, retrieve=True, create=True, update=True, update_partial=True, destroy=True, lock=True, unlock=True),
         ('usernotebookpage sort', lambda s, c: c.post(reverse('usernotebookpage-sort'), data=[])),
@@ -177,6 +178,10 @@ def guest_urls():
 
         *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True, write=True, destory=False, update=False),
         *project_viewset_urls(get_obj=lambda s: s.project_readonly, read=True),
+
+        *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, list=True, retrieve=True),
+        *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project.pk} | ({'pk': s.archived_project.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
+        ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project.pk, 'pk': getattr(s.archived_project.key_parts.filter(user=s.current_user).first(), 'pk', 'fake-uuid')}))),
     ]
 
 
@@ -187,6 +192,9 @@ def regular_user_urls():
         *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, destory=True),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project.pk}), data={'readonly': True})),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project_readonly.pk}), data={'readonly': False})),
+
+        ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly.pk}))),
+        ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly.pk}))),
     ]
 
 
@@ -210,6 +218,8 @@ def user_manager_urls():
         ('pentestuser reset-password', lambda s, c: c.post(reverse('pentestuser-reset-password', kwargs={'pk': s.user_other.pk}), data={'password': 'D40C4dEyH9Naam6!'})),
         *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.mfa_methods.get(is_primary=True).pk} if detail else {}), list=True, retrieve=True, destroy=True),
         *viewset_urls('authidentity', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.auth_identities.first().pk} if detail else {}), list=True, retrieve=True, create=True, create_data={'identifier': 'other.identifier'}, update=True, update_partial=True, destroy=True),
+        *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), list=True, retrieve=True),
+        ('utils-license', lambda s, c: c.get(reverse('utils-license'))),
     ]
 
 
@@ -225,6 +235,11 @@ def superuser_urls():
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized_unauthorized, read=True, write=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private_unauthorized, read=True, write=True),
 
+        ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly_unauthorized.pk}))),
+        ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly_unauthorized.pk}))),
+        *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project_unauthorized.pk} if detail else {}, retrieve=True),
+        *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project_unauthorized.pk} | ({'pk': s.archived_project_unauthorized.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
+        ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project_unauthorized.pk, 'pk': s.archived_project_unauthorized.key_parts.first().pk}))),
     ]
     
 
@@ -234,6 +249,8 @@ def forbidden_urls():
         ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
+        *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), update=True, update_partial=True, destroy=True),
+        ('userpublickey register begin', lambda s, c: c.post(reverse('userpublickey-register-begin', kwargs={'pentestuser_pk': s.user_other.pk}), data={'name': 'new', 'public_key': s.user_other.public_keys.first().public_key})),
     ]
 
 
@@ -276,12 +293,12 @@ def build_test_parameters():
 class TestApiRequestsAndPermissions:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.user_guest = create_user(username='guest', is_guest=True, mfa=True)
-        self.user_regular = create_user(username='regular', mfa=True)
-        self.user_template_editor = create_user(username='template_editor', is_template_editor=True, mfa=True)
-        self.user_designer = create_user(username='designer', is_designer=True, mfa=True)
-        self.user_user_manager = create_user(username='user_manager', is_user_manager=True, mfa=True)
-        self.user_superuser = create_user(username='superuser', is_superuser=True, is_staff=True, mfa=True)
+        self.user_guest = create_user(username='guest', is_guest=True, mfa=True, public_key=True)
+        self.user_regular = create_user(username='regular', mfa=True, public_key=True)
+        self.user_template_editor = create_user(username='template_editor', is_template_editor=True, mfa=True, public_key=True)
+        self.user_designer = create_user(username='designer', is_designer=True, mfa=True, public_key=True)
+        self.user_user_manager = create_user(username='user_manager', is_user_manager=True, mfa=True, public_key=True)
+        self.user_superuser = create_user(username='superuser', is_superuser=True, is_staff=True, mfa=True, public_key=True)
         self.user_superuser.admin_permissions_enabled = True
         self.user_map = {
             'guest': self.user_guest,
@@ -292,7 +309,7 @@ class TestApiRequestsAndPermissions:
             'superuser': self.user_superuser,
         }
 
-        self.user_other = create_user(username='other', mfa=True)
+        self.user_other = create_user(username='other', mfa=True, public_key=True)
         AuthIdentity.objects.create(user=self.user_other, provider='dummy', identifier='other.user@example.com')
         NotificationSpec.objects.create(text='Test')
 
@@ -300,7 +317,11 @@ class TestApiRequestsAndPermissions:
     
         self.project = create_project(members=self.user_map.values())
         self.project_readonly = create_project(members=self.user_map.values(), readonly=True)
-        self.project_unauthorized = create_project()
+        self.project_unauthorized = create_project(members=[self.user_other])
+        self.project_readonly_unauthorized = create_project(members=[self.user_other], readonly=True)
+
+        self.archived_project = create_archived_project(project=self.project_readonly)
+        self.archived_project_unauthorized = create_archived_project(project=self.project_unauthorized)
 
         self.project_type = create_project_type()
         self.project_type_customized = create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=self.project)

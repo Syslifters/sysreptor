@@ -265,6 +265,11 @@ class DecryptionStream(io.RawIOBase):
         res = self.auth_tag_buffer[:-self.auth_tag_len]
         del self.auth_tag_buffer[:-self.auth_tag_len]
         return self.cipher.decrypt(res)
+    
+    def readinto(self, buf) -> int:
+        val = self.read(len(buf))
+        buf[:len(val)] = val
+        return len(val)
 
     def tell(self) -> int:
         return self.fileobj.tell() - self.header_len - len(self.auth_tag_buffer)

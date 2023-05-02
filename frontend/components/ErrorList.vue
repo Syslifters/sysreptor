@@ -1,6 +1,15 @@
 <template>
   <div class="pa-4">
     <v-expansion-panels v-if="group" multiple tile hover>
+      <v-expansion-panel v-if="messageGroups.length === 0" class="error-group" readonly>
+        <v-expansion-panel-header hide-actions>
+          <div class="error-header text-body-1">
+            <v-icon color="green" class="mr-2">mdi-checkbox-marked</v-icon>
+            No errors or warnings detected.
+          </div>
+        </v-expansion-panel-header>
+      </v-expansion-panel>
+
       <v-expansion-panel v-for="msgGroup, groupIdx in messageGroups" :key="'group-' + groupIdx" class="error-group">
         <v-expansion-panel-header>
           <div class="error-header text-body-1">

@@ -66,6 +66,12 @@ export default {
       }
     },
   },
+  beforeDestroy() {
+    // Remove notification count from title, because we can no longer update it.
+    // This prevents a wrong notification count in title after the user has logged out.
+    this.$root.$options.head.titleTemplate = this.originalTitleTemplate;
+    this.$meta().refresh();
+  },
   methods: {
     async markAsRead(notification) {
       if (!notification.read) {

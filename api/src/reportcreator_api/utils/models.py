@@ -75,18 +75,6 @@ class BaseModel(ModelDiffMixin, models.Model):
         ordering = ['-created']
 
 
-class Language(models.TextChoices):
-    ENGLISH = 'en-US', 'English'
-    GERMAN = 'de-DE', 'German'
-
-
-class LanguageMixin(models.Model):
-    language = models.CharField(choices=Language.choices, default=Language.GERMAN, max_length=5, db_index=True)
-    
-    class Meta:
-        abstract = True
-
-
 def disable_for_loaddata(signal_handler):
     """
     Decorator that turns off signal handlers when loading fixture data.

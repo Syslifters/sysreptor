@@ -5,6 +5,8 @@ from django.db import models
 from django.utils import timezone
 from django.db.models import signals
 
+from reportcreator_api.utils import license
+
 
 class UserNotificationQuerySet(models.QuerySet):
     def only_permitted(self, user):
@@ -53,14 +55,19 @@ class NotificationSpecManager(models.Manager.from_queryset(NotificationSpecQuery
             return current_version == self.parse_version(version_condition)
 
     def check_instance_conditions(self, notification):
-        if (instance_tags := set(notification.instance_conditions.get('any_tag', []))) and not instance_tags.intersection(settings.INSTANCE_TAGS):
+        current_instance_tags = list(settings.INSTANCE_TAGS)
+        if license.is_professional():
+            current_instance_tags.append('license:professional')
+        elif not license.is_professional() and not license.check_license()['error']:
+            current_instance_tags.append('license:community')
+        if (instance_tags := set(notification.instance_conditions.get('any_tag', []))) and not instance_tags.intersection(current_instance_tags):
             return False
         if (version_condition := notification.instance_conditions.get('version')) and not self.check_version(version_condition):
             return False
         return True
     
     def users_for_notification(self, notification):
-        from reportcreator_api.pentests.models import PentestUser
+        from reportcreator_api.users.models import PentestUser
 
         if notification.active_until and notification.active_until < timezone.now().date():
             return PentestUser.objects.none()

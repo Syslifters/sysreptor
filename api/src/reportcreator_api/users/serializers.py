@@ -12,7 +12,7 @@ from reportcreator_api.utils.utils import omit_items
 class PentestUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = PentestUser
-        fields = ['id', 'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after']
+        fields = ['id', 'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after', 'is_active']
 
 
 class PentestUserDetailSerializer(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'id', 'created', 'updated', 'last_login', 'is_active',
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
             'email', 'phone', 'mobile',
-            'scope', 'is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user',
+            'scope', 'is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user', 'is_global_archiver',
             'is_mfa_enabled', 'can_login_local', 'can_login_oidc',
         ]
         read_only_fields = ['is_system_user']
@@ -43,6 +43,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'is_designer': {'read_only': read_only},
             'is_template_editor': {'read_only': read_only},
             'is_guest': {'read_only': read_only},
+            'is_global_archiver': {'read_only': read_only},
             'username': {'read_only': read_only},
         }
 

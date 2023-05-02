@@ -12,9 +12,9 @@ from django.forms import model_to_dict
 from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import login, logout
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
 from django.utils import timezone
 
+from reportcreator_api.utils import license
 from reportcreator_api.users.models import PentestUser, MFAMethod, AuthIdentity
 from reportcreator_api.users.permissions import UserViewSetPermissions, MFAMethodViewSetPermissons, MFALoginInProgressAuthentication, \
     AuthIdentityViewSetPermissions
@@ -34,8 +34,8 @@ class APIBadRequestError(exceptions.APIException):
     default_code = 'invalid'
 
 
-class PentestUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    permission_classes = [UserViewSetPermissions]
+class PentestUserViewSet(viewsets.ModelViewSet):
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [UserViewSetPermissions]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = ['username', 'email', 'first_name', 'last_name']
     filterset_fields = ['username', 'email']
@@ -79,6 +79,7 @@ class PentestUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixin
     @action(detail=False, url_path='self/admin/enable', methods=['post'])
     def enable_admin_permissions(self, request, *args, **kwargs):
         request.session['admin_permissions_enabled'] = True
+        request.session.cycle_key()
         request.user.admin_permissions_enabled = True
         self.kwargs['pk'] = 'self'
         return self.retrieve(request=request, *args, **kwargs)
@@ -86,6 +87,7 @@ class PentestUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixin
     @action(detail=False, url_path='self/admin/disable', methods=['post'])
     def disable_admin_permissions(self, request, *args, **kwargs):
         request.session.pop('admin_permissions_enabled', False)
+        request.session.cycle_key()
         request.user.admin_permissions_enabled = False
         self.kwargs['pk'] = 'self'
         return self.retrieve(request=request, *args, **kwargs)
@@ -184,7 +186,7 @@ class MFAMethodViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.
 
 class AuthIdentityViewSet(viewsets.ModelViewSet):
     serializer_class = AuthIdentitySerializer
-    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [AuthIdentityViewSetPermissions]
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [AuthIdentityViewSetPermissions, license.ProfessionalLicenseRequired]
     pagination_class = None
 
     @functools.cache
@@ -286,6 +288,11 @@ class AuthViewSet(viewsets.ViewSet):
             raise APIBadRequestError('Login timeout. Please restart login.')
 
     def perform_login(self, request, user, can_reauth=True):
+        if not license.is_professional() and not user.is_superuser:
+            raise license.LicenseError('Only superusers are allowed to login. A Professional licenese is required to enable user roles.')
+        elif not license.is_professional() and user.is_system_user:
+            raise license.LicenseError('System users are disabled. A Professional license is required to use system users.')
+
         request.session.pop('login_state', None)
         first_login = not user.last_login
         is_reauth = bool(request.session.get('authentication_info', {}).get('login_time')) and str(user.id) == request.session.get('_auth_user_id')
@@ -304,7 +311,7 @@ class AuthViewSet(viewsets.ViewSet):
             'first_login': first_login,
         }, status=status.HTTP_200_OK)
 
-    @action(detail=False, url_path='login/oidc/(?P<oidc_provider>[a-zA-Z0-9]+)/begin', methods=['get'], authentication_classes=[])
+    @action(detail=False, url_path='login/oidc/(?P<oidc_provider>[a-zA-Z0-9]+)/begin', methods=['get'], permission_classes=[license.ProfessionalLicenseRequired])
     def login_oidc_begin(self, request, oidc_provider, *args, **kwargs):
         if oidc_provider not in settings.AUTHLIB_OAUTH_CLIENTS:
             raise APIBadRequestError(f'OIDC provider "{oidc_provider}" not supported')
@@ -325,7 +332,7 @@ class AuthViewSet(viewsets.ViewSet):
 
         return oauth.create_client(oidc_provider).authorize_redirect(request, redirect_uri, **redirect_kwargs)
 
-    @action(detail=False, url_path='login/oidc/(?P<oidc_provider>[a-zA-Z0-9]+)/complete', methods=['get'], authentication_classes=[])
+    @action(detail=False, url_path='login/oidc/(?P<oidc_provider>[a-zA-Z0-9]+)/complete', methods=['get'], permission_classes=[license.ProfessionalLicenseRequired])
     def login_oidc_complete(self, request, oidc_provider, *args, **kwargs):
         if not request.session.get('login_state', {}).get('status') == 'oidc-callback-required':
             raise APIBadRequestError('No OIDC login in progress for session')

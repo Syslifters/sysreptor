@@ -1,8 +1,10 @@
 version: '3.9'
+name: sysreptor
 
 services:
   db:
     image: 'postgres:14'
+    container_name: 'sysreptor-db'
     environment:
       POSTGRES_USER: reportcreator
       POSTGRES_PASSWORD: reportcreator
@@ -21,30 +23,14 @@ services:
       retries: 30
     restart: always
     stop_grace_period: 120s
-  languagetool:
-    build: 
-      context: ../languagetool
-    init: true
-    environment:
-      languagetool_dbHost: db
-      languagetool_dbName: reportcreator
-      languagetool_dbUsername: reportcreator
-      languagetool_dbPassword: reportcreator
-    expose:
-      - 8010
-    healthcheck:
-      test: ["CMD", "curl", "-f", "-so", "/dev/null", "http://localhost:8010/v2/languages"]
-      interval: 30s
-      timeout: 30s
-      retries: 5
-      start_period: 10s
-    restart: always
-    depends_on:
-      db: 
-        condition: service_healthy
   app:
     build: 
       context: ../
+      target: api
+      args: 
+        VERSION: ${SYSREPTOR_VERSION}
+    container_name: 'sysreptor-app'
+    init: true
     volumes:
       - type: volume
         source: app-data
@@ -52,14 +38,12 @@ services:
     expose:
       - 8000
     ports:
-      - 8000:8000
+      - "127.0.0.1:8000:8000"
     environment:
-      DATABASE_ENGINE: django.db.backends.postgresql
       DATABASE_HOST: db
       DATABASE_NAME: reportcreator
       DATABASE_USER: reportcreator
       DATABASE_PASSWORD: reportcreator
-      SPELLCHECK_URL: http://languagetool:8010/
     env_file: app.env
     restart: always
     healthcheck:
@@ -71,12 +55,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      languagetool:
-        condition: service_started
         
 
 volumes:
   db-data:
-    name: reportcreator-db-data
+    name: sysreptor-db-data
+    external: true
   app-data:
-    name: reportcreator-app-data
+    name: sysreptor-app-data
+    external: true

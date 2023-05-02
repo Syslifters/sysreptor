@@ -6,7 +6,7 @@
   "dependencies": {
     "remark-parse": "^10.0.1",
     "remark-gfm": "^3.0.1",
-    "remark-stringify": "10.0.2",
+    "remark-stringify": "^10.0.2",
     "remark-rehype": "^10.1.0",
     "rehype-stringify": "^9.0.3",
     "lowlight": "^2.7.0",
@@ -20,7 +20,7 @@
     "@codemirror/view": "~6.9",
     "@codemirror/state": "~6.2",
     "@codemirror/commands": "~6.2",
-    "@codemirror/lint": "~6.1",
+    "@codemirror/lint": "~6.2",
     "@codemirror/language": "~6.6",
     "@codemirror/lang-markdown": "~6.1",
     "@codemirror/lang-html": "~6.4",

@@ -1,5 +1,6 @@
 import io
 import json
+
 import elasticapm
 from django.db import models
 from django.core import checks
@@ -72,6 +73,8 @@ class EncryptedField(models.BinaryField):
         
         if isinstance(self.base_field, models.JSONField):
             value = json.dumps(value, cls=self.base_field.encoder).encode()
+        elif isinstance(self.base_field, models.BinaryField):
+            pass
         else:
             value = self.base_field.get_db_prep_value(value=value, connection=connection, prepared=prepared)
             if isinstance(value, bytes):
@@ -94,7 +97,9 @@ class EncryptedField(models.BinaryField):
 
         if isinstance(value, (bytes, memoryview)):
             with crypto.open(fileobj=io.BytesIO(value), mode='rb') as c:
-                value = crypto.readall(c).decode()
+                value = crypto.readall(c)
+            if not isinstance(self.base_field, models.BinaryField):
+                value = value.decode()
         if hasattr(self.base_field, 'from_db_value'):
             value = self.base_field.from_db_value(value=value, expression=expression, connection=connection)
         return self.base_field.to_python(value)

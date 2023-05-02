@@ -29,6 +29,7 @@
             required
           />
 
+          <slot name="message" />
           <p v-if="errorMessage" class="red--text">
             {{ errorMessage }}
           </p>
@@ -79,6 +80,7 @@
             />
           </template>
 
+          <slot name="message" />
           <p v-if="errorMessage" class="red--text">
             {{ errorMessage }}
           </p>
@@ -142,7 +144,7 @@ export default {
   computed: {
     mfaMethodChoices() {
       return mfaMethodChoices;
-    }
+    },
   },
   methods: {
     async loginStep(fn) {

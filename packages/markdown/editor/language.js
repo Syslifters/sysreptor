@@ -182,7 +182,6 @@ class MarkdownParser extends Parser {
 
 const htmlLanguage = html({matchClosingTags: false});
 
-// TODO: markdownLanguage.isActiveAt does not work after update
 export const markdownLanguage = new Language(
   markdownLanguageFacet, 
   new MarkdownParser()

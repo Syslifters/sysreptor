@@ -308,7 +308,7 @@ export default {
     },
     async setupWizardRegisterBegin() {
       await this.requestWrapper(async () => {
-        this.setupWizard.data = await this.$axios.$post(`/pentestusers/self/mfa/register/${this.setupWizard.methodType}/begin/`);
+        this.setupWizard.data = await this.$axios.$post(`/pentestusers/self/mfa/register/${this.setupWizard.methodType}/begin/`, {});
         this.setupWizard.step = `complete_${this.setupWizard.methodType}`;
       });
 

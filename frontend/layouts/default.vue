@@ -16,7 +16,7 @@
         </template>
 
         <v-spacer />
-        <s-tooltip v-if="$auth.loggedIn && $auth.user.is_superuser && !$auth.hasScope('admin')" bottom>
+        <s-tooltip v-if="$auth.loggedIn && $auth.user.is_superuser && !$auth.hasScope('admin') && $store.getters['apisettings/is_professional_license']" bottom>
           <template #activator="{ on, attrs }">
             <s-btn to="/users/self/admin/enable/" v-bind="attrs" v-on="on" large dark class="btn-sudo">
               <v-icon>mdi-account-arrow-up</v-icon>

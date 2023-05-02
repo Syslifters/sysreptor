@@ -14,6 +14,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.sessions.base_session import AbstractBaseSession
 from django.utils.translation import gettext_lazy as _
 
+from reportcreator_api.utils import license
 from reportcreator_api.archive.crypto.fields import EncryptedField
 from reportcreator_api.utils.models import BaseModel
 from reportcreator_api.users import querysets
@@ -35,6 +36,7 @@ class PentestUser(BaseModel, AbstractUser):
     is_user_manager = models.BooleanField(default=False, db_index=True)
     is_guest = models.BooleanField(default=False, db_index=True)
     is_system_user = models.BooleanField(default=False, db_index=True)
+    is_global_archiver = models.BooleanField(default=False, db_index=True)
 
     REQUIRED_FIELDS = []
 
@@ -67,7 +69,8 @@ class PentestUser(BaseModel, AbstractUser):
     
     @property
     def is_admin(self):
-        return self.is_active and self.is_superuser and getattr(self, 'admin_permissions_enabled', False)
+        return self.is_active and self.is_superuser and \
+            getattr(self, 'admin_permissions_enabled', False) if license.is_professional() else True
 
 
 class AuthIdentity(BaseModel):
@@ -145,7 +148,7 @@ class MFAMethod(BaseModel):
 
         def verify_origin(origin):
             if not settings.MFA_FIDO2_RP_ID:
-                raise ValueError('The setting MFA_FIDO2_RP_ID is not configured. Set it the server origin where you access your instance e.g. "sysreptor.example.com"')
+                raise ValueError('The setting MFA_FIDO2_RP_ID is not configured. Set it to your hostname that you use to access your installation e.g. "sysreptor.example.com"')
 
             # Do not require HTTPS for localhost
             url = urlparse(origin)

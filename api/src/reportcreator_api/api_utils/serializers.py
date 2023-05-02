@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 from django.conf import settings
 from rest_framework import serializers, exceptions
 
-from reportcreator_api.utils.models import Language
+from reportcreator_api.pentests.models import Language
 
 
 log = logging.getLogger(__name__)

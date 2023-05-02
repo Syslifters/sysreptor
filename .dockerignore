@@ -4,6 +4,7 @@
 .git/
 .gitignore
 .gitlab-ci-yml
+.gitkeep
 
 .env*
 **/.env*
@@ -24,7 +25,5 @@ docker-compose.yml
 
 node_modules/
 **/node_modules/
-dist/
-**/dist/
 
 api/data

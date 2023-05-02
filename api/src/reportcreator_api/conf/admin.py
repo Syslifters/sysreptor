@@ -8,5 +8,5 @@ class AdminConfig(AdminConfigBase):
 
 class AdminSite(AdminSiteBase):
     def has_permission(self, request):
-        return request.user.is_admin
+        return request.user and not request.user.is_anonymous and request.user.is_admin
 

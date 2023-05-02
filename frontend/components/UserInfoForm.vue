@@ -107,35 +107,43 @@
           label="Template Editor"
           hint="Template Editors are allowed to create and edit finding templates."
           :error-messages="errors?.is_template_editor"
-          :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
+          :disabled="!canEditGeneralPermissions"
         />
         <s-checkbox 
           :value="user.is_designer" @change="updateField('is_designer', $event)" 
           label="Designer"
           hint="Designers can create and edit report designs. Users without this permission can create and edit private designs."
           :error-messages="errors?.is_designer"
-          :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
+          :disabled="!canEditGeneralPermissions"
         />
         <s-checkbox
           :value="user.is_user_manager" @change="updateField('is_user_manager', $event)" 
           label="User Manager"
           hint="User Managers can create and update other users, assign permissions and reset passwords (except superusers)."
           :error-messages="errors?.is_user_manager"
-          :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
+          :disabled="!canEditGeneralPermissions"
         />
         <s-checkbox 
           :value="user.is_superuser" @change="updateField('is_superuser', $event)" 
           label="Superuser" 
           hint="Superusers have the highest privileges available. They have all permissions without explicitly assigning them."
           :error-messages="errors?.is_superuser"
-          :disabled="!canEdit || !canEditPermissions || !hasAdminPermissions"
+          :disabled="!canEditSuperuserPermissions"
         />
         <s-checkbox
           :value="user.is_guest" @change="updateField('is_guest', $event)" 
           label="Guest"
           hint="Guest are not allowed to list other users and might be further restricted by your system operator."
           :error-messages="errors?.is_guest"
-          :disabled="!canEdit || !canEditPermissions || !hasUserManagerPermissions"
+          :disabled="!canEditGeneralPermissions"
+        />
+        <s-checkbox 
+          v-if="archivingEnabled"
+          :value="user.is_global_archiver" @change="updateField('is_global_archiver', $event)"
+          label="Global Archiver"
+          hint="Global Archivers will be added to archives when archiving projects (besides project members) and are able to restore these projects. They need to have archiving public keys configured for this permission take effect."
+          :error-messages="errors?.is_global_archiver"
+          :disabled="!canEditGeneralPermissions"
         />
         <s-checkbox
           v-if="user.is_system_user"
@@ -180,14 +188,17 @@ export default {
     user() {
       return this.value;
     },
-    hasAdminPermissions() {
-      return this.$auth.hasScope('admin');
-    },
-    hasUserManagerPermissions() {
-      return this.$auth.hasScope('user_manager');
-    },
     canEdit() {
-      return (this.hasUserManagerPermissions && !this.user.is_system_user) || this.user.id === this.$auth.user.id;
+      return (this.$auth.hasScope('user_manager') && !this.user.is_system_user) || this.user.id === this.$auth.user.id;
+    },
+    canEditGeneralPermissions() {
+      return this.canEdit && this.canEditPermissions && this.$auth.hasScope('user_manager');
+    },
+    canEditSuperuserPermissions() {
+      return this.canEdit && this.canEditPermissions && this.$auth.hasScope('admin');
+    },
+    archivingEnabled() {
+      return this.$store.getters['apisettings/settings'].features.archiving;
     },
   },
   methods: {

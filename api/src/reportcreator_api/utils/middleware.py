@@ -1,24 +1,32 @@
 from datetime import timedelta
+from urllib.parse import urlparse
 from django.conf import settings
 from django.utils import timezone, cache, deprecation
 from django.middleware.csrf import CsrfViewMiddleware
 from whitenoise.middleware import WhiteNoiseMiddleware
 
 
-class DisabledCsrfMiddleware(CsrfViewMiddleware):
-    """
-    Disable CSRF checks for DRF.
-    CSRF is not possible because this application uses SameSite=strict for the sessionid cookie.
-    """
+class CustomCsrfMiddleware(CsrfViewMiddleware):
+    def process_view(self, request, *args, **kwargs):
+        # Skip CSRF checks for requests that cannot be sent cross-origin without a preflight request
+        if request.content_type not in ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain', ''] or \
+           request.method != 'POST':
+            return None
 
-    def process_request(self, request) -> None:
-        pass
+        return super().process_view(request, *args, **kwargs)
+    
+    def _origin_verified(self, request):
+        if super()._origin_verified(request):
+            return True
+        
+        try:
+            parsed_origin = urlparse(request.META["HTTP_ORIGIN"])
+        except ValueError:
+            return False
+        
+        # Allow skipping origin checks
+        return parsed_origin.scheme + '://*' in settings.CSRF_TRUSTED_ORIGINS
 
-    def process_view(self, *args, **kwargs):
-        pass
-
-    def process_response(self, request, response):
-        return response
 
 
 class ExtendSessionMiddleware(deprecation.MiddlewareMixin):

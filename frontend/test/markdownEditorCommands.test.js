@@ -3,7 +3,7 @@ import { EditorView } from '@codemirror/view';
 import { markdown } from 'reportcreator-markdown/editor/language.js';
 import { syntaxHighlighting } from '@codemirror/language';
 import { markdownHighlightStyle, markdownHighlightCodeBlocks } from 'reportcreator-markdown/editor/highlight.js';
-import { toggleStrong, toggleEmphasis, toggleStrikethrough, toggleListUnordered, toggleListOrdered, toggleLink, insertCodeBlock, insertTable } from 'reportcreator-markdown/editor/commands.js';
+import { toggleStrong, toggleEmphasis, toggleStrikethrough, toggleListUnordered, toggleListOrdered, toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup } from 'reportcreator-markdown/editor/commands.js';
 
 function createEditorState(textWithSelection, cursorMarker = '|') {
   const parts = textWithSelection.split(cursorMarker);
@@ -120,4 +120,47 @@ describe('insertCodeBlock', () => {
 
 describe('insertTable', () => {
   testCommand(insertTable, 'a\n§\nb', 'a\n§\n| Column1 | Column2 | Column3 |\n| ------- | ------- | ------- |\n| Text    | Text    | Text    |\n\n\nb', '§');
+});
+
+describe('insertNewlineContinueMarkup', () => {
+  for (const [before, after] of Object.entries({
+    // unordered list
+    '* list|': '* list\n* |',
+    '* list\n* |': '* list\n|',
+    '* list\n  * sublist|': '* list\n  * sublist\n  * |',
+    '* list\n  * sublist\n  * |': '* list\n  * sublist\n* |',
+
+    // task list
+    '* [ ] list|': '* [ ] list\n* [ ] |',
+    '* [ ] list\n* [ ] |': '* [ ] list\n|',
+    '* [ ] list\n  * [ ] sublist|': '* [ ] list\n  * [ ] sublist\n  * [ ] |',
+    '* [ ] list\n  * [ ] sublist\n  * [ ] |': '* [ ] list\n  * [ ] sublist\n* [ ] |',
+
+    // ordered list
+    '1. list|': '1. list\n2. |',
+    '1. list\n2. |': '1. list\n|',
+    '1. list\n    1. sublist|': '1. list\n    1. sublist\n    2. |',
+    '1. list\n    1. sublist\n    2. |': '1. list\n    1. sublist\n2. |',
+
+    // mixed list types in sublists
+    '* list\n  1. sublist|': '* list\n  1. sublist\n  2. |',
+    '* list\n  1. sublist\n  2. |': '* list\n  1. sublist\n* |',
+    '* list\n  * [ ] sublist|': '* list\n  * [ ] sublist\n  * [ ] |',
+    '* list\n  * [ ] sublist\n  * [ ] |': '* list\n  * [ ] sublist\n* |',
+    '1. list\n    * sublist|': '1. list\n    * sublist\n    * |',
+    '1. list\n    * sublist\n    * |': '1. list\n    * sublist\n2. |',
+    '1. list\n    * [ ] sublist|': '1. list\n    * [ ] sublist\n    * [ ] |',
+    '1. list\n    * [ ] sublist\n    * [ ] |': '1. list\n    * [ ] sublist\n2. |',
+    '* [ ] list\n  * sublist|': '* [ ] list\n  * sublist\n  * |',
+    '* [ ] list\n  * sublist\n  * |': '* [ ] list\n  * sublist\n* [ ] |',
+    '* [ ] list\n  1. sublist|': '* [ ] list\n  1. sublist\n  2. |',
+    '* [ ] list\n  1. sublist\n  2. |': '* [ ] list\n  1. sublist\n* [ ] |',
+
+    // blockquote
+    '> quote|': '> quote\n> |',
+    '> quote\n> |': '> quote\n>\n> |',
+    '> quote\n> \n> |': '> quote\n\n|',
+  })) {
+    testCommand(insertNewlineContinueMarkup, before, after);
+  }
 });

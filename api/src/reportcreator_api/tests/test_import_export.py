@@ -146,6 +146,15 @@ class TestImportExport:
             'email', 'phone', 'mobile',
             'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
         ])
+
+        # Test re-create user: at re-import the original user should be referenced
+        archive2 = archive_to_file(export_projects([p]))
+        self.user.id = old_user_id
+        self.user.save()
+        p2 = import_projects(archive2)[0]
+        assert p2.members.count() == 1
+        assert len(p2.imported_members) == 0
+        members_equal(p2.members, self.project.members)
     
     def test_import_nonexistent_template_reference(self):
         archive = archive_to_file(export_projects([self.project]))

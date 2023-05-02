@@ -166,6 +166,7 @@
           :lang="lang"
           auto-grow
           hide-details="auto"
+          spellcheck="false"
           outlined 
         />
       </template>

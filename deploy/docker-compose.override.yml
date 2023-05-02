@@ -1,0 +1,32 @@
+version: '3.9'
+name: sysreptor
+
+services:
+  app:
+    environment:
+      SPELLCHECK_URL: http://languagetool:8010/
+    depends_on:
+      languagetool:
+        condition: service_started
+  languagetool:
+    build: 
+      context: ../languagetool
+    container_name: 'sysreptor-languagetool'
+    init: true
+    environment:
+      languagetool_dbHost: db
+      languagetool_dbName: reportcreator
+      languagetool_dbUsername: reportcreator
+      languagetool_dbPassword: reportcreator
+    expose:
+      - 8010
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-so", "/dev/null", "http://localhost:8010/v2/languages"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+    restart: always
+    depends_on:
+      db: 
+        condition: service_healthy

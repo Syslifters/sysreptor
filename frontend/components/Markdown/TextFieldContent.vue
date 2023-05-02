@@ -44,7 +44,8 @@ export default {
       return this.value || '';
     },
     spellcheckEnabled() {
-      return this.lang !== null && !this.disabled && this.spellcheckSupported && this.$store.state.settings.spellcheckEnabled;
+      return this.lang !== null && !this.disabled && this.spellcheckSupported && 
+        this.$store.state.settings.spellcheckEnabled && this.$store.getters['apisettings/settings'].features.spellcheck;
     },
   },
   watch: {

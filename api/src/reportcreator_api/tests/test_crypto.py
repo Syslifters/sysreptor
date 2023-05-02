@@ -1,6 +1,7 @@
 import base64
 import io
 import json
+import random
 import sys
 import zipfile
 import pytest
@@ -12,16 +13,19 @@ from django.forms import model_to_dict
 from django.test import override_settings
 from django.urls import reverse
 from django.http import StreamingHttpResponse
+from django.conf import settings
 from django.core import serializers
 from django.core import management
-from django.core.files.storage import FileSystemStorage
-from rest_framework.test import APIClient
+from django.core.files.storage import storages, FileSystemStorage
 
 from reportcreator_api.archive import crypto
+from reportcreator_api.archive.crypto import pgp
 from reportcreator_api.notifications.models import NotificationSpec
-from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage
+from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, \
+    UploadedAsset, UploadedImage, UploadedProjectFile, \
+    ArchivedProject, ArchivedProjectKeyPart, UserPublicKey
 from reportcreator_api.management.commands import encryptdata
-from reportcreator_api.tests.mock import create_project, create_template, create_user, create_project_type
+from reportcreator_api.tests.mock import api_client, create_archived_project, create_project, create_public_key, create_template, create_user, create_project_type
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.storages import EncryptedFileSystemStorage
 
@@ -286,13 +290,21 @@ class TestEncryptDataCommand:
             ENCRYPTION_KEYS={},
             DEFAULT_ENCRYPTION_KEY_ID=None,
             ENCRYPTION_PLAINTEXT_FALLBACK=True,
+            STORAGES=settings.STORAGES | {
+                'uploaded_images': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': '/tmp/uploadedimages'}},
+                'uploaded_assets': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': '/tmp/uploadedassets'}},
+                'uploaded_files': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': '/tmp/uploadedfiles'}},
+            }
         ):
+            UploadedImage.file.field.storage = storages['uploaded_images']
+            UploadedAsset.file.field.storage = storages['uploaded_assets']
+            UploadedProjectFile.file.field.storage = storages['uploaded_files']
             self.project = create_project()
             yield
     
     @override_settings(
         ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},
-        DEFAULT_ENCRYPTION_KEY_ID='test-key'
+        DEFAULT_ENCRYPTION_KEY_ID='test-key',
     )
     def test_command(self):
         management.call_command(encryptdata.Command())
@@ -302,6 +314,9 @@ class TestEncryptDataCommand:
         for i in p.get().images.all():
             assert_db_field_encrypted(UploadedImage.objects.filter(id=i.id).values('name'), True)
             assert_storage_file_encrypted(i.file, True)
+        for f in p.get().files.all():
+            assert_db_field_encrypted(UploadedProjectFile.objects.filter(id=f.id).values('name'), True)
+            assert_storage_file_encrypted(f.file, True)
         
         pt = ProjectType.objects.filter(id=self.project.project_type.id)
         assert_db_field_encrypted(pt.values('report_template'), True)
@@ -330,6 +345,7 @@ class TestBackup:
             self.project = create_project()
             self.project_type = create_project_type()
             self.template = create_template()
+            self.archived_project = create_archived_project()
             self.notification = NotificationSpec.objects.create(title='test', text='test')
             
             yield
@@ -340,10 +356,10 @@ class TestBackup:
         assert model_to_dict(data.object) == model_to_dict(obj)
         return data
     
-    def assert_backup_file(self, backup, z, dir, obj):
+    def assert_backup_file(self, backup, z, dir, obj, stored_encrypted=False):
         self.assert_backup_obj(backup, obj)
         bak_img = z.read(f'{dir}/{obj.file.name}')
-        assert not bak_img.startswith(crypto.MAGIC)
+        assert bak_img.startswith(crypto.MAGIC) == stored_encrypted
         assert bak_img == obj.file.open('rb').read()
 
     def assert_backup(self, content):
@@ -361,6 +377,7 @@ class TestBackup:
             self.assert_backup_obj(backup, self.template)
             self.assert_backup_obj(backup, self.user.notes.first())
             self.assert_backup_obj(backup, self.user.mfa_methods.first())
+            self.assert_backup_obj(backup, self.archived_project)
             self.assert_backup_obj(backup, self.notification)
             self.assert_backup_obj(backup, self.user.notifications.first())
 
@@ -368,15 +385,14 @@ class TestBackup:
             self.assert_backup_file(backup, z, 'uploadedimages', self.user.images.all().first())
             self.assert_backup_file(backup, z, 'uploadedassets', self.project_type.assets.all().first())
             self.assert_backup_file(backup, z, 'uploadedfiles', self.project.files.first())
+            self.assert_backup_file(backup, z, 'archivedfiles', self.archived_project, stored_encrypted=True)
 
     def backup_request(self, user=None, backup_key=None, aes_key=None):
         if not user:
             user = self.user_system
         if not backup_key:
             backup_key = self.backup_key
-        client = APIClient()
-        client.force_authenticate(user)
-        return client.post(reverse('utils-backup'), data={'key': backup_key, 'aes_key': base64.b64encode(aes_key).decode() if aes_key else None})
+        return api_client(user).post(reverse('utils-backup'), data={'key': backup_key, 'aes_key': base64.b64encode(aes_key).decode() if aes_key else None})
     
     def test_backup(self):
         # Create backup
@@ -391,10 +407,11 @@ class TestBackup:
         backup = b''.join(self.backup_request().streaming_content)
 
         # Delete data
-        PentestUser.objects.all().delete()
         PentestProject.objects.all().delete()
+        ArchivedProject.objects.all().delete()
         ProjectType.objects.all().delete()
         FindingTemplate.objects.all().delete()
+        PentestUser.objects.all().delete()
         
         # Restore backup
         with zipfile.ZipFile(io.BytesIO(backup), 'r') as z:
@@ -428,3 +445,136 @@ class TestBackup:
             assert c.metadata['key_id'] is None
             z = c.read()
             self.assert_backup(z)
+
+
+@pytest.mark.django_db
+class TestProjectArchivingEncryption:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        with pgp.create_gpg() as self.gpg:
+            yield
+            
+    def create_user_with_private_key(self, **kwargs):
+        user = create_user(public_key=False, **kwargs)
+        master_key = self.gpg.gen_key(self.gpg.gen_key_input(
+            key_type='EdDSA', 
+            key_curve='ed25519', 
+            no_protection=True,
+            subkey_type='ECDH',
+            subkey_curve='nistp384',
+        ))
+        public_key_pem = self.gpg.export_keys(master_key.fingerprint)
+        create_public_key(user=user, public_key=public_key_pem)
+        return user
+    
+    def test_register_public_key(self):
+        user = create_user()
+        client = api_client(user)
+
+        master_key = self.gpg.gen_key(self.gpg.gen_key_input(
+            key_type='EdDSA', 
+            key_curve='ed25519', 
+            no_protection=True,
+            subkey_type='ECDH',
+            subkey_curve='nistp384',
+        ))
+        public_key_pem = self.gpg.export_keys(master_key.fingerprint)
+        res = client.post(reverse('userpublickey-register-begin', kwargs={'pentestuser_pk': 'self'}), data={
+            'name': 'Test Public Key',
+            'public_key': public_key_pem,
+        })
+        assert res.status_code == 200
+        assert res.data['status'] == 'verify-key'
+
+        verification_decrypted = self.gpg.decrypt(res.data['verification'])
+        res = client.post(reverse('userpublickey-register-complete', kwargs={'pentestuser_pk': 'self'}), data={
+            'verification': verification_decrypted.data.decode(),
+        })
+        assert res.status_code == 201
+        user_public_key = UserPublicKey.objects.get(id=res.data['id'])
+        assert user_public_key.public_key == public_key_pem
+    
+    def test_delete_public_key(self):
+        user = create_user(public_key=True)
+        archive = create_archived_project(project=create_project(members=[user], readonly=True))
+        client = api_client(user)
+
+        # public key used in archive
+        res1 = client.delete(reverse('userpublickey-detail', kwargs={'pentestuser_pk': 'self', 'pk': user.public_keys.first().id}))
+        assert res1.status_code == 400
+
+        # public key not used in archived
+        archive.delete()
+        res2 = client.delete(reverse('userpublickey-detail', kwargs={'pentestuser_pk': 'self', 'pk': user.public_keys.first().id}))
+        assert res2.status_code == 204
+
+    @pytest.mark.parametrize(['expected', 'threshold', 'num_users_with_key', 'num_users_without_key'], [
+        (False, 1, 0, 2),  # no users with key
+        (False, 2, 1, 2),  # too few users with key
+        (False, 5, 3, 0),  # threshold too high
+        (True, 2, 3, 1),  
+    ])
+    def test_archiving_validation(self, expected, threshold, num_users_with_key, num_users_without_key):
+        with override_settings(ARCHIVING_THRESHOLD=threshold):
+            users = [create_user(public_key=True) for _ in range(num_users_with_key)] + \
+                    [create_user(public_key=False) for _ in range(num_users_without_key)]
+            project = create_project(members=users, readonly=True)
+            res = api_client(users[0]).post(reverse('pentestproject-archive', kwargs={'pk': project.pk}))
+            assert (res.status_code == 201) == expected
+
+    @override_settings(ARCHIVING_THRESHOLD=2)
+    def test_archiving_dearchiving(self):
+        user_regular = self.create_user_with_private_key()
+        user_archiver1 = self.create_user_with_private_key(is_global_archiver=True)
+        user_archiver2 = self.create_user_with_private_key(is_global_archiver=True)
+        user_without_key = create_user()
+        project = create_project(members=[user_regular, user_archiver1, user_without_key], readonly=True)
+
+        client = api_client(user_regular)
+        res = client.post(reverse('pentestproject-archive', kwargs={'pk': project.pk}))
+        assert res.status_code == 201
+
+        archive = ArchivedProject.objects.get(id=res.data['id'])
+        assert archive.threshold == 2
+        assert archive.name == project.name
+        assert archive.key_parts.count() == 3
+        assert set(archive.key_parts.values_list('user_id', flat=True)) == {user_regular.id, user_archiver1.id, user_archiver2.id}
+        assert not PentestProject.objects.filter(id=project.id).exists()
+
+        # Decrypt first keypart
+        keypart1 = archive.key_parts.get(user=user_regular)
+        keypart_kwargs1 = {'archivedproject_pk': archive.id, 'pk': keypart1.id}
+        res_k1 = client.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs=keypart_kwargs1))
+        assert res_k1.status_code == 200
+        res_d1 = client.post(reverse('archivedprojectkeypart-decrypt', kwargs=keypart_kwargs1), data={
+            'data': self.gpg.decrypt(res_k1.data[0]['encrypted_data']).data.decode()
+        })
+        assert res_d1.status_code == 200
+        assert res_d1.data['status'] == 'key-part-decrypted'
+        keypart1.refresh_from_db()
+        assert keypart1.is_decrypted
+
+        # Decrypt second keypart => restores whole project
+        client2 = api_client(user_archiver2)
+        keypart2 = archive.key_parts.get(user=user_archiver2)
+        keypart_kwargs2 = {'archivedproject_pk': archive.id, 'pk': keypart2.id}
+        res_k2 = client2.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs=keypart_kwargs2))
+        assert res_k2.status_code == 200
+        res_d2 = client2.post(reverse('archivedprojectkeypart-decrypt', kwargs=keypart_kwargs2), data={
+            'data': self.gpg.decrypt(res_k2.data[0]['encrypted_data']).data.decode()
+        })
+        assert res_d2.status_code == 200
+        assert res_d2.data['status'] == 'project-restored'
+        assert not ArchivedProject.objects.filter(id=archive.id).exists()
+
+        project_restored = PentestProject.objects.get(id=res_d2.data['project_id'])
+        assert project_restored.name == project.name
+
+    def test_decrypt_wrong_key(self):
+        user = create_user(public_key=True)
+        archive = create_archived_project(project=create_project(members=[user], readonly=True))
+
+        res = api_client(user).post(reverse('archivedprojectkeypart-decrypt', kwargs={'archivedproject_pk': archive.id, 'pk': archive.key_parts.first().id}), {
+            'data': base64.b64encode(random.randbytes(32)).decode(),
+        })
+        assert res.status_code == 400

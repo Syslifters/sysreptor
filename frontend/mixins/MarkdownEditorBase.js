@@ -5,7 +5,7 @@ import { createEditorExtensionToggler } from 'reportcreator-markdown/editor/util
 import { markdown } from 'reportcreator-markdown/editor/language.js';
 import { spellcheck, spellcheckTheme } from 'reportcreator-markdown/editor/spellcheck.js';
 import 'highlight.js/styles/default.css';
-import { syntaxHighlighting } from '@codemirror/language';
+import { syntaxHighlighting, indentUnit } from '@codemirror/language';
 import { forceLinting, setDiagnostics } from '@codemirror/lint';
 import { markdownHighlightStyle, markdownHighlightCodeBlocks } from 'reportcreator-markdown/editor/highlight.js';
 
@@ -48,7 +48,8 @@ export default {
       return this.$store.state.settings.markdownEditorMode;
     },
     spellcheckEnabled() {
-      return this.lang !== null && !this.disabled && this.$store.state.settings.spellcheckEnabled;
+      return this.lang !== null && !this.disabled && 
+        this.$store.state.settings.spellcheckEnabled && this.$store.getters['apisettings/settings'].features.spellcheck;
     },
   },
   watch: {
@@ -99,8 +100,9 @@ export default {
             lineNumbers(),
             history(),
             EditorState.allowMultipleSelections.of(true),
-            EditorState.tabSize.of(4),
             EditorView.lineWrapping,
+            EditorState.tabSize.of(4),
+            indentUnit.of('    '),
             keymap.of([defaultKeymap, indentWithTab, historyKeymap]),
             markdown(),
             syntaxHighlighting(markdownHighlightStyle),
@@ -179,7 +181,6 @@ export default {
         this.editorView.dispatch({ changes: { from: pos, insert: mdFileText } });
       } finally {
         this.fileUploadInProgress = false;
-        this.$refs.fileInput.value = null;
       }
     },
     async performSpellcheckRequest(data) {

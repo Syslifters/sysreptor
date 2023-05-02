@@ -79,7 +79,11 @@ export default {
         imgCacheEntry.data = `src="${imgData}"`;
       } catch (error) {
         // remove from cache
-        this.imageCache = this.imageCache.filter(e => e !== imgCacheEntry);
+        if (error?.response?.status === 404) {
+          imgCacheEntry.data = '';
+        } else {
+          this.imageCache = this.imageCache.filter(e => e !== imgCacheEntry);
+        }
       }
     },
     rewriteFileSource(imgSrc) {
@@ -120,15 +124,38 @@ export default {
 }
 
 :deep() {
+  p, ul, ol, blockquote, table, .code-block {
+    margin: 0.8em 0 0 0;
+    padding: 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+  
   h1, h2, h3, h4, h5, h6 {
     font-weight: bold;
+    margin: 1em 0 0 0;
+
+    // Remove margin-top if h* is the first element
+    &:first-child { margin-top: 0; }
+    // Remove margin-top of the next element after h*
+    & + * { margin-top: 0; }
+    // But not if the next element is another heading
+    & { margin-top: 1em; }
   }
-  h1 { font-size: 2em; }
+  h1 { font-size: 2em;  }
   h2 { font-size: 1.75em; }
   h3 { font-size: 1.5em; }
   h4 { font-size: 1.25em; }
   h5 { font-size: 1.1em; }
   h6 { font-size: 1em; }
+
+  blockquote {
+    background: #f9f9f9;
+    border-left: 5px solid #ccc;
+    padding: 0.1em 0.5em;
+  }
 
   .code-block {
     white-space: pre-wrap;
@@ -175,9 +202,6 @@ export default {
   }
 
   ul, ol {
-    padding: 0;
-    margin: 0;
-
     li {
       margin-left: 1.5em;
       padding-left: 0;

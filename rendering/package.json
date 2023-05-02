@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "vue": "^3",
-    "chart.js": "^3",
-    "uuid": "^8",
+    "chart.js": "^4",
+    "uuid": "^9",
     "reportcreator-markdown": "../packages/markdown"
   },
   "devDependencies": {

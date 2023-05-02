@@ -2,13 +2,16 @@ import random
 from datetime import datetime, timedelta
 from unittest import mock
 from django.utils import timezone
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from rest_framework.test import APIClient
+from reportcreator_api.archive import crypto
 
+from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
-    ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage
-from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, report_fields_default, report_sections_default
+    ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, Language, UserPublicKey
+from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, report_fields_default, \
+    report_sections_default
+from reportcreator_api.pentests.models.archive import ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
 from reportcreator_api.users.models import PentestUser, MFAMethod
-from reportcreator_api.utils.models import Language
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
@@ -21,7 +24,7 @@ def create_png_file() -> bytes:
            b'IDAT\x08\xd7c`\x00\x00\x00\x02\x00\x01\xe2!\xbc3\x00\x00\x00\x00IEND\xaeB`\x82'
 
 
-def create_user(mfa=False, notes_kwargs=None, images_kwargs=None, **kwargs) -> PentestUser:
+def create_user(mfa=False, public_key=False, notes_kwargs=None, images_kwargs=None, **kwargs) -> PentestUser:
     username = f'user{random.randint(0, 100000)}'
     user = PentestUser.objects.create_user(**{
         'username': username,
@@ -33,6 +36,8 @@ def create_user(mfa=False, notes_kwargs=None, images_kwargs=None, **kwargs) -> P
     if mfa:
         MFAMethod.objects.create_totp(user=user, is_primary=True)
         MFAMethod.objects.create_backup(user=user)
+    if public_key:
+        create_public_key(user=user)
 
     for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}]:
         create_notebookpage(user=user, **note_kwargs)
@@ -172,6 +177,72 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
     return project
 
 
+def create_public_key(**kwargs):
+    dummy_data = {
+        'name': f'Public key #{random.randint(1, 100000)}',
+    }
+    if 'public_key' not in kwargs:
+        dummy_data |= {
+            'public_key': 
+                '-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n' +
+                'mDMEZBryexYJKwYBBAHaRw8BAQdAI2A6jJCXSGP10s2H1duX22saF2lX4CtGzX+H\n' +
+                'xm4nN8W0LEF1dG9nZW5lcmF0ZWQgS2V5IDx1bnNwZWNpZmllZEA3MmNmMGYzYTc4\n' +
+                'NmQ+iJAEExYIADgWIQTC5xEj3lvM80ruTt39spmRS6kHgwUCZBryewIbIwULCQgH\n' +
+                'AgYVCgkICwIEFgIDAQIeAQIXgAAKCRD9spmRS6kHgxspAQDrxnxj2eRaubEX547n\n' +
+                'w+wE1PJohJqLoWERuCz2UuJLRwEA44NZVlPHdkwUXeP7otuOeA0ZCzOQIc+/60Pr\n' +
+                'aeqVEQi4cwRkGvJ7EgUrgQQAIgMDBHlYyMT98UVGIaFUu2p/rkbOGnZ1k5d/KtMx\n' +
+                '8TxqyU1cpdIzTvOVD4ykunTzsWsi60ERcNg6vDuHcDCapHYmvuk/+g49NQFNutRX\n' +
+                'fnNxVj091cH3ioJCgQ1wbYgoW0qfCQMBCQiIeAQYFggAIBYhBMLnESPeW8zzSu5O\n' +
+                '3f2ymZFLqQeDBQJkGvJ7AhsMAAoJEP2ymZFLqQeDrOUBAKnrakgp/dYWsMIHwiAg\n' +
+                'Nq1F1YAX92oNteAVpTRNkwyIAQC68j1ytjpdoEbYlAPfQtKljjDSDONLxmmZWPxP\n' +
+                'Ya8sAg==\n' +
+                '=jbm4\n' +
+                '-----END PGP PUBLIC KEY BLOCK-----\n',
+            'public_key_info': {
+                'cap': 'scaESCA', 
+                'algo': '22', 
+                'type': 'pub', 
+                'curve': 'ed25519', 
+                'subkey_info': {
+                    'C3B01D1054571D18': {
+                        'cap': 'e', 
+                        'algo': '18', 
+                        'type': 'sub', 
+                        'curve': 'nistp384', 
+                    }
+                }
+            }
+        }
+
+    return UserPublicKey.objects.create(**dummy_data | kwargs)
+
+
+def create_archived_project(project=None, **kwargs):
+    name = project.name if project else f'Archive #{random.randint(1, 100000)}'
+    users = [m.user for m in project.members.all()] if project else [create_user(public_key=True)]
+
+    archive = ArchivedProject.objects.create(name=name, threshold=1, file=SimpleUploadedFile('archive.tar.gz', crypto.MAGIC + b'dummy-data'))
+    key_parts = []
+    encrypted_key_parts = []
+    for u in users:
+        key_parts.append(ArchivedProjectKeyPart(archived_project=archive, user=u, encrypted_key_part=b'dummy-data'))
+        for pk in u.public_keys.all():
+            encrypted_key_parts.append(ArchivedProjectPublicKeyEncryptedKeyPart(key_part=key_parts[-1], public_key=pk, encrypted_data='dummy-data'))
+            
+    if not encrypted_key_parts:
+        raise ValueError('No public keys set for users')
+    ArchivedProjectKeyPart.objects.bulk_create(key_parts)
+    ArchivedProjectPublicKeyEncryptedKeyPart.objects.bulk_create(encrypted_key_parts)
+    return archive
+
+
 def mock_time(before=None, after=None):
     return mock.patch('django.utils.timezone.now',
                       lambda: datetime.now(tz=timezone.get_current_timezone()) - (before or timedelta()) + (after or timedelta()))
+
+
+def api_client(user=None):
+    client = APIClient()
+    client.force_authenticate(user)
+    return client
+

@@ -948,6 +948,9 @@ python-dateutil==2.8.2 ; python_version >= "3.10" and python_version < "4.0" \
 python-decouple==3.6 ; python_version >= "3.10" and python_version < "4.0" \
     --hash=sha256:2838cdf77a5cf127d7e8b339ce14c25bceb3af3e674e039d4901ba16359968c7 \
     --hash=sha256:6cf502dc963a5c642ea5ead069847df3d916a6420cad5599185de6bab11d8c2e
+python-gnupg==0.5.0 ; python_version >= "3.10" and python_version < "4.0" \
+    --hash=sha256:345723a03e67b82aba0ea8ae2328b2e4a3906fbe2c18c4082285c3b01068f270 \
+    --hash=sha256:70758e387fc0e0c4badbcb394f61acbe68b34970a8fed7e0f7c89469fe17912a
 pytz==2022.7.1 ; python_version >= "3.10" and python_version < "4.0" \
     --hash=sha256:01a0681c4b9684a28304615eba55d1ab31ae00bf68ec157ec3708a8182dbbcd0 \
     --hash=sha256:78f4f37d8198e0627c5f1143240bb0206b8691d8d7ac6d78fee88b78733f8c4a

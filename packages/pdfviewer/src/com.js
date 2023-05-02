@@ -1,4 +1,4 @@
-import { DefaultExternalServices, PDFViewerApplication } from "pdfjs-dist/lib/web/app";
+import { DefaultExternalServices } from "pdfjs-dist/lib/web/app";
 import { DownloadManager } from "pdfjs-dist/lib/web/download_manager";
 import { GenericScripting } from "pdfjs-dist/lib/web/generic_scripting";
 import { BasePreferences } from "pdfjs-dist/lib/web/preferences";

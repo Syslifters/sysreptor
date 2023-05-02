@@ -38,6 +38,9 @@ class SessionManager(BaseSessionManager, models.Manager.from_queryset(SessionQue
 
 
 class PentestUserQuerySet(models.QuerySet):
+    def only_active(self):
+        return self.filter(is_active=True)
+
     def only_permitted(self, user):
         from reportcreator_api.users.models import PentestUser
         if user.is_guest:
@@ -53,7 +56,22 @@ class PentestUserQuerySet(models.QuerySet):
         from reportcreator_api.users.models import MFAMethod
         return self \
             .annotate(is_mfa_enabled=models.Exists(MFAMethod.objects.filter(user=models.OuterRef('pk'))))
+    
+    def annotate_has_public_keys(self):
+        from reportcreator_api.pentests.models import UserPublicKey
+        return self \
+            .annotate(has_public_keys=models.Exists(UserPublicKey.objects.only_enabled().filter(user=models.OuterRef('pk'))))
+    
+    def only_with_public_keys(self):
+        return self \
+            .annotate_has_public_keys() \
+            .filter(has_public_keys=True)
 
+    def get_licensed_user_count(self):
+        return self \
+            .only_active() \
+            .exclude(is_system_user=True) \
+            .count()
 
 class PentestUserManager(UserManager, models.Manager.from_queryset(PentestUserQuerySet)):
     pass
