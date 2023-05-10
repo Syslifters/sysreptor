@@ -29,7 +29,9 @@
 Happy Hacking! :)  
 
 
-* Playground: [Try it out!](https://cloud.sysreptor.com/demo)
+* Playground: https://cloud.sysreptor.com/demo
+* Ideas? - https://github.com/Syslifters/sysreptor/discussions/categories/ideas
+* Questions? - https://github.com/Syslifters/sysreptor/discussions/categories/q-a
 * Docs: https://docs.sysreptor.com/
 * Features: https://docs.sysreptor.com/features-and-pricing/
 
