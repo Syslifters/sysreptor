@@ -54,7 +54,6 @@ export default {
     renderMarkdown() {
       // Render markdown to HTML
       this.renderedMarkdownRaw = renderMarkdownToHtml(this.value || '', {
-        to: 'html',
         preview: true,
         rewriteFileSource: this.rewriteFileSource,
       });

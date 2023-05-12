@@ -10,6 +10,10 @@ export function addRemarkExtension(self, micromarkExtensions, fromMarkdownExtens
   * @param {unknown} value
   */
   function add(field, value) {
+    if (!value) {
+      return;
+    }
+
     const list = /** @type {unknown[]} */ (
       // Other extensions
       /* c8 ignore next 2 */

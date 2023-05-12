@@ -2,7 +2,7 @@ import { sortBy } from "lodash";
 import { scoreFromVector } from "./cvss";
 
 export function sortFindings(findings) {
-  return sortBy(findings, [f => -scoreFromVector(f.data ? f.data.cvss : f.cvss), f => f.data ? f.data.created : f.id]);
+  return sortBy(findings, [f => -scoreFromVector(f.data ? f.data.cvss : f.cvss), f => f.created, f => f.id]);
 }
 
 export const EditMode = Object.freeze({

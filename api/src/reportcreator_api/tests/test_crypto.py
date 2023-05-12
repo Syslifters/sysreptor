@@ -34,7 +34,7 @@ def assert_db_field_encrypted(query, expected):
     with connection.cursor() as cursor:
         cursor.execute(*query.query.as_sql(compiler=query.query.compiler, connection=connection))
         row = cursor.fetchone()
-    assert row[0].tobytes().startswith(crypto.MAGIC) == expected
+    assert row[0].startswith(crypto.MAGIC) == expected
 
 
 def assert_storage_file_encrypted(file, expected):

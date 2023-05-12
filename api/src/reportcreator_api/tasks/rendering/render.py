@@ -11,9 +11,10 @@ from weasyprint import HTML, CSS, default_url_fetcher
 from weasyprint.text.fonts import FontConfiguration
 from weasyprint.urls import URLFetchingError
 from django.core.serializers.json import DjangoJSONEncoder
-
 from django.conf import settings
+
 from reportcreator_api.utils.logging import log_timing
+from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
 
 
 @contextmanager
@@ -45,8 +46,16 @@ def render_to_html(template: str, data: dict, language: str) -> tuple[Optional[s
         with get_page() as page:
             console_output = []
             page.on('console', lambda l: console_output.append(l))
-            page.on('pageerror', lambda exc: messages.append({'level': 'error', 'message': 'Uncaught error during template rendering', 'details': str(exc)}))
-            page.on('requestfailed', lambda request: messages.append({'level': 'error', 'message': 'Request failed', 'details': f'Request to URL {request.url} failed: {request.failure.error_text}'}))
+            page.on('pageerror', lambda exc: messages.append(ErrorMessage(
+                level=MessageLevel.ERROR, 
+                message='Uncaught error during template rendering', 
+                details=str(exc)
+            )))
+            page.on('requestfailed', lambda request: messages.append(ErrorMessage(
+                level=MessageLevel.ERROR, 
+                message='Request failed', 
+                details=f'Request to URL {request.url} failed: {request.failure.error_text}'
+            )))
             page.set_content(f"""
                 <!DOCTYPE html>
                 <html lang="{html_escape(language)}">
@@ -74,7 +83,8 @@ def render_to_html(template: str, data: dict, language: str) -> tuple[Optional[s
                 msg = {
                     'level': m.type,
                     'message': m.text,
-                    'details': None
+                    'details': None,
+                    'location': None,
                 }
                 if len(m.args) == 2 and (error_data := m.args[1].json_value()) and 'message' in error_data:
                     msg |= {
@@ -82,24 +92,45 @@ def render_to_html(template: str, data: dict, language: str) -> tuple[Optional[s
                         'details': error_data.get('details'),
                     }
                 if msg['level'] in ['error', 'warning', 'info']:
-                    messages.append(msg)
+                    messages.append(ErrorMessage(**msg | {'level': MessageLevel(msg['level'])}))
             
-            if not any(map(lambda m: m['level'] == 'error', messages)):
+            if not any(map(lambda m: m.level == MessageLevel.ERROR, messages)):
                 # Remove script tag from HTML output
                 page.evaluate("""() => document.head.querySelectorAll('script').forEach(s => s.remove())""")
                 # Get rendered HTML
                 html = page.content()
     except Exception as ex:
-        messages.append({
-            'level': 'error',
-            'message': 'Error rendering HTML template',
-            'details': None,
-        })
+        messages.append(ErrorMessage(
+            level=MessageLevel.ERROR,
+            message='Error rendering HTML template',
+        ))
 
     if messages:
         logging.info(f'Chromium messages: {messages}')
 
     return html, messages
+
+
+def get_location_info(content: str, objs: list[dict], type: MessageLocationType, get_name=None) -> Optional[MessageLocationInfo]:
+    def check_field(val, path, **kwargs):
+        if isinstance(val, dict):
+            return check_obj(val, path, **kwargs)
+        elif isinstance(val, list):
+            for idx, item in enumerate(val):
+                if res := check_field(val=item, path=path + [f'[{idx}]'], **kwargs):
+                    return res
+        elif isinstance(val, str):
+            if content in val:
+                return MessageLocationInfo(type=type, **kwargs).for_path(path)
+
+    def check_obj(obj, path, **kwargs):
+        for k, v in obj.items():
+            if res := check_field(val=v, path=path + [k], **kwargs):
+                return res 
+
+    for o in objs:
+        if res := check_field(val=o, path=[], id=o.get('id'), name=get_name(o) if get_name else None):
+            return res
 
 
 def weasyprint_strip_pdf_metadata(doc, pdf):
@@ -108,7 +139,7 @@ def weasyprint_strip_pdf_metadata(doc, pdf):
 
 
 @log_timing
-def render_to_pdf(html_content: str, css_styles: str, resources: dict[str, str]) -> tuple[Optional[bytes], list[dict]]:
+def render_to_pdf(html_content: str, css_styles: str, resources: dict[str, str], data: dict) -> tuple[Optional[bytes], list[dict]]:
     messages = []
 
     def weasyprint_url_fetcher(url, timeout=10, ssl_context=None):
@@ -122,19 +153,22 @@ def render_to_pdf(html_content: str, css_styles: str, resources: dict[str, str])
                 'file_obj': BytesIO(b64decode(resources[url])),
             }
         elif url.startswith('/'):
-            messages.append({
-                'level': 'error',
-                'message': 'Resource not found',
-                'details': f'Could not find resource for URL "{url}". Check if the URL is correct and the resource exists on the server.',
-            })
+            messages.append(ErrorMessage(
+                level=MessageLevel.ERROR,
+                message='Resource not found',
+                details=f'Could not find resource for URL "{url}". Check if the URL is correct and the resource exists on the server.',
+                location=get_location_info(content=url, objs=data.get('findings', []), type=MessageLocationType.FINDING, get_name=lambda f: f.get('title')) or
+                         get_location_info(content=url, objs=data.get('sections', {}).values(), type=MessageLocationType.SECTION, get_name=lambda s: s.get('label')) or 
+                         None,
+            ))
             raise URLFetchingError('Resource not found')
         else:
             # block all external requests
-            messages.append({
-                'level': 'error',
-                'message': 'Blocked request to external URL',
-                'details': f'Block request to URL "{url}". Requests to external systems are forbidden for security reasons.\nUpload this resource as assset and include it via its asset URL.',
-            })
+            messages.append(ErrorMessage(
+                level=MessageLevel.ERROR,
+                message='Blocked request to external URL',
+                details=f'Block request to URL "{url}". Requests to external systems are forbidden for security reasons.\nUpload this resource as assset and include it via its asset URL.',
+            ))
             raise URLFetchingError('External requests not allowed')
 
     font_config = FontConfiguration()
@@ -143,8 +177,9 @@ def render_to_pdf(html_content: str, css_styles: str, resources: dict[str, str])
     rendered = html.render(stylesheets=[css], font_config=font_config, optimize_size=[], presentational_hints=True)
 
     res = None
-    if not any(map(lambda m: m['level'] == 'error', messages)):
+    if not any(map(lambda m: m.level == MessageLevel.ERROR, messages)):
         res = rendered.write_pdf(finisher=weasyprint_strip_pdf_metadata)
+    logging.warning(str(messages))
     return res, messages
 
 
@@ -164,14 +199,14 @@ def encrypt_pdf(pdf_data: bytes, password: Optional[str]) -> bytes:
         return out.getvalue()
 
 
-def render_pdf(template: str, styles: str, data: dict, resources: dict, language: str, password: Optional[str] = None) -> tuple[Optional[bytes], list[dict]]:
+def render_pdf(template: str, styles: str, data: dict, resources: dict, language: str, password: Optional[str] = None) -> tuple[Optional[bytes], list[ErrorMessage]]:
     msgs = []
     html, html_msgs = render_to_html(
         template=template,
         data=data,
         language=language,
     )
-    msgs += html_msgs
+    msgs += [m.to_dict() for m in html_msgs]
     if html is None:
         return None, msgs
     
@@ -179,8 +214,9 @@ def render_pdf(template: str, styles: str, data: dict, resources: dict, language
         html_content=html,
         css_styles=styles,
         resources=resources,
+        data=data
     )
-    msgs += pdf_msgs
+    msgs += [m.to_dict() for m in pdf_msgs]
     if pdf is None:
         return None, msgs
 

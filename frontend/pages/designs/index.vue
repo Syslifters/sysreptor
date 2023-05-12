@@ -6,7 +6,7 @@
     </s-sub-menu>
 
     <list-view url="/projecttypes/?scope=global&ordering=name">
-      <template #title>Report Designs</template>
+      <template #title>Global Designs</template>
       <template #actions v-if="$auth.hasScope('designer')">
         <create-design-dialog project-type-scope="global" />
         <btn-import :import="performImport" />

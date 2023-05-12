@@ -126,6 +126,7 @@ class TestImportExport:
         archive = archive_to_file(export_projects([self.project]))
         old_user_id = self.user.id
         old_user_roles = self.project.members.all()[0].roles
+        self.project.members.all().delete()
         self.user.delete()
         p = import_projects(archive)[0]
 

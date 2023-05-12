@@ -9,7 +9,7 @@ function codeBlock(content, language = null) {
 }
 
 describe('Markdown extensions', () => {
-  for (const [md, html] of Object.entries({
+  for (const [md, expected] of Object.entries({
     // Footnote
     'text^[footnote] text': '<p>text<footnote>footnote</footnote> text</p>',
     'text^[**foot**[note](#ref)] text': '<p>text<footnote><strong>foot</strong><a href="#ref">note</a></footnote> text</p>',
@@ -47,11 +47,17 @@ describe('Markdown extensions', () => {
     '```python highlight-manual\npr§<mark><strong>BEGIN</strong><em>§int("hel§</em><strong>END</strong></mark>§lo world")\n```': codeBlock('<span class="hljs-built_in">pr</span><mark><strong>BEGIN</strong><em><span class="hljs-built_in">int</span>(<span class="hljs-string">"hel</span></em><strong>END</strong></mark><span class="hljs-string">lo world"</span>)', 'python'),
     '```\npr§§int("hel§§lo world")\n```': codeBlock('pr§§int("hel§§lo world")'),
     '```none highlight-manual="|"\npr||int("hel||lo world")\n```': codeBlock('pr<mark>int("hel</mark>lo world")', 'none'),
-  })) {
+    // Nested elements
+    '![caption^[footnote [link](https://example.com)]](/img.png)': '<p></p><figure><img src="/img.png" alt="captionfootnote link"><figcaption>caption<footnote>footnote <a href="https://example.com" target="_blank" rel="nofollow noopener noreferrer">link</a></footnote></figcaption></figure><p></p>',
+    '![caption^[footnote [partial]](/img.png)': {
+      html: '<p></p><figure><img src="/img.png" alt="captionfootnote [partial"><figcaption>caption<footnote>footnote [partial</footnote></figcaption></figure><p></p>',
+      formatted: '![caption^[footnote \\[partial]](/img.png)',
+    },
+  }).map(([md, expected]) => [md, typeof expected === 'string' ? { html: expected, formatted: md } : expected])) {
     test(md, () => {
-      expect(renderMarkdownToHtml(md).trim()).toBe(html);
+      expect(renderMarkdownToHtml(md).trim()).toBe(expected.html);
       const formattedMd = formatMarkdown(md).trim('\n');
-      expect(formattedMd).toBe(md);
+      expect(formattedMd).toBe(expected.formatted);
     });
   }
 });

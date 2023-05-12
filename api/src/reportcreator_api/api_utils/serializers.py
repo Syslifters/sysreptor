@@ -1,6 +1,7 @@
 import json
 import logging
 import httpx
+from functools import cached_property
 from base64 import b64decode
 from urllib.parse import urljoin
 from django.conf import settings
@@ -42,17 +43,32 @@ class LanguageToolSerializerBase(serializers.Serializer):
         if not settings.SPELLCHECK_URL:
             raise exceptions.PermissionDenied('Spell checker not configured')
         
-        async with httpx.AsyncClient(timeout=10) as client:
-            res = await client.post(
-                url=urljoin(settings.SPELLCHECK_URL, path),
-                data=self.languagetool_auth() | data
-            )
-            return res.json()
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                res = await client.post(
+                    url=urljoin(settings.SPELLCHECK_URL, path),
+                    data=self.languagetool_auth() | data
+                )
+                if res.status_code != 200:
+                    raise exceptions.APIException(detail='Spellcheck error', code='spellcheck')
+                return res.json()
+        except httpx.ReadTimeout:
+            logging.exception('LanguageTool timeout')
+            raise exceptions.APIException(detail='Spellcheck timeout', code='spellcheck')
 
 
 class LanguageToolSerializer(LanguageToolSerializerBase):
     language = serializers.ChoiceField(choices=Language.choices + [('auto', 'auto')])
     data = TextDataField()
+
+    @cached_property
+    def spellcheck_languages(self):
+        return [l for l in Language if l.spellcheck and (not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES)]
+
+    def validate_language(self, value):
+        if value not in self.spellcheck_languages and value != 'auto':
+            raise serializers.ValidationError('Spellchcking is not supported for this language')
+        return value
 
     async def spellcheck(self):
         data = self.validated_data
@@ -60,7 +76,7 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
             'language': data['language'],
             'data': json.dumps(data['data'], ensure_ascii=False),
             **({
-                'preferredVariants': Language.values
+                'preferredVariants': self.spellcheck_languages,
             } if data['language'] == 'auto' else {}),
         })
         

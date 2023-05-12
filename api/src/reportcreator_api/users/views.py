@@ -7,6 +7,7 @@ from rest_framework import viewsets, status, filters, mixins, serializers, excep
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import ProtectedError
 from django.conf import settings
 from django.forms import model_to_dict
 from django.core.serializers.json import DjangoJSONEncoder
@@ -95,6 +96,13 @@ class PentestUserViewSet(viewsets.ModelViewSet):
     @action(detail=True, url_path='reset-password', methods=['post'])
     def reset_password(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
+    
+    def perform_destroy(self, instance):
+        try:
+            instance.delete()
+        except ProtectedError:
+            raise serializers.ValidationError(
+                detail='Cannot delete user because it is a member of one or more projects.')
 
 
 class MFAMethodViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):

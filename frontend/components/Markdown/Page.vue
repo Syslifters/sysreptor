@@ -6,6 +6,7 @@
       :disabled="disabled"
       :upload-files="uploadFile ? uploadFiles : null"
       :file-upload-in-progress="fileUploadInProgress"
+      :lang="lang"
     />
     <v-divider />
     

@@ -50,6 +50,10 @@
             </v-chip>
           </td>
         </tr>
+        <tr>
+          <td>Software Version:</td>
+          <td>{{ license.software_version }}</td>
+        </tr>
       </tbody>
     </v-simple-table>
   </v-container>

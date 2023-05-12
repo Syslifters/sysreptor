@@ -47,9 +47,10 @@ curl -s https://docs.sysreptor.com/install.sh | bash
 
 Access your application at http://localhost:8000/.
 
+Get detailed installation instructions at https://docs.sysreptor.com/setup/installation/.
+
 
 ![Create finding from template](https://docs.sysreptor.com/images/create_finding_from_template.gif)
 
 ![Export report as PDF](https://docs.sysreptor.com/images/export_project.gif)
-
 

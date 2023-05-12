@@ -29,20 +29,21 @@
 
       <v-col v-for="asset in assets.data" :key="asset.id" :cols="12" :md="3">
         <s-card>
-          <s-data-img v-if="isImage(asset)" :src="imageUrl(asset)" aspect-ratio="2" />
+          <!-- TODO: image via API URL, not base64 -->
+          <v-img v-if="isImage(asset)" :src="imageUrl(asset)" aspect-ratio="2" />
           <v-card-title>{{ asset.name }}</v-card-title>
           <v-card-text class="text--small">
             {{ assetUrl(asset) }}
-          </v-card-text>
-          <v-card-actions>
             <s-tooltip>
               <template #activator="{on, attrs}">
-                <s-btn @click="copyAssetUrl(asset)" v-bind="attrs" v-on="on" icon>
-                  <v-icon>mdi-clipboard-outline</v-icon>
+                <s-btn @click="copyAssetUrl(asset)" v-bind="attrs" v-on="on" icon small>
+                  <v-icon small>mdi-clipboard-outline</v-icon>
                 </s-btn>
               </template>
-              <span>Copy URL to clipboard</span>
+              <span>Copy path to clipboard</span>
             </s-tooltip>
+          </v-card-text>
+          <v-card-actions>
             <s-tooltip>
               <template #activator="{on, attrs}">
                 <s-btn @click="downloadAsset(asset)" v-bind="attrs" v-on="on" icon>
@@ -51,7 +52,14 @@
               </template>
               <span>Download asset</span>
             </s-tooltip>
-            
+            <s-tooltip v-if="isImage(asset)">
+              <template #activator="{on, attrs}">
+                <s-btn :to="imageUrl(asset)" target="_blank" v-bind="attrs" v-on="on" icon>
+                  <v-icon>mdi-open-in-new</v-icon>
+                </s-btn>
+              </template>
+              <span>Show image in new tab</span>
+            </s-tooltip>
             <v-spacer />
             <btn-delete icon :delete="() => performDelete(asset)" :disabled="disabled" />
           </v-card-actions>
@@ -83,7 +91,7 @@ import FileDownload from 'js-file-download';
 import urlJoin from 'url-join';
 import PageLoader from './PageLoader.vue';
 import { uploadFileHelper } from '~/utils/upload';
-import { CursorPaginationFetcher } from '~/utils/urls';
+import { absoluteApiUrl, CursorPaginationFetcher } from '~/utils/urls';
 
 export default {
   components: { PageLoader },
@@ -119,7 +127,7 @@ export default {
       return `/assets/name/${asset.name}`;
     },
     imageUrl(asset) {
-      return urlJoin(this.projectTypeBaseUrl, this.assetUrl(asset));
+      return absoluteApiUrl(urlJoin(this.projectTypeBaseUrl, this.assetUrl(asset)), this.$axios);
     },
     async uploadSingleFile(file) {
       try {

@@ -16,9 +16,10 @@ import { annotatedTextParse } from './editor/annotatedtext.js';
 import { remarkTemplateVariables } from './mdext/templates.js';
 import { remarkTodoMarker } from './mdext/todo.js';
 import { rehypeHighlightCode } from './mdext/codeHighlight.js';
+import { remarkLabelEnd } from './mdext/label-end.js';
 import remarkStringify from 'remark-stringify';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
-import { defaults, merge } from 'lodash';
+import { merge } from 'lodash';
 
 
 const rehypeSanitizeSchema = merge({}, defaultSchema, {
@@ -38,6 +39,7 @@ export function markdownParser() {
   // * enable autolinks?
   return unified()
     .use(remarkFootnotes)
+    .use(remarkLabelEnd)
     .use(remarkTables)
     .use(remarkTableCaptions)
     .use(remarkStrikethrough)

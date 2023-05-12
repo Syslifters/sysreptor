@@ -7,7 +7,7 @@ packages = [{include = "reportcreator_api"}]
 
 [tool.poetry.dependencies]
 python = "~3.10"
-django = "4.2"
+django = "~4.2"
 djangorestframework = "3.14.0"
 adrf = "0.1.0"
 # check weasyprint performance before updating: https://kozea.github.io/WeasyPerf/
@@ -43,7 +43,7 @@ boto3 = "^1.26.5"
 pillow-heif = "^0.10.1"
 playwright = "^1.32.1"
 pikepdf = "^7.1.2"
-celery = { extras = ["librabbitmq"], version = "^5.2.7" }
+celery = { extras = ["librabbitmq"], version = "^5.3b2" }
 
 django-debug-toolbar = "^4.0.0"
 debugpy = "^1.6.7"

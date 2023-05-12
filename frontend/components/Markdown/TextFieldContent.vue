@@ -45,7 +45,8 @@ export default {
     },
     spellcheckEnabled() {
       return this.lang !== null && !this.disabled && this.spellcheckSupported && 
-        this.$store.state.settings.spellcheckEnabled && this.$store.getters['apisettings/settings'].features.spellcheck;
+        this.$store.state.settings.spellcheckEnabled && this.$store.getters['apisettings/settings'].features.spellcheck &&
+        this.$store.getters['apisettings/settings'].languages.find(l => l.code === this.lang)?.spellcheck;
     },
   },
   watch: {

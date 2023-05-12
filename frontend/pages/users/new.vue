@@ -40,6 +40,7 @@ export default {
         is_template_editor: false,
         is_guest: false,
         is_system_user: false,
+        is_global_archiver: false,
       },
       serverErrors: null,
     }

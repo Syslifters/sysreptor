@@ -7,7 +7,6 @@ languagetool_cacheSize=${languagetool_cacheSize:-1000}
 languagetool_cacheTTLSeconds=${languagetool_cacheTTLSeconds:-300}
 languagetool_pipelineCaching=${languagetool_pipelineCaching:-true}
 languagetool_localApiMode=${languagetool_localApiMode:-true}
-languagetool_preferredLanguages=${languagetool_preferredLanguages:-en,de}
 
 languagetool_dbDriver=${languagetool_dbDriver:-org.postgresql.Driver}
 languagetool_dbPort=${languagetool_dbPort:-5432}

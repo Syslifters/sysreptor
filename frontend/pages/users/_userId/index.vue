@@ -1,6 +1,13 @@
 <template>
   <v-form ref="form">
-    <edit-toolbar :data="user" :form="$refs.form" :edit-mode="canEdit ? 'EDIT' : 'READONLY'" :save="performSave" />
+    <edit-toolbar 
+      :data="user" 
+      :form="$refs.form" 
+      :edit-mode="canEdit ? 'EDIT' : 'READONLY'" 
+      :save="performSave"
+      :delete="performDelete"
+      :delete-confirm-input="user.username"
+    />
 
     <user-info-form v-model="user" :errors="serverErrors" :can-edit-permissions="canEdit" :can-edit-username="canEdit">
       <template #login-information>
@@ -78,6 +85,11 @@ export default {
         }
         throw error;
       }
+    },
+    async performDelete(data) {
+      await this.$axios.$delete(getUserUrl({ userId: data.id }));
+      this.$toast.success('User deleted');
+      this.$router.push('/users/');
     }
   }
 }

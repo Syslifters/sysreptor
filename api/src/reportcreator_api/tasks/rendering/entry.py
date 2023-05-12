@@ -122,12 +122,7 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
     res = await get_celery_result_async(task)
 
     if not res.get('pdf'):
-        raise PdfRenderingError([ErrorMessage(
-            level=MessageLevel(m.get('level')),
-            location=MessageLocationInfo(type=MessageLocationType.DESIGN, id=str(project_type.id), name=project_type.name),
-            message=m.get('message'),
-            details=m.get('details') 
-        ) for m in res.get('messages', [])])
+        raise PdfRenderingError([ErrorMessage.from_dict(m) for m in res.get('messages', [])])
     return b64decode(res.get('pdf'))
 
 
@@ -149,6 +144,12 @@ async def render_pdf(project: PentestProject, project_type: Optional[ProjectType
             'created': str(f.created),
             **f.data,
         } async for f in project.findings.all()],
+        'sections': dict([(s.section_id, {
+            'id': str(s.section_id),
+            'created': str(s.created),
+            'label': s.section_label,
+            **s.data,
+        }) async for s in project.sections.all()]),
         'pentesters': [await sync_to_async(format_template_field_user)(u) async for u in project.members.all()],
     }
     data = await sync_to_async(format_template_data)(data=data, project_type=project_type, imported_members=project.imported_members)

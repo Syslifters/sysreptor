@@ -48,6 +48,10 @@ export default {
       type: Boolean,
       default: false
     },
+    lang: {
+      type: String,
+      default: null,
+    },
   },
   computed: {
     editorMode: {
@@ -59,7 +63,8 @@ export default {
       },
     },
     spellcheckSupported() {
-      return this.$store.getters['apisettings/settings'].features.spellcheck;
+      return this.$store.getters['apisettings/settings'].features.spellcheck &&
+             this.$store.getters['apisettings/settings'].languages.find(l => l.code === this.lang)?.spellcheck;
     },
     spellcheckEnabled: {
       get() {

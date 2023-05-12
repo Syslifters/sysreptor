@@ -69,10 +69,11 @@ export default {
         label: this.label,
         itemValue: 'id',
         itemText: u => (u.username && u.name) ? `${u.username} (${u.name})` : (u.username || u.name || ''),
-        itemDisabled: u => this.preventUnselectingSelf && u.id === this.$auth.user.id && !!this.value.find(v => v.id === u.id),
+        itemDisabled: u => this.preventUnselectingSelf && u.id === this.$auth.user.id && this.value.some(v => v.id === u.id),
         disabled: this.disabled,
         returnObject: true,
         outlined: this.outlined,
+        clearable: this.clearable,
       }, 
       this.selectableUsers ? {
         items: this.selectableUsers,
@@ -87,15 +88,13 @@ export default {
       } : {},
       this.required ? {
         rules: this.multiple ? this.rules.multiple : this.rules.single,
-      } : {
-        clearable: this.clearable,
-      });
+      } : {});
     }
   },
   mounted() {
     if (this.value) {
       this.items.fetchNextPage();
     }
-  }
+  },
 }
 </script>

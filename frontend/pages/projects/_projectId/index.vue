@@ -64,6 +64,7 @@
         :prevent-unselecting-self="true" 
         :error-messages="serverErrors?.members"
         :disabled="project.readonly"
+        :required="true"
         label="Members"
       />
 

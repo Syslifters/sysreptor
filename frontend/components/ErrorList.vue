@@ -22,11 +22,11 @@
 
         <v-expansion-panel-content class="pl-8">
           <div v-for="msg, entryIdx in msgGroup.entries" :key="'group-' + groupIdx + '-' + entryIdx" class="mb-2">
-            <!-- {{ msg.message }} -->
+            {{ msg.message }}
             <span v-if="msg.location" class="error-location">
               <slot name="location" :msg="msg">
                 in {{ msg.location.type }} 
-                <template v-if="msg.location.name">{{ msg.location.name }}"</template>
+                <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
                 <template v-if="msg.location.path">{{ msg.location.path }}</template>
               </slot>
             </span>
@@ -45,8 +45,9 @@
           <slot name="message" :msg="msg">
             {{ msg.message }}
             <span v-if="msg.location && msg.location.name" class="error-location">
-              in "{{ msg.location.name }}"
-              <template v-if="msg.location.path">{{ msg.location.path }}</template>
+              in {{ msg.location.type }} 
+              <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
+              <template v-if="msg.location.path">field {{ msg.location.path }}</template>
             </span>
           </slot>
         </p>

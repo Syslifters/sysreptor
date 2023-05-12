@@ -20,7 +20,7 @@ from reportcreator_api.utils import license
 from reportcreator_api.pentests.models import Language
 from reportcreator_api.pentests.models import ProjectMemberRole
 from reportcreator_api.tasks.models import PeriodicTask
-from reportcreator_api.utils.utils import copy_keys
+from reportcreator_api.utils.utils import copy_keys, remove_duplicates
 
 
 log = logging.getLogger(__name__)
@@ -49,8 +49,15 @@ class UtilsViewSet(viewsets.ViewSet):
 
     @action(detail=False, url_name='settings', url_path='settings', authentication_classes=[], permission_classes=[])
     def settings_endpoint(self, *args, **kwargs):
+        languages = [{
+            'code': l.value, 
+            'name': l.label, 
+            'spellcheck': l.spellcheck, 
+            'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES
+        } for l in remove_duplicates(list(map(Language, settings.PREFERRED_LANGUAGES)) + list(Language))]
+
         return Response({
-            'languages': [{'code': l[0], 'name': l[1]} for l in Language.choices],
+            'languages': languages,
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
             'auth_providers': [{'id': k, 'name': v.get('label', k)} for k, v in settings.AUTHLIB_OAUTH_CLIENTS.items()] if license.is_professional() else [],
             'elastic_apm_rum_config': settings.ELASTIC_APM_RUM_CONFIG if settings.ELASTIC_APM_RUM_ENABLED else None,
@@ -95,6 +102,7 @@ class UtilsViewSet(viewsets.ViewSet):
     def license(self, request, *args, **kwargs):
         return Response(data=license.check_license() | {
             'active_users': PentestUser.objects.get_licensed_user_count(),
+            'software_version': settings.VERSION,
         })
 
 

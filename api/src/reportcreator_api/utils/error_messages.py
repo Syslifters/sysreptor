@@ -60,8 +60,17 @@ class ErrorMessage:
             'level': self.level.value,
             'location': dataclasses.asdict(self.location) | {
               'type': self.location.type.value,
-            },
+            } if self.location else None,
         }
+    
+    @classmethod
+    def from_dict(cls, data):
+        location = data.get('location')
+        return cls(**data | {
+            'level': MessageLevel(data.get('level')),
+            'location': MessageLocationInfo(**location | {'type': MessageLocationType(location.get('type'))}) if location else None,
+        })
+
 
 
 def format_messages(lst: list[ErrorMessage]):

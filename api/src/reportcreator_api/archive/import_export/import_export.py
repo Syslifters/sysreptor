@@ -147,7 +147,7 @@ def import_archive(archive_file, serializer_class: Type[serializers.Serializer])
 
         for f in context.get('storage_files', []):
             try:
-                f.delete()
+                f.delete(save=False)
             except Exception:
                 log.exception(f'Failed to delete imported file "{f.name}" during rollback')
         raise ex

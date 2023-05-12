@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.83 - 2023-05-12
+* Fix parsing of nested markdown labels (link in footnote in image caption)
+* On file not found during PDF rendering: add reference to finding/section in error message
+* Add more languages
+* Allow confiuring languages via setting PREFERRED_LANGUAGES
+* Show current software version in license page
+* Allow deleting users via UI
+* Fix markdown code block alignment
+* Update django to 4.2.1 (security release)
+
+
 ## v0.76 - 2023-05-02
 * Release Community Edition
 * Add license checks and enforce license limits

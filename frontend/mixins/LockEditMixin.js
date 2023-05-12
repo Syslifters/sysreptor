@@ -105,6 +105,16 @@ export default {
     '$fetchState.pending'(val) {
       if (!val && this.data) {
         this.updateInStore(cloneDeep(this.data));
+
+        // Scroll to element
+        this.$nextTick(() => {
+          if (this.$route.hash) {
+            const el = document.querySelector(this.$route.hash);
+            if (el) {
+              el.scrollIntoView();
+            }
+          }
+        });
       }
     }
   },

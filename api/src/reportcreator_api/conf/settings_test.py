@@ -21,6 +21,7 @@ NOTIFICATION_IMPORT_URL = None
 
 ENABLE_PRIVATE_DESIGNS = True
 ARCHIVING_THRESHOLD = 1
+PREFERRED_LANGUAGES = ['en-US', 'de-DE']
 
 BACKUP_KEY = 'dummy-backup-key-used-in-unit-test'
 

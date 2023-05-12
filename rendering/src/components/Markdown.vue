@@ -29,6 +29,5 @@ export default {
 }
 .code-block code {
   display: block;
-  width: 100%;
 }
 </style>
