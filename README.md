@@ -50,16 +50,25 @@ SysReptor is a fully customisable, offensive security reporting tool designed fo
 🎉 No need for Word<br>
 
 
-## Install SysReptor
-You will need:
+## SysReptor Cloud
+You just want to start reporting and save yourself all the effort of setting up, configuring and maintaining a dedicated server? Then SysReptor Cloud is the right choice for you! Get to know SysReptor on our [Playground](https://cloud.sysreptor.com/demo) and if you like it, you can get your personal Cloud instance here:
+
+<h3 align="center">🚀 Sign up <a class="md-button" href="https://cloud.sysreptor.com/order/">here</a></h3>
+
+<br>
+
+## SysReptor Self-Hosted
+You prefer self-hosting? That's fine! You will need:
 * Ubuntu
 * Latest [Docker](https://docs.docker.com/engine/install/ubuntu/) (with docker-compose-plugin)
+
+You can then install SysReptor with via script:
 
 ```bash
 curl -s https://docs.sysreptor.com/install.sh | bash
 ```
 
-Access your application at http://localhost:8000/.
+After successful installation, access your application at http://localhost:8000/.
 
 Get detailed installation instructions at [Installation](https://docs.sysreptor.com/setup/installation/).
 
