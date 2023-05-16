@@ -1,3 +1,11 @@
+<h1 align="center">
+    <br>
+    <a href="https://docs.sysreptor.com/"><img src="https://docs.sysreptor.com/images/logo-invert-with-text.png" alt="SysReptor"></a>
+</h1>
+
+<h4 align="center">Easy and customisable pentest report creator based on simple web technologies.</h4>
+
+<p align="center">
 <a href="https://github.com/syslifters/sysreptor/">
     <img src="https://img.shields.io/github/stars/Syslifters/sysreptor?color=yellow&style=flat-square">
 </a>
@@ -15,9 +23,24 @@
 </a>
 <a href="https://twitter.com/intent/user?screen_name=sysreptor">
     <img src="https://img.shields.io/twitter/follow/sysreptor?style=social">
-</a><br>
+</a>
+</p>
 
-# SysReptor - Pentest Reporting Easy As Pie
+<p align="center">
+  <a href="https://cloud.sysreptor.com/demo">Playground</a> •
+  <a href="https://github.com/Syslifters/sysreptor/discussions/categories/ideas">Ideas</a> •
+  <a href="https://github.com/Syslifters/sysreptor/discussions/categories/q-a">Questions</a> •
+  <a href="https://docs.sysreptor.com/">Documentation</a> •
+  <a href="https://docs.sysreptor.com/features-and-pricing/">Features and Pricing</a> •
+  <a href="https://docs.sysreptor.com/setup/installation/">Installation</a> •
+  <a href="https://cloud.sysreptor.com/order/">Buy SysReptor</a>
+</p>
+
+---
+
+SysReptor is a fully customisable, offensive security reporting tool designed for pentesters, red teamers and other security-related people alike. You can create designs based on simple HTML and CSS, write your reports in user-friendly Markdown and convert them to PDF with just a single click, in the cloud or on-premise!
+
+## Your Benefits
 
 📝 Write in markdown<br>
 ✏️ Design in HTML/VueJS<br>
@@ -26,20 +49,11 @@
 💻 Self-hosted or Cloud<br>
 🎉 No need for Word<br>
 
-Happy Hacking! :)  
 
-
-* Playground: https://cloud.sysreptor.com/demo
-* Ideas? - https://github.com/Syslifters/sysreptor/discussions/categories/ideas
-* Questions? - https://github.com/Syslifters/sysreptor/discussions/categories/q-a
-* Docs: https://docs.sysreptor.com/
-* Features: https://docs.sysreptor.com/features-and-pricing/
-
-
-## Installation
+## Install SysReptor
 You will need:
 * Ubuntu
-* Latest Docker with Docker Compose v2
+* Latest [Docker](https://docs.docker.com/engine/install/ubuntu/) (with docker-compose-plugin)
 
 ```bash
 curl -s https://docs.sysreptor.com/install.sh | bash
@@ -47,10 +61,9 @@ curl -s https://docs.sysreptor.com/install.sh | bash
 
 Access your application at http://localhost:8000/.
 
-Get detailed installation instructions at https://docs.sysreptor.com/setup/installation/.
+Get detailed installation instructions at [Installation](https://docs.sysreptor.com/setup/installation/).
 
 
 ![Create finding from template](https://docs.sysreptor.com/images/create_finding_from_template.gif)
 
 ![Export report as PDF](https://docs.sysreptor.com/images/export_project.gif)
-
