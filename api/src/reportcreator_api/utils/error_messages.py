@@ -51,9 +51,9 @@ class MessageLocationInfo:
 @dataclasses.dataclass
 class ErrorMessage:
     level: MessageLevel
-    location: MessageLocationInfo
     message: str
     details: Optional[str] = None
+    location: Optional[MessageLocationInfo] = None
 
     def to_dict(self):
         return dataclasses.asdict(self) | {

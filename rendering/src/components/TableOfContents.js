@@ -1,21 +1,16 @@
 import { h } from "vue";
 import { v4 as uuidv4 } from "uuid";
+import { callForTicks } from "../utils";
 
 export default {
   data: () => ({
     shouldRender: false,
     items: [],
   }),
-
-  mounted() {
+  async mounted() {
     // Defer rendering table of contents until everything else is rendered.
     // Then look in the DOM what should be included in the TOC
-    this.$nextTick(() => {
-      this.updateItems();
-      this.$nextTick(() => {
-        this.updateItems();
-      })
-    });
+    await callForTicks(3, this.$nextTick, () => this.updateItems());
   },
   render() {
     if (!this.shouldRender) {
@@ -37,7 +32,7 @@ export default {
           id: el.id,
           href: '#' + el.id,
           title: attrs['data-toc-title'] || el.textContent,
-          level: Number(attrs['data-toc-level'] || el.tagName.slice(1)) || 1,
+          level: Number.parseInt(el.tagName.slice(1)) || 1,
           attrs: attrs,
         });
       }

@@ -4,6 +4,7 @@ from unittest import mock
 from django.utils import timezone
 from rest_framework.test import APIClient
 from reportcreator_api.archive import crypto
+from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
 
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
@@ -48,6 +49,18 @@ def create_user(mfa=False, public_key=False, notes_kwargs=None, images_kwargs=No
         } | image_kwargs)
 
     return user
+
+
+def create_imported_member(roles=None, **kwargs):
+    username = f'user{random.randint(0, 100000)}'
+    return RelatedUserDataExportImportSerializer(instance=ProjectMemberInfo(
+        user=PentestUser(**{
+            'username': username,
+            'email': f'{username}@example.com',
+            'first_name': 'Imported',
+            'last_name': 'User',
+        } | kwargs), 
+        roles=roles if roles is not None else ProjectMemberRole.default_roles)).data
 
 
 def create_template(**kwargs) -> FindingTemplate:

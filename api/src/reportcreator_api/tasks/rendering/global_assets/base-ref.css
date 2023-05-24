@@ -1,0 +1,220 @@
+
+/* Variables for references */
+:root {
+  --prefix-figure: "Figure ";
+  --prefix-table: "Table ";
+}
+:root:lang(de) {
+  --prefix-figure: "Abbildung ";
+  --prefix-table: "Tabelle ";
+}
+:root:lang(es) {
+  --prefix-figure: "Ilustración ";
+  --prefix-table: "Tabla ";
+}
+:root:lang(fr) {
+  --prefix-figure: "Figure ";
+  --prefix-table: "Tableau ";
+}
+:root:lang(pt) {
+  --prefix-figure: "Figura ";
+  --prefix-table: "Tabela ";
+}
+
+
+/* Define counters */
+html {
+  counter-reset: figure-counter table-counter h1-counter h2-counter h3-counter h4-counter h5-counter h6-counter h1-appendix-counter h2-appendix-counter h3-appendix-counter h4-appendix-counter h5-appendix-counter h6-appendix-counter;
+}
+
+
+/* Reset sub-heading counters */
+h1 {
+  counter-reset: h2-counter h3-counter h4-counter h5-counter h6-counter h2-appendix-counter h3-appendix-counter h4-appendix-counter h5-appendix-counter h6-appendix-counter;
+}
+h2 {
+  counter-reset: h3-counter h4-counter h5-counter h6-counter h3-appendix-counter h4-appendix-counter h5-appendix-counter h6-appendix-counter;
+}
+h3 {
+  counter-reset: h4-counter h5-counter h6-counter h4-appendix-counter h5-appendix-counter h6-appendix-counter;
+}
+h4 {
+  counter-reset: h5-counter h6-counter h5-appendix-counter h6-appendix-counter;
+}
+h5 {
+  counter-reset: h6-counter h6-appendix-counter;
+}
+
+/* Increment heading counters */
+h1.numbered {
+  counter-increment: h1-counter;
+}
+h2.numbered {
+  counter-increment: h2-counter;
+}
+h3.numbered {
+  counter-increment: h3-counter;
+}
+h4.numbered {
+  counter-increment: h4-counter;
+}
+h5.numbered {
+  counter-increment: h5-counter;
+}
+h6.numbered {
+  counter-increment: h6-counter;
+}
+
+/* Increment appendix heading counters */
+.appendix h1.numbered {
+  counter-increment: h1-appendix-counter;
+}
+.appendix h2.numbered {
+  counter-increment: h2-appendix-counter;
+}
+.appendix h3.numbered {
+  counter-increment: h3-appendix-counter;
+}
+.appendix h4.numbered {
+  counter-increment: h4-appendix-counter;
+}
+.appendix h5.numbered {
+  counter-increment: h5-appendix-counter;
+}
+.appendix h6.numbered {
+  counter-increment: h6-appendix-counter;
+}
+
+
+/* Increment figure counter */
+figcaption {
+  counter-increment: figure-counter;
+}
+
+/* Increment table counter */
+caption {
+  counter-increment: table-counter;
+}
+
+
+
+
+/* Heading numbers */
+h1.numbered::before {
+  content: counter(h1-counter);
+}
+h2.numbered::before {
+  content: counter(h1-counter) "." counter(h2-counter);
+}
+h3.numbered::before {
+  content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter);
+}
+h4.numbered::before {
+  content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter);
+}
+h5.numbered::before {
+  content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter) "." counter(h5-counter);
+}
+h6.numbered::before {
+  content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter) "." counter(h5-counter) "." counter(h6-counter);
+}
+
+
+/* Appendix heading numbers */
+.appendix h1.numbered::before {
+  content: counter(h1-appendix-counter, upper-alpha);
+}
+.appendix h2.numbered::before {
+  content: counter(h1-appendix-counter, upper-alpha) "." counter(h2-appendix-counter);
+}
+.appendix h3.numbered::before {
+  content: counter(h1-appendix-counter, upper-alpha) "." counter(h2-appendix-counter) "." counter(h3-appendix-counter);
+}
+.appendix h4.numbered::before {
+  content: counter(h1-appendix-counter, upper-alpha) "." counter(h2-appendix-counter) "." counter(h3-appendix-counter) "." counter(h4-appendix-counter);
+}
+.appendix h5.numbered::before {
+  content: counter(h1-appendix-counter, upper-alpha) "." counter(h2-appendix-counter) "." counter(h3-appendix-counter) "." counter(h4-appendix-counter) "." counter(h5-appendix-counter);
+}
+.appendix h6.numbered::before {
+  content: counter(h1-appendix-counter, upper-alpha) "." counter(h2-appendix-counter) "." counter(h3-appendix-counter) "." counter(h4-appendix-counter) "." counter(h5-appendix-counter) "." counter(h6-appendix-counter);
+}
+
+
+
+
+/* Reference to heading */
+.ref-heading-level1::before {
+  content: target-counter(attr(href), h1-counter) " ";
+}
+.ref-heading-level2::before {
+  content: target-counter(attr(href), h1-counter) "." target-counter(attr(href), h2-counter) " ";
+}
+.ref-heading-level3::before {
+  content: target-counter(attr(href), h1-counter) "." target-counter(attr(href), h2-counter) "." target-counter(attr(href), h3-counter) " ";
+}
+.ref-heading-level4::before {
+  content: target-counter(attr(href), h1-counter) "." target-counter(attr(href), h2-counter) "." target-counter(attr(href), h3-counter) "." target-counter(attr(href), h4-counter) " ";
+}
+.ref-heading-level5::before {
+  content: target-counter(attr(href), h1-counter) "." target-counter(attr(href), h2-counter) "." target-counter(attr(href), h3-counter) "." target-counter(attr(href), h4-counter) "." target-counter(attr(href), h5-counter) " ";
+}
+.ref-heading-level6::before {
+  content: target-counter(attr(href), h1-counter) "." target-counter(attr(href), h2-counter) "." target-counter(attr(href), h3-counter) "." target-counter(attr(href), h4-counter) "." target-counter(attr(href), h5-counter) "." target-counter(attr(href), h6-counter) " ";
+}
+
+/* Reference to appendix heading */
+.ref-appendix-level1::before {
+  content: target-counter(attr(href), h1-appendix-counter, upper-alpha) " ";
+}
+.ref-appendix-level2::before {
+  content: target-counter(attr(href), h1-appendix-counter, upper-alpha) "." target-counter(attr(href), h2-appendix-counter) " ";
+}
+.ref-appendix-level3::before {
+  content: target-counter(attr(href), h1-appendix-counter, upper-alpha) "." target-counter(attr(href), h2-appendix-counter) "." target-counter(attr(href), h3-appendix-counter) " ";
+}
+.ref-appendix-level4::before {
+  content: target-counter(attr(href), h1-appendix-counter, upper-alpha) "." target-counter(attr(href), h2-appendix-counter) "." target-counter(attr(href), h3-appendix-counter) "." target-counter(attr(href), h4-appendix-counter) " ";
+}
+.ref-appendix-level5::before {
+  content: target-counter(attr(href), h1-appendix-counter, upper-alpha) "." target-counter(attr(href), h2-appendix-counter) "." target-counter(attr(href), h3-appendix-counter) "." target-counter(attr(href), h4-appendix-counter) "." target-counter(attr(href), h5-appendix-counter) " ";
+}
+.ref-appendix-level6::before {
+  content: target-counter(attr(href), h1-appendix-counter, upper-alpha) "." target-counter(attr(href), h2-appendix-counter) "." target-counter(attr(href), h3-appendix-counter) "." target-counter(attr(href), h4-appendix-counter) "." target-counter(attr(href), h5-appendix-counter) "." target-counter(attr(href), h6-appendix-counter) " ";
+}
+
+
+/* Figure */
+figcaption::before {
+  content: var(--prefix-figure) counter(figure-counter) " - ";
+}
+.ref-figure::before {
+  content: var(--prefix-figure) target-counter(attr(href), figure-counter);
+}
+.ref-figure > .ref-title {
+  display: none;
+}
+
+
+caption::before {
+  content: var(--prefix-table) counter(table-counter) " - ";
+}
+.ref-table::before {
+  content: var(--prefix-table) target-counter(attr(href), table-counter) " - ";
+}
+
+
+
+
+/* Chapter number styling */
+.numbered::before {
+  padding-right: 5mm;
+}
+
+/* Reference styling: appear as regular text */
+.ref {
+  color: inherit;
+  text-decoration: none;
+  font-style: inherit;
+}
+

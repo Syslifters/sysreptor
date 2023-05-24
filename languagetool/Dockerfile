@@ -1,4 +1,4 @@
-FROM erikvl87/languagetool:6.1@sha256:15d8cf64b01a15362fdcd4674054fd6b0cb90ab29e515bcf677cd6c65e089d0e
+FROM erikvl87/languagetool:6.1
 
 # PostgreSQL support
 USER root

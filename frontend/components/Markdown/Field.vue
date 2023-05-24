@@ -25,6 +25,10 @@ export default baseMixins.extend({
       type: Function,
       default: null,
     },
+    rewriteReferenceLink: {
+      type: Function,
+      default: null,
+    },
   },
   computed: {
     isLabelActive() {
@@ -40,6 +44,7 @@ export default baseMixins.extend({
           lang: this.lang,
           uploadFile: this.uploadFile,
           rewriteFileUrl: this.rewriteFileUrl,
+          rewriteReferenceLink: this.rewriteReferenceLink,
         },
         attrs: {
           class: 'markdown-editor'

@@ -23,6 +23,10 @@ export default {
       type: Function,
       default: null,
     },
+    rewriteReferenceLink: {
+      type: Function,
+      default: null,
+    },
     disabled: {
       type: Boolean,
       default: false,

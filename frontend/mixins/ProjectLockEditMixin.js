@@ -1,6 +1,7 @@
 import urlJoin from "url-join"
 import LockEditMixin from "~/mixins/LockEditMixin";
 import { uploadFileHelper } from '~/utils/upload';
+import { absoluteApiUrl } from "~/utils/urls";
 
 export default {
   mixins: [LockEditMixin],
@@ -36,6 +37,16 @@ export default {
         return urlJoin(`/projecttypes/${this.project.project_type}/`, imgSrc);
       }
       return urlJoin(this.projectUrl, imgSrc);
+    },
+    rewriteReferenceLink(refId) {
+      const finding = this.$store.getters['projects/findings'](this.project.id).find(f => f.id === refId);
+      if (finding) {
+        return {
+          href: `/projects/${this.project.id}/reporting/findings/${finding.id}/`,
+          title: `[Finding ${finding.data.title}]`,
+        };
+      }
+      return null;
     },
   }
 }

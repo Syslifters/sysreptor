@@ -73,7 +73,7 @@ export default {
       passwordConfirmValue: null,
       showPassword: false,
       rules: {
-        confirmMatches: [p => p === this.value || 'Passwords do not match'],
+        confirmMatches: [p => p === this.value || (!p && !this.value) || 'Passwords do not match'],
       }
     }
   },

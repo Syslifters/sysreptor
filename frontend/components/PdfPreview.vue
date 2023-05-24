@@ -23,7 +23,7 @@ export default {
     },
     reloadDebounceTime: {
       type: Number,
-      default: 10 * 1000,
+      default: 30 * 1000,
     },
     showLoadingSpinnerOnReload: {
       type: Boolean,

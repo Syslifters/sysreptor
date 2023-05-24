@@ -12,7 +12,7 @@ describe('Markdown extensions', () => {
   for (const [md, expected] of Object.entries({
     // Footnote
     'text^[footnote] text': '<p>text<footnote>footnote</footnote> text</p>',
-    'text^[**foot**[note](#ref)] text': '<p>text<footnote><strong>foot</strong><a href="#ref">note</a></footnote> text</p>',
+    'text^[**foot**[note](https://example.com)] text': '<p>text<footnote><strong>foot</strong><a href="https://example.com" target="_blank" rel="nofollow noopener noreferrer">note</a></footnote> text</p>',
     // Figure
     '![caption _with_ **markdown** `code`](#img)': '<p></p><figure><img src="#img" alt="caption with markdown code"><figcaption>caption <em>with</em> <strong>markdown</strong> <code class="code-inline">code</code></figcaption></figure><p></p>',
     '![](#img)': '<p></p><figure><img src="#img" alt=""></figure><p></p>',
@@ -21,11 +21,15 @@ describe('Markdown extensions', () => {
     '| cell  |\n| ----- |\n| value |\n\nTable: caption': '<table><thead><tr><th>cell</th></tr></thead><tbody><tr><td>value</td></tr></tbody><caption>caption</caption></table>',
     '| cell  |\n| ----- |\n| value |': '<table><thead><tr><th>cell</th></tr></thead><tbody><tr><td>value</td></tr></tbody></table>',
     // Attrs
-    '[link](#ref){#id}': '<p><a href="#ref" id="id">link</a></p>',
-    '[link](#ref){.class1 .class2 .class3}': '<p><a href="#ref" class="class1 class2 class3">link</a></p>',
-    '[link](#ref){width="15cm" height=10cm}': '<p><a href="#ref" style="width:15cm;height:10cm;">link</a></p>',
-    '[link](#ref){style="color: red" data-attr="test"}': '<p><a href="#ref" style="color: red" data-attr="test">link</a></p>',
-    '[link](#ref){width="15cm" style="color:red"}': '<p><a href="#ref" style="color:red;width:15cm;">link</a></p>',
+    '[link](https://example.com){#id}': '<p><a href="https://example.com" id="id" target="_blank" rel="nofollow noopener noreferrer">link</a></p>',
+    '[link](https://example.com){.class1 .class2 .class3}': '<p><a href="https://example.com" class="class1 class2 class3" target="_blank" rel="nofollow noopener noreferrer">link</a></p>',
+    '[link](https://example.com){width="15cm" height=10cm}': '<p><a href="https://example.com" style="width:15cm;height:10cm;" target="_blank" rel="nofollow noopener noreferrer">link</a></p>',
+    '[link](https://example.com){style="color: red" data-attr="test"}': '<p><a href="https://example.com" style="color: red" data-attr="test" target="_blank" rel="nofollow noopener noreferrer">link</a></p>',
+    '[link](https://example.com){width="15cm" style="color:red"}': '<p><a href="https://example.com" style="color:red;width:15cm;" target="_blank" rel="nofollow noopener noreferrer">link</a></p>',
+    '# Heading {#id .class style="color:red"}': '<h1 id="id" class="class" style="color:red">Heading </h1>',
+    '## Heading{#id}': '<h2 id="id">Heading</h2>',
+    '### Heading [link](https://example.com){.class}': '<h3>Heading <a href="https://example.com" class="class" target="_blank" rel="nofollow noopener noreferrer">link</a></h3>',
+    '#### Heading\n{#id}': { html: '<h4>Heading</h4>\n<p>{#id}</p>', formatted: '#### Heading\n\n{#id}' },
     // Template varaibles
     '{{ var }}': '<p>{{ var }}</p>',
     'text **{{ var }}** text': '<p>text <strong>{{ var }}</strong> text</p>',
@@ -53,6 +57,15 @@ describe('Markdown extensions', () => {
       html: '<p></p><figure><img src="/img.png" alt="captionfootnote [partial"><figcaption>caption<footnote>footnote [partial</footnote></figcaption></figure><p></p>',
       formatted: '![caption^[footnote \\[partial]](/img.png)',
     },
+    // Reference links
+    '[](#ref)': '<p><ref to="ref"></ref></p>',
+    '[Reference](#ref)': '<p><ref to="ref">Reference</ref></p>',
+    '[](#ref){.class}': '<p><ref class="class" to="ref"></ref></p>',
+    // Underline
+    'text <u>underline</u> text': '<p>text <u>underline</u> text</p>',
+    // Self-closing tags
+    'text\n\n<pagebreak />\n\ntext': '<p>text</p>\n<pagebreak></pagebreak>\n<p>text</p>',
+    'text <ref to="ref" data-custom-attr="asf" /> text': '<p>text <ref to="ref" data-custom-attr="asf"></ref> text</p>',
   }).map(([md, expected]) => [md, typeof expected === 'string' ? { html: expected, formatted: md } : expected])) {
     test(md, () => {
       expect(renderMarkdownToHtml(md).trim()).toBe(expected.html);

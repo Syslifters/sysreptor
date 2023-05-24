@@ -190,8 +190,27 @@ if OIDC_AZURE_CLIENT_ID and OIDC_AZURE_CLIENT_SECRET and OIDC_AZURE_TENANT_ID:
                 'scope': 'openid email profile',
                 'code_challenge_method': 'S256',
             },
+            'reauth_supported': True,
         },
     }
+
+OIDC_GOOGLE_CLIENT_ID = config('OIDC_GOOGLE_CLIENT_ID', default=None)
+OIDC_GOOGLE_CLIENT_SECRET = config('OIDC_GOOGLE_CLIENT_SECRET', default=None)
+if OIDC_GOOGLE_CLIENT_ID and OIDC_GOOGLE_CLIENT_SECRET:
+    AUTHLIB_OAUTH_CLIENTS |= {
+        'google': {
+            'label': 'Google',
+            'client_id': OIDC_GOOGLE_CLIENT_ID,
+            'client_secret': OIDC_GOOGLE_CLIENT_SECRET,
+            'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration',
+            'client_kwargs': {
+                'scope': 'openid email profile',
+                'code_challenge_method': 'S256',
+            },
+            'reauth_supported': False,
+        }
+    }
+
 if oidc_config := config('OIDC_AUTHLIB_OAUTH_CLIENTS', cast=json.loads, default="{}"):
     AUTHLIB_OAUTH_CLIENTS |= oidc_config
 

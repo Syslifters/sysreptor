@@ -25,7 +25,6 @@
             <s-text-field 
               :value="user.first_name" @input="updateField('first_name', $event)" 
               label="First name"
-              :rules="rules.required"
               required
               :error-messages="errors?.first_name"
               :disabled="!canEdit"
@@ -43,7 +42,6 @@
             <s-text-field
               :value="user.last_name" @input="updateField('last_name', $event)" 
               label="Last name"
-              :rules="rules.required"
               required
               :error-messages="errors?.last_name"
               :disabled="!canEdit"

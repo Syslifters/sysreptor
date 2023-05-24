@@ -530,18 +530,10 @@ function tokenizeCollapsedReference(effects, ok, nok) {
 
 
 
-const labelEndSyntax = {
+export const labelEndSyntax = {
   text: {
     [codes.rightSquareBracket]: labelEnd,
   }
 };
 
-
-/**
- * Override default labelEnd handler to support parsing nested labels in image captions and footnotes.
- */
-export function remarkLabelEnd() {
-  addRemarkExtension(this, {disable: {null: ['labelEnd']}});
-  addRemarkExtension(this, labelEndSyntax, null, null);
-}
 

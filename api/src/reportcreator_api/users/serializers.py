@@ -3,6 +3,7 @@ from uuid import UUID
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.conf import settings
 from reportcreator_api.users.models import PentestUser, MFAMethod, MFAMethodType, AuthIdentity
@@ -56,7 +57,7 @@ class CreateUserSerializer(PentestUserDetailSerializer):
         }
     
     def validate_password(self, value):
-        if value is not None:
+        if value:
             validate_password(value, user=self.instance)
         return make_password(value)
 
@@ -78,12 +79,15 @@ class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
         return False
 
     def to_internal_value(self, data):
-        if isinstance(data, dict) and 'id' in data:
-            return self.get_queryset().get(pk=data['id'])
-        elif isinstance(data, (str, UUID)):
-            return self.get_queryset().get(pk=data)
-        else:
-            return data
+        try:
+            if isinstance(data, dict) and 'id' in data:
+                return self.get_queryset().get(pk=data['id'])
+            elif isinstance(data, (str, UUID)):
+                return self.get_queryset().get(pk=data)
+            else:
+                return data
+        except ObjectDoesNotExist as ex:
+            raise serializers.ValidationError('Invalid user') from ex
 
     def to_representation(self, value):
         return self.user_serializer(value).to_representation(value)
@@ -213,7 +217,7 @@ class MFAMethodRegisterFIDO2Serializer(MFAMethodRegisterSerializerBase):
 class AuthIdentitySerializer(serializers.ModelSerializer):
     class Meta:
         model = AuthIdentity
-        fields = ['provider', 'identifier']
+        fields = ['id', 'created', 'updated', 'provider', 'identifier']
     
     def create(self, validated_data):
         return super().create(validated_data | {'user': self.context['user']})

@@ -76,6 +76,7 @@ function micromarkToAnnotatedText(text, events) {
     'codeText': '`code`',
     'templateVariable': '`code`',
     'labelText': '`code`',
+    'htmlTextData': '`code`',
   };
   const annotatedText = [];
   for (const n of leafNodes) {

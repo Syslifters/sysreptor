@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.87 - 2023-05-24
+* Provide (optional) base styles in designer via `@import "/assets/global/base.css";`
+* Add `<ref>` component to designs to reference headings, figures, tables and findings
+* Support writing markdown inside design HTML templates via `<markdown>` component
+* Support markdown attrs for headings
+* Allow `<u>` and `<pagebreak />` in markdown
+* Provide lodash utility functions in design template
+* The update script rebuilds Docker images every seven days to ensure dependencies are updated regularly
+* Fix user type field formatting in design rendering
+* Add settings for OIDC with Google
+
+
 ## v0.83 - 2023-05-12
 * Fix parsing of nested markdown labels (link in footnote in image caption)
 * On file not found during PDF rendering: add reference to finding/section in error message

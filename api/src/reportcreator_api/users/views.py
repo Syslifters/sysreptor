@@ -305,15 +305,15 @@ class AuthViewSet(viewsets.ViewSet):
         first_login = not user.last_login
         is_reauth = bool(request.session.get('authentication_info', {}).get('login_time')) and str(user.id) == request.session.get('_auth_user_id')
         if is_reauth and can_reauth:
+            request.session.cycle_key()
             request.session['authentication_info'] |= {
                 'reauth_time': timezone.now().isoformat(),
             }
-            request.session.cycle_key()
         else:
+            login(request=self.request, user=user)
             request.session['authentication_info'] = request.session.get('authentication_info', {}) | {
                 'login_time': timezone.now().isoformat(),
             }
-            login(request=self.request, user=user)
         return Response({
             'status': 'success',
             'first_login': first_login,
@@ -330,7 +330,7 @@ class AuthViewSet(viewsets.ViewSet):
         }
         redirect_uri = request.build_absolute_uri(f'/login/oidc/{oidc_provider}/callback')
         redirect_kwargs = {}
-        if request.GET.get('reauth'):
+        if request.GET.get('reauth') and settings.AUTHLIB_OAUTH_CLIENTS[oidc_provider].get('reauth_supported', False):
             redirect_kwargs |= {
                 'prompt': 'login',
                 'max_age': 0
@@ -359,8 +359,10 @@ class AuthViewSet(viewsets.ViewSet):
             raise exceptions.AuthenticationFailed()
 
         can_reauth = False
-        if (auth_time := token['userinfo'].get('auth_time')):
-            can_reauth &= (timezone.now() - timezone.make_aware(datetime.fromtimestamp(auth_time))) < timedelta(minutes=1)
+        if not settings.AUTHLIB_OAUTH_CLIENTS[oidc_provider].get('reauth_supported', False):
+            can_reauth = True
+        elif (auth_time := token['userinfo'].get('auth_time')):
+            can_reauth = (timezone.now() - timezone.make_aware(datetime.fromtimestamp(auth_time))) < timedelta(minutes=1)
         res = self.perform_login(request, identity.user, can_reauth=can_reauth)
         request.session['authentication_info'] |= {
             f'oidc_{oidc_provider}_login_hint': token['userinfo'].get('login_hint'),

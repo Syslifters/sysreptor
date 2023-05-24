@@ -19,6 +19,7 @@
       :label="label"
       :upload-file="uploadFile"
       :rewrite-file-url="rewriteFileUrl"
+      :rewrite-reference-link="rewriteReferenceLink"
       :disabled="disabled"
       :lang="lang"
     />
@@ -129,6 +130,7 @@
         :selectable-users="selectableUsers"
         :upload-file="uploadFile"
         :rewrite-file-url="rewriteFileUrl"
+        :rewrite-reference-link="rewriteReferenceLink"
         :disabled="disabled"
         :lang="lang"
       />
@@ -182,6 +184,7 @@
               :selectable-users="selectableUsers"
               :upload-file="uploadFile"
               :rewrite-file-url="rewriteFileUrl"
+              :rewrite-reference-link="rewriteReferenceLink"
               :disabled="disabled"
               :lang="lang"
             />
@@ -231,6 +234,10 @@ export default {
       default: null,
     },
     rewriteFileUrl: {
+      type: Function,
+      default: null,
+    },
+    rewriteReferenceLink: {
       type: Function,
       default: null,
     },

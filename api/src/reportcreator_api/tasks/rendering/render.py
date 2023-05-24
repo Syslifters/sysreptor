@@ -1,5 +1,7 @@
 import json
 import logging
+from pathlib import Path
+import re
 from playwright.sync_api import sync_playwright
 from typing import Optional
 from base64 import b64decode
@@ -38,7 +40,7 @@ def get_render_script():
 
 
 @log_timing
-def render_to_html(template: str, data: dict, language: str) -> tuple[Optional[str], list[dict]]:
+def render_to_html(template: str, styles: str, data: dict, language: str) -> tuple[Optional[str], list[dict]]:
     messages = []
     html = None
 
@@ -73,6 +75,8 @@ def render_to_html(template: str, data: dict, language: str) -> tuple[Optional[s
                 window.REPORT_DATA = {json.dumps(data, cls=DjangoJSONEncoder)};
             }}""")
             
+            if styles:
+                page.add_style_tag(content=styles)
             page.add_script_tag(content=get_render_script())
 
             # Wait for template to finish rendering
@@ -91,6 +95,10 @@ def render_to_html(template: str, data: dict, language: str) -> tuple[Optional[s
                         'message': error_data['message'],
                         'details': error_data.get('details'),
                     }
+                if msg['message'] in [
+                    '[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.'
+                ]:
+                    continue
                 if msg['level'] in ['error', 'warning', 'info']:
                     messages.append(ErrorMessage(**msg | {'level': MessageLevel(msg['level'])}))
             
@@ -139,7 +147,7 @@ def weasyprint_strip_pdf_metadata(doc, pdf):
 
 
 @log_timing
-def render_to_pdf(html_content: str, css_styles: str, resources: dict[str, str], data: dict) -> tuple[Optional[bytes], list[dict]]:
+def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> tuple[Optional[bytes], list[dict]]:
     messages = []
 
     def weasyprint_url_fetcher(url, timeout=10, ssl_context=None):
@@ -151,6 +159,11 @@ def render_to_pdf(html_content: str, css_styles: str, resources: dict[str, str],
             return {
                 'filename': url.split('/')[-1],
                 'file_obj': BytesIO(b64decode(resources[url])),
+            }
+        elif (m := re.fullmatch(r'^/assets/global/([a-z0-9-_.]+)$', url)) and (global_asset := Path(__file__).parent / 'global_assets' / m.group(1)) and global_asset.exists():
+            return {
+                'filename': global_asset.name,
+                'file_obj': global_asset.open('rb'),
             }
         elif url.startswith('/'):
             messages.append(ErrorMessage(
@@ -173,13 +186,15 @@ def render_to_pdf(html_content: str, css_styles: str, resources: dict[str, str],
 
     font_config = FontConfiguration()
     html = HTML(string=html_content, base_url='reportcreator://', url_fetcher=weasyprint_url_fetcher)
-    css = CSS(string=css_styles, font_config=font_config, base_url='reportcreator://', url_fetcher=weasyprint_url_fetcher)
-    rendered = html.render(stylesheets=[css], font_config=font_config, optimize_size=[], presentational_hints=True)
+    rendered = html.render(
+        font_config=font_config, 
+        optimize_size=[], 
+        presentational_hints=True
+    )
 
     res = None
     if not any(map(lambda m: m.level == MessageLevel.ERROR, messages)):
         res = rendered.write_pdf(finisher=weasyprint_strip_pdf_metadata)
-    logging.warning(str(messages))
     return res, messages
 
 
@@ -203,6 +218,7 @@ def render_pdf(template: str, styles: str, data: dict, resources: dict, language
     msgs = []
     html, html_msgs = render_to_html(
         template=template,
+        styles=styles,
         data=data,
         language=language,
     )
@@ -212,7 +228,6 @@ def render_pdf(template: str, styles: str, data: dict, resources: dict, language
     
     pdf, pdf_msgs = render_to_pdf(
         html_content=html,
-        css_styles=styles,
         resources=resources,
         data=data
     )

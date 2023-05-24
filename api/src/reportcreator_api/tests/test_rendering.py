@@ -7,7 +7,7 @@ from unittest import mock
 from pytest_django.asserts import assertHTMLEqual
 from django.test import override_settings
 
-from reportcreator_api.tests.mock import create_project_type, create_project, create_user, create_finding
+from reportcreator_api.tests.mock import create_imported_member, create_project_type, create_project, create_user, create_finding
 from reportcreator_api.tasks.rendering.entry import render_pdf, PdfRenderingError
 from reportcreator_api.tasks.rendering.render import render_to_html
 from reportcreator_api.utils.utils import merge
@@ -19,7 +19,12 @@ class TestHtmlRendering:
     def setUp(self):
         self.user = create_user()
         self.project_type = create_project_type()
-        self.project = create_project(project_type=self.project_type, members=[self.user], findings_kwargs=[])
+        self.project = create_project(
+            project_type=self.project_type, 
+            members=[self.user], 
+            imported_members=[create_imported_member(roles=['lead'])],
+            findings_kwargs=[], 
+            report_data={'field_user': str(self.user.id)})
         self.finding = create_finding(project=self.project)
 
         with override_settings(CELERY_TASK_ALWAYS_EAGER=True):
@@ -27,8 +32,8 @@ class TestHtmlRendering:
     
     def render_html(self, template, additional_data={}):
         def render_only_html(data, language, **kwargs):
-            html, msgs = render_to_html(template=template, data=merge(data, additional_data), language=language)
-            return html.encode() if html else None, msgs
+            html, msgs = render_to_html(template=template, styles='@import url("/assets/global/base.css");', data=merge(data, additional_data), language=language)
+            return html.encode() if html else None, [m.to_dict() for m in msgs]
         
         with mock.patch('reportcreator_api.tasks.rendering.render.render_pdf', render_only_html):
             html = async_to_sync(render_pdf)(self.project).decode()
@@ -48,9 +53,12 @@ class TestHtmlRendering:
         ('{{ report.field_enum.value }}', lambda self: self.project.data['field_enum']),
         ('{{ findings[0].cvss.vector }}', lambda self: self.finding.data['cvss']),
         ('{{ findings[0].cvss.score }}', lambda self: str(self.finding.risk_score)),
-        ('{{ data.pentesters[0].name }}', lambda self: self.user.name),
-        ('{{ data.pentesters[0].email }}', lambda self: self.user.email),
-        ('<template v-for="r in data.pentesters[0].roles">{{ r }}</template>', lambda self: ''.join(self.project.members.all()[0].roles)),
+        ('{{ data.pentesters[0].name }}', lambda self: self.project.imported_members[0]['name']),
+        ('<template v-for="r in data.pentesters[0].roles">{{ r }}</template>', lambda self: ''.join(self.project.imported_members[0]['roles'])),
+        ('{{ data.pentesters[1].name }}', lambda self: self.user.name),
+        ('<template v-for="r in data.pentesters[1].roles">{{ r }}</template>', lambda self: ''.join(self.project.members.all()[0].roles)),
+        ('{{ report.field_user.id }}', lambda self: str(self.user.id)),
+        ('{{ report.field_user.name }}', lambda self: self.user.name),
         ('<template v-for="f in findings">{{ f.title }}</template>', lambda self: self.finding.title),
         ('{{ capitalize("hello there") }}', "Hello there"),
         ("{{ formatDate('2022-09-21', 'iso') }}", "2022-09-21"),
@@ -72,7 +80,8 @@ class TestHtmlRendering:
 
     @pytest.mark.parametrize('template', [
         '<markdown></p>',
-        '{{ report.nonexistent_variable.prop }}'
+        '{{ report.nonexistent_variable.prop }}',
+        # '<ref to="nonexistent" />',  currently just a warning
     ])
     def test_template_error(self, template):
         with pytest.raises(PdfRenderingError):
@@ -84,18 +93,60 @@ class TestHtmlRendering:
             self.render_html('<markdown :text="data.md" />', {'md': 'text _with_ **markdown** `code`'}), 
             '<div class="markdown"><p>text <em>with</em> <strong>markdown</strong> <code class="code-inline">code</code></p></div>'
         )
+        assertHTMLEqual(
+            self.render_html('<markdown>\n' + '\n'.join((' ' * 6) + l for l in [
+                    '# Report title {#ref}',
+                    'Paragraph _text_ with **inline** `code` and [links](https://example.com){#id .class style="color:red"}.<br>',
+                    'second line [](#ref)<br>',
+                    'third line',
+                    '',
+                    '* list item 1',
+                    '* list item 2',
+                    '    * list item 2.1',
+                    '',
+                    '> blockquote',
+                    '> text',
+                    '',
+                    '```',
+                    'code block content',
+                    '    indentation preserved',
+                    '<div><span>HTML</span> <strong>preserved</strong></div>',
+                    '<invalid>HTML',
+                    '<!-- comment preserved -->',
+                    '```',
+                    '',
+                    '<span v-if="false">This should not be rendered</span><span v-if="report.title">Variable: {{ report.title }}</span>',
+                ]) + '</markdown>'),
+                '\n'.join([
+                    '<div class="markdown">',
+                    '<h1 id="ref">Report title</h1>',
+                    '<p>Paragraph <em>text</em> with <strong>inline</strong> <code class="code-inline">code</code> and '
+                        '<a href="https://example.com" id="id" class="class" style="color: red;" target="_blank" rel="nofollow noopener noreferrer">links</a>.<br>'
+                        'second line <a href="#ref" class="ref ref-heading"><span class="ref-title">Report title</span></a><br>'
+                        'third line</p>',
+                    '<ul><li>list item 1</li><li>list item 2<ul><li>list item 2.1</li></ul></li></ul>',
+                    '<blockquote><p>blockquote text</p></blockquote>'
+                    '<pre class="code-block"><code class="hljs">',
+                    '<span class="code-block-line" data-line-number="1">code block content</span>',
+                    '<span class="code-block-line" data-line-number="2">    indentation preserved</span>',
+                    '<span class="code-block-line" data-line-number="3">&lt;div&gt;&lt;span&gt;HTML&lt;/span&gt; &lt;strong&gt;preserved&lt;/strong&gt;&lt;/div&gt;</span>',
+                    '<span class="code-block-line" data-line-number="4">&lt;invalid&gt;HTML</span>',
+                    '<span class="code-block-line" data-line-number="5">&lt;!-- comment preserved --&gt;</span>',
+                    '</code></pre>',
+                    '<p><span>Variable: Report title</span></p>',
+                    '</div>'
+                ])
+            )
 
     def test_toc_rendering(self):
         html = self.render_html("""
         <table-of-contents v-slot="tocItems">
             <section v-if="tocItems">
-                <h1 class="in-toc" id="toc">Table of Contents</h1>
-                <ul class="toc">
-                    <template v-for="item in tocItems">
-                        <li :class="['toc-level-' + item.level, (item.attrs.class || '').split(' ').includes('numbered') ? 'numbered' : '', (item.attrs.class || '').split(' ').includes('numbered-appendix') ? 'numbered-appendix' : '']">
-                            <a :href="item.href">{{ item.title }}</a>
-                        </li>
-                    </template>
+                <h1 id="toc" class="in-toc">Table of Contents</h1>
+                <ul>
+                    <li v-for="item in tocItems" :class="'toc-level' + item.level">
+                        <ref :to="item.id" />
+                    </li>
                 </ul>
             </section>
         </table-of-contents>
@@ -106,21 +157,24 @@ class TestHtmlRendering:
         <h2 class="in-toc numbered" id="h1.3">H1.3</h2>
         <h1 class="in-toc numbered" id="h2">H2</h1>
         <h2 class="in-toc numbered" id="h2.1">H2.1</h2>
-        <h1 class="in-toc numbered-appendix" id="a">Appendix</h1>
-        <h2 class="in-toc numbered-appendix" id="a.1">A.1</h2>
-        """)
-        assertHTMLEqual(self.extract_html_part(html, '<ul class="toc">', '</ul>'), """
-        <ul class="toc">
-            <li class="toc-level-1"><a href="#toc">Table of Contents</a></li>
-            <li class="toc-level-1 numbered"><a href="#h1">H1</a></li>
-            <li class="toc-level-2 numbered"><a href="#h1.1">H1.1</a></li>
-            <li class="toc-level-3 numbered"><a href="#h1.1.1">H1.1.1</a></li>
-            <li class="toc-level-2"><a href="#h1.2">H1.2</a></li>
-            <li class="toc-level-2 numbered"><a href="#h1.3">H1.3</a></li>
-            <li class="toc-level-1 numbered"><a href="#h2">H2</a></li>
-            <li class="toc-level-2 numbered"><a href="#h2.1">H2.1</a></li>
-            <li class="toc-level-1 numbered-appendix"><a href="#a">Appendix</a></li>
-            <li class="toc-level-2 numbered-appendix"><a href="#a.1">A.1</a></li>
+        <div class="appendix">
+            <h1 class="in-toc numbered" id="a">Appendix</h1>
+            <h2 class="in-toc numbered" id="a.1">A.1</h2>
+        </div>
+        """
+        )
+        assertHTMLEqual(self.extract_html_part(html, '<ul>', '</ul>'), """
+        <ul>
+            <li class="toc-level1"><a href="#toc" class="ref ref-heading"><span class="ref-title">Table of Contents</span></a></li>
+            <li class="toc-level1"><a href="#h1" class="ref ref-heading ref-heading-level1"><span class="ref-title">H1</span></a></li>
+            <li class="toc-level2"><a href="#h1.1" class="ref ref-heading ref-heading-level2"><span class="ref-title">H1.1</span></a></li>
+            <li class="toc-level3"><a href="#h1.1.1" class="ref ref-heading ref-heading-level3"><span class="ref-title">H1.1.1</span></a></li>
+            <li class="toc-level2"><a href="#h1.2" class="ref ref-heading"><span class="ref-title">H1.2</span></a></li>
+            <li class="toc-level2"><a href="#h1.3" class="ref ref-heading ref-heading-level2"><span class="ref-title">H1.3</span></a></li>
+            <li class="toc-level1"><a href="#h2" class="ref ref-heading ref-heading-level1"><span class="ref-title">H2</span></a></li>
+            <li class="toc-level2"><a href="#h2.1" class="ref ref-heading ref-heading-level2"><span class="ref-title">H2.1</span></a></li>
+            <li class="toc-level1"><a href="#a" class="ref ref-heading ref-appendix ref-appendix-level1"><span class="ref-title">Appendix</span></a></li>
+            <li class="toc-level2"><a href="#a.1" class="ref ref-heading ref-appendix ref-appendix-level2"><span class="ref-title">A.1</span></a></li>
         </ul>
         """)
 

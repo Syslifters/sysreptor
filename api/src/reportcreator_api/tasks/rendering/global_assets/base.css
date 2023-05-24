@@ -1,0 +1,95 @@
+@import url("/assets/global/base-text.scss");
+@import url("/assets/global/base-ref.css");
+
+
+html {
+  margin: 0;
+  padding: 0;
+  overflow-wrap: break-word;
+
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11pt;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+@page {
+  size: A4 portrait;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    break-inside: avoid;
+    break-after: avoid;
+}
+
+
+html {
+  font-size: 11pt;
+}
+
+
+
+
+/* Footnotes */
+@page {
+  @footnote {
+    padding-top: 1em;
+  }
+}
+footnote {
+  float: footnote;
+}
+/* Footnote number in text */
+::footnote-call {
+  content: counter(footnote);
+}
+.footnote-call-separator {
+  content: ',';
+}
+/* Footnote number in footnote area */
+::footnote-marker {
+  content: counter(footnote) '.';
+  display: inline-block;
+  width: 2em;
+  padding-right: 1em;
+  text-align: right;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Helper classes */
+.debug { 
+  background-color: red !important; 
+}
+
+.markdown-inline, .markdown-inline > *:first-child {
+  display: inline;
+  margin-top: 0;
+}
+
+.link-none {
+  color: inherit;
+  text-decoration: none;
+  font-style: inherit;
+}
+
+.text-center {
+  text-align: center;
+}
+

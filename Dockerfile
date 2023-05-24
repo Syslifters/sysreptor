@@ -1,4 +1,4 @@
-FROM node:16-alpine@sha256:710a2c192ca426e03e4f3ec1869e5c29db855eb6969b74e6c50fd270ffccd3f1 AS pdfviewer-dev
+FROM node:16.20.0-alpine3.17 AS pdfviewer-dev
 WORKDIR /app/packages/pdfviewer/
 COPY packages/pdfviewer/package.json packages/pdfviewer/package-lock.json /app/packages/pdfviewer//
 RUN npm install
@@ -13,7 +13,7 @@ RUN npm run build
 
 
 
-FROM node:16-alpine@sha256:710a2c192ca426e03e4f3ec1869e5c29db855eb6969b74e6c50fd270ffccd3f1 AS frontend-dev
+FROM node:16.20.0-alpine3.17 AS frontend-dev
 
 WORKDIR /app/packages/markdown/
 COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
@@ -27,6 +27,7 @@ RUN npm install
 FROM frontend-dev AS frontend-test
 COPY packages/markdown/ /app/packages/markdown/
 COPY frontend /app/frontend/
+COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/frontend/assets/rendering
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/static/static/pdfviewer/
 CMD npm run test
 
@@ -40,7 +41,7 @@ RUN npm run build
 
 
 
-FROM node:16-alpine@sha256:710a2c192ca426e03e4f3ec1869e5c29db855eb6969b74e6c50fd270ffccd3f1 AS rendering-dev
+FROM node:16.20.0-alpine3.17 AS rendering-dev
 
 WORKDIR /app/packages/markdown/
 COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
@@ -59,7 +60,7 @@ RUN npm run build
 
 
 
-FROM python:3.10-slim-bullseye@sha256:89648909125f37eeff6dee35491e6295c77b76c42aa1aff2523478990e73d3fe AS api-dev
+FROM python:3.10.11-slim-bullseye AS api-dev
 
 # Install system dependencies required by weasyprint and chromium
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -33,6 +33,7 @@
           :definition="projectType.finding_fields[fieldId]" 
           :upload-file="uploadFile" 
           :rewrite-file-url="rewriteFileUrl"
+          :rewrite-reference-link="rewriteReferenceLink"
           :selectable-users="project.members.concat(project.imported_members)"
           :lang="finding.language"
         />

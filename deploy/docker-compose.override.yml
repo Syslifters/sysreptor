@@ -26,7 +26,7 @@ services:
       timeout: 30s
       retries: 5
       start_period: 10s
-    restart: always
+    restart: unless-stopped
     depends_on:
       db: 
         condition: service_healthy

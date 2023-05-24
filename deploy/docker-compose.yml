@@ -21,7 +21,7 @@ services:
       interval: 2s
       timeout: 5s
       retries: 30
-    restart: always
+    restart: unless-stopped
     stop_grace_period: 120s
   app:
     build: 
@@ -45,7 +45,7 @@ services:
       DATABASE_USER: reportcreator
       DATABASE_PASSWORD: reportcreator
     env_file: app.env
-    restart: always
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/healthcheck/"]
       interval: 30s

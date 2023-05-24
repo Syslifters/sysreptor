@@ -7,11 +7,13 @@ from asgiref.sync import sync_to_async
 from types import NoneType
 from typing import Any, Optional, Union
 from base64 import b64encode, b64decode
+from django.core.exceptions import ValidationError
 
 from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.pentests import cvss
 from reportcreator_api.pentests.customfields.types import FieldDataType, FieldDefinition, EnumChoice
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
 from reportcreator_api.pentests.models import PentestProject, ProjectType, ProjectMemberInfo
 from reportcreator_api.utils.error_messages import ErrorMessage
@@ -28,34 +30,39 @@ class PdfRenderingError(Exception):
         self.messages = messages
 
 
-def format_template_field_object(value: dict, definition: dict[str, FieldDefinition], imported_members: Optional[list[dict]] = None, require_id=False):
+def format_template_field_object(value: dict, definition: dict[str, FieldDefinition], members: Optional[list[dict|ProjectMemberInfo]] = None, require_id=False):
     out = value | ensure_defined_structure(value=value, definition=definition)
     for k, d in (definition or {}).items():
-        out[k] = format_template_field(value=out.get(k), definition=d, imported_members=imported_members)
+        out[k] = format_template_field(value=out.get(k), definition=d, members=members)
 
     if require_id and 'id' not in out:
         out['id'] = str(uuid.uuid4())
     return out
 
 
-def format_template_field_user(value: Union[ProjectMemberInfo, str, uuid.UUID, None], imported_members: Optional[list[dict]] = None):
+def format_template_field_user(value: Union[ProjectMemberInfo, str, uuid.UUID, None], members: Optional[list[dict|ProjectMemberInfo|PentestUser]] = None):
     def format_user(u: Union[ProjectMemberInfo, dict, None]):
         if not u:
             return None
         return copy_keys(
             u.user if isinstance(u, ProjectMemberInfo) else u, 
             ['id', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after', 'email', 'phone', 'mobile']) | \
-            {'roles': list(set(filter(None, get_key_or_attr(u, 'roles', []))))}
+            {'roles': sorted(set(filter(None, get_key_or_attr(u, 'roles', []))), key=lambda r: {'lead': 0, 'pentester': 1, 'reviewer': 2}.get(r, 10))}
 
-    if isinstance(value, (ProjectMemberInfo, NoneType)):
+    if isinstance(value, (ProjectMemberInfo, PentestUser, dict, NoneType)):
         return format_user(value)
-    elif u := next(filter(lambda i: str(i.get('id')) == str(value), imported_members or []), None):
+    elif isinstance(value, (str, uuid.UUID)) and (u := next(filter(lambda i: str(get_key_or_attr(i, 'id')) == str(value), members or []), None)):
         return format_user(u)
+    elif isinstance(value, (str, uuid.UUID)):
+        try:
+            return format_user(ProjectMemberInfo(user=PentestUser.objects.get(id=value), roles=[]))
+        except (PentestUser.DoesNotExist, ValidationError):
+            return None
     else:
-        return format_user(ProjectMemberInfo.objects.filter(id=value).first())
+        return None
 
 
-def format_template_field(value: Any, definition: FieldDefinition, imported_members: Optional[list[dict]] = None):
+def format_template_field(value: Any, definition: FieldDefinition, members: Optional[list[dict|ProjectMemberInfo]] = None):
     value_type = definition.type
     if value_type == FieldDataType.ENUM:
         return dataclasses.asdict(next(filter(lambda c: c.value == value, definition.choices), EnumChoice(value='', label='')))
@@ -68,23 +75,24 @@ def format_template_field(value: Any, definition: FieldDefinition, imported_memb
             'level_number': cvss.level_number_from_score(score)
         }
     elif value_type == FieldDataType.USER:
-        return format_template_field_user(value, imported_members=imported_members)
+        return format_template_field_user(value, members=members)
     elif value_type == FieldDataType.LIST:
-        return [format_template_field(value=e, definition=definition.items, imported_members=imported_members) for e in value]
+        return [format_template_field(value=e, definition=definition.items, members=members) for e in value]
     elif value_type == FieldDataType.OBJECT:
-        return format_template_field_object(value=value, definition=definition.properties, imported_members=imported_members)
+        return format_template_field_object(value=value, definition=definition.properties, members=members)
     else:
         return value
 
 
 def format_template_data(data: dict, project_type: ProjectType, imported_members: Optional[list[dict]] = None):
+    members = [format_template_field_user(u, members=imported_members) for u in data.get('pentesters', []) + (imported_members or [])]
     data['report'] = format_template_field_object(
         value=ensure_defined_structure(
             value=data.get('report', {}), 
             definition=project_type.report_fields_obj,
             handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT),
         definition=project_type.report_fields_obj, 
-        imported_members=imported_members,
+        members=members,
         require_id=True)
     data['findings'] = sorted([
         format_template_field_object(
@@ -93,11 +101,14 @@ def format_template_data(data: dict, project_type: ProjectType, imported_members
                 definition=project_type.finding_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT),
             definition=project_type.finding_fields_obj, 
-            imported_members=imported_members,
+            members=members,
             require_id=True)
         for f in data.get('findings', [])],
         key=lambda f: (-float(f.get('cvss', {}).get('score', 0)), f.get('created'), f.get('id')))
-    data['pentesters'] = data.get('pentesters', []) + (imported_members or [])
+    data['pentesters'] = sorted( 
+        members,
+        key=lambda u: (0 if 'lead' in u.get('roles', []) else 1 if 'pentester' in u.get('roles', []) else 2 if 'reviewer' in u.get('roles', []) else 10, u.get('username'))
+    )
     return data
 
 
@@ -144,13 +155,7 @@ async def render_pdf(project: PentestProject, project_type: Optional[ProjectType
             'created': str(f.created),
             **f.data,
         } async for f in project.findings.all()],
-        'sections': dict([(s.section_id, {
-            'id': str(s.section_id),
-            'created': str(s.created),
-            'label': s.section_label,
-            **s.data,
-        }) async for s in project.sections.all()]),
-        'pentesters': [await sync_to_async(format_template_field_user)(u) async for u in project.members.all()],
+        'pentesters': [u async for u in project.members.all()],
     }
     data = await sync_to_async(format_template_data)(data=data, project_type=project_type, imported_members=project.imported_members)
     return await render_pdf_task(

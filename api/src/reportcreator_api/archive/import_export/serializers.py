@@ -58,9 +58,12 @@ class RelatedUserIdExportImportSerializer(RelatedUserSerializer):
     def to_internal_value(self, data):
         try:
             return super().to_internal_value(data)
-        except PentestUser.DoesNotExist:
-            # If user does not exit: ignore
-            raise serializers.SkipField()
+        except serializers.ValidationError as ex:
+            if isinstance(ex.__cause__, ObjectDoesNotExist):
+                # If user does not exit: ignore
+                raise serializers.SkipField()
+            else:
+                raise
 
 
 class UserDataSerializer(serializers.ModelSerializer):
@@ -80,8 +83,11 @@ class RelatedUserDataExportImportSerializer(ProjectMemberInfoSerializer):
     def to_internal_value(self, data):
         try:
             return ProjectMemberInfo(**super().to_internal_value(data))
-        except PentestUser.DoesNotExist:
-            return data
+        except serializers.ValidationError as ex:
+            if isinstance(ex.__cause__, ObjectDoesNotExist):
+                return data
+            else:
+                raise
         
 
 class ProjectMemberListExportImportSerializer(serializers.ListSerializer):

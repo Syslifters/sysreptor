@@ -12,7 +12,7 @@ from rest_framework.settings import api_settings
 
 from reportcreator_api.api_utils.serializers import LanguageToolAddWordSerializer, LanguageToolSerializer, BackupSerializer
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
-from reportcreator_api.api_utils.permissions import IsSystemUser, IsUserManagerOrSuperuser
+from reportcreator_api.api_utils.permissions import IsSystemUser, IsUserManagerOrSuperuserOrSystem
 from reportcreator_api.api_utils import backup_utils
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.api import GenericAPIViewAsync
@@ -98,7 +98,7 @@ class UtilsViewSet(viewsets.ViewSet):
             log.info('Sending Backup')
             return response
         
-    @action(detail=False, methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsUserManagerOrSuperuser])
+    @action(detail=False, methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsUserManagerOrSuperuserOrSystem])
     def license(self, request, *args, **kwargs):
         return Response(data=license.check_license() | {
             'active_users': PentestUser.objects.get_licensed_user_count(),

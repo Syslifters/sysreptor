@@ -18,6 +18,10 @@ export default {
       type: Function,
       default: null,
     },
+    rewriteReferenceLink: {
+      type: Function,
+      default: null,
+    },
   },
   data() {
     return {
@@ -50,12 +54,25 @@ export default {
     this.updatePreview = throttle(this.renderMarkdown, 200);
     this.updatePreview();
   },
+  updated() {
+    // Prevent navigation when clicking on links in preview
+    this.$el.querySelectorAll('.preview a[href^="#"]').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+  },
   methods: {
     renderMarkdown() {
       // Render markdown to HTML
       this.renderedMarkdownRaw = renderMarkdownToHtml(this.value || '', {
         preview: true,
         rewriteFileSource: this.rewriteFileSource,
+        rewriteReferenceLink: this.rewriteReferenceLink,
       });
       // Clean up image cache: remove unused images to reduce memory usage
       for (const imgCacheEntry of this.imageCache) {
@@ -122,98 +139,22 @@ export default {
   background-color: #fafafa;
 }
 
-:deep() {
-  p, ul, ol, blockquote, table, .code-block {
-    margin: 0.8em 0 0 0;
-    padding: 0;
+.preview > :deep(*:first-child) {
+  margin-top: 0;
+}
 
-    &:first-child {
-      margin-top: 0;
-    }
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    font-weight: bold;
-    margin: 1em 0 0 0;
-
-    // Remove margin-top if h* is the first element
-    &:first-child { margin-top: 0; }
-    // Remove margin-top of the next element after h*
-    & + * { margin-top: 0; }
-    // But not if the next element is another heading
-    & { margin-top: 1em; }
-  }
-  h1 { font-size: 2em;  }
-  h2 { font-size: 1.75em; }
-  h3 { font-size: 1.5em; }
-  h4 { font-size: 1.25em; }
-  h5 { font-size: 1.1em; }
-  h6 { font-size: 1em; }
-
-  blockquote {
-    background: #f9f9f9;
-    border-left: 5px solid #ccc;
-    padding: 0.1em 0.5em;
-  }
-
-  .code-block {
-    white-space: pre-wrap;
-    code {
-      display: block;
-    }
-  }
+.preview :deep() {
+  @import "~assets/rendering/base-text.scss";
 
   .footnotes {
     border-top: 1px solid black;
     margin-top: 2em;
-  }
 
-  table {
-    caption-side: bottom;
-    width: 100%;
-  }
-  table, th, td {
-    border: 1px solid black;
-    border-collapse: collapse;
-  }
-  th, td {
-    padding: 5px;
-  }
-
-  figure {
-    text-align: center;
-  }
-  img {
-    max-width: 100%;
-  }
-
-  figcaption, caption {
-    font-weight: bold;
-  }
-
-  .footnotes {
     h4 {
       font-size: 1em;
     }
     .data-footnote-backref {
       display: none;
-    }
-  }
-
-  ul, ol {
-    li {
-      margin-left: 1.5em;
-      padding-left: 0;
-    }
-
-    li.task-list-item {
-      list-style-type: none;
-
-      input[type=checkbox] {
-        margin-left: -1.5em;
-        width: 1.5em;
-        padding: 0;
-      }
     }
   }
 
@@ -227,5 +168,10 @@ export default {
     }
   }
 
+  .ref {
+    color: inherit;
+    font-style: inherit;
+    text-decoration: underline;
+  }
 }
 </style>

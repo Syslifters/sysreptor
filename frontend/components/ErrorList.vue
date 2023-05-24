@@ -5,7 +5,7 @@
         <v-expansion-panel-header hide-actions>
           <div class="error-header text-body-1">
             <v-icon color="green" class="mr-2">mdi-checkbox-marked</v-icon>
-            No errors or warnings detected.
+            All clear! Your report is ready for download.
           </div>
         </v-expansion-panel-header>
       </v-expansion-panel>

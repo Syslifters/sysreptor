@@ -1,18 +1,16 @@
 import { h } from "vue";
 import { v4 as uuidv4 } from "uuid";
+import { callForTicks } from "../utils";
 
 export default {
   data: () => ({
     shouldRender: false,
     items: [],
   }),
-
-  mounted() {
+  async mounted() {
     // Defer rendering until everything else is rendered.
     // Then look in the DOM what should be included in the TOC
-    this.$nextTick(() => {
-      this.updateItems();
-    });
+    await callForTicks(3, this.$nextTick, () => this.updateItems());
   },
   render() {
     if (!this.shouldRender) {

@@ -106,6 +106,9 @@ function attrsFromMarkdown() {
         if (prevNode && prevNode.type !== 'text') {
           // Attach attributes to previous element e.g. ![img](img.png){width="50%"}, **bold**{.styled}, but not "**bold** {.not-styled}"
           prevNode.data = {...prevNode.data, hProperties: node.attrs};
+        } else if (['heading', 'tableCaption'].includes(parent.type)) {
+          // Attach attributes to parent element e.g. "# Heading {#chapter-id}"
+          parent.data = {...parent.data, hProperties: node.attrs};
         } else {
           // Could not attach to any node: convert attributes to text
           node.type = 'text';

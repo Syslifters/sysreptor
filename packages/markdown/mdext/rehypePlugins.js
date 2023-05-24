@@ -81,3 +81,15 @@ export function rehypeTemplates() {
     }
   })
 }
+
+
+/**
+ * Replace self-closing tags with a combination of start and end tag.
+ */
+export function rehypeRawFixSelfClosingTags() {
+  return tree => visit(tree, 'raw', (node) => {
+    console.log(node.value);
+    node.value = node.value.replaceAll(/<(?<tag>[a-zA-Z0-9-]+)(?<attrs>[^>]*)\/>/g, "<$<tag>$<attrs>></$<tag>>");
+    console.log(node.value);
+  });
+}

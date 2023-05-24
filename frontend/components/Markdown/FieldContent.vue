@@ -22,7 +22,7 @@
         <v-divider vertical />
       </v-col>
       <v-col :cols="editorMode === 'markdown-preview' ? 6 : null" v-if="editorMode !== 'markdown'">
-        <markdown-preview :value="value" :rewrite-file-url="rewriteFileUrl" class="preview" />
+        <markdown-preview :value="value" :rewrite-file-url="rewriteFileUrl" :rewrite-reference-link="rewriteReferenceLink" class="preview" />
       </v-col>
     </v-row>
     <v-divider />

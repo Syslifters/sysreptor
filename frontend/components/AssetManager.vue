@@ -29,7 +29,6 @@
 
       <v-col v-for="asset in assets.data" :key="asset.id" :cols="12" :md="3">
         <s-card>
-          <!-- TODO: image via API URL, not base64 -->
           <v-img v-if="isImage(asset)" :src="imageUrl(asset)" aspect-ratio="2" />
           <v-card-title>{{ asset.name }}</v-card-title>
           <v-card-text class="text--small">

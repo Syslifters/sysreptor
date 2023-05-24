@@ -27,9 +27,9 @@ def user_count_license_check(sender, instance, *args, **kwargs):
     
     # User updated
     if (created or 'is_superuser' in instance.changed_fields) and not instance.is_superuser and not license.is_professional():
-        raise license.LicenseError('Can only create superusers with a Community license. A Professional license is required for user roles.')
+        raise license.LicenseError('Cannot create superusers with Community license. Professional license is required for user roles.')
     if (created or 'is_system_user' in instance.changed_fields) and instance.is_system_user and not license.is_professional():
-        raise license.LicenseError('System users are not supported with a Community licenses. A Professional license is required.')
+        raise license.LicenseError('System users are not supported with Community license. Professional license is required.')
     if not created and \
         ((instance.get_field_diff('is_superuser') == (False, True) and not license.is_professional()) or \
          (instance.get_field_diff('is_active') == (False, True))):

@@ -1,12 +1,8 @@
-<template>
-  <div v-if="text" class="markdown">
-    <component :is="{template: compiledMarkdown, data: () => $root}" />
-  </div>
-</template>
-
 <script>
+import { h } from 'vue';
 import { renderMarkdownToHtml } from 'reportcreator-markdown';
 import 'highlight.js/styles/default.css';
+
 
 export default {
   props: {
@@ -15,11 +11,21 @@ export default {
       default: null,
     },
   },
-  computed: {
-    compiledMarkdown() {
-      return renderMarkdownToHtml(this.text, { preview: false });
+  methods: {
+    compileMarkdown(text) {
+      return renderMarkdownToHtml(text, { preview: false });
     },
   },
+  render() {
+    let mdText = this.text || '';
+    if (!mdText && this.$slots.default) {
+      // Slot content is always raw text because of templateCompilerOptions.getTextMode
+      mdText = this.$slots.default().map(vnode => vnode.children).join('');
+    }
+    return h('div', { class: 'markdown' }, [
+      h({ template: this.compileMarkdown(mdText), data: () => this.$root, components: this.$root.$options.components })
+    ]);
+  }
 }
 </script>
 

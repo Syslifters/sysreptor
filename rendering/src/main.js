@@ -7,11 +7,14 @@ import TableOfContents from './components/TableOfContents.js';
 import ListOfFigures from './components/ListOfFigures.js';
 import ListOfTables from './components/ListOfTables';
 import Chart from './components/ChartVue.vue';
+import Ref from './components/Ref.vue';
+import { callForTicks } from './utils';
+import lodash from 'lodash';
 
 
 // injected as global variables
-const REPORT_TEMPLAE = '<div>' + (window.REPORT_TEMPLATE || '') + '</div>';
-const REPORT_DATA = window.REPORT_DATA || {};
+const REPORT_TEMPLATE = '<div>' + (window.REPORT_TEMPLATE || '') + '</div>';
+const REPORT_DATA = window.REPORT_DATA || {report: {}, findings: []};
 const REPORT_COMPUTED = window.REPORT_COMPUTED || {};
 const REPORT_METHODS = window.REPORT_METHODS || {};
 
@@ -19,6 +22,12 @@ const REPORT_METHODS = window.REPORT_METHODS || {};
 const DEFAULT_COMPUTED = {
   report() {
     return Object.assign({}, this.data.report, {findings: this.findings});
+  },
+  sections() {
+    return Object.fromEntries(this.data.sections.map(s => [s.id, s]));
+  },
+  pentesters() {
+    return this.data.pentesters;
   },
   findings() {
     return this.data.findings;
@@ -47,6 +56,9 @@ const DEFAULT_COMPUTED = {
         count_low: this.findings_low.length,
         count_info: this.findings_info.length,
     };
+  },
+  lodash() {
+    return lodash;
   }
 };
 
@@ -75,33 +87,40 @@ const DEFAULT_METHODS = {
     }
     return date.toLocaleDateString(locales, options);
   },
+  cssvar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name);
+  },
 }
 
 
 const templateCompilerOptions = {
   whitespace: 'preserve',
-  isPreTag: () => true,
+  isPreTag: () => true,  // Preserve whitespaces of all tags
+  getTextMode: (node) => {
+    // Parse slot content of <markdown> as raw text and do not interpret as html/vue-template
+    return node.tag === 'markdown' ? 2 /* TextModes.RAWTEXT */ : 0 /* TextModes.DATA */;
+  },
   isCustomElement: tag => ['footnote'].includes(tag),
   comments: true,
   ssr: false,
   onError: (err) => {
     const error = {
       message: 'Template compilation error: ' + err.message,
-      details: err.loc && generateCodeFrame(REPORT_TEMPLAE, err.loc.start.offset, err.loc.end.offset),
+      details: err.loc && generateCodeFrame(REPORT_TEMPLATE, err.loc.start.offset, err.loc.end.offset),
     };
     console.error(error.message, error);
     window.RENDERING_COMPLETED = true;
   }
 };
 
-const RENDER_FUNCTION = compile(REPORT_TEMPLAE, templateCompilerOptions);
+const RENDER_FUNCTION = compile(REPORT_TEMPLATE, templateCompilerOptions);
 
 
 // Skip rendering on template error
 if (!window.RENDERING_COMPLETED) {
   const app = createApp({
     render: RENDER_FUNCTION,
-    components: {Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart},
+    components: {Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, Ref},
     data: () => ({
       data: REPORT_DATA,
       _tickCount: 0,
@@ -114,16 +133,24 @@ if (!window.RENDERING_COMPLETED) {
       ...DEFAULT_METHODS,
       ...REPORT_METHODS,
     },
-    mounted() {
+    async mounted() {
       // Wait some ticks before rendering is signaled as completed
       // Allow multi-pass rendering (for e.g. table of contents)
-      this.$nextTick(() => {
+      await callForTicks(5, this.$nextTick, () => { 
         this._tickCount += 1;
-        this.$nextTick(() => {
-          window.RENDERING_COMPLETED = true;
-        });
-      });
+      })
+      window.RENDERING_COMPLETED = true;
     },
+    // mounted() {
+    //   // Wait some ticks before rendering is signaled as completed
+    //   // Allow multi-pass rendering (for e.g. table of contents)
+    //   this.$nextTick(() => {
+    //     this._tickCount += 1;
+    //     this.$nextTick(() => {
+    //       window.RENDERING_COMPLETED = true;
+    //     });
+    //   });
+    // },
   });
   app.config.compilerOptions = templateCompilerOptions;
   app.config.warnHandler = (msg, instance, trace) => {
