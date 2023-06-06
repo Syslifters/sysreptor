@@ -30,14 +30,11 @@ export default {
   render() {
     const refClasses = ['ref'];
     let title = [];
-    if (this.refEl && !this.error) {
-      title = [this.refEl.getAttribute('data-toc-title') || this.refEl.textContent];
-    }
     if (this.$slots.default) {
       title = this.$slots.default();
-    }
+    } else if (this.refEl && !this.error) {
+      title = [this.refEl.getAttribute('data-toc-title') || this.refEl.textContent];
 
-    if (this.refEl && !this.error) {
       if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(this.refEl.tagName)) {
         const level = Number.parseInt(this.refEl.tagName.slice(1)) || 1;
 
@@ -118,7 +115,7 @@ export default {
       if (!tagNames.map(t => t.toUpperCase()).includes(this.refEl.tagName) && !this.$slots.default) {
         this.error = {
           message: 'Invalid reference',
-          details: `${this.refEl.tagName} element with id="${this.toId}" cannot be referenced. Only following tags can be referenced: ${tagNames.join(', ')}`
+          details: `${this.refEl.tagName} element with id="${this.toId}" cannot be automatically referenced. Provide a reference title manually (e.g. "[reference title](#${this.toId})" or "<ref to="${this.toId}">reference title</ref>").`
         };
         return;
       }

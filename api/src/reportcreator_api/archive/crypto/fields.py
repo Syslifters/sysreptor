@@ -66,7 +66,6 @@ class EncryptedField(models.BinaryField):
         })
         return name, path, args, kwargs
     
-    @elasticapm.capture_span()
     def get_db_prep_value(self, value, connection, prepared=False):
         if value is None:
             return value
@@ -91,7 +90,6 @@ class EncryptedField(models.BinaryField):
 
         return super().get_db_prep_value(value=value, connection=connection, prepared=prepared)
 
-    @elasticapm.capture_span()
     def from_db_value(self, value, expression, connection):
         value = super().to_python(value)
 

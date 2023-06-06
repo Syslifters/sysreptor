@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.89 - 2023-06-06
+* Update dependencies to fix vulnerabilities in python requests (CVE-2023-32681) and webpack (CVE-2023-28154)
+* Prevent setting reference-type specific CSS classes to `<ref>` components with slot content
+* Prevent buffering full `StreamingHttpResponse` causing high memory load
+* Add fonts Roboto Flex, STIX Two Text and Arimo
+* Remove non-variable fonts Roboto, Tinos, Lato and Courier Prime
+* Configure fallback of common fonts to similar looking fonts (Arial, Helvetica, Times New Roman, Courier New, Verdana)
+
+
 ## v0.87 - 2023-05-24
 * Provide (optional) base styles in designer via `@import "/assets/global/base.css";`
 * Add `<ref>` component to designs to reference headings, figures, tables and findings

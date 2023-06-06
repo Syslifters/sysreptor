@@ -2,9 +2,10 @@ import copy
 import io
 import json
 import logging
-from pathlib import Path
 import tarfile
+from pathlib import Path
 from typing import Iterable, Type
+from django.conf import settings
 from django.http import FileResponse
 from rest_framework import serializers
 from django.db import transaction
@@ -18,7 +19,7 @@ from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, Pen
 log = logging.getLogger(__name__)
 
 
-BLOCKSIZE = FileResponse.block_size
+BLOCKSIZE = settings.FILE_UPLOAD_MAX_MEMORY_SIZE
 
 
 def build_tarinfo(name, size):

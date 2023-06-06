@@ -1,7 +1,6 @@
 import logging
 from asgiref.sync import sync_to_async
 from base64 import b64decode
-from django.http import StreamingHttpResponse
 from django.conf import settings
 from django.utils import timezone
 from rest_framework import viewsets, routers
@@ -15,7 +14,7 @@ from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.permissions import IsSystemUser, IsUserManagerOrSuperuserOrSystem
 from reportcreator_api.api_utils import backup_utils
 from reportcreator_api.users.models import PentestUser
-from reportcreator_api.utils.api import GenericAPIViewAsync
+from reportcreator_api.utils.api import GenericAPIViewAsync, StreamingHttpResponseAsync
 from reportcreator_api.utils import license
 from reportcreator_api.pentests.models import Language
 from reportcreator_api.pentests.models import ProjectMemberRole
@@ -87,7 +86,7 @@ class UtilsViewSet(viewsets.ViewSet):
             backup_utils.upload_to_s3_bucket(z, s3_params)
             return Response(status=200)
         else:
-            response = StreamingHttpResponse(z)
+            response = StreamingHttpResponseAsync(backup_utils.to_chunks(z))
             filename = f'backup-{timezone.now().isoformat()}.zip'
             if aes_key:
                 filename += '.crypt'

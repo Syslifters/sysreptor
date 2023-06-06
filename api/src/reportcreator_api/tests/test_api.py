@@ -191,6 +191,7 @@ def regular_user_urls():
 
         *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, destory=True),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project.pk}), data={'readonly': True})),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, destory=True),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project_readonly.pk}), data={'readonly': False})),
 
         ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly.pk}))),
@@ -245,7 +246,7 @@ def superuser_urls():
 
 def forbidden_urls():
     return [
-        *project_viewset_urls(get_obj=lambda s: s.project_readonly, write=True),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, write=True, destory=False),
         ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),

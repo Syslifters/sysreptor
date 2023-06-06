@@ -83,7 +83,7 @@
                     <v-tab-item>
                       <p>
                         Use the following command to generate a new Elliptic Curve key pair. <br>
-                        Pro-Tip: You can also use <code>gpg2 --full-generate-key</code> to customize ciphers and other configs.
+                        Pro-Tip: You can also use <code>gpg --full-generate-key</code> to customize ciphers and other configs.
                       </p>
                       <code class="code-snippet">
                         cat &lt;&lt; EOF &gt; config.txt<br>
@@ -96,7 +96,7 @@
                         Name-Real: {{ $auth.user.name || $auth.user.username }}<br>
                         <template v-if="$auth.user.email">Name-Email: {{ $auth.user.email }}<br></template>
                         EOF<br>
-                        gpg2 --batch --generate-key config.txt<br>
+                        gpg --batch --generate-key config.txt<br>
                         <br>
                         gpg --list-secret-keys --keyid-format=long<br>
                         gpg --armor --export &lt;key-id&gt;<br>
@@ -273,7 +273,7 @@
                     Please decrypt the following message with your private key to verify that you own it.<br>
                     Copy the decrypted verification code below.
                   </p>
-                  <p class="mb-0"><code>gpg2 --decrypt message.txt</code></p>
+                  <p class="mb-0"><code>gpg --decrypt message.txt</code></p>
                   <v-textarea
                     v-model="setupWizard.data.verification"
                     readonly

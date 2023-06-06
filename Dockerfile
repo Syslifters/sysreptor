@@ -83,6 +83,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install fonts
 WORKDIR /app/api/
 COPY api/download_fonts.sh api/generate_notice.sh api/NOTICE /app/api/
+COPY api/fontconfig.conf /etc/fonts/conf.d/00-sysreptor-fonts.conf
 RUN chmod +x /app/api/download_fonts.sh && /app/api/download_fonts.sh
 
 # Install python packages

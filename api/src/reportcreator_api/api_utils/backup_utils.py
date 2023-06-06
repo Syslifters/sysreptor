@@ -5,6 +5,7 @@ import io
 import json
 import itertools
 from pathlib import Path
+from django.conf import settings
 from django.apps import apps
 from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
@@ -40,16 +41,20 @@ def create_database_dump():
 
 
 def backup_files(z, model, path):
-    for f in model.objects.values_list('file', flat=True).distinct().iterator():
+    def file_chunks(f):
         try:
-            z.write_iter(str(Path(path) / f), model.file.field.storage.open(f).chunks())
+            yield from model.file.field.storage.open(f).chunks()
         except (FileNotFoundError, OSError) as ex:
             logging.warning(f'Could not backup file {f}: {ex}')
+
+    for f in model.objects.values_list('file', flat=True).distinct().iterator():
+        z.write_iter(str(Path(path) / f), file_chunks(f))
 
 
 def create_backup():
     logging.info('Backup requested')
-    z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
+    z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED, allowZip64=True)
+    z.writestr('VERSION', settings.VERSION.encode())
     z.write_iter('backup.jsonl', create_database_dump())
 
     backup_files(z, UploadedImage, 'uploadedimages')
@@ -95,3 +100,14 @@ def upload_to_s3_bucket(z, s3_params):
 
     bucket.upload_fileobj(Wrapper(z), s3_params['key'])
 
+
+def to_chunks(z):
+    buffer = bytearray()
+
+    for chunk in z:
+        buffer.extend(chunk)
+        while len(buffer) > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
+            yield bytes(buffer[:settings.FILE_UPLOAD_MAX_MEMORY_SIZE])
+            del buffer[:settings.FILE_UPLOAD_MAX_MEMORY_SIZE]
+    
+    yield bytes(buffer)
