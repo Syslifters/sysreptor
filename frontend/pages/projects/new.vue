@@ -9,6 +9,7 @@
       <s-text-field v-model="project.name" label="Name" class="mt-4" />
       <project-type-selection v-model="project.project_type" />
       <member-selection v-model="project.members" :prevent-unselecting-self="true" :required="true" />
+      <s-tags v-model="project.tags" />
     </v-form>
   </v-container>
 </template>
@@ -25,6 +26,7 @@ export default {
       project: {
         name: '',
         project_type: null,
+        tags: [],
         members: [
           { ...this.$auth.user, roles },
         ],

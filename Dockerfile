@@ -81,10 +81,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install fonts
-WORKDIR /app/api/
-COPY api/download_fonts.sh api/generate_notice.sh api/NOTICE /app/api/
-COPY api/fontconfig.conf /etc/fonts/conf.d/00-sysreptor-fonts.conf
-RUN chmod +x /app/api/download_fonts.sh && /app/api/download_fonts.sh
+COPY api/fonts /usr/share/fonts/truetype
+RUN mv /usr/share/fonts/truetype/fontconfig.conf /etc/fonts/conf.d/00-sysreptor-fonts.conf && \
+    rm -rf /usr/share/fonts/truetype/dejavu/ && \
+    rm -f /etc/fonts/conf.d/*dejavu* && \
+    fc-cache -f
 
 # Install python packages
 ENV PYTHONUNBUFFERED=on \
@@ -104,6 +105,7 @@ ENV VERSION=${VERSION} \
 
 # Copy license and changelog
 COPY LICENSE CHANGELOG.md /app/
+COPY api/generate_notice.sh api/NOTICE /app/api/
 
 # Start server
 EXPOSE 8000

@@ -24,6 +24,8 @@
     "@codemirror/language": "~6.7",
     "@codemirror/lang-markdown": "~6.1",
     "@codemirror/lang-html": "~6.4",
+    "@codemirror/lang-vue": "~0.1.1",
+    "@codemirror/lang-css": "~6.2",
     "lodash": "^4.17.21"
   }
 }

@@ -88,7 +88,14 @@ const DEFAULT_METHODS = {
     return date.toLocaleDateString(locales, options);
   },
   cssvar(name) {
-    return getComputedStyle(document.documentElement).getPropertyValue(name);
+    const value = window.getComputedStyle(document.documentElement).getPropertyValue(name);
+    if (!value) {
+      console.warn({
+        message: 'CSS variable not defined',
+        details: `The CSS variable referenced via cssvar("${name}") does not exist.`,
+      });
+    }
+    return value;
   },
 }
 
@@ -119,6 +126,7 @@ const RENDER_FUNCTION = compile(REPORT_TEMPLATE, templateCompilerOptions);
 // Skip rendering on template error
 if (!window.RENDERING_COMPLETED) {
   const app = createApp({
+    name: 'root',
     render: RENDER_FUNCTION,
     components: {Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, Ref},
     data: () => ({
@@ -141,16 +149,6 @@ if (!window.RENDERING_COMPLETED) {
       })
       window.RENDERING_COMPLETED = true;
     },
-    // mounted() {
-    //   // Wait some ticks before rendering is signaled as completed
-    //   // Allow multi-pass rendering (for e.g. table of contents)
-    //   this.$nextTick(() => {
-    //     this._tickCount += 1;
-    //     this.$nextTick(() => {
-    //       window.RENDERING_COMPLETED = true;
-    //     });
-    //   });
-    // },
   });
   app.config.compilerOptions = templateCompilerOptions;
   app.config.warnHandler = (msg, instance, trace) => {

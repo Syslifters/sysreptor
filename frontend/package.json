@@ -37,7 +37,8 @@
     "vuetify": "^2",
     "webpack": "^4.46.0",
     "zxcvbn": "^4.4.2",
-    "@elastic/apm-rum-vue": "^2.1.2"
+    "@elastic/apm-rum-vue": "^2.1.2",
+    "date-fns": "^2.30.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.2",

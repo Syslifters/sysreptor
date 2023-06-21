@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { set as vueSet, del as vueDel } from "vue";
 import { omit, merge, pick } from "lodash";
 import { groupNotes, sortNotes } from "./usernotes";
 import { updateObjectReactive } from "~/utils/state";
@@ -10,10 +10,10 @@ export const state = () => ({
 
 function ensureExists(state, projectId, prop, val = null) {
   if (!(projectId in state.data)) {
-    Vue.set(state.data, projectId, {});
+    vueSet(state.data, projectId, {});
   }
   if (!(prop in state.data[projectId])) {
-    Vue.set(state.data[projectId], prop, val);
+    vueSet(state.data[projectId], prop, val);
   }
   return state.data[projectId][prop];
 }
@@ -26,8 +26,8 @@ export const mutations = {
     const oldProjectType = state.data[obj.id]?.project?.project_type;
     const oldLanguage = state.data[obj.id]?.project?.language;
     if ((oldProjectType && oldProjectType !== obj.project_type) || (oldLanguage && oldLanguage !== obj.language)) {
-      Vue.delete(state.data[obj.id], 'findings');
-      Vue.delete(state.data[obj.id], 'sections');
+      vueDel(state.data[obj.id], 'findings');
+      vueDel(state.data[obj.id], 'sections');
     }
 
     state.data[obj.id].project = obj;
@@ -44,7 +44,7 @@ export const mutations = {
   },
   remove(state, obj) {
     if (obj.id in state.data) {
-      Vue.delete(state.data, obj.id);
+      vueDel(state.data, obj.id);
     }
   },
   setFinding(state, { projectId, finding }) {

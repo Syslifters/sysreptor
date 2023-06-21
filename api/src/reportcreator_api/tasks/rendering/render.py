@@ -1,7 +1,8 @@
 import json
 import logging
-from pathlib import Path
 import re
+from pathlib import Path
+from unittest import mock
 from playwright.sync_api import sync_playwright
 from typing import Optional
 from base64 import b64decode
@@ -9,9 +10,10 @@ from html import escape as html_escape
 from io import BytesIO
 from pikepdf import Pdf, Encryption
 from contextlib import contextmanager
-from weasyprint import HTML, CSS, default_url_fetcher
+from weasyprint import HTML, default_url_fetcher
 from weasyprint.text.fonts import FontConfiguration
 from weasyprint.urls import URLFetchingError
+from weasyprint.logger import LOGGER as WEASYPRINT_LOGGER
 from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
 
@@ -54,7 +56,7 @@ def render_to_html(template: str, styles: str, data: dict, language: str) -> tup
                 details=str(exc)
             )))
             page.on('requestfailed', lambda request: messages.append(ErrorMessage(
-                level=MessageLevel.ERROR, 
+                level=MessageLevel.WARNING, 
                 message='Request failed', 
                 details=f'Request to URL {request.url} failed: {request.failure.error_text}'
             )))
@@ -167,7 +169,7 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
             }
         elif url.startswith('/'):
             messages.append(ErrorMessage(
-                level=MessageLevel.ERROR,
+                level=MessageLevel.WARNING,
                 message='Resource not found',
                 details=f'Could not find resource for URL "{url}". Check if the URL is correct and the resource exists on the server.',
                 location=get_location_info(content=url, objs=data.get('findings', []), type=MessageLocationType.FINDING, get_name=lambda f: f.get('title')) or
@@ -178,24 +180,80 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
         else:
             # block all external requests
             messages.append(ErrorMessage(
-                level=MessageLevel.ERROR,
+                level=MessageLevel.WARNING,
                 message='Blocked request to external URL',
                 details=f'Block request to URL "{url}". Requests to external systems are forbidden for security reasons.\nUpload this resource as assset and include it via its asset URL.',
             ))
             raise URLFetchingError('External requests not allowed')
 
-    font_config = FontConfiguration()
-    html = HTML(string=html_content, base_url='reportcreator://', url_fetcher=weasyprint_url_fetcher)
-    rendered = html.render(
-        font_config=font_config, 
-        optimize_size=[], 
-        presentational_hints=True
-    )
+    def weasyprint_capture_logs(msg, *args, **kwargs):
+        ignore_messages = [
+            # Loading errors are already handled by the weasyprint URL fetcher
+            'Failed to load image at',
+            'Failed to load inline SVG:',
+            'Failed to load stylesheet at',
+            'Failed to load attachment:',
+            # Suppress message for unsupported "overflow-x" rule use by highlight.js markdown code block syntax highlighting
+            'Ignored `overflow-x:',
+        ]    
+        html_messages = [
+            'Invalid date in <meta name="',
+            'Anchor defined twice:',
+            'This table row has more columns than the table, ignored',
+            'Unsupported stylesheet type',
+            'Missing href in <link rel="attachment">',
+            'No anchor #%s for internal URI reference',
+            'Relative URI reference without a base URI:',
+        ]
+        font_messages = [
+            'Failed to get matching local font for',
+            'Failed to load local font',
+            'Failed to load font at',
+            'Failed to handle woff font at',
+        ]
+        message_level = MessageLevel.WARNING
+        message_text = 'Invalid CSS'
+        details_text = msg % (args or kwargs)
 
-    res = None
-    if not any(map(lambda m: m.level == MessageLevel.ERROR, messages)):
-        res = rendered.write_pdf(finisher=weasyprint_strip_pdf_metadata)
-    return res, messages
+        if any(map(lambda m: details_text.startswith(m), ignore_messages)):
+            return
+        elif any(map(lambda m: msg.startswith(m), html_messages)):
+            message_text = 'Invalid HTML'
+        elif any(map(lambda m: msg.startswith(m), font_messages)):
+            message_text = 'Font loading problem'
+            message_level = MessageLevel.INFO
+
+        messages.append(ErrorMessage(
+            level=message_level,
+            message=message_text,
+            details=details_text,
+        ))
+    
+    # Capture weasyprint logs and provide as messages
+    with mock.patch.object(WEASYPRINT_LOGGER, 'error', new=weasyprint_capture_logs, spec=True), \
+         mock.patch.object(WEASYPRINT_LOGGER, 'warning', new=weasyprint_capture_logs, spec=True), \
+         mock.patch.object(WEASYPRINT_LOGGER, 'info', new=weasyprint_capture_logs, spec=True), \
+         mock.patch.object(WEASYPRINT_LOGGER, 'debug', new=weasyprint_capture_logs, spec=True):
+        rendered = None
+        try:
+            font_config = FontConfiguration()
+            html = HTML(string=html_content, base_url='reportcreator://', url_fetcher=weasyprint_url_fetcher)
+            rendered = html.render(
+                font_config=font_config, 
+                optimize_size=[], 
+                presentational_hints=True
+            )
+        except Exception as ex:
+            logging.exception('Error rendering PDF')
+            messages.append(ErrorMessage(
+                level=MessageLevel.ERROR,
+                message='Error rendering PDF'
+            ))
+
+        res = None
+        if not any(map(lambda m: m.level == MessageLevel.ERROR, messages)) and rendered:
+            res = rendered.write_pdf(finisher=weasyprint_strip_pdf_metadata)
+        return res, messages
 
 
 @log_timing

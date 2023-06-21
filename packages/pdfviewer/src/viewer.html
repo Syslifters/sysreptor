@@ -10,6 +10,23 @@
   <body tabindex="1">
     <div id="outerContainer">
       <div id="mainContainer">
+
+        <div class="findbar hidden" id="findbar">
+          <input id="findInput" class="toolbarField" title="Find" placeholder="Find" tabindex="91" autocomplete="off" data-l10n-id="find_input" aria-invalid="false">
+          <div id="findbarMessageContainer" aria-live="polite">
+            <span id="findResultsCount" class="toolbarLabel"></span>
+            <span id="findMsg" class="toolbarLabel">No results</span>
+          </div>
+          <button id="findPrevious" class="toolbarButton" title="Find the previous occurrence of the phrase" tabindex="92" data-l10n-id="find_previous">
+            <span class="icon"><span class="icon-prev"></span></span>
+          </button>
+          <button id="findNext" class="toolbarButton" title="Find the next occurrence of the phrase" tabindex="93" data-l10n-id="find_next">
+            <span class="icon"><span class="icon-next"></span></span>
+          </button>
+          <button id="findToggle" class="toolbarButton" title="Close" tabindex="94" data-l10n-id="find_close">
+            <span class="icon"><span class="icon-close"></span></span> 
+          </button>
+        </div>
         
         <div class="toolbar">
           <div id="toolbarContainer">

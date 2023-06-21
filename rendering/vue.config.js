@@ -3,12 +3,20 @@
 import {LicenseWebpackPlugin} from 'license-webpack-plugin';
 import {resolve} from 'path';
 import {licenseTextOverrides as markdownLicenseTextOverrides} from 'reportcreator-markdown/licenseInfos.js';
+import { defineConfig } from '@vue/cli-service';
 
-export default {
+export default defineConfig({
   runtimeCompiler: true,
   productionSourceMap: false,
   css: {
     extract: false,
+    loaderOptions: {
+      postcss: {
+        postcssOptions: {
+          plugins: [],
+        }
+      }
+    }
   },
   configureWebpack: {
     optimization: {
@@ -64,4 +72,4 @@ THE SOFTWARE.`,
       }),
     ]
   },
-}
+});

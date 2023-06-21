@@ -537,6 +537,7 @@ class TestProjectArchivingEncryption:
         archive = ArchivedProject.objects.get(id=res.data['id'])
         assert archive.threshold == 2
         assert archive.name == project.name
+        assert archive.tags == project.tags
         assert archive.key_parts.count() == 3
         assert set(archive.key_parts.values_list('user_id', flat=True)) == {user_regular.id, user_archiver1.id, user_archiver2.id}
         assert not PentestProject.objects.filter(id=project.id).exists()

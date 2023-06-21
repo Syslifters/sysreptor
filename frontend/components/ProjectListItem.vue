@@ -5,13 +5,11 @@
         {{ item.name }}
       </v-list-item-title>
             
-      <v-list-item-subtitle>
-        <v-chip v-for="user in item.members" :key="user.id" class="ma-1 mt-2" small>
-          {{ user.username }}
-        </v-chip>
-        <v-chip v-for="user in item.imported_members" :key="user.id" class="ma-1 mt-2" small>
-          {{ user.name }} (imported)
-        </v-chip>
+      <v-list-item-subtitle class="mt-1">
+        <chip-created :value="item.created" />
+        <chip-member v-for="user in item.members" :key="user.id" :value="user" />
+        <chip-member v-for="user in item.imported_members" :key="user.id" :value="user" imported />
+        <chip-tag v-for="tag in item.tags" :key="tag" :value="tag" />
       </v-list-item-subtitle>
     </v-list-item-content>
   </v-list-item>

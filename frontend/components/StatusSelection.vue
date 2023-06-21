@@ -19,7 +19,7 @@
         </v-list-item-content>
       </template>
       <template #selection="{item}">
-        <v-icon class="mr-2" :class="'status-' + item.value">{{ item.icon }}</v-icon> {{ item.text }}
+        <v-icon left :class="'status-' + item.value">{{ item.icon }}</v-icon> {{ item.text }}
       </template>
     </v-select>
   </div>

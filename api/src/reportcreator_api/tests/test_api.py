@@ -123,7 +123,7 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=Fal
         ])
     if create_global:
         out.extend([
-            ('projecttype import', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(get_obj(s))}, format='multipart')),
+            ('projecttype import global', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(get_obj(s)), 'scope': ProjectTypeScope.GLOBAL}, format='multipart')),
             ('projecttype copy global', lambda s, c: c.post(reverse('projecttype-copy', kwargs={'pk': get_obj(s).pk}), data={'scope': ProjectTypeScope.GLOBAL})),
         ])
     if list:
@@ -171,6 +171,7 @@ def guest_urls():
         ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition'))),
 
         ('projecttype create private', lambda s, c: c.post(reverse('projecttype-list'), data=c.get(reverse('projecttype-detail', kwargs={'pk': s.project_type.pk})).data | {'scope': ProjectTypeScope.PRIVATE})),
+        ('projecttype import private', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(s.project_type), 'scope': ProjectTypeScope.PRIVATE}, format='multipart')),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type, list=True, read=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, read=True, write=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, read=True),

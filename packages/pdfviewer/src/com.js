@@ -25,8 +25,13 @@ export default class GenericExternalServices extends DefaultExternalServices {
       async get(key, args = null) {
         if (key === 'of_pages') {
           return await NullL10n.get(key, args, "/ {{ pagesCount }}");
-        }
-        else {
+        } else if (key === 'find_match_count') {
+          return await NullL10n.get(key, args, "{{ current }} of {{ total }}");
+        } else if (key === 'find_not_found') {
+          return await NullL10n.get(key, args, "No results");
+        } else if (['find_reached_top', 'find_reached_bottom'].includes(key)) {
+          return null;
+        } else {
           return await NullL10n.get(key, args);
         }
       }

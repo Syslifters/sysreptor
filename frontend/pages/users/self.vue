@@ -9,7 +9,7 @@
           </v-list-item-icon>
           <v-list-item-title>User Information</v-list-item-title>
         </v-list-item>
-        <v-list-item to="/users/self/security/" nuxt>
+        <v-list-item v-if="localUserAuthEnabled" to="/users/self/security/" nuxt>
           <v-list-item-icon>
             <v-icon>mdi-lock</v-icon>
           </v-list-item-icon>
@@ -41,6 +41,9 @@ export default {
     archivingEnabled() {
       return this.$store.getters['apisettings/settings'].features.archiving;
     },
+    localUserAuthEnabled() {
+      return this.$store.getters['apisettings/settings'].auth_providers.some(p => p.type === 'local');
+    }
   },
 }
 </script>

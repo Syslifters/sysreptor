@@ -15,15 +15,13 @@
       <v-list-item :to="`/templates/${item.id}/`" nuxt two-line>
         <v-list-item-content>
           <v-list-item-title>
-            <cvss-chip :value="item.data.cvss" />
+            <chip-cvss :value="item.data.cvss" />
             {{ item.data.title }}
           </v-list-item-title>
           <v-list-item-subtitle>
-            <status-chip :value="item.status" />
-            <language-chip :value="item.language" />
-            <v-chip v-for="tag in item.tags" :key="tag" class="ma-1" small>
-              {{ tag }}
-            </v-chip>
+            <chip-review-status :value="item.status" />
+            <chip-language :value="item.language" />
+            <chip-tag v-for="tag in item.tags" :key="tag" :value="tag" />
           </v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>

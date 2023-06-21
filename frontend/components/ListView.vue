@@ -2,7 +2,7 @@
   <v-container>
     <h1><slot name="title" /></h1>
 
-    <v-text-field :value="items.searchQuery" @input="updateSearch" label="Search" spellcheck="false" />
+    <v-text-field :value="items.searchQuery" @input="updateSearch" label="Search" spellcheck="false" autofocus />
 
     <slot name="actions" />
     <v-list v-if="items">

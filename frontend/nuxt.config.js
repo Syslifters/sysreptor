@@ -94,7 +94,7 @@ export default {
         },
         endpoints: {
           user: { url: '/pentestusers/self/', method: 'get' },
-          logout: { url: '/auth/logout/', method: 'post' },
+          logout: { url: '/auth/logout/', method: 'post', data: {} },
           login: false,
           refresh: false,
         },
@@ -105,7 +105,7 @@ export default {
     redirect: {
       login: '/login/',
       reauth: '/login/reauth/',
-      logout: '/login/',
+      logout: '/login/?logout=true',
       home: '/'
     },
   },

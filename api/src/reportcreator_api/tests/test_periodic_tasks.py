@@ -7,9 +7,11 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
-from reportcreator_api.pentests.tasks import cleanup_project_files, cleanup_unreferenced_images_and_files, cleanup_usernotebook_files, reset_stale_archive_restores
 
 from reportcreator_api.tasks.models import PeriodicTask, TaskStatus
+from reportcreator_api.pentests.models import PentestProject, ArchivedProject
+from reportcreator_api.pentests.tasks import cleanup_project_files, cleanup_usernotebook_files, reset_stale_archive_restores, \
+    automatically_archive_projects, automatically_delete_archived_projects
 from reportcreator_api.tests.mock import create_archived_project, create_project, create_user, mock_time
 
 
@@ -326,4 +328,79 @@ class TestResetStaleArchiveRestore:
         assert not keypart1.is_decrypted
         keypart2.refresh_from_db()
         assert keypart2.is_decrypted
+
+
+@pytest.mark.django_db
+class TestAutoProjectArchiving:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user(public_key=True)
+        self.project = create_project(readonly=True, members=[self.user])
+
+        with override_settings(
+            AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=timedelta(days=30),
+            ARCHIVING_THRESHOLD=1,
+        ):
+            yield
+    
+    def test_archived(self):
+        project_active = create_project(readonly=False, members=[self.user])
+
+        with mock_time(after=timedelta(days=40)):
+            async_to_sync(automatically_archive_projects)(None)
+            assert ArchivedProject.objects.filter(name=self.project.name).exists()
+            assert not PentestProject.objects.filter(id=self.project.id).exists()
+            assert PentestProject.objects.filter(id=project_active.id).exists()     
+
+    @override_settings(AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=None)
+    def test_auto_archiving_disabled(self):
+        with mock_time(after=timedelta(days=60)):
+            async_to_sync(automatically_archive_projects)(None)
+            assert PentestProject.objects.filter(id=self.project.id).exists()
+
+    def test_project_below_auto_archive_time(self):
+        with mock_time(after=timedelta(days=10)):
+            async_to_sync(automatically_archive_projects)(None)
+            assert PentestProject.objects.filter(id=self.project.id).exists()
+
+    def test_counter_reset_on_unfinished(self):
+        with mock_time(after=timedelta(days=20)):
+            self.project.readonly = False
+            self.project.save()
+        with mock_time(after=timedelta(days=21)):
+            self.project.readonly = True
+            self.project.save()
+        with mock_time(after=timedelta(days=40)):
+            async_to_sync(automatically_archive_projects)(None)
+            assert PentestProject.objects.filter(id=self.project.id).exists()
+        with mock_time(after=timedelta(days=60)):
+            async_to_sync(automatically_archive_projects)(None)
+            assert ArchivedProject.objects.filter(name=self.project.name).exists()
+            assert not PentestProject.objects.filter(id=self.project.id).exists()
+
+
+@pytest.mark.django_db
+class TestAutoArchiveDeletion:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.archive = create_archived_project()
+
+        with override_settings(AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=timedelta(days=30)):
+            yield
+    
+    def test_delete(self):
+        with mock_time(after=timedelta(days=60)):
+            async_to_sync(automatically_delete_archived_projects)(None)
+            assert not ArchivedProject.objects.filter(id=self.archive.id).exists()
+    
+    def test_archive_blow_time(self):
+        with mock_time(after=timedelta(days=20)):
+            async_to_sync(automatically_delete_archived_projects)(None)
+            assert ArchivedProject.objects.filter(id=self.archive.id).exists()
+    
+    @override_settings(AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=None)
+    def test_auto_archive_disabled(self):
+        with mock_time(after=timedelta(days=60)):
+            async_to_sync(automatically_delete_archived_projects)(None)
+            assert ArchivedProject.objects.filter(id=self.archive.id).exists()
 

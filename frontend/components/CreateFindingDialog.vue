@@ -19,10 +19,11 @@
           no-filter
           clearable
           return-object
+          autofocus
         >
           <template #selection="{item}">
             <template v-if="item?.id">
-              <cvss-chip :value="item.data.cvss" />
+              <chip-cvss :value="item.data.cvss" />
               {{ item.data.title }}
             </template>
             <template v-else>
@@ -31,15 +32,13 @@
           </template>
           <template #item="{item}">
             <v-list-item-title class="d-flex">
-              <cvss-chip :value="item.data.cvss" /> 
+              <chip-cvss :value="item.data.cvss" /> 
               <div class="pt-2 pb-2">
                 {{ item.data.title }}
                 <br />
-                <status-chip v-if="item.status !== 'finished'" :value="item.status" />
-                <language-chip v-if="!showOnlyMatchingLanguage" :value="item.language" />
-                <v-chip v-for="tag in item.tags" :key="tag" class="ma-1" small>
-                  {{ tag }}
-                </v-chip>
+                <chip-review-status v-if="item.status !== 'finished'" :value="item.status" />
+                <chip-language v-if="!showOnlyMatchingLanguage" :value="item.language" />
+                <chip-tag v-for="tag in item.tags" :key="tag" :value="tag" />
               </div>
               <v-spacer />
               <s-btn :to="`/templates/${item.id}/`" target="_blank" nuxt icon class="ma-2">
@@ -76,11 +75,9 @@
 </template>
 
 <script>
-import StatusChip from './StatusChip.vue';
 import { SearchableCursorPaginationFetcher } from '~/utils/urls';
 
 export default {
-  components: { StatusChip },
   props: {
     project: {
       type: Object,

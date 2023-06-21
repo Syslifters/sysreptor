@@ -8,7 +8,7 @@
     <list-view url="/projecttypes/?scope=global&ordering=name">
       <template #title>Global Designs</template>
       <template #actions v-if="$auth.hasScope('designer')">
-        <create-design-dialog project-type-scope="global" />
+        <design-create-design-dialog project-type-scope="global" />
         <btn-import :import="performImport" />
       </template>
       <template #item="{item}">
@@ -36,7 +36,7 @@ export default {
   },
   methods: {
     async performImport(file) {
-      const designs = await uploadFileHelper(this.$axios, '/projecttypes/import/', file);
+      const designs = await uploadFileHelper(this.$axios, '/projecttypes/import/', file, { scope: 'global' });
       this.$router.push({ path: `/designs/${designs[0].id}/` });
     },
   }

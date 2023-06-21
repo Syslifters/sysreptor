@@ -24,10 +24,10 @@
         </edit-toolbar>
 
         <v-tabs grow>
-          <v-tab>HTML</v-tab>
+          <v-tab>HTML+Vue</v-tab>
           <v-tab-item>
             <fill-screen-height>
-              <code-editor 
+              <design-code-editor 
                 v-model="projectType.report_template" 
                 language="html" 
                 class="pdf-code-editor" 
@@ -39,7 +39,7 @@
           <v-tab>CSS</v-tab>
           <v-tab-item>
             <fill-screen-height>
-              <code-editor 
+              <design-code-editor 
                 v-model="projectType.report_styles" 
                 language="css" 
                 class="pdf-code-editor" 
@@ -51,7 +51,7 @@
           <v-tab>Assets</v-tab>
           <v-tab-item>
             <fill-screen-height>
-              <asset-manager :project-type="projectType" :disabled="readonly" />
+              <design-asset-manager :project-type="projectType" :disabled="readonly" />
             </fill-screen-height>
           </v-tab-item>
         </v-tabs>
@@ -105,9 +105,7 @@ export default {
       return `/projecttypes/${data.id}/`;
     },
     async fetchPdf() {
-      return await this.$axios.$post(`/pentestprojects/${this.project.id}/preview/`, pick(this.projectType, ['report_template', 'report_styles']), {
-        responseType: 'arraybuffer',
-      });
+      return await this.$axios.$post(`/pentestprojects/${this.project.id}/preview/`, pick(this.projectType, ['report_template', 'report_styles']));
     },
     loadPdf(immediate = true) {
       if (immediate) {

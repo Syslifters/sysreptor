@@ -6,7 +6,7 @@
 export default {
   props: {
     value: {
-      type: Uint8Array,
+      type: [Uint8Array, String],
       default: null,
     },
   },
@@ -24,11 +24,16 @@ export default {
     },
   },
   methods: {
-    updatePdf() {
+    async updatePdf() {
       if (!this.$refs.pdfviewer || !this.iframeLoaded || !this.value) {
         return;
       }
-      const msg = new Uint8Array(this.value);
+      let msg = null;
+      if (typeof this.value === 'string') {
+        msg = new Uint8Array(await (await fetch("data:application/pdf;base64," + this.value)).arrayBuffer());
+      } else {
+        msg = new Uint8Array(this.value);
+      }
       this.$refs.pdfviewer.contentWindow.postMessage(msg, window.origin, [msg.buffer]);
     },
   },

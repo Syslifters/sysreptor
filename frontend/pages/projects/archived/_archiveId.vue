@@ -68,6 +68,12 @@
       </s-dialog>
     </edit-toolbar>
 
+    <div class="mb-4">
+      <chip-created :value="archive.created" />
+      <chip-auto-delete :value="archive.auto_delete_date" />
+      <chip-tag v-for="tag in archive.tags" :key="tag" :value="tag" />
+    </div>
+
     <p class="mt-4">
       <strong>{{ archive.threshold }} of {{ archive.key_parts.length }}</strong> users are required to restore the project.<br>
       <template v-if="archive.key_parts.filter(p => p.is_decrypted).length > 0">
@@ -82,7 +88,7 @@
           <td>
             {{ keypart.user.username }}<template v-if="keypart.user.name"> ({{ keypart.user.name }})</template>
             <v-chip v-if="!keypart.user.is_active" small class="ml-4" color="warning">
-              <v-icon small class="mr-1">mdi-alert</v-icon>
+              <v-icon small left>mdi-alert</v-icon>
               inactive
             </v-chip>
           </td>

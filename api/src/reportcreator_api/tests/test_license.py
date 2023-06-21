@@ -85,6 +85,21 @@ class TestCommunityLicenseRestrictions:
             'is_superuser': True,
         }).status_code == 201
 
+    @override_settings(LOCAL_USER_AUTH_ENABLED=False)
+    def test_local_auth_always_enabled(self):
+        self.client.logout()
+        res = self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
+        assert res.status_code == 200
+
+    def test_prevent_login_remoteuser(self):
+        self.client.logout()
+        assert_api_license_error(self.client.post(reverse('auth-login-remoteuser')))
+
+    def test_prevent_login_oidc(self):
+        self.client.logout()
+        assert_api_license_error(self.client.post(reverse('auth-login-oidc-begin', kwargs={'oidc_provider': 'azure'})))
+        assert_api_license_error(self.client.post(reverse('auth-login-oidc-complete', kwargs={'oidc_provider': 'azure'})))
+
     def test_prevent_create_system_users(self):
         with pytest.raises(license.LicenseError):
             create_user(is_superuser=True, is_system_user=True)

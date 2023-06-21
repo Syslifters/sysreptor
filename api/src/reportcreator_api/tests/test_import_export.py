@@ -70,7 +70,7 @@ class TestImportExport:
         assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
 
     def assert_export_import_project(self, project, p):
-        assertKeysEqual(p, project, ['name', 'language'])
+        assertKeysEqual(p, project, ['name', 'language', 'tags'])
         assert members_equal(p.members, project.members)
         assert p.data == project.data
         assert p.data_all == project.data_all
@@ -262,6 +262,7 @@ class TestFileDelete:
 class TestCopyModel:
     def assert_project_type_copy_equal(self, pt, cp, exclude_fields=[]):
         assert pt != cp
+        assert cp.copy_of == pt
         assert not cp.is_locked
         assertKeysEqual(pt, cp, {
             'name', 'language', 'linked_project',
@@ -282,9 +283,10 @@ class TestCopyModel:
         cp = p.copy()
 
         assert p != cp
+        assert cp.copy_of == p
         assert not cp.readonly
         assertKeysEqual(p, cp, [
-            'name', 'source', 'language', 'imported_members', 'data_all'
+            'name', 'source', 'language', 'tags', 'imported_members', 'data_all'
         ])
         self.assert_project_type_copy_equal(p.project_type, cp.project_type, exclude_fields=['source', 'linked_project'])
         assert cp.project_type.source == SourceEnum.SNAPSHOT

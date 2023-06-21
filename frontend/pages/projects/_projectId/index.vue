@@ -21,6 +21,13 @@
         <btn-copy :copy="performCopy" tooltip-text="Duplicate Project" confirm-text="The whole project will be copied including all members, sections, findings and images." />
       </edit-toolbar>
 
+      <p v-if="project.copy_of" class="mt-4">
+        This project is a copy
+        <s-btn text small :to="`/projects/${project.copy_of}/reporting/`" nuxt class="ml-1 mr-1">
+          <v-icon>mdi-chevron-right-circle-outline</v-icon> show original
+        </s-btn>
+      </p>
+
       <s-text-field v-model="project.name" label="Name" :error-messages="serverErrors?.name" :disabled="project.readonly" class="mt-4" />
 
       <project-type-selection 
@@ -59,6 +66,11 @@
       </project-type-selection>
       <language-selection v-model="project.language" :error-messages="serverErrors?.language" :disabled="project.readonly" />
 
+      <s-tags 
+        v-model="project.tags"
+        :disabled="project.readonly"
+      />
+
       <member-selection 
         v-model="project.members" 
         :prevent-unselecting-self="true" 
@@ -90,8 +102,9 @@ export default {
     this.$refs.toolbar.beforeLeave(to, from, next);
   },
   async asyncData({ params, $axios }) {
+    const project = await $axios.$get(`/pentestprojects/${params.projectId}/`);
     return {
-      project: await $axios.$get(`/pentestprojects/${params.projectId}/`)
+      project,
     };
   },
   data() {

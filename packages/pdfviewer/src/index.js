@@ -51,6 +51,20 @@ function getViewerConfiguration() {
       editorFreeTextParamsToolbar: disabled,
       editorInkButton: disabled,
     },
+    findBar: {
+      bar: document.getElementById("findbar"),
+      toggleButton: document.getElementById("findToggle"),
+      findField: document.getElementById("findInput"),
+      findMsg: document.getElementById("findMsg"),
+      findResultsCount: document.getElementById("findResultsCount"),
+      findPreviousButton: document.getElementById("findPrevious"),
+      findNextButton: document.getElementById("findNext"),
+      
+      highlightAllCheckbox: disabled,
+      caseSensitiveCheckbox: disabled,
+      matchDiacriticsCheckbox: disabled,
+      entireWordCheckbox: disabled,
+    },
     openFileInput: disabled,
   };
 }
@@ -80,7 +94,7 @@ async function webViewerLoad() {
     });
 
     // load PDF
-    await PDFViewerApplication.open(msg.data);
+    await PDFViewerApplication.open({ data: msg.data });
 
     // restore scroll position and zoom
     PDFViewerApplication.eventBus.on('pagesinit', () => {

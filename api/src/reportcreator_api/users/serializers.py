@@ -6,8 +6,9 @@ from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.conf import settings
+
 from reportcreator_api.users.models import PentestUser, MFAMethod, MFAMethodType, AuthIdentity
-from reportcreator_api.utils.utils import omit_items
+from reportcreator_api.utils import license
 
 
 class PentestUserSerializer(serializers.ModelSerializer):
@@ -26,7 +27,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
             'email', 'phone', 'mobile',
             'scope', 'is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user', 'is_global_archiver',
-            'is_mfa_enabled', 'can_login_local', 'can_login_oidc',
+            'is_mfa_enabled', 'can_login_local', 'can_login_sso',
         ]
         read_only_fields = ['is_system_user']
 
@@ -53,7 +54,15 @@ class CreateUserSerializer(PentestUserDetailSerializer):
     class Meta(PentestUserDetailSerializer.Meta):
         fields = PentestUserDetailSerializer.Meta.fields + ['password']
         extra_kwargs = {
-            'password': {'write_only': True, **({'required': False, 'allow_null': True, 'default': None} if settings.AUTHLIB_OAUTH_CLIENTS else {})}
+            'password': {'write_only': True}
+        }
+    
+    def get_extra_kwargs(self):
+        return super().get_extra_kwargs() | {
+            'password': 
+                {'required': False, 'allow_null': True, 'default': None} 
+                if license.is_professional() and (not settings.LOCAL_USER_AUTH_ENABLED or settings.REMOTE_USER_AUTH_ENABLED or settings.AUTHLIB_OAUTH_CLIENTS) else 
+                {}
         }
     
     def validate_password(self, value):

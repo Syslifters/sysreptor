@@ -336,11 +336,15 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
     class Meta:
         model = PentestProject
         fields = [
-            'format', 'id', 'created', 'updated', 'name', 'language', 
+            'format', 'id', 'created', 'updated', 'name', 'language', 'tags',
             'members', 'pentesters', 'project_type', 
             'report_data', 'sections', 'findings', 'notes', 'images', 'files',
         ]
-        extra_kwargs = {'id': {'read_only': False}, 'created': {'read_only': False}}
+        extra_kwargs = {
+            'id': {'read_only': False}, 
+            'created': {'read_only': False},
+            'tags': {'required': False},
+        }
 
     def get_fields(self):
         fields = super().get_fields()

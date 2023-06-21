@@ -86,7 +86,7 @@
           </s-card>
           <s-card>
             <v-card-text>
-              <input-field-definition
+              <design-input-field-definition
                 v-for="f in currentItem.fields" :key="f.id"
                 :value="f" @input="updateCurrentSectionField(f, $event)"
                 :can-change-structure="!['core', 'predefined'].includes(f.origin)"
@@ -101,7 +101,7 @@
           </s-card>
         </template>
         <template v-else-if="currentItemIsField">
-          <input-field-definition 
+          <design-input-field-definition 
             :value="currentItem" @input="updateCurrentField"
             :can-change-structure="!['core', 'predefined'].includes(currentItem.origin)" 
             :lang="projectType.language"
@@ -116,7 +116,7 @@
 <script>
 import Draggable from 'vuedraggable';
 import { omit } from 'lodash';
-import Vue from 'vue';
+import { set as vueSet } from 'vue';
 import { uniqueName } from '~/utils/state';
 import ProjectTypeLockEditMixin from '~/mixins/ProjectTypeLockEditMixin';
 
@@ -161,7 +161,7 @@ export default {
       const section = this.projectType.report_sections.find(s => s.fields.includes(field.id));
       const oldIdx = section.fields.indexOf(field.id);
       if (oldIdx !== -1) {
-        Vue.set(section.fields, oldIdx, val.id);
+        vueSet(section.fields, oldIdx, val.id);
       } else {
         section.fields.push(val.id);
       }

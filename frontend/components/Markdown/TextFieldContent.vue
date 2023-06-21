@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { EditorState } from '@codemirror/state';
+import { EditorState, EditorSelection } from '@codemirror/state';
 import { EditorView, tooltips } from '@codemirror/view';
 import { history } from '@codemirror/commands';
 import { forceLinting, setDiagnostics } from '@codemirror/lint';
@@ -89,7 +89,24 @@ export default {
           highlightTodos,
           tooltips({ parent: document.body }),
           // Prevent newlines
-          EditorState.transactionFilter.of(tr => tr.newDoc.lines > 1 ? [] : tr),
+          EditorState.transactionFilter.of((tr) => {
+            const changesWithoutNewlines = [];
+            let transactionModified = false;
+            tr.changes.iterChanges((from, to, fromB, toB, insert) => {
+              if (insert.text.length > 1) {
+                insert = insert.text.join('');
+                transactionModified = true;
+              }
+              changesWithoutNewlines.push({ from, to, insert })
+            });
+            
+            return transactionModified ? { 
+              annotations: tr.annotations,
+              effects: tr.effects,
+              scrollIntoView: tr.scrollIntoView,
+              changes: changesWithoutNewlines,
+            } : tr;
+          }),
           EditorView.domEventHandlers({
             blur: event => this.$emit('blur', event),
             focus: event => this.$emit('focus', event),

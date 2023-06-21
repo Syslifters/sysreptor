@@ -16,10 +16,13 @@
             </v-list-item-title>
 
             <v-list-item-subtitle>
+              <chip-created :value="item.created" />
+              <chip-auto-delete :value="item.auto_delete_date" />
+
               <s-tooltip>
                 <template #activator="{ on }">
-                  <v-chip small v-on="on">
-                    <v-icon v-if="item.key_parts.some(p => !p.user.is_active) && item.key_parts.filter(p => p.user.is_active).length < item.threshold * 2" small color="warning" class="mr-2">mdi-alert</v-icon>
+                  <v-chip small class="ma-1" v-on="on">
+                    <v-icon v-if="item.key_parts.some(p => !p.user.is_active) && item.key_parts.filter(p => p.user.is_active).length < item.threshold * 2" small left color="warning">mdi-alert</v-icon>
                     {{ item.threshold }} / {{ item.key_parts.length }}
                   </v-chip>
                 </template>
@@ -28,10 +31,10 @@
 
               <s-tooltip v-for="keypart in item.key_parts" :key="keypart.id">
                 <template #activator="{on}">
-                  <v-chip class="ma-1 mt-2" small v-on="on">
-                    <v-icon v-if="keypart.is_decrypted" small color="green">mdi-lock-open-variant</v-icon>
-                    <v-icon v-else small color="red">mdi-lock</v-icon>
-                    <span class="ml-1">{{ keypart.user.username }}</span>
+                  <v-chip class="ma-1" small v-on="on">
+                    <v-icon v-if="keypart.is_decrypted" small left color="green">mdi-lock-open-variant</v-icon>
+                    <v-icon v-else small left color="red">mdi-lock</v-icon>
+                    {{ keypart.user.username }}
                   </v-chip>
                 </template>
 
@@ -40,6 +43,8 @@
                   <span v-else>{{ keypart.user.username }}'s part is still encrypted</span>
                 </template>
               </s-tooltip>
+
+              <chip-tag v-for="tag in item.tags" :key="tag" :value="tag" class="mt-2" />
             </v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>

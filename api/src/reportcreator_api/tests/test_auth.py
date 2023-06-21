@@ -1,13 +1,12 @@
 import pytest
 import pyotp
-from datetime import timedelta
 from django.conf import settings
 from django.urls import reverse
-from rest_framework.test import APIClient
+from django.test import override_settings
 
 from reportcreator_api.utils.utils import omit_keys
 from reportcreator_api.tests.mock import create_project, create_user, mock_time, api_client
-from reportcreator_api.users.models import MFAMethod, MFAMethodType
+from reportcreator_api.users.models import AuthIdentity, MFAMethod, MFAMethodType
 
 
 
@@ -39,7 +38,7 @@ class TestLogin:
             assert res.status_code == 200
             assert res.data['status'] == status
         else:
-            assert res.status_code == 400
+            assert res.status_code in [400, 403]
             self.assert_api_access(False)
         return res
     
@@ -62,7 +61,7 @@ class TestLogin:
             assert res.status_code == 200
             self.assert_api_access(True)
         else:
-            assert res.status_code == 400
+            assert res.status_code in [400, 403]
             self.assert_api_access(False)
         return res
     
@@ -113,6 +112,31 @@ class TestLogin:
         other_user = create_user()
         other_mfa = MFAMethod.objects.create_totp(user=other_user)
         self.assert_mfa_login(user=self.user_mfa, mfa_method=other_mfa, success=False)
+
+    @override_settings(REMOTE_USER_AUTH_ENABLED=True, REMOTE_USER_AUTH_HEADER='Remote-User')
+    def test_login_remoteuser(self):
+        AuthIdentity.objects.create(user=self.user_mfa, provider=AuthIdentity.PROVIDER_REMOTE_USER, identifier='remoteuser@example.com')
+        res = self.client.post(reverse('auth-login-remoteuser'), HTTP_REMOTE_USER='remoteuser@example.com')
+        assert res.status_code == 200
+        assert res.data['status'] == 'success'
+        self.assert_api_access(True)
+
+    @override_settings(REMOTE_USER_AUTH_ENABLED=True, REMOTE_USER_AUTH_HEADER='Remote-User')
+    def test_login_remoteuser_failure(self):
+        AuthIdentity.objects.create(user=self.user_mfa, provider=AuthIdentity.PROVIDER_REMOTE_USER, identifier='remoteuser@example.com')
+        res_no_header = self.client.post(reverse('auth-login-remoteuser'))
+        assert res_no_header.status_code == 403
+        self.assert_api_access(False)
+
+        self.client.headers = {'Remote-User': 'other'}
+        res_no_identity = self.client.post(reverse('auth-login-remoteuser'), HTTP_REMOTE_USER='unknown')
+        assert res_no_identity.status_code == 403
+        self.assert_api_access(False)
+
+    @override_settings(LOCAL_USER_AUTH_ENABLED=False)
+    def test_local_login_disabled(self):
+        self.assert_login(self.user, success=False)
+        self.assert_api_access(False)
 
 
 @pytest.mark.django_db

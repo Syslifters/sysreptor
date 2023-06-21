@@ -15,7 +15,7 @@
 
           <v-card-actions>
             <v-spacer />
-            <s-btn to="/login/" nuxt color="primary">
+            <s-btn to="/login/?logout=true" nuxt color="primary">
               Back
             </s-btn>
           </v-card-actions>

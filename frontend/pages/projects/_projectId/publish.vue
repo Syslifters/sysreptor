@@ -86,7 +86,7 @@
               </div>
             </v-form>
 
-            <error-list :value="[checkMessages, $refs.pdfpreview?.pdfRenderErrors]" :group="true">
+            <error-list :value="allMessages" :group="true" :show-no-message-info="true">
               <template #location="{msg}">
                 <NuxtLink v-if="messageLocationUrl(msg)" :to="messageLocationUrl(msg)" target="_blank">
                   in {{ msg.location.type }}
@@ -124,7 +124,7 @@ export default {
       previewSplitSize: 50,
       checksInProgress: false,
       pdfPreviewInProgress: false,
-      checkMessages: {},
+      checkMessages: [],
       form: {
         encryptReport: true,
         password: this.generateNewPassword(),
@@ -139,8 +139,11 @@ export default {
     title: 'Publish',
   },
   computed: {
+    allMessages() {
+      return [...this.checkMessages, ...(this.$refs.pdfpreview?.messages || [])];
+    },
     hasErrors() {
-      return this.$refs.pdfpreview?.pdfRenderErrors?.length > 0 || (this.checkMessages?.error || []).length > 0;
+      return this.allMessages.some(m => m.level === 'error');
     },
     canGenerateFinalReport() {
       return !this.hasErrors && 
@@ -165,9 +168,7 @@ export default {
       await this.performChecks();
     },
     async fetchPreviewPdf() {
-      return await this.$axios.$post(`/pentestprojects/${this.project.id}/preview/`, {}, {
-        responseType: 'arraybuffer',
-      });
+      return await this.$axios.$post(`/pentestprojects/${this.project.id}/preview/`, {});
     },
     async performChecks() {
       if (this.checksInProgress) {

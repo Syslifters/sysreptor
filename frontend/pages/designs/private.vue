@@ -8,7 +8,8 @@
     <list-view url="/projecttypes/?scope=private&ordering=name">
       <template #title>Private Designs</template>
       <template #actions>
-        <create-design-dialog project-type-scope="private" />
+        <design-create-design-dialog project-type-scope="private" />
+        <btn-import :import="performImport" />
       </template>
       <template #item="{item}">
         <v-list-item :to="`/designs/${item.id}/pdfdesigner/`" nuxt>
@@ -22,9 +23,16 @@
 </template>
 
 <script>
+import { uploadFileHelper } from '~/utils/upload';
 export default {
   head: {
     title: 'Private Designs',
   },
+  methods: {
+    async performImport(file) {
+      const designs = await uploadFileHelper(this.$axios, '/projecttypes/import/', file, { scope: 'private' });
+      this.$router.push({ path: `/designs/${designs[0].id}/` });
+    },
+  }
 }
 </script>

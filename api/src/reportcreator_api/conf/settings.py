@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from datetime import timedelta
+from typing import Optional
 from decouple import config, Csv
 from pathlib import Path
 import json
@@ -214,6 +215,16 @@ if OIDC_GOOGLE_CLIENT_ID and OIDC_GOOGLE_CLIENT_SECRET:
 if oidc_config := config('OIDC_AUTHLIB_OAUTH_CLIENTS', cast=json.loads, default="{}"):
     AUTHLIB_OAUTH_CLIENTS |= oidc_config
 
+
+REMOTE_USER_AUTH_ENABLED = config('REMOTE_USER_AUTH_ENABLED', cast=bool, default=False)
+REMOTE_USER_AUTH_HEADER = config('REMOTE_USER_AUTH_HEADER', default='Remote-User')
+
+LOCAL_USER_AUTH_ENABLED = config('LOCAL_USER_AUTH_ENABLED', cast=bool, default=True)
+
+DEFAULT_AUTH_PROVIDER = config('DEFAULT_AUTH_PROVIDER', default=None)
+DEFAULT_REAUTH_PROVIDER = config('DEFAULT_REAUTH_PROVIDER', default=DEFAULT_AUTH_PROVIDER)
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -302,7 +313,7 @@ CSP_DEFAULT_SRC = ["'none'"]
 CSP_IMG_SRC = ["'self'", "data:"]
 CSP_FONT_SRC = ["'self'"]
 CSP_WORKER_SRC = ["'self'"]
-CSP_CONNECT_SRC = ["'self'"]
+CSP_CONNECT_SRC = ["'self'", "data:"]
 CSP_FRAME_SRC = ["'self'"]
 CSP_FRAME_ANCESTORS = ["'self'"]
 # nuxt, vuetify and markdown preview use inline styles
@@ -432,7 +443,17 @@ PERIODIC_TASKS = [
         'id': 'reset_stale_archive_restores',
         'task': 'reportcreator_api.pentests.tasks.reset_stale_archive_restores',
         'schedule': timedelta(days=1),
-    }
+    },
+    {
+        'id': 'automatically_archive_projects',
+        'task': 'reportcreator_api.pentests.tasks.automatically_archive_projects',
+        'schedule': timedelta(days=1),
+    },
+    {
+        'id': 'automatically_delete_archived_projects',
+        'task': 'reportcreator_api.pentests.tasks.automatically_delete_archived_projects',
+        'schedule': timedelta(days=1),
+    },
 ]
 
 
@@ -461,6 +482,11 @@ ENABLE_PRIVATE_DESIGNS = config('ENABLE_PRIVATE_DESIGNS', cast=bool, default=Fal
 
 ARCHIVING_THRESHOLD = config('ARCHIVING_THRESHOLD', cast=int, default=2)
 assert ARCHIVING_THRESHOLD > 0
+AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER = config('AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER', cast=int, default=0)
+AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER = timedelta(days=AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER) if AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER else None
+AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER = config('AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER', cast=int, default=0)
+AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER = timedelta(days=AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER) if AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER else None
+
 
 # Health checks
 HEALTH_CHECKS = {
@@ -480,6 +506,7 @@ LICENSE = config('LICENSE', default=None)
 LICENSE_VALIDATION_KEYS = [
     {'id': 'amber', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAkqCS3lZbrzh+2mKTYymqPHtKBrh8glFxnj9OcoQR9xQ='},
     {'id': 'silver', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAwu/cl0CZSSBFOzFSz/hhUQQjHIKiT4RS3ekPevSKn7w='},
+    {'id': 'magenta', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAd10mgfTx0fuPO6KwcYU98RLhreCF+BQCeI6CAs0YztA='},
 ]
 LICENSE_COMMUNITY_MAX_USERS = 3
 

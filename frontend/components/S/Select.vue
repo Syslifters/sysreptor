@@ -3,6 +3,7 @@
     hide-details="auto" 
     :error-count="100"
     :outlined="outlined" 
+    persistent-hint
     class="mt-1"
     v-bind="$attrs" 
     v-on="$listeners"

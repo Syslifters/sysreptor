@@ -3,7 +3,7 @@
     <h1>License Info</h1>
 
     <p v-if="license.error" class="red--text mt-2">
-      <v-icon color="red" class="mr-1">mdi-alert-decagram</v-icon>
+      <v-icon left color="red">mdi-alert-decagram</v-icon>
       License Error: {{ license.error }}<br>
       Falling back to a free community license. Some features are disabled.<br>
       See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank">https://docs.sysreptor.com/features-and-pricing/</a>

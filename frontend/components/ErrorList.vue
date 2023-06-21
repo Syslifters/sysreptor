@@ -1,10 +1,10 @@
 <template>
   <div class="pa-4">
     <v-expansion-panels v-if="group" multiple tile hover>
-      <v-expansion-panel v-if="messageGroups.length === 0" class="error-group" readonly>
+      <v-expansion-panel v-if="showNoMessageInfo && messageGroups.length === 0" class="error-group" readonly>
         <v-expansion-panel-header hide-actions>
           <div class="error-header text-body-1">
-            <v-icon color="green" class="mr-2">mdi-checkbox-marked</v-icon>
+            <v-icon left color="green">mdi-checkbox-marked</v-icon>
             All clear! Your report is ready for download.
           </div>
         </v-expansion-panel-header>
@@ -38,22 +38,31 @@
       </v-expansion-panel>
     </v-expansion-panels>
 
-    <div v-else v-for="msg, idx in messageList" :key="'list' + idx" class="mb-4">
-      <div class="error-header">
-        <v-chip class="ma-2 mt-0" :color="{'error': 'red', 'warning': 'yellow'}[msg.level]" small label>{{ msg.level.toUpperCase() }}</v-chip>
-        <p class="error-message">
-          <slot name="message" :msg="msg">
-            {{ msg.message }}
-            <span v-if="msg.location && msg.location.name" class="error-location">
-              in {{ msg.location.type }} 
-              <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
-              <template v-if="msg.location.path">field {{ msg.location.path }}</template>
-            </span>
-          </slot>
-        </p>
+    <div v-else>
+      <div v-if="showNoMessageInfo && messageList.length === 0" class="error-group">
+        <div class="error-header text-body-1">
+          <v-icon left color="green">mdi-checkbox-marked</v-icon>
+          Everything looks fine. There are no errors or warnings.
+        </div>
       </div>
+        
+      <div v-for="msg, idx in messageList" :key="'list' + idx" class="mb-4">
+        <div class="error-header">
+          <v-chip class="ma-2 mt-0" :class="'level-' + msg.level" small label>{{ msg.level.toUpperCase() }}</v-chip>
+          <p class="error-message">
+            <slot name="message" :msg="msg">
+              {{ msg.message }}
+              <span v-if="msg.location && msg.location.name" class="error-location">
+                in {{ msg.location.type }} 
+                <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
+                <template v-if="msg.location.path">field {{ msg.location.path }}</template>
+              </span>
+            </slot>
+          </p>
+        </div>
 
-      <pre v-if="msg.details" class="error-details ml-4">{{ msg.details }}</pre>
+        <pre v-if="msg.details" class="error-details ml-4">{{ msg.details }}</pre>
+      </div>
     </div>
   </div>
 </template>
@@ -64,23 +73,21 @@ import { groupBy, sortBy } from 'lodash';
 export default {
   props: {
     value: {
-      type: [Object, Array],
+      type: Array,
       required: true,
     },
     group: {
       type: Boolean,
       default: false,
     },
+    showNoMessageInfo: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     messageList() {
-      let out = [];
-      if (Array.isArray(this.value)) {
-        out = this.value.flatMap(i => (i?.error || []).concat(i?.warning || []));
-      } else {
-        out = (this.value?.error || []).concat(this.value?.warning || []);
-      }
-      return sortBy(out, [m => this.levelToNumber(m.level), 'message']);
+      return sortBy(this.value, [m => this.levelToNumber(m.level), 'message']);
     },
     messageGroups() {
       // Group by level and message text
@@ -136,5 +143,9 @@ export default {
 .level-warning {
   background-color: map-get($yellow,  'base') !important;
   color: black !important;
+}
+.level-info {
+  background-color: map-get($blue, 'base') !important;
+  color: white !important;
 }
 </style>

@@ -8,6 +8,12 @@
         </template>
       </edit-toolbar>
 
+      <p v-if="projectType.copy_of" class="mt-4">
+        This design is a copy
+        <s-btn text small :to="`/designs/${projectType.copy_of}/`" nuxt class="ml-1 mr-1">
+          <v-icon>mdi-chevron-right-circle-outline</v-icon> show original
+        </s-btn>
+      </p>
       <s-text-field
         v-model="projectType.name" 
         label="Name"

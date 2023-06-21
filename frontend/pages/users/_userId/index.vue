@@ -21,31 +21,32 @@
           label="User is active" 
           hint="Inactive users cannot log in"
         />
-        <template v-if="oidcEnabled">
-          <s-checkbox 
-            v-model="user.can_login_local"
-            label="Local user"
-            hint="The user can log in with username and password."
-            disabled
-          />
-          <s-checkbox
-            v-model="user.can_login_oidc"
-            label="OIDC user"
-            hint="The user can login with an authentication provider. It has linked identities configured."
-            disabled
-          />
-        </template>
-        <template v-if="!user.is_system_user">
-          <s-checkbox
-            v-model="user.is_mfa_enabled"
-            label="Is Multi Factor Authentication enabled"
-            disabled
-          />
-          <p class="mt-4">
-            Last login: {{ user.last_login || 'Never' }}
-          </p>
-        </template>
+        <s-checkbox 
+          v-model="user.can_login_local"
+          label="Local user"
+          hint="The user can log in with username and password."
+          disabled
+        />
+        <s-checkbox
+          v-if="ssoEnabled"
+          v-model="user.can_login_sso"
+          label="SSO user"
+          hint="The user can login with an authentication provider. It has linked identities configured."
+          disabled
+        />
       </template>
+      <s-checkbox
+        v-if="localUserAuthEnabled && !user.is_system_user"
+        v-model="user.is_mfa_enabled"
+        label="Is Multi Factor Authentication enabled"
+        disabled
+      />
+      <p v-if="!user.is_system_user" class="mt-4">
+        Last login: {{ user.last_login || 'Never' }}
+      </p>
+    </user-info-form>
+  </v-form>
+</template>
     </user-info-form>
   </v-form>
 </template>
@@ -70,9 +71,12 @@ export default {
     canEdit() {
       return this.$auth.hasScope('user_manager') && !this.user.is_system_user;
     },
-    oidcEnabled() {
-      return this.$store.getters['apisettings/settings'].auth_providers.length > 0;
+    ssoEnabled() {
+      return this.$store.getters['apisettings/settings'].auth_providers.some(p => ['oidc', 'remoteuser'].includes(p.type));
     },
+    localUserAuthEnabled() {
+      return this.$store.getters['apisettings/settings'].auth_providers.some(p => p.type === 'local');
+    }
   },
   methods: {
     async performSave(data) {

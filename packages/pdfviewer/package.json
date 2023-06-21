@@ -6,7 +6,7 @@
     "build-watch": "webpack watch"
   },
   "dependencies": {
-    "pdfjs-dist": "~3.2.146",
+    "pdfjs-dist": "~3.3.122",
     "fit-curve": "^0.2.0"
   },
   "devDependencies": {

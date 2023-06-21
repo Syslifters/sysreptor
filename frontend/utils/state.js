@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { set as vueSet, del as vueDel } from "vue";
 import { isObject, pick } from "lodash";
 
 export function apiCachedStateFactory(buildUrl) {
@@ -11,7 +11,7 @@ export function apiCachedStateFactory(buildUrl) {
         if (obj.id in state.data) {
           Object.assign(state.data[obj.id], obj);
         } else {
-          Vue.set(state.data, obj.id, obj);
+          vueSet(state.data, obj.id, obj);
         }
       },
       update(state, obj) {
@@ -23,7 +23,7 @@ export function apiCachedStateFactory(buildUrl) {
       },
       remove(state, obj) {
         if (obj.id in state.data) {
-          Vue.delete(state.data, obj.id);
+          vueDel(state.data, obj.id);
         }
       }
     },
@@ -72,7 +72,7 @@ export function updateObjectReactive(obj, vals) {
     if (isObject(v) && isObject(obj[k])) {
       updateObjectReactive(obj[k], v);
     } else {
-      Vue.set(obj, k, v);
+      vueSet(obj, k, v);
     }
   }
 }

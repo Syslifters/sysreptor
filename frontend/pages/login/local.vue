@@ -5,7 +5,7 @@
         <login-form @login="onLogin">
           <template #message>
             <p v-if="licenseErrorMessage" class="red--text">
-              <v-icon color="red" class="mr-1">mdi-alert-decagram</v-icon>
+              <v-icon left color="red">mdi-alert-decagram</v-icon>
               Software License Error: {{ licenseErrorMessage }}.<br>
               Falling back to a free Community license. Some features are disabled.<br>
               See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank">https://docs.sysreptor.com/features-and-pricing/</a>
@@ -13,7 +13,7 @@
           </template>
 
           <template #actions>
-            <s-btn v-if="oidcEnabled" to="/login/" nuxt color="secondary">
+            <s-btn v-if="ssoEnabled" to="/login/?logout=true" nuxt color="secondary">
               Back
             </s-btn>
           </template>
@@ -54,8 +54,8 @@ export default {
     title: 'Login',
   },
   computed: {
-    oidcEnabled() {
-      return this.$store.getters['apisettings/settings'].auth_providers.length > 0;
+    ssoEnabled() {
+      return this.$store.getters['apisettings/settings'].auth_providers.some(p => ['oidc', 'remoteuser'].includes(p.type));
     },
     licenseErrorMessage() {
       return this.$store.getters['apisettings/settings'].license.error;

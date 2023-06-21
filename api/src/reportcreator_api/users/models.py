@@ -61,10 +61,10 @@ class PentestUser(BaseModel, AbstractUser):
 
     @property
     def can_login_local(self):
-        return self.password and self.has_usable_password()
+        return settings.LOCAL_USER_AUTH_ENABLED and self.password and self.has_usable_password()
 
     @functools.cached_property
-    def can_login_oidc(self):
+    def can_login_sso(self):
         return bool(self.auth_identities.all())
     
     @property
@@ -74,6 +74,8 @@ class PentestUser(BaseModel, AbstractUser):
 
 
 class AuthIdentity(BaseModel):
+    PROVIDER_REMOTE_USER = 'remoteuser'
+
     user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='auth_identities')
     provider = models.CharField(max_length=255)
     identifier = models.CharField(max_length=255)

@@ -45,15 +45,7 @@
             />
           </div>
           <language-selection v-model="template.language" :disabled="readonly" />
-          <s-combobox
-            v-model="template.tags"
-            :items="templateTagSuggestions"
-            :disabled="readonly"
-            label="Tags"
-            multiple
-            chips deletable-chips
-            spellcheck="false"
-          />
+          <s-tags v-model="template.tags" :items="templateTagSuggestions" />
           <div v-for="d in visibleFieldDefinitionsExceptCore" :key="d.id">
             <dynamic-input-field 
               v-model="template.data[d.id]" 

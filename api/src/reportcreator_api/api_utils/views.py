@@ -13,7 +13,7 @@ from reportcreator_api.api_utils.serializers import LanguageToolAddWordSerialize
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.permissions import IsSystemUser, IsUserManagerOrSuperuserOrSystem
 from reportcreator_api.api_utils import backup_utils
-from reportcreator_api.users.models import PentestUser
+from reportcreator_api.users.models import AuthIdentity, PentestUser
 from reportcreator_api.utils.api import GenericAPIViewAsync, StreamingHttpResponseAsync
 from reportcreator_api.utils import license
 from reportcreator_api.pentests.models import Language
@@ -55,10 +55,17 @@ class UtilsViewSet(viewsets.ViewSet):
             'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES
         } for l in remove_duplicates(list(map(Language, settings.PREFERRED_LANGUAGES)) + list(Language))]
 
+        auth_providers = \
+            ([{'type': 'local', 'id': 'local', 'name': 'Local User'}] if settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional() else []) + \
+            ([{'type': AuthIdentity.PROVIDER_REMOTE_USER, 'id': AuthIdentity.PROVIDER_REMOTE_USER, 'name': 'Remote User'}] if settings.REMOTE_USER_AUTH_ENABLED and license.is_professional() else []) + \
+            [{'type': 'oidc', 'id': k, 'name': v.get('label', k)} for k, v in settings.AUTHLIB_OAUTH_CLIENTS.items()] if license.is_professional() else []
+
         return Response({
             'languages': languages,
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
-            'auth_providers': [{'id': k, 'name': v.get('label', k)} for k, v in settings.AUTHLIB_OAUTH_CLIENTS.items()] if license.is_professional() else [],
+            'auth_providers': auth_providers,
+            'default_auth_provider': settings.DEFAULT_AUTH_PROVIDER,
+            'default_reauth_provider': settings.DEFAULT_REAUTH_PROVIDER,
             'elastic_apm_rum_config': settings.ELASTIC_APM_RUM_CONFIG if settings.ELASTIC_APM_RUM_ENABLED else None,
             'archiving_threshold': settings.ARCHIVING_THRESHOLD,
             'license': copy_keys(license.check_license(), ['type', 'error']),

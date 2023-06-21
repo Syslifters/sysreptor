@@ -29,7 +29,7 @@ class UserViewSetPermissions(permissions.BasePermission):
         elif view.action == 'self':
             # Allow updating your own user
             return True
-        elif view.action == 'change_password':
+        elif view.action == 'change_password' and (settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional()):
             return check_sensitive_operation_timeout(request)
         elif view.action == 'enable_admin_permissions':
             return license.ProfessionalLicenseRequired().has_permission(request, view) and request.user.is_superuser and check_sensitive_operation_timeout(request)
@@ -55,6 +55,9 @@ class UserViewSetPermissions(permissions.BasePermission):
 
 class MFAMethodViewSetPermissons(permissions.BasePermission):
     def has_permission(self, request, view):
+        if not settings.LOCAL_USER_AUTH_ENABLED and license.is_professional():
+            return False
+
         user = view.get_user()
 
         if user == request.user:
@@ -87,4 +90,14 @@ class MFALoginInProgressAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         if user_id := request.session.get('login_state', {}).get('user_id'):
             return PentestUser.objects.get(id=user_id), None
+
+
+class RemoteUserAuthPermissions(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return settings.REMOTE_USER_AUTH_ENABLED and license.ProfessionalLicenseRequired().has_permission(request, view)
+
+
+class LocalUserAuthPermissions(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional()
 

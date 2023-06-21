@@ -6,7 +6,7 @@ import elasticapm
 from asgiref.sync import sync_to_async
 from types import NoneType
 from typing import Any, Optional, Union
-from base64 import b64encode, b64decode
+from base64 import b64encode
 from django.core.exceptions import ValidationError
 
 from reportcreator_api.tasks.rendering import tasks
@@ -16,18 +16,11 @@ from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsO
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
 from reportcreator_api.pentests.models import PentestProject, ProjectType, ProjectMemberInfo
-from reportcreator_api.utils.error_messages import ErrorMessage
 from reportcreator_api.utils.utils import copy_keys, get_key_or_attr
-from reportcreator_api.utils.logging import log_timing
 
 
 log = logging.getLogger(__name__)
 
-
-class PdfRenderingError(Exception):
-    def __init__(self, messages) -> None:
-        super().__init__(messages)
-        self.messages = messages
 
 
 def format_template_field_object(value: dict, definition: dict[str, FieldDefinition], members: Optional[list[dict|ProjectMemberInfo]] = None, require_id=False):
@@ -119,7 +112,7 @@ async def get_celery_result_async(task):
     
 
 @elasticapm.async_capture_span()
-async def render_pdf_task(project_type: ProjectType, report_template: str, report_styles: str, data: dict, password: Optional[str] = None, project: Optional[PentestProject] = None):
+async def render_pdf_task(project_type: ProjectType, report_template: str, report_styles: str, data: dict, password: Optional[str] = None, project: Optional[PentestProject] = None) -> dict:
     task = await sync_to_async(tasks.render_pdf_task.delay)(
         template=report_template,
         styles=report_styles,
@@ -131,13 +124,14 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
             ({'/images/name/' + i.name: b64encode(i.file.read()).decode() async for i in project.images.all()} if project else {})
     )
     res = await get_celery_result_async(task)
+    # Set message location info to ProjectType (if not available)
+    for m in res.get('messages', []):
+        if not m['location']:
+            m['location'] = MessageLocationInfo(type=MessageLocationType.DESIGN, id=project_type.id, name=project_type.name).to_dict()
+    return res
 
-    if not res.get('pdf'):
-        raise PdfRenderingError([ErrorMessage.from_dict(m) for m in res.get('messages', [])])
-    return b64decode(res.get('pdf'))
 
-
-async def render_pdf(project: PentestProject, project_type: Optional[ProjectType] = None, report_template: Optional[str] = None, report_styles: Optional[str] = None, password: Optional[str] = None) -> bytes:
+async def render_pdf(project: PentestProject, project_type: Optional[ProjectType] = None, report_template: Optional[str] = None, report_styles: Optional[str] = None, password: Optional[str] = None) -> dict:
     if not project_type:
         project_type = project.project_type
     if not report_template:
@@ -167,7 +161,7 @@ async def render_pdf(project: PentestProject, project_type: Optional[ProjectType
         password=password
     )
 
-async def render_pdf_preview(project_type: ProjectType, report_template: str, report_styles: str, report_preview_data: dict) -> bytes:
+async def render_pdf_preview(project_type: ProjectType, report_template: str, report_styles: str, report_preview_data: dict) -> dict:
     preview_data = report_preview_data.copy()
     data = await sync_to_async(format_template_data)(data=preview_data, project_type=project_type)
     

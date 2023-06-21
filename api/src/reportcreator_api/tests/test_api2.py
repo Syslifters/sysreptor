@@ -1,9 +1,10 @@
+import io
 from uuid import uuid4
 from django.urls import reverse
 import pytest
-from rest_framework.test import APIClient
-from reportcreator_api.pentests.models import ProjectType, ProjectTypeScope, SourceEnum
 
+from reportcreator_api.archive.import_export.import_export import export_project_types
+from reportcreator_api.pentests.models import ProjectType, ProjectTypeScope, SourceEnum
 from reportcreator_api.tests.mock import create_project, create_project_type, create_user, api_client
 
 
@@ -36,6 +37,7 @@ class TestProjectApi:
         cp = self.client.post(reverse('pentestproject-copy', kwargs={'pk': project.id})).json()
         assert cp['id'] != str(project.id)
         assert cp['project_type'] != str(project.project_type.id)
+        assert cp['copy_of'] == str(project.id)
         pt = ProjectType.objects.get(id=cp['project_type'])
         assert pt.source == SourceEnum.SNAPSHOT
         assert str(pt.linked_project.id) == cp['id']
@@ -95,6 +97,24 @@ class TestProjectTypeApi:
             assert pt.linked_project is None
             assert pt.linked_user == (user if scope == 'private' else None)
 
+    @pytest.mark.parametrize('user,scope,expected', [
+        ('designer', ProjectTypeScope.GLOBAL, True),
+        ('designer', ProjectTypeScope.PRIVATE, True),
+        ('regular', ProjectTypeScope.GLOBAL, False),
+        ('regular', ProjectTypeScope.PRIVATE, True),
+    ])
+    def test_import_design(self, user, scope, expected):
+        pt_file = io.BytesIO(b''.join(export_project_types([create_project_type()])))
+        user = create_user(is_designer=user == 'designer')
+        res = api_client(user).post(reverse('projecttype-import'), data={'file': pt_file, 'scope': scope}, format='multipart')
+        assert (res.status_code == 201) == expected
+        if expected:
+            assert res.data[0]['scope'] == scope
+            pt = ProjectType.objects.get(id=res.data[0]['id'])
+            assert pt.scope == scope
+            assert pt.linked_project is None
+            assert pt.linked_user == (user if scope == 'private' else None)
+
     @pytest.mark.parametrize('user,project_type,scope,expected', [
         ('designer', 'global', ProjectTypeScope.GLOBAL, True),
         ('designer', 'global', ProjectTypeScope.PRIVATE, True),
@@ -117,3 +137,5 @@ class TestProjectTypeApi:
             assert pt.scope == scope
             assert pt.linked_project is None
             assert pt.linked_user == (user if scope == ProjectTypeScope.PRIVATE else None)
+            assert pt.copy_of == project_type
+

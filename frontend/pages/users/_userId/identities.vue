@@ -1,14 +1,14 @@
 <template>
   <s-card>
-    <v-card-title>Identities</v-card-title>
+    <v-card-title>SSO Identities</v-card-title>
     <v-card-text>
       <v-data-table
-        :headers="[{text: 'Provider', value: 'provider'}, {text: 'Identifier', value: 'identifier'}, {text: 'Actions', value: 'actions'}]"
+        :headers="[{text: 'SSO Provider', value: 'provider'}, {text: 'Identifier', value: 'identifier'}, {text: 'Actions', value: 'actions'}]"
         :items="identities"
         disable-sort disable-pagination disable-filtering hide-default-footer
       >
         <template #item.provider="{item}">
-          {{ authProviders.find(p => p.id === item.provider)?.name || item.provider }}
+          {{ ssoAuthProviders.find(p => p.id === item.provider)?.name || item.provider }}
         </template>
         <template #item.actions="{item}">
           <btn-delete :delete="() => deleteIdentity(item)" icon :disabled="!canEdit" />
@@ -26,8 +26,8 @@
           <v-card-text>
             <s-select
               v-model="createWizard.form.provider"
-              label="Provider"
-              :items="authProviders"
+              label="SSO Provider"
+              :items="ssoAuthProviders"
               item-value="id"
               item-text="name"
               :error-messages="createWizard.errors?.provider"
@@ -77,8 +77,8 @@ export default {
     canEdit() {
       return this.$auth.hasScope('user_manager') && !this.user.is_system_user;
     },
-    authProviders() {
-      return this.$store.getters['apisettings/settings'].auth_providers;
+    ssoAuthProviders() {
+      return this.$store.getters['apisettings/settings'].auth_providers.filter(p => ['oidc', 'remoteuser'].includes(p.type));
     }
   },
   methods: {

@@ -52,7 +52,7 @@
       </tbody>
     </v-simple-table>
 
-    <error-list :value="{warning: warnings}" />
+    <error-list :value="warnings" />
     <btn-confirm
       :disabled="!canArchive"
       :action="performArchiveProject"

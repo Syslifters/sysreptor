@@ -17,7 +17,7 @@ from django.utils import timezone
 
 from reportcreator_api.utils import license
 from reportcreator_api.users.models import PentestUser, MFAMethod, AuthIdentity
-from reportcreator_api.users.permissions import UserViewSetPermissions, MFAMethodViewSetPermissons, MFALoginInProgressAuthentication, \
+from reportcreator_api.users.permissions import LocalUserAuthPermissions, RemoteUserAuthPermissions, UserViewSetPermissions, MFAMethodViewSetPermissons, MFALoginInProgressAuthentication, \
     AuthIdentityViewSetPermissions
 from reportcreator_api.users.serializers import CreateUserSerializer, PentestUserDetailSerializer, PentestUserSerializer, \
     ResetPasswordSerializer, MFAMethodSerializer, LoginSerializer, LoginMFACodeSerializer, MFAMethodRegisterBackupCodesSerializer, \
@@ -226,7 +226,7 @@ class AuthViewSet(viewsets.ViewSet):
     def get_serializer(self, *args, **kwargs):
         return self.get_serializer_class()(context={'request': self.request}, *args, **kwargs)
     
-    @action(detail=False, methods=['post'], authentication_classes=[])
+    @action(detail=False, methods=['post'], authentication_classes=[], permission_classes=[LocalUserAuthPermissions])
     def login(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -252,7 +252,7 @@ class AuthViewSet(viewsets.ViewSet):
         logout(request=request)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, url_path='login/code', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication])
+    @action(detail=False, url_path='login/code', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication], permission_classes=[LocalUserAuthPermissions])
     def login_code(self, request, *args, **kwargs):
         self._verify_mfa_preconditions(request)
 
@@ -260,7 +260,7 @@ class AuthViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         return self.perform_login(request, request.user)
 
-    @action(detail=False, url_path='login/fido2/begin', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication])
+    @action(detail=False, url_path='login/fido2/begin', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication], permission_classes=[LocalUserAuthPermissions])
     def login_fido2_begin(self, request, *args, **kwargs):
         self._verify_mfa_preconditions(request)
 
@@ -271,7 +271,7 @@ class AuthViewSet(viewsets.ViewSet):
         request.session['login_state'] |= {'fido2_state': state}
         return Response(dict(options), status=status.HTTP_200_OK)
 
-    @action(detail=False, url_path='login/fido2/complete', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication])
+    @action(detail=False, url_path='login/fido2/complete', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication], permission_classes=[LocalUserAuthPermissions])
     def login_fido2_complete(self, request, *args, **kwargs):
         self._verify_mfa_preconditions(request)
         state = request.session.get('login_state', {}).pop('fido2_state', None)
@@ -297,7 +297,7 @@ class AuthViewSet(viewsets.ViewSet):
 
     def perform_login(self, request, user, can_reauth=True):
         if not license.is_professional() and not user.is_superuser:
-            raise license.LicenseError('Only superusers are allowed to login. A Professional licenese is required to enable user roles.')
+            raise license.LicenseError('Only superusers are allowed to login. A Professional license is required to enable user roles.')
         elif not license.is_professional() and user.is_system_user:
             raise license.LicenseError('System users are disabled. A Professional license is required to use system users.')
 
@@ -368,5 +368,18 @@ class AuthViewSet(viewsets.ViewSet):
             f'oidc_{oidc_provider}_login_hint': token['userinfo'].get('login_hint'),
         }
         return res
+    
+    @action(detail=False, url_path='login/remoteuser', methods=['post'], permission_classes=[RemoteUserAuthPermissions])
+    def login_remoteuser(self, request, *args, **kwargs):
+        remote_user_identifier = request.META.get('HTTP_' + settings.REMOTE_USER_AUTH_HEADER.upper().replace('-', '_'))
+
+        identity = AuthIdentity.objects \
+            .select_related('user') \
+            .filter(provider=AuthIdentity.PROVIDER_REMOTE_USER) \
+            .filter(identifier=remote_user_identifier) \
+            .first()
+        if not identity:
+            raise exceptions.AuthenticationFailed()
+        return self.perform_login(request, identity.user)
 
 

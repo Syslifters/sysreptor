@@ -1,3 +1,4 @@
+from base64 import b64decode
 import pytest
 import io
 import re
@@ -8,7 +9,7 @@ from pytest_django.asserts import assertHTMLEqual
 from django.test import override_settings
 
 from reportcreator_api.tests.mock import create_imported_member, create_project_type, create_project, create_user, create_finding
-from reportcreator_api.tasks.rendering.entry import render_pdf, PdfRenderingError
+from reportcreator_api.tasks.rendering.entry import render_pdf
 from reportcreator_api.tasks.rendering.render import render_to_html
 from reportcreator_api.utils.utils import merge
 
@@ -36,7 +37,9 @@ class TestHtmlRendering:
             return html.encode() if html else None, [m.to_dict() for m in msgs]
         
         with mock.patch('reportcreator_api.tasks.rendering.render.render_pdf', render_only_html):
-            html = async_to_sync(render_pdf)(self.project).decode()
+            res = async_to_sync(render_pdf)(self.project)
+            assert not res['messages']
+            html = b64decode(res['pdf']).decode()
             return self.extract_html_part(html)
 
     def extract_html_part(self, html, start=None, end=None):       
@@ -78,15 +81,20 @@ class TestHtmlRendering:
         actual_html = self.render_html(template)
         assert actual_html == html
 
-    @pytest.mark.parametrize('template', [
-        '<markdown></p>',
-        '{{ report.nonexistent_variable.prop }}',
-        # '<ref to="nonexistent" />',  currently just a warning
+    @pytest.mark.parametrize('template,expected', [
+        ('text </p>', {'level': 'error', 'message': 'Template compilation error: Invalid end tag.'}),
+        ('{{ report.nonexistent_variable.prop }}', {'level': 'error', 'message': "TypeError: Cannot read properties of undefined (reading 'prop')"}),
+        ('{{ nonexistent_variable }}', {'level': 'warning', 'message': 'Property "nonexistent_variable" was accessed during render but is not defined on instance.'}),
+        ('<ref to="nonexistent" />', {'level': 'warning', 'message': 'Invalid reference'}),
+        ('<img src="/assets/name/nonexistent.png" />', {'level': 'warning', 'message': 'Resource not found'}),
     ])
-    def test_template_error(self, template):
-        with pytest.raises(PdfRenderingError):
-            self.project_type.report_template = template
-            async_to_sync(render_pdf)(project=self.project)
+    def test_template_error(self, template, expected):
+        self.project_type.report_template = template
+        res = async_to_sync(render_pdf)(project=self.project)
+        assert len(res['messages']) >= 1
+        msg = res['messages'][0]
+        assert msg['level'] == expected['level']
+        assert msg['message'] == expected['message']
 
     def test_markdown_rendering(self):
         assertHTMLEqual(
@@ -204,7 +212,7 @@ class TestHtmlRendering:
         ('', False)
     ])
     def test_pdf_encryption(self, password, encrypted):
-        pdf_data = async_to_sync(render_pdf)(project=self.project, password=password)
+        pdf_data = b64decode(async_to_sync(render_pdf)(project=self.project, password=password)['pdf'])
         with pikepdf.Pdf.open(io.BytesIO(pdf_data), password=password) as pdf:
             assert pdf.is_encrypted == encrypted
 

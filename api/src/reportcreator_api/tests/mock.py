@@ -152,6 +152,7 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
         'project_type': project_type,
         'name': f'Pentest Project #{random.randint(1, 100000)}',
         'language': Language.ENGLISH,
+        'tags': ['web', 'customer:test'],
     } | kwargs)
     project.update_data({
         'title': 'Report title',

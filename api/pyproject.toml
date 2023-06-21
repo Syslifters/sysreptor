@@ -43,7 +43,7 @@ boto3 = "^1.26.5"
 pillow-heif = "^0.10.1"
 playwright = "^1.32.1"
 pikepdf = "^7.1.2"
-celery = { extras = ["librabbitmq"], version = "^5.3b2" }
+celery = { extras = ["librabbitmq"], version = "^5.3" }
 
 django-debug-toolbar = "^4.0.0"
 debugpy = "^1.6.7"
@@ -51,7 +51,7 @@ watchdog = "^3.0.0"
 pytest-django = "^4.5.2"
 pytest-xdist = "^3.2.1"
 pytest-cov = "^4.0.0"
-elastic-apm = "^6.15.1"
+elastic-apm = "^6.16.0"
 
 
 

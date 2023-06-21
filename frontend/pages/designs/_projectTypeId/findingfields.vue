@@ -56,7 +56,7 @@
         <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :form="$refs.form" />
 
         <template v-if="currentField === null">
-          <input-field-definition
+          <design-input-field-definition
             v-for="f in findingFields" :key="f.id"
             :value="f" @input="updateField(f, $event)"
             :can-change-structure="!['core', 'predefined'].includes(f.origin)"
@@ -64,7 +64,7 @@
             :disabled="readonly"
           />
         </template>
-        <input-field-definition 
+        <design-input-field-definition 
           v-else-if="currentField.type"
           :value="currentField" @input="updateCurrentField"
           :can-change-structure="!['core', 'predefined'].includes(currentField.origin)" 
@@ -77,7 +77,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
+import { set as vueSet } from 'vue';
 import { omit, cloneDeep, sortBy } from 'lodash';
 import Draggable from 'vuedraggable';
 import { uniqueName } from '~/utils/state';
@@ -127,7 +127,7 @@ export default {
       // Update field order
       const oldFieldIdx = this.projectType.finding_field_order.indexOf(field.id);
       if (oldFieldIdx !== -1) {
-        Vue.set(this.projectType.finding_field_order, oldFieldIdx, val.id);
+        vueSet(this.projectType.finding_field_order, oldFieldIdx, val.id);
       } else {
         this.projectType.finding_field_order = this.projectType.finding_field_order.filter(f => f !== field.id).concat([val.id]);
       }
