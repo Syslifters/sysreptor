@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.96
+* Fix username/password auth not available in login form of community edition
+
+
 ## v0.95 - 2023-06-21
 * Store a reference to the original project/design when copying
 * Add tags to projects
