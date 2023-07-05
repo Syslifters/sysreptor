@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.102 - 2023-07-05
+* Fix serialization of project check messages
+
+
 ## v0.101 - 2023-07-05
 * Implement file upload in user notebook
 * Optimize image loading in markdown preview
