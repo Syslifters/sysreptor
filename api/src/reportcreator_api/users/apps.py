@@ -6,5 +6,5 @@ class UsersConfig(AppConfig):
     name = 'reportcreator_api.users'
 
     def ready(self) -> None:
-        from . import signals  # noqa
+        from . import signals, schema  # noqa
 

@@ -6,7 +6,8 @@ from django.test import override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 from reportcreator_api.users.models import AuthIdentity
-from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, ProjectTypeScope, SourceEnum, UploadedUserNotebookImage
+from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, ProjectTypeScope, SourceEnum, \
+    UploadedUserNotebookImage, UploadedUserNotebookFile
 from reportcreator_api.notifications.models import NotificationSpec
 from reportcreator_api.tests.mock import create_archived_project, create_user, create_project, create_project_type, create_template, create_png_file
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates
@@ -77,9 +78,9 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
 
     out = [
         *viewset_urls('pentestproject', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=update, update_partial=update, destroy=destory),
-        *viewset_urls('section', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'section_id': get_obj(s).sections.first().section_id} if detail else {}), list=read, retrieve=read, update=write, update_partial=write, lock=write, unlock=write),
-        *viewset_urls('finding', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'finding_id': get_obj(s).findings.first().finding_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write),
-        *viewset_urls('projectnotebookpage', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'note_id': get_obj(s).notes.first().note_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write),
+        *viewset_urls('section', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).sections.first().section_id} if detail else {}), list=read, retrieve=read, update=write, update_partial=write, lock=write, unlock=write),
+        *viewset_urls('finding', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).findings.first().finding_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write),
+        *viewset_urls('projectnotebookpage', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).notes.first().note_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write),
         *file_viewset_urls('uploadedimage', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).images.first(), read=read, write=write),
         *file_viewset_urls('uploadedprojectfile', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).files.first(), read=read, write=write),
     ]
@@ -147,6 +148,7 @@ def public_urls():
     return [
         ('utils healthcheck', lambda s, c: c.get(reverse('utils-healthcheck'))),
         ('utils settings', lambda s, c: c.get(reverse('utils-settings'))),
+        ('utils openapi', lambda s, c: c.get(reverse('utils-openapi-schema'))),
     ]
 
 
@@ -162,10 +164,14 @@ def guest_urls():
         ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': 'self'}))),
         *viewset_urls('notification', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.notifications.first().id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
         *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.public_keys.first().id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
+        *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.api_tokens.first().pk if s.current_user else 'fake-uuid'} if detail else {}), create=True, list=True, retrieve=True, destroy=True),
 
-        *viewset_urls('usernotebookpage', get_kwargs=lambda s, detail: {'note_id': s.current_user.notes.first().note_id if s.current_user else 'fake-uuid'} if detail else {}, list=True, retrieve=True, create=True, update=True, update_partial=True, destroy=True, lock=True, unlock=True),
-        ('usernotebookpage sort', lambda s, c: c.post(reverse('usernotebookpage-sort'), data=[])),
-        *file_viewset_urls('uploadedusernotebookimage', get_obj=lambda s: s.current_user.images.first() if s.current_user else UploadedUserNotebookImage(name='nonexistent.png'), read=True, write=True),
+        *viewset_urls('usernotebookpage', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'id': s.current_user.notes.first().note_id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, create=True, update=True, update_partial=True, destroy=True, lock=True, unlock=True),
+        ('usernotebookpage sort', lambda s, c: c.post(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': 'self'}), data=[])),
+        *file_viewset_urls('uploadedusernotebookimage', get_obj=lambda s: s.current_user.images.first() if s.current_user else UploadedUserNotebookImage(name='nonexistent.png'), get_base_kwargs=lambda s: {'pentestuser_pk': 'self'}, read=True, write=True),
+        *file_viewset_urls('uploadedusernotebookfile', get_obj=lambda s: s.current_user.files.first() if s.current_user else UploadedUserNotebookFile(name='nonexistent.pdf'), get_base_kwargs=lambda s: {'pentestuser_pk': 'self'}, read=True, write=True),
+        ('usernotebook upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
+        ('usernotebook upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition'))),
@@ -220,6 +226,7 @@ def user_manager_urls():
         ('pentestuser reset-password', lambda s, c: c.post(reverse('pentestuser-reset-password', kwargs={'pk': s.user_other.pk}), data={'password': 'D40C4dEyH9Naam6!'})),
         *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.mfa_methods.get(is_primary=True).pk} if detail else {}), list=True, retrieve=True, destroy=True),
         *viewset_urls('authidentity', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.auth_identities.first().pk} if detail else {}), list=True, retrieve=True, create=True, create_data={'identifier': 'other.identifier'}, update=True, update_partial=True, destroy=True),
+        *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.api_tokens.first().pk} if detail else {}), list=True, retrieve=True, destroy=True),
         *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), list=True, retrieve=True),
         ('utils-license', lambda s, c: c.get(reverse('utils-license'))),
     ]
@@ -251,7 +258,9 @@ def forbidden_urls():
         ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
-        *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), update=True, update_partial=True, destroy=True),
+        *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.mfa_methods.get(is_primary=True).pk} if detail else {}), create=True, update=True, update_partial=True),
+        *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.api_tokens.first().pk} if detail else {}), create=True),
+        *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), create=True, update=True, update_partial=True, destroy=True),
         ('userpublickey register begin', lambda s, c: c.post(reverse('userpublickey-register-begin', kwargs={'pentestuser_pk': s.user_other.pk}), data={'name': 'new', 'public_key': s.user_other.public_keys.first().public_key})),
     ]
 
@@ -295,12 +304,12 @@ def build_test_parameters():
 class TestApiRequestsAndPermissions:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.user_guest = create_user(username='guest', is_guest=True, mfa=True, public_key=True)
-        self.user_regular = create_user(username='regular', mfa=True, public_key=True)
-        self.user_template_editor = create_user(username='template_editor', is_template_editor=True, mfa=True, public_key=True)
-        self.user_designer = create_user(username='designer', is_designer=True, mfa=True, public_key=True)
-        self.user_user_manager = create_user(username='user_manager', is_user_manager=True, mfa=True, public_key=True)
-        self.user_superuser = create_user(username='superuser', is_superuser=True, is_staff=True, mfa=True, public_key=True)
+        self.user_guest = create_user(username='guest', is_guest=True, mfa=True, apitoken=True, public_key=True)
+        self.user_regular = create_user(username='regular', mfa=True, apitoken=True, public_key=True)
+        self.user_template_editor = create_user(username='template_editor', is_template_editor=True, mfa=True, apitoken=True, public_key=True)
+        self.user_designer = create_user(username='designer', is_designer=True, mfa=True, apitoken=True, public_key=True)
+        self.user_user_manager = create_user(username='user_manager', is_user_manager=True, mfa=True, apitoken=True, public_key=True)
+        self.user_superuser = create_user(username='superuser', is_superuser=True, is_staff=True, mfa=True, apitoken=True, public_key=True)
         self.user_superuser.admin_permissions_enabled = True
         self.user_map = {
             'guest': self.user_guest,
@@ -311,7 +320,7 @@ class TestApiRequestsAndPermissions:
             'superuser': self.user_superuser,
         }
 
-        self.user_other = create_user(username='other', mfa=True, public_key=True)
+        self.user_other = create_user(username='other', mfa=True, apitoken=True, public_key=True)
         AuthIdentity.objects.create(user=self.user_other, provider='dummy', identifier='other.user@example.com')
         NotificationSpec.objects.create(text='Test')
 

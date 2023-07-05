@@ -5,6 +5,7 @@ from rest_framework import permissions, authentication, exceptions
 
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils import license
+from reportcreator_api.users.auth import forbidden_with_apitoken_auth
 
 
 def check_sensitive_operation_timeout(request):
@@ -30,10 +31,13 @@ class UserViewSetPermissions(permissions.BasePermission):
             # Allow updating your own user
             return True
         elif view.action == 'change_password' and (settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional()):
+            forbidden_with_apitoken_auth(request)
             return check_sensitive_operation_timeout(request)
         elif view.action == 'enable_admin_permissions':
+            forbidden_with_apitoken_auth(request)
             return license.ProfessionalLicenseRequired().has_permission(request, view) and request.user.is_superuser and check_sensitive_operation_timeout(request)
         elif view.action == 'disable_admin_permissions':
+            forbidden_with_apitoken_auth(request)
             return license.ProfessionalLicenseRequired().has_permission(request, view) and request.user.is_admin
         return request.user.is_user_manager or request.user.is_admin
 
@@ -55,11 +59,11 @@ class UserViewSetPermissions(permissions.BasePermission):
 
 class MFAMethodViewSetPermissons(permissions.BasePermission):
     def has_permission(self, request, view):
+        forbidden_with_apitoken_auth(request)
         if not settings.LOCAL_USER_AUTH_ENABLED and license.is_professional():
             return False
 
         user = view.get_user()
-
         if user == request.user:
             check_sensitive_operation_timeout(request)
             return True
@@ -77,6 +81,7 @@ class MFAMethodViewSetPermissons(permissions.BasePermission):
 
 class AuthIdentityViewSetPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
+        forbidden_with_apitoken_auth(request)
         user = view.get_user()
         if request.method in permissions.SAFE_METHODS:
             return request.user.is_admin or request.user.is_user_manager or user == request.user
@@ -84,6 +89,23 @@ class AuthIdentityViewSetPermissions(permissions.BasePermission):
             if user.is_system_user:
                 return False
             return request.user.is_admin or (request.user.is_user_manager and not user.is_superuser)
+
+
+class APITokenViewSetPermissions(permissions.BasePermission):
+    def has_permission(self, request, view):
+        forbidden_with_apitoken_auth(request)
+        user = view.get_user()
+        if view.kwargs.get('pentestuser_pk') == 'self':
+            return check_sensitive_operation_timeout(request)
+        if not request.user.is_admin and not request.user.is_user_manager:
+            return False
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if view.action not in ['list', 'retrieve', 'destroy']:
+            return False
+        if request.user.is_user_manager and user.is_superuser:
+            return False
+        return True
 
 
 class MFALoginInProgressAuthentication(authentication.BaseAuthentication):
@@ -101,3 +123,11 @@ class LocalUserAuthPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         return settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional()
 
+
+class UserNotebookPermissions(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user == view.get_user():
+            return True
+        if request.user.is_admin and request.method in permissions.SAFE_METHODS:
+            return True
+        return False

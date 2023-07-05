@@ -27,6 +27,12 @@
           </v-list-item-icon>
           <v-list-item-title>SSO Identities</v-list-item-title>
         </v-list-item>
+        <v-list-item :to="`/users/${user.id}/apitokens/`" nuxt>
+          <v-list-item-icon>
+            <v-icon>mdi-key-variant</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>API Tokens</v-list-item-title>
+        </v-list-item>
       </v-list>
     </template>
     

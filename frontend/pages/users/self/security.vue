@@ -54,7 +54,7 @@
         <v-list>
           <v-list-item v-for="mfaMethod in mfaMethods" :key="mfaMethod.id">
             <v-list-item-title>
-              <v-icon class="mr-3">{{ mfaMethodChoices.find(c => c.value === mfaMethod.method_type).icon }}</v-icon>
+              <v-icon left>{{ mfaMethodChoices.find(c => c.value === mfaMethod.method_type).icon }}</v-icon>
               {{ mfaMethod.name }}
               <template v-if="mfaMethod.is_primary">
                 <v-chip small class="ml-3">Primary</v-chip>
@@ -71,7 +71,7 @@
                 <template #default>
                   <v-card-text>
                     <p class="mb-6">
-                      <v-icon class="mr-3">{{ editWizard.methodType.icon }}</v-icon>
+                      <v-icon left>{{ editWizard.methodType.icon }}</v-icon>
                       {{ editWizard.methodType.text }}
                     </p>
 
@@ -120,15 +120,15 @@
                       :items="mfaMethodChoices"
                     >
                       <template #item="{item}">
-                        <v-list-item-icon class="mr-3">
-                          <v-icon>{{ item.icon }}</v-icon>
+                        <v-list-item-icon>
+                          <v-icon left>{{ item.icon }}</v-icon>
                         </v-list-item-icon>
                         <v-list-item-content>
                           <v-list-item-title>{{ item.text }}</v-list-item-title>
                         </v-list-item-content>
                       </template>
                       <template #selection="{item}">
-                        <v-icon class="mr-3">{{ item.icon }}</v-icon> 
+                        <v-icon left>{{ item.icon }}</v-icon> 
                         {{ item.text }}
                       </template>
                     </s-select>

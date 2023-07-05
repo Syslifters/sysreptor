@@ -8,6 +8,7 @@ from rest_framework.serializers import Serializer
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
+from drf_spectacular.utils import extend_schema, OpenApiTypes
 
 from reportcreator_api.api_utils.serializers import LanguageToolAddWordSerializer, LanguageToolSerializer, BackupSerializer
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
@@ -37,6 +38,7 @@ class UtilsViewSet(viewsets.ViewSet):
     def get_serializer(self, *args, **kwargs):
         return self.get_serializer_class()(*args, **kwargs)
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def list(self, *args, **kwargs):
         return routers.APIRootView(api_root_dict={
             'settings': 'utils-settings',
@@ -44,8 +46,11 @@ class UtilsViewSet(viewsets.ViewSet):
             'spellcheck': 'utils-spellcheck',
             'backup': 'utils-backup',
             'healthcheck': 'utils-healthcheck',
+            'openapi': 'utils-openapi-schema',
+            'swagger-ui': 'utils-swagger-ui',
         }).get(*args, **kwargs)
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_name='settings', url_path='settings', authentication_classes=[], permission_classes=[])
     def settings_endpoint(self, *args, **kwargs):
         languages = [{
@@ -76,6 +81,7 @@ class UtilsViewSet(viewsets.ViewSet):
             },
         })
 
+    @extend_schema(responses={(200, 'application/octet-stream'): OpenApiTypes.BINARY})
     @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsSystemUser, license.ProfessionalLicenseRequired])
     def backup(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -103,7 +109,8 @@ class UtilsViewSet(viewsets.ViewSet):
             response['Content-Disposition'] = f"attachment; filename={filename}"
             log.info('Sending Backup')
             return response
-        
+    
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsUserManagerOrSuperuserOrSystem])
     def license(self, request, *args, **kwargs):
         return Response(data=license.check_license() | {
@@ -113,9 +120,11 @@ class UtilsViewSet(viewsets.ViewSet):
 
 
 class SpellcheckView(GenericAPIViewAsync):
+    _action = 'spellcheck'
     serializer_class = LanguageToolSerializer
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     async def post(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.spellcheck()
@@ -123,6 +132,7 @@ class SpellcheckView(GenericAPIViewAsync):
     
 
 class SpellcheckWordView(GenericAPIViewAsync):
+    _action = 'spellcheck_add_word'
     serializer_class = LanguageToolAddWordSerializer
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired]
 
@@ -133,9 +143,11 @@ class SpellcheckWordView(GenericAPIViewAsync):
 
 
 class HealthcheckView(GenericAPIViewAsync):
+    _action = 'healthcheck'
     authentication_classes = []
     permission_classes = []
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT, 503: OpenApiTypes.OBJECT})
     async def get(self, *args, **kwargs):
         # Trigger periodic tasks
         await PeriodicTask.objects.run_all_pending_tasks()

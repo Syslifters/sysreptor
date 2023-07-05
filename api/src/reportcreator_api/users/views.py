@@ -1,9 +1,10 @@
 import functools
 import json
+from uuid import UUID
 from datetime import datetime, timedelta
 from authlib.integrations.django_client import OAuth, OAuthError
 from rest_framework.response import Response
-from rest_framework import viewsets, status, filters, mixins, serializers, exceptions
+from rest_framework import views, viewsets, status, filters, mixins, serializers, exceptions
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,12 +15,13 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import login, logout
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from reportcreator_api.utils import license
 from reportcreator_api.users.models import PentestUser, MFAMethod, AuthIdentity
-from reportcreator_api.users.permissions import LocalUserAuthPermissions, RemoteUserAuthPermissions, UserViewSetPermissions, MFAMethodViewSetPermissons, MFALoginInProgressAuthentication, \
+from reportcreator_api.users.permissions import APITokenViewSetPermissions, LocalUserAuthPermissions, RemoteUserAuthPermissions, UserViewSetPermissions, MFAMethodViewSetPermissons, MFALoginInProgressAuthentication, \
     AuthIdentityViewSetPermissions
-from reportcreator_api.users.serializers import CreateUserSerializer, PentestUserDetailSerializer, PentestUserSerializer, \
+from reportcreator_api.users.serializers import APITokenCreateSerializer, APITokenSerializer, CreateUserSerializer, MFAMethodRegisterBeginSerializer, PentestUserDetailSerializer, PentestUserSerializer, \
     ResetPasswordSerializer, MFAMethodSerializer, LoginSerializer, LoginMFACodeSerializer, MFAMethodRegisterBackupCodesSerializer, \
     MFAMethodRegisterTOTPSerializer, MFAMethodRegisterFIDO2Serializer, AuthIdentitySerializer
 
@@ -35,6 +37,30 @@ class APIBadRequestError(exceptions.APIException):
     default_code = 'invalid'
 
 
+@extend_schema(parameters=[OpenApiParameter(name='pentestuser_id', type={'oneOf': [{'type': 'string', 'format': 'uuid'}, {'const': 'self'}]}, location=OpenApiParameter.PATH)])
+@extend_schema(parameters=[OpenApiParameter(name='id', type=UUID, location=OpenApiParameter.PATH)])
+class UserSubresourceViewSetMixin(views.APIView):
+    pagination_class = None
+
+    @functools.cache
+    def get_user(self):
+        if not self.request:
+            return None
+
+        user_pk = self.kwargs.get('pentestuser_pk')
+        if user_pk == 'self':
+            return self.request.user
+        
+        qs = PentestUser.objects.all()
+        return get_object_or_404(qs, pk=user_pk)
+    
+    def get_serializer_context(self):
+        return super().get_serializer_context() | {
+            'user': self.get_user()
+        }
+
+
+@extend_schema(parameters=[OpenApiParameter(name='id', type=UUID, location=OpenApiParameter.PATH)])
 class PentestUserViewSet(viewsets.ModelViewSet):
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [UserViewSetPermissions]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
@@ -57,7 +83,8 @@ class PentestUserViewSet(viewsets.ModelViewSet):
             return ResetPasswordSerializer
         elif self.action == 'create':
             return CreateUserSerializer
-        elif self.request.user.is_admin or self.request.user.is_user_manager or self.action in ['self', 'enable_admin_permissions', 'disable_admin_permissions']:
+        elif (getattr(self.request.user, 'is_admin', False) or getattr(self.request.user, 'is_user_manager', False)) or \
+             self.action in ['self', 'enable_admin_permissions', 'disable_admin_permissions']:
             return PentestUserDetailSerializer
         else:
             return PentestUserSerializer
@@ -105,28 +132,15 @@ class PentestUserViewSet(viewsets.ModelViewSet):
                 detail='Cannot delete user because it is a member of one or more projects.')
 
 
-class MFAMethodViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+class MFAMethodViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [MFAMethodViewSetPermissons]
-    pagination_class = None
-
-    @functools.cache
-    def get_user(self):
-        user_pk = self.kwargs['pentestuser_pk']
-        if user_pk == 'self':
-            return self.request.user
-        
-        qs = PentestUser.objects.all()
-        return get_object_or_404(qs, pk=user_pk)
 
     def get_queryset(self):
-        return MFAMethod.objects \
-            .only_permitted(self.request.user) \
-            .filter(user=self.get_user()) \
-            .default_order()
+        return self.get_user().mfa_methods.default_order()
 
     def get_serializer_class(self):
         if self.action in ['register_backup_begin', 'register_totp_begin', 'register_fido2_begin']:
-            return serializers.Serializer
+            return MFAMethodRegisterBeginSerializer
         elif self.action == 'register_backup_complete':
             return MFAMethodRegisterBackupCodesSerializer
         elif self.action == 'register_totp_complete':
@@ -135,11 +149,7 @@ class MFAMethodViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.
             return MFAMethodRegisterFIDO2Serializer
         return MFAMethodSerializer
 
-    def get_serializer_context(self):
-        return super().get_serializer_context() | {
-            'user': self.get_user()
-        }
-
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_path='register/backup/begin', methods=['post'])
     def register_backup_begin(self, request, *args, **kwargs):
         # if self.get_user().mfa_methods.filter(method_type=MFAMethodType.BACKUP).exists():
@@ -148,11 +158,13 @@ class MFAMethodViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.
         instance = MFAMethod.objects.create_backup(save=False, user=self.get_user(), name='Backup Codes')
         return self.perform_register_begin(request, instance)
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_path='register/totp/begin', methods=['post'])
     def register_totp_begin(self, request, *args, **kwargs):
         instance = MFAMethod.objects.create_totp(save=False, user=self.get_user(), name='TOTP')
         return self.perform_register_begin(request, instance, {'qrcode': instance.get_totp_qrcode()})
     
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_path='register/fido2/begin', methods=['post'])
     def register_fido2_begin(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -165,14 +177,17 @@ class MFAMethodViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.
         response_data = instance.data | additional_response_data
         return Response(response_data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses=MFAMethodSerializer)
     @action(detail=False, url_path='register/backup/complete', methods=['post'])
     def register_backup_complete(self, *args, **kwargs):
         return self.register_complete(*args, **kwargs)
 
+    @extend_schema(responses=MFAMethodSerializer)
     @action(detail=False, url_path='register/totp/complete', methods=['post'])
     def register_totp_complete(self, *args, **kwargs):
         return self.register_complete(*args, **kwargs)
 
+    @extend_schema(responses=MFAMethodSerializer)
     @action(detail=False, url_path='register/fido2/complete', methods=['post'])
     def register_fido2_complete(self, *args, **kwargs):
         return self.register_complete(*args, **kwargs)
@@ -192,26 +207,39 @@ class MFAMethodViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.
         return Response(MFAMethodSerializer(instance=instance).data, status=status.HTTP_201_CREATED)
 
 
-class AuthIdentityViewSet(viewsets.ModelViewSet):
+class AuthIdentityViewSet(UserSubresourceViewSetMixin, viewsets.ModelViewSet):
     serializer_class = AuthIdentitySerializer
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [AuthIdentityViewSetPermissions, license.ProfessionalLicenseRequired]
-    pagination_class = None
-
-    @functools.cache
-    def get_user(self):
-        qs = PentestUser.objects.all()
-        return get_object_or_404(qs, pk=self.kwargs['pentestuser_pk'])
 
     def get_queryset(self):
         return self.get_user().auth_identities.all()
+
 
     def get_serializer_context(self):
         return super().get_serializer_context() | {
             'user': self.get_user()
         }
+    
+    def get_serializer_context(self):
+        return super().get_serializer_context() | {
+            'user': self.get_user()
+        }
+
+class APITokenViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    serializer_class = APITokenSerializer
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [APITokenViewSetPermissions]
+    
+    def get_queryset(self):
+        return self.get_user().api_tokens.all()
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return APITokenCreateSerializer
+        return super().get_serializer_class()
 
 
 class AuthViewSet(viewsets.ViewSet):
+    schema = None
     authentication_classes = []
     permission_classes = []
 
@@ -296,10 +324,7 @@ class AuthViewSet(viewsets.ViewSet):
             raise APIBadRequestError('Login timeout. Please restart login.')
 
     def perform_login(self, request, user, can_reauth=True):
-        if not license.is_professional() and not user.is_superuser:
-            raise license.LicenseError('Only superusers are allowed to login. A Professional license is required to enable user roles.')
-        elif not license.is_professional() and user.is_system_user:
-            raise license.LicenseError('System users are disabled. A Professional license is required to use system users.')
+        license.validate_login_allowed(user)
 
         request.session.pop('login_state', None)
         first_login = not user.last_login

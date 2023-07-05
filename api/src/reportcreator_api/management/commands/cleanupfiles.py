@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from reportcreator_api.pentests.models import ArchivedProject, UploadedAsset, UploadedImage, UploadedProjectFile, UploadedUserNotebookImage
+from reportcreator_api.pentests.models import ArchivedProject, UploadedAsset, UploadedImage, UploadedProjectFile, \
+    UploadedUserNotebookImage, UploadedUserNotebookFile
 
 
 class Command(BaseCommand):
@@ -26,6 +27,9 @@ class Command(BaseCommand):
             .delete()
         UploadedProjectFile.objects \
             .filter(pk__in=[o.pk for o in UploadedProjectFile.objects.iterator() if not self.file_exists(o.file)]) \
+            .delete()
+        UploadedUserNotebookFile.objects \
+            .filter(pk__in=[o.pk for o in UploadedUserNotebookFile.objects.iterator() if not self.file_exists(o.file)]) \
             .delete()
         ArchivedProject.objects \
             .filter(pk__in=[o.pk for o in ArchivedProject.objects.iterator() if not self.file_exists(o.file)]) \

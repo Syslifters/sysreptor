@@ -15,6 +15,12 @@
           </v-list-item-icon>
           <v-list-item-title>Security</v-list-item-title>
         </v-list-item>
+        <v-list-item to="/users/self/apitokens/" nuxt>
+          <v-list-item-icon>
+            <v-icon>mdi-key-variant</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>API Tokens</v-list-item-title>
+        </v-list-item>
         <v-list-item v-if="archivingEnabled" to="/users/self/publickeys/" nuxt>
           <v-list-item-icon>
             <v-icon>mdi-folder-key</v-icon>

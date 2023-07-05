@@ -1,3 +1,5 @@
+import secrets
+from typing import Any
 import pyotp
 from fido2.server import Fido2Server, AttestedCredentialData
 from fido2.webauthn import PublicKeyCredentialRpEntity, PublicKeyCredentialUserEntity, UserVerificationRequirement, AuthenticatorAttachment, \
@@ -43,6 +45,8 @@ class PentestUserQuerySet(models.QuerySet):
 
     def only_permitted(self, user):
         from reportcreator_api.users.models import PentestUser
+        if user.is_anonymous:
+            return self.none()
         if user.is_guest:
             # Only show users that are members in projects where the guest user is also a member
             return self \
@@ -73,7 +77,19 @@ class PentestUserQuerySet(models.QuerySet):
             .exclude(is_system_user=True) \
             .count()
 
+
 class PentestUserManager(UserManager, models.Manager.from_queryset(PentestUserQuerySet)):
+    pass
+
+
+class APITokenQuerySet(models.QuerySet):
+    def only_permitted(self, user):
+        if user.is_admin or user.is_user_manager:
+            return self
+        return self.filter(user=user)
+
+
+class APITokenManager(models.Manager.from_queryset(APITokenQuerySet)):
     pass
 
 

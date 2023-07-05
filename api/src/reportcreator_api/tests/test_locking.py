@@ -60,8 +60,8 @@ class TestLocking:
         assert not obj.is_locked
 
     def test_api_lock_finding(self):
-        self.assert_api_locking(obj=self.finding, url_basename='finding', url_kwargs={'project_pk': self.project.pk, 'finding_id': self.finding.finding_id})
+        self.assert_api_locking(obj=self.finding, url_basename='finding', url_kwargs={'project_pk': self.project.pk, 'id': self.finding.finding_id})
     
     def test_api_lock_section(self):
-        self.assert_api_locking(obj=self.section, url_basename='section', url_kwargs={'project_pk': self.project.pk, 'section_id': self.section.section_id})
+        self.assert_api_locking(obj=self.section, url_basename='section', url_kwargs={'project_pk': self.project.pk, 'id': self.section.section_id})
 

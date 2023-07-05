@@ -30,6 +30,7 @@ const rehypeSanitizeSchema = merge({}, defaultSchema, {
   attributes: {
     '*': ['className', 'style', 'data*', 'v-if', 'v-for', 'v-bind', 'v-on'].concat(defaultSchema.attributes['*']),
     'a': ['download'].concat(defaultSchema.attributes['a']),
+    'img': ['loading'].concat(defaultSchema.attributes['img']),
     'ref': ['to', ':to'],
     'markdown': ['text', ':text'],
   }

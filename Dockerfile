@@ -136,7 +136,6 @@ COPY api/src /app/api
 
 # Copy generated template rendering script
 COPY --from=rendering /app/rendering/dist /app/rendering/dist/
-CMD pytest
 
 
 FROM api-test as api

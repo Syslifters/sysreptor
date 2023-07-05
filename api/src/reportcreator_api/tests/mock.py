@@ -8,11 +8,11 @@ from reportcreator_api.archive.import_export.serializers import RelatedUserDataE
 
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
-    ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, Language, UserPublicKey
+    ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, Language, UserPublicKey
 from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, report_fields_default, \
     report_sections_default
 from reportcreator_api.pentests.models.archive import ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
-from reportcreator_api.users.models import PentestUser, MFAMethod
+from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
@@ -25,7 +25,7 @@ def create_png_file() -> bytes:
            b'IDAT\x08\xd7c`\x00\x00\x00\x02\x00\x01\xe2!\xbc3\x00\x00\x00\x00IEND\xaeB`\x82'
 
 
-def create_user(mfa=False, public_key=False, notes_kwargs=None, images_kwargs=None, **kwargs) -> PentestUser:
+def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, images_kwargs=None, files_kwargs=None, **kwargs) -> PentestUser:
     username = f'user{random.randint(0, 100000)}'
     user = PentestUser.objects.create_user(**{
         'username': username,
@@ -37,6 +37,8 @@ def create_user(mfa=False, public_key=False, notes_kwargs=None, images_kwargs=No
     if mfa:
         MFAMethod.objects.create_totp(user=user, is_primary=True)
         MFAMethod.objects.create_backup(user=user)
+    if apitoken:
+        APIToken.objects.create(user=user, name=f'API token {username}')
     if public_key:
         create_public_key(user=user)
 
@@ -47,6 +49,11 @@ def create_user(mfa=False, public_key=False, notes_kwargs=None, images_kwargs=No
             'name': f'file{idx}.png', 
             'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
         } | image_kwargs)
+    for idx, file_kwargs in enumerate(files_kwargs if files_kwargs is not None else [{}]):
+        UploadedUserNotebookFile.objects.create(linked_object=user, **{
+            'name': f'file{idx}.pdf', 
+            'file': SimpleUploadedFile(name=f'file{idx}.pdf', content=f'%PDF-1.3{idx}'.encode())
+        } | file_kwargs)
 
     return user
 

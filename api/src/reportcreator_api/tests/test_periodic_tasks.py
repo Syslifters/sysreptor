@@ -140,19 +140,23 @@ class TestCleanupUnreferencedFiles:
             project_file = project.files.first()
             user = create_user(
                 images_kwargs=[{'name': 'image.png'}],
+                files_kwargs=[{'name': 'file.pdf'}],
             )
             user_image = user.images.first()
+            user_file = user.files.first()
         # self.run_cleanup(num_queries=2 + 6 + 3 * 2 + 3)
         self.run_cleanup_project_files(num_queries=1 + 4 + 2 * 2 + 2 * 1)
-        self.run_cleanup_user_files(num_queries=1 + 2 + 1 * 2 + 1 * 1)
+        self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 2 + 2 * 1)
         # Deleted from DB
         assert project.images.count() == 0
         assert project.files.count() == 0
         assert user.images.count() == 0
+        assert user.files.count() == 0
         # Deleted from FS
         assert not self.file_exists(project_image)
         assert not self.file_exists(project_file)
         assert not self.file_exists(user_image)
+        assert not self.file_exists(user_file)
 
     def test_recently_created_unreferenced_files_not_removed(self):
         project = create_project(
@@ -209,11 +213,13 @@ class TestCleanupUnreferencedFiles:
     def test_referenced_files_in_user_notes_not_removed(self):
         with mock_time(before=timedelta(days=10)):
             user = create_user(
-                notes_kwargs=[{'text': '![](/images/name/image.png)'}],
+                notes_kwargs=[{'text': '![](/images/name/image.png)\n[](/files/name/file.pdf'}],
                 images_kwargs=[{'name': 'image.png'}],
+                files_kwargs=[{'name': 'file.pdf'}]
             )
-        self.run_cleanup_user_files(num_queries=1 + 2)
+        self.run_cleanup_user_files(num_queries=1 + 3)
         assert user.images.count() == 1
+        assert user.files.count() == 1
 
     def test_file_referenced_by_multiple_projects(self):
         with mock_time(before=timedelta(days=10)):
@@ -244,6 +250,7 @@ class TestCleanupUnreferencedFiles:
             )
             user_old = create_user(
                 images_kwargs=[{'name': 'image.png'}],
+                files_kwargs=[{'name': 'file.pdf'}],
             )
             project_new = create_project(
                 images_kwargs=[{'name': 'image.png'}],
@@ -257,16 +264,18 @@ class TestCleanupUnreferencedFiles:
             user_new.notes.first().save()
         last_task_run = timezone.now() - timedelta(days=15)
         self.run_cleanup_project_files(num_queries=1 + 4 + 2 * 2 + 2 * 1, last_success=last_task_run)
-        self.run_cleanup_user_files(num_queries=1 + 2 + 2 * 1 + 1 * 1, last_success=last_task_run)
+        self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 2 + 2 * 1, last_success=last_task_run)
 
         # Old project should be ignored because it was already cleaned in the last run
         assert project_old.images.count() == 1
         assert project_old.files.count() == 1
         assert user_old.images.count() == 1
+        assert user_old.files.count() == 1
         # New project should be cleaned because it was modified after the last run
         assert project_new.images.count() == 0
         assert project_new.files.count() == 0
         assert user_new.images.count() == 0
+        assert user_new.files.count() == 0
 
 
 @pytest.mark.django_db

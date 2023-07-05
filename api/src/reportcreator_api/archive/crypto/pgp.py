@@ -30,16 +30,16 @@ def public_key_info(public_key: str):
 
         if key_info.get('type') != 'pub':
             raise CryptoError('Not a public key')
-        encryption_key_info = next(filter(lambda s: s.get('type') == 'sub' and s.get('cap') == 'e', key_info['subkey_info'].values()), None)
+        encryption_key_info = next(filter(lambda s: s.get('type') == 'sub' and s.get('cap') == 'e', key_info.get('subkey_info').values()), None)
         if not encryption_key_info:
-            raise CryptoError('No encryption key provided')
+            raise CryptoError('No encryption key provided. PGP key does not contain an encryption subkey.')
         
         # Allowed encryption ciphers: RSA, ECDH, ElGamal with min. key size
-        if encryption_key_info['algo'] not in ['1', '2', '16', '18']:
+        if encryption_key_info.get('algo') not in ['1', '2', '16', '18']:
             raise CryptoError('Unsupported algorithm')
-        if encryption_key_info['algo'] in ['1', '2', '16'] and int(encryption_key_info['length']) < 3072:
+        if encryption_key_info.get('algo') in ['1', '2', '16'] and int(encryption_key_info.get('length', 0)) < 3072:
             raise CryptoError('Key length too short. The minimum supported RSA key size is 3072 bit')
-        elif encryption_key_info['algo'] in ['18'] and int(encryption_key_info['length']) < 256:
+        elif encryption_key_info.get('algo') in ['18'] and int(encryption_key_info.get('length', 0)) < 256:
             raise CryptoError('Key length too short. The minimum supported Elliptic Curve size is 256 bit')
         
         return key_info

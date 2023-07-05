@@ -68,7 +68,7 @@ body {
   height: var(--toolbar-height);
 }
 #toolbarViewerMiddle {
-  width: fit-content;
+  width: max-content;
   height: var(--toolbar-height);
   margin-left: auto;
   margin-right: auto;

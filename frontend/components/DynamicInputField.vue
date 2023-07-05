@@ -25,35 +25,14 @@
     />
 
     <!-- Date -->
-    <v-menu
+    <s-date-picker
       v-else-if="definition.type === 'date'"
-      v-model="datePickerVisible"
+      :value="formValue"
+      @input="emitInput"
+      :label="label"
       :disabled="disabled"
-      :close-on-content-click="false"
-      min-width="auto"
-      offset-y
-    >
-      <template #activator="{ on, attrs }">
-        <s-text-field
-          :value="formValue"
-          v-bind="attrs" v-on="on"
-          :label="label"
-          :disabled="disabled"
-          prepend-inner-icon="mdi-calendar"
-          readonly
-          clearable 
-          @click:clear="emitInput(null)"
-        />
-      </template>
-      <template #default>
-        <v-date-picker
-          :value="formValue"
-          @input="datePickerVisible = false; emitInput($event);"
-          :locale="lang"
-          :first-day-of-week="1"
-        />
-      </template>
-    </v-menu>
+      :locale="lang"
+    />
 
     <!-- Enum -->
     <s-autocomplete

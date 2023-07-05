@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'adrf',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 
     'reportcreator_api',
     'reportcreator_api.users',
@@ -99,6 +101,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'reportcreator_api.users.auth.APITokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_THROTTLE_CLASSES': [
@@ -108,9 +111,28 @@ REST_FRAMEWORK = {
         'pdf': '3/10s',
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'EXCEPTION_HANDLER': 'reportcreator_api.utils.api.exception_handler',
     'PAGE_SIZE': 100,
     'UNICODE_JSON': False,
+}
+
+# OpenAPI schema generator settings
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SysReptor API',
+    'VERSION': '0.0.0',
+    'DESCRIPTION': 'Warning: This is an unstable API used by the frontend. There might be breaking changes. Use at own risk.',
+    'SERVE_PUBLIC': True,
+    'SCHEMA_COERCE_PATH_PK_SUFFIX': True,
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+    'ENUM_NAME_OVERRIDES': {
+        'Language': 'reportcreator_api.pentests.models.Language',
+        'ReviewStatus': 'reportcreator_api.pentests.models.ReviewStatus',
+        'ProjectTypeScope': 'reportcreator_api.pentests.models.ProjectTypeScope',
+        'ProjectTypeScopeCreate': ['global', 'private'],
+    },
 }
 
 
@@ -152,6 +174,11 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+]
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
 ]
 
 # Login URL of SPA frontend
@@ -252,6 +279,11 @@ UPLOADED_FILE_STORAGE = {
     'filesystem': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
     's3': 'reportcreator_api.utils.storages.EncryptedS3SystemStorage',
 }.get(UPLOADED_FILE_STORAGE, UPLOADED_FILE_STORAGE)
+ARCHIVED_FILE_STORAGE = config('ARCHIVED_FILE_STORAGE', default='filesystem')
+ARCHIVED_FILE_STORAGE = {
+     'filesystem': 'reportcreator_api.utils.storages.UnencryptedFileSystemStorage',
+    's3': 'reportcreator_api.utils.storages.UnencryptedS3SystemStorage',
+}.get(ARCHIVED_FILE_STORAGE, ARCHIVED_FILE_STORAGE)
 
 STORAGES = {
     'staticfiles': {
@@ -281,7 +313,7 @@ STORAGES = {
         },
     },
     'archived_files': {
-        'BACKEND': config('ARCHIVED_FILE_STORAGE', default='reportcreator_api.utils.storages.UnencryptedFileSystemStorage'),
+        'BACKEND': ARCHIVED_FILE_STORAGE,
         'OPTIONS': {
             'location': config('ARCHIVED_FILE_LOCATION', default=MEDIA_ROOT / 'archivedfiles', cast=Path),
             'access_key': config('ARCHIVED_FILE_S3_ACCESS_KEY', default=''),

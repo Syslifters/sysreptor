@@ -6,20 +6,21 @@ from django.http import HttpResponse
 from django.views.generic.base import TemplateView, RedirectView
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from reportcreator_api.api_utils.views import SpellcheckWordView, UtilsViewSet, SpellcheckView, HealthcheckView
-from reportcreator_api.pentests.views import ArchivedProjectKeyPartViewSet, ArchivedProjectViewSet, FindingTemplateViewSet, PentestFindingViewSet, PentestProjectViewSet, ProjectNotebookPageViewSet, \
+from reportcreator_api.pentests.views import ArchivedProjectKeyPartViewSet, ArchivedProjectViewSet, FindingTemplateViewSet, \
+    PentestFindingViewSet, PentestProjectViewSet, ProjectNotebookPageViewSet, \
     PentestProjectPreviewView, PentestProjectGenerateView, \
     ProjectTypeViewSet, ProjectTypePreviewView, \
-    ReportSectionViewSet, UploadedAssetViewSet, UploadedImageViewSet, UploadedProjectFileViewSet, UploadedUserNotebookImageViewSet, UserNotebookPageViewSet, UserPublicKeyViewSet
-from reportcreator_api.users.views import PentestUserViewSet, MFAMethodViewSet, AuthViewSet, AuthIdentityViewSet
+    ReportSectionViewSet, UploadedAssetViewSet, UploadedImageViewSet, UploadedProjectFileViewSet, UploadedUserNotebookImageViewSet, \
+        UploadedUserNotebookFileViewSet, UserNotebookPageViewSet, UserPublicKeyViewSet
+from reportcreator_api.users.views import APITokenViewSet, PentestUserViewSet, MFAMethodViewSet, AuthViewSet, AuthIdentityViewSet
 from reportcreator_api.notifications.views import NotificationViewSet
 
 
 router = DefaultRouter()
 router.register('pentestusers', PentestUserViewSet, basename='pentestuser')
-router.register('pentestusers/self/notes/images', UploadedUserNotebookImageViewSet, basename='uploadedusernotebookimage')
-router.register('pentestusers/self/notes', UserNotebookPageViewSet, basename='usernotebookpage')
 router.register('projecttypes', ProjectTypeViewSet, basename='projecttype')
 router.register('pentestprojects', PentestProjectViewSet, basename='pentestproject')
 router.register('archivedprojects', ArchivedProjectViewSet, basename='archivedproject')
@@ -30,8 +31,12 @@ router.register('auth', AuthViewSet, basename='auth')
 user_router = NestedSimpleRouter(router, 'pentestusers', lookup='pentestuser')
 user_router.register('mfa', MFAMethodViewSet, basename='mfamethod')
 user_router.register('identities', AuthIdentityViewSet, basename='authidentity')
+user_router.register('apitokens', APITokenViewSet, basename='apitoken')
 user_router.register('notifications', NotificationViewSet, basename='notification')
 user_router.register('publickeys', UserPublicKeyViewSet, basename='userpublickey')
+user_router.register('notes/images', UploadedUserNotebookImageViewSet, basename='uploadedusernotebookimage')
+user_router.register('notes/files', UploadedUserNotebookFileViewSet, basename='uploadedusernotebookfile')
+user_router.register('notes', UserNotebookPageViewSet, basename='usernotebookpage')
 
 project_router = NestedSimpleRouter(router, 'pentestprojects', lookup='project')
 project_router.register('sections', ReportSectionViewSet, basename='section')
@@ -71,6 +76,11 @@ urlpatterns = [
         path('pentestprojects/<uuid:pk>/preview/', PentestProjectPreviewView.as_view(), name='pentestproject-preview'),
         path('pentestprojects/<uuid:pk>/generate/', PentestProjectGenerateView.as_view(), name='pentestproject-generate'),
         path('projecttypes/<uuid:pk>/preview/', ProjectTypePreviewView.as_view(), name='projecttype-preview'),
+    
+        # OpenAPI schema
+        path('utils/openapi/', SpectacularAPIView.as_view(), name='utils-openapi-schema'),
+        path('utils/swagger-ui/', SpectacularSwaggerView.as_view(url_name='utils-openapi-schema'), name='utils-swagger-ui'),
+
     ])),
 
     # Static files

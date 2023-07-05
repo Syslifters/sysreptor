@@ -121,3 +121,10 @@ def check_license():
 def is_professional():
     return check_license().get('type', LicenseType.COMMUNITY) == LicenseType.PROFESSIONAL
 
+
+def validate_login_allowed(user):
+    if not is_professional() and not user.is_superuser:
+        raise LicenseError('Only superusers are allowed to login. A Professional license is required to enable user roles.')
+    elif not is_professional() and user.is_system_user:
+        raise LicenseError('System users are disabled. A Professional license is required to use system users.')
+    return True

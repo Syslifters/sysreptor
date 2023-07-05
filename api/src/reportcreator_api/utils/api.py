@@ -3,7 +3,7 @@ from django.conf import settings
 from django.http import StreamingHttpResponse, FileResponse, Http404
 from django.core.exceptions import PermissionDenied
 from adrf.views import APIView as AsyncAPIView
-from rest_framework import exceptions, status, views, generics, viewsets
+from rest_framework import exceptions, views, generics
 from rest_framework.response import Response
 
 from reportcreator_api.utils import license

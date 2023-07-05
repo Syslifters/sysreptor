@@ -91,6 +91,7 @@
                         Key-Curve: nistp521<br>
                         Subkey-Type: ECDH<br>
                         Subkey-Curve: nistp521<br>
+                        Subkey-Usage: encrypt<br>
                         Expire-Date: 0<br>
                         Name-Comment: SysReptor Archiving<br>
                         Name-Real: {{ $auth.user.name || $auth.user.username }}<br>

@@ -1,6 +1,14 @@
 # Changelog
 
-## v0.96
+## v0.101 - 2023-07-05
+* Implement file upload in user notebook
+* Optimize image loading in markdown preview
+* Use Argon2 for hashing passwords instead of PBKDF2
+* Authentication via API tokens
+* Auto-generate OpenAPI schema
+
+
+## v0.96 - 2023-06-22
 * Fix username/password auth not available in login form of community edition
 
 

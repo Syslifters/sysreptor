@@ -23,7 +23,7 @@ from reportcreator_api.archive.crypto import pgp
 from reportcreator_api.notifications.models import NotificationSpec
 from reportcreator_api.pentests.models import FindingTemplate, PentestFinding, PentestProject, ProjectType, \
     UploadedAsset, UploadedImage, UploadedProjectFile, \
-    ArchivedProject, ArchivedProjectKeyPart, UserPublicKey
+    ArchivedProject, UserPublicKey
 from reportcreator_api.management.commands import encryptdata
 from reportcreator_api.tests.mock import api_client, create_archived_project, create_project, create_public_key, create_template, create_user, create_project_type
 from reportcreator_api.users.models import PentestUser
@@ -385,6 +385,7 @@ class TestBackup:
             self.assert_backup_file(backup, z, 'uploadedimages', self.user.images.all().first())
             self.assert_backup_file(backup, z, 'uploadedassets', self.project_type.assets.all().first())
             self.assert_backup_file(backup, z, 'uploadedfiles', self.project.files.first())
+            self.assert_backup_file(backup, z, 'uploadedfiles', self.user.files.all().first())
             self.assert_backup_file(backup, z, 'archivedfiles', self.archived_project, stored_encrypted=True)
 
     def backup_request(self, user=None, backup_key=None, aes_key=None):

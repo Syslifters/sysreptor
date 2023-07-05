@@ -1,5 +1,6 @@
 import functools
 import hmac
+import secrets
 import pyotp
 import qrcode
 import qrcode.image.pil
@@ -43,7 +44,7 @@ class PentestUser(BaseModel, AbstractUser):
     objects = querysets.PentestUserManager()
 
     @property
-    def name(self):
+    def name(self) -> str:
         return ((self.title_before + ' ') if self.title_before else '') + \
             ((self.first_name + ' ') if self.first_name else '') + \
             ((self.middle_name + ' ') if self.middle_name else '') + \
@@ -51,7 +52,7 @@ class PentestUser(BaseModel, AbstractUser):
             ((', ' + self.title_after) if self.title_after else '') 
 
     @property
-    def scope(self):
+    def scope(self) -> list[str]:
         return (['admin'] if self.is_admin else []) + \
                (['template_editor'] if self.is_template_editor or self.is_admin else []) + \
                (['designer'] if self.is_designer or self.is_admin else []) + \
@@ -60,15 +61,15 @@ class PentestUser(BaseModel, AbstractUser):
                (['system'] if self.is_system_user else [])
 
     @property
-    def can_login_local(self):
+    def can_login_local(self) -> bool:
         return settings.LOCAL_USER_AUTH_ENABLED and self.password and self.has_usable_password()
 
     @functools.cached_property
-    def can_login_sso(self):
+    def can_login_sso(self) -> bool:
         return bool(self.auth_identities.all())
     
     @property
-    def is_admin(self):
+    def is_admin(self) -> bool:
         return self.is_active and self.is_superuser and \
             getattr(self, 'admin_permissions_enabled', False) if license.is_professional() else True
 
@@ -82,6 +83,34 @@ class AuthIdentity(BaseModel):
 
     class Meta(BaseModel.Meta):
         unique_together = ['provider', 'identifier']
+
+
+class APIToken(BaseModel):
+    user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='api_tokens')
+    token_hash = models.CharField(max_length=256)
+    name = models.CharField(max_length=255, default='API Token')
+    expire_date = models.DateField(null=True, blank=True)
+    token_plaintext = None
+
+    objects = querysets.APITokenManager()
+    
+    def save(self, *args, **kwargs):
+        from reportcreator_api.users.auth import UnsaltedSHA3_256PasswordHasher
+        if not self.token_hash:
+            self.token_plaintext = secrets.token_bytes(32).hex()
+            self.token_hash = UnsaltedSHA3_256PasswordHasher().encode(self.token_plaintext, '')
+        return super().save(*args, **kwargs)
+    
+    @property
+    def token_formatted(self) -> str:
+        if not self.token_plaintext:
+            return None
+        return 'sysreptor_' + b64encode(f'{self.id}:{self.token_plaintext}'.encode()).decode()
+    
+    def validate_token(self, token_plaintext):
+        from reportcreator_api.users.auth import UnsaltedSHA3_256PasswordHasher
+        return UnsaltedSHA3_256PasswordHasher().verify(token_plaintext, self.token_hash)
+
 
 
 class Session(AbstractBaseSession):

@@ -1,13 +1,14 @@
 from collections import OrderedDict
 from uuid import UUID
 from rest_framework import serializers
+from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.conf import settings
 
-from reportcreator_api.users.models import PentestUser, MFAMethod, MFAMethodType, AuthIdentity
+from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod, MFAMethodType, AuthIdentity
 from reportcreator_api.utils import license
 
 
@@ -31,16 +32,16 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['is_system_user']
 
-    def get_is_mfa_enabled(self, obj):
+    def get_is_mfa_enabled(self, obj) -> bool:
         if (is_mfa_enabled := getattr(obj, 'is_mfa_enabled', None)) is not None:
             return is_mfa_enabled
         return obj.mfa_methods.all().exists()
     
     def get_extra_kwargs(self):
         user = self.context['request'].user
-        read_only = not (user.is_user_manager or user.is_admin)
+        read_only = not (getattr(user, 'is_user_manager', False) or getattr(user, 'is_admin', False))
         return super().get_extra_kwargs() | {
-            'is_superuser': {'read_only': not user.is_admin},
+            'is_superuser': {'read_only': not getattr(user, 'is_admin', False)},
             'is_user_manager': {'read_only': read_only},
             'is_designer': {'read_only': read_only},
             'is_template_editor': {'read_only': read_only},
@@ -177,6 +178,10 @@ class LoginMFACodeSerializer(serializers.Serializer):
         return mfa_method
 
 
+class MFAMethodRegisterBeginSerializer(serializers.Serializer):
+    pass
+
+
 class MFAMethodRegisterSerializerBase(serializers.Serializer):
     @property
     def method_type(self):
@@ -230,4 +235,25 @@ class AuthIdentitySerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         return super().create(validated_data | {'user': self.context['user']})
-    
+
+
+class APITokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = APIToken
+        fields = ['id', 'created', 'updated', 'name', 'expire_date']
+
+    def validate_expire_date(self, value):
+        if value and value < timezone.now().date():
+            raise serializers.ValidationError('Invalid expire date. It has to be in the future.')
+        return value
+
+
+class APITokenCreateSerializer(APITokenSerializer):
+    token = serializers.ReadOnlyField(source='token_formatted')
+
+    class Meta(APITokenSerializer.Meta):
+        fields = APITokenSerializer.Meta.fields + ['token']
+
+    def create(self, validated_data):
+        return super().create(validated_data | {'user': self.context['user']})
+

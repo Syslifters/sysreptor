@@ -177,7 +177,7 @@ export default {
 
       try {
         this.checksInProgress = true;
-        this.checkMessages = await this.$axios.$get(`/pentestprojects/${this.project.id}/check/`);
+        this.checkMessages = (await this.$axios.$get(`/pentestprojects/${this.project.id}/check/`)).messages;
       } catch (error) {
         this.$toast.global.requestError({ error });
       } finally {

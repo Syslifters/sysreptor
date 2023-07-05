@@ -1,12 +1,14 @@
+from datetime import timedelta
 import pytest
 import pyotp
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 from django.test import override_settings
 
 from reportcreator_api.utils.utils import omit_keys
 from reportcreator_api.tests.mock import create_project, create_user, mock_time, api_client
-from reportcreator_api.users.models import AuthIdentity, MFAMethod, MFAMethodType
+from reportcreator_api.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType
 
 
 
@@ -246,3 +248,34 @@ class TestEnableAdminPermissions:
 
         assert not self.has_admin_access()
         
+
+@pytest.mark.django_db
+class TestAPITokenAuth:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user(is_superuser=True)
+        self.api_token = APIToken.objects.create(user=self.user)
+        self.client = api_client()
+
+    def assert_api_access(self, url, expected):
+        res = self.client.get(url, HTTP_AUTHORIZATION='Bearer ' + self.api_token.token_formatted)
+        assert (res.status_code == 200) == expected
+        return res
+    
+    def test_api_token_auth(self):
+        res = self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), True)
+        assert res.data['id'] == str(self.user.id)
+
+    def test_full_admin_permissions_without_reauth(self):
+        project_not_member = create_project()
+        self.assert_api_access(reverse('pentestproject-detail', kwargs={'pk': project_not_member.pk}), True)
+    
+    def test_user_inactive(self):
+        self.user.is_active = False
+        self.user.save()
+        self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), False)
+
+    def test_token_expired(self):
+        self.api_token.expire_date = (timezone.now() - timedelta(days=10)).date()
+        self.api_token.save()
+        self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), False)

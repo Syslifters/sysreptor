@@ -146,12 +146,6 @@ class BlockContext {
   }
   
   advance() {
-    // TODO: support incremental parsing: only parse current (and sourrounding?) blocks to increase performance
-    // test performance:
-    // * ~1ms: very short text
-    // * 10-20ms: longer md document with many costructs
-    // * 10-20ms: long text, no markup
-    // * ~30-100ms: https://raw.githubusercontent.com/toptensoftware/markdowndeep/master/Backup/MarkdownDeepBenchmark/benchmark/markdown-example-long-2.text
     return markdownParser()
     .use(lezerSyntaxTreeParse)
     .parse(this.input.read(0, this.input.length));

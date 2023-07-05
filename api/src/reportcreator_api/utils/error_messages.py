@@ -1,6 +1,7 @@
 import dataclasses
 import enum
 from typing import Optional, Union
+from rest_framework import serializers
 
 
 class MessageLevel(enum.Enum):
@@ -75,3 +76,15 @@ class ErrorMessage:
         })
 
 
+class MessageLocationSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=list(map(lambda v: v.value, MessageLocationType)))
+    id = serializers.CharField(allow_null=True)
+    name = serializers.CharField(allow_null=True)
+    path = serializers.CharField(allow_null=True)
+
+
+class ErrorMessageSerializer(serializers.Serializer):
+    level = serializers.ChoiceField(choices=list(map(lambda v: v.value, MessageLevel)))
+    message = serializers.CharField()
+    details = serializers.CharField(allow_null=True)
+    location = MessageLocationSerializer()

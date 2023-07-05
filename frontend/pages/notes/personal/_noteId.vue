@@ -95,8 +95,12 @@ export default {
       }
     },
     async uploadFile(file) {
-      const img = await uploadFileHelper(this.$axios, urlJoin('/pentestusers/self/notes/images/'), file);
-      return `![](/images/name/${img.name})`;
+      const obj = await uploadFileHelper(this.$axios, urlJoin('/pentestusers/self/notes/upload/'), file);
+      if (obj.resource_type === 'file') {
+        return `[${obj.name}](/files/name/${obj.name})`;
+      } else {
+        return `![](/images/name/${obj.name})`;
+      }
     },
     rewriteFileUrl(imgSrc) {
       return urlJoin('/pentestusers/self/notes/', imgSrc);

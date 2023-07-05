@@ -57,6 +57,7 @@ export function rehypeRewriteImageSources({rewriteImageSource}) {
   return tree => visit(tree, 'element', node => {
     if (node.tagName === 'img' && node.properties.src && rewriteImageSource) {
       node.properties.src = rewriteImageSource(node.properties.src);
+      node.properties.loading = 'lazy';
     }
   });
 }

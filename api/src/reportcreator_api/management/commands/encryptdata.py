@@ -6,7 +6,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.test import override_settings
 
 from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
-    UploadedProjectFile, UploadedUserNotebookImage, NotebookPage, UserPublicKey, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
+    UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, NotebookPage, UserPublicKey, \
+    ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
 from reportcreator_api.users.models import MFAMethod, PentestUser, Session
 
 
@@ -35,7 +36,8 @@ class Command(BaseCommand):
                 UploadedImage.objects.all(), 
                 UploadedAsset.objects.all(), 
                 UploadedUserNotebookImage.objects.all(),
-                UploadedProjectFile.objects.all()
+                UploadedProjectFile.objects.all(),
+                UploadedUserNotebookFile.objects.all(),
             ):
             # Copy file content. Encryption is performed during content copy to new file by the storage
             old_file = copy.copy(f.file)
