@@ -17,7 +17,7 @@ error_cleanup() {
     fi
     exit -4
 }
-trap 'error_cleanup' ERR
+trap 'error_cleanup' ERR INT
 echo "Easy update of SysReptor"
 echo ""
 error=1
