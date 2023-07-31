@@ -8,7 +8,7 @@ from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FI
 from reportcreator_api.pentests.customfields.types import FieldDataType, field_definition_to_dict, parse_field_definition
 from reportcreator_api.pentests.customfields.validators import FieldDefinitionValidator, FieldValuesValidator
 from reportcreator_api.pentests.customfields.utils import check_definitions_compatible
-from reportcreator_api.pentests.models import FindingTemplate
+from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, Language
 from reportcreator_api.tests.mock import create_finding, create_project_type, create_project, create_template, create_user
 from reportcreator_api.utils.utils import copy_keys
 
@@ -400,9 +400,6 @@ class TestTemplateFieldDefinition:
         self.project_type_hidden.save()
 
         self.template = create_template(data={'title': 'test', 'field1': 'f1 value', 'field2': 'f2 value'})
-
-        with override_settings(CACHES={'default': { 'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}):
-            yield
     
     def test_get_template_field_definition(self):
         assert \
@@ -411,13 +408,13 @@ class TestTemplateFieldDefinition:
         assert FindingTemplate.field_definition['field_conflict'].type == FieldDataType.STRING
 
     def test_delete_field_definition(self):
-        old_value = self.template.data['field1']
+        old_value = self.template.main_translation.data['field1']
         del self.project_type1.finding_fields['field1']
         self.project_type1.save()
-        self.template.refresh_from_db()
+        self.template.main_translation.refresh_from_db()
 
         assert 'field1' not in FindingTemplate.field_definition
-        assert self.template.data_all['field1'] == old_value
+        assert self.template.main_translation.data_all['field1'] == old_value
 
     def test_change_field_type(self):
         self.project_type1.finding_fields |= {'field1': {'type': 'list', 'label': 'changed field type', 'items': {'type': 'string', 'default': 'default'}}}
@@ -425,7 +422,7 @@ class TestTemplateFieldDefinition:
         self.template.refresh_from_db()
 
         assert FindingTemplate.field_definition['field1'].type == FieldDataType.LIST
-        assert self.template.data['field1'] == []
+        assert self.template.main_translation.data['field1'] == []
 
 
 @pytest.mark.django_db
@@ -484,3 +481,62 @@ class TestReportSectionDefinition:
         assert self.project.sections.filter(section_id='section1').exists()
         assert self.project.sections.get(section_id='section2').data['field1'] == old_value
 
+
+@pytest.mark.django_db
+class TestTemplateTranslation:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        create_project_type()  # create dummy project_type to get field_defintions
+        self.template = create_template(language=Language.ENGLISH, data={
+            'title': 'Title main',
+            'description': 'Description main',
+            'recommendation': 'Recommendation main',
+            'field_list': ['first', 'second'],
+            'field_unknown': 'unknown',
+        })
+        self.main = self.template.main_translation
+        self.trans = FindingTemplateTranslation.objects.create(template=self.template, language=Language.GERMAN, title='Title translation')
+    
+    def test_template_translation_inheritance(self):
+        self.trans.update_data({'title': 'Title translation', 'description': 'Description translation'})
+        self.trans.save()
+
+        data_inherited = self.trans.get_data(inherit_main=True)
+        assert data_inherited['title'] == self.trans.title == 'Title translation'
+        assert data_inherited['description'] == 'Description translation'
+        assert data_inherited['recommendation'] == self.main.data['recommendation'] == 'Recommendation main'
+        assert 'recommendation' not in self.trans.data
+        assert 'field_list' not in self.trans.data
+
+    def test_template_formatting(self):
+        self.trans.custom_fields = {
+            'recommendation': {'value': 'invalid format'},
+            'field_list': ['first', {'value': 'invalid format'}],
+            'field_object': {},
+        }
+        self.trans.save()
+        assert 'description' not in self.trans.data
+        assert self.trans.data['recommendation'] == None
+        assert self.trans.data['field_list'] == ['first', None]
+        assert self.trans.data['field_object'] == {'nested1': None}
+
+    def test_undefined_in_main(self):
+        self.main.custom_fields = {}
+        self.main.save()
+        data_inherited = self.trans.get_data(inherit_main=True)
+        assert 'description' not in data_inherited
+        assert 'field_list' not in data_inherited
+        assert 'field_object' not in data_inherited
+
+    def test_update_data(self):
+        self.main.update_data({
+            'title': 'new',
+            'description': 'new',
+        })
+        self.main.save()
+        data_inherited = self.trans.get_data(inherit_main=True)
+        assert data_inherited['title'] != 'new'
+        assert data_inherited['description'] == 'new'
+        assert 'recommendation' not in data_inherited
+        assert data_inherited['field_unknown'] == 'unknown'
+        assert 'field_unknown' not in self.trans.data

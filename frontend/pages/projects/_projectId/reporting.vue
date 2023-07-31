@@ -2,53 +2,58 @@
   <div>
     <split-menu v-model="menuSize">
       <template #menu>
-        <v-list dense>
-          <v-list-item-title class="text-h6 pl-2">{{ project.name }}</v-list-item-title>
+        <v-list dense class="pb-0 h-100 d-flex flex-column">
+          <div>
+            <v-list-item-title class="text-h6 pl-2">{{ project.name }}</v-list-item-title>
+          </div>
           
-          <v-subheader>Sections</v-subheader>
-          <v-list-item
-            v-for="section in sections"
-            :key="section.id"
-            :to="`/projects/${$route.params.projectId}/reporting/sections/${section.id}/`"
-            nuxt
-          >
-            <lock-info :value="section.lock_info" />
-            <v-list-item-content>
-              <v-list-item-title>{{ section.label }}</v-list-item-title>
-              <v-list-item-subtitle>
-                <span v-if="section.assignee" :class="{'assignee-self': section.assignee.id == $auth.user.id}">
-                  @{{ section.assignee.username }}
-                </span>
-              </v-list-item-subtitle>
-            </v-list-item-content>
-            <status-info :value="section.status" />
-          </v-list-item>
+          <div class="flex-grow-1 overflow-y-auto">
+            <v-subheader>Sections</v-subheader>
+            <v-list-item
+              v-for="section in sections"
+              :key="section.id"
+              :to="`/projects/${$route.params.projectId}/reporting/sections/${section.id}/`"
+              nuxt
+            >
+              <lock-info :value="section.lock_info" />
+              <v-list-item-content>
+                <v-list-item-title>{{ section.label }}</v-list-item-title>
+                <v-list-item-subtitle>
+                  <span v-if="section.assignee" :class="{'assignee-self': section.assignee.id == $auth.user.id}">
+                    @{{ section.assignee.username }}
+                  </span>
+                </v-list-item-subtitle>
+              </v-list-item-content>
+              <status-info :value="section.status" />
+            </v-list-item>
 
-          <v-subheader>Findings</v-subheader>
-          <v-list-item
-            v-for="finding in findings"
-            :key="finding.id"
-            :to="`/projects/${$route.params.projectId}/reporting/findings/${finding.id}/`"
-            nuxt
-            :class="'finding-level-' + riskLevel(finding.data.cvss)"
-          >
-            <lock-info :value="finding.lock_info" />
-            <v-list-item-content>
-              <v-list-item-title>{{ finding.data.title }}</v-list-item-title>
-              <v-list-item-subtitle>
-                <span v-if="finding.assignee" :class="{'assignee-self': finding.assignee.id == $auth.user.id}">
-                  @{{ finding.assignee.username }}
-                </span>
-              </v-list-item-subtitle>
-            </v-list-item-content>
-            <status-info :value="finding.status" />
-          </v-list-item>
+            <v-subheader>Findings</v-subheader>
+            <v-list-item
+              v-for="finding in findings"
+              :key="finding.id"
+              :to="`/projects/${$route.params.projectId}/reporting/findings/${finding.id}/`"
+              nuxt
+              :class="'finding-level-' + riskLevel(finding.data.cvss)"
+            >
+              <lock-info :value="finding.lock_info" />
+              <v-list-item-content>
+                <v-list-item-title>{{ finding.data.title }}</v-list-item-title>
+                <v-list-item-subtitle>
+                  <span v-if="finding.assignee" :class="{'assignee-self': finding.assignee.id == $auth.user.id}">
+                    @{{ finding.assignee.username }}
+                  </span>
+                </v-list-item-subtitle>
+              </v-list-item-content>
+              <status-info :value="finding.status" />
+            </v-list-item>
+          </div>
 
-          <v-list-item>
-            <v-list-item-action>
+          <div>
+            <v-divider />
+            <v-list-item class="mt-1">
               <create-finding-dialog :project="project" />
-            </v-list-item-action>
-          </v-list-item>
+            </v-list-item>
+          </div>
         </v-list>
       </template>
 

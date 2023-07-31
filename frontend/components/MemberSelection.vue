@@ -15,7 +15,7 @@
         <v-list-item-content>
           <v-list-item-title>
             <template v-if="user.username && user.name">{{ user.username }} ({{ user.name }})</template>
-            <template v-else>{{ user.username || user.name }}</template>
+            <template v-else>{{ user.username || user.name || 'Unknown User' }}</template>
           </v-list-item-title>
           
           <v-list-item-subtitle>

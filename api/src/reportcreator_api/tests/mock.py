@@ -7,11 +7,12 @@ from reportcreator_api.archive import crypto
 from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
 
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
-from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
-    ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, Language, UserPublicKey
-from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, report_fields_default, \
-    report_sections_default
-from reportcreator_api.pentests.models.archive import ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
+from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectType, \
+    UploadedAsset, UploadedImage, ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, \
+    UploadedUserNotebookFile, Language, UserPublicKey, UploadedTemplateImage, FindingTemplateTranslation, \
+    ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
+from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, \
+    report_fields_default, report_sections_default
 from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -70,19 +71,39 @@ def create_imported_member(roles=None, **kwargs):
         roles=roles if roles is not None else ProjectMemberRole.default_roles)).data
 
 
-def create_template(**kwargs) -> FindingTemplate:
+def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> FindingTemplate:
     data = {
         'title': f'Finding Template #{random.randint(1, 100000)}',
         'description': 'Template Description',
         'recommendation': 'Template Recommendation',
-        'undefined_field': 'test',
+        'unknown_field': 'test',
     } | kwargs.pop('data', {})
-    template =  FindingTemplate.objects.create(**{
-        'language': Language.ENGLISH,
+    language = kwargs.pop('language', Language.ENGLISH)
+
+    template = FindingTemplate.objects.create(**{
         'tags': ['web', 'dev'],
     } | kwargs)
-    template.update_data(data)
+    main_translation = FindingTemplateTranslation(template=template, language=language)
+    main_translation.update_data(data)
+    main_translation.save()
+
+    template.main_translation = main_translation
     template.save()
+
+    for translation_kwarg in (translations_kwargs or []):
+        translation_data = {
+            'title': data.get('title', 'Finding Template Translation'),
+        } | translation_kwarg.pop('data', {})
+        translation = FindingTemplateTranslation(template=template, **translation_kwarg)
+        translation.update_data(translation_data)
+        translation.save()
+
+    for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
+        UploadedTemplateImage.objects.create(linked_object=template, **{
+            'name': f'file{idx}.png', 
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
+        } | image_kwargs)
+
     return template
 
 
@@ -111,8 +132,8 @@ def create_project_type(**kwargs) -> ProjectType:
         'report_template': '''<section><h1>{{ report.title }}</h1></section><section v-for="finding in findings"><h2>{{ finding.title }}</h2></section>''',
         'report_styles': '''@page { size: A4 portrait; } h1 { font-size: 3em; font-weight: bold; }''',
         'report_preview_data': {
-            'report': {'title': 'Demo Report', 'field_string': 'test', 'field_int': 5, 'undefined_field': 'test'}, 
-            'findings': [{'title': 'Demo finding', 'undefined_field': 'test'}]
+            'report': {'title': 'Demo Report', 'field_string': 'test', 'field_int': 5, 'unknown_field': 'test'}, 
+            'findings': [{'title': 'Demo finding', 'unknown_field': 'test'}]
         }
     } | kwargs)
     UploadedAsset.objects.create(linked_object=project_type, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=b'file1'))
@@ -127,11 +148,11 @@ def create_finding(project, template=None, **kwargs) -> PentestFinding:
             'cvss': 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
             'description': 'Finding Description',
             'recommendation': 'Finding Recommendation',
-            'undefined_field': 'test',
-        } | (template.data if template else {}),
+            'unknown_field': 'test',
+        } | (template.main_translation.data if template else {}),
         definition=project.project_type.finding_fields_obj,
         handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT,
-        include_undefined=True,
+        include_unknown=True,
     ) | kwargs.pop('data', {})
     finding = PentestFinding.objects.create(**{
         'project': project,
@@ -163,7 +184,7 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
     } | kwargs)
     project.update_data({
         'title': 'Report title',
-        'undefined_field': 'test',
+        'unknown_field': 'test',
     } | report_data)
     project.save()
 

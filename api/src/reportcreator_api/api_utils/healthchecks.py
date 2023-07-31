@@ -1,5 +1,3 @@
-import functools
-import operator
 import uuid
 from django.utils.module_loading import import_string
 from django.core.cache import cache

@@ -1,7 +1,6 @@
 import urlJoin from "url-join"
 import LockEditMixin from "~/mixins/LockEditMixin";
 import { uploadFileHelper } from '~/utils/upload';
-import { absoluteApiUrl } from "~/utils/urls";
 
 export default {
   mixins: [LockEditMixin],

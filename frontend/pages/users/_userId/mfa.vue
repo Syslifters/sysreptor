@@ -1,5 +1,5 @@
 <template>
-  <s-card>
+  <s-card class="mt-4">
     <v-card-title>Multi Factor Authentication</v-card-title>
     <v-card-text>
       <p>

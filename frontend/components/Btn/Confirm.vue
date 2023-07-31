@@ -3,7 +3,20 @@
     <template #activator="{on: dialogOn, attrs: dialogAttrs}">
       <s-tooltip :disabled="!tooltipText">
         <template #activator="{on: tooltipOn, attrs: tooltipAttrs}">
+          <v-list-item 
+            v-if="listItem" 
+            link 
+            v-bind="{ ...$attrs, ...dialogAttrs, ...tooltipAttrs}"
+            v-on="{...dialogOn, ...tooltipOn}"
+          >
+            <v-list-item-icon v-if="buttonIcon">
+              <v-progress-circular v-if="actionInProgress" indeterminate />
+              <v-icon v-else :color="$attrs.color || buttonColor">{{ buttonIcon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>{{ buttonText }}</v-list-item-title>
+          </v-list-item>
           <s-btn 
+            v-else
             :icon="icon" 
             :loading="actionInProgress" 
             :color="$attrs.color || buttonColor || 'secondary'" 
@@ -57,6 +70,18 @@
     </template>
   </s-dialog>
 
+  <v-list-item 
+    v-else-if="listItem" 
+    @click="performAction"
+    link 
+    v-bind="$attrs"
+  >
+    <v-list-item-icon v-if="buttonIcon">
+      <v-progress-circular v-if="actionInProgress" indeterminate />
+      <v-icon v-else :color="$attrs.color || buttonColor">{{ buttonIcon }}</v-icon>
+    </v-list-item-icon>
+    <v-list-item-title>{{ buttonText }}</v-list-item-title>
+  </v-list-item>
   <s-btn 
     v-else 
     :icon="icon" 
@@ -99,6 +124,10 @@ export default {
       default: null,
     },
     icon: {
+      type: Boolean,
+      default: false,
+    },
+    listItem: {
       type: Boolean,
       default: false,
     },

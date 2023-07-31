@@ -43,6 +43,9 @@ export default baseMixins.extend({
           lang: this.lang,
           spellcheckSupported: this.spellcheckSupported,
         },
+        attrs: {
+          id: this.computedId,
+        },
         on: {
           input: (value) => {
             this.$emit('input', value);

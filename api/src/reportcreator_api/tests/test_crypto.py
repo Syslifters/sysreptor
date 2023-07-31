@@ -197,8 +197,9 @@ class TestSymmetricEncryptionTests:
 class TestEncryptedStorage:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        self.storage_plain = FileSystemStorage(location='/tmp/test/')
-        self.storage_crypto = EncryptedFileSystemStorage(location='/tmp/test/')
+        location = f'/tmp/test-{random.randint(1, 10000000)}/'
+        self.storage_plain = FileSystemStorage(location=location)
+        self.storage_crypto = EncryptedFileSystemStorage(location=location)
         self.plaintext = b'This is a test file content which should be encrypted'
 
         with override_settings(
@@ -217,8 +218,8 @@ class TestEncryptedStorage:
         assert dec == self.plaintext
 
     def test_open(self):
-        with self.storage_crypto.open('test.txt', mode='wb') as f:
-            filename = f.name
+        filename = self.storage_crypto.save('test.txt', io.BytesIO(b''))
+        with self.storage_crypto.open(filename, mode='wb') as f:
             f.write(self.plaintext)
         
         enc = self.storage_plain.open(filename, mode='rb').read()
@@ -227,10 +228,7 @@ class TestEncryptedStorage:
         assert dec == self.plaintext
 
     def test_size(self):
-        with self.storage_crypto.open('test.txt', mode='wb') as f:
-            filename = f.name
-            f.write(self.plaintext)
-
+        filename = self.storage_crypto.save('test.txt', io.BytesIO(self.plaintext))
         assert self.storage_crypto.size(filename) == len(self.storage_crypto.open(filename, mode='rb').read())
 
 
@@ -375,6 +373,7 @@ class TestBackup:
             self.assert_backup_obj(backup, self.project.notes.first())
             self.assert_backup_obj(backup, self.project_type)
             self.assert_backup_obj(backup, self.template)
+            self.assert_backup_obj(backup, self.template.main_translation)
             self.assert_backup_obj(backup, self.user.notes.first())
             self.assert_backup_obj(backup, self.user.mfa_methods.first())
             self.assert_backup_obj(backup, self.archived_project)
@@ -383,6 +382,7 @@ class TestBackup:
 
             self.assert_backup_file(backup, z, 'uploadedimages', self.project.images.all().first())
             self.assert_backup_file(backup, z, 'uploadedimages', self.user.images.all().first())
+            self.assert_backup_file(backup, z, 'uploadedimages', self.template.images.all().first())
             self.assert_backup_file(backup, z, 'uploadedassets', self.project_type.assets.all().first())
             self.assert_backup_file(backup, z, 'uploadedfiles', self.project.files.first())
             self.assert_backup_file(backup, z, 'uploadedfiles', self.user.files.all().first())

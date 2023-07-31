@@ -87,7 +87,7 @@ export default {
   props: {
     value: {
       type: String,
-      required: true,
+      default: null,
     },
     label: {
       type: String,
@@ -107,7 +107,7 @@ export default {
       validCvssVector: [
         v =>
           cvss.isValidVector(v) ||
-          ["", "n/a", "n.a."].includes(v) ||
+          [undefined, null, "", "n/a", "n.a."].includes(v) ||
           "Invalid CVSS vector",
       ],
       metricGroups: [

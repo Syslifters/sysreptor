@@ -6,7 +6,7 @@
     group="notes" 
     :delay="50"
     :disabled="disabled"
-    class="pb-1"
+    class="pb-1 flex-grow-1 overflow-y-auto"
   >
     <div v-for="item in value" :key="item.note.id" class="draggable-item">
       <v-list-item 

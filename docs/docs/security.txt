@@ -1,0 +1,4 @@
+Contact: https://docs.syslifters.com/vulnerability-disclosure/
+Expires: 2023-05-30T22:00:00.000Z
+Encryption: https://docs.syslifters.com/assets/aron.cer
+Preferred-Languages: en, de

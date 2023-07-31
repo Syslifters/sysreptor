@@ -47,6 +47,7 @@ export default baseMixins.extend({
           rewriteReferenceLink: this.rewriteReferenceLink,
         },
         attrs: {
+          id: this.computedId,
           class: 'markdown-editor'
         },
         on: {

@@ -10,9 +10,9 @@ from rest_framework.test import APIClient
 
 from reportcreator_api.tasks.models import PeriodicTask, TaskStatus
 from reportcreator_api.pentests.models import PentestProject, ArchivedProject
-from reportcreator_api.pentests.tasks import cleanup_project_files, cleanup_usernotebook_files, reset_stale_archive_restores, \
-    automatically_archive_projects, automatically_delete_archived_projects
-from reportcreator_api.tests.mock import create_archived_project, create_project, create_user, mock_time
+from reportcreator_api.pentests.tasks import cleanup_project_files, cleanup_usernotebook_files, cleanup_template_files, \
+    reset_stale_archive_restores, automatically_archive_projects, automatically_delete_archived_projects
+from reportcreator_api.tests.mock import create_archived_project, create_project, create_template, create_user, mock_time
 
 
 def task_success():
@@ -45,7 +45,7 @@ class TestPeriodicTaskScheduling:
     
     def run_tasks(self):
         res = APIClient().get(reverse('utils-healthcheck'))
-        assert res.status_code == 200
+        assert res.status_code == 200, res.data
 
     def test_initial_run(self):
         self.run_tasks()
@@ -129,6 +129,12 @@ class TestCleanupUnreferencedFiles:
             async_to_sync(cleanup_usernotebook_files)(task_info={
                 'model': PeriodicTask(last_success=last_success)
             })
+    
+    def run_cleanup_template_files(self, num_queries, last_success=None):
+        with assertNumQueries(num_queries):
+            async_to_sync(cleanup_template_files)(task_info={
+                'model': PeriodicTask(last_success=last_success)
+            })
 
     def test_unreferenced_files_removed(self):
         with mock_time(before=timedelta(days=10)):
@@ -144,19 +150,25 @@ class TestCleanupUnreferencedFiles:
             )
             user_image = user.images.first()
             user_file = user.files.first()
-        # self.run_cleanup(num_queries=2 + 6 + 3 * 2 + 3)
+            template = create_template(
+                images_kwargs=[{'name': 'image.png'}],
+            )
+            template_image = template.images.first()
         self.run_cleanup_project_files(num_queries=1 + 4 + 2 * 2 + 2 * 1)
         self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 2 + 2 * 1)
+        self.run_cleanup_template_files(num_queries=1 + 2 + 1 * 2 + 1 * 1)
         # Deleted from DB
         assert project.images.count() == 0
         assert project.files.count() == 0
         assert user.images.count() == 0
         assert user.files.count() == 0
+        assert template.images.count() == 0
         # Deleted from FS
         assert not self.file_exists(project_image)
         assert not self.file_exists(project_file)
         assert not self.file_exists(user_image)
         assert not self.file_exists(user_file)
+        assert not self.file_exists(template_image)
 
     def test_recently_created_unreferenced_files_not_removed(self):
         project = create_project(
@@ -166,16 +178,22 @@ class TestCleanupUnreferencedFiles:
         user = create_user(
             images_kwargs=[{'name': 'image.png'}]
         )
+        template = create_template(
+            images_kwargs=[{'name': 'image.png'}]
+        )
         self.run_cleanup_project_files(num_queries=1)
         self.run_cleanup_user_files(num_queries=1)
+        self.run_cleanup_template_files(num_queries=1)
         # DB objects exist
         assert project.images.count() == 1
         assert project.files.count() == 1
         assert user.images.count() == 1
+        assert template.images.count() == 1
         # Files exist
         assert self.file_exists(project.images.first())
         assert self.file_exists(project.files.first())
         assert self.file_exists(user.images.first())
+        assert self.file_exists(template.images.first())
 
     def test_referenced_files_in_section_not_removed(self):
         with mock_time(before=timedelta(days=10)):
@@ -221,6 +239,15 @@ class TestCleanupUnreferencedFiles:
         assert user.images.count() == 1
         assert user.files.count() == 1
 
+    def test_referenced_files_in_templates_not_removed(self):
+        with mock_time(before=timedelta(days=10)):
+            template = create_template(
+                data={'description': '![](/images/name/image.png)'},
+                images_kwargs=[{'name': 'image.png'}]
+            )
+        self.run_cleanup_template_files(num_queries=1 + 2)
+        assert template.images.count() == 1
+
     def test_file_referenced_by_multiple_projects(self):
         with mock_time(before=timedelta(days=10)):
             project_unreferenced = create_project(
@@ -252,30 +279,40 @@ class TestCleanupUnreferencedFiles:
                 images_kwargs=[{'name': 'image.png'}],
                 files_kwargs=[{'name': 'file.pdf'}],
             )
+            template_old = create_template(
+                images_kwargs=[{'name': 'image.png'}],
+            )
             project_new = create_project(
                 images_kwargs=[{'name': 'image.png'}],
-                files_kwargs=[{'name': 'file.pdf'}]
+                files_kwargs=[{'name': 'file.pdf'}],
             )
             user_new = create_user(
+                images_kwargs=[{'name': 'image.png'}],
+            )
+            template_new = create_template(
                 images_kwargs=[{'name': 'image.png'}],
             )
         with mock_time(before=timedelta(days=10)):
             project_new.save()
             user_new.notes.first().save()
+            template_new.save()
         last_task_run = timezone.now() - timedelta(days=15)
         self.run_cleanup_project_files(num_queries=1 + 4 + 2 * 2 + 2 * 1, last_success=last_task_run)
         self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 2 + 2 * 1, last_success=last_task_run)
+        self.run_cleanup_template_files(num_queries=1 + 2 + 1 * 2 + 1 * 1, last_success=last_task_run)
 
         # Old project should be ignored because it was already cleaned in the last run
         assert project_old.images.count() == 1
         assert project_old.files.count() == 1
         assert user_old.images.count() == 1
         assert user_old.files.count() == 1
+        assert template_old.images.count() == 1
         # New project should be cleaned because it was modified after the last run
         assert project_new.images.count() == 0
         assert project_new.files.count() == 0
         assert user_new.images.count() == 0
         assert user_new.files.count() == 0
+        assert template_new.images.count() == 0
 
 
 @pytest.mark.django_db

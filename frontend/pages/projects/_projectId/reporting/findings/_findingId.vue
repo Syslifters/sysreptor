@@ -2,6 +2,13 @@
   <fetch-loader v-bind="fetchLoaderAttrs">
     <div v-if="finding && project && projectType" :key="project?.id + finding?.id">
       <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
+        <template #context-menu v-if="$auth.hasScope('template_editor')">
+          <v-list-item :to="{path: '/templates/fromfinding/', query: {project: project.id, finding: finding.id}}">
+            <v-list-item-icon><v-icon>mdi-alpha-t-box-outline</v-icon></v-list-item-icon>
+            <v-list-item-title>Save as template</v-list-item-title>
+          </v-list-item>
+        </template>
+
         <s-tooltip v-if="finding.template">
           <template #activator="{attrs, on}">
             <s-btn icon :to="`/templates/${finding.template}/`" nuxt target="_blank" class="ml-1 mr-1" v-bind="attrs" v-on="on">
@@ -85,12 +92,13 @@ export default {
       this.$store.commit('projects/setFinding', { projectId: data.project, finding: data });
     },
     async onUpdateData({ oldValue, newValue }) {
-      if (this.$refs.toolbar?.autoSaveEnabled && (
+      const toolbar = this.getToolbarRef();
+      if (toolbar?.autoSaveEnabled && (
         oldValue.status !== newValue.status || 
         oldValue.assignee?.id !== newValue.assignee?.id || 
         oldValue.data.cvss !== newValue.data.cvss
       )) {
-        await this.$refs.toolbar.performSave();
+        await toolbar.performSave();
       }
     },
   }

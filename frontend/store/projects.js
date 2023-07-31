@@ -223,9 +223,10 @@ export const actions = {
     commit('setFinding', { projectId, finding: newFinding });
     return newFinding;
   },
-  async createFindingFromTemplate({ commit }, { projectId, templateId }) {
+  async createFindingFromTemplate({ commit }, { projectId, templateId, templateLanguage }) {
     const finding = await this.$axios.$post(`/pentestprojects/${projectId}/findings/fromtemplate/`, {
       template: templateId,
+      template_language: templateLanguage,
     });
     commit('setFinding', { projectId, finding });
     return finding;

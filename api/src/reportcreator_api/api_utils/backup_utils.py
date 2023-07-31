@@ -12,7 +12,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from reportcreator_api.archive import crypto
 from reportcreator_api.pentests.models import UploadedImage, UploadedAsset, UploadedProjectFile, ArchivedProject, \
-    UploadedUserNotebookFile, UploadedUserNotebookImage
+    UploadedUserNotebookFile, UploadedUserNotebookImage, UploadedTemplateImage
 
 
 def create_database_dump():
@@ -60,6 +60,7 @@ def create_backup():
 
     backup_files(z, UploadedImage, 'uploadedimages')
     backup_files(z, UploadedUserNotebookImage, 'uploadedimages')
+    backup_files(z, UploadedTemplateImage, 'uploadedimages')
     backup_files(z, UploadedAsset, 'uploadedassets')
     backup_files(z, UploadedProjectFile, 'uploadedfiles')
     backup_files(z, UploadedUserNotebookFile, 'uploadedfiles')

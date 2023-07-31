@@ -1,8 +1,7 @@
 <template>
   <v-form ref="form">
-    <edit-toolbar :form="$refs.form" :save="changePassword">
+    <edit-toolbar :form="$refs.form" :save="changePassword" save-button-text="Reset Password">
       <template #title>Reset password of {{ user.username }}<template v-if="user.name"> ({{ user.name }})</template></template>
-      <template #save-button-text>Reset Password</template>
     </edit-toolbar>
 
     <s-password-field 

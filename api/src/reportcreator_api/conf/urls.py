@@ -9,17 +9,21 @@ from rest_framework_nested.routers import NestedSimpleRouter
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from reportcreator_api.api_utils.views import SpellcheckWordView, UtilsViewSet, SpellcheckView, HealthcheckView
-from reportcreator_api.pentests.views import ArchivedProjectKeyPartViewSet, ArchivedProjectViewSet, FindingTemplateViewSet, \
+from reportcreator_api.pentests.views import ArchivedProjectKeyPartViewSet, ArchivedProjectViewSet, \
+    FindingTemplateViewSet, FindingTemplateTranslationViewSet, UploadedTemplateImageViewSet, \
     PentestFindingViewSet, PentestProjectViewSet, ProjectNotebookPageViewSet, \
     PentestProjectPreviewView, PentestProjectGenerateView, \
     ProjectTypeViewSet, ProjectTypePreviewView, \
     ReportSectionViewSet, UploadedAssetViewSet, UploadedImageViewSet, UploadedProjectFileViewSet, UploadedUserNotebookImageViewSet, \
-        UploadedUserNotebookFileViewSet, UserNotebookPageViewSet, UserPublicKeyViewSet
+    UploadedUserNotebookFileViewSet, UserNotebookPageViewSet, UserPublicKeyViewSet
 from reportcreator_api.users.views import APITokenViewSet, PentestUserViewSet, MFAMethodViewSet, AuthViewSet, AuthIdentityViewSet
 from reportcreator_api.notifications.views import NotificationViewSet
 
 
 router = DefaultRouter()
+# Make trailing slash in URL optional to support loading images and assets by fielname
+router.trailing_slash = '/?'
+
 router.register('pentestusers', PentestUserViewSet, basename='pentestuser')
 router.register('projecttypes', ProjectTypeViewSet, basename='projecttype')
 router.register('pentestprojects', PentestProjectViewSet, basename='pentestproject')
@@ -51,11 +55,9 @@ projecttype_router.register('assets', UploadedAssetViewSet, basename='uploadedas
 archivedproject_router = NestedSimpleRouter(router, 'archivedprojects', lookup='archivedproject')
 archivedproject_router.register('keyparts', ArchivedProjectKeyPartViewSet, basename='archivedprojectkeypart')
 
-# Make trailing slash in URL optional to support loading images and assets by fielname
-router.trailing_slash = '/?'
-project_router.trailing_slash = '/?'
-projecttype_router.trailing_slash = '/?'
-archivedproject_router.trailing_slash = '/?'
+template_router = NestedSimpleRouter(router, 'findingtemplates', lookup='template')
+template_router.register('translations', FindingTemplateTranslationViewSet, basename='findingtemplatetranslation')
+template_router.register('images', UploadedTemplateImageViewSet, basename='uploadedtemplateimage')
 
 
 urlpatterns = [
@@ -68,6 +70,7 @@ urlpatterns = [
         path('', include(project_router.urls)),
         path('', include(projecttype_router.urls)),
         path('', include(archivedproject_router.urls)),
+        path('', include(template_router.urls)),
 
         # Async views
         path('utils/spellcheck/', SpellcheckView.as_view(), name='utils-spellcheck'),

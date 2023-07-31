@@ -7,7 +7,7 @@ from django.test import override_settings
 
 from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
     UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, NotebookPage, UserPublicKey, \
-    ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
+    ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, UploadedTemplateImage
 from reportcreator_api.users.models import MFAMethod, PentestUser, Session
 
 
@@ -36,6 +36,7 @@ class Command(BaseCommand):
                 UploadedImage.objects.all(), 
                 UploadedAsset.objects.all(), 
                 UploadedUserNotebookImage.objects.all(),
+                UploadedTemplateImage.objects.all(),
                 UploadedProjectFile.objects.all(),
                 UploadedUserNotebookFile.objects.all(),
             ):

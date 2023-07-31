@@ -4,8 +4,9 @@ import { EditMode } from '~/utils/other';
 
 export default {
   async beforeRouteLeave(to, from, next) {
-    if (this.$refs.toolbar) {
-      await this.$refs.toolbar.beforeLeave(to, from, (res = true) => {
+    const toolbar = this.getToolbarRef();
+    if (toolbar) {
+      await toolbar.beforeLeave(to, from, (res = true) => {
         this.navigationInProgress = res;
       });
       await this.$nextTick();
@@ -15,8 +16,9 @@ export default {
     }
   },
   async beforeRouteUpdate(to, from, next) {
-    if (this.$refs.toolbar) {
-      await this.$refs.toolbar.beforeLeave(to, from, (res = true) => {
+    const toolbar = this.getToolbarRef();
+    if (toolbar) {
+      await toolbar.beforeLeave(to, from, (res = true) => {
         this.navigationInProgress = res;
       });
       await this.$nextTick();
@@ -133,6 +135,9 @@ export default {
     },
     getErrorMessage() {
       return 'You do not have permissions to edit this resource.';
+    },
+    getToolbarRef() {
+      return this.$refs.toolbar;
     },
     onUpdateData(event) {},
     updateInStore(data) {},

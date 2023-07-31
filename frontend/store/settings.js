@@ -55,4 +55,5 @@ export const getters = {
     const val = state.noteExpandStates[noteId];
     return val === undefined ? true : val;
   },
+  templateFieldFilterHiddenFields: state => state.templateFieldFilterHiddenFields,
 };

@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.110 - 2023-07-31
+* Multilingual templates
+* Support images in templates
+* Support creating templates from findings
+* UI: Move secondary toolbar actions to a dropdown menu
+* UI: Sticky Add button in finding and note list sidebars
+* Fix redirect after login for remoteuser default auth provider
+
+
 ## v0.102 - 2023-07-05
 * Fix serialization of project check messages
 

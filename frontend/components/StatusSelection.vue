@@ -1,12 +1,13 @@
 <template>
-  <div class="status-container ml-1 mr-1">
+  <div :class="{'ml-1': !outlined, 'mr-1': !outlined, 'status-container': !outlined}">
     <v-select 
       :value="value"
       @input="$emit('input', $event)"
       :items="items"
       label="Status"
       hide-details="auto"
-      dense 
+      :outlined="outlined"
+      :dense="!outlined"
       class="mt-4"
       v-bind="$attrs"
     >
@@ -39,6 +40,10 @@ export default {
       type: String,
       required: true,
     },
+    outlined: {
+      type: Boolean,
+      default: false,
+    }
   },
   data() {
     return {

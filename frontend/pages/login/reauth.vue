@@ -29,25 +29,27 @@
 import { authProviderLoginBegin } from '~/components/LoginProviderForm';
 
 export default {
-  async asyncData(context) {
-    const authProviders = context.store.getters['apisettings/settings'].auth_providers;
-    let defaultReauthProvider = authProviders.find(p => p.id === context.store.getters['apisettings/settings'].default_reauth_provider);
+  data() {
+    return {
+      step: 'list',
+    }
+  },
+  async fetch() {
+    const authProviders = this.$store.getters['apisettings/settings'].auth_providers;
+    let defaultReauthProvider = authProviders.find(p => p.id === this.$store.getters['apisettings/settings'].default_reauth_provider);
     if (!defaultReauthProvider && authProviders.length === 1) {
       defaultReauthProvider = authProviders[0];
     }
-    if (!defaultReauthProvider && context.$auth.user.can_login_local) {
+    if (!defaultReauthProvider && this.$auth.user.can_login_local) {
       defaultReauthProvider = authProviders.find(p => p.type === 'local');
     }
 
-    let step = 'list';
     if (defaultReauthProvider?.type === 'local') {
       // Use the login form
-      step = 'local';
+      this.step = 'local';
     } else if (defaultReauthProvider) {
-      await authProviderLoginBegin(defaultReauthProvider, context, { reauth: true });
+      await authProviderLoginBegin(defaultReauthProvider, this.$nuxt.context, { reauth: true });
     }
-
-    return { step };
   },
   head: {
     title: 'Re-Authenticate',

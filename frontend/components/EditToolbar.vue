@@ -6,22 +6,20 @@
 
       <slot></slot>
 
-      <v-switch v-if="canSave && canAutoSave" v-model="autoSaveEnabled" label="Auto Save" class="btn-autosave align-self-center ml-2 mr-2" hide-details />
-
       <s-tooltip v-if="canSave" :disabled="data === null" :open-on-focus="false">
         <template #activator="{on, attrs}">
           <s-btn :loading="savingInProgress" :disabled="savingInProgress" @click="performSave" v-bind="attrs" v-on="on" color="primary" class="ml-1 mr-1">
             <template #default>
               <v-icon>mdi-content-save</v-icon>
               <v-badge v-if="data !== null" dot :color="hasChanges? 'error' : 'success'">
-                <slot name="save-button-text">Save</slot>
+                {{ saveButtonText }}
               </v-badge>
-              <slot v-else name="save-button-text">Save</slot>
+              <span v-else>{{ saveButtonText }}</span>
             </template>
 
             <template #loader>
               <saving-loader-spinner />
-              <slot name="save-button-text">Save</slot>
+              {{ saveButtonText }}
             </template>
           </s-btn>
         </template>
@@ -31,13 +29,30 @@
         </template>
       </s-tooltip>
     
-      <btn-delete
-        v-if="canDelete" 
-        :delete="performDelete" 
-        :confirm="true"  
-        :confirm-input="deleteConfirmInput"
-        icon color="error" 
-      />
+      <v-menu v-if="(canSave && canAutoSave) || canDelete || $slots['context-menu']" :close-on-content-click="false" bottom left offset-y>
+        <template #activator="{on, attrs}">
+          <s-btn icon v-bind="attrs" v-on="on">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </s-btn>
+        </template>
+        <v-list>
+          <v-list-item v-if="canSave && canAutoSave" link @click="autoSaveEnabled = !autoSaveEnabled">
+            <v-list-item-icon>
+              <v-switch v-model="autoSaveEnabled" readonly hide-details class="mt-0" />
+            </v-list-item-icon>
+            <v-list-item-title>Auto Save</v-list-item-title>
+          </v-list-item>
+          <slot name="context-menu" />
+          <btn-delete
+            v-if="canDelete"
+            :delete="performDelete" 
+            :confirm="true"  
+            :confirm-input="deleteConfirmInput"
+            list-item
+            color="error"
+          />
+        </v-list>
+      </v-menu>
     </v-toolbar>
 
     <v-alert v-if="errorMessage || lockError" type="warning" dense class="mt-0 mb-0">
@@ -109,7 +124,11 @@ export default {
     errorMessage: {
       type: String,
       default: null,
-    }
+    },
+    saveButtonText: {
+      type: String,
+      default: 'Save',
+    },
   },
   events: [
     'update:editMode',

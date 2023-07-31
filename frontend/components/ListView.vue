@@ -2,7 +2,9 @@
   <v-container>
     <h1><slot name="title" /></h1>
 
-    <v-text-field :value="items.searchQuery" @input="updateSearch" label="Search" spellcheck="false" autofocus />
+    <slot name="searchbar" :items="items">
+      <v-text-field :value="items.searchQuery" @input="updateSearch" label="Search" spellcheck="false" autofocus />
+    </slot>
 
     <slot name="actions" />
     <v-list v-if="items">
@@ -31,7 +33,7 @@ export default {
     return {
       items: new SearchableCursorPaginationFetcher({
         baseURL: this.url, 
-        searchFilters: { search: this.$route.query.search || null }, 
+        searchFilters: { ...this.$route.query },
         axios: this.$axios, 
         toast: this.$toast
       }),
@@ -41,14 +43,17 @@ export default {
     await this.fetchNextPage();
   },
   watch: {
-    '$route.query.search'(val) {
-      this.items.search(val);
-    }
+    '$route.query': {
+      deep: true,
+      handler() {
+        this.items.applyFilters({ ...this.$route.query });
+      }
+    },
   },
   methods: {
     updateSearch(search) {
-      this.$router.replace({ query: { search: search || '' } });
       this.items.search(search);
+      this.$router.replace({ query: { ...this.$route.query, search: search || '' } });
     },
     async fetchNextPage() {
       return await this.items.fetchNextPageImmediate();

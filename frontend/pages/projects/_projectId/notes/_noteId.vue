@@ -100,12 +100,13 @@ export default {
       this.$store.commit('projects/setNote', { projectId: this.project.id, note: data });
     },
     async onUpdateData({ oldValue, newValue }) {
-      if (this.$refs.toolbar?.autoSaveEnabled && (
+      const toolbar = this.getToolbarRef();
+      if (toolbar?.autoSaveEnabled && (
         oldValue.checked !== newValue.checked ||
         oldValue.status_emoji !== newValue.status_emoji ||
         oldValue.icon_emoji !== newValue.icon_emoji
       )) {
-        await this.$refs.toolbar.performSave();
+        await toolbar.performSave();
       }
     },
   },

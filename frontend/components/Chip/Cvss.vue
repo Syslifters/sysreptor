@@ -12,11 +12,18 @@ export default {
   props: {
     value: {
       type: String,
-      required: true,
-    }
+      default: null,
+    },
+    riskScore: {
+      type: Number,
+      default: null,
+    },
   },
   computed: {
     score() {
+      if (this.riskScore !== null) {
+        return this.riskScore;
+      }
       return cvss.scoreFromVector(this.value);
     },
     scoreFormatted() {
@@ -38,6 +45,7 @@ export default {
     background-color: map-get($risk-color-levels, $level) !important;
     color: white !important;
     width: 7.5em;
+    min-width: 7.5em;
     display: inline-block;
     text-align: center;
 

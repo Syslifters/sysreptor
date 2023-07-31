@@ -1,9 +1,8 @@
 <template>
   <v-container>
     <v-form ref="form" @submit.prevent="performCreate">
-      <edit-toolbar :form="$refs.form" :save="performCreate">
+      <edit-toolbar :form="$refs.form" :save="performCreate" save-button-text="Create">
         <template #title>Create new Project</template>
-        <template #save-button-text>Create</template>
       </edit-toolbar>
 
       <s-text-field v-model="project.name" label="Name" class="mt-4" />

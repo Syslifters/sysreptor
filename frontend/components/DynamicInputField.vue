@@ -233,7 +233,7 @@ export default {
       default: null,
     },
   },
-  emits: ["updated"],
+  emits: ["input"],
   data() {
     return {
       datePickerVisible: false,
@@ -242,8 +242,12 @@ export default {
   },
   computed: {
     formValue() {
+      if ([null, undefined].includes(this.value)) {
+        return this.getInitialValue(this.definition, false);
+      }
+
       return this.value;
-      // if (this.value !== null) {
+      // if (this.value !== null && this.value !== undefined) {
       //   return this.value;
       // }
       // return this.definition.default;
@@ -261,8 +265,8 @@ export default {
     }
   },
   methods: {
-    getInitialValue(fieldDef) {
-      if (fieldDef.default) {
+    getInitialValue(fieldDef, useDefault = true) {
+      if (fieldDef.default && useDefault) {
         return fieldDef.default;
       } else if (fieldDef.type === "list") {
         return [];

@@ -6,8 +6,8 @@ import tempfile
 import uuid
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from reportcreator_api.pentests.models.project import PentestProject
 
+from reportcreator_api.pentests.models import PentestProject
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.archive.import_export import import_project_types, import_templates, import_projects
 

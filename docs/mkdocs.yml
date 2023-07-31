@@ -1,0 +1,120 @@
+site_name: "SysReptor Docs"
+site_url: "https://docs.sysreptor.com/"
+repo_url: https://github.com/syslifters/sysreptor/
+site_dir: ./site/ # Where to put the HTML files
+nav:
+  - Features and Pricing: features-and-pricing.md
+  - Setup:
+    - Installation: setup/installation.md
+    - Configuration: setup/configuration.md
+    - Setup Webserver: setup/webserver.md
+    - Single Sign-On:
+      - SSO Setup: setup/oidc-setup.md
+      - Azure AD: setup/oidc-azure-active-directory.md
+      - Google: setup/oidc-google.md
+    - User Permissions: setup/user-permissions.md
+    - Updates: setup/updates.md
+    - Backups: setup/backups.md
+  - Writing Reports:
+    - Markdown Syntax: reporting/markdown-features.md
+    - Spell Check: reporting/spell-check.md
+    - References: reporting/references.md
+    - Locked Sections: reporting/locking.md
+    - Archiving: reporting/archiving.md
+  - Designing Reports:
+      - Designer: designer/designer.md
+      - Page Layout: designer/page-layout.md
+      - Headings and ToC: designer/headings-and-table-of-contents.md
+      - Tables: designer/tables.md
+      - Figures: designer/figures.md
+      - Footnotes: designer/footnotes.md
+      - Charts: designer/charts.md
+      - Design Guides: designer/design-guides.md
+      - Formatting Utilities: designer/formatting-utils.md
+      - Debugging: designer/debugging.md
+      - FAQs: designer/faqs.md
+  - Templates: templates.md
+  - Tech Insights:
+    - Rendering Workflow: insights/rendering-workflow.md
+    - Security Considerations: insights/security-considerations.md
+  - Show and Tell: show-and-tell/index.md
+  - Free Reporting:
+    - OffSec: offsec-reporting-with-sysreptor.md
+
+    
+theme:
+  name: material
+  custom_dir: overrides
+  logo: images/logo.svg
+  features:
+    - content.code.annotate
+    - search.share
+    #- navigation.expand
+  palette: 
+    - scheme: default
+  theme:
+  icon:
+    repo: fontawesome/brands/github
+    admonition:
+      note: octicons/question-16
+
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/hint.min.css
+
+plugins:
+  - blog:
+      enabled: true
+      blog_dir: show-and-tell
+      archive: false
+      categories: false
+      post_readtime: false
+  - social:
+      cards: !ENV [CARDS, true]
+      cards_color:
+        fill: "#001827"
+        text: "#F9FDFF"
+      cards_font: Exo
+  - tooltips
+  - search
+  - privacy
+  - redirects:
+      redirect_maps:
+        "setup/nginx-server.md": "setup/webserver.md"
+        "reporting/referencing-sections.md": "reporting/references.md"
+        "setup/prerequisites.md": "setup/installation.md"
+        "backups.md": "setup/backups.md"
+
+markdown_extensions:
+  - attr_list
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:materialx.emoji.twemoji
+  - pymdownx.magiclink
+  - pymdownx.highlight:
+      use_pygments: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - md_in_html
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.tabbed:
+      alternate_style: true 
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+
+extra:
+  social:
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/sysreptor
+    - icon: fontawesome/brands/linkedin
+      link: https://at.linkedin.com/showcase/sysreptor
+  generator: false
+
+copyright: '<a href="https://www.syslifters.com/" target="_blank">Our Website</a> | <a href="https://www.syslifters.com/impressum" target="_blank">Imprint</a> | <a href="/data-privacy">Data Privacy</a> | <a href="https://docs.syslifters.com/contact-us" target="blank">Contact</a><br><br>Die FFG ist die zentrale nationale Förderorganisation und stärkt Österreichs Innovationskraft.<br>Dieses Projekt wird aus Mitteln der FFG gefördert. <a href="https://www.ffg.at" target="_blank">www.ffg.at</a><br>'

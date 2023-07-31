@@ -1,8 +1,10 @@
 <template>
   <split-menu v-model="menuSize">
     <template #menu>
-      <v-list dense>
-        <v-list-item-title class="text-h6 pl-2">Personal Notes</v-list-item-title>
+      <v-list dense class="pb-0 h-100 d-flex flex-column">
+        <div>
+          <v-list-item-title class="text-h6 pl-2">Personal Notes</v-list-item-title>
+        </div>
 
         <notes-sortable-list 
           :value="noteGroups" 
@@ -11,18 +13,21 @@
           to-prefix="/notes/personal/"
         />
         
-        <v-list-item>
-          <v-list-item-action>
+        <div>
+          <v-divider />
+          <v-list-item class="mt-1">
             <btn-confirm 
               :action="createNote"
               :confirm="false"
               button-text="Add"
               button-icon="mdi-plus"
               tooltip-text="Add Notebook Page"
+              color="secondary"
               small
+              block
             />
-          </v-list-item-action>
-        </v-list-item>
+          </v-list-item>
+        </div>
       </v-list>
     </template>
 

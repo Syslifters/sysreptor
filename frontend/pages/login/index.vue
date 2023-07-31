@@ -13,19 +13,18 @@ import { authProviderLoginBegin } from '~/components/LoginProviderForm';
 
 export default {
   auth: false,
-  async asyncData(context) {
+  async fetch() {
     // Do not auto-login after logout
-    if (!context.route.query?.logout) {
-      const authProviders = context.store.getters['apisettings/settings'].auth_providers;
-      let defaultAuthProvider = authProviders.find(p => p.id === context.store.getters['apisettings/settings'].default_auth_provider);
+    if (!this.$route.query?.logout) {
+      const authProviders = this.$store.getters['apisettings/settings'].auth_providers;
+      let defaultAuthProvider = authProviders.find(p => p.id === this.$store.getters['apisettings/settings'].default_auth_provider);
       if (!defaultAuthProvider && authProviders.length === 1) {
         defaultAuthProvider = authProviders[0];
       }  
       if (defaultAuthProvider) {
-        await authProviderLoginBegin(defaultAuthProvider, context);
+        await authProviderLoginBegin(defaultAuthProvider, this.$nuxt.context);
       }
     }
-    return {};
   },
   head: {
     title: 'Login',

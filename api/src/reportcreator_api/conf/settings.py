@@ -394,6 +394,8 @@ PERMISSIONS_POLICY = {
 
 # Generate HTTPS URIs in responses for requests behind a reverse proxy
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = config('USE_X_FORWARDED_HOST', cast=bool, default=False)
+USE_X_FORWARDED_PORT = config('USE_X_FORWARDED_PORT', cast=bool, default=False)
 
 
 # Monkey-Patch django to disable CSRF everywhere
@@ -522,9 +524,9 @@ AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER = timedelta(days=AUTOMATICALLY_DELE
 
 # Health checks
 HEALTH_CHECKS = {
-    'cache': 'reportcreator_api.api_utils.healthchecks.check_cache',
     'database': 'reportcreator_api.api_utils.healthchecks.check_database',
     'migrations': 'reportcreator_api.api_utils.healthchecks.check_migrations',
+    # 'cache': 'reportcreator_api.api_utils.healthchecks.check_cache',
 }
 
 # Notifications

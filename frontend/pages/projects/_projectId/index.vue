@@ -3,22 +3,38 @@
     <v-form ref="form">
       <edit-toolbar v-bind="toolbarAttrs">
         <template #title>Project</template>
-        <btn-readonly :value="project.readonly" :set-readonly="setReadonly" />
-        <s-btn
-          v-if="project.readonly && archivingEnabled"
-          :to="`/projects/${project.id}/archive/`" nuxt
-          color="secondary"
-          class="mr-1"
-        >
-          <v-icon>mdi-folder-lock-outline</v-icon>
-          Archive
-        </s-btn>
-        <btn-export 
-          :export-url="`/pentestprojects/${project.id}/export/`" 
-          :export-all-url="`/pentestprojects/${project.id}/export/all/`"
-          :name="'project-' + project.name" 
-        />
-        <btn-copy :copy="performCopy" tooltip-text="Duplicate Project" confirm-text="The whole project will be copied including all members, sections, findings and images." />
+        <template #default>
+          <btn-readonly :value="project.readonly" :set-readonly="setReadonly" />
+          <s-btn
+            v-if="project.readonly && archivingEnabled"
+            :to="`/projects/${project.id}/archive/`" nuxt
+            color="secondary"
+            class="mr-1"
+          >
+            <v-icon>mdi-folder-lock-outline</v-icon>
+            Archive
+          </s-btn>
+        </template>
+        <template #context-menu>
+          <btn-copy 
+            :copy="performCopy" 
+            tooltip-text="Duplicate Project" 
+            confirm-text="The whole project will be copied including all members, sections, findings and images." 
+            list-item
+          />
+          <btn-export 
+            :export-url="`/pentestprojects/${project.id}/export/`" 
+            :export-all-url="`/pentestprojects/${project.id}/export/all/`"
+            :name="'project-' + project.name" 
+            list-item
+          />
+          <btn-export 
+            :export-url="`/pentestprojects/${project.id}/export/all/`"
+            :name="'project-' + project.name" 
+            button-text="Export (with notes)"
+            list-item
+          />
+        </template>
       </edit-toolbar>
 
       <p v-if="project.copy_of" class="mt-4">

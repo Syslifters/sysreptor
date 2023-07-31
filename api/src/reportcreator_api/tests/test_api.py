@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 from reportcreator_api.users.models import AuthIdentity
 from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, ProjectTypeScope, SourceEnum, \
-    UploadedUserNotebookImage, UploadedUserNotebookFile
+    UploadedUserNotebookImage, UploadedUserNotebookFile, Language
 from reportcreator_api.notifications.models import NotificationSpec
 from reportcreator_api.tests.mock import create_archived_project, create_user, create_project, create_project_type, create_template, create_png_file
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates
@@ -174,6 +174,8 @@ def guest_urls():
         ('usernotebook upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
+        *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True),
+        *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, read=True),
         ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition'))),
 
         ('projecttype create private', lambda s, c: c.post(reverse('projecttype-list'), data=c.get(reverse('projecttype-detail', kwargs={'pk': s.project_type.pk})).data | {'scope': ProjectTypeScope.PRIVATE})),
@@ -209,8 +211,11 @@ def regular_user_urls():
 def template_editor_urls():
     return {
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, create=True, update=True, update_partial=True, destroy=True, lock=True, unlock=True),
+        *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), create=True, create_data={'language': Language.GERMAN, 'data': {'title': 'test'}}, update=True, update_partial=True),
+        *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, write=True),
         ('findingtemplate export', lambda s, c: c.post(reverse('findingtemplate-export', kwargs={'pk': s.template.pk}))),
         ('findingtemplate import', lambda s, c: c.post(reverse('findingtemplate-import'), data={'file': export_archive(s.template)}, format='multipart')),
+        ('findingtemplate fromfinding', lambda s, c: c.post(reverse('findingtemplate-fromfinding'), data={'project': s.project.id, 'translations': [{'is_main': True, 'data': {'title': 'title'}}]})),
     }
     
 

@@ -12,7 +12,8 @@ from django.db import transaction
 from django.db.models import prefetch_related_objects, Prefetch
 from django.core.serializers.json import DjangoJSONEncoder
 
-from reportcreator_api.archive.import_export.serializers import FindingTemplateExportImportSerializer, PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer
+from reportcreator_api.archive.import_export.serializers import PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer, \
+    FindingTemplateImportSerializerV1, FindingTemplateExportImportSerializerV2
 from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection
 
 
@@ -111,8 +112,8 @@ def export_archive_iter(data, serializer_class: Type[serializers.Serializer], co
 
 
 @transaction.atomic()
-def import_archive(archive_file, serializer_class: Type[serializers.Serializer]):
-    context = {
+def import_archive(archive_file, serializer_classes: list[Type[serializers.Serializer]], context):
+    context = (context or {}) | {
         'archive': None,
         'storage_files': [],
     }
@@ -135,8 +136,23 @@ def import_archive(archive_file, serializer_class: Type[serializers.Serializer])
             # The actual work is performed in serializers
             imported_objects = []
             for m in to_import:
-                serializer = serializer_class(data=json.load(archive.extractfile(m)), context=context)
-                serializer.is_valid(raise_exception=True)
+                data = json.load(archive.extractfile(m))
+
+                serializer = None
+                error = None
+                for serializer_class in serializer_classes:
+                    try:
+                        serializer = serializer_class(data=data, context=context)
+                        serializer.is_valid(raise_exception=True)
+                        error = None
+                        break
+                    except Exception as ex:
+                        serializer = None
+                        # Use error of the first failing serializer_class
+                        if not error:
+                            error = ex
+                if error:
+                    raise error
                 obj = serializer.perform_import()
                 log.info(f'Imported object {obj=} {obj.id=}')
                 imported_objects.append(obj)
@@ -155,7 +171,7 @@ def import_archive(archive_file, serializer_class: Type[serializers.Serializer])
 
 
 def export_templates(data: Iterable[FindingTemplate]):
-    return export_archive_iter(data, serializer_class=FindingTemplateExportImportSerializer)
+    return export_archive_iter(data, serializer_class=FindingTemplateExportImportSerializerV2)
 
 def export_project_types(data: Iterable[ProjectType]):
     prefetch_related_objects(data, 'assets')
@@ -176,12 +192,12 @@ def export_projects(data: Iterable[PentestProject], export_all=False):
     })
 
 
-def import_templates(archive_file):
-    return import_archive(archive_file, serializer_class=FindingTemplateExportImportSerializer)
+def import_templates(archive_file, uploaded_by=None):
+    return import_archive(archive_file, serializer_classes=[FindingTemplateExportImportSerializerV2, FindingTemplateImportSerializerV1], context={'uploaded_by': uploaded_by})
 
-def import_project_types(archive_file):
-    return import_archive(archive_file, serializer_class=ProjectTypeExportImportSerializer)
+def import_project_types(archive_file, uploaded_by=None):
+    return import_archive(archive_file, serializer_classes=[ProjectTypeExportImportSerializer], context={'uploaded_by': uploaded_by})
 
-def import_projects(archive_file):
-    return import_archive(archive_file, serializer_class=PentestProjectExportImportSerializer)
+def import_projects(archive_file, uploaded_by=None):
+    return import_archive(archive_file, serializer_classes=[PentestProjectExportImportSerializer], context={'uploaded_by': uploaded_by})
 

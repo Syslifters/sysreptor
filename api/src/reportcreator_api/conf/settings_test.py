@@ -7,7 +7,11 @@ STORAGES = STORAGES | {
     'uploaded_files': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
     'archived_files': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
 }
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+}
 
 REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = []
 REST_FRAMEWORK['TEST_REQUEST_DEFAULT_FORMAT'] = 'json'

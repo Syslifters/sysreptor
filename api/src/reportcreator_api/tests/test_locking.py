@@ -1,20 +1,21 @@
 import pytest
 from django.conf import settings
 from django.urls import reverse
-from rest_framework.test import APIClient
-from reportcreator_api.pentests.models import LockStatus
-from reportcreator_api.tests.mock import create_project, create_user, mock_time
+from reportcreator_api.pentests.models import LockStatus, Language
+from reportcreator_api.tests.mock import api_client, create_project, create_project_type, create_template, create_user, mock_time
 
 
 @pytest.mark.django_db
 class TestLocking:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        self.user1 = create_user()
-        self.user2 = create_user()
+        self.user1 = create_user(is_template_editor=True, is_designer=True)
+        self.user2 = create_user(is_template_editor=True, is_designer=True)
         self.project = create_project(members=[self.user1, self.user2])
         self.finding = self.project.findings.first()
         self.section = self.project.sections.first()
+        self.project_type = create_project_type()
+        self.template = create_template()
     
     def test_locking(self):
         assert self.finding.lock(user=self.user1) == LockStatus.CREATED
@@ -31,10 +32,8 @@ class TestLocking:
             assert self.finding.lock(user=self.user2) == LockStatus.CREATED
 
     def assert_api_locking(self, obj, url_basename, url_kwargs):
-        client_u1 = APIClient()
-        client_u1.force_authenticate(user=self.user1)
-        client_u2 = APIClient()
-        client_u2.force_authenticate(user=self.user2)
+        client_u1 = api_client(self.user1)
+        client_u2 = api_client(self.user2)
 
         # Lock and update
         assert client_u1.post(reverse(url_basename + '-lock', kwargs=url_kwargs)).status_code == 201
@@ -64,4 +63,31 @@ class TestLocking:
     
     def test_api_lock_section(self):
         self.assert_api_locking(obj=self.section, url_basename='section', url_kwargs={'project_pk': self.project.pk, 'id': self.section.section_id})
+
+    def test_lock_project_type(self):
+        self.assert_api_locking(obj=self.project_type, url_basename='projecttype', url_kwargs={'pk': self.project_type.id})
+
+    def test_api_lock_template(self):
+        self.assert_api_locking(obj=self.template, url_basename='findingtemplate', url_kwargs={'pk': self.template.id})
+
+    def test_api_lock_template_translation(self):
+        self.template.lock(self.user1)
+
+        client_u1 = api_client(self.user1)
+        assert client_u1.patch(reverse('findingtemplatetranslation-detail', kwargs={'template_pk': self.template.id, 'pk': self.template.main_translation.id}), data={}).status_code == 200
+        res_create = client_u1.post(reverse('findingtemplatetranslation-list', kwargs={'template_pk': self.template.id}), data={
+            'language': Language.FRENCH,
+            'data': {'title': 'French template'}
+        })
+        assert res_create.status_code == 201
+
+        client_u2 = api_client(self.user2)
+        assert client_u2.patch(reverse('findingtemplatetranslation-detail', kwargs={'template_pk': self.template.id, 'pk': self.template.main_translation.id}), data={}).status_code == 403
+        assert client_u2.post(reverse('findingtemplatetranslation-list', kwargs={'template_pk': self.template.id}), data={
+            'language': Language.SPANISH,
+            'data': {'title': 'Spanish template'},
+        }).status_code == 403
+        assert client_u2.delete(reverse('findingtemplatetranslation-detail', kwargs={'template_pk': self.template.id, 'pk': res_create.data['id']})).status_code == 403
+
+        assert client_u1.delete(reverse('findingtemplatetranslation-detail', kwargs={'template_pk': self.template.id, 'pk': res_create.data['id']})).status_code == 204
 

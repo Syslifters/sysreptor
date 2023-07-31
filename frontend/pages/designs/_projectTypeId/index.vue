@@ -2,9 +2,18 @@
   <v-container>
     <v-form ref="form">
       <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :form="$refs.form">
-        <btn-export :export-url="`/projecttypes/${projectType.id}/export/`" :name="'design-' + projectType.name" />
-        <template v-if="$auth.hasScope('designer')">
-          <btn-copy :copy="performCopy" tooltip-text="Duplicate Design" />
+        <template #context-menu>
+          <btn-copy 
+            v-if="$auth.hasScope('designer')" 
+            :copy="performCopy" 
+            tooltip-text="Duplicate Design" 
+            list-item
+          />
+          <btn-export
+            :export-url="`/projecttypes/${projectType.id}/export/`" 
+            :name="'design-' + projectType.name" 
+            list-item
+          />
         </template>
       </edit-toolbar>
 

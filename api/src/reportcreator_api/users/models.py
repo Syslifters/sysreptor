@@ -62,7 +62,7 @@ class PentestUser(BaseModel, AbstractUser):
 
     @property
     def can_login_local(self) -> bool:
-        return settings.LOCAL_USER_AUTH_ENABLED and self.password and self.has_usable_password()
+        return (settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional()) and self.password and self.has_usable_password()
 
     @functools.cached_property
     def can_login_sso(self) -> bool:

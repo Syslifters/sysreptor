@@ -1,21 +1,11 @@
 <template>
-  <div class="d-flex">
-    <v-btn @click="performExport(false)" :loading="actionInProgress" color="secondary" :class="{'btn-left': exportAllUrl !== null}">
-      <v-icon>mdi-download</v-icon> Export
-    </v-btn>
-    <v-menu offset-y left>
-      <template #activator="{attrs, on}">
-        <v-btn v-if="exportAllUrl" v-bind="attrs" v-on="on" color="secondary" class="btn-right">
-          <v-icon>mdi-menu-down</v-icon>
-        </v-btn>
-      </template>
-      <template #default>
-        <v-btn @click="performExport(true)" :loading="actionInProgress" color="secondary">
-          <v-icon>mdi-download</v-icon> Export with notes
-        </v-btn>
-      </template>
-    </v-menu>
-  </div>
+  <btn-confirm 
+    :button-text="buttonText"
+    :button-icon="buttonIcon"
+    :action="performExport"
+    :confirm="false"
+    v-bind="$attrs"
+  />
 </template>
 
 <script>
@@ -27,19 +17,18 @@ export default {
       type: String,
       required: true,
     },
-    exportAllUrl: {
-      type: String,
-      default: null,
-    },
     name: {
       type: String,
       default: null,
     },
-  },
-  data() {
-    return {
-      actionInProgress: false,
-    };
+    buttonText: {
+      type: String,
+      default: "Export",
+    },
+    buttonIcon: {
+      type: String,
+      default: "mdi-download",
+    },
   },
   computed: {
     filename() {
@@ -48,37 +37,12 @@ export default {
     },
   },
   methods: {
-    async performExport(all = false) {
-      if (this.actionInProgress) {
-        return;
-      }
-
-      try {
-        this.actionInProgress = true;
-        const res = await this.$axios.$post(all ? this.exportAllUrl : this.exportUrl, {}, {
-          responseType: 'arraybuffer',
-        });
-        fileDownload(res, this.filename);
-      } catch (error) {
-        this.$toast.global.requestError({ error });
-      } finally {
-        this.actionInProgress = false;
-      }
+    async performExport() {
+      const res = await this.$axios.$post(this.exportUrl, {}, {
+        responseType: 'arraybuffer',
+      });
+      fileDownload(res, this.filename);
     }
-  },
+  }
 }
 </script>
-
-<style lang="scss" scoped>
-.btn-left {
-  border-radius: $border-radius-root 0 0 $border-radius-root;
-  padding-right: 0.5em !important;
-}
-.btn-right {
-  border-radius: 0 $border-radius-root $border-radius-root 0;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  min-width: 0 !important;
-  margin-left: 1px;
-}
-</style>

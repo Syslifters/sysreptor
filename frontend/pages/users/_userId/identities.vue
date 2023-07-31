@@ -1,5 +1,5 @@
 <template>
-  <s-card>
+  <s-card class="mt-4">
     <v-card-title>SSO Identities</v-card-title>
     <v-card-text>
       <v-data-table

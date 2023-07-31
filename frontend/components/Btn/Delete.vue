@@ -7,6 +7,7 @@
     dialog-text="Do you really want to delete this item? This action is not reversible!"
     :color="!icon ? 'error' : ($attrs.color || 'default')"
     :icon="icon"
+    :list-item="listItem"
     :confirm="confirm"
     :confirm-input="confirmInput"
     :action="$props.delete"
@@ -18,6 +19,10 @@
 export default {
   props: {
     icon: {
+      type: Boolean,
+      default: false,
+    },
+    listItem: {
       type: Boolean,
       default: false,
     },

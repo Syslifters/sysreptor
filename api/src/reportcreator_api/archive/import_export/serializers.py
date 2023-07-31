@@ -5,7 +5,8 @@ from rest_framework import serializers
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
 from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectType, ReportSection, \
-    SourceEnum, UploadedAsset, UploadedImage, UploadedFileBase, ProjectMemberInfo, UploadedProjectFile
+    SourceEnum, UploadedAsset, UploadedImage, UploadedFileBase, ProjectMemberInfo, UploadedProjectFile, Language, ReviewStatus, \
+    FindingTemplateTranslation, UploadedTemplateImage
 from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
@@ -113,26 +114,6 @@ class OptionalPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
             raise serializers.SkipField()
 
 
-class FindingTemplateExportImportSerializer(ExportImportSerializer):
-    format = FormatField('templates/v1')
-
-    data = serializers.DictField(source='data_all')
-
-    class Meta:
-        model = FindingTemplate
-        fields = ['format', 'id', 'created', 'updated', 'tags', 'language', 'status', 'data']
-        extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False}}
-    
-    def create(self, validated_data):
-        data = validated_data.pop('data_all', {})
-        template = FindingTemplate(**{
-            'source': SourceEnum.IMPORTED,
-        } | validated_data)
-        template.update_data(data)
-        template.save()
-        return template
-
-
 class FileListExportImportSerializer(serializers.ListSerializer):
     def export_files(self):
         for e in self.instance:
@@ -150,7 +131,8 @@ class FileListExportImportSerializer(serializers.ListSerializer):
                 'file': File(
                     file=self.extract_file(attrs['name']), 
                     name=attrs['name']), 
-                'linked_object': self.child.get_linked_object()
+                'linked_object': self.child.get_linked_object(),
+                'uploaded_by': self.context.get('uploaded_by'),
         }) for attrs in validated_data]
 
         child_model_class.objects.bulk_create(objs)
@@ -177,6 +159,104 @@ class FileExportImportSerializer(ExportImportSerializer):
 
     def export_files(self) -> Iterable[tuple[str, File]]:
         yield self.get_path_in_archive(self.instance.name), self.instance.file
+
+
+class FindingTemplateImportSerializerV1(ExportImportSerializer):
+    format = FormatField('templates/v1')
+
+    language = serializers.ChoiceField(choices=Language.choices, source='main_translation__language')
+    status = serializers.ChoiceField(choices=ReviewStatus.choices, source='main_translation__status')
+    data = serializers.DictField(source='main_translation__data')
+
+    class Meta:
+        model = FindingTemplate
+        fields = ['format', 'id', 'created', 'updated', 'tags', 'language', 'status', 'data']
+        extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False}}
+    
+    def create(self, validated_data):
+        main_translation_data = {k[len('main_translation__'):]: validated_data.pop(k) for k in validated_data.copy().keys() if k.startswith('main_translation__')}
+        template = FindingTemplate.objects.create(**{
+            'source': SourceEnum.IMPORTED,
+        } | validated_data)
+        data = main_translation_data.pop('data', {})
+        main_translation = FindingTemplateTranslation(template=template, **main_translation_data)
+        main_translation.update_data(data)
+        main_translation.save()
+        template.main_translation = main_translation
+        template.save()
+        return template
+
+
+class FindingTemplateTranslationExportImportSerializer(ExportImportSerializer):
+    data = serializers.DictField(source='data_all')
+    is_main = serializers.BooleanField()
+
+    class Meta:
+        model = FindingTemplateTranslation
+        fields = ['id', 'created', 'updated', 'is_main', 'language', 'status', 'data']
+        extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False}}
+
+    def create(self, validated_data):
+        data = validated_data.pop('data_all', {})
+        instance = FindingTemplateTranslation(**validated_data)
+        instance.update_data(data)
+        instance.save()
+        return instance
+
+
+class UploadedTemplateImageExportImportSerializer(FileExportImportSerializer):
+    class Meta(FileExportImportSerializer.Meta):
+        model = UploadedTemplateImage
+
+    def get_linked_object(self):
+        return self.context['template']
+    
+    def get_path_in_archive(self, name):
+        # Get ID of old project_type from archive
+        return str(self.context.get('template_id') or self.get_linked_object().id) + '-images/' + name
+
+
+class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
+    format = FormatField('templates/v2')
+    translations = FindingTemplateTranslationExportImportSerializer(many=True, allow_empty=False)
+    images = UploadedTemplateImageExportImportSerializer(many=True, required=False)
+
+    class Meta:
+        model = FindingTemplate
+        fields = ['format', 'id', 'created', 'updated', 'tags', 'translations', 'images']
+        extra_kwargs = {'id': {'read_only': False}, 'created': {'read_only': False}}
+
+    def validate_translations(self, value):
+        if len(list(filter(lambda t: t.get('is_main'), value))) != 1:
+            raise serializers.ValidationError('No main translation given')
+        if len(set(map(lambda t: t.get('language'), value))) != len(value):
+            raise serializers.ValidationError('Duplicate template language detected')
+        return value
+    
+    def export_files(self) -> Iterable[tuple[str, File]]:
+        self.context.update({'template': self.instance})
+        imgf = self.fields['images']
+        imgf.instance = list(imgf.get_attribute(self.instance).all())
+        yield from imgf.export_files()
+    
+    def create(self, validated_data):
+        old_id = validated_data.pop('id')
+        images_data = validated_data.pop('images', [])
+        translations_data = validated_data.pop('translations')
+        instance = FindingTemplate.objects.create(**{
+            'source': SourceEnum.IMPORTED
+        } | validated_data)
+        self.context['template'] = instance
+        for t in translations_data:
+            is_main = t.pop('is_main', False)
+            translation_instance = self.fields['translations'].child.create(t | {'template': instance})
+            if is_main:
+                instance.main_translation = translation_instance
+        instance.save()
+
+        self.context.update({'template': instance, 'template_id': old_id})
+        self.fields['images'].create(images_data)
+        return instance
 
 
 class UploadedImageExportImportSerializer(FileExportImportSerializer):
@@ -271,7 +351,7 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
             value=data,
             definition=project.project_type.finding_fields_obj,
             handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
-            include_undefined=True)
+            include_unknown=True)
         )
         finding.save()
         return finding
@@ -389,7 +469,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
                 value=report_data,
                 definition=project_type.report_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
-                include_undefined=True
+                include_unknown=True
             ),    
         })
         project_type.linked_project = project

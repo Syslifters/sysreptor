@@ -1,7 +1,7 @@
 <template>
   <s-dialog v-model="dialogVisible">
     <template #activator="{ on, attrs }">
-      <s-btn :disabled="project.readonly" color="secondary" small v-bind="attrs" v-on="on">
+      <s-btn :disabled="project.readonly" color="secondary" small block v-bind="attrs" v-on="on">
         <v-icon>mdi-plus</v-icon>
         Create
       </s-btn>
@@ -10,52 +10,43 @@
 
     <template #default>
       <v-card-text>
-        <s-combobox 
-          v-model="currentSelection"
-          :search-input.sync="templates.searchQuery"
-          label="Finding Templates"
-          :items="templates.data"
-          item-value="id"
-          no-filter
-          clearable
-          return-object
-          autofocus
-        >
-          <template #selection="{item}">
-            <template v-if="item?.id">
-              <chip-cvss :value="item.data.cvss" />
-              {{ item.data.title }}
-            </template>
-            <template v-else>
-              {{ item }}
-            </template>
-          </template>
-          <template #item="{item}">
-            <v-list-item-title class="d-flex">
-              <chip-cvss :value="item.data.cvss" /> 
-              <div class="pt-2 pb-2">
-                {{ item.data.title }}
-                <br />
-                <chip-review-status v-if="item.status !== 'finished'" :value="item.status" />
-                <chip-language v-if="!showOnlyMatchingLanguage" :value="item.language" />
-                <chip-tag v-for="tag in item.tags" :key="tag" :value="tag" />
-              </div>
-              <v-spacer />
-              <s-btn :to="`/templates/${item.id}/`" target="_blank" nuxt icon class="ma-2">
-                <v-icon>mdi-chevron-right-circle</v-icon>
-              </s-btn>
-            </v-list-item-title>
-          </template>
+        <v-row dense>
+          <v-col cols="12" md="9">
+            <s-combobox 
+              v-model="currentTemplate"
+              :search-input.sync="templates.searchQuery"
+              label="Finding Templates"
+              :items="templates.data"
+              item-value="id"
+              no-filter
+              clearable
+              return-object
+              autofocus
+              class="template-select"
+            >
+              <template #selection="{item}">
+                <template-select-item v-if="item?.id" :value="item" :language="displayLanguage" />
+                <template v-else>
+                  {{ item }}
+                </template>
+              </template>
+              <template #item="{item}">
+                <template-select-item :value="item" :language="displayLanguage" />
+              </template>
 
-          <template #append-item>
-            <page-loader :items="templates" />
-          </template>
-        </s-combobox>
-        <s-checkbox 
-          v-model="showOnlyMatchingLanguage"
-          label="Show only templates with matching language" 
-          dense
-        />
+              <template #append-item>
+                <page-loader :items="templates" />
+              </template>
+            </s-combobox>
+          </v-col>
+          <v-col cols="12" md="3">
+            <language-selection 
+              v-model="templateLanguage" 
+              :items="templateLanguageChoices"
+              :disabled="!currentTemplate"
+            />
+          </v-col>
+        </v-row>
       </v-card-text>
         
       <v-card-actions>
@@ -63,7 +54,7 @@
         <s-btn @click="closeDialog" color="secondary">
           Cancel
         </s-btn>
-        <s-btn v-if="currentSelection?.id" @click="createFindingFromTemplate" :loading="actionInProress" color="primary">
+        <s-btn v-if="currentTemplate?.id" @click="createFindingFromTemplate" :loading="actionInProress" color="primary">
           Create from Template
         </s-btn>
         <s-btn v-else @click="createEmptyFinding" :loading="actionInProress" color="primary">
@@ -87,30 +78,40 @@ export default {
   data() {
     return {
       dialogVisible: false,
-      currentSelection: null,
+      currentTemplate: null,
       actionInProress: false,
       templates: new SearchableCursorPaginationFetcher({
         baseURL: '/findingtemplates/', 
-        searchFilters: { ordering: '-usage', language: this.project.language },
+        searchFilters: { ordering: '-usage', preferred_language: this.project.language },
         axios: this.$axios, 
         toast: this.$toast
       }),
+      templateLanguage: null,
     }
   },
   computed: {
-    showOnlyMatchingLanguage: {
-      get() {
-        return this.templates.searchFilters.language === this.project.language;
-      },
-      set(val) {
-        this.templates.applyFilters({ language: val ? this.project.language : null });
-      }
-    }
+    templateLanguageChoices() {
+      return this.currentTemplate?.translations?.map(tr => this.$store.getters['apisettings/settings'].languages.find(l => l.code === tr.language)) || [];
+    },
+    displayLanguage() {
+      return this.templateLanguage || this.project.language;
+    },
   },
   watch: {
     dialogVisible() {
-      this.currentSelection = null;
+      this.currentTemplate = null;
       this.templates.searchQuery = null;
+    },
+    currentTemplate() {
+      if (!this.currentTemplate) {
+        this.templateLanguage = null;
+      } else if (this.currentTemplate.translations.some(tr => tr.language === this.templateLanguage)) {
+        // Keep current templateLanguage
+      } else if (this.currentTemplate.translations.some(tr => tr.language === this.project.language)) {
+        this.templateLanguage = this.project.language;
+      } else {
+        this.templateLanguage = this.currentTemplate.translations.find(tr => tr.is_main).language;
+      }
     },
   },
   methods: {
@@ -126,7 +127,7 @@ export default {
     async createEmptyFinding() {
       try {
         this.actionInProress = true;
-        const title = this.currentSelection || this.templates.searchQuery;
+        const title = this.currentTemplate || this.templates.searchQuery;
         const finding = await this.$store.dispatch('projects/createFinding', {
           projectId: this.project.id, 
           finding: { 
@@ -146,7 +147,11 @@ export default {
     async createFindingFromTemplate() {
       try {
         this.actionInProress = true;
-        const finding = await this.$store.dispatch('projects/createFindingFromTemplate', { projectId: this.project.id, templateId: this.currentSelection.id });
+        const finding = await this.$store.dispatch('projects/createFindingFromTemplate', { 
+          projectId: this.project.id, 
+          templateId: this.currentTemplate.id,
+          templateLanguage: this.templateLanguage,
+        });
         this.$router.push({ path: `/projects/${finding.project}/reporting/findings/${finding.id}/` });
         this.closeDialog();
       } catch (error) {
@@ -158,3 +163,11 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.template-select {
+  :deep(.v-select__selections) > input {
+    min-width: 0 !important;
+  }
+}
+</style>

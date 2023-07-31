@@ -1,5 +1,5 @@
 <template>
-  <v-chip class="ma-1" small>
+  <v-chip class="ma-1" small v-bind="$attrs" v-on="$listeners">
     <v-icon small left>mdi-translate</v-icon> {{ languageInfo.name }}
   </v-chip>
 </template>

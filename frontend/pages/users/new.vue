@@ -1,9 +1,8 @@
 <template>
   <v-container>
     <v-form ref="form">
-      <edit-toolbar :form="$refs.form" :save="performCreate">
+      <edit-toolbar :form="$refs.form" :save="performCreate" save-button-text="Create User">
         <template #title>Create new User</template>
-        <template #save-button-text>Create User</template>
       </edit-toolbar>
 
       <user-info-form v-model="user" :errors="serverErrors" :can-edit-permissions="true" :can-edit-username="true">

@@ -70,8 +70,9 @@ export default {
       this.$store.commit('projects/setSection', { projectId: this.section.project, section: data });
     },
     async onUpdateData({ oldValue, newValue }) {
-      if (this.$refs.toolbar?.autoSaveEnabled && (oldValue.status !== newValue.status || oldValue.assignee?.id !== newValue.assignee?.id)) {
-        await this.$refs.toolbar.performSave();
+      const toolbar = this.getToolbarRef();
+      if (toolbar?.autoSaveEnabled && (oldValue.status !== newValue.status || oldValue.assignee?.id !== newValue.assignee?.id)) {
+        await toolbar.performSave();
       }
     }
   }

@@ -1,5 +1,5 @@
 import urlJoin from 'url-join';
-import { debounce } from 'lodash';
+import { debounce, isEqual } from 'lodash';
 
 export function absoluteApiUrl(url, axios) {
   if (['http', 'data'].some(p => url.startsWith(p))) {
@@ -96,15 +96,21 @@ export class SearchableCursorPaginationFetcher {
   }
 
   search(val) {
+    if (this.searchQuery === val) {
+      return;
+    }
     this._searchFilters = Object.assign(this._searchFilters, { search: val })
     this._createFetcher();
     this.fetchNextPage();
   }
 
   applyFilters(filters) {
+    if (isEqual(filters, this._searchFilters)) {
+      return;
+    }
     Object.assign(this._searchFilters, filters);
     this._createFetcher();
-    this.fetchNextPageImmediate()
+    this.fetchNextPageImmediate();
   }
 
   get searchFilters() {
@@ -112,7 +118,7 @@ export class SearchableCursorPaginationFetcher {
   }
 
   get searchQuery() {
-    return this.searchFilters.search;
+    return this.searchFilters?.search || '';
   }
 
   set searchQuery(val) {
