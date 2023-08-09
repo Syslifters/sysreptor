@@ -128,6 +128,9 @@ export const mutations = {
       this.commit('projects/removeNote', { projectId, noteId: note.id });
     }
   },
+  clear(state) {
+    state.data = {};
+  },
 };
 
 export const actions = {

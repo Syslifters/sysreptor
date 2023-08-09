@@ -19,11 +19,10 @@
 | __Note Taking__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __Evidence Archiving__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __Encrypted Archiving (four-eyes principle)__ | <span style="color:red;font-weight:bold;">X</span> | <span style="color:green;font-weight:bold;">✓</span> |
+| __Retention Time Definition__ | <span style="color:red;font-weight:bold;">X</span> | <span style="color:green;font-weight:bold;">✓</span> |
 |  | [:fire: Get Started](/setup/installation/){ .md-button target="_blank" } | [:rocket: Buy](https://cloud.sysreptor.com/order/){ .md-button target="_blank"} |
-| __Retention Time Definition__ | Coming soon. {: colspan=2} |
+| | [:material-phone: Contact Us](/contact-us/){ .md-button style="align:center;" } {: colspan=2} |
 
-
-<div style="text-align:center;color:white;"><a class="demo-button" href="https://cloud.sysreptor.com/demo" target="_blank" style="text-align:center;color:white;">Try the Playground</a></div>
 
 <br><br>
 __*Spell Check support__: English, German, Spanish, French, Portuguese, Dutch  

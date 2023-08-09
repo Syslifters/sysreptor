@@ -105,6 +105,16 @@ def export_archive_iter(data, serializer_class: Type[serializers.Serializer], co
                         file_chunks=file.chunks()
                     )
 
+            design_notice_file = (settings.PDF_RENDER_SCRIPT_PATH / '..' / 'NOTICE_DESIGNS').resolve()
+            if context.get('add_design_notice_file') and design_notice_file.is_file():
+                design_notice_text = design_notice_file.read_bytes()
+                yield from _tarfile_addfile(
+                    buffer=buffer,
+                    archive=archive,
+                    tarinfo=build_tarinfo(name='NOTICE', size=len(design_notice_text)),
+                    file_chunks=[design_notice_text]
+                )
+
         yield from _yield_chunks(buffer=buffer, last_chunk=True)
     except Exception as ex:
             logging.exception('Error while exporting archive')
@@ -175,7 +185,9 @@ def export_templates(data: Iterable[FindingTemplate]):
 
 def export_project_types(data: Iterable[ProjectType]):
     prefetch_related_objects(data, 'assets')
-    return export_archive_iter(data, serializer_class=ProjectTypeExportImportSerializer)
+    return export_archive_iter(data, serializer_class=ProjectTypeExportImportSerializer, context={
+        'add_design_notice_file': True,
+    })
 
 def export_projects(data: Iterable[PentestProject], export_all=False):
     prefetch_related_objects(
@@ -189,6 +201,7 @@ def export_projects(data: Iterable[PentestProject], export_all=False):
     )
     return export_archive_iter(data, serializer_class=PentestProjectExportImportSerializer, context={
         'export_all': export_all,
+        'add_design_notice_file': True,
     })
 
 

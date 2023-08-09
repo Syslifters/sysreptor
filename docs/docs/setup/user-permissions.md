@@ -34,7 +34,7 @@ Guest are not allowed to list other users and might be further restricted by the
 * update project settings (default: yes)
 * delete projects (default: yes)
 
-:octicons-cloud-24: Cloud · Please [contact us](https://docs.syslifters.com/contact-us/){ target=_blank } and we will reconfigure your installation.
+:octicons-cloud-24: Cloud · Please [contact us](/contact-us/){ target=_blank } and we will reconfigure your installation.
 
 :octicons-server-24: Self-Hosted
 

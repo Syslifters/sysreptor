@@ -10,7 +10,7 @@ Use our cloud service for free to write your OffSec OSCP, OSWP, OSEP, OSWA, OSWE
 🎉 No need for Word  
 👌 No local software troubleshooting
 
-<br><div style="text-align:center">[:rocket: Sign Up Now](https://oscp.sysreptor.com/oscp/signup/){ .md-button }</div>
+<br><div style="text-align:center">[:rocket: Sign Up Now (it's free)](https://oscp.sysreptor.com/oscp/signup/){ .md-button }</div>
 <br><div style="text-align:center">Already have an account? [Login here.](https://labs.sysre.pt){ target=_blank }</div>
 <br>
 

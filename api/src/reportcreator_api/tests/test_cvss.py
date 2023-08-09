@@ -48,3 +48,238 @@ from reportcreator_api.pentests import cvss
 def test_cvss(vector, score):
     assert cvss.calculate_score(vector) == score
 
+
+@pytest.mark.parametrize("vector,metrics", [
+    ('CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L', {
+        "version": "3.0",
+        "base": {
+            "score": 4.6,
+            "exploitability": 1.181753232,
+            "impact": 3.3733761599999994
+        },
+        "temporal": {
+            "score": 4.6,
+            "exploitability": 1.181753232,
+            "impact": 3.3733761599999994
+        },
+        "environmental": {
+            "score": 4.6,
+            "exploitability": 1.181753232,
+            "impact": 3.3733761599999994
+        },
+        "final": {
+            "score": 4.6,
+            "exploitability": 1.181753232,
+            "impact": 3.3733761599999994
+        },
+    }),
+    ('CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L/E:P', {
+        "version": "3.0",
+        "base": {
+            "score": 4.6,
+            "exploitability": 1.181753232,
+            "impact": 3.3733761599999994
+        },
+        "temporal": {
+            "score": 4.4,
+            "exploitability": 1.181753232,
+            "impact": 3.3733761599999994
+        },
+        "environmental": {
+            "score": 4.4,
+            "exploitability": 1.181753232,
+            "impact": 3.3733761599999994
+        },
+        "final": {
+            "score": 4.4,
+            "exploitability": 1.181753232,
+            "impact": 3.3733761599999994
+        },
+    }),
+    ('CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L/E:P/MAC:L/MC:H', {
+        "version": "3.0",
+        "base": {
+            "score": 4.6,
+            "exploitability": 1.181753232,
+            "impact": 3.3733761599999994
+        },
+        "temporal": {
+            "score": 4.4,
+            "exploitability": 1.181753232,
+            "impact": 3.3733761599999994
+        },
+        "environmental": {
+            "score": 6.4,
+            "exploitability": 2.0680681560000003,
+            "impact": 4.70139168
+        },
+        "final": {
+            "score": 6.4,
+            "exploitability": 2.0680681560000003,
+            "impact": 4.70139168
+        },
+    }),
+    ('CVSS:3.1/AV:A/AC:H/PR:N/UI:R/S:C/C:H/I:L/A:L', {
+        "version": "3.1",
+        "base": {
+            "score": 7.0,
+            "exploitability": 1.181753232,
+            "impact": 5.268807630773988
+        },
+        "temporal": {
+            "score": 7.0,
+            "exploitability": 1.181753232,
+            "impact": 5.268807630773988
+        },
+        "environmental": {
+            "score": 7.0,
+            "exploitability": 1.181753232,
+            "impact": 5.2614179224506845
+        },
+        "final": {
+            "score": 7.0,
+            "exploitability": 1.181753232,
+            "impact": 5.268807630773988
+        },
+    }),
+    ('CVSS:3.1/AV:A/AC:H/PR:N/UI:R/S:C/C:H/I:L/A:L/RL:O', {
+        "version": "3.1",
+        "base": {
+            "score": 7.0,
+            "exploitability": 1.181753232,
+            "impact": 5.268807630773988
+        },
+        "temporal": {
+            "score": 6.7,
+            "exploitability": 1.181753232,
+            "impact": 5.268807630773988
+        },
+        "environmental": {
+            "score": 6.7,
+            "exploitability": 1.181753232,
+            "impact": 5.2614179224506845
+        },
+        "final": {
+            "score": 6.7,
+            "exploitability": 1.181753232,
+            "impact": 5.268807630773988
+        },
+    }),
+    ('CVSS:3.1/AV:A/AC:H/PR:N/UI:R/S:C/C:H/I:L/A:L/RL:O/CR:H/MPR:H', {
+        "version": "3.1",
+        "base": {
+            "score": 7.0,
+            "exploitability": 1.181753232,
+            "impact": 5.268807630773988
+        },
+        "temporal": {
+            "score": 6.7,
+            "exploitability": 1.181753232,
+            "impact": 5.268807630773988
+        },
+        "environmental": {
+            "score": 7.1,
+            "exploitability": 0.69514896,
+            "impact": 6.123536263797863
+        },
+        "final": {
+            "score": 7.1,
+            "exploitability": 0.69514896,
+            "impact": 6.123536263797863
+        },
+    }),
+    ('CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H', {
+        "version": "3.1",
+        "base": {
+            "score": 9.9,
+            "exploitability": 3.1096342200000002,
+            "impact": 6.0477304915445185
+        },
+        "temporal": {
+            "score": 9.9,
+            "exploitability": 3.1096342200000002,
+            "impact": 6.0477304915445185
+        },
+        "environmental": {
+            "score": 10.0,
+            "exploitability": 3.1096342200000002,
+            "impact": 6.1280263288099786
+        },
+        "final": {
+            "score": 9.9,
+            "exploitability": 3.1096342200000002,
+            "impact": 6.0477304915445185
+        },
+    }),
+    ('CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N', {
+        "version": "2",
+        "base": {
+            "score": 6.4,
+            "exploitability": 5.49,
+            "impact": 7.843935000000001
+        },
+        "temporal": {
+            "score": 6.4,
+            "exploitability": 5.49,
+            "impact": 7.843935000000001
+        },
+        "environmental": {
+            "score": 6.4,
+            "exploitability": 5.49,
+            "impact": 7.843935000000001
+        },
+        "final": {
+            "score": 6.4,
+            "exploitability": 5.49,
+            "impact": 7.843935000000001
+        },
+    }),
+    ('CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N/E:U', {
+        "version": "2",
+        "base": {
+            "score": 6.4,
+            "exploitability": 5.49,
+            "impact": 7.843935000000001
+        },
+        "temporal": {
+            "score": 5.4,
+            "exploitability": 5.49,
+            "impact": 7.843935000000001
+        },
+        "environmental": {
+            "score": 5.4,
+            "exploitability": 5.49,
+            "impact": 7.843935000000001
+        },
+        "final": {
+            "score": 5.4,
+            "exploitability": 5.49,
+            "impact": 7.843935000000001
+        },
+    }),
+    ('CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N/E:U/CDP:L/CR:H', {
+        "version": "2",
+        "base": {
+            "score": 6.4,
+            "exploitability": 5.49,
+            "impact": 7.843935000000001
+        },
+        "temporal": {
+            "score": 5.4,
+            "exploitability": 5.49,
+            "impact": 7.843935000000001
+        },
+        "environmental": {
+            "score": 6.1,
+            "exploitability": 5.49,
+            "impact": 8.34033585
+        },
+        "final": {
+            "score": 6.1,
+            "exploitability": 5.49,
+            "impact": 8.34033585
+        },
+    }),
+])
+def test_cvss_metrics(vector, metrics):
+    assert cvss.calculate_score(vector, return_metrics=True) == metrics

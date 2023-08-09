@@ -1,8 +1,6 @@
 import { resolve } from 'path';
 import colors from 'vuetify/es5/util/colors'
 import MonacoWebpackPlugin from 'monaco-editor-webpack-plugin'
-import { LicenseWebpackPlugin } from 'license-webpack-plugin';
-import licenseTextOverrides from './licenseTextOverrides.js';
 
 const babelPresets = [
   ["@babel/preset-env", { targets: ">0.25%, not dead" }]
@@ -108,6 +106,7 @@ export default {
       logout: '/login/?logout=true',
       home: '/'
     },
+    plugins: [{ src: '~/utils/authClearStores.js' }],
   },
 
   router: {
@@ -189,19 +188,6 @@ export default {
           'bracketMatching', 'comment', 'cursorUndo', 'find', 'folding', 'indentation', 'inlineCompletions', 
           'inspectTokens', 'linesOperations', 'parameterHints', 'rename', 'smartSelect', 'suggest', 'wordHighlighter',
         ],
-      }),
-      new LicenseWebpackPlugin({
-        perChunkOutput: false,
-        outputFilename: 'NOTICE',
-        excludedPackageTest: packageName => ['reportcreator-rendering', 'reportcreator-markdown'].includes(packageName),
-        licenseTypeOverrides: {
-          stackframe: 'Unlicense',
-        },
-        licenseTextOverrides,
-        unacceptableLicenseTest: licenseType => ![
-          'Apache-2.0', 'MIT', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC', 'Unlicense',
-          '(MPL-2.0 OR Apache-2.0)', '(MIT AND BSD-3-Clause)'
-        ].includes(licenseType),
       }),
     ],
     babel: {

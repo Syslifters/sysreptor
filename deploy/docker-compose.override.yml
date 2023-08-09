@@ -3,6 +3,9 @@ name: sysreptor
 
 services:
   app:
+    build: 
+      args:
+        CA_CERTIFICATES: ${SYSREPTOR_CA_CERTIFICATES}
     environment:
       SPELLCHECK_URL: http://languagetool:8010/
     depends_on:
@@ -11,6 +14,8 @@ services:
   languagetool:
     build: 
       context: ../languagetool
+      args:
+        CA_CERTIFICATES: ${SYSREPTOR_CA_CERTIFICATES}
     container_name: 'sysreptor-languagetool'
     init: true
     environment:

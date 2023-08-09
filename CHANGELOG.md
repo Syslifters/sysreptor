@@ -1,5 +1,20 @@
 # Changelog
 
+## v2023.114 - 2023-08-09
+* Remove beta label and change versioning scheme
+* Export notes as PDF
+* Speed up unit tests for API
+* Add CLI command to restore backups
+* Sort users alphabetically in selection
+* Clear user specific data from Vuex stores on logout
+* Filter notifications in API when fetching instead of locally in instances
+* Add datalabels plugin for Chart.js in designs
+* Fix backward compatible import of templates with old format (format: templates/v1)
+* Fix horizontal input field overflows in template editor
+* Expose more CVSS information in designs (including CVSS version, base/temporal/environmental score, impact/exploitability subscores)
+* Allow adding custom CA certificates to the docker containers during build 
+
+
 ## v0.110 - 2023-07-31
 * Multilingual templates
 * Support images in templates

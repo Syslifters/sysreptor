@@ -21,6 +21,10 @@ export default {
       type: String,
       default: null,
     },
+    extension: {
+      type: String,
+      default: '.tar.gz',
+    },
     buttonText: {
       type: String,
       default: "Export",
@@ -33,7 +37,7 @@ export default {
   computed: {
     filename() {
       const name = (this.name || 'export').replaceAll(' ', '-');
-      return name + '.tar.gz';
+      return name + this.extension;
     },
   },
   methods: {

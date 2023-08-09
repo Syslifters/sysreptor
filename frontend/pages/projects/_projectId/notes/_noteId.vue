@@ -34,6 +34,16 @@
             :disabled="readonly"
           />
         </template>
+
+        <template #context-menu>
+          <btn-export 
+            :export-url="exportPdfUrl"
+            :name="note.title"
+            extension=".pdf"
+            button-text="Export as PDF"
+            list-item
+          />
+        </template>
       </edit-toolbar>
 
       <markdown-page 
@@ -75,6 +85,9 @@ export default {
     hasChildNotes() {
       return this.$store.getters['projects/notes'](this.project.id)
         .some(n => n.parent === this.note.id && n.id !== this.note.id);
+    },
+    exportPdfUrl() {
+      return urlJoin(this.baseUrl, '/export-pdf/');
     },
   },
   methods: {

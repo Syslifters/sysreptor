@@ -165,7 +165,7 @@ class FindingTemplateImportSerializerV1(ExportImportSerializer):
     format = FormatField('templates/v1')
 
     language = serializers.ChoiceField(choices=Language.choices, source='main_translation__language')
-    status = serializers.ChoiceField(choices=ReviewStatus.choices, source='main_translation__status')
+    status = serializers.ChoiceField(choices=ReviewStatus.choices, source='main_translation__status', default=ReviewStatus.IN_PROGRESS)
     data = serializers.DictField(source='main_translation__data')
 
     class Meta:

@@ -10,7 +10,7 @@ docker=1
 for cmd in curl openssl tar uuidgen docker "docker compose" sed
 do
     if
-        ! command -v $cmd >/dev/null
+        ! command -v "$cmd" >/dev/null
     then
         echo "Error: $cmd is not installed."
         if
@@ -130,13 +130,13 @@ password=`openssl rand -base64 20 | tr -d '\n='`
 echo '' | docker compose exec --no-TTY -e DJANGO_SUPERUSER_USERNAME="reptor" -e DJANGO_SUPERUSER_PASSWORD="$password" app python3 manage.py createsuperuser --noinput
 echo "Importing demo projects..."
 url="https://docs.sysreptor.com/assets/demo-projects.tar.gz"
-curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=project --add-member=reptor 2>/dev/null
+curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=project --add-member=reptor
 echo "Importing demo designs..."
 url="https://docs.sysreptor.com/assets/demo-designs.tar.gz"
-curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=design 2>/dev/null
+curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=design
 echo "Importing finding templates..."
 url="https://docs.sysreptor.com/assets/demo-templates.tar.gz"
-curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=template 2>/dev/null
+curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=template
 echo "All imported."
 
 echo ""

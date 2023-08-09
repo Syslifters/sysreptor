@@ -11,16 +11,20 @@ export const state = () => ({
 export const mutations = {
   ...store.mutations,
   setAll(state, objs) {
-    // Update/add findings
+    // Update/add notes
     for (const obj of objs) {
       this.commit('usernotes/set', obj);
     }
-    // Remove deleted findings
+    // Remove deleted notes
     for (const obj of Object.values(state.data).filter(o => !objs.map(o2 => o2.id).includes(o.id))) {
       this.commit('usernotes/remove', obj);
     }
     state.listAvailalbe = true;
-  }
+  },
+  clear(state) {
+    state.listAvailalbe = false;
+    state.data = {};
+  },
 };
 
 export const actions = {

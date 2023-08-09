@@ -19,8 +19,8 @@ nav:
     - Markdown Syntax: reporting/markdown-features.md
     - Spell Check: reporting/spell-check.md
     - References: reporting/references.md
+    - Finding Templates: finding-templates/create-finding.md
     - Locked Sections: reporting/locking.md
-    - Archiving: reporting/archiving.md
   - Designing Reports:
       - Designer: designer/designer.md
       - Page Layout: designer/page-layout.md
@@ -33,13 +33,17 @@ nav:
       - Formatting Utilities: designer/formatting-utils.md
       - Debugging: designer/debugging.md
       - FAQs: designer/faqs.md
-  - Templates: templates.md
+  - Finding Templates: 
+    - Overview: finding-templates/overview.md
+    - Create Finding: finding-templates/create-finding.md
+    - Multilingual: finding-templates/multilingual.md
   - Tech Insights:
     - Rendering Workflow: insights/rendering-workflow.md
+    - Archiving: insights/archiving.md
     - Security Considerations: insights/security-considerations.md
   - Show and Tell: show-and-tell/index.md
-  - Free Reporting:
-    - OffSec: offsec-reporting-with-sysreptor.md
+  - OSCP Reporting: offsec-reporting-with-sysreptor.md
+  - Contact Us: contact-us.md
 
     
 theme:
@@ -69,21 +73,23 @@ plugins:
       archive: false
       categories: false
       post_readtime: false
-  - social:
-      cards: !ENV [CARDS, true]
-      cards_color:
-        fill: "#001827"
-        text: "#F9FDFF"
-      cards_font: Exo
+  #- social:
+  #    cards: !ENV [CARDS, true]
+  #    cards_color:
+  #      fill: "#001827"
+  #      text: "#F9FDFF"
+  #    cards_font: Exo
   - tooltips
   - search
-  - privacy
+  #- privacy
   - redirects:
       redirect_maps:
         "setup/nginx-server.md": "setup/webserver.md"
         "reporting/referencing-sections.md": "reporting/references.md"
         "setup/prerequisites.md": "setup/installation.md"
         "backups.md": "setup/backups.md"
+        "templates.md": "finding-templates/overview.md"
+        "reporting/archiving.md": "insights/archiving.md"
 
 markdown_extensions:
   - attr_list
@@ -117,4 +123,4 @@ extra:
       link: https://at.linkedin.com/showcase/sysreptor
   generator: false
 
-copyright: '<a href="https://www.syslifters.com/" target="_blank">Our Website</a> | <a href="https://www.syslifters.com/impressum" target="_blank">Imprint</a> | <a href="/data-privacy">Data Privacy</a> | <a href="https://docs.syslifters.com/contact-us" target="blank">Contact</a><br><br>Die FFG ist die zentrale nationale Förderorganisation und stärkt Österreichs Innovationskraft.<br>Dieses Projekt wird aus Mitteln der FFG gefördert. <a href="https://www.ffg.at" target="_blank">www.ffg.at</a><br>'
+copyright: '<a href="https://www.syslifters.com/" target="_blank">Our Website</a> | <a href="https://www.syslifters.com/impressum" target="_blank">Imprint</a> | <a href="/data-privacy">Data Privacy</a> | <a href="/contact-us" target="blank">Contact</a><br><br>The FFG is the central national funding organization and strengthens Austria''s innovative power.<br>This project is funded by the FFG.<a href="https://www.ffg.at" target="_blank">www.ffg.at</a><br>'

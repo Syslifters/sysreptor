@@ -3,6 +3,7 @@ from typing import Iterator
 from uuid import uuid4
 from django.core.files import File
 from reportcreator_api.archive.crypto import base as crypto
+from reportcreator_api.utils.utils import is_uuid
 
 
 class IterableToFileAdapter(File):
@@ -55,7 +56,9 @@ class EncryptedStorageMixin:
         return File(file=crypto.open(fileobj=super().open(name=name, mode=mode, **kwargs), mode=mode), name=name)
     
     def save(self, name, content, max_length=None):
-        return super().save(name=str(uuid4()), content=EncryptedFileAdapter(file=File(content)), max_length=max_length)
+        if not is_uuid(name.replace('/', '')):
+            name = str(uuid4())
+        return super().save(name=name, content=EncryptedFileAdapter(file=File(content)), max_length=max_length)
     
     def size(self, name):
         size = super().size(name)
@@ -65,7 +68,6 @@ class EncryptedStorageMixin:
         return size
 
     def get_available_name(self, name, max_length=None):
-        randname = str(uuid4())
-        randname_with_dir = randname[:2] + '/' + randname[2:]
-        return super().get_available_name(name=randname_with_dir, max_length=None)
+        name_with_dir = name[:2] + '/' + name[2:]
+        return super().get_available_name(name=name_with_dir, max_length=None)
 

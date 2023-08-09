@@ -77,7 +77,9 @@
     <p class="mt-4">
       <strong>{{ archive.threshold }} of {{ archive.key_parts.length }}</strong> users are required to restore the project.<br>
       <template v-if="archive.key_parts.filter(p => p.is_decrypted).length > 0">
-        <strong>{{ archive.threshold - archive.key_parts.filter(p => p.is_decrypted).length }} more users</strong> required to restore the project.
+        <strong>{{ archive.threshold - archive.key_parts.filter(p => p.is_decrypted).length }} more users</strong> required to restore the project.<br>
+        They have to decrypt their key parts {{ restoreUntilDate }}, 
+        otherwise all decrypted key parts will be reset due to inactivity and archive restoring has to start again.
       </template>
     </p>
 
@@ -110,6 +112,7 @@
 
 <script>
 import { Splitpanes, Pane } from 'splitpanes';
+import { parseISO, formatDistanceToNowStrict, isSameDay } from 'date-fns';
 
 export default {
   components: { Splitpanes, Pane },
@@ -138,6 +141,19 @@ export default {
     return {
       titleTemplate: title => this.$root.$options.head.titleTemplate((title ? `${title} | ` : '') + this.archive.name),
     }
+  },
+  computed: {
+    restoreUntilDate() {
+      if (!this.archive.reencrypt_key_parts_after_inactivity_date) {
+        return null;
+      }
+      const date = parseISO(this.archive.reencrypt_key_parts_after_inactivity_date);
+      if (isSameDay(date, new Date()) || date <= new Date()) {
+        return 'today';
+      }
+
+      return 'in the next ' + formatDistanceToNowStrict(date, { unit: 'day' });
+    },
   },
   methods: {
     async decryptKeyPart() {

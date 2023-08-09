@@ -63,9 +63,11 @@ class UserSubresourceViewSetMixin(views.APIView):
 @extend_schema(parameters=[OpenApiParameter(name='id', type=UUID, location=OpenApiParameter.PATH)])
 class PentestUserViewSet(viewsets.ModelViewSet):
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [UserViewSetPermissions]
-    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend, filters.OrderingFilter]
     search_fields = ['username', 'email', 'first_name', 'last_name']
     filterset_fields = ['username', 'email']
+    ordering_fields = ['created', 'username']
+    ordering = ['-created']
 
     def get_queryset(self):
         return PentestUser.objects \

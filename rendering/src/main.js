@@ -1,5 +1,6 @@
 import { createApp, compile } from 'vue';
 import { generateCodeFrame } from '@vue/shared';
+import ChartJsPluginDataLabels from 'chartjs-plugin-datalabels';
 import Pagebreak from './components/Pagebreak.vue';  
 import Markdown from './components/Markdown.vue';
 import CommaAndJoin from './components/CommaAndJoin.js';
@@ -59,7 +60,12 @@ const DEFAULT_COMPUTED = {
   },
   lodash() {
     return lodash;
-  }
+  },
+  chartjsPlugins() {
+    return { 
+      DataLabels: ChartJsPluginDataLabels 
+    };
+  },
 };
 
 const DEFAULT_METHODS = {

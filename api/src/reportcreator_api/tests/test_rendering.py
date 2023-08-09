@@ -203,7 +203,8 @@ class TestHtmlRendering:
                     backgroundColor: ['#e21212', '#eb6020', '#cf8e2b', '#4d82a8', '#2d5f2e'],
                 }]
             },
-            options: {scales: {y: {beginAtZero: true, ticks: {precision: 0}}}, plugins: {legend: {display: false}}}
+            options: {scales: {y: {beginAtZero: true, ticks: {precision: 0}}}, plugins: {legend: {display: false}}},
+            plugins: [ chartjsPlugins.DataLabels ],
         }" />""")
         assert re.fullmatch(r'^\s*<img src="data:image/png;base64,[a-zA-z0-9+/=]+" alt="" style="width: 15cm; height: 10cm;">\s*$', html)
 

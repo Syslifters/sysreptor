@@ -15,7 +15,8 @@ from reportcreator_api.pentests.views import ArchivedProjectKeyPartViewSet, Arch
     PentestProjectPreviewView, PentestProjectGenerateView, \
     ProjectTypeViewSet, ProjectTypePreviewView, \
     ReportSectionViewSet, UploadedAssetViewSet, UploadedImageViewSet, UploadedProjectFileViewSet, UploadedUserNotebookImageViewSet, \
-    UploadedUserNotebookFileViewSet, UserNotebookPageViewSet, UserPublicKeyViewSet
+    UploadedUserNotebookFileViewSet, UserNotebookPageViewSet, UserPublicKeyViewSet, \
+    ProjectNotebookPageExportPdfView, UserNotebookPageExportPdfView
 from reportcreator_api.users.views import APITokenViewSet, PentestUserViewSet, MFAMethodViewSet, AuthViewSet, AuthIdentityViewSet
 from reportcreator_api.notifications.views import NotificationViewSet
 
@@ -79,6 +80,8 @@ urlpatterns = [
         path('pentestprojects/<uuid:pk>/preview/', PentestProjectPreviewView.as_view(), name='pentestproject-preview'),
         path('pentestprojects/<uuid:pk>/generate/', PentestProjectGenerateView.as_view(), name='pentestproject-generate'),
         path('projecttypes/<uuid:pk>/preview/', ProjectTypePreviewView.as_view(), name='projecttype-preview'),
+        path('pentestprojects/<uuid:project_pk>/notes/<uuid:id>/export-pdf/', ProjectNotebookPageExportPdfView.as_view(), name='projectnotebookpage-export-pdf'),
+        path('pentestusers/<str:pentestuser_pk>/notes/<uuid:id>/export-pdf/', UserNotebookPageExportPdfView.as_view(), name='usernotebookpage-export-pdf'),
     
         # OpenAPI schema
         path('utils/openapi/', SpectacularAPIView.as_view(), name='utils-openapi-schema'),

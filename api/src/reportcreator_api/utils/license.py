@@ -2,6 +2,7 @@
 import base64
 import json
 import logging
+from asgiref.sync import sync_to_async
 from Cryptodome.Hash import SHA512
 from Cryptodome.PublicKey import ECC
 from Cryptodome.Signature import eddsa
@@ -10,7 +11,7 @@ from django.db import models
 from django.utils import dateparse, timezone
 from rest_framework import permissions
 
-from reportcreator_api.utils.decorators import cache
+from reportcreator_api.utils.decorators import acache, cache
 
 
 class LicenseError(Exception):
@@ -116,6 +117,11 @@ def decode_and_validate_license(license):
 @cache('license.license_info', timeout=10 * 60)
 def check_license():
     return decode_and_validate_license(settings.LICENSE)
+
+
+@acache('license.license_info', timeout=10 * 60)
+async def acheck_license():
+    return await sync_to_async(check_license)()
 
 
 def is_professional():

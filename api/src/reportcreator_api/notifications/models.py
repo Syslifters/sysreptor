@@ -10,7 +10,6 @@ class NotificationSpec(BaseModel):
     Specification for a notification that gets assigned to users.
     """
     active_until = models.DateField(null=True, blank=True, db_index=True)
-    instance_conditions = models.JSONField(default=dict, blank=True)
     user_conditions = models.JSONField(default=dict, blank=True)
     visible_for_days = models.IntegerField(null=True, blank=True)
 

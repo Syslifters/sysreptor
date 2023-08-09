@@ -20,7 +20,8 @@ const STYLE_ISSUE_TYPES = [
 
 export function spellcheck({ performSpellcheckRequest, performSpellcheckAddWordRequest }) {
   return linter(async (view) => {
-    const annotatedText = markdownToAnnotatedText(view.state.doc.toString());
+    const initial = view.state.doc.toString();
+    const annotatedText = markdownToAnnotatedText(initial);
     if (annotatedText.length === 0) {
       return [];
     }
@@ -28,6 +29,12 @@ export function spellcheck({ performSpellcheckRequest, performSpellcheckAddWordR
     const spellcheckResults = await performSpellcheckRequest({
       data: {annotation: annotatedText},
     });
+
+    if (initial !== view.state.doc.toString()) {
+      // State changed during spellcheck request: ignore results. 
+      // The linter will be called again for the new/changed state.
+      return [];
+    }
     
     return spellcheckResults.matches.map(m => {
       const severity = SPELLING_RULE_IDS.some(r => m.rule.id.includes(r)) ? 'error' :

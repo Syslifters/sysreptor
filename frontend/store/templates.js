@@ -11,7 +11,10 @@ export const mutations = {
   },
   setFieldDefinitionSync(state, data) {
     state.fieldDefinitionSync = data;
-  }
+  },
+  clear(state) {
+    // Nothing to clear
+  },
 };
 
 export const actions = {

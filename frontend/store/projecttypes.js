@@ -12,6 +12,9 @@ export const mutations = {
   setPredefinedFindingFields(state, data) {
     state.predefinedFindingFields = data;
   },
+  clear(state) {
+    state.data = {};
+  },
 };
 
 export const actions = {

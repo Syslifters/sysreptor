@@ -45,7 +45,7 @@
           <v-card-actions>
             <s-tooltip>
               <template #activator="{on, attrs}">
-                <s-btn :to="imageUrl(asset)" download v-bind="attrs" v-on="on" icon>
+                <s-btn :href="imageUrl(asset)" download v-bind="attrs" v-on="on" icon>
                   <v-icon>mdi-download</v-icon>
                 </s-btn>
               </template>

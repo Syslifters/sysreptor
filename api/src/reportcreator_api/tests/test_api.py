@@ -1,14 +1,17 @@
 import pytest
+from functools import cached_property
+from typing import Optional
+from uuid import uuid4
 from django.urls import reverse
 from django.core.files.base import ContentFile
 from django.http import FileResponse, StreamingHttpResponse
 from django.test import override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
-from reportcreator_api.users.models import AuthIdentity
+from reportcreator_api.users.models import AuthIdentity, PentestUser
 from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, ProjectTypeScope, SourceEnum, \
     UploadedUserNotebookImage, UploadedUserNotebookFile, Language
-from reportcreator_api.notifications.models import NotificationSpec
+from reportcreator_api.notifications.models import NotificationSpec, UserNotification
 from reportcreator_api.tests.mock import create_archived_project, create_user, create_project, create_project_type, create_template, create_png_file
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates
 
@@ -29,7 +32,7 @@ def viewset_urls(basename, get_kwargs, create_data={}, list=False, retrieve=Fals
 
     out = []
     if list:
-        out.append((basename + ' list', lambda s, c: c.get(reverse(list_urlname, kwargs=get_kwargs(s, False)))))
+        out.append((basename + ' list', lambda s, c: c.get(reverse(list_urlname, kwargs=get_kwargs(s, False))), lambda s: get_kwargs(s, True)))
     if retrieve:
         out.append((basename + ' retrieve', lambda s, c: c.get(reverse(detail_urlname, kwargs=get_kwargs(s, True)))))
     if create:
@@ -91,6 +94,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('pentestproject export-all', lambda s, c: c.post(reverse('pentestproject-export-all', kwargs={'pk': get_obj(s).pk}))),
             ('pentestproject preview', lambda s, c: c.post(reverse('pentestproject-preview', kwargs={'pk': get_obj(s).pk}), data={})),
             ('pentestproject generate', lambda s, c: c.post(reverse('pentestproject-generate', kwargs={'pk': get_obj(s).pk}), data={'password': 'pdf-password'})),
+            ('projectnotebookpage export-pdf', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
         ])
     if write:
         out.extend([
@@ -136,7 +140,8 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=Fal
 
 def expect_result(urls, allowed_users=None):
     all_users = {'public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'}
-
+    urls = [((*u, None) if len(u) == 2 else u) for u in urls]
+    
     for user in allowed_users or []:
         yield from [(user, *u, True) for u in urls]
     for user in all_users - set(allowed_users or []):
@@ -158,39 +163,40 @@ def guest_urls():
 
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': 'self'}, retrieve=True, update=True, update_partial=True),
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {}, list=True),
-        *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.mfa_methods.get(is_primary=True).id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, update=True, update_partial=True, destroy=True),
+        *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.mfa_methods.get(is_primary=True).id if s.current_user else uuid4()} if detail else {}), list=True, retrieve=True, update=True, update_partial=True, destroy=True),
         ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': 'self'}))),
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': 'self'}))),
         ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': 'self'}))),
-        *viewset_urls('notification', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.notifications.first().id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
-        *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.public_keys.first().id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
-        *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.api_tokens.first().pk if s.current_user else 'fake-uuid'} if detail else {}), create=True, list=True, retrieve=True, destroy=True),
+        *viewset_urls('notification', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.notification.id if s.current_user else uuid4()} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
+        *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.public_keys.first().id if s.current_user else uuid4()} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
+        *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.api_tokens.first().pk if s.current_user else uuid4()} if detail else {}), create=True, list=True, retrieve=True, destroy=True),
 
-        *viewset_urls('usernotebookpage', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'id': s.current_user.notes.first().note_id if s.current_user else 'fake-uuid'} if detail else {}), list=True, retrieve=True, create=True, update=True, update_partial=True, destroy=True, lock=True, unlock=True),
+        *viewset_urls('usernotebookpage', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'id': s.current_user.notes.first().note_id if s.current_user else uuid4()} if detail else {}), list=True, retrieve=True, create=True, update=True, update_partial=True, destroy=True, lock=True, unlock=True),
         ('usernotebookpage sort', lambda s, c: c.post(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': 'self'}), data=[])),
         *file_viewset_urls('uploadedusernotebookimage', get_obj=lambda s: s.current_user.images.first() if s.current_user else UploadedUserNotebookImage(name='nonexistent.png'), get_base_kwargs=lambda s: {'pentestuser_pk': 'self'}, read=True, write=True),
         *file_viewset_urls('uploadedusernotebookfile', get_obj=lambda s: s.current_user.files.first() if s.current_user else UploadedUserNotebookFile(name='nonexistent.pdf'), get_base_kwargs=lambda s: {'pentestuser_pk': 'self'}, read=True, write=True),
         ('usernotebook upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
         ('usernotebook upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
+        ('usernotebook export-pdf', lambda s, c: c.post(reverse('usernotebookpage-export-pdf', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True),
         *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, read=True),
-        ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition'))),
+        ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition')), lambda s: [s.template, s.project_type]),
 
         ('projecttype create private', lambda s, c: c.post(reverse('projecttype-list'), data=c.get(reverse('projecttype-detail', kwargs={'pk': s.project_type.pk})).data | {'scope': ProjectTypeScope.PRIVATE})),
         ('projecttype import private', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(s.project_type), 'scope': ProjectTypeScope.PRIVATE}, format='multipart')),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type, list=True, read=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, read=True, write=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, read=True),
-        *projecttype_viewset_urls(get_obj=lambda s: ProjectType.objects.filter(linked_user=s.current_user or s.user_regular).first(), read=True, write=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private, read=True, write=True),
 
         *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True, write=True, destory=False, update=False),
         *project_viewset_urls(get_obj=lambda s: s.project_readonly, read=True),
 
         *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project.pk} | ({'pk': s.archived_project.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
-        ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project.pk, 'pk': getattr(s.archived_project.key_parts.filter(user=s.current_user).first(), 'pk', 'fake-uuid')}))),
+        ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project.pk, 'pk': getattr(s.archived_project.key_parts.filter(user=s.current_user).first(), 'pk', uuid4())}))),
     ]
 
 
@@ -305,82 +311,121 @@ def build_test_parameters():
     )
 
 
-@pytest.mark.django_db
-class TestApiRequestsAndPermissions:
-    @pytest.fixture(autouse=True)
-    def setUp(self):
-        self.user_guest = create_user(username='guest', is_guest=True, mfa=True, apitoken=True, public_key=True)
-        self.user_regular = create_user(username='regular', mfa=True, apitoken=True, public_key=True)
-        self.user_template_editor = create_user(username='template_editor', is_template_editor=True, mfa=True, apitoken=True, public_key=True)
-        self.user_designer = create_user(username='designer', is_designer=True, mfa=True, apitoken=True, public_key=True)
-        self.user_user_manager = create_user(username='user_manager', is_user_manager=True, mfa=True, apitoken=True, public_key=True)
-        self.user_superuser = create_user(username='superuser', is_superuser=True, is_staff=True, mfa=True, apitoken=True, public_key=True)
-        self.user_superuser.admin_permissions_enabled = True
-        self.user_map = {
-            'guest': self.user_guest,
-            'regular': self.user_regular,
-            'template_editor': self.user_template_editor,
-            'designer': self.user_designer,
-            'user_manager': self.user_user_manager,
-            'superuser': self.user_superuser,
-        }
+class ApiRequestsAndPermissionsTestData:
+    def __init__(self, current_user: Optional[PentestUser]) -> None:
+        self.current_user = current_user
 
-        self.user_other = create_user(username='other', mfa=True, apitoken=True, public_key=True)
-        AuthIdentity.objects.create(user=self.user_other, provider='dummy', identifier='other.user@example.com')
-        NotificationSpec.objects.create(text='Test')
+    @classmethod
+    def create_user(cls, is_superuser=False, **kwargs):
+        return create_user(mfa=True, apitoken=True, public_key=True, is_superuser=is_superuser, **kwargs)
 
-        self.current_user = None
+    @cached_property
+    def user_other(self):
+        user = self.create_user(username='other')
+        AuthIdentity.objects.create(user=user, provider='dummy', identifier='other.user@example.com')
+        return user
     
-        self.project = create_project(members=self.user_map.values())
-        self.project_readonly = create_project(members=self.user_map.values(), readonly=True)
-        self.project_unauthorized = create_project(members=[self.user_other])
-        self.project_readonly_unauthorized = create_project(members=[self.user_other], readonly=True)
+    @cached_property
+    def notification(self):
+        NotificationSpec.objects.create(text='Test')
+        return self.current_user.notifications.first() if self.current_user else UserNotification()
 
-        self.archived_project = create_archived_project(project=self.project_readonly)
-        self.archived_project_unauthorized = create_archived_project(project=self.project_unauthorized)
+    @cached_property
+    def project(self):
+        return create_project(members=[self.current_user] if self.current_user else [self.user_other])
+    
+    @cached_property
+    def project_readonly(self):
+        return create_project(members=[self.current_user] if self.current_user else [self.user_other], readonly=True)
+    
+    @cached_property
+    def project_unauthorized(self):
+        return create_project(members=[self.user_other])
+    
+    @cached_property
+    def project_readonly_unauthorized(self):
+        return create_project(members=[self.user_other], readonly=True)
+    
+    @cached_property
+    def archived_project(self):
+        return create_archived_project(self.project_readonly)
+    
+    @cached_property
+    def archived_project_unauthorized(self):
+        return create_archived_project(self.project_readonly_unauthorized)
+    
+    @cached_property
+    def project_type(self):
+        return create_project_type()
+    
+    @cached_property
+    def project_type_customized(self):
+        return create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=self.project)
 
-        self.project_type = create_project_type()
-        self.project_type_customized = create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=self.project)
-        self.project_type_customized_unauthorized = create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=self.project_unauthorized)
-        self.project_type_snapshot = create_project_type(source=SourceEnum.SNAPSHOT, linked_project=self.project)
-        self.project_type_private_unauthorized = create_project_type(source=SourceEnum.CREATED, linked_user=self.user_other)
-        # Personal project_types
-        for u in self.user_map.values():
-            create_project_type(source=SourceEnum.CREATED, linked_user=u)
+    @cached_property
+    def project_type_customized_unauthorized(self): 
+        return create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=self.project_unauthorized)
+    
+    @cached_property
+    def project_type_snapshot(self):
+        return create_project_type(source=SourceEnum.SNAPSHOT, linked_project=self.project)
+    
+    @cached_property
+    def project_type_private(self):
+        return create_project_type(source=SourceEnum.CREATED, linked_user=self.current_user)
 
-        self.template = create_template()
+    @cached_property
+    def project_type_private_unauthorized(self):
+        return create_project_type(source=SourceEnum.CREATED, linked_user=self.user_other)
 
-        # Override settings
-        with override_settings(
-                GUEST_USERS_CAN_IMPORT_PROJECTS=False,
-                GUEST_USERS_CAN_CREATE_PROJECTS=False,
-                GUEST_USERS_CAN_DELETE_PROJECTS=False,
-                GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=False,
-                AUTHLIB_OAUTH_CLIENTS={
-                    'dummy': {
-                        'label': 'Dummy',
-                    }
+    @cached_property
+    def template(self):
+        return create_template()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(['username', 'name', 'perform_request', 'initialize_dependencies', 'expected'], sorted(build_test_parameters(), key=lambda t: (t[0], t[1], t[4])))
+def test_api_requests(username, name, perform_request, initialize_dependencies, expected):
+    with override_settings(
+            GUEST_USERS_CAN_IMPORT_PROJECTS=False,
+            GUEST_USERS_CAN_CREATE_PROJECTS=False,
+            GUEST_USERS_CAN_DELETE_PROJECTS=False,
+            GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=False,
+            ARCHIVING_THRESHOLD=1,
+            AUTHLIB_OAUTH_CLIENTS={
+                'dummy': {
+                    'label': 'Dummy',
                 }
-            ):
-            yield
-
-    @pytest.mark.parametrize('user,name,perform_request,expected', sorted(build_test_parameters(), key=lambda t: (t[0], t[1], t[3])))
-    def test_api_requests(self, user, name, perform_request, expected):
+            }
+        ):
+        user_map = {
+            'public': lambda: None,
+            'guest': lambda: ApiRequestsAndPermissionsTestData.create_user(is_guest=True),
+            'regular': lambda: ApiRequestsAndPermissionsTestData.create_user(),
+            'template_editor': lambda: ApiRequestsAndPermissionsTestData.create_user(is_template_editor=True),
+            'designer': lambda: ApiRequestsAndPermissionsTestData.create_user(is_designer=True),
+            'user_manager': lambda: ApiRequestsAndPermissionsTestData.create_user(is_user_manager=True),
+            'superuser': lambda: ApiRequestsAndPermissionsTestData.create_user(is_superuser=True),
+        }
+        user = user_map[username]()
+        data = ApiRequestsAndPermissionsTestData(user)
         client = APIClient()
-        if user_obj := self.user_map.get(user):
-            client.force_authenticate(user_obj)
+        if user:
+            if user.is_superuser:
+                user.admin_permissions_enabled = True
+            client.force_authenticate(user)
             session = client.session
             session['authentication_info'] = {
                 'login_time': timezone.now().isoformat(),
                 'reauth_time': timezone.now().isoformat(),
             }
             session.save()
-            self.current_user = user_obj
 
-        res = perform_request(self, client)
+        if initialize_dependencies:
+            initialize_dependencies(data)
+        res = perform_request(data, client)
         info = res.data if not isinstance(res, (FileResponse, StreamingHttpResponse)) else res
         if expected:
             assert 200 <= res.status_code < 300, {'message': 'API request failed, but should have succeeded', 'info': info}
         else:
             assert 400 <= res.status_code < 500, {'message': 'API request succeeded, but should have failed', 'info': info}
-

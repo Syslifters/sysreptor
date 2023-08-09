@@ -53,27 +53,11 @@ class NotificationSpecManager(models.Manager.from_queryset(NotificationSpecQuery
             return required_version and current_version < required_version
         else:
             return current_version == self.parse_version(version_condition)
-
-    def check_instance_conditions(self, notification):
-        current_instance_tags = list(settings.INSTANCE_TAGS)
-        if license.is_professional():
-            current_instance_tags.append('license:professional')
-        elif not license.is_professional() and not license.check_license()['error']:
-            current_instance_tags.append('license:community')
-        if (instance_tags := set(notification.instance_conditions.get('any_tag', []))) and not instance_tags.intersection(current_instance_tags):
-            return False
-        if (version_condition := notification.instance_conditions.get('version')) and not self.check_version(version_condition):
-            return False
-        return True
     
     def users_for_notification(self, notification):
         from reportcreator_api.users.models import PentestUser
 
         if notification.active_until and notification.active_until < timezone.now().date():
-            return PentestUser.objects.none()
-        
-        # Instance conditions
-        if not self.check_instance_conditions(notification):
             return PentestUser.objects.none()
         
         # User conditions
@@ -87,14 +71,12 @@ class NotificationSpecManager(models.Manager.from_queryset(NotificationSpecQuery
     def notifications_for_user(self, user):
         from reportcreator_api.notifications.models import NotificationSpec
 
-        notifications = NotificationSpec.objects \
+        return NotificationSpec.objects \
             .only_active() \
             .filter(models.Q(user_conditions__is_superuser__isnull=True) | models.Q(user_conditions__is_superuser=user.is_superuser)) \
             .filter(models.Q(user_conditions__is_desinger__isnull=True) | models.Q(user_conditions__is_designer=user.is_designer)) \
             .filter(models.Q(user_conditions__is_template_editor__isnull=True) | models.Q(user_conditions__is_template_editor=user.is_template_editor)) \
             .filter(models.Q(user_conditions__is_user_manager__isnull=True) | models.Q(user_conditions__is_user_manager=user.is_user_manager))
-        notifications = list(filter(self.check_instance_conditions, notifications))
-        return notifications
 
     def assign_to_users(self, notification):
         from reportcreator_api.notifications.models import UserNotification

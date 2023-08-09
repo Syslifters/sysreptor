@@ -1,8 +1,29 @@
 # Backups
 <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
 
-## Create backups
-Create backups via REST API. The backup archive contains a database export and all uploaded files.
+
+## Create backups via CLI
+:octicons-server-24: Self-Hosted
+
+Backups can be created via a CLI command or an API request.
+The backup archive contains a database export and all uploaded files.
+
+Execute following command to create a backup:
+```bash title="Create backup via CLI"
+docker compose run app python3 manage.py backup > backup.zip
+```
+
+Backups can be encrypted using a 256-bit AES key. 
+Specify the key as hex string via the `--key` CLI argument.
+```bash title="Create encrypted backup via CLI"
+docker compose run app python3 manage.py backup --key "<aes-key-as-hex>" > backup.zip.crypt
+```
+
+
+
+
+## Create backups via API
+:octicons-cloud-24: Cloud · :octicons-server-24: Self-Hosted
 
 ### Prerequisites
 Creating backups is a high-privilege operation. Therefore, access to the backup API endpoint is restricted.
@@ -25,29 +46,19 @@ curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<ba
 ```
 
 ## Restore backups
+:octicons-server-24: Self-Hosted
+
 Make sure that you have an empty database and empty data directories (i.e. empty docker volumes). Otherwise, you will **lose your old data**.
+During the backup restore, all existing data in the database and file storages is deleted.
 
-Make sure that it is the same SysReptor version like the one that was used to create the backup. 
-If a different version is used the backup might not be importable, because of a differing database schema.
+It is recommended to import the backup into the same SysReptor version like the one that was used to create the backup.
+If a different version is used the database schema might not be compatible.
 
-```bash
-cd deploy
+```bash title="Restore backup via CLI"
+cat backup.zip | docker compose run --no-TTY app python3 manage.py restorebackup
+```
 
-# Optionally decrypt backup using your AES key
-
-# Unpack backup
-unzip backup.zip -d backup
-
-# Restore files
-docker compose up -d
-docker compose cp backup/uploadedassets app:/data/
-docker compose cp backup/uploadedimages app:/data/
-docker compose cp backup/uploadedfiles app:/data/
-docker compose down
-
-# Restore database
-docker compose run app python3 manage.py flush --no-input
-docker compose run app python3 manage.py migrate
-echo "select 'TRUNCATE \"' || tablename || '\" RESTART IDENTITY CASCADE;' from pg_tables where schemaname = 'public' and tablename != 'django_migrations';" | docker compose run --no-TTY app python3 manage.py dbshell -- -t | docker compose run --no-TTY app python3 manage.py dbshell
-cat backup/backup.jsonl | docker compose run --no-TTY app python3 manage.py loaddata --format=jsonl -
+Encrypted backups can be restored as well. Specify the AES key as hex string via the `--key` CLI argument.
+```bash title="Restore encrypted backup via CLI"
+cat backup.zip.crypt | docker compose run --no-TTY app python3 manage.py restorebackup --key "<aes-key-as-hex>"
 ```

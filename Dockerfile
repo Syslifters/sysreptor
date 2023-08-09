@@ -1,9 +1,19 @@
-FROM node:16.20.0-alpine3.17 AS pdfviewer-dev
+FROM node:18-alpine3.18 AS pdfviewer-dev
+
+# Add custom CA certificates
+ARG CA_CERTIFICATES=""
+RUN mkdir -p /usr/local/share/ca-certificates/ && \
+    echo "${CA_CERTIFICATES}" | tee -a /usr/local/share/ca-certificates/custom-user-cert.crt /etc/ssl/certs/ca-certificates.crt && \
+    apk add --no-cache ca-certificates && \
+    update-ca-certificates
+
+# Install dependencies
 WORKDIR /app/packages/pdfviewer/
 COPY packages/pdfviewer/package.json packages/pdfviewer/package-lock.json /app/packages/pdfviewer//
 RUN npm install
 
 FROM pdfviewer-dev AS pdfviewer
+# Build JS bundle
 COPY packages/pdfviewer /app/packages/pdfviewer//
 RUN npm run build
 
@@ -13,8 +23,19 @@ RUN npm run build
 
 
 
-FROM node:16.20.0-alpine3.17 AS frontend-dev
+FROM node:18-alpine3.18 AS frontend-dev
 
+# Add custom CA certificates
+ARG CA_CERTIFICATES=""
+RUN mkdir -p /usr/local/share/ca-certificates/ && \
+    echo "${CA_CERTIFICATES}" | tee -a /usr/local/share/ca-certificates/custom-user-cert.crt /etc/ssl/certs/ca-certificates.crt && \
+    apk add --no-cache ca-certificates && \
+    update-ca-certificates
+
+# Required for webpack4 to work with node 18
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
+# Install dependencies
 WORKDIR /app/packages/markdown/
 COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
 RUN npm install
@@ -25,14 +46,18 @@ RUN npm install
 
 
 FROM frontend-dev AS frontend-test
+# Include source code
 COPY packages/markdown/ /app/packages/markdown/
 COPY frontend /app/frontend/
 COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/frontend/assets/rendering
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/static/static/pdfviewer/
+
+# Test command
 CMD npm run test
 
 
 FROM frontend-test AS frontend
+# Build JS bundle
 RUN npm run build
 
 
@@ -41,8 +66,16 @@ RUN npm run build
 
 
 
-FROM node:16.20.0-alpine3.17 AS rendering-dev
+FROM node:18-alpine3.18 AS rendering-dev
 
+# Add custom CA certificates
+ARG CA_CERTIFICATES=""
+RUN mkdir -p /usr/local/share/ca-certificates/ && \
+    echo "${CA_CERTIFICATES}" | tee -a /usr/local/share/ca-certificates/custom-user-cert.crt /etc/ssl/certs/ca-certificates.crt && \
+    apk add --no-cache ca-certificates && \
+    update-ca-certificates
+
+# Install dependencies
 WORKDIR /app/packages/markdown/
 COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
 RUN npm install
@@ -53,14 +86,21 @@ RUN npm install
 
 
 FROM rendering-dev AS rendering
+# Include source code
 COPY rendering /app/rendering/
 COPY packages/markdown/ /app/packages/markdown/
+# Build JS bundle
 RUN npm run build
 
 
 
 
-FROM python:3.10.11-slim-bullseye AS api-dev
+FROM python:3.10-slim-bookworm AS api-dev
+
+# Add custom CA certificates
+ARG CA_CERTIFICATES=""
+RUN echo "${CA_CERTIFICATES}" | tee -a /usr/local/share/ca-certificates/custom-user-cert.crt && \
+    update-ca-certificates
 
 # Install system dependencies required by weasyprint and chromium
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -6,16 +6,19 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build --mode=development",
-    "build-watch": "vue-cli-service build --mode=development --watch"
+    "build-watch": "vue-cli-service build --mode=development --watch",
+    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --onlyAllow='MIT;Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0' --plainVertical > NOTICE",
+    "dependencies": "npm run generate-notice"
   },
   "dependencies": {
     "vue": "^3",
     "chart.js": "^4",
+    "chartjs-plugin-datalabels": "^2.2.0",
     "uuid": "^9",
     "reportcreator-markdown": "../packages/markdown"
   },
   "devDependencies": {
-    "@vue/cli-service": "~5.0.0",
-    "license-webpack-plugin": "^4"
+    "@vue/cli-service": "^5.0.0",
+    "license-checker-rseidelsohn": "^4.2.6"
   }
 }

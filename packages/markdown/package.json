@@ -3,29 +3,37 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --onlyAllow='MIT;Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0' --plainVertical > NOTICE",
+    "dependencies": "npm run generate-notice"
+  },
   "dependencies": {
     "remark-parse": "^10.0.1",
     "remark-gfm": "^3.0.1",
     "remark-stringify": "^10.0.2",
     "remark-rehype": "^10.1.0",
     "rehype-stringify": "^9.0.3",
-    "lowlight": "^2.7.0",
     "rehype-raw": "^6.1.1",
     "rehype-parse": "^8.0.4",
     "rehype-sanitize": "^5.0.1",
     "hast-util-to-string": "^2.0.0",
     "micromark-extension-directive": "^2.1.1",
-    "micromark-util-sanitize-uri": "^1.1.0",
+    "micromark-util-sanitize-uri": "^1.2.0",
     "highlight.js": "^11.6.0",
-    "@codemirror/view": "~6.12",
+    "lowlight": "^2.7.0",
+    "lodash": "^4.17.21",
+
+    "@codemirror/view": "~6.15",
     "@codemirror/state": "~6.2",
     "@codemirror/commands": "~6.2",
-    "@codemirror/lint": "~6.2",
-    "@codemirror/language": "~6.7",
-    "@codemirror/lang-markdown": "~6.1",
+    "@codemirror/lint": "~6.4",
+    "@codemirror/language": "~6.8",
+    "@codemirror/lang-markdown": "~6.2",
     "@codemirror/lang-html": "~6.4",
     "@codemirror/lang-vue": "~0.1.1",
-    "@codemirror/lang-css": "~6.2",
-    "lodash": "^4.17.21"
+    "@codemirror/lang-css": "~6.2"
+  },
+  "devDependencies": {
+    "license-checker-rseidelsohn": "^4.2.6"
   }
 }

@@ -85,7 +85,7 @@
             :upload-file="uploadFile"
             :rewrite-file-url="rewriteFileUrl"
             :disabled="readonly || (!translation.is_main && !(d.id in translation.data))"
-            class="flex-grow-1"
+            class="template-input-field"
           />
           <div v-if="!translation.is_main && d.id !== 'title'" class="mt-4">
             <s-tooltip v-if="d.id in translation.data">
@@ -274,3 +274,12 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.template-input-field {
+  // Fill up remaining space
+  flex-grow: 1;
+  // Prevent flex item from overflowing container when input element is too long
+  min-width: 0;
+}
+</style>

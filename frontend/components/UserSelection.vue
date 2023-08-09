@@ -12,6 +12,7 @@
 </template>
 
 <script>
+import { sortBy } from 'lodash';
 import { CursorPaginationFetcher } from '~/utils/urls'
 
 export default {
@@ -56,7 +57,7 @@ export default {
   emits: ['input'],
   data() {
     return {
-      items: new CursorPaginationFetcher('/pentestusers/', this.$axios, this.$toast),
+      items: new CursorPaginationFetcher('/pentestusers/?ordering=username', this.$axios, this.$toast),
       rules: {
         single: [v => !!v || 'Item is required'],
         multiple: [v => (v && v.length > 0) || 'Item is required'],
@@ -76,7 +77,7 @@ export default {
         clearable: this.clearable,
       }, 
       this.selectableUsers ? {
-        items: this.selectableUsers,
+        items: sortBy(this.selectableUsers, [u => u.username || u.name]),
       } : {
         items: this.items.data,
         loading: this.items.isLoading,

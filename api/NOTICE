@@ -57,7 +57,7 @@ THE SOFTWARE.
 
 
 Django
-4.2.3
+4.2.4
 BSD License
 Copyright (c) Django Software Foundation and individual contributors.
 All rights reserved.
@@ -825,7 +825,7 @@ the FAQ for more information on the distribution of modified source versions.
 
 
 PyYAML
-6.0
+6.0.1
 MIT License
 Copyright (c) 2017-2021 Ingy döt Net
 Copyright (c) 2006-2016 Kirill Simonov
@@ -956,7 +956,7 @@ Footnotes
 
 
 anyio
-3.7.0
+3.7.1
 MIT License
 The MIT License (MIT)
 
@@ -1125,7 +1125,7 @@ SUCH DAMAGE.
 
 
 boto3
-1.26.165
+1.28.17
 Apache Software License
 
                                  Apache License
@@ -1307,7 +1307,7 @@ Apache Software License
 
 
 botocore
-1.29.165
+1.31.17
 Apache Software License
 
                                  Apache License
@@ -1549,7 +1549,7 @@ Footnotes
 
 
 certifi
-2023.5.7
+2023.7.22
 Mozilla Public License 2.0 (MPL 2.0)
 This package contains a modified version of ca-bundle.crt:
 
@@ -1606,7 +1606,7 @@ documentation is licensed as follows:
 
 
 charset-normalizer
-3.1.0
+3.2.0
 MIT License
 MIT License
 
@@ -1631,7 +1631,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 click
-8.1.3
+8.1.6
 BSD License
 Copyright 2014 Pallets
 
@@ -1928,7 +1928,7 @@ Apache Software License
 
 
 cryptography
-41.0.1
+41.0.3
 Apache Software License; BSD License
 This software is made available under the terms of *either* of the licenses
 found in LICENSE.APACHE or LICENSE.BSD. Contributions to cryptography are made
@@ -2589,7 +2589,7 @@ third-party archives.
 
 
 drf-spectacular
-0.26.3
+0.26.4
 BSD License
 Copyright © 2011-present, Encode OSS Ltd.
 Copyright © 2019-2021, T. Franzel <tfranzel@gmail.com>, Cashlink Technologies GmbH.
@@ -2624,7 +2624,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 drf-spectacular-sidecar
-2023.7.1
+2023.8.1
 BSD License
 Copyright © 2021-present, T. Franzel <tfranzel@gmail.com>
 
@@ -2662,7 +2662,7 @@ Apache Software License
 UNKNOWN
 
 elastic-apm
-6.16.2
+6.18.0
 BSD License
 BSD 3-Clause License
 
@@ -2775,7 +2775,7 @@ Agreement.
 
 
 execnet
-1.9.0
+2.0.2
 MIT License
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -2798,7 +2798,7 @@ MIT License
 
 
 fido2
-1.1.1
+1.1.2
 Apache Software License; BSD License; Mozilla Public License 2.0 (MPL 2.0)
 Copyright (c) 2018 Yubico AB
 All rights reserved.
@@ -2829,7 +2829,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 fonttools
-4.40.0
+4.41.1
 MIT License
 MIT License
 
@@ -3126,9 +3126,33 @@ IN THE SOFTWARE.
 
 
 jsonschema
-4.17.3
+4.18.4
 MIT License
 Copyright (c) 2013 Julian Berman
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+jsonschema-specifications
+2023.7.1
+MIT License
+Copyright (c) 2022 Julian Berman
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -3551,7 +3575,7 @@ SOFTWARE.
 
 
 lxml
-4.9.2
+4.9.3
 BSD License
 Copyright (c) 2004 Infrae. All rights reserved.
 
@@ -3593,7 +3617,7 @@ under the terms of *both* these licenses.
 
 
 phonenumberslite
-8.13.15
+8.13.17
 Apache Software License
                                  Apache License
                            Version 2.0, January 2004
@@ -4358,7 +4382,7 @@ GNU General Public License v2 (GPLv2)
 
 
 playwright
-1.35.0
+1.36.0
 Apache Software License
                                  Apache License
                            Version 2.0, January 2004
@@ -4591,7 +4615,7 @@ SOFTWARE.
 
 
 prompt-toolkit
-3.0.38
+3.0.39
 BSD License
 Copyright (c) 2014, Jonathan Slenders
 All rights reserved.
@@ -5061,7 +5085,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 pydyf
-0.6.0
+0.7.0
 BSD License
 BSD 3-Clause License
 
@@ -5121,7 +5145,7 @@ THE SOFTWARE.
 
 
 pyotp
-2.8.0
+2.9.0
 MIT License
 Copyright (C) 2011-2021 Mark Percival <m@mdp.im>,
 Nathan Reynolds <email@nreynolds.co.uk>, Andrey Kislyuk <kislyuk@gmail.com>,
@@ -5519,32 +5543,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-pyrsistent
-0.19.3
-MIT License
-Copyright (c) 2022 Tobias Gustafsson
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
 pytest
 7.4.0
 MIT License
@@ -5764,7 +5762,7 @@ THE SOFTWARE.
 
 
 python-gnupg
-0.5.0
+0.5.1
 BSD License
 Copyright (c) 2008-2022 by Vinay Sajip.
 All rights reserved.
@@ -5869,6 +5867,30 @@ from (http://code.google.com/p/pyqrnative):
 # The word "QR Code" is registered trademark of
 # DENSO WAVE INCORPORATED
 #   http://www.denso-wave.com/qrcode/faqpatent-e.html
+
+
+referencing
+0.30.0
+MIT License
+Copyright (c) 2022 Julian Berman
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 
 requests
@@ -6067,6 +6089,30 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+
+rpds-py
+0.9.2
+MIT License
+Copyright (c) 2023 Julian Berman
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 
 s3transfer

@@ -8,39 +8,41 @@ from types import NoneType
 from typing import Any, Optional, Union
 from base64 import b64encode
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 
 from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.pentests import cvss
 from reportcreator_api.pentests.customfields.types import FieldDataType, FieldDefinition, EnumChoice
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.users.models import PentestUser
-from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
-from reportcreator_api.pentests.models import PentestProject, ProjectType, ProjectMemberInfo
+from reportcreator_api.utils.error_messages import MessageLocationInfo, MessageLocationType
+from reportcreator_api.pentests.models import PentestProject, ProjectType, ProjectMemberInfo, NotebookPage, Language
 from reportcreator_api.utils.utils import copy_keys, get_key_or_attr
 
 
 log = logging.getLogger(__name__)
 
 
-
-def format_template_field_object(value: dict, definition: dict[str, FieldDefinition], members: Optional[list[dict|ProjectMemberInfo]] = None, require_id=False):
+def format_template_field_object(value: dict, definition: dict[str, FieldDefinition], members: Optional[list[dict | ProjectMemberInfo]] = None, require_id=False):
     out = value | ensure_defined_structure(value=value, definition=definition)
     for k, d in (definition or {}).items():
-        out[k] = format_template_field(value=out.get(k), definition=d, members=members)
+        out[k] = format_template_field(
+            value=out.get(k), definition=d, members=members)
 
     if require_id and 'id' not in out:
         out['id'] = str(uuid.uuid4())
     return out
 
 
-def format_template_field_user(value: Union[ProjectMemberInfo, str, uuid.UUID, None], members: Optional[list[dict|ProjectMemberInfo|PentestUser]] = None):
+def format_template_field_user(value: Union[ProjectMemberInfo, str, uuid.UUID, None], members: Optional[list[dict | ProjectMemberInfo | PentestUser]] = None):
     def format_user(u: Union[ProjectMemberInfo, dict, None]):
         if not u:
             return None
         return copy_keys(
-            u.user if isinstance(u, ProjectMemberInfo) else u, 
+            u.user if isinstance(u, ProjectMemberInfo) else u,
             ['id', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after', 'email', 'phone', 'mobile']) | \
-            {'roles': sorted(set(filter(None, get_key_or_attr(u, 'roles', []))), key=lambda r: {'lead': 0, 'pentester': 1, 'reviewer': 2}.get(r, 10))}
+            {'roles': sorted(set(filter(None, get_key_or_attr(u, 'roles', []))), key=lambda r: {
+                             'lead': 0, 'pentester': 1, 'reviewer': 2}.get(r, 10))}
 
     if isinstance(value, (ProjectMemberInfo, PentestUser, dict, NoneType)):
         return format_user(value)
@@ -55,17 +57,23 @@ def format_template_field_user(value: Union[ProjectMemberInfo, str, uuid.UUID, N
         return None
 
 
-def format_template_field(value: Any, definition: FieldDefinition, members: Optional[list[dict|ProjectMemberInfo]] = None):
+def format_template_field(value: Any, definition: FieldDefinition, members: Optional[list[dict | ProjectMemberInfo]] = None):
     value_type = definition.type
     if value_type == FieldDataType.ENUM:
         return dataclasses.asdict(next(filter(lambda c: c.value == value, definition.choices), EnumChoice(value='', label='')))
     elif value_type == FieldDataType.CVSS:
-        score = cvss.calculate_score(value)
+        score_metrics = cvss.calculate_score(
+            value, return_metrics=True)
         return {
             'vector': value,
-            'score': str(round(score, 2)),
-            'level': cvss.level_from_score(score).value,
-            'level_number': cvss.level_number_from_score(score)
+            'score': str(round(score_metrics["final"]["score"], 2)),
+            'level': cvss.level_from_score(score_metrics["final"]["score"]).value,
+            'level_number': cvss.level_number_from_score(score_metrics["final"]["score"]),
+            'version': score_metrics["version"],
+            'final': score_metrics["final"],
+            'base': score_metrics["base"],
+            'temporal': score_metrics["temporal"],
+            'environmental': score_metrics["environmental"],
         }
     elif value_type == FieldDataType.USER:
         return format_template_field_user(value, members=members)
@@ -78,29 +86,31 @@ def format_template_field(value: Any, definition: FieldDefinition, members: Opti
 
 
 def format_template_data(data: dict, project_type: ProjectType, imported_members: Optional[list[dict]] = None):
-    members = [format_template_field_user(u, members=imported_members) for u in data.get('pentesters', []) + (imported_members or [])]
+    members = [format_template_field_user(u, members=imported_members) for u in data.get(
+        'pentesters', []) + (imported_members or [])]
     data['report'] = format_template_field_object(
         value=ensure_defined_structure(
-            value=data.get('report', {}), 
+            value=data.get('report', {}),
             definition=project_type.report_fields_obj,
             handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT),
-        definition=project_type.report_fields_obj, 
+        definition=project_type.report_fields_obj,
         members=members,
         require_id=True)
     data['findings'] = sorted([
         format_template_field_object(
             value=(f if isinstance(f, dict) else {}) | ensure_defined_structure(
-                value=f, 
+                value=f,
                 definition=project_type.finding_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT),
-            definition=project_type.finding_fields_obj, 
+            definition=project_type.finding_fields_obj,
             members=members,
             require_id=True)
         for f in data.get('findings', [])],
         key=lambda f: (-float(f.get('cvss', {}).get('score', 0)), f.get('created'), f.get('id')))
-    data['pentesters'] = sorted( 
+    data['pentesters'] = sorted(
         members,
-        key=lambda u: (0 if 'lead' in u.get('roles', []) else 1 if 'pentester' in u.get('roles', []) else 2 if 'reviewer' in u.get('roles', []) else 10, u.get('username'))
+        key=lambda u: (0 if 'lead' in u.get('roles', []) else 1 if 'pentester' in u.get(
+            'roles', []) else 2 if 'reviewer' in u.get('roles', []) else 10, u.get('username'))
     )
     return data
 
@@ -109,7 +119,7 @@ async def get_celery_result_async(task):
     while not task.ready():
         await asyncio.sleep(0.2)
     return task.get()
-    
+
 
 @elasticapm.async_capture_span()
 async def render_pdf_task(project_type: ProjectType, report_template: str, report_styles: str, data: dict, password: Optional[str] = None, project: Optional[PentestProject] = None) -> dict:
@@ -119,15 +129,49 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
         data=data,
         language=project.language if project else project_type.language,
         password=password,
-        resources=
-            {'/assets/name/' + a.name: b64encode(a.file.read()).decode() async for a in project_type.assets.all()} | 
-            ({'/images/name/' + i.name: b64encode(i.file.read()).decode() async for i in project.images.all()} if project else {})
+        resources={'/assets/name/' + a.name: b64encode(a.file.read()).decode() async for a in project_type.assets.all()} |
+        ({'/images/name/' + i.name: b64encode(i.file.read()).decode() async for i in project.images.all()} if project else {})
     )
     res = await get_celery_result_async(task)
     # Set message location info to ProjectType (if not available)
     for m in res.get('messages', []):
         if not m['location']:
-            m['location'] = MessageLocationInfo(type=MessageLocationType.DESIGN, id=project_type.id, name=project_type.name).to_dict()
+            m['location'] = MessageLocationInfo(
+                type=MessageLocationType.DESIGN, id=project_type.id, name=project_type.name).to_dict()
+    return res
+
+
+@elasticapm.async_capture_span()
+async def render_note_to_pdf(note: NotebookPage, request=None):
+    # Prevent sending unreferenced images to rendering task to reduce memory consumption
+    resources = {}
+    async for i in (note.project if note.project else note.user).images.all():
+        if i.name in note.text:
+            resources['/images/name/' + i.name] = b64encode(i.file.read()).decode()
+
+    # Rewrite file links to absolute URL
+    note_text = note.text
+    if request:
+        async for f in (note.project if note.project else note.user).files.values_list('name', flat=True):
+            if f in note_text:
+                absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f})) if note.project else \
+                            request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f})) 
+                note_text = note_text.replace(f'/files/name/{f}', absolute_file_url)
+    
+    task = await sync_to_async(tasks.render_pdf_task.delay)(
+        template="""<h1>{{ data.note.title }}</h1><markdown :text="data.note.text" />""",
+        styles="""@import "/assets/global/base.css";""",
+        data={
+            'note': {
+                'id': str(note.id),
+                'title': note.title,
+                'text': note_text
+            }
+        },
+        language=note.project.language if note.project else Language.ENGLISH,
+        resources=resources
+    )
+    res = await get_celery_result_async(task)
     return res
 
 
@@ -161,14 +205,14 @@ async def render_pdf(project: PentestProject, project_type: Optional[ProjectType
         password=password
     )
 
+
 async def render_pdf_preview(project_type: ProjectType, report_template: str, report_styles: str, report_preview_data: dict) -> dict:
     preview_data = report_preview_data.copy()
     data = await sync_to_async(format_template_data)(data=preview_data, project_type=project_type)
-    
+
     return await render_pdf_task(
         project_type=project_type,
         report_template=report_template,
         report_styles=report_styles,
         data=data
     )
-

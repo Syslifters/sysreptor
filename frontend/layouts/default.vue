@@ -5,7 +5,7 @@
         <v-tab to="/" nuxt active-class="no-highlight" exact :ripple="false">
           <v-img src="/static/logo.svg" contain height="38" width="50" />
           SysReptor
-          <v-badge content="Beta" color="primary" class="badge-beta" inline />
+          <v-badge :content="badgeText" color="primary" class="badge-pill" inline />
         </v-tab>
         <template v-if="$auth.loggedIn">
           <v-tab to="/projects/" nuxt :ripple="false">Projects</v-tab>
@@ -44,8 +44,21 @@
   </v-app>
 </template>
 
+<script>
+import { capitalize } from 'lodash';
+
+export default {
+  computed: {
+    badgeText() {
+      const license = this.$store.getters['apisettings/settings']?.license?.type || 'community';
+      return capitalize(license);
+    }
+  }
+}
+</script>
+
 <style lang="scss" scoped>
-.badge-beta {
+.badge-pill {
   margin-bottom: 0.7em;
   
   &:deep(.v-badge__wrapper) {

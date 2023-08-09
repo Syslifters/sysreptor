@@ -1,9 +1,8 @@
-
-
 import argparse
 import shutil
 import tempfile
 import uuid
+import logging
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
@@ -17,7 +16,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('file', nargs='?', type=argparse.FileType('rb'), default='-')
-        parser.add_argument('--type', choices=['design', 'template', 'project'])
+        parser.add_argument('--type', choices=['design', 'template', 'project'], required=True)
         parser.add_argument('--add-member', action='append', help='Add user as member to imported projects')
 
     def get_user(self, u):
@@ -31,6 +30,16 @@ class Command(BaseCommand):
             raise CommandError(f'User "{u}" not found')
 
     def handle(self, file, type, add_member, *args, **options):
+        log = logging.getLogger(__name__)
+        if options['verbosity'] == 0:
+            log.root.setLevel(logging.ERROR)
+        elif options['verbosity'] == 1:
+            log.root.setLevel(logging.WARNING)
+        elif options['verbosity'] == 2:
+            log.root.setLevel(logging.INFO)
+        else:
+            log.root.setLevel(logging.DEBUG)
+
         if type == 'project':
             add_member = list(map(self.get_user, add_member))
         

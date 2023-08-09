@@ -76,3 +76,7 @@ Get detailed installation instructions at [Installation](https://docs.sysreptor.
 ![Create finding from template](https://docs.sysreptor.com/images/create_finding_from_template.gif)
 
 ![Export report as PDF](https://docs.sysreptor.com/images/export_project.gif)
+
+<br>
+The FFG is the central national funding organization and strengthens Austria's innovative power.<br>
+This project is funded by the FFG.<a href="https://www.ffg.at" target="_blank">www.ffg.at</a>

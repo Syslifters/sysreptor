@@ -44,49 +44,6 @@ class TestNotifications:
         # Reverse filter
         for u in PentestUser.objects.filter(username__in=expected_users):
             assert notification in NotificationSpec.objects.notifications_for_user(u)
-    
-    @pytest.mark.parametrize('expected,notification,instance_settings', [
-        (True, NotificationSpec(), {}),
-
-        (True, NotificationSpec(instance_conditions={'any_tag': ['test1']}), {'INSTANCE_TAGS': ['test1']}),
-        (True, NotificationSpec(instance_conditions={'any_tag': ['test1']}), {'INSTANCE_TAGS': ['test1', 'test2']}),
-        (True, NotificationSpec(instance_conditions={'any_tag': ['test1', 'other']}), {'INSTANCE_TAGS': ['test1', 'test2']}),
-        (False, NotificationSpec(instance_conditions={'any_tag': ['other']}), {'INSTANCE_TAGS': ['test1', 'test2']}),
-
-        (True, NotificationSpec(instance_conditions={'version': '1.0'}), {'VERSION': '1.0'}),
-        (True, NotificationSpec(instance_conditions={'version': '==1.0'}), {'VERSION': '1.0'}),
-
-        (True, NotificationSpec(instance_conditions={'version': '>=1.0'}), {'VERSION': '1.5'}),
-        (True, NotificationSpec(instance_conditions={'version': '>=1.0'}), {'VERSION': '1.0'}),
-        (True, NotificationSpec(instance_conditions={'version': '>=1.0'}), {'VERSION': '2.1'}),
-        (False, NotificationSpec(instance_conditions={'version': '>=1.0'}), {'VERSION': '0.9'}),
-
-        (True, NotificationSpec(instance_conditions={'version': '<=1.0'}), {'VERSION': '0.9.7'}),
-        (True, NotificationSpec(instance_conditions={'version': '<=1.0'}), {'VERSION': '1.0'}),
-        (False, NotificationSpec(instance_conditions={'version': '<=1.0'}), {'VERSION': 'dev'}),
-        (False, NotificationSpec(instance_conditions={'version': '<=2'}), {'VERSION': '10.1'}),
-
-        (True, NotificationSpec(instance_conditions={'version': '>1.0'}), {'VERSION': '1.5'}),
-        (True, NotificationSpec(instance_conditions={'version': '>1.1'}), {'VERSION': '2.1'}),
-        (False, NotificationSpec(instance_conditions={'version': '>1.0'}), {'VERSION': '0.9'}),
-        (False, NotificationSpec(instance_conditions={'version': '>1.1'}), {'VERSION': '1.1'}),
-
-        (True, NotificationSpec(instance_conditions={'version': '<1.0'}), {'VERSION': '0.9.7'}),
-        (False, NotificationSpec(instance_conditions={'version': '<1.0'}), {'VERSION': '1.0'}),
-        (False, NotificationSpec(instance_conditions={'version': '<1.0'}), {'VERSION': 'dev'}),
-        (False, NotificationSpec(instance_conditions={'version': '<2'}), {'VERSION': '10.1'}),
-
-        (True, NotificationSpec(instance_conditions={'version': 'dev'}), {'VERSION': 'dev'}),
-        (False, NotificationSpec(instance_conditions={'version': 'prod'}), {'VERSION': 'dev'}),
-    ])
-    def test_instance_conditions(self, expected, notification, instance_settings):
-        with override_settings(**instance_settings):
-            # Test filter
-            assert NotificationSpec.objects.check_instance_conditions(notification) == expected
-
-            # Test assigned to users
-            notification.save()
-            assert notification.usernotification_set.exists() == expected
 
     def test_visible_for(self):
         assert NotificationSpec.objects.create(visible_for_days=10).usernotification_set.first().visible_until.date() == (timezone.now() + timedelta(days=10)).date()
@@ -107,7 +64,6 @@ class TestNotificationImport:
                 "updated": "2023-01-26T10:27:07.522920Z",
                 "active_until": None,
                 "visible_for_days": 14,
-                "instance_conditions": {},
                 "user_conditions": {
                     "is_superuser": True
                 },
@@ -126,7 +82,7 @@ class TestNotificationImport:
         async_to_sync(fetch_notifications)(None)
         n = NotificationSpec.objects.get()
         assertKeysEqual(n, self.notification_import_data[0], ['id', 'title', 'text', 'link_url', 
-            'active_until', 'visible_for_days', 'instance_conditions', 'user_conditions'])
+            'active_until', 'visible_for_days', 'user_conditions'])
         assert self.user_notification.notifications.get().notification == n
         assert self.user_no_notification.notifications.count() == 0
     
