@@ -1,14 +1,17 @@
+from datetime import timedelta
 import itertools
 import pytest
-from django.test import override_settings
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+
 from reportcreator_api.pentests.customfields.mixins import CustomFieldsMixin
 from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE, FINDING_FIELDS_PREDEFINED, REPORT_FIELDS_CORE, finding_fields_default
-
+from reportcreator_api.pentests.customfields.sort import sort_findings
 from reportcreator_api.pentests.customfields.types import FieldDataType, field_definition_to_dict, parse_field_definition
 from reportcreator_api.pentests.customfields.validators import FieldDefinitionValidator, FieldValuesValidator
 from reportcreator_api.pentests.customfields.utils import check_definitions_compatible
 from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, Language
+from reportcreator_api.tasks.rendering.entry import format_template_field_object
 from reportcreator_api.tests.mock import create_finding, create_project_type, create_project, create_template, create_user
 from reportcreator_api.utils.utils import copy_keys
 
@@ -540,3 +543,62 @@ class TestTemplateTranslation:
         assert 'recommendation' not in data_inherited
         assert data_inherited['field_unknown'] == 'unknown'
         assert 'field_unknown' not in self.trans.data
+
+
+@pytest.mark.django_db
+class TestFindingSorting:
+    def assert_finding_order(self, findings_kwargs, **project_kwargs):
+        findings_kwargs = reversed(self.format_findings_kwargs(findings_kwargs))
+        project = create_project(
+            findings_kwargs=findings_kwargs,
+            **project_kwargs)
+        findings_sorted = sort_findings(
+            findings=[format_template_field_object(
+                    {'id': str(f.id), 'created': str(f.created), 'order': f.order, **f.data}, 
+                    definition=project.project_type.finding_fields_obj) 
+                for f in project.findings.all()],
+            project_type=project.project_type,
+            override_finding_order=project.override_finding_order
+        )
+        findings_sorted_titles = [f['title'] for f in findings_sorted]
+        assert findings_sorted_titles == [f'f{i + 1}' for i in range(len(findings_sorted_titles))]
+
+    def format_findings_kwargs(self, findings_kwargs):
+        for idx, finding_kwarg in enumerate(findings_kwargs):
+            finding_kwarg.setdefault('data', {})
+            finding_kwarg['data']['title'] = f'f{idx + 1}'
+        return findings_kwargs
+
+    def test_override_finding_order(self):
+        self.assert_finding_order(override_finding_order=True, findings_kwargs=[
+            {'order': 1},
+            {'order': 2},
+            {'order': 3}
+        ])
+
+    def test_fallback_order(self):
+        self.assert_finding_order(
+            override_finding_order=False,
+            project_type=create_project_type(finding_ordering=[]),
+            findings_kwargs=[
+                {'created': timezone.now() - timedelta(days=2)}, 
+                {'created': timezone.now() - timedelta(days=1)}, 
+                {'created': timezone.now() - timedelta(days=0)}
+            ])
+
+    @pytest.mark.parametrize(['finding_ordering', 'findings_kwargs'], [
+        ([{'field': 'cvss', 'order': 'desc'}], [{'cvss': 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'}, {'cvss': 'CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:C/C:L/I:L/A:L'}, {'cvss': None}]),  # CVSS
+        ([{'field': 'field_string', 'order': 'asc'}], [{'field_string': 'aaa'}, {'field_string': 'bbb'}, {'field_string': 'ccc'}]),  # string field
+        ([{'field': 'field_int', 'order': 'asc'}], [{'field_int': 1}, {'field_int': 10}, {'field_int': 13}]),  # number
+        ([{'field': 'field_enum', 'order': 'asc'}], [{'field_enum': 'enum1'}, {'field_enum': 'enum2'}]),  # enum
+        ([{'field': 'field_date', 'order': 'asc'}], [{'field_date': None}, {'field_date': '2023-01-01'}, {'field_date': '2023-06-01'}]),  # date
+        ([{'field': 'field_string', 'order': 'asc'}, {'field': 'field_markdown', 'order': 'asc'}], [{'field_string': 'aaa', 'field_markdown': 'xxx'}, {'field_string': 'aaa', 'field_markdown': 'yyy'}, {'field_string': 'bbb', 'field_markdown': 'zzz'}]),  # multiple fields: string, markdown
+        ([{'field': 'field_bool', 'order': 'desc'}, {'field': 'cvss', 'order': 'desc'}], [{'field_bool': True, 'cvss': 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'}, {'field_bool': True, 'cvss': 'CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:C/C:L/I:L/A:L'}, {'field_bool': False, 'cvss': 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'}]),  # multiple fields: -bool, -cvss
+        ([{'field': 'field_enum', 'order': 'asc'}, {'field': 'field_int', 'order': 'desc'}], [{'field_enum': 'enum1', 'field_int': 2}, {'field_enum': 'enum1', 'field_int': 1}, {'field_enum': 'enum2', 'field_int': 10}, {'field_enum': 'enum2', 'field_int': 9}]),  # multiple fields with mixed asc/desc: enum, -number
+    ])
+    def test_finding_order_by_fields(self, finding_ordering, findings_kwargs):
+        self.assert_finding_order(
+            override_finding_order=False,
+            project_type=create_project_type(finding_ordering=finding_ordering),
+            findings_kwargs=[{'data': f} for f in findings_kwargs]
+        )

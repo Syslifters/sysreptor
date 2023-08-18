@@ -45,6 +45,7 @@
       :label="label"
       :disabled="disabled"
       clearable
+      class="mt-4"
     />
     <s-combobox
       v-else-if="definition.type === 'combobox'"

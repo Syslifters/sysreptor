@@ -2,7 +2,10 @@
   <s-tooltip>
     <template #activator="{on, attrs}">
       <s-btn :disabled="disabled" @click="$emit('click', $event)" v-bind="attrs" v-on="on" icon small tile :outlined="active">
-        <v-icon small>{{ icon }}</v-icon>
+        <v-badge v-if="dot" dot overlap :color="dot">
+          <v-icon small>{{ icon }}</v-icon>
+        </v-badge>
+        <v-icon v-else small>{{ icon }}</v-icon>
       </s-btn>
     </template>
     <template #default><span>{{ title }}</span></template>
@@ -27,6 +30,10 @@ export default {
     active: {
       type: Boolean,
       default: false,
+    },
+    dot: {
+      type: String,
+      default: null,
     },
   },
 }

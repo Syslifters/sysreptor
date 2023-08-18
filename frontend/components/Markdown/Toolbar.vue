@@ -15,7 +15,23 @@
       <input ref="fileInput" type="file" multiple @change="onUploadFiles" :disabled="disabled || fileUploadInProgress" class="d-none" />
     </template>
     <span class="separator" />
-    <markdown-toolbar-button @click="spellcheckEnabled = !spellcheckEnabled" title="Spellcheck" icon="mdi-spellcheck" :disabled="disabled || !spellcheckSupported" :active="spellcheckEnabled" />
+    <markdown-toolbar-button 
+      v-if="isProfessionalLicense"
+      @click="spellcheckEnabled = !spellcheckEnabled" 
+      title="Spellcheck" 
+      icon="mdi-spellcheck" 
+      :disabled="disabled || !spellcheckSupported" 
+      :active="spellcheckEnabled" 
+    />
+    <markdown-toolbar-button
+      v-else
+      @click="toggleBrowserSpellcheckCommunity"
+      :title="'Spellcheck (browser-based)'"
+      icon="mdi-spellcheck"
+      :dot="!spellcheckSupported ? null : (spellcheckEnabled ? 'warning' : 'error')"
+      :disabled="disabled || !spellcheckSupported"
+      :active="spellcheckEnabled"
+    />
     <span class="separator" />
     <markdown-toolbar-button @click="undo" title="Undo" icon="mdi-undo" :disabled="disabled || !canUndo" />
     <markdown-toolbar-button @click="redo" title="Redo" icon="mdi-redo" :disabled="disabled || !canRedo" />
@@ -62,9 +78,18 @@ export default {
         this.$store.commit('settings/updateMarkdownEditorMode', val);
       },
     },
+    isProfessionalLicense() {
+      return this.$store.getters['apisettings/isProfessionalLicense'];
+    },
+    spellcheckLanguageToolSupported() {
+      return this.$store.getters['apisettings/spellcheckLanguageToolSupportedForLanguage'](this.lang);
+    },
     spellcheckSupported() {
-      return this.$store.getters['apisettings/settings'].features.spellcheck &&
-             this.$store.getters['apisettings/settings'].languages.find(l => l.code === this.lang)?.spellcheck;
+      if (this.isProfessionalLicense) {
+        return this.spellcheckLanguageToolSupported;
+      } else {
+        return this.lang !== null;
+      }
     },
     spellcheckEnabled: {
       get() {
@@ -124,6 +149,12 @@ export default {
         await this.uploadFiles(files);
       } finally {
         this.$refs.fileInput.value = null;
+      }
+    },
+    toggleBrowserSpellcheckCommunity() {
+      this.spellcheckEnabled = !this.spellcheckEnabled;
+      if (this.spellcheckEnabled) {
+        this.$toast.global.warning({ message: 'Enabled browser-based spellcheck. Upgrade to Professional for built-in spellchecking.' });
       }
     },
   }

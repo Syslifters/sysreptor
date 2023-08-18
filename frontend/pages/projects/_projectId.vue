@@ -1,15 +1,17 @@
 <template>
-  <div :key="project.id">
-    <s-sub-menu>
-      <v-tab :to="`/projects/${$route.params.projectId}/`" nuxt exact>Project</v-tab>
-      <v-tab :to="`/projects/${$route.params.projectId}/notes/`" nuxt>Notes</v-tab>
-      <v-tab :to="`/projects/${$route.params.projectId}/reporting/`" nuxt>Reporting</v-tab>
-      <v-tab :to="`/projects/${$route.params.projectId}/publish/`" nuxt>Publish</v-tab>
-      <v-tab :to="`/projects/${$route.params.projectId}/designer/`" nuxt v-if="projectType.source === 'customized'">Designer</v-tab>
-    </s-sub-menu>
+  <full-height-page>
+    <template #header>
+      <s-sub-menu>
+        <v-tab :to="`/projects/${$route.params.projectId}/`" nuxt exact>Project</v-tab>
+        <v-tab :to="`/projects/${$route.params.projectId}/notes/`" nuxt>Notes</v-tab>
+        <v-tab :to="`/projects/${$route.params.projectId}/reporting/`" nuxt>Reporting</v-tab>
+        <v-tab :to="`/projects/${$route.params.projectId}/publish/`" nuxt>Publish</v-tab>
+        <v-tab :to="`/projects/${$route.params.projectId}/designer/`" nuxt v-if="projectType.source === 'customized'">Designer</v-tab>
+      </s-sub-menu>
+    </template>
 
     <nuxt-child />
-  </div>
+  </full-height-page>
 </template>
 
 <script>

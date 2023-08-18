@@ -1,5 +1,5 @@
 <template>
-  <v-menu :close-on-content-click="false" max-width="500px" bottom offset-y>
+  <v-menu :close-on-content-click="false" max-width="500px" max-height="90vh" bottom offset-y>
     <template #activator="{attrs: menuAttrs, on: menuOn}">
       <s-btn v-bind="menuAttrs" v-on="menuOn" icon dark>
         <v-badge v-if="unreadNotificationCount > 0" color="primary" :content="unreadNotificationCount" overlap>

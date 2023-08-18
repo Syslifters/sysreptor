@@ -1,48 +1,51 @@
 <template>
-  <div>
-    <splitpanes class="default-theme">
-      <pane :size="previewSplitSize">
-        <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents">
-          <template #title>{{ projectType.name }}</template>
+  <div class="h-100">
+    <splitpanes class="h-100 default-theme">
+      <pane :size="previewSplitSize" class="h-100">
+        <full-height-page>
+          <template #header>
+            <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents">
+              <template #title>{{ projectType.name }}</template>
 
-          <template #default>
-            <s-btn 
-              :loading="pdfRenderingInProgress" 
-              :disabled="pdfRenderingInProgress" 
-              @click="loadPdf"
-              color="secondary"
-            >
-              <v-icon>mdi-cached</v-icon>
-              Refresh PDF
+              <template #default>
+                <s-btn 
+                  :loading="pdfRenderingInProgress" 
+                  :disabled="pdfRenderingInProgress" 
+                  @click="loadPdf"
+                  color="secondary"
+                >
+                  <v-icon>mdi-cached</v-icon>
+                  Refresh PDF
 
-              <template #loader>
-                <saving-loader-spinner />
-                Refresh PDF
+                  <template #loader>
+                    <saving-loader-spinner />
+                    Refresh PDF
+                  </template>
+                </s-btn>
               </template>
-            </s-btn>
-          </template>
-        </edit-toolbar>
+            </edit-toolbar>
 
-        <v-tabs v-model="currentTab" grow>
-          <v-tab :value="0">Layout <v-icon right>mdi-flask</v-icon></v-tab>
-          <v-tab :value="1">HTML+Vue</v-tab>
-          <v-tab :value="2">CSS</v-tab>
-          <v-tab :value="3">Assets</v-tab>
-          <v-tab :value="4">Preview Data</v-tab>
-        </v-tabs>
-        <v-tabs-items v-model="currentTab">
-          <v-tab-item :value="0">
-            <design-layout-editor
-              :project-type="projectType" 
-              :upload-file="uploadFile"
-              :rewrite-file-url="rewriteFileUrl"
-              :disabled="readonly"
-              @update="onUpdateCode"
-              @jump-to-code="jumpToCode"
-            />
-          </v-tab-item>
-          <v-tab-item :value="1">
-            <fill-screen-height>
+            <v-tabs v-model="currentTab" grow>
+              <v-tab :value="0">Layout <v-icon right>mdi-flask</v-icon></v-tab>
+              <v-tab :value="1">HTML+Vue</v-tab>
+              <v-tab :value="2">CSS</v-tab>
+              <v-tab :value="3">Assets</v-tab>
+              <v-tab :value="4">Preview Data</v-tab>
+            </v-tabs>
+          </template>
+
+          <v-tabs-items v-model="currentTab" class="h-100">
+            <v-tab-item :value="0" class="h-100">
+              <design-layout-editor
+                :project-type="projectType" 
+                :upload-file="uploadFile"
+                :rewrite-file-url="rewriteFileUrl"
+                :disabled="readonly"
+                @update="onUpdateCode"
+                @jump-to-code="jumpToCode"
+              />
+            </v-tab-item>
+            <v-tab-item :value="1" class="h-100">
               <design-code-editor 
                 ref="htmlEditor"
                 v-model="projectType.report_template" 
@@ -50,10 +53,8 @@
                 class="pdf-code-editor" 
                 :disabled="readonly"
               />
-            </fill-screen-height>
-          </v-tab-item>
-          <v-tab-item :value="2">
-            <fill-screen-height>
+            </v-tab-item>
+            <v-tab-item :value="2" class="h-100">
               <design-code-editor 
                 ref="cssEditor"
                 v-model="projectType.report_styles" 
@@ -61,26 +62,24 @@
                 class="pdf-code-editor" 
                 :disabled="readonly"
               />
-            </fill-screen-height>
-          </v-tab-item>
-          <v-tab-item :value="3">
-            <fill-screen-height>
+            </v-tab-item>
+            <v-tab-item :value="3" class="h-100 overflow-y-auto">
               <design-asset-manager :project-type="projectType" :disabled="readonly" />
-            </fill-screen-height>
-          </v-tab-item>
-          <v-tab-item :value="4">
-            <design-preview-data-form 
-              v-model="projectType.report_preview_data" 
-              :project-type="projectType" 
-              :upload-file="uploadFile"
-              :rewrite-file-url="rewriteFileUrl"
-              :disabled="readonly"
-            />
-          </v-tab-item>
-        </v-tabs-items>
+            </v-tab-item>
+            <v-tab-item :value="4" class="h-100">
+              <design-preview-data-form 
+                v-model="projectType.report_preview_data" 
+                :project-type="projectType" 
+                :upload-file="uploadFile"
+                :rewrite-file-url="rewriteFileUrl"
+                :disabled="readonly"
+              />
+            </v-tab-item>
+          </v-tabs-items>
+        </full-height-page>
       </pane>
 
-      <pane :size="100 - previewSplitSize">
+      <pane :size="100 - previewSplitSize" class="h-100">
         <!-- PDF preview -->
         <pdf-preview ref="pdfpreview" :fetch-pdf="fetchPdf" @renderprogress="pdfRenderingInProgress = $event" />
       </pane>

@@ -2,17 +2,17 @@
   <draggable
     :value="value.children"
     draggable=".draggable-item"
+    handle=".draggable-handle"
     filter=".draggable-item-disabled"
     :group="{name: 'designerComponents', put: ['designerComponents', 'predefinedDesignerCompnents']}" 
     @change="onChange"
-    :delay="50"
     :disabled="disabled"
     class="pb-1"
   >
     <div v-for="item in value.children" :key="item.id" class="draggable-item" :class="{'draggable-item-disabled': !item.canMove}">
       <v-list-item class="list-item" link :ripple="false">
-        <v-list-item-icon>
-          <v-icon>mdi-drag-horizontal</v-icon>
+        <v-list-item-icon class="draggable-handle">
+          <v-icon :disabled="disabled">mdi-drag-horizontal</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
@@ -125,8 +125,11 @@ export default {
   margin-left: 1rem;
 }
 
-.list-item {
+.draggable-handle {
   cursor: grab;
+}
+
+.list-item {
   min-height: 1em;
 
   & .v-list-item__action {

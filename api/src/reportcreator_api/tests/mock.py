@@ -154,14 +154,12 @@ def create_finding(project, template=None, **kwargs) -> PentestFinding:
         handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT,
         include_unknown=True,
     ) | kwargs.pop('data', {})
-    finding = PentestFinding.objects.create(**{
+    return PentestFinding.objects.create(**{
         'project': project,
         'assignee': None,
         'template_id': template.id if template else None,
+        'data': data,
     } | kwargs)
-    finding.update_data(data)
-    finding.save()
-    return finding
 
 
 def create_notebookpage(**kwargs) -> NotebookPage:

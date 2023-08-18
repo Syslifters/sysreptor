@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app class="height-fullscreen">
     <v-app-bar app absolute dense elevation="0">
       <v-tabs class="main-menu" hide-slider>
         <v-tab to="/" nuxt active-class="no-highlight" exact :ripple="false">
@@ -16,7 +16,7 @@
         </template>
 
         <v-spacer />
-        <s-tooltip v-if="$auth.loggedIn && $auth.user.is_superuser && !$auth.hasScope('admin') && $store.getters['apisettings/is_professional_license']" bottom>
+        <s-tooltip v-if="$auth.loggedIn && $auth.user.is_superuser && !$auth.hasScope('admin') && $store.getters['apisettings/isProfessionalLicense']" bottom>
           <template #activator="{ on, attrs }">
             <s-btn to="/users/self/admin/enable/" v-bind="attrs" v-on="on" large dark class="btn-sudo">
               <v-icon>mdi-account-arrow-up</v-icon>
@@ -38,7 +38,7 @@
       </v-tabs>
     </v-app-bar>
 
-    <v-main>
+    <v-main class="main-container">
       <Nuxt />
     </v-main>
   </v-app>
@@ -58,6 +58,19 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.height-fullscreen {
+  height: 100vh;
+}
+
+.main-container {
+  height: 100%;
+
+  & > :deep(.v-main__wrap) {
+    height: 100%;
+    overflow-y: auto;
+  }
+}
+
 .badge-pill {
   margin-bottom: 0.7em;
   

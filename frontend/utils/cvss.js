@@ -769,3 +769,7 @@ export function levelNumberFromScore(score) {
 export function levelNameFromScore(score) {
   return ['Info', 'Low', 'Medium', 'High', 'Critical'][levelNumberFromScore(score) - 1];
 }
+
+export function levelNumberFromLevelName(levelName) {
+  return Math.max(['info', 'low', 'medium', 'high', 'critical'].indexOf(levelName?.toLowerCase()), 0) + 1;
+}

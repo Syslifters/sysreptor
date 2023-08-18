@@ -6,7 +6,6 @@
     item-value="code"
     :item-text="l => l.name + (l.code ? ' (' + l.code + ')' : '')"
     label="Language"
-    class="mt-4"
   >
     <template #prepend-inner>
       <v-icon small left>mdi-translate</v-icon>

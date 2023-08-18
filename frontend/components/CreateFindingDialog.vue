@@ -1,10 +1,17 @@
 <template>
   <s-dialog v-model="dialogVisible">
-    <template #activator="{ on, attrs }">
-      <s-btn :disabled="project.readonly" color="secondary" small block v-bind="attrs" v-on="on">
-        <v-icon>mdi-plus</v-icon>
-        Create
-      </s-btn>
+    <template #activator>
+      <btn-confirm
+        :action="() => dialogVisible = true"
+        :confirm="false"
+        button-text="Create"
+        button-icon="mdi-plus"
+        tooltip-text="Create Finding (Ctrl+J)"
+        keyboard-shortcut="ctrl+j"
+        color="secondary"
+        small
+        block
+      />
     </template>
     <template #title>New Finding</template>
 
@@ -44,6 +51,7 @@
               v-model="templateLanguage" 
               :items="templateLanguageChoices"
               :disabled="!currentTemplate"
+              class="mt-4"
             />
           </v-col>
         </v-row>

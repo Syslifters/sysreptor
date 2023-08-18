@@ -118,17 +118,16 @@ class TestImportExport:
 
         assertKeysEqual(t, self.project_type, [
             'created', 'name', 'language', 
-            'report_fields', 'report_sections', 'finding_fields', 'finding_field_order', 
+            'report_fields', 'report_sections', 
+            'finding_fields', 'finding_field_order', 'finding_ordering',
             'report_template', 'report_styles', 'report_preview_data'])
         assert t.source == SourceEnum.IMPORTED
 
         assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
 
     def assert_export_import_project(self, project, p):
-        assertKeysEqual(p, project, ['name', 'language', 'tags'])
+        assertKeysEqual(p, project, ['name', 'language', 'tags', 'data', 'override_finding_ordering', 'data_all'])
         assert members_equal(p.members, project.members)
-        assert p.data == project.data
-        assert p.data_all == project.data_all
         assert p.source == SourceEnum.IMPORTED
         
         assert p.sections.count() == project.sections.count()
@@ -137,13 +136,14 @@ class TestImportExport:
 
         assert p.findings.count() == project.findings.count()
         for i, s in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id')):
-            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'template', 'data', 'data_all'])
+            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
 
         assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in project.images.all()}
 
         assertKeysEqual(p.project_type, project.project_type, [
             'created', 'name', 'language', 
-            'report_fields', 'report_sections', 'finding_fields', 'finding_field_order', 
+            'report_fields', 'report_sections', 
+            'finding_fields', 'finding_field_order', 'finding_ordering',
             'report_template', 'report_styles', 'report_preview_data'])
         assert p.project_type.source == SourceEnum.IMPORTED_DEPENDENCY
         assert p.project_type.linked_project == p
@@ -192,7 +192,7 @@ class TestImportExport:
         # Check UUID of nonexistent user is still present in data
         assert p.data_all == self.project.data_all
         for i, s in zip(p.findings.order_by('created'), self.project.findings.order_by('created')):
-            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'template', 'data', 'data_all'])
+            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
         
         # Test nonexistent user is added to project.imported_members
         assert len(p.imported_members) == 1
@@ -322,7 +322,8 @@ class TestCopyModel:
         assertKeysEqual(pt, cp, {
             'name', 'language', 'linked_project',
             'report_template', 'report_styles', 'report_preview_data', 
-            'report_fields', 'report_sections', 'finding_fields', 'finding_field_order',
+            'report_fields', 'report_sections', 
+            'finding_fields', 'finding_field_order', 'finding_ordering',
         } - set(exclude_fields))
         
         assert set(pt.assets.values_list('id', flat=True)).intersection(cp.assets.values_list('id', flat=True)) == set()
@@ -341,7 +342,7 @@ class TestCopyModel:
         assert cp.copy_of == p
         assert not cp.readonly
         assertKeysEqual(p, cp, [
-            'name', 'source', 'language', 'tags', 'imported_members', 'data_all'
+            'name', 'source', 'language', 'tags', 'override_finding_ordering', 'imported_members', 'data_all'
         ])
         self.assert_project_type_copy_equal(p.project_type, cp.project_type, exclude_fields=['source', 'linked_project'])
         assert cp.project_type.source == SourceEnum.SNAPSHOT
@@ -356,17 +357,17 @@ class TestCopyModel:
 
         for p_s, cp_s in zip(p.sections.order_by('section_id'), cp.sections.order_by('section_id')):
             assert p_s != cp_s
-            assertKeysEqual(p_s, cp_s, ['section_id', 'assignee', 'data'])
+            assertKeysEqual(p_s, cp_s, ['section_id', 'assignee', 'status', 'data'])
             assert not cp_s.is_locked
         
         for p_f, cp_f in zip(p.findings.order_by('finding_id'), cp.findings.order_by('finding_id')):
             assert p_f != cp_f
-            assertKeysEqual(p_f, cp_f, ['finding_id', 'assignee', 'data', 'template'])
+            assertKeysEqual(p_f, cp_f, ['finding_id', 'assignee', 'status', 'order', 'data', 'template'])
             assert not cp_f.is_locked
         
         for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id')):
             assert p_n != cp_n
-            assertKeysEqual(p_n, cp_n, ['note_id', 'title', 'text', 'emoji', 'order'])
+            assertKeysEqual(p_n, cp_n, ['note_id', 'title', 'text', 'checked', 'icon_emoji', 'status_emoji', 'order'])
             assert not cp_f.is_locked
             if p_n.parent:
                 assert p_n.parent.note_id == cp_n.parent.note_id

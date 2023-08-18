@@ -1,54 +1,58 @@
 <template>
-  <v-form ref="form">
+  <v-form ref="form" class="h-100">
     <split-menu v-model="menuSize">
       <template #menu>
-        <v-list dense>
-          <v-list-item-title class="text-h6 pl-2">{{ projectType.name }}</v-list-item-title>
+        <v-list dense class="pb-0 h-100 d-flex flex-column">
+          <div>
+            <v-list-item-title class="text-h6 pl-2">{{ projectType.name }}</v-list-item-title>
+          </div>
 
-          <v-list-item-group v-model="currentField" mandatory>
-            <v-list-item :value="null" :ripple="false" link>
-              <v-list-item-title>All Fields</v-list-item-title>
+          <div class="flex-grow-height overflow-y-auto">
+            <v-list-item-group v-model="currentField" mandatory>
+              <v-list-item :value="null" :ripple="false" link>
+                <v-list-item-title>All Fields</v-list-item-title>
+              </v-list-item>
+
+              <draggable 
+                v-model="findingFields" 
+                :group="{name: 'findingFields', put: ['predefinedFindingFields']}" 
+                draggable=".draggable-item" 
+                @add="addPredefinedField"
+                :disabled="readonly"
+              >
+                <v-list-item v-for="f in findingFields" :key="f.id" :value="f" class="draggable-item" link :ripple="false">
+                  <v-list-item-title>{{ f.id }}</v-list-item-title>
+                  <v-list-item-action>
+                    <btn-delete v-if="f.origin !== 'core'" :delete="() => deleteField(f.id)" icon x-small :disabled="readonly" />
+                  </v-list-item-action>
+                </v-list-item>
+              </draggable>
+            </v-list-item-group>
+
+            <v-divider />
+            <v-list-group :value="true">
+              <template #activator>
+                <v-list-item-title>Predefined Fields</v-list-item-title>
+              </template>
+              <draggable 
+                draggable=".draggable-item" 
+                :sort="false" 
+                :group="{name: 'predefinedFindingFields'}"
+              >
+                <v-list-item v-for="f in availablePredefinedFields" :key="f.id" class="draggable-item" :ripple="false">
+                  <v-list-item-title>{{ f.id }}</v-list-item-title>
+                </v-list-item>
+              </draggable>
+            </v-list-group>
+
+            <v-divider class="mb-1" />
+            <v-list-item>
+              <s-btn @click.stop="addField" color="secondary" x-small block :disabled="readonly">
+                <v-icon left>mdi-plus</v-icon>
+                Add Custom Field
+              </s-btn>
             </v-list-item>
-
-            <draggable 
-              v-model="findingFields" 
-              :group="{name: 'findingFields', put: ['predefinedFindingFields']}" 
-              draggable=".draggable-item" 
-              @add="addPredefinedField"
-              :disabled="readonly"
-            >
-              <v-list-item v-for="f in findingFields" :key="f.id" :value="f" class="draggable-item" link :ripple="false">
-                <v-list-item-title>{{ f.id }}</v-list-item-title>
-                <v-list-item-action>
-                  <btn-delete v-if="f.origin !== 'core'" :delete="() => deleteField(f.id)" icon x-small :disabled="readonly" />
-                </v-list-item-action>
-              </v-list-item>
-            </draggable>
-          </v-list-item-group>
-
-          <v-divider />
-          <v-list-group :value="true">
-            <template #activator>
-              <v-list-item-title>Predefined Fields</v-list-item-title>
-            </template>
-            <draggable 
-              draggable=".draggable-item" 
-              :sort="false" 
-              :group="{name: 'predefinedFindingFields'}"
-            >
-              <v-list-item v-for="f in availablePredefinedFields" :key="f.id" class="draggable-item" :ripple="false">
-                <v-list-item-title>{{ f.id }}</v-list-item-title>
-              </v-list-item>
-            </draggable>
-          </v-list-group>
-
-          <v-divider />
-          <v-list-item>
-            <s-btn @click.stop="addField" color="secondary" x-small :disabled="readonly">
-              <v-icon left>mdi-plus</v-icon>
-              Add Custom Field
-            </s-btn>
-          </v-list-item>
+          </div>
         </v-list>
       </template>
 
@@ -56,6 +60,12 @@
         <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :form="$refs.form" />
 
         <template v-if="currentField === null">
+          <design-finding-ordering-definition
+            v-model="projectType.finding_ordering"
+            :project-type="projectType"
+            :disabled="readonly"
+          />
+
           <design-input-field-definition
             v-for="f in findingFields" :key="f.id"
             :value="f" @input="updateField(f, $event)"
@@ -131,6 +141,11 @@ export default {
       } else {
         this.projectType.finding_field_order = this.projectType.finding_field_order.filter(f => f !== field.id).concat([val.id]);
       }
+
+      // Remove from finding ordering if data type changed to an unsupported type
+      if (['list', 'object', 'user'].includes(val.type)) {
+        this.projectType.finding_ordering = this.projectType.finding_ordering.filter(f => f.field !== val.id);
+      }
       
       // Update field definition
       delete this.projectType.finding_fields[field.id];
@@ -159,17 +174,17 @@ export default {
     deleteField(fieldId) {
       delete this.projectType.finding_fields[fieldId];
       this.projectType.finding_field_order = this.projectType.finding_field_order.filter(f => f !== fieldId);
+      this.projectType.finding_ordering = this.projectType.finding_ordering.filter(f => f.field !== fieldId);
     },
     async performSave(data) {
-      await this.$store.dispatch('projecttypes/partialUpdate', { obj: data, fields: ['finding_fields', 'finding_field_order'] });
-    }
+      await this.$store.dispatch('projecttypes/partialUpdate', { obj: data, fields: ['finding_fields', 'finding_field_order', 'finding_ordering'] });
+    },
   }
 }
 </script>
 
 <style lang="scss" scoped>
   .draggable-item {
-    cursor: move;
     cursor: grab;
   }
 </style>

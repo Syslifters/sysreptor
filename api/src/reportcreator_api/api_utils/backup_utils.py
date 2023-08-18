@@ -91,15 +91,15 @@ def backup_files(z, path, storage, models):
     else:
         qs = qs.distinct()
     for f in qs.iterator():
-        z.write_iter(str(Path(path) / f), file_chunks(f))
+        z.add(arcname=str(Path(path) / f), data=file_chunks(f))
 
 
 def create_backup():
     logging.info('Backup requested')
-    z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED, allowZip64=True)
-    z.writestr('VERSION', settings.VERSION.encode())
-    z.writestr('migrations.json', json.dumps(create_migration_info()).encode())
-    z.write_iter('backup.jsonl', create_database_dump())
+    z = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
+    z.add(arcname='VERSION', data=settings.VERSION.encode())
+    z.add(arcname='migrations.json', data=json.dumps(create_migration_info()).encode())
+    z.add(arcname='backup.jsonl', data=create_database_dump())
 
     backup_files(z, 'uploadedimages', storages.get_uploaded_image_storage(), [UploadedImage, UploadedUserNotebookImage, UploadedTemplateImage])
     backup_files(z, 'uploadedassets', storages.get_uploaded_asset_storage(), [UploadedAsset])

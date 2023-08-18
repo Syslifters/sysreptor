@@ -1,5 +1,15 @@
 # Changelog
 
+## TBD
+* UI: sticky header and searchbar in list views
+* UI: increase file drop area for importing projects, designs and templates
+* Configure finding sort order in design
+* Allow manual ordering of findings by overriding the default sort order
+* Allow ordering of enum choices in design field definition
+* Search in all fields for template search
+* Add shortcut for creating new findings and notes (Ctrl+J)
+
+
 ## v2023.114 - 2023-08-09
 * Remove beta label and change versioning scheme
 * Export notes as PDF

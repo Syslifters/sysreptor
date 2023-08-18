@@ -73,15 +73,15 @@ plugins:
       archive: false
       categories: false
       post_readtime: false
-  #- social:
-  #    cards: !ENV [CARDS, true]
-  #    cards_color:
-  #      fill: "#001827"
-  #      text: "#F9FDFF"
-  #    cards_font: Exo
+  - social:
+      cards: !ENV [CARDS, true]
+      cards_color:
+        fill: "#001827"
+        text: "#F9FDFF"
+      cards_font: Exo
   - tooltips
   - search
-  #- privacy
+  - privacy
   - redirects:
       redirect_maps:
         "setup/nginx-server.md": "setup/webserver.md"

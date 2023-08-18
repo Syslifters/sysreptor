@@ -174,6 +174,14 @@ export default {
           type: 'error',
           icon: 'mdi-alert-outline'
         }
+      },
+      {
+        name: 'warning',
+        message: ({ message }) => message,
+        options: {
+          icon: 'mdi-alert-outline',
+          className: 'toast-warning',
+        },
       }
     ]
   },

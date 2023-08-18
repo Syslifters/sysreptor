@@ -1,5 +1,5 @@
 <template>
-  <div v-intersect="onIntersect">
+  <div v-intersect="onIntersect" class="h-100">
     <split-menu :value="20">
       <template #menu>
         <v-list dense>

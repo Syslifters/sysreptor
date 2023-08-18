@@ -5,9 +5,11 @@ echo "Good to see you."
 echo "Get ready for the easiest pentest reporting tool."
 echo ""
 
+export SYSREPTOR_CA_CERTIFICATES="${SYSREPTOR_CA_CERTIFICATES:-}"
+
 error=1
 docker=1
-for cmd in curl openssl tar uuidgen docker "docker compose" sed
+for cmd in curl openssl tar uuidgen docker sed
 do
     if
         ! command -v "$cmd" >/dev/null
@@ -21,6 +23,13 @@ do
         error=0
     fi
 done
+if 
+    ! docker compose version >/dev/null 2>&1
+then
+    echo "docker compose v2 is not installed."
+    docker=0
+    error=0
+fi
 if
     test 0 -eq "$docker"
 then

@@ -303,7 +303,8 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
         model = ProjectType
         fields = [
             'format', 'id', 'created', 'updated', 'name', 'language', 
-            'report_fields', 'report_sections', 'finding_fields', 'finding_field_order', 
+            'report_fields', 'report_sections', 
+            'finding_fields', 'finding_field_order', 'finding_ordering',
             'report_template', 'report_styles', 'report_preview_data', 
             'assets'
         ]
@@ -335,7 +336,7 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
     class Meta:
         model = PentestFinding
         fields = [
-            'id', 'created', 'updated', 'assignee', 'status', 'template', 'data',
+            'id', 'created', 'updated', 'assignee', 'status', 'template', 'order', 'data',
         ]
         extra_kwargs = {'created': {'read_only': False}}
 
@@ -343,18 +344,15 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
         project = self.context['project']
         data = validated_data.pop('data_all', {})
         template = validated_data.pop('template_id', None)
-        finding = PentestFinding(**{
+        return PentestFinding.objects.create(**{
             'project': project,
             'template_id': template.id if template else None,
+            'data': ensure_defined_structure(
+                value=data,
+                definition=project.project_type.finding_fields_obj,
+                handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
+                include_unknown=True)
         } | validated_data)
-        finding.update_data(ensure_defined_structure(
-            value=data,
-            definition=project.project_type.finding_fields_obj,
-            handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
-            include_unknown=True)
-        )
-        finding.save()
-        return finding
 
 
 class ReportSectionExportImportSerializer(ExportImportSerializer):
@@ -417,7 +415,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         model = PentestProject
         fields = [
             'format', 'id', 'created', 'updated', 'name', 'language', 'tags',
-            'members', 'pentesters', 'project_type', 
+            'members', 'pentesters', 'project_type', 'override_finding_order',
             'report_data', 'sections', 'findings', 'notes', 'images', 'files',
         ]
         extra_kwargs = {

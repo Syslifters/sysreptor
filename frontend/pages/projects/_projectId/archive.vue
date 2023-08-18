@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="pt-0">
     <h1>Archive Project</h1>
     <p class="text-h6">
       <strong>Name:</strong> {{ project.name }}

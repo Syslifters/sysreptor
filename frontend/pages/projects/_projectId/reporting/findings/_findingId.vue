@@ -51,6 +51,7 @@
 
 <script>
 import urlJoin from 'url-join';
+import { omit } from 'lodash';
 import ProjectLockEditMixin from '~/mixins/ProjectLockEditMixin.js';
 
 export default {
@@ -89,7 +90,7 @@ export default {
       this.$router.push(`/projects/${data.project}/reporting/`);
     },
     updateInStore(data) {
-      this.$store.commit('projects/setFinding', { projectId: data.project, finding: data });
+      this.$store.commit('projects/setFinding', { projectId: data.project, finding: omit(data, ['order']) });
     },
     async onUpdateData({ oldValue, newValue }) {
       const toolbar = this.getToolbarRef();

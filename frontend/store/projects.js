@@ -30,7 +30,15 @@ export const mutations = {
       vueDel(state.data[obj.id], 'sections');
     }
 
+    // Update project
     state.data[obj.id].project = obj;
+    // Update findings and sections
+    if (Array.isArray(obj.findings)) {
+      this.commit('projects/setFindings', { projectId: obj.id, findings: obj.findings });
+    }
+    if (Array.isArray(obj.sections)) {
+      this.commit('projects/setSections', { projectId: obj.id, sections: obj.sections });
+    }
   },
   setGetByIdSync(state, { projectId, sync }) {
     ensureExists(state, projectId, 'getByIdSync', sync);
@@ -154,28 +162,6 @@ export const actions = {
       }
     }
   },
-  async fetchFindings({ commit }, projectId) {
-    const findings = await this.$axios.$get(`/pentestprojects/${projectId}/findings/`);
-    commit('setFindings', { projectId, findings });
-    return findings;
-  },
-  async getFindings({ dispatch, state }, projectId) {
-    if (projectId in state.data && state.data[projectId].findings) {
-      return state.data[projectId].findings;
-    }
-    return await dispatch('fetchFindings', projectId);
-  },
-  async fetchSections({ commit }, projectId) {
-    const sections = await this.$axios.$get(`/pentestprojects/${projectId}/sections/`);
-    commit('setSections', { projectId, sections });
-    return sections;
-  },
-  async getSections({ dispatch, state }, projectId) {
-    if (projectId in state.data && state.data[projectId].sections) {
-      return state.data[projectId].sections;
-    }
-    return await dispatch('fetchSections', projectId);
-  },
   async fetchNotes({ commit }, projectId) {
     const notes = await this.$axios.$get(`/pentestprojects/${projectId}/notes/`);
     commit('setNotes', { projectId, notes });
@@ -194,6 +180,16 @@ export const actions = {
   },
   async update({ commit }, project) {
     const obj = await this.$axios.$put(`/pentestprojects/${project.id}/`, project);
+    commit('set', obj);
+    return obj;
+  },
+  async partialUpdate({ commit }, { obj, fields = null }) {
+    let updatedData = obj;
+    if (fields !== null) {
+      updatedData = pick(obj, fields.concat(['id']));
+    }
+        
+    obj = await this.$axios.$patch(`/pentestprojects/${obj.id}/`, updatedData);
     commit('set', obj);
     return obj;
   },
@@ -238,6 +234,12 @@ export const actions = {
     await this.$axios.$delete(`/pentestprojects/${projectId}/findings/${findingId}/`);
     commit('removeFinding', { projectId, findingId });
   },
+  async sortFindings({ commit }, { projectId, findings }) {
+    const sortRequestData = findings.map((f, idx) => ({ id: f.id, order: idx + 1 }));
+    commit('setFindings', { projectId, findings: sortRequestData });
+    const res = await this.$axios.$post(`/pentestprojects/${projectId}/findings/sort/`, sortRequestData);
+    commit('setFindings', { projectId, findings: res });
+  },
   async updateSection({ commit }, { projectId, section }) {
     const updatedSection = await this.$axios.$put(`/pentestprojects/${projectId}/sections/${section.id}/`, section);
     commit('setSection', { projectId, section: updatedSection });
@@ -276,8 +278,17 @@ export const getters = {
   project: state => (projectId) => {
     return state.data[projectId]?.project;
   },
-  findings: state => (projectId) => {
-    return sortFindings(state.data[projectId]?.findings || []);
+  findings: state => (projectId, { projectType = null } = {}) => {
+    const projectState = state.data[projectId]
+    let findings = projectState?.findings || [];
+    if (projectState && projectType) {
+      findings = sortFindings({
+        findings,
+        projectType,
+        overrideFindingOrder: projectState.project.override_finding_order,
+      })
+    }
+    return findings;
   },
   sections: state => (projectId) => {
     return state.data[projectId]?.sections || [];

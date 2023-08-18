@@ -8,7 +8,7 @@ error_cleanup() {
         echo cd "$script_location"
         echo "Trying to restore your old version..."
         cd `dirname "$script_location"`
-        mv "$sysreptor_directory" "$sysreptor_directory"-failed-update-$(date +"%Y-%m-%d-%X")
+        mv "$sysreptor_directory" "$sysreptor_directory"-failed-update-$(date --iso-8601=seconds)
         mv "$backup_copy" "$sysreptor_directory"
         cd "$sysreptor_directory"/deploy
         docker compose up -d
@@ -30,6 +30,12 @@ do
         error=0
     fi
 done
+if 
+    ! docker compose version >/dev/null 2>&1
+then
+    echo "docker compose v2 is not installed."
+    error=0
+fi
 if
     test 0 -eq "$error"
 then
@@ -87,7 +93,7 @@ then
 fi
 echo "Creating backup copy of your current installation..."
 sysreptor_directory=${PWD##*/}
-backup_copy="$sysreptor_directory"-backup-$(date +"%Y-%m-%d-%X")
+backup_copy="$sysreptor_directory"-backup-$(date --iso-8601=seconds)
 cd ..
 mv "$sysreptor_directory" "$backup_copy"
 created_backup=1
@@ -96,11 +102,11 @@ echo "Unpacking sysreptor.tar.gz..."
 mkdir "$sysreptor_directory"
 tar xzf sysreptor.tar.gz -C "$sysreptor_directory" --strip-components=1
 echo "Copy your app.env..."
-cp "$backup_copy"/deploy/app.env "$sysreptor_directory"/deploy/app.env
+cp "${backup_copy}/deploy/app.env" "${sysreptor_directory}/deploy/app.env"
 echo "Build and launch SysReptor via docker compose..."
 echo "We are downloading and installing all dependencies."
 echo "This may take a few minutes."
-if grep "^LICENSE=" "$sysreptor_directory"/deploy/app.env
+if grep "^LICENSE=" "${sysreptor_directory}/deploy/app.env"
 then
     compose_args=""
 else

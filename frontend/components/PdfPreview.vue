@@ -1,26 +1,24 @@
 <template>
-  <div>
-    <fill-screen-height class="d-flex flex-column">
-      <pdf :value="pdfData" class="flex-grow-1" />
+  <div class="h-100 d-flex flex-column pos-relative">
+    <pdf :value="pdfData" class="flex-grow-height" />
 
-      <v-footer padless dark class="footer">
-        <v-btn @click="showMessages = !showMessages" small width="100%" :ripple="false">
-          <v-spacer />
-          <span class="mr-6"><v-icon left small color="error">mdi-close-circle</v-icon> {{ messages.filter(m => m.level === 'error' ).length }}</span>
-          <span class="mr-6"><v-icon left small color="warning">mdi-alert</v-icon> {{ messages.filter(m => m.level === 'warning' ).length }}</span>
-          <span><v-icon left small color="info">mdi-message-text</v-icon> {{ messages.filter(m => m.level === 'info' ).length }}</span>
-        </v-btn>
-      </v-footer>
+    <v-footer padless dark class="footer">
+      <v-btn @click="showMessages = !showMessages" small width="100%" :ripple="false">
+        <v-spacer />
+        <span class="mr-6"><v-icon left small color="error">mdi-close-circle</v-icon> {{ messages.filter(m => m.level === 'error' ).length }}</span>
+        <span class="mr-6"><v-icon left small color="warning">mdi-alert</v-icon> {{ messages.filter(m => m.level === 'warning' ).length }}</span>
+        <span><v-icon left small color="info">mdi-message-text</v-icon> {{ messages.filter(m => m.level === 'info' ).length }}</span>
+      </v-btn>
+    </v-footer>
 
-      <v-overlay v-if="showMessages" color="grey darken-4" opacity="0.7" absolute>
-        <error-list :value="messages" :show-no-message-info="true" class="mt-5" />
-      </v-overlay>
-      <v-overlay v-else-if="renderingInProgress && (!pdfData || showLoadingSpinnerOnReload)" absolute z-index="20">
-        <div class="initial-loading">
-          <v-progress-circular indeterminate />
-        </div>
-      </v-overlay>
-    </fill-screen-height>
+    <v-overlay v-if="showMessages" color="grey darken-4" opacity="0.7" absolute>
+      <error-list :value="messages" :show-no-message-info="true" class="mt-5" />
+    </v-overlay>
+    <v-overlay v-else-if="renderingInProgress && (!pdfData || showLoadingSpinnerOnReload)" absolute z-index="20">
+      <div class="initial-loading">
+        <v-progress-circular indeterminate />
+      </div>
+    </v-overlay>
   </div>
 </template>
 
@@ -123,5 +121,9 @@ export default {
 
 .footer {
   z-index: 10;
+}
+
+.pos-relative {
+  position: relative;
 }
 </style>

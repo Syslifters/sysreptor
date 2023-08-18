@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="pt-0">
     <v-form ref="form">
       <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :form="$refs.form">
         <template #context-menu>
@@ -29,7 +29,7 @@
         :disabled="readonly"
         class="mt-4"
       />
-      <language-selection v-model="projectType.language" :disabled="readonly" />
+      <language-selection v-model="projectType.language" :disabled="readonly" class="mt-4" />
     </v-form>
   </v-container>
 </template>

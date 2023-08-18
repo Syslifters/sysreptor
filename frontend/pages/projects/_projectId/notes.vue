@@ -12,18 +12,20 @@
           @update:note="updateNote"
           :disabled="project.readonly" 
           :to-prefix="`/projects/${$route.params.projectId}/notes/`"
+          class="flex-grow-1 overflow-y-auto"
         />
         
         <div>
-          <v-divider />
-          <v-list-item class="mt-1">
+          <v-divider class="mb-1" />
+          <v-list-item>
             <btn-confirm 
               :action="createNote"
               :disabled="project.readonly"
               :confirm="false"
               button-text="Add"
               button-icon="mdi-plus"
-              tooltip-text="Add Note"
+              tooltip-text="Add Note (Ctrl+J)"
+              keyboard-shortcut="ctrl+j"
               small
               block
             />

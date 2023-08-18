@@ -9,6 +9,7 @@
     :rules="rules"
     :loading="items.isLoading"
     :clearable="!required"
+    class="mt-4"
     v-bind="$attrs"
   >
     <template #append-item>
@@ -97,7 +98,7 @@ export default {
               this.$emit('input', t);
             }
           })
-          .catch(this.$toast.requestError);
+          .catch(this.$toast.global.requestError);
       }
     }
 

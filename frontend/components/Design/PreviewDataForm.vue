@@ -12,7 +12,7 @@
           <v-list-item 
             v-for="finding in projectType.report_preview_data.findings" :key="finding.id" 
             :value="finding" 
-            :class="'finding-level-' + riskLevel(finding.cvss)"
+            :class="'finding-level-' + riskLevel(finding)"
             link
           >
             <v-list-item-title>{{ finding.title }}</v-list-item-title>
@@ -118,9 +118,12 @@ export default {
     updateFindingField(fieldId, value) {
       const newVal = Object.assign({}, this.value);
       const newFinding = Object.assign({}, this.currentItem, Object.fromEntries([[fieldId, value]]));
-      newVal.findings = sortFindings(
-        this.value.findings
-          .map(f => f.id === newFinding.id ? newFinding : f));
+      newVal.findings = sortFindings({
+        findings: this.value.findings.map(f => f.id === newFinding.id ? newFinding : f),
+        projectType: this.projectType,
+        overrideFindingOrder: false,
+        topLevelFields: true,
+      });
       this.$emit('input', newVal);
       this.currentItem = newFinding;
     },
@@ -152,8 +155,14 @@ export default {
       newVal.findings = this.value.findings.filter(f => f.id !== finding.id);
       this.$emit('input', newVal);
     },
-    riskLevel(cvssVector) {
-      return cvss.levelNumberFromScore(cvss.scoreFromVector(cvssVector));
+    riskLevel(finding) {
+      if ('severity' in this.projectType.finding_fields) {
+        return cvss.levelNumberFromLevelName(finding.severity);
+      } else if ('cvss' in this.projectType.finding_fields) {
+        return cvss.levelNumberFromScore(cvss.scoreFromVector(finding.cvss));
+      } else {
+        return 'unknown';
+      }
     },
   }
 }

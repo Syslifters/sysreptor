@@ -177,6 +177,9 @@ def import_archive(archive_file, serializer_classes: list[Type[serializers.Seria
                 f.delete(save=False)
             except Exception:
                 log.exception(f'Failed to delete imported file "{f.name}" during rollback')
+
+        if isinstance(ex, tarfile.ReadError):
+            raise serializers.ValidationError(detail='Could not read .tar.gz file') from ex
         raise ex
 
 

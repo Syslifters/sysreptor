@@ -56,4 +56,17 @@ export const getters = {
     return val === undefined ? true : val;
   },
   templateFieldFilterHiddenFields: state => state.templateFieldFilterHiddenFields,
+  spellcheckLanguageToolEnabled: (state, _getters, _rootState, rootGetters) => (lang) => {
+    const apiSettings = rootGetters['apisettings/settings'];
+    return lang !== null && 
+        state.spellcheckEnabled && 
+        apiSettings.features.spellcheck &&
+        apiSettings.languages.find(l => l.code === lang)?.spellcheck;
+  },
+  spellcheckBrowserEnabled: (state, _getters, _rootState, rootGetters) => (lang) => {
+    const apiSettings = rootGetters['apisettings/settings'];
+    return lang !== null && 
+        state.spellcheckEnabled && 
+        !apiSettings.features.spellcheck;
+  },
 };

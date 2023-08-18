@@ -9,7 +9,7 @@ RUN mkdir -p /usr/local/share/ca-certificates/ && \
     update-ca-certificates
 
 # PostgreSQL support
-RUN apk add postgresql-client zip unzip \
+RUN apk add postgresql-client zip unzip wget \
     && wget https://jdbc.postgresql.org/download/postgresql-42.6.0.jar -P libs --quiet \
     && mkdir -p org/languagetool/server \
     && unzip -p languagetool-server.jar org/languagetool/server/mybatis-config.xml | \

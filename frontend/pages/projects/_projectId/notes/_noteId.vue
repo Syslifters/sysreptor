@@ -59,6 +59,7 @@
 
 <script>
 import urlJoin from 'url-join';
+import { omit } from 'lodash';
 import { uploadFileHelper } from '~/utils/upload';
 import ProjectLockEditMixin from '~/mixins/ProjectLockEditMixin';
 
@@ -110,7 +111,7 @@ export default {
       this.$router.push(`/projects/${this.project.id}/notes/`);
     },
     updateInStore(data) {
-      this.$store.commit('projects/setNote', { projectId: this.project.id, note: data });
+      this.$store.commit('projects/setNote', { projectId: this.project.id, note: omit(data, ['parent', 'order']) });
     },
     async onUpdateData({ oldValue, newValue }) {
       const toolbar = this.getToolbarRef();

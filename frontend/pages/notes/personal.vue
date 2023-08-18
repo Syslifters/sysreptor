@@ -11,6 +11,7 @@
           @input="updateNoteOrder"
           @update:note="updateNote"
           to-prefix="/notes/personal/"
+          class="flex-grow-1 overflow-y-auto"
         />
         
         <div>
@@ -21,7 +22,8 @@
               :confirm="false"
               button-text="Add"
               button-icon="mdi-plus"
-              tooltip-text="Add Notebook Page"
+              tooltip-text="Add Note (Ctrl+J)"
+              keyboard-shortcut="ctrl+j"
               color="secondary"
               small
               block

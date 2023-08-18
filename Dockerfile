@@ -100,7 +100,9 @@ FROM python:3.10-slim-bookworm AS api-dev
 # Add custom CA certificates
 ARG CA_CERTIFICATES=""
 RUN echo "${CA_CERTIFICATES}" | tee -a /usr/local/share/ca-certificates/custom-user-cert.crt && \
-    update-ca-certificates
+    update-ca-certificates && \
+    cat /etc/ssl/certs/* > /etc/ssl/certs/bundle.pem && \
+    pip config set global.cert /etc/ssl/certs/bundle.pem
 
 # Install system dependencies required by weasyprint and chromium
 RUN apt-get update && apt-get install -y --no-install-recommends \

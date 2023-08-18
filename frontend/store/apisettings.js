@@ -37,7 +37,13 @@ export const getters = {
   settings(state) {
     return state.settings;
   },
-  is_professional_license(state) {
+  isProfessionalLicense(state) {
     return state.settings?.license?.type === 'professional';
+  },
+  spellcheckLanguageToolSupported(_state, getters) {
+    return getters.settings?.features?.spellcheck;
+  },
+  spellcheckLanguageToolSupportedForLanguage: (_state, getters) => (lang) => {
+    return getters.spellcheckLanguageToolSupported && getters.settings?.languages?.find(l => l.code === lang)?.spellcheck;
   },
 }

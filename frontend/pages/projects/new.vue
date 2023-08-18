@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="pt-0">
     <v-form ref="form" @submit.prevent="performCreate">
       <edit-toolbar :form="$refs.form" :save="performCreate" save-button-text="Create">
         <template #title>Create new Project</template>

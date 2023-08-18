@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="pt-0">
     <v-form ref="form">
       <edit-toolbar :form="$refs.form" :save="performCreate" save-button-text="Create User">
         <template #title>Create new User</template>
@@ -55,7 +55,7 @@ export default {
         email: null,
         phone: null,
         mobile: null,
-        is_superuser: !this.$store.getters['apisettings/is_professional_license'],
+        is_superuser: !this.$store.getters['apisettings/isProfessionalLicense'],
         is_user_manager: false,
         is_designer: false,
         is_template_editor: false,

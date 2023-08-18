@@ -34,19 +34,19 @@ const DEFAULT_COMPUTED = {
     return this.data.findings;
   },
   findings_info() {
-    return this.findings.filter(f => f.cvss.level === 'info');
+    return this.findings.filter(f => (f.severity?.value || f.cvss?.level) === 'info');
   },
   findings_low() {
-    return this.findings.filter(f => f.cvss.level === 'low');
+    return this.findings.filter(f => (f.severity?.value || f.cvss?.level) === 'low');
   },
   findings_medium() {
-    return this.findings.filter(f => f.cvss.level === 'medium');
+    return this.findings.filter(f => (f.severity?.value || f.cvss?.level) === 'medium');
   },
   findings_high() {
-    return this.findings.filter(f => f.cvss.level === 'high');
+    return this.findings.filter(f => (f.severity?.value || f.cvss?.level) === 'high');
   },
   findings_critical() {
-    return this.findings.filter(f => f.cvss.level === 'critical');
+    return this.findings.filter(f => (f.severity?.value || f.cvss?.level) === 'critical');
   },
   finding_stats() {
     return {

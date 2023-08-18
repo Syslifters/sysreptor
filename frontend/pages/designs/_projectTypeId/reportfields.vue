@@ -1,58 +1,66 @@
 <template>
-  <v-form ref="form">
+  <v-form ref="form" class="h-100">
     <split-menu v-model="menuSize">
       <template #menu>
-        <v-list>
-          <v-list-item-title class="text-h6 pl-2">{{ projectType.name }}</v-list-item-title>
+        <v-list class="pb-0 h-100 d-flex flex-column">
+          <div>
+            <v-list-item-title class="text-h6 pl-2">{{ projectType.name }}</v-list-item-title>
+          </div>
 
-          <v-list-item-group v-model="currentItem" mandatory>
-            <draggable 
-              :value="reportSections" 
-              @input="updateSectionOrder" 
-              group="sections" 
-              draggable=".draggable-section"
-              :disabled="readonly"
-            >
-              <div v-for="s in reportSections" :key="s.id" class="draggable-section">
-                <v-list-item :value="s" :ripple="false" link>
-                  <v-list-item-title>{{ s.label }}</v-list-item-title>
-                  <v-list-item-action>
-                    <btn-delete v-if="s.fields.length === 0" :delete="() => deleteSection(s)" :disabled="readonly" icon small />
-                  </v-list-item-action>
-                </v-list-item>
-                <v-list class="sublist" dense>
-                  <draggable 
-                    :value="s.fields" @input="updateFieldOrder(s, $event)" 
-                    group="fields" 
-                    draggable=".draggable-field"
-                    :disabled="readonly"
-                  >
-                    <v-list-item v-for="f in s.fields" :key="f.id" :value="f" class="draggable-field" :ripple="false" link>
-                      <v-list-item-title>{{ f.id }}</v-list-item-title>
-                      <v-list-item-action>
-                        <btn-delete v-if="f.origin !== 'core'" :delete="() => deleteField(s, f)" :disabled="readonly" icon x-small />
-                      </v-list-item-action>
-                    </v-list-item>
-                  </draggable>
-
-                  <v-list-item>
-                    <s-btn @click.stop="addField(s)" color="secondary" :disabled="readonly" x-small>
-                      <v-icon left>mdi-plus</v-icon>
-                      Add Field
-                    </s-btn>
+          <div class="flex-grow-height overflow-y-auto">
+            <v-list-item-group v-model="currentItem" mandatory>
+              <draggable 
+                :value="reportSections" 
+                @input="updateSectionOrder" 
+                group="sections" 
+                draggable=".draggable-section"
+                :disabled="readonly"
+              >
+                <div v-for="s in reportSections" :key="s.id" class="draggable-section">
+                  <v-list-item :value="s" :ripple="false" link>
+                    <v-list-item-title>{{ s.label }}</v-list-item-title>
+                    <v-list-item-action>
+                      <btn-delete v-if="s.fields.length === 0" :delete="() => deleteSection(s)" :disabled="readonly" icon small />
+                    </v-list-item-action>
                   </v-list-item>
-                </v-list>
+                  <v-list class="sublist" dense>
+                    <draggable 
+                      :value="s.fields" @input="updateFieldOrder(s, $event)" 
+                      group="fields" 
+                      draggable=".draggable-field"
+                      :disabled="readonly"
+                    >
+                      <v-list-item v-for="f in s.fields" :key="f.id" :value="f" class="draggable-field" :ripple="false" link>
+                        <v-list-item-title>{{ f.id }}</v-list-item-title>
+                        <v-list-item-action>
+                          <btn-delete v-if="f.origin !== 'core'" :delete="() => deleteField(s, f)" :disabled="readonly" icon x-small />
+                        </v-list-item-action>
+                      </v-list-item>
+                    </draggable>
 
-                <v-divider />
-              </div>
-            </draggable>
+                    <v-list-item>
+                      <s-btn @click.stop="addField(s)" color="secondary" :disabled="readonly" x-small>
+                        <v-icon left>mdi-plus</v-icon>
+                        Add Field
+                      </s-btn>
+                    </v-list-item>
+                  </v-list>
+
+                  <v-divider />
+                </div>
+              </draggable>
+            </v-list-item-group>
+          </div>
+
+          <div>
+            <v-divider class="mb-1" />
             <v-list-item>
-              <s-btn @click.stop="addSection" :disabled="readonly" color="secondary" small>
+              <s-btn @click.stop="addSection" :disabled="readonly" color="secondary" small block>
                 <v-icon left>mdi-plus</v-icon>
                 Add Section
               </s-btn>
             </v-list-item>
-          </v-list-item-group>
+          </div>
         </v-list>
       </template>
 
@@ -238,7 +246,6 @@ export default {
 }
 
 .draggable-field, .draggable-section > .v-list-item {
-  cursor: move;
   cursor: grab;
 }
 </style>

@@ -17,6 +17,11 @@ body {
 .login-header {
   background-color: $syslifters-darkblue !important;
 }
+.toast-warning {
+  // Vuetify warning color
+  background-color: #fb8c00 !important;
+  color: black !important;
+}
 
 
 .w-100 {
@@ -24,4 +29,15 @@ body {
 }
 .h-100 {
   height: 100% !important;
+}
+
+
+.flex-grow-height {
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.flex-grow-width {
+  flex-grow: 1;
+  min-width: 0;
 }

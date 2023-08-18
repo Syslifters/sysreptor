@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="pt-0">
     <v-form ref="form">
       <edit-toolbar v-bind="toolbarAttrs">
         <template #title>Project</template>
@@ -80,7 +80,7 @@
           </template>
         </template>
       </project-type-selection>
-      <language-selection v-model="project.language" :error-messages="serverErrors?.language" :disabled="project.readonly" />
+      <language-selection v-model="project.language" :error-messages="serverErrors?.language" :disabled="project.readonly" class="mt-4" />
 
       <s-tags 
         v-model="project.tags"

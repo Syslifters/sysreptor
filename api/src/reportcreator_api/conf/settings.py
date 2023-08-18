@@ -325,9 +325,6 @@ STORAGES = {
     },
 }
 
-from pillow_heif import register_heif_opener
-register_heif_opener()
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field

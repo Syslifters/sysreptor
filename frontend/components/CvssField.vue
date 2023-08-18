@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex">
-    <div class="flex-grow-1">
+    <div class="flex-grow-width">
       <s-text-field
         :value="value"
         @input="$emit('input', $event)"

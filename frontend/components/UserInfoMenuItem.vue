@@ -1,5 +1,5 @@
 <template>
-  <v-menu left bottom offset-y>
+  <v-menu left bottom offset-y max-height="90vh">
     <template #activator="{ on, attrs }">
       <v-btn v-bind="attrs" v-on="on" icon dark>
         <v-badge v-if="licenseError" dot color="error"><v-icon>mdi-account</v-icon></v-badge>
@@ -21,7 +21,7 @@
           <v-list-item-icon><v-icon>mdi-account</v-icon></v-list-item-icon>
           <v-list-item-title>Profile</v-list-item-title>
         </v-list-item>
-        <template v-if="$store.getters['apisettings/is_professional_license']">
+        <template v-if="$store.getters['apisettings/isProfessionalLicense']">
           <v-list-item v-if="$auth.hasScope('admin')" to="/users/self/admin/disable/" nuxt>
             <v-list-item-icon><v-icon>mdi-account-arrow-down</v-icon></v-list-item-icon>
             <v-list-item-title>Disable Superuser Permissions</v-list-item-title>

@@ -9,6 +9,7 @@ from typing import Any, Optional, Union
 from base64 import b64encode
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from reportcreator_api.pentests.customfields.sort import sort_findings
 
 from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.pentests import cvss
@@ -62,18 +63,13 @@ def format_template_field(value: Any, definition: FieldDefinition, members: Opti
     if value_type == FieldDataType.ENUM:
         return dataclasses.asdict(next(filter(lambda c: c.value == value, definition.choices), EnumChoice(value='', label='')))
     elif value_type == FieldDataType.CVSS:
-        score_metrics = cvss.calculate_score(
-            value, return_metrics=True)
+        score_metrics = cvss.calculate_metrics(value)
         return {
             'vector': value,
             'score': str(round(score_metrics["final"]["score"], 2)),
             'level': cvss.level_from_score(score_metrics["final"]["score"]).value,
             'level_number': cvss.level_number_from_score(score_metrics["final"]["score"]),
-            'version': score_metrics["version"],
-            'final': score_metrics["final"],
-            'base': score_metrics["base"],
-            'temporal': score_metrics["temporal"],
-            'environmental': score_metrics["environmental"],
+            **score_metrics
         }
     elif value_type == FieldDataType.USER:
         return format_template_field_user(value, members=members)
@@ -85,7 +81,7 @@ def format_template_field(value: Any, definition: FieldDefinition, members: Opti
         return value
 
 
-def format_template_data(data: dict, project_type: ProjectType, imported_members: Optional[list[dict]] = None):
+def format_template_data(data: dict, project_type: ProjectType, imported_members: Optional[list[dict]] = None, override_finding_order=False):
     members = [format_template_field_user(u, members=imported_members) for u in data.get(
         'pentesters', []) + (imported_members or [])]
     data['report'] = format_template_field_object(
@@ -96,7 +92,7 @@ def format_template_data(data: dict, project_type: ProjectType, imported_members
         definition=project_type.report_fields_obj,
         members=members,
         require_id=True)
-    data['findings'] = sorted([
+    data['findings'] = sort_findings(findings=[
         format_template_field_object(
             value=(f if isinstance(f, dict) else {}) | ensure_defined_structure(
                 value=f,
@@ -106,7 +102,7 @@ def format_template_data(data: dict, project_type: ProjectType, imported_members
             members=members,
             require_id=True)
         for f in data.get('findings', [])],
-        key=lambda f: (-float(f.get('cvss', {}).get('score', 0)), f.get('created'), f.get('id')))
+        project_type=project_type, override_finding_order=override_finding_order)
     data['pentesters'] = sorted(
         members,
         key=lambda u: (0 if 'lead' in u.get('roles', []) else 1 if 'pentester' in u.get(
@@ -191,11 +187,17 @@ async def render_pdf(project: PentestProject, project_type: Optional[ProjectType
         'findings': [{
             'id': str(f.finding_id),
             'created': str(f.created),
+            'order': f.order,
             **f.data,
         } async for f in project.findings.all()],
         'pentesters': [u async for u in project.members.all()],
     }
-    data = await sync_to_async(format_template_data)(data=data, project_type=project_type, imported_members=project.imported_members)
+    data = await sync_to_async(format_template_data)(
+        data=data, 
+        project_type=project_type, 
+        imported_members=project.imported_members, 
+        override_finding_order=project.override_finding_order
+    )
     return await render_pdf_task(
         project=project,
         project_type=project_type,

@@ -282,4 +282,4 @@ def test_cvss(vector, score):
     }),
 ])
 def test_cvss_metrics(vector, metrics):
-    assert cvss.calculate_score(vector, return_metrics=True) == metrics
+    assert cvss.calculate_metrics(vector) == metrics

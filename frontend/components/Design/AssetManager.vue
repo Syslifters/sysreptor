@@ -1,11 +1,5 @@
 <template>
-  <div
-    class="drag-drop-area"
-    @drop.prevent="performFileUpload($event.dataTransfer.files)" 
-    @dragover.prevent="showDropArea = true" 
-    @dragenter.prevent="showDropArea = true" 
-    @dragleave.prevent="showDropArea = false"
-  >
+  <file-drop-area multiple :disabled="disabled" @drop="performFileUpload">
     <!-- Upload files with drag-and-drop here -->
     <v-row class="ma-0">
       <v-col :cols="12" :md="3">
@@ -73,20 +67,11 @@
         </v-card>
       </v-col>
     </v-row>
-
-    <v-fade-transition v-if="!disabled">
-      <v-overlay v-if="showDropArea" absolute>
-        <div class="text-center mt-10">
-          <h2>Drop files to upload</h2>
-        </div>
-      </v-overlay>
-    </v-fade-transition>
-  </div>
+  </file-drop-area>
 </template>
 
 <script>
 import { last } from 'lodash'
-import FileDownload from 'js-file-download';
 import urlJoin from 'url-join';
 import PageLoader from '../PageLoader.vue';
 import { uploadFileHelper } from '~/utils/upload';
@@ -102,13 +87,12 @@ export default {
     disabled: {
       type: Boolean,
       default: false,
-    }
+    },
   },
   data() {
     return {
       assets: new CursorPaginationFetcher(`/projecttypes/${this.projectType.id}/assets/`, this.$axios, this.$toast),
       uploadInProgress: false,
-      showDropArea: false,
     }
   },
   computed: {
@@ -143,7 +127,6 @@ export default {
 
       try {
         this.uploadInProgress = true;
-        this.showDropArea = false;
 
         // upload all files
         await Promise.all(Array.from(files).map(f => this.uploadSingleFile(f)));
@@ -170,10 +153,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.drag-drop-area {
-  min-height: 100%;
-}
-
 .text--small {
   font-size: smaller;
 }

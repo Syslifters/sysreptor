@@ -1,5 +1,5 @@
 <template>
-  <s-dialog v-if="confirm" v-model="confirmDialogVisible" max-width="500">
+  <s-dialog v-if="confirm" v-model="confirmDialogVisible" :disabled="disabled" max-width="500">
     <template #activator="{on: dialogOn, attrs: dialogAttrs}">
       <s-tooltip :disabled="!tooltipText">
         <template #activator="{on: tooltipOn, attrs: tooltipAttrs}">
@@ -70,30 +70,40 @@
     </template>
   </s-dialog>
 
-  <v-list-item 
-    v-else-if="listItem" 
-    @click="performAction"
-    link 
-    v-bind="$attrs"
-  >
-    <v-list-item-icon v-if="buttonIcon">
-      <v-progress-circular v-if="actionInProgress" indeterminate />
-      <v-icon v-else :color="$attrs.color || buttonColor">{{ buttonIcon }}</v-icon>
-    </v-list-item-icon>
-    <v-list-item-title>{{ buttonText }}</v-list-item-title>
-  </v-list-item>
-  <s-btn 
-    v-else 
-    :icon="icon" 
-    :loading="actionInProgress" 
-    @click="performAction" 
-    :color="$attrs.color || buttonColor || 'secondary'" 
-    class="ml-1 mr-1" 
-    v-bind="$attrs"
-  >
-    <v-icon v-if="buttonIcon">{{ buttonIcon }}</v-icon>
-    <template v-if="!icon">{{ buttonText }}</template>
-  </s-btn>
+  <s-tooltip v-else :disabled="!tooltipText">
+    <template #activator="{on: tooltipOn, attrs: tooltipAttrs}">
+      <v-list-item 
+        v-if="listItem" 
+        @click="performAction"
+        :disabled="disabled"
+        link 
+        v-bind="{...tooltipAttrs, ...$attrs}"
+        v-on="{...tooltipOn, ...$listeners}"
+      >
+        <v-list-item-icon v-if="buttonIcon">
+          <v-progress-circular v-if="actionInProgress" indeterminate />
+          <v-icon v-else :color="$attrs.color || buttonColor">{{ buttonIcon }}</v-icon>
+        </v-list-item-icon>
+        <v-list-item-title>{{ buttonText }}</v-list-item-title>
+      </v-list-item>
+      <s-btn 
+        v-else 
+        :icon="icon" 
+        :loading="actionInProgress" 
+        :disabled="disabled"
+        @click="performAction" 
+        :color="$attrs.color || buttonColor || 'secondary'" 
+        class="ml-1 mr-1" 
+        v-bind="{...tooltipAttrs, ...$attrs}"
+        v-on="{...tooltipOn, ...$listeners}"
+      >
+        <v-icon v-if="buttonIcon">{{ buttonIcon }}</v-icon>
+        <template v-if="!icon">{{ buttonText }}</template>
+      </s-btn>
+    </template>
+
+    <template #default>{{ tooltipText }}</template>
+  </s-tooltip>
 </template>
 
 <script>
@@ -143,6 +153,14 @@ export default {
       type: Function,
       required: true,
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    keyboardShortcut: {
+      type: String,
+      default: null
+    },
   },
   emits: ['click'],
   data() {
@@ -152,9 +170,27 @@ export default {
       actionInProgress: false,
     }
   },
+  mounted() {
+    if (this.keyboardShortcut) {
+      window.addEventListener('keydown', this.onKeyDown);
+    }
+  },
+  beforeDestroy() {
+    window.removeEventListener('keydown', this.onKeyDown);
+  },
   methods: {
+    onKeyDown(event) {
+      if ((this.keyboardShortcut.startsWith('ctrl+') && event.ctrlKey && event.key === this.keyboardShortcut.substring(5)) || (this.keyboardShortcut === event.key)) {
+        event.preventDefault();
+        if (this.confirm) {
+          this.confirmDialogVisible = true;
+        } else {
+          this.performAction();
+        }
+      }
+    },
     async performAction() {
-      if (this.actionInProgress) {
+      if (this.actionInProgress || this.disabled) {
         return;
       }
 

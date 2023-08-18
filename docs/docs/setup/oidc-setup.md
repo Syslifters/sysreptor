@@ -4,8 +4,10 @@
 1. Configure your Identity Provider (IDP) and add configuration details to your `app.env`
     * [Azure Active Directory](/setup/oidc-azure-active-directory)
     * [Google Workplace/Google Identity](/setup/oidc-google)
+    * [Keycloak](/setup/oidc-keycloak)
+    * [Generic OIDC setup](/setup/oidc-generic)
     * Need documentation for another IDP? Drop us a message at [GitHub Discussions](https://github.com/Syslifters/sysreptor/discussions/categories/ideas){ target=_blank }!
-3. Restart containers using `docker-compose up -d` in `deploy`-directory
+3. Restart containers using `docker-compose up -d` in `deploy` directory
 2. Set up local users:
 
     a. Create user that should use SSO  

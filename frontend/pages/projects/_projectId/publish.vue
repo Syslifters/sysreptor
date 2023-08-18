@@ -1,110 +1,106 @@
 <template>
-  <div>
-    <splitpanes class="default-theme">
-      <pane :size="previewSplitSize">
-        <pdf-preview 
-          ref="pdfpreview" 
-          :fetch-pdf="fetchPreviewPdf" 
-          :show-loading-spinner-on-reload="true" 
-          @renderprogress="pdfPreviewInProgress = $event"
-        />
-      </pane>
+  <splitpanes class="default-theme h-100">
+    <pane :size="previewSplitSize" class="h-100">
+      <pdf-preview 
+        ref="pdfpreview" 
+        :fetch-pdf="fetchPreviewPdf" 
+        :show-loading-spinner-on-reload="true" 
+        @renderprogress="pdfPreviewInProgress = $event"
+      />
+    </pane>
 
-      <pane :size="100 - previewSplitSize">
-        <fill-screen-height>
-          <v-container>
-            <h1>{{ project.name }}</h1>
+    <pane :size="100 - previewSplitSize" class="h-100 overflow-y-auto">
+      <v-container>
+        <h1>{{ project.name }}</h1>
 
-            <v-form class="pa-4">
-              <!-- Action buttons -->
-              <div>
-                <s-btn
-                  :loading="checksOrPreviewInProgress"
-                  :disabled="checksOrPreviewInProgress"
-                  @click="refreshPreviewAndChecks"
-                  color="secondary"
-                >
-                  <v-icon>mdi-cached</v-icon>
-                  Refresh PDF
+        <v-form class="pa-4">
+          <!-- Action buttons -->
+          <div>
+            <s-btn
+              :loading="checksOrPreviewInProgress"
+              :disabled="checksOrPreviewInProgress"
+              @click="refreshPreviewAndChecks"
+              color="secondary"
+            >
+              <v-icon>mdi-cached</v-icon>
+              Refresh PDF
 
-                  <template #loader>
-                    <saving-loader-spinner />
-                    Refresh PDF
-                  </template>
-                </s-btn>
-
-                <btn-confirm
-                  :action="customizeDesign"
-                  button-text="Customize Design"
-                  button-icon="mdi-file-cog"
-                  tooltip-text="Customize Design for this project"
-                  dialog-text="Customize the current Design for this project. This allows you to adapt the appearence (HTML, CSS) of the design for this project only. The original design is not affected. Any changes made to the original design will not be automatically applied to the adapted design."
-                  :disabled="project.readonly || projectType.source === 'customized'"
-                />
-              </div>
-
-              <!-- Set password for encrypting report -->
-              <div>
-                <s-checkbox v-model="form.encryptReport" label="Encrypt report PDF" />
-                <s-text-field
-                  v-if="form.encryptReport"
-                  v-model="form.password"
-                  :error-messages="(form.encryptReport && form.password.length === 0) ? ['Password required'] : []"
-                  label="PDF password"
-                  append-icon="mdi-lock-reset" @click:append="form.password = generateNewPassword()"
-                  class="mt-4"
-                />
-              </div>
-
-              <!-- Filename -->
-              <div>
-                <s-text-field 
-                  v-model="form.filename"
-                  label="Filename"
-                  :rules="rules.filename"
-                  class="mt-4"
-                />
-              </div>
-
-              <div class="mt-4">
-                <btn-confirm
-                  :disabled="!canGenerateFinalReport"
-                  :action="generateFinalReport"
-                  :confirm="false"
-                  button-text="Download"
-                  button-icon="mdi-download"
-                  button-color="primary"
-                />
-              </div>
-              <div class="mt-4">
-                <btn-readonly 
-                  v-if="!project.readonly"
-                  :value="project.readonly"
-                  :set-readonly="setReadonly"
-                  :disabled="!canGenerateFinalReport"
-                />
-              </div>
-            </v-form>
-
-            <error-list :value="allMessages" :group="true" :show-no-message-info="true">
-              <template #location="{msg}">
-                <NuxtLink v-if="messageLocationUrl(msg)" :to="messageLocationUrl(msg)" target="_blank">
-                  in {{ msg.location.type }}
-                  <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
-                  <template v-if="msg.location.path">field "{{ msg.location.path }}"</template>
-                </NuxtLink>
-                <span v-else-if="msg.location.name">
-                  in {{ msg.location.type }}
-                  <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
-                  <template v-if="msg.location.path">field "{{ msg.location.path }}"</template>
-                </span>
+              <template #loader>
+                <saving-loader-spinner />
+                Refresh PDF
               </template>
-            </error-list>
-          </v-container>
-        </fill-screen-height>
-      </pane>
-    </splitpanes>
-  </div>
+            </s-btn>
+
+            <btn-confirm
+              :action="customizeDesign"
+              button-text="Customize Design"
+              button-icon="mdi-file-cog"
+              tooltip-text="Customize Design for this project"
+              dialog-text="Customize the current Design for this project. This allows you to adapt the appearence (HTML, CSS) of the design for this project only. The original design is not affected. Any changes made to the original design will not be automatically applied to the adapted design."
+              :disabled="project.readonly || projectType.source === 'customized'"
+            />
+          </div>
+
+          <!-- Set password for encrypting report -->
+          <div>
+            <s-checkbox v-model="form.encryptReport" label="Encrypt report PDF" />
+            <s-text-field
+              v-if="form.encryptReport"
+              v-model="form.password"
+              :error-messages="(form.encryptReport && form.password.length === 0) ? ['Password required'] : []"
+              label="PDF password"
+              append-icon="mdi-lock-reset" @click:append="form.password = generateNewPassword()"
+              class="mt-4"
+            />
+          </div>
+
+          <!-- Filename -->
+          <div>
+            <s-text-field 
+              v-model="form.filename"
+              label="Filename"
+              :rules="rules.filename"
+              class="mt-4"
+            />
+          </div>
+
+          <div class="mt-4">
+            <btn-confirm
+              :disabled="!canGenerateFinalReport"
+              :action="generateFinalReport"
+              :confirm="false"
+              button-text="Download"
+              button-icon="mdi-download"
+              button-color="primary"
+            />
+          </div>
+          <div class="mt-4">
+            <btn-readonly 
+              v-if="!project.readonly"
+              :value="project.readonly"
+              :set-readonly="setReadonly"
+              :disabled="!canGenerateFinalReport"
+            />
+          </div>
+        </v-form>
+
+        <error-list :value="allMessages" :group="true" :show-no-message-info="true">
+          <template #location="{msg}">
+            <NuxtLink v-if="messageLocationUrl(msg)" :to="messageLocationUrl(msg)" target="_blank">
+              in {{ msg.location.type }}
+              <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
+              <template v-if="msg.location.path">field "{{ msg.location.path }}"</template>
+            </NuxtLink>
+            <span v-else-if="msg.location.name">
+              in {{ msg.location.type }}
+              <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
+              <template v-if="msg.location.path">field "{{ msg.location.path }}"</template>
+            </span>
+          </template>
+        </error-list>
+      </v-container>
+    </pane>
+  </splitpanes>
 </template>
 
 <script>

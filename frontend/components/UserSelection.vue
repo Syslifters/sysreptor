@@ -1,6 +1,7 @@
 <template>
   <s-autocomplete 
     :value="value" @change="$emit('input', $event)"
+    class="mt-4"
     v-bind="autocompleteAttrs"
   >
     <template v-for="_, name in $scopedSlots" :slot="name" slot-scope="data"><slot :name="name" v-bind="data" /></template>

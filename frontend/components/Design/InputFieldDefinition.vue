@@ -40,7 +40,7 @@
         <v-row v-if="![DATA_TYPES.boolean, DATA_TYPES.object].includes(value.type)" class="mt-0">
           <v-col class="mt-0 pt-0">
             <s-checkbox
-              :value="value.required"
+              :value="value.required || false"
               @input="emitInputVal('required', $event)"
               :disabled="disabled"
               label="Required"
@@ -50,11 +50,12 @@
           </v-col>
           <v-col class="mt-0 pt-0" v-if="value.type === DATA_TYPES.string">
             <s-checkbox 
-              :value="value.spellcheck"
+              :value="value.spellcheck || false"
               @input="emitInputVal('spellcheck', $event)"
               :disabled="disabled"
               label="Spellcheck Supported"
               hint="Support spellchecking for this fields text content."
+              class="mt-0"
             />
           </v-col>
         </v-row>
@@ -72,34 +73,45 @@
 
       <!-- Enum choices -->
       <v-list v-if="value.type === DATA_TYPES.enum">
-        <v-list-item v-for="choice, choiceIdx in value.choices || []" :key="choiceIdx">
-          <v-list-item-content>
-            <v-row>
-              <v-col>
-                <s-text-field 
-                  :value="choice.value"
-                  @input="emitInputEnumChoice('updateValue', choice, $event)"
-                  :disabled="disabled || !canChangeStructure"
-                  :rules="rules.choice"
-                  label="Value"
-                  required
-                />
-              </v-col>
-              <v-col>
-                <s-text-field 
-                  :value="choice.label"
-                  @input="emitInputEnumChoice('updateLabel', choice, $event)"
-                  :disabled="disabled"
-                  label="Label"
-                  required
-                />
-              </v-col>
-            </v-row>
-          </v-list-item-content>
-          <v-list-item-action>
-            <btn-delete :delete="() => emitInputEnumChoice('delete', choice)" :disabled="disabled || !canChangeStructure" icon />
-          </v-list-item-action>
-        </v-list-item>
+        <draggable
+          :value="value.choices || []"
+          @input="emitInputEnumChoice('sort', null, $event)"
+          :disabled="disabled || !canChangeStructure"
+          draggable=".draggable-item"
+          handle=".draggable-handle"
+        >
+          <v-list-item v-for="choice, choiceIdx in value.choices || []" :key="choiceIdx" class="draggable-item">
+            <v-list-item-icon class="draggable-handle mr-0 mt-6">
+              <v-icon left :disabled="disabled || !canChangeStructure">mdi-drag</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-row>
+                <v-col>
+                  <s-text-field 
+                    :value="choice.value"
+                    @input="emitInputEnumChoice('updateValue', choiceIdx, $event)"
+                    :disabled="disabled || !canChangeStructure"
+                    :rules="rules.choice"
+                    label="Value"
+                    required
+                  />
+                </v-col>
+                <v-col>
+                  <s-text-field 
+                    :value="choice.label"
+                    @input="emitInputEnumChoice('updateLabel', choiceIdx, $event)"
+                    :disabled="disabled"
+                    label="Label"
+                    required
+                  />
+                </v-col>
+              </v-row>
+            </v-list-item-content>
+            <v-list-item-action>
+              <btn-delete :delete="() => emitInputEnumChoice('delete', choiceIdx)" :disabled="disabled || !canChangeStructure" icon />
+            </v-list-item-action>
+          </v-list-item>
+        </draggable>
         <v-list-item>
           <v-list-item-action>
             <s-btn @click="emitInputEnumChoice('add')" :disabled="disabled || !canChangeStructure" color="secondary">
@@ -186,6 +198,7 @@
 
 <script>
 import { omit } from 'lodash';
+import Draggable from 'vuedraggable';
 import { uniqueName } from '~/utils/state';
 
 const DATA_TYPES = {
@@ -203,6 +216,7 @@ const DATA_TYPES = {
 };
 
 export default {
+  components: { Draggable },
   props: {
     value: {
       type: Object,
@@ -233,7 +247,7 @@ export default {
           id => (
             // this.parentObject.filter(f => id === f.id).length === 1 && 
             // TODO: validate ID unique abd validate custom ID not in list of core and predefined field IDs
-            /^[a-zA-Z_][a-zA-Z0-9_]+$/.test(id)
+            /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(id)
           ) || 'Invalid field ID',
         ],
         choice: [
@@ -247,7 +261,7 @@ export default {
     DATA_TYPES: () => DATA_TYPES,
     objectFields() {
       if (this.value.type === DATA_TYPES.object) {
-        return Object.keys(this.value.properties || {}).sort().map(f => ({ id: f, ...this.value.properties[f] }));
+        return Object.keys(this.value.properties || {}).map(f => ({ id: f, ...this.value.properties[f] }));
       } else {
         return [];
       }
@@ -289,22 +303,24 @@ export default {
       const newObj = Object.assign({}, this.value, Object.fromEntries([[property, val]]));
       this.$emit('input', newObj);
     },
-    emitInputEnumChoice(action, choice, val = null) {
+    emitInputEnumChoice(action, choiceIdx, val = null) {
       const newObj = Object.assign({}, this.value, { choices: [...this.value.choices] });
       if (action === 'updateValue') {
-        newObj.choices.filter(c => c.value === choice.value)[0].value = val;
+        newObj.choices[choiceIdx].value = val;
       } else if (action === 'updateLabel') {
-        newObj.choices.filter(c => c.value === choice.value)[0].label = val;
+        newObj.choices[choiceIdx].label = val;
       } else if (action === 'delete') {
-        newObj.choices = newObj.choices.filter(c => c.value !== choice.value);
+        newObj.choices = newObj.choices.filter((c, idx) => idx !== choiceIdx);
       } else if (action === 'add') {
         if (val === null) {
           val = {
-            value: uniqueName('new_value', newObj.choices.map(c => c.id)),
+            value: uniqueName('new_value', newObj.choices.map(c => c.value)),
             label: 'New Enum Value',
           }
         }
         newObj.choices.push(val);
+      } else if (action === 'sort') {
+        newObj.choices = val;
       }
 
       this.$emit('input', newObj);
@@ -318,6 +334,7 @@ export default {
       } else if (action === 'add') {
         newObj.suggestions.push('New Value');
       }
+      // TODO: allow sorting of suggestions
       this.$emit('input', newObj);
     },
     emitInputObject(action, fieldId = null, val = null) {
@@ -333,6 +350,7 @@ export default {
             type: DATA_TYPES.string,
             label: 'New Field',
             required: true,
+            spellcheck: false,
             default: null,
           };
         }
@@ -348,3 +366,9 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.draggable-handle {
+  cursor: grab;
+}
+</style>

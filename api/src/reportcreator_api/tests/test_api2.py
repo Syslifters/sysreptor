@@ -6,7 +6,7 @@ import pytest
 from reportcreator_api.archive.import_export.import_export import export_project_types
 from reportcreator_api.pentests.cvss import CVSSLevel
 from reportcreator_api.pentests.models import ProjectType, ProjectTypeScope, SourceEnum, FindingTemplate, FindingTemplateTranslation, Language, ReviewStatus
-from reportcreator_api.tests.mock import create_project, create_project_type, create_template, create_user, api_client
+from reportcreator_api.tests.mock import create_project, create_project_type, create_template, create_user, create_notebookpage, api_client
 from reportcreator_api.tests.utils import assertKeysEqual
 
 
@@ -78,6 +78,27 @@ class TestProjectApi:
         project.refresh_from_db()
         assert project.imported_members[0]['roles'] == ['pentester']
         assert project.imported_members[0]['additional_field'] == 'test'
+
+    def test_sort_findings(self):
+        project = create_project(members=[self.user], findings_kwargs=[
+            {'data': {'title': 'Finding 1'}, 'order': 5},
+            {'data': {'title': 'Finding 2'}, 'order': 4},
+            {'data': {'title': 'Finding 3'}, 'order': 1},
+            {'data': {'title': 'Finding 4'}, 'order': 2},
+            {'data': {'title': 'Finding 5'}, 'order': 3}
+        ])
+        def finding_by_title(title):
+            return next(filter(lambda f: f.data['title'] == title, project.findings.all()))
+
+        res = self.client.post(reverse('finding-sort', kwargs={'project_pk': project.id}), data=[
+            {'id': finding_by_title('Finding 1').finding_id, 'order': 1},
+            {'id': finding_by_title('Finding 2').finding_id, 'order': 2},
+            {'id': finding_by_title('Finding 3').finding_id, 'order': 3},
+        ])
+        assert res.status_code == 200
+        expected_order = [f'Finding {i + 1}' for i in range(5)]
+        assert [project.findings.get(finding_id=f['id']).data['title'] for f in sorted(res.data, key=lambda f: f['order'])] == expected_order
+        assert [f.data['title'] for f in project.findings.order_by('order')] == expected_order
 
 
 @pytest.mark.django_db
@@ -322,3 +343,87 @@ class TestTemplateApi:
         assert img.name == 'image.png'
         assert img.file.read() == project.images.filter_name(img.name).get().file.read()
 
+    def assert_search_result(self, params, expected_result):
+        res = self.client.get(reverse('findingtemplate-list'), data=params)
+        assert res.status_code == 200
+        assert [t['id'] for t in res.data['results']] == [str(t.id) for t in expected_result]
+    
+    def test_template_search(self):
+        search_term = 'tls crypt'
+        t_title_tag_data_de = create_template(language=Language.GERMAN, data={'title': 'Weak TLS', 'description': 'Weak crypto'}, tags=['crypto'])
+        t_title_data_en_de = create_template(language=Language.ENGLISH, data={'title': 'Weak TLS', 'description': 'Weak crypto'}, 
+                                             translations_kwargs=[{'language': Language.GERMAN, 'data': {'title': 'Unrelated', 'description': 'Weak crypto'}}])
+        t_data_en = create_template(language=Language.ENGLISH, data={'title': 'Unrelated', 'description': 'Improve TLS encryption'})
+        t_partial_term_match = create_template(language=Language.GERMAN, data={'title': 'Unrelated', 'description': 'Improve TLS'})
+        t_no_match = create_template(language=Language.GERMAN, data={'title': 'Unrelated', 'description': 'Unrelated'})
+        
+        # Best match first ordered by search rank
+        self.assert_search_result({'search': search_term}, [t_title_tag_data_de, t_title_data_en_de, t_data_en])
+        # Templates of preferred language first, then other languages, ordered by search rank
+        self.assert_search_result({'search': search_term, 'preferred_language': Language.ENGLISH}, [t_title_data_en_de, t_data_en, t_title_tag_data_de])
+        # Only templates of language, ordered by search rank
+        self.assert_search_result({'search': search_term, 'language': Language.ENGLISH}, [t_title_data_en_de, t_data_en])
+        # All templates
+        self.assert_search_result({}, [t_no_match, t_partial_term_match, t_data_en, t_title_data_en_de, t_title_tag_data_de, self.template])
+
+
+@pytest.mark.django_db
+class TestNotesApi:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user()
+        self.client = api_client(self.user)
+
+    def test_sort(self):
+        note1 = create_notebookpage(user=self.user, parent=None, order=3)
+        top_level = [
+            note1,
+            create_notebookpage(user=self.user, parent=None, order=1),
+            create_notebookpage(user=self.user, parent=None, order=2),
+        ]
+        sub_level = [
+            create_notebookpage(user=self.user, parent=note1, order=2),
+            create_notebookpage(user=self.user, parent=note1, order=3),
+            create_notebookpage(user=self.user, parent=note1, order=1),
+        ]
+
+        res = self.client.post(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': 'self'}), data=
+            [{'id': n.note_id, 'parent': None, 'order': idx + 1} for idx, n in enumerate(top_level)] + 
+            [{'id': n.note_id, 'parent': n.parent.note_id, 'order': idx + 1} for idx, n in enumerate(sub_level)]
+        )
+        for idx, n in enumerate(top_level):
+            n.refresh_from_db()
+            assert n.parent is None
+            assert n.order == idx + 1
+            assert next(filter(lambda rn: rn['id'] == str(n.note_id), res.data))['order'] == n.order
+        for idx, n in enumerate(sub_level):
+            n.refresh_from_db()
+            assert n.parent == note1
+            assert n.order == idx + 1
+            assert next(filter(lambda rn: rn['id'] == str(n.note_id), res.data))['order'] == n.order
+    
+    def test_sort_change_parent(self):
+        note1 = create_notebookpage(user=self.user, parent=None, order=1)
+        note2 = create_notebookpage(user=self.user, parent=None, order=2)
+        note1_1 = create_notebookpage(user=self.user, parent=note2, order=1)
+        note1_2 = create_notebookpage(user=self.user, parent=None, order=3)
+        note2_1 = create_notebookpage(user=self.user, parent=note1, order=1)
+        note3 = create_notebookpage(user=self.user, parent=note1, order=2)
+        
+        res = self.client.post(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': 'self'}), data=[
+            {'id': note1.note_id, 'parent': None, 'order': 1},
+            {'id': note1_1.note_id, 'parent': note1.note_id, 'order': 1},
+            {'id': note1_2.note_id, 'parent': note1.note_id, 'order': 2},
+            {'id': note2.note_id, 'parent': None, 'order': 2},
+            {'id': note2_1.note_id, 'parent': note2.note_id, 'order': 1},
+            {'id': note3.note_id, 'parent': None, 'order': 3},
+        ])
+        assert res.status_code == 200
+        for n in [note1, note2, note3, note1_1, note1_2, note2_1]:
+            n.refresh_from_db()
+        assert note1.parent is None
+        assert note2.parent is None
+        assert note3.parent is None
+        assert note1_1.parent == note1
+        assert note1_2.parent == note1
+        assert note2_1.parent == note2

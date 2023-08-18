@@ -1,10 +1,12 @@
 <template>
-  <div>
-    <s-sub-menu>
-      <v-tab to="/projects/" nuxt exact>Active Projects</v-tab>
-      <v-tab to="/projects/finished/" nuxt>Finished Projects</v-tab>
-      <v-tab to="/projects/archived/" nuxt>Archived Projects</v-tab>
-    </s-sub-menu>
+  <full-height-page>
+    <template #header>
+      <s-sub-menu>
+        <v-tab to="/projects/" nuxt exact>Active Projects</v-tab>
+        <v-tab to="/projects/finished/" nuxt>Finished Projects</v-tab>
+        <v-tab to="/projects/archived/" nuxt>Archived Projects</v-tab>
+      </s-sub-menu>
+    </template>
 
     <list-view url="/archivedprojects/">
       <template #title>Archived Projects</template>
@@ -50,7 +52,7 @@
         </v-list-item>
       </template>
     </list-view>
-  </div>
+  </full-height-page>
 </template>
 
 <script>

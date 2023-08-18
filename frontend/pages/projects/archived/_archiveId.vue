@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="pt-0">
     <edit-toolbar>
       <template #title>{{ archive.name }}</template>
 

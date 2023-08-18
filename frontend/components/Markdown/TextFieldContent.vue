@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { EditorState, EditorSelection } from '@codemirror/state';
+import { EditorState } from '@codemirror/state';
 import { EditorView, tooltips } from '@codemirror/view';
 import { history } from '@codemirror/commands';
 import { forceLinting, setDiagnostics } from '@codemirror/lint';
@@ -43,10 +43,11 @@ export default {
     valueNotNull() {
       return this.value || '';
     },
-    spellcheckEnabled() {
-      return this.lang !== null && !this.disabled && this.spellcheckSupported && 
-        this.$store.state.settings.spellcheckEnabled && this.$store.getters['apisettings/settings'].features.spellcheck &&
-        this.$store.getters['apisettings/settings'].languages.find(l => l.code === this.lang)?.spellcheck;
+    spellcheckLanguageToolEnabled() {
+      return !this.disabled && this.spellcheckSupported && this.$store.getters['settings/spellcheckLanguageToolEnabled'](this.lang);
+    },
+    spellcheckBrowserEnabled() {
+      return !this.disabled && this.spellcheckSupported && this.$store.getters['settings/spellcheckBrowserEnabled'](this.lang);
     },
   },
   watch: {
@@ -67,17 +68,20 @@ export default {
       }
     },
     lang(val) {
-      if (this.spellcheckEnabled) {
+      if (this.spellcheckLanguageToolEnabled) {
         forceLinting(this.editorView);
       }
     },
-    spellcheckEnabled(val) {
-      this.editorActions.spellcheck(val);
+    spellcheckLanguageToolEnabled(val) {
+      this.editorActions.spellcheckLanguageTool(val);
       if (!val) {
         // clear existing spellcheck items from editor
         this.editorView.dispatch(setDiagnostics(this.editorView.state, []));
       }
-    }
+    },
+    spellcheckBrowserEnabled(val) {
+      this.editorActions.spellcheckBrowser(val);
+    },
   },
   mounted() {
     this.editorView = new EditorView({
@@ -125,13 +129,17 @@ export default {
         EditorView.editable.of(false),
         EditorState.readOnly.of(true),
       ]),
-      spellcheck: createEditorExtensionToggler(this.editorView, [
+      spellcheckLanguageTool: createEditorExtensionToggler(this.editorView, [
         spellcheck({ performSpellcheckRequest: this.performSpellcheckRequest, performSpellcheckAddWordRequest: this.performSpellcheckAddWordRequest }),
         spellcheckTheme,
       ]),
+      spellcheckBrowser: createEditorExtensionToggler(this.editorView, [
+        EditorView.contentAttributes.of({ spellcheck: true }),
+      ]),
     };
     this.editorActions.disabled(this.disabled);
-    this.editorActions.spellcheck(this.spellcheckEnabled);
+    this.editorActions.spellcheckLanguageTool(this.spellcheckLanguageToolEnabled);
+    this.editorActions.spellcheckBrowser(this.spellcheckBrowserEnabled);
   },
   beforeDestroy() {
     if (this.editorView) {

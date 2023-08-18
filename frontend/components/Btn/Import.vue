@@ -1,26 +1,10 @@
 <template>
-  <v-card
-    flat tile
-    class="drag-drop-area"
-    @drop.prevent="performImport($event.dataTransfer.files)" 
-    @dragover.prevent="showDropArea = true" 
-    @dragenter.prevent="showDropArea = true" 
-    @dragleave.prevent="showDropArea = false"
-  >
-    <s-btn @click="$refs.fileInput.click()" :loading="importInProgress" color="primary" v-bind="$attrs">
-      <v-icon>mdi-upload</v-icon>
-      Import
-    </s-btn>
-    <input ref="fileInput" type="file" @change="performImport($event.target.files)" class="d-none" :disabled="disabled || importInProgress" />
+  <s-btn @click="$refs.fileInput.click()" :loading="importInProgress" color="primary" v-bind="$attrs">
+    <v-icon>mdi-upload</v-icon>
+    Import
 
-    <v-fade-transition v-if="!disabled">
-      <v-overlay v-if="showDropArea" absolute>
-        <div class="text-center">
-          Import file
-        </div>
-      </v-overlay>
-    </v-fade-transition>
-  </v-card>
+    <input ref="fileInput" type="file" @change="performImport($event.target.files)" class="d-none" :disabled="disabled || importInProgress" />
+  </s-btn>
 </template>
 
 <script>
@@ -38,7 +22,6 @@ export default {
   data() {
     return {
       importInProgress: false,
-      showDropArea: false,
     }
   },
   methods: {
@@ -50,7 +33,6 @@ export default {
       
       try {
         this.importInProgress = true;
-        this.showDropArea = false;
 
         await this.import(file);
       } catch (error) {
@@ -67,10 +49,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss" scoped>
-.drag-drop-area {
-  display: inline-block;
-  border-width: 0;
-}
-</style>
