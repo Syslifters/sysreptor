@@ -82,6 +82,7 @@ sync:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   script:
+    - apk add git
     - git remote add public https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor.git
     - git status
     - git config --global user.email $GITHUB_USER_MAIL
