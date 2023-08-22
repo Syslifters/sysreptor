@@ -81,6 +81,8 @@ sync:
   stage: sync
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
+  variables:
+    GIT_STRATEGY: clone
   script:
     - apk add git
     - git remote add public https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor.git
