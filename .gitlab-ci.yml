@@ -1,4 +1,5 @@
 stages:
+  - sync
   - build-test
   - test
   - build-release
@@ -75,6 +76,17 @@ test-frontend:
   script:
     - mkdir frontend/test-reports
     - docker run --mount=type=bind,source=$PWD/frontend/test-reports,target=/app/frontend/test-reports $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA npm run test -- --ci
+
+sync:
+  stage: sync
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - git remote add public https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor.git
+    - git status
+    - git config --global user.email $GITHUB_USER_MAIL
+    - git config --global user.name $GITHUB_USERNAME
+    - git push public main
 
 build-release:
   stage: build-release
