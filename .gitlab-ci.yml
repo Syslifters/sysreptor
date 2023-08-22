@@ -85,6 +85,7 @@ sync:
     GIT_STRATEGY: clone
   script:
     - apk add git
+    - git checkout -b $CI_COMMIT_BRANCH
     - git remote add public https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor.git
     - git status
     - git config --global user.email $GITHUB_USER_MAIL
