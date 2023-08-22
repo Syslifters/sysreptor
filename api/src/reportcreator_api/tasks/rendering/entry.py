@@ -1,16 +1,20 @@
 import dataclasses
+
 import logging
 import uuid
 import asyncio
 import elasticapm
+from datetime import timedelta
 from asgiref.sync import sync_to_async
 from types import NoneType
 from typing import Any, Optional, Union
 from base64 import b64encode
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from reportcreator_api.pentests.customfields.sort import sort_findings
+from django.utils import timezone
 
+from reportcreator_api.pentests.customfields.sort import sort_findings
 from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.pentests import cvss
 from reportcreator_api.pentests.customfields.types import FieldDataType, FieldDefinition, EnumChoice
@@ -111,8 +115,12 @@ def format_template_data(data: dict, project_type: ProjectType, imported_members
     return data
 
 
-async def get_celery_result_async(task):
+async def get_celery_result_async(task, timeout=timedelta(seconds=settings.CELERY_TASK_TIME_LIMIT)):
+    start_time = timezone.now()
     while not task.ready():
+        if timezone.now() > start_time + timeout:
+            logging.error('PDF rendering task timeout')
+            raise TimeoutError('PDF rendering timeout')
         await asyncio.sleep(0.2)
     return task.get()
 

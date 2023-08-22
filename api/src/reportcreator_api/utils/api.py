@@ -11,6 +11,7 @@ from adrf.views import APIView as AsyncAPIView
 from rest_framework import exceptions, views, generics, pagination
 from rest_framework.response import Response
 
+from reportcreator_api.archive.crypto import CryptoError
 from reportcreator_api.utils import license
 
 
@@ -235,6 +236,10 @@ def exception_handler(exc, context):
         exc = exceptions.PermissionDenied(*(exc.args))
     elif isinstance(exc, license.LicenseError):
         exc = exceptions.PermissionDenied(detail=exc.detail, code='license')
+    elif isinstance(exc, CryptoError):
+        exc = exceptions.APIException(detail=exc.args, code='crypto')
+    elif isinstance(exc, TimeoutError):
+        exc = exceptions.APIException(detail=exc.args, code='timeout')
 
     if isinstance(exc, exceptions.APIException):
         headers = {}

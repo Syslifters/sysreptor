@@ -75,9 +75,9 @@ export default {
       } catch (error) {
         let details = null;
         if (error?.response?.data?.detail) {
-          details += ': ' + error?.response?.data?.detail;
+          details = error?.response?.data?.detail;
         } else if (Array.isArray(error?.response?.data) && error?.response?.data?.length === 1) {
-          details += ': ' + error?.response?.data[0];
+          details = error?.response?.data[0];
         } else if (error?.response?.status === 429) {
           details = 'Exceeded PDF rendering rate limit. Try again later.'
         }
