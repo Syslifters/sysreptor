@@ -174,6 +174,8 @@ release_job_github:
     - sed -i "/^dist$/d" rendering/.gitignore
     - rm -rf api/.vscode
     # Create archive
+    - mkdir -p /tmp/sysreptor
+    - cp -r * .gitignore .dockerignore /tmp/sysreptor
     - tar -czf /tmp/source-prebuilt.tar.gz -C /tmp sysreptor --exclude=sysreptor/.git
 
     # Upload to GitHub
