@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## v2023.119 - 2023-08-23
 * UI: sticky header and searchbar in list views
 * UI: increase file drop area for importing projects, designs and templates
 * Configure finding sort order in design
