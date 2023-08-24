@@ -182,7 +182,6 @@ release_job_github:
     - git remote add public https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor.git
     - git config --global user.email $GITHUB_USER_MAIL
     - git config --global user.name $GITHUB_USERNAME
-    - git push public main
     # Upload to GitHub
     - gh release create "${VERSION_NUMBER}" /tmp/source-prebuilt.tar.gz --title="${VERSION_NUMBER}" --target="${CI_COMMIT_SHA}"
 
