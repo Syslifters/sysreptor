@@ -4,6 +4,7 @@ import copy
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.test import override_settings
+from reportcreator_api.pentests import storages
 
 from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
     UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, ProjectNotebookPage, UserNotebookPage, UserPublicKey, \
@@ -17,38 +18,46 @@ class Command(BaseCommand):
     def add_arguments(self, parser) -> None:
         parser.add_argument('--decrypt', action='store_true', help='Decrypt all data')
 
+    def encrypt_storage_files(self, storage, models):
+        for m in list(models):
+            if hasattr(m, 'history'):
+                models.append(m.history.model)
+
+        file_name_map = {}
+        for model in models:
+            data_list = model.objects.all().values('id', 'file')
+            for data in data_list:
+                if data['file'] not in file_name_map:
+                    old_file = copy.copy(storage.save(content=old_file))
+                    file_name_map[data['file']] = storage.save(name='new', content=old_file)
+                    storage.delete(name=data['file'])
+                data['file'] = file_name_map[data['file']]
+            model.objects.bulk_update(data_list, ['file'])
+
+    def encrypt_db_fields(self, model, fields):
+        model.objects.bulk_update(model.objects.all().iterator(), fields)
+        if hasattr(model, 'history'):
+            model.history.model.objects.bulk_update(model.history.model.objects.all().iterator(), fields)                    
+
     def encrypt_data(self):
         # Encrypt DB fields
-        PentestProject.objects.bulk_update(PentestProject.objects.all().iterator(), ['unknown_custom_fields'])
-        ReportSection.objects.bulk_update(ReportSection.objects.all().iterator(), ['custom_fields'])
-        PentestFinding.objects.bulk_update(PentestFinding.objects.all().iterator(), ['custom_fields', 'template_id'])
-        ProjectType.objects.bulk_update(ProjectType.objects.all().iterator(), ['report_template', 'report_styles', 'report_preview_data'])
-        ProjectNotebookPage.objects.bulk_update(ProjectNotebookPage.objects.all(), ['title', 'text'])
-        UserNotebookPage.objects.bulk_update(UserNotebookPage.objects.all(), ['title', 'text'])
-        PentestUser.objects.bulk_update(PentestUser.objects.all(), ['password'])
-        Session.objects.bulk_update(Session.objects.all(), ['session_key', 'session_data'])
-        MFAMethod.objects.bulk_update(MFAMethod.objects.all(), ['data'])
-        UserPublicKey.objects.bulk_update(UserPublicKey.objects.all(), ['public_key'])
-        ArchivedProjectKeyPart.objects.bulk_update(ArchivedProjectKeyPart.objects.all(), ['key_part'])
-        ArchivedProjectPublicKeyEncryptedKeyPart.objects.bulk_update(ArchivedProjectPublicKeyEncryptedKeyPart.objects.all(), ['encrypted_data'])
+        self.encrypt_db_fields(PentestProject, ['unknown_custom_fields'])
+        self.encrypt_db_fields(ReportSection, ['custom_fields'])
+        self.encrypt_db_fields(PentestFinding, ['custom_fields', 'template_id'])
+        self.encrypt_db_fields(ProjectType, ['report_template', 'report_styles', 'report_preview_data'])
+        self.encrypt_db_fields(ProjectNotebookPage, ['title', 'text'])
+        self.encrypt_db_fields(UserNotebookPage, ['title', 'text'])
+        self.encrypt_db_fields(PentestUser, ['password'])
+        self.encrypt_db_fields(Session, ['session_key', 'session_data'])
+        self.encrypt_db_fields(MFAMethod, ['data'])
+        self.encrypt_db_fields(UserPublicKey, ['public_key'])
+        self.encrypt_db_fields(ArchivedProjectKeyPart, ['key_part'])
+        self.encrypt_db_fields(ArchivedProjectPublicKeyEncryptedKeyPart, ['encrypted_data'])
 
         # Encrypt files
-        old_files = []
-        for f in itertools.chain(
-                UploadedImage.objects.all(), 
-                UploadedAsset.objects.all(), 
-                UploadedUserNotebookImage.objects.all(),
-                UploadedTemplateImage.objects.all(),
-                UploadedProjectFile.objects.all(),
-                UploadedUserNotebookFile.objects.all(),
-            ):
-            # Copy file content. Encryption is performed during content copy to new file by the storage
-            old_file = copy.copy(f.file)
-            f.file.save(name=f.name, content=old_file, save=False)
-            f.save()
-            old_files.append(old_file)
-        for f in old_files:
-            f.storage.delete(f.name)
+        self.encrypt_storage_files(storages.get_uploaded_asset_storage(), [UploadedAsset])
+        self.encrypt_storage_files(storages.get_uploaded_image_storage(), [UploadedImage, UploadedTemplateImage,UploadedUserNotebookImage,])
+        self.encrypt_storage_files(storages.get_uploaded_file_storage(), [UploadedProjectFile, UploadedUserNotebookFile, ])
 
     def handle(self, decrypt, *args, **options):
         if not settings.ENCRYPTION_KEYS:

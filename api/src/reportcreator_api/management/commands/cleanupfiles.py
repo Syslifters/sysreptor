@@ -16,25 +16,17 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        UploadedAsset.objects \
-            .filter(pk__in=[o.pk for o in UploadedAsset.objects.iterator() if not self.file_exists(o.file)]) \
-            .delete()
-        UploadedImage.objects \
-            .filter(pk__in=[o.pk for o in UploadedImage.objects.iterator() if not self.file_exists(o.file)]) \
-            .delete()
-        UploadedUserNotebookImage.objects \
-            .filter(pk__in=[o.pk for o in UploadedUserNotebookImage.objects.iterator() if not self.file_exists(o.file)]) \
-            .delete()
-        UploadedTemplateImage.objects \
-            .filter(pk__in=[o.pk for o in UploadedTemplateImage.objects.iterator() if not self.file_exists(o.file)]) \
-            .delete()
-        UploadedProjectFile.objects \
-            .filter(pk__in=[o.pk for o in UploadedProjectFile.objects.iterator() if not self.file_exists(o.file)]) \
-            .delete()
-        UploadedUserNotebookFile.objects \
-            .filter(pk__in=[o.pk for o in UploadedUserNotebookFile.objects.iterator() if not self.file_exists(o.file)]) \
-            .delete()
-        ArchivedProject.objects \
-            .filter(pk__in=[o.pk for o in ArchivedProject.objects.iterator() if not self.file_exists(o.file)]) \
-            .delete()
+        models = [
+            UploadedAsset,
+            UploadedImage,
+            UploadedUserNotebookImage,
+            UploadedTemplateImage,
+            UploadedProjectFile,
+            UploadedUserNotebookFile,
+            ArchivedProject
+        ]
+        for model in models:
+            model.objects \
+                .filter(pk__in=[o.pk for o in model.objects.iterator() if not self.file_exists(o.file)]) \
+                .delete()
 

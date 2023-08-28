@@ -85,6 +85,10 @@ def backup_files(z, path, storage, models):
         except (FileNotFoundError, OSError) as ex:
             logging.warning(f'Could not backup file {f}: {ex}')
 
+    for m in list(models):
+        if hasattr(m, 'history'):
+            models.append(m.history.model)
+
     qs = models[0].objects.values_list('file', flat=True)
     if len(models) > 1:
         qs = qs.union(*[m.objects.values_list('file', flat=True) for m in models[1:]], all=False)
