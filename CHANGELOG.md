@@ -1,5 +1,9 @@
 # Changelog
 
+## TBD
+* Fix template appears multiple times in search result list when multiple languages match
+
+
 ## v2023.119 - 2023-08-23
 * UI: sticky header and searchbar in list views
 * UI: increase file drop area for importing projects, designs and templates
