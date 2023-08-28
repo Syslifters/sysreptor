@@ -132,7 +132,6 @@ class FileListExportImportSerializer(serializers.ListSerializer):
                     file=self.extract_file(attrs['name']), 
                     name=attrs['name']), 
                 'linked_object': self.child.get_linked_object(),
-                'uploaded_by': self.context.get('uploaded_by'),
         }) for attrs in validated_data]
 
         child_model_class.objects.bulk_create(objs)

@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'adrf',
     'drf_spectacular',
     'drf_spectacular_sidecar',
+    'simple_history',
 
     'reportcreator_api',
     'reportcreator_api.users',
@@ -74,6 +75,7 @@ MIDDLEWARE = [
     'csp.middleware.CSPMiddleware',
     'reportcreator_api.utils.middleware.CacheControlMiddleware',
     'reportcreator_api.utils.middleware.PermissionsPolicyMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'reportcreator_api.conf.urls'
@@ -451,6 +453,14 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 # Execute tasks locally, if no broker is configured
 CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 
+
+# History
+# Manually create history savepoints, not automatically after every save
+SIMPLE_HISTORY_ENABLED = False
+SIMPLE_HISTORY_HISTORY_ID_USE_UUID = True
+SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD = True
+SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
+SIMPLE_HISTORY_REVERT_DISABLED = True
 
 
 # Periodic tasks

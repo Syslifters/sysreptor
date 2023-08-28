@@ -122,7 +122,7 @@ def export_archive_iter(data, serializer_class: Type[serializers.Serializer], co
 
 
 @transaction.atomic()
-def import_archive(archive_file, serializer_classes: list[Type[serializers.Serializer]], context):
+def import_archive(archive_file, serializer_classes: list[Type[serializers.Serializer]], context=None):
     context = (context or {}) | {
         'archive': None,
         'storage_files': [],
@@ -208,12 +208,12 @@ def export_projects(data: Iterable[PentestProject], export_all=False):
     })
 
 
-def import_templates(archive_file, uploaded_by=None):
-    return import_archive(archive_file, serializer_classes=[FindingTemplateExportImportSerializerV2, FindingTemplateImportSerializerV1], context={'uploaded_by': uploaded_by})
+def import_templates(archive_file):
+    return import_archive(archive_file, serializer_classes=[FindingTemplateExportImportSerializerV2, FindingTemplateImportSerializerV1])
 
-def import_project_types(archive_file, uploaded_by=None):
-    return import_archive(archive_file, serializer_classes=[ProjectTypeExportImportSerializer], context={'uploaded_by': uploaded_by})
+def import_project_types(archive_file):
+    return import_archive(archive_file, serializer_classes=[ProjectTypeExportImportSerializer])
 
-def import_projects(archive_file, uploaded_by=None):
-    return import_archive(archive_file, serializer_classes=[PentestProjectExportImportSerializer], context={'uploaded_by': uploaded_by})
+def import_projects(archive_file):
+    return import_archive(archive_file, serializer_classes=[PentestProjectExportImportSerializer])
 
