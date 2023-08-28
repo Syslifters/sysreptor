@@ -352,7 +352,7 @@ class TestTemplateApi:
         search_term = 'tls crypt'
         t_title_tag_data_de = create_template(language=Language.GERMAN, data={'title': 'Weak TLS', 'description': 'Weak crypto'}, tags=['crypto'])
         t_title_data_en_de = create_template(language=Language.ENGLISH, data={'title': 'Weak TLS', 'description': 'Weak crypto'}, 
-                                             translations_kwargs=[{'language': Language.GERMAN, 'data': {'title': 'Unrelated', 'description': 'Weak crypto'}}])
+                                             translations_kwargs=[{'language': Language.GERMAN, 'data': {'title': 'Weak TLS', 'description': 'Weak crypto'}}])
         t_data_en = create_template(language=Language.ENGLISH, data={'title': 'Unrelated', 'description': 'Improve TLS encryption'})
         t_partial_term_match = create_template(language=Language.GERMAN, data={'title': 'Unrelated', 'description': 'Improve TLS'})
         t_no_match = create_template(language=Language.GERMAN, data={'title': 'Unrelated', 'description': 'Unrelated'})
