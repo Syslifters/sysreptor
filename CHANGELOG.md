@@ -2,6 +2,7 @@
 
 ## TBD
 * Fix template appears multiple times in search result list when multiple languages match
+* Assign notes to users
 
 
 ## v2023.119 - 2023-08-23
