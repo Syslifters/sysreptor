@@ -8,28 +8,36 @@
     :disabled="disabled"
     class="pb-1"
   >
-    <div v-for="item in value" :key="item.note.id" class="draggable-item">
+    <div v-for="item, itemIdx in value" :key="item.note.id" class="draggable-item">
       <v-list-item 
         :to="toPrefix + item.note.id + '/'" nuxt
         :ripple="false"
-        class="note-list-item" :class="item.children.length > 0 ? 'note-list-item--children': 'note-list-item--no-children'"
+        class="note-list-item"
       >
-        <v-icon v-if="item.children.length > 0" @click.stop.prevent="toggleExpanded(item.note)" class="note-list-children-icon">
-          <template v-if="isExpanded(item.note)">mdi-menu-down</template>
-          <template v-else>mdi-menu-right</template>
-        </v-icon>
+        <v-list-item-icon class="note-list-children-icon ma-0 mt-1">
+          <v-icon v-if="item.children.length > 0" @click.stop.prevent="toggleExpanded(item.note)">
+            <template v-if="isExpanded(item.note)">mdi-menu-down</template>
+            <template v-else>mdi-menu-right</template>
+          </v-icon>
+        </v-list-item-icon>
+        <v-list-item-icon class="ma-0 mt-1">
+          <v-icon v-if="item.note.checked === true" @click.stop.prevent="updateChecked(item.note, false)" dense class="text--disabled">mdi-checkbox-marked</v-icon>
+          <v-icon v-else-if="item.note.checked === false" @click.stop.prevent="updateChecked(item.note, true)" dense class="text--disabled">mdi-checkbox-blank-outline</v-icon>
+          <s-emoji v-else-if="item.note.icon_emoji" :value="item.note.icon_emoji" small />
+          <v-icon v-else-if="item.children.length > 0" dense class="text--disabled">mdi-folder-outline</v-icon>
+          <v-icon v-else dense class="text--disabled">mdi-note-text-outline</v-icon>
+        </v-list-item-icon>
+        <lock-info :value="item.note.lock_info" />
 
         <v-list-item-content>
           <v-list-item-title>
-            <v-icon v-if="item.note.checked === true" @click.stop.prevent="updateChecked(item.note, false)" dense class="text--disabled">mdi-checkbox-marked</v-icon>
-            <v-icon v-else-if="item.note.checked === false" @click.stop.prevent="updateChecked(item.note, true)" dense class="text--disabled">mdi-checkbox-blank-outline</v-icon>
-            <s-emoji v-else-if="item.note.icon_emoji" :value="item.note.icon_emoji" small />
-            <v-icon v-else-if="item.children.length > 0" dense class="text--disabled">mdi-folder-outline</v-icon>
-            <v-icon v-else dense class="text--disabled">mdi-note-text-outline</v-icon>
-
-            <lock-info :value="item.note.lock_info" />
             {{ item.note.title }}
           </v-list-item-title>
+          <v-list-item-subtitle>
+            <span v-if="item.note.assignee" :class="{'assignee-self': item.note.assignee.id == $auth.user.id}">
+              @{{ item.note.assignee.username }}
+            </span>
+          </v-list-item-subtitle>
         </v-list-item-content>
 
         <v-list-item-icon v-if="item.note.status_emoji" class="emoji-status">
@@ -47,6 +55,14 @@
           class="child-list"
         />
       </v-list>
+
+      <div 
+        :class="{
+          'note-children-line': true,
+          'note-children-line-start': itemIdx === 0,
+          'note-children-line-end': itemIdx === localValue.length - 1,
+        }" 
+      />
     </div>
   </draggable>
 </template>
@@ -114,16 +130,15 @@ export default {
 <style lang="scss" scoped>
 .note-list-item {
   min-height: 1em;
-
-  &--children {
-    padding-left: 0;
-  }
-  &--no-children {
-    padding-left: 1rem;
-  }
+  padding-left: 0;
 
   .note-list-children-icon {
     width: 1rem;
+    min-width: 1rem;
+
+    :deep(.v-icon) {
+      width: 1rem;
+    }
   }
 
   :deep() {
@@ -133,6 +148,7 @@ export default {
 
     .lock-info-icon {
       margin: 0 !important;
+      margin-top: 8px !important;
       height: 1rem;
     }
   }

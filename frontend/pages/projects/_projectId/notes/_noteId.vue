@@ -33,6 +33,16 @@
             v-model="note.status_emoji" 
             :disabled="readonly"
           />
+
+          <div class="assignee-container ml-1 mr-1">
+            <user-selection 
+              v-model="note.assignee" 
+              :selectable-users="project.members" 
+              :disabled="readonly" 
+              label="Assignee"
+              :outlined="false" dense
+            />
+          </div>
         </template>
 
         <template #context-menu>
@@ -130,5 +140,9 @@ export default {
 <style lang="scss" scoped>
 .note-title {
   width: 100%;
+}
+
+.assignee-container {
+  width: 17em;
 }
 </style>
