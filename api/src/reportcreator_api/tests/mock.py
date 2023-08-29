@@ -7,7 +7,7 @@ from reportcreator_api.archive import crypto
 from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
 
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
-from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectType, \
+from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, UserNotebookPage, PentestFinding, PentestProject, ProjectType, \
     UploadedAsset, UploadedImage, ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, \
     UploadedUserNotebookFile, Language, UserPublicKey, UploadedTemplateImage, FindingTemplateTranslation, \
     ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
@@ -44,7 +44,7 @@ def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, 
         create_public_key(user=user)
 
     for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}]:
-        create_notebookpage(user=user, **note_kwargs)
+        create_usernotebookpage(user=user, **note_kwargs)
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
         UploadedUserNotebookImage.objects.create(linked_object=user, **{
             'name': f'file{idx}.png', 
@@ -162,8 +162,18 @@ def create_finding(project, template=None, **kwargs) -> PentestFinding:
     } | kwargs)
 
 
-def create_notebookpage(**kwargs) -> NotebookPage:
-    return NotebookPage.objects.create(**{
+def create_usernotebookpage(**kwargs) -> UserNotebookPage:
+    return UserNotebookPage.objects.create(**{
+        'title': f'Note #{random.randint(0, 100000)}',
+        'text': 'Note text',
+        'checked': random.choice([None, True, False]),
+        'icon_emoji': random.choice([None, '🦖']),
+        'status_emoji': random.choice([None, '✔️', '🤡']),
+    } | kwargs)
+
+
+def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
+    return ProjectNotebookPage.objects.create(**{
         'title': f'Note #{random.randint(0, 100000)}',
         'text': 'Note text',
         'checked': random.choice([None, True, False]),
@@ -201,7 +211,7 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
         create_finding(project=project, **finding_kwargs)
     
     for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}] * 3:
-        create_notebookpage(project=project, **note_kwargs)
+        create_projectnotebookpage(project=project, **note_kwargs)
 
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}] * 2):
         UploadedImage.objects.create(linked_object=project, **{

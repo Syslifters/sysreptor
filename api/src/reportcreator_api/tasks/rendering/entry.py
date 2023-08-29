@@ -21,7 +21,7 @@ from reportcreator_api.pentests.customfields.types import FieldDataType, FieldDe
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.error_messages import MessageLocationInfo, MessageLocationType
-from reportcreator_api.pentests.models import PentestProject, ProjectType, ProjectMemberInfo, NotebookPage, Language
+from reportcreator_api.pentests.models import PentestProject, ProjectType, ProjectMemberInfo, ProjectNotebookPage, UserNotebookPage, Language
 from reportcreator_api.utils.utils import copy_keys, get_key_or_attr
 
 
@@ -146,17 +146,17 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
 
 
 @elasticapm.async_capture_span()
-async def render_note_to_pdf(note: NotebookPage, request=None):
+async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage], request=None):
     # Prevent sending unreferenced images to rendering task to reduce memory consumption
     resources = {}
-    async for i in (note.project if note.project else note.user).images.all():
+    async for i in (note.project if isinstance(note, ProjectNotebookPage) else note.user).images.all():
         if i.name in note.text:
             resources['/images/name/' + i.name] = b64encode(i.file.read()).decode()
 
     # Rewrite file links to absolute URL
     note_text = note.text
     if request:
-        async for f in (note.project if note.project else note.user).files.values_list('name', flat=True):
+        async for f in (note.project if isinstance(note, ProjectNotebookPage) else note.user).files.values_list('name', flat=True):
             if f in note_text:
                 absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f})) if note.project else \
                             request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f})) 
