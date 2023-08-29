@@ -1,7 +1,8 @@
+import uuid
+import itertools
 from datetime import date
 from itertools import groupby
 from typing import Union, Iterable, OrderedDict
-import uuid
 
 
 def remove_duplicates(lst: list) -> list:
@@ -96,3 +97,14 @@ def merge(*args):
 
 def groupby_to_dict(data, key):
     return dict(map(lambda t: (t[0], list(t[1])), groupby(sorted(data, key=key), key=key)))
+
+
+def batched(iterable, n):
+    "Batch data into tuples of length n. The last batch may be shorter."
+    # batched('ABCDEFG', 3) --> ABC DEF G
+    if n < 1:
+        raise ValueError('n must be at least one')
+    it = iter(iterable)
+    while batch := tuple(itertools.islice(it, n)):
+        yield batch
+

@@ -208,9 +208,6 @@ def restore_database_dump(f):
         mock.patch('django.core.serializers.python._get_model', get_model):
         objs_with_deferred_fields = []
         for obj in serializers.deserialize('jsonl', f, handle_forward_references=True):
-            if getattr(obj.object, 'is_global_archiver', None) is not None:
-                # import pdb; pdb.set_trace()
-                pass
             obj.save()
             if obj.deferred_fields:
                 objs_with_deferred_fields.append(obj)

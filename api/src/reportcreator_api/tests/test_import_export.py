@@ -10,7 +10,7 @@ from reportcreator_api.archive.import_export.import_export import build_tarinfo
 from reportcreator_api.pentests.models import PentestProject, ProjectType, SourceEnum, UploadedAsset, UploadedImage, Language
 from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates, import_project_types, import_projects, import_templates
-from reportcreator_api.tests.mock import create_notebookpage, create_project, create_project_type, create_template, create_user, create_finding
+from reportcreator_api.tests.mock import create_projectnotebookpage, create_project, create_project_type, create_template, create_user, create_finding
 
 
 def archive_to_file(archive_iterator):
@@ -54,8 +54,8 @@ class TestImportExport:
                 {'assignee': None, 'template': None},
             ],
             notes_kwargs=[])
-        note1 = create_notebookpage(project=self.project, title='Note 1', text='Note text 1')
-        create_notebookpage(project=self.project, parent=note1, title='Note 1.1', text='Note text 1.1')
+        note1 = create_projectnotebookpage(project=self.project, title='Note 1', text='Note text 1')
+        create_projectnotebookpage(project=self.project, parent=note1, title='Note 1.1', text='Note text 1.1')
         
         with override_settings(COMPRESS_IMAGES=False):
             yield
@@ -332,7 +332,7 @@ class TestCopyModel:
     def test_copy_project(self):
         user = create_user()
         p = create_project(members=[user], readonly=True, source=SourceEnum.IMPORTED)
-        create_notebookpage(project=p, parent=p.notes.first())
+        create_projectnotebookpage(project=p, parent=p.notes.first())
         finding = create_finding(project=p, template=create_template())
         finding.lock(user)
         p.sections.first().lock(user)

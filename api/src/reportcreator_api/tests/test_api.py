@@ -176,9 +176,9 @@ def guest_urls():
         ('usernotebookpage sort', lambda s, c: c.post(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': 'self'}), data=[])),
         *file_viewset_urls('uploadedusernotebookimage', get_obj=lambda s: s.current_user.images.first() if s.current_user else UploadedUserNotebookImage(name='nonexistent.png'), get_base_kwargs=lambda s: {'pentestuser_pk': 'self'}, read=True, write=True),
         *file_viewset_urls('uploadedusernotebookfile', get_obj=lambda s: s.current_user.files.first() if s.current_user else UploadedUserNotebookFile(name='nonexistent.pdf'), get_base_kwargs=lambda s: {'pentestuser_pk': 'self'}, read=True, write=True),
-        ('usernotebook upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
-        ('usernotebook upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
-        ('usernotebook export-pdf', lambda s, c: c.post(reverse('usernotebookpage-export-pdf', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
+        ('usernotebookpage upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
+        ('usernotebookpage upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
+        ('usernotebookpage export-pdf', lambda s, c: c.post(reverse('usernotebookpage-export-pdf', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True),

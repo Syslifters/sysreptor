@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
-from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectType, ReportSection, \
+from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectType, ReportSection, \
     SourceEnum, UploadedAsset, UploadedImage, UploadedFileBase, ProjectMemberInfo, UploadedProjectFile, Language, ReviewStatus, \
     FindingTemplateTranslation, UploadedTemplateImage
 from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
@@ -367,35 +367,36 @@ class ReportSectionExportImportSerializer(ExportImportSerializer):
         extra_kwargs = {'created': {'read_only': False}}
 
 
-class NotebookPageExportImportSerializer(ExportImportSerializer):
+class ProjectNotebookPageExportImportSerializer(ExportImportSerializer):
     id = serializers.UUIDField(source='note_id')
     parent = serializers.UUIDField(source='parent.note_id', allow_null=True)
 
     class Meta:
-        model = NotebookPage
+        model = ProjectNotebookPage
         fields = [
             'id', 'created', 'updated',
-            'title', 'text', 'checked', 'icon_emoji', 'status_emoji',
+            'title', 'text', 'checked', 'icon_emoji', 'status_emoji', 'assignee',
             'order', 'parent',
         ]
         extra_kwargs = {
             'created': {'read_only': False},
             'icon_emoji': {'required': False},
             'status_emoji': {'required': False},
+            'assignee': {'required': False}
         }
 
 
-class NotebookPageListExportImportSerializer(serializers.ListSerializer):
-    child = NotebookPageExportImportSerializer()
+class ProjectNotebookPageListExportImportSerializer(serializers.ListSerializer):
+    child = ProjectNotebookPageExportImportSerializer()
 
     def create(self, validated_data):
-        instances = [NotebookPage(project=self.context['project'], **omit_keys(d, ['parent'])) for d in validated_data]
+        instances = [ProjectNotebookPage(project=self.context['project'], **omit_keys(d, ['parent'])) for d in validated_data]
         for i, d in zip(instances, validated_data):
             if d.get('parent'):
                 i.parent = next(filter(lambda e: e.note_id == d.get('parent', {}).get('note_id'), instances), None)
 
-        NotebookPage.objects.check_parent_and_order(instances)
-        NotebookPage.objects.bulk_create(instances)
+        ProjectNotebookPage.objects.check_parent_and_order(instances)
+        ProjectNotebookPage.objects.bulk_create(instances)
         return instances
 
 
@@ -407,7 +408,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
     report_data = serializers.DictField(source='data_all')
     sections = ReportSectionExportImportSerializer(many=True)
     findings = PentestFindingExportImportSerializer(many=True)
-    notes = NotebookPageListExportImportSerializer(required=False)
+    notes = ProjectNotebookPageListExportImportSerializer(required=False)
     images = UploadedImageExportImportSerializer(many=True)
     files = UploadedProjectFileExportImportSerializer(many=True, required=False)
 

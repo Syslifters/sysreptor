@@ -14,7 +14,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from reportcreator_api.archive.import_export.serializers import PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer, \
     FindingTemplateImportSerializerV1, FindingTemplateExportImportSerializerV2
-from reportcreator_api.pentests.models import FindingTemplate, NotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection
+from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection
 
 
 log = logging.getLogger(__name__)
@@ -197,7 +197,7 @@ def export_projects(data: Iterable[PentestProject], export_all=False):
         data, 
         Prefetch('findings', PentestFinding.objects.select_related('assignee')), 
         Prefetch('sections', ReportSection.objects.select_related('assignee')), 
-        Prefetch('notes', NotebookPage.objects.select_related('parent')),
+        Prefetch('notes', ProjectNotebookPage.objects.select_related('parent')),
         Prefetch('members', ProjectMemberInfo.objects.select_related('user')),
         'images', 
         'project_type__assets',

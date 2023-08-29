@@ -6,7 +6,7 @@ import pytest
 from reportcreator_api.archive.import_export.import_export import export_project_types
 from reportcreator_api.pentests.cvss import CVSSLevel
 from reportcreator_api.pentests.models import ProjectType, ProjectTypeScope, SourceEnum, FindingTemplate, FindingTemplateTranslation, Language, ReviewStatus
-from reportcreator_api.tests.mock import create_project, create_project_type, create_template, create_user, create_notebookpage, api_client
+from reportcreator_api.tests.mock import create_project, create_project_type, create_template, create_user, create_usernotebookpage, api_client
 from reportcreator_api.tests.utils import assertKeysEqual
 
 
@@ -375,22 +375,23 @@ class TestNotesApi:
         self.client = api_client(self.user)
 
     def test_sort(self):
-        note1 = create_notebookpage(user=self.user, parent=None, order=3)
+        note1 = create_usernotebookpage(user=self.user, parent=None, order=3)
         top_level = [
             note1,
-            create_notebookpage(user=self.user, parent=None, order=1),
-            create_notebookpage(user=self.user, parent=None, order=2),
+            create_usernotebookpage(user=self.user, parent=None, order=1),
+            create_usernotebookpage(user=self.user, parent=None, order=2),
         ]
         sub_level = [
-            create_notebookpage(user=self.user, parent=note1, order=2),
-            create_notebookpage(user=self.user, parent=note1, order=3),
-            create_notebookpage(user=self.user, parent=note1, order=1),
+            create_usernotebookpage(user=self.user, parent=note1, order=2),
+            create_usernotebookpage(user=self.user, parent=note1, order=3),
+            create_usernotebookpage(user=self.user, parent=note1, order=1),
         ]
 
         res = self.client.post(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': 'self'}), data=
             [{'id': n.note_id, 'parent': None, 'order': idx + 1} for idx, n in enumerate(top_level)] + 
             [{'id': n.note_id, 'parent': n.parent.note_id, 'order': idx + 1} for idx, n in enumerate(sub_level)]
         )
+        assert res.status_code == 200, res.data
         for idx, n in enumerate(top_level):
             n.refresh_from_db()
             assert n.parent is None
@@ -403,12 +404,12 @@ class TestNotesApi:
             assert next(filter(lambda rn: rn['id'] == str(n.note_id), res.data))['order'] == n.order
     
     def test_sort_change_parent(self):
-        note1 = create_notebookpage(user=self.user, parent=None, order=1)
-        note2 = create_notebookpage(user=self.user, parent=None, order=2)
-        note1_1 = create_notebookpage(user=self.user, parent=note2, order=1)
-        note1_2 = create_notebookpage(user=self.user, parent=None, order=3)
-        note2_1 = create_notebookpage(user=self.user, parent=note1, order=1)
-        note3 = create_notebookpage(user=self.user, parent=note1, order=2)
+        note1 = create_usernotebookpage(user=self.user, parent=None, order=1)
+        note2 = create_usernotebookpage(user=self.user, parent=None, order=2)
+        note1_1 = create_usernotebookpage(user=self.user, parent=note2, order=1)
+        note1_2 = create_usernotebookpage(user=self.user, parent=None, order=3)
+        note2_1 = create_usernotebookpage(user=self.user, parent=note1, order=1)
+        note3 = create_usernotebookpage(user=self.user, parent=note1, order=2)
         
         res = self.client.post(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': 'self'}), data=[
             {'id': note1.note_id, 'parent': None, 'order': 1},
@@ -418,7 +419,7 @@ class TestNotesApi:
             {'id': note2_1.note_id, 'parent': note2.note_id, 'order': 1},
             {'id': note3.note_id, 'parent': None, 'order': 3},
         ])
-        assert res.status_code == 200
+        assert res.status_code == 200, res.data
         for n in [note1, note2, note3, note1_1, note1_2, note2_1]:
             n.refresh_from_db()
         assert note1.parent is None

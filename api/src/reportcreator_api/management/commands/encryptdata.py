@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.test import override_settings
 
 from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
-    UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, NotebookPage, UserPublicKey, \
+    UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, ProjectNotebookPage, UserNotebookPage, UserPublicKey, \
     ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, UploadedTemplateImage
 from reportcreator_api.users.models import MFAMethod, PentestUser, Session
 
@@ -22,7 +22,8 @@ class Command(BaseCommand):
         PentestProject.objects.bulk_update(PentestProject.objects.all().iterator(), ['custom_fields'])
         PentestFinding.objects.bulk_update(PentestFinding.objects.all().iterator(), ['custom_fields', 'template_id'])
         ProjectType.objects.bulk_update(ProjectType.objects.all().iterator(), ['report_template', 'report_styles', 'report_preview_data'])
-        NotebookPage.objects.bulk_update(NotebookPage.objects.all(), ['title', 'text'])
+        ProjectNotebookPage.objects.bulk_update(ProjectNotebookPage.objects.all(), ['title', 'text'])
+        UserNotebookPage.objects.bulk_update(UserNotebookPage.objects.all(), ['title', 'text'])
         PentestUser.objects.bulk_update(PentestUser.objects.all(), ['password'])
         Session.objects.bulk_update(Session.objects.all(), ['session_key', 'session_data'])
         MFAMethod.objects.bulk_update(MFAMethod.objects.all(), ['data'])
