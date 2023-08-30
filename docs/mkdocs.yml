@@ -1,4 +1,4 @@
-site_name: "SysReptor Docs"
+site_name: "SysReptor"
 site_url: "https://docs.sysreptor.com/"
 repo_url: https://github.com/syslifters/sysreptor/
 site_dir: ./site/ # Where to put the HTML files
@@ -53,7 +53,6 @@ theme:
   features:
     - content.code.annotate
     - search.share
-    #- navigation.expand
   palette: 
     - scheme: default
   theme:
@@ -123,4 +122,4 @@ extra:
       link: https://at.linkedin.com/showcase/sysreptor
   generator: false
 
-copyright: '<a href="https://www.syslifters.com/" target="_blank">Our Website</a> | <a href="https://www.syslifters.com/impressum" target="_blank">Imprint</a> | <a href="/data-privacy">Data Privacy</a> | <a href="/contact-us" target="blank">Contact</a><br><br>The FFG is the central national funding organization and strengthens Austria''s innovative power.<br>This project is funded by the FFG.<a href="https://www.ffg.at" target="_blank">www.ffg.at</a><br>'
+copyright: '<a href="https://www.syslifters.com/" target="_blank">Our Website</a> | <a href="https://www.syslifters.com/impressum" target="_blank">Imprint</a> | <a href="/data-privacy">Data Privacy</a> | <a href="/contact-us" target="blank">Contact</a><br><br>The FFG is the central national funding organization and strengthens Austria''s innovative power.<br>This project is funded by the <a href="https://www.ffg.at" target="_blank">FFG</a>.<br>'
