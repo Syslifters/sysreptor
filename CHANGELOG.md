@@ -3,6 +3,7 @@
 ## TBD
 * Fix template appears multiple times in search result list when multiple languages match
 * Assign notes to users
+* Install more Noto Sans fonts to support more languages
 
 
 ## v2023.119 - 2023-08-23
