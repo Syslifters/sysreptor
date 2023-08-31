@@ -1,22 +1,22 @@
 import pytest
 from pytest_django.asserts import assertNumQueries
 
-from reportcreator_api.pentests.models import PentestProject
+from reportcreator_api.pentests.models import PentestProject, PentestFinding, ReviewStatus
 from .mock import create_project_type, create_project
 
 
 @pytest.mark.django_db
 def test_model_diff():
-    project = create_project()
+    finding = create_project().findings.first()
 
-    p = PentestProject.objects.get(id=project.id)
-    p.name = 'changed'
-    p.update_data({'title': 'changed'})
+    f = PentestFinding.objects.get(id=finding.id)
+    f.status = ReviewStatus.NEEDS_IMPROVEMENT
+    f.update_data({'title': 'changed'})
 
-    assert p.has_changed
-    assert set(p.changed_fields) == {'name', 'custom_fields'}
-    assert p.get_field_diff('name') == (project.name, p.name)
-    assert p.get_field_diff('custom_fields'), (project.custom_fields, p.custom_fields)
+    assert f.has_changed
+    assert set(f.changed_fields) == {'status', 'custom_fields'}
+    assert f.get_field_diff('status') == (finding.status, f.status)
+    assert f.get_field_diff('custom_fields'), (finding.custom_fields, f.custom_fields)
 
 
 @pytest.mark.django_db

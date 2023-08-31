@@ -7,7 +7,7 @@ from django.test import override_settings
 
 from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
     UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, ProjectNotebookPage, UserNotebookPage, UserPublicKey, \
-    ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, UploadedTemplateImage
+    ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, UploadedTemplateImage, ReportSection
 from reportcreator_api.users.models import MFAMethod, PentestUser, Session
 
 
@@ -19,7 +19,8 @@ class Command(BaseCommand):
 
     def encrypt_data(self):
         # Encrypt DB fields
-        PentestProject.objects.bulk_update(PentestProject.objects.all().iterator(), ['custom_fields'])
+        PentestProject.objects.bulk_update(PentestProject.objects.all().iterator(), ['unknown_custom_fields'])
+        ReportSection.objects.bulk_update(ReportSection.objects.all().iterator(), ['custom_fields'])
         PentestFinding.objects.bulk_update(PentestFinding.objects.all().iterator(), ['custom_fields', 'template_id'])
         ProjectType.objects.bulk_update(ProjectType.objects.all().iterator(), ['report_template', 'report_styles', 'report_preview_data'])
         ProjectNotebookPage.objects.bulk_update(ProjectNotebookPage.objects.all(), ['title', 'text'])

@@ -1,3 +1,4 @@
+import copy
 from datetime import timedelta
 import itertools
 import pytest
@@ -13,7 +14,7 @@ from reportcreator_api.pentests.customfields.utils import check_definitions_comp
 from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, Language
 from reportcreator_api.tasks.rendering.entry import format_template_field_object
 from reportcreator_api.tests.mock import create_finding, create_project_type, create_project, create_template, create_user
-from reportcreator_api.utils.utils import copy_keys
+from reportcreator_api.utils.utils import copy_keys, omit_keys
 
 
 
@@ -297,7 +298,7 @@ class TestUpdateFieldDefinition:
         old_definition = self.project_type.report_fields['field_string']
 
         # Delete field from definition
-        del self.project_type.report_fields['field_string']
+        self.project_type.report_fields = omit_keys(self.project_type.report_fields, ['field_string'])
         self.project_type.save()
         self.refresh_data()
         assert 'field_string' not in self.project.data
@@ -462,10 +463,11 @@ class TestReportSectionDefinition:
     
     def test_delete_section(self):
         old_value = self.project.sections.get(section_id='section1').data['field1']
-        section1 = next(filter(lambda s: s['id'] == 'section1', self.project_type.report_sections))
-        section2 = next(filter(lambda s: s['id'] == 'section2', self.project_type.report_sections))
+        report_sections = copy.deepcopy(self.project_type.report_sections)
+        section1 = next(filter(lambda s: s['id'] == 'section1', report_sections))
+        section2 = next(filter(lambda s: s['id'] == 'section2', report_sections))
         section2['fields'].extend(section1['fields'])
-        self.project_type.report_sections = list(filter(lambda s: s['id'] != 'section1', self.project_type.report_sections))
+        self.project_type.report_sections = [section2]
         self.project_type.save()
         self.project.refresh_from_db()
 
@@ -474,10 +476,12 @@ class TestReportSectionDefinition:
     
     def test_move_field_to_other_section(self):
         old_value = self.project.sections.get(section_id='section1').data['field1']
-        section1 = next(filter(lambda s: s['id'] == 'section1', self.project_type.report_sections))
+        report_sections = copy.deepcopy(self.project_type.report_sections)
+        section1 = next(filter(lambda s: s['id'] == 'section1', report_sections))
         section1['fields'].remove('field1')
-        section2 = next(filter(lambda s: s['id'] == 'section2', self.project_type.report_sections))
+        section2 = next(filter(lambda s: s['id'] == 'section2', report_sections))
         section2['fields'].append('field1')
+        self.project_type.report_sections = report_sections
         self.project_type.save()
         self.project.refresh_from_db()
 

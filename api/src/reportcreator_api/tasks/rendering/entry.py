@@ -190,7 +190,7 @@ async def render_pdf(project: PentestProject, project_type: Optional[ProjectType
     data = {
         'report': {
             'id': str(project.id),
-            **project.data,
+            **await sync_to_async(lambda: project.data)(),
         },
         'findings': [{
             'id': str(f.finding_id),
