@@ -455,12 +455,16 @@ CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 
 
 # History
-# Manually create history savepoints, not automatically after every save
-SIMPLE_HISTORY_ENABLED = False
+class LicenseCheckBooleanProxy:
+    def __bool__(self):
+        from reportcreator_api.utils import license
+        return license.is_professional()
+SIMPLE_HISTORY_ENABLED = LicenseCheckBooleanProxy()
 SIMPLE_HISTORY_HISTORY_ID_USE_UUID = True
 SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD = True
 SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
 SIMPLE_HISTORY_REVERT_DISABLED = True
+HISTORY_SAVPOINT_TIME_DISTANCE = timedelta(hours=2)
 
 
 # Periodic tasks
