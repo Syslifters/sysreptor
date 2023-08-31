@@ -113,6 +113,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         fonts-noto-mono \
         fonts-noto-ui-core \
         fonts-noto-color-emoji \
+        fonts-noto-cjk \
+        fonts-noto-cjk-extra \
         gpg \
         gpg-agent \
         libpango-1.0-0 \
