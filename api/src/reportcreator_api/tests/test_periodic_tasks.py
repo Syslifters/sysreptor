@@ -154,7 +154,7 @@ class TestCleanupUnreferencedFiles:
                 images_kwargs=[{'name': 'image.png'}],
             )
             template_image = template.images.first()
-        self.run_cleanup_project_files(num_queries=1 + 4 + 2 * 2 + 2 * 1)
+        self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 2 + 2 * 1)
         self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 2 + 2 * 1)
         self.run_cleanup_template_files(num_queries=1 + 2 + 1 * 2 + 1 * 1)
         # Deleted from DB
@@ -202,7 +202,7 @@ class TestCleanupUnreferencedFiles:
                 images_kwargs=[{'name': 'image.png'}],
                 files_kwargs=[{'name': 'file.pdf'}]
             )
-        self.run_cleanup_project_files(num_queries=1 + 4)
+        self.run_cleanup_project_files(num_queries=1 + 5)
         assert project.images.count() == 1
         assert project.files.count() == 1
     
@@ -213,7 +213,7 @@ class TestCleanupUnreferencedFiles:
                 images_kwargs=[{'name': 'image.png'}],
                 files_kwargs=[{'name': 'file.pdf'}]
             )
-        self.run_cleanup_project_files(num_queries=1 + 4)
+        self.run_cleanup_project_files(num_queries=1 + 5)
         assert project.images.count() == 1
         assert project.files.count() == 1
 
@@ -224,7 +224,7 @@ class TestCleanupUnreferencedFiles:
                 images_kwargs=[{'name': 'image.png'}],
                 files_kwargs=[{'name': 'file.pdf'}]
             )
-        self.run_cleanup_project_files(num_queries=1 + 4)
+        self.run_cleanup_project_files(num_queries=1 + 5)
         assert project.images.count() == 1
         assert project.files.count() == 1
 
@@ -255,9 +255,10 @@ class TestCleanupUnreferencedFiles:
                 files_kwargs=[{'name': 'file.pdf'}]
             )
             project_referenced = project_unreferenced.copy()
-            project_referenced.update_data({'field_markdown': '![](/images/name/image.png)\n[](/files/name/file.pdf)'})
-            project_referenced.save()
-        self.run_cleanup_project_files(num_queries=1 + 4 + 2 * 2 + 2 * 1)
+            section_referenced = project_referenced.sections.filter(section_id='other').get()
+            section_referenced.update_data({'field_markdown': '![](/images/name/image.png)\n[](/files/name/file.pdf)'})
+            section_referenced.save()
+        self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 2 + 2 * 1)
 
         # Files deleted for unreferenced project
         assert project_unreferenced.images.count() == 0
@@ -297,7 +298,7 @@ class TestCleanupUnreferencedFiles:
             user_new.notes.first().save()
             template_new.save()
         last_task_run = timezone.now() - timedelta(days=15)
-        self.run_cleanup_project_files(num_queries=1 + 4 + 2 * 2 + 2 * 1, last_success=last_task_run)
+        self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 2 + 2 * 1, last_success=last_task_run)
         self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 2 + 2 * 1, last_success=last_task_run)
         self.run_cleanup_template_files(num_queries=1 + 2 + 1 * 2 + 1 * 1, last_success=last_task_run)
 
