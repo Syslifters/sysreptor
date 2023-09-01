@@ -193,7 +193,7 @@ build-docs:
   artifacts:
     when: always
     paths:
-      - site
+      - docs/site/
     expire_in: 2 days
   allow_failure:
     exit_codes: 127
@@ -228,6 +228,7 @@ deploy-docs:
   allow_failure:
     exit_codes: 127
   script:
+    - cd docs
     - git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor-docs.git ghpages
     - ls -lA
     - cd ghpages
