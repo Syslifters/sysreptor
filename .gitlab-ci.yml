@@ -186,10 +186,35 @@ release_job_github:
     - gh release create "${VERSION_NUMBER}" /tmp/source-prebuilt.tar.gz --title="${VERSION_NUMBER}" --target="${CI_COMMIT_SHA}"
 
 
-deploy-docs:
+build-docs:
   image: python:latest
   stage: docs
   needs: []
+  allow_failure:
+    exit_codes: 127
+  script:
+    - cd docs
+    - pip3 install -r requirements.txt
+    - set +e
+    - python3 -c 'from hooks import *; generate_software_lists()' || EXIT_CODE=$?
+    - set -e
+    # Fetch remote docs from reptor CLI
+    - mkdir -p docs/cli && cd docs/cli
+    - git init && git remote add -f origin https://github.com/Syslifters/reptor.git
+    - git config core.sparseCheckout true
+    - echo "docs" >> .git/info/sparse-checkout
+    - LATEST_RELEASE_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+    - git pull origin $LATEST_RELEASE_TAG
+    - mv docs/* .
+    - rm -rf docs .git
+    - cd ../..
+    # Build docs
+    - mkdocs build
+
+deploy-docs:
+  image: python:latest
+  stage: docs
+  needs: [build-docs]
   rules:
     - if: $CI_COMMIT_TAG =~ /^prod-.*/  # Run this job on prod deployments
       when: always
@@ -198,15 +223,6 @@ deploy-docs:
   allow_failure:
     exit_codes: 127
   script:
-    # build docs
-    - cd docs
-    - pip3 install -r requirements.txt
-    - set +e
-    - python3 -c 'from hooks import *; generate_software_lists()' || EXIT_CODE=$?
-    - set -e
-    - mkdocs build
-    - if [ $EXIT_CODE -ne 0 ]; then exit $EXIT_CODE; fi;
-    # deploy docs
     - git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor-docs.git ghpages
     - ls -lA
     - cd ghpages
