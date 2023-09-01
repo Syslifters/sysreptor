@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import itertools
 import uuid
 import functools
@@ -6,6 +7,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.contrib.contenttypes.fields import GenericRelation
 from simple_history import models as history_models
+from simple_history import signals as history_signals
 from simple_history import utils as history_utils
 
 
@@ -87,14 +89,21 @@ class HistoricalRecordBase(models.Model):
     class Meta:
         abstract = True
 
+    @property
+    def updated(self):
+        return self.history_date
+
 
 class HistoricalRecords(history_models.HistoricalRecords):
-    def __init__(self, bases=(HistoricalRecordBase,),  **kwargs):
-        super().__init__(bases=bases, **kwargs)
+    def __init__(self, bases=(HistoricalRecordBase,), excluded_fields=tuple(), **kwargs):
+        super().__init__(bases=bases, excluded_fields=('updated',) + tuple(excluded_fields), **kwargs)
 
     def post_save(self, instance, created, using=None, **kwargs):
         if getattr(instance, 'skip_history_when_saving', False):
             # Allow skip_history_when_saving also for create 
+            return
+        if not created and not set(instance.changed_fields).intersection(map(lambda f: f.attname, instance.history.model.tracked_fields)):
+            # Skip history when there were no changes
             return
         return super().post_save(instance, created, using, **kwargs)
 
@@ -114,21 +123,72 @@ def disable_for_loaddata(signal_handler):
 
 def bulk_create_with_history(model, objs, history_date=None, history_change_reason=None, **kwargs):
     if settings.SIMPLE_HISTORY_ENABLED:
+        history_date = history_date or getattr(HistoricalRecords.context, 'history_date', None)
+        history_change_reason = history_change_reason or getattr(HistoricalRecords.context, 'history_change_reason', None)
         return history_utils.bulk_create_with_history(
             model=model, 
             objs=objs, 
             default_date=history_date, 
-            history_change_reason=history_change_reason,
+            default_change_reason=history_change_reason,
             **kwargs)
     else:
         return model.objects.bulk_create(objs=objs)
 
 
 @transaction.atomic
-def bulk_update_with_history(model, objs, fields, history_date=None, history_change_reason=None, history_prevent_cleanup=None, **kwargs):
+def bulk_update_with_history(model, objs, fields, history_date=None, history_change_reason=None, history_prevent_cleanup=None):
+    """
+    Customization of simple_history.utils.bulk_update_with_history that 
+    respects settings.SIMPLE_HISTORY_ENABLED, 
+    sends the pre_create_historical_record signal and 
+    support settings additional history model fields.
+    """
+
     out = model.objects.bulk_update(objs=objs, fields=fields)
     if settings.SIMPLE_HISTORY_ENABLED:
-        # TODO: implement: combination of bulk_update_with_history and bulk_history_create
-        # support history_prevent_cleanup
-        pass
+        historical_records = []
+        for obj in objs:
+            # Skip history for unchanged objects
+            if not set(obj.changed_fields).intersection(fields):
+                continue
+            
+            historical_obj = model.history.model(
+                history_type='~',
+                history_date=getattr(obj, '_history_date', None) or history_date,
+                history_change_reason=getattr(obj, '_history_change_reason', None) or history_change_reason,
+                history_user=model.history.model.get_default_history_user(obj),
+                history_prevent_cleanup=history_prevent_cleanup or False,
+                **{f.attname: getattr(obj, f.attname) for f in model.history.model.tracked_fields}
+            )
+            history_signals.pre_create_historical_record.send(
+                sender=model.history.model, 
+                instance=obj,
+                history_instance=historical_obj,
+                history_date=historical_obj.history_date,
+                history_user=historical_obj.history_user,
+                history_change_reason=historical_obj.history_change_reason,
+                using=None,
+            )
+
+            historical_records.append(historical_obj)
+        model.history.bulk_create(historical_records)
     return out
+
+
+@contextmanager
+def history_context(**kwargs):
+    try:
+        for k, v in kwargs.items():
+            setattr(HistoricalRecords.context, k, v)
+        yield
+    finally: 
+        for k, v in kwargs.items():
+            delattr(HistoricalRecords.context, k)
+
+
+def bulk_delete_with_history(model, objs, history_date=None, history_change_reason=None):
+    with history_context(history_date=history_date, history_change_reason=history_change_reason):
+        return model.objects \
+            .filter(pk__in=map(lambda o: o.pk, objs)) \
+            .delete()
+

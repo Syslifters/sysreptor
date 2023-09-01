@@ -10,7 +10,7 @@ from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsO
 from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, UserNotebookPage, PentestFinding, PentestProject, ProjectType, \
     UploadedAsset, UploadedImage, ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, \
     UploadedUserNotebookFile, Language, UserPublicKey, UploadedTemplateImage, FindingTemplateTranslation, \
-    ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
+    ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, ReviewStatus
 from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, \
     report_fields_default, report_sections_default
 from reportcreator_api.pentests.models.project import ReportSection
@@ -80,16 +80,21 @@ def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> F
         'unknown_field': 'test',
     } | kwargs.pop('data', {})
     language = kwargs.pop('language', Language.ENGLISH)
+    status = kwargs.pop('status', ReviewStatus.IN_PROGRESS)
 
-    template = FindingTemplate.objects.create(**{
+    template = FindingTemplate(**{
         'tags': ['web', 'dev'],
     } | kwargs)
-    main_translation = FindingTemplateTranslation(template=template, language=language)
+    template._history_type = '+'
+    template.save_without_historical_record()
+
+    main_translation = FindingTemplateTranslation(template=template, language=language, status=status)
     main_translation.update_data(data)
     main_translation.save()
 
     template.main_translation = main_translation
     template.save()
+    del template._history_type
 
     for translation_kwarg in (translations_kwargs or []):
         translation_data = {
