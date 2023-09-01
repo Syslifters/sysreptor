@@ -300,7 +300,7 @@ class TestEncryptDataCommand:
         management.call_command(encryptdata.Command())
 
         p = PentestProject.objects.filter(id=self.project.id)
-        assert_db_field_encrypted(p.values('custom_fields'), True)
+        assert_db_field_encrypted(p.values('unknown_custom_fields'), True)
         for i in p.get().images.all():
             assert_db_field_encrypted(UploadedImage.objects.filter(id=i.id).values('name'), True)
             assert_storage_file_encrypted(i.file, True)

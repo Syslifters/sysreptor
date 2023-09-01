@@ -13,6 +13,7 @@ from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPa
     ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
 from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, \
     report_fields_default, report_sections_default
+from reportcreator_api.pentests.models.project import ReportSection
 from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -184,17 +185,21 @@ def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
 
 def create_project(project_type=None, members=[], report_data={}, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, **kwargs) -> PentestProject:
     project_type = project_type or create_project_type()
+    report_data = {
+        'title': 'Report title',
+        'unknown_field': 'test',
+    } | report_data
     project = PentestProject.objects.create(**{
         'project_type': project_type,
         'name': f'Pentest Project #{random.randint(1, 100000)}',
         'language': Language.ENGLISH,
         'tags': ['web', 'customer:test'],
+        'unknown_custom_fields': {f: report_data.pop(f) for f in set(report_data.keys()) - set(project_type.report_fields.keys())}
     } | kwargs)
-    project.update_data({
-        'title': 'Report title',
-        'unknown_field': 'test',
-    } | report_data)
-    project.save()
+    sections = project.sections.all()
+    for s in sections:
+        s.update_data(report_data)
+    ReportSection.objects.bulk_update(sections, ['custom_fields'])
 
     member_infos = []
     for m in members:

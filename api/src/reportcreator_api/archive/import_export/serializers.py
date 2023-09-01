@@ -464,12 +464,12 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
             'project_type': project_type,
             'imported_members': list(filter(lambda u: isinstance(u, dict), members)),
             'source': SourceEnum.IMPORTED,
-            'custom_fields': ensure_defined_structure(
+            'unknown_custom_fields': ensure_defined_structure(
                 value=report_data,
                 definition=project_type.report_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
                 include_unknown=True
-            ),    
+            ),
         })
         project_type.linked_project = project
         project_type.save()

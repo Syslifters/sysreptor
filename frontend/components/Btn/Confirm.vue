@@ -42,7 +42,7 @@
           <strong>{{ confirmInput }}</strong>
           <s-text-field
             v-model="confirmUserInput"
-            :rules="[v => v === confirmInput || 'Confirmation text does not match']"
+            :rules="rules.confirm"
             dense
             class="mt-2"
           />
@@ -168,6 +168,9 @@ export default {
       confirmDialogVisible: false,
       confirmUserInput: '',
       actionInProgress: false,
+      rules: {
+        confirm: [[v => (v || '').trim() === (this.confirmInput || '').trim() || 'Confirmation text does not match']]
+      }
     }
   },
   mounted() {
