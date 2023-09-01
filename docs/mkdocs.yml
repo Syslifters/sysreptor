@@ -1,4 +1,4 @@
-site_name: "SysReptor Docs"
+site_name: "SysReptor"
 site_url: "https://docs.sysreptor.com/"
 repo_url: https://github.com/syslifters/sysreptor/
 site_dir: ./site/ # Where to put the HTML files
@@ -10,8 +10,10 @@ nav:
     - Setup Webserver: setup/webserver.md
     - Single Sign-On:
       - SSO Setup: setup/oidc-setup.md
+      - Keycloak: setup/oidc-keycloak.md
       - Azure AD: setup/oidc-azure-active-directory.md
       - Google: setup/oidc-google.md
+      - Generic: setup/oidc-generic.md
     - User Permissions: setup/user-permissions.md
     - Updates: setup/updates.md
     - Backups: setup/backups.md
@@ -37,6 +39,28 @@ nav:
     - Overview: finding-templates/overview.md
     - Create Finding: finding-templates/create-finding.md
     - Multilingual: finding-templates/multilingual.md
+  - Automize Reporting via CLI (alpha):
+      - Getting Started: cli/getting-started.md
+      - Setup: cli/setup.md
+      - Tools:
+        - Nmap: cli/tools/nmap.md
+        - Nikto: cli/tools/nikto.md
+        - ZAP: cli/tools/zap.md
+        - SSLyze: cli/tools/sslyze.md
+      - Uploads:
+        - File: cli/uploads/file.md
+        - Note: cli/uploads/note.md
+      - Projects and Templates:
+        - Projects: cli/projects/projects.md
+        - Templates: cli/projects/templates.md
+        - Translate: cli/projects/translate.md
+      - Importers:
+        - Ghostwriter: cli/importers/ghostwriter.md
+      - Customization:
+        - Tools: cli/customization/tools.md
+      - Writing plugins:
+        - Tools: cli/writing-plugins/tools.md
+        - Importers: cli/writing-plugins/importers.md
   - Tech Insights:
     - Rendering Workflow: insights/rendering-workflow.md
     - Archiving: insights/archiving.md
@@ -53,7 +77,6 @@ theme:
   features:
     - content.code.annotate
     - search.share
-    #- navigation.expand
   palette: 
     - scheme: default
   theme:
@@ -74,14 +97,16 @@ plugins:
       categories: false
       post_readtime: false
   - social:
-      cards: !ENV [CARDS, true]
+      enabled: !ENV [CI, true]
+      cards: !ENV [CI, true]
       cards_color:
         fill: "#001827"
         text: "#F9FDFF"
       cards_font: Exo
   - tooltips
   - search
-  - privacy
+  - privacy:
+      enabled: !ENV [CI, true]
   - redirects:
       redirect_maps:
         "setup/nginx-server.md": "setup/webserver.md"
@@ -100,6 +125,8 @@ markdown_extensions:
   - pymdownx.magiclink
   - pymdownx.highlight:
       use_pygments: true
+  - pymdownx.snippets:
+      url_download: true
   - admonition
   - pymdownx.details
   - pymdownx.superfences
@@ -123,4 +150,4 @@ extra:
       link: https://at.linkedin.com/showcase/sysreptor
   generator: false
 
-copyright: '<a href="https://www.syslifters.com/" target="_blank">Our Website</a> | <a href="https://www.syslifters.com/impressum" target="_blank">Imprint</a> | <a href="/data-privacy">Data Privacy</a> | <a href="/contact-us" target="blank">Contact</a><br><br>The FFG is the central national funding organization and strengthens Austria''s innovative power.<br>This project is funded by the FFG.<a href="https://www.ffg.at" target="_blank">www.ffg.at</a><br>'
+copyright: '<a href="https://www.syslifters.com/" target="_blank">Our Website</a> | <a href="https://www.syslifters.com/impressum" target="_blank">Imprint</a> | <a href="/data-privacy">Data Privacy</a> | <a href="/contact-us" target="blank">Contact</a><br><br>The FFG is the central national funding organization and strengthens Austria''s innovative power.<br>This project is funded by the <a href="https://www.ffg.at" target="_blank">FFG</a>.<br>'
