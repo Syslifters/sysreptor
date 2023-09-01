@@ -128,7 +128,8 @@ export default {
       if (toolbar?.autoSaveEnabled && (
         oldValue.checked !== newValue.checked ||
         oldValue.status_emoji !== newValue.status_emoji ||
-        oldValue.icon_emoji !== newValue.icon_emoji
+        oldValue.icon_emoji !== newValue.icon_emoji ||
+        oldValue.assignee !== newValue.assignee
       )) {
         await toolbar.performSave();
       }
@@ -144,5 +145,6 @@ export default {
 
 .assignee-container {
   width: 17em;
+  min-width: 17em;
 }
 </style>
