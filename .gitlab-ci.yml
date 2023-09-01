@@ -190,6 +190,11 @@ build-docs:
   image: python:latest
   stage: docs
   needs: []
+  artifacts:
+    when: always
+    paths:
+      - site
+    expire_in: 2 days
   allow_failure:
     exit_codes: 127
   script:
