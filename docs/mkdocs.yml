@@ -51,9 +51,9 @@ nav:
         - File: cli/uploads/file.md
         - Note: cli/uploads/note.md
       - Projects and Templates:
-        - Projects: cli/projects/projects.md
-        - Templates: cli/projects/templates.md
-        - Translate: cli/projects/translate.md
+        - Projects: cli/projects-and-templates/projects.md
+        - Templates: cli/projects-and-templates/templates.md
+        - Translate: cli/projects-and-templates/translate.md
       - Importers:
         - Ghostwriter: cli/importers/ghostwriter.md
       - Customization:
@@ -99,10 +99,10 @@ plugins:
   - social:
       enabled: !ENV [CI, true]
       cards: !ENV [CI, true]
-      cards_color:
-        fill: "#001827"
-        text: "#F9FDFF"
-      cards_font: Exo
+      cards_layout_options:
+        background_color: "#001827"
+        color: "#F9FDFF"
+        font_family: Exo
   - tooltips
   - search
   - privacy:
