@@ -2,6 +2,7 @@ from django.db.models import OneToOneRel, OneToOneField, ForeignObject
 from django.db.models.fields.related_descriptors import ReverseOneToOneDescriptor
 from django.db.models.fields.related import RelatedField
 from django.contrib.contenttypes.fields import GenericRelation, GenericRel, GenericForeignKey
+from simple_history.models import is_historic
 
 
 class GenericOneToOneForeignKey(GenericForeignKey):
@@ -40,6 +41,10 @@ class ReverseGenericOneToOneDescriptor(ReverseOneToOneDescriptor):
     def __get__(self, instance, cls=None):
         if instance is None:
             return self
+        
+        # Disable for historic models
+        if is_historic(instance):
+            return None
 
         # The related instance is loaded from the database and then cached
         # by the field on the model instance state. It can also be pre-cached

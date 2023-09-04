@@ -10,7 +10,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from reportcreator_api.api_utils.views import SpellcheckWordView, UtilsViewSet, SpellcheckView, HealthcheckView
 from reportcreator_api.pentests.views import ArchivedProjectKeyPartViewSet, ArchivedProjectViewSet, \
-    FindingTemplateViewSet, FindingTemplateTranslationViewSet, UploadedTemplateImageViewSet, \
+    FindingTemplateViewSet, FindingTemplateTranslationViewSet, UploadedTemplateImageViewSet, FindingTemplateHistoryViewSet, \
     PentestFindingViewSet, PentestProjectViewSet, ProjectNotebookPageViewSet, \
     PentestProjectPreviewView, PentestProjectGenerateView, \
     ProjectTypeViewSet, ProjectTypePreviewView, \
@@ -59,6 +59,7 @@ archivedproject_router.register('keyparts', ArchivedProjectKeyPartViewSet, basen
 template_router = NestedSimpleRouter(router, 'findingtemplates', lookup='template')
 template_router.register('translations', FindingTemplateTranslationViewSet, basename='findingtemplatetranslation')
 template_router.register('images', UploadedTemplateImageViewSet, basename='uploadedtemplateimage')
+template_router.register('history', FindingTemplateHistoryViewSet, basename='templatehistory')
 
 
 urlpatterns = [

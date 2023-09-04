@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import itertools
+from typing import Any
 import uuid
 import functools
 from django.conf import settings
@@ -89,14 +90,10 @@ class HistoricalRecordBase(models.Model):
     class Meta:
         abstract = True
 
-    @property
-    def updated(self):
-        return self.history_date
-
 
 class HistoricalRecords(history_models.HistoricalRecords):
     def __init__(self, bases=(HistoricalRecordBase,), excluded_fields=tuple(), **kwargs):
-        super().__init__(bases=bases, excluded_fields=('updated',) + tuple(excluded_fields), **kwargs)
+        super().__init__(bases=bases, excluded_fields=('updated', 'lock_info_data') + tuple(excluded_fields), **kwargs)
 
     def post_save(self, instance, created, using=None, **kwargs):
         if getattr(instance, 'skip_history_when_saving', False):
@@ -106,6 +103,26 @@ class HistoricalRecords(history_models.HistoricalRecords):
             # Skip history when there were no changes
             return
         return super().post_save(instance, created, using, **kwargs)
+    
+    def get_extra_fields(self, model, fields):
+        def get_instance(self):
+            # Override get_instance from django-simple-history to not fetch excluded fields from the current state
+            # Instead they will be ignored and use the default value.
+            attrs = {
+                field.attname: getattr(self, field.attname) for field in fields.values()
+            }
+            model_fields = {f.attname: f for f in model._meta.fields}
+            if 'updated' in model_fields:
+                attrs['updated'] = self.history_date
+            # TODO: set lock_info_data always NULL => maybe in handle GenericForeignKey ???
+
+            result = model(**attrs)
+            setattr(result, history_models.SIMPLE_HISTORY_REVERSE_ATTR_NAME, self)
+            return result
+
+        return super().get_extra_fields(model, fields) | {
+            'instance': property(get_instance),
+        }
 
 
 def disable_for_loaddata(signal_handler):

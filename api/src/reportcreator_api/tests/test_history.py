@@ -1,11 +1,14 @@
-import contextlib
 import pytest
 import enum
+from asgiref.sync import async_to_sync
 from django.urls import reverse
+from django.utils import timezone
+from django.core.files.uploadedfile import SimpleUploadedFile
 
-from reportcreator_api.tests.mock import create_user, api_client, create_template, create_project
+from reportcreator_api.tests.mock import create_template_translation, create_user, api_client, create_template, create_project
 from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, UploadedTemplateImage, \
     ReviewStatus, Language
+from reportcreator_api.utils.utils import omit_keys
 
 
 def has_changes(a, b):
@@ -214,3 +217,56 @@ class TestTemplateHistory:
         assert tr1.history.all().count() == tr2.history.all().count() == 1
         assert tr1.history.all()[0].history_type == tr2.history.all()[0].history_type == '+'
 
+    def format_template(self, template_data):
+        out = omit_keys(template_data, ['updated', 'lock_info', 'usage_count'])
+        out['translations'] = sorted([omit_keys(tr, ['updated']) for tr in out.get('translations', [])], key=lambda tr: tr['id'])
+        return out
+
+    def test_history_api(self):
+        t = create_template(language=Language.ENGLISH, tags=['tag1'], data={'title': 'title 1'}, translations_kwargs=[], images_kwargs=[])
+        tr1 = t.main_translation
+        history = []
+
+        def add_history_test():
+            history.append({
+                'history_date': timezone.now(),
+                'template': self.client.get(reverse('findingtemplate-detail', kwargs={'pk': t.id})).data,
+                'images': {i.name: i.file.read() for i in t.images.all()}
+            })
+
+        # Initial template
+        add_history_test()
+        # Upload image
+        ti1 = UploadedTemplateImage.objects.create(linked_object=t, name='file1.png', file=SimpleUploadedFile(name=f'file1.png', content=b'file1'))
+        add_history_test()
+        # Add translation
+        tr2 = create_template_translation(template=t, language=Language.GERMAN, data={'title': 'title 2'})
+        add_history_test()
+        # Update template and translation
+        t.tags = ['tag2']
+        t.save()
+        tr1.update_data({'title': 'title 1 updated'})
+        tr1.save()
+        add_history_test()
+        # Replace image
+        ti1.delete()
+        UploadedTemplateImage.objects.create(linked_object=t, name='file1.png', file=SimpleUploadedFile(name=f'file1.png', content=b'file2'))
+        add_history_test()
+        # Change main translation
+        t.main_translation = tr2
+        t.save()
+        tr1.delete()
+        add_history_test()
+
+        # TODO: test template timeline and translation timeline entries
+
+        # Test history entries
+        for h in history:
+            res_t = self.client.get(reverse('templatehistory-detail', kwargs={'template_pk': t.id, 'history_date': h['history_date'].isoformat()}))
+            assert res_t.status_code == 200
+            assert self.format_template(res_t.data) == self.format_template(h['template'])
+            for name, content in h['images'].items():
+                res_i = self.client.get(reverse('templatehistory-image-by-name', kwargs={'template_pk': t.id, 'history_date': h['history_date'].isoformat(), 'filename': name}))
+                assert res_i.status_code == 200
+                assert b''.join(iter(res_i)) == content
+            

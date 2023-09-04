@@ -3,9 +3,10 @@ from datetime import datetime, timedelta
 from unittest import mock
 from django.utils import timezone
 from rest_framework.test import APIClient
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
-
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, UserNotebookPage, PentestFinding, PentestProject, ProjectType, \
     UploadedAsset, UploadedImage, ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, \
@@ -15,7 +16,7 @@ from reportcreator_api.pentests.customfields.predefined_fields import finding_fi
     report_fields_default, report_sections_default
 from reportcreator_api.pentests.models.project import ReportSection
 from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod
-from django.core.files.uploadedfile import SimpleUploadedFile
+
 
 
 def create_png_file() -> bytes:
@@ -96,14 +97,9 @@ def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> F
     template.save()
     del template._history_type
 
-    for translation_kwarg in (translations_kwargs or []):
-        translation_data = {
-            'title': data.get('title', 'Finding Template Translation'),
-        } | translation_kwarg.pop('data', {})
-        translation = FindingTemplateTranslation(template=template, **translation_kwarg)
-        translation.update_data(translation_data)
-        translation.save()
-
+    for translation_kwargs in (translations_kwargs or []):
+        create_template_translation(template=template, **translation_kwargs)
+    
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
         UploadedTemplateImage.objects.create(linked_object=template, **{
             'name': f'file{idx}.png', 
@@ -111,6 +107,16 @@ def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> F
         } | image_kwargs)
 
     return template
+
+
+def create_template_translation(template, **kwargs):
+    translation_data = {
+        'title': 'Finding Template Translation',
+    } | kwargs.pop('data', {})
+    translation = FindingTemplateTranslation(template=template, **kwargs)
+    translation.update_data(translation_data)
+    translation.save()
+    return translation
 
 
 def create_project_type(**kwargs) -> ProjectType:
