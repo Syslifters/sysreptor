@@ -114,7 +114,6 @@ class HistoricalRecords(history_models.HistoricalRecords):
             model_fields = {f.attname: f for f in model._meta.fields}
             if 'updated' in model_fields:
                 attrs['updated'] = self.history_date
-            # TODO: set lock_info_data always NULL => maybe in handle GenericForeignKey ???
 
             result = model(**attrs)
             setattr(result, history_models.SIMPLE_HISTORY_REVERSE_ATTR_NAME, self)
