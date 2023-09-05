@@ -1,5 +1,5 @@
 <template>
-  <nuxt-link :to="to" class="timeline-item-link">
+  <nuxt-link :to="to || '/'" :disabled="!to" :class="{'timeline-item-link': true, 'disabled': !to}">
     <v-timeline-item small fill-dot :color="value.history_type === '+' ? 'success' : value.history_type === '-' ? 'error' : 'primary'">
       <chip-date :value="value.history_date" />
       <chip-member v-if="value.history_user" :value="value.history_user" />
@@ -24,7 +24,7 @@ export default {
       required: true,
     },
     to: {
-      type: Object,
+      type: [Object, String],
       default: null,
     },
   },
@@ -40,6 +40,10 @@ export default {
 .v-timeline-item {
   padding-top: 0.5em;
   padding-bottom: 0.5em;
+
+  &:deep(.v-chip) {
+    cursor: inherit;
+  }
 }
 
 .timeline-item-link {
@@ -61,7 +65,7 @@ export default {
   &:hover::before {
     opacity: 0.04;
   }
-  &.nuxt-link-active::before {
+  &.nuxt-link-active:not(.disabled)::before {
     opacity: 0.12;
   }
 }

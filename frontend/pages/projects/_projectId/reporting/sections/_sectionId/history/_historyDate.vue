@@ -49,10 +49,10 @@
 
 <script>
 import urlJoin from 'url-join';
-import ProjectLockEditMixin from '~/mixins/ProjectLockEditMixin';
+import ProjectHistoryMixin from '~/mixins/ProjectHistoryMixin';
 
 export default {
-  mixins: [ProjectLockEditMixin],
+  mixins: [ProjectHistoryMixin],
   data() {
     return {
       section: null,

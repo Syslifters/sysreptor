@@ -4,6 +4,10 @@
       <edit-toolbar v-bind="toolbarAttrs">
         <template #title>Project</template>
         <template #default>
+          <s-btn @click="historyVisible = !historyVisible" color="secondary">
+            <v-icon left>mdi-history</v-icon>
+            Version History
+          </s-btn>
           <btn-readonly :value="project.readonly" :set-readonly="setReadonly" />
           <s-btn
             v-if="project.readonly && archivingEnabled"
@@ -36,6 +40,11 @@
           />
         </template>
       </edit-toolbar>
+
+      <project-history-timeline 
+        v-model="historyVisible"
+        :project="project"
+      />
 
       <p v-if="project.copy_of" class="mt-4">
         This project is a copy
@@ -127,6 +136,7 @@ export default {
     return {
       serverErrors: null,
       projectType: null,
+      historyVisible: false,
     };
   },
   computed: {

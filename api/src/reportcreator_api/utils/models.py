@@ -118,10 +118,6 @@ class HistoricalRecords(history_models.HistoricalRecords):
 
             if 'updated' in excluded_fields:
                 attrs['updated'] = self.history_date
-            
-            from reportcreator_api.pentests.models import ProjectMemberInfo
-            if model == ProjectMemberInfo:
-                print('Test')  # TODO: debug only
 
             result = model(**attrs)
             setattr(result, history_models.SIMPLE_HISTORY_REVERSE_ATTR_NAME, self)

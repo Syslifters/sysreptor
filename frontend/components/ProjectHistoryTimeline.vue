@@ -4,8 +4,9 @@
       <history-timeline-item :value="item" :to="historyItemTo(item)">
         <template #title>
           <span v-if="item.history_change_reason">{{ item.history_change_reason }}</span>
-          <span v-else-if="item.history_type === '+'">Created {{ formatModelName(item.history_model) }}</span>
-          <span v-else-if="item.history_type === '-'">Deleted {{ formatModelName(item.history_model) }}</span>
+          <span v-else-if="item.history_type === '+'">Created</span>
+          <span v-else-if="item.history_type === '-'">Deleted</span>
+          <span v-if="['+', '-'].includes(item.history_type)">{{ formatModelName(item.history_model) }}</span>
         </template>
       </history-timeline-item>
     </template>
@@ -67,6 +68,7 @@ export default {
         ProjectNotebookPage: 'Note',
         UploadedImage: 'Image',
         UploadedProjectFile: 'File',
+        ProjectMemberInfo: 'Member',
       }[model] || model;
     }
   }
