@@ -12,7 +12,23 @@
             :outlined="false" dense
           />
         </div>
+
+        <s-btn :to="`/projects/${$route.params.projectId}/reporting/sections/${$route.params.sectionId}/`" nuxt exact color="secondary" class="ml-1 mr-1">
+          <v-icon left>mdi-undo</v-icon>
+          Back to current version
+        </s-btn>
+
+        <s-btn @click="historyVisible = !historyVisible" color="secondary">
+          <v-icon left>mdi-history</v-icon>
+          Version History
+        </s-btn>
       </edit-toolbar>
+
+      <project-history-timeline 
+        v-model="historyVisible"
+        :project="project"
+        :section="section"
+      />
 
       <div v-for="fieldId in section.fields" :key="fieldId">
         <dynamic-input-field 
@@ -42,17 +58,17 @@ export default {
       section: null,
       project: null,
       projectType: null,
+      historyVisible: false,
     }
   },
   async fetch() {
-    const section = await this.$axios.$get(this.getBaseUrl({ id: this.$route.params.sectionId }));
-    const [project, projectType] = await Promise.all([
-      await this.$store.dispatch('projects/getById', section.project),
-      await this.$store.dispatch('projecttypes/getById', section.project_type)
+    const [section, project] = await Promise.all([
+      this.$axios.$get(this.getBaseUrl({ id: this.$route.params.sectionId })),
+      this.$axios.$get(this.projectUrl),
     ]);
-    this.section = section;
     this.project = project;
-    this.projectType = projectType;
+    this.projectType = await this.$axios.$get(this.projectTypeUrl);
+    this.section = section;
   },
   computed: {
     data() {
@@ -63,18 +79,6 @@ export default {
     getBaseUrl(data) {
       return urlJoin(this.projectUrl, `/sections/${data.id}/`)
     },
-    async performSave(data) {
-      await this.$store.dispatch('projects/updateSection', { projectId: this.$route.params.projectId, section: data });
-    },
-    updateInStore(data) {
-      this.$store.commit('projects/setSection', { projectId: this.section.project, section: data });
-    },
-    async onUpdateData({ oldValue, newValue }) {
-      const toolbar = this.getToolbarRef();
-      if (toolbar?.autoSaveEnabled && (oldValue.status !== newValue.status || oldValue.assignee?.id !== newValue.assignee?.id)) {
-        await toolbar.performSave();
-      }
-    }
   }
 }
 </script>

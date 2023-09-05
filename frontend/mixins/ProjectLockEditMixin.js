@@ -13,6 +13,12 @@ export default {
     projectUrl() {
       return `/pentestprojects/${this.$route.params.projectId}/`;
     },
+    projectTypeUrl() {
+      if (!this.project) {
+        return null;
+      }
+      return `/projecttypes/${this.project.project_type}/`;
+    },
   },
   methods: {
     getHasEditPermissions() {
@@ -33,7 +39,7 @@ export default {
     },
     rewriteFileUrl(imgSrc) {
       if (imgSrc.startsWith('/assets/')) {
-        return urlJoin(`/projecttypes/${this.project.project_type}/`, imgSrc);
+        return urlJoin(this.projectTypeUrl, imgSrc);
       }
       return urlJoin(this.projectUrl, imgSrc);
     },

@@ -32,14 +32,12 @@
 <script>
 import urlJoin from "url-join"
 import { formatISO9075 } from 'date-fns';
-import { EditMode } from '~/utils/other';
 import LockEditMixin from '~/mixins/LockEditMixin';
 
 export default {
   mixins: [LockEditMixin],
   data() {
     return {
-      editMode: EditMode.READONLY,
       template: null,
       currentTranslation: null,
       restoreTranslationDataCache: {},

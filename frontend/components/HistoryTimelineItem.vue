@@ -1,23 +1,15 @@
 <template>
   <nuxt-link :to="to" class="timeline-item-link">
-    <v-timeline-item small>
-      <!-- TODO: timeline styling -->
-      {{ formatDatetime(value.history_date) }} <br>
+    <v-timeline-item small fill-dot :color="value.history_type === '+' ? 'success' : value.history_type === '-' ? 'error' : 'primary'">
+      <chip-date :value="value.history_date" />
+      <chip-member v-if="value.history_user" :value="value.history_user" />
+      <br>
+
       <slot name="title">
         <span v-if="value.change_reason">{{ value.change_reason }}</span>
         <span v-else-if="value.history_type === '+'">Created</span>
         <span v-else-if="value.history_type === '-'">Deleted</span>
-        <span v-else-if="value.history_type === '~'">Updated</span>
       </slot>
-      <template v-if="value.history_user">
-        <br>
-        <s-tooltip v-if="value.history_user">
-          <template #activator="{on}">
-            <span v-on="on">@{{ value.history_user.username }}</span>
-          </template>
-          <span>{{ value.history_user.name }}</span>
-        </s-tooltip>
-      </template>
     </v-timeline-item>
   </nuxt-link>
 </template>

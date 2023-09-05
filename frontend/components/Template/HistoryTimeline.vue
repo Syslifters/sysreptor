@@ -3,11 +3,9 @@
     <template #item="{item}">
       <history-timeline-item :value="item" :to="historyItemTo(item)">
         <template #title>
-          <span v-if="item.history_change_reason">{{ item.history_change_reason }}</span>
-          <span v-else-if="item.history_type === '+'">Created</span>
-          <span v-else-if="item.history_type === '-'">Deleted</span>
-          <span v-else-if="item.history_type === '~'">Updated</span>
-          <span>{{ item.history_model }}</span>
+          <span v-if="item.history_change_reason">{{ item.history_change_reason }} {{ formatModelName(item.history_model) }}</span>
+          <span v-else-if="item.history_type === '+'">Created {{ formatModelName(item.history_model) }}</span>
+          <span v-else-if="item.history_type === '-'">Deleted {{ formatModelName(item.history_model) }}</span>
         </template>
       </history-timeline-item>
     </template>
@@ -45,6 +43,13 @@ export default {
         }
       };
     },
+    formatModelName(model) {
+      return {
+        FindingTemplate: 'Template',
+        FindingTemplateTranslation: 'Translation',
+        UploadedTemplateImage: 'Image',
+      }[model] || model;
+    }
   }
 }
 </script>

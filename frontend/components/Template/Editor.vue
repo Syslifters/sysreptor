@@ -37,17 +37,10 @@
 
       <slot name="toolbar-actions" />
 
-      <s-tooltip v-if="history">
-        <template #activator="{ on }">
-          <s-btn @click="historyVisible = !historyVisible" color="secondary" v-on="on">
-            <v-icon left>mdi-history</v-icon>
-            Version History
-          </s-btn>
-        </template>
-        <span>
-          Version history
-        </span>
-      </s-tooltip>
+      <s-btn v-if="history" @click="historyVisible = !historyVisible" color="secondary">
+        <v-icon left>mdi-history</v-icon>
+        Version History
+      </s-btn>
 
       <template #context-menu v-if="$slots['toolbar-context-menu']">
         <slot name="toolbar-context-menu" />

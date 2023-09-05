@@ -30,7 +30,18 @@
             :outlined="false" dense
           />
         </div>
+
+        <s-btn @click="historyVisible = !historyVisible" color="secondary">
+          <v-icon left>mdi-history</v-icon>
+          Version History
+        </s-btn>
       </edit-toolbar>
+
+      <project-history-timeline 
+        v-model="historyVisible"
+        :project="project"
+        :finding="finding"
+      />
 
       <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
         <dynamic-input-field 
@@ -61,6 +72,7 @@ export default {
       finding: null,
       project: null,
       projectType: null,
+      historyVisible: false,
     }
   },
   async fetch() {
