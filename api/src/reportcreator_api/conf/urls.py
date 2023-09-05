@@ -12,11 +12,11 @@ from reportcreator_api.api_utils.views import SpellcheckWordView, UtilsViewSet, 
 from reportcreator_api.pentests.views import ArchivedProjectKeyPartViewSet, ArchivedProjectViewSet, \
     FindingTemplateViewSet, FindingTemplateTranslationViewSet, UploadedTemplateImageViewSet, FindingTemplateHistoryViewSet, \
     PentestFindingViewSet, PentestProjectViewSet, ProjectNotebookPageViewSet, \
-    PentestProjectPreviewView, PentestProjectGenerateView, \
+    PentestProjectPreviewView, PentestProjectGenerateView, UploadedAssetViewSet, ProjectTypeHistoryViewSet, \
     ProjectTypeViewSet, ProjectTypePreviewView, \
-    ReportSectionViewSet, UploadedAssetViewSet, UploadedImageViewSet, UploadedProjectFileViewSet, UploadedUserNotebookImageViewSet, \
+    ReportSectionViewSet, UploadedImageViewSet, UploadedProjectFileViewSet, UploadedUserNotebookImageViewSet, \
     UploadedUserNotebookFileViewSet, UserNotebookPageViewSet, UserPublicKeyViewSet, \
-    ProjectNotebookPageExportPdfView, UserNotebookPageExportPdfView
+    ProjectNotebookPageExportPdfView, UserNotebookPageExportPdfView, PentestProjectHistoryViewSet
 from reportcreator_api.users.views import APITokenViewSet, PentestUserViewSet, MFAMethodViewSet, AuthViewSet, AuthIdentityViewSet
 from reportcreator_api.notifications.views import NotificationViewSet
 
@@ -49,9 +49,11 @@ project_router.register('findings', PentestFindingViewSet, basename='finding')
 project_router.register('notes', ProjectNotebookPageViewSet, basename='projectnotebookpage')
 project_router.register('images', UploadedImageViewSet, basename='uploadedimage')
 project_router.register('files', UploadedProjectFileViewSet, basename='uploadedprojectfile')
+project_router.register('history', PentestProjectHistoryViewSet, basename='projecthistory')
 
 projecttype_router = NestedSimpleRouter(router, 'projecttypes', lookup='projecttype')
 projecttype_router.register('assets', UploadedAssetViewSet, basename='uploadedasset')
+projecttype_router.register('history', ProjectTypeHistoryViewSet, basename='projecttypehistory')
 
 archivedproject_router = NestedSimpleRouter(router, 'archivedprojects', lookup='archivedproject')
 archivedproject_router.register('keyparts', ArchivedProjectKeyPartViewSet, basename='archivedprojectkeypart')

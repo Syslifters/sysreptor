@@ -105,15 +105,23 @@ class HistoricalRecords(history_models.HistoricalRecords):
         return super().post_save(instance, created, using, **kwargs)
     
     def get_extra_fields(self, model, fields):
+        excluded_fields = self.excluded_fields
         def get_instance(self):
             # Override get_instance from django-simple-history to not fetch excluded fields from the current state
             # Instead they will be ignored and use the default value.
-            attrs = {
-                field.attname: getattr(self, field.attname) for field in fields.values()
-            }
-            model_fields = {f.attname: f for f in model._meta.fields}
-            if 'updated' in model_fields:
+            attrs = {}
+            for k, field in fields.items():
+                if isinstance(field, models.ForeignKey) and field.is_cached(self):
+                    attrs[k] = getattr(self, k)
+                else:
+                    attrs[field.attname] = getattr(self, field.attname)
+
+            if 'updated' in excluded_fields:
                 attrs['updated'] = self.history_date
+            
+            from reportcreator_api.pentests.models import ProjectMemberInfo
+            if model == ProjectMemberInfo:
+                print('Test')  # TODO: debug only
 
             result = model(**attrs)
             setattr(result, history_models.SIMPLE_HISTORY_REVERSE_ATTR_NAME, self)
