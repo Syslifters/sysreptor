@@ -6,7 +6,7 @@ import tarfile
 from pathlib import Path
 from typing import Iterable, Type
 from django.conf import settings
-from django.http import FileResponse
+from django.utils import timezone
 from rest_framework import serializers
 from django.db import transaction
 from django.db.models import prefetch_related_objects, Prefetch
@@ -15,6 +15,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from reportcreator_api.archive.import_export.serializers import PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer, \
     FindingTemplateImportSerializerV1, FindingTemplateExportImportSerializerV2
 from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection
+from reportcreator_api.utils.models import history_context
 
 
 log = logging.getLogger(__name__)
@@ -132,7 +133,8 @@ def import_archive(archive_file, serializer_classes: list[Type[serializers.Seria
         # We cannot use the streaming mode for import, because random access is required for importing files referenced in JSON
         # However, the tarfile library does not load everything into memory at once, only the archive member metadata (e.g. filename)
         # File contents are loaded only when reading them, but file reading can be streamed
-        with tarfile.open(fileobj=archive_file, mode='r') as archive:
+        with tarfile.open(fileobj=archive_file, mode='r') as archive, \
+             history_context(history_date=timezone.now(), history_change_reason='Import'):
             context['archive'] = archive
 
             # Get JSON files to import

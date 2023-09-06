@@ -10,6 +10,7 @@ from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPa
 from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
+from reportcreator_api.utils.models import bulk_create_with_history
 from reportcreator_api.utils.utils import omit_keys
 
 
@@ -134,7 +135,7 @@ class FileListExportImportSerializer(serializers.ListSerializer):
                 'linked_object': self.child.get_linked_object(),
         }) for attrs in validated_data]
 
-        child_model_class.objects.bulk_create(objs)
+        bulk_create_with_history(child_model_class, objs)
         self.context['storage_files'].extend(map(lambda o: o.file, objs))
         return objs
 
@@ -242,9 +243,10 @@ class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
         old_id = validated_data.pop('id')
         images_data = validated_data.pop('images', [])
         translations_data = validated_data.pop('translations')
-        instance = FindingTemplate.objects.create(**{
+        instance = FindingTemplate(**{
             'source': SourceEnum.IMPORTED
         } | validated_data)
+        instance.save_without_historical_record()
         self.context['template'] = instance
         for t in translations_data:
             is_main = t.pop('is_main', False)
@@ -395,7 +397,7 @@ class ProjectNotebookPageListExportImportSerializer(serializers.ListSerializer):
                 i.parent = next(filter(lambda e: e.note_id == d.get('parent', {}).get('note_id'), instances), None)
 
         ProjectNotebookPage.objects.check_parent_and_order(instances)
-        ProjectNotebookPage.objects.bulk_create(instances)
+        bulk_create_with_history(ProjectNotebookPage, instances)
         return instances
 
 
@@ -476,7 +478,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         member_infos = list(filter(lambda u: isinstance(u, ProjectMemberInfo), members))
         for mi in member_infos:
             mi.project = project
-        ProjectMemberInfo.objects.bulk_create(member_infos)
+        bulk_create_with_history(ProjectMemberInfo, member_infos)
 
         self.context.update({'project': project, 'project_id': old_id})
 

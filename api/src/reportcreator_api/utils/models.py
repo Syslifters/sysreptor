@@ -166,33 +166,43 @@ def bulk_update_with_history(model, objs, fields, history_date=None, history_cha
 
     out = model.objects.bulk_update(objs=objs, fields=fields)
     if settings.SIMPLE_HISTORY_ENABLED:
-        historical_records = []
-        for obj in objs:
-            # Skip history for unchanged objects
-            if not set(obj.changed_fields).intersection(fields):
-                continue
-            
-            historical_obj = model.history.model(
-                history_type='~',
-                history_date=getattr(obj, '_history_date', None) or history_date,
-                history_change_reason=getattr(obj, '_history_change_reason', None) or history_change_reason,
-                history_user=model.history.model.get_default_history_user(obj),
-                history_prevent_cleanup=history_prevent_cleanup or False,
-                **{f.attname: getattr(obj, f.attname) for f in model.history.model.tracked_fields}
-            )
-            history_signals.pre_create_historical_record.send(
-                sender=model.history.model, 
-                instance=obj,
-                history_instance=historical_obj,
-                history_date=historical_obj.history_date,
-                history_user=historical_obj.history_user,
-                history_change_reason=historical_obj.history_change_reason,
-                using=None,
-            )
-
-            historical_records.append(historical_obj)
-        model.history.bulk_create(historical_records)
+        bulk_create_history(
+            model, 
+            objs=filter(lambda obj: set(obj.changed_fields).intersection(fields), objs), 
+            history_type='~', 
+            history_date=history_date,
+            history_change_reason=history_change_reason,
+            history_prevent_cleanup=history_prevent_cleanup
+        )
     return out
+
+
+def bulk_create_history(model, objs, history_type=None, history_date=None, history_change_reason=None, history_prevent_cleanup=None):
+    if not settings.SIMPLE_HISTORY_ENABLED:
+        return
+    
+    historical_records = []
+    for obj in objs:
+        historical_obj = model.history.model(
+            history_type=history_type or '~',
+            history_date=getattr(obj, '_history_date', None) or history_date,
+            history_change_reason=getattr(obj, '_history_change_reason', None) or history_change_reason,
+            history_user=model.history.model.get_default_history_user(obj),
+            history_prevent_cleanup=history_prevent_cleanup or False,
+            **{f.attname: getattr(obj, f.attname) for f in model.history.model.tracked_fields}
+        )
+        history_signals.pre_create_historical_record.send(
+            sender=model.history.model, 
+            instance=obj,
+            history_instance=historical_obj,
+            history_date=historical_obj.history_date,
+            history_user=historical_obj.history_user,
+            history_change_reason=historical_obj.history_change_reason,
+            using=None,
+        )
+
+        historical_records.append(historical_obj)
+    model.history.bulk_create(historical_records)
 
 
 @contextmanager

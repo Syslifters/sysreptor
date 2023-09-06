@@ -261,9 +261,11 @@ class TestLinkedProject:
 class TestFileDelete:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        p = create_project()
-        self.image = p.images.first()
-        self.asset = p.project_type.assets.first()
+        with override_settings(SIMPLE_HISTORY_ENABLED=False):
+            p = create_project()
+            self.image = p.images.first()
+            self.asset = p.project_type.assets.first()
+            yield
 
     def assertFileExists(self, file, expected):
         exists = False
