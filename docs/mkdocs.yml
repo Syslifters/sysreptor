@@ -8,6 +8,7 @@ nav:
     - Installation: setup/installation.md
     - Configuration: setup/configuration.md
     - Setup Webserver: setup/webserver.md
+    - Proxy Server: setup/proxy.md
     - Single Sign-On:
       - SSO Setup: setup/oidc-setup.md
       - Keycloak: setup/oidc-keycloak.md
