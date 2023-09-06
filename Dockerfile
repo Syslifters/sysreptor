@@ -103,6 +103,8 @@ RUN echo "${CA_CERTIFICATES}" | tee -a /usr/local/share/ca-certificates/custom-u
     update-ca-certificates && \
     cat /etc/ssl/certs/* > /etc/ssl/certs/bundle.pem && \
     pip config set global.cert /etc/ssl/certs/bundle.pem
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 # Install system dependencies required by weasyprint and chromium
 RUN apt-get update && apt-get install -y --no-install-recommends \
