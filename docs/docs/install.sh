@@ -5,8 +5,6 @@ echo "Good to see you."
 echo "Get ready for the easiest pentest reporting tool."
 echo ""
 
-export SYSREPTOR_CA_CERTIFICATES="${SYSREPTOR_CA_CERTIFICATES:-}"
-
 error=1
 docker=1
 for cmd in curl openssl tar uuidgen docker sed
