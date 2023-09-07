@@ -1,10 +1,11 @@
 # Changelog
 
-## TBD
+## v2023.122 - 2023-09-07
 * Fix template appears multiple times in search result list when multiple languages match
 * Assign notes to users
 * Install more Noto Sans fonts to support more languages
 * Ignore whitespaces in delete confirm dialogs
+* Use proxy config of host in docker-compose containers
 
 
 ## v2023.119 - 2023-08-23
