@@ -163,6 +163,7 @@ def bulk_update_with_history(model, objs, fields, history_date=None, history_cha
     sends the pre_create_historical_record signal and 
     support settings additional history model fields.
     """
+    objs = list(objs)
 
     out = model.objects.bulk_update(objs=objs, fields=fields)
     if settings.SIMPLE_HISTORY_ENABLED:
@@ -206,14 +207,22 @@ def bulk_create_history(model, objs, history_type=None, history_date=None, histo
 
 
 @contextmanager
-def history_context(**kwargs):
+def history_context(override_existing=False, **kwargs):
+    restore_map = {}
     try:
         for k, v in kwargs.items():
+            if hasattr(HistoricalRecords.context, k):
+                restore_map[k] = getattr(HistoricalRecords.context, k)
+                if not override_existing:
+                    continue
             setattr(HistoricalRecords.context, k, v)
         yield
     finally: 
         for k, v in kwargs.items():
-            delattr(HistoricalRecords.context, k)
+            if k in restore_map:
+                setattr(HistoricalRecords.context, k, restore_map[k])
+            else:
+                delattr(HistoricalRecords.context, k)
 
 
 def bulk_delete_with_history(model, objs, history_date=None, history_change_reason=None):
@@ -221,4 +230,16 @@ def bulk_delete_with_history(model, objs, history_date=None, history_change_reas
         return model.objects \
             .filter(pk__in=map(lambda o: o.pk, objs)) \
             .delete()
+
+
+def merge_with_previous_history(instance):
+    if not settings.SIMPLE_HISTORY_ENABLED:
+        return
+    h = instance.history.all().first()
+    if not h:
+        return
+    
+    for f in instance.__class__.history.model.tracked_fields:
+        setattr(h, f.attname, getattr(instance, f.attname))
+    h.save()
 

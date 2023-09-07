@@ -49,7 +49,7 @@ project_router.register('findings', PentestFindingViewSet, basename='finding')
 project_router.register('notes', ProjectNotebookPageViewSet, basename='projectnotebookpage')
 project_router.register('images', UploadedImageViewSet, basename='uploadedimage')
 project_router.register('files', UploadedProjectFileViewSet, basename='uploadedprojectfile')
-project_router.register('history', PentestProjectHistoryViewSet, basename='projecthistory')
+project_router.register('history', PentestProjectHistoryViewSet, basename='pentestprojecthistory')
 
 projecttype_router = NestedSimpleRouter(router, 'projecttypes', lookup='projecttype')
 projecttype_router.register('assets', UploadedAssetViewSet, basename='uploadedasset')
@@ -61,7 +61,7 @@ archivedproject_router.register('keyparts', ArchivedProjectKeyPartViewSet, basen
 template_router = NestedSimpleRouter(router, 'findingtemplates', lookup='template')
 template_router.register('translations', FindingTemplateTranslationViewSet, basename='findingtemplatetranslation')
 template_router.register('images', UploadedTemplateImageViewSet, basename='uploadedtemplateimage')
-template_router.register('history', FindingTemplateHistoryViewSet, basename='templatehistory')
+template_router.register('history', FindingTemplateHistoryViewSet, basename='findingtemplatehistory')
 
 
 urlpatterns = [
