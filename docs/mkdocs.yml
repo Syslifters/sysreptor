@@ -57,8 +57,6 @@ nav:
         - Translate: cli/projects-and-templates/translate.md
       - Importers:
         - Ghostwriter: cli/importers/ghostwriter.md
-      - Customization:
-        - Tools: cli/customization/tools.md
       - Writing plugins:
         - Tools: cli/writing-plugins/tools.md
         - Importers: cli/writing-plugins/importers.md
