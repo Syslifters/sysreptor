@@ -16,7 +16,7 @@ from rest_framework import status
 from django.utils.crypto import get_random_string
 
 from reportcreator_api.utils import license
-from reportcreator_api.tests.mock import create_project, create_public_key, create_user, api_client
+from reportcreator_api.tests.mock import create_project, create_project_type, create_public_key, create_template, create_user, api_client
 
 
 def assert_api_license_error(res):
@@ -58,6 +58,39 @@ class TestCommunityLicenseRestrictions:
         assert_api_license_error(self.client.post(reverse('userpublickey-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test', 'public_key': public_key.public_key}))
         assert_api_license_error(self.client.post(reverse('pentestproject-archive', kwargs={'pk': project.pk})))
 
+    def test_history_disabled(self):
+        pt = create_project_type()
+        p = create_project(project_type=pt, members=[self.user])
+        t = create_template()
+
+        # No history entries created
+        for o in [
+            pt, pt.assets.first(), 
+            t, t.main_translation, t.images.first(),
+            p, p.sections.first(), p.findings.first(), p.notes.first(), p.images.first(), p.files.first()]:
+            assert o.history.all().count() == 0 
+
+        # History timeline API
+        assert_api_license_error(self.client.get(reverse('findingtemplatetranslation-history-timeline', kwargs={'template_pk': t.id, 'pk': t.main_translation.id})))
+        assert_api_license_error(self.client.get(reverse('projecttype-history-timeline', kwargs={'pk': pt.id})))
+        assert_api_license_error(self.client.get(reverse('pentestproject-history-timeline', kwargs={'pk': p.id})))
+        assert_api_license_error(self.client.get(reverse('section-history-timeline', kwargs={'project_pk': p.id, 'id': p.sections.first().section_id})))
+        assert_api_license_error(self.client.get(reverse('finding-history-timeline', kwargs={'project_pk': p.id, 'id': p.findings.first().finding_id})))
+        assert_api_license_error(self.client.get(reverse('projectnotebookpage-history-timeline', kwargs={'project_pk': p.id, 'id': p.notes.first().note_id})))
+
+        # History API
+        h_url_kwargs = {'history_date': timezone.now().isoformat()}
+        assert_api_license_error(self.client.get(reverse('findingtemplatehistory-detail', kwargs=h_url_kwargs | {'template_pk': t.id})))
+        assert_api_license_error(self.client.get(reverse('projecttypehistory-detail', kwargs=h_url_kwargs | {'projecttype_pk': pt.id})))
+        assert_api_license_error(self.client.get(reverse('projecttypehistory-asset-by-name', kwargs=h_url_kwargs | {'projecttype_pk': pt.id, 'filename': pt.assets.first().name})))
+        p_url_kwargs = h_url_kwargs | {'project_pk': p.id}
+        assert_api_license_error(self.client.get(reverse('pentestprojecthistory-detail', kwargs=p_url_kwargs)))
+        assert_api_license_error(self.client.get(reverse('pentestprojecthistory-section', kwargs=p_url_kwargs | {'id': p.sections.first().section_id})))
+        assert_api_license_error(self.client.get(reverse('pentestprojecthistory-finding', kwargs=p_url_kwargs | {'id': p.findings.first().finding_id})))
+        assert_api_license_error(self.client.get(reverse('pentestprojecthistory-note', kwargs=p_url_kwargs | {'id': p.notes.first().note_id})))
+        assert_api_license_error(self.client.get(reverse('pentestprojecthistory-image-by-name', kwargs=p_url_kwargs | {'filename': p.images.first().name})))
+        assert_api_license_error(self.client.get(reverse('pentestprojecthistory-file-by-name', kwargs=p_url_kwargs | {'filename': p.files.first().name})))
+        
     def test_prevent_login_of_nonsuperusers(self):
         self.client.force_authenticate(None)
         assert_api_license_error(self.client.post(reverse('auth-login'), data={

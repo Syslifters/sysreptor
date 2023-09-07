@@ -16,6 +16,7 @@ from reportcreator_api.pentests.customfields.predefined_fields import finding_fi
     report_fields_default, report_sections_default
 from reportcreator_api.pentests.models.project import ReportSection
 from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod
+from reportcreator_api.utils.models import bulk_create_with_history, history_context
 
 
 
@@ -74,39 +75,40 @@ def create_imported_member(roles=None, **kwargs):
 
 
 def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> FindingTemplate:
-    data = {
-        'title': f'Finding Template #{random.randint(1, 100000)}',
-        'description': 'Template Description',
-        'recommendation': 'Template Recommendation',
-        'unknown_field': 'test',
-    } | kwargs.pop('data', {})
-    language = kwargs.pop('language', Language.ENGLISH)
-    status = kwargs.pop('status', ReviewStatus.IN_PROGRESS)
+    with history_context(history_date=timezone.now()):
+        data = {
+            'title': f'Finding Template #{random.randint(1, 100000)}',
+            'description': 'Template Description',
+            'recommendation': 'Template Recommendation',
+            'unknown_field': 'test',
+        } | kwargs.pop('data', {})
+        language = kwargs.pop('language', Language.ENGLISH)
+        status = kwargs.pop('status', ReviewStatus.IN_PROGRESS)
 
-    template = FindingTemplate(**{
-        'tags': ['web', 'dev'],
-    } | kwargs)
-    template._history_type = '+'
-    template.save_without_historical_record()
+        template = FindingTemplate(**{
+            'tags': ['web', 'dev'],
+        } | kwargs)
+        template.save_without_historical_record()
 
-    main_translation = FindingTemplateTranslation(template=template, language=language, status=status)
-    main_translation.update_data(data)
-    main_translation.save()
+        main_translation = FindingTemplateTranslation(template=template, language=language, status=status)
+        main_translation.update_data(data)
+        main_translation.save()
 
-    template.main_translation = main_translation
-    template.save()
-    del template._history_type
+        template.main_translation = main_translation
+        template._history_type = '+'
+        template.save()
+        del template._history_type
 
-    for translation_kwargs in (translations_kwargs or []):
-        create_template_translation(template=template, **translation_kwargs)
-    
-    for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
-        UploadedTemplateImage.objects.create(linked_object=template, **{
-            'name': f'file{idx}.png', 
-            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
-        } | image_kwargs)
+        for translation_kwargs in (translations_kwargs or []):
+            create_template_translation(template=template, **translation_kwargs)
+        
+        for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
+            UploadedTemplateImage.objects.create(linked_object=template, **{
+                'name': f'file{idx}.png', 
+                'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
+            } | image_kwargs)
 
-    return template
+        return template
 
 
 def create_template_translation(template, **kwargs):
@@ -207,21 +209,26 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
         'tags': ['web', 'customer:test'],
         'unknown_custom_fields': {f: report_data.pop(f) for f in set(report_data.keys()) - set(project_type.report_fields.keys())}
     } | kwargs)
+
     sections = project.sections.all()
+    section_histories = list(ReportSection.history.filter(project_id=project))
     for s in sections:
         s.update_data(report_data)
+        if sh := next(filter(lambda sh: sh.section_id == s.section_id, section_histories), None):
+            sh.custom_fields = s.custom_fields
     ReportSection.objects.bulk_update(sections, ['custom_fields'])
-
+    ReportSection.history.bulk_update(section_histories, ['custom_fields'])
+    
     member_infos = []
     for m in members:
         if isinstance(m, PentestUser):
-            member_infos.append(ProjectMemberInfo(project=project, user=m, roles=[ProjectMemberRole.default_roles]))
+            member_infos.append(ProjectMemberInfo(project=project, user=m, roles=ProjectMemberRole.default_roles))
         elif isinstance(m, ProjectMemberInfo):
             m.project = project
             member_infos.append(m)
         else:
             raise ValueError('Unsupported member type')
-    ProjectMemberInfo.objects.bulk_create(member_infos)
+    bulk_create_with_history(ProjectMemberInfo, member_infos)
 
     for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 3:
         create_finding(project=project, **finding_kwargs)
