@@ -464,7 +464,7 @@ SIMPLE_HISTORY_HISTORY_ID_USE_UUID = True
 SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD = True
 SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
 SIMPLE_HISTORY_REVERT_DISABLED = True
-HISTORY_SAVPOINT_TIME_DISTANCE = timedelta(hours=2)
+SIMPLE_HISTORY_SAVPOINT_TIME_DISTANCE = timedelta(hours=2)
 
 
 # Periodic tasks
@@ -498,6 +498,11 @@ PERIODIC_TASKS = [
         'id': 'automatically_delete_archived_projects',
         'task': 'reportcreator_api.pentests.tasks.automatically_delete_archived_projects',
         'schedule': timedelta(days=1),
+    },
+    {
+        'id': 'cleanup_history',
+        'task': 'reportcreator_api.pentests.tasks.cleanup_history',
+        'schedule': timedelta(minutes=5),
     },
 ]
 

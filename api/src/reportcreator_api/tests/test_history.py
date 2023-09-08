@@ -612,3 +612,47 @@ class TestProjectHistory:
         res_after_delete = self.client.get(reverse('pentestprojecthistory-finding', kwargs={'project_pk': p.id, 'id': f.finding_id, 'history_date': timezone.now().isoformat()}))
         assert res_after_delete.status_code == 404
 
+
+@pytest.mark.django_db
+class TestHistoryCleanup:
+    pass
+
+    # TODO: history cleanup tests
+    # * Test cleanup time window increases
+    #   * <5min not deleted
+    #   * <2h keep every 10min
+    #   * <1d keep every 30min
+    #   * >1d keep ever 2h
+    # * Test keep create/delete
+    #   * + (0s)  => keep
+    #   * ~ (10s) => cleanup
+    #   * - (15s) => keep
+    # * Test keep first/last
+    #   * ~ (0s) => keep
+    #   * ~ (5s) => cleanup
+    #   * ~ (10s) => cleanup
+    #   * ~ (15s) => keep
+    # * Test keep prevent_cleanup
+    #   * ~ (0s) => keep
+    #   * ~ (5s) => cleanup
+    #   * ~ (10s) prevetn_cleanup => keep
+    #   * ~ (15s) => cleanup
+    #   * ~ (20s) => keep
+    # * Test keep latest before pause
+    #   * ~ (0s) => keep
+    #   * ~ (1d) => keep
+    #   * ~ (1d 5s) => cleanup
+    #   * ~ (1d 10s) => keep
+    # * Test keep latest before pause per user
+    #   * u1 ~ (0s) => keep
+    #   * u1 ~ (5s) => cleanup
+    #   * u2 ~ (10s) => cleanup
+    #   * u1 ~ (15s) => keep
+    #   * u2 ~ (20s) => cleanup
+    #   * u2 ~ (25s) => keep
+    #   * u1 ~ (1d) => cleanup
+    #   * u1 ~ (1d 5s) => cleanup
+    #   * u2 ~ (1d 10s) => keep
+    #   * u1 ~ (1d 15s) prevent_cleanup => keep
+    #   * u2 ~ (1d 20s) => keep
+    #   * u1 ~ (1d 25s) => keep
