@@ -252,6 +252,25 @@ class TestTemplateHistory:
         t = import_templates(archive_to_file(export_templates([create_template()])))[0]
         self.assert_template_history_create(t, history_change_reason='Import')
 
+    def test_history_api_show_deleted(self):
+        t = create_template(translations_kwargs=[{'language': Language.GERMAN, 'data': {'title': 'title'}}])
+        tr = t.translations.get(language=Language.GERMAN)
+        tr_id = tr.id
+        ref_before_delete = self.client.get(reverse('findingtemplate-detail', kwargs={'pk': t.id})).data
+        tr.history.all().delete()
+        tr.delete()
+
+        # Historic record at delete time
+        timeline = self.client.get(reverse('findingtemplatetranslation-history-timeline', kwargs={'template_pk': t.id, 'pk': tr_id})).data['results']
+        res_deleted = self.client.get(reverse('findingtemplatehistory-detail', kwargs={'template_pk': t.id, 'history_date': timeline[0]['history_date']}))
+        assert res_deleted.status_code == 200
+        assert self.format_template(res_deleted.data) == self.format_template(ref_before_delete)
+
+        # Historic record after delete
+        res_after_delete = self.client.get(reverse('findingtemplatehistory-detail', kwargs={'template_pk': t.id, 'history_date': timezone.now().isoformat()}))
+        assert self.format_template(res_after_delete.data) != self.format_template(res_after_delete)
+        assert len(res_after_delete.data['translations']) == 1
+
 
 @pytest.mark.django_db
 class TestProjectTypeHistory:
@@ -575,3 +594,21 @@ class TestProjectHistory:
         ]})
         assert_history(m1, history_count=1, history_type='+')
         assert_history(m3, history_count=2, history_type='~')
+
+    def test_history_api_show_deleted(self):
+        p = create_project(members=[self.user], findings_kwargs=[{'data': {'title': 'title'}}])
+        f = p.findings.first()
+        res_before_delete = self.client.get(reverse('finding-detail', kwargs={'project_pk': p.id, 'id': f.finding_id})).data
+        f.history.all().delete()
+        f.delete()
+
+        # Historic record at delete time
+        timeline = self.client.get(reverse('finding-history-timeline', kwargs={'project_pk': p.id, 'id': f.finding_id})).data['results']
+        res_deleted = self.client.get(reverse('pentestprojecthistory-finding', kwargs={'project_pk': p.id, 'id': f.finding_id, 'history_date': timeline[0]['history_date']}))
+        assert res_deleted.status_code == 200
+        assert omit_keys(res_deleted.data, ['updated', 'lock_info']) == omit_keys(res_before_delete, ['updated', 'lock_info'])
+
+        # Historic record after delete
+        res_after_delete = self.client.get(reverse('pentestprojecthistory-finding', kwargs={'project_pk': p.id, 'id': f.finding_id, 'history_date': timezone.now().isoformat()}))
+        assert res_after_delete.status_code == 404
+

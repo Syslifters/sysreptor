@@ -1,15 +1,11 @@
-from contextlib import contextmanager
-import itertools
-from typing import Any
-import uuid
+
 import functools
-from django.conf import settings
-from django.db import models, transaction
+import itertools
+import uuid
+from django.db import models
 from django.utils import timezone
 from django.contrib.contenttypes.fields import GenericRelation
-from simple_history import models as history_models
-from simple_history import signals as history_signals
-from simple_history import utils as history_utils
+
 
 
 class ModelDiffMixin(models.Model):
@@ -84,50 +80,6 @@ class BaseModel(ModelDiffMixin, models.Model):
         ordering = ['-created']
 
 
-class HistoricalRecordBase(models.Model):
-    history_prevent_cleanup = models.BooleanField(default=False, db_index=True)
-
-    class Meta:
-        abstract = True
-
-
-class HistoricalRecords(history_models.HistoricalRecords):
-    def __init__(self, bases=(HistoricalRecordBase,), excluded_fields=tuple(), **kwargs):
-        super().__init__(bases=bases, excluded_fields=('updated', 'lock_info_data') + tuple(excluded_fields), **kwargs)
-
-    def post_save(self, instance, created, using=None, **kwargs):
-        if getattr(instance, 'skip_history_when_saving', False):
-            # Allow skip_history_when_saving also for create 
-            return
-        if not created and not set(instance.changed_fields).intersection(map(lambda f: f.attname, instance.history.model.tracked_fields)):
-            # Skip history when there were no changes
-            return
-        return super().post_save(instance, created, using, **kwargs)
-    
-    def get_extra_fields(self, model, fields):
-        excluded_fields = self.excluded_fields
-        def get_instance(self):
-            # Override get_instance from django-simple-history to not fetch excluded fields from the current state
-            # Instead they will be ignored and use the default value.
-            attrs = {}
-            for k, field in fields.items():
-                if isinstance(field, models.ForeignKey) and field.is_cached(self):
-                    attrs[k] = getattr(self, k)
-                else:
-                    attrs[field.attname] = getattr(self, field.attname)
-
-            if 'updated' in excluded_fields:
-                attrs['updated'] = self.history_date
-
-            result = model(**attrs)
-            setattr(result, history_models.SIMPLE_HISTORY_REVERSE_ATTR_NAME, self)
-            return result
-
-        return super().get_extra_fields(model, fields) | {
-            'instance': property(get_instance),
-        }
-
-
 def disable_for_loaddata(signal_handler):
     """
     Decorator that turns off signal handlers when loading fixture data.
@@ -139,107 +91,3 @@ def disable_for_loaddata(signal_handler):
             return
         signal_handler(*args, **kwargs)
     return wrapper
-
-
-def bulk_create_with_history(model, objs, history_date=None, history_change_reason=None, **kwargs):
-    if settings.SIMPLE_HISTORY_ENABLED:
-        history_date = history_date or getattr(HistoricalRecords.context, 'history_date', None)
-        history_change_reason = history_change_reason or getattr(HistoricalRecords.context, 'history_change_reason', None)
-        return history_utils.bulk_create_with_history(
-            model=model, 
-            objs=objs, 
-            default_date=history_date, 
-            default_change_reason=history_change_reason,
-            **kwargs)
-    else:
-        return model.objects.bulk_create(objs=objs)
-
-
-@transaction.atomic
-def bulk_update_with_history(model, objs, fields, history_date=None, history_change_reason=None, history_prevent_cleanup=None):
-    """
-    Customization of simple_history.utils.bulk_update_with_history that 
-    respects settings.SIMPLE_HISTORY_ENABLED, 
-    sends the pre_create_historical_record signal and 
-    support settings additional history model fields.
-    """
-    objs = list(objs)
-
-    out = model.objects.bulk_update(objs=objs, fields=fields)
-    if settings.SIMPLE_HISTORY_ENABLED:
-        bulk_create_history(
-            model, 
-            objs=filter(lambda obj: set(obj.changed_fields).intersection(fields), objs), 
-            history_type='~', 
-            history_date=history_date,
-            history_change_reason=history_change_reason,
-            history_prevent_cleanup=history_prevent_cleanup
-        )
-    return out
-
-
-def bulk_create_history(model, objs, history_type=None, history_date=None, history_change_reason=None, history_prevent_cleanup=None):
-    if not settings.SIMPLE_HISTORY_ENABLED:
-        return
-    
-    historical_records = []
-    for obj in objs:
-        historical_obj = model.history.model(
-            history_type=history_type or '~',
-            history_date=getattr(obj, '_history_date', None) or history_date,
-            history_change_reason=getattr(obj, '_history_change_reason', None) or history_change_reason,
-            history_user=model.history.model.get_default_history_user(obj),
-            history_prevent_cleanup=history_prevent_cleanup or False,
-            **{f.attname: getattr(obj, f.attname) for f in model.history.model.tracked_fields}
-        )
-        history_signals.pre_create_historical_record.send(
-            sender=model.history.model, 
-            instance=obj,
-            history_instance=historical_obj,
-            history_date=historical_obj.history_date,
-            history_user=historical_obj.history_user,
-            history_change_reason=historical_obj.history_change_reason,
-            using=None,
-        )
-
-        historical_records.append(historical_obj)
-    model.history.bulk_create(historical_records)
-
-
-@contextmanager
-def history_context(override_existing=False, **kwargs):
-    restore_map = {}
-    try:
-        for k, v in kwargs.items():
-            if hasattr(HistoricalRecords.context, k):
-                restore_map[k] = getattr(HistoricalRecords.context, k)
-                if not override_existing:
-                    continue
-            setattr(HistoricalRecords.context, k, v)
-        yield
-    finally: 
-        for k, v in kwargs.items():
-            if k in restore_map:
-                setattr(HistoricalRecords.context, k, restore_map[k])
-            else:
-                delattr(HistoricalRecords.context, k)
-
-
-def bulk_delete_with_history(model, objs, history_date=None, history_change_reason=None):
-    with history_context(history_date=history_date, history_change_reason=history_change_reason):
-        return model.objects \
-            .filter(pk__in=map(lambda o: o.pk, objs)) \
-            .delete()
-
-
-def merge_with_previous_history(instance):
-    if not settings.SIMPLE_HISTORY_ENABLED:
-        return
-    h = instance.history.all().first()
-    if not h:
-        return
-    
-    for f in instance.__class__.history.model.tracked_fields:
-        setattr(h, f.attname, getattr(instance, f.attname))
-    h.save()
-

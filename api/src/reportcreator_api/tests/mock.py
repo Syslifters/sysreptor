@@ -16,7 +16,7 @@ from reportcreator_api.pentests.customfields.predefined_fields import finding_fi
     report_fields_default, report_sections_default
 from reportcreator_api.pentests.models.project import ReportSection
 from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod
-from reportcreator_api.utils.models import bulk_create_with_history, history_context
+from reportcreator_api.utils.history import bulk_create_with_history, history_context
 
 
 
@@ -74,41 +74,41 @@ def create_imported_member(roles=None, **kwargs):
         roles=roles if roles is not None else ProjectMemberRole.default_roles)).data
 
 
+@history_context()
 def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> FindingTemplate:
-    with history_context(history_date=timezone.now()):
-        data = {
-            'title': f'Finding Template #{random.randint(1, 100000)}',
-            'description': 'Template Description',
-            'recommendation': 'Template Recommendation',
-            'unknown_field': 'test',
-        } | kwargs.pop('data', {})
-        language = kwargs.pop('language', Language.ENGLISH)
-        status = kwargs.pop('status', ReviewStatus.IN_PROGRESS)
+    data = {
+        'title': f'Finding Template #{random.randint(1, 100000)}',
+        'description': 'Template Description',
+        'recommendation': 'Template Recommendation',
+        'unknown_field': 'test',
+    } | kwargs.pop('data', {})
+    language = kwargs.pop('language', Language.ENGLISH)
+    status = kwargs.pop('status', ReviewStatus.IN_PROGRESS)
 
-        template = FindingTemplate(**{
-            'tags': ['web', 'dev'],
-        } | kwargs)
-        template.save_without_historical_record()
+    template = FindingTemplate(**{
+        'tags': ['web', 'dev'],
+    } | kwargs)
+    template.save_without_historical_record()
 
-        main_translation = FindingTemplateTranslation(template=template, language=language, status=status)
-        main_translation.update_data(data)
-        main_translation.save()
+    main_translation = FindingTemplateTranslation(template=template, language=language, status=status)
+    main_translation.update_data(data)
+    main_translation.save()
 
-        template.main_translation = main_translation
-        template._history_type = '+'
-        template.save()
-        del template._history_type
+    template.main_translation = main_translation
+    template._history_type = '+'
+    template.save()
+    del template._history_type
 
-        for translation_kwargs in (translations_kwargs or []):
-            create_template_translation(template=template, **translation_kwargs)
-        
-        for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
-            UploadedTemplateImage.objects.create(linked_object=template, **{
-                'name': f'file{idx}.png', 
-                'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
-            } | image_kwargs)
+    for translation_kwargs in (translations_kwargs or []):
+        create_template_translation(template=template, **translation_kwargs)
+    
+    for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
+        UploadedTemplateImage.objects.create(linked_object=template, **{
+            'name': f'file{idx}.png', 
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
+        } | image_kwargs)
 
-        return template
+    return template
 
 
 def create_template_translation(template, **kwargs):

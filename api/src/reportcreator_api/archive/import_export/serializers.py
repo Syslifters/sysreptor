@@ -11,7 +11,7 @@ from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPa
 from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
-from reportcreator_api.utils.models import bulk_create_with_history, merge_with_previous_history
+from reportcreator_api.utils.history import bulk_create_with_history, merge_with_previous_history
 from reportcreator_api.utils.utils import omit_keys
 
 
@@ -247,7 +247,6 @@ class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
         instance = FindingTemplate(**{
             'source': SourceEnum.IMPORTED
         } | validated_data)
-        instance._history_type = '+'
         instance.save_without_historical_record()
         self.context['template'] = instance
         for t in translations_data:
@@ -255,7 +254,9 @@ class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
             translation_instance = self.fields['translations'].child.create(t | {'template': instance})
             if is_main:
                 instance.main_translation = translation_instance
+        instance._history_type = '+'
         instance.save()
+        del instance._history_type
 
         self.context.update({'template': instance, 'template_id': old_id})
         self.fields['images'].create(images_data)
