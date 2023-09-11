@@ -166,4 +166,8 @@ export default {
     padding: 2px;
   }
 }
+
+:deep(.v-list-item__subtitle) {
+  font-size: x-small !important;
+}
 </style>
