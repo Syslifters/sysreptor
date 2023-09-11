@@ -256,7 +256,7 @@ class TestTemplateHistory:
             
     def test_history_import(self):
         t = import_templates(archive_to_file(export_templates([create_template()])))[0]
-        self.assert_template_history_create(t, history_change_reason='Import')
+        self.assert_template_history_create(t, history_change_reason='Imported')
 
     def test_history_api_show_deleted(self):
         t = create_template(translations_kwargs=[{'language': Language.GERMAN, 'data': {'title': 'title'}}])
@@ -295,7 +295,7 @@ class TestProjectTypeHistory:
     
     def test_import(self):
         pt = import_project_types(archive_to_file(export_project_types([create_project_type()])))[0]
-        self.assert_history_create(pt, history_change_reason='Import')
+        self.assert_history_create(pt, history_change_reason='Imported')
 
     def test_create_api(self):
         res = self.client.post(reverse('projecttype-list'), data={
@@ -374,7 +374,7 @@ class TestProjectHistory:
     
     def test_import(self):
         p = import_projects(archive_to_file(export_projects([create_project(members=[self.user])])))[0]
-        self.assert_history_create(p, history_change_reason='Import')
+        self.assert_history_create(p, history_change_reason='Imported')
     
     def test_create_api(self):
         res = self.client.post(reverse('pentestproject-list'), data={

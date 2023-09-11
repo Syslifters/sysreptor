@@ -90,18 +90,21 @@ class HistoryManager(history_manager.HistoryManager):
         return result
 
 
+@transaction.atomic
 def bulk_create_with_history(model, objs, history_date=None, history_change_reason=None, **kwargs):
+    out = model.objects.bulk_create(objs=objs)
+
     if settings.SIMPLE_HISTORY_ENABLED:
-        history_date = history_date or getattr(HistoricalRecords.context, 'history_date', None)
-        history_change_reason = history_change_reason or getattr(HistoricalRecords.context, 'history_change_reason', None)
-        return history_utils.bulk_create_with_history(
-            model=model, 
+        bulk_create_history(
+            model, 
             objs=objs, 
-            default_date=history_date, 
-            default_change_reason=history_change_reason,
-            **kwargs)
-    else:
-        return model.objects.bulk_create(objs=objs)
+            history_type='+', 
+            history_date=history_date,
+            history_change_reason=history_change_reason,
+            history_prevent_cleanup=True
+        )
+    
+    return out
 
 
 @transaction.atomic
