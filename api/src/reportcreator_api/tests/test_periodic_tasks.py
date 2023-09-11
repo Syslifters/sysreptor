@@ -111,6 +111,11 @@ class TestPeriodicTaskScheduling:
 
 @pytest.mark.django_db
 class TestCleanupUnreferencedFiles:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        with override_settings(SIMPLE_HISTORY_ENABLED=False):
+            yield
+
     def file_exists(self, file_obj):
         try:
             file_obj.file.read()

@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'adrf',
     'drf_spectacular',
     'drf_spectacular_sidecar',
+    'simple_history',
 
     'reportcreator_api',
     'reportcreator_api.users',
@@ -74,6 +75,7 @@ MIDDLEWARE = [
     'csp.middleware.CSPMiddleware',
     'reportcreator_api.utils.middleware.CacheControlMiddleware',
     'reportcreator_api.utils.middleware.PermissionsPolicyMiddleware',
+    'reportcreator_api.utils.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'reportcreator_api.conf.urls'
@@ -452,6 +454,18 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 
 
+# History
+class LicenseCheckBooleanProxy:
+    def __bool__(self):
+        from reportcreator_api.utils import license
+        return license.is_professional()
+SIMPLE_HISTORY_ENABLED = LicenseCheckBooleanProxy()
+SIMPLE_HISTORY_HISTORY_ID_USE_UUID = True
+SIMPLE_HISTORY_HISTORY_CHANGE_REASON_USE_TEXT_FIELD = True
+SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
+SIMPLE_HISTORY_REVERT_DISABLED = True
+SIMPLE_HISTORY_CLEANUP_TIMEFRAME = timedelta(hours=2)
+
 
 # Periodic tasks
 PERIODIC_TASKS = [
@@ -484,6 +498,11 @@ PERIODIC_TASKS = [
         'id': 'automatically_delete_archived_projects',
         'task': 'reportcreator_api.pentests.tasks.automatically_delete_archived_projects',
         'schedule': timedelta(days=1),
+    },
+    {
+        'id': 'cleanup_history',
+        'task': 'reportcreator_api.pentests.tasks.cleanup_history',
+        'schedule': timedelta(minutes=5),
     },
 ]
 

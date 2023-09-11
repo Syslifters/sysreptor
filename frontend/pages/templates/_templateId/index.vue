@@ -15,9 +15,10 @@
           :upload-file="uploadFile"
           :rewrite-file-url="rewriteFileUrl"
           :readonly="readonly"
-          :initial-language="$route.query?.language"
+          :initial-language="template.translations.find(tr => tr.id === $route.query?.translation_id)?.language || $route.query?.language"
+          :history="true"
         >
-          <template #toolbar-actions v-if="$auth.hasScope('template_editor')">
+          <template #toolbar-context-menu v-if="$auth.hasScope('template_editor')">
             <btn-export 
               :export-url="`/findingtemplates/${template.id}/export/`" 
               :name="`template-` + mainTranslation.data.title" 

@@ -1,16 +1,21 @@
+
+import functools
 import itertools
 import uuid
-import functools
 from django.db import models
 from django.utils import timezone
 from django.contrib.contenttypes.fields import GenericRelation
 
 
-class ModelDiffMixin(object):
+
+class ModelDiffMixin(models.Model):
     """
     A model mixin that tracks model fields' values and provide some useful api
     to know what fields have been changed.
     """
+
+    class Meta:
+        abstract = True
 
     def __init__(self, *args, **kwargs):
         super(ModelDiffMixin, self).__init__(*args, **kwargs)
@@ -86,4 +91,3 @@ def disable_for_loaddata(signal_handler):
             return
         signal_handler(*args, **kwargs)
     return wrapper
-

@@ -7,6 +7,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.conf import settings
+from drf_spectacular.utils import extend_schema_field
 
 from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod, MFAMethodType, AuthIdentity
 from reportcreator_api.utils import license
@@ -72,6 +73,7 @@ class CreateUserSerializer(PentestUserDetailSerializer):
         return make_password(value)
 
 
+@extend_schema_field(PentestUserSerializer)
 class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
     requires_context = True
 

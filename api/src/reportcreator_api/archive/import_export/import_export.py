@@ -6,7 +6,7 @@ import tarfile
 from pathlib import Path
 from typing import Iterable, Type
 from django.conf import settings
-from django.http import FileResponse
+from django.utils import timezone
 from rest_framework import serializers
 from django.db import transaction
 from django.db.models import prefetch_related_objects, Prefetch
@@ -15,6 +15,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from reportcreator_api.archive.import_export.serializers import PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer, \
     FindingTemplateImportSerializerV1, FindingTemplateExportImportSerializerV2
 from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection
+from reportcreator_api.utils.history import history_context
 
 
 log = logging.getLogger(__name__)
@@ -122,7 +123,8 @@ def export_archive_iter(data, serializer_class: Type[serializers.Serializer], co
 
 
 @transaction.atomic()
-def import_archive(archive_file, serializer_classes: list[Type[serializers.Serializer]], context):
+@history_context(history_change_reason='Import')
+def import_archive(archive_file, serializer_classes: list[Type[serializers.Serializer]], context=None):
     context = (context or {}) | {
         'archive': None,
         'storage_files': [],
@@ -208,12 +210,12 @@ def export_projects(data: Iterable[PentestProject], export_all=False):
     })
 
 
-def import_templates(archive_file, uploaded_by=None):
-    return import_archive(archive_file, serializer_classes=[FindingTemplateExportImportSerializerV2, FindingTemplateImportSerializerV1], context={'uploaded_by': uploaded_by})
+def import_templates(archive_file):
+    return import_archive(archive_file, serializer_classes=[FindingTemplateExportImportSerializerV2, FindingTemplateImportSerializerV1])
 
-def import_project_types(archive_file, uploaded_by=None):
-    return import_archive(archive_file, serializer_classes=[ProjectTypeExportImportSerializer], context={'uploaded_by': uploaded_by})
+def import_project_types(archive_file):
+    return import_archive(archive_file, serializer_classes=[ProjectTypeExportImportSerializer])
 
-def import_projects(archive_file, uploaded_by=None):
-    return import_archive(archive_file, serializer_classes=[PentestProjectExportImportSerializer], context={'uploaded_by': uploaded_by})
+def import_projects(archive_file):
+    return import_archive(archive_file, serializer_classes=[PentestProjectExportImportSerializer])
 

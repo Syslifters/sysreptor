@@ -1,6 +1,7 @@
 import uuid
 import itertools
-from datetime import date
+from datetime import date, datetime
+from django.utils import timezone, dateparse
 from itertools import groupby
 from typing import Union, Iterable, OrderedDict
 
@@ -68,6 +69,15 @@ def is_date_string(val):
         return True
     except (ValueError, TypeError, AttributeError):
         return False
+    
+
+def parse_date_string(val):
+    out = dateparse.parse_datetime(val)
+    if out is None:
+        raise ValueError()
+    if not timezone.is_aware(out):
+        out = timezone.make_aware(out)
+    return out
 
 
 def merge(*args):

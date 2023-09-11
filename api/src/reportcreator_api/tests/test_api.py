@@ -1,3 +1,4 @@
+from datetime import timedelta
 import pytest
 from functools import cached_property
 from typing import Optional
@@ -26,7 +27,7 @@ def export_archive(obj):
     return ContentFile(content=b''.join(exp), name='export.tar.gz')
 
 
-def viewset_urls(basename, get_kwargs, create_data={}, list=False, retrieve=False, create=False, update=False, update_partial=False, destroy=False, lock=False, unlock=False):
+def viewset_urls(basename, get_kwargs, create_data={}, list=False, retrieve=False, create=False, update=False, update_partial=False, destroy=False, lock=False, unlock=False, history_timeline=False):
     list_urlname = basename + '-list'
     detail_urlname = basename + '-detail'
 
@@ -47,6 +48,8 @@ def viewset_urls(basename, get_kwargs, create_data={}, list=False, retrieve=Fals
         out.append((basename + ' lock', lambda s, c: c.post(reverse(basename + '-lock', kwargs=get_kwargs(s, True)), data={})))
     if unlock:
         out.append((basename + ' unlock', lambda s, c: c.post(reverse(basename + '-unlock', kwargs=get_kwargs(s, True)), data={})))
+    if history_timeline:
+        out.append((basename + ' history-timeline', lambda s, c: c.get(reverse(basename + '-history-timeline', kwargs=get_kwargs(s, True)))))
     return out
 
 
@@ -80,10 +83,10 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
     update = update if update is not None else write
 
     out = [
-        *viewset_urls('pentestproject', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=update, update_partial=update, destroy=destory),
-        *viewset_urls('section', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).sections.first().section_id} if detail else {}), list=read, retrieve=read, update=write, update_partial=write, lock=write, unlock=write),
-        *viewset_urls('finding', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).findings.first().finding_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write),
-        *viewset_urls('projectnotebookpage', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).notes.first().note_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write),
+        *viewset_urls('pentestproject', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=update, update_partial=update, destroy=destory, history_timeline=read),
+        *viewset_urls('section', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).sections.first().section_id} if detail else {}), list=read, retrieve=read, update=write, update_partial=write, lock=write, unlock=write, history_timeline=read),
+        *viewset_urls('finding', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).findings.first().finding_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write, history_timeline=read),
+        *viewset_urls('projectnotebookpage', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).notes.first().note_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write, history_timeline=read),
         *file_viewset_urls('uploadedimage', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).images.first(), read=read, write=write),
         *file_viewset_urls('uploadedprojectfile', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).files.first(), read=read, write=write),
     ]
@@ -95,6 +98,13 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('pentestproject preview', lambda s, c: c.post(reverse('pentestproject-preview', kwargs={'pk': get_obj(s).pk}), data={})),
             ('pentestproject generate', lambda s, c: c.post(reverse('pentestproject-generate', kwargs={'pk': get_obj(s).pk}), data={'password': 'pdf-password'})),
             ('projectnotebookpage export-pdf', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
+
+            ('pentestprojecthistory project', lambda s, c: c.get(reverse('pentestprojecthistory-detail', kwargs={'project_pk': get_obj(s).pk, 'history_date': s.history_date}))),
+            ('pentestprojecthistory section', lambda s, c: c.get(reverse('pentestprojecthistory-section', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).sections.first().section_id, 'history_date': s.history_date}))),
+            ('pentestprojecthistory section', lambda s, c: c.get(reverse('pentestprojecthistory-finding', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).findings.first().finding_id, 'history_date': s.history_date}))),
+            ('pentestprojecthistory section', lambda s, c: c.get(reverse('pentestprojecthistory-note', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id, 'history_date': s.history_date}))),
+            ('pentestprojecthistory image-by-name', lambda s, c: c.get(reverse('pentestprojecthistory-image-by-name', kwargs={'project_pk': get_obj(s).pk, 'filename': get_obj(s).images.first().name, 'history_date': s.history_date}))),
+            ('pentestprojecthistory file-by-name', lambda s, c: c.get(reverse('pentestprojecthistory-file-by-name', kwargs={'project_pk': get_obj(s).pk, 'filename': get_obj(s).files.first().name, 'history_date': s.history_date}))),
         ])
     if write:
         out.extend([
@@ -118,7 +128,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
 
 def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=False, list=False):
     out = [
-        *viewset_urls('projecttype', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create_global, create_data={'scope': ProjectTypeScope.GLOBAL}, update=write, update_partial=write, destroy=write, lock=write, unlock=write),
+        *viewset_urls('projecttype', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create_global, create_data={'scope': ProjectTypeScope.GLOBAL}, update=write, update_partial=write, destroy=write, lock=write, unlock=write, history_timeline=read),
         *file_viewset_urls('uploadedasset', get_base_kwargs=lambda s: {'projecttype_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).assets.first(), read=read, write=write),
     ]
     if read:
@@ -126,6 +136,8 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=Fal
             ('projecttype preview', lambda s, c: c.post(reverse('projecttype-preview', kwargs={'pk': get_obj(s).pk}), data={'report_template': '', 'report_styles': '', 'report_preview_data': {}})),
             ('projecttype export', lambda s, c: c.post(reverse('projecttype-export', kwargs={'pk': get_obj(s).pk}))),
             ('projecttype copy private', lambda s, c: c.post(reverse('projecttype-copy', kwargs={'pk': get_obj(s).pk}), data={'scope': ProjectTypeScope.PRIVATE})),
+            ('projecttypehistory detail', lambda s, c: c.get(reverse('projecttypehistory-detail', kwargs={'projecttype_pk': get_obj(s).pk, 'history_date': s.history_date}))),
+            ('projecttypehistory asset-by-name', lambda s, c: c.get(reverse('projecttypehistory-asset-by-name', kwargs={'projecttype_pk': get_obj(s).pk, 'filename': get_obj(s).assets.first().name, 'history_date': s.history_date}))),
         ])
     if create_global:
         out.extend([
@@ -181,9 +193,11 @@ def guest_urls():
         ('usernotebookpage export-pdf', lambda s, c: c.post(reverse('usernotebookpage-export-pdf', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
-        *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True),
+        *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True, history_timeline=True),
         *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, read=True),
         ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition')), lambda s: [s.template, s.project_type]),
+        ('findingtemplatehistory template', lambda s, c: c.get(reverse('findingtemplatehistory-detail', kwargs={'template_pk': s.template.pk, 'history_date': s.history_date}))),
+        ('findingtemplatehistory image-by-name', lambda s, c: c.get(reverse('findingtemplatehistory-image-by-name', kwargs={'template_pk': s.template.pk, 'filename': s.template.images.first().name, 'history_date': s.history_date}))),
 
         ('projecttype create private', lambda s, c: c.post(reverse('projecttype-list'), data=c.get(reverse('projecttype-detail', kwargs={'pk': s.project_type.pk})).data | {'scope': ProjectTypeScope.PRIVATE})),
         ('projecttype import private', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(s.project_type), 'scope': ProjectTypeScope.PRIVATE}, format='multipart')),
@@ -382,6 +396,11 @@ class ApiRequestsAndPermissionsTestData:
     @cached_property
     def template(self):
         return create_template()
+    
+    @property
+    def history_date(self):
+        # Use a history date in the future to ensure it is always after the actual object is created and never before
+        return (timezone.now() + timedelta(days=1)).isoformat()
 
 
 @pytest.mark.django_db

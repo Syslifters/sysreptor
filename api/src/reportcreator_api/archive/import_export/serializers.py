@@ -1,4 +1,5 @@
 from typing import Iterable
+from django.conf import settings
 from django.core.files import File
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
@@ -10,6 +11,7 @@ from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPa
 from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
+from reportcreator_api.utils.history import bulk_create_with_history, merge_with_previous_history
 from reportcreator_api.utils.utils import omit_keys
 
 
@@ -132,10 +134,9 @@ class FileListExportImportSerializer(serializers.ListSerializer):
                     file=self.extract_file(attrs['name']), 
                     name=attrs['name']), 
                 'linked_object': self.child.get_linked_object(),
-                'uploaded_by': self.context.get('uploaded_by'),
         }) for attrs in validated_data]
 
-        child_model_class.objects.bulk_create(objs)
+        bulk_create_with_history(child_model_class, objs)
         self.context['storage_files'].extend(map(lambda o: o.file, objs))
         return objs
 
@@ -243,16 +244,19 @@ class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
         old_id = validated_data.pop('id')
         images_data = validated_data.pop('images', [])
         translations_data = validated_data.pop('translations')
-        instance = FindingTemplate.objects.create(**{
+        instance = FindingTemplate(**{
             'source': SourceEnum.IMPORTED
         } | validated_data)
+        instance.save_without_historical_record()
         self.context['template'] = instance
         for t in translations_data:
             is_main = t.pop('is_main', False)
             translation_instance = self.fields['translations'].child.create(t | {'template': instance})
             if is_main:
                 instance.main_translation = translation_instance
+        instance._history_type = '+'
         instance.save()
+        del instance._history_type
 
         self.context.update({'template': instance, 'template_id': old_id})
         self.fields['images'].create(images_data)
@@ -366,6 +370,16 @@ class ReportSectionExportImportSerializer(ExportImportSerializer):
         ]
         extra_kwargs = {'created': {'read_only': False}}
 
+    def update(self, instance, validated_data):
+        instance.skip_history_when_saving = True
+        out = super().update(instance, validated_data)
+        del instance.skip_history_when_saving
+
+        # Add changes to previous history record to have a clean history timeline (just one entry for import)
+        merge_with_previous_history(instance)
+
+        return out
+
 
 class ProjectNotebookPageExportImportSerializer(ExportImportSerializer):
     id = serializers.UUIDField(source='note_id')
@@ -396,7 +410,7 @@ class ProjectNotebookPageListExportImportSerializer(serializers.ListSerializer):
                 i.parent = next(filter(lambda e: e.note_id == d.get('parent', {}).get('note_id'), instances), None)
 
         ProjectNotebookPage.objects.check_parent_and_order(instances)
-        ProjectNotebookPage.objects.bulk_create(instances)
+        bulk_create_with_history(ProjectNotebookPage, instances)
         return instances
 
 
@@ -477,7 +491,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         member_infos = list(filter(lambda u: isinstance(u, ProjectMemberInfo), members))
         for mi in member_infos:
             mi.project = project
-        ProjectMemberInfo.objects.bulk_create(member_infos)
+        bulk_create_with_history(ProjectMemberInfo, member_infos)
 
         self.context.update({'project': project, 'project_id': old_id})
 

@@ -43,18 +43,24 @@
               :outlined="false" dense
             />
           </div>
-        </template>
 
-        <template #context-menu>
-          <btn-export 
-            :export-url="exportPdfUrl"
-            :name="note.title"
-            extension=".pdf"
-            button-text="Export as PDF"
-            list-item
-          />
+          <s-btn :to="`/projects/${$route.params.projectId}/notes/${$route.params.noteId}/`" nuxt exact color="secondary" class="ml-1 mr-1">
+            <v-icon left>mdi-undo</v-icon>
+            Back to current version
+          </s-btn>
+
+          <s-btn @click="historyVisible = !historyVisible" color="secondary">
+            <v-icon left>mdi-history</v-icon>
+            Version History
+          </s-btn>
         </template>
       </edit-toolbar>
+
+      <project-history-timeline 
+        v-model="historyVisible"
+        :project="project"
+        :note="note"
+      />
 
       <markdown-page 
         v-model="note.text"
@@ -69,22 +75,21 @@
 
 <script>
 import urlJoin from 'url-join';
-import { omit } from 'lodash';
-import { uploadFileHelper } from '~/utils/upload';
-import ProjectLockEditMixin from '~/mixins/ProjectLockEditMixin';
+import ProjectHistoryMixin from '~/mixins/ProjectHistoryMixin';
 
 export default {
-  mixins: [ProjectLockEditMixin],
+  mixins: [ProjectHistoryMixin],
   data() {
     return {
       note: null,
       project: null,
+      historyVisible: false,
     }
   },
   async fetch() {
-    const [project, note] = await Promise.all([
-      this.$store.dispatch('projects/getById', this.$route.params.projectId),
+    const [note, project] = await Promise.all([
       this.$axios.$get(this.getBaseUrl({ id: this.$route.params.noteId })),
+      this.$axios.$get(this.projectUrl),
     ]);
     this.project = project;
     this.note = note;
@@ -94,45 +99,12 @@ export default {
       return this.note;
     },
     hasChildNotes() {
-      return this.$store.getters['projects/notes'](this.project.id)
-        .some(n => n.parent === this.note.id && n.id !== this.note.id);
-    },
-    exportPdfUrl() {
-      return urlJoin(this.baseUrl, '/export-pdf/');
+      return false;
     },
   },
   methods: {
     getBaseUrl(data) {
       return urlJoin(this.projectUrl, `/notes/${data.id}/`)
-    },
-    async uploadFile(file) {
-      const obj = await uploadFileHelper(this.$axios, urlJoin(this.projectUrl, '/upload/'), file);
-      if (obj.resource_type === 'file') {
-        return `[${obj.name}](/files/name/${obj.name})`;
-      } else {
-        return `![](/images/name/${obj.name})`;
-      }
-    },
-    async performSave(data) {
-      await this.$store.dispatch('projects/updateNote', { projectId: this.project.id, note: data });
-    },
-    async performDelete(data) {
-      await this.$store.dispatch('projects/deleteNote', { projectId: this.project.id, noteId: data.id });
-      this.$router.push(`/projects/${this.project.id}/notes/`);
-    },
-    updateInStore(data) {
-      this.$store.commit('projects/setNote', { projectId: this.project.id, note: omit(data, ['parent', 'order']) });
-    },
-    async onUpdateData({ oldValue, newValue }) {
-      const toolbar = this.getToolbarRef();
-      if (toolbar?.autoSaveEnabled && (
-        oldValue.checked !== newValue.checked ||
-        oldValue.status_emoji !== newValue.status_emoji ||
-        oldValue.icon_emoji !== newValue.icon_emoji ||
-        oldValue.assignee !== newValue.assignee
-      )) {
-        await toolbar.performSave();
-      }
     },
   },
 }

@@ -35,10 +35,24 @@
         </v-tabs>
       </template>
 
-      <template #context-menu v-if="$slots['toolbar-actions']">
-        <slot name="toolbar-actions" />
+      <slot name="toolbar-actions" />
+
+      <s-btn v-if="history" @click="historyVisible = !historyVisible" color="secondary">
+        <v-icon left>mdi-history</v-icon>
+        Version History
+      </s-btn>
+
+      <template #context-menu v-if="$slots['toolbar-context-menu']">
+        <slot name="toolbar-context-menu" />
       </template>
     </edit-toolbar>
+
+    <template-history-timeline
+      v-if="history" 
+      v-model="historyVisible" 
+      :template="template" 
+      :translation="currentTranslation" 
+    />
 
     <v-tabs-items v-model="currentTab">
       <v-tab-item v-for="translation, idx in template.translations" :key="idx">
@@ -153,6 +167,10 @@ export default {
       type: Function,
       default: null,
     },
+    history: {
+      type: Boolean,
+      default: false,
+    },
   },
   emit: ['input'],
   data() {
@@ -160,6 +178,7 @@ export default {
       currentTranslation: this.value.translations.find(tr => tr.language === this.initialLanguage) || this.value.translations.find(tr => tr.is_main),
       restoreTranslationDataCache: {},
       initialLanguages: this.value.translations.map(tr => tr.language),
+      historyVisible: false,
     };
   },
   async fetch() {

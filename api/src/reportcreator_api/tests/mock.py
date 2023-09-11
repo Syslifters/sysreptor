@@ -3,19 +3,21 @@ from datetime import datetime, timedelta
 from unittest import mock
 from django.utils import timezone
 from rest_framework.test import APIClient
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
-
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, UserNotebookPage, PentestFinding, PentestProject, ProjectType, \
     UploadedAsset, UploadedImage, ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, \
     UploadedUserNotebookFile, Language, UserPublicKey, UploadedTemplateImage, FindingTemplateTranslation, \
-    ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart
+    ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, ReviewStatus
 from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, \
     report_fields_default, report_sections_default
 from reportcreator_api.pentests.models.project import ReportSection
 from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod
-from django.core.files.uploadedfile import SimpleUploadedFile
+from reportcreator_api.utils.history import bulk_create_with_history, history_context
+
 
 
 def create_png_file() -> bytes:
@@ -72,6 +74,7 @@ def create_imported_member(roles=None, **kwargs):
         roles=roles if roles is not None else ProjectMemberRole.default_roles)).data
 
 
+@history_context()
 def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> FindingTemplate:
     data = {
         'title': f'Finding Template #{random.randint(1, 100000)}',
@@ -80,25 +83,25 @@ def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> F
         'unknown_field': 'test',
     } | kwargs.pop('data', {})
     language = kwargs.pop('language', Language.ENGLISH)
+    status = kwargs.pop('status', ReviewStatus.IN_PROGRESS)
 
-    template = FindingTemplate.objects.create(**{
+    template = FindingTemplate(**{
         'tags': ['web', 'dev'],
     } | kwargs)
-    main_translation = FindingTemplateTranslation(template=template, language=language)
+    template.save_without_historical_record()
+
+    main_translation = FindingTemplateTranslation(template=template, language=language, status=status)
     main_translation.update_data(data)
     main_translation.save()
 
     template.main_translation = main_translation
+    template._history_type = '+'
     template.save()
+    del template._history_type
 
-    for translation_kwarg in (translations_kwargs or []):
-        translation_data = {
-            'title': data.get('title', 'Finding Template Translation'),
-        } | translation_kwarg.pop('data', {})
-        translation = FindingTemplateTranslation(template=template, **translation_kwarg)
-        translation.update_data(translation_data)
-        translation.save()
-
+    for translation_kwargs in (translations_kwargs or []):
+        create_template_translation(template=template, **translation_kwargs)
+    
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
         UploadedTemplateImage.objects.create(linked_object=template, **{
             'name': f'file{idx}.png', 
@@ -106,6 +109,16 @@ def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> F
         } | image_kwargs)
 
     return template
+
+
+def create_template_translation(template, **kwargs):
+    translation_data = {
+        'title': 'Finding Template Translation',
+    } | kwargs.pop('data', {})
+    translation = FindingTemplateTranslation(template=template, **kwargs)
+    translation.update_data(translation_data)
+    translation.save()
+    return translation
 
 
 def create_project_type(**kwargs) -> ProjectType:
@@ -196,21 +209,26 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
         'tags': ['web', 'customer:test'],
         'unknown_custom_fields': {f: report_data.pop(f) for f in set(report_data.keys()) - set(project_type.report_fields.keys())}
     } | kwargs)
+
     sections = project.sections.all()
+    section_histories = list(ReportSection.history.filter(project_id=project))
     for s in sections:
         s.update_data(report_data)
+        if sh := next(filter(lambda sh: sh.section_id == s.section_id, section_histories), None):
+            sh.custom_fields = s.custom_fields
     ReportSection.objects.bulk_update(sections, ['custom_fields'])
-
+    ReportSection.history.bulk_update(section_histories, ['custom_fields'])
+    
     member_infos = []
     for m in members:
         if isinstance(m, PentestUser):
-            member_infos.append(ProjectMemberInfo(project=project, user=m, roles=[ProjectMemberRole.default_roles]))
+            member_infos.append(ProjectMemberInfo(project=project, user=m, roles=ProjectMemberRole.default_roles))
         elif isinstance(m, ProjectMemberInfo):
             m.project = project
             member_infos.append(m)
         else:
             raise ValueError('Unsupported member type')
-    ProjectMemberInfo.objects.bulk_create(member_infos)
+    bulk_create_with_history(ProjectMemberInfo, member_infos)
 
     for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 3:
         create_finding(project=project, **finding_kwargs)

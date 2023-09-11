@@ -126,7 +126,7 @@ class TestImportExport:
         assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
 
     def assert_export_import_project(self, project, p):
-        assertKeysEqual(p, project, ['name', 'language', 'tags', 'data', 'override_finding_ordering', 'data_all'])
+        assertKeysEqual(p, project, ['name', 'language', 'tags', 'data', 'override_finding_ordering', 'data_all', 'unknown_custom_fields'])
         assert members_equal(p.members, project.members)
         assert p.source == SourceEnum.IMPORTED
         
@@ -261,9 +261,11 @@ class TestLinkedProject:
 class TestFileDelete:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        p = create_project()
-        self.image = p.images.first()
-        self.asset = p.project_type.assets.first()
+        with override_settings(SIMPLE_HISTORY_ENABLED=False):
+            p = create_project()
+            self.image = p.images.first()
+            self.asset = p.project_type.assets.first()
+            yield
 
     def assertFileExists(self, file, expected):
         exists = False

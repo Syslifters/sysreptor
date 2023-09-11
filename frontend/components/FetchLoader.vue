@@ -5,7 +5,7 @@
     </v-layout>
     <div v-else-if="fetchState.error">
       <v-alert color="error">
-        Failed to load page: {{ fetchState.error }}
+        Failed to load page: {{ fetchState.error?.message || fetchState.error }}
       </v-alert>
     </div>
 

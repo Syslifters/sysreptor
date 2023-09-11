@@ -12,7 +12,18 @@
             :outlined="false" dense
           />
         </div>
+
+        <s-btn @click="historyVisible = !historyVisible" color="secondary">
+          <v-icon left>mdi-history</v-icon>
+          Version History
+        </s-btn>
       </edit-toolbar>
+
+      <project-history-timeline 
+        v-model="historyVisible"
+        :project="project"
+        :section="section"
+      />
 
       <div v-for="fieldId in section.fields" :key="fieldId">
         <dynamic-input-field 
@@ -42,13 +53,14 @@ export default {
       section: null,
       project: null,
       projectType: null,
+      historyVisible: false,
     }
   },
   async fetch() {
     const section = await this.$axios.$get(this.getBaseUrl({ id: this.$route.params.sectionId }));
     const [project, projectType] = await Promise.all([
-      await this.$store.dispatch('projects/getById', section.project),
-      await this.$store.dispatch('projecttypes/getById', section.project_type)
+      this.$store.dispatch('projects/getById', section.project),
+      this.$store.dispatch('projecttypes/getById', section.project_type)
     ]);
     this.section = section;
     this.project = project;
