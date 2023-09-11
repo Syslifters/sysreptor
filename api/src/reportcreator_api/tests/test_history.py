@@ -1,5 +1,9 @@
+from django.test import override_settings
 import pytest
 import enum
+from datetime import timedelta
+from uuid import uuid4
+from asgiref.sync import async_to_sync
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,8 +12,10 @@ from reportcreator_api.archive.import_export.import_export import export_project
 from reportcreator_api.pentests.models.files import UploadedAsset, UploadedImage
 from reportcreator_api.pentests.models.notes import ProjectNotebookPage
 from reportcreator_api.pentests.models.project import PentestFinding, PentestProject, ProjectMemberInfo, ProjectMemberRole, ReportSection
+from reportcreator_api.pentests.tasks import cleanup_history
+from reportcreator_api.tasks.models import PeriodicTask
 
-from reportcreator_api.tests.mock import create_finding, create_project_type, create_projectnotebookpage, create_template_translation, create_user, api_client, create_template, create_project
+from reportcreator_api.tests.mock import create_finding, create_project_type, create_projectnotebookpage, create_template_translation, create_user, api_client, create_template, create_project, mock_time
 from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, UploadedTemplateImage, \
     ReviewStatus, Language, ProjectType
 from reportcreator_api.tests.test_import_export import archive_to_file
@@ -615,44 +621,138 @@ class TestProjectHistory:
 
 @pytest.mark.django_db
 class TestHistoryCleanup:
-    pass
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.u1 = create_user()
+        self.u2 = create_user()
 
-    # TODO: history cleanup tests
-    # * Test cleanup time window increases
-    #   * <5min not deleted
-    #   * <2h keep every 10min
-    #   * <1d keep every 30min
-    #   * >1d keep ever 2h
-    # * Test keep create/delete
-    #   * + (0s)  => keep
-    #   * ~ (10s) => cleanup
-    #   * - (15s) => keep
-    # * Test keep first/last
-    #   * ~ (0s) => keep
-    #   * ~ (5s) => cleanup
-    #   * ~ (10s) => cleanup
-    #   * ~ (15s) => keep
-    # * Test keep prevent_cleanup
-    #   * ~ (0s) => keep
-    #   * ~ (5s) => cleanup
-    #   * ~ (10s) prevetn_cleanup => keep
-    #   * ~ (15s) => cleanup
-    #   * ~ (20s) => keep
-    # * Test keep latest before pause
-    #   * ~ (0s) => keep
-    #   * ~ (1d) => keep
-    #   * ~ (1d 5s) => cleanup
-    #   * ~ (1d 10s) => keep
-    # * Test keep latest before pause per user
-    #   * u1 ~ (0s) => keep
-    #   * u1 ~ (5s) => cleanup
-    #   * u2 ~ (10s) => cleanup
-    #   * u1 ~ (15s) => keep
-    #   * u2 ~ (20s) => cleanup
-    #   * u2 ~ (25s) => keep
-    #   * u1 ~ (1d) => cleanup
-    #   * u1 ~ (1d 5s) => cleanup
-    #   * u2 ~ (1d 10s) => keep
-    #   * u1 ~ (1d 15s) prevent_cleanup => keep
-    #   * u2 ~ (1d 20s) => keep
-    #   * u1 ~ (1d 25s) => keep
+        with override_settings(SIMPLE_HISTORY_CLEANUP_TIMEFRAME=timedelta(hours=2)):
+            yield
+
+    def assert_history_cleanup(self, history_entries, pad=False, before=None):
+        if pad:
+            history_entries = \
+                [{'history_type': '+', 'cleanup': False}] + \
+                history_entries + \
+                [{'history_type': '-', 'cleanup': False}]
+        
+        with mock_time(before=before if before is not None else timedelta(days=10)):
+            finding = create_project(findings_kwargs=[{}]).findings.first()
+            finding.history.all().delete()
+
+            history_date = timezone.now()
+            for h in history_entries:
+                history_date += h.get('after', timedelta(seconds=5))
+                h['instance'] = PentestFinding.history.create(
+                    history_type=h.get('history_type', '~'),
+                    history_date=history_date,
+                    history_user=h.get('history_user', None),
+                    history_prevent_cleanup=h.get('history_prevent_cleanup', False),
+                    **{f.attname: getattr(finding, f.attname) for f in PentestFinding.history.model.tracked_fields}
+                )
+        
+        async_to_sync(cleanup_history)(task_info={
+            'model': PeriodicTask(last_success=None)
+        })
+
+        for h in history_entries:
+            cleaned = not PentestFinding.history.filter(history_id=h['instance'].history_id).exists()
+            assert cleaned == h['cleanup']
+
+    def test_keep_create_delete(self):
+        self.assert_history_cleanup([
+            {'history_type': '+', 'cleanup': False},
+            {'history_type': '~', 'cleanup': True},
+            {'history_type': '-', 'cleanup': False},
+        ], pad=True)
+    
+    def test_keep_first_last(self):
+        self.assert_history_cleanup([
+            {'history_type': '~', 'cleanup': False},
+            {'history_type': '~', 'cleanup': True},
+            {'history_type': '~', 'cleanup': True},
+            {'history_type': '~', 'cleanup': False},
+        ], pad=False)
+    
+    def test_keep_prevent_cleanup(self):
+        self.assert_history_cleanup([
+            {'cleanup': True},
+            {'history_prevent_cleanup': True, 'cleanup': False},
+            {'cleanup': True},
+        ], pad=True)
+    
+    def test_keep_latest_before_pause(self):
+        self.assert_history_cleanup([
+            {'cleanup': True},
+            {'cleanup': False},
+            {'after': timedelta(days=1), 'cleanup': True},
+            {'cleanup': True},
+        ], pad=True)
+    
+    def test_keep_latest_before_pause_per_user(self):
+        self.assert_history_cleanup([
+            {'history_user': self.u1, 'cleanup': True},
+            {'history_user': self.u2, 'cleanup': True},
+            {'history_user': self.u1, 'cleanup': False},
+            {'history_user': self.u2, 'cleanup': False},
+            # pause
+            {'history_user': self.u1, 'after': timedelta(days=1), 'cleanup': True},
+            {'history_user': self.u2, 'cleanup': True},
+            {'history_user': self.u1, 'cleanup': True},
+            {'history_user': self.u2, 'cleanup': False},
+            {'history_user': self.u1, 'cleanup': False},
+        ], pad=True)
+
+    def test_keep_latest_before_pause_per_user_per_window(self):
+        self.assert_history_cleanup([
+            {'history_user': self.u1, 'history_type': '+', 'cleanup': False},
+            # window 1
+            {'history_user': self.u1, 'cleanup': True},
+            {'history_user': self.u2, 'cleanup': False},
+            {'history_user': self.u1, 'history_prevent_cleanup': True, 'cleanup': False},
+            # window 2
+            {'history_user': self.u2, 'cleanup': False},
+            {'history_user': self.u1, 'after': timedelta(days=1), 'cleanup': True},
+            {'history_user': self.u2, 'cleanup': False},
+            {'history_user': self.u1, 'history_prevent_cleanup': True, 'cleanup': False},
+            # window 3
+            {'history_user': self.u2, 'cleanup': True},
+            {'history_user': self.u1, 'cleanup': True},
+            {'history_user': self.u2, 'cleanup': False},
+            {'history_user': self.u1, 'cleanup': False},
+        ], pad=False)
+
+    def test_keep_one_per_timeframe(self):
+        # No cleanup in first 5 minutes
+        self.assert_history_cleanup([
+            {'after': timedelta(minutes=1), 'cleanup': False},
+            {'after': timedelta(minutes=1), 'cleanup': False},
+            {'after': timedelta(minutes=1), 'cleanup': False},
+        ], pad=True, before=timedelta(minutes=0))
+
+        # Keep one entry per 10 min timeframe in first 2 hours
+        self.assert_history_cleanup([
+            {'cleanup': True},
+            {'after': timedelta(minutes=3), 'cleanup': True},
+            {'after': timedelta(minutes=3), 'cleanup': True},
+            {'after': timedelta(minutes=3), 'cleanup': False},
+            {'after': timedelta(minutes=3), 'cleanup': True},
+        ], pad=True, before=timedelta(hours=1))
+
+        # Keep one entry per 30 min timeframe in first day
+        self.assert_history_cleanup([
+            {'cleanup': True},
+            {'after': timedelta(minutes=9), 'cleanup': True},
+            {'after': timedelta(minutes=9), 'cleanup': True},
+            {'after': timedelta(minutes=9), 'cleanup': False},
+            {'after': timedelta(minutes=9), 'cleanup': True},
+        ], pad=True, before=timedelta(hours=10))
+
+        # Keep one entry per 2 hour timeframe after first day
+        self.assert_history_cleanup([
+            {'cleanup': True},
+            {'after': timedelta(minutes=45), 'cleanup': True},
+            {'after': timedelta(minutes=45), 'cleanup': False},
+            {'after': timedelta(minutes=45), 'cleanup': True},
+            {'after': timedelta(minutes=45), 'cleanup': True},
+        ], pad=True, before=timedelta(days=2))
