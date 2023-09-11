@@ -1,9 +1,10 @@
 from datetime import timedelta
 from urllib.parse import urlparse
+from asgiref.sync import iscoroutinefunction
 from django.conf import settings
 from django.utils import timezone, cache, deprecation
+from django.utils.decorators import sync_and_async_middleware
 from django.middleware.csrf import CsrfViewMiddleware
-from whitenoise.middleware import WhiteNoiseMiddleware
 
 
 class CustomCsrfMiddleware(CsrfViewMiddleware):
@@ -26,7 +27,6 @@ class CustomCsrfMiddleware(CsrfViewMiddleware):
         
         # Allow skipping origin checks
         return parsed_origin.scheme + '://*' in settings.CSRF_TRUSTED_ORIGINS
-
 
 
 class ExtendSessionMiddleware(deprecation.MiddlewareMixin):
@@ -57,3 +57,20 @@ class PermissionsPolicyMiddleware(deprecation.MiddlewareMixin):
     def process_response(self, request, response):
         response.headers['Permissions-Policy'] = ', '.join(map(lambda t: f"{t[0]}={t[1] or '()'}", settings.PERMISSIONS_POLICY.items()))
         return response
+
+
+@sync_and_async_middleware
+def HistoryRequestMiddleware(get_response):
+    from reportcreator_api.utils.history import history_context
+    
+    # Use built-in django-simple-history middleware after updating to 3.4.0
+    if iscoroutinefunction(get_response):
+        async def middleware(request):
+            with history_context(request=request):
+                return await get_response(request)
+    else:
+        def middleware(request):
+            with history_context(request=request):
+                return get_response(request)
+    return middleware
+
