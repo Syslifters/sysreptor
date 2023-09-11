@@ -37,7 +37,7 @@ class Command(BaseCommand):
     def encrypt_db_fields(self, model, fields):
         model.objects.bulk_update(model.objects.all().iterator(), fields)
         if hasattr(model, 'history'):
-            model.history.model.objects.bulk_update(model.history.model.objects.all().iterator(), fields)                    
+            model.history.model.objects.bulk_update(model.history.model.objects.all().iterator(), fields + ['history_change_reason'])                    
 
     def encrypt_data(self):
         # Encrypt DB fields

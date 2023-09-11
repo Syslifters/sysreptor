@@ -7,6 +7,8 @@ from simple_history import manager as history_manager
 from simple_history import signals as history_signals
 from simple_history import utils as history_utils
 
+from reportcreator_api.archive.crypto.fields import EncryptedField
+
 
 class HistoricalRecordBase(models.Model):
     history_prevent_cleanup = models.BooleanField(default=False, db_index=True)
@@ -16,8 +18,13 @@ class HistoricalRecordBase(models.Model):
 
 
 class HistoricalRecords(history_models.HistoricalRecords):
-    def __init__(self, bases=(HistoricalRecordBase,), excluded_fields=tuple(), **kwargs):
-        super().__init__(bases=bases, excluded_fields=('updated', 'lock_info_data') + tuple(excluded_fields), **kwargs)
+    def __init__(self, excluded_fields=tuple(), **kwargs):
+        super().__init__(
+            bases=[HistoricalRecordBase], 
+            history_change_reason_field=EncryptedField(base_field=models.TextField(blank=True, null=True), null=True),
+            excluded_fields=('updated', 'lock_info_data') + tuple(excluded_fields), 
+            **kwargs
+        )
 
     def post_save(self, instance, created, using=None, **kwargs):
         if getattr(instance, 'skip_history_when_saving', False):
