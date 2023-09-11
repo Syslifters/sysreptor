@@ -13,7 +13,11 @@
           />
         </div>
 
-        <s-btn :to="`/projects/${$route.params.projectId}/reporting/sections/${$route.params.sectionId}/`" nuxt exact color="secondary" class="ml-1 mr-1">
+        <s-btn 
+          v-if="$store.getters['projects/sections'](project.id).map(s => s.id).includes(section.id)"
+          :to="`/projects/${$route.params.projectId}/reporting/sections/${$route.params.sectionId}/`" nuxt exact 
+          color="secondary" class="ml-1 mr-1"
+        >
           <v-icon left>mdi-undo</v-icon>
           Back to current version
         </s-btn>

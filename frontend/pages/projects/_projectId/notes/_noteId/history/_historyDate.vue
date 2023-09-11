@@ -44,7 +44,12 @@
             />
           </div>
 
-          <s-btn :to="`/projects/${$route.params.projectId}/notes/${$route.params.noteId}/`" nuxt exact color="secondary" class="ml-1 mr-1">
+          <s-btn 
+            v-if="$store.getters['projects/notes'](project.id).map(n => n.id).includes(note.id)" 
+            :to="`/projects/${$route.params.projectId}/notes/${$route.params.noteId}/`" nuxt exact 
+            color="secondary" 
+            class="ml-1 mr-1"
+          >
             <v-icon left>mdi-undo</v-icon>
             Back to current version
           </s-btn>

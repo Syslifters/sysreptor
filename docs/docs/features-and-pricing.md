@@ -20,6 +20,7 @@
 | __Evidence Archiving__ | <span style="color:green;font-weight:bold;">✓</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __Encrypted Archiving (four-eyes principle)__ | <span style="color:red;font-weight:bold;">X</span> | <span style="color:green;font-weight:bold;">✓</span> |
 | __Retention Time Definition__ | <span style="color:red;font-weight:bold;">X</span> | <span style="color:green;font-weight:bold;">✓</span> |
+| __Version History__ | <span style="color:red;font-weight:bold;">X</span> | <span style="color:green;font-weight:bold;">✓</span> |
 |  | [:fire: Get Started](/setup/installation/){ .md-button target="_blank" } | [:rocket: Buy](https://cloud.sysreptor.com/order/){ .md-button target="_blank"} |
 | | [:material-phone: Contact Us](/contact-us/){ .md-button style="align:center;" } | [:sauropod: Book a Demo](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ .md-button style="align:center;" target=_blank }  |
 
