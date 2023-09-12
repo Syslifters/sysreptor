@@ -166,6 +166,17 @@ export default {
         this.$toast.global.requestError({ error });
       }
     },
+    focus() {
+      if (this.editorView) {
+        this.editorView.focus();
+        this.$emit('focus');
+      }
+    },
+    blur() {
+      if (this.editorView) {
+        this.editorView.dom.blur();
+      }
+    },
   },
 }
 </script>

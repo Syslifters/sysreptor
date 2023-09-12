@@ -122,6 +122,10 @@ export default {
                 this.$emit('input', viewUpdate.state.doc.toString());
               }
             }),
+            EditorView.domEventHandlers({
+              blur: event => this.$emit('blur', event),
+              focus: event => this.$emit('focus', event),
+            }),
             ...this.additionalCodeMirrorExtensions(),
           ]
         }),
@@ -213,6 +217,16 @@ export default {
         return await this.$axios.$post('/utils/spellcheck/words/', data);
       } catch (error) {
         this.$toast.global.requestError({ error });
+      }
+    },
+    focus() {
+      if (this.editorView) {
+        this.editorView.focus();
+      }
+    },
+    blur() {
+      if (this.editorView) {
+        this.editorView.dom.blur();
       }
     },
   }

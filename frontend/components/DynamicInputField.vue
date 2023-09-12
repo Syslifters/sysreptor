@@ -9,6 +9,7 @@
       :disabled="disabled"
       :lang="lang"
       :spellcheck-supported="definition.spellcheck"
+      :autofocus="autofocus"
     />
 
     <!-- Markdown -->
@@ -22,6 +23,7 @@
       :rewrite-reference-link="rewriteReferenceLink"
       :disabled="disabled"
       :lang="lang"
+      :autofocus="autofocus"
     />
 
     <!-- Date -->
@@ -32,6 +34,7 @@
       :label="label"
       :disabled="disabled"
       :locale="lang"
+      :autofocus="autofocus"
     />
 
     <!-- Enum -->
@@ -44,9 +47,12 @@
       item-value="value"
       :label="label"
       :disabled="disabled"
+      :autofocus="autofocus"
       clearable
       class="mt-4"
     />
+
+    <!-- Combobox -->
     <s-combobox
       v-else-if="definition.type === 'combobox'"
       :value="formValue"
@@ -54,6 +60,7 @@
       :items="definition.suggestions"
       :label="label"
       :disabled="disabled"
+      :autofocus="autofocus"
       clearable
     />
 
@@ -65,6 +72,7 @@
       type="number"
       :label="label"
       :disabled="disabled"
+      :autofocus="autofocus"
     />
 
     <!-- Boolean -->
@@ -74,6 +82,7 @@
       @change="emitInput"
       :label="label"
       :disabled="disabled"
+      :autofocus="autofocus"
     />
 
     <!-- CVSS -->
@@ -83,6 +92,7 @@
       @input="emitInput"
       :label="label"
       :disabled="disabled"
+      :autofocus="autofocus"
     />
 
     <!-- User -->
@@ -93,6 +103,7 @@
       :label="label"
       :selectable-users="selectableUsers"
       :disabled="disabled"
+      :autofocus="autofocus"
     />
 
     <!-- Object -->
@@ -226,6 +237,10 @@ export default {
       default: null,
     },
     disabled: {
+      type: Boolean,
+      default: false,
+    },
+    autofocus: {
       type: Boolean,
       default: false,
     },

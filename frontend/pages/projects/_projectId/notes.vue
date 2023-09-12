@@ -107,7 +107,7 @@ export default {
       // Reload note list to get updated order
       this.refreshListings();
       
-      this.$router.push(`/projects/${this.project.id}/notes/${obj.id}/`);
+      this.$router.push({ path: `/projects/${this.project.id}/notes/${obj.id}/`, query: { focus: 'title' } });
     },
     async updateNote(note) {
       try {

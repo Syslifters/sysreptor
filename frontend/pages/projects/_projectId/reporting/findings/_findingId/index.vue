@@ -54,6 +54,7 @@
           :rewrite-reference-link="rewriteReferenceLink"
           :selectable-users="project.members.concat(project.imported_members)"
           :lang="finding.language"
+          :autofocus="fieldId === 'title'"
         />
       </div>
     </div>
