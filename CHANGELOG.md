@@ -1,5 +1,12 @@
 # Changelog
 
+## TBD
+* Version history for projects, designs and templates
+* UI: Decrease font size of note assignee in list to match finding/section assignee style
+* UI: Autofocus note and finding title after create
+* UI: More prominent translate template field button
+
+
 ## v2023.122 - 2023-09-07
 * Fix template appears multiple times in search result list when multiple languages match
 * Assign notes to users
