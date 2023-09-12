@@ -15,7 +15,7 @@ from reportcreator_api.utils.decorators import acache, cache
 
 
 class LicenseError(Exception):
-    def __init__(self, detail: str) -> None:
+    def __init__(self, detail: str|dict) -> None:
         super().__init__(detail)
         self.detail = detail
 
@@ -67,7 +67,7 @@ def decode_license(license):
                 license_data['valid_from'] = parse_date(license_data['valid_from'])
                 license_data['valid_until'] = parse_date(license_data['valid_until'])
                 if not isinstance(license_data['users'], int) or license_data['users'] <= 0:
-                    raise LicenseError('Invalid user count in license')
+                    raise LicenseError(license_data | {'error': 'Invalid user count in license'})
                 return license_data
         else:
             raise LicenseError('No valid signature found for license')
@@ -88,16 +88,17 @@ def decode_and_validate_license(license):
         license_data = decode_license(license)
         period_info = f"The license is valid from {license_data['valid_from'].isoformat()} until {license_data['valid_until'].isoformat()}"
         if license_data['valid_from'] > timezone.now().date():
-            raise LicenseError('License not yet valid: ' + period_info)
+            raise LicenseError(license_data | {'error': 'License not yet valid: ' + period_info})
         elif license_data['valid_until'] < timezone.now().date():
-            raise LicenseError('License expired: ' + period_info)
+            raise LicenseError(license_data | {'error': 'License expired: ' + period_info})
         
         # Validate license limits not exceeded
         current_user_count = PentestUser.objects.get_licensed_user_count()
         if current_user_count > license_data['users']:
-            raise LicenseError(
-                f"License limit exceeded: You licensed max. {license_data['users']} users, but have currently {current_user_count} active users. "
-                "Falling back to the free license. Please deactivate some users or extend your license.")
+            raise LicenseError(license_data | {
+                'error': f"License limit exceeded: You licensed max. {license_data['users']} users, but have currently {current_user_count} active users. "
+                         "Falling back to the free license. Please deactivate some users or extend your license."
+            })
 
         # All license checks are valid
         return {
@@ -107,10 +108,11 @@ def decode_and_validate_license(license):
     except LicenseError as ex:
         if license:
             logging.exception('License validation failed')
-        return {
+        
+        error_details = ex.detail if isinstance(ex.detail, dict) else {'error': ex.detail}
+        return error_details | {
             'type': LicenseType.COMMUNITY,
             'users': settings.LICENSE_COMMUNITY_MAX_USERS,
-            'error': ex.detail,
         }
 
 

@@ -5,6 +5,7 @@
 * UI: Decrease font size of note assignee in list to match finding/section assignee style
 * UI: Autofocus note and finding title after create
 * UI: More prominent translate template field button
+* UI: Include more details on license errors
 
 
 ## v2023.122 - 2023-09-07
