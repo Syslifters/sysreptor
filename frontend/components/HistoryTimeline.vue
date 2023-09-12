@@ -23,8 +23,10 @@
     </div>
     
     <v-list-item v-if="!isProfessionalLicense">
-      Version history is not availalbe in community edition.<br>
-      Upgrade to SysReptor Professional
+      <v-list-item-content>
+        Version history is not availalbe <br>in community edition.<br><br>
+        See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank">https://docs.sysreptor.com/features-and-pricing/</a>
+      </v-list-item-content>
     </v-list-item>
     <template v-else>
       <v-timeline align-top dense>
@@ -65,13 +67,21 @@ export default {
     url: {
       immediate: true,
       handler() {
-        this.historyRecords = new CursorPaginationFetcher(this.url, this.$axios, this.$toast);
+        this.reset();
         if (this.value) {
           this.$emit('input', false);
         }
       }
     },
+    value() {
+      this.reset();
+    },
   },
+  methods: {
+    reset() {
+      this.historyRecords = new CursorPaginationFetcher(this.url, this.$axios, this.$toast);
+    }
+  }
 }
 </script>
 

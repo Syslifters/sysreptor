@@ -9,6 +9,8 @@ from reportcreator_api.pentests import storages
 from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
     UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, ProjectNotebookPage, UserNotebookPage, UserPublicKey, \
     ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, UploadedTemplateImage, ReportSection
+from reportcreator_api.pentests.models.project import ProjectMemberInfo
+from reportcreator_api.pentests.models.template import FindingTemplate, FindingTemplateTranslation
 from reportcreator_api.users.models import MFAMethod, PentestUser, Session
 
 
@@ -19,25 +21,25 @@ class Command(BaseCommand):
         parser.add_argument('--decrypt', action='store_true', help='Decrypt all data')
 
     def encrypt_storage_files(self, storage, models):
-        for m in list(models):
-            if hasattr(m, 'history'):
-                models.append(m.history.model)
-
         file_name_map = {}
         for model in models:
-            data_list = model.objects.all().values('id', 'name', 'file')
-            for data in data_list:
+            data_list = list(model.objects.all().values('id', 'name', 'file'))
+            history_list = list(model.history.all().values('history_id', 'name', 'file')) if hasattr(model, 'history') else []  
+            for data in data_list + history_list:
                 if data['file'] not in file_name_map:
                     with storage.open(data['file'], mode='rb') as old_file:
                         file_name_map[data['file']] = storage.save(name='new', content=old_file)
                         storage.delete(name=data['file'])
                 data['file'] = file_name_map[data['file']]
             model.objects.bulk_update(map(lambda d: model(**d), data_list), ['name', 'file'])
-
+            if hasattr(model, 'history'):
+                model.history.model.objects.bulk_update(map(lambda d: model.history.model(**d), history_list), ['name', 'file', 'history_change_reason'])
+    
     def encrypt_db_fields(self, model, fields):
-        model.objects.bulk_update(model.objects.all().iterator(), fields)
+        if fields:
+            model.objects.bulk_update(model.objects.all().iterator(), fields)
         if hasattr(model, 'history'):
-            model.history.model.objects.bulk_update(model.history.model.objects.all().iterator(), fields)                    
+            model.history.model.objects.bulk_update(model.history.model.objects.all().iterator(), fields + ['history_change_reason'])                    
 
     def encrypt_data(self):
         # Encrypt DB fields
@@ -53,8 +55,12 @@ class Command(BaseCommand):
         self.encrypt_db_fields(UserPublicKey, ['public_key'])
         self.encrypt_db_fields(ArchivedProjectKeyPart, ['key_part'])
         self.encrypt_db_fields(ArchivedProjectPublicKeyEncryptedKeyPart, ['encrypted_data'])
+        # Encrypt only history DB fields
+        self.encrypt_db_fields(ProjectMemberInfo, [])
+        self.encrypt_db_fields(FindingTemplate, [])
+        self.encrypt_db_fields(FindingTemplateTranslation, [])
 
-        # Encrypt files
+        # Encrypt files and file DB fields
         self.encrypt_storage_files(storages.get_uploaded_asset_storage(), [UploadedAsset])
         self.encrypt_storage_files(storages.get_uploaded_image_storage(), [UploadedImage, UploadedTemplateImage, UploadedUserNotebookImage])
         self.encrypt_storage_files(storages.get_uploaded_file_storage(), [UploadedProjectFile, UploadedUserNotebookFile])

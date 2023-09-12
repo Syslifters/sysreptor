@@ -72,8 +72,8 @@ class TestTemplateHistory:
         assert_history(tr, history_count=1, history_type='+')
 
     @pytest.mark.parametrize(['changes', 'change_reason'], [
-        ({'status': ReviewStatus.FINISHED}, 'Status changed'),
-        ({'language': Language.FRENCH}, 'Language changed'),
+        ({'status': ReviewStatus.FINISHED}, 'Status changed to Finished'),
+        ({'language': Language.FRENCH}, 'Language changed to French'),
         ({'data': {'title': 'changed title'}}, None)
     ])
     def test_update_translation(self, changes, change_reason):
@@ -194,7 +194,7 @@ class TestTemplateHistory:
         data['translations'][1]['is_main'] = True
         res = self.client.patch(reverse('findingtemplate-detail', kwargs={'pk': t.id}), data=data)
         assert res.status_code == 200
-        assert_history(t, history_count=3, history_type='~', history_change_reason='Main translation changed', history_user=self.user)
+        assert_history(t, history_count=3, history_type='~', history_change_reason='Main translation changed to German', history_user=self.user)
 
         assert_history(tr1, history_count=1, history_type='+')
         assert_history(tr2, history_count=1, history_type='+')
@@ -256,7 +256,7 @@ class TestTemplateHistory:
             
     def test_history_import(self):
         t = import_templates(archive_to_file(export_templates([create_template()])))[0]
-        self.assert_template_history_create(t, history_change_reason='Import')
+        self.assert_template_history_create(t, history_change_reason='Imported')
 
     def test_history_api_show_deleted(self):
         t = create_template(translations_kwargs=[{'language': Language.GERMAN, 'data': {'title': 'title'}}])
@@ -295,7 +295,7 @@ class TestProjectTypeHistory:
     
     def test_import(self):
         pt = import_project_types(archive_to_file(export_project_types([create_project_type()])))[0]
-        self.assert_history_create(pt, history_change_reason='Import')
+        self.assert_history_create(pt, history_change_reason='Imported')
 
     def test_create_api(self):
         res = self.client.post(reverse('projecttype-list'), data={
@@ -374,7 +374,7 @@ class TestProjectHistory:
     
     def test_import(self):
         p = import_projects(archive_to_file(export_projects([create_project(members=[self.user])])))[0]
-        self.assert_history_create(p, history_change_reason='Import')
+        self.assert_history_create(p, history_change_reason='Imported')
     
     def test_create_api(self):
         res = self.client.post(reverse('pentestproject-list'), data={

@@ -123,7 +123,7 @@ def export_archive_iter(data, serializer_class: Type[serializers.Serializer], co
 
 
 @transaction.atomic()
-@history_context(history_change_reason='Import')
+@history_context(history_change_reason='Imported')
 def import_archive(archive_file, serializer_classes: list[Type[serializers.Serializer]], context=None):
     context = (context or {}) | {
         'archive': None,

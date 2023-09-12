@@ -1,5 +1,5 @@
 <template>
-  <nuxt-link :to="to || '/'" :disabled="!to" :class="{'timeline-item-link': true, 'disabled': !to}">
+  <nuxt-link :to="to || '#'" :disabled="!to" :class="{'timeline-item-link': true, 'disabled': !to}">
     <v-timeline-item small fill-dot :color="value.history_type === '+' ? 'success' : value.history_type === '-' ? 'error' : 'primary'">
       <chip-date :value="value.history_date" />
       <chip-member v-if="value.history_user" :value="value.history_user" />
@@ -48,9 +48,9 @@ export default {
 
 .timeline-item-link {
   position: relative;
-  cursor: pointer;
   color: inherit;
   text-decoration: none;
+  cursor: default;
 
   &::before {
     background-color: currentColor;
@@ -62,11 +62,16 @@ export default {
     right: 0;
     opacity: 0;
   }
-  &:hover::before {
-    opacity: 0.04;
-  }
-  &.nuxt-link-active:not(.disabled)::before {
-    opacity: 0.12;
+
+  &:not(.disabled) {
+    cursor: pointer;
+
+    &:hover::before {
+      opacity: 0.04;
+    }
+    &.nuxt-link-active::before {
+      opacity: 0.12;
+    }
   }
 }
 </style>
