@@ -102,10 +102,10 @@
             :disabled="readonly || (!translation.is_main && !(d.id in translation.data))"
             class="flex-grow-width"
           />
-          <div v-if="!translation.is_main && d.id !== 'title'" class="mt-4">
+          <div v-if="!translation.is_main && d.id !== 'title'" class="mt-4 ml-1">
             <s-tooltip v-if="d.id in translation.data">
               <template #activator="{ on }">
-                <s-btn @click="translateFieldReset(translation, d.id)" :disabled="readonly" icon small v-on="on">
+                <s-btn @click="translateFieldReset(translation, d.id)" :disabled="readonly" color="secondary" class="h-100" small v-on="on">
                   <v-icon small>mdi-pencil-off</v-icon>
                 </s-btn>
               </template>
@@ -116,7 +116,7 @@
             </s-tooltip>
             <s-tooltip v-else>
               <template #activator="{ on }">
-                <s-btn @click="translateFieldCopy(translation, d.id)" :disabled="readonly" icon small v-on="on">
+                <s-btn @click="translateFieldCopy(translation, d.id)" :disabled="readonly" color="secondary" class="h-100" small v-on="on">
                   <v-icon small>mdi-pencil</v-icon>
                 </s-btn>
               </template>

@@ -22,10 +22,12 @@
 
           <v-toolbar-title class="note-title">
             <markdown-text-field-content
+              ref="title"
               v-model="note.title"
               :disabled="readonly"
               :lang="null"
               :spellcheck-supported="true"
+              v-intersect="tryAutofocus"
             />
           </v-toolbar-title>
 
@@ -47,11 +49,13 @@
       </edit-toolbar>
 
       <markdown-page 
+        ref="text"
         v-model="note.text"
         :disabled="readonly"
         lang="auto"
         :upload-file="uploadFile"
         :rewrite-file-url="rewriteFileUrl"
+        v-intersect="tryAutofocus"
       />
     </div>
   </fetch-loader>
@@ -71,6 +75,8 @@ export default {
   },
   async fetch() {
     this.note = await this.$axios.$get(this.getBaseUrl({ id: this.$route.params.noteId }));
+
+    this.tryAutofocus();
   },
   computed: {
     data() {
@@ -118,6 +124,15 @@ export default {
     },
     rewriteFileUrl(imgSrc) {
       return urlJoin('/pentestusers/self/notes/', imgSrc);
+    },
+    tryAutofocus() {
+      if (this.$route.query?.focus === 'title') {
+        if (this.$refs.title) {
+          this.$refs.title.focus();
+        }
+      } else if (this.$refs.text) {
+        this.$refs.text.focus();
+      }
     },
   },
 }

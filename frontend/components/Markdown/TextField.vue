@@ -57,7 +57,8 @@ export default baseMixins.extend({
               this.$emit('focus', e);
             }
           },
-        }
+        },
+        ref: 'input',
       });
     },
   },

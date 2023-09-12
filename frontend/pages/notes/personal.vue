@@ -87,7 +87,7 @@ export default {
       });
       // Reload note list to get updated order
       this.$store.dispatch('usernotes/fetchAll');
-      this.$router.push(`/notes/personal/${obj.id}/`);
+      this.$router.push({ path: `/notes/personal/${obj.id}/`, query: { focus: 'title' } });
     },
     async updateNote(note) {
       try {

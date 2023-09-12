@@ -15,28 +15,26 @@
           <td>License Type:</td>
           <td>{{ license.type }}</td>
         </tr>
-        <template v-if="license.type === 'professional'">
-          <tr>
-            <td>Licensed to:</td>
-            <td>{{ license.name }}</td>
-          </tr>
-          <tr>
-            <td>Valid from:</td>
-            <td>{{ license.valid_from }}</td>
-          </tr>
-          <tr>
-            <td>Valid until:</td>
-            <td>
-              {{ license.valid_until }}
-              <v-chip v-if="new Date(license.valid_until) < new Date()" color="error" text-color="white" class="ml-2" small>
-                Expired
-              </v-chip>
-              <v-chip v-else-if="new Date(license.valid_until) < new Date().setDate(new Date().getDate() + 2 * 30)" color="warning" class="ml-2" small>
-                Expires soon
-              </v-chip>
-            </td>
-          </tr>
-        </template>
+        <tr v-if="'name' in license">
+          <td>Licensed to:</td>
+          <td>{{ license.name }}</td>
+        </tr>
+        <tr v-if="'valid_from' in license">
+          <td>Valid from:</td>
+          <td>{{ license.valid_from }}</td>
+        </tr>
+        <tr v-if="'valid_until' in license">
+          <td>Valid until:</td>
+          <td>
+            {{ license.valid_until }}
+            <v-chip v-if="new Date(license.valid_until) < new Date()" color="error" text-color="white" class="ml-2" small>
+              Expired
+            </v-chip>
+            <v-chip v-else-if="new Date(license.valid_until) < new Date().setDate(new Date().getDate() + 2 * 30)" color="warning" class="ml-2" small>
+              Expires soon
+            </v-chip>
+          </td>
+        </tr>
         <tr>
           <td>Max. Users:</td>
           <td>{{ license.users }}</td>

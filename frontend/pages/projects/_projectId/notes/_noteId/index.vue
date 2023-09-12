@@ -22,10 +22,12 @@
 
           <v-toolbar-title class="note-title">
             <markdown-text-field-content
+              ref="title"
               v-model="note.title"
               :disabled="readonly"
               :lang="project.language"
               :spellcheck-supported="true"
+              v-intersect="tryAutofocus"
             />
           </v-toolbar-title>
 
@@ -68,11 +70,13 @@
       />
 
       <markdown-page 
+        ref="text"
         v-model="note.text"
         :disabled="readonly"
         :lang="project.language"
         :upload-file="uploadFile"
         :rewrite-file-url="rewriteFileUrl"
+        v-intersect="tryAutofocus"
       />
     </div>
   </fetch-loader>
@@ -100,6 +104,8 @@ export default {
     ]);
     this.project = project;
     this.note = note;
+
+    this.tryAutofocus();
   },
   computed: {
     data() {
@@ -144,6 +150,15 @@ export default {
         oldValue.assignee !== newValue.assignee
       )) {
         await toolbar.performSave();
+      }
+    },
+    tryAutofocus() {
+      if (this.$route.query?.focus === 'title') {
+        if (this.$refs.title) {
+          this.$refs.title.focus();
+        }
+      } else if (this.$refs.text) {
+        this.$refs.text.focus();
       }
     },
   },

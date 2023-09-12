@@ -54,7 +54,8 @@ export default baseMixins.extend({
           input: (value) => {
             this.$emit('input', value);
           }
-        }
+        },
+        ref: 'input',
       });
     },
     onMouseDown(e) {
