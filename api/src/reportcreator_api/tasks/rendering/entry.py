@@ -147,18 +147,21 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
 
 @elasticapm.async_capture_span()
 async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage], request=None):
+    is_project_note = isinstance(note, ProjectNotebookPage)
+    parent_obj = note.project if is_project_note else note.user
+
     # Prevent sending unreferenced images to rendering task to reduce memory consumption
     resources = {}
-    async for i in (note.project if isinstance(note, ProjectNotebookPage) else note.user).images.all():
+    async for i in parent_obj.images.all():
         if i.name in note.text:
             resources['/images/name/' + i.name] = b64encode(i.file.read()).decode()
 
     # Rewrite file links to absolute URL
     note_text = note.text
     if request:
-        async for f in (note.project if isinstance(note, ProjectNotebookPage) else note.user).files.values_list('name', flat=True):
+        async for f in parent_obj.files.values_list('name', flat=True):
             if f in note_text:
-                absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f})) if note.project else \
+                absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f})) if is_project_note else \
                             request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f})) 
                 note_text = note_text.replace(f'/files/name/{f}', absolute_file_url)
     
@@ -172,7 +175,7 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
                 'text': note_text
             }
         },
-        language=note.project.language if isinstance(note, ProjectNotebookPage) else Language.ENGLISH,
+        language=note.project.language if is_project_note else Language.ENGLISH,
         resources=resources
     )
     res = await get_celery_result_async(task)

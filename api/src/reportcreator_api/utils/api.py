@@ -7,7 +7,9 @@ from django.conf import settings
 from django.db.models import Q
 from django.http import StreamingHttpResponse, FileResponse, Http404
 from django.core.exceptions import PermissionDenied
+from django.utils.functional import classproperty
 from adrf.views import APIView as AsyncAPIView
+from adrf.viewsets import ViewSet as AdrfAsyncViewSet
 from rest_framework import exceptions, views, generics, pagination
 from rest_framework.response import Response
 
@@ -15,7 +17,19 @@ from reportcreator_api.archive.crypto import CryptoError
 from reportcreator_api.utils import license
 
 
-class GenericAPIViewAsync(generics.GenericAPIView, AsyncAPIView):
+class GenericAPIViewAsyncMixin:
+    throttle_scope = None
+
+    async def aget_valid_serializer(self, *args, **kwargs):
+        serializer = self.get_serializer(*args, **kwargs)
+        await sync_to_async(serializer.is_valid)(raise_exception=True)
+        return serializer
+
+    async def aget_object(self):
+        return await sync_to_async(super().get_object)()
+
+
+class GenericAPIViewAsync(GenericAPIViewAsyncMixin, generics.GenericAPIView, AsyncAPIView):
     _action = None
 
     @property
@@ -33,6 +47,12 @@ class GenericAPIViewAsync(generics.GenericAPIView, AsyncAPIView):
 
     async def aget_object(self):
         return await sync_to_async(super().get_object)()
+    
+
+class ViewSetAsync(GenericAPIViewAsyncMixin, AdrfAsyncViewSet):
+    @classproperty
+    def view_is_async(cls):
+        return True
 
 
 class _SyncIterableToAsync:

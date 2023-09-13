@@ -40,7 +40,7 @@ class TestCommunityLicenseRestrictions:
     def test_spellcheck_disabled(self):
         assert self.client.get(reverse('utils-settings')).data['features']['spellcheck'] is False
         assert_api_license_error(self.client.post(reverse('utils-spellcheck')))
-        assert_api_license_error(self.client.post(reverse('utils-spellcheck-words')))
+        assert_api_license_error(self.client.post(reverse('utils-spellcheck-add-word')))
 
     def test_admin_privesc_disabled(self):
         assert self.user.is_admin

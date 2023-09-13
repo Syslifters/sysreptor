@@ -128,6 +128,6 @@ class UserNotebookPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.user == view.get_user():
             return True
-        if request.user.is_admin and (request.method in permissions.SAFE_METHODS or view.action in ['export-pdf']):
+        if request.user.is_admin and (request.method in permissions.SAFE_METHODS or view.action in ['export_pdf']):
             return True
         return False
