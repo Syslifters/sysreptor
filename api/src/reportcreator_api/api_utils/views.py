@@ -15,7 +15,7 @@ from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.permissions import IsSystemUser, IsUserManagerOrSuperuserOrSystem
 from reportcreator_api.api_utils import backup_utils
 from reportcreator_api.users.models import AuthIdentity, PentestUser
-from reportcreator_api.utils.api import GenericAPIViewAsync, StreamingHttpResponseAsync
+from reportcreator_api.utils.api import StreamingHttpResponseAsync, ViewSetAsync
 from reportcreator_api.utils import license
 from reportcreator_api.pentests.models import Language
 from reportcreator_api.pentests.models import ProjectMemberRole
@@ -26,12 +26,14 @@ from reportcreator_api.utils.utils import copy_keys, remove_duplicates
 log = logging.getLogger(__name__)
 
 
-class UtilsViewSet(viewsets.ViewSet):
+class UtilsViewSet(ViewSetAsync):
     def get_serializer_class(self):
         if self.action == 'backup':
             return BackupSerializer
         elif self.action == 'spellcheck':
             return LanguageToolSerializer
+        elif self.action == 'spellcheck-add-word':
+            return LanguageToolAddWordSerializer
         else:
             return Serializer
 
@@ -111,46 +113,29 @@ class UtilsViewSet(viewsets.ViewSet):
             return response
     
     @extend_schema(responses=OpenApiTypes.OBJECT)
-    @action(detail=False, methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsUserManagerOrSuperuserOrSystem])
-    def license(self, request, *args, **kwargs):
+    @action(detail=False, url_name='license', url_path='license', methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsUserManagerOrSuperuserOrSystem])
+    def license_info(self, request, *args, **kwargs):
         return Response(data=license.check_license() | {
             'active_users': PentestUser.objects.get_licensed_user_count(),
             'software_version': settings.VERSION,
         })
-
-
-class SpellcheckView(GenericAPIViewAsync):
-    _action = 'spellcheck'
-    serializer_class = LanguageToolSerializer
-    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired]
-
+    
     @extend_schema(responses=OpenApiTypes.OBJECT)
-    async def post(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
+    async def spellcheck(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.spellcheck()
         return Response(data=data)
     
-
-class SpellcheckWordView(GenericAPIViewAsync):
-    _action = 'spellcheck_add_word'
-    serializer_class = LanguageToolAddWordSerializer
-    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired]
-
-    async def post(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
+    async def spellcheck_add_word(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.save()
         return Response(data=data)
-
-
-class HealthcheckView(GenericAPIViewAsync):
-    _action = 'healthcheck'
-    authentication_classes = []
-    permission_classes = []
-
-    @extend_schema(responses={200: OpenApiTypes.OBJECT, 503: OpenApiTypes.OBJECT})
-    async def get(self, *args, **kwargs):
+    
+    @action(detail=False, methods=['get'], authentication_classes=[], permission_classes=[])
+    async def healthcheck(self, request, *args, **kwargs):
         # Trigger periodic tasks
         await PeriodicTask.objects.run_all_pending_tasks()
 
         return await sync_to_async(run_healthchecks)(settings.HEALTH_CHECKS)
-

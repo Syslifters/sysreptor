@@ -8,15 +8,14 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from reportcreator_api.api_utils.views import SpellcheckWordView, UtilsViewSet, SpellcheckView, HealthcheckView
-from reportcreator_api.pentests.views import ArchivedProjectKeyPartViewSet, ArchivedProjectViewSet, \
+from reportcreator_api.api_utils.views import UtilsViewSet
+from reportcreator_api.pentests.views import \
     FindingTemplateViewSet, FindingTemplateTranslationViewSet, UploadedTemplateImageViewSet, FindingTemplateHistoryViewSet, \
-    PentestFindingViewSet, PentestProjectViewSet, ProjectNotebookPageViewSet, \
-    PentestProjectPreviewView, PentestProjectGenerateView, UploadedAssetViewSet, ProjectTypeHistoryViewSet, \
-    ProjectTypeViewSet, ProjectTypePreviewView, \
-    ReportSectionViewSet, UploadedImageViewSet, UploadedProjectFileViewSet, UploadedUserNotebookImageViewSet, \
-    UploadedUserNotebookFileViewSet, UserNotebookPageViewSet, UserPublicKeyViewSet, \
-    ProjectNotebookPageExportPdfView, UserNotebookPageExportPdfView, PentestProjectHistoryViewSet
+    PentestProjectViewSet, PentestProjectHistoryViewSet, ReportSectionViewSet, PentestFindingViewSet, ProjectNotebookPageViewSet, \
+    UploadedImageViewSet, UploadedProjectFileViewSet, \
+    ProjectTypeViewSet, ProjectTypeHistoryViewSet, UploadedAssetViewSet, \
+    UserNotebookPageViewSet, UploadedUserNotebookImageViewSet, UploadedUserNotebookFileViewSet, \
+    ArchivedProjectViewSet, ArchivedProjectKeyPartViewSet, UserPublicKeyViewSet
 from reportcreator_api.users.views import APITokenViewSet, PentestUserViewSet, MFAMethodViewSet, AuthViewSet, AuthIdentityViewSet
 from reportcreator_api.notifications.views import NotificationViewSet
 
@@ -76,16 +75,6 @@ urlpatterns = [
         path('', include(archivedproject_router.urls)),
         path('', include(template_router.urls)),
 
-        # Async views
-        path('utils/spellcheck/', SpellcheckView.as_view(), name='utils-spellcheck'),
-        path('utils/spellcheck/words/', SpellcheckWordView.as_view(), name='utils-spellcheck-words'),
-        path('utils/healthcheck/', HealthcheckView.as_view(), name='utils-healthcheck'),
-        path('pentestprojects/<uuid:pk>/preview/', PentestProjectPreviewView.as_view(), name='pentestproject-preview'),
-        path('pentestprojects/<uuid:pk>/generate/', PentestProjectGenerateView.as_view(), name='pentestproject-generate'),
-        path('projecttypes/<uuid:pk>/preview/', ProjectTypePreviewView.as_view(), name='projecttype-preview'),
-        path('pentestprojects/<uuid:project_pk>/notes/<uuid:id>/export-pdf/', ProjectNotebookPageExportPdfView.as_view(), name='projectnotebookpage-export-pdf'),
-        path('pentestusers/<str:pentestuser_pk>/notes/<uuid:id>/export-pdf/', UserNotebookPageExportPdfView.as_view(), name='usernotebookpage-export-pdf'),
-    
         # OpenAPI schema
         path('utils/openapi/', SpectacularAPIView.as_view(), name='utils-openapi-schema'),
         path('utils/swagger-ui/', SpectacularSwaggerView.as_view(url_name='utils-openapi-schema'), name='utils-swagger-ui'),
