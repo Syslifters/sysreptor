@@ -52,8 +52,8 @@ nav:
         - File: cli/uploads/file.md
         - Note: cli/uploads/note.md
       - Projects and Templates:
-        - Projects: cli/projects-and-templates/projects.md
-        - Templates: cli/projects-and-templates/templates.md
+        - Project: cli/projects-and-templates/project.md
+        - Template: cli/projects-and-templates/template.md
         - Translate: cli/projects-and-templates/translate.md
       - Importers:
         - Ghostwriter: cli/importers/ghostwriter.md
