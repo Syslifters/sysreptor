@@ -362,15 +362,16 @@ class TestProjectHistory:
     
     def assert_history_create(self, project, **kwargs):
         objs = [project] + \
-            list(project.sections.all()) + list(project.findings.all()) + \
-            list(project.notes.all()) + list(project.members.all()) + \
-                list(project.images.all()) + list(project.files.all())
+            list(project.sections.all()) + list(project.findings.all()) + list(project.notes.all()) + \
+            list(project.images.all()) + list(project.files.all())
         for o in objs:
             assert_history(o, history_count=1, history_type='+', history_date=project.history.all()[0].history_date, **kwargs)
+        for o in list(project.members.all()):
+            assert_history(o, history_count=1, history_type='+', history_date=project.history.all()[0].history_date)
 
     def test_copy(self):
         p = create_project(members=[self.user]).copy()
-        self.assert_history_create(p, history_change_reason='Duplicated')
+        self.assert_history_create(p, history_change_reason=f'Duplicated from project "{p.name}"')
     
     def test_import(self):
         p = import_projects(archive_to_file(export_projects([create_project(members=[self.user])])))[0]
