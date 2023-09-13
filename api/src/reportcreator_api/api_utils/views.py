@@ -32,7 +32,7 @@ class UtilsViewSet(ViewSetAsync):
             return BackupSerializer
         elif self.action == 'spellcheck':
             return LanguageToolSerializer
-        elif self.action == 'spellcheck-add-word':
+        elif self.action == 'spellcheck_add_word':
             return LanguageToolAddWordSerializer
         else:
             return Serializer
@@ -127,7 +127,7 @@ class UtilsViewSet(ViewSetAsync):
         data = await serializer.spellcheck()
         return Response(data=data)
     
-    @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
+    @action(detail=False, url_name='spellcheck-add-word', url_path='spellcheck/words', methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
     async def spellcheck_add_word(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.save()
