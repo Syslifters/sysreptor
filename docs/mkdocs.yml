@@ -49,6 +49,7 @@ nav:
         - ZAP: cli/tools/zap.md
         - SSLyze: cli/tools/sslyze.md
       - Uploads:
+        - Finding: cli/uploads/finding.md
         - File: cli/uploads/file.md
         - Note: cli/uploads/note.md
       - Projects and Templates:
