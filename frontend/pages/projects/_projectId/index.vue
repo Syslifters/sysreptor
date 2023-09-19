@@ -44,6 +44,7 @@
       <project-history-timeline 
         v-model="historyVisible"
         :project="project"
+        :current-url="$route.fullPath"
       />
 
       <p v-if="project.copy_of" class="mt-4">

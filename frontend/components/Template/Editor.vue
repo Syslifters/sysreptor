@@ -52,6 +52,7 @@
       v-model="historyVisible" 
       :template="template" 
       :translation="currentTranslation" 
+      :current-url="`/templates/${template.id}/?language=${currentTranslation.language}`"
     />
 
     <v-tabs-items v-model="currentTab">

@@ -41,6 +41,7 @@
         v-model="historyVisible"
         :project="project"
         :finding="finding"
+        :current-url="$route.fullPath"
       />
 
       <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">

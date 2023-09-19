@@ -67,6 +67,7 @@
         v-model="historyVisible"
         :project="project"
         :note="note"
+        :current-url="$route.fullPath"
       />
 
       <markdown-page 

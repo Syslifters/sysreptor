@@ -23,6 +23,7 @@
         v-model="historyVisible"
         :project="project"
         :section="section"
+        :current-url="$route.fullPath"
       />
 
       <div v-for="fieldId in section.fields" :key="fieldId">
