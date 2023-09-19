@@ -45,8 +45,8 @@
           </div>
 
           <s-btn 
-            v-if="$store.getters['projects/notes'](project.id).map(n => n.id).includes(note.id)" 
-            :to="`/projects/${$route.params.projectId}/notes/${$route.params.noteId}/`" nuxt exact 
+            v-if="currentUrl" 
+            :to="currentUrl" nuxt exact 
             color="secondary" 
             class="ml-1 mr-1"
           >
@@ -65,6 +65,7 @@
         v-model="historyVisible"
         :project="project"
         :note="note"
+        :current-url="currentUrl"
       />
 
       <markdown-page 
@@ -105,6 +106,12 @@ export default {
     },
     hasChildNotes() {
       return false;
+    },
+    currentUrl() {
+      if (this.$store.getters['projects/notes'](this.project.id).map(n => n.id).includes(this.note.id)) {
+        return `/projects/${this.$route.params.projectId}/notes/${this.$route.params.noteId}/`;
+      }
+      return null;
     },
   },
   methods: {

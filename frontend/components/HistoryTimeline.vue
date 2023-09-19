@@ -24,12 +24,20 @@
     
     <v-list-item v-if="!isProfessionalLicense">
       <v-list-item-content>
-        Version history is not availalbe <br>in community edition.<br><br>
+        Version history is not availalbe <br>
+        in community edition.<br><br>
         See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank">https://docs.sysreptor.com/features-and-pricing/</a>
       </v-list-item-content>
     </v-list-item>
     <template v-else>
       <v-timeline align-top dense>
+        <history-timeline-item 
+          v-if="currentUrl" 
+          :value="{history_type: '~', history_change_reason: 'Current Version'}"
+          :to="currentUrl"
+        >
+          <template #info><span /></template>
+        </history-timeline-item>
         <slot name="item" v-for="item in historyRecords.data" :item="item">
           <history-timeline-item :value="item" />
         </slot>
@@ -51,6 +59,10 @@ export default {
     url: {
       type: String,
       required: true,
+    },
+    currentUrl: {
+      type: String,
+      default: null,
     },
   },
   data() {

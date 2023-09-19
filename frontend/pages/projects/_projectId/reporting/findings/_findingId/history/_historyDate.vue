@@ -14,8 +14,8 @@
         </div>
 
         <s-btn 
-          v-if="$store.getters['projects/findings'](project.id).map(f => f.id).includes(finding.id)"
-          :to="`/projects/${$route.params.projectId}/reporting/findings/${$route.params.findingId}/`" nuxt exact 
+          v-if="currentUrl"
+          :to="currentUrl" nuxt exact 
           color="secondary" class="ml-1 mr-1"
         >
           <v-icon left>mdi-undo</v-icon>
@@ -32,6 +32,7 @@
         v-model="historyVisible"
         :project="project"
         :finding="finding"
+        :current-url="currentUrl"
       />
 
       <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
@@ -78,6 +79,12 @@ export default {
     data() {
       return this.finding;
     },
+    currentUrl() {
+      if (this.$store.getters['projects/findings'](this.project.id).map(f => f.id).includes(this.finding.id)) {
+        return `/projects/${this.$route.params.projectId}/reporting/findings/${this.$route.params.findingId}/`;
+      }
+      return null;
+    }
   },
   methods: {
     getBaseUrl(data) {

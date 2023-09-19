@@ -1,12 +1,14 @@
 <template>
-  <nuxt-link :to="to || '#'" :disabled="!to" :class="{'timeline-item-link': true, 'disabled': !to}">
+  <nuxt-link :to="to || '#'" exact :disabled="!to" :class="{'timeline-item-link': true, 'disabled': !to}">
     <v-timeline-item small fill-dot :color="value.history_type === '+' ? 'success' : value.history_type === '-' ? 'error' : 'primary'">
-      <chip-date :value="value.history_date" />
-      <chip-member v-if="value.history_user" :value="value.history_user" />
-      <br>
+      <slot name="info">
+        <chip-date :value="value.history_date" />
+        <chip-member v-if="value.history_user" :value="value.history_user" />
+        <br>
+      </slot>
 
       <slot name="title">
-        <span v-if="value.change_reason">{{ value.change_reason }}</span>
+        <span v-if="value.history_change_reason">{{ value.history_change_reason }}</span>
         <span v-else-if="value.history_type === '+'">Created</span>
         <span v-else-if="value.history_type === '-'">Deleted</span>
       </slot>
