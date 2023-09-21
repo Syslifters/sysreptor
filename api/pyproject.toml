@@ -20,7 +20,7 @@ django-storages = "^1.13.2"
 drf-nested-routers = "^0.93.4"
 django-filter = "^23.1"
 drf-spectacular = { extras = ["sidecar"], version = "^0.26.3" }
-django-simple-history = "^3.3.0"
+django-simple-history = "^3.4.0"
 
 psycopg = { extras = ["binary"], version = "^3.1.8" }
 gunicorn = "^20.1.0"

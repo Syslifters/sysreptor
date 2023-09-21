@@ -75,7 +75,7 @@ MIDDLEWARE = [
     'csp.middleware.CSPMiddleware',
     'reportcreator_api.utils.middleware.CacheControlMiddleware',
     'reportcreator_api.utils.middleware.PermissionsPolicyMiddleware',
-    'reportcreator_api.utils.middleware.HistoryRequestMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'reportcreator_api.conf.urls'

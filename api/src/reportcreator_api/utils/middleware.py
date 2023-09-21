@@ -59,18 +59,3 @@ class PermissionsPolicyMiddleware(deprecation.MiddlewareMixin):
         return response
 
 
-@sync_and_async_middleware
-def HistoryRequestMiddleware(get_response):
-    from reportcreator_api.utils.history import history_context
-    
-    # Use built-in django-simple-history middleware after updating to 3.4.0
-    if iscoroutinefunction(get_response):
-        async def middleware(request):
-            with history_context(request=request):
-                return await get_response(request)
-    else:
-        def middleware(request):
-            with history_context(request=request):
-                return get_response(request)
-    return middleware
-
