@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## v2023.128 - 2023-09-21
 * Version history for projects, designs and templates
 * UI: Decrease font size of note assignee in list to match finding/section assignee style
 * UI: Autofocus note and finding title after create
