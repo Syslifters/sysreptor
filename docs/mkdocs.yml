@@ -20,6 +20,7 @@ nav:
     - Backups: setup/backups.md
   - Writing Reports:
     - Markdown Syntax: reporting/markdown-features.md
+    - Version History: reporting/version-history.md
     - Spell Check: reporting/spell-check.md
     - References: reporting/references.md
     - Finding Templates: finding-templates/create-finding.md
