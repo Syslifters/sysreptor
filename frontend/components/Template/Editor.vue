@@ -39,7 +39,7 @@
 
       <s-btn v-if="history" @click="historyVisible = !historyVisible" color="secondary">
         <v-icon left>mdi-history</v-icon>
-        Version History
+        <span class="d-none d-lg-inline">Version History</span>
       </s-btn>
 
       <template #context-menu v-if="$slots['toolbar-context-menu']">

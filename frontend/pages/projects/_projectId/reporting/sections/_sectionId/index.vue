@@ -3,7 +3,7 @@
     <div v-if="section && project && projectType" :key="project.id + section.id">
       <edit-toolbar v-bind="toolbarAttrs" v-on="toolbarEvents" :can-auto-save="true">
         <status-selection v-model="section.status" :disabled="readonly" />
-        <div class="assignee-container ml-1 mr-1">
+        <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
           <user-selection 
             v-model="section.assignee" 
             :selectable-users="project.members" 
@@ -15,7 +15,7 @@
 
         <s-btn @click="historyVisible = !historyVisible" color="secondary">
           <v-icon left>mdi-history</v-icon>
-          Version History
+          <span class="d-none d-lg-inline">Version History</span>
         </s-btn>
       </edit-toolbar>
 

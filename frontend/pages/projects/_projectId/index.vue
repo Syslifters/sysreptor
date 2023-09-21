@@ -6,7 +6,7 @@
         <template #default>
           <s-btn @click="historyVisible = !historyVisible" color="secondary">
             <v-icon left>mdi-history</v-icon>
-            Version History
+            <span class="d-none d-lg-inline">Version History</span>
           </s-btn>
           <btn-readonly :value="project.readonly" :set-readonly="setReadonly" />
           <s-btn

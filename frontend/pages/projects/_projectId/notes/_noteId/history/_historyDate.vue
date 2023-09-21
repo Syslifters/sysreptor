@@ -34,7 +34,7 @@
             :disabled="readonly"
           />
 
-          <div class="assignee-container ml-1 mr-1">
+          <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
             <user-selection 
               v-model="note.assignee" 
               :selectable-users="project.members" 
@@ -48,7 +48,7 @@
             v-if="currentUrl" 
             :to="currentUrl" nuxt exact 
             color="secondary" 
-            class="ml-1 mr-1"
+            class="ml-1 mr-1 d-none d-lg-inline-flex"
           >
             <v-icon left>mdi-undo</v-icon>
             Back to current version
@@ -56,7 +56,7 @@
 
           <s-btn @click="historyVisible = !historyVisible" color="secondary">
             <v-icon left>mdi-history</v-icon>
-            Version History
+            <span class="d-none d-lg-inline">Version History</span>
           </s-btn>
         </template>
       </edit-toolbar>

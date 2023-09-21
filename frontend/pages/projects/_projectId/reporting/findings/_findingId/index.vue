@@ -21,7 +21,7 @@
         </s-tooltip>
 
         <status-selection v-model="finding.status" :disabled="readonly" />
-        <div class="assignee-container ml-1 mr-1">
+        <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
           <user-selection 
             v-model="finding.assignee" 
             :selectable-users="project.members" 
@@ -33,7 +33,7 @@
 
         <s-btn @click="historyVisible = !historyVisible" color="secondary">
           <v-icon left>mdi-history</v-icon>
-          Version History
+          <span class="d-none d-lg-inline">Version History</span>
         </s-btn>
       </edit-toolbar>
 
