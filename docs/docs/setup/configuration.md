@@ -33,7 +33,7 @@ SECRET_KEY="TODO-change-me-Z6cuMithzO0fMn3ZqJ7nTg0YJznoHiJXoJCNngQM4Kqzzd3fiYKdV
 ```
 
 ### Data Encryption at Rest
-Encrypt data at rest by configuring an encryption key. This will encrypt sensitive data in your database and files uploaded in your notes (except images).
+Encrypt data at rest by configuring an encryption key. This will encrypt sensitive data in your database and files uploaded in your notes (~~except images~~, images are also encrypted).
 
 Database and file storage administrators cannot access encrypted data. The key is held in the web application. Data encryption at rest does not help against malicious actors with access to the web server.
 
@@ -183,7 +183,7 @@ GUEST_USERS_CAN_DELETE_PROJECTS=True
 ```
 
 ### S3 Storage
-Uploaded files (except images) in notes can be uploaded to an S3 bucket. Files are stored on the filesystem in a docker volume by default. If data at rest encryption is configured files are encrypted.
+Uploaded files (~~except images~~, images are also encrypted) in notes can be uploaded to an S3 bucket. Files are stored on the filesystem in a docker volume by default. If data at rest encryption is configured files are encrypted.
 
 ``` title="Example:"
 UPLOADED_FILE_STORAGE="s3"  # Default: "filesystem"
