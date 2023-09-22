@@ -9,13 +9,6 @@ nav:
     - Configuration: setup/configuration.md
     - Setup Webserver: setup/webserver.md
     - Proxy Server: setup/proxy.md
-    - Single Sign-On:
-      - SSO Setup: setup/oidc-setup.md
-      - Keycloak: setup/oidc-keycloak.md
-      - Azure AD: setup/oidc-azure-active-directory.md
-      - Google: setup/oidc-google.md
-      - Generic: setup/oidc-generic.md
-    - User Permissions: setup/user-permissions.md
     - Updates: setup/updates.md
     - Backups: setup/backups.md
   - Writing Reports:
@@ -41,6 +34,15 @@ nav:
     - Overview: finding-templates/overview.md
     - Create Finding: finding-templates/create-finding.md
     - Multilingual: finding-templates/multilingual.md
+  - User Management:
+    - User Permissions: users/user-permissions.md
+    - Single Sign-On:
+      - SSO Setup: users/oidc-setup.md
+      - Keycloak: users/oidc-keycloak.md
+      - Azure AD: users/oidc-azure-active-directory.md
+      - Google: users/oidc-google.md
+      - Generic: users/oidc-generic.md
+    - Forgot Password: users/forgot-password.md
   - Automize Reporting via CLI (alpha):
       - Getting Started: cli/getting-started.md
       - Setup: cli/setup.md
@@ -63,10 +65,10 @@ nav:
         - Tools: cli/writing-plugins/tools.md
         - Importers: cli/writing-plugins/importers.md
   - Tech Insights:
+    - Show and Tell: show-and-tell/index.md
     - Rendering Workflow: insights/rendering-workflow.md
     - Archiving: insights/archiving.md
     - Security Considerations: insights/security-considerations.md
-  - Show and Tell: show-and-tell/index.md
   - OSCP Reporting: offsec-reporting-with-sysreptor.md
   - Contact Us: contact-us.md
 
@@ -116,6 +118,12 @@ plugins:
         "backups.md": "setup/backups.md"
         "templates.md": "finding-templates/overview.md"
         "reporting/archiving.md": "insights/archiving.md"
+        "setup/user-permissions.md": "users/user-permissions.md"
+        "setup/oidc-setup.md": "users/oidc-setup.md"
+        "setup/oidc-keycloak.md": "users/oidc-keycloak.md"
+        "setup/oidc-azure-active-directory.md": "users/oidc-azure-active-directory.md"
+        "setup/oidc-google.md": "users/oidc-google.md"
+        "setup/oidc-generic.md": "users/oidc-generic.md"
 
 markdown_extensions:
   - attr_list
