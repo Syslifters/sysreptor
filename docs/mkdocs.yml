@@ -43,7 +43,7 @@ nav:
       - Google: users/oidc-google.md
       - Generic: users/oidc-generic.md
     - Forgot Password: users/forgot-password.md
-  - Automize Reporting via CLI (alpha):
+  - Automize Reporting via CLI:
       - Getting Started: cli/getting-started.md
       - Setup: cli/setup.md
       - Tools:
