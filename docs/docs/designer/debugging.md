@@ -21,5 +21,8 @@ There is no way to interactively debug CSS rules.
 The PDFs are rendered statically and returned as a file. 
 There exists no interactive CSS editor like dev tools console in browsers.
 
-However, you can set background colors or borders on elements to see where they are positioned and how big they are.
+However, you can set background colors or borders on elements to see where they are positioned and how big they are, e.g.
 
+```
+{background: rgba(150,150,150,0.1)}
+```
