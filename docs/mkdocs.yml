@@ -48,7 +48,6 @@ nav:
       - Setup: cli/setup.md
       - Tools:
         - Nmap: cli/tools/nmap.md
-        - Nikto: cli/tools/nikto.md
         - ZAP: cli/tools/zap.md
         - SSLyze: cli/tools/sslyze.md
       - Uploads:
@@ -57,6 +56,7 @@ nav:
         - Note: cli/uploads/note.md
       - Projects and Templates:
         - Project: cli/projects-and-templates/project.md
+        - Projectfindings: cli/projects-and-templates/projectfindings.md
         - Template: cli/projects-and-templates/template.md
         - Translate: cli/projects-and-templates/translate.md
       - Importers:

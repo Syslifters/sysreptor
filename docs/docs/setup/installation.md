@@ -30,11 +30,9 @@
     sudo apt install sed curl openssl uuid-runtime coreutils
     ```
 
-    The installation script will create a new `sysreptor` directory holding the source code and everything you need. It will build a docker image, create volumes, secrets and bring up your containers.
-
-    The user running the installation script must have the permission to use docker.
-
+    The user running the installation script must have the permission to use docker.  
     Download and run:
+
     === "Professional"
         ```shell linenums="1"
         export SYSREPTOR_LICENSE='your_license_key' 
@@ -45,6 +43,9 @@
         ```shell linenums="1"
         curl -s https://docs.sysreptor.com/install.sh | bash
         ```
+
+    The installation script creates a new `sysreptor` directory holding the source code and everything you need.  
+    It will build a docker image, create volumes and secrets and bring up your containers.
 
 === "Manual Installation"
 
