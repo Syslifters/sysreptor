@@ -230,18 +230,19 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
         ))
     
     # Capture weasyprint logs and provide as messages
+    res = None
     with mock.patch.object(WEASYPRINT_LOGGER, 'error', new=weasyprint_capture_logs, spec=True), \
          mock.patch.object(WEASYPRINT_LOGGER, 'warning', new=weasyprint_capture_logs, spec=True), \
          mock.patch.object(WEASYPRINT_LOGGER, 'info', new=weasyprint_capture_logs, spec=True), \
          mock.patch.object(WEASYPRINT_LOGGER, 'debug', new=weasyprint_capture_logs, spec=True):
-        rendered = None
         try:
             font_config = FontConfiguration()
             html = HTML(string=html_content, base_url='reportcreator://', url_fetcher=weasyprint_url_fetcher)
-            rendered = html.render(
+            res = html.write_pdf(
                 font_config=font_config, 
-                optimize_size=[], 
-                presentational_hints=True
+                presentational_hints=True,
+                optimize_images=False,
+                finisher=weasyprint_strip_pdf_metadata
             )
         except Exception as ex:
             logging.exception('Error rendering PDF')
@@ -250,10 +251,7 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
                 message='Error rendering PDF'
             ))
 
-        res = None
-        if not any(map(lambda m: m.level == MessageLevel.ERROR, messages)) and rendered:
-            res = rendered.write_pdf(finisher=weasyprint_strip_pdf_metadata)
-        return res, messages
+    return res, messages
 
 
 @log_timing

@@ -25,6 +25,7 @@ server {
 	ssl_stapling_verify on;
 
 	client_max_body_size 0;
+	proxy_read_timeout 300;
 
 	location / {
 		include proxy_params;
