@@ -46,8 +46,8 @@ FROM frontend-dev AS frontend-test
 # Include source code
 COPY packages/markdown/ /app/packages/markdown/
 COPY frontend /app/frontend/
-COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/frontend/src/assets/rendering
-COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/static/static/pdfviewer/
+COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/frontend/src/assets/rendering/
+COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/src/public/static/pdfviewer/
 
 # Test command
 CMD npm run test
