@@ -1,5 +1,5 @@
-import {EditorSelection} from "@codemirror/state"
-import {syntaxTree} from "@codemirror/language"
+import {countColumn, EditorSelection} from "@codemirror/state"
+import {indentUnit, syntaxTree} from "@codemirror/language"
 import { markdownLanguage } from "./language";
 import {linesInRange, getChildren, intersectsRange, getIntersectionNodes, moveRangeDelete, moveRangeInsert} from './codemirror-utils';
 
@@ -57,15 +57,15 @@ function getContext(selectedNode, doc) {
   for (let i = nodes.length - 1; i >= 0; i--) {
     let node = nodes[i], match;
     let line = doc.lineAt(node.from), startPos = node.from - line.from;
-    if (node.name == "blockQuote" && (match = /^[ \t]*>( ?)/.exec(line.text.slice(startPos)))) {
+    if (node.name == "blockQuote" && (match = /^ *>( ?)/.exec(line.text.slice(startPos)))) {
       context.push(new Context(node, startPos, startPos + match[0].length, "", match[1], ">", null));
     } else if (node.name == "listItem" && node.parent.name == "listOrdered" &&
-               (match = /^([ \t]*)\d+([.)])([ \t]*)/.exec(line.text.slice(startPos)))) {
+               (match = /^( *)\d+([.)])( *)/.exec(line.text.slice(startPos)))) {
       let after = match[3], len = match[0].length
       if (after.length >= 4) { after = after.slice(0, after.length - 4); len -= 4 }
       context.push(new Context(node.parent, startPos, startPos + len, match[1], after, match[2], node));
     } else if (node.name == "listItem" && node.parent.name == "listUnordered" &&
-               (match = /^([ \t]*)([-+*])([ \t]{1,4}\[[ xX]\])?([ \t]+)/.exec(line.text.slice(startPos)))) {
+               (match = /^( *)([-+*])( {1,4}\[[ xX]\])?( +)/.exec(line.text.slice(startPos)))) {
       let after = match[4], len = match[0].length
       if (after.length > 4) { after = after.slice(0, after.length - 4); len -= 4 }
       let type = match[2]
@@ -95,6 +95,18 @@ function renumberList(after, doc, changes, offset = 0) {
     if (!next) break
     node = next
   }
+}
+
+function normalizeIndent(content, state) {
+  let blank = /^[ \t]*/.exec(content)[0].length
+  if (!blank || state.facet(indentUnit) != "\t") return content
+  let col = countColumn(content, 4, blank)
+  let space = ""
+  for (let i = col; i > 0;) {
+    if (i >= 4) { space += "\t"; i -= 4 }
+    else { space += " "; i-- }
+  }
+  return space + content.slice(blank)
 }
 
 /// This command, when invoked in Markdown context with cursor
@@ -158,16 +170,16 @@ export const insertNewlineContinueMarkup = ({state, dispatch}) => {
     if (!continued || /^[\s\d.)\-+*>]*/.exec(line.text)[0].length >= inner.to) {
       for (let i = 0, e = context.length - 1; i <= e; i++) {
         insert += i == e && !continued ? context[i].marker(doc, 1)
-          : context[i].blank(i < e ? context[i + 1].from - insert.length : null);
+          : context[i].blank(i < e ? countColumn(line.text, 4, context[i + 1].from) - insert.length : null)
       }
     }
     let from = pos;
     while (from > line.from && /\s/.test(line.text.charAt(from - line.from - 1))) { 
       from--; 
     }
-    insert = state.lineBreak + insert;
-    changes.push({from, to: pos, insert});
-    return {range: EditorSelection.cursor(from + insert.length), changes};
+    insert = normalizeIndent(insert, state)
+    changes.push({from, to: pos, insert: state.lineBreak + insert})
+    return {range: EditorSelection.cursor(from + insert.length + 1), changes}
   })
   if (dont) return false
   dispatch(state.update(changes, {scrollIntoView: true, userEvent: "input"}))
@@ -231,7 +243,10 @@ export const deleteMarkupBackward = ({state, dispatch}) => {
           let start = line.from + inner.from
           // Replace a list item marker with blank space
           if (inner.item && inner.node.from < inner.item.from && /\S/.test(line.text.slice(inner.from, inner.to))) {
-            return {range, changes: {from: start, to: line.from + inner.to, insert: inner.blank(inner.to - inner.from)}};
+            let insert = inner.blank(countColumn(line.text, 4, inner.to) - countColumn(line.text, 4, inner.from))
+            if (start == line.from) insert = normalizeIndent(insert, state)
+            return {range: EditorSelection.cursor(start + insert.length),
+                    changes: {from: start, to: line.from + inner.to, insert}}
           }
           // Delete one level of indentation
           if (start < pos) {

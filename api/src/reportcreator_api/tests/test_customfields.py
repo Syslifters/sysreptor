@@ -147,7 +147,7 @@ def test_update_field_values(definition, old_value, new_value):
 @pytest.mark.parametrize('compatible,a,b', [
     (True, {'a': {'type': 'string'}}, {'b': {'type': 'string'}}),
     (True, {'a': {'type': 'string'}}, {'a': {'type': 'string'}}),
-    (True, {'a': {'type': 'string', 'label': 'left', 'default': 'left', 'required': False}}, {'a': {'type': 'string', 'label': 'right', 'defualt': 'right', 'required': True}}),
+    (True, {'a': {'type': 'string', 'label': 'left', 'default': 'left', 'required': False}}, {'a': {'type': 'string', 'label': 'right', 'default': 'right', 'required': True}}),
     (True, {'a': {'type': 'string'}}, {'a': {'type': 'string'}, 'b': {'type': 'string'}}),
     (True, {'a': {'type': 'string'}, 'b': {'type': 'string'}}, {'a': {'type': 'string'}}),
     (False, {'a': {'type': 'string'}}, {'a': {'type': 'list', 'items': {'type': 'string'}}}),

@@ -121,8 +121,8 @@ services:
     expose:
       - 8000
     ports:
-      - "8000:8000"
-      - "5678:5678"
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:5678:5678"
     environment:
       DEBUG: "on"
       DATABASE_HOST: db
@@ -155,14 +155,16 @@ services:
         target: /app/packages/
       - type: bind
         source: ../packages/pdfviewer/dist/
-        target: /app/frontend/static/static/pdfviewer/
+        target: /app/frontend/src/public/static/pdfviewer/
       - type: bind
         source: ../api/src/reportcreator_api/tasks/rendering/global_assets/
-        target: /app/frontend/assets/rendering/
+        target: /app/frontend/src/assets/rendering/
     expose:
       - 3000
+      - 24678
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:24678:24678"
     environment:
       HOST: 0.0.0.0
     depends_on:

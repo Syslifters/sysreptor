@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { formatMarkdown, renderMarkdownToHtml } from 'reportcreator-markdown';
 
 function codeBlock(content, language = null) {
@@ -69,7 +70,7 @@ describe('Markdown extensions', () => {
   }).map(([md, expected]) => [md, typeof expected === 'string' ? { html: expected, formatted: md } : expected])) {
     test(md, () => {
       expect(renderMarkdownToHtml(md).trim()).toBe(expected.html);
-      const formattedMd = formatMarkdown(md).trim('\n');
+      const formattedMd = formatMarkdown(md).trim();
       expect(formattedMd).toBe(expected.formatted);
     });
   }

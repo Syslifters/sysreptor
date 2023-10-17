@@ -32,9 +32,6 @@ RUN mkdir -p /usr/local/share/ca-certificates/ && \
     apk add --no-cache ca-certificates && \
     update-ca-certificates
 
-# Required for webpack4 to work with node 18
-ENV NODE_OPTIONS=--openssl-legacy-provider
-
 # Install dependencies
 WORKDIR /app/packages/markdown/
 COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
@@ -49,7 +46,7 @@ FROM frontend-dev AS frontend-test
 # Include source code
 COPY packages/markdown/ /app/packages/markdown/
 COPY frontend /app/frontend/
-COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/frontend/assets/rendering
+COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/frontend/src/assets/rendering
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/static/static/pdfviewer/
 
 # Test command
@@ -58,7 +55,7 @@ CMD npm run test
 
 FROM frontend-test AS frontend
 # Build JS bundle
-RUN npm run build
+RUN npm run generate
 
 
 
@@ -190,7 +187,8 @@ FROM api-test as api
 # Do not post-process nuxt files, because they already have hash names (and django failes to post-process them)
 USER root
 RUN python3 manage.py collectstatic --no-input --clear
-COPY --from=frontend /app/frontend/dist/ /app/api/frontend/
-RUN python3 manage.py collectstatic --no-input --no-post-process \
-    && python3 -m whitenoise.compress /app/api/static/
+COPY --from=frontend /app/frontend/dist/index.html /app/frontend/dist/static/ /app/api/frontend/static/
+RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
+    && python3 manage.py collectstatic --no-input --no-post-process \
+    && python3 -m whitenoise.compress /app/api/static/ map
 USER 1000

@@ -1,9 +1,9 @@
-import { EditorState, EditorSelection } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
-import { markdown } from 'reportcreator-markdown/editor/language.js';
-import { syntaxHighlighting } from '@codemirror/language';
-import { markdownHighlightStyle, markdownHighlightCodeBlocks } from 'reportcreator-markdown/editor/highlight.js';
-import { toggleStrong, toggleEmphasis, toggleStrikethrough, toggleListUnordered, toggleListOrdered, toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup } from 'reportcreator-markdown/editor/commands.js';
+import { describe, test, expect } from 'vitest'
+import {
+  EditorState, EditorSelection, EditorView,
+  markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
+  toggleStrong, toggleEmphasis, toggleStrikethrough, toggleListUnordered, toggleListOrdered, toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup
+} from 'reportcreator-markdown/editor';
 
 function createEditorState(textWithSelection, cursorMarker = '|') {
   const parts = textWithSelection.split(cursorMarker);
@@ -37,7 +37,7 @@ function testCommand(command, before, after, cursorMarker = '|') {
     expect(stateAfterActual.doc.toString()).toBe(stateAfterExpected.doc.toString());
     expect(stateAfterActual.selection.eq(stateAfterExpected.selection)).toBeTruthy();
 
-    view.destroy();
+    // view.destroy();
   });
 }
 
@@ -45,7 +45,7 @@ for (const toggleSequenceOptions of [
   { name: 'toggleStrong', command: toggleStrong, sequence: '**' },
   { name: 'toggleEmphasis', command: toggleEmphasis, sequence: '_' },
   { name: 'toggleStrikethrough', command: toggleStrikethrough, sequence: '~~' },
-]) { 
+]) {
   describe(toggleSequenceOptions.name, () => {
     const s = toggleSequenceOptions.sequence;
     for (const [before, after] of Object.entries({
@@ -60,8 +60,8 @@ for (const toggleSequenceOptions of [
       ...(s.length > 1 ? {
         [`|a ${s.slice(0, 1)}|${s.slice(1)}text${s} b`]: "|a |text b",
         [`a ${s.slice(0, 1)}|${s.slice(1)}text${s.slice(0, 1)}|${s.slice(1)} b`]: "a |text| b",
-      } : {}),  
-    })) { 
+      } : {}),
+    })) {
       testCommand(toggleSequenceOptions.command, before, after);
     }
   })

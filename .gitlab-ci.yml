@@ -75,7 +75,7 @@ test-frontend:
       junit: frontend/test-reports/junit.xml
   script:
     - mkdir frontend/test-reports
-    - docker run --mount=type=bind,source=$PWD/frontend/test-reports,target=/app/frontend/test-reports $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA npm run test -- --ci
+    - docker run --mount=type=bind,source=$PWD/frontend/test-reports,target=/app/frontend/test-reports $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA npm run test
 
 sync:
   stage: sync
