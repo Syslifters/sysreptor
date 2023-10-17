@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+* Update frontend tech stack to Vue3, Nuxt3, Vuetify3, Typescript
+* Update weasyprint to v60
+* Increase read timeout in example nginx config
+
+
 ## v2023.128 - 2023-09-21
 * Version history for projects, designs and templates
 * UI: Decrease font size of note assignee in list to match finding/section assignee style
