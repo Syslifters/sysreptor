@@ -1,4 +1,4 @@
-@codemirror/autocomplete 6.9.0
+@codemirror/autocomplete 6.10.2
 MIT
 MIT License
 
@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/commands 6.2.4
+@codemirror/commands 6.2.5
 MIT
 MIT License
 
@@ -48,7 +48,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-css 6.2.0
+@codemirror/lang-css 6.2.1
 MIT
 MIT License
 
@@ -73,7 +73,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-html 6.4.5
+@codemirror/lang-html 6.4.6
 MIT
 MIT License
 
@@ -98,7 +98,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-javascript 6.1.9
+@codemirror/lang-javascript 6.2.1
 MIT
 MIT License
 
@@ -123,7 +123,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-markdown 6.2.0
+@codemirror/lang-markdown 6.2.2
 MIT
 MIT License
 
@@ -198,7 +198,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lint 6.4.0
+@codemirror/lint 6.4.2
 MIT
 MIT License
 
@@ -273,6 +273,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
+@codemirror/view 6.21.3
+MIT
+MIT License
+
+Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
 @isaacs/cliui 8.0.2
 ISC
 Copyright (c) 2015, Contributors
@@ -291,7 +316,7 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-@lezer/common 1.0.3
+@lezer/common 1.1.0
 MIT
 MIT License
 
@@ -391,7 +416,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/javascript 1.4.5
+@lezer/javascript 1.4.8
 MIT
 MIT License
 
@@ -416,7 +441,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/lr 1.3.9
+@lezer/lr 1.3.13
 MIT
 MIT License
 
@@ -441,7 +466,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/markdown 1.0.5
+@lezer/markdown 1.1.0
 MIT
 MIT License
 
@@ -695,7 +720,7 @@ MIT
    limitations under the License.
 
 
-@types/debug 4.1.8
+@types/debug 4.1.9
 MIT
     MIT License
 
@@ -720,7 +745,7 @@ MIT
     SOFTWARE
 
 
-@types/hast 2.3.5
+@types/hast 2.3.6
 MIT
     MIT License
 
@@ -745,7 +770,7 @@ MIT
     SOFTWARE
 
 
-@types/mdast 3.0.12
+@types/mdast 3.0.13
 MIT
     MIT License
 
@@ -770,11 +795,11 @@ MIT
     SOFTWARE
 
 
-@types/ms 0.7.31
+@types/ms 0.7.32
 MIT
     MIT License
 
-    Copyright (c) Microsoft Corporation. All rights reserved.
+    Copyright (c) Microsoft Corporation.
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -820,7 +845,7 @@ MIT
     SOFTWARE
 
 
-@types/unist 2.0.7
+@types/unist 2.0.8
 MIT
     MIT License
 
@@ -845,7 +870,7 @@ MIT
     SOFTWARE
 
 
-abbrev 1.1.1
+abbrev 2.0.0
 ISC
 This software is dual-licensed under the ISC and MIT licenses.
 You may use this software under EITHER of the following licenses.
@@ -1629,31 +1654,7 @@ Copyright 2010 - 2014 Sami Samhuri sami@samhuri.net
 
 
 
-function-bind 1.1.1
-MIT
-Copyright (c) 2013 Raynos.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-
-
-glob 10.3.3
+glob 10.3.10
 ISC
 The ISC License
 
@@ -1704,7 +1705,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-has 1.0.3
+has 1.0.4
 MIT
 Copyright (c) 2013 Thiago de Arruda
 
@@ -2077,6 +2078,39 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+highlight.js 11.9.0
+BSD-3-Clause
+BSD 3-Clause License
+
+Copyright (c) 2006, Ivan Sagalaev.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
 hosted-git-info 6.1.1
 ISC
 Copyright (c) 2015, Rebecca Turner
@@ -2197,7 +2231,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-is-core-module 2.12.1
+is-core-module 2.13.0
 MIT
 The MIT License (MIT)
 
@@ -2317,7 +2351,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-jackspeak 2.2.2
+jackspeak 2.3.6
 BlueOak-1.0.0
 # Blue Oak Model License
 
@@ -2430,7 +2464,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-license-checker-rseidelsohn 4.2.6
+license-checker-rseidelsohn 4.2.10
 BSD-3-Clause
 Copyright 2012 Yahoo Inc.
 
@@ -2612,7 +2646,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-lru-cache 10.0.0
+lru-cache 10.0.1
 ISC
 The ISC License
 
@@ -8024,7 +8058,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-minipass 7.0.2
+minipass 7.0.4
 ISC
 The ISC License
 
@@ -8118,7 +8152,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-nopt 5.0.0
+nopt 7.2.0
 ISC
 The ISC License
 
@@ -8296,7 +8330,7 @@ will be liable to anyone for any damages related to this
 software or this license, under any kind of legal claim.***
 
 
-property-information 6.2.0
+property-information 6.3.0
 MIT
 (The MIT License)
 
@@ -8361,7 +8395,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
 
-rehype-parse 8.0.4
+rehype-parse 8.0.5
 MIT
 # rehype-parse
 
@@ -8430,17 +8464,17 @@ In Node.js (version 12.20+, 14.14+, or 16.0+), install with [npm][]:
 npm install rehype-parse
 ```
 
-In Deno with [Skypack][]:
+In Deno with [`esm.sh`][esmsh]:
 
 ```js
-import rehypeParse from 'https://cdn.skypack.dev/rehype-parse@8?dts'
+import rehypeParse from 'https://esm.sh/rehype-parse@8'
 ```
 
-In browsers with [Skypack][]:
+In browsers with [`esm.sh`][esmsh]:
 
 ```html
 <script type="module">
-  import rehypeParse from 'https://cdn.skypack.dev/rehype-parse@8?min'
+  import rehypeParse from 'https://esm.sh/rehype-parse@8?bundle'
 </script>
 ```
 
@@ -8832,10 +8866,13 @@ Support this effort and give back by sponsoring on [OpenCollective][collective]!
   <a href="https://boostnote.io"><img src="https://images.opencollective.com/boosthub/6318083/logo/128.png" width="64"></a>
 </td>
 <td width="10%" align="center">
+  <a href="https://markdown.space">Markdown Space</a><br><br>
+  <a href="https://markdown.space"><img src="https://images.opencollective.com/markdown-space/e1038ed/logo/128.png" width="64"></a>
+</td>
+<td width="10%" align="center">
   <a href="https://www.holloway.com">Holloway</a><br><br>
   <a href="https://www.holloway.com"><img src="https://avatars1.githubusercontent.com/u/35904294?s=128&v=4" width="64"></a>
 </td>
-<td width="10%"></td>
 <td width="10%"></td>
 <td width="10%"></td>
 </tr>
@@ -8898,7 +8935,7 @@ Support this effort and give back by sponsoring on [OpenCollective][collective]!
 
 [npm]: https://docs.npmjs.com/cli/install
 
-[skypack]: https://www.skypack.dev
+[esmsh]: https://esm.sh
 
 [unified]: https://github.com/unifiedjs/unified
 
@@ -8979,7 +9016,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-rehype-stringify 9.0.3
+rehype-stringify 9.0.4
 MIT
 # rehype-stringify
 
@@ -9033,6 +9070,12 @@ This plugin is built on [`hast-util-to-html`][hast-util-to-html], which turns
 rehype focusses on making it easier to transform content by abstracting such
 internals away.
 
+A different plugin, [`rehype-format`][rehype-format], improves the readability
+of HTML source code as it adds insignificant but pretty whitespace between
+elements.
+There is also the preset [`rehype-minify`][rehype-minify] for when you want the
+inverse: minified and mangled HTML.
+
 ## Install
 
 This package is [ESM only][esm].
@@ -9042,17 +9085,17 @@ In Node.js (version 12.20+, 14.14+, or 16.0+), install with [npm][]:
 npm install rehype-stringify
 ```
 
-In Deno with [Skypack][]:
+In Deno with [`esm.sh`][esmsh]:
 
 ```js
-import rehypeStringify from 'https://cdn.skypack.dev/rehype-stringify@9?dts'
+import rehypeStringify from 'https://esm.sh/rehype-stringify@9'
 ```
 
-In browsers with [Skypack][]:
+In browsers with [`esm.sh`][esmsh]:
 
 ```html
 <script type="module">
-  import rehypeStringify from 'https://cdn.skypack.dev/rehype-stringify@9?min'
+  import rehypeStringify from 'https://esm.sh/rehype-stringify@9?bundle'
 </script>
 ```
 
@@ -9255,7 +9298,7 @@ Not used in the SVG space.
 
 ## Syntax
 
-HTML is parsed according to WHATWG HTML (the living standard), which is also
+HTML is serialized according to WHATWG HTML (the living standard), which is also
 followed by browsers such as Chrome and Firefox.
 
 ## Syntax tree
@@ -9349,10 +9392,13 @@ Support this effort and give back by sponsoring on [OpenCollective][collective]!
   <a href="https://boostnote.io"><img src="https://images.opencollective.com/boosthub/6318083/logo/128.png" width="64"></a>
 </td>
 <td width="10%" align="center">
+  <a href="https://markdown.space">Markdown Space</a><br><br>
+  <a href="https://markdown.space"><img src="https://images.opencollective.com/markdown-space/e1038ed/logo/128.png" width="64"></a>
+</td>
+<td width="10%" align="center">
   <a href="https://www.holloway.com">Holloway</a><br><br>
   <a href="https://www.holloway.com"><img src="https://avatars1.githubusercontent.com/u/35904294?s=128&v=4" width="64"></a>
 </td>
-<td width="10%"></td>
 <td width="10%"></td>
 <td width="10%"></td>
 </tr>
@@ -9415,7 +9461,7 @@ Support this effort and give back by sponsoring on [OpenCollective][collective]!
 
 [npm]: https://docs.npmjs.com/cli/install
 
-[skypack]: https://www.skypack.dev
+[esmsh]: https://esm.sh
 
 [unified]: https://github.com/unifiedjs/unified
 
@@ -9432,6 +9478,10 @@ Support this effort and give back by sponsoring on [OpenCollective][collective]!
 [rehype-core]: ../rehype/
 
 [rehype-sanitize]: https://github.com/rehypejs/rehype-sanitize
+
+[rehype-format]: https://github.com/rehypejs/rehype-format
+
+[rehype-minify]: https://github.com/rehypejs/rehype-minify
 
 [rehype-dom-stringify]: https://github.com/rehypejs/rehype-dom/tree/main/packages/rehype-dom-stringify
 
@@ -9966,7 +10016,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-spdx-license-ids 3.0.13
+spdx-license-ids 3.0.16
 CC0-1.0
 # spdx-license-ids
 
@@ -10138,7 +10188,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-style-mod 4.0.3
+style-mod 4.1.0
 MIT
 Copyright (C) 2018 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
 

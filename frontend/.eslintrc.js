@@ -3,17 +3,10 @@ module.exports = {
   root: true,
   env: {
     browser: true,
-    node: true
-  },
-  parserOptions: {
-    parser: '@babel/eslint-parser',
-    requireConfigFile: false
+    node: true,
   },
   extends: [
-    '@nuxtjs',
-    'plugin:nuxt/recommended'
-  ],
-  plugins: [
+    "@nuxtjs/eslint-config-typescript",
   ],
   // add your custom rules here
   rules: {
@@ -30,8 +23,10 @@ module.exports = {
     "quotes": "off",
     "vue/html-self-closing": "off",
     "vue/valid-v-slot": "off",
+    "func-call-spacing": "off",
 
-    "no-unused-vars": "warn",
+    // "no-unused-vars": "warn",
+    "@typescript-eslint/no-unused-vars": "warn",
     "vue/no-unused-components": "warn",
     "eol-last": "warn",
     "no-multiple-empty-lines": "warn",

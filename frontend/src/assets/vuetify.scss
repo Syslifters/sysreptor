@@ -1,0 +1,6 @@
+@use '@/assets/settings.scss' as settings;
+
+// Vuetify customizations
+@forward 'vuetify/settings' with (
+  $body-font-family: settings.$body-font-family,
+);

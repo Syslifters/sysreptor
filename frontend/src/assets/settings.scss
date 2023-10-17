@@ -1,0 +1,26 @@
+// Vuetify settings
+$body-font-family: 'Exo';
+
+
+// Colors
+$sysreptor-darkblue: #001827;
+$sysreptor-lightblue: #0098DB;
+$sysreptor-orange: #E65E00;
+$sysreptor-white: #F9FDFF;
+$sysreptor-black: #262626;
+
+$risk-color-info: #14AE92;
+$risk-color-low: #4285F5;
+$risk-color-medium: #FBBC05;
+$risk-color-high: #F76226;
+$risk-color-critical: #E83221;
+
+$risk-color-levels: (
+  1: $risk-color-info,
+  2: $risk-color-low,
+  3: $risk-color-medium,
+  4: $risk-color-high,
+  5: $risk-color-critical
+);
+
+$status-color-finished: #4CAF50;  // green base

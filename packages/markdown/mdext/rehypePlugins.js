@@ -68,7 +68,16 @@ export function rehypeRewriteFileLinks({ rewriteFileUrl }) {
     if (node.tagName === 'a' && node.properties?.href?.startsWith('/files/') && rewriteFileUrl) {
       node.properties.href = rewriteFileUrl(node.properties.href);
       node.properties.download = true;
-      addClass(node, ['file-download-preview', 'v-icon', 'mdi', 'mdi-file-download']);
+      addClass(node, ['file-download-preview']);
+      node.children.unshift({
+        type: 'element',
+        tagName: 'i',
+        properties: {
+          className: ['v-icon', 'v-icon--size-default', 'mdi', 'mdi-file-download'],
+        },
+        children: [],
+        position: node.position,
+      });
     }
   });
 }

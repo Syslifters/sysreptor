@@ -64,7 +64,7 @@ template_router.register('history', FindingTemplateHistoryViewSet, basename='fin
 
 
 urlpatterns = [
-    path('admin/login/', RedirectView.as_view(url='/users/self/admin/enable/')),
+    path('admin/login/', RedirectView.as_view(url='/users/self/admin/enable/', query_string=True)),
     path('admin/', admin.site.urls),
     re_path(r'^api/?$', RedirectView.as_view(url='/api/v1/')),
     path('api/v1/', include([

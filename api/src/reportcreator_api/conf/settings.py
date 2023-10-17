@@ -351,10 +351,8 @@ CSP_FRAME_ANCESTORS = ["'self'"]
 CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
 # unsafe-inline: 
 #   Django Rest Framework inserts the CSRF token via an inline script. DRF will be CSP-compliant in version 3.15 (see https://github.com/encode/django-rest-framework/pull/8784)
-#   NuxtJS injects a inline script in index.html
-# unsafe-eval:
-#   Used by nuxt-vuex-localstorage; PR exists, but maintainer is not very active (see https://github.com/rubystarashe/nuxt-vuex-localstorage/issues/37)
-CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
+#   NuxtJS injects an inline script in index.html => solution: static hash
+CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'"]
 
 PERMISSIONS_POLICY = {
     'publickey-credentials-get': '(self)',
@@ -444,7 +442,7 @@ if CELERY_SECURE_WORKER:
     CELERY_WORKER_ENABLE_REMOTE_CONTROL = True
     
 
-CELERY_WORKER_HIJACK_ROOT_LOGGER=False
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 CELERY_WORKER_SEND_TASK_EVENTS = False
 CELERY_TASK_TIME_LIMIT = 60
 CELERY_TASK_SOFT_TIME_LIMIT = 55

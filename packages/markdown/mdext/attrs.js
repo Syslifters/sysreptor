@@ -1,7 +1,7 @@
-import {codes} from 'micromark-util-symbol/codes.js';
-import {factoryAttributes} from 'micromark-extension-directive/lib/factory-attributes.js';
-import {parseEntities} from 'parse-entities';
-import {visit} from 'unist-util-visit';
+import { codes } from 'micromark-util-symbol/codes'
+import { factoryAttributes } from './factory-attributes';
+import { parseEntities } from 'parse-entities';
+import { visit } from 'unist-util-visit';
 import { addRemarkExtension } from './helpers';
 
 
@@ -34,7 +34,7 @@ function attrsSyntax() {
       'textAttributeValueData'
     )
   }
-};
+}
 
 
 function attrsFromMarkdown() {
@@ -142,7 +142,7 @@ function attrsToMarkdown() {
 }
 
 export const remarkToRehypeAttrs = {
-  attributes(h, node) {
+  attributes() {
     // Remove attributes nodes
     return null;
   }
