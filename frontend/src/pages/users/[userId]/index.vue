@@ -21,7 +21,7 @@
 
         <s-checkbox
           v-model="user.is_active"
-          :disabled="!canEdit"
+          :disabled="!canEdit || user.id === auth.user.value!.id"
           label="User is active"
           hint="Inactive users cannot log in"
           density="compact"

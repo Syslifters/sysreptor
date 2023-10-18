@@ -114,7 +114,6 @@
       />
       <s-member-selection
         v-model="project.members"
-        :prevent-unselecting-self="true"
         :error-messages="serverErrors?.members || []"
         :disabled="project.readonly"
         :required="true"
