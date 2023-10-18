@@ -4,6 +4,7 @@
 * Update frontend tech stack to Vue3, Nuxt3, Vuetify3, Typescript
 * Update weasyprint to v60
 * Increase read timeout in example nginx config
+* Prevent duplicate PDF warnings
 
 
 ## v2023.128 - 2023-09-21
