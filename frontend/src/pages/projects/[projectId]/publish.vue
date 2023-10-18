@@ -47,7 +47,7 @@
             v-model="form.password"
             :error-messages="(form.encryptReport && form.password.length === 0) ? ['Password required'] : []"
             label="PDF password"
-            append-icon="mdi-lock-reset" @click:append="form.password = generateNewPassword()"
+            append-inner-icon="mdi-lock-reset" @click:append-inner="form.password = generateNewPassword()"
             spellcheck="false"
             class="mt-4"
           />
