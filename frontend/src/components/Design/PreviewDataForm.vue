@@ -13,23 +13,39 @@
         </v-list-item>
 
         <v-list-subheader>Findings</v-list-subheader>
-        <v-list-item
-          v-for="finding in projectType.report_preview_data.findings" :key="finding.id"
-          :value="finding"
-          :class="'finding-level-' + riskLevel(finding)"
-          link
+        <draggable
+          v-model="findings"
+          item-key="id"
+          handle=".draggable-handle"
+          :disabled="disabled || projectType.finding_ordering.length !== 0"
         >
-          <v-list-item-title class="text-body-2">{{ finding.title }}</v-list-item-title>
-          <template #append>
-            <btn-delete
-              :delete="() => deleteFinding(finding)"
-              :disabled="props.disabled"
-              button-variant="icon"
-              size="small"
-              density="comfortable"
-            />
+          <template #item="{element: finding}">
+            <v-list-item
+              :value="finding"
+              :class="'finding-level-' + riskLevel(finding)"
+              :ripple="false"
+              link
+            >
+              <template #prepend>
+                <div v-if="projectType.finding_ordering.length === 0" class="draggable-handle mr-2">
+                  <v-icon :disabled="disabled" icon="mdi-drag-horizontal" />
+                </div>
+              </template>
+              <template #default>
+                <v-list-item-title class="text-body-2">{{ finding.title }}</v-list-item-title>
+              </template>
+              <template #append>
+                <btn-delete
+                  :delete="() => deleteFinding(finding)"
+                  :disabled="props.disabled"
+                  button-variant="icon"
+                  size="small"
+                  density="comfortable"
+                />
+              </template>
+            </v-list-item>
           </template>
-        </v-list-item>
+        </draggable>
 
         <v-list-item>
           <s-btn
@@ -83,6 +99,7 @@
 </template>
 
 <script setup lang="ts">
+import Draggable from "vuedraggable";
 import { v4 as uuidv4 } from "uuid";
 import { FieldDataType, FieldDefinitionDict, ProjectType, UserShortInfo } from "~/utils/types";
 import * as cvss from "~/utils/cvss";
@@ -113,6 +130,24 @@ const currentItemIsFinding = computed(() => {
   return currentItem.value && props.modelValue.findings.some((f: any) => f.id === currentItem.value.id);
 });
 
+function sortPreviewFindings(findings: any[]) {
+  return sortFindings({
+    findings: findings.map((f: any, idx: number) => ({ ...f, order: idx + 1 })),
+    projectType: props.projectType,
+    overrideFindingOrder: false,
+    topLevelFields: true,
+  })
+}
+const findings = computed({
+  get: () => sortPreviewFindings(props.modelValue.findings || []),
+  set: (val) => {
+    emit('update:modelValue', {
+      ...props.modelValue,
+      findings: sortPreviewFindings(val),
+    });
+  }
+});
+
 function updateSectionField(fieldId: string, value: any) {
   emit('update:modelValue', {
     ...props.modelValue,
@@ -126,12 +161,7 @@ function updateFindingField(fieldId: string, value: any) {
   const newFinding = { ...currentItem.value, [fieldId]: value };
   emit('update:modelValue', {
     ...props.modelValue,
-    findings: sortFindings({
-      findings: props.modelValue.findings.map((f: any) => f.id === newFinding.id ? newFinding : f),
-      projectType: props.projectType,
-      overrideFindingOrder: false,
-      topLevelFields: true,
-    })
+    findings: sortPreviewFindings(props.modelValue.findings.map((f: any) => f.id === currentItem.value.id ? newFinding : f)),
   });
   currentItem.value = newFinding;
 }
@@ -189,5 +219,13 @@ function riskLevel(finding: any) {
 :deep(.v-list-subheader) {
   margin-top: 1em;
   padding-left: 0.5em !important;
+}
+
+.draggable-handle {
+  cursor: grab;
+
+  &:deep(.v-icon) {
+    cursor: inherit;
+  }
 }
 </style>

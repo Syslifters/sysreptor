@@ -48,9 +48,9 @@ describe('Finding Sorting', () => {
   it('should use created date as fallback sort', () => {
     testFindingSort({
       findings: [
-        { created: addDays(new Date(), -2).toISOString() },
-        { created: addDays(new Date(), -1).toISOString() },
-        { created: addDays(new Date(), -0).toISOString() },
+        { order: 0, created: addDays(new Date(), -2).toISOString() },
+        { order: 0, created: addDays(new Date(), -1).toISOString() },
+        { order: 0, created: addDays(new Date(), -0).toISOString() },
       ] as any as PentestFinding[],
       overrideFindingOrder: true,
     });

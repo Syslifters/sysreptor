@@ -585,9 +585,9 @@ class TestFindingSorting:
             override_finding_order=False,
             project_type=create_project_type(finding_ordering=[]),
             findings_kwargs=[
-                {'created': timezone.now() - timedelta(days=2)}, 
-                {'created': timezone.now() - timedelta(days=1)}, 
-                {'created': timezone.now() - timedelta(days=0)}
+                {'order': 1, 'created': timezone.now() - timedelta(days=2)}, 
+                {'order': 1, 'created': timezone.now() - timedelta(days=1)}, 
+                {'order': 1, 'created': timezone.now() - timedelta(days=0)}
             ])
 
     @pytest.mark.parametrize(['finding_ordering', 'findings_kwargs'], [

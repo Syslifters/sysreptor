@@ -35,6 +35,7 @@
             <span>Findings</span>
             <v-spacer />
             <s-btn
+              v-if="projectType.finding_ordering.length > 0"
               @click="toggleOverrideFindingOrder"
               :disabled="project.readonly"
               size="x-small"
@@ -54,7 +55,7 @@
             @update:model-value="sortFindings"
             item-key="id"
             handle=".draggable-handle"
-            :disabled="project.readonly || !project.override_finding_order"
+            :disabled="project.readonly || !sortFindingsManual"
           >
             <template #item="{element: finding}">
               <v-list-item
@@ -64,7 +65,7 @@
                 :class="'finding-level-' + riskLevel(finding)"
               >
                 <template #prepend>
-                  <div v-if="project.override_finding_order" class="draggable-handle mr-2">
+                  <div v-if="sortFindingsManual" class="draggable-handle mr-2">
                     <v-icon :disabled="project.readonly" icon="mdi-drag-horizontal" />
                   </div>
                   <s-lock-info :value="finding.lock_info" />
@@ -119,6 +120,7 @@ const project = await useAsyncDataE(async () => await projectStore.fetchById(rou
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'reporting:projectType' });
 const findings = computed(() => projectStore.findings(project.value.id, { projectType: projectType.value }));
 const sections = computed(() => projectStore.sections(project.value.id));
+const sortFindingsManual = computed(() => project.value.override_finding_order || projectType.value.finding_ordering.length === 0);
 
 // Periodically refresh lists. Updates project, sections, findings in store
 async function refreshListings() {
@@ -142,8 +144,8 @@ onBeforeUnmount(() => {
 
 // Sort findings
 const wasOverrideFindingOrder = ref(false);
-watch(() => project.value.override_finding_order, () => {
-  wasOverrideFindingOrder.value ||= project.value.override_finding_order;
+watch(sortFindingsManual, () => {
+  wasOverrideFindingOrder.value ||= sortFindingsManual.value;
 }, { immediate: true });
 async function sortFindings(findings: PentestFinding[]) {
   await projectStore.sortFindings(project.value, findings);
