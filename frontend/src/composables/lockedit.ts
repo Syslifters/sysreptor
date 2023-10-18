@@ -43,6 +43,11 @@ export function useLockEdit<T>(options: LockEditOptions<T>) {
   });
   const editMode = ref<EditMode>(hasEditPermissions?.value ? EditMode.EDIT : EditMode.READONLY);
   const readonly = computed(() => editMode.value === EditMode.READONLY);
+  watch(hasEditPermissions, (val) => {
+    if (!val) {
+      editMode.value = EditMode.READONLY;
+    }
+  });
   const data = computed(() => {
     if (options.fetchState && options.fetchState.pending.value) {
       return null;
