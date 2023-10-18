@@ -565,7 +565,6 @@ class TestFindingSorting:
             override_finding_order=project.override_finding_order
         )
         findings_sorted_titles = [f['title'] for f in findings_sorted]
-        import pdb; pdb.set_trace()
         assert findings_sorted_titles == [f'f{i + 1}' for i in range(len(findings_sorted_titles))]
 
     def format_findings_kwargs(self, findings_kwargs):
