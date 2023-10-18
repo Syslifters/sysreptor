@@ -5,7 +5,7 @@
         <full-height-page>
           <template #header>
             <edit-toolbar v-bind="toolbarAttrs">
-              <template #title>{{ projectType.name }}</template>
+              <template #title>{{ formatProjectTypeTitle(projectType) }}</template>
 
               <template #default>
                 <s-btn

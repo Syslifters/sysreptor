@@ -106,16 +106,16 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   }
 
   const fileUploadInProgress = ref(false);
-  async function uploadFiles(files?: FileList, pos?: number) {
+  async function uploadFiles(files?: FileList, pos?: number|null) {
     if (!props.value.uploadFile || !files || files.length === 0 || fileUploadInProgress.value) {
       return;
     }
 
     try {
       fileUploadInProgress.value = true;
-      const results = await Promise.all(Array.from(files).map((file) => {
+      const results = await Promise.all(Array.from(files).map(async (file: File) => {
         try {
-          return props.value.uploadFile!(file);
+          return await props.value.uploadFile!(file);
         } catch (error) {
           requestErrorToast({ error, message: 'Failed to upload ' + file.name })
           return null;
@@ -123,7 +123,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
       }));
 
       const mdFileText = results.filter(u => u).join('\n');
-      if (pos === null) {
+      if (pos === undefined || pos === null) {
         pos = editorView.value.state.selection.main.from;
       }
       editorView.value.dispatch({ changes: { from: pos, to: pos, insert: mdFileText } });
