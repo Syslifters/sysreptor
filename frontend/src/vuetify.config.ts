@@ -1,5 +1,7 @@
 import { defineVuetifyConfiguration } from "vuetify-nuxt-module/custom-configuration";
 
+const themeLightTextColor = '#1E1E1E';
+
 export default defineVuetifyConfiguration({
   directives: true,
   labComponents: true,
@@ -20,12 +22,16 @@ export default defineVuetifyConfiguration({
           info: '#2196F3',
           success: '#4CAF50',
           warning: '#FFC107',
-          'on-warning': '#1E1E1E',
+          'on-warning': themeLightTextColor,
+          'on-background': themeLightTextColor,
+          'on-surface': themeLightTextColor,
         },
         variables: {
           'high-emphasis-opacity': 0.9,
           'medium-emphasis-opacity': 0.70,
           'disabled-opacity': 0.70,
+          'border-color': themeLightTextColor,
+          'theme-on-code': themeLightTextColor,
         },
       },
       // dark: {
