@@ -13,7 +13,7 @@
       <v-expansion-panel v-for="(msgGroup, groupIdx) in messageGroups" :key="'group-' + groupIdx" class="error-group">
         <v-expansion-panel-title>
           <div class="error-header text-body-1">
-            <v-chip class="mr-2" :class="'bg-' + msgGroup.level" size="small" label>{{ msgGroup.level.toUpperCase() }}</v-chip>
+            <v-chip class="mr-2 flex-shrink-0" :class="'bg-' + msgGroup.level" size="small" label>{{ msgGroup.level.toUpperCase() }}</v-chip>
             {{ msgGroup.message }}
             <v-spacer />
             <span class="mr-2">&times;{{ msgGroup.entries.length }}</span>
@@ -48,7 +48,7 @@
 
       <div v-for="(msg, idx) in messageList" :key="'list' + idx" class="mb-4">
         <div class="error-header">
-          <v-chip class="ma-2 mt-0" :class="'bg-' + msg.level" size="small" label>{{ msg.level.toUpperCase() }}</v-chip>
+          <v-chip class="ma-2 mt-0 flex-shrink-0" :class="'bg-' + msg.level" size="small" label>{{ msg.level.toUpperCase() }}</v-chip>
           <p class="error-message">
             <slot name="message" :msg="msg">
               {{ msg.message }}
