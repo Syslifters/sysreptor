@@ -4,7 +4,7 @@ import { groupNotes, NoteGroup } from "@/store/usernotes";
 import { PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
 
 export function sortFindings({ findings, projectType, overrideFindingOrder = false, topLevelFields = false }: {findings: PentestFinding[], projectType: ProjectType, overrideFindingOrder?: boolean, topLevelFields?: boolean}): PentestFinding[] {
-  if (overrideFindingOrder) {
+  if (overrideFindingOrder || projectType.finding_ordering.length === 0) {
     return orderBy(findings, ['order', 'created']);
   } else {
     return orderBy(

@@ -565,6 +565,7 @@ class TestFindingSorting:
             override_finding_order=project.override_finding_order
         )
         findings_sorted_titles = [f['title'] for f in findings_sorted]
+        import pdb; pdb.set_trace()
         assert findings_sorted_titles == [f'f{i + 1}' for i in range(len(findings_sorted_titles))]
 
     def format_findings_kwargs(self, findings_kwargs):
@@ -585,9 +586,9 @@ class TestFindingSorting:
             override_finding_order=False,
             project_type=create_project_type(finding_ordering=[]),
             findings_kwargs=[
-                {'created': timezone.now() - timedelta(days=2)}, 
-                {'created': timezone.now() - timedelta(days=1)}, 
-                {'created': timezone.now() - timedelta(days=0)}
+                {'order': 1, 'created': timezone.now() - timedelta(days=2)}, 
+                {'order': 1, 'created': timezone.now() - timedelta(days=1)}, 
+                {'order': 1, 'created': timezone.now() - timedelta(days=0)}
             ])
 
     @pytest.mark.parametrize(['finding_ordering', 'findings_kwargs'], [

@@ -58,7 +58,7 @@ def render_to_html(template: str, styles: str, data: dict, language: str) -> tup
             page.on('requestfailed', lambda request: messages.append(ErrorMessage(
                 level=MessageLevel.WARNING, 
                 message='Request failed', 
-                details=f'Request to URL {request.url} failed: {request.failure.error_text}'
+                details=f'Request to URL {request.url} failed: {getattr(request.failure, "error_text", request.failure)}'
             )))
             page.set_content(f"""
                 <!DOCTYPE html>
