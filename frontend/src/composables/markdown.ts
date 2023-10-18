@@ -126,7 +126,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
       if (pos === null) {
         pos = editorView.value.state.selection.main.from;
       }
-      editorView.value.dispatch({ changes: { from: pos, insert: mdFileText } });
+      editorView.value.dispatch({ changes: { from: pos, to: pos, insert: mdFileText } });
     } finally {
       fileUploadInProgress.value = false;
     }
