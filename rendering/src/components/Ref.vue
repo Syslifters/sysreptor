@@ -55,7 +55,7 @@ export default {
       }
     }
 
-    return h('a', {href: '#' + this.refEl?.id || this.toId, class: refClasses}, [
+    return h('a', {href: '#' + (this.refEl?.id || this.toId), class: refClasses}, [
       h('span', {class: 'ref-title'}, title)
     ]);
   },

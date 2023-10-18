@@ -15,11 +15,11 @@
       :model-value="showMessages"
       persistent
       no-click-animation
-      class="bg-grey-darken-4 message-overlay"
       scroll-strategy="none"
       transition="none"
       contained
       z-index="10"
+      class="message-overlay"
     >
       <error-list :value="messages" :show-no-message-info="true" class="mt-5" />
     </v-overlay>
@@ -116,6 +116,13 @@ defineExpose({
   height: 100%;
   overflow-y: auto;
 }
+.message-overlay {
+  color: white;
+
+  :deep(.v-overlay__scrim) {
+    opacity: 0.7;
+  }
+}
 
 .initial-loading {
   width: 100%;
@@ -141,10 +148,6 @@ defineExpose({
     display: flex;
     flex-direction: row;
   }
-}
-
-.message-overlay {
-  opacity: 0.7;
 }
 
 .pos-relative {

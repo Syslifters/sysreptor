@@ -251,7 +251,7 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
                 message='Error rendering PDF'
             ))
 
-    return res, messages
+    return res, list(set(messages))
 
 
 @log_timing

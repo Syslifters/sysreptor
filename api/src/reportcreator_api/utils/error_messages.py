@@ -55,7 +55,7 @@ class MessageLocationInfo:
         }
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(eq=True, frozen=True)
 class ErrorMessage:
     level: MessageLevel
     message: str
