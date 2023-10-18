@@ -33,7 +33,7 @@
               <v-spacer />
               <s-btn
                 text="Skip"
-                @click="mfaSetupNotificationVisible = false"
+                @click="auth.redirect()"
                 color="secondary"
               />
               <s-btn
