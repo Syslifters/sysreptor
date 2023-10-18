@@ -4,6 +4,8 @@
 * Update frontend tech stack to Vue3, Nuxt3, Vuetify3, Typescript
 * Update weasyprint to v60
 * Increase read timeout in example nginx config
+* Prevent disabling current user
+* Allow removing current user from project members
 
 
 ## v2023.128 - 2023-09-21
