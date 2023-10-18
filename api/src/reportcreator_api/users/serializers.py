@@ -49,7 +49,14 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'is_guest': {'read_only': read_only},
             'is_global_archiver': {'read_only': read_only},
             'username': {'read_only': read_only},
+            'is_active': {'read_only': read_only},
         }
+    
+    def validate_is_active(self, value):
+        if self.instance and self.instance.id == self.context['request'].user.id:
+            if not value:
+                raise serializers.ValidationError('Cannot deactivate yourself')
+        return value
 
 
 class CreateUserSerializer(PentestUserDetailSerializer):
