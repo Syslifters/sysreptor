@@ -7,6 +7,7 @@
 * Prevent duplicate PDF warnings
 * Prevent disabling current user
 * Allow removing current user from project members
+* Prevent footnotes from moving to next page by default in base.css styles
 
 
 ## v2023.128 - 2023-09-21

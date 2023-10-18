@@ -6,5 +6,5 @@ mkdocs-tooltips==0.1.0
 mkdocs-redirects==1.2.1
 pymdown-extensions==10.1
 requests==2.31.0
-pillow==10.0.0
+pillow==10.1.0
 cairosvg==2.7.1
