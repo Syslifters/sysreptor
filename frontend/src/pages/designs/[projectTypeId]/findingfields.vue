@@ -9,7 +9,7 @@
           class="pb-0 h-100 d-flex flex-column"
         >
           <div>
-            <v-list-item-title class="text-h6 pl-2">{{ projectType.name }}</v-list-item-title>
+            <v-list-item-title class="text-h6 pl-2">{{ formatProjectTypeTitle(projectType) }}</v-list-item-title>
           </div>
 
           <div class="flex-grow-height overflow-y-auto">

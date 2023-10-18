@@ -4,7 +4,7 @@
     @update:model-value="emit('update:modelValue', $event)"
     :label="props.label"
     :items="allItems"
-    :item-title="formatItemText"
+    :item-title="formatProjectTypeTitle"
     item-value="id"
     :return-object="props.returnObject"
     :rules="rules"
@@ -89,13 +89,4 @@ useLazyAsyncData(async () => {
 const allItems = computed(() => {
   return props.additionalItems.concat(items.data.value).concat(initialProjectType.value ? [initialProjectType.value] : []);
 })
-
-function formatItemText(pt: ProjectType) {
-  return pt.name + ({
-    [SourceEnum.IMPORTED]: ' (imported)',
-    [SourceEnum.CUSTOMIZED]: ' (customized)',
-    [SourceEnum.SNAPSHOT]: ` (from ${pt?.created?.split('T')?.[0]})`,
-  }[pt?.source as string] || '') +
-      (pt?.scope === ProjectTypeScope.PRIVATE ? ' (private design)' : '');
-}
 </script>
