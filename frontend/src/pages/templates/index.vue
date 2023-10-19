@@ -82,6 +82,6 @@ function updateSearchQuery(items: ReturnType<typeof useSearchableCursorPaginatio
 
 async function performImport(file: File) {
   const templates = await uploadFileHelper<FindingTemplate[]>('/api/v1/findingtemplates/import/', file);
-  await navigateTo(`/api/v1/templates/${templates[0].id}/`)
+  await navigateTo(`/templates/${templates[0].id}/`)
 }
 </script>
