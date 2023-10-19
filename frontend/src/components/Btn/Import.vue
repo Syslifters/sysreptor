@@ -45,7 +45,9 @@ async function performImport(files: FileList) {
     requestErrorToast({ error, message });
   } finally {
     importInProgress.value = false;
-    fileInput.value.value = null;
+    if (fileInput.value) {
+      fileInput.value.value = null;
+    }
   }
 }
 

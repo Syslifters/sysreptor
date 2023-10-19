@@ -80,7 +80,7 @@ const { data: finding, project, projectType, readonly, toolbarAttrs, fetchLoader
   updateInStore: projectStore.setFinding,
   autoSaveOnUpdateData({ oldValue, newValue }): boolean {
     return oldValue.status !== newValue.status ||
-        oldValue.assignee !== newValue.assignee ||
+        oldValue.assignee?.id !== newValue.assignee?.id ||
         oldValue.data.cvss !== newValue.data.cvss;
   }
 });

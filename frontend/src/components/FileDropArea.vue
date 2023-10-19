@@ -11,7 +11,6 @@
     <v-overlay
       :model-value="showDropArea"
       :disabled="disabled || !showDropArea"
-      attach="parent"
       contained
       content-class="w-100 h-100"
     >

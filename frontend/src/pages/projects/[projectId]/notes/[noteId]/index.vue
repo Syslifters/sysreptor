@@ -83,7 +83,6 @@
           ref="textRef"
           v-model="note.text"
           :disabled="readonly"
-          :lang="project.language"
           v-bind="inputFieldAttrs"
         />
       </template>
@@ -112,7 +111,7 @@ const { data: note, project, readonly, toolbarAttrs, fetchLoaderAttrs, inputFiel
     return oldValue.checked !== newValue.checked ||
         oldValue.status_emoji !== newValue.status_emoji ||
         oldValue.icon_emoji !== newValue.icon_emoji ||
-        oldValue.assignee !== newValue.assignee;
+        oldValue.assignee?.id !== newValue.assignee?.id;
   }
 });
 const historyVisible = ref(false);

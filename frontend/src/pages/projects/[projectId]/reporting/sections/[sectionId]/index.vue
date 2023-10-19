@@ -55,7 +55,7 @@ const { data: section, project, projectType, readonly, toolbarAttrs, fetchLoader
   performSave: projectStore.updateSection,
   updateInStore: projectStore.setSection,
   autoSaveOnUpdateData({ oldValue, newValue }): boolean {
-    return oldValue.status !== newValue.status || oldValue.assignee !== newValue.assignee;
+    return oldValue.status !== newValue.status || oldValue.assignee?.id !== newValue.assignee?.id;
   }
 });
 const historyVisible = ref(false);
