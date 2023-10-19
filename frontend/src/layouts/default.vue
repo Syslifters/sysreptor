@@ -4,7 +4,7 @@
     <v-app-bar absolute density="compact" elevation="0" class="main-menu">
       <v-tabs hide-slider selected-class="main-menu-selected">
         <v-tab to="/" exact :ripple="false" class="no-highlight">
-          <v-img src="/static/logo.svg" height="38" width="50" />
+          <v-img src="/static/logo.svg" alt="logo" height="38" width="50" />
           SysReptor
           <v-badge :content="badgeText" color="primary" class="badge-pill" inline />
         </v-tab>
