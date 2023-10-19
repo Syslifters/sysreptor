@@ -4,18 +4,13 @@
       <template #header>
         <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
           <template #title>
-            <div class="d-flex flex-row align-center">
+            <div class="note-title-container">
               <div>
-                <s-checkbox
-                  :model-value="note.checked === null ? true : note.checked"
-                  :indeterminate="note.checked === null"
-                  @update:model-value="note.checked = note.checked === null ? false : !note.checked ? true : null"
+                <s-btn
+                  @click="note.checked = note.checked === null ? false : !note.checked ? true : null"
+                  :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
                   :disabled="readonly"
-                  true-icon="mdi-checkbox-marked"
-                  false-icon="mdi-checkbox-blank-outline"
-                  indeterminate-icon="mdi-checkbox-blank-off-outline"
-                  color="inherit"
-                  hide-details
+                  density="comfortable"
                 />
               </div>
               <s-emoji-picker-field
@@ -23,20 +18,22 @@
                 v-model="note.icon_emoji"
                 :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
                 :disabled="readonly"
+                density="comfortable"
               />
-
+              
               <markdown-text-field-content
                 ref="titleRef"
                 v-model="note.title"
                 :disabled="readonly"
                 :spellcheck-supported="true"
                 v-bind="inputFieldAttrs"
-                class="flex-grow-1"
+                class="note-title"
               />
-
+              
               <s-emoji-picker-field
                 v-model="note.status_emoji"
                 :disabled="readonly"
+                density="comfortable"
               />
             </div>
           </template>
@@ -140,6 +137,24 @@ watch(() => fetchLoaderAttrs.value.fetchState.pending, async (pending) => {
 </script>
 
 <style lang="scss" scoped>
+.note-title-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  
+  & > * {
+    flex-shrink: 0;
+  }
+
+  .note-title {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 0.25em;
+    margin-right: 0.25em;
+  }
+}
+
 .assignee-container {
   width: 17em;
   min-width: 17em;
