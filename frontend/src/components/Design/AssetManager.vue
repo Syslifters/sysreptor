@@ -36,7 +36,7 @@
 
       <v-col v-for="asset in assets.data.value" :key="asset.id" :cols="12" :md="3">
         <s-card density="compact">
-          <v-img v-if="isImage(asset)" :src="imageUrl(asset)" aspect-ratio="2" />
+          <v-img v-if="isImage(asset)" alt="" :src="imageUrl(asset)" aspect-ratio="2" />
           <v-card-title>{{ asset.name }}</v-card-title>
           <v-card-text class="text--small pb-0">
             {{ assetUrl(asset) }}

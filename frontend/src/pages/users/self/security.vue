@@ -191,7 +191,7 @@
 
                 <template v-else-if="setupWizard.step === SetupWizardStep.CompleteTotp">
                   <v-card-text>
-                    <v-img :src="setupWizard.data.qrcode" max-width="40%" max-height="40%" />
+                    <v-img :src="setupWizard.data.qrcode" alt="qrcode" max-width="40%" max-height="40%" />
 
                     <p>
                       Scan the QR code with your Authenticator App.<br />
