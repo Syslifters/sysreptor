@@ -2,10 +2,8 @@
   <v-app>
     <v-container fluid class="fill-height">
       <v-layout class="align-center justify-center">
-        <div>
-          <h1 class="text-center">
-            {{ errorHeading }}
-          </h1>
+        <div class="text-center">
+          <h1>{{ errorHeading }}</h1>
           <div v-if="props.error.statusCode === 404">
             <icon class="emoji-heading" icon="game-icons:dinosaur-bones" />
             <p class="text-center">

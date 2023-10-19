@@ -12,7 +12,7 @@
     <markdown-toolbar-button @click="codemirrorAction(toggleLink)" title="Link" icon="mdi-link" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'link')" />
     <template v-if="uploadFiles">
       <markdown-toolbar-button @click="fileInput.click()" title="Image" icon="mdi-image" :disabled="props.disabled || props.fileUploadInProgress" />
-      <input ref="fileInput" type="file" multiple @change="onUploadFiles" :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
+      <input ref="fileInput" type="file" multiple @change="onUploadFiles" @click.stop :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
     </template>
     <span class="separator" />
     <markdown-toolbar-button
@@ -104,7 +104,9 @@ async function onUploadFiles(event: InputEvent) {
   try {
     await props.uploadFiles(files);
   } finally {
-    fileInput.value.value = null;
+    if (fileInput.value) {
+      fileInput.value.value = null;
+    }
   }
 }
 
