@@ -7,7 +7,7 @@
             <v-list-subheader>{{ group.name }}</v-list-subheader>
             <draggable
               :model-value="group.components"
-              :item-key="c => group.name + '-' + c.type"
+              :item-key="(c: DesignerComponent) => group.name + '-' + c.type"
               :sort="false"
               :group="{name: 'predefinedDesignerComponents', pull: 'clone', put: false}"
             >

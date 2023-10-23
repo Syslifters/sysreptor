@@ -302,6 +302,7 @@ export type ArchivedProjectPublicKeyEncryptedKeyPart = BaseModel & {
 export type ArchiveCheckResult = {
   users: (UserShortInfo & {
     readonly is_project_member: boolean;
+    readonly is_global_archiver: boolean;
     readonly has_public_keys: boolean;
     readonly can_restore: boolean;
     readonly warnings: string[];
@@ -362,6 +363,11 @@ export enum FieldOrigin {
   CUSTOM = 'custom',
 }
 
+export type EnumFieldChoiceDefinition = {
+  value: string|null;
+  label: string;
+};
+
 export type FieldDefinition = {
   type: FieldDataType;
   label: string;
@@ -370,10 +376,7 @@ export type FieldDefinition = {
   required?: boolean;
   spellcheck?: boolean;
   suggestions?: string[];
-  choices?: {
-    value: string|null;
-    label: string;
-  }[];
+  choices?: EnumFieldChoiceDefinition[];
   properties?: {
     [key: string]: FieldDefinition
   };

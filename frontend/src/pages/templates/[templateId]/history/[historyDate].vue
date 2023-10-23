@@ -13,7 +13,7 @@
           :toolbar-attrs="toolbarAttrs"
           :rewrite-file-url="rewriteFileUrl"
           :readonly="true"
-          :initial-language="template!.translations.find(tr => tr.id === route.query?.translation_id)?.language || route.query?.language"
+          :initial-language="template!.translations.find(tr => tr.id === route.query?.translation_id)?.language || (route.query?.language as string)"
           :history="true"
         >
           <template #toolbar-actions>
@@ -34,6 +34,7 @@
 <script setup lang="ts">
 import urlJoin from "url-join";
 import { formatISO9075 } from "date-fns";
+import { TemplateEditor } from '#components'
 
 const route = useRoute();
 const localSettings = useLocalSettings();
@@ -57,7 +58,7 @@ useHead({
 });
 
 const vm = getCurrentInstance();
-const toolbarRef = computed(() => vm?.refs?.templateEditor?.toolbarRef);
+const toolbarRef = computed(() => (vm?.refs?.templateEditor as any)?.toolbarRef);
 const { toolbarAttrs, fetchLoaderAttrs } = useLockEdit({
   data: fetchState.data,
   fetchState,

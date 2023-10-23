@@ -28,7 +28,7 @@
           </td>
           <td>
             <v-chip v-if="user.is_project_member" size="small">Project Member</v-chip>
-            <v-chip v-else-if="user.is_archiver" size="small">Global Archiver</v-chip>
+            <v-chip v-else-if="user.is_global_archiver" size="small">Global Archiver</v-chip>
           </td>
           <td>
             <p v-if="user.can_restore" class="ma-0">
@@ -39,7 +39,7 @@
               <v-icon color="warning" icon="mdi-alert" />
               User does not have any public keys. Add public keys <strong>before</strong> archiving the project.
               <v-btn
-                v-if="user.id === $auth.user.id"
+                v-if="user.id === $auth.user.value!.id"
                 to="/users/self/publickeys/"
                 target="_blank"
                 size="small"

@@ -98,7 +98,7 @@
             <design-input-field-definition
               v-for="f in findingFields" :key="f.id"
               :model-value="f" @update:model-value="updateField(f, $event)"
-              :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin)"
+              :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
               :lang="projectType.language"
               :disabled="readonly"
             />

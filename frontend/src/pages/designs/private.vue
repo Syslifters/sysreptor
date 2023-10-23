@@ -33,7 +33,7 @@ const apiSettings = useApiSettings();
 const importBtn = ref();
 
 async function performImport(file: File) {
-  const designs = await uploadFileHelper<ProjectType[]>('/api/v1/projecttypes/import/', file, { scope: ProjectTypeScope.USER });
+  const designs = await uploadFileHelper<ProjectType[]>('/api/v1/projecttypes/import/', file, { scope: ProjectTypeScope.PRIVATE });
   await navigateTo(`/designs/${designs[0].id}/`)
 }
 </script>

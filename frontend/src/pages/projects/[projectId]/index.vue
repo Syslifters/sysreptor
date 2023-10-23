@@ -65,7 +65,7 @@
       <s-project-type-selection
         :model-value="projectType || project.project_type"
         @update:model-value="projectType = $event"
-        :query-filters="{scope: ['global', 'private', 'project'], linked_project: project.id}"
+        :query-filters="{scope: [ProjectTypeScope.GLOBAL, ProjectTypeScope.PRIVATE, ProjectTypeScope.PROJECT], linked_project: project.id}"
         :error-messages="serverErrors?.project_type || []"
         :disabled="project.readonly"
         :append-link="true"
@@ -186,7 +186,7 @@ async function forceChangeDesign() {
     await toolbarRef.value.performSave();
     serverErrors.value = null;
     delete p.force_change_project_type;
-    await toolbarRef.value.resetComponent();
+    await toolbarRef.value?.resetComponent();
     await refreshNuxtData();
   } finally {
     delete p.force_change_project_type;
@@ -194,12 +194,12 @@ async function forceChangeDesign() {
 }
 async function setReadonly(val: boolean) {
   await projectStore.setReadonly(project.value, val);
-  await toolbarRef.value.resetComponent();
+  await toolbarRef.value?.resetComponent();
   await refreshNuxtData();
 }
 async function performCopy(data?: Object) {
   const obj = await projectStore.copyProject({ ...project.value, ...data });
-  await toolbarRef.value.resetComponent();
+  await toolbarRef.value?.resetComponent();
   await navigateTo(`/projects/${obj.id}/`);
 }
 

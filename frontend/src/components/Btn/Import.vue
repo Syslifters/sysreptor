@@ -9,7 +9,7 @@
     <input
       ref="fileInput"
       type="file"
-      @change="performImport($event.target.files)"
+      @change="performImport(($event.target as HTMLInputElement)?.files)"
       class="d-none"
       :disabled="disabled || importInProgress"
     />
@@ -27,9 +27,9 @@ const props = withDefaults(defineProps<{
 const importInProgress = ref(false);
 const fileInput = ref();
 
-async function performImport(files: FileList) {
-  const file = Array.from(files)[0];
-  if (props.disabled || importInProgress.value) {
+async function performImport(files?: FileList|null) {
+  const file = Array.from(files || [])[0];
+  if (props.disabled || importInProgress.value || !file) {
     return;
   }
 

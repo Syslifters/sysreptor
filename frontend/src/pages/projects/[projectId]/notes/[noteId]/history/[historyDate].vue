@@ -98,8 +98,8 @@ const { data: note, project, readonly, toolbarAttrs, fetchLoaderAttrs, inputFiel
 const historyVisible = ref(false);
 const hasChildNotes = computed(() => false);
 const currentUrl = computed(() => {
-  if (projectStore.notes(project.value.id).map(n => n.id).includes(note.value.id)) {
-    return `/projects/${project.value.id}/notes/${note.value.id}/`;
+  if (projectStore.notes(project.value?.id || '').map(n => n.id).includes(note.value?.id || '')) {
+    return `/projects/${project.value!.id}/notes/${note.value!.id}/`;
   }
   return null;
 });

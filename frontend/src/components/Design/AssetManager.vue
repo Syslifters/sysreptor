@@ -23,7 +23,7 @@
               ref="fileInput"
               type="file"
               multiple
-              @change="performFileUpload($event.target.files)"
+              @change="performFileUpload(($event.target as HTMLInputElement)?.files)"
               :disabled="disabled || uploadInProgress"
               class="d-none"
             />
@@ -102,8 +102,8 @@ async function uploadSingleFile(file: File) {
     requestErrorToast({ error, message: 'Failed to upload ' + file.name });
   }
 }
-async function performFileUpload(files: File[]) {
-  if (uploadInProgress.value || props.disabled) {
+async function performFileUpload(files?: FileList|null) {
+  if (uploadInProgress.value || props.disabled || !files) {
     return;
   }
 
@@ -111,7 +111,7 @@ async function performFileUpload(files: File[]) {
     uploadInProgress.value = true;
 
     // upload all files
-    await Promise.all(files.map(uploadSingleFile));
+    await Promise.all(Array.from(files).map(uploadSingleFile));
   } finally {
     // clear file input
     fileInput.value = null;
@@ -122,7 +122,7 @@ async function performFileUpload(files: File[]) {
 function isImage(asset: UploadedFileInfo) {
   // Detect file type by extension
   // Used for displaying image previews
-  return ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(last(asset.name.split('.')))
+  return ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(last(asset.name.split('.')) || '')
 }
 function assetUrl(asset: UploadedFileInfo) {
   return `/assets/name/${asset.name}`;

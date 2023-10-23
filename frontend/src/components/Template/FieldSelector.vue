@@ -4,7 +4,7 @@
       <s-project-type-selection
         v-model="localSettings.templateFieldFilterDesign"
         label="Show fields of"
-        :query-filters="{scope: ['global']}"
+        :query-filters="{scope: [ProjectTypeScope.GLOBAL]}"
         variant="underlined"
         :additional-items="[{id: 'all', name: 'All Designs'}] as ProjectType[]"
       />
@@ -32,7 +32,9 @@ const projectTypeStore = useProjectTypeStore();
 useLazyAsyncData(async () => await templateStore.getFieldDefinition());
 
 watch(() => localSettings.templateFieldFilterDesign, async (val: string) => {
-  if (val === 'all') {
+  if (!val) {
+    localSettings.templateFieldFilterDesign = 'all';
+  } else if (val === 'all') {
     localSettings.templateFieldFilterHiddenFields = [];
   } else {
     try {
