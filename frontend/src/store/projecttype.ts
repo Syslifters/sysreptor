@@ -61,7 +61,10 @@ export const useProjectTypeStore = defineStore('projecttype', {
   }
 });
 
-export function formatProjectTypeTitle(pt: ProjectType) {
+export function formatProjectTypeTitle(pt?: ProjectType) {
+  if (!pt || !pt.id) {
+    return '';
+  }
   return pt.name + ({
     [SourceEnum.CUSTOMIZED]: ' (customized)',
     [SourceEnum.SNAPSHOT]: ` (from ${pt?.created?.split('T')?.[0]})`,
