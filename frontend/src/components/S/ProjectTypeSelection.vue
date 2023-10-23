@@ -19,7 +19,7 @@
     </template>
     <template #append v-if="appendLink">
       <s-btn
-        :to="`/designs/${returnObject ? props.modelValue?.id : props.modelValue}/pdfdesigner/`"
+        :to="`/designs/${returnObject ? (props.modelValue as ProjectType|null)?.id : props.modelValue}/pdfdesigner/`"
         target="_blank"
         :disabled="!props.modelValue"
         icon
@@ -62,7 +62,7 @@ const items = useSearchableCursorPaginationFetcher<ProjectType>({
   baseURL: '/api/v1/projecttypes/',
   query: {
     ordering: 'name',
-    scope: ['global', 'private'],
+    scope: [ProjectTypeScope.GLOBAL, ProjectTypeScope.PRIVATE],
     ...props.queryFilters
   }
 });

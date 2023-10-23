@@ -310,7 +310,7 @@ const setupWizard = ref<{
   data: any | null,
   error?: string,
   completeTotpForm: {
-    code: string | null,
+    code: string,
   },
   newMfaMethod: MfaMethod | null,
 }>({
@@ -320,7 +320,7 @@ const setupWizard = ref<{
   data: null,
   error: undefined,
   completeTotpForm: {
-    code: null,
+    code: '',
   },
   newMfaMethod: null,
 });
@@ -375,7 +375,7 @@ function openSetupWizard() {
     data: null,
     error: undefined,
     completeTotpForm: {
-      code: null,
+      code: '',
     },
     newMfaMethod: null,
   }

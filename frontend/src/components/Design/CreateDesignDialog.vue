@@ -85,7 +85,7 @@ async function createEmptyDesign() {
     return await projectTypeStore.create({
       scope: props.projectTypeScope,
       name: 'New Design',
-    });
+    } as ProjectType);
   })
 }
 

@@ -78,7 +78,7 @@
         <draggable
           :model-value="props.modelValue.choices || []"
           @update:model-value="updateEnumChoice('sort', 0, $event)"
-          :item-key="item => (props.modelValue.choices || []).indexOf(item)"
+          :item-key="(item: EnumFieldChoiceDefinition) => (props.modelValue.choices || []).indexOf(item)"
           :disabled="props.disabled || !props.canChangeStructure"
           handle=".draggable-handle"
         >

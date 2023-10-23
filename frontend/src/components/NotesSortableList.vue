@@ -2,7 +2,7 @@
   <draggable
     :model-value="localValue"
     @update:model-value="updateModelValue"
-    :item-key="item => item.note.id"
+    :item-key="(item: NoteGroup<UserNote>[number]) => item.note.id"
     group="notes"
     :delay="50"
     :disabled="props.disabled"

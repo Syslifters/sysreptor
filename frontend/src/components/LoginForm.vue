@@ -161,7 +161,7 @@ const formCode = ref({
   code: '',
 });
 
-async function loginStep(fn: () => Promise<LoginResponse>) {
+async function loginStep(fn: () => Promise<LoginResponse|null>) {
   if (actionInProgress.value) {
     return;
   }

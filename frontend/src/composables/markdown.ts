@@ -1,3 +1,4 @@
+import { Prop, PropType } from "nuxt/dist/app/compat/capi";
 import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,
@@ -36,15 +37,15 @@ export function makeMarkdownProps(options: { files: boolean, spellcheckSupported
     },
     ...(options.files ? {
       uploadFile: {
-        type: Function,
+        type: Function as PropType<MarkdownProps['uploadFile']>,
         default: undefined,
       },
       rewriteFileUrl: {
-        type: Function,
+        type: Function as PropType<MarkdownProps['rewriteFileUrl']>,
         default: undefined,
       },
       rewriteReferenceLink: {
-        type: Function,
+        type: Function as PropType<MarkdownProps['rewriteReferenceLink']>,
         default: undefined,
       },
     } : {}),

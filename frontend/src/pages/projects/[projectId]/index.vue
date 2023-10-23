@@ -65,7 +65,7 @@
       <s-project-type-selection
         :model-value="projectType || project.project_type"
         @update:model-value="projectType = $event"
-        :query-filters="{scope: ['global', 'private', 'project'], linked_project: project.id}"
+        :query-filters="{scope: [ProjectTypeScope.GLOBAL, ProjectTypeScope.PRIVATE, ProjectTypeScope.PROJECT], linked_project: project.id}"
         :error-messages="serverErrors?.project_type || []"
         :disabled="project.readonly"
         :append-link="true"

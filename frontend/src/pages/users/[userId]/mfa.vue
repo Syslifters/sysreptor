@@ -10,7 +10,7 @@
         <v-list-item
           v-for="mfaMethod in mfaMethods"
           :key="mfaMethod.id"
-          :prepend-icon="mfaMethodChoices.find(c => c.value === mfaMethod.method_type).icon"
+          :prepend-icon="mfaMethodChoices.find(c => c.value === mfaMethod.method_type)!.icon"
         >
           <v-list-item-title>
             {{ mfaMethod.name }}

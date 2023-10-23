@@ -20,7 +20,7 @@
           <template #toolbar-context-menu v-if="auth.hasScope('template_editor')">
             <btn-export
               :export-url="`/findingtemplates/${template.id}/export/`"
-              :name="`template-` + mainTranslation.data.title"
+              :name="`template-` + mainTranslation!.data.title"
             />
           </template>
         </template-editor>
@@ -62,7 +62,7 @@ useHead({
 });
 
 const vm = getCurrentInstance();
-const toolbarRef = computed(() => vm?.refs?.templateEditor?.toolbarRef);
+const toolbarRef = computed(() => (vm?.refs?.templateEditor as any)?.toolbarRef);
 const hasEditPermissions = computed(() => auth.hasScope('template_editor'));
 const { toolbarAttrs, fetchLoaderAttrs, readonly } = useLockEdit({
   data: template,
