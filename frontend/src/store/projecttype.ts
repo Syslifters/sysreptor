@@ -68,6 +68,7 @@ export function formatProjectTypeTitle(pt?: ProjectType) {
   return pt.name + ({
     [SourceEnum.CUSTOMIZED]: ' (customized)',
     [SourceEnum.SNAPSHOT]: ` (from ${pt?.created?.split('T')?.[0]})`,
+    [SourceEnum.IMPORTED_DEPENDENCY]: ` (from ${pt?.created?.split('T')?.[0]})`,
   }[pt?.source as string] || '') +
       (pt?.scope === ProjectTypeScope.PRIVATE ? ' (private design)' : '');
 }
