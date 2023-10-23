@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import isObject from "lodash/isObject";
-import { ProjectType, ProjectTypeScope } from "~/utils/types";
+import { ProjectType } from "~/utils/types";
 
 const props = withDefaults(defineProps<{
   modelValue: ProjectType|string|null,
@@ -78,7 +78,14 @@ useLazyAsyncData(async () => {
     if (isObject(props.modelValue)) {
       initialProjectType.value = props.modelValue;
     } else {
-      initialProjectType.value = await projectTypeStore.getById(props.modelValue as string);
+      try {
+        initialProjectType.value = await projectTypeStore.getById(props.modelValue as string);
+      } catch (error: any) {
+        if (error?.status === 404) {
+          initialProjectType.value = null;
+          emit('update:modelValue', null);
+        }
+      }
       if (props.returnObject) {
         emit('update:modelValue', initialProjectType.value);
       }

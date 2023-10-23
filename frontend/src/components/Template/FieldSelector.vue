@@ -32,7 +32,9 @@ const projectTypeStore = useProjectTypeStore();
 useLazyAsyncData(async () => await templateStore.getFieldDefinition());
 
 watch(() => localSettings.templateFieldFilterDesign, async (val: string) => {
-  if (val === 'all') {
+  if (!val) {
+    localSettings.templateFieldFilterDesign = 'all';
+  } else if (val === 'all') {
     localSettings.templateFieldFilterHiddenFields = [];
   } else {
     try {
