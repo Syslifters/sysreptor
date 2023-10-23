@@ -40,7 +40,7 @@
   </v-container>
 </template>
 <script setup lang="ts">
-import { VForm } from "vuetify/lib/components/index.mjs";
+import type { VForm } from "vuetify/lib/components/index.mjs";
 
 const apiSettings = useApiSettings();
 
@@ -69,7 +69,7 @@ const identityForm = ref({
 });
 const serverErrors = ref<any|null>();
 
-const form = ref<InstanceType<typeof VForm>>();
+const form = ref<VForm>();
 async function performCreate() {
   try {
     const user = await $fetch<User>('/api/v1/pentestusers/', {

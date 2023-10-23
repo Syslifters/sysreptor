@@ -276,7 +276,7 @@
 <script setup lang="ts">
 import { create as navigatorCredentialsCreate, parseCreationOptionsFromJSON } from "@github/webauthn-json/browser-ponyfill";
 import cloneDeep from 'lodash/cloneDeep';
-import { VForm } from "vuetify/lib/components/index.mjs";
+import type { VForm } from "vuetify/lib/components/index.mjs";
 import { mfaMethodChoices, MfaMethodType, MfaMethod } from '@/utils/types';
 
 const auth = useAuth();
@@ -487,7 +487,7 @@ async function deleteMfaMethod(mfaMethod: MfaMethod) {
   });
 }
 
-const fromChangePassword = ref<InstanceType<typeof VForm> | null>(null);
+const fromChangePassword = ref<VForm|null>(null);
 async function changePassword() {
   if (!(await fromChangePassword.value!.validate()).valid) {
     return;

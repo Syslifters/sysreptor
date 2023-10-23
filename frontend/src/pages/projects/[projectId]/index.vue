@@ -136,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { VForm } from "vuetify/lib/components/index.mjs";
+import type { VForm } from "vuetify/lib/components/index.mjs";
 import { PentestProject, ProjectType } from "~/utils/types";
 
 const route = useRoute();
@@ -149,8 +149,8 @@ const projectType = ref(null);
 const deleteConfirmInput = computed(() => project.value.name);
 const historyVisible = ref(false);
 
-const formRef = ref<InstanceType<typeof VForm>>();
 const toolbarRef = ref();
+const formRef = ref<VForm>();
 const { toolbarAttrs } = useLockEdit<PentestProject>({
   data: project,
   form: formRef,
@@ -179,23 +179,25 @@ watch(projectType, (val: ProjectType|null) => {
     project.value.project_type = val.id;
   }
 });
+
 async function forceChangeDesign() {
   const p = project.value as PentestProject & { force_change_project_type?: boolean};
   try {
     p.force_change_project_type = true;
-    await toolbarRef.value.performSave();
+    await toolbarRef.value?.performSave();
     serverErrors.value = null;
     delete p.force_change_project_type;
     await toolbarRef.value?.resetComponent();
-    await refreshNuxtData();
+    window.location.reload();
   } finally {
     delete p.force_change_project_type;
   }
 }
+
 async function setReadonly(val: boolean) {
   await projectStore.setReadonly(project.value, val);
   await toolbarRef.value?.resetComponent();
-  await refreshNuxtData();
+  window.location.reload();
 }
 async function performCopy(data?: Object) {
   const obj = await projectStore.copyProject({ ...project.value, ...data });
