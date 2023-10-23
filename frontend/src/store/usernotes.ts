@@ -38,7 +38,7 @@ export const useUserNotesStore = defineStore('usernotes', {
     notes: [] as UserNote[],
   }),
   getters: {
-    noteGroups() {
+    noteGroups(): NoteGroup<UserNote> {
       return groupNotes(this.notes);
     },
   },

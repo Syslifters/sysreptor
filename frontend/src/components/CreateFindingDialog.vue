@@ -21,11 +21,11 @@
           <v-col cols="12" md="9">
             <s-combobox
               v-model="searchInput"
-              @update:search="v => templates.search.value = v || ''"
+              @update:search="(v: string|null) => templates.search.value = v || ''"
               label="Finding Templates"
               :items="templates.data.value"
               item-value="id"
-              :item-title="t => typeof t === 'string' ? t : ''"
+              :item-title="(t: FindingTemplate|string|null) => typeof t === 'string' ? t : ''"
               :hide-no-data="false"
               :menu-props="{ width: '50%' }"
               no-filter

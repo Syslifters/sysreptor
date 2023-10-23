@@ -62,7 +62,7 @@
       <v-window-item v-for="(translation, idx) in template.translations" :key="idx">
         <dynamic-input-field
           :model-value="translation.data.title"
-          @update:model-value="v => updateTranslationData(translation, fieldDefinitionTitle.id, v)"
+          @update:model-value="(v: string) => updateTranslationData(translation, fieldDefinitionTitle.id, v)"
           :id="fieldDefinitionTitle.id"
           :definition="fieldDefinitionTitle"
           :selectable-users="[]"
@@ -74,7 +74,7 @@
 
         <s-status-selection
           :model-value="translation.status"
-          @update:model-value="v => updateTranslationField(translation, 'status', v)"
+          @update:model-value="(v: any) => updateTranslationField(translation, 'status', v)"
           :disabled="props.readonly"
           variant="outlined"
           density="default"
@@ -82,14 +82,14 @@
         />
         <s-tags
           :model-value="template.tags"
-          @update:model-value="v => updateTemplateField('tags', v)"
+          @update:model-value="(v: string[]) => updateTemplateField('tags', v)"
           :items="templateTagSuggestions"
           :disabled="props.readonly"
           class="mt-4"
         />
         <s-language-selection
           :model-value="translation.language"
-          @update:model-value="v => updateTranslationField(translation, 'language', v)"
+          @update:model-value="(v: string) => updateTranslationField(translation, 'language', v)"
           :items="[currentLanguageInfo].concat(unusedLanguageInfos)"
           :disabled="props.readonly"
           class="mt-4"
@@ -98,7 +98,7 @@
         <div v-for="d in visibleFieldDefinitionsExceptTitle" :key="d.id" class="d-flex flex-row">
           <dynamic-input-field
             :model-value="(d.id in translation.data) ? translation.data[d.id] : mainTranslation.data[d.id]"
-            @update:model-value="v => updateTranslationData(translation, d.id, v)"
+            @update:model-value="(v: any) => updateTranslationData(translation, d.id, v)"
             :id="d.id"
             :definition="d"
             :selectable-users="[]"

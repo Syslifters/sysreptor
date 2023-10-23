@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<{
   confirm?: boolean,
   confirmInput?: string,
 }>(), {
-  buttonVariant: 'regular',
+  buttonVariant: 'default',
   icon: false,
   confirm: true,
   confirmInput: undefined,

@@ -98,7 +98,7 @@
           <td>
             <template v-if="keypart.is_decrypted">
               <v-icon color="success" icon="mdi-lock-open-variant" />
-              Restored at {{ formatISO9075(parseISO(keypart.decrypted_at)) }}
+              Restored at {{ formatISO9075(parseISO(keypart.decrypted_at!)) }}
             </template>
             <template v-else>
               <v-icon color="error" icon="mdi-lock" />

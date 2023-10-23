@@ -202,8 +202,8 @@ For elliptic curve, the minium curve size is 256 bit.
     Your selection? Q
 
     gpg/card> name
-    Cardholder's surname: {{ $auth.user.last_name }}
-    Cardholder's given name: {{ $auth.user.first_name }}
+    Cardholder's surname: <your name>
+    Cardholder's given name: <your name>
 
     # Change key type to elliptic curve (optional)
     gpg/card> key-attr

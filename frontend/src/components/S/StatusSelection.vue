@@ -22,12 +22,13 @@
 </template>
 
 <script setup lang="ts">
+import { VSelect } from "vuetify/lib/components/index.mjs";
 import { ReviewStatus } from "~/utils/types";
 
 const props = withDefaults(defineProps<{
   modelValue: ReviewStatus;
-  variant?: string;
-  density?: string;
+  variant?: VSelect['variant'];
+  density?: VSelect['density'];
 }>(), {
   variant: 'underlined',
   density: 'compact'

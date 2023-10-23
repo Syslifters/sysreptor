@@ -44,7 +44,7 @@ import { VForm } from "vuetify/lib/components/index.mjs";
 
 const apiSettings = useApiSettings();
 
-const userForm = ref<User>({
+const userForm = ref<User & { password: string|null }>({
   username: null,
   password: null,
   title_before: null,

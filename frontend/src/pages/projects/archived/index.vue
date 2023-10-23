@@ -10,7 +10,7 @@
 
     <list-view url="/api/v1/archivedprojects/">
       <template #title>Archived Projects</template>
-      <template #item="{item}">
+      <template #item="{item}: { item: ArchivedProject}">
         <v-list-item :to="`/projects/archived/${item.id}/`" lines="two">
           <v-list-item-title> {{ item.name }}</v-list-item-title>
 

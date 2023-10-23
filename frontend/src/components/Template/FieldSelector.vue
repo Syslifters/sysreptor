@@ -4,7 +4,7 @@
       <s-project-type-selection
         v-model="localSettings.templateFieldFilterDesign"
         label="Show fields of"
-        :query-filters="{scope: ['global']}"
+        :query-filters="{scope: [ProjectTypeScope.GLOBAL]}"
         variant="underlined"
         :additional-items="[{id: 'all', name: 'All Designs'}] as ProjectType[]"
       />

@@ -85,7 +85,7 @@
           v-for="(objectFieldDefinition, objectFieldId) in definition.properties"
           :key="objectFieldId"
           :model-value="formValue[objectFieldId]"
-          @update:model-value="emitInputObject(objectFieldId, $event)"
+          @update:model-value="emitInputObject(objectFieldId as string, $event)"
           :definition="objectFieldDefinition"
           :id="props.id ? (props.id + '.' + objectFieldId) : undefined"
           :show-field-ids="showFieldIds"

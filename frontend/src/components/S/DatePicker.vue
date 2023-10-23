@@ -21,7 +21,6 @@
         v-model:input-mode="inputMode"
         :disabled="props.disabled"
         :locale="props.locale"
-        input-mode="calendar"
         view-mode="month"
         hide-actions
         show-adjacent-months
@@ -46,7 +45,7 @@ const emits = defineEmits<{
 }>();
 
 const datePickerVisible = ref(false);
-const inputMode = ref('calendar');
+const inputMode = ref<'calendar' | 'keyboard'>('calendar');
 
 function updateDate(val: Date) {
   if (inputMode.value === 'calendar') {
