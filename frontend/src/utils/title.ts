@@ -10,9 +10,9 @@ export function rootTitleTemplate(title?: string|null, route?: ReturnType<typeof
   return (title ? title + ' | ' : '') + 'SysReptor' + (notificationStore.unreadNotificationCount > 0 ? ` (${notificationStore.unreadNotificationCount})` : '');
 }
 
-export function projectTitleTemplate(project: PentestProject, title?: string|null, route?: ReturnType<typeof useRoute>) {
+export function projectTitleTemplate(project?: PentestProject, title?: string|null, route?: ReturnType<typeof useRoute>) {
   title = getTitle(title, route);
-  return rootTitleTemplate((title ? `${title} | ` : '') + project.name);
+  return rootTitleTemplate((title ? `${title} | ` : '') + (project?.name || ''));
 }
 
 export function profileTitleTemplate(title?: string|null, route?: ReturnType<typeof useRoute>) {
