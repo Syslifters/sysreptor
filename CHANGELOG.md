@@ -9,6 +9,7 @@
 * Allow removing current user from project members
 * Prevent footnotes from moving to next page by default in base.css styles
 * Default to manual sorting if not finding ordering fields are defined in design
+* Fix spellcheck errors when using per-user dictinaries
 
 
 ## v2023.128 - 2023-09-21
