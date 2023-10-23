@@ -506,3 +506,17 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
 
         return project
 
+
+# TODO: import improvements
+# * [x] if created does not exist in JSON: default to now()
+# * [x] if updated does not exist in JSON: default to now()
+# * [x] if finding.template_id does not exist in DB: set None
+# * [x] export/import username in imported_members
+# * [ ] update demo designs (remove created, updated, template_id)
+#   * [x] docs
+#   * [x] demo instance
+#   * [x] oscp demo projects
+#   * [x] ondedrive
+#   * [ ] htb demo projects
+#   * [ ] onedrive: htb designs + htb demo projects
+# * [ ] docs HTB page
