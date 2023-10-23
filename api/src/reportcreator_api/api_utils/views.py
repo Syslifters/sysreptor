@@ -26,7 +26,7 @@ from reportcreator_api.utils.utils import copy_keys, remove_duplicates
 log = logging.getLogger(__name__)
 
 
-class UtilsViewSet(ViewSetAsync):
+class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
     def get_serializer_class(self):
         if self.action == 'backup':
             return BackupSerializer
@@ -36,9 +36,6 @@ class UtilsViewSet(ViewSetAsync):
             return LanguageToolAddWordSerializer
         else:
             return Serializer
-
-    def get_serializer(self, *args, **kwargs):
-        return self.get_serializer_class()(*args, **kwargs)
 
     @extend_schema(responses=OpenApiTypes.OBJECT)
     def list(self, *args, **kwargs):
