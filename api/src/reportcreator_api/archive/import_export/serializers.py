@@ -74,7 +74,7 @@ class UserDataSerializer(serializers.ModelSerializer):
         model = PentestUser
         fields = [
             'id', 'email', 'phone', 'mobile',
-            'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after', 
+            'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after', 
         ]
         extra_kwargs = {'id': {'read_only': False}}
 
@@ -144,7 +144,7 @@ class FileListExportImportSerializer(serializers.ListSerializer):
 class FileExportImportSerializer(ExportImportSerializer):
     class Meta:
         fields = ['id', 'created', 'updated', 'name']
-        extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False}}
+        extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False, 'required': False}}
         list_serializer_class = FileListExportImportSerializer
 
     def validate_name(self, name):
@@ -172,7 +172,7 @@ class FindingTemplateImportSerializerV1(ExportImportSerializer):
     class Meta:
         model = FindingTemplate
         fields = ['format', 'id', 'created', 'updated', 'tags', 'language', 'status', 'data']
-        extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False}}
+        extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False, 'required': False}}
     
     def create(self, validated_data):
         main_translation_data = {k[len('main_translation__'):]: validated_data.pop(k) for k in validated_data.copy().keys() if k.startswith('main_translation__')}
@@ -195,7 +195,7 @@ class FindingTemplateTranslationExportImportSerializer(ExportImportSerializer):
     class Meta:
         model = FindingTemplateTranslation
         fields = ['id', 'created', 'updated', 'is_main', 'language', 'status', 'data']
-        extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False}}
+        extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False, 'required': False}}
 
     def create(self, validated_data):
         data = validated_data.pop('data_all', {})
@@ -225,7 +225,7 @@ class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
     class Meta:
         model = FindingTemplate
         fields = ['format', 'id', 'created', 'updated', 'tags', 'translations', 'images']
-        extra_kwargs = {'id': {'read_only': False}, 'created': {'read_only': False}}
+        extra_kwargs = {'id': {'read_only': False}, 'created': {'read_only': False, 'required': False}}
 
     def validate_translations(self, value):
         if len(list(filter(lambda t: t.get('is_main'), value))) != 1:
@@ -312,7 +312,7 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
             'report_template', 'report_styles', 'report_preview_data', 
             'assets'
         ]
-        extra_kwargs = {'id': {'read_only': False}, 'created': {'read_only': False}}
+        extra_kwargs = {'id': {'read_only': False}, 'created': {'read_only': False, 'required': False}}
 
     def export_files(self) -> Iterable[tuple[str, File]]:
         af = self.fields['assets']
@@ -342,7 +342,7 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
         fields = [
             'id', 'created', 'updated', 'assignee', 'status', 'template', 'order', 'data',
         ]
-        extra_kwargs = {'created': {'read_only': False}}
+        extra_kwargs = {'created': {'read_only': False, 'required': False}}
 
     def create(self, validated_data):
         project = self.context['project']
@@ -368,7 +368,7 @@ class ReportSectionExportImportSerializer(ExportImportSerializer):
         fields = [
             'id', 'created', 'updated', 'assignee', 'status',
         ]
-        extra_kwargs = {'created': {'read_only': False}}
+        extra_kwargs = {'created': {'read_only': False, 'required': False}}
 
     def update(self, instance, validated_data):
         instance.skip_history_when_saving = True
@@ -393,7 +393,7 @@ class ProjectNotebookPageExportImportSerializer(ExportImportSerializer):
             'order', 'parent',
         ]
         extra_kwargs = {
-            'created': {'read_only': False},
+            'created': {'read_only': False, 'required': False},
             'icon_emoji': {'required': False},
             'status_emoji': {'required': False},
             'assignee': {'required': False}
@@ -435,7 +435,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         ]
         extra_kwargs = {
             'id': {'read_only': False}, 
-            'created': {'read_only': False},
+            'created': {'read_only': False, 'required': False},
             'tags': {'required': False},
         }
 
