@@ -94,13 +94,13 @@
 import debounce from 'lodash/debounce';
 import cloneDeep from 'lodash/cloneDeep';
 import isEqual from 'lodash/isEqual';
-import { VForm } from 'vuetify/lib/components/index.mjs';
+import type { VForm } from "vuetify/lib/components/index.mjs";
 import { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
 import { EditMode, LockInfo, Lockable } from '@/utils/types';
 
 const props = withDefaults(defineProps<{
   data?: T,
-  form?: InstanceType<typeof VForm>,
+  form?: VForm,
   canAutoSave?: boolean,
   save?:((data: T) => Promise<void>),
   delete?: ((data: T) => Promise<void>),
