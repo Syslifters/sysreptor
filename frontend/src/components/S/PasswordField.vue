@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { VForm } from 'vuetify/lib/components/index.mjs';
+import type { VForm } from "vuetify/lib/components/index.mjs";
 import zxcvbn from 'zxcvbn';
 
 const props = withDefaults(defineProps<{
@@ -59,7 +59,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void,
 }>();
 
-const confirmField = ref<InstanceType<typeof VForm> | null>(null);
+const confirmField = ref<VForm|null>(null);
 async function passwordChanged(val: string) {
   if (props.confirm && confirmField.value) {
     await confirmField.value.validate();

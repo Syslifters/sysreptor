@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { VForm } from "vuetify/lib/components/index.mjs";
+import type { VForm } from "vuetify/lib/components/index.mjs";
 import { ProjectMember } from "~/utils/types";
 
 definePageMeta({
@@ -35,7 +35,7 @@ const projectForm = ref({
   }] as ProjectMember[],
 });
 
-const formRef = ref<InstanceType<typeof VForm>>();
+const formRef = ref<VForm>();
 async function performCreate() {
   const { valid } = await formRef.value!.validate();
   if (!valid) {

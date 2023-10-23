@@ -1,7 +1,7 @@
 import urlJoin from "url-join";
 import cloneDeep from "lodash/cloneDeep";
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";
-import { VForm } from "vuetify/lib/components/index.mjs";
+import type { VForm } from "vuetify/lib/components/index.mjs";
 import { formatISO9075 } from "date-fns";
 import {
   EditMode,
@@ -18,7 +18,7 @@ export type LockEditOptions<T> = {
   toolbarRef?: ToolbarRef;
   data: Ref<T>;
   baseUrl?: ComputedRef<string|null>;
-  form?: Ref<InstanceType<typeof VForm>|undefined>;
+  form?: Ref<VForm|undefined>;
   fetchState?: ReturnType<typeof useLazyFetch>;
   hasEditPermissions?: ComputedRef<boolean>;
   errorMessage?: ComputedRef<string|null>;
