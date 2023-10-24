@@ -34,6 +34,11 @@ caption {
   break-inside: avoid;
   break-before: avoid;
 }
+table img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
 
 
 /* Images and figures */
@@ -50,9 +55,6 @@ figcaption {
 }
 img {
   max-width: 100%;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 

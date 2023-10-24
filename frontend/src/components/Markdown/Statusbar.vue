@@ -1,7 +1,7 @@
 <template>
   <div class="mde-statusbar">
     <template v-if="props.fileUploadEnabled">
-      <span v-if="!props.fileUploadInProgress">Attach files by drag and dropping or pasting from clipboard.</span>
+      <span v-if="!props.fileUploadInProgress">Attach files via drag and drop or pasting from clipboard.</span>
       <span v-else>Upload in progress...</span>
     </template>
     <span>lines: {{ lineCount }}</span>

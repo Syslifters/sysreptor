@@ -26,8 +26,8 @@
             <span v-if="msg.location" class="error-location">
               <slot name="location" :msg="msg">
                 in {{ msg.location.type }}
-                <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
-                <template v-if="msg.location.path">{{ msg.location.path }}</template>
+                <span v-if="msg.location.name">"{{ msg.location.name }}"</span>
+                <span v-if="msg.location.path">field {{ msg.location.path }}</span>
               </slot>
             </span>
 
@@ -54,8 +54,8 @@
               {{ msg.message }}
               <span v-if="msg.location && msg.location.name" class="error-location">
                 in {{ msg.location.type }}
-                <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
-                <template v-if="msg.location.path">field {{ msg.location.path }}</template>
+                <span v-if="msg.location.name">"{{ msg.location.name }}"</span>
+                <span v-if="msg.location.path"> field {{ msg.location.path }}</span>
               </span>
             </slot>
           </p>

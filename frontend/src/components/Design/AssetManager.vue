@@ -29,7 +29,7 @@
             />
           </v-card-actions>
           <v-card-text class="text--small text-center pt-0">
-            Attach files by drag and dropping
+            Attach files via drag and drop
           </v-card-text>
         </s-card>
       </v-col>

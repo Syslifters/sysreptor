@@ -89,7 +89,7 @@
                   size="x-large"
                   class="draggable-handle"
                   :disabled="props.disabled || !props.canChangeStructure"
-                  icon="mdi-drag"
+                  icon="mdi-drag-horizontal"
                 />
               </template>
               <template #default>
@@ -152,6 +152,7 @@
               label="Value"
               required
               spellcheck="false"
+              class="mt-2"
             />
           </template>
           <template #append>
