@@ -539,6 +539,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
 #   * [x] demo instance
 #   * [x] oscp demo projects
 #   * [x] ondedrive
-#   * [ ] htb demo projects
-#   * [ ] onedrive: htb designs + htb demo projects
+#   * [x] htb designs
+#   * [ ] htb demo projects: empty project or demo project with content ???
+#   * [ ] onedrive: htb demo projects
 # * [ ] docs HTB page
