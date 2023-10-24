@@ -1,4 +1,6 @@
 [run]
 relative_files = True
 source = ./
-omit = reportcreator_api/tests/*
+omit = 
+  reportcreator_api/tests/*
+  reportcreator_api/**/migrations/*

@@ -57,7 +57,7 @@
         v-model="project.name"
         label="Name"
         :error-messages="serverErrors?.name || []"
-        :disabled="project.readonly"
+        :disabled="readonly"
         spellcheck="false"
         class="mt-4"
       />
@@ -67,7 +67,7 @@
         @update:model-value="projectType = $event"
         :query-filters="{scope: [ProjectTypeScope.GLOBAL, ProjectTypeScope.PRIVATE, ProjectTypeScope.PROJECT], linked_project: project.id}"
         :error-messages="serverErrors?.project_type || []"
-        :disabled="project.readonly"
+        :disabled="readonly"
         :append-link="true"
         return-object
         class="mt-4"
@@ -103,19 +103,19 @@
       <s-language-selection
         v-model="project.language"
         :error-messages="serverErrors?.language || []"
-        :disabled="project.readonly"
+        :disabled="readonly"
         class="mt-4"
       />
       <s-tags
         v-model="project.tags"
         :error-messages="serverErrors?.tags || []"
-        :disabled="project.readonly"
+        :disabled="readonly"
         class="mt-4"
       />
       <s-member-selection
         v-model="project.members"
         :error-messages="serverErrors?.members || []"
-        :disabled="project.readonly"
+        :disabled="readonly"
         :required="true"
         label="Members"
         class="mt-4"
@@ -125,7 +125,7 @@
         v-model="project.imported_members"
         :selectable-users="project.imported_members"
         :error-messages="serverErrors?.imported_members || []"
-        :disabled="project.readonly"
+        :disabled="readonly"
         :disable-add="true"
         label="Members (imported)"
         hint="These users do not exist on this instance, they were imported from somewhere else. They do not have access, but can be included in reports."
@@ -143,35 +143,39 @@ const route = useRoute();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 
-const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${route.params.projectId}/`, { method: 'GET' });
+const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${route.params.projectId}/`, { method: 'GET', key: 'projectSettings:project' });
 const serverErrors = ref<any|null>(null);
 const projectType = ref(null);
-const deleteConfirmInput = computed(() => project.value.name);
 const historyVisible = ref(false);
 
-const toolbarRef = ref();
 const formRef = ref<VForm>();
-const { toolbarAttrs } = useLockEdit<PentestProject>({
+const toolbarRef = ref();
+const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
   data: project,
   form: formRef,
-  ...(!project.value.readonly ? {
-    performSave: async () => {
-      try {
-        project.value = await projectStore.partialUpdateProject(project.value,
-          ['name', 'project_type', 'force_change_project_type', 'language', 'tags', 'members', 'imported_members']);
-      } catch (error: any) {
-        if (error?.status === 400 && error?.data) {
-          serverErrors.value = error.data;
-        }
-        throw error;
+  hasEditPermissions: computed(() => !project.value?.readonly),
+  errorMessage: computed(() => {
+    if (project.value?.readonly) {
+      return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'
+    }
+    return null;
+  }),
+  performSave: async () => {
+    try {
+      project.value = await projectStore.partialUpdateProject(project.value,
+        ['name', 'project_type', 'force_change_project_type', 'language', 'tags', 'members', 'imported_members']);
+    } catch (error: any) {
+      if (error?.status === 400 && error?.data) {
+        serverErrors.value = error.data;
       }
-    },
-    performDelete: async () => {
-      await projectStore.deleteProject(project.value);
-      await navigateTo('/projects/');
-    },
-    deleteConfirmInput,
-  } : {}),
+      throw error;
+    }
+  },
+  performDelete: async () => {
+    await projectStore.deleteProject(project.value);
+    await navigateTo('/projects/');
+  },
+  deleteConfirmInput: computed(() => project.value.name),
 });
 
 watch(projectType, (val: ProjectType|null) => {
@@ -188,7 +192,7 @@ async function forceChangeDesign() {
     serverErrors.value = null;
     delete p.force_change_project_type;
     await toolbarRef.value?.resetComponent();
-    window.location.reload();
+    await refreshNuxtData();
   } finally {
     delete p.force_change_project_type;
   }
@@ -197,7 +201,10 @@ async function forceChangeDesign() {
 async function setReadonly(val: boolean) {
   await projectStore.setReadonly(project.value, val);
   await toolbarRef.value?.resetComponent();
-  window.location.reload();
+  await refreshNuxtData();
+  if (!val) {
+    editMode.value = EditMode.EDIT;
+  }
 }
 async function performCopy(data?: Object) {
   const obj = await projectStore.copyProject({ ...project.value, ...data });

@@ -233,10 +233,10 @@ async function performSave() {
   try {
     savingInProgress.value = true;
     await props.save!(props.data!);
-
-    hasChangesValue.value = false;
+    await nextTick();
     // @ts-ignore
     previousData.value = cloneDeep(props.data!);
+    hasChangesValue.value = false;
   } catch (error) {
     requestErrorToast({ error });
   } finally {
