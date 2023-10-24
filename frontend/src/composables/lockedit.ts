@@ -155,6 +155,7 @@ export function useLockEdit<T>(options: LockEditOptions<T>) {
     toolbarAttrs,
     readonly,
     fetchLoaderAttrs,
+    editMode,
   };
 }
 
