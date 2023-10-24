@@ -12,7 +12,7 @@
             v-bind="{...$attrs, ...tooltipProps, ...dialogProps}"
           >
             <template #prepend v-if="buttonIcon">
-              <v-progress-circular v-if="actionInProgress" indeterminate />
+              <v-progress-circular v-if="actionInProgress" indeterminate size="24" />
               <v-icon v-else :icon="buttonIcon" :color="($attrs.color as string|undefined) || buttonColor" />
             </template>
           </v-list-item>
@@ -154,3 +154,11 @@ if (props.keyboardShortcut) {
   });
 }
 </script>
+
+<style lang="scss" scoped>
+@use "@/assets/vuetify" as vuetify;
+
+:deep(.v-list-item__prepend > .v-progress-circular ~ .v-list-item__spacer) {
+  width: vuetify.$list-item-icon-margin-start;
+}
+</style>

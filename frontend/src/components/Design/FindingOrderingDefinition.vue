@@ -19,7 +19,7 @@
               <template #prepend>
                 <span v-if="idx === 0">Sort by</span>
                 <span v-else>then by</span>
-                <v-icon size="x-large" class="draggable-handle ml-6" :disabled="props.disabled" icon="mdi-drag" />
+                <v-icon size="x-large" class="draggable-handle ml-6" :disabled="props.disabled" icon="mdi-drag-horizontal" />
               </template>
               <template #default>
                 <v-row dense>

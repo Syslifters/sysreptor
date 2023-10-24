@@ -1,8 +1,6 @@
 import dataclasses
 import enum
 from typing import Optional, Union
-from rest_framework import serializers
-from rest_framework.fields import to_choices_dict, flatten_choices_dict
 
 
 class MessageLevel(enum.Enum):
@@ -31,7 +29,7 @@ def format_path(path: Union[None, str, tuple[str], list[str]]):
     return path_str
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(eq=True, frozen=True)
 class MessageLocationInfo:
     type: MessageLocationType
     id: Optional[str] = None

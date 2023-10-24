@@ -8,7 +8,7 @@
         class="pt-0"
       >
         <v-list-subheader class="mt-0">Sections</v-list-subheader>
-        <v-list-item v-for="section in projectType.report_sections" :key="section.id" :value="section" link>
+        <v-list-item v-for="section in projectType.report_sections" :key="section.id" :value="section.id" link>
           <v-list-item-title class="text-body-2">{{ section.label }}</v-list-item-title>
         </v-list-item>
 
@@ -21,7 +21,7 @@
         >
           <template #item="{element: finding}">
             <v-list-item
-              :value="finding"
+              :value="finding.id"
               :class="'finding-level-' + riskLevel(finding)"
               :ripple="false"
               link
@@ -120,8 +120,15 @@ const auth = useAuth();
 const menuSize = ref(20);
 const currentItem = ref<any|null>(null);
 const currentItemSelected = computed({
-  get: () => currentItem.value ? [currentItem.value] : [],
-  set: (val) => { currentItem.value = val.length > 0 ? val[0] : null; },
+  get: () => currentItem.value ? [currentItem.value.id] : [],
+  set: (val) => { 
+    if (val.length > 0) {
+      currentItem.value = props.projectType.report_sections.find(s => s.id === val[0])
+        || props.modelValue.findings.find((f: any) => f.id === val[0]);
+    } else {
+      currentItem.value = null;
+    }
+  },
 })
 const currentItemIsSection = computed(() => {
   return currentItem.value && props.projectType.report_sections.some(s => s.id === currentItem.value.id);
@@ -152,7 +159,7 @@ function updateSectionField(fieldId: string, value: any) {
   emit('update:modelValue', {
     ...props.modelValue,
     report: {
-      ...props.modelValue.repo,
+      ...props.modelValue.report,
       [fieldId]: value,
     }
   });
@@ -163,7 +170,6 @@ function updateFindingField(fieldId: string, value: any) {
     ...props.modelValue,
     findings: sortPreviewFindings(props.modelValue.findings.map((f: any) => f.id === currentItem.value.id ? newFinding : f)),
   });
-  currentItem.value = newFinding;
 }
 function createField(definition: FieldDefinition): any {
   if (definition.type === FieldDataType.LIST) {
