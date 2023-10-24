@@ -114,6 +114,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
     def license_info(self, request, *args, **kwargs):
         return Response(data=license.check_license() | {
             'active_users': PentestUser.objects.get_licensed_user_count(),
+            'total_users': PentestUser.objects.get_total_user_count(),
             'software_version': settings.VERSION,
         })
     

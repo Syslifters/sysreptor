@@ -14,10 +14,10 @@ def user_count_license_check(sender, instance, *args, **kwargs):
     # User created
     created = instance.id is None or instance._state.adding
     if created:
-        licensable_users = PentestUser.objects.all()
-        if not license.is_professional():
-            licensable_users = licensable_users.filter(is_superuser=True)
-        current_user_count = licensable_users.get_licensed_user_count()
+        if license.is_professional():
+            current_user_count = PentestUser.objects.get_licensed_user_count()
+        else:
+            current_user_count = PentestUser.objects.get_total_user_count()
 
         max_users = license.check_license().get('users', 1)
         if current_user_count + 1 > max_users:
@@ -27,14 +27,17 @@ def user_count_license_check(sender, instance, *args, **kwargs):
     
     # User updated
     if (created or 'is_superuser' in instance.changed_fields) and not instance.is_superuser and not license.is_professional():
-        raise license.LicenseError('Cannot create superusers with Community license. Professional license is required for user roles.')
+        raise license.LicenseError('Cannot create non-superusers in Community edition. Professional license is required for user roles.')
     if (created or 'is_system_user' in instance.changed_fields) and instance.is_system_user and not license.is_professional():
-        raise license.LicenseError('System users are not supported with Community license. Professional license is required.')
+        raise license.LicenseError('System users are not supported in Community edition. Professional license is required.')
     if not created and \
         ((instance.get_field_diff('is_superuser') == (False, True) and not license.is_professional()) or \
          (instance.get_field_diff('is_active') == (False, True))):
-        current_superuser_count = PentestUser.objects.filter(is_superuser=True).get_licensed_user_count()
+        if license.is_professional():
+            current_user_count = PentestUser.objects.get_licensed_user_count()
+        else:
+            current_user_count = PentestUser.objects.get_total_user_count()
         max_users = license.check_license().get('users', 1)
-        if current_superuser_count + 1 > max_users:
+        if current_user_count + 1 > max_users:
             raise license.LicenseError(f'License limit exceeded. Your license allows max. {max_users} users. Please deactivate some users or extend your license.')
     
