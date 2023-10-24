@@ -192,7 +192,7 @@ async function forceChangeDesign() {
     serverErrors.value = null;
     delete p.force_change_project_type;
     await toolbarRef.value?.resetComponent();
-    window.location.reload();
+    await refreshNuxtData();
   } finally {
     delete p.force_change_project_type;
   }
