@@ -19,7 +19,7 @@
         >
           <template #toolbar-context-menu v-if="auth.hasScope('template_editor')">
             <btn-export
-              :export-url="`/findingtemplates/${template.id}/export/`"
+              :export-url="`/api/v1/findingtemplates/${template.id}/export/`"
               :name="`template-` + mainTranslation!.data.title"
             />
           </template>
