@@ -42,20 +42,25 @@ class TestImportExport:
         self.template = create_template(
             language=Language.ENGLISH, 
             translations_kwargs=[
-                {'language': Language.GERMAN, 'data': {'title': 'Template translation', 'description': 'Template description translation'}}
-            ])
+                {'language': Language.GERMAN, 'data': {'title': 'Template translation', 'description': 'Template description translation ![](/images/name/image.png)'}},
+            ],
+            images_kwargs=[{'name': 'image.png'}],    
+        )
         self.project_type = create_project_type()
         self.project = create_project(
             project_type=self.project_type, 
             members=[self.user],
             report_data={'field_user': str(self.user.id)},  
             findings_kwargs=[
-                {'assignee': self.user, 'template': self.template},
+                {'assignee': self.user, 'template': self.template, 'data': {'description': '![](/images/name/image.png)'}},
                 {'assignee': None, 'template': None},
             ],
-            notes_kwargs=[])
-        note1 = create_projectnotebookpage(project=self.project, title='Note 1', text='Note text 1')
-        create_projectnotebookpage(project=self.project, parent=note1, title='Note 1.1', text='Note text 1.1')
+            notes_kwargs=[],
+            images_kwargs=[{'name': 'image.png'}, {'name': 'image-note.png'}],
+            files_kwargs=[{'name': 'file.txt'}],
+        )
+        note1 = create_projectnotebookpage(project=self.project, title='Note 1', text='Note text 1 ![](/images/name/image-note.png)')
+        create_projectnotebookpage(project=self.project, parent=note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
         
         with override_settings(COMPRESS_IMAGES=False):
             yield
@@ -138,8 +143,6 @@ class TestImportExport:
         for i, s in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id')):
             assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
 
-        assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in project.images.all()}
-
         assertKeysEqual(p.project_type, project.project_type, [
             'created', 'name', 'language', 
             'report_fields', 'report_sections', 
@@ -157,6 +160,7 @@ class TestImportExport:
         assert len(imported) == 1
         p = imported[0]
         self.assert_export_import_project(self.project, p)
+        assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in self.project.images.all() if self.project.is_file_referenced(i, notes=False)}
         assert p.notes.count() == 0
         assert p.files.count() == 0
 
@@ -167,12 +171,12 @@ class TestImportExport:
         assert len(imported) == 1
         p = imported[0]
         self.assert_export_import_project(self.project, p)
+        assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in self.project.images.all()}
 
         assert p.notes.count() == self.project.notes.count()
         for i, s in zip(p.notes.order_by('note_id'), self.project.notes.order_by('note_id')):
             assertKeysEqual(i, s, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'status_emoji', 'order'])
             assert i.parent.note_id == s.parent.note_id if s.parent else i.parent is None
-
         assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in self.project.files.all()}
 
     def test_import_nonexistent_user(self):

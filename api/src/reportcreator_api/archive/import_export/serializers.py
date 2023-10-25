@@ -118,9 +118,13 @@ class OptionalPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
 
 class FileListExportImportSerializer(serializers.ListSerializer):
     def export_files(self):
-        for e in self.instance:
-            self.child.instance = e
-            yield from self.child.export_files()
+        for f in self.instance:
+            if self.child.is_file_referenced(f):
+                self.child.instance = f
+                yield from self.child.export_files()
+
+    def to_representation(self, data):
+        return super().to_representation([f for f in data.all() if self.child.is_file_referenced(f)])
 
     def extract_file(self, name):
         return self.context['archive'].extractfile(self.child.get_path_in_archive(name))
@@ -157,6 +161,9 @@ class FileExportImportSerializer(ExportImportSerializer):
 
     def get_path_in_archive(self, name):
         pass
+
+    def is_file_referenced(self, f):
+        return self.get_linked_object().is_file_referenced(f)
 
     def export_files(self) -> Iterable[tuple[str, File]]:
         yield self.get_path_in_archive(self.instance.name), self.instance.file
@@ -234,6 +241,10 @@ class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
             raise serializers.ValidationError('Duplicate template language detected')
         return value
     
+    def to_representation(self, instance):
+        self.context.update({'template': instance})
+        return super().to_representation(instance)
+    
     def export_files(self) -> Iterable[tuple[str, File]]:
         self.context.update({'template': self.instance})
         imgf = self.fields['images']
@@ -269,6 +280,9 @@ class UploadedImageExportImportSerializer(FileExportImportSerializer):
 
     def get_linked_object(self):
         return self.context['project']
+    
+    def is_file_referenced(self, f):
+        return self.get_linked_object().is_file_referenced(f, findings=True, sections=True, notes=self.context.get('export_all', True))
     
     def get_path_in_archive(self, name):
         # Get ID of old project_type from archive
@@ -313,6 +327,10 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
             'assets'
         ]
         extra_kwargs = {'id': {'read_only': False}, 'created': {'read_only': False, 'required': False}}
+
+    def to_representation(self, instance):
+        self.context.update({'project_type': instance})
+        return super().to_representation(instance)
 
     def export_files(self) -> Iterable[tuple[str, File]]:
         af = self.fields['assets']
@@ -445,6 +463,10 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
             del fields['notes']
             del fields['files']
         return fields
+    
+    def to_representation(self, instance):
+        self.context.update({'project': instance})
+        return super().to_representation(instance)
 
     def export_files(self) -> Iterable[tuple[str, File]]:
         self.fields['project_type'].instance = self.instance.project_type

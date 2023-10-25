@@ -122,19 +122,25 @@ async def get_celery_result_async(task, timeout=timedelta(seconds=settings.CELER
             logging.error('PDF rendering task timeout')
             raise TimeoutError('PDF rendering timeout')
         await asyncio.sleep(0.2)
-    return task.get()
+    return task.result
 
 
 @elasticapm.async_capture_span()
 async def render_pdf_task(project_type: ProjectType, report_template: str, report_styles: str, data: dict, password: Optional[str] = None, project: Optional[PentestProject] = None) -> dict:
+    def format_resources():
+        resources = {}
+        resources |= {'/assets/name/' + a.name: b64encode(a.file.read()).decode() for a in project_type.assets.all()}
+        if project:
+            resources |= {'/images/name/' + i.name: b64encode(i.file.read()).decode() for i in project.images.all() if project.is_file_referenced(i)}
+        return resources
+    
     task = await sync_to_async(tasks.render_pdf_task.delay)(
         template=report_template,
         styles=report_styles,
         data=data,
         language=project.language if project else project_type.language,
         password=password,
-        resources={'/assets/name/' + a.name: b64encode(a.file.read()).decode() async for a in project_type.assets.all()} |
-        ({'/images/name/' + i.name: b64encode(i.file.read()).decode() async for i in project.images.all()} if project else {})
+        resources=await sync_to_async(format_resources)()
     )
     res = await get_celery_result_async(task)
     # Set message location info to ProjectType (if not available)
@@ -153,16 +159,18 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
     # Prevent sending unreferenced images to rendering task to reduce memory consumption
     resources = {}
     async for i in parent_obj.images.all():
-        if i.name in note.text:
+        if note.is_file_referenced(i):
             resources['/images/name/' + i.name] = b64encode(i.file.read()).decode()
 
     # Rewrite file links to absolute URL
     note_text = note.text
     if request:
         async for f in parent_obj.files.values_list('name', flat=True):
-            if f in note_text:
-                absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f})) if is_project_note else \
-                            request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f})) 
+            if note.is_file_referenced(f):
+                if is_project_note:
+                    absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f}))
+                else:
+                    absolute_file_url = request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f})) 
                 note_text = note_text.replace(f'/files/name/{f}', absolute_file_url)
     
     task = await sync_to_async(tasks.render_pdf_task.delay)(
