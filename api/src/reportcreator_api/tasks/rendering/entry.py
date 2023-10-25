@@ -165,13 +165,13 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
     # Rewrite file links to absolute URL
     note_text = note.text
     if request:
-        async for f in parent_obj.files.values_list('name', flat=True):
+        async for f in parent_obj.files.only('id', 'name'):
             if note.is_file_referenced(f):
                 if is_project_note:
-                    absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f}))
+                    absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f.name}))
                 else:
-                    absolute_file_url = request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f})) 
-                note_text = note_text.replace(f'/files/name/{f}', absolute_file_url)
+                    absolute_file_url = request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f.name})) 
+                note_text = note_text.replace(f'/files/name/{f.name}', absolute_file_url)
     
     task = await sync_to_async(tasks.render_pdf_task.delay)(
         template="""<h1>{{ data.note.title }}</h1><markdown :text="data.note.text" />""",
