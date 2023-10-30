@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## v2023.136 - 2023-10-30
 * Update frontend tech stack to Vue3, Nuxt3, Vuetify3, Typescript
 * Update weasyprint to v60
 * Increase read timeout in example nginx config
