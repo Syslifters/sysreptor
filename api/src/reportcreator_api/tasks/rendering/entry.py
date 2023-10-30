@@ -1,14 +1,16 @@
 import dataclasses
-
+import io
 import logging
 import uuid
+import json
 import asyncio
 import elasticapm
+from lxml import etree
 from datetime import timedelta
 from asgiref.sync import sync_to_async
 from types import NoneType
 from typing import Any, Optional, Union
-from base64 import b64encode
+from base64 import b64encode, b64decode
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.urls import reverse
@@ -18,7 +20,7 @@ from reportcreator_api.pentests.customfields.sort import sort_findings
 from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.pentests import cvss
 from reportcreator_api.pentests.customfields.types import FieldDataType, FieldDefinition, EnumChoice
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure, iterate_fields
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.error_messages import MessageLocationInfo, MessageLocationType
 from reportcreator_api.pentests.models import PentestProject, ProjectType, ProjectMemberInfo, ProjectNotebookPage, UserNotebookPage, Language
@@ -115,6 +117,30 @@ def format_template_data(data: dict, project_type: ProjectType, imported_members
     return data
 
 
+async def format_project_template_data(project: PentestProject, project_type: Optional[ProjectType] = None):
+    if not project_type:
+        project_type = project.project_type
+    data = {
+        'report': {
+            'id': str(project.id),
+            **await sync_to_async(lambda: project.data)(),
+        },
+        'findings': [{
+            'id': str(f.finding_id),
+            'created': str(f.created),
+            'order': f.order,
+            **f.data,
+        } async for f in project.findings.all()],
+        'pentesters': [u async for u in project.members.all()],
+    }
+    return await sync_to_async(format_template_data)(
+        data=data, 
+        project_type=project_type, 
+        imported_members=project.imported_members, 
+        override_finding_order=project.override_finding_order
+    )
+
+
 async def get_celery_result_async(task, timeout=timedelta(seconds=settings.CELERY_TASK_TIME_LIMIT)):
     start_time = timezone.now()
     while not task.ready():
@@ -126,7 +152,7 @@ async def get_celery_result_async(task, timeout=timedelta(seconds=settings.CELER
 
 
 @elasticapm.async_capture_span()
-async def render_pdf_task(project_type: ProjectType, report_template: str, report_styles: str, data: dict, password: Optional[str] = None, project: Optional[PentestProject] = None) -> dict:
+async def render_pdf_task(project_type: ProjectType, report_template: str, report_styles: str, data: dict, password: Optional[str] = None, project: Optional[PentestProject] = None, output=None) -> dict:
     def format_resources():
         resources = {}
         resources |= {'/assets/name/' + a.name: b64encode(a.file.read()).decode() for a in project_type.assets.all()}
@@ -140,6 +166,7 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
         data=data,
         language=project.language if project else project_type.language,
         password=password,
+        output=output,
         resources=await sync_to_async(format_resources)()
     )
     res = await get_celery_result_async(task)
@@ -149,6 +176,71 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
             m['location'] = MessageLocationInfo(
                 type=MessageLocationType.DESIGN, id=project_type.id, name=project_type.name).to_dict()
     return res
+
+
+@elasticapm.async_capture_span()
+async def render_project_markdown_fields_to_html(project: PentestProject, request):
+    # Collect all markdown fields
+    markdown_fields = {}
+    async for s in project.sections.all():
+        for (path, value, definition) in iterate_fields(value=s.data, definition=project.project_type.report_fields_obj, path=('sections', str(s.section_id))):
+            if definition.type == FieldDataType.MARKDOWN:
+                markdown_fields[json.dumps(path)] = value
+    async for f in project.findings.all():
+        for (path, value, definition) in iterate_fields(value=f.data, definition=project.project_type.finding_fields_obj, path=('findings', str(f.finding_id))):
+            if definition.type == FieldDataType.MARKDOWN:
+                markdown_fields[json.dumps(path)] = value
+
+    # Render markdown fields to HTML
+    data = await format_project_template_data(project=project) | {
+        'markdown_fields': markdown_fields,
+    }
+    res = await render_pdf_task(
+        project_type=project.project_type,
+        report_template="""<markdown v-for="([id, text]) in Object.entries(data.markdown_fields)" :id="id" :text="text" />""",
+        report_styles="",
+        data=data,
+        output='html',
+    )
+    if not res.get('pdf'):
+        return res
+    
+    def format_output():
+        from reportcreator_api.pentests.serializers.project import PentestProjectDetailSerializer
+
+        # Extract markdown fields from HTML (maybe with lxml)
+        html_tree = etree.HTML(b64decode(res['pdf']).decode())
+        rendered_md_nodes = html_tree.getchildren()[1].getchildren()[0].getchildren()
+        for mdf in rendered_md_nodes:
+            mdf_id = mdf.attrib.get('id')
+            if mdf_id in markdown_fields:
+                markdown_fields[mdf_id] = ''.join(map(lambda e: etree.tostring(e, method="html", pretty_print=True).decode(), mdf.getchildren()))
+
+        # Serialize project to dict and replace markdown fields with HTML in dict
+        result = PentestProjectDetailSerializer(instance=project, context={'request': request}).data
+        for path_str, html in markdown_fields.items():
+            path = json.loads(path_str)
+            if path[0] == 'sections':
+                section_data = next(filter(lambda s: s['id'] == path[1], result['sections']))['data']
+                for p in path[2:-1]:
+                    section_data = section_data[p]
+                section_data[path[-1]] = html
+            elif path[0] == 'findings':
+                finding_data = next(filter(lambda f: f['id'] == path[1], result['findings']))['data']
+                for p in path[2:-1]:
+                    finding_data = finding_data[p]
+                finding_data[path[-1]] = html
+
+        return {
+            'result': result,
+            'messages': res.get('messages', []),
+        }
+
+    try:
+        return await sync_to_async(format_output)()
+    except Exception:
+        log.exception('Error while formatting output')
+        return res
 
 
 @elasticapm.async_capture_span()
@@ -198,25 +290,7 @@ async def render_pdf(project: PentestProject, project_type: Optional[ProjectType
     if not report_styles:
         report_styles = project_type.report_styles
 
-    data = {
-        'report': {
-            'id': str(project.id),
-            **await sync_to_async(lambda: project.data)(),
-        },
-        'findings': [{
-            'id': str(f.finding_id),
-            'created': str(f.created),
-            'order': f.order,
-            **f.data,
-        } async for f in project.findings.all()],
-        'pentesters': [u async for u in project.members.all()],
-    }
-    data = await sync_to_async(format_template_data)(
-        data=data, 
-        project_type=project_type, 
-        imported_members=project.imported_members, 
-        override_finding_order=project.override_finding_order
-    )
+    data = await format_project_template_data(project=project, project_type=project_type)
     return await render_pdf_task(
         project=project,
         project_type=project_type,

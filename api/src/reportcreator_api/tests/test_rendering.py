@@ -218,3 +218,6 @@ class TestHtmlRendering:
         with pikepdf.Pdf.open(io.BytesIO(pdf_data), password=password) as pdf:
             assert pdf.is_encrypted == encrypted
 
+    def test_render_md2html(self):
+        # TODO: implement test
+        pass
