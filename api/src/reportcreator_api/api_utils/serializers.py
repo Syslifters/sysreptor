@@ -76,7 +76,7 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
             'language': data['language'],
             'data': json.dumps(data['data'], ensure_ascii=False),
             **({
-                'preferredVariants': self.spellcheck_languages,
+                'preferredVariants': ','.join(self.spellcheck_languages),
             } if data['language'] == 'auto' else {}),
         })
         

@@ -32,7 +32,7 @@ export const useLocalSettings = defineStore('settings', {
         return lang !== null &&
             this.spellcheckEnabled &&
             apiSettings.settings!.features.spellcheck &&
-            Boolean(apiSettings.settings!.languages.find(l => l.code === lang)?.spellcheck);
+            Boolean(apiSettings.settings!.languages.find(l => l.code === lang)?.spellcheck || lang === 'auto');
       }
     },
     spellcheckBrowserEnabled() {
