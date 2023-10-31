@@ -1,16 +1,15 @@
 # OffSec Reporting
 
-Use our cloud service for free to write your OffSec OSCP, OSWP, OSEP, OSWA, OSWE, OSED, OSMR, OSEE, OSDA reports.
+Our free cloud service to write your OffSec OSCP, OSWP, OSEP, OSWA, OSWE, OSED, OSMR, OSEE, OSDA reports.
 
 💲 Free  
 📝 Write in markdown  
 ⚙️ Render your report to PDF  
 🛡️ OSCP, OSWP, OSEP, OSWA, OSWE, OSED, OSMR, OSEE, OSDA  
 🚀 Fully customizable  
-🎉 No need for Word  
 👌 No local software troubleshooting
 
-<br><div style="text-align:center">[:rocket: Sign Up Now (it's free)](https://oscp.sysreptor.com/oscp/signup/){ .md-button }</div>
+<br><div style="text-align:center">[:rocket: Sign Up (it's free)](https://oscp.sysreptor.com/oscp/signup/){ .md-button }</div>
 <br><div style="text-align:center">Already have an account? [Login here.](https://labs.sysre.pt){ target=_blank }</div>
 <br>
 
@@ -26,7 +25,7 @@ curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemoda
 
 <br><br>
 
-## OffSec Report Templates*
+## OffSec Reports*
 ### Penetration Testing
 <div style="text-align:center">
 <a href="/assets/reports/OSCP-Exam-Report.pdf" target="_blank">
