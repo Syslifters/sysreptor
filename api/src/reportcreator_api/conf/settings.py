@@ -11,11 +11,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from datetime import timedelta
-from typing import Optional
 from decouple import config, Csv
 from pathlib import Path
 import json
-from urllib.parse import urljoin
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -513,6 +511,8 @@ SPELLCHECK_DICTIONARY_PER_USER = config('SPELLCHECK_DICTIONARY_PER_USER', cast=b
 BACKUP_KEY = config('BACKUP_KEY', default=None)
 
 COMPRESS_IMAGES = config('COMPRESS_IMAGES', cast=bool, default=True)
+
+REGEX_VALIDATION_TIMEOUT = timedelta(milliseconds=500)
 
 
 from reportcreator_api.archive.crypto import EncryptionKey
