@@ -180,6 +180,13 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
 
 @elasticapm.async_capture_span()
 async def render_project_markdown_fields_to_html(project: PentestProject, request):
+    """
+    Render the all markdown fields of a project to HTML and return the project data with the rendered HTML fields.
+    Markdown rendering is done in Chromium similar to the PDF rendering.
+    This is required because our markdown renderer (with custom extensions) is implemented in JS which cannot be used in Python
+    and we are able to evaluate Vue template language embedded in markdown fields.
+    """
+
     # Collect all markdown fields
     markdown_fields = {}
     async for s in project.sections.all():

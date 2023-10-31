@@ -9,7 +9,7 @@ from pytest_django.asserts import assertHTMLEqual
 from django.test import override_settings
 
 from reportcreator_api.tests.mock import create_imported_member, create_project_type, create_project, create_user, create_finding
-from reportcreator_api.tasks.rendering.entry import render_pdf
+from reportcreator_api.tasks.rendering.entry import render_pdf, render_project_markdown_fields_to_html
 from reportcreator_api.tasks.rendering.render import render_to_html
 from reportcreator_api.utils.utils import merge
 from reportcreator_api.pentests import cvss
@@ -219,5 +219,21 @@ class TestHtmlRendering:
             assert pdf.is_encrypted == encrypted
 
     def test_render_md2html(self):
-        # TODO: implement test
-        pass
+        md = '# headline\ntext _with_ **markdown** `code`'
+        html = '<h1>headline</h1>\n<p>text <em>with</em> <strong>markdown</strong> <code class="code-inline">code</code></p>'
+
+        section = self.project.sections.get(section_id='other')
+        section.update_data({'field_markdown': md})
+        section.save()
+
+        finding = self.project.findings.first()
+        finding.update_data({'field_markdown': md})
+        finding.save()
+
+        res = async_to_sync(render_project_markdown_fields_to_html)(project=self.project, request=None)
+
+        section_data = next(filter(lambda s: s['id'] == section.section_id, res['result']['sections']))
+        assertHTMLEqual(section_data['data']['field_markdown'], html)
+        finding_data = next(filter(lambda f: f['id'] == str(finding.finding_id), res['result']['findings']))
+        assertHTMLEqual(finding_data['data']['field_markdown'], html)
+

@@ -123,7 +123,7 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'TITLE': 'SysReptor API',
     'VERSION': '0.0.0',
-    'DESCRIPTION': 'Warning: This is an unstable API used by the frontend. There might be breaking changes. Use at own risk.',
+    'DESCRIPTION': 'Warning: This is an unstable API used by the SysReptor frontend. There might be breaking changes. Use at own risk.',
     'SERVE_PUBLIC': True,
     'SCHEMA_COERCE_PATH_PK_SUFFIX': True,
     'SWAGGER_UI_DIST': 'SIDECAR',
