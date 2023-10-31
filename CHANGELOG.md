@@ -1,5 +1,10 @@
 # Changelog
 
+## TBD
+* Prevent migration errors caused by DB queries in license check
+* Fix spellcheck returning no results for language=auto
+
+
 ## v2023.136 - 2023-10-30
 * Update frontend tech stack to Vue3, Nuxt3, Vuetify3, Typescript
 * Update weasyprint to v60
