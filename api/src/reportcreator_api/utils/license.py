@@ -119,7 +119,7 @@ def decode_and_validate_license(license, skip_limit_validation=False):
 
 @cache('license.license_info', timeout=10 * 60)
 def check_license(**kwargs):
-    return decode_and_validate_license(settings.LICENSE, **kwargs)
+    return decode_and_validate_license(license=settings.LICENSE, **kwargs)
 
 
 @acache('license.license_info', timeout=10 * 60)
