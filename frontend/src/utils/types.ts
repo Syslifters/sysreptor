@@ -375,6 +375,7 @@ export type FieldDefinition = {
   default?: any|null;
   required?: boolean;
   spellcheck?: boolean;
+  pattern?: string;
   suggestions?: string[];
   choices?: EnumFieldChoiceDefinition[];
   properties?: {

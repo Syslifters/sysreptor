@@ -40,26 +40,41 @@
           </v-col>
         </v-row>
         <v-row v-if="![FieldDataType.BOOLEAN, FieldDataType.OBJECT].includes(props.modelValue.type as any)" class="mt-0">
-          <v-col class="mt-0 pt-0">
+          <v-col class="mt-2 pt-0">
             <s-checkbox
               :model-value="props.modelValue.required || false"
               @update:model-value="updateProperty('required', $event)"
               :disabled="props.disabled"
               label="Required"
               hint="Determines whether this field is required must be filled or optional"
-              class="mt-0"
             />
           </v-col>
-          <v-col class="mt-0 pt-0" v-if="props.modelValue.type === FieldDataType.STRING">
-            <s-checkbox
-              :model-value="props.modelValue.spellcheck || false"
-              @update:model-value="updateProperty('spellcheck', $event)"
-              :disabled="props.disabled"
-              label="Spellcheck Supported"
-              hint="Support spellchecking for this fields text content."
-              class="mt-0"
-            />
-          </v-col>
+
+          <!-- String options -->
+          <template v-if="props.modelValue.type === FieldDataType.STRING">
+            <v-col class="mt-2 pt-0">
+              <s-checkbox
+                :model-value="props.modelValue.spellcheck || false"
+                @update:model-value="updateProperty('spellcheck', $event)"
+                :disabled="props.disabled"
+                label="Spellcheck Supported"
+                hint="Support spellchecking for this fields text content."
+              />
+            </v-col>
+
+            <!-- TODO: list of predefined RegEx patterns for common use cases: URL, IP, UUID, email -->
+            <v-col class="mt-2 pt-0">
+              <s-text-field
+                :model-value="props.modelValue.pattern"
+                @update:model-value="updateProperty('pattern', $event)"
+                :disabled="props.disabled"
+                label="Pattern"
+                hint="RegEx pattern to validate the input against."
+                :rules="rules.pattern"
+                spellcheck="false"
+              />
+            </v-col>
+          </template>
         </v-row>
       </template>
       <s-select
@@ -258,6 +273,17 @@ const rules = {
   choice: [
     // v => (choices || []).filter(c => c.value === v).length === 1 || 'Enum value is not unique',
     (v: string) => /^[a-zA-Z0-9_-]+$/.test(v) || 'Invalid enum value',
+  ],
+  pattern: [
+    (v: string) => {
+      try {
+        // eslint-disable-next-line no-new
+        new RegExp(v);
+        return true;
+      } catch (e: any) {
+        return e.message || 'Invalid regular expression';
+      }
+    },
   ]
 };
 
