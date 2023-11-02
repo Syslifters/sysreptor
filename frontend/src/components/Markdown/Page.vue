@@ -18,7 +18,7 @@
           <v-divider vertical class="h-100" />
         </v-col>
         <v-col :cols="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-if="localSettings.markdownEditorMode !== MarkdownEditorMode.MARKDOWN" class="h-100">
-          <markdown-preview v-bind="markdownPreviewAttrs" class="preview h-100 overflow-y-auto" />
+          <markdown-preview v-bind="markdownPreviewAttrs" class="preview h-100 overflow-y-scroll" />
         </v-col>
       </v-row>
     </template>
