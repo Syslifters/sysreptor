@@ -154,6 +154,18 @@
         You can add and style the remaining fields afterwards in HTML.
       </p>
     </div>
+    <div v-if="form.form === 'page-cover-create'">
+      <s-checkbox
+        v-model="form.coverPage.hideHeader"
+        label="Hide header on page"
+        :disabled="props.disabled"
+      />
+      <s-checkbox
+        v-model="form.coverPage.hideFooter"
+        label="Hide footer on page"
+        :disabled="props.disabled"
+      />
+    </div>
   </div>
 </template>
 

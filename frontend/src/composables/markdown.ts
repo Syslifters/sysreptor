@@ -1,4 +1,4 @@
-import { Prop, PropType } from "nuxt/dist/app/compat/capi";
+import { PropType } from "nuxt/dist/app/compat/capi";
 import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,
