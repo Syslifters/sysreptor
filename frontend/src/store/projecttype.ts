@@ -24,7 +24,7 @@ export const useProjectTypeStore = defineStore('projecttype', {
     },
     async create(projectType: ProjectType) {
       const obj = await $fetch<ProjectType>('/api/v1/projecttypes/', {
-        method: 'GET',
+        method: 'POST',
         body: projectType
       });
       this.data[obj.id] = obj;

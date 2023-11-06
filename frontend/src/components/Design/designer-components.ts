@@ -930,90 +930,91 @@ export class CoverPageComponent extends DesignerComponentBase {
     return tagInfo.attributes['data-sysreptor-generated']?.value === 'page-cover';
   }
 
-  getCreateForm() {
-    return {
-      form: 'page-cover-create',
-      coverPage: {
-        // backgroundColor: null,
-        // backgroundImage: null,
-        hideHeader: true,
-        hideFooter: true,
-      }
-    };
-  }
+  // TODO: cover page: how to integrate with headers/footers
+  // getCreateForm() {
+  //   return {
+  //     form: 'page-cover-create',
+  //     coverPage: {
+  //       // backgroundColor: null,
+  //       // backgroundImage: null,
+  //       hideHeader: true,
+  //       hideFooter: true,
+  //     }
+  //   };
+  // }
 
-  createCode(form: any, context: DesignerContext) {
-    const id = createUniqueId('page-cover', context);
-    const html = trimLeadingWhitespace(`
-      <section id="${id}" data-sysreptor-generated="page-cover">
-        <div class="page-cover-title">
-          <h1>PENTEST REPORT</h1>
-          <h2>{{ report.title }}</h2>
-        </div>
-        <div class="page-cover-customer">
-          <p>
-            <strong>Customer:</strong><br>
-            ${'customer' in context.projectType.report_fields ? '{{ report.customer }}' : 'Example Customer'}<br>
-            ${'document_history' in context.projectType.report_fields ? 
-              "{{ report.document_history[report.document_history.length - 1]?.date || '' }}<br>" +
-              "{{ report.document_history[report.document_history.length - 1]?.version || '0.0' }}<br>" : ""
-            }
-          </p>
-        </div>
-        <pagebreak />
-      </section>
-    `);
+  // createCode(form: any, context: DesignerContext) {
+  //   const id = createUniqueId('page-cover', context);
+  //   const html = trimLeadingWhitespace(`
+  //     <section id="${id}" data-sysreptor-generated="page-cover">
+  //       <div class="page-cover-title">
+  //         <h1>PENTEST REPORT</h1>
+  //         <h2>{{ report.title }}</h2>
+  //       </div>
+  //       <div class="page-cover-customer">
+  //         <p>
+  //           <strong>Customer:</strong><br>
+  //           ${'customer' in context.projectType.report_fields ? '{{ report.customer }}' : 'Example Customer'}<br>
+  //           ${'document_history' in context.projectType.report_fields ? 
+  //             "{{ report.document_history[report.document_history.length - 1]?.date || '' }}<br>" +
+  //             "{{ report.document_history[report.document_history.length - 1]?.version || '0.0' }}<br>" : ""
+  //           }
+  //         </p>
+  //       </div>
+  //       <pagebreak />
+  //     </section>
+  //   `);
 
-    let pageCss = '';
-    // if (form.coverPage.backgroundColor) {
-    //   pageCss += `  background-color: ${form.coverPage.backgroundColor};\n\n`;
-    // }
-    if (form.coverPage.hideHeader) {
-      pageCss += '  /* Hide header */\n';
-      pageCss += '  @top-left-corner { content: none !important; }\n';
-      pageCss += '  @top-left { content: none !important; }\n';
-      pageCss += '  @top-center { content: none !important; }\n';
-      pageCss += '  @top-right { content: none !important; }\n';
-      pageCss += '  @top-right-corner { content: none !important; }\n';
-    }
-    if (form.coverPage.hideFooter) {
-      pageCss += '  /* Hide footer */\n';
-      pageCss += '  @bottom-left-corner { content: none !important; }\n';
-      pageCss += '  @bottom-left { content: none !important; }\n';
-      pageCss += '  @bottom-center { content: none !important; }\n';
-      pageCss += '  @bottom-right { content: none !important; }\n';
-      pageCss += '  @bottom-right-corner { content: none !important; }\n';
-    }
+  //   let pageCss = '';
+  //   // if (form.coverPage.backgroundColor) {
+  //   //   pageCss += `  background-color: ${form.coverPage.backgroundColor};\n\n`;
+  //   // }
+  //   if (form.coverPage.hideHeader) {
+  //     pageCss += '  /* Hide header */\n';
+  //     pageCss += '  @top-left-corner { content: none !important; }\n';
+  //     pageCss += '  @top-left { content: none !important; }\n';
+  //     pageCss += '  @top-center { content: none !important; }\n';
+  //     pageCss += '  @top-right { content: none !important; }\n';
+  //     pageCss += '  @top-right-corner { content: none !important; }\n';
+  //   }
+  //   if (form.coverPage.hideFooter) {
+  //     pageCss += '  /* Hide footer */\n';
+  //     pageCss += '  @bottom-left-corner { content: none !important; }\n';
+  //     pageCss += '  @bottom-left { content: none !important; }\n';
+  //     pageCss += '  @bottom-center { content: none !important; }\n';
+  //     pageCss += '  @bottom-right { content: none !important; }\n';
+  //     pageCss += '  @bottom-right-corner { content: none !important; }\n';
+  //   }
 
-    let css = trimLeadingWhitespace(`
-      #${id} {
-        page: ${id};
-      }
-    `) + '\n';
-    if (pageCss) {
-      css += `@page ${id} {\n${pageCss}}\n`;
-    }
+  //   let css = trimLeadingWhitespace(`
+  //     #${id} {
+  //       page: ${id};
+  //     }
+  //   `) + '\n';
+  //   if (pageCss) {
+  //     css += `@page ${id} {\n${pageCss}}\n`;
+  //   }
 
-    css += trimLeadingWhitespace(`
-      #${id} .page-cover-title {
-        position: absolute;
-        top: 20mm;
-        left: 0;
-        width: 14cm;
-      }
-      #${id} .page-cover-customer {
-        position: absolute;
-        top: 11cm;
-        left: 0;
-        width: 14cm;
-      }
-    `) + '\n';
+  //   css += trimLeadingWhitespace(`
+  //     #${id} .page-cover-title {
+  //       position: absolute;
+  //       top: 20mm;
+  //       left: 0;
+  //       width: 14cm;
+  //     }
+  //     #${id} .page-cover-customer {
+  //       position: absolute;
+  //       top: 11cm;
+  //       left: 0;
+  //       width: 14cm;
+  //     }
+  //   `) + '\n';
 
-    return {
-      html,
-      css: `/* #region ${id} */\n${css}/* #endregion ${id} */`,
-    };
-  }
+  //   return {
+  //     html,
+  //     css: `/* #region ${id} */\n${css}/* #endregion ${id} */`,
+  //   };
+  // }
 }
 
 export const unknownComponent = new DesignerComponentBase({ type: 'unknown', name: 'Code' });
@@ -1045,7 +1046,6 @@ export const predefinedDesignerComponentGroups = [
     components: [
       new PageHeaderComponent(),
       new PageFooterComponent(),
-      new CoverPageComponent(),
     ],
   },
   {

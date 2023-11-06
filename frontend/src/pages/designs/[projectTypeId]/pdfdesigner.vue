@@ -93,7 +93,7 @@
             It looks like you haven't started designing your report yet.
             We recommend following approach:
           </p>
-          <ol>
+          <ol class="ml-6 mt-2">
             <li>
               Before starting to design, define your
               <nuxt-link :to="`/designs/${projectType.id}/reportfields/`">report fields</nuxt-link> and
