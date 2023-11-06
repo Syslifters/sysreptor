@@ -52,6 +52,10 @@ class TestCommunityLicenseRestrictions:
         self.client.force_authenticate(self.user_system)
         assert_api_license_error(self.client.post(reverse('utils-backup'), data={'key': settings.BACKUP_KEY}))
 
+    def test_md2html_api_disabled(self):
+        project = create_project()
+        assert_api_license_error(self.client.post(reverse('pentestproject-md2html', kwargs={'pk': project.id})))
+
     def test_archiving_disabled(self):
         public_key = create_public_key(user=self.user)
         project = create_project(members=[self.user])
@@ -140,13 +144,13 @@ class TestCommunityLicenseRestrictions:
 
     def test_user_count_limit(self):
         # Create user: Try to exceed limit by creating new superusers
-        # with pytest.raises(license.LicenseLimitExceededError):
-        #     create_user(is_superuser=True)
-        # assert_api_license_error(self.client.post(reverse('pentestuser-list'), data={
-        #     'username': 'new-user3',
-        #     'password': self.password,
-        #     'is_superuser': True
-        # }))
+        with pytest.raises(license.LicenseLimitExceededError):
+            create_user(is_superuser=True)
+        assert_api_license_error(self.client.post(reverse('pentestuser-list'), data={
+            'username': 'new-user3',
+            'password': self.password,
+            'is_superuser': True
+        }))
 
         # Update is_superuser: Try to exceed limit by making existing users superusers
         with pytest.raises(license.LicenseError):

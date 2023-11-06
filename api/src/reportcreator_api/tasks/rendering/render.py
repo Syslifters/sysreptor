@@ -270,7 +270,7 @@ def encrypt_pdf(pdf_data: bytes, password: Optional[str]) -> bytes:
         return out.getvalue()
 
 
-def render_pdf(template: str, styles: str, data: dict, resources: dict, language: str, password: Optional[str] = None) -> tuple[Optional[bytes], list[ErrorMessage]]:
+def render_pdf(template: str, styles: str, data: dict, resources: dict, language: str, password: Optional[str] = None, output=None) -> tuple[Optional[bytes], list[ErrorMessage]]:
     msgs = []
     html, html_msgs = render_to_html(
         template=template,
@@ -280,7 +280,9 @@ def render_pdf(template: str, styles: str, data: dict, resources: dict, language
     )
     msgs += [m.to_dict() for m in html_msgs]
     if html is None:
-        return None, msgs
+        return html, msgs
+    elif output == 'html':
+        return html.encode(), msgs
     
     pdf, pdf_msgs = render_to_pdf(
         html_content=html,
@@ -289,7 +291,7 @@ def render_pdf(template: str, styles: str, data: dict, resources: dict, language
     )
     msgs += [m.to_dict() for m in pdf_msgs]
     if pdf is None:
-        return None, msgs
+        return pdf, msgs
 
     pdf_enc = encrypt_pdf(
         pdf_data=pdf, 
