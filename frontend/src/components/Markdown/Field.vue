@@ -1,6 +1,6 @@
 <template>
   <s-input class="v-text-field" v-bind="$attrs">
-    <template #default="{id, isDirty, isDisabled, isReadonly }">
+    <template #default="{id, isDirty, isDisabled, isReadonly, isValid }">
       <s-field
         v-bind="$attrs"
         :id="id.value"
@@ -8,6 +8,7 @@
         :active="true"
         :disabled="isDisabled.value"
         :readonly="isReadonly.value"
+        :error="isValid.value === false"
         @click="onControlClick"
       >
         <template #default="{ props: fieldProps, focus, blur }">

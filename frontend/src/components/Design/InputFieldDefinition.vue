@@ -40,26 +40,50 @@
           </v-col>
         </v-row>
         <v-row v-if="![FieldDataType.BOOLEAN, FieldDataType.OBJECT].includes(props.modelValue.type as any)" class="mt-0">
-          <v-col class="mt-0 pt-0">
+          <v-col class="mt-2 pt-0">
             <s-checkbox
               :model-value="props.modelValue.required || false"
               @update:model-value="updateProperty('required', $event)"
               :disabled="props.disabled"
               label="Required"
               hint="Determines whether this field is required must be filled or optional"
-              class="mt-0"
             />
           </v-col>
-          <v-col class="mt-0 pt-0" v-if="props.modelValue.type === FieldDataType.STRING">
-            <s-checkbox
-              :model-value="props.modelValue.spellcheck || false"
-              @update:model-value="updateProperty('spellcheck', $event)"
-              :disabled="props.disabled"
-              label="Spellcheck Supported"
-              hint="Support spellchecking for this fields text content."
-              class="mt-0"
-            />
-          </v-col>
+
+          <!-- String options -->
+          <template v-if="props.modelValue.type === FieldDataType.STRING">
+            <v-col class="mt-2 pt-0">
+              <s-checkbox
+                :model-value="props.modelValue.spellcheck || false"
+                @update:model-value="updateProperty('spellcheck', $event)"
+                :disabled="props.disabled"
+                label="Spellcheck Supported"
+                hint="Support spellchecking for this fields text content."
+              />
+            </v-col>
+
+            <v-col class="mt-2 pt-0">
+              <s-combobox
+                :model-value="props.modelValue.pattern"
+                @update:model-value="updateProperty('pattern', $event)"
+                :items="predefinedRegexPatterns.map(p => p.value)"
+                :disabled="props.disabled"
+                label="Pattern"
+                hint="RegEx pattern to validate the input against."
+                clearable
+                :rules="rules.pattern"
+                spellcheck="false"
+              >
+                <template #item="{item, props: itemProps}">
+                  <v-list-item 
+                    v-bind="itemProps" 
+                    :title="predefinedRegexPatterns.find(p => p.value === item.value)?.title || 'Custom'" 
+                    :subtitle="predefinedRegexPatterns.find(p => p.value === item.value)?.value || ''"
+                  />
+                </template>
+              </s-combobox>
+            </v-col>
+          </template>
         </v-row>
       </template>
       <s-select
@@ -179,7 +203,7 @@
         v-if="![FieldDataType.OBJECT, FieldDataType.LIST, FieldDataType.USER].includes(props.modelValue.type as any)"
         :model-value="props.modelValue.default"
         @update:model-value="updateProperty('default', $event)"
-        :definition="{...props.modelValue, label: 'Default Value', required: false} as FieldDefinition"
+        :definition="{...props.modelValue, label: 'Default Value', required: false, pattern: null} as FieldDefinition"
         :lang="props.lang"
         :disabled="props.disabled"
       />
@@ -258,6 +282,17 @@ const rules = {
   choice: [
     // v => (choices || []).filter(c => c.value === v).length === 1 || 'Enum value is not unique',
     (v: string) => /^[a-zA-Z0-9_-]+$/.test(v) || 'Invalid enum value',
+  ],
+  pattern: [
+    (v: string) => {
+      try {
+        // eslint-disable-next-line no-new
+        new RegExp(v);
+        return true;
+      } catch (e: any) {
+        return e.message || 'Invalid regular expression';
+      }
+    },
   ]
 };
 
@@ -268,6 +303,12 @@ const objectFields = computed(() => {
     return [];
   }
 });
+const predefinedRegexPatterns = [
+  { title: 'E-Mail', value: "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$" },
+  { title: 'URL', value: "^[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$" },
+  { title: 'UUID', value: "^[a-fA-F0-9]{8}-?[a-fA-F0-9]{4}-?[a-fA-F0-9]{4}-?[a-fA-F0-9]{4}-?[a-fA-F0-9]{12}$" },
+  { title: 'Custom', value: null },
+];
 
 function updateProperty(property: string, val: any) {
   emit('update:modelValue', { ...props.modelValue, [property]: val });

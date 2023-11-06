@@ -5,6 +5,7 @@
       v-if="definition.type === 'string'"
       v-model="formValue"
       :spellcheck-supported="definition.spellcheck"
+      :rules="[(v: string) => validateRegexPattern(v)]"
       v-bind="fieldAttrs"
     />
 
@@ -179,6 +180,7 @@
 <script setup lang="ts">
 import { FieldDefinition, UserShortInfo } from "~/utils/types";
 import { MarkdownProps } from "~/composables/markdown";
+import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 
 const props = defineProps<MarkdownProps & {
   modelValue?: any;
@@ -256,6 +258,49 @@ function isEmptyOrDefault(value: any, definition: FieldDefinition): boolean {
     return !value || value === definition.default;
   }
 }
+
+// Global worker instance reused for all components
+const regexWorker = useState<Worker|null>('regexWorker', () => null);
+async function validateRegexPattern(value: string) {
+  if (props.definition.type !== FieldDataType.STRING || !props.definition.pattern || !value) {
+    return true;
+  }
+
+  try {
+    const pattern = new RegExp(props.definition.pattern);
+
+    if (!regexWorker.value) {
+      regexWorker.value = new Worker(regexWorkerUrl, { type: 'module' });
+    }
+
+    const threadedRegexMatch = new Promise((resolve) => {
+      regexWorker.value!.addEventListener('message', (e: MessageEvent) => resolve(e.data), { once: true });
+      regexWorker.value!.postMessage({ pattern, value }); // Send the string and regex to the worker
+    });
+    const timeoutReject = (timeoutMs: number) => new Promise((_resolve, reject) => setTimeout(() => reject(new Error("RegEx timeout")), timeoutMs));
+    try {
+      // Execute regex in a web worker with timeout to prevent RegEx DoS
+      const res = await Promise.race([threadedRegexMatch, timeoutReject(500)]);
+      if (!res) {
+        return `Invalid format. Value does not match pattern ${pattern}`;
+      }
+    } catch (e: any) {
+      const w = regexWorker.value;
+      regexWorker.value = null;
+      await w.terminate();
+      return e.message;
+    }
+  } catch (e: any) {
+    return e.message;
+  }
+  return true;
+}
+onUnmounted(async () => {
+  if (regexWorker.value) {
+    await regexWorker.value.terminate();
+    regexWorker.value = null;
+  }
+})
 
 const bulkEditList = ref(false);
 function emitInputStringList(valuesListString?: string) {

@@ -1,4 +1,7 @@
 import pytest
+from datetime import timedelta
+from django.test import override_settings
+
 from reportcreator_api.pentests.models import ReviewStatus
 from reportcreator_api.tests.mock import create_finding, create_project, create_project_type
 from reportcreator_api.utils.error_messages import MessageLevel, MessageLocationInfo, MessageLocationType, ErrorMessage
@@ -163,3 +166,35 @@ def test_review_status():
         ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=finding_valid.finding_id)),
         ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(type=MessageLocationType.SECTION, id=section_valid.section_id)),
     ])
+
+
+@pytest.mark.parametrize(['pattern', 'value', 'expected'], [
+    (r'^[a-z]+$', 'abc', True),
+    (r'^[a-z]+$', 'abc123', False),
+    (r'^([a-$', 'abc', 'error'),
+])
+def test_regex_check(pattern, value, expected):
+    p = create_project(project_type=create_project_type(finding_fields={
+        'title': {'type': 'string'},
+        'field_regex': {'type': 'string', 'pattern': pattern},
+    }), findings_kwargs=[])
+    f = create_finding(project=p, data={'field_regex': value})
+
+    check_res = p.perform_checks()
+    msg_invalid = ErrorMessage(level=MessageLevel.WARNING, message='Invalid format', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex'))
+    msg_error = ErrorMessage(level=MessageLevel.ERROR, message='Invalid regex pattern', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex'))
+    assertContainsCheckResults(check_res, ([msg_invalid] if expected is False else []) + ([msg_error] if expected == 'error' else []))
+    assertNotContainsCheckResults(check_res, ([msg_invalid] if expected is not False else []) + ([msg_error] if expected != 'error' else []))
+
+
+@override_settings(REGEX_VALIDATION_TIMEOUT=timedelta(milliseconds=0.000001))
+def test_regex_timeout():
+    p = create_project(project_type=create_project_type(finding_fields={
+        'title': {'type': 'string'},
+        'field_regex': {'type': 'string', 'pattern': r'^[a-z]+$'},
+    }), findings_kwargs=[])
+    f = create_finding(project=p, data={'field_regex': 'abc'})
+    assertContainsCheckResults(p.perform_checks(), [
+        ErrorMessage(level=MessageLevel.ERROR, message='Regex timeout', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex'))
+    ])
+
