@@ -6,6 +6,8 @@
 * Do not send unreferenced images to PDF rendering task to reduce memory usage
 * Do not export images that are not referenced in exported data
 * Fix markdown preview flappy scroll on typing in markdown editor when images are included
+* Add an API endpoint to retrieve project data with markdown fields rendered to HTML
+* Support validating string fields with RegEx patterns
 
 
 ## v2023.136 - 2023-10-30
