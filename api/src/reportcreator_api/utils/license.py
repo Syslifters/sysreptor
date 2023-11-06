@@ -77,27 +77,28 @@ def decode_license(license):
         raise LicenseError('Failed to load license: Invalid format.') from ex
 
 
-def decode_and_validate_license(license):
+def decode_and_validate_license(license, skip_limit_validation=False):
     from reportcreator_api.users.models import PentestUser
 
     try:
         if not license:
             raise LicenseError(None)
         
-        # Validate license
-        license_data = decode_license(license)
-        period_info = f"The license is valid from {license_data['valid_from'].isoformat()} until {license_data['valid_until'].isoformat()}"
-        if license_data['valid_from'] > timezone.now().date():
-            raise LicenseError(license_data | {'error': 'License not yet valid: ' + period_info})
-        elif license_data['valid_until'] < timezone.now().date():
-            raise LicenseError(license_data | {'error': 'License expired: ' + period_info})
+        if not skip_limit_validation:
+            # Validate license
+            license_data = decode_license(license)
+            period_info = f"The license is valid from {license_data['valid_from'].isoformat()} until {license_data['valid_until'].isoformat()}"
+            if license_data['valid_from'] > timezone.now().date():
+                raise LicenseError(license_data | {'error': 'License not yet valid: ' + period_info})
+            elif license_data['valid_until'] < timezone.now().date():
+                raise LicenseError(license_data | {'error': 'License expired: ' + period_info})
         
         # Validate license limits not exceeded
         current_user_count = PentestUser.objects.get_licensed_user_count()
         if current_user_count > license_data['users']:
             raise LicenseError(license_data | {
                 'error': f"License limit exceeded: You licensed max. {license_data['users']} users, but have currently {current_user_count} active users. "
-                         "Falling back to the free license. Please deactivate some users or extend your license."
+                        "Falling back to the free license. Please deactivate some users or extend your license."
             })
 
         # All license checks are valid
@@ -117,13 +118,13 @@ def decode_and_validate_license(license):
 
 
 @cache('license.license_info', timeout=10 * 60)
-def check_license():
-    return decode_and_validate_license(settings.LICENSE)
+def check_license(**kwargs):
+    return decode_and_validate_license(license=settings.LICENSE, **kwargs)
 
 
 @acache('license.license_info', timeout=10 * 60)
-async def acheck_license():
-    return await sync_to_async(check_license)()
+async def acheck_license(**kwargs):
+    return await sync_to_async(check_license)(**kwargs)
 
 
 def is_professional():

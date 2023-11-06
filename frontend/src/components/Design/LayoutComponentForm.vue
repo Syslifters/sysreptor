@@ -82,7 +82,7 @@
       />
       <s-select
         v-model="form.footer.pageNumberStyle"
-        :items="[{value: 'page', text: 'page'}, {value: 'page-of', text: 'page / pages'}, {value: 'none', text: 'no page number'}]"
+        :items="[{value: 'page', title: 'page'}, {value: 'page-of', title: 'page / pages'}, {value: 'none', title: 'no page number'}]"
         label="Page Number Style"
         :disabled="props.disabled"
         class="mb-4"
@@ -91,7 +91,7 @@
     <div v-if="form.form === 'header-create'">
       <s-select
         v-model="form.header.left"
-        :items="[ {value: null, text: 'none'}, {value: 'text', text: 'Text'}, {value: 'logo', text: 'Logo'}]"
+        :items="[ {value: null, title: 'none'}, {value: 'text', title: 'Text'}, {value: 'logo', title: 'Logo'}]"
         label="Header Left"
         :hint="form.header.left === 'logo' ? 'Logo image must be uploaded in assets as logo.png' : ''"
         class="mb-4"
@@ -99,7 +99,7 @@
       />
       <s-select
         v-model="form.header.right"
-        :items="[ {value: null, text: 'none'}, {value: 'text', text: 'Text'}, {value: 'logo', text: 'Logo'}]"
+        :items="[ {value: null, title: 'none'}, {value: 'text', title: 'Text'}, {value: 'logo', title: 'Logo'}]"
         label="Header Right"
         class="mb-4"
         :disabled="props.disabled"
@@ -154,6 +154,18 @@
         You can add and style the remaining fields afterwards in HTML.
       </p>
     </div>
+    <!--<div v-if="form.form === 'page-cover-create'">
+      <s-checkbox
+        v-model="form.coverPage.hideHeader"
+        label="Hide header on page"
+        :disabled="props.disabled"
+      />
+      <s-checkbox
+        v-model="form.coverPage.hideFooter"
+        label="Hide footer on page"
+        :disabled="props.disabled"
+      />
+    </div>-->
   </div>
 </template>
 

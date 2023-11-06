@@ -8,7 +8,7 @@ error_cleanup() {
         echo cd "$script_location"
         echo "Trying to restore your old version..."
         cd `dirname "$script_location"`
-        mv "$sysreptor_directory" "$sysreptor_directory"-failed-update-$(date --iso-8601=seconds)
+        mv "$sysreptor_directory" "$sysreptor_directory"-failed-update-$(date -Iseconds)
         mv "$backup_copy" "$sysreptor_directory"
         cd "$sysreptor_directory"/deploy
         docker compose up -d
@@ -93,7 +93,7 @@ then
 fi
 echo "Creating backup copy of your current installation..."
 sysreptor_directory=${PWD##*/}
-backup_copy="$sysreptor_directory"-backup-$(date --iso-8601=seconds)
+backup_copy="$sysreptor_directory"-backup-$(date -Iseconds)
 cd ..
 mv "$sysreptor_directory" "$backup_copy"
 created_backup=1

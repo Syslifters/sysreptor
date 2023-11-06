@@ -22,6 +22,7 @@ body {
 .login-header {
   background-color: settings.$sysreptor-darkblue !important;
 }
+
 .toast-warning {
   // Vuetify warning color
   background-color: #fb8c00 !important;
@@ -39,6 +40,7 @@ body {
 .w-100 {
   width: 100% !important;
 }
+
 .h-100 {
   height: 100% !important;
 }
@@ -55,4 +57,8 @@ body {
 .flex-grow-width {
   flex-grow: 1;
   min-width: 0;
+}
+
+.overflow-y-scroll {
+  overflow-y: scroll !important;
 }

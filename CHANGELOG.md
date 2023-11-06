@@ -1,6 +1,14 @@
 # Changelog
 
 ## TBD
+* Prevent migration errors caused by DB queries in license check
+* Fix spellcheck returning no results for language=auto
+* Do not send unreferenced images to PDF rendering task to reduce memory usage
+* Do not export images that are not referenced in exported data
+* Fix markdown preview flappy scroll on typing in markdown editor when images are included
+
+
+## v2023.136 - 2023-10-30
 * Update frontend tech stack to Vue3, Nuxt3, Vuetify3, Typescript
 * Update weasyprint to v60
 * Increase read timeout in example nginx config

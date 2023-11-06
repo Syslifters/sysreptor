@@ -1,7 +1,7 @@
 import { createApp, compile } from 'vue';
 import { generateCodeFrame } from '@vue/shared';
 import ChartJsPluginDataLabels from 'chartjs-plugin-datalabels';
-import Pagebreak from './components/Pagebreak.vue';  
+import Pagebreak from './components/Pagebreak.vue';
 import Markdown from './components/Markdown.vue';
 import CommaAndJoin from './components/CommaAndJoin.js';
 import TableOfContents from './components/TableOfContents.js';
@@ -15,14 +15,14 @@ import lodash from 'lodash';
 
 // injected as global variables
 const REPORT_TEMPLATE = '<div>' + (window.REPORT_TEMPLATE || '') + '</div>';
-const REPORT_DATA = window.REPORT_DATA || {report: {}, findings: []};
+const REPORT_DATA = window.REPORT_DATA || { report: {}, findings: [] };
 const REPORT_COMPUTED = window.REPORT_COMPUTED || {};
 const REPORT_METHODS = window.REPORT_METHODS || {};
 
 
 const DEFAULT_COMPUTED = {
   report() {
-    return Object.assign({}, this.data.report, {findings: this.findings});
+    return Object.assign({}, this.data.report, { findings: this.findings });
   },
   sections() {
     return Object.fromEntries(this.data.sections.map(s => [s.id, s]));
@@ -50,21 +50,27 @@ const DEFAULT_COMPUTED = {
   },
   finding_stats() {
     return {
-        count_total: this.findings.length,
-        count_critical: this.findings_critical.length,
-        count_high: this.findings_high.length,
-        count_medium: this.findings_medium.length,
-        count_low: this.findings_low.length,
-        count_info: this.findings_info.length,
+      count_total: this.findings.length,
+      count_critical: this.findings_critical.length,
+      count_high: this.findings_high.length,
+      count_medium: this.findings_medium.length,
+      count_low: this.findings_low.length,
+      count_info: this.findings_info.length,
     };
   },
   lodash() {
     return lodash;
   },
   chartjsPlugins() {
-    return { 
-      DataLabels: ChartJsPluginDataLabels 
+    return {
+      DataLabels: ChartJsPluginDataLabels
     };
+  },
+  window() {
+    return window;
+  },
+  document() {
+    return document;
   },
 };
 
@@ -84,7 +90,7 @@ const DEFAULT_METHODS = {
     }
 
     if (typeof options === 'string') {
-      options = {dateStyle: options};
+      options = { dateStyle: options };
     }
     if (!locales) {
       // Get locale from <html lang="...">, since this locale is not automatically applied when formatting dates 
@@ -134,7 +140,7 @@ if (!window.RENDERING_COMPLETED) {
   const app = createApp({
     name: 'root',
     render: RENDER_FUNCTION,
-    components: {Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, Ref},
+    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, Ref },
     data: () => ({
       data: REPORT_DATA,
       _tickCount: 0,
@@ -150,7 +156,7 @@ if (!window.RENDERING_COMPLETED) {
     async mounted() {
       // Wait some ticks before rendering is signaled as completed
       // Allow multi-pass rendering (for e.g. table of contents)
-      await callForTicks(5, this.$nextTick, () => { 
+      await callForTicks(5, this.$nextTick, () => {
         this._tickCount += 1;
       })
       window.RENDERING_COMPLETED = true;

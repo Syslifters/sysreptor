@@ -76,6 +76,9 @@ class PentestUserQuerySet(models.QuerySet):
             .only_active() \
             .exclude(is_system_user=True) \
             .count()
+    
+    def get_total_user_count(self):
+        return self.count()
 
 
 class PentestUserManager(UserManager, models.Manager.from_queryset(PentestUserQuerySet)):
