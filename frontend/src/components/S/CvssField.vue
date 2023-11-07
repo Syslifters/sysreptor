@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import * as cvss from "@/utils/cvss.js";
+import * as cvss from "@/utils/cvss";
 
 const props = defineProps<{
   modelValue: string|null;
