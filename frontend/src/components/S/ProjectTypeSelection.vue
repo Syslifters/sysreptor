@@ -10,6 +10,7 @@
     :rules="rules"
     :clearable="!props.required"
     :hide-no-data="false"
+    spellcheck="false"
   >
     <template #append-item v-if="allItems.length > 0">
       <page-loader :items="items" />
@@ -61,7 +62,7 @@ const emit = defineEmits<{
 const items = useSearchableCursorPaginationFetcher<ProjectType>({
   baseURL: '/api/v1/projecttypes/',
   query: {
-    ordering: 'name',
+    ordering: 'scope',
     scope: [ProjectTypeScope.GLOBAL, ProjectTypeScope.PRIVATE],
     ...props.queryFilters
   }
@@ -94,6 +95,10 @@ useLazyAsyncData(async () => {
 });
 
 const allItems = computed(() => {
-  return props.additionalItems.concat(items.data.value).concat(initialProjectType.value ? [initialProjectType.value] : []);
+  const out = props.additionalItems.concat(items.data.value);
+  if (initialProjectType.value && !out.some(pt => pt.id === initialProjectType.value?.id)) {
+    out.push(initialProjectType.value);
+  }
+  return out;
 })
 </script>
