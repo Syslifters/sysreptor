@@ -84,6 +84,23 @@
               </s-combobox>
             </v-col>
           </template>
+
+          <!-- CVSS Options -->
+          <template v-if="props.modelValue.type === FieldDataType.CVSS">
+            <v-col class="mt-0 pt-0">
+              <!-- TODO: do not validate CVSS default -->
+              <s-select
+                :model-value="props.modelValue.cvss_version || null"
+                @update:model-value="updateProperty('cvss_version', $event)"
+                :items="[{ title: 'Any', value: null }, CvssVersion.CVSS40, CvssVersion.CVSS31]"
+                :disabled="props.disabled"
+                label="CVSS Version"
+                hint="Require a specific CVSS version"
+                class="mt-2"
+              />
+            </v-col>
+            <v-col />
+          </template>
         </v-row>
       </template>
       <s-select
@@ -206,6 +223,7 @@
         :definition="{...props.modelValue, label: 'Default Value', required: false, pattern: null} as FieldDefinition"
         :lang="props.lang"
         :disabled="props.disabled"
+        :disable-validation="true"
       />
 
       <!-- List Item -->
@@ -258,7 +276,8 @@
 <script setup lang="ts">
 import omit from "lodash/omit";
 import Draggable from "vuedraggable";
-import { FieldDataType, FieldDefinition, FieldDefinitionWithId, FieldOrigin } from "~/utils/types";
+import { CvssVersion } from "@/utils/cvss/base";
+import { FieldDataType, FieldDefinition, FieldDefinitionWithId, FieldOrigin } from "@/utils/types";
 
 const props = defineProps<{
   modelValue: FieldDefinitionWithId;

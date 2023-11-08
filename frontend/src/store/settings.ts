@@ -1,3 +1,4 @@
+import { CvssVersion } from "~/utils/cvss/base";
 import { MarkdownEditorMode } from "~/utils/types";
 
 export const useLocalSettings = defineStore('settings', {
@@ -13,6 +14,7 @@ export const useLocalSettings = defineStore('settings', {
     templateFieldFilterDesign: 'all',
     templateFieldFilterHiddenFields: [] as string[],
     noteExpandStates: {} as {[noteId: string]: boolean},
+    cvssVersion: CvssVersion.CVSS31,
   }),
   actions: {
     setNoteExpandState({ noteId, isExpanded }: { noteId: string, isExpanded: boolean }) {

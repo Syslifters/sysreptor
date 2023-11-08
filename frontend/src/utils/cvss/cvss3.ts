@@ -1,25 +1,4 @@
-export type CvssMetricDefinition = {
-    id: string;
-    name: string;
-    description: string;
-    choices: {
-      id: string;
-      name: string;
-      description: string;
-    }[];
-  };
-
-export type CvssDefinition = {
-  [key: string]: CvssMetricDefinition;
-}
-
-export type CvssMetricsValue = {
-  [key: string]: number|null|any;
-}
-
-export type CvssMetricsValueCollection = {
-  [key: string]: CvssMetricsValue;
-}
+import { CvssDefinition, CvssMetricsValue, CvssMetricsValueCollection, CvssVersion } from "./base";
 
 export const CVSS31_DEFINITION: CvssDefinition = Object.freeze({
   AV: {
@@ -598,7 +577,7 @@ const CVSS3_METRICS_ENVIRONMENTAL: CvssMetricsValueCollection = Object.freeze({
 });
 const CVSS3_METRICS: CvssMetricsValueCollection = Object.freeze(Object.assign({}, CVSS3_METRICS_BASE, CVSS3_METRICS_TEMPORAL, CVSS3_METRICS_ENVIRONMENTAL));
 
-export function parseVector(vector?: string|null): CvssMetricsValue {
+export function parseVectorCvss3(vector?: string|null): CvssMetricsValue {
   // Vector to string
   const out = {} as CvssMetricsValue;
   for (const part of (vector || '').slice(9).split('/')) {
@@ -616,23 +595,13 @@ export function parseVector(vector?: string|null): CvssMetricsValue {
   return out;
 }
 
-export function stringifyVector(parsedVector: CvssMetricsValue): string {
-  let out = 'CVSS:3.1';
-  for (const [k, vs] of Object.entries(CVSS3_METRICS)) {
-    if (k in parsedVector && parsedVector[k] in vs && parsedVector[k] !== 'X') {
-      out += `/${k}:${parsedVector[k]}`;
-    }
-  }
-  return out;
-}
-
-export function isValidVector(vector?: string|null) {
+export function isValidVectorCvss3(vector?: string|null) {
   // Check CVSS identifier
   if (!vector || (!vector.startsWith('CVSS:3.0/') && !vector.startsWith('CVSS:3.1/'))) {
     return false;
   }
 
-  const parsedVector = parseVector(vector) || {};
+  const parsedVector = parseVectorCvss3(vector) || {};
 
   // Only allowed values defined
   for (const [k, v] of Object.entries(parsedVector)) {
@@ -651,6 +620,26 @@ export function isValidVector(vector?: string|null) {
   return true;
 }
 
+export function stringifyVectorCvss31(parsedVector: CvssMetricsValue): string {
+  let out = CvssVersion.CVSS31 as string;
+  for (const [k, vs] of Object.entries(CVSS3_METRICS)) {
+    if (k in parsedVector && parsedVector[k] in vs && parsedVector[k] !== 'X') {
+      out += `/${k}:${parsedVector[k]}`;
+    }
+  }
+  return out;
+}
+
+export function stringifyVectorCvss30(parsedVector: CvssMetricsValue): string {
+  let out = CvssVersion.CVSS30 as string;
+  for (const [k, vs] of Object.entries(CVSS3_METRICS)) {
+    if (k in parsedVector && parsedVector[k] in vs && parsedVector[k] !== 'X') {
+      out += `/${k}:${parsedVector[k]}`;
+    }
+  }
+  return out;
+}
+
 function roundUp(num: number) {
   const intNum = Math.round(num * 100000);
   if (intNum % 10000 === 0) {
@@ -660,11 +649,11 @@ function roundUp(num: number) {
   }
 }
 
-function calculateScoreCvss31(vector: string): number|null {
-  if (!isValidVector(vector)) {
+export function calculateScoreCvss31(vector: string): number|null {
+  if (!isValidVectorCvss3(vector)) {
     return null;
   }
-  const values = parseVector(vector);
+  const values = parseVectorCvss3(vector);
 
   function hasMetricGroup(group: CvssMetricsValueCollection) {
     return Object.keys(group)
@@ -721,11 +710,11 @@ function calculateScoreCvss31(vector: string): number|null {
   return score;
 }
 
-function calculateScoreCvss30(vector: string): number|null {
-  if (!isValidVector(vector)) {
+export function calculateScoreCvss30(vector: string): number|null {
+  if (!isValidVectorCvss3(vector)) {
     return null;
   }
-  const values = parseVector(vector);
+  const values = parseVectorCvss3(vector);
 
   function metric(name: string, modified = false) {
     if (modified) {
@@ -755,44 +744,4 @@ function calculateScoreCvss30(vector: string): number|null {
     roundUp(roundUp(Math.min(1.08 * (mImpact + mExploitability), 10)) * metric('E') * metric('RL') * metric('RC')) :
     roundUp(roundUp(Math.min(mImpact + mExploitability, 10)) * metric('E') * metric('RL') * metric('RC'));
   return envScore;
-}
-
-export function scoreFromVector(vector?: string|null) {
-  if (!vector || !isValidVector(vector)) {
-    return null;
-  }
-
-  if (vector.startsWith('CVSS:3.1')) {
-    return calculateScoreCvss31(vector);
-  } else if (vector.startsWith('CVSS:3.0')) {
-    return calculateScoreCvss30(vector);
-  } else {
-    return null;
-  }
-}
-
-export function levelNumberFromScore(score?: number|null) {
-  if (score === null || score === undefined) {
-    return 1;
-  }
-
-  if (score >= 9.0) {
-    return 5;
-  } else if (score >= 7.0) {
-    return 4;
-  } else if (score >= 4.0) {
-    return 3;
-  } else if (score > 0.0) {
-    return 2;
-  } else {
-    return 1;
-  }
-}
-
-export function levelNameFromScore(score?: number|null) {
-  return ['Info', 'Low', 'Medium', 'High', 'Critical'][levelNumberFromScore(score) - 1];
-}
-
-export function levelNumberFromLevelName(levelName?: string|null) {
-  return Math.max(['info', 'low', 'medium', 'high', 'critical'].indexOf(levelName?.toLowerCase() || ''), 0) + 1;
 }

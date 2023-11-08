@@ -23,9 +23,32 @@
         <s-btn color="secondary" class="ma-3" text="CVSS Editor" v-bind="dialogProps" />
       </template>
 
-      <template #title>CVSS Editor</template>
+      <template #title>
+        CVSS Editor
+
+        <v-btn-toggle
+          v-model="editorCvssVersion"
+          :disabled="props.disabled"
+          mandatory
+          :border="true"
+          color="secondary"
+          density="compact"
+          class="ml-3"
+        >
+          <v-btn 
+            :value="CvssVersion.CVSS40" 
+            :text="CvssVersion.CVSS40" 
+            :disabled="props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS40)" 
+          />
+          <v-btn 
+            :value="CvssVersion.CVSS31" 
+            :text="CvssVersion.CVSS31" 
+            :disabled="props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS31)" 
+          />
+        </v-btn-toggle>
+      </template>
       <template #toolbar>
-        <div class="cvss-score" :class="'level-' + editorScoreInfo.levelNumber">
+        <div class="cvss-score mr-2" :class="'level-' + editorScoreInfo.levelNumber">
           <div class="cvss-score-header">{{ editorScoreInfo.scoreFormatted }}</div>
           <div class="cvss-score-label">{{ editorScoreInfo.levelName }}</div>
         </div>
@@ -42,14 +65,34 @@
       </template>
 
       <template #default>
-        <v-card-text class="pa-0">
-          <v-card
-            v-for="metricGroup in metricGroups"
-            :key="metricGroup.name"
-            flat
-          >
-            <v-divider />
+        <v-card-text v-if="editorCvssVersion === CvssVersion.CVSS40">
+          <v-card v-for="metricGroup in metricGroupsCvss40" :key="metricGroup.name" variant="outlined" class="mb-2">
             <v-card-title>{{ metricGroup.name }}</v-card-title>
+            <v-divider />
+            <v-card-text v-for="metricSubgroup in metricGroup.subgroups" :key="metricSubgroup.metrics.join(',')" class="pt-0 pb-0">
+              <v-card-subtitle v-if="metricSubgroup.name" class="text-h6 text-center ma-2 mt-6">{{ metricSubgroup.name }}</v-card-subtitle>
+              <s-cvss-metric-input
+                v-for="m in metricSubgroup.metrics"
+                :key="m"
+                :model-value="parsedEditorVector.metrics[m]"
+                @update:model-value="updateMetric(m, $event)"
+                :metric="CVSS40_DEFINITION[m]"
+                :single-line="true"
+                :disabled="props.disabled"
+              />
+            </v-card-text>
+          </v-card>
+        </v-card-text>
+        <v-card-text v-else>
+          <v-card
+            v-for="metricGroup in metricGroupsCvss31"
+            :key="metricGroup.name"
+            variant="outlined"
+            class="mb-2"
+          >
+            <v-card-title>{{ metricGroup.name }}</v-card-title>
+            <v-divider />
+            
             <v-card-text>
               <v-row>
                 <v-col
@@ -59,9 +102,9 @@
                   <s-cvss-metric-input
                     v-for="m in metricGroupCol"
                     :key="m"
-                    :model-value="parsedEditorVector[m]"
+                    :model-value="parsedEditorVector.metrics[m]"
                     @update:model-value="updateMetric(m, $event)"
-                    :metric="cvssDefinition[m]"
+                    :metric="CVSS31_DEFINITION[m]"
                     :disabled="props.disabled"
                   />
                 </v-col>
@@ -75,50 +118,90 @@
 </template>
 
 <script setup lang="ts">
-import * as cvss from "@/utils/cvss.js";
+import { isValidVector, scoreFromVector, levelNumberFromScore, levelNameFromScore, parseVector, stringifyVector } from "@/utils/cvss";
+import { CVSS31_DEFINITION } from "@/utils/cvss/cvss3";
+import { CVSS40_DEFINITION } from "@/utils/cvss/cvss4";
+import { CvssVersion } from "@/utils/cvss/base";
 
 const props = defineProps<{
   modelValue: string|null;
   label?: string;
   disabled?: boolean;
+  cvssVersion?: CvssVersion|null;
+  disableValidation?: boolean;
 }>();
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string|null): void;
 }>();
 
+const localSettings = useLocalSettings();
+
 const dialogVisible = ref(false);
-const rules = {
-  validCvssVector: [(v: string|null|undefined) =>
-    cvss.isValidVector(v) ||
-    [undefined, null, "", "n/a", "n.a."].includes(v) ||
-    "Invalid CVSS vector",
-  ]
-}
+const rules = computed(() => {
+  if (props.disableValidation) {
+    return {
+      validCvssVector: [],
+    };
+  }
+  return {
+    validCvssVector: [
+      (v: string|null|undefined) =>
+        isValidVector(v) ||
+        [undefined, null, "", "n/a", "n.a."].includes(v) ||
+        "Invalid CVSS vector",
+      (v: string|null|undefined) => {
+        if (v && props.cvssVersion && isValidVector(v) && !v.startsWith(props.cvssVersion)) {
+          return `Invalid CVSS version. Expected ${props.cvssVersion}`;
+        }
+        return true;
+      }
+    ]
+  }
+}); 
+
+const editorCvssVersion = ref(CvssVersion.CVSS31);
+const availableCvssVersions = ref<CvssVersion[]>([]);
 
 const editorValue = ref(props.modelValue);
 watch(() => props.modelValue, () => { editorValue.value = props.modelValue; });
 watch(dialogVisible, (newVal) => {
-  // Reset temporary editorValue when the dialog is closed
+  // Reset temporary editorValue when the dialog is opened
   if (newVal) {
     editorValue.value = props.modelValue;
+
+    editorCvssVersion.value = parseVector(editorValue.value).version || props.cvssVersion || localSettings.cvssVersion;
+    if (![CvssVersion.CVSS40, CvssVersion.CVSS31].includes(editorCvssVersion.value)) {
+      editorCvssVersion.value = CvssVersion.CVSS31;
+    }
+
+    if (props.cvssVersion) {
+      availableCvssVersions.value = [props.cvssVersion, editorCvssVersion.value];
+    } else {
+      availableCvssVersions.value = [CvssVersion.CVSS40, CvssVersion.CVSS31];
+    }
   }
+});
+watch(editorCvssVersion, (newValue) => {
+  // TODO: reset metrics on switch CVSS version?
+  // editorValue.value = stringifyVector(parsedEditorVector.value);
+  localSettings.cvssVersion = newValue;
 });
 
 function cvssInfo(vector: string|null) {
-  const score = cvss.scoreFromVector(vector);
+  const score = scoreFromVector(vector);
   return {
     score,
     scoreFormatted: (score || 0.0).toFixed(1),
-    levelNumber: cvss.levelNumberFromScore(score),
-    levelName: cvss.levelNameFromScore(score),
+    levelNumber: levelNumberFromScore(score),
+    levelName: levelNameFromScore(score),
   }
 }
 
-const parsedEditorVector = computed(() => cvss.parseVector(editorValue.value));
+const parsedEditorVector = computed(() => parseVector(editorValue.value, editorCvssVersion.value));
 const editorScoreInfo = computed(() => cvssInfo(editorValue.value));
 const scoreInfo = computed(() => cvssInfo(props.modelValue));
 
-const metricGroups = [
+const metricGroupsCvss31 = [
   {
     name: "Base Score",
     cols: [
@@ -138,10 +221,72 @@ const metricGroups = [
     ],
   },
 ];
-const cvssDefinition = cvss.CVSS31_DEFINITION;
+const metricGroupsCvss40 = [
+  {
+    name: 'Base Metrics',
+    subgroups: [
+      {
+        name: 'Exploitability Metrics',
+        metrics: ['AV', 'AC', 'AT', 'PR', 'UI'],
+      },
+      {
+        name: 'Vulnerable System Impact Metrics',
+        metrics: ['VC', 'VI', 'VA'],
+      },
+      {
+        name: 'Subsequent System Impact Metrics',
+        metrics: ['SC', 'SI', 'SA'],
+      }
+    ]
+  },
+  {
+    name: 'Supplemental Metrics',
+    subgroups: [
+      {
+        name: null,
+        metrics: ['S', 'AU', 'R', 'V', 'RE', 'U'],
+      }
+    ]
+  },
+  {
+    name: 'Environmental (Modified Base Metrics)',
+    subgroups: [
+      {
+        name: 'Exploitability Metrics',
+        metrics: ['MAV', 'MAC', 'MAT', 'MPR', 'MUI'],
+      },
+      {
+        name: 'Vulnerable System Impact Metrics',
+        metrics: ['MVC', 'MVI', 'MVA'],
+      },
+      {
+        name: 'Subsequent System Impact Metrics',
+        metrics: ['MSC', 'MSI', 'MSA'],
+      }
+    ]
+  },
+  {
+    name: 'Environmental (Security Requirements)',
+    subgroups: [
+      {
+        name: null,
+        metrics: ['CR', 'IR', 'AR'],
+      },
+    ],
+  },
+  {
+    name: 'Threat Metrics',
+    subgroups: [
+      {
+        name: null,
+        metrics: ['E'],
+      }
+    ]
+  }
+];
 
 function updateMetric(metric: string, val: any) {
-  editorValue.value = cvss.stringifyVector({ ...parsedEditorVector.value, [metric]: val });
+  editorValue.value = stringifyVector({ version: editorCvssVersion.value, metrics: { ...parsedEditorVector.value.metrics, [metric]: val } });
 }
 
 function applyDialog() {
@@ -185,5 +330,9 @@ function applyDialog() {
       color: map-get(settings.$risk-color-levels, $level);
     }
   }
+}
+
+.metric-group-header {
+  background-color: #808080;
 }
 </style>

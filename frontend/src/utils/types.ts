@@ -1,3 +1,5 @@
+import { CvssVersion } from "./cvss/base";
+
 export type BaseModel = {
   id: string;
   created: string;
@@ -376,6 +378,7 @@ export type FieldDefinition = {
   required?: boolean;
   spellcheck?: boolean;
   pattern?: string|null;
+  cvss_version?: CvssVersion;
   suggestions?: string[];
   choices?: EnumFieldChoiceDefinition[];
   properties?: {

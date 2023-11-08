@@ -46,15 +46,18 @@ def test_check_todo():
         'field_object': {'nested1': 'nested todo in object'},
         'field_list_objects': [{'nested1': 'TODO'}],
     }
-    todo_field_paths = ['field_string', 'field_markdown', 'field_list[1]', 'field_object.nested1', 'field_list_objects[0].nested1']
+    todo_field_paths = ['field_string', 'field_markdown', 'field_list[1]',
+                        'field_object.nested1', 'field_list_objects[0].nested1']
     project = create_project(report_data=todo_fields)
     finding = create_finding(project=project, data=todo_fields)
 
     assertContainsCheckResults(project.perform_checks(), [
-        ErrorMessage(level=MessageLevel.WARNING, message='Unresolved TODO', location=MessageLocationInfo(type=MessageLocationType.SECTION, id='other', path=p)) 
+        ErrorMessage(level=MessageLevel.WARNING, message='Unresolved TODO', location=MessageLocationInfo(
+            type=MessageLocationType.SECTION, id='other', path=p))
         for p in todo_field_paths
     ] + [
-        ErrorMessage(level=MessageLevel.WARNING, message='Unresolved TODO', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=finding.finding_id, path=p)) 
+        ErrorMessage(level=MessageLevel.WARNING, message='Unresolved TODO', location=MessageLocationInfo(
+            type=MessageLocationType.FINDING, id=finding.finding_id, path=p))
         for p in todo_field_paths
     ])
 
@@ -72,21 +75,24 @@ def test_check_empty():
         'field_list_objects': [{'nested1': ''}],
     }
     empty_field_paths = [
-        'field_string', 'field_markdown', 'field_int', 'field_date', 'field_enum', 'field_user', 
+        'field_string', 'field_markdown', 'field_int', 'field_date', 'field_enum', 'field_user',
         'field_list', 'field_object.nested1', 'field_list_objects[0].nested1'
     ]
     project_type = create_project_type()
     set_all_required(project_type.report_fields, True)
     set_all_required(project_type.finding_fields, True)
     project_type.save()
-    project = create_project(project_type=project_type, report_data=empty_fields)
+    project = create_project(project_type=project_type,
+                             report_data=empty_fields)
     finding = create_finding(project=project, data=empty_fields)
 
     assertContainsCheckResults(project.perform_checks(), [
-        ErrorMessage(level=MessageLevel.WARNING, message='Empty field', location=MessageLocationInfo(type=MessageLocationType.SECTION, id='other', path=p)) 
+        ErrorMessage(level=MessageLevel.WARNING, message='Empty field', location=MessageLocationInfo(
+            type=MessageLocationType.SECTION, id='other', path=p))
         for p in empty_field_paths
     ] + [
-        ErrorMessage(level=MessageLevel.WARNING, message='Empty field', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=finding.finding_id, path=p)) 
+        ErrorMessage(level=MessageLevel.WARNING, message='Empty field', location=MessageLocationInfo(
+            type=MessageLocationType.FINDING, id=finding.finding_id, path=p))
         for p in empty_field_paths
     ])
 
@@ -104,49 +110,90 @@ def test_check_empty_not_required():
         'field_list_objects': [{'nested1': ''}],
     }
     empty_field_paths = [
-        'field_string', 'field_markdown', 'field_int', 'field_date', 'field_enum', 'field_user', 
+        'field_string', 'field_markdown', 'field_int', 'field_date', 'field_enum', 'field_user',
         'field_list', 'field_object.nested1', 'field_list_objects[0].nested1'
     ]
     project_type = create_project_type()
     set_all_required(project_type.report_fields, False)
     set_all_required(project_type.finding_fields, False)
     project_type.save()
-    project = create_project(project_type=project_type, report_data=empty_fields)
+    project = create_project(project_type=project_type,
+                             report_data=empty_fields)
     finding = create_finding(project=project, data=empty_fields)
 
     assertNotContainsCheckResults(project.perform_checks(), [
-        ErrorMessage(level=MessageLevel.WARNING, message='Empty field', location=MessageLocationInfo(type=MessageLocationType.SECTION, id='other', path=p)) 
+        ErrorMessage(level=MessageLevel.WARNING, message='Empty field', location=MessageLocationInfo(
+            type=MessageLocationType.SECTION, id='other', path=p))
         for p in empty_field_paths
     ] + [
-        ErrorMessage(level=MessageLevel.WARNING, message='Empty field', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=finding.finding_id, path=p)) 
+        ErrorMessage(level=MessageLevel.WARNING, message='Empty field', location=MessageLocationInfo(
+            type=MessageLocationType.FINDING, id=finding.finding_id, path=p))
         for p in empty_field_paths
     ])
 
 
 def test_invalid_cvss():
     project = create_project()
-    finding_valid1 = create_finding(project=project, data={'cvss': 'CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'})
-    finding_valid2 = create_finding(project=project, data={'cvss': 'AV:N/AC:L/Au:N/C:C/I:C/A:C'})
+    finding_valid1 = create_finding(
+        project=project, data={'cvss': 'CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'})
+    finding_valid2 = create_finding(
+        project=project, data={'cvss': 'AV:N/AC:L/Au:N/C:C/I:C/A:C'})
     finding_valid3 = create_finding(project=project, data={'cvss': 'n/a'})
-    finding_invalid1 = create_finding(project=project, data={'cvss': 'CVSS:3.1/asdf'})
-    finding_invalid2 = create_finding(project=project, data={'cvss': 'invalid CVSS'})
+    finding_invalid1 = create_finding(
+        project=project, data={'cvss': 'CVSS:3.1/asdf'})
+    finding_invalid2 = create_finding(
+        project=project, data={'cvss': 'invalid CVSS'})
 
     assertContainsCheckResults(project.perform_checks(), [
-        ErrorMessage(level=MessageLevel.WARNING, message='Invalid CVSS vector', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id, path='cvss'))
+        ErrorMessage(level=MessageLevel.WARNING, message='Invalid CVSS vector', location=MessageLocationInfo(
+            type=MessageLocationType.FINDING, id=f.finding_id, path='cvss'))
         for f in [finding_invalid1, finding_invalid2]
     ])
     assertNotContainsCheckResults(project.perform_checks(), [
-        ErrorMessage(level=MessageLevel.WARNING, message='Invalid CVSS vector', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id, path='cvss'))
+        ErrorMessage(level=MessageLevel.WARNING, message='Invalid CVSS vector', location=MessageLocationInfo(
+            type=MessageLocationType.FINDING, id=f.finding_id, path='cvss'))
         for f in [finding_valid1, finding_valid2, finding_valid3]
     ])
 
 
+@pytest.mark.parametrize(['expected', 'cvss_version', 'cvss_vector'], [
+    (True, None, 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H'),
+    (True, None, 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'),
+    (True, None, 'CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'),
+    (True, None, 'AV:N/AC:L/Au:N/C:C/I:C/A:C'),
+    (True, None, 'n/a'),
+    (True, 'CVSS:4.0', 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H'),
+    (False, 'CVSS:4.0', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'),
+    (True, 'CVSS:4.0', 'n/a'),
+    (True, 'CVSS:3.1', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'),
+    (False, 'CVSS:3.1', 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H')
+])
+def test_invalid_cvss_version(expected, cvss_version, cvss_vector):
+    project = create_project(findings_kwargs=[], project_type=create_project_type(finding_fields={
+        'title': {'type': 'string'},
+        'cvss': {'type': 'cvss', 'cvss_version': cvss_version},
+    }))
+    finding = create_finding(project=project, data={'cvss': cvss_vector})
+
+    check_res = project.perform_checks()
+    msg = ErrorMessage(level=MessageLevel.WARNING, message='Invalid CVSS version', location=MessageLocationInfo(
+        type=MessageLocationType.FINDING, id=finding.finding_id, path='cvss'))
+    if expected:
+        assertNotContainsCheckResults(check_res, [msg])
+    else:
+        assertContainsCheckResults(check_res, [msg])
+
+
 def test_review_status():
     project = create_project()
-    finding_valid = create_finding(project=project, status=ReviewStatus.FINISHED)
-    finding_invalid1 = create_finding(project=project, status=ReviewStatus.IN_PROGRESS)
-    finding_invalid2 = create_finding(project=project, status=ReviewStatus.READY_FOR_REVIEW)
-    finding_invalid3 = create_finding(project=project, status=ReviewStatus.NEEDS_IMPROVEMENT)
+    finding_valid = create_finding(
+        project=project, status=ReviewStatus.FINISHED)
+    finding_invalid1 = create_finding(
+        project=project, status=ReviewStatus.IN_PROGRESS)
+    finding_invalid2 = create_finding(
+        project=project, status=ReviewStatus.READY_FOR_REVIEW)
+    finding_invalid3 = create_finding(
+        project=project, status=ReviewStatus.NEEDS_IMPROVEMENT)
 
     section_valid = project.sections.first()
     section_valid.status = ReviewStatus.FINISHED
@@ -156,15 +203,19 @@ def test_review_status():
     section_invalid.save()
 
     assertContainsCheckResults(project.perform_checks(), [
-        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id))
+        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"',
+                     location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id))
         for f in [finding_invalid1, finding_invalid2, finding_invalid3]
     ] + [
-        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(type=MessageLocationType.SECTION, id=s.section_id))
+        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"',
+                     location=MessageLocationInfo(type=MessageLocationType.SECTION, id=s.section_id))
         for s in [section_invalid]
     ])
     assertNotContainsCheckResults(project.perform_checks(), [
-        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=finding_valid.finding_id)),
-        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(type=MessageLocationType.SECTION, id=section_valid.section_id)),
+        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(
+            type=MessageLocationType.FINDING, id=finding_valid.finding_id)),
+        ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"', location=MessageLocationInfo(
+            type=MessageLocationType.SECTION, id=section_valid.section_id)),
     ])
 
 
@@ -181,10 +232,14 @@ def test_regex_check(pattern, value, expected):
     f = create_finding(project=p, data={'field_regex': value})
 
     check_res = p.perform_checks()
-    msg_invalid = ErrorMessage(level=MessageLevel.WARNING, message='Invalid format', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex'))
-    msg_error = ErrorMessage(level=MessageLevel.ERROR, message='Invalid regex pattern', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex'))
-    assertContainsCheckResults(check_res, ([msg_invalid] if expected is False else []) + ([msg_error] if expected == 'error' else []))
-    assertNotContainsCheckResults(check_res, ([msg_invalid] if expected is not False else []) + ([msg_error] if expected != 'error' else []))
+    msg_invalid = ErrorMessage(level=MessageLevel.WARNING, message='Invalid format', location=MessageLocationInfo(
+        type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex'))
+    msg_error = ErrorMessage(level=MessageLevel.ERROR, message='Invalid regex pattern', location=MessageLocationInfo(
+        type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex'))
+    assertContainsCheckResults(check_res, ([msg_invalid] if expected is False else [
+    ]) + ([msg_error] if expected == 'error' else []))
+    assertNotContainsCheckResults(check_res, ([msg_invalid] if expected is not False else [
+    ]) + ([msg_error] if expected != 'error' else []))
 
 
 @override_settings(REGEX_VALIDATION_TIMEOUT=timedelta(milliseconds=0.000001))
@@ -195,6 +250,6 @@ def test_regex_timeout():
     }), findings_kwargs=[])
     f = create_finding(project=p, data={'field_regex': 'abc'})
     assertContainsCheckResults(p.perform_checks(), [
-        ErrorMessage(level=MessageLevel.ERROR, message='Regex timeout', location=MessageLocationInfo(type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex'))
+        ErrorMessage(level=MessageLevel.ERROR, message='Regex timeout', location=MessageLocationInfo(
+            type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex'))
     ])
-

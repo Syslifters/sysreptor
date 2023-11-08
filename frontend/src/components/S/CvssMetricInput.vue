@@ -1,5 +1,33 @@
 <template>
-  <v-radio-group
+  <div class="d-flex ma-1" :class="{'flex-row': props.singleLine, 'flex-column': !props.singleLine}">
+    <v-label class="cvss-metric-label" :class="{'cvss-metric-label-inline': props.singleLine}">
+      <div class="cvss-metric-label-text">{{ metric.name }}</div>
+      <s-tooltip activator="parent" :text="metric.description" v-bind="tooltipAttrs" />
+    </v-label>
+    <div>
+      <v-btn-toggle
+        :model-value="props.modelValue"
+        @update:model-value="emit('update:modelValue', $event)"
+        :disabled="props.disabled"
+        mandatory
+        density="compact"
+        :border="true"
+        color="primary"
+      >
+        <v-btn 
+          v-for="c in metric.choices" 
+          :key="metric.id + '_' + c.id" 
+          :value="c.id" 
+          size="small" 
+          class="metric-btn"
+        >
+          {{ c.name }} ({{ c.id }})
+          <s-tooltip activator="parent" :text="c.description" v-bind="tooltipAttrs" />
+        </v-btn>
+      </v-btn-toggle>
+    </div>
+  </div>
+  <!-- <v-radio-group
     :model-value="props.modelValue"
     @update:model-value="emit('update:modelValue', $event)"
     :disabled="props.disabled"
@@ -20,13 +48,16 @@
         </span>
       </template>
     </v-radio>
-  </v-radio-group>
+  </v-radio-group> -->
 </template>
 
 <script setup lang="ts">
+import { CvssMetricDefinition } from '~/utils/cvss/base';
+
 const props = defineProps<{
   modelValue: string;
   metric: CvssMetricDefinition;
+  singleLine?: boolean;
   disabled?: boolean;
 }>();
 const emit = defineEmits<{
@@ -40,7 +71,20 @@ const tooltipAttrs = {
 </script>
 
 <style lang="scss" scoped>
-.label-tooltip {
+.cvss-metric-label {
+  min-width: 15em;
   cursor: help;
+
+  &-inline {
+    .cvss-metric-label-text {
+      display: inline-block;
+      width: 100%;
+      padding-right: 1em;
+      text-align: end;
+    }
+  }
+}
+.metric-btn {
+  min-width: 10em;
 }
 </style>
