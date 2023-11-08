@@ -121,7 +121,7 @@
 import { isValidVector, scoreFromVector, levelNumberFromScore, levelNameFromScore, parseVector, stringifyVector } from "@/utils/cvss";
 import { CVSS31_DEFINITION } from "@/utils/cvss/cvss3";
 import { CVSS40_DEFINITION } from "@/utils/cvss/cvss4";
-import { CvssVersion } from "~/utils/cvss/base";
+import { CvssVersion } from "@/utils/cvss/base";
 
 const props = defineProps<{
   modelValue: string|null;

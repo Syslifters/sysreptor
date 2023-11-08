@@ -182,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { FieldDefinition, UserShortInfo } from "~/utils/types";
+import { FieldDefinition, UserShortInfo } from "@/utils/types";
 import { MarkdownProps } from "~/composables/markdown";
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 

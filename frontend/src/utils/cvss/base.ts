@@ -1,5 +1,3 @@
-import { type } from "os";
-
 export type CvssMetricDefinition = {
   id: string;
   name: string;

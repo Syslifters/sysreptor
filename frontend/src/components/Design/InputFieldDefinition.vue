@@ -84,7 +84,7 @@
               </s-combobox>
             </v-col>
           </template>
-          
+
           <!-- CVSS Options -->
           <template v-if="props.modelValue.type === FieldDataType.CVSS">
             <v-col class="mt-0 pt-0">
@@ -276,8 +276,8 @@
 <script setup lang="ts">
 import omit from "lodash/omit";
 import Draggable from "vuedraggable";
-import { CvssVersion } from "~/utils/cvss/base";
-import { FieldDataType, FieldDefinition, FieldDefinitionWithId, FieldOrigin } from "~/utils/types";
+import { CvssVersion } from "@/utils/cvss/base";
+import { FieldDataType, FieldDefinition, FieldDefinitionWithId, FieldOrigin } from "@/utils/types";
 
 const props = defineProps<{
   modelValue: FieldDefinitionWithId;
