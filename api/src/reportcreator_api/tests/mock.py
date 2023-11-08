@@ -121,7 +121,7 @@ def create_template_translation(template, **kwargs):
     return translation
 
 
-def create_project_type(**kwargs) -> ProjectType:
+def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     additional_fields = {
         'field_string': {'type': 'string', 'label': 'String Field', 'default': 'test'},
         'field_markdown': {'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
@@ -150,6 +150,12 @@ def create_project_type(**kwargs) -> ProjectType:
             'findings': [{'title': 'Demo finding', 'unknown_field': 'test'}]
         }
     } | kwargs)
+    for idx, asset_kwargs in enumerate(assets_kwargs if assets_kwargs is not None else [{}] * 2):
+        UploadedAsset.objects.create(linked_object=project_type, **{
+            'name': f'file{idx}.png',
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
+        } | asset_kwargs)
+
     UploadedAsset.objects.create(linked_object=project_type, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=b'file1'))
     UploadedAsset.objects.create(linked_object=project_type, name='file2.png', file=SimpleUploadedFile(name='file2.png', content=b'file2'))
     return project_type

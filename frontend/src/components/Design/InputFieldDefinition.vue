@@ -88,7 +88,6 @@
           <!-- CVSS Options -->
           <template v-if="props.modelValue.type === FieldDataType.CVSS">
             <v-col class="mt-0 pt-0">
-              <!-- TODO: do not validate CVSS default -->
               <s-select
                 :model-value="props.modelValue.cvss_version || null"
                 @update:model-value="updateProperty('cvss_version', $event)"

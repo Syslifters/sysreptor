@@ -22,7 +22,7 @@ export default {
     }
   },
   async mounted() {
-    await callForTicks(4, this.$nextTick, () => this.updateReference());
+    await callForTicks(4, () => this.updateReference());
     if (this.error) {
       console.warn(this.error.message, this.error);
     }

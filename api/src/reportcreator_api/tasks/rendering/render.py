@@ -113,6 +113,12 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
     html = None
 
     def chromium_request_handler(route):
+        # Prevent loading images and media to speed up template rendering.
+        # Only weasyprint needs them for PDF rendering
+        if route.request.resource_type in ['image', 'media']:
+            route.reject()
+            return
+
         try:
             fileinfo = request_handler(url=route.request.url, resources=resources, messages=messages, data=data)
             route.fulfill(body=fileinfo['file_obj'].read())
@@ -173,7 +179,8 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
                         'details': error_data.get('details'),
                     }
                 if msg['message'] in [
-                    '[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.'
+                    '[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.',
+                    'Failed to load resource: net::ERR_FAILED',
                 ]:
                     continue
                 if msg['level'] not in ['error', 'warning', 'info']:
@@ -326,8 +333,3 @@ def render_pdf(template: str, styles: str, data: dict, resources: dict, language
     )
     return pdf_enc, msgs
 
-# TODO: 
-# * [ ] tests
-#   * [ ] test warning on load nonexistent resource
-#   * [ ] test warning on load https://example.com/test.js
-#   * [ ] test loading /assets/name/script.js
