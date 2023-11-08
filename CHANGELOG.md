@@ -8,6 +8,9 @@
 * Fix markdown preview flappy scroll on typing in markdown editor when images are included
 * Add an API endpoint to retrieve project data with markdown fields rendered to HTML
 * Support validating string fields with RegEx patterns
+* Allow accessing designer assets in Chromium during PDF rendering
+* Allow requiring a specific CVSS version in CVSS fields
+* CVSS 4.0 support
 
 
 ## v2023.136 - 2023-10-30
