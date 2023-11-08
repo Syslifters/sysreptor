@@ -66,6 +66,8 @@
     <s-cvss-field
       v-else-if="definition.type === 'cvss'"
       v-model="formValue"
+      :cvss-version="definition.cvss_version"
+      :disable-validation="props.disableValidation"
       v-bind="fieldAttrs"
     />
 
@@ -91,6 +93,7 @@
           :id="props.id ? (props.id + '.' + objectFieldId) : undefined"
           :show-field-ids="showFieldIds"
           :selectable-users="selectableUsers"
+          :disable-validation="props.disableValidation"
           v-bind="fieldAttrs"
         />
       </v-card-text>
@@ -145,6 +148,7 @@
                 :id="id ? (id + '[' + entryIdx + ']') : undefined"
                 :show-field-ids="showFieldIds"
                 :selectable-users="selectableUsers"
+                :disable-validation="props.disableValidation"
                 v-bind="fieldAttrs"
               />
             </template>
@@ -190,6 +194,7 @@ const props = defineProps<MarkdownProps & {
   selectableUsers?: UserShortInfo[];
   disabled?: boolean;
   autofocus?: boolean;
+  disableValidation?: boolean;
 }>();
 const emit = defineEmits<{
   (e: 'update:modelValue', value: any): void;

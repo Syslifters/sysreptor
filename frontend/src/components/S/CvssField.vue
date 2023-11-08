@@ -38,12 +38,12 @@
           <v-btn 
             :value="CvssVersion.CVSS40" 
             :text="CvssVersion.CVSS40" 
-            :disabled="Boolean(props.disabled || (props.cvssVersion && props.cvssVersion !== CvssVersion.CVSS40))" 
+            :disabled="props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS40)" 
           />
           <v-btn 
             :value="CvssVersion.CVSS31" 
             :text="CvssVersion.CVSS31" 
-            :disabled="Boolean(props.disabled || (props.cvssVersion && ![CvssVersion.CVSS31, CvssVersion.CVSS30].includes(props.cvssVersion)))" 
+            :disabled="props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS31)" 
           />
         </v-btn-toggle>
       </template>
@@ -128,6 +128,7 @@ const props = defineProps<{
   label?: string;
   disabled?: boolean;
   cvssVersion?: CvssVersion|null;
+  disableValidation?: boolean;
 }>();
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string|null): void;
@@ -136,22 +137,30 @@ const emit = defineEmits<{
 const localSettings = useLocalSettings();
 
 const dialogVisible = ref(false);
-const rules = {
-  validCvssVector: [
-    (v: string|null|undefined) =>
-      isValidVector(v) ||
-      [undefined, null, "", "n/a", "n.a."].includes(v) ||
-      "Invalid CVSS vector",
-    (v: string|null|undefined) => {
-      if (v && props.cvssVersion && isValidVector(v) && !v.startsWith(props.cvssVersion)) {
-        return `Invalid CVSS version. Expected ${props.cvssVersion}`;
+const rules = computed(() => {
+  if (props.disableValidation) {
+    return {
+      validCvssVector: [],
+    };
+  }
+  return {
+    validCvssVector: [
+      (v: string|null|undefined) =>
+        isValidVector(v) ||
+        [undefined, null, "", "n/a", "n.a."].includes(v) ||
+        "Invalid CVSS vector",
+      (v: string|null|undefined) => {
+        if (v && props.cvssVersion && isValidVector(v) && !v.startsWith(props.cvssVersion)) {
+          return `Invalid CVSS version. Expected ${props.cvssVersion}`;
+        }
+        return true;
       }
-      return true;
-    }
-  ]
-}
+    ]
+  }
+}); 
 
 const editorCvssVersion = ref(CvssVersion.CVSS31);
+const availableCvssVersions = ref<CvssVersion[]>([]);
 
 const editorValue = ref(props.modelValue);
 watch(() => props.modelValue, () => { editorValue.value = props.modelValue; });
@@ -160,9 +169,15 @@ watch(dialogVisible, (newVal) => {
   if (newVal) {
     editorValue.value = props.modelValue;
 
-    editorCvssVersion.value = parseVector(editorValue.value).version || props.cvssVersion || localSettings.cvssVersion || CvssVersion.CVSS31;
-    if (editorCvssVersion.value === CvssVersion.CVSS30) {
+    editorCvssVersion.value = parseVector(editorValue.value).version || props.cvssVersion || localSettings.cvssVersion;
+    if (![CvssVersion.CVSS40, CvssVersion.CVSS31].includes(editorCvssVersion.value)) {
       editorCvssVersion.value = CvssVersion.CVSS31;
+    }
+
+    if (props.cvssVersion) {
+      availableCvssVersions.value = [props.cvssVersion, editorCvssVersion.value];
+    } else {
+      availableCvssVersions.value = [CvssVersion.CVSS40, CvssVersion.CVSS31];
     }
   }
 });

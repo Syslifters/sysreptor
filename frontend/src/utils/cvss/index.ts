@@ -1,4 +1,4 @@
-import { CvssVersion, CvssMetricsValue, ParsedCvssVector } from './base';
+import { CvssVersion, ParsedCvssVector } from './base';
 import { calculateScoreCvss31, calculateScoreCvss30, stringifyVectorCvss31, stringifyVectorCvss30, isValidVectorCvss3, parseVectorCvss3 } from './cvss3';
 import { calculateScoreCvss40, isValidVectorCvss4, stringifyVectorCvss40, parseVectorCvss4 } from './cvss4';
 
