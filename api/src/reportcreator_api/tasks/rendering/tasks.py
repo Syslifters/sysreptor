@@ -12,7 +12,7 @@ def render_pdf_task(*args, **kwargs) -> dict:
     pdf, msgs = render.render_pdf(*args, **kwargs)
     return {
         'pdf': b64encode(pdf).decode() if pdf else None,
-        'messages': msgs,
+        'messages': [m.to_dict() for m in msgs],
     }
 
 
