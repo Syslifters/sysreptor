@@ -1,9 +1,33 @@
 import { CvssVersion, CvssMetricsValue, ParsedCvssVector } from './base';
-import { calculateScoreCvss31, calculateScoreCvss30, stringifyVectorCvss31, stringifyVectorCvss30, isValidVectorCvss3 } from './cvss3';
-import { calculateScoreCvss40, isValidVectorCvss4, stringifyVectorCvss40 } from './cvss4';
+import { calculateScoreCvss31, calculateScoreCvss30, stringifyVectorCvss31, stringifyVectorCvss30, isValidVectorCvss3, parseVectorCvss3 } from './cvss3';
+import { calculateScoreCvss40, isValidVectorCvss4, stringifyVectorCvss40, parseVectorCvss4 } from './cvss4';
 
-export function parseVector(vector?: string|null): ParsedCvssVector {
+export function parseVector(vector?: string|null, version?: CvssVersion|null): ParsedCvssVector {
+  const cvssParsers = [
+    { version: CvssVersion.CVSS40, parse: parseVectorCvss4 },
+    { version: CvssVersion.CVSS31, parse: parseVectorCvss3 },
+    { version: CvssVersion.CVSS30, parse: parseVectorCvss3 },
+  ];
+  if (version) {
+    return {
+      version,
+      metrics: cvssParsers.find(parser => parser.version === version)?.parse(vector) || {},
+    };
+  }
 
+  for (const cvssParser of cvssParsers) {
+    if (vector && vector.startsWith(cvssParser.version)) {
+      return { version: cvssParser.version, metrics: cvssParser.parse(vector) };
+    }
+  }
+  return {
+    version: null,
+    metrics: parseVectorCvss3(vector),
+  };
+}
+
+export function isValidVector(vector?: string|null) {
+  return isValidVectorCvss4(vector) || isValidVectorCvss3(vector);
 }
 
 export function scoreFromVector(vector?: string|null) {

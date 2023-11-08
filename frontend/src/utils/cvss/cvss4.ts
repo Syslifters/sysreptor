@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { CvssDefinition, CvssMetricsValue, CvssMetricsValueCollection, CvssVersion } from "./base";
 
-export const CVSS31_DEFINITION: CvssDefinition = Object.freeze({ 
+export const CVSS40_DEFINITION: CvssDefinition = Object.freeze({ 
   AV: { 
     id: 'AV', 
     name: 'Attack Vector', 
@@ -701,7 +701,7 @@ const CVSS4_METRICS_ENVIRONMENTAL_MODIFIED: CvssMetricsValueCollection = Object.
 })
 const CVSS4_METRICS_ENVIRONMENTAL: CvssMetricsValueCollection = Object.freeze({ ...CVSS4_METRICS_ENVIRONMENTAL_REQUIREMENTS, ...CVSS4_METRICS_ENVIRONMENTAL_MODIFIED });
 const CVSS4_METRICS_SUPPLEMENTAL: CvssMetricsValueCollection = Object.freeze({
-  S: { X: null, N: null, Y: null },
+  S: { X: null, N: null, P: null },
   AU: { X: null, N: null, Y: null },
   R: { X: null, A: null, U: null, I: null },
   V: { X: null, D: null, C: null },
@@ -1085,7 +1085,7 @@ export function isValidVectorCvss4(vector?: string|null) {
 }
 
 export function stringifyVectorCvss40(parsedVector: CvssMetricsValue): string {
-  let out = CvssVersion.CVSS31 as string;
+  let out = CvssVersion.CVSS40 as string;
   for (const [k, vs] of Object.entries(CVSS4_METRICS)) {
     if (k in parsedVector && parsedVector[k] in vs && parsedVector[k] !== 'X') {
       out += `/${k}:${parsedVector[k]}`;

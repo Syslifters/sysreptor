@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import Draggable from "vuedraggable";
 import { PentestFinding } from "~/utils/types";
-import * as cvss from "~/utils/cvss";
+import { scoreFromVector, levelNumberFromScore, levelNumberFromLevelName } from "~/utils/cvss";
 
 definePageMeta({
   title: 'Reporting'
@@ -165,9 +165,9 @@ async function toggleOverrideFindingOrder() {
 
 function riskLevel(finding: PentestFinding) {
   if ('severity' in projectType.value.finding_fields) {
-    return cvss.levelNumberFromLevelName(finding.data.severity);
+    return levelNumberFromLevelName(finding.data.severity);
   } else if ('cvss' in projectType.value.finding_fields) {
-    return cvss.levelNumberFromScore(cvss.scoreFromVector(finding.data.cvss));
+    return levelNumberFromScore(scoreFromVector(finding.data.cvss));
   } else {
     return 'unknown';
   }

@@ -102,7 +102,7 @@
 import Draggable from "vuedraggable";
 import { v4 as uuidv4 } from "uuid";
 import { FieldDataType, FieldDefinitionDict, ProjectType, UserShortInfo } from "~/utils/types";
-import * as cvss from "~/utils/cvss";
+import { scoreFromVector, levelNumberFromLevelName, levelNumberFromScore } from "~/utils/cvss";
 
 const props = defineProps<{
   modelValue: any;
@@ -204,9 +204,9 @@ function deleteFinding(finding: any) {
 
 function riskLevel(finding: any) {
   if ('severity' in props.projectType.finding_fields) {
-    return cvss.levelNumberFromLevelName(finding.severity);
+    return levelNumberFromLevelName(finding.severity);
   } else if ('cvss' in props.projectType.finding_fields) {
-    return cvss.levelNumberFromScore(cvss.scoreFromVector(finding.cvss));
+    return levelNumberFromScore(scoreFromVector(finding.cvss));
   } else {
     return 'unknown';
   }
