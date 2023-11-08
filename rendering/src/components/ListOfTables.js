@@ -10,7 +10,7 @@ export default {
   async mounted() {
     // Defer rendering until everything else is rendered.
     // Then look in the DOM what should be included in the TOC
-    await callForTicks(3, this.$nextTick, () => this.updateItems());
+    await callForTicks(3, () => this.updateItems());
   },
   render() {
     if (!this.shouldRender) {

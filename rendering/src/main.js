@@ -1,4 +1,4 @@
-import { createApp, compile } from 'vue';
+import { createApp, compile, nextTick } from 'vue';
 import { generateCodeFrame } from '@vue/shared';
 import ChartJsPluginDataLabels from 'chartjs-plugin-datalabels';
 import Pagebreak from './components/Pagebreak.vue';
@@ -156,7 +156,7 @@ if (!window.RENDERING_COMPLETED) {
     async mounted() {
       // Wait some ticks before rendering is signaled as completed
       // Allow multi-pass rendering (for e.g. table of contents)
-      await callForTicks(5, this.$nextTick, () => {
+      await callForTicks(10, nextTick, () => {
         this._tickCount += 1;
       })
       window.RENDERING_COMPLETED = true;

@@ -7,12 +7,17 @@ from asgiref.sync import async_to_sync
 from unittest import mock
 from pytest_django.asserts import assertHTMLEqual
 from django.test import override_settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from reportcreator_api.tests.mock import create_imported_member, create_project_type, create_project, create_user, create_finding
 from reportcreator_api.tasks.rendering.entry import render_pdf, render_project_markdown_fields_to_html
 from reportcreator_api.tasks.rendering.render import render_to_html
-from reportcreator_api.utils.utils import merge
+from reportcreator_api.utils.utils import copy_keys, merge
 from reportcreator_api.pentests import cvss
+
+
+def html_load_script(src):
+    return f"""<component :is="{{ template: '<div />', mounted() {{ const script = document.createElement('script'); script.type = 'text/javascript'; script.src='{src}'; document.head.appendChild(script); }} }}" />"""
 
 
 @pytest.mark.django_db
@@ -20,7 +25,7 @@ class TestHtmlRendering:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user = create_user()
-        self.project_type = create_project_type()
+        self.project_type = create_project_type(assets_kwargs=[{'name': 'test.js', 'file': SimpleUploadedFile(name='test.js', content=b'console.log("Script loaded");')}])
         self.project = create_project(
             project_type=self.project_type, 
             members=[self.user], 
@@ -34,7 +39,7 @@ class TestHtmlRendering:
     
     def render_html(self, template, additional_data={}):
         def render_only_html(data, language, **kwargs):
-            html, msgs = render_to_html(template=template, styles='@import url("/assets/global/base.css");', data=merge(data, additional_data), language=language)
+            html, msgs = render_to_html(template=template, styles='@import url("/assets/global/base.css");', data=merge(data, additional_data), resources={}, language=language)
             return html.encode() if html else None, [m.to_dict() for m in msgs]
         
         with mock.patch('reportcreator_api.tasks.rendering.render.render_pdf', render_only_html):
@@ -88,14 +93,16 @@ class TestHtmlRendering:
         ('{{ nonexistent_variable }}', {'level': 'warning', 'message': 'Property "nonexistent_variable" was accessed during render but is not defined on instance.'}),
         ('<ref to="nonexistent" />', {'level': 'warning', 'message': 'Invalid reference'}),
         ('<img src="/assets/name/nonexistent.png" />', {'level': 'warning', 'message': 'Resource not found'}),
+        ('<img src="https://example.com/external.png" />', {'level': 'warning', 'message': 'Blocked request to external URL'}),
+        (html_load_script('/assets/name/nonexistent.js'), {'level': 'warning', 'message': 'Resource not found' }),
+        (html_load_script('https://example.com/external.js'), {'level': 'warning', 'message': 'Blocked request to external URL' }),
+        (html_load_script('/assets/name/test.js'), {'level': 'info', 'message': 'Script loaded' }),
     ])
-    def test_template_error(self, template, expected):
+    def test_error_messages(self, template, expected):
         self.project_type.report_template = template
         res = async_to_sync(render_pdf)(project=self.project)
         assert len(res['messages']) >= 1
-        msg = res['messages'][0]
-        assert msg['level'] == expected['level']
-        assert msg['message'] == expected['message']
+        assert expected in [copy_keys(m, expected.keys()) for m in res['messages']]
 
     def test_markdown_rendering(self):
         assertHTMLEqual(
