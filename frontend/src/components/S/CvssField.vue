@@ -69,8 +69,9 @@
           <v-card v-for="metricGroup in metricGroupsCvss40" :key="metricGroup.name" variant="outlined" class="mb-2">
             <v-card-title>{{ metricGroup.name }}</v-card-title>
             <v-divider />
+
             <v-card-text v-for="metricSubgroup in metricGroup.subgroups" :key="metricSubgroup.metrics.join(',')" class="pt-0 pb-0">
-              <v-card-subtitle v-if="metricSubgroup.name" class="text-h6 text-center ma-2 mt-6">{{ metricSubgroup.name }}</v-card-subtitle>
+              <v-card-subtitle v-if="metricSubgroup.name" class="text-h6 ma-2 mt-6 submetric-title">{{ metricSubgroup.name }}</v-card-subtitle>
               <s-cvss-metric-input
                 v-for="m in metricSubgroup.metrics"
                 :key="m"
@@ -181,10 +182,21 @@ watch(dialogVisible, (newVal) => {
     }
   }
 });
-watch(editorCvssVersion, (newValue) => {
-  // TODO: reset metrics on switch CVSS version?
-  // editorValue.value = stringifyVector(parsedEditorVector.value);
+watch(editorCvssVersion, (newValue, oldValue) => {
   localSettings.cvssVersion = newValue;
+
+  // Migrate metrics when changing CVSS versions
+  const prevMetrics = { ...parsedEditorVector.value.metrics };
+  if (newValue === CvssVersion.CVSS40 && oldValue === CvssVersion.CVSS31) {
+    updateMetric('VC', prevMetrics.C);
+    updateMetric('VI', prevMetrics.I);
+    updateMetric('VA', prevMetrics.A);
+  } else if (newValue === CvssVersion.CVSS31 && oldValue === CvssVersion.CVSS40) {
+    updateMetric('C', prevMetrics.VC);
+    updateMetric('I', prevMetrics.VI);
+    updateMetric('A', prevMetrics.VA);
+    updateMetric('S', ([parsedEditorVector.value.metrics.SC, parsedEditorVector.value.metrics.SI, parsedEditorVector.value.metrics.SA].some((v?: string) => v && v !== 'N')) ? 'C' : 'U');
+  }
 });
 
 function cvssInfo(vector: string|null) {
@@ -297,6 +309,7 @@ function applyDialog() {
 
 <style scoped lang="scss">
 @use "@/assets/settings" as settings;
+@use "@/assets/vuetify" as vuetify;
 
 .cvss-score {
   width: 8em;
@@ -334,5 +347,11 @@ function applyDialog() {
 
 .metric-group-header {
   background-color: #808080;
+}
+
+.submetric-title {
+  @media #{map-get(vuetify.$display-breakpoints, 'lg-and-up')} {
+    padding-left: 15em !important;
+  }
 }
 </style>
