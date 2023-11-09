@@ -174,7 +174,7 @@ import Draggable from "vuedraggable";
 import omit from 'lodash/omit';
 import isEqual from 'lodash/isEqual';
 import { uniqueName } from '@/utils/urls';
-import { FieldDefinitionWithId, FieldOrigin, ReportSectionDefinitionWithFieldDefinition } from "~/utils/types";
+import { FieldOrigin } from "~/utils/types";
 
 const localSettings = useLocalSettings();
 

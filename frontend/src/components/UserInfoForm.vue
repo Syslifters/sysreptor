@@ -174,8 +174,6 @@
 </template>
 
 <script setup lang="ts">
-import { User } from '@/utils/types';
-
 const props = withDefaults(defineProps<{
   modelValue: User,
   errors?: any,

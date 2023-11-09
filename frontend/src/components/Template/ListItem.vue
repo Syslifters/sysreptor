@@ -20,8 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import { FindingTemplate } from "~/utils/types";
-
 const props = withDefaults(defineProps <{
   template: FindingTemplate,
   language?: string|null,

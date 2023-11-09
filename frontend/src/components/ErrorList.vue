@@ -70,7 +70,6 @@
 <script setup lang="ts">
 import sortBy from "lodash/sortBy";
 import groupBy from "lodash/groupBy";
-import { MessageLevel } from "~/utils/types";
 
 const props = defineProps<{
   value: ErrorMessage[];

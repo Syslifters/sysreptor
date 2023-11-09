@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { ProjectType, ProjectTypeScope } from "~/utils/types";
+import { ProjectTypeScope } from "~/utils/types";
 
 const props = withDefaults(defineProps<{
   projectTypeScope: ProjectTypeScope

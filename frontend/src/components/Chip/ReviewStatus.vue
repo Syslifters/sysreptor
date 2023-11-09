@@ -6,8 +6,6 @@
 </template>
 
 <script setup lang="ts">
-import { ReviewStatusItems } from "~/utils/types";
-
 const props = defineProps<{
   value?: string|null
 }>();

@@ -32,8 +32,6 @@
 </template>
 
 <script setup lang="ts">
-import { MfaMethod } from "~/utils/types";
-
 const route = useRoute();
 const auth = useAuth();
 

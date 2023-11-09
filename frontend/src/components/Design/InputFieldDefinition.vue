@@ -277,7 +277,7 @@
 import omit from "lodash/omit";
 import Draggable from "vuedraggable";
 import { CvssVersion } from "@/utils/cvss/base";
-import { FieldDataType, FieldDefinition, FieldDefinitionWithId, FieldOrigin } from "@/utils/types";
+import { FieldDataType, FieldOrigin } from "@/utils/types";
 
 const props = defineProps<{
   modelValue: FieldDefinitionWithId;

@@ -13,8 +13,6 @@
 </template>
 
 <script setup lang="ts">
-import { FindingTemplate, FindingTemplateTranslation, HistoryTimelineRecord } from "~/utils/types";
-
 const props = defineProps<{
   template: FindingTemplate;
   translation?: FindingTemplateTranslation;

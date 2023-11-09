@@ -50,8 +50,6 @@
 </template>
 
 <script setup lang="ts">
-import { LoginResponse } from "~/utils/types";
-
 definePageMeta({
   auth: false,
   title: 'Login',

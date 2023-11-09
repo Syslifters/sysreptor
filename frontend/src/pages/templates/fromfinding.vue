@@ -56,7 +56,6 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from "uuid";
 import urlJoin from "url-join";
-import { FindingTemplate } from "~/utils/types";
 import { definePageMeta, useLocalSettings } from "#imports";
 
 definePageMeta({

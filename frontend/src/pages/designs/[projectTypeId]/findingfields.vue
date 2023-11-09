@@ -122,7 +122,7 @@ import sortBy from "lodash/sortBy";
 import Draggable from "vuedraggable";
 import { uniqueName } from '@/utils/urls';
 import { useProjectTypeLockEditOptions } from "@/composables/lockedit";
-import { FieldDataType, FieldDefinitionWithId, FieldOrigin } from "@/utils/types";
+import { FieldDataType, FieldOrigin } from "@/utils/types";
 
 const localSettings = useLocalSettings();
 const projectTypeStore = useProjectTypeStore();

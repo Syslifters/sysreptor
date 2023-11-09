@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { FieldOrigin, ProjectType } from "~/utils/types";
+import { FieldOrigin } from "~/utils/types";
 
 const localSettings = useLocalSettings();
 const templateStore = useTemplateStore();

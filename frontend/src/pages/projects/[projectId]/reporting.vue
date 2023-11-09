@@ -103,7 +103,6 @@
 
 <script setup lang="ts">
 import Draggable from "vuedraggable";
-import { PentestFinding } from "~/utils/types";
 import { scoreFromVector, levelNumberFromScore, levelNumberFromLevelName } from "~/utils/cvss";
 
 definePageMeta({

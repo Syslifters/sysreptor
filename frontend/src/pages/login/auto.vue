@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { LoginResponse, LoginResponseStatus } from "~/utils/types";
+import { LoginResponseStatus } from "~/utils/types";
 
 definePageMeta({
   auth: false,

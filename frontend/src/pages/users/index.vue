@@ -49,8 +49,6 @@
 </template>
 
 <script setup lang="ts">
-import { User } from "~/utils/types";
-
 definePageMeta({
   title: 'Users',
 });

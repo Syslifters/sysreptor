@@ -26,8 +26,6 @@
 </template>
 
 <script setup lang="ts">
-import { ApiToken } from "~/utils/types";
-
 const route = useRoute();
 const apiTokens = await useFetchE<ApiToken[]>(`/api/v1/pentestusers/${route.params.userId}/apitokens/`, { method: 'GET' });
 

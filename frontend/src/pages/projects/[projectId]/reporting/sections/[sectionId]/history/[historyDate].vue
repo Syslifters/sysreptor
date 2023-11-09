@@ -53,8 +53,6 @@
 </template>
 
 <script setup lang="ts">
-import { ReportSection } from "~/utils/types";
-
 const route = useRoute();
 const projectStore = useProjectStore();
 

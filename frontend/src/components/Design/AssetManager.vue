@@ -79,7 +79,6 @@
 <script setup lang="ts">
 import urlJoin from "url-join";
 import last from 'lodash/last';
-import { ProjectType, UploadedFileInfo } from "~/utils/types";
 import { uploadFileHelper } from "~/utils/upload";
 import { absoluteApiUrl } from "~/utils/urls";
 

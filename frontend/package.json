@@ -25,6 +25,7 @@
     "vue-toastification": "^2.0.0-rc.5",
     "monaco-editor": "^0.44.0",
 
+    "@iconify/vue": "^4.1.1",
     "@iconify/icons-fluent-emoji": "^1.2.10",
     "@iconify/icons-game-icons": "^1.2.1",
 

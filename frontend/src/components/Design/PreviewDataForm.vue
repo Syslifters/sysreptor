@@ -101,7 +101,7 @@
 <script setup lang="ts">
 import Draggable from "vuedraggable";
 import { v4 as uuidv4 } from "uuid";
-import { FieldDataType, FieldDefinitionDict, ProjectType, UserShortInfo } from "~/utils/types";
+import { FieldDataType } from "~/utils/types";
 import { scoreFromVector, levelNumberFromLevelName, levelNumberFromScore } from "~/utils/cvss";
 
 const props = defineProps<{

@@ -37,7 +37,6 @@
 
 <script setup lang="ts">
 import isObject from "lodash/isObject";
-import { ProjectType } from "~/utils/types";
 
 const props = withDefaults(defineProps<{
   modelValue: ProjectType|string|null,

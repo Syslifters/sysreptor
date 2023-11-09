@@ -17,8 +17,6 @@
 </template>
 
 <script setup lang="ts">
-import { UserShortInfo } from "~/utils/types";
-
 const props = withDefaults(defineProps<{
   value: UserShortInfo,
   imported?: boolean,

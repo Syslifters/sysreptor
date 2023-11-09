@@ -73,7 +73,6 @@
 
 <script setup lang="ts">
 import sortBy from "lodash/sortBy";
-import { ArchiveCheckResult } from "~/utils/types";
 
 const route = useRoute();
 const apiSettings = useApiSettings();

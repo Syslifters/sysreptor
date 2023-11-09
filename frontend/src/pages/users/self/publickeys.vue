@@ -344,7 +344,6 @@
 
 <script setup lang="ts">
 import pick from 'lodash/pick';
-import { UserPublicKey } from "~/utils/types";
 
 const auth = useAuth();
 

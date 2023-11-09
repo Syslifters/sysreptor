@@ -90,8 +90,6 @@
 </template>
 
 <script setup lang="ts">
-import { FindingTemplate, PentestProject } from "~/utils/types";
-
 const props = defineProps<{
   project: PentestProject;
 }>();
