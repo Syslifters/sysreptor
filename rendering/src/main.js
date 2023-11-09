@@ -114,7 +114,6 @@ const DEFAULT_METHODS = {
 
 const templateCompilerOptions = {
   whitespace: 'preserve',
-  isPreTag: () => true,  // Preserve whitespaces of all tags
   getTextMode: (node) => {
     // Parse slot content of <markdown> as raw text and do not interpret as html/vue-template
     return node.tag === 'markdown' ? 2 /* TextModes.RAWTEXT */ : 0 /* TextModes.DATA */;

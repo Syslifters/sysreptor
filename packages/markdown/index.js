@@ -92,6 +92,9 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource =
       .use(rehypeSanitize, rehypeSanitizeSchema)
       .use(rehypeStringify);
 
+    // Normalize linebreaks
+    text = text.replace(/\r\n/g, '\n');
+
     // const mdAst = md.parse(text);
     // console.log('MarkdownAST', mdAst);
     // const rehypeAst = md.runSync(mdAst);

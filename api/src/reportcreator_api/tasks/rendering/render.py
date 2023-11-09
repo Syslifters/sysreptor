@@ -175,8 +175,8 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
                 }
                 if len(m.args) == 2 and (error_data := m.args[1].json_value()) and 'message' in error_data:
                     msg |= {
-                        'message': error_data['message'],
-                        'details': error_data.get('details'),
+                        'message': str(error_data['message']),
+                        'details': str(error_data['details']) if error_data.get('details') else None,
                     }
                 if msg['message'] in [
                     '[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.',
