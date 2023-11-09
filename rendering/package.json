@@ -7,7 +7,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build --mode=development",
     "build-watch": "vue-cli-service build --mode=development --watch",
-    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --onlyAllow='MIT;Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0' --plainVertical > NOTICE",
+    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --onlyAllow='MIT;Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0;EPL-2.0' --plainVertical > NOTICE",
     "dependencies": "npm run generate-notice"
   },
   "dependencies": {

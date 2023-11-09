@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import debounce from "lodash/debounce";
 import { ProjectNote } from "~/utils/types";
-import { NoteGroup } from "~/store/usernotes";
+import { NoteGroup } from "~/stores/usernotes";
 
 const route = useRoute();
 const localSettings = useLocalSettings();

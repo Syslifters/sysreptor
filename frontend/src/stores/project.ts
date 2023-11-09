@@ -1,6 +1,6 @@
 import orderBy from "lodash/orderBy";
 import pick from "lodash/pick";
-import { groupNotes, NoteGroup } from "@/store/usernotes";
+import { groupNotes, NoteGroup } from "@/stores/usernotes";
 import { PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
 import { scoreFromVector } from "~/utils/cvss";
 

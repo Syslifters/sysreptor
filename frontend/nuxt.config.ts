@@ -40,14 +40,6 @@ export default defineNuxtConfig({
     '@pinia-plugin-persistedstate/nuxt',
   ],
 
-  imports: {
-    // Auto-import pinia stores
-    dirs: ['store']
-  },
-
-  pinia: {
-    autoImports: ['defineStore'],
-  },
   piniaPersistedstate: {
     storage: 'localStorage'
   },
@@ -71,9 +63,6 @@ export default defineNuxtConfig({
   },
 
   // Dev settings
-  devtools: {
-    enabled: true
-  },
   devServer: {
     port: 3000,
   },

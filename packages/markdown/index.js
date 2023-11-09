@@ -7,6 +7,7 @@ import rehypeRaw from 'rehype-raw';
 import remarkStringify from 'remark-stringify';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { merge } from 'lodash';
+import mermaid from 'mermaid';
 import 'highlight.js/styles/default.css';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './mdext/footnotes.js';
@@ -113,3 +114,8 @@ export function markdownToAnnotatedText(text) {
   // console.log('AnnotatedText', at);
   return at;
 }
+
+
+export {
+  mermaid
+};
