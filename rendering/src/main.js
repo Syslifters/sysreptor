@@ -183,3 +183,34 @@ if (!window.RENDERING_COMPLETED) {
   app.mount('body');
 
 }
+
+
+// TODO: mermaid diagrams
+// * [ ] PDF rendering:
+//   * [ ] render mermaid diagrams as SVG
+//   * [ ] support mermaid diagrams in markdown
+//   * [ ] support mermaid diagrams in plain HTML (allows dynamic diagrams generated via Vue template language)
+//   * [ ] <mermaid> component or DOM event listener to trigger rendering
+//   * [ ] warnings for mermaid errors
+// * [ ] Markdown preview
+//   * [x] use preview html and updated hook to render mermaid diagrams
+//   * [x] on error: show error message instead of diagram
+//   * [ ] optimize re-rendering by caching rendered diagrams?
+// * [ ] markdown support
+//   * [x] code block with language="mermaid"
+//   * [x] do not process code block, leave as is (no line numbers or highlighting)
+//   * [ ] how to set diagram width/height?
+// * [ ] tests
+//   * [ ] test_rendering: test render mermaid diagram => output as SVG
+//   * [ ] test_rendering: invalid mermaid diagram => error message generated
+
+// mermaid.initialize({
+//   startOnLoad: false,
+//   theme: 'neutral',
+//   logLevel: 'error',
+//   securityLevel: 'strict',
+//   deterministicIds: true,
+// })
+// mermaid.run({
+//   nodes: [],
+// })

@@ -207,6 +207,13 @@ function splitIntoLines(tree) {
 export function rehypeHighlightCode() {
   return tree => visit(tree, 'element', (node, index, parent) => {
     if (node.tagName === 'code' && parent.tagName === 'pre') {
+      const language = getLanguage(node);
+      if (language === 'mermaid') {
+        // Prevent highlighting code blocks with mermaid diagrams
+        return;
+      }
+
+
       addClass(parent, 'code-block');
 
       const meta = parseMeta(node.data?.meta || '');

@@ -129,3 +129,9 @@ pre code {
   padding: 1em; /* Conflicts with syntax highlighting "pre code.hljs" padding. For now both have to have the same value. */
   display: block;
 }
+
+// Mermaid diagrams
+pre code.language-mermaid {
+  text-align: center;
+  background-color: inherit;
+}

@@ -3,13 +3,24 @@
   <div ref="previewRef" v-html="renderedMarkdown" class="preview" />
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
 import { v4 as uuidv4 } from 'uuid';
 import throttle from 'lodash/throttle';
 // @ts-ignore
-import { renderMarkdownToHtml } from 'reportcreator-markdown';
+import { renderMarkdownToHtml, mermaid } from 'reportcreator-markdown';
 import { absoluteApiUrl } from '~/utils/urls';
 
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'neutral',
+  logLevel: 'error',
+  securityLevel: 'strict',
+  deterministicIds: true,
+  
+});
+</script>
+
+<script setup lang="ts">
 const props = defineProps<{
   value?: string|null;
   rewriteFileUrl?: (fileSrc: string) => string;
@@ -39,7 +50,7 @@ const updatePreviewThrottled = throttle(() => {
 watch(() => props.value, () => updatePreviewThrottled(), { immediate: true });
 
 const previewRef = ref<HTMLDivElement>();
-onUpdated(() => {
+onUpdated(async () => {
   // Prevent navigation when clicking on anchor links in preview
   previewRef.value!.querySelectorAll('.preview a[href^="#"]').forEach((a: Element) => {
     a.addEventListener('click', (e) => {
@@ -49,6 +60,14 @@ onUpdated(() => {
         target.scrollIntoView({ behavior: 'smooth' });
       }
     });
+  });
+
+  // Render mermaid diagrams
+  // TODO: center diagrams
+  const mermaidNodes = previewRef.value!.querySelectorAll('.preview pre > code.language-mermaid');
+  await mermaid.run({
+    nodes: mermaidNodes,
+    suppressErrors: true,
   });
 })
 </script>
