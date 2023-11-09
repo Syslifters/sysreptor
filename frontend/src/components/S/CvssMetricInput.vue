@@ -1,7 +1,7 @@
 <template>
-  <div class="d-flex ma-1" :class="{'flex-row': props.singleLine, 'flex-column': !props.singleLine}">
-    <v-label class="cvss-metric-label" :class="{'cvss-metric-label-inline': props.singleLine}">
-      <div class="cvss-metric-label-text">{{ metric.name }}</div>
+  <div class="ma-1" :class="{'metric-inline': props.singleLine, 'metric-twoline': !props.singleLine}">
+    <v-label class="metric-label">
+      <div class="metric-label-text">{{ metric.name }}</div>
       <s-tooltip activator="parent" :text="metric.description" v-bind="tooltipAttrs" />
     </v-label>
     <div>
@@ -27,28 +27,6 @@
       </v-btn-toggle>
     </div>
   </div>
-  <!-- <v-radio-group
-    :model-value="props.modelValue"
-    @update:model-value="emit('update:modelValue', $event)"
-    :disabled="props.disabled"
-    inline
-  >
-    <template #label>
-      <span class="label-tooltip">
-        {{ metric.name }} ({{ metric.id }})
-        <s-tooltip activator="parent" v-bind="tooltipAttrs" :text="metric.description" />
-      </span>
-    </template>
-
-    <v-radio v-for="c in metric.choices" :value="c.id" :key="metric.id + '_' + c.id" color="primary">
-      <template #label>
-        <span class="label-tooltip">
-          {{ c.name }} ({{ c.id }})
-          <s-tooltip activator="parent" :text="c.description" v-bind="tooltipAttrs" />
-        </span>
-      </template>
-    </v-radio>
-  </v-radio-group> -->
 </template>
 
 <script setup lang="ts">
@@ -71,20 +49,35 @@ const tooltipAttrs = {
 </script>
 
 <style lang="scss" scoped>
-.cvss-metric-label {
-  min-width: 15em;
-  cursor: help;
+@use "@/assets/vuetify" as vuetify;
 
-  &-inline {
-    .cvss-metric-label-text {
-      display: inline-block;
-      width: 100%;
-      padding-right: 1em;
-      text-align: end;
+.metric-label {
+  cursor: help;
+}
+
+.metric-twoline, .metric-inline {
+  display: flex;
+  flex-direction: column;
+}
+
+@media #{map-get(vuetify.$display-breakpoints, 'lg-and-up')} {
+  .metric-inline {
+    flex-direction: row;
+
+    .metric-label {
+      min-width: 15em;
+      
+      .metric-label-text {
+        display: inline-block;
+        width: 100%;
+        padding-right: 1em;
+        text-align: end;
+      }
+    }
+
+    .metric-btn {
+      min-width: 10em;
     }
   }
-}
-.metric-btn {
-  min-width: 10em;
 }
 </style>
