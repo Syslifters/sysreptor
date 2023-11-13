@@ -24,28 +24,30 @@
       </template>
 
       <template #title>
-        CVSS Editor
+        <span v-if="availableCvssVersions.length > 1">
+          <v-btn-toggle
+            v-model="editorCvssVersion"
+            :disabled="props.disabled"
+            mandatory
+            :border="true"
+            color="secondary"
+            density="compact"
+            class="mr-2"
+          >
+            <v-btn 
+              :value="CvssVersion.CVSS40" 
+              :text="CvssVersion.CVSS40" 
+              :disabled="props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS40)" 
+            />
+            <v-btn 
+              :value="CvssVersion.CVSS31" 
+              :text="CvssVersion.CVSS31" 
+              :disabled="props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS31)" 
+            />
+          </v-btn-toggle>
 
-        <v-btn-toggle
-          v-model="editorCvssVersion"
-          :disabled="props.disabled"
-          mandatory
-          :border="true"
-          color="secondary"
-          density="compact"
-          class="ml-3"
-        >
-          <v-btn 
-            :value="CvssVersion.CVSS40" 
-            :text="CvssVersion.CVSS40" 
-            :disabled="props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS40)" 
-          />
-          <v-btn 
-            :value="CvssVersion.CVSS31" 
-            :text="CvssVersion.CVSS31" 
-            :disabled="props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS31)" 
-          />
-        </v-btn-toggle>
+          {{ editorCvssVersion }} Editor
+        </span>
       </template>
       <template #toolbar>
         <div class="cvss-score mr-2" :class="'level-' + editorScoreInfo.levelNumber">
