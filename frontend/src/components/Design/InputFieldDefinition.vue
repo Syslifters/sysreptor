@@ -6,7 +6,8 @@
           <v-col>
             <s-text-field
               :model-value="props.modelValue.id"
-              @update:model-value="updateProperty('id', $event)"
+              @update:model-value="!props.isObjectProperty ? updateProperty('id', $event) : null"
+              @change="updateProperty('id', $event.target.value)"
               :rules="rules.id"
               :disabled="props.disabled || !props.canChangeStructure"
               label="ID"
@@ -242,7 +243,7 @@
             <design-input-field-definition
               :model-value="f"
               @update:model-value="updateObject('update', f.id, $event)"
-              :is-object="false"
+              :is-object-property="true"
               :can-change-structure="props.canChangeStructure"
               :lang="props.lang"
               :disabled="props.disabled"
@@ -282,6 +283,7 @@ const props = defineProps<{
   modelValue: FieldDefinitionWithId;
   canChangeStructure?: boolean;
   isListItem?: boolean;
+  isObjectProperty?: boolean;
   disabled?: boolean;
   lang?: string|null;
 }>();
@@ -314,9 +316,17 @@ const rules = {
   ]
 };
 
+const objectFieldOrder = ref(Object.keys(props.modelValue.properties || {}).sort());
 const objectFields = computed(() => {
   if (props.modelValue.type === FieldDataType.OBJECT) {
-    return Object.keys(props.modelValue.properties || {}).map(f => ({ id: f, ...props.modelValue.properties![f] }));
+    for (const k of Object.keys(props.modelValue.properties || {})) {
+      if (!objectFieldOrder.value.includes(k)) {
+        objectFieldOrder.value.push(k);
+      }
+    }
+    return objectFieldOrder.value
+      .filter(f => Object.hasOwn(props.modelValue.properties as object, f))
+      .map(f => ({ id: f, ...props.modelValue.properties![f] }));
   } else {
     return [];
   }
@@ -385,12 +395,14 @@ function updateComboboxSuggestion(action: string, suggestionIdx: number, val?: a
   emit('update:modelValue', newObj);
 }
 function updateObject(action: string, fieldId?: string, val?: FieldDefinitionWithId) {
-  const newObj = { ...props.modelValue, properties: { ...props.modelValue.properties } };
+  const newObj = { ...props.modelValue, properties: { ...props.modelValue.properties! } };
   if (action === "update") {
     delete newObj.properties![fieldId!];
     newObj.properties![val!.id] = omit(val!, ['id']);
+    objectFieldOrder.value = objectFieldOrder.value.map(f => f === fieldId ? val!.id : f);
   } else if (action === "delete") {
     newObj.properties = omit(newObj.properties, [fieldId!]);
+    objectFieldOrder.value = objectFieldOrder.value.filter(f => f !== fieldId);
   } else if (action === 'add') {
     if (!val) {
       val = {
@@ -399,6 +411,7 @@ function updateObject(action: string, fieldId?: string, val?: FieldDefinitionWit
         label: 'New Field',
         required: true,
         spellcheck: false,
+        pattern: null,
         default: null,
         origin: FieldOrigin.CUSTOM,
       };
@@ -407,6 +420,7 @@ function updateObject(action: string, fieldId?: string, val?: FieldDefinitionWit
       val.id = uniqueName('new_field', Object.keys(newObj.properties));
     }
     newObj.properties[val.id] = omit(val, ['id']);
+    objectFieldOrder.value.push(val.id);
   }
 
   emit('update:modelValue', newObj);

@@ -12,6 +12,7 @@
 * Fix spellcheck returning no results for language=auto
 * Fix markdown preview flappy scroll on typing in markdown editor when images are included
 * Fix OIDC login for re-authentication not working
+* Fix focus lost while editing object field property IDs in designer 
 
 
 ## v2023.136 - 2023-10-30
