@@ -1,16 +1,17 @@
 # Changelog
 
 ## TBD
-* Prevent migration errors caused by DB queries in license check
-* Fix spellcheck returning no results for language=auto
+* CVSS 4.0 support
+* Allow requiring a specific CVSS version in CVSS fields
+* Allow accessing designer assets in Chromium during PDF rendering
+* Support validating string fields with RegEx patterns
+* Add an API endpoint to retrieve project data with markdown fields rendered to HTML
 * Do not send unreferenced images to PDF rendering task to reduce memory usage
 * Do not export images that are not referenced in exported data
+* Prevent migration errors caused by DB queries in license check
+* Fix spellcheck returning no results for language=auto
 * Fix markdown preview flappy scroll on typing in markdown editor when images are included
-* Add an API endpoint to retrieve project data with markdown fields rendered to HTML
-* Support validating string fields with RegEx patterns
-* Allow accessing designer assets in Chromium during PDF rendering
-* Allow requiring a specific CVSS version in CVSS fields
-* CVSS 4.0 support
+* Fix OIDC login for re-authentication not working
 
 
 ## v2023.136 - 2023-10-30

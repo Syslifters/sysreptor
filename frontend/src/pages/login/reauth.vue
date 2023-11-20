@@ -13,7 +13,7 @@
             />
           </template>
         </login-form>
-        <login-provider-form v-else ref="loginProviderForm">
+        <login-provider-form v-else ref="loginProviderForm" :reauth="true">
           <template #title>Re-Authenticate</template>
           <template #local>
             <v-list-item>
@@ -62,7 +62,7 @@ useLazyAsyncData(async () => {
     if (defaultAuthProvider?.type === AuthProviderType.LOCAL) {
       step.value = Step.LOCAL;
     } else if (defaultAuthProvider) {
-      await auth.authProviderLoginBegin(defaultAuthProvider);
+      await auth.authProviderLoginBegin(defaultAuthProvider, { reauth: true });
     }
   }
 });

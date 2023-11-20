@@ -6,7 +6,7 @@
 
     <v-card-text>
       <v-list>
-        <v-form v-for="oidcProvider in apiSettings.oidcAuthProviders" :key="oidcProvider.id" @submit.prevent="auth.authProviderLoginBegin(oidcProvider)">
+        <v-form v-for="oidcProvider in apiSettings.oidcAuthProviders" :key="oidcProvider.id" @submit.prevent="auth.authProviderLoginBegin(oidcProvider, { reauth: props.reauth })">
           <v-list-item>
             <s-btn :key="oidcProvider.id" type="submit" color="primary" block>
               Login with {{ oidcProvider.name }}
@@ -16,7 +16,7 @@
 
         <slot v-if="apiSettings.remoteUserAuthProvider" name="remote">
           <v-list-item>
-            <s-btn @click="auth.authProviderLoginBegin(apiSettings.remoteUserAuthProvider)" color="primary" block>
+            <s-btn @click="auth.authProviderLoginBegin(apiSettings.remoteUserAuthProvider, { reauth: props.reauth })" color="primary" block>
               Login with {{ apiSettings.remoteUserAuthProvider.name }}
             </s-btn>
           </v-list-item>
@@ -37,4 +37,8 @@
 <script setup lang="ts">
 const apiSettings = useApiSettings();
 const auth = useAuth();
+
+const props = defineProps<{
+  reauth?: boolean;
+}>();
 </script>
