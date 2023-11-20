@@ -3,7 +3,7 @@
     <markdown-toolbar v-if="editorView" v-bind="markdownToolbarAttrs" />
     <v-divider />
 
-    <v-row no-gutters>
+    <v-row no-gutters class="w-100">
       <v-col :cols="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-show="localSettings.markdownEditorMode !== MarkdownEditorMode.PREVIEW">
         <div
           ref="editorRef"
