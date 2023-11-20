@@ -6,7 +6,7 @@
     </template>
 
     <template #default>
-      <v-row no-gutters class="h-100">
+      <v-row no-gutters class="w-100 h-100">
         <v-col :cols="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-show="localSettings.markdownEditorMode !== MarkdownEditorMode.PREVIEW" class="h-100">
           <div
             ref="editorRef"
