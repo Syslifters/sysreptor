@@ -214,7 +214,7 @@ class TestHtmlRendering:
             options: {scales: {y: {beginAtZero: true, ticks: {precision: 0}}}, plugins: {legend: {display: false}}},
             plugins: [ chartjsPlugins.DataLabels ],
         }" />""")
-        assert re.fullmatch(r'^\s*<img src="data:image/png;base64,[a-zA-z0-9+/=]+" alt="" style="width: 15cm; height: 10cm;">\s*$', html)
+        assert re.fullmatch(r'^\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="" style="width: 15cm; height: 10cm;">\s*$', html)
 
     @pytest.mark.parametrize('password,encrypted', [
         ('password', True),
