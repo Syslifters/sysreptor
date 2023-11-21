@@ -164,6 +164,7 @@ const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
     try {
       project.value = await projectStore.partialUpdateProject(project.value,
         ['name', 'project_type', 'force_change_project_type', 'language', 'tags', 'members', 'imported_members']);
+      serverErrors.value = null;
     } catch (error: any) {
       if (error?.status === 400 && error?.data) {
         serverErrors.value = error.data;
