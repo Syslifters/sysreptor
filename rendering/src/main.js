@@ -8,6 +8,7 @@ import TableOfContents from './components/TableOfContents.js';
 import ListOfFigures from './components/ListOfFigures.js';
 import ListOfTables from './components/ListOfTables';
 import Chart from './components/ChartVue.vue';
+import MermaidDiagram from './components/MermaidDiagram.vue';
 import Ref from './components/Ref.vue';
 import { callForTicks } from './utils';
 import lodash from 'lodash';
@@ -116,7 +117,7 @@ const templateCompilerOptions = {
   whitespace: 'preserve',
   getTextMode: (node) => {
     // Parse slot content of <markdown> as raw text and do not interpret as html/vue-template
-    return node.tag === 'markdown' ? 2 /* TextModes.RAWTEXT */ : 0 /* TextModes.DATA */;
+    return ['markdown', 'mermaid-diagram'].includes(node.tag) ? 2 /* TextModes.RAWTEXT */ : 0 /* TextModes.DATA */;
   },
   isCustomElement: tag => ['footnote'].includes(tag),
   comments: true,
@@ -139,7 +140,7 @@ if (!window.RENDERING_COMPLETED) {
   const app = createApp({
     name: 'root',
     render: RENDER_FUNCTION,
-    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, Ref },
+    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, MermaidDiagram, Ref },
     data: () => ({
       data: REPORT_DATA,
       _tickCount: 0,
@@ -187,30 +188,21 @@ if (!window.RENDERING_COMPLETED) {
 
 // TODO: mermaid diagrams
 // * [ ] PDF rendering:
-//   * [ ] render mermaid diagrams as SVG
-//   * [ ] support mermaid diagrams in markdown
-//   * [ ] support mermaid diagrams in plain HTML (allows dynamic diagrams generated via Vue template language)
-//   * [ ] <mermaid> component or DOM event listener to trigger rendering
+//   * [x] render mermaid diagrams as PNG
+//   * [x] support mermaid diagrams in markdown
+//   * [ ] support mermaid diagrams in plain HTML (allows dynamic diagrams generated via Vue template language) => or treat a plain text, like <markdown>?
+//   * [x] <mermaid-diagram> component or DOM event listener to trigger rendering
 //   * [ ] warnings for mermaid errors
-// * [ ] Markdown preview
+// * [x] Markdown preview
 //   * [x] use preview html and updated hook to render mermaid diagrams
 //   * [x] on error: show error message instead of diagram
-//   * [ ] optimize re-rendering by caching rendered diagrams?
 // * [ ] markdown support
 //   * [x] code block with language="mermaid"
 //   * [x] do not process code block, leave as is (no line numbers or highlighting)
-//   * [ ] how to set diagram width/height?
+//   * [x] how to set diagram width/height, caption
 // * [ ] tests
 //   * [ ] test_rendering: test render mermaid diagram => output as SVG
 //   * [ ] test_rendering: invalid mermaid diagram => error message generated
-
-// mermaid.initialize({
-//   startOnLoad: false,
-//   theme: 'neutral',
-//   logLevel: 'error',
-//   securityLevel: 'strict',
-//   deterministicIds: true,
-// })
-// mermaid.run({
-//   nodes: [],
-// })
+// * [ ] docs
+//   * [ ] example mermaid diagrams: timeline, ???
+//   * [ ] width, caption

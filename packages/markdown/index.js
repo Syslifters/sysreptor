@@ -27,7 +27,7 @@ import { modifiedCommonmarkFeatures } from './mdext/modified-commonmark.js';
 const rehypeSanitizeSchema = merge({}, defaultSchema, {
   allowComments: true,
   clobberPrefix: null,
-  tagNames: ['footnote', 'template', 'ref', 'pagebreak', 'markdown', 'u'].concat(defaultSchema.tagNames),
+  tagNames: ['footnote', 'template', 'ref', 'pagebreak', 'markdown', 'mermaid-diagram', 'u'].concat(defaultSchema.tagNames),
   attributes: {
     '*': ['className', 'style', 'data*', 'v-if', 'v-for', 'v-bind', 'v-on'].concat(defaultSchema.attributes['*']),
     'a': ['download'].concat(defaultSchema.attributes['a']),
@@ -80,7 +80,7 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource =
         }
       })
       .use(rehypeTableCaptions)
-      .use(rehypeHighlightCode)
+      .use(rehypeHighlightCode, { preview })
       .use(rehypeRawFixSelfClosingTags)
       .use(rehypeRaw)
       .use(rehypeConvertAttrsToStyle)

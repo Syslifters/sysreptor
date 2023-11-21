@@ -1,6 +1,6 @@
 import { visit } from 'unist-util-visit';
 import { toString } from 'hast-util-to-string';
-import { camelCase } from 'lodash';
+import { camelCase, omit } from 'lodash';
 import { lowlight } from 'lowlight/lib/all'
 import { unified } from 'unified';
 import rehypeParse from 'rehype-parse';
@@ -33,8 +33,8 @@ function highlightSyntax(code, node) {
 
 function parseMeta(metaLine) {
   const meta = Object.fromEntries(
-    Array.from(metaLine.matchAll(/(?<name>[a-zA-Z0-9\-]+)(?:="(?<value>[^"]+)")?/g))
-      .map(m => [camelCase(m.groups.name), m.groups.value || null])
+    Array.from(metaLine.matchAll(/(?<name>[a-zA-Z0-9\-]+)(?:="(?<valueQuoted>[^"]+)"|=(?<valueUnquoted>[^ ]+))?/g))
+      .map(m => [camelCase(m.groups.name), m.groups.valueQuoted || m.groups.valueUnquoted || null])
   );
   if (meta.highlightManual !== undefined) {
     meta.highlightManual = meta.highlightManual || '§';
@@ -204,35 +204,58 @@ function splitIntoLines(tree) {
 }
 
 
-export function rehypeHighlightCode() {
+export function rehypeHighlightCode({ preview = false } = {}) {
   return tree => visit(tree, 'element', (node, index, parent) => {
     if (node.tagName === 'code' && parent.tagName === 'pre') {
       const language = getLanguage(node);
+
+      // HTML attrs
+      const meta = parseMeta(node.data?.meta || '');
+      const attrs = omit(meta, ['highlightManual', 'lineNumbers', 'class', 'caption']);
+      node.properties = { ...node.properties, ...attrs };
+      if (meta.class) {
+        addClass(node, meta.class);
+      }
+
+      // Mermaid diagrams
       if (language === 'mermaid') {
-        // Prevent highlighting code blocks with mermaid diagrams
+        parent.tagName = 'figure';
+      
+        if (!preview) {
+          node.tagName = 'mermaid-diagram';
+        } else {
+          node.tagName = 'div';
+          addClass(node, 'mermaid-diagram');
+        }
+
+        if (meta.caption) {
+          parent.children.push({
+            type: 'element',
+            tagName: 'figcaption',
+            properties: {},
+            children: [{type: 'text', value: meta.caption}],
+          });
+        }
+
         return;
       }
+      // Regular code block
+      else {      
+        addClass(parent, 'code-block');      
 
+        // Manual highlighting
+        const {code, highlightInfos} = parseManualHighlightAreas(toString(node), meta);
+        // Syntax highlighting
+        let tree = highlightSyntax(code, node);
+        // Add manual highighting
+        if (highlightInfos.length > 0) {
+          tree = applyManualHighlighting(tree, highlightInfos);
+        }
+        // Add line infos
+        tree = splitIntoLines(tree);
 
-      addClass(parent, 'code-block');
-
-      const meta = parseMeta(node.data?.meta || '');
-
-      // Manual highlighting
-      const {code, highlightInfos} = parseManualHighlightAreas(toString(node), meta);
-
-      // Syntax highlighting
-      let tree = highlightSyntax(code, node);
-
-      // Add manual highighting
-      if (highlightInfos.length > 0) {
-        tree = applyManualHighlighting(tree, highlightInfos);
+        node.children = tree.children;
       }
-
-      // Add line infos
-      tree = splitIntoLines(tree);
-
-      node.children = tree.children;
     } else if (node.tagName === 'code') {
       addClass(node, 'code-inline');
     }

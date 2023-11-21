@@ -15,8 +15,6 @@ mermaid.initialize({
   theme: 'neutral',
   logLevel: 'error',
   securityLevel: 'strict',
-  deterministicIds: true,
-  
 });
 </script>
 
@@ -50,7 +48,7 @@ const updatePreviewThrottled = throttle(() => {
 watch(() => props.value, () => updatePreviewThrottled(), { immediate: true });
 
 const previewRef = ref<HTMLDivElement>();
-onUpdated(async () => {
+async function postProcessRenderedHtml() {
   // Prevent navigation when clicking on anchor links in preview
   previewRef.value!.querySelectorAll('.preview a[href^="#"]').forEach((a: Element) => {
     a.addEventListener('click', (e) => {
@@ -63,13 +61,15 @@ onUpdated(async () => {
   });
 
   // Render mermaid diagrams
-  // TODO: center diagrams
-  const mermaidNodes = previewRef.value!.querySelectorAll('.preview pre > code.language-mermaid');
+  const mermaidNodes = previewRef.value!.querySelectorAll('.preview div.mermaid-diagram');
   await mermaid.run({
     nodes: mermaidNodes,
     suppressErrors: true,
   });
-})
+}
+
+onMounted(postProcessRenderedHtml);
+onUpdated(postProcessRenderedHtml);
 </script>
 
 <style lang="scss" scoped>
@@ -113,6 +113,11 @@ onUpdated(async () => {
     color: inherit;
     font-style: inherit;
     text-decoration: underline;
+  }
+
+  .mermaid-diagram svg {
+    width: 100%;
+    max-width: 100% !important;
   }
 }
 </style>
