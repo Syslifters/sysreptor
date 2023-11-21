@@ -18,7 +18,6 @@ import { nextTick } from 'vue';
 mermaid.initialize({
   startOnLoad: false,
   theme: 'neutral',
-  logLevel: 'error',
   securityLevel: 'strict',
 });
 
@@ -40,7 +39,8 @@ export default {
       const res = await mermaid.render(`mermaid-${this.$.uid}`, mermaidCode, codeContainer);
       svg = res.svg;
     } catch (e) {
-      // Error image
+      console.warn('mermaid error', { message: 'Mermaid error', details: e.message });
+      // Show mermaid error image in PDF
       svg = codeContainer.querySelector('svg').outerHTML;
     }
 

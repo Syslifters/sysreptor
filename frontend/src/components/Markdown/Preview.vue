@@ -13,7 +13,6 @@ import { absoluteApiUrl } from '~/utils/urls';
 mermaid.initialize({
   startOnLoad: false,
   theme: 'neutral',
-  logLevel: 'error',
   securityLevel: 'strict',
 });
 </script>
@@ -62,10 +61,12 @@ async function postProcessRenderedHtml() {
 
   // Render mermaid diagrams
   const mermaidNodes = previewRef.value!.querySelectorAll('.preview div.mermaid-diagram');
-  await mermaid.run({
-    nodes: mermaidNodes,
-    suppressErrors: true,
-  });
+  try {
+    await mermaid.run({ nodes: mermaidNodes });
+  } catch (e: any) {
+    // eslint-disable-next-line no-console
+    console.error('Mermaid error: ' + e.message, e);
+  }
 }
 
 onMounted(postProcessRenderedHtml);

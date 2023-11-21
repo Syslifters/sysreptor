@@ -24,7 +24,7 @@ self.MonacoEnvironment = {
 monaco.languages.html.htmlDefaults.setOptions({
   format: {
     preserveNewLines: true,
-    contentUnformatted: 'markdown', // Do not format content of <markdown> tags
+    contentUnformatted: 'markdown,mermaid-diagram', // Do not format content of <markdown> tags
     wrapLineLength: 100000000, // Disable max line length
   } as any
 });

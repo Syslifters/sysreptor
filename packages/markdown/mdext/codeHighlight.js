@@ -4,7 +4,7 @@ import { camelCase, omit } from 'lodash';
 import { lowlight } from 'lowlight/lib/all'
 import { unified } from 'unified';
 import rehypeParse from 'rehype-parse';
-import { addClass } from './rehypePlugins';
+import { addClass, removeClass } from './rehypePlugins';
 
 
 function getLanguage(node) {
@@ -220,13 +220,14 @@ export function rehypeHighlightCode({ preview = false } = {}) {
       // Mermaid diagrams
       if (language === 'mermaid') {
         parent.tagName = 'figure';
-      
+
         if (!preview) {
           node.tagName = 'mermaid-diagram';
         } else {
           node.tagName = 'div';
           addClass(node, 'mermaid-diagram');
         }
+        removeClass(node, 'language-mermaid');
 
         if (meta.caption) {
           parent.children.push({
@@ -236,6 +237,7 @@ export function rehypeHighlightCode({ preview = false } = {}) {
             children: [{type: 'text', value: meta.caption}],
           });
         }
+        
 
         return;
       }
