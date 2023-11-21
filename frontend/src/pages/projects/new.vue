@@ -5,17 +5,36 @@
         <template #title>Create new Project</template>
       </edit-toolbar>
 
-      <s-text-field v-model="projectForm.name" label="Name" spellcheck="false" class="mt-4" />
-      <s-project-type-selection v-model="projectForm.project_type" class="mt-4" />
-      <s-member-selection v-model="projectForm.members" :prevent-unselecting-self="true" :required="true" class="mt-4" />
-      <s-tags v-model="projectForm.tags" class="mt-4" />
+      <s-text-field 
+        v-model="projectForm.name" 
+        label="Name" 
+        :error-messages="serverErrors?.name || []"
+        spellcheck="false" 
+        class="mt-4" 
+      />
+      <s-project-type-selection 
+        v-model="projectForm.project_type" 
+        :error-messages="serverErrors?.project_type || []"
+        class="mt-4" 
+      />
+      <s-member-selection 
+        v-model="projectForm.members" 
+        :prevent-unselecting-self="true" 
+        :required="true" 
+        :error-messages="serverErrors?.members || []"
+        class="mt-4" 
+      />
+      <s-tags 
+        v-model="projectForm.tags" 
+        :error-messages="serverErrors?.tags || []"
+        class="mt-4" 
+      />
     </v-form>
   </v-container>
 </template>
 
 <script setup lang="ts">
 import type { VForm } from "vuetify/lib/components/index.mjs";
-import { ProjectMember } from "~/utils/types";
 
 definePageMeta({
   title: 'Projects',
@@ -34,6 +53,7 @@ const projectForm = ref({
     roles: apiSettings.settings!.project_member_roles.filter(r => r.default).map(r => r.role),
   }] as ProjectMember[],
 });
+const serverErrors = ref<any|null>(null);
 
 const formRef = ref<VForm>();
 async function performCreate() {
@@ -45,7 +65,10 @@ async function performCreate() {
   try {
     const project = await projectStore.createProject(projectForm.value);
     await navigateTo(`/projects/${project.id}/reporting/`);
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.status === 400 && error?.data) {
+      serverErrors.value = error.data;
+    }
     requestErrorToast({ error });
   }
 }
