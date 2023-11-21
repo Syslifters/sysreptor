@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## v2023.142 - 2023-11-21
 * CVSS 4.0 support
 * Allow requiring a specific CVSS version in CVSS fields
 * Allow accessing designer assets in Chromium during PDF rendering
