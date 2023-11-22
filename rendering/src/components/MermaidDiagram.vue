@@ -47,7 +47,7 @@ export default {
     // Convert SVG to PNG, because weasyprint does not support all required SVG features.
     // Diagrams would not be displayed correctly.
     // First, render SVG to <img> tag
-    this.diagramSvg = `data:image/svg+xml;charset=utf-8;base64,${btoa(svg)}`;
+    this.diagramSvg = `data:image/svg+xml;charset=utf-8;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
     await nextTick();
     const svgImg = this.$refs.refSvgContainer;
 
