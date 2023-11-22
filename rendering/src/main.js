@@ -119,7 +119,7 @@ const templateCompilerOptions = {
     // Parse slot content of <markdown> as raw text and do not interpret as html/vue-template
     return ['markdown', 'mermaid-diagram'].includes(node.tag) ? 2 /* TextModes.RAWTEXT */ : 0 /* TextModes.DATA */;
   },
-  isCustomElement: tag => ['footnote'].includes(tag),
+    isCustomElement: tag => ['footnote'].includes(tag),
   comments: true,
   ssr: false,
   onError: (err) => {
@@ -185,25 +185,3 @@ if (!window.RENDERING_COMPLETED) {
 
 }
 
-
-// TODO: mermaid diagrams
-// * [x] PDF rendering:
-//   * [x] render mermaid diagrams as PNG
-//   * [x] support mermaid diagrams in markdown
-//   * [x] support mermaid diagrams in plain HTML via <mermaid-diagram> component
-//   * [x] <mermaid-diagram> component or DOM event listener to trigger rendering
-//   * [x] warnings for mermaid errors
-// * [x] Markdown preview
-//   * [x] use preview html and updated hook to render mermaid diagrams
-//   * [x] on error: show error message instead of diagram
-// * [x] markdown support
-//   * [x] code block with language="mermaid"
-//   * [x] do not process code block, leave as is (no line numbers or highlighting)
-//   * [x] how to set diagram width/height, caption
-// * [x] tests
-//   * [x] test_markdown: mermaid code block => <mermaid-diagram> component 
-//   * [x] test_rendering: test render mermaid diagram => output as SVG
-//   * [x] test_rendering: invalid mermaid diagram => error message generated
-// * [ ] docs
-//   * [ ] example mermaid diagrams: flowchart, timeline, ???
-//   * [x] width, caption
