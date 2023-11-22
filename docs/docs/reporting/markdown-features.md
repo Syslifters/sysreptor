@@ -126,6 +126,25 @@ Content-Length: 33
 ```
 ````
 
+## Mermaid Diagrams
+[Mermaid](https://mermaid.js.org/intro/) lets you create diagrams and visualizations using text and code. 
+It is a JavaScript based diagramming and charting tool that renders Markdown-inspired text definitions to create and modify diagrams dynamically.
+
+The following example shows how to create a simple flowchart. 
+All diagram types supported by mermaid are avaialbe.
+````
+```mermaid caption="Cyber Kill Chain" width=30%
+flowchart TD
+A[Reconnaissance]
+A-->B[Weaponization]
+B-->C[Delivery]
+C-->D[Exploitation]
+D-->E[Installation]
+E-->F["Command and Control (C2)"]
+F-->G[Action on Objectives]
+```
+````
+
 
 ## HTML Attributes
 This extension allows you to set HTML attributes from markdown.

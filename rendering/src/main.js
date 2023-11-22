@@ -205,5 +205,5 @@ if (!window.RENDERING_COMPLETED) {
 //   * [x] test_rendering: test render mermaid diagram => output as SVG
 //   * [x] test_rendering: invalid mermaid diagram => error message generated
 // * [ ] docs
-//   * [ ] example mermaid diagrams: timeline, ???
-//   * [ ] width, caption
+//   * [ ] example mermaid diagrams: flowchart, timeline, ???
+//   * [x] width, caption
