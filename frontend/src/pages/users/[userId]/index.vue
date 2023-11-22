@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { EditMode, User } from "~/utils/types";
+import { EditMode } from "~/utils/types";
 
 const route = useRoute();
 const auth = useAuth();

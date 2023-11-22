@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { CvssMetricDefinition } from '~/utils/cvss/base';
+import type { CvssMetricDefinition } from '~/utils/cvss/base';
 
 const props = defineProps<{
   modelValue: string;

@@ -113,7 +113,6 @@
 
 <script setup lang="ts">
 import { formatDistanceToNowStrict, formatISO9075, isSameDay, parseISO } from "date-fns";
-import { ArchivedProjectPublicKeyEncryptedKeyPart } from "~/utils/types";
 
 const route = useRoute();
 const auth = useAuth();

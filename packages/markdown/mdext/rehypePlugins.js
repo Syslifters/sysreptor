@@ -53,6 +53,20 @@ export function addClass(node, className) {
 }
 
 
+export function removeClass(node, className) {
+  if (!node.properties.className) {
+    return;
+  }
+  if (!Array.isArray(className)) {
+    className = [className];
+  }
+  node.properties.className = node.properties.className.filter(c => !className.includes(c));
+  if (node.properties.className.length === 0) {
+    delete node.properties.className;
+  }
+}
+
+
 export function rehypeRewriteImageSources({rewriteImageSource}) {
   return tree => visit(tree, 'element', node => {
     if (node.tagName === 'img' && node.properties.src && rewriteImageSource) {

@@ -1,4 +1,4 @@
-import { PentestProject } from "~/utils/types";
+import type { PentestProject } from "~/utils/types";
 
 export function getTitle(title?: string|null, route?: ReturnType<typeof useRoute>): string|null {
   return title || (route?.meta?.title as string|undefined) || null;

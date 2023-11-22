@@ -110,8 +110,6 @@
 </template>
 
 <script setup lang="ts">
-import { ApiToken } from "~/utils/types";
-
 const auth = useAuth();
 const apiTokens = await useAsyncDataE<ApiToken[]>(async () => {
   try {

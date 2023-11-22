@@ -52,6 +52,9 @@ describe('Markdown extensions', () => {
     '```python highlight-manual\npr§<mark><strong>BEGIN</strong><em>§int("hel§</em><strong>END</strong></mark>§lo world")\n```': codeBlock('<span class="hljs-built_in">pr</span><mark><strong>BEGIN</strong><em><span class="hljs-built_in">int</span>(<span class="hljs-string">"hel</span></em><strong>END</strong></mark><span class="hljs-string">lo world"</span>)', 'python'),
     '```\npr§§int("hel§§lo world")\n```': codeBlock('pr§§int("hel§§lo world")'),
     '```none highlight-manual="|"\npr||int("hel||lo world")\n```': codeBlock('pr<mark>int("hel</mark>lo world")', 'none'),
+    // Mermaid diagrams
+    '```mermaid\ngraph LR A-->B\n```': '<figure><mermaid-diagram>graph LR A-->B\n</mermaid-diagram></figure>',
+    '```mermaid width=50% caption="Example diagram"\ngraph LR A-->B\n```': '<figure><mermaid-diagram style="width:50%;">graph LR A-->B\n</mermaid-diagram><figcaption>Example diagram</figcaption></figure>',
     // Nested elements
     '![caption^[footnote [link](https://example.com)]](/img.png)': '<p></p><figure><img src="/img.png" alt="captionfootnote link"><figcaption>caption<footnote>footnote <a href="https://example.com" target="_blank" rel="nofollow noopener noreferrer">link</a></footnote></figcaption></figure><p></p>',
     '![caption^[footnote [partial]](/img.png)': {

@@ -1,5 +1,6 @@
-import { LocationQueryValue } from "#vue-router";
-import { AuthProvider, AuthProviderType, User } from "@/utils/types";
+import type { LocationQueryValue } from "#vue-router";
+import { AuthProviderType } from "@/utils/types";
+import type { AuthProvider, User } from "@/utils/types";
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({

@@ -55,8 +55,6 @@
 </template>
 
 <script setup lang="ts">
-import { LicenseInfoDetails } from "~/utils/types";
-
 definePageMeta({
   title: 'License',
 });

@@ -1,4 +1,4 @@
-import { PaginatedResponse, UserNotification } from "~/utils/types";
+import type { PaginatedResponse, UserNotification } from "~/utils/types";
 
 export const useNotificationStore = defineStore('notifications', {
   state: () => ({

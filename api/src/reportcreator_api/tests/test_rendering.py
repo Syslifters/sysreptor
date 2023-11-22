@@ -97,6 +97,7 @@ class TestHtmlRendering:
         (html_load_script('/assets/name/nonexistent.js'), {'level': 'warning', 'message': 'Resource not found' }),
         (html_load_script('https://example.com/external.js'), {'level': 'warning', 'message': 'Blocked request to external URL' }),
         (html_load_script('/assets/name/test.js'), {'level': 'info', 'message': 'Script loaded' }),
+        ('<mermaid-diagram>graph TD; A-->[B;</mermaid-diagram>', {'level': 'warning', 'message': 'Mermaid error' }),
     ])
     def test_error_messages(self, template, expected):
         self.project_type.report_template = template
@@ -215,6 +216,15 @@ class TestHtmlRendering:
             plugins: [ chartjsPlugins.DataLabels ],
         }" />""")
         assert re.fullmatch(r'^\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="" style="width: 15cm; height: 10cm;">\s*$', html)
+
+    def test_mermaid_rendering(self):
+        html = self.render_html("""
+        <mermaid-diagram>
+            graph TD
+                A --> B;
+        </mermaid-diagram>                     
+        """)
+        assert re.fullmatch(r'^\s*<div class="mermaid-diagram">\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="">\s*</div>\s*$', html)
 
     @pytest.mark.parametrize('password,encrypted', [
         ('password', True),

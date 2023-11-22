@@ -66,8 +66,6 @@
 </template>
 
 <script setup lang="ts">
-import { AuthIdentity } from "~/utils/types";
-
 const route = useRoute();
 const auth = useAuth();
 const apiSettings = useApiSettings();

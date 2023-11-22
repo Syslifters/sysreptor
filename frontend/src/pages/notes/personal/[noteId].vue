@@ -62,7 +62,6 @@
 <script setup lang="ts">
 import urlJoin from "url-join";
 import { uploadFileHelper } from "~/utils/upload";
-import { UploadedFileInfo } from "~/utils/types";
 
 const route = useRoute();
 const userNotesStore = useUserNotesStore();

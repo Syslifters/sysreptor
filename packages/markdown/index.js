@@ -7,6 +7,7 @@ import rehypeRaw from 'rehype-raw';
 import remarkStringify from 'remark-stringify';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { merge } from 'lodash';
+import mermaid from 'mermaid';
 import 'highlight.js/styles/default.css';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './mdext/footnotes.js';
@@ -26,7 +27,7 @@ import { modifiedCommonmarkFeatures } from './mdext/modified-commonmark.js';
 const rehypeSanitizeSchema = merge({}, defaultSchema, {
   allowComments: true,
   clobberPrefix: null,
-  tagNames: ['footnote', 'template', 'ref', 'pagebreak', 'markdown', 'u'].concat(defaultSchema.tagNames),
+  tagNames: ['footnote', 'template', 'ref', 'pagebreak', 'markdown', 'mermaid-diagram', 'u'].concat(defaultSchema.tagNames),
   attributes: {
     '*': ['className', 'style', 'data*', 'v-if', 'v-for', 'v-bind', 'v-on'].concat(defaultSchema.attributes['*']),
     'a': ['download'].concat(defaultSchema.attributes['a']),
@@ -79,7 +80,7 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource =
         }
       })
       .use(rehypeTableCaptions)
-      .use(rehypeHighlightCode)
+      .use(rehypeHighlightCode, { preview })
       .use(rehypeRawFixSelfClosingTags)
       .use(rehypeRaw)
       .use(rehypeConvertAttrsToStyle)
@@ -113,3 +114,8 @@ export function markdownToAnnotatedText(text) {
   // console.log('AnnotatedText', at);
   return at;
 }
+
+
+export {
+  mermaid
+};

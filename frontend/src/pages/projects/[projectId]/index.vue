@@ -137,7 +137,6 @@
 
 <script setup lang="ts">
 import type { VForm } from "vuetify/lib/components/index.mjs";
-import { PentestProject, ProjectType } from "~/utils/types";
 
 const route = useRoute();
 const apiSettings = useApiSettings();

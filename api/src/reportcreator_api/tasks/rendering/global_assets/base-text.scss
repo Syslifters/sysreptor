@@ -129,3 +129,17 @@ pre code {
   padding: 1em; /* Conflicts with syntax highlighting "pre code.hljs" padding. For now both have to have the same value. */
   display: block;
 }
+
+/* Mermaid diagrams */
+.mermaid-diagram {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+}
+.mermaid-diagram img, .mermaid-diagram svg {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 23cm; /* prevent text from overflowing page, approximation because we do not have access to the actual page content height */
+  object-fit: contain;
+}

@@ -35,8 +35,6 @@
 </template>
 
 <script setup lang="ts">
-import { UserNotification } from "@/utils/types";
-
 const notificationStore = useNotificationStore();
 useLazyAsyncData(async () => {
   await notificationStore.fetchNotifications();

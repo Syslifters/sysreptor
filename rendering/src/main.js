@@ -8,6 +8,7 @@ import TableOfContents from './components/TableOfContents.js';
 import ListOfFigures from './components/ListOfFigures.js';
 import ListOfTables from './components/ListOfTables';
 import Chart from './components/ChartVue.vue';
+import MermaidDiagram from './components/MermaidDiagram.vue';
 import Ref from './components/Ref.vue';
 import { callForTicks } from './utils';
 import lodash from 'lodash';
@@ -116,9 +117,9 @@ const templateCompilerOptions = {
   whitespace: 'preserve',
   getTextMode: (node) => {
     // Parse slot content of <markdown> as raw text and do not interpret as html/vue-template
-    return node.tag === 'markdown' ? 2 /* TextModes.RAWTEXT */ : 0 /* TextModes.DATA */;
+    return ['markdown', 'mermaid-diagram'].includes(node.tag) ? 2 /* TextModes.RAWTEXT */ : 0 /* TextModes.DATA */;
   },
-  isCustomElement: tag => ['footnote'].includes(tag),
+    isCustomElement: tag => ['footnote'].includes(tag),
   comments: true,
   ssr: false,
   onError: (err) => {
@@ -139,7 +140,7 @@ if (!window.RENDERING_COMPLETED) {
   const app = createApp({
     name: 'root',
     render: RENDER_FUNCTION,
-    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, Ref },
+    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, MermaidDiagram, Ref },
     data: () => ({
       data: REPORT_DATA,
       _tickCount: 0,
@@ -183,3 +184,4 @@ if (!window.RENDERING_COMPLETED) {
   app.mount('body');
 
 }
+

@@ -105,7 +105,6 @@
 <script setup lang="ts">
 import sampleSize from "lodash/sampleSize"
 import fileDownload from "js-file-download";
-import { ErrorMessage } from "~/utils/types";
 
 definePageMeta({
   title: 'Publish',

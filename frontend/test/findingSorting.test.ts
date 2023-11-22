@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { addDays } from "date-fns";
 import reverse from 'lodash/reverse';
-import { sortFindings } from '@/store/project';
-import { FindingOrderingDefinition, PentestFinding, ProjectType, SortOrder } from "~/utils/types";
+import { sortFindings } from '@/stores/project';
+import type { FindingOrderingDefinition, PentestFinding, ProjectType, SortOrder } from "~/utils/types";
 
 function testFindingSort({ findings, findingOrdering = [], overrideFindingOrder = false }: { findings: PentestFinding[], findingOrdering?: FindingOrderingDefinition[], overrideFindingOrder?: boolean}) {
   const unorderedFindings = findings.map((f, idx) => ({ ...f, data: { ...(f.data || {}), title: 'f' + (idx + 1) } })) as PentestFinding[];

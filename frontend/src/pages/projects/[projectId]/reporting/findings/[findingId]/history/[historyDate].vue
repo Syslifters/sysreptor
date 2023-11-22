@@ -54,8 +54,6 @@
 </template>
 
 <script setup lang="ts">
-import { PentestFinding } from "~/utils/types";
-
 const route = useRoute();
 const projectStore = useProjectStore();
 

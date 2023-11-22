@@ -131,7 +131,7 @@
 
 <script setup lang="ts">
 import { get as navigatorCredentialsGet, parseRequestOptionsFromJSON } from "@github/webauthn-json/browser-ponyfill";
-import { LoginResponse, LoginResponseStatus, MfaMethod, mfaMethodChoices, MfaMethodType } from '@/utils/types';
+import { LoginResponseStatus, mfaMethodChoices, MfaMethodType } from '@/utils/types';
 
 const props = defineProps({
   username: {

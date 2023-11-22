@@ -5,11 +5,13 @@ import type { VForm } from "vuetify/lib/components/index.mjs";
 import { formatISO9075 } from "date-fns";
 import {
   EditMode,
+  ProjectTypeScope,
+  UploadedFileType
+} from "~/utils/types";
+import type {
   PentestProject,
   ProjectType,
-  ProjectTypeScope,
   UploadedFileInfo,
-  UploadedFileType
 } from "~/utils/types";
 import { EditToolbar } from "#components";
 

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --onlyAllow='MIT;Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0' --plainVertical > NOTICE",
+    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --onlyAllow='MIT;Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0;EPL-2.0' --plainVertical > NOTICE",
     "dependencies": "npm run generate-notice"
   },
   "dependencies": {
@@ -31,7 +31,9 @@
     "@codemirror/lang-markdown": "~6.2",
     "@codemirror/lang-html": "~6.4",
     "@codemirror/lang-vue": "~0.1.1",
-    "@codemirror/lang-css": "~6.2"
+    "@codemirror/lang-css": "~6.2",
+
+    "mermaid": "^10.6.1"
   },
   "devDependencies": {
     "license-checker-rseidelsohn": "^4.2.6"

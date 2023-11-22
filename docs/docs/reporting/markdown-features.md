@@ -89,6 +89,8 @@ username='or'1'='1&password=dummy
 ```
 ````
 
+![Code Block Highlighting](/images/md_code_highlight.png)
+
 Syntax highlighting is great for readability, but it only highlights predefined keywords of the specified language.
 However, it does not allow to manually highlight certain text parts to draw the readers attention to it.
 
@@ -109,6 +111,8 @@ Content-Length: 33
 ```
 ````
 
+![Manual Code Block Highlighting](/images/md_code_manual_highlight.png)
+
 If you need more advanced highlighting, you can place cutom HTML code inside the `§§` placeholders e.g. `§<mark><em><span class="custom-highlight">§`.
 If your code snippet includes `§`-characters, you cannot use them as escape characters for manual highlighting. 
 It is possible to specify a different escaple character via the `highlight-manual="<escape-character>"` attribute.
@@ -125,6 +129,47 @@ Content-Length: 33
 |<mark><em><span class="custom-highlight">|username='or'1'='1|</span></em></mark>|&password=dummy
 ```
 ````
+
+## Mermaid Diagrams
+[Mermaid](https://mermaid.js.org/intro/) lets you create diagrams and visualizations using text and code. 
+It is a JavaScript based diagramming and charting tool that renders Markdown-inspired text definitions to create and modify diagrams dynamically.
+
+Mermaid diagrams are written in markdown code blocks with the language set to `mermaid`.
+All diagram types supported by mermaid are avaialbe.
+Diagrams will be rendered as HTML `<figure>` elements.
+Like with images, you can set a caption and with/height.
+
+The following example shows how to create a simple flowchart. 
+````md linenums="1"
+```mermaid caption="Organizational Structure" width="50%"
+flowchart TD
+  A[👔 CEO]
+  A-->B[💻 CTO]
+  A-->C[💰 CFO]
+  A-->D[📈 COO]
+```
+````
+
+![Mermaid Diagram Example: Organizational Structure](/images/md_mermaid_diagram_organization.png){width="50%"}
+
+
+````md  linenums="1"
+```mermaid caption="Man in the Middle Attack"
+%%{init: {"sequence": {"mirrorActors": false}}}%%
+sequenceDiagram
+    actor Alice
+    actor Eve
+    actor Bob
+    Eve->>Alice: give public key, pretend it is Bob's
+    Alice->>Alice: encrypt message with Eve's key<br>thinking it is Bob's
+    Alice->>Eve: send encrypted message
+    Eve->>Eve: decrypt message and copy content
+    Eve->>Eve: encrypt message using Bob's key
+    Eve->>Bob: send encrypted message
+```
+````
+
+![Mermaid Diagram Example: Man in the Middle Attack](/images/md_mermaid_diagram_mitm.png)
 
 
 ## HTML Attributes
