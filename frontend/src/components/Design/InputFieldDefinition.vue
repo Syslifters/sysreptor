@@ -124,51 +124,53 @@
           handle=".draggable-handle"
         >
           <template #item="{ element: choice, index: choiceIdx }">
-            <v-list-item>
-              <template #prepend>
-                <v-icon
-                  size="x-large"
-                  class="draggable-handle"
-                  :disabled="props.disabled || !props.canChangeStructure"
-                  icon="mdi-drag-horizontal"
-                />
-              </template>
-              <template #default>
-                <v-row>
-                  <v-col>
-                    <s-text-field
-                      :model-value="choice.value"
-                      @update:model-value="updateEnumChoice('updateValue', choiceIdx, $event)"
-                      :disabled="props.disabled || !props.canChangeStructure"
-                      :rules="rules.choice"
-                      label="Value"
-                      required
-                      spellcheck="false"
-                      class="mt-2"
-                    />
-                  </v-col>
-                  <v-col>
-                    <s-text-field
-                      :model-value="choice.label"
-                      @update:model-value="updateEnumChoice('updateLabel', choiceIdx, $event)"
-                      :disabled="props.disabled"
-                      label="Label"
-                      required
-                      spellcheck="false"
-                      class="mt-2"
-                    />
-                  </v-col>
-                </v-row>
-              </template>
-              <template #append>
-                <btn-delete
-                  :delete="() => updateEnumChoice('delete', choiceIdx)"
-                  :confirm="false"
-                  :disabled="props.disabled || !props.canChangeStructure"
-                  button-variant="icon"
-                />
-              </template>
-            </v-list-item>
+            <v-lazy :min-height="50">
+              <v-list-item>
+                <template #prepend>
+                  <v-icon
+                    size="x-large"
+                    class="draggable-handle"
+                    :disabled="props.disabled || !props.canChangeStructure"
+                    icon="mdi-drag-horizontal"
+                  />
+                </template>
+                <template #default>
+                  <v-row>
+                    <v-col>
+                      <s-text-field
+                        :model-value="choice.value"
+                        @update:model-value="updateEnumChoice('updateValue', choiceIdx, $event)"
+                        :disabled="props.disabled || !props.canChangeStructure"
+                        :rules="rules.choice"
+                        label="Value"
+                        required
+                        spellcheck="false"
+                        class="mt-2"
+                      />
+                    </v-col>
+                    <v-col>
+                      <s-text-field
+                        :model-value="choice.label"
+                        @update:model-value="updateEnumChoice('updateLabel', choiceIdx, $event)"
+                        :disabled="props.disabled"
+                        label="Label"
+                        required
+                        spellcheck="false"
+                        class="mt-2"
+                      />
+                    </v-col>
+                  </v-row>
+                </template>
+                <template #append>
+                  <btn-delete
+                    :delete="() => updateEnumChoice('delete', choiceIdx)"
+                    :confirm="false"
+                    :disabled="props.disabled || !props.canChangeStructure"
+                    button-variant="icon"
+                  />
+                </template>
+              </v-list-item>
+            </v-lazy>
           </template>
         </draggable>
         <v-list-item>

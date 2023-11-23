@@ -1,3 +1,5 @@
+import functools
+from frozendict import frozendict
 from django.core.cache import cache as django_cache
 
 
@@ -28,3 +30,25 @@ def acache(key, **cache_kwargs):
         return wrapped
     return inner
 
+
+def recursive_freeze(value):
+    if isinstance(value, dict):
+        return frozendict({k: recursive_freeze(v) for k, v in value.items()})
+    elif isinstance(value, list):
+        return tuple([recursive_freeze(v) for v in value])
+    else:
+        return value
+
+
+def freeze_args(func):
+    """
+    Transform mutable dictionnary into immutable.
+    Useful to be compatible with cache
+    """
+
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        args = tuple([recursive_freeze(arg) if isinstance(arg, (dict, list)) else arg for arg in args])
+        kwargs = {k: recursive_freeze(v) if isinstance(v, (dict, list)) else v for k, v in kwargs.items()}
+        return func(*args, **kwargs)
+    return wrapped

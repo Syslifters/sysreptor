@@ -37,6 +37,7 @@ qrcode = { extras = ["pil"], version = "^7.4.2" }
 fido2 = "^1.1.1"
 authlib = "^1.2.0"
 python-gnupg = "^0.5.0"
+frozendict = "^2.3.8"
 
 lorem-text = "^2.1"
 zipstream-ng = "^1.6.0"
