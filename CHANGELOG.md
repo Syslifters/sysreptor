@@ -1,5 +1,10 @@
 # Changelog
 
+## TBD
+* Add support for mermaid diagrams in markdown
+* Fix arrow movement in fields inside lists to switch list item
+
+
 ## v2023.142 - 2023-11-21
 * CVSS 4.0 support
 * Allow requiring a specific CVSS version in CVSS fields
