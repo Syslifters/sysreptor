@@ -1,6 +1,5 @@
-import { codes } from 'micromark-util-symbol/codes.js';
+import { codes } from 'micromark-util-symbol';
 import { addRemarkExtension } from "./helpers";
-import { containerPhrasing } from 'mdast-util-to-markdown/lib/util/container-phrasing.js'
 
 
 function todoSyntax() {
@@ -84,9 +83,9 @@ function todoToMarkdown() {
     } 
   };
 
-  function todo(node, _, context, safeOptions) {
-    const exit = context.enter('todo');
-    const value = containerPhrasing(node, context, safeOptions);
+  function todo(node, _, state, safeOptions) {
+    const exit = state.enter('todo');
+    const value = state.containerPhrasing(node, safeOptions);
     exit();
     return value;
   }

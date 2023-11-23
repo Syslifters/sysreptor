@@ -1,4 +1,4 @@
-import {visit} from 'unist-util-visit';
+import { visit } from 'unist-util-visit';
 
 /**
  * Add target="_blank" to links.
@@ -67,7 +67,7 @@ export function removeClass(node, className) {
 }
 
 
-export function rehypeRewriteImageSources({rewriteImageSource}) {
+export function rehypeRewriteImageSources({ rewriteImageSource }) {
   return tree => visit(tree, 'element', node => {
     if (node.tagName === 'img' && node.properties.src && rewriteImageSource) {
       node.properties.src = rewriteImageSource(node.properties.src);

@@ -1,11 +1,10 @@
-import {parse} from 'micromark/lib/parse.js';
-import {preprocess} from 'micromark/lib/preprocess.js';
-import {postprocess} from 'micromark/lib/postprocess.js';
-import {assert} from '../mdext/helpers.js';
+import { parse } from 'micromark/lib/parse';
+import { preprocess } from 'micromark/lib/preprocess';
+import { postprocess } from 'micromark/lib/postprocess';
 
 
-export function parseMicromarkEvents(text, config) {
-  return postprocess(parse(config).document().write(preprocess()(text, undefined, true)));
+export function parseMicromarkEvents(text, options) {
+  return postprocess(parse(options).document().write(preprocess()(text, undefined, true)));
 }
 
 export function micromarkEventsToTree(text, events) {
@@ -32,7 +31,6 @@ export function micromarkEventsToTree(text, events) {
       stack.push(treeNode);
     } else if (action === 'exit') {
       const treeNode = stack[stack.length - 1];
-      assert(treeNode.type == node.type);
 
       treeNode.exit = node;
       treeNode.text = text.slice(treeNode.enter.start.offset, treeNode.exit.end.offset);

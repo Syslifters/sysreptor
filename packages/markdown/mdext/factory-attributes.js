@@ -1,6 +1,5 @@
-import {assert} from './helpers'
-import {factorySpace} from 'micromark-factory-space'
-import {factoryWhitespace} from 'micromark-factory-whitespace'
+import { factorySpace } from 'micromark-factory-space'
+import { factoryWhitespace } from 'micromark-factory-whitespace'
 import {
   asciiAlpha,
   asciiAlphanumeric,
@@ -8,8 +7,7 @@ import {
   markdownLineEndingOrSpace,
   markdownSpace
 } from 'micromark-util-character'
-import {codes} from 'micromark-util-symbol/codes.js'
-import {types} from 'micromark-util-symbol/types.js'
+import { codes, types } from 'micromark-util-symbol'
 
 /**
  * @param {Effects} effects
@@ -26,9 +24,8 @@ import {types} from 'micromark-util-symbol/types.js'
  * @param {TokenType} attributeValueType
  * @param {TokenType} attributeValueMarker
  * @param {TokenType} attributeValueData
- * @param {boolean} [disallowEol=false]
+ * @param {boolean | undefined} [disallowEol=false]
  */
-/* eslint-disable-next-line max-params */
 export function factoryAttributes(
   effects,
   ok,
@@ -55,7 +52,6 @@ export function factoryAttributes(
 
   /** @type {State} */
   function start(code) {
-    assert(code === codes.leftCurlyBrace, 'expected `{`')
     effects.enter(attributesType)
     effects.enter(attributesMarkerType)
     effects.consume(code)

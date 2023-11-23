@@ -8,5 +8,5 @@ export function modifiedCommonmarkFeatures() {
 
   // Override default labelEnd handler to support parsing nested labels in image captions and footnotes.
   addRemarkExtension(this, {disable: {null: ['labelEnd']}});
-  addRemarkExtension(this, labelEndSyntax);
+  addRemarkExtension(this, labelEndSyntax());
 }

@@ -6,10 +6,10 @@ import { addRemarkExtension } from './helpers';
 
 
 export function remarkStrikethrough() {
-  addRemarkExtension(this, gfmStrikethrough(), gfmStrikethroughFromMarkdown, gfmStrikethroughToMarkdown);
+  addRemarkExtension(this, gfmStrikethrough(), gfmStrikethroughFromMarkdown(), gfmStrikethroughToMarkdown());
 }
 
 
 export function remarkTaskListItem() {
-  addRemarkExtension(this, gfmTaskListItem, gfmTaskListItemFromMarkdown, gfmTaskListItemToMarkdown);
+  addRemarkExtension(this, gfmTaskListItem(), gfmTaskListItemFromMarkdown(), gfmTaskListItemToMarkdown());
 }

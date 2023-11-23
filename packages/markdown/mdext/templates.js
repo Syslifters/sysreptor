@@ -1,5 +1,5 @@
-import { codes } from 'micromark-util-symbol/codes.js';
-import { addRemarkExtension, assert } from './helpers';
+import { codes } from 'micromark-util-symbol';
+import { addRemarkExtension } from './helpers';
 
 
 function templateVariableSyntax() {
@@ -16,7 +16,6 @@ function templateVariableSyntax() {
     return start;
 
     function start(code) {
-      assert(code === codes.leftCurlyBrace, 'expected `{`}');
       effects.enter('templateVariable');
       effects.consume(code);
       return start2;
@@ -88,8 +87,8 @@ function templateVariableToMarkdown() {
     } 
   };
 
-  function templateVariable(node, _, context) {
-    const exit = context.enter('templateVariable');
+  function templateVariable(node, _, state) {
+    const exit = state.enter('templateVariable');
     const value = node.value;
     exit();
     return value;
