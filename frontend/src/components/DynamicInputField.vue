@@ -144,6 +144,7 @@
               <dynamic-input-field
                 :model-value="entryVal"
                 @update:model-value="emitInputList('update', entryIdx as number, $event)"
+                @keydown="onListKeyDown"
                 :definition="definition.items!"
                 :id="id ? (id + '[' + entryIdx + ']') : undefined"
                 :show-field-ids="showFieldIds"
@@ -310,6 +311,12 @@ const bulkEditList = ref(false);
 function emitInputStringList(valuesListString?: string) {
   const values = (valuesListString || '').split('\n').filter(v => !!v);
   emitUpdate(values);
+}
+function onListKeyDown(event: KeyboardEvent) {
+  // Disable vuetify list keyboard navigation
+  if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+    event.stopPropagation();
+  }
 }
 
 const attrs = useAttrs();
