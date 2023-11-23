@@ -25,12 +25,6 @@ export default defineConfig({
       filename: 'bundle.js',
       asyncChunks: false,
     },
-    resolve: {
-      modules: [
-        resolve('..', 'packages', 'markdown', 'node_modules')
-      ],
-      exportsFields: [],
-    },
     plugins: [
       new CopyWebpackPlugin({
         patterns: [

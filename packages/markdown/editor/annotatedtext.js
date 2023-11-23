@@ -105,7 +105,7 @@ function micromarkToAnnotatedText(text, events) {
 
 export function annotatedTextParse() {
   const micromarkExtensions = this.data('micromarkExtensions') || [];
-  this.Parser = parser;
+  this.parser = parser;
 
   function parser(text) {
     const events = parseMicromarkEvents(text, {extensions: micromarkExtensions});

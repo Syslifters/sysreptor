@@ -55,8 +55,6 @@
 </template>
 
 <script setup lang="ts">
-import { ReturnType } from "birpc";
-
 definePageMeta({
   title: 'Templates',
 });

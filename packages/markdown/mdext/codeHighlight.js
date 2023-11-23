@@ -1,10 +1,12 @@
 import { visit } from 'unist-util-visit';
 import { toString } from 'hast-util-to-string';
 import { camelCase, omit } from 'lodash';
-import { lowlight } from 'lowlight/lib/all'
+import { createLowlight, all as lowlightGrammers } from 'lowlight';
 import { unified } from 'unified';
 import rehypeParse from 'rehype-parse';
 import { addClass, removeClass } from './rehypePlugins';
+
+const lowlight = createLowlight(lowlightGrammers);
 
 
 function getLanguage(node) {
@@ -205,7 +207,7 @@ function splitIntoLines(tree) {
 
 
 export function rehypeHighlightCode({ preview = false } = {}) {
-  return tree => visit(tree, 'element', (node, index, parent) => {
+  return tree => visit(tree, 'element', (node, _index, parent) => {
     if (node.tagName === 'code' && parent.tagName === 'pre') {
       const language = getLanguage(node);
 

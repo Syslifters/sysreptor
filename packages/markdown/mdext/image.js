@@ -1,10 +1,5 @@
+import { normalizeUri } from 'micromark-util-sanitize-uri';
 import { addRemarkExtension } from "./helpers";
-import {checkQuote} from 'mdast-util-to-markdown/lib/util/check-quote.js'
-import {containerPhrasing} from 'mdast-util-to-markdown/lib/util/container-phrasing.js'
-import {track} from 'mdast-util-to-markdown/lib/util/track.js'
-import {safe} from 'mdast-util-to-markdown/lib/util/safe.js'
-import {all} from 'remark-rehype';
-import {normalizeUri} from 'micromark-util-sanitize-uri';
 
 
 function figureFromMarkdown() {
@@ -27,15 +22,12 @@ function figureFromMarkdown() {
    * Label for link or image
    */
   function exitLabel(token) {
-    const fragment = /** @type {Fragment} */ (this.stack[this.stack.length - 1]);
+    const fragment = this.stack[this.stack.length - 1];
     const value = this.resume();
-    const node =
-      /** @type {(Link|Image) & {identifier: string, label: string}} */ (
-        this.stack[this.stack.length - 1]
-      );
+    const node = this.stack[this.stack.length - 1];
 
     // Assume a reference.
-    this.setData('inReference', true);
+    this.data.inReference = true;
 
     // @ts-expect-error: Assume static phrasing content.
     node.children = fragment.children;
@@ -43,6 +35,21 @@ function figureFromMarkdown() {
       node.alt = value;
     }
   }
+}
+
+
+function checkQuote(state) {
+  const marker = state.options.quote || '"'
+
+  if (marker !== '"' && marker !== "'") {
+    throw new Error(
+      'Cannot serialize title with `' +
+        marker +
+        '` for `options.quote`, expected `"`, or `\'`'
+    )
+  }
+
+  return marker
 }
 
 
@@ -55,15 +62,15 @@ function figureToMarkdown() {
     },
   };
 
-  function image(node, _, context, safeOptions) {
-    const quote = checkQuote(context);
+  function image(node, _, state, info) {
+    const quote = checkQuote(state);
     const suffix = quote === '"' ? 'Quote' : 'Apostrophe';
-    const exit = context.enter('image');
-    let subexit = context.enter('label');
-    const tracker = track(safeOptions);
+    const exit = state.enter('image');
+    let subexit = state.enter('label');
+    const tracker = state.createTracker(info);
     let value = tracker.move('![');
     value += tracker.move(
-      containerPhrasing(node, context, {
+      state.containerPhrasing(node, {
         before: value,
         after: '](',
         ...tracker.current()
@@ -79,17 +86,17 @@ function figureToMarkdown() {
       // If there are control characters or whitespace.
       /[\0- \u007F]/.test(node.url)
     ) {
-      subexit = context.enter('destinationLiteral');
+      subexit = state.enter('destinationLiteral');
       value += tracker.move('<');
       value += tracker.move(
-        safe(context, node.url, {before: value, after: '>', ...tracker.current()})
+        state.safe(node.url, {before: value, after: '>', ...tracker.current()})
       );
       value += tracker.move('>');
     } else {
       // No whitespace, raw is prettier.
-      subexit = context.enter('destinationRaw');
+      subexit = state.enter('destinationRaw');
       value += tracker.move(
-        safe(context, node.url, {
+        state.safe(node.url, {
           before: value,
           after: node.title ? ' ' : ')',
           ...tracker.current()
@@ -100,10 +107,10 @@ function figureToMarkdown() {
     subexit();
 
     if (node.title) {
-      subexit = context.enter('title' + suffix);
+      subexit = state.enter('title' + suffix);
       value += tracker.move(' ' + quote);
       value += tracker.move(
-        safe(context, node.title, {
+        state.safe(node.title, {
           before: value,
           after: quote,
           ...tracker.current()
@@ -128,17 +135,35 @@ export function remarkFigure() {
 
 
 export const remarkToRehypeHandlersFigure = {
-  image(h, node) {
+  image(state, node, ...args) {
     // only add attributes to <img> tag, not to <figure>
     const attrs = (node.data || {}).hProperties || {};
-    if (!node.data) {
-      node.data = {};
+    if (node.data) {
+      node.data.hProperties = undefined;
     }
-    node.data.hProperties = {};
 
-    return h(node, 'figure', [
-      h(node, 'img', {src: normalizeUri(node.url), alt: node.alt, ...attrs}),
-      ...(node.children.length > 0 ? [h(node, 'figcaption', all(h, node))] : [])
-    ]);
+    const result = {
+      type: 'element',
+      tagName: 'figure',
+      children: [
+        {
+          type: 'element',
+          tagName: 'img',
+          properties: {
+            src: normalizeUri(node.url),
+            alt: node.alt,
+            ...attrs,
+          },
+        },
+        ...(node.children.length > 0 ? [{
+          type: 'element',
+          tagName: 'figcaption',
+          children: state.all(node)
+        }] : [])
+      ],
+    };
+
+    state.patch(node, result);
+    return state.applyData(node, result);
   }
 };

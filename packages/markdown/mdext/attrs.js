@@ -1,4 +1,4 @@
-import { codes } from 'micromark-util-symbol/codes'
+import { codes } from 'micromark-util-symbol'
 import { factoryAttributes } from './factory-attributes';
 import { parseEntities } from 'parse-entities';
 import { visit } from 'unist-util-visit';
@@ -53,35 +53,35 @@ function attrsFromMarkdown() {
   };
 
   function enterAttributes(token) {
-    this.setData('directiveAttributes', []);
-    this.enter({type: 'attributes', attrs: {}, attrsString: ''}, token);
+    this.data.directiveAttributes = [];
+    this.enter({type: 'attributes', attrs: {}, attrsString: '', children: []}, token);
     this.buffer();
   }
 
   function exitAttributeIdValue(token) {
-    const list = this.getData('directiveAttributes');
-    list.push(['id', parseEntities(this.sliceSerialize(token))])
+    const list = this.data.directiveAttributes;
+    list.push(['id', parseEntities(this.sliceSerialize(token), { attribute: true })])
   }
 
   function exitAttributeClassValue(token) {
-    const list = this.getData('directiveAttributes');
-    list.push(['class', parseEntities(this.sliceSerialize(token))])
+    const list = this.data.directiveAttributes;
+    list.push(['class', parseEntities(this.sliceSerialize(token), { attribute: true })])
   }
 
   function exitAttributeValue(token) {
-    const list = this.getData('directiveAttributes');
-    list[list.length - 1][1] = parseEntities(this.sliceSerialize(token))
+    const list = this.data.directiveAttributes;
+    list[list.length - 1][1] = parseEntities(this.sliceSerialize(token), { attribute: true })
   }
 
   function exitAttributeName(token) {
     // Attribute names in CommonMark are significantly limited, so character
     // references can’t exist.
-    this.getData('directiveAttributes').push([this.sliceSerialize(token), ''])
+    this.data.directiveAttributes.push([this.sliceSerialize(token), ''])
   }
 
   function exitAttributes(token) {
     const cleaned = {};
-    for (const attribute of this.getData('directiveAttributes')) {
+    for (const attribute of this.data.directiveAttributes) {
       if (attribute[0] === 'class' && cleaned.class) {
         cleaned.class += ' ' + attribute[1];
       } else {
@@ -89,7 +89,7 @@ function attrsFromMarkdown() {
       }
     }
   
-    this.setData('directiveAttributes')
+    this.data.directiveAttributes = undefined;
     this.resume(); // Drop EOLs
 
     const node = this.stack[this.stack.length - 1];
@@ -129,8 +129,8 @@ function attrsToMarkdown() {
     }
   };
 
-  function attributes(node, _, context) {
-    const exit = context.enter('attributes');
+  function attributes(node, _, state) {
+    const exit = state.enter('attributes');
     const value = node.attrsString || Object.entries(node.attrs).map(([k, v]) => {
       if (k === 'id') { return '#' + v }
       else if (k === 'class') { return v.split(' ').map(c => '.' + c).join(' ')}

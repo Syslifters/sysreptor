@@ -1,6 +1,7 @@
 import pick from 'lodash/pick';
 import { parseISO, formatISO9075 } from 'date-fns';
-import type { FieldDefinitionDict, ProjectType, ProjectTypeScope } from "~/utils/types";
+import { ProjectTypeScope } from '~/utils/types';
+import type { FieldDefinitionDict, ProjectType } from "~/utils/types";
 
 export const useProjectTypeStore = defineStore('projecttype', {
   state: () => ({
@@ -66,10 +67,17 @@ export function formatProjectTypeTitle(pt?: ProjectType) {
   if (!pt || !pt.id) {
     return '';
   }
-  return pt.name + ({
-    [SourceEnum.CUSTOMIZED]: ' (customized)',
-    [SourceEnum.SNAPSHOT]: ` (from ${formatISO9075(parseISO(pt.created))})`,
-    [SourceEnum.IMPORTED_DEPENDENCY]: ` (from ${formatISO9075(parseISO(pt.created))})`,
-  }[pt?.source as string] || '') +
-      (pt?.scope === ProjectTypeScope.PRIVATE ? ' (private design)' : '');
+
+  let out = pt.name;
+  if (pt?.source === SourceEnum.CUSTOMIZED) {
+    out += ' (customized)';
+  } else if (pt?.source === SourceEnum.SNAPSHOT) {
+    out += ` (from ${formatISO9075(parseISO(pt.created))})`;
+  } else if (pt?.source === SourceEnum.IMPORTED_DEPENDENCY) {
+    out += ` (from ${formatISO9075(parseISO(pt.created))})`;
+  }
+  if (pt?.scope === ProjectTypeScope.PRIVATE) {
+    out += ' (private design)';
+  }
+  return out;
 }

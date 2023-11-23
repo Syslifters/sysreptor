@@ -11,6 +11,9 @@ function codeBlock(content, language = null) {
 
 describe('Markdown extensions', () => {
   for (const [md, expected] of Object.entries({
+    // GFM
+    'text ~~text~~ text': '<p>text <del>text</del> text</p>',
+    '* [ ] task\n* [x] task': '<ul class="contains-task-list">\n<li class="task-list-item"><input type="checkbox" disabled> task</li>\n<li class="task-list-item"><input type="checkbox" checked disabled> task</li>\n</ul>',
     // Footnote
     'text^[footnote] text': '<p>text<footnote>footnote</footnote> text</p>',
     'text^[**foot**[note](https://example.com)] text': '<p>text<footnote><strong>foot</strong><a href="https://example.com" target="_blank" rel="nofollow noopener noreferrer">note</a></footnote> text</p>',

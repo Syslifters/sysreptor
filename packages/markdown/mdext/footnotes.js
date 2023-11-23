@@ -1,11 +1,8 @@
-import {splice} from 'micromark-util-chunked'
-import {codes} from 'micromark-util-symbol/codes.js'
-import {resolveAll} from 'micromark-util-resolve-all'
-import {containerPhrasing} from 'mdast-util-to-markdown/lib/util/container-phrasing.js'
-import {all} from 'remark-rehype';
-import {visit} from 'unist-util-visit';
+import { splice } from 'micromark-util-chunked'
+import { codes } from 'micromark-util-symbol'
+import { resolveAll } from 'micromark-util-resolve-all'
+import { visit } from 'unist-util-visit';
 import { addRemarkExtension, assert } from './helpers';
-import {h} from 'hastscript';
 
 /**
  * @typedef {import('micromark-util-types').Extension} Extension
@@ -131,7 +128,7 @@ function footnoteSyntax() {
   }
 
   /** @type {Resolver} */
-  function resolveToFootnoteEnd(events, context) {
+  function resolveToFootnoteEnd(events, state) {
     let index = events.length - 4;
     /** @type {Token} */
     let token;
@@ -166,12 +163,12 @@ function footnoteSyntax() {
     }
 
     const note = [
-      ['enter', group, context],
+      ['enter', group, state],
       events[openIndex + 1],
       events[openIndex + 2],
       events[openIndex + 3],
       events[openIndex + 4],
-      ['enter', text, context]
+      ['enter', text, state]
     ];
 
     splice(
@@ -179,17 +176,17 @@ function footnoteSyntax() {
       note.length,
       0,
       resolveAll(
-        context.parser.constructs.insideSpan.null,
+        state.parser.constructs.insideSpan.null,
         events.slice(openIndex + 6, -4),
-        context
+        state
       )
     );
 
     note.push(
-      ['exit', text, context],
+      ['exit', text, state],
       events[events.length - 3],
       events[events.length - 2],
-      ['exit', group, context]
+      ['exit', group, state]
     );
 
     splice(events, index, events.length - index, note);
@@ -226,10 +223,10 @@ function footnoteToMarkdown() {
     handlers: {footnote},
   };
 
-  function footnote(node, _, context) {
-    const exit = context.enter('footnote');
-    const subexit = context.enter('label');
-    const value = '^[' + containerPhrasing(node, context, {before: '[', after: ']'}) + ']';
+  function footnote(node, _, state) {
+    const exit = state.enter('footnote');
+    const subexit = state.enter('label');
+    const value = '^[' + state.containerPhrasing(node, {before: '[', after: ']'}) + ']';
     subexit();
     exit();
     return value;
@@ -247,13 +244,17 @@ export function remarkFootnotes() {
  * Render footnotes as <footnote>content</footnote>
  */
 export const remarkToRehypeHandlersFootnotes = {
-  footnote(h, node) {
-    return h(node, 'footnote', all(h, node))
+  footnote(state, node) {
+    return state.applyData(node, {
+      type: 'element',
+      tagName: 'footnote',
+      children: state.all(node),
+    });
   },
-  footnoteDefinition(h, node) {
+  footnoteDefinition(state, node) {
     return null;
   },
-  footnoteReference(h, node) {
+  footnoteReference(state, node) {
     return null;
   },
 };
@@ -263,7 +264,13 @@ export function rehypeFootnoteSeparator() {
   // add a footnote call separator tag between consecutive <footnote> tags
   return tree => visit(tree, 'element', (node, index, parent) => {
     if (node.tagName === 'footnote' && parent.children[index + 1]?.tagName === 'footnote') {
-      parent.children.splice(index + 1, 0, h('sup', {class: 'footnote-call-separator'}));
+      parent.children.splice(index + 1, 0, {
+        type: 'element',
+        tagName: 'sup',
+        properties: {
+          class: 'footnote-call-separator',
+        }
+      });
     }
   })
 }
@@ -282,6 +289,16 @@ export function rehypeFootnoteSeparatorPreview() {
     if (nextSibling?.tagName !== 'sup' || nextSibling.children.length !== 1 || !nextSibling.children[0]?.properties?.dataFootnoteRef) {
       return;
     }
-    parent.children.splice(index + 1, 0, h('sup', {class: 'footnote-call-separator'}, [',']));
+    parent.children.splice(index + 1, 0, {
+      type: 'element',
+      tagName: 'sup',
+      properties: {
+        class: 'footnote-call-separator',
+      },
+      children: [{
+        type: 'text',
+        value: ', ',
+      }],
+    });
   })
 }

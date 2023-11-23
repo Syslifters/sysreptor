@@ -8,6 +8,8 @@
 </template>
 
 <script setup lang="ts">
+import type { LockInfo } from '@/utils/types';
+
 const props = defineProps<{
   value: LockInfo|null;
 }>();

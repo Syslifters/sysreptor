@@ -12,24 +12,22 @@
       v-model="datePickerVisible"
       :disabled="props.disabled"
       :close-on-content-click="false"
-      min-width="auto"
+      min-width="0"
       activator="parent"
     >
       <v-date-picker
-        :model-value="props.modelValue"
-        @update:model-value="updateDate($event)"
+        v-model="dateValue"
         v-model:input-mode="inputMode"
         :disabled="props.disabled"
-        :locale="props.locale"
         view-mode="month"
-        hide-actions
         show-adjacent-months
+        show-week
       />
     </v-menu>
   </s-text-field>
 </template>
 <script setup lang="ts">
-import { formatISO } from "date-fns";
+import { formatISO, parseISO } from "date-fns";
 
 const props = withDefaults(defineProps<{
       modelValue?: string|null;
@@ -47,11 +45,19 @@ const emits = defineEmits<{
 const datePickerVisible = ref(false);
 const inputMode = ref<'calendar' | 'keyboard'>('calendar');
 
-function updateDate(val: Date) {
-  if (inputMode.value === 'calendar') {
-    datePickerVisible.value = false;
-  }
-  const formatted = val ? formatISO(val, { representation: 'date' }) : null;
-  emits('update:modelValue', formatted);
-}
+const dateValue = computed({
+  get: () => {
+    if (!props.modelValue) {
+      return null;
+    }
+    return parseISO(props.modelValue);
+  },
+  set: (val) => {
+    if (inputMode.value === 'calendar') {
+      datePickerVisible.value = false;
+    }
+    const formatted = val ? formatISO(val, { representation: 'date' }) : null;
+    emits('update:modelValue', formatted);
+  },
+});
 </script>

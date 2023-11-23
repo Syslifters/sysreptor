@@ -2,12 +2,10 @@ import { gfmTable } from 'micromark-extension-gfm-table';
 import { gfmTableFromMarkdown, gfmTableToMarkdown } from 'mdast-util-gfm-table';
 import { addRemarkExtension } from './helpers';
 import { visit } from 'unist-util-visit';
-import { all } from 'remark-rehype';
-import { containerPhrasing } from 'mdast-util-to-markdown/lib/util/container-phrasing.js'
 
 
 export function remarkTables() {
-  addRemarkExtension(this, gfmTable, gfmTableFromMarkdown, gfmTableToMarkdown());
+  addRemarkExtension(this, gfmTable(), gfmTableFromMarkdown(), gfmTableToMarkdown());
 }
 
 
@@ -54,10 +52,10 @@ function tableCaptionToMarkdown() {
     handlers: {tableCaption},
   };
 
-  function tableCaption(node, _, context, safeOptions) {
-    const exit = context.enter('tableCaption');
-    const subexit = context.enter('phrasing');
-    const value = 'Table: ' + containerPhrasing(node, context, safeOptions);
+  function tableCaption(node, _, state, safeOptions) {
+    const exit = state.enter('tableCaption');
+    const subexit = state.enter('phrasing');
+    const value = 'Table: ' + state.containerPhrasing(node, state, safeOptions);
     subexit();
     exit();
     return value;
@@ -71,8 +69,12 @@ export function remarkTableCaptions() {
 
 
 export const remarkToRehypeHandlersTableCaptions = {
-  tableCaption(h, node) {
-    return h(node, 'caption', all(h, node));
+  tableCaption(state, node) {
+    return state.applyData(node, {
+      type: 'element',
+      tagName: 'caption',
+      children:  state.all(node)
+    });
   }
 };
 
