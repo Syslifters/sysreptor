@@ -105,6 +105,8 @@ function setRoles(user: ProjectMember, roles: string[]) {
   & > .v-input__control > .v-field > .v-field__field > .v-field__input {
     display: flex;
     flex-direction: column;
+    row-gap: 0;
+    padding-bottom: calc(var(--v-field-input-padding-bottom) / 2);
 
     .member-item {
       width: 100%;
@@ -113,7 +115,13 @@ function setRoles(user: ProjectMember, roles: string[]) {
     }
 
     .v-autocomplete__selection {
-      max-width: 100%;
+      width: 100%;
+      height: auto;
+    }
+
+    input {
+      width: 100%;
+      height: 0;
     }
   }
 }
