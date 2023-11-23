@@ -171,7 +171,7 @@
 
 <script setup lang="ts">
 import pick from "lodash/pick";
-import { MarkdownProps } from "~/composables/markdown";
+import type { MarkdownProps } from "~/composables/markdown";
 
 const props = defineProps<{
   modelValue: any;

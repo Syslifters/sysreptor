@@ -1,4 +1,5 @@
-import { CvssDefinition, CvssMetricsValue, CvssMetricsValueCollection, CvssVersion } from "./base";
+import { CvssVersion } from "./base";
+import type { CvssDefinition, CvssMetricsValue, CvssMetricsValueCollection } from "./base";
 
 export const CVSS31_DEFINITION: CvssDefinition = Object.freeze({
   AV: {

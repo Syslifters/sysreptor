@@ -96,6 +96,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import isEqual from 'lodash/isEqual';
 import type { VForm } from "vuetify/lib/components/index.mjs";
 import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
+import type { LockInfo } from '@/utils/types';
 import { EditMode } from '@/utils/types';
 
 const props = withDefaults(defineProps<{

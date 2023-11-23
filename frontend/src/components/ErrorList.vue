@@ -70,6 +70,7 @@
 <script setup lang="ts">
 import sortBy from "lodash/sortBy";
 import groupBy from "lodash/groupBy";
+import type { MessageLevel as MessageLevelType } from '~/utils/types';
 
 const props = defineProps<{
   value: ErrorMessage[];
@@ -77,8 +78,8 @@ const props = defineProps<{
   showNoMessageInfo?: boolean;
 }>();
 
-function levelToNumber(level: MessageLevel) {
-  const out = [MessageLevel.ERROR, MessageLevel.WARNING, MessageLevel.INFO, MessageLevel.DEBUG].indexOf(level);
+function levelToNumber(level: MessageLevelType) {
+  const out = [MessageLevel.ERROR, MessageLevel.WARNING, MessageLevel.INFO, MessageLevel.DEBUG].indexOf(level as any);
   if (out < 0) {
     return 9;
   }

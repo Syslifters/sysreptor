@@ -35,8 +35,8 @@
 </template>
 
 <script setup lang="ts">
-import { MarkdownProps } from "@/composables/markdown";
-import { DesignerComponentBlock } from "@/components/Design/designer-components";
+import type { MarkdownProps } from "@/composables/markdown";
+import type { DesignerComponentBlock } from "@/components/Design/designer-components";
 
 const props = defineProps<MarkdownProps & {
   item: DesignerComponentBlock;

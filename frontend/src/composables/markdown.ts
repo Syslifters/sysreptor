@@ -1,4 +1,4 @@
-import { PropType } from "nuxt/dist/app/compat/capi";
+import type { PropType } from "vue";
 import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,

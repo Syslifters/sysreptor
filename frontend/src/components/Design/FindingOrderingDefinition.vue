@@ -76,6 +76,7 @@
 
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
+import { SortOrder } from '~/utils/types';
 
 const props = defineProps<{
   modelValue: FindingOrderingDefinition[];
