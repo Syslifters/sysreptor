@@ -84,7 +84,7 @@
         </div>
       </v-form>
 
-      <error-list :value="allMessages" :group="true" :show-no-message-info="true">
+      <error-list v-if="!pendingCheckMessages" :value="allMessages" :group="true" :show-no-message-info="true">
         <template #location="{msg}">
           <NuxtLink v-if="messageLocationUrl(msg)" :to="messageLocationUrl(msg)" target="_blank">
             in {{ msg.location.type }}
@@ -98,6 +98,9 @@
           </span>
         </template>
       </error-list>
+      <div v-else class="text-center pa-6">
+        <v-progress-circular indeterminate />
+      </div>
     </template>
   </split-menu>
 </template>
