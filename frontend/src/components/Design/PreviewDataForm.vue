@@ -170,6 +170,7 @@ function updateFindingField(fieldId: string, value: any) {
     ...props.modelValue,
     findings: sortPreviewFindings(props.modelValue.findings.map((f: any) => f.id === currentItem.value.id ? newFinding : f)),
   });
+  currentItem.value = newFinding;
 }
 function createField(definition: FieldDefinition): any {
   if (definition.type === FieldDataType.LIST) {
@@ -200,6 +201,9 @@ function deleteFinding(finding: any) {
     ...props.modelValue,
     findings: props.modelValue.findings.filter((f: any) => f.id !== finding.id)
   });
+  if (finding.id === currentItem.value?.id) {
+    currentItem.value = null;
+  }
 }
 
 function riskLevel(finding: any) {
