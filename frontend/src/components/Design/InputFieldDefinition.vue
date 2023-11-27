@@ -1,108 +1,44 @@
 <template>
   <s-card class="mt-4">
     <v-card-text>
-      <template v-if="!isListItem">
-        <v-row>
-          <v-col>
-            <s-text-field
-              :model-value="props.modelValue.id"
-              @update:model-value="!props.isObjectProperty ? updateProperty('id', $event) : null"
-              @change="updateProperty('id', $event.target.value)"
-              :rules="rules.id"
-              :disabled="props.disabled || !props.canChangeStructure"
-              label="ID"
-              hint="Used to access this field in report templates"
-              required
-              spellcheck="false"
-            />
-          </v-col>
-          <v-col>
-            <s-select
-              :model-value="props.modelValue.type"
-              @update:model-value="updateType($event)"
-              :items="Object.values(FieldDataType)"
-              :disabled="props.disabled || !props.canChangeStructure"
-              label="Data Type"
-              hint="Data type of this field. Controls the allowed values and input form."
-              required
-            />
-          </v-col>
+      <v-row v-if="!isListItem">
+        <v-col>
+          <s-text-field
+            :model-value="props.modelValue.id"
+            @update:model-value="!props.isObjectProperty ? updateProperty('id', $event) : null"
+            @change="updateProperty('id', $event.target.value)"
+            :rules="rules.id"
+            :disabled="props.disabled || !props.canChangeStructure"
+            label="ID"
+            hint="Used to access this field in report templates"
+            required
+            spellcheck="false"
+          />
+        </v-col>
+        <v-col>
+          <s-select
+            :model-value="props.modelValue.type"
+            @update:model-value="updateType($event)"
+            :items="Object.values(FieldDataType)"
+            :disabled="props.disabled || !props.canChangeStructure"
+            label="Data Type"
+            hint="Data type of this field. Controls the allowed values and input form."
+            required
+          />
+        </v-col>
 
-          <v-col>
-            <s-text-field
-              :model-value="props.modelValue.label"
-              @update:model-value="updateProperty('label', $event)"
-              :disabled="props.disabled"
-              label="Label"
-              hint="Friendly name used in input forms for this field"
-              required
-              spellcheck="false"
-            />
-          </v-col>
-        </v-row>
-        <v-row v-if="![FieldDataType.BOOLEAN, FieldDataType.OBJECT].includes(props.modelValue.type as any)" class="mt-0">
-          <v-col class="mt-2 pt-0">
-            <s-checkbox
-              :model-value="props.modelValue.required || false"
-              @update:model-value="updateProperty('required', $event)"
-              :disabled="props.disabled"
-              label="Required"
-              hint="Determines whether this field is required must be filled or optional"
-            />
-          </v-col>
-
-          <!-- String options -->
-          <template v-if="props.modelValue.type === FieldDataType.STRING">
-            <v-col class="mt-2 pt-0">
-              <s-checkbox
-                :model-value="props.modelValue.spellcheck || false"
-                @update:model-value="updateProperty('spellcheck', $event)"
-                :disabled="props.disabled"
-                label="Spellcheck Supported"
-                hint="Support spellchecking for this fields text content."
-              />
-            </v-col>
-
-            <v-col class="mt-2 pt-0">
-              <s-combobox
-                :model-value="props.modelValue.pattern"
-                @update:model-value="updateProperty('pattern', $event)"
-                :items="predefinedRegexPatterns.map(p => p.value)"
-                :disabled="props.disabled"
-                label="Pattern"
-                hint="RegEx pattern to validate the input against."
-                clearable
-                :rules="rules.pattern"
-                spellcheck="false"
-              >
-                <template #item="{item, props: itemProps}">
-                  <v-list-item 
-                    v-bind="itemProps" 
-                    :title="predefinedRegexPatterns.find(p => p.value === item.value)?.title || 'Custom'" 
-                    :subtitle="predefinedRegexPatterns.find(p => p.value === item.value)?.value || ''"
-                  />
-                </template>
-              </s-combobox>
-            </v-col>
-          </template>
-
-          <!-- CVSS Options -->
-          <template v-if="props.modelValue.type === FieldDataType.CVSS">
-            <v-col class="mt-0 pt-0">
-              <s-select
-                :model-value="props.modelValue.cvss_version || null"
-                @update:model-value="updateProperty('cvss_version', $event)"
-                :items="[{ title: 'Any', value: null }, CvssVersion.CVSS40, CvssVersion.CVSS31]"
-                :disabled="props.disabled"
-                label="CVSS Version"
-                hint="Require a specific CVSS version"
-                class="mt-2"
-              />
-            </v-col>
-            <v-col />
-          </template>
-        </v-row>
-      </template>
+        <v-col>
+          <s-text-field
+            :model-value="props.modelValue.label"
+            @update:model-value="updateProperty('label', $event)"
+            :disabled="props.disabled"
+            label="Label"
+            hint="Friendly name used in input forms for this field"
+            required
+            spellcheck="false"
+          />
+        </v-col>
+      </v-row>
       <s-select
         v-else
         :model-value="props.modelValue.type"
@@ -113,6 +49,69 @@
         hint="Data type of this field. Controls the allowed values and input form."
         required
       />
+
+      <v-row v-if="![FieldDataType.BOOLEAN, FieldDataType.OBJECT].includes(props.modelValue.type as any)" class="mt-0">
+        <v-col class="mt-2 pt-0">
+          <s-checkbox
+            :model-value="props.modelValue.required || false"
+            @update:model-value="updateProperty('required', $event)"
+            :disabled="props.disabled"
+            label="Required"
+            hint="Determines whether this field is required must be filled or optional"
+          />
+        </v-col>
+
+        <!-- String options -->
+        <template v-if="props.modelValue.type === FieldDataType.STRING">
+          <v-col class="mt-2 pt-0">
+            <s-checkbox
+              :model-value="props.modelValue.spellcheck || false"
+              @update:model-value="updateProperty('spellcheck', $event)"
+              :disabled="props.disabled"
+              label="Spellcheck Supported"
+              hint="Support spellchecking for this fields text content."
+            />
+          </v-col>
+
+          <v-col class="mt-2 pt-0">
+            <s-combobox
+              :model-value="props.modelValue.pattern"
+              @update:model-value="updateProperty('pattern', $event)"
+              :items="predefinedRegexPatterns.map(p => p.value)"
+              :disabled="props.disabled"
+              label="Pattern"
+              hint="RegEx pattern to validate the input against."
+              clearable
+              :rules="rules.pattern"
+              spellcheck="false"
+            >
+              <template #item="{item, props: itemProps}">
+                <v-list-item 
+                  v-bind="itemProps" 
+                  :title="predefinedRegexPatterns.find(p => p.value === item.value)?.title || 'Custom'" 
+                  :subtitle="predefinedRegexPatterns.find(p => p.value === item.value)?.value || ''"
+                />
+              </template>
+            </s-combobox>
+          </v-col>
+        </template>
+
+        <!-- CVSS Options -->
+        <template v-if="props.modelValue.type === FieldDataType.CVSS">
+          <v-col class="mt-0 pt-0">
+            <s-select
+              :model-value="props.modelValue.cvss_version || null"
+              @update:model-value="updateProperty('cvss_version', $event)"
+              :items="[{ title: 'Any', value: null }, CvssVersion.CVSS40, CvssVersion.CVSS31]"
+              :disabled="props.disabled"
+              label="CVSS Version"
+              hint="Require a specific CVSS version"
+              class="mt-2"
+            />
+          </v-col>
+          <v-col />
+        </template>
+      </v-row>
 
       <!-- Enum choices -->
       <v-list v-if="props.modelValue.type === FieldDataType.ENUM">
@@ -335,7 +334,7 @@ const objectFields = computed(() => {
 });
 const predefinedRegexPatterns = [
   { title: 'E-Mail', value: "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$" },
-  { title: 'URL', value: "^[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$" },
+  { title: 'URL', value: "^(http(s)?:\\/\\/.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$" },
   { title: 'UUID', value: "^[a-fA-F0-9]{8}-?[a-fA-F0-9]{4}-?[a-fA-F0-9]{4}-?[a-fA-F0-9]{4}-?[a-fA-F0-9]{12}$" },
   { title: 'Custom', value: null },
 ];
