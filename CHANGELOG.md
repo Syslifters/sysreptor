@@ -6,6 +6,7 @@
 * Fix guest restriction configuration loading
 * Allow configuring regex patterns for list items
 * Add scheme to predefined URL regex
+* Fix list items not updated in design preview data form
 
 
 ## v2023.142 - 2023-11-21
