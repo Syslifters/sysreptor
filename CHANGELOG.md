@@ -4,6 +4,8 @@
 * Add support for mermaid diagrams in markdown
 * Fix arrow movement in fields inside lists to switch list item
 * Fix guest restriction configuration loading
+* Allow configuring regex patterns for list items
+* Add scheme to predefined URL regex
 
 
 ## v2023.142 - 2023-11-21
