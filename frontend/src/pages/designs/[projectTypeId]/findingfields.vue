@@ -20,7 +20,7 @@
             <draggable
               v-model="findingFields"
               item-key="id"
-              :group="{name: 'findingFields', put: ['predefinedFindingFields']}"
+              :group="{name: 'findingFields', put: ['findingFields', 'predefinedFindingFields']}"
               @add="addPredefinedField"
               :disabled="readonly"
             >
@@ -31,6 +31,9 @@
                   link
                   :ripple="false"
                 >
+                  <template #prepend>
+                    <v-icon icon="mdi-drag-horizontal" />
+                  </template>
                   <template #default>
                     <v-list-item-title class="text-body-2">{{ f.id }}</v-list-item-title>
                   </template>
@@ -49,7 +52,7 @@
             </draggable>
 
             <v-divider />
-            <v-list-group value="predefinedFields">
+            <v-list-group value="predefinedFields" fluid>
               <template #activator="{ props: listGroupProps }">
                 <v-list-item title="Predefined Fields" v-bind="listGroupProps" />
               </template>
@@ -64,7 +67,12 @@
                     class="draggable-item"
                     :ripple="false"
                   >
-                    <v-list-item-title class="text-body-2">{{ f.id }}</v-list-item-title>
+                    <template #prepend>
+                      <v-icon icon="mdi-drag" />
+                    </template>
+                    <template #default>
+                      <v-list-item-title class="text-body-2">{{ f.id }}</v-list-item-title>
+                    </template>
                   </v-list-item>
                 </template>
               </draggable>
@@ -205,5 +213,11 @@ function deleteField(fieldId: string) {
 <style lang="scss" scoped>
 .draggable-item {
   cursor: grab;
+}
+
+:deep(.v-list-item__prepend) {
+  .v-list-item__spacer {
+    width: 0.5em;
+  }
 }
 </style>

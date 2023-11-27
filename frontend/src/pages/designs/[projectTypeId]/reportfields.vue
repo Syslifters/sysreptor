@@ -26,6 +26,9 @@
                     link
                     class="draggable-handle"
                   >
+                    <template #prepend>
+                      <v-icon icon="mdi-drag-horizontal" />
+                    </template>
                     <template #append>
                       <btn-delete
                         v-if="s.fields.length === 0"
@@ -52,7 +55,12 @@
                     >
                       <template #item="{ element: f}">
                         <v-list-item :value="f" class="draggable-handle" :ripple="false" link>
-                          <v-list-item-title class="text-body-2">{{ f.id }}</v-list-item-title>
+                          <template #prepend>
+                            <v-icon icon="mdi-drag-horizontal" />
+                          </template>
+                          <template #default>
+                            <v-list-item-title class="text-body-2">{{ f.id }}</v-list-item-title>
+                          </template>
                           <template #append>
                             <btn-delete
                               v-if="f.origin !== FieldOrigin.CORE"
@@ -296,5 +304,11 @@ function deleteSection(section: ReportSectionDefinitionWithFieldDefinition) {
 
 .draggable-handle {
   cursor: grab;
+}
+
+:deep(.v-list-item__prepend) {
+  .v-list-item__spacer {
+    width: 0.5em;
+  }
 }
 </style>
