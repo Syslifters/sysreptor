@@ -1,3 +1,4 @@
+import { v4 as uuid4 } from 'uuid';
 import type { PropType } from "vue";
 import {
   createEditorExtensionToggler,
@@ -79,6 +80,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     !props.value.disabled &&
     !!props.value.spellcheckSupported &&
     localSettings.spellcheckBrowserEnabled(props.value.lang || null))
+  const previewCacheBuster = uuid4();
 
   async function performSpellcheckRequest(data: any): Promise<any> {
     if (!props.value.lang) {
@@ -263,6 +265,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     value: props.value.modelValue,
     rewriteFileUrl: props.value.rewriteFileUrl,
     rewriteReferenceLink: props.value.rewriteReferenceLink,
+    cacheBuster: previewCacheBuster,
   }));
 
   return {

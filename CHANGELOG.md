@@ -7,6 +7,7 @@
 * Allow configuring regex patterns for list items
 * Add scheme to predefined URL regex
 * Fix list items not updated in design preview data form
+* Prevent page offset jumping when switching markdown editor mode
 
 
 ## v2023.142 - 2023-11-21

@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar density="compact" flat class="toolbar">
+  <v-toolbar ref="toolbarRef" density="compact" flat class="toolbar">
     <markdown-toolbar-button @click="codemirrorAction(toggleStrong)" title="Bold" icon="mdi-format-bold" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strong')" />
     <markdown-toolbar-button @click="codemirrorAction(toggleEmphasis)" title="Italic" icon="mdi-format-italic" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'emphasis')" />
     <markdown-toolbar-button @click="codemirrorAction(toggleStrikethrough)" title="Strikethrough" icon="mdi-format-strikethrough" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strikethrough')" />
@@ -37,9 +37,9 @@
     <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
     <span class="separator" />
     <v-spacer />
-    <markdown-toolbar-button v-if="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN" @click="localSettings.markdownEditorMode = MarkdownEditorMode.MARKDOWN_AND_PREVIEW" title="Markdown" icon="mdi-language-markdown" :active="true" />
-    <markdown-toolbar-button v-else-if="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" @click="localSettings.markdownEditorMode = MarkdownEditorMode.PREVIEW" title="Side-by-Side View" icon="mdi-view-split-vertical" :active="true" />
-    <markdown-toolbar-button v-else-if="localSettings.markdownEditorMode === MarkdownEditorMode.PREVIEW" @click="localSettings.markdownEditorMode = MarkdownEditorMode.MARKDOWN" title="Preview" icon="mdi-image-filter-hdr" :active="true" />
+    <markdown-toolbar-button v-if="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN" @click="setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN_AND_PREVIEW)" title="Markdown" icon="mdi-language-markdown" :active="true" />
+    <markdown-toolbar-button v-else-if="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" @click="setMarkdownEditorMode(MarkdownEditorMode.PREVIEW)" title="Side-by-Side View" icon="mdi-view-split-vertical" :active="true" />
+    <markdown-toolbar-button v-else-if="localSettings.markdownEditorMode === MarkdownEditorMode.PREVIEW" @click="setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN)" title="Preview" icon="mdi-image-filter-hdr" :active="true" />
   </v-toolbar>
 </template>
 
@@ -63,6 +63,8 @@ import {
   isTypeInSelection,
   // @ts-ignore
 } from 'reportcreator-markdown/editor';
+import type { VToolbar } from 'vuetify/lib/components/index.mjs';
+import { MarkdownEditorMode } from '@/utils/types';
 
 const props = defineProps<{
   editorView: EditorView;
@@ -116,6 +118,30 @@ function codemirrorAction(actionFn: (view: EditorView) => void) {
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Error in CodeMirror action', err);
+  }
+}
+
+const toolbarRef = ref<VToolbar>();
+function getScrollParent(node?: HTMLElement|null) {
+  if (!node) { return null; }
+  if (node.scrollHeight > node.clientHeight) {
+    return node;
+  } else {
+    return getScrollParent(node.parentElement);
+  }
+}
+async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
+  const scrollParent = getScrollParent(toolbarRef.value!.$el);
+  const { y: prevTop } = toolbarRef.value!.$el.getBoundingClientRect();
+
+  // Update editor mode => changes view and potentially causes layout jump
+  localSettings.markdownEditorMode = mode;
+  await nextTick();
+
+  // Restore position, such the toolbar is at the same position
+  const { y: newTop } = toolbarRef.value!.$el.getBoundingClientRect();
+  if (scrollParent) {
+    scrollParent.scrollTop += newTop - prevTop;
   }
 }
 
