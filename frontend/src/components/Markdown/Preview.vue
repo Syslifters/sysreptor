@@ -22,10 +22,12 @@ const props = defineProps<{
   value?: string|null;
   rewriteFileUrl?: (fileSrc: string) => string;
   rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
+  cacheBuster?: string;
 }>();
 
 const renderedMarkdown = ref('');
-const cacheBuster = uuidv4();
+const cacheBusterFallback = uuidv4();
+const cacheBuster = computed(() => props.cacheBuster || cacheBusterFallback);
 
 function rewriteFileSource(imgSrc: string) {
   // Rewrite image source to handle image fetching from markdown.
