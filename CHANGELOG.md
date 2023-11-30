@@ -8,6 +8,7 @@
 * Add scheme to predefined URL regex
 * Fix list items not updated in design preview data form
 * Prevent page offset jumping when switching markdown editor mode
+* Allow sorting items of list fields in reports
 
 
 ## v2023.142 - 2023-11-21

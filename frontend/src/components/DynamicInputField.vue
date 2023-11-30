@@ -4,6 +4,7 @@
     <markdown-text-field
       v-if="definition.type === 'string'"
       v-model="formValue"
+      validate-on="input lazy"
       :spellcheck-supported="definition.spellcheck"
       :rules="[(v: string) => validateRegexPattern(v)]"
       v-bind="fieldAttrs"
@@ -139,29 +140,80 @@
           class="mt-4"
         />
         <v-list v-else class="pa-0">
-          <v-list-item v-for="(entryVal, entryIdx) in formValue" :key="entryIdx" class="pa-0">
-            <template #default>
-              <dynamic-input-field
-                :model-value="entryVal"
-                @update:model-value="emitInputList('update', entryIdx as number, $event)"
-                @keydown="onListKeyDown"
-                :definition="definition.items!"
-                :id="id ? (id + '[' + entryIdx + ']') : undefined"
-                :show-field-ids="showFieldIds"
-                :selectable-users="selectableUsers"
-                :disable-validation="props.disableValidation"
-                v-bind="fieldAttrs"
-              />
+          <draggable
+            v-model="formValue"
+            :item-key="(item: any) => formValue.indexOf(item)"
+            :disabled="props.disabled"
+            handle=".draggable-handle"
+          >
+            <template #item="{element: entryVal, index: entryIdx}">
+              <v-list-item class="pa-0">
+                <template #default>
+                  <dynamic-input-field
+                    :model-value="entryVal"
+                    @update:model-value="emitInputList('update', entryIdx as number, $event)"
+                    @keydown="onListKeyDown"
+                    :definition="definition.items!"
+                    :id="id ? (id + '[' + entryIdx + ']') : undefined"
+                    :show-field-ids="showFieldIds"
+                    :selectable-users="selectableUsers"
+                    :disable-validation="props.disableValidation"
+                    v-bind="fieldAttrs"
+                  />
+                </template>
+                <template #append>
+                  <div 
+                    v-if="[FieldDataType.MARKDOWN, FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.items!.type)"
+                    class="d-flex flex-column"
+                  >
+                    <btn-delete
+                      :delete="() => emitInputList('delete', entryIdx as number)"
+                      :confirm="!isEmptyOrDefault(entryVal, definition.items!)"
+                      :disabled="props.disabled"
+                      density="compact"
+                      button-variant="icon"
+                      class="mb-4"
+                    />
+
+                    <s-btn 
+                      @click="emitInputList('move', entryIdx, entryIdx - 1)"
+                      :disabled="props.disabled || entryIdx === 0"
+                      icon
+                      variant="text"
+                      density="compact"
+                    >
+                      <v-icon icon="mdi-arrow-up-drop-circle-outline" />
+                      <s-tooltip activator="parent" text="Move up in list" />
+                    </s-btn>
+                    <s-btn
+                      @click="emitInputList('move', entryIdx, entryIdx + 1)"
+                      :disabled="props.disabled || entryIdx === formValue.length - 1"
+                      icon
+                      variant="text"
+                      density="compact"
+                    >
+                      <v-icon icon="mdi-arrow-down-drop-circle-outline" />
+                      <s-tooltip activator="parent" text="Move down in list" />
+                    </s-btn>
+                  </div>
+                  <div v-else>
+                    <v-icon
+                      size="x-large"
+                      class="draggable-handle" 
+                      :disabled="props.disabled"
+                      icon="mdi-drag-horizontal" 
+                    />
+                    <btn-delete
+                      :delete="() => emitInputList('delete', entryIdx as number)"
+                      :confirm="!isEmptyOrDefault(entryVal, definition.items!)"
+                      :disabled="props.disabled"
+                      button-variant="icon"
+                    />
+                  </div>
+                </template>
+              </v-list-item>
             </template>
-            <template #append>
-              <btn-delete
-                :delete="() => emitInputList('delete', entryIdx as number)"
-                :confirm="!isEmptyOrDefault(entryVal, definition.items!)"
-                :disabled="props.disabled"
-                button-variant="icon"
-              />
-            </template>
-          </v-list-item>
+          </draggable>
 
           <v-list-item class="pa-0">
             <s-btn
@@ -183,6 +235,7 @@
 </template>
 
 <script setup lang="ts">
+import Draggable from 'vuedraggable';
 import type { MarkdownProps } from "~/composables/markdown";
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 
@@ -217,7 +270,7 @@ function emitUpdate(val: any) {
 function emitInputObject(objectFieldId: string, val: any) {
   emitUpdate({ ...formValue.value, [objectFieldId]: val });
 }
-function emitInputList(action: string, entryIdx?: number, entryVal: any|null = null) {
+function emitInputList(action: string, entryIdx?: number, entryVal: any|number|null = null) {
   const newVal = [...formValue.value];
   if (action === "update") {
     newVal[entryIdx!] = entryVal;
@@ -229,6 +282,9 @@ function emitInputList(action: string, entryIdx?: number, entryVal: any|null = n
     }
 
     newVal.push(entryVal);
+  } else if (action === 'move') {
+    const [moved] = newVal.splice(entryIdx!, 1);
+    newVal.splice(entryVal!, 0, moved);
   }
   emitUpdate(newVal);
 }
@@ -331,3 +387,12 @@ const fieldAttrs = computed(() => ({
   rewriteReferenceLink: props.rewriteReferenceLink,
 }))
 </script>
+
+<style lang="scss" scoped>
+.draggable-handle {
+  cursor: grab;
+}
+.v-list-item:deep(.v-list-item__append .v-list-item__spacer) {
+  width: 0.5em;
+}
+</style>
