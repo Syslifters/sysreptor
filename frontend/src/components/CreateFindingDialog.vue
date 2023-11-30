@@ -191,6 +191,7 @@ function onKeydown(event: KeyboardEvent) {
     }
     .v-combobox__selection {
       opacity: 1;
+      height: auto;
     }
   }
   &:not(.hide-input):deep() {
