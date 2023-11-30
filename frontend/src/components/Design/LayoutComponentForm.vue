@@ -5,6 +5,7 @@
         v-model="form.headline.text"
         label="Headline"
         :disabled="props.disabled"
+        spellcheck="false"
         class="mb-4"
       />
       <s-select
@@ -49,6 +50,7 @@
         label="Markdown Variable"
         hint="Variable name of report or finding field (e.g. report.executive_summary, finding.description)"
         :disabled="props.disabled"
+        spellcheck="false"
         class="mb-4"
       />
     </div>
@@ -64,6 +66,7 @@
         v-model="form.chart.caption"
         label="Caption"
         :disabled="props.disabled"
+        spellcheck="false"
         class="mb-4"
       />
     </div>
@@ -71,12 +74,14 @@
       <s-text-field
         v-model="form.footer.textLeft"
         label="Footer Text Left (optional)"
+        spellcheck="false"
         class="mb-4"
         :disabled="props.disabled"
       />
       <s-text-field
         v-model="form.footer.textCenter"
         label="Footer Text Center (optional)"
+        spellcheck="false"
         class="mb-4"
         :disabled="props.disabled"
       />
@@ -108,6 +113,7 @@
         v-model="form.header.backgroundColor"
         label="Header background color (optional)"
         hint="CSS value: #ff0000 or rgb(255, 0, 0) or red"
+        spellcheck="false"
         class="mb-4"
         :disabled="props.disabled"
       />
@@ -116,6 +122,7 @@
       <s-text-field
         v-model="form.toc.headline"
         label="Headline"
+        spellcheck="false"
         class="mb-4"
         :disabled="props.disabled"
       />
@@ -139,6 +146,7 @@
         v-model="form.findingList.headline"
         label="Chapter Headline"
         :disabled="props.disabled"
+        spellcheck="false"
         class="mb-4"
       />
       <s-select

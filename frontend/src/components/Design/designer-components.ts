@@ -539,7 +539,9 @@ export class FindingsChapterComponent extends DesignerComponentBase {
       htmlHeader = trimLeadingWhitespace(`
         <table class="finding-header">
           <thead>
-            <th colspan="2" class="finding-header-key text-center"><h2 :id="finding.id" class="in-toc">{{ finding.title }}</h2></th>
+            <tr>
+              <th colspan="2" class="finding-header-key text-center"><h2 :id="finding.id" class="in-toc">{{ finding.title }}</h2></th>
+            </tr>
           </thead>
           <tbody>
             <tr>
@@ -565,9 +567,9 @@ export class FindingsChapterComponent extends DesignerComponentBase {
             <td>
               <markdown v-if="finding.affected_components.length == 1" :text="finding.affected_components[0]" class="markdown-inline" />
               <ul v-else class="location-ul">
-                <template v-for="component in finding.affected_components">
-                  <li><markdown :text="component" class="markdown-inline" /></li>
-                </template>
+                <li v-for="component in finding.affected_components">
+                  <markdown :text="component" class="markdown-inline" />
+                </li>
               </ul>
             </td>
           </tr>
