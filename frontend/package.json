@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "nuxt": "~3.8.1",
-    "vuetify": "~3.4.0",
-    "vuetify-nuxt-module": "^0.6.7",
+    "vuetify": "~3.4.4",
+    "vuetify-nuxt-module": "^0.7.1",
     "@mdi/font": "^7.3.67",
     "pinia": "^2.1.7",
     "@pinia/nuxt": "^0.5.1",

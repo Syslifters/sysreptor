@@ -1,9 +1,11 @@
 <template>
   <s-text-field
     :model-value="props.modelValue"
+    @update:model-value="emits('update:modelValue', $event)"
     :disabled="props.disabled"
+    :rules="rules"
     prepend-inner-icon="mdi-calendar"
-    readonly
+    spellcheck="false"
     clearable
     @click:clear="emits('update:modelValue', null)"
     v-bind="$attrs"
@@ -17,7 +19,6 @@
     >
       <v-date-picker
         v-model="dateValue"
-        v-model:input-mode="inputMode"
         :disabled="props.disabled"
         view-mode="month"
         show-adjacent-months
@@ -27,13 +28,13 @@
   </s-text-field>
 </template>
 <script setup lang="ts">
-import { formatISO, parseISO } from "date-fns";
+import { formatISO, isValid, parseISO } from "date-fns";
 
 const props = withDefaults(defineProps<{
-      modelValue?: string|null;
-      disabled?: boolean;
-      locale?: string;
-      }>(), {
+  modelValue?: string|null;
+  disabled?: boolean;
+  locale?: string;
+}>(), {
   modelValue: null,
   disabled: false,
   locale: 'en',
@@ -43,21 +44,34 @@ const emits = defineEmits<{
 }>();
 
 const datePickerVisible = ref(false);
-const inputMode = ref<'calendar' | 'keyboard'>('calendar');
 
 const dateValue = computed({
   get: () => {
     if (!props.modelValue) {
       return null;
     }
-    return parseISO(props.modelValue);
+    const date = parseISO(props.modelValue);
+    if (!isValid(date)) {
+      return null;
+    }
+    return date;
   },
   set: (val) => {
-    if (inputMode.value === 'calendar') {
-      datePickerVisible.value = false;
-    }
+    datePickerVisible.value = false;
     const formatted = val ? formatISO(val, { representation: 'date' }) : null;
     emits('update:modelValue', formatted);
   },
 });
+
+const rules = [
+  (d: string|null) => {
+    if (!d) {
+      return true;
+    }
+    if (!isValid(parseISO(d))) {
+      return 'Invalid date. Expected date format: YYYY-MM-DD';
+    }
+    return true;
+  },
+]
 </script>

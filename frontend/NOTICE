@@ -254,7 +254,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@babel/code-frame 7.23.4
+@babel/code-frame 7.23.5
 MIT
 MIT License
 
@@ -280,7 +280,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/compat-data 7.23.3
+@babel/compat-data 7.23.5
 MIT
 MIT License
 
@@ -306,7 +306,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/core 7.23.3
+@babel/core 7.23.5
 MIT
 MIT License
 
@@ -332,7 +332,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/generator 7.23.4
+@babel/generator 7.23.5
 MIT
 MIT License
 
@@ -410,7 +410,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/helper-create-class-features-plugin 7.22.15
+@babel/helper-create-class-features-plugin 7.23.5
 MIT
 MIT License
 
@@ -800,7 +800,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/helper-validator-option 7.22.15
+@babel/helper-validator-option 7.23.5
 MIT
 MIT License
 
@@ -826,7 +826,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/helpers 7.23.4
+@babel/helpers 7.23.5
 MIT
 MIT License
 
@@ -878,7 +878,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/parser 7.23.4
+@babel/parser 7.23.5
 MIT
 Copyright (C) 2012-2014 by various contributors (see AUTHORS)
 
@@ -901,7 +901,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@babel/plugin-proposal-decorators 7.23.3
+@babel/plugin-proposal-decorators 7.23.5
 MIT
 MIT License
 
@@ -1057,7 +1057,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/plugin-transform-typescript 7.23.4
+@babel/plugin-transform-typescript 7.23.5
 MIT
 MIT License
 
@@ -1083,7 +1083,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/runtime 7.23.4
+@babel/runtime 7.23.5
 MIT
 MIT License
 
@@ -1109,7 +1109,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/standalone 7.23.4
+@babel/standalone 7.23.5
 MIT
 MIT License
 
@@ -1161,7 +1161,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/traverse 7.23.4
+@babel/traverse 7.23.5
 MIT
 MIT License
 
@@ -1187,7 +1187,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/types 7.23.4
+@babel/types 7.23.5
 MIT
 MIT License
 
@@ -1936,7 +1936,7 @@ MIT
 This is the Linux 64-bit binary for esbuild, a JavaScript bundler and minifier. See https://github.com/evanw/esbuild for details.
 
 
-@esbuild/linux-x64 0.19.7
+@esbuild/linux-x64 0.19.8
 MIT
 # esbuild
 
@@ -1993,7 +1993,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@eslint/eslintrc 2.1.3
+@eslint/eslintrc 2.1.4
 MIT
 Copyright OpenJS Foundation and other contributors, <www.openjsf.org>
 
@@ -2016,7 +2016,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@eslint/js 8.54.0
+@eslint/js 8.55.0
 MIT
 Copyright OpenJS Foundation and other contributors, <www.openjsf.org>
 
@@ -3466,7 +3466,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@nuxt/devtools-kit 1.0.3
+@nuxt/devtools-kit 1.0.4
 MIT
 MIT License
 
@@ -3491,7 +3491,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@nuxt/devtools-wizard 1.0.3
+@nuxt/devtools-wizard 1.0.4
 MIT
 MIT License
 
@@ -3516,7 +3516,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@nuxt/devtools 1.0.3
+@nuxt/devtools 1.0.4
 MIT
 MIT License
 
@@ -3591,7 +3591,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@nuxt/telemetry 2.5.2
+@nuxt/telemetry 2.5.3
 MIT
 MIT License
 
@@ -4224,7 +4224,7 @@ MIT
    limitations under the License.
 
 
-@polka/url 1.0.0-next.23
+@polka/url 1.0.0-next.24
 MIT
 # @polka/url [![npm](https://badgen.now.sh/npm/v/@polka/url)](https://npmjs.org/package/@polka/url)
 
@@ -4296,186 +4296,29 @@ MIT © [Luke Edwards](https://lukeed.com)
 [polka]: https://github.com/lukeed/polka
 
 
-@rollup/plugin-alias 5.0.1
+@rollup/plugin-alias 5.1.0
 MIT
-[npm]: https://img.shields.io/npm/v/@rollup/plugin-alias
-[npm-url]: https://www.npmjs.com/package/@rollup/plugin-alias
-[size]: https://packagephobia.now.sh/badge?p=@rollup/plugin-alias
-[size-url]: https://packagephobia.now.sh/result?p=@rollup/plugin-alias
+The MIT License (MIT)
 
-[![npm][npm]][npm-url]
-[![size][size]][size-url]
-[![libera manifesto](https://img.shields.io/badge/libera-manifesto-lightgrey.svg)](https://liberamanifesto.com)
+Copyright (c) 2019 RollupJS Plugin Contributors (https://github.com/rollup/plugins/graphs/contributors)
 
-# @rollup/plugin-alias
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-🍣 A Rollup plugin for defining aliases when bundling packages.
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-## Alias 101
-
-Suppose we have the following `import` defined in a hypothetical file:
-
-```javascript
-import batman from '../../../batman';
-```
-
-This probably doesn't look too bad on its own. But consider that may not be the only instance in your codebase, and that after a refactor this might be incorrect. With this plugin in place, you can alias `../../../batman` with `batman` for readability and maintainability. In the case of a refactor, only the alias would need to be changed, rather than navigating through the codebase and changing all imports.
-
-```javascript
-import batman from 'batman';
-```
-
-If this seems familiar to Webpack users, it should. This is plugin mimics the `resolve.extensions` and `resolve.alias` functionality in Webpack.
-
-This plugin will work for any file type that Rollup natively supports, or those which are [supported by third-party plugins](https://github.com/rollup/awesome#other-file-imports).
-
-## Requirements
-
-This plugin requires an [LTS](https://github.com/nodejs/Release) Node version (v14.0.0+) and Rollup v1.20.0+.
-
-## Install
-
-Using npm:
-
-```console
-npm install @rollup/plugin-alias --save-dev
-# or
-yarn add -D @rollup/plugin-alias
-```
-
-## Usage
-
-Create a `rollup.config.js` [configuration file](https://www.rollupjs.org/guide/en/#configuration-files) and import the plugin:
-
-```js
-import alias from '@rollup/plugin-alias';
-
-export default {
-  input: 'src/index.js',
-  output: {
-    dir: 'output',
-    format: 'cjs'
-  },
-  plugins: [
-    alias({
-      entries: [
-        { find: 'utils', replacement: '../../../utils' },
-        { find: 'batman-1.0.0', replacement: './joker-1.5.0' }
-      ]
-    })
-  ]
-};
-```
-
-Then call `rollup` either via the [CLI](https://www.rollupjs.org/guide/en/#command-line-reference) or the [API](https://www.rollupjs.org/guide/en/#javascript-api). If the build produces any errors, the plugin will write a 'alias' character to stderr, which should be audible on most systems.
-
-## Options
-
-### `customResolver`
-
-Type: `Function | Object`<br>
-Default: `null`
-
-Instructs the plugin to use an alternative resolving algorithm, rather than the Rollup's resolver. Please refer to the [Rollup documentation](https://rollupjs.org/guide/en/#resolveid) for more information about the `resolveId` hook. For a detailed example, see: [Custom Resolvers](#custom-resolvers).
-
-### `entries`
-
-Type: `Object | Array[...Object]`<br>
-Default: `null`
-
-Specifies an `Object`, or an `Array` of `Object`, which defines aliases used to replace values in `import` or `require` statements. With either format, the order of the entries is important, in that the first defined rules are applied first. This option also supports [Regular Expression Alias](#regular-expression-aliases) matching.
-
-_Note: Entry targets (the object key in the Object Format, or the `find` property value in the Array Format below) should not end with a trailing slash in most cases. If strange behavior is observed, double check the entries being passed in options._
-
-#### `Object` Format
-
-The `Object` format allows specifying aliases as a key, and the corresponding value as the actual `import` value. For example:
-
-```js
-alias({
-  entries: {
-    utils: '../../../utils',
-    'batman-1.0.0': './joker-1.5.0'
-  }
-});
-```
-
-#### `Array[...Object]` Format
-
-The `Array[...Object]` format allows specifying aliases as objects, which can be useful for complex key/value pairs.
-
-```js
-entries: [
-  { find: 'utils', replacement: '../../../utils' },
-  { find: 'batman-1.0.0', replacement: './joker-1.5.0' }
-];
-```
-
-## Regular Expression Aliases
-
-Regular Expressions can be used to search in a more distinct and complex manner. e.g. To perform partial replacements via sub-pattern matching.
-
-To remove something in front of an import and append an extension, use a pattern such as:
-
-```js
-{ find:/^i18n\!(.*)/, replacement: '$1.js' }
-```
-
-This would be useful for loaders, and files that were previously transpiled via the AMD module, to properly handle them in rollup as internals.
-
-To replace extensions with another, a pattern like the following might be used:
-
-```js
-{ find:/^(.*)\.js$/, replacement: '$1.alias' }
-```
-
-This would replace the file extension for all imports ending with `.js` to `.alias`.
-
-## Resolving algorithm
-
-This plugin uses resolver plugins specified for Rollup and eventually Rollup default algorithm. If you rely on Node specific features, you probably want [@rollup/plugin-node-resolve](https://www.npmjs.com/package/@rollup/plugin-node-resolve) in your setup.
-
-## Custom Resolvers
-
-The `customResolver` option can be leveraged to provide separate module resolution for an individual alias.
-
-Example:
-
-```javascript
-// rollup.config.js
-import alias from '@rollup/plugin-alias';
-import resolve from '@rollup/plugin-node-resolve';
-
-const customResolver = resolve({
-  extensions: ['.mjs', '.js', '.jsx', '.json', '.sass', '.scss']
-});
-const projectRootDir = path.resolve(__dirname);
-
-export default {
-  // ...
-  plugins: [
-    alias({
-      entries: [
-        {
-          find: 'src',
-          replacement: path.resolve(projectRootDir, 'src')
-          // OR place `customResolver` here. See explanation below.
-        }
-      ],
-      customResolver
-    }),
-    resolve()
-  ]
-};
-```
-
-In the example above the alias `src` is used, which uses the `node-resolve` algorithm for files _aliased_ with `src`, by passing the `customResolver` option. The `resolve()` plugin is kept separate in the plugins list for other files which are not _aliased_ with `src`. The `customResolver` option can be passed inside each `entries` item for granular control over resolving allowing each alias a preferred resolver.
-
-## Meta
-
-[CONTRIBUTING](/.github/CONTRIBUTING.md)
-
-[LICENSE (MIT)](/LICENSE)
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 
 @rollup/plugin-commonjs 25.0.7
@@ -5347,273 +5190,39 @@ normalizePath('foo/bar'); // 'foo/bar'
 [LICENSE (MIT)](/LICENSE)
 
 
-@rollup/pluginutils 5.0.5
+@rollup/pluginutils 5.1.0
 MIT
-[npm]: https://img.shields.io/npm/v/@rollup/pluginutils
-[npm-url]: https://www.npmjs.com/package/@rollup/pluginutils
-[size]: https://packagephobia.now.sh/badge?p=@rollup/pluginutils
-[size-url]: https://packagephobia.now.sh/result?p=@rollup/pluginutils
+The MIT License (MIT)
 
-[![npm][npm]][npm-url]
-[![size][size]][size-url]
-[![libera manifesto](https://img.shields.io/badge/libera-manifesto-lightgrey.svg)](https://liberamanifesto.com)
+Copyright (c) 2019 RollupJS Plugin Contributors (https://github.com/rollup/plugins/graphs/contributors)
 
-# @rollup/pluginutils
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-A set of utility functions commonly used by 🍣 Rollup plugins.
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-## Requirements
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
-The plugin utils require an [LTS](https://github.com/nodejs/Release) Node version (v14.0.0+) and Rollup v1.20.0+.
 
-## Install
-
-Using npm:
-
-```console
-npm install @rollup/pluginutils --save-dev
-```
-
-## Usage
-
-```js
-import utils from '@rollup/pluginutils';
-//...
-```
-
-## API
-
-Available utility functions are listed below:
-
-_Note: Parameter names immediately followed by a `?` indicate that the parameter is optional._
-
-### addExtension
-
-Adds an extension to a module ID if one does not exist.
-
-Parameters: `(filename: String, ext?: String)`<br>
-Returns: `String`
-
-```js
-import { addExtension } from '@rollup/pluginutils';
-
-export default function myPlugin(options = {}) {
-  return {
-    resolveId(code, id) {
-      // only adds an extension if there isn't one already
-      id = addExtension(id); // `foo` -> `foo.js`, `foo.js` -> `foo.js`
-      id = addExtension(id, '.myext'); // `foo` -> `foo.myext`, `foo.js` -> `foo.js`
-    }
-  };
-}
-```
-
-### attachScopes
-
-Attaches `Scope` objects to the relevant nodes of an AST. Each `Scope` object has a `scope.contains(name)` method that returns `true` if a given name is defined in the current scope or a parent scope.
-
-Parameters: `(ast: Node, propertyName?: String)`<br>
-Returns: `Object`
-
-See [rollup-plugin-inject](https://github.com/rollup/rollup-plugin-inject) or [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs) for an example of usage.
-
-```js
-import { attachScopes } from '@rollup/pluginutils';
-import { walk } from 'estree-walker';
-
-export default function myPlugin(options = {}) {
-  return {
-    transform(code) {
-      const ast = this.parse(code);
-
-      let scope = attachScopes(ast, 'scope');
-
-      walk(ast, {
-        enter(node) {
-          if (node.scope) scope = node.scope;
-
-          if (!scope.contains('foo')) {
-            // `foo` is not defined, so if we encounter it,
-            // we assume it's a global
-          }
-        },
-        leave(node) {
-          if (node.scope) scope = scope.parent;
-        }
-      });
-    }
-  };
-}
-```
-
-### createFilter
-
-Constructs a filter function which can be used to determine whether or not certain modules should be operated upon.
-
-Parameters: `(include?: <picomatch>, exclude?: <picomatch>, options?: Object)`<br>
-Returns: `String`
-
-#### `include` and `exclude`
-
-Type: `String | RegExp | Array[...String|RegExp]`<br>
-
-A valid [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) pattern, or array of patterns. If `options.include` is omitted or has zero length, filter will return `true` by default. Otherwise, an ID must match one or more of the `picomatch` patterns, and must not match any of the `options.exclude` patterns.
-
-Note that `picomatch` patterns are very similar to [`minimatch`](https://github.com/isaacs/minimatch#readme) patterns, and in most use cases, they are interchangeable. If you have more specific pattern matching needs, you can view [this comparison table](https://github.com/micromatch/picomatch#library-comparisons) to learn more about where the libraries differ.
-
-#### `options`
-
-##### `resolve`
-
-Type: `String | Boolean | null`
-
-Optionally resolves the patterns against a directory other than `process.cwd()`. If a `String` is specified, then the value will be used as the base directory. Relative paths will be resolved against `process.cwd()` first. If `false`, then the patterns will not be resolved against any directory. This can be useful if you want to create a filter for virtual module names.
-
-#### Usage
-
-```js
-import { createFilter } from '@rollup/pluginutils';
-
-export default function myPlugin(options = {}) {
-  // assume that the myPlugin accepts options of `options.include` and `options.exclude`
-  var filter = createFilter(options.include, options.exclude, {
-    resolve: '/my/base/dir'
-  });
-
-  return {
-    transform(code, id) {
-      if (!filter(id)) return;
-
-      // proceed with the transformation...
-    }
-  };
-}
-```
-
-### dataToEsm
-
-Transforms objects into tree-shakable ES Module imports.
-
-Parameters: `(data: Object)`<br>
-Returns: `String`
-
-#### `data`
-
-Type: `Object`
-
-An object to transform into an ES module.
-
-#### Usage
-
-```js
-import { dataToEsm } from '@rollup/pluginutils';
-
-const esModuleSource = dataToEsm(
-  {
-    custom: 'data',
-    to: ['treeshake']
-  },
-  {
-    compact: false,
-    indent: '\t',
-    preferConst: true,
-    objectShorthand: true,
-    namedExports: true
-  }
-);
-/*
-Outputs the string ES module source:
-  export const custom = 'data';
-  export const to = ['treeshake'];
-  export default { custom, to };
-*/
-```
-
-### extractAssignedNames
-
-Extracts the names of all assignment targets based upon specified patterns.
-
-Parameters: `(param: Node)`<br>
-Returns: `Array[...String]`
-
-#### `param`
-
-Type: `Node`
-
-An `acorn` AST Node.
-
-#### Usage
-
-```js
-import { extractAssignedNames } from '@rollup/pluginutils';
-import { walk } from 'estree-walker';
-
-export default function myPlugin(options = {}) {
-  return {
-    transform(code) {
-      const ast = this.parse(code);
-
-      walk(ast, {
-        enter(node) {
-          if (node.type === 'VariableDeclarator') {
-            const declaredNames = extractAssignedNames(node.id);
-            // do something with the declared names
-            // e.g. for `const {x, y: z} = ...` => declaredNames = ['x', 'z']
-          }
-        }
-      });
-    }
-  };
-}
-```
-
-### makeLegalIdentifier
-
-Constructs a bundle-safe identifier from a `String`.
-
-Parameters: `(str: String)`<br>
-Returns: `String`
-
-#### Usage
-
-```js
-import { makeLegalIdentifier } from '@rollup/pluginutils';
-
-makeLegalIdentifier('foo-bar'); // 'foo_bar'
-makeLegalIdentifier('typeof'); // '_typeof'
-```
-
-### normalizePath
-
-Converts path separators to forward slash.
-
-Parameters: `(filename: String)`<br>
-Returns: `String`
-
-#### Usage
-
-```js
-import { normalizePath } from '@rollup/pluginutils';
-
-normalizePath('foo\\bar'); // 'foo/bar'
-normalizePath('foo/bar'); // 'foo/bar'
-```
-
-## Meta
-
-[CONTRIBUTING](/.github/CONTRIBUTING.md)
-
-[LICENSE (MIT)](/LICENSE)
-
-
-@rollup/rollup-linux-x64-gnu 4.5.1
+@rollup/rollup-linux-x64-gnu 4.6.1
 MIT
 # `@rollup/rollup-linux-x64-gnu`
 
 This is the **x86_64-unknown-linux-gnu** binary for `rollup`
 
 
-@rollup/rollup-linux-x64-musl 4.5.1
+@rollup/rollup-linux-x64-musl 4.6.1
 MIT
 # `@rollup/rollup-linux-x64-musl`
 
@@ -6727,7 +6336,7 @@ MIT
     SOFTWARE
 
 
-@types/eslint 8.44.7
+@types/eslint 8.44.8
 MIT
     MIT License
 
@@ -7049,7 +6658,7 @@ MIT
     SOFTWARE
 
 
-@types/node 18.18.12
+@types/node 18.19.2
 MIT
     MIT License
 
@@ -7299,7 +6908,7 @@ MIT
     SOFTWARE
 
 
-@typescript-eslint/eslint-plugin 6.12.0
+@typescript-eslint/eslint-plugin 6.13.2
 MIT
 MIT License
 
@@ -7324,7 +6933,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/parser 6.12.0
+@typescript-eslint/parser 6.13.2
 BSD-2-Clause
 TypeScript ESLint Parser
 Copyright JS Foundation and other contributors, https://js.foundation
@@ -7350,7 +6959,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-@typescript-eslint/scope-manager 6.12.0
+@typescript-eslint/scope-manager 6.13.2
 MIT
 MIT License
 
@@ -7375,7 +6984,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/type-utils 6.12.0
+@typescript-eslint/type-utils 6.13.2
 MIT
 MIT License
 
@@ -7400,7 +7009,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/types 6.12.0
+@typescript-eslint/types 6.13.2
 MIT
 MIT License
 
@@ -7425,7 +7034,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/typescript-estree 6.12.0
+@typescript-eslint/typescript-estree 6.13.2
 BSD-2-Clause
 TypeScript ESTree
 
@@ -7455,7 +7064,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-@typescript-eslint/utils 6.12.0
+@typescript-eslint/utils 6.13.2
 MIT
 MIT License
 
@@ -7480,7 +7089,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/visitor-keys 6.12.0
+@typescript-eslint/visitor-keys 6.13.2
 MIT
 MIT License
 
@@ -7524,7 +7133,7 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
 
-@unhead/dom 1.8.7
+@unhead/dom 1.8.8
 MIT
 # @unhead/dom
 
@@ -7540,7 +7149,7 @@ npm install @unhead/dom
 See the [@unhead/dom](https://unhead.unjs.io/guide/getting-started/how-it-works#unheaddom) for how this works.
 
 
-@unhead/schema 1.8.7
+@unhead/schema 1.8.8
 MIT
 # `@unhead/schema`
 
@@ -7560,7 +7169,7 @@ yarn add --dev @unhead/schema
 See [head.ts](./src/head.ts) for the full list of types.
 
 
-@unhead/shared 1.8.7
+@unhead/shared 1.8.8
 MIT
 # `@unhead/schema`
 
@@ -7580,7 +7189,7 @@ yarn add --dev @unhead/schema
 See [head.ts](./src/head.ts) for the full list of types.
 
 
-@unhead/ssr 1.8.7
+@unhead/ssr 1.8.8
 MIT
 # @unhead/ssr
 
@@ -7596,11 +7205,11 @@ npm install @unhead/ssr
 See the [Unhead](https://unhead.unjs.io/) for more details.
 
 
-@unhead/vue 1.8.7
+@unhead/vue 1.8.8
 MIT
 
 
-@vercel/nft 0.24.3
+@vercel/nft 0.24.4
 MIT
 Copyright 2019 Vercel, Inc.
 
@@ -7635,7 +7244,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vitejs/plugin-vue 4.5.0
+@vitejs/plugin-vue 4.5.1
 MIT
 MIT License
 
@@ -7891,7 +7500,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vue/compiler-core 3.3.8
+@vue/compiler-core 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -7916,7 +7525,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-dom 3.3.8
+@vue/compiler-dom 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -7941,7 +7550,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-sfc 3.3.8
+@vue/compiler-sfc 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -7966,7 +7575,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-ssr 3.3.8
+@vue/compiler-ssr 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -7995,7 +7604,7 @@ THE SOFTWARE.
 MIT
 
 
-@vue/reactivity-transform 3.3.8
+@vue/reactivity-transform 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -8020,7 +7629,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/reactivity 3.3.8
+@vue/reactivity 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -8045,7 +7654,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/runtime-core 3.3.8
+@vue/runtime-core 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -8070,7 +7679,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/runtime-dom 3.3.8
+@vue/runtime-dom 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -8095,7 +7704,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/server-renderer 3.3.8
+@vue/server-renderer 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -8120,7 +7729,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/shared 3.3.8
+@vue/shared 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -8145,7 +7754,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/test-utils 2.4.2
+@vue/test-utils 2.4.3
 MIT
 The MIT License (MIT)
 
@@ -10784,7 +10393,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-browserslist 4.22.1
+browserslist 4.22.2
 MIT
 The MIT License (MIT)
 
@@ -10956,7 +10565,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-cacache 18.0.0
+cacache 18.0.1
 ISC
 ISC License
 
@@ -11052,7 +10661,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-caniuse-lite 1.0.30001564
+caniuse-lite 1.0.30001566
 CC-BY-4.0
 Attribution 4.0 International
 
@@ -11740,6 +11349,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 ci-info 3.9.0
+MIT
+The MIT License (MIT)
+
+Copyright (c) 2016 Thomas Watson Steen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+ci-info 4.0.0
 MIT
 The MIT License (MIT)
 
@@ -16244,7 +15878,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-electron-to-chromium 1.4.590
+electron-to-chromium 1.4.603
 ISC
 Copyright 2018 Kilian Valkhof
 
@@ -16976,7 +16610,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-esbuild 0.19.7
+esbuild 0.19.8
 MIT
 MIT License
 
@@ -17336,7 +16970,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-eslint-plugin-vue 9.18.1
+eslint-plugin-vue 9.19.2
 MIT
 MIT License
 
@@ -18102,7 +17736,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-eslint 8.54.0
+eslint 8.55.0
 MIT
 Copyright OpenJS Foundation and other contributors, <www.openjsf.org>
 
@@ -19449,7 +19083,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-fs-extra 11.1.1
+fs-extra 11.2.0
 MIT
 (The MIT License)
 
@@ -22159,7 +21793,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-ignore-walk 6.0.3
+ignore-walk 6.0.4
 ISC
 The ISC License
 
@@ -24087,6 +23721,35 @@ This library is a fork of 'better-json-errors' by Kat Marchán, extended and
 distributed under the terms of the MIT license above.
 
 
+json-parse-even-better-errors 3.0.1
+MIT
+Copyright 2017 Kat Marchán
+Copyright npm, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+---
+
+This library is a fork of 'better-json-errors' by Kat Marchán, extended and
+distributed under the terms of the MIT license above.
+
+
 json-schema-traverse 0.4.1
 MIT
 MIT License
@@ -25011,6 +24674,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
+license-checker-rseidelsohn 4.2.11
+BSD-3-Clause
+Copyright 2012 Yahoo Inc.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the Yahoo! Inc. nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL YAHOO! INC. BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
 lilconfig 2.1.0
 MIT
 MIT License
@@ -25809,7 +25500,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-lru-cache 10.0.3
+lru-cache 10.1.0
 ISC
 The ISC License
 
@@ -36708,11 +36399,11 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-minipass-collect 1.0.2
+minipass-collect 2.0.1
 ISC
 The ISC License
 
-Copyright (c) Isaac Z. Schlueter and Contributors
+Copyright (c) 2019-2023 Isaac Z. Schlueter and Contributors
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -37469,7 +37160,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-nitropack 2.8.0
+nitropack 2.8.1
 MIT
 MIT License
 
@@ -37896,7 +37587,7 @@ POSSIBILITY OF SUCH DAMAGES.
 
 
 
-node-gyp-build 4.7.0
+node-gyp-build 4.7.1
 MIT
 The MIT License (MIT)
 
@@ -37949,7 +37640,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 
-node-releases 2.0.13
+node-releases 2.0.14
 MIT
 The MIT License
 
@@ -38543,7 +38234,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-object.assign 4.1.4
+object.assign 4.1.5
 MIT
 The MIT License (MIT)
 
@@ -38791,7 +38482,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-openapi-typescript 6.7.1
+openapi-typescript 6.7.2
 MIT
 MIT License
 
@@ -39138,7 +38829,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-pacote 17.0.4
+pacote 17.0.5
 ISC
 The ISC License
 
@@ -40537,7 +40228,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 
-postcss 8.4.31
+postcss 8.4.32
 MIT
 The MIT License (MIT)
 
@@ -43028,7 +42719,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <http://unlicense.org>
 
 
-rollup-plugin-visualizer 5.9.2
+rollup-plugin-visualizer 5.10.0
 MIT
 The MIT License (MIT)
 
@@ -44459,7 +44150,7 @@ Repository: https://github.com/yargs/yargs-parser.git
 > ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-rollup 4.5.1
+rollup 4.6.1
 MIT
 # Rollup core license
 Rollup is released under the MIT license:
@@ -46985,7 +46676,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-scule 1.1.0
+scule 1.1.1
 MIT
 MIT License
 
@@ -49615,7 +49306,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-std-env 3.5.0
+std-env 3.6.0
 MIT
 MIT License
 
@@ -50200,7 +49891,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-svgo 3.0.4
+svgo 3.0.5
 MIT
 MIT License
 
@@ -50317,7 +50008,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-terser 5.24.0
+terser 5.25.0
 BSD-2-Clause
 Copyright 2012-2018 (c) Mihai Bazon <mihai.bazon@gmail.com>
 
@@ -52113,7 +51804,7 @@ This package is a dual-publish of the [undici](https://www.npmjs.com/package/und
 - [Undici Documentation](https://undici.nodejs.org/#/)
 
 
-undici 5.27.2
+undici 5.28.2
 MIT
 MIT License
 
@@ -52138,7 +51829,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-unenv 1.7.4
+unenv 1.8.0
 MIT
 MIT License
 
@@ -52163,7 +51854,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-unhead 1.8.7
+unhead 1.8.8
 MIT
 
 
@@ -52205,7 +51896,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-unimport 3.5.0
+unimport 3.6.0
 MIT
 MIT License
 
@@ -53200,7 +52891,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vite-plugin-vue-inspector 4.0.0
+vite-plugin-vue-inspector 4.0.2
 MIT
 MIT License
 
@@ -53238,7 +52929,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-vite 4.5.0
+vite 4.5.1
 MIT
 # Vite core license
 Vite is released under the MIT license:
@@ -58885,7 +58576,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vue-component-type-helpers 1.8.22
+vue-component-type-helpers 1.8.24
 MIT
 MIT License
 
@@ -59035,7 +58726,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vue 3.3.8
+vue 3.3.10
 MIT
 The MIT License (MIT)
 
@@ -59085,7 +58776,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vuetify-nuxt-module 0.6.7
+vuetify-nuxt-module 0.7.1
 MIT
 MIT License
 
@@ -59110,7 +58801,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vuetify 3.4.3
+vuetify 3.4.4
 MIT
 The MIT License (MIT)
 
