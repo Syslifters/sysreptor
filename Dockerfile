@@ -25,6 +25,8 @@ RUN npm run build
 
 FROM node:18-alpine3.18 AS frontend-dev
 
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 # Add custom CA certificates
 ARG CA_CERTIFICATES=""
 RUN mkdir -p /usr/local/share/ca-certificates/ && \
