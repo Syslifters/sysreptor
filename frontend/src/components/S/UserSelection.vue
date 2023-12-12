@@ -21,7 +21,7 @@ import sortBy from "lodash/sortBy"
 import uniqBy from "lodash/uniqBy"
 
 const props = withDefaults(defineProps<{
-  modelValue: UserShortInfo|UserShortInfo[]|null;
+  modelValue: UserShortInfo|UserShortInfo[]|string|null;
   label?: string;
   required?: boolean;
   disabled?: boolean;
@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<{
   selectableUsers: null,
 });
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: UserShortInfo|UserShortInfo[]|null): void,
+  (e: 'update:modelValue', value: UserShortInfo|UserShortInfo[]|string|null): void,
 }>();
 
 const auth = useAuth();
@@ -50,18 +50,31 @@ const items = useSearchableCursorPaginationFetcher<UserShortInfo>({
   }
 });
 const rules = {
-  single: [(v: UserShortInfo|null) => !!v || 'Item is required'],
+  single: [(v: UserShortInfo|string|null) => !!v || 'Item is required'],
   multiple: [(v: UserShortInfo[]|null) => (v && v.length > 0) || 'Item is required'],
 };
 
 const initialUsers = ref<UserShortInfo[]>([]);
-if (props.modelValue && !props.selectableUsers) {
-  if (Array.isArray(props.modelValue)) {
-    initialUsers.value = props.modelValue;
-  } else if (isObject(props.modelValue)) {
-    initialUsers.value = [props.modelValue];
+useLazyAsyncData(async () => {
+  if (props.modelValue && !props.selectableUsers) {
+    if (Array.isArray(props.modelValue)) {
+      initialUsers.value = props.modelValue;
+    } else if (isObject(props.modelValue)) {
+      initialUsers.value = [props.modelValue];
+    } else {
+      try {
+        initialUsers.value = [
+          await $fetch<UserShortInfo>(`/api/v1/pentestusers/${props.modelValue}/`, { method: 'GET' })
+        ];
+      } catch (error: any) {
+        if (error?.status === 404) {
+          initialUsers.value = [];
+          emit('update:modelValue', null);
+        }
+      }
+    }
   }
-}
+});
 
 const allItems = computed(() => {
   if (props.selectableUsers) {
@@ -73,7 +86,7 @@ const allItems = computed(() => {
 const attrs = useAttrs();
 const autocompleteAttrs = computed(() =>
   Object.assign({}, attrs, {
-    modelValue: props.modelValue,
+    modelValue: typeof props.modelValue === 'string' ? (allItems.value.find(u => u.id === props.modelValue) || { id: props.modelValue }) : props.modelValue,
     'onUpdate:modelValue': (e: any) => emit('update:modelValue', e),
     label: props.label,
     hideNoData: false,
