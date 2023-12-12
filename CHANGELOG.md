@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+* Design and UI rework
+* Dark mode
+* Fix save error for user fields
+
+
 ## v2023.145 - 2023-12-11
 * Add support for mermaid diagrams in markdown
 * Fix arrow movement in fields inside lists to switch list item

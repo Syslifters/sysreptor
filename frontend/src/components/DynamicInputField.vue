@@ -75,7 +75,8 @@
     <!-- User -->
     <s-user-selection
       v-else-if="definition.type === 'user'"
-      v-model="formValue"
+      :model-value="formValue"
+      @update:model-value="emitUpdate($event?.id || null)"
       :selectable-users="selectableUsers"
       v-bind="fieldAttrs"
     />
