@@ -31,30 +31,26 @@
               @update="emit('update', $event)"
             />
 
-            <s-btn
+            <s-btn-icon
               v-if="item.cssPosition"
               @click="emit('jumpToCode', {tab: PdfDesignerTab.CSS, position: item.cssPosition})"
-              icon
-              variant="text"
               size="small"
               density="comfortable"
               class="ml-1 mr-1"
             >
-              <v-icon>mdi-code-braces</v-icon>
+              <v-icon icon="mdi-code-braces" />
               <s-tooltip activator="parent" text="Go to CSS" />
-            </s-btn>
+            </s-btn-icon>
 
-            <s-btn
+            <s-btn-icon
               @click="emit('jumpToCode', {tab: PdfDesignerTab.HTML, position: item.htmlPosition})"
-              icon
-              variant="text"
               size="small"
               density="comfortable"
               class="ml-1 mr-1"
             >
-              <v-icon>mdi-code-tags</v-icon>
+              <v-icon icon="mdi-code-tags" />
               <s-tooltip activator="parent" text="Go to HTML" />
-            </s-btn>
+            </s-btn-icon>
           </template>
         </v-list-item>
 

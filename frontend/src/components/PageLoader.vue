@@ -7,12 +7,11 @@
         Failed to load data
         <template v-if="props.items.error.value?.detail">: {{ props.items.error.value.detail }}</template>
         <br>
-        <s-btn
+        <s-btn-secondary
           @click="props.items.fetchNextPage()"
           :loading="props.items.pending.value"
           prepend-icon="mdi-refresh"
           text="Retry"
-          color="secondary"
         />
       </v-alert>
     </div>

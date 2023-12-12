@@ -5,35 +5,33 @@
 
       <slot></slot>
 
-      <s-btn
+      <s-btn-icon
         v-if="canSave"
         :loading="savingInProgress"
         :disabled="savingInProgress"
         @click="performSave"
-        prepend-icon="mdi-content-save"
-        color="primary"
-        class="ml-1 mr-1"
       >
-        <v-badge v-if="props.data !== undefined" dot floating :color="hasChanges? 'error' : 'success'">
-          {{ props.saveButtonText }}
+        <v-badge v-if="props.data !== undefined" dot :color="hasChanges? 'error' : 'success'">
+          <v-icon icon="mdi-content-save" />
         </v-badge>
-        <span v-else>{{ props.saveButtonText }}</span>
+        <v-icon v-else icon="mdi-content-save" />
         <template #loader>
-          <s-saving-loader-spinner />
-          {{ props.saveButtonText }}
+          <v-badge>
+            <v-icon icon="mdi-content-save" />
+            <template #badge>
+              <s-saving-loader-spinner />
+            </template>
+          </v-badge>
         </template>
 
         <s-tooltip
           activator="parent"
+          location="bottom"
           :text="hasChanges ? 'Save with Ctrl+S' : 'Everything saved'"
         />
-      </s-btn>
+      </s-btn-icon>
 
-      <s-btn
-        v-if="(canSave && props.canAutoSave) || canDelete || slots['context-menu']"
-        icon
-        variant="text"
-      >
+      <s-btn-icon v-if="(canSave && props.canAutoSave) || canDelete || slots['context-menu']">
         <v-icon icon="mdi-dots-vertical" />
 
         <v-menu activator="parent" :close-on-content-click="false" location="bottom left" class="context-menu">
@@ -64,7 +62,7 @@
             />
           </v-list>
         </v-menu>
-      </s-btn>
+      </s-btn-icon>
     </v-toolbar>
 
     <v-alert v-if="props.errorMessage || lockError" type="warning" density="compact" class="mt-0 mb-0">
@@ -110,7 +108,6 @@ const props = withDefaults(defineProps<{
   unlockUrl?: string,
   editMode?: EditMode,
   errorMessage?: string,
-  saveButtonText?: string,
 }>(), {
   data: undefined,
   form: undefined,
@@ -122,7 +119,6 @@ const props = withDefaults(defineProps<{
   unlockUrl: undefined,
   editMode: EditMode.EDIT,
   errorMessage: undefined,
-  saveButtonText: "Save",
 });
 const emit = defineEmits<{
   (e: 'update:data', value: { newValue: T | null, oldValue: T | null}): void;

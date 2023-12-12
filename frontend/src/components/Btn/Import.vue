@@ -1,26 +1,32 @@
 <template>
-  <s-btn
+  <s-btn-icon
     @click="fileInput.click()"
-    :loading="importInProgress"
-    color="primary"
-    prepend-icon="mdi-upload"
+    :loading="props.loading || importInProgress"
+    :disabled="props.disabled"
+    color="secondary"
+    variant="flat"
   >
-    Import
+    <v-icon icon="mdi-upload" />
     <input
       ref="fileInput"
       type="file"
+      accept=".tar.gz"
       @change="performImport(($event.target as HTMLInputElement)?.files)"
       class="d-none"
-      :disabled="disabled || importInProgress"
+      :disabled="disabled || props.loading || importInProgress"
     />
-  </s-btn>
+
+    <s-tooltip activator="parent" location="bottom" text="Import from file" />
+  </s-btn-icon>
 </template>
 
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
   import: (file: File) => Promise<void>;
+  loading?: boolean;
   disabled?: boolean;
 }>(), {
+  loading: false,
   disabled: false
 });
 

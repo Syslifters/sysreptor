@@ -8,14 +8,12 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <s-btn
+          <s-btn-other
             @click="reauthDialogVisible = false"
-            variant="text"
             text="Cancel"
           />
-          <s-btn
+          <s-btn-primary
             @click="auth.redirectToReAuth()"
-            color="primary"
             text="Re-Authenticate"
           />
         </v-card-actions>
@@ -41,8 +39,7 @@
           <v-list-item>
             <s-dialog v-model="setupWizard.visible">
               <template #activator="{ props: dialogProps}">
-                <s-btn
-                  color="secondary"
+                <s-btn-secondary
                   @click="openSetupWizard"
                   v-bind="dialogProps"
                   prepend-icon="mdi-plus"
@@ -69,15 +66,12 @@
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer />
-                    <s-btn
+                    <s-btn-other
                       @click="setupWizard.visible = false"
-                      color="secondary"
-                      variant="text"
                       text="Cancel"
                     />
-                    <s-btn
+                    <s-btn-primary
                       @click="createApiToken"
-                      color="primary"
                       :loading="setupWizard.actionInProgress"
                       text="Create"
                     />
@@ -94,9 +88,9 @@
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer />
-                    <s-btn
+                    <s-btn-primary
                       @click="setupWizard.visible = false"
-                      color="primary" text="Done"
+                      text="Done"
                     />
                   </v-card-actions>
                 </template>

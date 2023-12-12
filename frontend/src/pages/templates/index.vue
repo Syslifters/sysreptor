@@ -1,14 +1,14 @@
 <template>
-  <file-drop-area @drop="importBtn.performImport($event)" class="h-100">
-    <div class="h-100 overflow-y-auto">
-      <list-view url="/api/v1/findingtemplates/">
+  <file-drop-area @drop="importBtnRef?.performImport($event)" class="h-100">
+    <full-height-page>
+      <list-view ref="listViewRef" url="/api/v1/findingtemplates/">
         <template #title>Finding Templates</template>
         <template #searchbar="{items}">
           <v-row dense class="mb-2 w-100">
             <v-col cols="12" md="10">
               <v-text-field
                 :model-value="items.search.value"
-                @update:model-value="updateSearchQuery(items, $event)"
+                @update:model-value="listViewRef?.updateSearchQuery"
                 label="Search"
                 spellcheck="false"
                 hide-details="auto"
@@ -27,18 +27,15 @@
             </v-col>
           </v-row>
         </template>
-        <template #actions v-if="auth.hasScope('template_editor')">
-          <s-btn
-            to="/templates/new/"
-            color="primary"
-            prepend-icon="mdi-plus"
-            text="Create"
-            class="mr-1 ml-1"
+        <template #actions>
+          <btn-create 
+            to="/templates/new/" 
+            :disabled="!auth.hasScope('template_editor')"
           />
-          <btn-import
-            ref="importBtn"
+          <btn-import 
+            ref="importBtnRef"
             :import="performImport"
-            class="mr-1 ml-1"
+            :disabled="!auth.hasScope('template_editor')"
           />
         </template>
         <template #item="{item}">
@@ -50,13 +47,17 @@
           />
         </template>
       </list-view>
-    </div>
+    </full-height-page>
   </file-drop-area>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
   title: 'Templates',
+  toplevel: true,
+});
+useHead({
+  breadcrumbs: () => templateListBreadcrumbs(),
 });
 
 const route = useRoute();
@@ -64,7 +65,7 @@ const router = useRouter();
 const apiSettings = useApiSettings();
 const auth = useAuth();
 
-const importBtn = ref();
+const listViewRef = ref();
 
 const languageChoices = computed(() => [{ code: null as string|null, name: 'All' }].concat(apiSettings.settings!.languages.filter(l => l.enabled || l.code === route.query.language)));
 const currentLanguage = computed({
@@ -73,11 +74,8 @@ const currentLanguage = computed({
     router.replace({ query: { ...route.query, language: val || '' } })
   }
 });
-function updateSearchQuery(items: ReturnType<typeof useSearchableCursorPaginationFetcher>, search: string) {
-  items.search.value = search;
-  router.replace({ query: { ...route.query, search: search || '' } });
-}
 
+const importBtnRef = ref();
 async function performImport(file: File) {
   const templates = await uploadFileHelper<FindingTemplate[]>('/api/v1/findingtemplates/import/', file);
   await navigateTo(`/templates/${templates[0].id}/`)

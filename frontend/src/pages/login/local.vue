@@ -13,11 +13,10 @@
           </template>
 
           <template #actions>
-            <s-btn
+            <s-btn-other
               v-if="apiSettings.isSsoEnabled"
               to="/login/?logout=true"
               text="Back"
-              color="secondary"
             />
           </template>
         </login-form>
@@ -31,15 +30,13 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer />
-              <s-btn
+              <s-btn-other
                 text="Skip"
                 @click="auth.redirect()"
-                color="secondary"
               />
-              <s-btn
+              <s-btn-primary
                 text="Set up MFA"
                 to="/users/self/security/"
-                color="primary"
               />
             </v-card-actions>
           </template>

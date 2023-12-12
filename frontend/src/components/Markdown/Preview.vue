@@ -76,10 +76,11 @@ onUpdated(postProcessRenderedHtml);
 </script>
 
 <style lang="scss" scoped>
+@use "@/assets/vuetify.scss" as vuetify;
+
 .preview {
   overflow: auto;
   word-wrap: break-word;
-  background-color: #fafafa;
 }
 
 .preview > :deep(*:first-child) {
@@ -99,6 +100,15 @@ onUpdated(postProcessRenderedHtml);
     .data-footnote-backref {
       display: none;
     }
+  }
+
+  code {
+    background-color: vuetify.$code-background-color;
+    color: vuetify.$code-color;
+  }
+  blockquote {
+    background-color: rgba(var(--v-theme-on-surface), 0.05);
+    border-left: 5px solid rgba(var(--v-theme-on-surface), 0.3);
   }
 
   .file-download-preview {

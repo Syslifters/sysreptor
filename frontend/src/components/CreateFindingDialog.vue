@@ -4,9 +4,9 @@
       <btn-confirm
         :action="() => dialogVisible = true"
         :confirm="false"
-        button-text="Create"
+        button-text="Add"
         button-icon="mdi-plus"
-        tooltip-text="Create Finding (Ctrl+J)"
+        tooltip-text="Add Finding (Ctrl+J)"
         keyboard-shortcut="ctrl+j"
         color="secondary"
         size="small"
@@ -66,22 +66,19 @@
 
       <v-card-actions>
         <v-spacer />
-        <s-btn
+        <s-btn-other
           @click="dialogVisible = false"
-          variant="text"
           text="Cancel"
         />
-        <s-btn
+        <s-btn-primary
           v-if="currentTemplate?.id"
           @click="createFindingFromTemplate"
           :loading="actionInProgress"
-          color="primary"
           text="Create from Template"
         />
-        <s-btn
+        <s-btn-primary
           v-else @click="createEmptyFinding"
           :loading="actionInProgress"
-          color="primary"
           text="Create Empty Finding"
         />
       </v-card-actions>

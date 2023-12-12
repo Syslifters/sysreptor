@@ -5,9 +5,8 @@
 
       <s-dialog v-model="restoreWizard.visible">
         <template #activator="{ props: dialogProps }">
-          <s-btn
+          <s-btn-primary
             :disabled="publicKeyEncryptedKeyParts.length === 0"
-            color="primary"
             prepend-icon="mdi-folder-lock-open-outline"
             text="Restore"
             v-bind="dialogProps"
@@ -139,6 +138,7 @@ const restoreUntilDate = computed(() => {
 
 useHead({
   title: archive.value.name,
+  breadcrumbs: () => archivedProjectDetailBreadcrumbs(archive.value),
 });
 
 const restoreWizard = ref({
@@ -178,12 +178,15 @@ async function decryptKeyPart() {
 </script>
 
 <style lang="scss" scoped>
+@use "@/assets/vuetify.scss" as vuetify;
+
 .textarea-codeblock {
   :deep(textarea) {
     font-family: monospace;
     line-height: 1.2em;
     font-size: medium;
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: vuetify.$code-background-color;
+    color: vuetify.$code-color;
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <s-card>
-    <v-toolbar class="login-header" theme="dark" flat>
+    <v-toolbar color="header" flat>
       <v-toolbar-title><slot name="title">Login</slot></v-toolbar-title>
     </v-toolbar>
 
@@ -38,10 +38,9 @@
         <v-card-actions>
           <v-spacer />
           <slot name="actions"></slot>
-          <s-btn
+          <s-btn-primary
             type="submit"
             text="Login"
-            color="primary"
           />
         </v-card-actions>
       </v-form>
@@ -91,22 +90,20 @@
 
         <v-card-actions>
           <v-spacer />
-          <s-btn
+          <s-btn-other
             v-if="mfaMethods!.length > 1"
             @click="step = LoginStep.MFA_SELECT"
             text="Try another MFA method"
           />
-          <s-btn
+          <s-btn-primary
             v-if="[MfaMethodType.TOTP, MfaMethodType.BACKUP].includes(currentMfaMethod!.method_type as any)"
             type="submit"
             text="Login"
-            color="primary"
           />
-          <s-btn
+          <s-btn-primary
             v-else-if="currentMfaMethod?.method_type === MfaMethodType.FIDO2"
             @click="beginMfaLogin(currentMfaMethod)"
             text="Try again"
-            color="primary"
           />
         </v-card-actions>
       </v-form>

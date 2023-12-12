@@ -13,15 +13,13 @@
       <chip-tag v-for="tag in props.template.tags" :key="tag" :value="tag" />
     </div>
     <v-spacer />
-    <s-btn
+    <s-btn-icon
       :to="{path: `/templates/${props.template.id}/`, query: { language: props.language }}"
       target="_blank"
-      icon
-      variant="text"
     >
-      <v-icon>mdi-chevron-right-circle</v-icon>
+      <v-icon icon="mdi-chevron-right-circle" />
       <s-tooltip activator="parent" text="Show template" />
-    </s-btn>
+    </s-btn-icon>
   </v-list-item-title>
 </template>
 

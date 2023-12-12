@@ -1,6 +1,6 @@
 <template>
   <s-card>
-    <v-toolbar theme="dark" class="login-header" flat>
+    <v-toolbar color="header" flat>
       <v-toolbar-title><slot name="title">Login</slot></v-toolbar-title>
     </v-toolbar>
 
@@ -8,25 +8,25 @@
       <v-list>
         <v-form v-for="oidcProvider in apiSettings.oidcAuthProviders" :key="oidcProvider.id" @submit.prevent="auth.authProviderLoginBegin(oidcProvider, { reauth: props.reauth })">
           <v-list-item>
-            <s-btn :key="oidcProvider.id" type="submit" color="primary" block>
+            <s-btn-primary :key="oidcProvider.id" type="submit" block>
               Login with {{ oidcProvider.name }}
-            </s-btn>
+            </s-btn-primary>
           </v-list-item>
         </v-form>
 
         <slot v-if="apiSettings.remoteUserAuthProvider" name="remote">
           <v-list-item>
-            <s-btn @click="auth.authProviderLoginBegin(apiSettings.remoteUserAuthProvider, { reauth: props.reauth })" color="primary" block>
+            <s-btn-primary @click="auth.authProviderLoginBegin(apiSettings.remoteUserAuthProvider, { reauth: props.reauth })" block>
               Login with {{ apiSettings.remoteUserAuthProvider.name }}
-            </s-btn>
+            </s-btn-primary>
           </v-list-item>
         </slot>
 
         <slot v-if="apiSettings.isLocalUserAuthEnabled" name="local">
           <v-list-item>
-            <s-btn to="/login/local" nuxt color="secondary" block>
+            <s-btn-secondary to="/login/local" block>
               Login with local user
-            </s-btn>
+            </s-btn-secondary>
           </v-list-item>
         </slot>
       </v-list>

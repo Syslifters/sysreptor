@@ -1,8 +1,13 @@
 <template>
   <v-container fluid class="pt-0 h-100 overflow-y-auto">
-    <v-form ref="form">
-      <edit-toolbar :form="$refs.form" :save="performCreate" save-button-text="Create User">
+    <v-form ref="form" @submit.prevent="performCreate">
+      <edit-toolbar>
         <template #title>Create new User</template>
+        <s-btn-primary 
+          type="submit"
+          text="Create"
+          prepend-icon="mdi-content-save"
+        />
       </edit-toolbar>
 
       <user-info-form v-model="userForm" :errors="serverErrors" :can-edit-permissions="true" :can-edit-username="true">
@@ -42,6 +47,10 @@
 <script setup lang="ts">
 import type { VForm } from "vuetify/lib/components/index.mjs";
 
+useHead({
+  breadcrumbs: () => userListBreadcrumbs().concat([{ title: 'New', to: '/users/new/' }]),
+});
+
 const apiSettings = useApiSettings();
 
 const userForm = ref<User & { password: string|null }>({
@@ -71,6 +80,10 @@ const serverErrors = ref<any|null>();
 
 const form = ref<VForm>();
 async function performCreate() {
+  if (!(await form.value!.validate()).valid) {
+    return;
+  }
+
   try {
     const user = await $fetch<User>('/api/v1/pentestusers/', {
       method: 'POST',

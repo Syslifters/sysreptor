@@ -47,6 +47,7 @@ const userNotesStore = useUserNotesStore();
 
 useHead({
   titleTemplate: (title?: string|null) => userNotesTitleTemplate(title, route),
+  breadcrumbs: () => [{ title: 'Notes', to: '/notes/personal/' }],
 });
 
 await useAsyncDataE(async () => await userNotesStore.fetchNotes());

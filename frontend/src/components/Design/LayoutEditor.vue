@@ -50,8 +50,8 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer />
-              <s-btn @click="addDialog.visible = false" variant="text" text="Cancel" />
-              <s-btn @click="addPredefinedComponent" color="primary" text="Add" />
+              <s-btn-other @click="addDialog.visible = false" text="Cancel" />
+              <s-btn-primary @click="addPredefinedComponent" text="Add" />
             </v-card-actions>
           </template>
         </s-dialog>

@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid class="h-100 overflow-y-auto">
     <h1>License Info</h1>
 
     <p v-if="license.error" class="text-error mt-2">
@@ -57,6 +57,10 @@
 <script setup lang="ts">
 definePageMeta({
   title: 'License',
+  toplevel: true,
+});
+useHead({
+  breadcrumbs: () => [{ title: 'License', to: '/license/' }],
 });
 
 const license = await useFetchE<LicenseInfoDetails>('/api/v1/utils/license', { method: 'GET' });

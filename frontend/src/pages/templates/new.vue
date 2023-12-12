@@ -13,8 +13,9 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid';
 
-definePageMeta({
+useHead({
   title: 'Templates',
+  breadcrumbs: () => templateListBreadcrumbs().concat([{ title: 'New', to: '/templates/new/' }]),
 });
 
 const apiSettings = useApiSettings();
@@ -41,6 +42,5 @@ async function performCreate() {
 }
 const toolbarAttrs = computed(() => ({
   save: performCreate,
-  saveButtonText: 'Create',
 }));
 </script>

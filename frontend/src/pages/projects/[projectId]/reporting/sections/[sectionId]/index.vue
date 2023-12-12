@@ -16,13 +16,7 @@
           />
         </div>
 
-        <s-btn
-          @click="historyVisible = !historyVisible"
-          color="secondary"
-          prepend-icon="mdi-history"
-        >
-          <span class="d-none d-lg-inline">Version History</span>
-        </s-btn>
+        <btn-history v-model="historyVisible" />
       </edit-toolbar>
 
       <project-history-timeline

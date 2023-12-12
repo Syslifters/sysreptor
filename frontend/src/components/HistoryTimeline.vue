@@ -83,6 +83,8 @@ watch(() => props.url, () => {
 </script>
 
 <style lang="scss" scoped>
+@use "@/assets/vuetify.scss" as vuetify;
+
 .history-sidebar {
   width: 25em !important;
 }
@@ -91,7 +93,7 @@ watch(() => props.url, () => {
   position: sticky;
   top: 0;
   z-index: 10;
-  background-color: white;
+  background-color: vuetify.$navigation-drawer-background;
 }
 .history-timeline-content {
   grid-row-gap: 0;

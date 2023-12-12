@@ -34,11 +34,6 @@ html {
 
 
 /* Footnotes */
-@page {
-  @footnote {
-    padding-top: 0.5em;
-  }
-}
 footnote {
   float: footnote;
 }

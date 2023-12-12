@@ -1,8 +1,7 @@
 <template>
-  <s-btn
+  <s-btn-icon
     :disabled="props.disabled"
     @click="emit('click', $event)"
-    icon
     size="small"
     density="comfortable"
     :variant="props.active ? 'outlined' : 'text'"
@@ -13,7 +12,7 @@
     <v-icon v-else size="small" :icon="props.icon" />
 
     <s-tooltip v-if="props.title" :text="props.title" />
-  </s-btn>
+  </s-btn-icon>
 </template>
 
 <script setup lang="ts">

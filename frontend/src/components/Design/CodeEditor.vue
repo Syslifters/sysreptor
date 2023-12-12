@@ -43,6 +43,8 @@ const emits = defineEmits< {
   (e: 'update:modelValue', modelValue: string): void
 }>();
 
+const theme = useTheme();
+
 let editor: monaco.editor.IStandaloneCodeEditor;
 const editorElement = ref<HTMLElement>();
 
@@ -51,7 +53,7 @@ onMounted(() => {
     value: props.modelValue,
     language: props.language,
     readOnly: props.disabled,
-    theme: 'vs',
+    theme: theme.current.value.dark ? 'vs-dark' : 'vs',
     minimap: {
       enabled: false,
     },
@@ -81,6 +83,11 @@ watch(() => props.modelValue, (val) => {
 watch(() => props.disabled, (val) => {
   if (editor) {
     editor.updateOptions({ readOnly: val });
+  }
+});
+watch(theme.current, (val) => {
+  if (editor) {
+    editor.updateOptions({ theme: val.dark ? 'vs-dark' : 'vs' });
   }
 });
 

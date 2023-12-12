@@ -8,11 +8,10 @@
               <template #title>{{ formatProjectTypeTitle(projectType) }}</template>
 
               <template #default>
-                <s-btn
+                <s-btn-secondary
                   :loading="pdfRenderingInProgress"
                   :disabled="pdfRenderingInProgress"
                   @click="loadPdf"
-                  color="secondary"
                   prepend-icon="mdi-cached"
                   text="Refresh PDF"
                 >
@@ -20,7 +19,7 @@
                     <s-saving-loader-spinner />
                     Refresh PDF
                   </template>
-                </s-btn>
+                </s-btn-secondary>
               </template>
             </edit-toolbar>
 
@@ -107,8 +106,8 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <s-btn @click="showStartDialog = false" variant="text" text="Cancel" />
-          <s-btn @click="startDesigning" color="primary" text="Start Designing" />
+          <s-btn-other @click="showStartDialog = false" text="Cancel" />
+          <s-btn-primary @click="startDesigning" text="Start Designing" />
         </v-card-actions>
       </template>
     </s-dialog>

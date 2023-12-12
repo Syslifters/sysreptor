@@ -61,10 +61,9 @@
         </draggable>
 
         <v-list-item>
-          <s-btn
+          <s-btn-secondary
             @click="addField"
             :disabled="props.disabled || availableFindingFields.length === 0"
-            color="secondary"
             prepend-icon="mdi-plus"
             text="Add"
           />

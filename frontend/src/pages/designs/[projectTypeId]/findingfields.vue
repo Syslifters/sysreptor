@@ -8,10 +8,6 @@
           density="compact"
           class="pb-0 h-100 d-flex flex-column"
         >
-          <div>
-            <v-list-item-title class="text-h6 pl-2">{{ formatProjectTypeTitle(projectType) }}</v-list-item-title>
-          </div>
-
           <div class="flex-grow-height overflow-y-auto">
             <v-list-item :value="allFieldsPlaceholder" :ripple="false" link>
               <v-list-item-title class="text-body-2">All Fields</v-list-item-title>
@@ -80,9 +76,8 @@
           </div>
           <v-divider class="mb-1" />
           <v-list-item>
-            <s-btn
+            <s-btn-secondary
               @click.stop="addField"
-              color="secondary"
               size="small"
               block
               :disabled="readonly"

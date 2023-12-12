@@ -10,6 +10,11 @@ export const useProjectTypeStore = defineStore('projecttype', {
     },
     predefinedFindingFields: null as FieldDefinitionDict|null,
   }),
+  getters: {
+    projectType() {
+      return (projectTypeId: string) => this.data[projectTypeId];
+    },
+  },
   actions: {
     clear() {
       this.data = {};

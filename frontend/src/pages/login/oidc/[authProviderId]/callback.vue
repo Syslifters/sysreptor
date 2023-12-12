@@ -3,7 +3,7 @@
     <v-row justify="center">
       <v-col xs="12" sm="8" md="4" align-self="center">
         <s-card>
-          <v-toolbar theme="dark" class="login-header" flat>
+          <v-toolbar color="header" flat>
             <v-toolbar-title>Login</v-toolbar-title>
           </v-toolbar>
 
@@ -18,10 +18,9 @@
 
           <v-card-actions>
             <v-spacer />
-            <s-btn
+            <s-btn-other
               to="/login/?logout=true"
               text="Back"
-              color="primary"
             />
           </v-card-actions>
         </s-card>

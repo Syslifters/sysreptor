@@ -16,20 +16,14 @@
           />
         </div>
 
-        <s-btn
+        <s-btn-secondary
           v-if="currentUrl"
           :to="currentUrl" exact
-          color="secondary" class="ml-1 mr-1 d-none d-lg-inline-flex"
+          class="ml-1 mr-1 d-none d-lg-inline-flex"
           prepend-icon="mdi-undo"
           text="Back to current version"
         />
-        <s-btn
-          @click="historyVisible = !historyVisible"
-          color="secondary"
-          prepend-icon="mdi-history"
-        >
-          <span class="d-none d-lg-inline">Version History</span>
-        </s-btn>
+        <btn-history v-model="historyVisible" />
       </edit-toolbar>
 
       <project-history-timeline

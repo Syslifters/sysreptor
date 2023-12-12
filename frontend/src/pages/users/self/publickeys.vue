@@ -50,10 +50,9 @@
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer />
-                  <s-btn
+                  <s-btn-primary
                     @click="editWizardSave"
                     :loading="actionInProgress"
-                    color="primary"
                     text="Save"
                   />
                 </v-card-actions>
@@ -71,8 +70,7 @@
         <v-list-item>
           <s-dialog v-model="setupWizard.visible">
             <template #activator="{ props: dialogProps }">
-              <s-btn
-                color="secondary"
+              <s-btn-secondary
                 @click="openSetupWizard"
                 v-bind="dialogProps"
                 prepend-icon="mdi-plus"
@@ -269,11 +267,10 @@
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer />
-                  <s-btn
+                  <s-btn-primary
                     @click="setupWizardRegisterBegin"
                     :disabled="!setupWizard.form.public_key"
                     :loading="actionInProgress"
-                    color="primary"
                     text="Next"
                   />
                 </v-card-actions>
@@ -303,11 +300,10 @@
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer />
-                  <s-btn
+                  <s-btn-primary
                     @click="setupWizardRegisterComplete"
                     :disabled="!setupWizard.form.verification"
                     :loading="actionInProgress"
-                    color="primary"
                     text="Activate"
                   />>
                 </v-card-actions>
@@ -326,10 +322,9 @@
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer />
-                  <s-btn
+                  <s-btn-primary
                     @click="setupWizardSetName"
                     :loading="actionInProgress"
-                    color="primary"
                     text="Save"
                   />
                 </v-card-actions>

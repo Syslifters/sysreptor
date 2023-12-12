@@ -7,11 +7,10 @@
             <template #title>{{ project.name }}</template>
 
             <template #default>
-              <s-btn
+              <s-btn-secondary
                 :loading="pdfRenderingInProgress"
                 :disabled="pdfRenderingInProgress"
                 @click="loadPdf"
-                color="secondary"
                 prepend-icon="mdi-cached"
                 text="Refresh PDF"
               >
@@ -19,7 +18,7 @@
                   <s-saving-loader-spinner />
                   Refresh PDF
                 </template>
-              </s-btn>
+              </s-btn-secondary>
             </template>
           </edit-toolbar>
 

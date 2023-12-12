@@ -17,8 +17,7 @@
           :history="true"
         >
           <template #toolbar-actions>
-            <s-btn
-              color="secondary"
+            <s-btn-secondary
               :to="`/templates/${template!.id}/`" exact
               class="ml-1 mr-1"
               prepend-icon="mdi-undo"

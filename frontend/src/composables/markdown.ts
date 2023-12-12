@@ -70,6 +70,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     emit: any;
 }) {
   const localSettings = useLocalSettings();
+  const theme = useTheme();
 
   const valueNotNull = computed(() => props.value.modelValue || '');
   const spellcheckLanguageToolEnabled = computed(() =>
@@ -150,6 +151,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
           history(),
           keymap.of([historyKeymap]),
           tooltips({ parent: document.body }),
+          // EditorView.theme({}, { dark: theme.current.value.dark }),
           EditorView.domEventHandlers({
             blur: (event: FocusEvent) => emit('blur', event),
             focus: (event: FocusEvent) => emit('focus', event),
@@ -197,11 +199,15 @@ export function useMarkdownEditor({ props, emit, extensions }: {
           }
         })
       ]),
+      darkTheme: createEditorExtensionToggler(editorView.value, [
+        EditorView.theme({}, { dark: true }),
+      ]),
     };
     editorActions.value.disabled(Boolean(props.value.disabled));
     editorActions.value.spellcheckLanguageTool(spellcheckLanguageToolEnabled.value);
     editorActions.value.spellcheckBrowser(spellcheckBrowserEnabled.value);
     editorActions.value.uploadFile(Boolean(props.value.uploadFile));
+    editorActions.value.darkTheme(theme.current.value.dark);
   }
   onMounted(() => initializeEditorView());
   onBeforeUnmount(() => {
@@ -235,6 +241,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     }
   });
   watch(spellcheckBrowserEnabled, val => editorActions.value.spellcheckBrowser?.(val));
+  watch(theme.current, val => editorActions.value.darkTheme?.(val.dark));
 
   function focus() {
     if (editorView.value) {

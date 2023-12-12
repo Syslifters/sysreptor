@@ -6,10 +6,6 @@
           v-model:selected="currentItemSelection"
           class="pb-0 h-100 d-flex flex-column"
         >
-          <div>
-            <v-list-item-title class="text-h6 pl-2">{{ formatProjectTypeTitle(projectType) }}</v-list-item-title>
-          </div>
-
           <div class="flex-grow-height overflow-y-auto">
             <draggable
               v-model="reportSections"
@@ -76,9 +72,8 @@
                     </draggable>
 
                     <v-list-item>
-                      <s-btn
+                      <s-btn-secondary
                         @click.stop="addField(s)"
-                        color="secondary"
                         size="x-small"
                         :disabled="readonly"
                         prepend-icon="mdi-plus"
@@ -96,10 +91,9 @@
           <div>
             <v-divider class="mb-1" />
             <v-list-item>
-              <s-btn
+              <s-btn-secondary
                 @click.stop="addSection"
                 :disabled="readonly"
-                color="secondary"
                 size="small"
                 block
                 prepend-icon="mdi-plus"
@@ -152,11 +146,10 @@
                 :lang="projectType.language"
                 :disabled="readonly"
               />
-              <s-btn
+              <s-btn-secondary
                 @click.stop="addField(currentItemSection!)"
                 :disabled="readonly"
                 class="mt-4"
-                color="secondary"
                 prepend-icon="mdi-plus"
                 text="Add Field"
               />

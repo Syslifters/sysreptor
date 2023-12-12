@@ -16,13 +16,12 @@
               <v-icon v-else :icon="buttonIcon" :color="($attrs.color as string|undefined) || buttonColor" />
             </template>
           </v-list-item>
-          <s-btn
+          <s-btn-icon
             v-else-if="buttonVariant === 'icon'"
             :icon="buttonIcon"
             :loading="actionInProgress"
             :disabled="disabled"
             :color="($attrs.color as string|undefined) || buttonColor || 'secondary'"
-            variant="text"
             @click="!props.confirm ? performAction() : null"
             v-bind="{...$attrs, ...tooltipProps, ...dialogProps}"
           />
@@ -61,9 +60,8 @@
       <v-divider />
       <v-card-actions>
         <v-spacer />
-        <s-btn
+        <s-btn-other
           @click="confirmDialogVisible = false"
-          variant="text"
           text="Cancel"
         />
         <s-btn

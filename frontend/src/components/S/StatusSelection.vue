@@ -44,7 +44,4 @@ const emit = defineEmits<{
 .status-finished {
   color: settings.$status-color-finished !important;
 }
-:deep(.v-field--variant-underlined .v-label.v-field-label--floating) {
-  transform: translateY(-10px);
-}
 </style>

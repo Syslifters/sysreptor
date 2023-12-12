@@ -1,7 +1,7 @@
 <template>
-  <v-chip size="small" class="ma-1" :class="{'text-secondary': imported}">
+  <v-chip size="small" class="ma-1" :class="{'text-disabled': imported}">
     <template v-if="imported">
-      <v-icon size="small" start class="text-secondary" icon="mdi-account-cancel" />
+      <v-icon size="small" start class="text-disabled" icon="mdi-account-cancel" />
       {{ props.value.name }}
     </template>
     <template v-else>

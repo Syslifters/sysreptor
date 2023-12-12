@@ -6,7 +6,7 @@
           <template #title>
             <div class="note-title-container">
               <div>
-                <s-btn
+                <s-btn-icon
                   @click="note.checked = note.checked === null ? false : !note.checked ? true : null"
                   :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
                   :disabled="readonly"

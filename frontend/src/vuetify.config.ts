@@ -1,6 +1,85 @@
 import { defineVuetifyConfiguration } from "vuetify-nuxt-module/custom-configuration";
+import merge from "lodash/merge";
 
+const sysreptorGreen = '#aabb11'
+const sysreptorGreenDark = '#818b06'
 const themeLightTextColor = '#1E1E1E';
+const themeDarkTextColor = '#f0f0f0';
+
+const themeCommon = {
+  colors: {
+    primary: sysreptorGreen,
+    'on-primary': '#ffffff',
+    'primary-bg': sysreptorGreenDark,
+    'on-primary-bg': '#ffffff',
+    secondary: '#4f4f4f',
+    'on-secondary': '#ffffff',
+
+    logo: sysreptorGreenDark,
+
+    error: '#FF5252',
+    info: '#2196F3',
+    success: '#4CAF50',
+    warning: '#FFC107',
+    'on-warning': themeLightTextColor,
+  },
+  variables: {
+    'high-emphasis-opacity': 0.9,
+    'medium-emphasis-opacity': 0.70,
+    'disabled-opacity': 0.70,
+  },
+};
+const themeLight = merge({}, themeCommon, {
+  dark: false,
+  colors: {
+    primary: sysreptorGreenDark,
+    logo: sysreptorGreenDark,
+
+    background: '#ffffff',
+    'on-background': themeLightTextColor,
+    surface: '#ffffff',
+    'on-surface': themeLightTextColor,
+
+    header: '#ededed',
+    'on-header': themeLightTextColor,
+    drawer: '#ededed',
+    'on-drawer': themeLightTextColor,
+  },
+  variables: {
+    'border-color': themeLightTextColor,
+    'theme-on-code': themeLightTextColor,
+  },
+});
+const themeDark = merge({}, themeCommon, {
+  dark: true,
+  colors: {
+    primary: sysreptorGreen,
+    logo: sysreptorGreen,
+
+    background: '#2a2a2a',
+    'on-background': themeDarkTextColor,
+    surface: '#2a2a2a',
+    'on-surface': themeDarkTextColor,
+
+    header: '#3c3c3c',
+    'on-header': themeDarkTextColor,
+    drawer: '#3c3c3c',
+    'on-drawer': themeDarkTextColor,
+  },
+  variables: {
+    'border-color': themeDarkTextColor,
+    'theme-on-code': themeDarkTextColor,
+  }
+});
+const adminThemeMixin = {
+  colors: {
+    primary: '#ff7300',
+    'primary-bg': '#ff7300',
+    header: '#a04800',
+    'on-header': '#ffffff',
+    logo: '#ffffff',
+  }
+};
 
 export default defineVuetifyConfiguration({
   directives: true,
@@ -12,40 +91,10 @@ export default defineVuetifyConfiguration({
   theme: {
     defaultTheme: 'light',
     themes: {
-      light: {
-        dark: false,
-        colors: {
-          primary: '#1976D2',
-          secondary: '#424242',
-          accent: '#82B1FF',
-          error: '#FF5252',
-          info: '#2196F3',
-          success: '#4CAF50',
-          warning: '#FFC107',
-          'on-warning': themeLightTextColor,
-          'on-background': themeLightTextColor,
-          'on-surface': themeLightTextColor,
-        },
-        variables: {
-          'high-emphasis-opacity': 0.9,
-          'medium-emphasis-opacity': 0.70,
-          'disabled-opacity': 0.70,
-          'border-color': themeLightTextColor,
-          'theme-on-code': themeLightTextColor,
-        },
-      },
-      // dark: {
-      //   dark: true,
-      //   colors: {
-      //     primary: '#1976D2',
-      //     secondary: '#424242',
-      //     accent: '#82B1FF',
-      //     error: '#FF5252',
-      //     info: '#2196F3',
-      //     success: '#4CAF50',
-      //     warning: '#FFC107',
-      //   },
-      // },
+      light: themeLight,
+      lightAdmin: merge({}, themeLight, adminThemeMixin),
+      dark: themeDark,
+      darkAdmin: merge({}, themeDark, adminThemeMixin),
     },
   },
   defaults: {
@@ -64,7 +113,18 @@ export default defineVuetifyConfiguration({
     },
     SBtnPrimary: {
       variant: 'flat',
-      color: 'primary',
+      color: 'primary-bg',
+    },
+    SBtnSecondary: {
+      variant: 'flat',
+      color: 'secondary',
+    },
+    SBtnOther: {
+      variant: 'text',
+    },
+    SBtnIcon: {
+      icon: true,
+      variant: 'text',
     },
     STextField: {
       persistentHint: true,
@@ -113,6 +173,9 @@ export default defineVuetifyConfiguration({
     SCard: 'VCard',
     SBtn: 'VBtn',
     SBtnPrimary: 'VBtn',
+    SBtnSecondary: 'VBtn',
+    SBtnOther: 'VBtn',
+    SBtnIcon: 'VBtn',
     STextField: 'VTextField',
     SCheckbox: 'VCheckbox',
     SSelect: 'VSelect',

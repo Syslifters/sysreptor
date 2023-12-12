@@ -102,9 +102,3 @@ const autocompleteAttrs = computed(() =>
 );
 
 </script>
-
-<style lang="scss" scoped>
-:deep(.v-field--variant-underlined .v-label.v-field-label--floating) {
-  transform: translateY(-10px);
-}
-</style>

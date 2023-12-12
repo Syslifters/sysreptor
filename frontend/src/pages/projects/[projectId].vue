@@ -1,14 +1,24 @@
 <template>
   <full-height-page>
-    <template #header>
-      <s-sub-menu v-if="project">
-        <v-tab :to="`/projects/${project.id}/`" exact text="Project" />
-        <v-tab :to="`/projects/${project.id}/notes/`" text="Notes" />
-        <v-tab :to="`/projects/${project.id}/reporting/`" text="Reporting" />
-        <v-tab :to="`/projects/${project.id}/publish/`" text="Publish" />
-        <v-tab :to="`/projects/${project.id}/designer/`" v-if="projectType?.source === 'customized'" text="Designer" />
-      </s-sub-menu>
-    </template>
+    <s-sub-drawer>
+      <template v-if="project">
+        <v-list-item :to="`/projects/${project.id}/`" exact prepend-icon="mdi-cogs" title="Settings">
+          <s-tooltip activator="parent" text="Project Settings" />
+        </v-list-item>
+        <v-list-item :to="`/projects/${project.id}/notes/`" prepend-icon="mdi-notebook" title="Notes">
+          <s-tooltip activator="parent" text="Notes" />
+        </v-list-item>
+        <v-list-item :to="`/projects/${project.id}/reporting/`" prepend-icon="mdi-text" title="Reporting">
+          <s-tooltip activator="parent" text="Reporting" />
+        </v-list-item>
+        <v-list-item :to="`/projects/${project.id}/publish/`" prepend-icon="mdi-earth" title="Publish">
+          <s-tooltip activator="parent" text="Publish" />
+        </v-list-item>
+        <v-list-item :to="`/projects/${project.id}/designer/`" v-if="projectType?.source === 'customized'" prepend-icon="mdi-pencil-ruler" title="Designer">
+          <s-tooltip activator="parent" text="Designer" />
+        </v-list-item>
+      </template>
+    </s-sub-drawer>
 
     <nuxt-page />
   </full-height-page>
@@ -33,5 +43,6 @@ watch(() => project.value?.project_type, async () => {
 
 useHead({
   titleTemplate: title => projectTitleTemplate(project.value, title, route),
+  breadcrumbs: () => projectDetailBreadcrumbs(project.value),
 });
 </script>

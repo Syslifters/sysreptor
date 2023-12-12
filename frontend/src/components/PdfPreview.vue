@@ -19,7 +19,6 @@
       transition="none"
       contained
       z-index="10"
-      class="message-overlay"
     >
       <error-list :value="messages" :show-no-message-info="true" class="mt-5" />
     </v-overlay>
@@ -111,15 +110,16 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-:deep(.v-overlay__content) {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-}
-.message-overlay {
+.v-overlay {
   color: white;
 
+  :deep(.v-overlay__content) {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+  }
   :deep(.v-overlay__scrim) {
+    background-color: black;
     opacity: 0.7;
   }
 }

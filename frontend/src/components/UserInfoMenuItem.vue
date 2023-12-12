@@ -1,8 +1,6 @@
 <template>
   <v-btn icon>
-    <v-badge :color="licenseError ? 'error' : licenseWarning ? 'warning' : 'transparent'" dot>
-      <v-icon color="white" icon="mdi-account" />
-    </v-badge>
+    <v-icon icon="mdi-account" />
 
     <v-menu activator="parent" location="bottom">
       <v-list>
@@ -32,16 +30,10 @@
           />
         </template>
         <v-list-item
-          v-if="showLicense"
-          to="/license/"
-          title="License Info"
-        >
-          <template #prepend>
-            <v-badge :color="licenseError ? 'error' : licenseWarning ? 'warning' : 'transparent'" dot>
-              <v-icon icon="mdi-check-decagram" />
-            </v-badge>
-          </template>
-        </v-list-item>
+          @click.stop="localSettings.theme = localSettings.theme === 'light' ? 'dark' : localSettings.theme === 'dark' ? null : 'light'"
+          :prepend-icon="localSettings.theme === 'dark' ? 'mdi-weather-night' : localSettings.theme === 'light' ? 'mdi-weather-sunny' : 'mdi-theme-light-dark'"
+          :title="localSettings.theme === 'dark' ? 'Theme: Dark' : localSettings.theme === 'light' ? 'Theme: Light' : 'Theme: System'"
+        />
         <v-list-item
           @click="auth.logout"
           prepend-icon="mdi-logout"
@@ -54,25 +46,8 @@
 </template>
 
 <script setup lang="ts">
-const auth = useAuth();
-const apiSettings = useApiSettings();
 const route = useRoute();
-
-const showLicense = computed(() => auth.hasScope('user_manager') || auth.user.value!.is_superuser);
-const licenseError = computed(() => apiSettings.settings!.license.error !== null);
-const { data: licenseInfo } = useLazyAsyncData(async () => {
-  if (showLicense.value && licenseError.value) {
-    return await $fetch<LicenseInfoDetails>('/api/v1/utils/license/', { method: 'GET' });
-  } else {
-    return null;
-  }
-});
-const licenseWarning = computed(() => {
-  if (!licenseInfo.value || !licenseInfo.value.valid_until) {
-    return false;
-  }
-  const warnThresholdDate = new Date();
-  warnThresholdDate.setDate(new Date().getDate() + 2 * 30);
-  return new Date(licenseInfo.value.valid_until) < warnThresholdDate;
-});
+const auth = useAuth();
+const localSettings = useLocalSettings();
+const apiSettings = useApiSettings();
 </script>

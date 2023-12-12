@@ -1,6 +1,6 @@
 @use "@/assets/settings.scss" as settings;
 @use "@/assets/vuetify.scss" as vuetify;
-@import '~/assets/fonts/exo/exo.css';
+@import '~/assets/fonts/exo2/exo2.css';
 
 
 // Hide scrollbar when it is not needed
@@ -17,12 +17,6 @@ body {
 }
 
 
-
-
-.login-header {
-  background-color: settings.$sysreptor-darkblue !important;
-}
-
 .toast-warning {
   // Vuetify warning color
   background-color: #fb8c00 !important;
@@ -33,6 +27,10 @@ body {
 // Vuetify overrides
 .v-field--focused .v-field__outline {
   --v-field-border-opacity: var(--v-high-emphasis-opacity) !important;
+}
+.v-btn.v-btn--icon:not(.text-error, .v-btn--variant-flat):hover .v-icon, 
+.v-breadcrumbs-item--link:hover {
+  color: rgb(var(--v-theme-primary));
 }
 
 

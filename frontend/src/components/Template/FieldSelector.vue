@@ -13,7 +13,7 @@
     <v-list-item v-for="d in templateStore.fieldDefinitionList" :key="d.id">
       <v-list-item-title class="text-body-2">{{ d.id }}</v-list-item-title>
       <template #append v-if="d.origin !== FieldOrigin.CORE">
-        <s-btn
+        <s-btn-icon
           @click="toggleFieldVisible(d)"
           :icon="d.visible ? 'mdi-eye' : 'mdi-eye-off'"
           size="x-small"

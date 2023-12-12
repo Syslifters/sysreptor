@@ -63,6 +63,9 @@ export default defineNuxtConfig({
   },
 
   // Dev settings
+  devtools: {
+    enabled: false,
+  },
   devServer: {
     port: 3000,
   },
@@ -77,7 +80,7 @@ export default defineNuxtConfig({
         '/static': {
           target: 'http://api:8000',
           bypass(req) {
-            if (['/static/logo.svg', '/static/favicon.ico'].includes(req.url!) || req.url!.startsWith('/static/pdfviewer/')) {
+            if (['/static/logo.svg', '/static/logo-text.svg', '/static/favicon.ico'].includes(req.url!) || req.url!.startsWith('/static/pdfviewer/')) {
               return req.url;
             }
           },
