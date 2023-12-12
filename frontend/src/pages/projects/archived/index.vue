@@ -53,7 +53,7 @@ definePageMeta({
   title: 'Projects',
   toplevel: true,
 });
-useHead({
+useHeadExtended({
   breadcrumbs: () => archivedProjectListBreadcrumbs(),
 });
 </script>

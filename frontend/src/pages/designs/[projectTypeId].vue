@@ -26,7 +26,7 @@ const projectTypeStore = useProjectTypeStore();
 await useAsyncDataE(async () => await projectTypeStore.getById(route.params.projectTypeId as string), { key: 'projectTypeMenu:projectType' });
 const projectType = computed(() => projectTypeStore.projectType(route.params.projectTypeId as string));
 
-useHead({
+useHeadExtended({
   titleTemplate: title => designTitleTemplate(projectType.value, title, route),
   breadcrumbs: () => designDetailBreadcrumbs(projectType.value),
 });

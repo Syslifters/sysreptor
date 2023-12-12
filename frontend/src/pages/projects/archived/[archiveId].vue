@@ -136,7 +136,7 @@ const restoreUntilDate = computed(() => {
   return 'in the next ' + formatDistanceToNowStrict(date, { unit: 'day' });
 })
 
-useHead({
+useHeadExtended({
   title: archive.value.name,
   breadcrumbs: () => archivedProjectDetailBreadcrumbs(archive.value),
 });

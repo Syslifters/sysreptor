@@ -59,7 +59,7 @@ definePageMeta({
   title: 'License',
   toplevel: true,
 });
-useHead({
+useHeadExtended({
   breadcrumbs: () => [{ title: 'License', to: '/license/' }],
 });
 

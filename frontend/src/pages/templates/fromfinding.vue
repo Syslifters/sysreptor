@@ -61,7 +61,7 @@ const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 const templateStore = useTemplateStore();
 
-useHead({
+useHeadExtended({
   title: 'Templates',
   breadcrumbs: () => templateListBreadcrumbs().concat([{ title: 'New', to: route.fullPath }]),
 });

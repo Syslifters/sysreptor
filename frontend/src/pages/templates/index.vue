@@ -56,7 +56,7 @@ definePageMeta({
   title: 'Templates',
   toplevel: true,
 });
-useHead({
+useHeadExtended({
   breadcrumbs: () => templateListBreadcrumbs(),
 });
 

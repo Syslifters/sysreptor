@@ -41,7 +41,7 @@ watch(() => project.value?.project_type, async () => {
   projectType.value = await projectTypeStore.getById(project.value.project_type);
 });
 
-useHead({
+useHeadExtended({
   titleTemplate: title => projectTitleTemplate(project.value, title, route),
   breadcrumbs: () => projectDetailBreadcrumbs(project.value),
 });

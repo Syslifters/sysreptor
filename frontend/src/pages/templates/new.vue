@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid';
 
-useHead({
+useHeadExtended({
   title: 'Templates',
   breadcrumbs: () => templateListBreadcrumbs().concat([{ title: 'New', to: '/templates/new/' }]),
 });
