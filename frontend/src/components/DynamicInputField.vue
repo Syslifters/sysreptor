@@ -108,10 +108,8 @@
 
           <template v-if="definition.items!.type === 'string'">
             <v-spacer />
-            <s-btn
+            <s-btn-icon
               @click="bulkEditList = !bulkEditList"
-              icon
-              variant="text"
               density="comfortable"
             >
               <v-icon v-if="bulkEditList" icon="mdi-format-list-bulleted" />
@@ -120,7 +118,7 @@
                 <span v-if="bulkEditList">Edit as list</span>
                 <span v-else>Bulk edit list items</span>
               </s-tooltip>
-            </s-btn>
+            </s-btn-icon>
           </template>
         </div>
       </v-card-title>
@@ -175,26 +173,22 @@
                       class="mb-4"
                     />
 
-                    <s-btn 
+                    <s-btn-icon 
                       @click="emitInputList('move', entryIdx, entryIdx - 1)"
                       :disabled="props.disabled || entryIdx === 0"
-                      icon
-                      variant="text"
                       density="compact"
                     >
                       <v-icon icon="mdi-arrow-up-drop-circle-outline" />
                       <s-tooltip activator="parent" text="Move up in list" />
-                    </s-btn>
-                    <s-btn
+                    </s-btn-icon>
+                    <s-btn-icon
                       @click="emitInputList('move', entryIdx, entryIdx + 1)"
                       :disabled="props.disabled || entryIdx === formValue.length - 1"
-                      icon
-                      variant="text"
                       density="compact"
                     >
                       <v-icon icon="mdi-arrow-down-drop-circle-outline" />
                       <s-tooltip activator="parent" text="Move down in list" />
-                    </s-btn>
+                    </s-btn-icon>
                   </div>
                   <div v-else>
                     <v-icon
@@ -216,9 +210,8 @@
           </draggable>
 
           <v-list-item class="pa-0">
-            <s-btn
+            <s-btn-secondary
               @click="emitInputList('add')"
-              color="secondary"
               :disabled="props.disabled"
               prepend-icon="mdi-plus"
               text="Add"

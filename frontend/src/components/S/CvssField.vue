@@ -55,15 +55,13 @@
           <div class="cvss-score-label">{{ editorScoreInfo.levelName }}</div>
         </div>
 
-        <s-btn
+        <s-btn-icon
           @click="applyDialog"
           :disabled="props.disabled"
-          variant="text"
-          icon
         >
           <v-icon size="x-large">mdi-check-bold</v-icon>
           <s-tooltip activator="parent" :disabled="props.disabled" text="Apply" />
-        </s-btn>
+        </s-btn-icon>
       </template>
 
       <template #default>
@@ -319,19 +317,12 @@ function applyDialog() {
   flex-direction: column;
 
   &-header {
-    background-color: #dcdcdc;
     text-align: center;
     font-weight: bold;
   }
 
   &-label {
     text-align: center;
-    //padding: 0.4em;
-  }
-
-  &-bottom {
-    height: 0.6em;
-    background-color: #808080;
   }
 }
 

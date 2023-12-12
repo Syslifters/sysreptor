@@ -19,17 +19,15 @@
       <page-loader :items="items" />
     </template>
     <template #append v-if="appendLink">
-      <s-btn
+      <s-btn-icon
         :to="`/designs/${returnObject ? (props.modelValue as ProjectType|null)?.id : props.modelValue}/pdfdesigner/`"
         target="_blank"
         :disabled="!props.modelValue"
-        icon
-        variant="text"
         class="mr-2"
       >
         <v-icon icon="mdi-chevron-right-circle-outline" />
         <s-tooltip activator="parent" text="Open Design" />
-      </s-btn>
+      </s-btn-icon>
     </template>
     <template #message="messageProps" v-if="$slots.message"><slot name="message" v-bind="messageProps" /></template>
   </s-autocomplete>

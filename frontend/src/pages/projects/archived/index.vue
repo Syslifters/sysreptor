@@ -2,8 +2,7 @@
   <full-height-page>
     <template #header>
       <s-sub-menu>
-        <v-tab to="/projects/" exact text="Active Projects" />
-        <v-tab to="/projects/finished/" text="Finished Projects" />
+        <v-tab to="/projects/" exact text="Projects" />
         <v-tab to="/projects/archived/" text="Archived Projects" />
       </s-sub-menu>
     </template>
@@ -52,5 +51,9 @@
 <script setup lang="ts">
 definePageMeta({
   title: 'Projects',
-})
+  toplevel: true,
+});
+useHead({
+  breadcrumbs: () => archivedProjectListBreadcrumbs(),
+});
 </script>

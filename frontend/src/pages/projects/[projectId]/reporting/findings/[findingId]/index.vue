@@ -5,21 +5,20 @@
         <template #context-menu v-if="auth.hasScope('template_editor')">
           <v-list-item
             :to="{path: '/templates/fromfinding/', query: {project: project.id, finding: finding.id}}"
-            prepend-icon="mdi-alpha-t-box-outline"
+            prepend-icon="mdi-view-compact"
             title="Save as template"
           />
         </template>
 
-        <s-btn
+        <s-btn-icon
           v-if="finding.template"
           :to="`/templates/${finding.template}/`"
           target="_blank"
           class="ml-1 mr-1"
-          icon
         >
-          <v-icon icon="mdi-alpha-t-box-outline" />
+          <v-icon icon="mdi-view-compact" />
           <s-tooltip activator="parent" text="This finding was created from a template: show template" />
-        </s-btn>
+        </s-btn-icon>
         <div class="status-container ml-1 mr-1">
           <s-status-selection v-model="finding.status" :disabled="readonly" />
         </div>
@@ -34,13 +33,7 @@
           />
         </div>
 
-        <s-btn
-          @click="historyVisible = !historyVisible"
-          color="secondary"
-          prepend-icon="mdi-history"
-        >
-          <span class="d-none d-lg-inline">Version History</span>
-        </s-btn>
+        <btn-history v-model="historyVisible" />
       </edit-toolbar>
 
       <project-history-timeline

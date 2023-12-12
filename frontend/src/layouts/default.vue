@@ -1,76 +1,136 @@
 <template>
-  <v-app class="height-fullscreen">
+  <div class="height-fullscreen">
     <nuxt-loading-indicator :height="2" color="white" />
-    <v-app-bar absolute density="compact" elevation="0" class="main-menu">
-      <v-tabs hide-slider selected-class="main-menu-selected">
-        <v-tab to="/" exact :ripple="false" class="no-highlight">
-          <v-img src="/static/logo.svg" alt="logo" height="38" width="50" />
-          SysReptor
-          <v-badge :content="badgeText" color="primary" class="badge-pill" inline />
-        </v-tab>
-        <template v-if="auth.loggedIn.value">
-          <v-tab to="/projects/" :ripple="false" text="Projects" />
-          <v-tab to="/templates/" :ripple="false" text="Templates" />
-          <v-tab to="/designs/" :ripple="false" text="Designs" />
-          <v-tab v-if="auth.hasScope('user_manager')" to="/users/" :ripple="false" text="Users" />
-          <v-tab to="/notes/personal/" :ripple="false" text="Notes" />
-        </template>
-      </v-tabs>
-
+    <v-app-bar absolute height="48" elevation="0" color="header" class="menu-appbar">
+      <v-app-bar-nav-icon v-if="auth.loggedIn.value" @click="navigationDrawerVisible = !navigationDrawerVisible" :ripple="false" color="logo">
+        <svg-logo />
+      </v-app-bar-nav-icon>
+      <div v-else class="menu-drawer-header">
+        <svg-logo-text />
+        <span class="license-text">{{ licenseText }}</span>
+      </div>
+      
       <v-spacer />
-      <s-tooltip text="Enable Superuser Permissions" location="bottom">
-        <template #activator="{ props }">
-          <s-btn
-            v-if="auth.loggedIn.value && auth.user.value!.is_superuser && !auth.hasScope('admin') && apiSettings.isProfessionalLicense"
-            :to="{path: '/users/self/admin/enable/', query: { next: route.fullPath }}"
-            text="Sudo"
-            prepend-icon="mdi-account-arrow-up"
-            size="large"
-            theme="dark"
-            class="btn-sudo"
-            v-bind="props"
-          />
+      <v-breadcrumbs v-if="breadcrumbs" :items="breadcrumbs as any" class="font-weight-medium">
+        <template #item="{ item, index }">
+          <v-breadcrumbs-item :to="(item as Breadcrumb).to" v-on="(index === breadcrumbs!.length - 1) ? { 'click.prevent': () => {} } : {}">
+            <v-icon v-if="(item as Breadcrumb).icon" :icon="(item as Breadcrumb).icon" />
+            {{ (item as Breadcrumb).title }}
+          </v-breadcrumbs-item>
         </template>
-      </s-tooltip>
+      </v-breadcrumbs>
+      <v-spacer />
 
       <notification-menu-item v-if="auth.loggedIn.value" />
 
-      <s-tooltip text="Documentation" location="bottom">
-        <template #activator="{ props }">
-          <s-btn
-            href="https://docs.sysreptor.com/" target="_blank"
-            icon="mdi-help-circle-outline"
-            theme="dark"
-            class="bg-inherit"
-            v-bind="props"
-          />
-        </template>
-      </s-tooltip>
+      <s-btn-icon href="https://docs.sysreptor.com/" target="_blank">
+        <v-icon icon="mdi-help-circle" />
+        <s-tooltip activator="parent" location="bottom" text="Documentation" />
+      </s-btn-icon>
 
       <user-info-menu-item v-if="auth.loggedIn.value" />
     </v-app-bar>
 
+    <v-navigation-drawer v-if="auth.loggedIn.value" v-bind="naviagtionDrawerProps" color="drawer" class="menu-drawer">
+      <div class="menu-drawer-header" @click="navigationDrawerVisible = !navigationDrawerVisible">
+        <svg-logo-text />
+        <span class="license-text">{{ licenseText }}</span>
+      </div>
+      <v-list class="pt-0 menu-drawer-body">
+        <v-list-item to="/projects/" title="Projects" prepend-icon="mdi-file-document" />
+        <v-list-item to="/templates/" title="Templates" prepend-icon="mdi-view-compact" />
+        <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" />
+        <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" />
+        
+        <template v-if="auth.user.value!.is_superuser || auth.user.value!.is_user_manager">
+          <v-list-item class="mt-6 pa-0" min-height="0">
+            <v-list-subheader title="Administration" />
+            <template #append>
+              <template v-if="apiSettings.isProfessionalLicense">
+                <s-btn-icon
+                  v-if="auth.hasScope('admin')"
+                  :to="{path: '/users/self/admin/disable/', query: { next: route.fullPath }}"
+                  density="comfortable"
+                >
+                  <v-icon size="small" color="primary" icon="mdi-account-arrow-down" />
+                  <s-tooltip activator="parent" text="Disable Superuser Permissions" />
+                </s-btn-icon>
+                <s-btn-icon
+                  v-else
+                  :to="{path: '/users/self/admin/enable/', query: { next: route.fullPath }}"
+                  :disabled="!auth.user.value!.is_superuser" 
+                  density="comfortable" 
+                >
+                  <v-icon size="small" icon="mdi-account-arrow-up" />
+                  <s-tooltip activator="parent" text="Enable Superuser Permissions" />
+                </s-btn-icon>
+              </template>
+            </template>
+          </v-list-item>
+
+          <v-list-item to="/users/" title="Users" prepend-icon="mdi-account-multiple" :disabled="!auth.hasScope('user_manager')" />
+          <license-info-menu-item />
+        </template>
+      </v-list>
+    </v-navigation-drawer>
+
     <v-main class="main-container">
-      <slot />
+      <slot name="default" />
     </v-main>
-  </v-app>
+  </div>
 </template>
 
 <script setup lang="ts">
-import capitalize from 'lodash/capitalize';
-
 const auth = useAuth();
 const apiSettings = useApiSettings();
 const route = useRoute();
+const display = useDisplay();
 
-const badgeText = computed(() => {
+const navigationDrawerVisible = ref(false);
+const naviagtionDrawerProps = computed(() => ({
+  absolute: true,
+  ...(route.meta.toplevel && display.mdAndUp.value ? { 
+    permanent: true,
+  } : { 
+    temporary: true,
+    modelValue: navigationDrawerVisible.value,
+    'onUpdate:modelValue': (value: boolean) => { navigationDrawerVisible.value = value },
+  })
+}));
+
+const licenseText = computed(() => {
   const license = apiSettings.settings?.license?.type || 'community';
-  return capitalize(license);
+  return {
+    community: '/CE',
+    professional: '/PRO',
+  }[license] || '';
 });
+
+// Breadcrumbs
+const breadcrumbs = ref<Breadcrumbs>();
+const nuxtApp = useNuxtApp();
+const head = nuxtApp.vueApp._context.provides.usehead
+function syncBreadcrumbs() {
+  const bc = head.headEntries()
+    .filter((e: any) => e.input?.breadcrumbs)
+    .reverse()
+    .map((e: any) => e.input.breadcrumbs.map((b: Breadcrumb) => ({ ...b, title: b.title || '...', disabled: false })))[0];
+  if (bc) {
+    breadcrumbs.value = [
+      { icon: 'mdi-home', to: '/' },
+      ...bc,
+    ];
+  } else {
+    breadcrumbs.value = undefined;
+  }
+}
+head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
 </script>
 
 <style lang="scss" scoped>
+@use 'sass:map';
 @use "@/assets/settings.scss" as settings;
+@use "@/assets/vuetify.scss" as vuetify;
 
 .height-fullscreen {
   height: 100vh;
@@ -85,35 +145,94 @@ const badgeText = computed(() => {
   }
 }
 
-.badge-pill {
-  margin-bottom: 0.7em;
-
-  &:deep(.v-badge__wrapper) {
-    margin-left: 0;
-  }
+.menu-appbar {
+  font-size: larger;
+  z-index: 0 !important;
+  margin-top: -1px;
+  border-bottom-width: vuetify.$navigation-drawer-border-thin-width;
+  border-bottom-style: vuetify.$navigation-drawer-border-style;
+  border-bottom-color: vuetify.$navigation-drawer-border-color;
+}
+.v-app-bar-nav-icon:hover svg {
+  fill: rgb(var(--v-theme-primary));
 }
 
-.main-menu :deep() {
-  font-size: larger;
-  background-color: settings.$sysreptor-darkblue !important;
-  z-index: 0 !important;
+.v-breadcrumbs-item .v-icon {
+  font-size: 1.5em;
+}
 
-  .v-tab {
-    color: settings.$sysreptor-white !important;
-    text-transform: inherit !important;
-    font-size: 1rem;
+.menu-drawer:deep() {
+  .v-list-item__spacer {
+    width: 1em;
+  }
+  .v-list-item--active {
+    border-left: 0.5em solid rgb(var(--v-theme-primary));
+    padding-left: calc(16px - 0.5em);
 
-    &:hover , &.main-menu-selected:not(.no-highlight) {
-      color: settings.$sysreptor-orange !important;
-      &::before {
-        opacity: 0 !important;
-      }
+    .v-list-item__overlay {
+      opacity: 0;
+    }
+    .v-list-item-title {
+      font-weight: bold;
+    }
+  }
+  .v-list-item:hover {
+    .v-list-item__overlay {
+      opacity: calc(#{map.get(vuetify.$states, 'hover')} * var(--v-theme-overlay-multiplier));
+    }
+  }
+  .v-list-item--active, .v-list-item:hover {
+    .v-list-item__prepend .v-icon, .v-list-item-title {
+      color: rgb(var(--v-theme-primary));
     }
   }
 }
 
-.btn-sudo {
-  height: 48px !important;
-  background-color: inherit !important;
+.menu-drawer {
+  height: 100% !important;
+  top: 0 !important;
+  border-right-width: 0;
+
+  &-header {
+    height: 48px;
+    background-color: rgb(var(--v-theme-header));
+    color: rgb(var(--v-theme-on-header));
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 0;
+    flex-shrink: 0;
+    padding-left: 1em;
+    padding-right: 1em;
+    cursor: pointer;
+    border-bottom-width: vuetify.$navigation-drawer-border-thin-width;
+    border-bottom-style: vuetify.$navigation-drawer-border-style;
+    border-bottom-color: vuetify.$navigation-drawer-border-color;
+  }
+
+  &-body {
+    border-right-width: vuetify.$navigation-drawer-border-thin-width;
+    border-right-style: vuetify.$navigation-drawer-border-style;
+    border-right-color: vuetify.$navigation-drawer-border-color;
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto !important;
+  }
+
+  &:deep(.v-navigation-drawer__content) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.license-text {
+  height: 28px;
+  display: flex;
+  flex-direction: column-reverse;
+  font-weight: 800;
+  font-size: larger;
+  line-height: 1;
+  color: rgb(var(--v-theme-logo));
 }
 </style>

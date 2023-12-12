@@ -1,18 +1,16 @@
 <template>
   <s-dialog v-model="dialogVisible" :disabled="props.disabled">
     <template #activator="{ props: dialogProps }">
-      <s-btn
+      <s-btn-icon
         @click="showDialog"
         v-bind="dialogProps"
-        icon
-        variant="text"
         size="small"
         density="comfortable"
         class="ml-1 mr-1"
       >
         <v-icon>mdi-pencil</v-icon>
         <s-tooltip activator="parent" text="Edit" />
-      </s-btn>
+      </s-btn-icon>
     </template>
     <template #title>Edit</template>
     <template #default>
@@ -27,8 +25,8 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <s-btn @click="dialogVisible = false" variant="text" text="Cancel" />
-        <s-btn @click="saveDialog" color="primary" text="Save" />
+        <s-btn-other @click="dialogVisible = false" text="Cancel" />
+        <s-btn-primary @click="saveDialog" text="Save" />
       </v-card-actions>
     </template>
   </s-dialog>

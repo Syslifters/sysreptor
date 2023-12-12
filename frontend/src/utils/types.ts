@@ -494,3 +494,10 @@ export type UploadedFileInfo = BaseModel&{
 
 export type StringChange = {from: number, deleteCount: number, add: string};
 export type CodeChange = StringChange & {type: string};
+
+export type Breadcrumb = {
+  title?: string;
+  icon?: string;
+  to?: string;
+};
+export type Breadcrumbs = Breadcrumb[];

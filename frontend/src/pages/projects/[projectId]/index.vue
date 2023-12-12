@@ -1,26 +1,22 @@
 <template>
-  <v-container class="pt-0">
+  <v-container fluid class="pt-0">
     <v-form ref="formRef">
       <edit-toolbar v-bind="toolbarAttrs">
-        <template #title>Project</template>
+        <template #title>Project Settings</template>
         <template #default>
-          <s-btn @click="historyVisible = !historyVisible" color="secondary" prepend-icon="mdi-history">
-            <span class="d-none d-lg-inline">Version History</span>
-          </s-btn>
           <btn-readonly :value="project.readonly" :set-readonly="setReadonly" class="ml-1 mr-1" />
-          <s-btn
+          <s-btn-secondary
             v-if="project.readonly && apiSettings.settings!.features.archiving"
             :to="`/projects/${project.id}/archive/`"
-            color="secondary"
             class="mr-1"
             prepend-icon="mdi-folder-lock-outline"
             text="Archive"
           />
+          <btn-history v-model="historyVisible" />
         </template>
         <template #context-menu>
           <btn-copy
             :copy="performCopy"
-            tooltip-text="Duplicate Project"
             confirm-text="The whole project will be copied including all members, sections, findings and images."
           />
           <btn-export
@@ -88,8 +84,8 @@
             <btn-copy
               :copy="() => performCopy({project_type: project.project_type})"
               button-text="Duplicate"
-              tooltip-text="Duplicate Project and change Design"
-              confirm-text="The whole project will be copied including all sections, findings and images. All changes are made in the duplicated project. No data will be lost."
+              tooltip-text="Duplicate project and change design in the duplicated project"
+              confirm-text="The whole project will be copied including all sections, findings, images, etc. All changes are made in the duplicated project. No data will be lost."
               button-variant="default"
               color="inherit"
               variant="text"

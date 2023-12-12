@@ -33,8 +33,8 @@ const levelNumber = computed(() => levelNumberFromScore(score.value));
   .risk-level-#{$level} {
     background-color: map-get(settings.$risk-color-levels, $level) !important;
     color: white !important;
-    width: 7.5em;
-    min-width: 7.5em;
+    width: 7.3em;
+    min-width: 7.3em;
     text-align: center;
 
     :deep(.v-chip__content) {

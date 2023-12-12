@@ -173,10 +173,9 @@
           </template>
         </draggable>
         <v-list-item>
-          <s-btn
+          <s-btn-secondary
             @click="updateEnumChoice('add', 0)"
             :disabled="props.disabled || !props.canChangeStructure"
-            color="secondary"
             prepend-icon="mdi-plus"
             text="Add Value"
           />
@@ -207,10 +206,9 @@
           </template>
         </v-list-item>
         <v-list-item>
-          <s-btn
+          <s-btn-secondary
             @click="updateComboboxSuggestion('add', 0)"
             :disabled="props.disabled || !props.canChangeStructure"
-            color="secondary"
             prepend-icon="mdi-plus"
             text="Add Value"
           />
@@ -261,10 +259,9 @@
 
         <v-divider />
         <v-list-item>
-          <s-btn
+          <s-btn-secondary
             @click="updateObject('add')"
             :disabled="props.disabled || !props.canChangeStructure"
-            color="secondary"
             prepend-icon="mdi-plus"
             text="Add property"
           />

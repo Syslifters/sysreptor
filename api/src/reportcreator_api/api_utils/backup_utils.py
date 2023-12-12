@@ -1,7 +1,6 @@
 import contextlib
 import logging
 import os
-import posix
 from unittest import mock
 import zipfile
 import zipstream

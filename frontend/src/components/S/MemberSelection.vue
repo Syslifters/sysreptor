@@ -4,14 +4,14 @@
     @update:model-value="updateMembers"
     label="Members"
     :multiple="true"
-    :disabled="disabled || disableAdd"
+    :disabled="disabled"
+    :readonly="disableAdd"
     :prevent-unselecting-self="preventUnselectingSelf"
     menu-icon=""
     :clearable="false"
   >
     <template #chip="{item: { title, raw: user}}">
       <v-list-item
-        :disabled="props.disabled"
         class="member-item elevation-2 mt-1 mb-1"
         lines="two"
         density="compact"
@@ -22,25 +22,21 @@
           :model-value="getRoles(user)"
           @update:model-value="setRoles(user, $event)"
           :items="allRoles"
-          :disabled="props.disabled"
         />
 
         <template #append>
-          <s-btn
+          <s-btn-icon
             @click.stop="removeMember(user)"
-            :disabled="disabled || (preventUnselectingSelf && user.id === auth.user.value!.id)"
+            :readonly="preventUnselectingSelf && user.id === auth.user.value!.id"
             icon="mdi-delete"
-            variant="text"
           />
         </template>
       </v-list-item>
     </template>
 
     <template #append-inner>
-      <s-btn
-        :disabled="disabled || disableAdd"
+      <s-btn-secondary
         size="small"
-        color="secondary"
         prepend-icon="mdi-plus"
         text="Add"
       />

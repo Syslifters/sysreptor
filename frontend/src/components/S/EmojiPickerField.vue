@@ -1,8 +1,6 @@
 <template>
-  <s-btn
+  <s-btn-icon
     :disabled="disabled"
-    icon
-    variant="text"
     :ripple="false"
   >
     <s-emoji v-if="props.modelValue" :value="props.modelValue" />
@@ -20,21 +18,21 @@
         set="local"
         :show-skin-tones="false"
         :show-preview="false"
+        :color="null"
       >
         <template #searchTemplate="searchAttrs">
           <div class="d-flex flex-row">
             <search v-bind="searchAttrs" class="flex-grow-1" />
-            <s-btn
+            <s-btn-icon
               @click="clearEmoji"
               icon="$clear"
-              variant="text"
               density="comfortable"
             />
           </div>
         </template>
       </picker>
     </v-menu>
-  </s-btn>
+  </s-btn-icon>
 </template>
 
 <script setup lang="ts">
@@ -97,6 +95,14 @@ function clearEmoji() {
 </script>
 
 <style lang="scss" scoped>
+@use '@/assets/vuetify.scss' as vuetify;
+
+.emoji-mart {
+  background-color: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
+  border-color: rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
 :deep() {
   .emoji-type-image.emoji-set-local {
     background-image: url('@/assets/emojis/sheet_twitter_32_indexed_128.png');
@@ -106,6 +112,37 @@ function clearEmoji() {
     span {
       cursor: pointer;
     }
+  }
+
+  .emoji-mart-search input {
+    border-color: rgba(var(--v-border-color), var(--v-border-opacity));
+  }
+
+  .emoji-mart-category .emoji-mart-emoji:hover:before,
+  .emoji-mart-emoji-selected:before {
+    background-color: currentColor;
+    opacity: 0.1;
+  }
+
+  .emoji-mart-category-label h3 {
+    background-color: rgba(var(--v-theme-surface), 0.95);
+  }
+
+  .emoji-mart-anchor:hover {
+    color: rgb(var(--v-theme-on-surface));
+  }
+  .emoji-mart-anchor-selected {
+    color: rgb(var(--v-theme-primary)) !important;
+  }
+  .emoji-mart-anchor-bar {
+    background-color: rgb(var(--v-theme-primary)) !important;
+  }
+  .emoji-mart-bar {
+    border-color: rgba(var(--v-theme-on-surface), var(--v-border-opacity));
+  }
+
+  .emoji-mart-no-results {
+    color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
   }
 }
 </style>

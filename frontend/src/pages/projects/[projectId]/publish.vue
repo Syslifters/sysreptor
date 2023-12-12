@@ -14,11 +14,10 @@
       <v-form class="pa-4">
         <!-- Action buttons -->
         <div>
-          <s-btn
+          <s-btn-secondary
             :loading="checksOrPreviewInProgress"
             :disabled="checksOrPreviewInProgress"
             @click="refreshPreviewAndChecks"
-            color="secondary"
             prepend-icon="mdi-cached"
             text="Refresh PDF"
           >
@@ -26,7 +25,7 @@
               <s-saving-loader-spinner />
               Refresh PDF
             </template>
-          </s-btn>
+          </s-btn-secondary>
 
           <btn-confirm
             :action="customizeDesign"
@@ -88,13 +87,13 @@
         <template #location="{msg}">
           <NuxtLink v-if="messageLocationUrl(msg)" :to="messageLocationUrl(msg)" target="_blank">
             in {{ msg.location.type }}
-            <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
-            <template v-if="msg.location.path">field "{{ msg.location.path }}"</template>
+            <span v-if="msg.location.name"> "{{ msg.location.name }}"</span>
+            <span v-if="msg.location.path"> field "{{ msg.location.path }}"</span>
           </NuxtLink>
           <span v-else-if="msg.location.name">
             in {{ msg.location.type }}
-            <template v-if="msg.location.name">"{{ msg.location.name }}"</template>
-            <template v-if="msg.location.path">field "{{ msg.location.path }}"</template>
+            <span v-if="msg.location.name"> "{{ msg.location.name }}"</span>
+            <span v-if="msg.location.path"> field "{{ msg.location.path }}"</span>
           </span>
         </template>
       </error-list>

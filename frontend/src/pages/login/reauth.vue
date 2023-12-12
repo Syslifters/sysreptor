@@ -5,11 +5,10 @@
         <login-form v-if="step === 'local'" :username="auth.user.value!.username" @login="auth.redirect()">
           <template #title>Re-Authenticate</template>
           <template #actions>
-            <s-btn
+            <s-btn-secondary
               v-if="apiSettings.settings!.auth_providers.length > 1"
               @click="step = Step.LIST"
               text="Back"
-              color="secondary"
             />
           </template>
         </login-form>
@@ -17,10 +16,9 @@
           <template #title>Re-Authenticate</template>
           <template #local>
             <v-list-item>
-              <s-btn
+              <s-btn-secondary
                 @click="step = Step.LOCAL"
                 text="Login with local user"
-                color="secondary"
                 block
               />
             </v-list-item>

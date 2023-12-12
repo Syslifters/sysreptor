@@ -15,6 +15,8 @@ export const useLocalSettings = defineStore('settings', {
     templateFieldFilterHiddenFields: [] as string[],
     noteExpandStates: {} as {[noteId: string]: boolean},
     cvssVersion: CvssVersion.CVSS31,
+    subDrawerExpanded: true,
+    theme: null as 'light'|'dark'|null,
   }),
   actions: {
     setNoteExpandState({ noteId, isExpanded }: { noteId: string, isExpanded: boolean }) {

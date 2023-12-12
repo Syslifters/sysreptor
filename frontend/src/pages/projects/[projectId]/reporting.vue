@@ -2,12 +2,8 @@
   <split-menu v-model="localSettings.reportInputMenuSize">
     <template #menu>
       <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
-        <div>
-          <v-list-item-title class="text-h6 pl-2">{{ project.name }}</v-list-item-title>
-        </div>
-
         <div class="flex-grow-1 overflow-y-auto">
-          <v-list-subheader>Sections</v-list-subheader>
+          <v-list-subheader title="Sections" class="mt-0" />
           <v-list-item
             v-for="section in sections"
             :key="section.id"
@@ -34,20 +30,18 @@
           <v-list-subheader>
             <span>Findings</span>
             <v-spacer />
-            <s-btn
+            <s-btn-icon
               v-if="projectType.finding_ordering.length > 0"
               @click="toggleOverrideFindingOrder"
               :disabled="project.readonly"
               size="x-small"
-              variant="text"
-              icon
             >
               <v-icon :icon="project.override_finding_order ? 'mdi-sort-variant-off' : 'mdi-sort-variant'" />
               <s-tooltip activator="parent">
                 <span v-if="project.override_finding_order">Custom order</span>
                 <span v-else>Default order</span>
               </s-tooltip>
-            </s-btn>
+            </s-btn-icon>
           </v-list-subheader>
 
           <draggable

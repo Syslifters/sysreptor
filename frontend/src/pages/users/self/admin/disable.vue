@@ -1,10 +1,8 @@
 <template>
-  <v-container>
-    <h1>Goodbye, Superuser</h1>
-    <v-alert color="success">
-      You superuser permissions have been disabled. You are now a regular user again.
-    </v-alert>
-    <s-btn @click="auth.redirect(route.query.next)" color="primary" text="Continue" class="mt-4" />
+  <v-container fluid>
+    <div class="mt-4 d-flex flex-column align-center">
+      <v-progress-circular indeterminate size="50" />
+    </div>
   </v-container>
 </template>
 
@@ -17,8 +15,11 @@ useLazyAsyncData(async () => {
       method: 'POST',
       body: {}
     });
-  } catch {
-    // ignore
+    successToast('Superuser permissions disabled');
+  } catch (error) {
+    requestErrorToast({ message: 'Failed to disable superuser permissions', error });
+  } finally {
+    auth.redirect(route.query.next);
   }
 });
 </script>

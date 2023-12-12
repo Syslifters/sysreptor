@@ -96,7 +96,6 @@ export const spellcheckTheme = EditorView.theme({
     listStyle: 'none',
     fontSize: '10pt',
     maxWidth: '400px',
-    backgroundColor: 'white',
     paddingBottom: '0.5em',
   },
   '.cm-diagnosticText': {
@@ -104,12 +103,12 @@ export const spellcheckTheme = EditorView.theme({
     marginBottom: '0.5em',
   },
   '.cm-diagnosticAction': {
-    backgroundColor: '#45a8fc',
+    backgroundColor: '#818b06',
     color: 'white',
     marginLeft: '0',
     marginRight: '8px',
     '&:hover': {
-      backgroundColor: '#1976d2'
+      backgroundColor: '#aabb11'
     },
   },
   [`.cm-diagnosticAction[aria-label*="Add "][aria-label*=" to dictionary"]`]: {
@@ -120,7 +119,7 @@ export const spellcheckTheme = EditorView.theme({
     textAlign: 'center',
     marginTop: '0.5em',
     '&:hover': {
-      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
     },
   },
   '.cm-spellcheck-details': {

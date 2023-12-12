@@ -58,7 +58,8 @@ const mainTranslation = computed(() => template.value?.translations?.find(tr => 
 
 const title = computed(() => mainTranslation.value?.data?.title || null);
 useHead({
-  title
+  title,
+  breadcrumbs: () => templateDetailBreadcrumbs(template.value),
 });
 
 const vm = getCurrentInstance();

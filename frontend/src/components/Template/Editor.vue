@@ -14,11 +14,9 @@
             />
           </v-tab>
 
-          <s-btn
+          <s-btn-icon
             v-if="unusedLanguageInfos.length > 0"
             :disabled="props.readonly"
-            icon
-            variant="text"
           >
             <v-icon icon="mdi-plus" />
             <s-tooltip activator="parent" text="Add translation" />
@@ -30,20 +28,13 @@
                 </v-list-item>
               </v-list>
             </v-menu>
-          </s-btn>
+          </s-btn-icon>
         </v-tabs>
       </template>
 
       <slot name="toolbar-actions" />
 
-      <s-btn
-        v-if="history"
-        @click="historyVisible = !historyVisible"
-        color="secondary"
-        prepend-icon="mdi-history"
-      >
-        <span class="d-none d-lg-inline">Version History</span>
-      </s-btn>
+      <btn-history v-if="history" v-model="historyVisible" />
 
       <template #context-menu v-if="$slots['toolbar-context-menu']">
         <slot name="toolbar-context-menu" />
@@ -109,11 +100,10 @@
             class="flex-grow-width"
           />
           <div v-if="!translation.is_main" class="mt-4 ml-1">
-            <s-btn
+            <s-btn-secondary
               v-if="d.id in translation.data"
               @click="translateFieldReset(translation, d.id)"
               :disabled="props.readonly"
-              color="secondary"
               class="h-100"
               size="small"
             >
@@ -122,12 +112,11 @@
                 Reset field to inherit text from the main language {{ mainLanguageInfo.name }}.
                 Currently it is overridden for the {{ currentLanguageInfo.name }} translation.<br>
               </s-tooltip>
-            </s-btn>
-            <s-btn
+            </s-btn-secondary>
+            <s-btn-secondary
               v-else
               @click="translateFieldCopy(translation, d.id)"
               :disabled="props.readonly"
-              color="secondary"
               class="h-100"
               size="small"
             >
@@ -136,7 +125,7 @@
                 Override field in {{ currentLanguageInfo.name }} translation.<br>
                 Currently it is inherited from the main language {{ mainLanguageInfo.name }}.
               </s-tooltip>
-            </s-btn>
+            </s-btn-secondary>
           </div>
         </div>
       </v-window-item>

@@ -11,10 +11,9 @@
 
     <user-info-form v-model="user" :errors="serverErrors" :can-edit-permissions="canEdit" :can-edit-username="canEdit">
       <template #login-information>
-        <s-btn
+        <s-btn-secondary
           v-if="canEdit"
           :to="`/users/${user.id}/reset-password/`"
-          color="secondary"
           text="Reset Password"
           class="mt-4 mb-4"
         />

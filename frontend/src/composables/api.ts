@@ -79,7 +79,7 @@ export function useCursorPaginationFetcher<T>({ baseURL, query }: { baseURL: str
   };
 }
 
-export function useSearchableCursorPaginationFetcher<T>({ baseURL, query }: { baseURL: string, query?: Object }) {
+export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: string, query?: Object }) {
   const initializingFetcher = ref(false);
   const fetcher = ref<ReturnType<typeof useCursorPaginationFetcher<T>>>(null as any);
   const fetchNextPageDebounced = debounce(async () => {
@@ -98,7 +98,7 @@ export function useSearchableCursorPaginationFetcher<T>({ baseURL, query }: { ba
     }
     fetcher.value = newFetcher
   }
-  createFetcher({ baseURL, query });
+  createFetcher(options);
 
   async function fetchNextPage() {
     fetchNextPageDebounced!();
@@ -115,7 +115,7 @@ export function useSearchableCursorPaginationFetcher<T>({ baseURL, query }: { ba
     if (isEqual(currentQuery.value, newQuery)) {
       return;
     }
-    createFetcher({ baseURL, query: newQuery, fetchInitialPage, debounce });
+    createFetcher({ baseURL: fetcher.value.baseURL, query: newQuery, fetchInitialPage, debounce });
   }
 
   const search = computed({

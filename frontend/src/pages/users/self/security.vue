@@ -8,14 +8,12 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <s-btn
+          <s-btn-other
             @click="reauthDialogVisible = false"
-            variant="text"
             text="Cancel"
           />
-          <s-btn
+          <s-btn-primary
             @click="auth.redirectToReAuth()"
-            color="primary"
             text="Re-Authenticate"
           />
         </v-card-actions>
@@ -27,8 +25,7 @@
       <v-card-text>
         <s-dialog v-model="changePasswordWizard.visible">
           <template #activator="{ props: dialogProps }">
-            <s-btn
-              color="secondary"
+            <s-btn-secondary
               text="Change Password"
               v-bind="dialogProps"
             />
@@ -46,10 +43,9 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer />
-                <s-btn
+                <s-btn-primary
                   @click="changePassword"
                   :loading="actionInProgress"
-                  color="primary"
                   text="Change Password"
                 />
               </v-card-actions>
@@ -76,9 +72,8 @@
             <template #append>
               <s-dialog v-model="editWizard.visible">
                 <template #activator="{props: dialogProps}">
-                  <s-btn
+                  <s-btn-icon
                     @click="openEditWizard(mfaMethod)"
-                    variant="text"
                     icon="mdi-pencil"
                     v-bind="dialogProps"
                   />
@@ -106,10 +101,9 @@
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer />
-                    <s-btn
+                    <s-btn-primary
                       @click="editWizardSave"
                       :loading="actionInProgress"
-                      color="primary"
                       text="Save"
                     />
                   </v-card-actions>
@@ -130,8 +124,7 @@
           <v-list-item>
             <s-dialog v-model="setupWizard.visible">
               <template #activator="{ props: dialogProps }">
-                <s-btn
-                  color="secondary"
+                <s-btn-secondary
                   @click="openSetupWizard"
                   v-bind="dialogProps"
                   prepend-icon="mdi-plus"
@@ -160,11 +153,10 @@
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer />
-                    <s-btn
+                    <s-btn-primary
                       @click="setupWizardRegisterBegin"
                       :disabled="!setupWizard.methodType"
                       :loading="actionInProgress"
-                      color="primary"
                       text="Next"
                     />
                   </v-card-actions>
@@ -180,10 +172,9 @@
 
                   <v-card-actions>
                     <v-spacer />
-                    <s-btn
+                    <s-btn-primary
                       @click="setupWizardCompleteBackup"
                       :loading="actionInProgress"
-                      color="primary"
                       text="Activate"
                     />
                   </v-card-actions>
@@ -215,10 +206,9 @@
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer />
-                    <s-btn
+                    <s-btn-primary
                       @click="setupWizardCompleteTotp"
                       :loading="actionInProgress"
-                      color="primary"
                       text="Activate"
                     />
                   </v-card-actions>
@@ -232,9 +222,8 @@
 
                     <v-alert v-if="setupWizard.error" type="error">
                       {{ setupWizard.error }}
-                      <s-btn
+                      <s-btn-other
                         @click="setupWizardRegisterBegin"
-                        variant="text"
                         text="Try again"
                       />
                     </v-alert>
@@ -256,10 +245,9 @@
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer />
-                    <s-btn
+                    <s-btn-primary
                       @click="setupWizardSetName"
                       :loading="actionInProgress"
-                      color="primary"
                       text="Save"
                     />
                   </v-card-actions>
@@ -519,7 +507,7 @@ async function changePassword() {
 .backup-code-list {
   list-style: none;
   columns: 2;
-  color: black;
+  font-family: monospace;
 }
 
 .totp-confirm {

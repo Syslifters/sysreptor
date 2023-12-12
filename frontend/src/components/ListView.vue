@@ -1,8 +1,14 @@
 <template>
-  <v-container class="pt-0">
+  <v-container fluid class="pt-0">
     <v-list v-if="items" class="pt-0 overflow-visible">
       <div class="list-header pt-2 mb-4">
-        <h1><slot name="title" /></h1>
+        <h1>
+          <slot name="title" />
+
+          <div v-if="$slots.actions" class="list-header-actions">
+            <slot name="actions" />
+          </div>
+        </h1>
 
         <slot name="searchbar" :items="items">
           <v-text-field
@@ -16,8 +22,6 @@
             class="mt-0 mb-2"
           />
         </slot>
-
-        <slot name="actions" />
       </div>
 
       <slot v-for="item in items.data.value" name="item" :item="item" />
@@ -50,18 +54,36 @@ useLazyAsyncData(async () => {
 watch(() => route.query, () => {
   items.applyFilters({ ...route.query }, { debounce: true });
 }, { deep: true });
+watch(() => props.url, async () => {
+  items.reset({ baseURL: props.url, query: { ...route.query } });
+  await items.fetchNextPage();
+});
 
 function updateSearch(search: string) {
   items.search.value = search;
   router.replace({ query: { ...route.query, search } });
 }
+
+defineExpose({
+  items,
+  updateSearch,
+});
 </script>
 
 <style lang="scss" scoped>
+@use "@/assets/vuetify.scss" as vuetify;
 .list-header {
   position: sticky;
   top: 0;
   z-index: 1;
-  background-color: white;
+  background-color: vuetify.$list-background;
+}
+.list-header-actions {
+  margin-left: 1rem;
+  display: inline-block;
+  
+  &:deep() > * {
+    margin-left: 0.4rem;
+  }
 }
 </style>

@@ -32,9 +32,8 @@
 
             <v-card-actions>
               <v-spacer />
-              <s-btn
+              <s-btn-other
                 @click="saveWarningDialogVisible = false"
-                variant="text"
                 text="Cancel"
               />
               <btn-confirm
@@ -57,14 +56,15 @@
 import { v4 as uuidv4 } from "uuid";
 import urlJoin from "url-join";
 
-definePageMeta({
-  title: 'Templates',
-})
-
 const route = useRoute();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 const templateStore = useTemplateStore();
+
+useHead({
+  title: 'Templates',
+  breadcrumbs: () => templateListBreadcrumbs().concat([{ title: 'New', to: route.fullPath }]),
+});
 
 if (!route.query.project || !route.query.finding) {
   throw createError('No project or finding found.');
@@ -116,7 +116,6 @@ const template = computed({
 const saveWarningDialogVisible = ref(false);
 const toolbarAttrs = computed(() => ({
   save: () => { saveWarningDialogVisible.value = true; },
-  saveButtonText: 'Create',
 }));
 async function performCreate() {
   const obj = await templateStore.createFromFinding(template.value!, project.value!.id);

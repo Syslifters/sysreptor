@@ -48,10 +48,9 @@
         </draggable>
 
         <v-list-item>
-          <s-btn
+          <s-btn-secondary
             @click="createFinding"
             :disabled="props.disabled"
-            color="secondary"
             size="x-small"
             block
             prepend-icon="mdi-plus"

@@ -2,10 +2,6 @@
   <split-menu v-model="localSettings.notebookInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
       <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
-        <div>
-          <v-list-item-title class="text-h6 pl-2">{{ project.name }}</v-list-item-title>
-        </div>
-
         <notes-sortable-list
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"

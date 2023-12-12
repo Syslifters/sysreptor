@@ -1,8 +1,15 @@
 <template>
-  <v-container class="pt-0">
+  <v-container fluid class="pt-0">
     <v-form ref="formRef" @submit.prevent="performCreate">
-      <edit-toolbar :form="formRef" :save="performCreate" save-button-text="Create">
+      <edit-toolbar :form="formRef">
         <template #title>Create new Project</template>
+        <template #default>
+          <s-btn-primary 
+            type="submit"
+            text="Create"
+            prepend-icon="mdi-content-save"
+          />
+        </template>
       </edit-toolbar>
 
       <s-text-field 
@@ -36,8 +43,9 @@
 <script setup lang="ts">
 import type { VForm } from "vuetify/lib/components/index.mjs";
 
-definePageMeta({
+useHead({
   title: 'Projects',
+  breadcrumbs: () => projectListBreadcrumbs().concat([{ title: 'New', to: '/projects/new/' }]),
 });
 
 const auth = useAuth();

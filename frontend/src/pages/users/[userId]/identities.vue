@@ -23,10 +23,9 @@
 
       <s-dialog v-model="createWizard.visible">
         <template #activator="{ props: dialogProps }">
-          <s-btn
+          <s-btn-secondary
             v-bind="dialogProps"
             :disabled="!canEdit"
-            color="secondary"
             prepend-icon="mdi-plus"
             text="Add"
           />
@@ -52,10 +51,9 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <s-btn
+            <s-btn-primary
               @click="createIdentity"
               :loading="createWizard.actionInProgress"
-              color="primary"
               text="Save"
             />
           </v-card-actions>

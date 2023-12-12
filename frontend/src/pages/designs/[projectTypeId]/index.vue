@@ -1,12 +1,11 @@
 <template>
-  <v-container class="pt-0">
+  <v-container fluid class="pt-0">
     <v-form ref="form">
       <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form">
         <template #context-menu>
           <btn-copy
             v-if="auth.hasScope('designer')"
             :copy="performCopy"
-            tooltip-text="Duplicate Design"
           />
           <btn-export
             :export-url="`/api/v1/projecttypes/${projectType.id}/export/`"

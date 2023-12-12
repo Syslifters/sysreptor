@@ -1,9 +1,9 @@
 <template>
-  <s-btn icon class="bg-inherit">
-    <v-badge v-if="notificationStore.unreadNotificationCount > 0" :content="notificationStore.unreadNotificationCount" color="primary">
-      <v-icon color="white" icon="mdi-bell-outline" />
+  <s-btn-icon>
+    <v-badge v-if="notificationStore.unreadNotificationCount > 0" :content="notificationStore.unreadNotificationCount" color="info">
+      <v-icon icon="mdi-bell" />
     </v-badge>
-    <v-icon v-else color="white" icon="mdi-bell-outline" />
+    <v-icon v-else icon="mdi-bell" />
 
     <s-tooltip activator="parent" location="bottom" text="Notifications" />
 
@@ -21,8 +21,8 @@
           lines="two"
         >
           <template #append>
-            <s-btn v-if="!notification.read" @click.stop.prevent="markAsRead(notification)" icon="mdi-checkbox-blank-outline" />
-            <s-btn v-else disabled icon="mdi-checkbox-marked-outline" />
+            <s-btn-icon v-if="!notification.read" @click.stop.prevent="markAsRead(notification)" icon="mdi-checkbox-blank-outline" />
+            <s-btn-icon v-else disabled icon="mdi-checkbox-marked-outline" />
           </template>
         </v-list-item>
         <v-list-item
@@ -31,7 +31,7 @@
         />
       </v-list>
     </v-menu>
-  </s-btn>
+  </s-btn-icon>
 </template>
 
 <script setup lang="ts">

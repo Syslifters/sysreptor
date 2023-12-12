@@ -326,6 +326,8 @@ class AuthViewSet(viewsets.ViewSet):
             raise APIBadRequestError('Login timeout. Please restart login.')
 
     def perform_login(self, request, user, can_reauth=True):
+        if not user.is_active:
+            raise APIBadRequestError('User is inactive')
         license.validate_login_allowed(user)
 
         request.session.pop('login_state', None)

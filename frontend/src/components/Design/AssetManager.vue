@@ -5,11 +5,10 @@
       <v-col :cols="12" :md="3">
         <s-card>
           <v-card-actions>
-            <s-btn
+            <s-btn-secondary
               :disabled="props.disabled || uploadInProgress"
               :loading="uploadInProgress"
               @click="($refs.fileInput as HTMLInputElement).click()"
-              color="primary"
               block
               prepend-icon="mdi-upload"
               text="Upload"
@@ -18,7 +17,7 @@
                 <s-saving-loader-spinner />
                 Uploading
               </template>
-            </s-btn>
+            </s-btn-secondary>
             <input
               ref="fileInput"
               type="file"
@@ -40,20 +39,20 @@
           <v-card-title>{{ asset.name }}</v-card-title>
           <v-card-text class="text--small pb-0">
             {{ assetUrl(asset) }}
-            <s-btn @click="copyAssetUrl(asset)" icon variant="text" size="small" density="compact">
+            <s-btn-icon @click="copyAssetUrl(asset)" size="small" density="compact">
               <v-icon size="small" icon="mdi-clipboard-outline" />
               <s-tooltip activator="parent" text="Copy path to clipboard" />
-            </s-btn>
+            </s-btn-icon>
           </v-card-text>
           <v-card-actions>
-            <s-btn :href="imageUrl(asset)" download icon density="comfortable">
+            <s-btn-icon :href="imageUrl(asset)" download density="comfortable">
               <v-icon icon="mdi-download" />
               <s-tooltip activator="parent" text="Download asset" />
-            </s-btn>
-            <s-btn :href="imageUrl(asset)" target="_blank" icon density="comfortable">
+            </s-btn-icon>
+            <s-btn-icon :href="imageUrl(asset)" target="_blank" density="comfortable">
               <v-icon icon="mdi-open-in-new" />
               <s-tooltip activator="parent" text="Show image in new tab" />
-            </s-btn>
+            </s-btn-icon>
             <v-spacer />
             <btn-delete
               :delete="() => performDelete(asset)"
