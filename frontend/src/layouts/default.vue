@@ -1,6 +1,6 @@
 <template>
   <div class="height-fullscreen">
-    <nuxt-loading-indicator :height="2" color="white" />
+    <nuxt-loading-indicator :height="2" :color="false" />
     <v-app-bar absolute height="48" elevation="0" color="header" class="menu-appbar">
       <v-app-bar-nav-icon v-if="auth.loggedIn.value" @click="navigationDrawerVisible = !navigationDrawerVisible" :ripple="false" color="logo">
         <svg-logo />
@@ -21,13 +21,19 @@
       </v-breadcrumbs>
       <v-spacer />
 
+      <s-btn-icon
+        v-if="auth.loggedIn.value"
+        to="/notes/personal/"
+        :active="false"
+      >
+        <v-icon icon="mdi-notebook" />
+        <s-tooltip activator="parent" location="bottom" text="Notes" />
+      </s-btn-icon>
       <notification-menu-item v-if="auth.loggedIn.value" />
-
       <s-btn-icon href="https://docs.sysreptor.com/" target="_blank">
         <v-icon icon="mdi-help-circle" />
         <s-tooltip activator="parent" location="bottom" text="Documentation" />
       </s-btn-icon>
-
       <user-info-menu-item v-if="auth.loggedIn.value" />
     </v-app-bar>
 
@@ -134,6 +140,10 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
 
 .height-fullscreen {
   height: 100vh;
+}
+
+.nuxt-loading-indicator {
+  background: rgb(var(--v-theme-primary));
 }
 
 .main-container {
