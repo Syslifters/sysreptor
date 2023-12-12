@@ -58,7 +58,7 @@ definePageMeta({
   title: 'Designs',
   toplevel: true,
 });
-useHead({
+useHeadExtended({
   breadcrumbs: () => designListBreadcrumbs(),
 });
 

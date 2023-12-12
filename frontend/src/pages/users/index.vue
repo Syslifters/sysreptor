@@ -50,7 +50,7 @@ definePageMeta({
   title: 'Users',
   toplevel: true,
 });
-useHead({
+useHeadExtended({
   breadcrumbs: () => userListBreadcrumbs(),
 });
 

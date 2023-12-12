@@ -15,7 +15,7 @@ export function requestErrorToast({ error, message }: { error: any, message?: st
       message = 'Request error';
     }
   }
-  if (error?.response?.detail) {
+  if (error?.data?.detail) {
     message += ': ' + error?.data?.detail;
   } else if (Array.isArray(error?.data) && error?.data?.length === 1) {
     message += ': ' + error?.data[0];

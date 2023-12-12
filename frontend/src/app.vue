@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 const route = useRoute();
-useHead({
+useHeadExtended({
   titleTemplate: title => rootTitleTemplate(title, route),
 });
 

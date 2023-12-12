@@ -57,7 +57,7 @@ const template = computed({
 const mainTranslation = computed(() => template.value?.translations?.find(tr => tr.is_main));
 
 const title = computed(() => mainTranslation.value?.data?.title || null);
-useHead({
+useHeadExtended({
   title,
   breadcrumbs: () => templateDetailBreadcrumbs(template.value),
 });

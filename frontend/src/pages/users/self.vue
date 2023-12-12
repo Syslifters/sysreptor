@@ -39,7 +39,7 @@
 import { profileTitleTemplate } from "~/utils/title";
 
 const route = useRoute();
-useHead({
+useHeadExtended({
   titleTemplate: (title?: string|null) => profileTitleTemplate(title, route),
   breadcrumbs: () => [{ title: 'Profile', to: '/users/self/' }],
 });

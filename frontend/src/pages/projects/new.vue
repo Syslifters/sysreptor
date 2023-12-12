@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import type { VForm } from "vuetify/lib/components/index.mjs";
 
-useHead({
+useHeadExtended({
   title: 'Projects',
   breadcrumbs: () => projectListBreadcrumbs().concat([{ title: 'New', to: '/projects/new/' }]),
 });

@@ -45,7 +45,7 @@ const route = useRoute();
 const localSettings = useLocalSettings();
 const userNotesStore = useUserNotesStore();
 
-useHead({
+useHeadExtended({
   titleTemplate: (title?: string|null) => userNotesTitleTemplate(title, route),
   breadcrumbs: () => [{ title: 'Notes', to: '/notes/personal/' }],
 });

@@ -46,7 +46,7 @@ const route = useRoute();
 const apiSettings = useApiSettings();
 const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/`, { method: 'GET' });
 
-useHead({
+useHeadExtended({
   breadcrumbs: () => userDetailBreadcrumbs(user.value),
 });
 </script>
