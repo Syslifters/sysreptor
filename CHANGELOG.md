@@ -4,6 +4,7 @@
 * Design and UI rework
 * Dark mode
 * Fix save error for user fields
+* Ensure custom fonts are loaded before rendering charts and diagrams
 
 
 ## v2023.145 - 2023-12-11
