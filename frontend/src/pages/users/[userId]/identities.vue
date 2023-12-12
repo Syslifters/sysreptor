@@ -80,7 +80,7 @@ const createWizard = ref({
     identifier: '',
   },
 });
-const canEdit = computed(() => auth.hasScope('user_manager') && !user.value.is_system_user);
+const canEdit = computed(() => auth.permissions.user_manager && !user.value.is_system_user);
 
 async function createIdentity() {
   try {

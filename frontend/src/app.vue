@@ -41,3 +41,33 @@ const theme = computed(() => {
   }
 });
 </script>
+
+<!-- TODO: permissions: disable instead of hiding 
+* [x] Archived Projects in menu
+* [x] Archive button in Project menu
+* [x] Public key page in user menu
+* [x] SSO Identities in user menu
+* [x] create design
+* [x] import design
+* [x] create template
+* [x] import template
+* [x] create user
+* [x] guest permissions
+  * [x] apiSettings: provide guest permission settings to frontend
+  * [x] create project
+  * [x] import project
+  * [x] change project settings
+  * [x] delete project
+  * [x] customize design in project
+  * [x] finish project
+  * [x] archive project
+  * [x] copy project
+* [x] EditToolbar
+  * [x] archive button
+  * [x] context actions
+  * [x] save button
+  * [x] delete button
+* [ ] sudo button in main drawer
+* [ ] sudo in user menu
+* [ ] add "/PRO" badge when in community edition for disabled features
+-->

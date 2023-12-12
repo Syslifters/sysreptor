@@ -78,6 +78,12 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
                 'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
                 'archiving': license.is_professional(),
             },
+            'guest_permissions': {
+                'import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,
+                'create_projects': settings.GUEST_USERS_CAN_CREATE_PROJECTS,
+                'delete_projects': settings.GUEST_USERS_CAN_DELETE_PROJECTS,
+                'update_project_settings': settings.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
+            },
         })
 
     @extend_schema(responses={(200, 'application/octet-stream'): OpenApiTypes.BINARY})

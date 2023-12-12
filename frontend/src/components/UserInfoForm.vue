@@ -152,12 +152,11 @@
           density="compact"
         />
         <s-checkbox
-          v-if="apiSettings.settings!.features.archiving"
           :model-value="user.is_global_archiver" @update:model-value="updateField('is_global_archiver', $event)"
           label="Global Archiver"
           hint="Global Archivers will be added to archives when archiving projects (besides project members) and are able to restore these projects. They need to have archiving public keys configured for this permission take effect."
           :error-messages="errors?.is_global_archiver || []"
-          :disabled="!canEditGeneralPermissions"
+          :disabled="!canEditGeneralPermissions || !apiSettings.settings!.features.archiving"
           density="compact"
         />
         <s-checkbox
@@ -189,9 +188,9 @@ const user = computed(() => props.modelValue);
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
-const canEdit = computed(() => (auth.hasScope('user_manager') && !user.value.is_system_user) || user.value.id === auth.user.value!.id);
-const canEditGeneralPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.hasScope('user_manager'));
-const canEditSuperuserPermissions = computed(() => canEditGeneralPermissions.value && auth.hasScope('admin'));
+const canEdit = computed(() => (auth.permissions.user_manager && !user.value.is_system_user) || user.value.id === auth.user.value!.id);
+const canEditGeneralPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.permissions.user_manager);
+const canEditSuperuserPermissions = computed(() => canEditGeneralPermissions.value && auth.permissions.admin);
 
 const rules = {
   required: [(v: any) => !!v || 'This field is required!'],

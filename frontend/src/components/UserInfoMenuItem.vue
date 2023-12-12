@@ -17,13 +17,13 @@
         />
         <template v-if="apiSettings.isProfessionalLicense">
           <v-list-item
-            v-if="auth.hasScope('admin')"
+            v-if="auth.permissions.admin"
             :to="{path: '/users/self/admin/disable/', query: { next: route.fullPath }}"
             prepend-icon="mdi-account-arrow-down"
             title="Disable Superuser Permissions"
           />
           <v-list-item
-            v-else-if="auth.user.value!.is_superuser"
+            v-else-if="auth.permissions.superuser"
             :to="{path: '/users/self/admin/enable/', query: { next: route.fullPath }}"
             prepend-icon="mdi-account-arrow-up"
             title="Enable Superuser Permissions"

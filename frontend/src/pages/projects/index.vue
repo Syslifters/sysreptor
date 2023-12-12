@@ -11,8 +11,8 @@
       <list-view ref="listViewRef" :url="apiUrl">
         <template #title>Projects</template>
         <template #actions>
-          <btn-create to="/projects/new/" />
-          <btn-import ref="importBtn" :import="performImport" />
+          <btn-create to="/projects/new/" :disabled="!canCreate" />
+          <btn-import ref="importBtn" :import="performImport" :disabled="!canImport" />
         </template>
         <template #searchbar="{items}">
           <v-row dense class="mb-2 w-100">
@@ -71,6 +71,7 @@ useHeadExtended({
 
 const route = useRoute();
 const router = useRouter();
+const auth = useAuth();
 const apiSettings = useApiSettings();
 
 const listViewRef = ref();
@@ -96,6 +97,19 @@ const apiUrl = computed(() => {
   }
   return apiUrl
 })
+
+const canCreate = computed(() => {
+  if (auth.user.value!.is_guest && !apiSettings.settings!.guest_permissions.create_projects) {
+    return false;
+  }
+  return true;
+})
+const canImport = computed(() => {
+  if (auth.user.value!.is_guest && !apiSettings.settings!.guest_permissions.import_projects) {
+    return false;
+  }
+  return true;
+});
 
 const importBtn = ref();
 async function performImport(file: File) {
