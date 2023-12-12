@@ -13,7 +13,6 @@
 
 <script>
 import { mermaid } from 'reportcreator-markdown';
-import { nextTick } from 'vue';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -35,6 +34,9 @@ export default {
     }
   },
   async mounted() {
+    // Ensure custom fonts are loaded
+    await document.fonts.ready;
+
     // Get meramid code from slot
     const codeContainer = this.$refs.refCodeContainer;
     const mermaidCode = this.text || codeContainer.innerText;

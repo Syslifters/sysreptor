@@ -8,6 +8,7 @@
 
 <script>
 import Chart from 'chart.js/auto';
+import { nextTick } from 'vue';
 
 export default {
   name: "Chart",
@@ -40,17 +41,31 @@ export default {
       chartImageData: null,
     };
   },
-  mounted() {
-    const chart = new Chart(this.$refs.canvas, {
-      ...this.config,
-      options: {
-        ...(this.config.options || {}),
-        responsive: false,
-        animation: false,
-      }
-    });
-    this.chartImageData = chart.toBase64Image();
-    chart.destroy();
+  async mounted() {
+    // Ensure custom fonts are loaded
+    await document.fonts.ready;
+    // Render chart
+    await this.renderChartImage();
   },
+
+  methods: {
+    async renderChartImage() {
+      if (this.chartImageData) {
+        this.chartImageData = null;
+        await nextTick();
+      }
+
+      const chart = new Chart(this.$refs.canvas, {
+        ...this.config,
+        options: {
+          ...(this.config.options || {}),
+          responsive: false,
+          animation: false,
+        }
+      });
+      this.chartImageData = chart.toBase64Image();
+      chart.destroy();
+    }
+  }
 }
 </script>
