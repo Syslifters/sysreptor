@@ -24,6 +24,6 @@ const apiSettings = useApiSettings();
 }
 .pro-badge {
   color: rgb(var(--v-theme-primary));
-  font-weight: 800;
+  font-weight: 900;
 }
 </style>

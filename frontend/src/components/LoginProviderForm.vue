@@ -31,6 +31,10 @@
         </slot>
       </v-list>
     </v-card-text>
+    <v-card-actions v-if="$slots.actions">
+      <v-spacer />
+      <slot name="actions" />
+    </v-card-actions>
   </s-card>
 </template>
 

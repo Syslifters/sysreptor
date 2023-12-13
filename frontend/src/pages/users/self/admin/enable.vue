@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container>
     <div class="mt-4 d-flex flex-column align-center">
       <v-progress-circular indeterminate size="50" />
     </div>
@@ -19,7 +19,7 @@ useLazyAsyncData(async () => {
     auth.redirect(route.query.next);
   } catch (error: any) {
     if (error?.data?.code === 'reauth-required') {
-      await auth.redirectToReAuth();
+      await auth.redirectToReAuth({ replace: true });
     } else {
       requestErrorToast({ message: 'Failed to enable superuser permissions', error });
       auth.redirect(route.query.next);

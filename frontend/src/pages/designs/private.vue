@@ -1,6 +1,6 @@
 <template>
   <file-drop-area @drop="importBtnRef.performImport($event)" class="h-100">
-    <list-view url="/api/v1/projecttypes/?scope=global&ordering=name">
+    <list-view url="/api/v1/projecttypes/?scope=private&ordering=name">
       <template #title>Designs</template>
       <template #actions>
         <design-create-design-dialog />

@@ -94,7 +94,6 @@ We provide a range of fonts ready to use. Following fonts are available:
 * [STIX Two Text](https://fonts.google.com/specimen/STIX+Two+Text){target=_blank} - similar to Times New Roman
 * [Arimo](https://fonts.google.com/specimen/Arimo){target=_blank} - similar to Verdana
 * [Exo](https://fonts.google.com/specimen/Exo){target=_blank}
-* [Exo 2](https://fonts.google.com/specimen/Exo+2){target=_blank}
 * ~~[Lato](https://fonts.google.com/specimen/Lato){target=_blank}~~*
 * ~~[Roboto](https://fonts.google.com/specimen/Roboto){target=_blank}~~*
 * ~~[Tinos](https://fonts.google.com/specimen/Tinos){target=_blank}~~*

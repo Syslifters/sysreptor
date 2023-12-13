@@ -2,7 +2,14 @@
   <v-container fluid class="fill-height">
     <v-row justify="center">
       <v-col xs="12" sm="8" md="4" align-self="center">
-        <login-provider-form />
+        <login-provider-form>
+          <template #actions v-if="auth.loggedIn.value">
+            <s-btn-other
+              to="/"
+              text="Cancel"
+            />
+          </template>
+        </login-provider-form>
       </v-col>
     </v-row>
   </v-container>

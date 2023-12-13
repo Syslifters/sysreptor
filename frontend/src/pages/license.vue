@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="h-100 overflow-y-auto">
+  <v-container class="h-100 overflow-y-auto">
     <h1>License Info</h1>
 
     <p v-if="license.error" class="text-error mt-2">

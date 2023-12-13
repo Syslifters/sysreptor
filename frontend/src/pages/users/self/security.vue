@@ -13,7 +13,7 @@
             text="Cancel"
           />
           <s-btn-primary
-            @click="auth.redirectToReAuth()"
+            @click="auth.redirectToReAuth({ replace: true })"
             text="Re-Authenticate"
           />
         </v-card-actions>
@@ -274,7 +274,7 @@ const mfaMethods = await useAsyncDataE(async () => {
     return await $fetch<MfaMethod[]>('/api/v1/pentestusers/self/mfa/', { method: 'GET' });
   } catch (error: any) {
     if (error?.data?.code === 'reauth-required') {
-      auth.redirectToReAuth();
+      auth.redirectToReAuth({ replace: true });
       return [];
     } else {
       throw error;

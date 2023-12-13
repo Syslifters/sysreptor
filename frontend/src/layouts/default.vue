@@ -2,7 +2,7 @@
   <div class="height-fullscreen">
     <nuxt-loading-indicator :height="2" :color="false" />
     <v-app-bar absolute height="48" elevation="0" color="header" class="menu-appbar">
-      <v-app-bar-nav-icon v-if="auth.loggedIn.value" @click="navigationDrawerVisible = !navigationDrawerVisible" :ripple="false" color="logo">
+      <v-app-bar-nav-icon v-if="auth.loggedIn.value" @click="navigationDrawerVisible = !navigationDrawerVisible" :ripple="false">
         <svg-logo />
       </v-app-bar-nav-icon>
       <div v-else class="menu-drawer-header">
@@ -43,10 +43,10 @@
         <span class="license-text">{{ licenseText }}</span>
       </div>
       <v-list class="pt-0 menu-drawer-body">
-        <v-list-item to="/projects/" title="Projects" prepend-icon="mdi-file-document" />
-        <v-list-item to="/templates/" title="Templates" prepend-icon="mdi-view-compact" />
-        <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" />
-        <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" />
+        <v-list-item to="/projects/" title="Projects" prepend-icon="mdi-file-document" :active="route.path.startsWith('/projects')" />
+        <v-list-item to="/templates/" title="Templates" prepend-icon="mdi-view-compact" :active="route.path.startsWith('/templates')" />
+        <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" :active="route.path.startsWith('/designs')" />
+        <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" :active="route.path.startsWith('/notes')" />
         
         <template v-if="auth.permissions.superuser || auth.permissions.user_manager || auth.permissions.view_license">
           <v-list-item class="mt-6 pa-0" min-height="0">
@@ -74,7 +74,13 @@
             </template>
           </v-list-item>
 
-          <v-list-item to="/users/" title="Users" prepend-icon="mdi-account-multiple" :disabled="!auth.permissions.user_manager" />
+          <v-list-item 
+            to="/users/" 
+            title="Users" 
+            prepend-icon="mdi-account-multiple" 
+            :active="route.path.startsWith('/users') && !route.path.startsWith('/users/self')"
+            :disabled="!auth.permissions.user_manager" 
+          />
           <license-info-menu-item />
         </template>
       </v-list>
@@ -167,8 +173,10 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
   fill: rgb(var(--v-theme-primary));
 }
 
-.v-breadcrumbs-item .v-icon {
-  font-size: 1.5em;
+.v-breadcrumbs-item {
+  .v-icon {
+    font-size: 1.5em;
+  }
 }
 
 .menu-drawer:deep() {
@@ -212,8 +220,8 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
     align-items: center;
     flex-grow: 0;
     flex-shrink: 0;
-    padding-left: 1em;
-    padding-right: 1em;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
     cursor: pointer;
     border-bottom-width: vuetify.$navigation-drawer-border-thin-width;
     border-bottom-style: vuetify.$navigation-drawer-border-style;
@@ -240,8 +248,8 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
   height: 28px;
   display: flex;
   flex-direction: column-reverse;
-  font-weight: 800;
-  font-size: larger;
+  font-weight: 900;
+  font-size: 1.5rem;
   line-height: 1;
   color: rgb(var(--v-theme-logo));
 }

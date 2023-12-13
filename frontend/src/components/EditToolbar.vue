@@ -480,9 +480,4 @@ defineExpose({
   }
 }
 
-.context-menu :deep() {
-  .v-list-item__prepend > .v-icon {
-    opacity: 1;
-  }
-}
 </style>

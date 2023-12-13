@@ -110,7 +110,7 @@ const apiTokens = await useAsyncDataE<ApiToken[]>(async () => {
     return await $fetch<ApiToken[]>('/api/v1/pentestusers/self/apitokens/', { method: 'GET' });
   } catch (error: any) {
     if (error?.data?.code === 'reauth-required') {
-      auth.redirectToReAuth();
+      auth.redirectToReAuth({ replace: true });
       return [];
     } else {
       throw error;
