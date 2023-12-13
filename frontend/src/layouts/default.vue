@@ -242,7 +242,7 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
   height: 28px;
   display: flex;
   flex-direction: column-reverse;
-  font-weight: 800;
+  font-weight: 900;
   font-size: 1.5rem;
   line-height: 1;
   color: rgb(var(--v-theme-logo));

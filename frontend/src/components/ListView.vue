@@ -1,37 +1,42 @@
 <template>
-  <v-container class="pt-0">
-    <v-list v-if="items" class="pt-0 overflow-visible">
-      <div class="list-header pt-2 mb-4">
-        <h1>
-          <slot name="title" />
+  <full-height-page>
+    <v-container class="pt-0">
+      <v-list v-if="items" class="pt-0 overflow-visible">
+        <div class="list-header pt-2 mb-4">
+          <h1>
+            <slot name="title" />
 
-          <div v-if="$slots.actions" class="list-header-actions">
-            <slot name="actions" />
-          </div>
-        </h1>
+            <div v-if="$slots.actions" class="list-header-actions">
+              <slot name="actions" />
+            </div>
+          </h1>
 
-        <slot name="searchbar" :items="items">
-          <v-text-field
-            :model-value="items.search.value"
-            @update:model-value="updateSearch"
-            label="Search"
-            variant="underlined"
-            spellcheck="false"
-            hide-details="auto"
-            autofocus
-            class="mt-0 mb-2"
-          />
-        </slot>
-      </div>
+          <slot name="searchbar" :items="items">
+            <v-text-field
+              :model-value="items.search.value"
+              @update:model-value="updateSearch"
+              label="Search"
+              variant="underlined"
+              spellcheck="false"
+              hide-details="auto"
+              autofocus
+              class="mt-0 mb-2"
+            />
+          </slot>
+          <v-tabs v-if="$slots.tabs" height="30" selected-class="text-primary" class="list-header-tabs">
+            <slot name="tabs" />
+          </v-tabs>
+        </div>
 
-      <slot v-for="item in items.data.value" name="item" :item="item" />
-      <page-loader :items="items" class="mt-4" />
-      <v-list-item
-        v-if="items.data.value.length === 0 && !items.hasNextPage.value"
-        text="No data found"
-      />
-    </v-list>
-  </v-container>
+        <slot v-for="item in items.data.value" name="item" :item="item" />
+        <page-loader :items="items" class="mt-4" />
+        <v-list-item
+          v-if="items.data.value.length === 0 && !items.hasNextPage.value"
+          text="No data found"
+        />
+      </v-list>
+    </v-container>
+  </full-height-page>
 </template>
 
 <script setup lang="ts" generic="T">
@@ -85,5 +90,9 @@ defineExpose({
   &:deep() > * {
     margin-left: 0.4rem;
   }
+}
+
+.list-header-tabs:deep(.v-tab) {
+  text-transform: initial;
 }
 </style>
