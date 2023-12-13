@@ -1,3 +1,4 @@
+import type { NavigateToOptions } from "nuxt/dist/app/composables/router";
 import type { LocationQueryValue } from "#vue-router";
 import { AuthProviderType } from "@/utils/types";
 import type { AuthProvider, User } from "@/utils/types";
@@ -36,6 +37,9 @@ export const useAuthStore = defineStore('auth', {
         this.authRedirect = redirect;
       }
     },
+    clearAuthRedirect() {
+      this.authRedirect = null;
+    }
   },
   persist: {
     storage: persistedState.sessionStorage,
@@ -72,10 +76,10 @@ export function useAuth() {
     return await navigateTo(redirect, { external });
   }
 
-  async function redirectToReAuth() {
+  async function redirectToReAuth(options?: NavigateToOptions) {
     const route = useRoute();
     store.setAuthRedirect(route.fullPath);
-    return await navigateTo('/login/reauth/');
+    return await navigateTo('/login/reauth/', options);
   }
 
   async function logout() {

@@ -14,6 +14,11 @@
 
           <template #actions>
             <s-btn-other
+              v-if="auth.loggedIn.value"
+              to="/"
+              text="Cancel"
+            />
+            <s-btn-secondary
               v-if="apiSettings.isSsoEnabled"
               to="/login/?logout=true"
               text="Back"

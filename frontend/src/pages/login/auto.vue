@@ -19,6 +19,11 @@
           <v-card-actions>
             <v-spacer />
             <s-btn-other
+              v-if="auth.loggedIn.value"
+              to="/"
+              text="Cancel"
+            />
+            <s-btn-secondary
               to="/login/?logout=true"
               text="Back"
             />

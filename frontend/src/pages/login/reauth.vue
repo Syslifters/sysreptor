@@ -5,6 +5,10 @@
         <login-form v-if="step === 'local'" :username="auth.user.value!.username" @login="auth.redirect()">
           <template #title>Re-Authenticate</template>
           <template #actions>
+            <s-btn-other
+              @click="cancelReAuth"
+              text="Cancel"
+            />
             <s-btn-secondary
               v-if="apiSettings.settings!.auth_providers.length > 1"
               @click="step = Step.LIST"
@@ -23,6 +27,13 @@
               />
             </v-list-item>
           </template>
+          <template #actions>
+            <s-btn-other
+              v-if="apiSettings.settings!.auth_providers.length > 1"
+              @click="cancelReAuth"
+              text="Cancel"
+            />
+          </template>
         </login-provider-form>
       </v-col>
     </v-row>
@@ -37,6 +48,7 @@ definePageMeta({
 });
 
 const route = useRoute();
+const router = useRouter();
 const auth = useAuth();
 const apiSettings = useApiSettings();
 
@@ -64,4 +76,9 @@ useLazyAsyncData(async () => {
     }
   }
 });
+
+function cancelReAuth() {
+  auth.store.clearAuthRedirect();
+  router.back();
+}
 </script>
