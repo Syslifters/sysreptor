@@ -43,10 +43,10 @@
         <span class="license-text">{{ licenseText }}</span>
       </div>
       <v-list class="pt-0 menu-drawer-body">
-        <v-list-item to="/projects/" title="Projects" prepend-icon="mdi-file-document" />
-        <v-list-item to="/templates/" title="Templates" prepend-icon="mdi-view-compact" />
-        <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" />
-        <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" />
+        <v-list-item to="/projects/" title="Projects" prepend-icon="mdi-file-document" :active="route.path.startsWith('/projects')" />
+        <v-list-item to="/templates/" title="Templates" prepend-icon="mdi-view-compact" :active="route.path.startsWith('/templates')" />
+        <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" :active="route.path.startsWith('/designs')" />
+        <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" :active="route.path.startsWith('/notes')" />
         
         <template v-if="auth.permissions.superuser || auth.permissions.user_manager || auth.permissions.view_license">
           <v-list-item class="mt-6 pa-0" min-height="0">
@@ -74,7 +74,13 @@
             </template>
           </v-list-item>
 
-          <v-list-item to="/users/" title="Users" prepend-icon="mdi-account-multiple" :disabled="!auth.permissions.user_manager" />
+          <v-list-item 
+            to="/users/" 
+            title="Users" 
+            prepend-icon="mdi-account-multiple" 
+            :active="route.path.startsWith('/users') && !route.path.startsWith('/users/self')"
+            :disabled="!auth.permissions.user_manager" 
+          />
           <license-info-menu-item />
         </template>
       </v-list>

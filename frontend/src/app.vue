@@ -41,13 +41,3 @@ const theme = computed(() => {
   }
 });
 </script>
-
-<!-- TODO: [x] font: Noto Sans instead of Exo 2 -->
-<!-- TODO: [x] container without fluid for settings pages and lists -->
-<!-- TODO: [x] list views: tabs below list instead of filters -->
-<!-- TODO: [x] remove s-sub-menu -->
-<!-- TODO: [x] use <full-height-page> in <list-view> -->
-<!-- TODO: [x] refactor project list -->
-<!-- TODO: [x] refactor design list -->
-<!-- TODO: [ ] how to handle scope selection in designs? -->
-<!-- TODO: [ ] main drawer: isActive based on route path start instead of default -->
