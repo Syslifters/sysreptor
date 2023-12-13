@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-0">
+  <v-container class="pt-0">
     <v-form ref="form">
       <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form">
         <template #context-menu>

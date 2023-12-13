@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container>
     <div class="mt-4 d-flex flex-column align-center">
       <v-progress-circular indeterminate size="50" />
     </div>

@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-0">
+  <v-container class="pt-0">
     <v-form ref="formRef">
       <edit-toolbar v-bind="toolbarAttrs">
         <template #title>Project Settings</template>
@@ -159,7 +159,7 @@ const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
   hasEditPermissions: computed(() => {
     if (project.value?.readonly) {
       return false;
-    } else if (auth.permissions.update_project_settings) {
+    } else if (!auth.permissions.update_project_settings) {
       return false;
     }
     return true;

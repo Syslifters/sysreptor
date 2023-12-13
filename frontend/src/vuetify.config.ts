@@ -15,7 +15,7 @@ const themeCommon = {
     secondary: '#4f4f4f',
     'on-secondary': '#ffffff',
 
-    logo: sysreptorGreenDark,
+    logo: sysreptorGreen,
 
     error: '#FF5252',
     info: '#2196F3',

@@ -41,3 +41,7 @@ const theme = computed(() => {
   }
 });
 </script>
+
+<!-- TODO: [x] font: Noto Sans instead of Exo 2 -->
+<!-- TODO: [x] container without fluid for settings pages and lists -->
+<!-- TODO: [ ] list views: tabs below list instead of filters -->

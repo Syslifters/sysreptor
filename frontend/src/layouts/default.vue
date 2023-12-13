@@ -2,7 +2,7 @@
   <div class="height-fullscreen">
     <nuxt-loading-indicator :height="2" :color="false" />
     <v-app-bar absolute height="48" elevation="0" color="header" class="menu-appbar">
-      <v-app-bar-nav-icon v-if="auth.loggedIn.value" @click="navigationDrawerVisible = !navigationDrawerVisible" :ripple="false" color="logo">
+      <v-app-bar-nav-icon v-if="auth.loggedIn.value" @click="navigationDrawerVisible = !navigationDrawerVisible" :ripple="false">
         <svg-logo />
       </v-app-bar-nav-icon>
       <div v-else class="menu-drawer-header">
@@ -167,8 +167,10 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
   fill: rgb(var(--v-theme-primary));
 }
 
-.v-breadcrumbs-item .v-icon {
-  font-size: 1.5em;
+.v-breadcrumbs-item {
+  .v-icon {
+    font-size: 1.5em;
+  }
 }
 
 .menu-drawer:deep() {
@@ -212,8 +214,8 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
     align-items: center;
     flex-grow: 0;
     flex-shrink: 0;
-    padding-left: 1em;
-    padding-right: 1em;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
     cursor: pointer;
     border-bottom-width: vuetify.$navigation-drawer-border-thin-width;
     border-bottom-style: vuetify.$navigation-drawer-border-style;
@@ -241,7 +243,7 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
   display: flex;
   flex-direction: column-reverse;
   font-weight: 800;
-  font-size: larger;
+  font-size: 1.5rem;
   line-height: 1;
   color: rgb(var(--v-theme-logo));
 }

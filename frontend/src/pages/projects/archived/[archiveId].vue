@@ -1,5 +1,5 @@
 <template>
-  <v-container class="pt-0" fluid>
+  <v-container class="pt-0">
     <edit-toolbar>
       <template #title>{{ archive.name }}</template>
 

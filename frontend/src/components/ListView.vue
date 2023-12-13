@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-0">
+  <v-container class="pt-0">
     <v-list v-if="items" class="pt-0 overflow-visible">
       <div class="list-header pt-2 mb-4">
         <h1>

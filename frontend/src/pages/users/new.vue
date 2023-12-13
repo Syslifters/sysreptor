@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-0 h-100 overflow-y-auto">
+  <v-container class="pt-0 h-100 overflow-y-auto">
     <v-form ref="form" @submit.prevent="performCreate">
       <edit-toolbar>
         <template #title>Create new User</template>
