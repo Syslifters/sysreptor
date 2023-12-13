@@ -2,8 +2,11 @@
   <full-height-page>
     <list-view url="/api/v1/pentestusers/">
       <template #title>Users</template>
-      <template #actions v-if="auth.hasScope('user_manager')">
-        <btn-create to="/users/new/" />
+      <template #actions>
+        <btn-create 
+          to="/users/new/" 
+          :disabled="!auth.permissions.user_manager"
+        />
       </template>
       <template #item="{item: user}: {item: User}">
         <v-list-item :to="`/users/${user.id}/`">

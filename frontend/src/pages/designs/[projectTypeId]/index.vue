@@ -4,7 +4,7 @@
       <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form">
         <template #context-menu>
           <btn-copy
-            v-if="auth.hasScope('designer')"
+            :disabled="!auth.permissions.designer"
             :copy="performCopy"
           />
           <btn-export

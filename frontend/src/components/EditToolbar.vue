@@ -6,9 +6,9 @@
       <slot></slot>
 
       <s-btn-icon
-        v-if="canSave"
+        v-if="showSave"
         :loading="savingInProgress"
-        :disabled="savingInProgress"
+        :disabled="!canSave"
         @click="performSave"
       >
         <v-badge v-if="props.data !== undefined" dot :color="hasChanges? 'error' : 'success'">
@@ -31,14 +31,15 @@
         />
       </s-btn-icon>
 
-      <s-btn-icon v-if="(canSave && props.canAutoSave) || canDelete || slots['context-menu']">
+      <s-btn-icon v-if="(showSave && props.canAutoSave) || showDelete || slots['context-menu']">
         <v-icon icon="mdi-dots-vertical" />
 
         <v-menu activator="parent" :close-on-content-click="false" location="bottom left" class="context-menu">
           <v-list>
             <v-list-item
-              v-if="canSave && props.canAutoSave"
+              v-if="showSave && props.canAutoSave"
               @click="autoSaveEnabled = !autoSaveEnabled"
+              :disabled="!canSave"
               link
               title="Auto Save"
             >
@@ -53,10 +54,11 @@
             </v-list-item>
             <slot name="context-menu" />
             <btn-delete
-              v-if="canDelete"
+              v-if="showDelete"
               :delete="performDelete"
               :confirm="true"
               :confirm-input="props.deleteConfirmInput"
+              :disabled="!canDelete"
               button-variant="list-item"
               color="error"
             />
@@ -100,8 +102,10 @@ import { EditMode } from '@/utils/types';
 const props = withDefaults(defineProps<{
   data?: T,
   form?: VForm,
+  canSave?: boolean,
   canAutoSave?: boolean,
   save?:((data: T) => Promise<void>),
+  canDelete?: boolean,
   delete?: ((data: T) => Promise<void>),
   deleteConfirmInput?: string,
   lockUrl?: string,
@@ -111,8 +115,10 @@ const props = withDefaults(defineProps<{
 }>(), {
   data: undefined,
   form: undefined,
+  canSave: true,
   canAutoSave: false,
   save: undefined,
+  canDelete: undefined,
   delete: undefined,
   deleteConfirmInput: undefined,
   lockUrl: undefined,
@@ -130,8 +136,10 @@ const slots = useSlots();
 const auth = useAuth();
 const localSettings = useLocalSettings();
 
-const canDelete = computed(() => props.delete !== undefined && props.editMode === EditMode.EDIT);
-const canSave = computed(() => props.save !== undefined && props.editMode === EditMode.EDIT);
+const showDelete = computed(() => props.delete !== undefined);
+const canDelete = computed(() => props.canDelete || (props.canDelete === undefined && props.delete !== undefined && props.editMode === EditMode.EDIT));
+const showSave = computed(() => props.save !== undefined);
+const canSave = computed(() => showSave.value && props.canSave && props.editMode === EditMode.EDIT);
 const hasChangesValue = ref(false);
 const hasChanges = computed(() => hasChangesValue.value || props.data === undefined);
 const autoSaveEnabled = computed({

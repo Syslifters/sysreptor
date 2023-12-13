@@ -7,6 +7,25 @@ export const useAuthStore = defineStore('auth', {
     user: null as User | null,
     authRedirect: null as string | null,
   }),
+  getters: {
+    permissions(state) {
+      const apiSettings = useApiSettings();
+      return {
+        superuser: state.user?.is_superuser || false,
+        admin: state.user?.scope.includes('admin') || false,
+        user_manager: state.user?.scope.includes('user_manager') || false,
+        designer: state.user?.scope.includes('designer') || false,
+        template_editor: state.user?.scope.includes('template_editor') || false,
+        private_designs: (state.user && apiSettings.settings?.features.private_designs) || false,
+        create_projects: (state.user && (!state.user.is_guest || (state.user.is_guest && apiSettings.settings?.guest_permissions.create_projects))) || false,
+        import_projects: (state.user && (!state.user.is_guest || (state.user.is_guest && apiSettings.settings?.guest_permissions.import_projects))) || false,
+        delete_projects: (state.user && (!state.user.is_guest || (state.user.is_guest && apiSettings.settings?.guest_permissions.delete_projects))) || false,
+        update_project_settings: (state.user && (!state.user.is_guest || (state.user.is_guest && apiSettings.settings?.guest_permissions.update_project_settings))) || false,
+        archive_projects: (apiSettings.settings?.features.archiving && state.user && (!state.user.is_guest || (state.user.is_guest && apiSettings.settings?.guest_permissions.update_project_settings))) || false,
+        view_license: state.user?.is_superuser || state.user?.is_user_manager || false,
+      };
+    },
+  },
   actions: {
     setAuthRedirect(redirect?: LocationQueryValue|LocationQueryValue[]) {
       if (Array.isArray(redirect)) {
@@ -68,13 +87,6 @@ export function useAuth() {
     store.user = null;
   }
 
-  function hasScope(scope: string) {
-    if (!user.value) {
-      return false;
-    }
-    return user.value.scope.includes(scope);
-  }
-
   async function authProviderLoginBegin(authProvider: AuthProvider, options = { reauth: false }) {
     if (authProvider.type === AuthProviderType.LOCAL) {
       await navigateTo('/login/local/');
@@ -102,11 +114,11 @@ export function useAuth() {
     loggedIn,
     user,
     store,
+    permissions: store.permissions,
     logout,
     redirect,
     redirectToReAuth,
     fetchUser,
-    hasScope,
     authProviderLoginBegin,
   };
 }

@@ -4,20 +4,28 @@
       <edit-toolbar v-bind="toolbarAttrs">
         <template #title>Project Settings</template>
         <template #default>
-          <btn-readonly :value="project.readonly" :set-readonly="setReadonly" class="ml-1 mr-1" />
+          <btn-readonly 
+            :value="project.readonly" 
+            :set-readonly="setReadonly" 
+            :disabled="!auth.permissions.update_project_settings"
+            class="ml-1 mr-1" 
+          />
           <s-btn-secondary
-            v-if="project.readonly && apiSettings.settings!.features.archiving"
+            v-if="project.readonly"
+            :disabled="!auth.permissions.archive_projects"
             :to="`/projects/${project.id}/archive/`"
             class="mr-1"
             prepend-icon="mdi-folder-lock-outline"
-            text="Archive"
-          />
+          >
+            <pro-info>Archive</pro-info>
+          </s-btn-secondary>
           <btn-history v-model="historyVisible" />
         </template>
         <template #context-menu>
           <btn-copy
             :copy="performCopy"
             confirm-text="The whole project will be copied including all members, sections, findings and images."
+            :disabled="!auth.permissions.create_projects"
           />
           <btn-export
             :export-url="`/api/v1/pentestprojects/${project.id}/export/`"
@@ -135,7 +143,7 @@
 import type { VForm } from "vuetify/lib/components/index.mjs";
 
 const route = useRoute();
-const apiSettings = useApiSettings();
+const auth = useAuth();
 const projectStore = useProjectStore();
 
 const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${route.params.projectId}/`, { method: 'GET', key: 'projectSettings:project' });
@@ -148,7 +156,15 @@ const toolbarRef = ref();
 const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
   data: project,
   form: formRef,
-  hasEditPermissions: computed(() => !project.value?.readonly),
+  hasEditPermissions: computed(() => {
+    if (project.value?.readonly) {
+      return false;
+    } else if (auth.permissions.update_project_settings) {
+      return false;
+    }
+    return true;
+  }),
+  canDelete: computed(() => auth.permissions.delete_projects),
   errorMessage: computed(() => {
     if (project.value?.readonly) {
       return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'

@@ -90,24 +90,31 @@ export type AuthIdentity = BaseModel & {
 
 export type ApiSettings = {
     readonly license: {
-        readonly type: LicenseType,
-        readonly error: string | null,
-    },
-    readonly languages: Language[],
+        readonly type: LicenseType;
+        readonly error: string|null;
+    };
+    readonly languages: Language[];
     readonly project_member_roles: {
-        readonly role: string,
-        readonly default: boolean,
-    }[],
-    readonly auth_providers: AuthProvider[],
-    readonly default_auth_provider: string | null,
-    readonly default_reauth_provider: string | null,
-    readonly elastic_apm_rum_config: any | null,
-    readonly archiving_threshold: number,
+        readonly role: string;
+        readonly default: boolean;
+    }[];
+    readonly auth_providers: AuthProvider[];
+    readonly default_auth_provider: string|null;
+    readonly default_reauth_provider: string|null;
+    readonly elastic_apm_rum_config: any|null;
+    readonly archiving_threshold: number;
     readonly features: {
-        readonly private_designs: boolean,
-        readonly spellcheck: boolean,
-        readonly archiving: boolean
-    },
+        readonly private_designs: boolean;
+        readonly spellcheck: boolean;
+        readonly archiving: boolean;
+        readonly permissions: boolean;
+    };
+    readonly guest_permissions: {
+      readonly import_projects: boolean;
+      readonly create_projects: boolean;
+      readonly delete_projects: boolean;
+      readonly update_project_settings: boolean;
+    };
 }
 
 export type LicenseInfoDetails = {

@@ -3,6 +3,7 @@
 ## TBD
 * Design and UI rework
 * Dark mode
+* Disable buttons and menu entries when user does not have permissions
 * Fix save error for user fields
 * Ensure custom fonts are loaded before rendering charts and diagrams
 

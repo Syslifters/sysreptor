@@ -10,7 +10,7 @@
     <div class="history-timeline-header">
       <v-list-item>
         <v-list-item-title class="text-h6">
-          Version History
+          <pro-info>Version History</pro-info>
         </v-list-item-title>
         <template #append>
           <v-btn icon variant="text" @click="emit('update:modelValue', false)">
@@ -22,9 +22,9 @@
     </div>
 
     <v-list-item v-if="!apiSettings.isProfessionalLicense">
-      Version history is not available <br>
-      in community edition.<br><br>
-      See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank">https://docs.sysreptor.com/features-and-pricing/</a>
+      Version history is available<br>
+      in SysReptor Professional.<br><br>
+      See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank" class="text-primary">https://docs.sysreptor.com/features-and-pricing/</a>
     </v-list-item>
     <div v-else>
       <v-timeline
@@ -87,6 +87,10 @@ watch(() => props.url, () => {
 
 .history-sidebar {
   width: 25em !important;
+  z-index: 5001 !important;
+}
+.history-sidebar + .v-navigation-drawer__scrim {
+  z-index: 5000 !important;
 }
 
 .history-timeline-header {

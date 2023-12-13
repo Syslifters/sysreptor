@@ -2,11 +2,12 @@
   <fetch-loader v-bind="fetchLoaderAttrs">
     <div v-if="finding && project && projectType" :key="project.id + finding.id">
       <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
-        <template #context-menu v-if="auth.hasScope('template_editor')">
+        <template #context-menu>
           <v-list-item
             :to="{path: '/templates/fromfinding/', query: {project: project.id, finding: finding.id}}"
             prepend-icon="mdi-view-compact"
             title="Save as template"
+            :disabled="!auth.permissions.template_editor"
           />
         </template>
 

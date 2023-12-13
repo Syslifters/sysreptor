@@ -48,12 +48,11 @@
 import { ProjectTypeScope } from "~/utils/types";
 
 const auth = useAuth();
-const apiSettings = useApiSettings();
 
 const scopeItems = computed(() => {
   return [
-    { value: ProjectTypeScope.GLOBAL, title: 'Global Design', props: { subtitle: 'Available for all users', disabled: !auth.hasScope('designer') } },
-    { value: ProjectTypeScope.PRIVATE, title: 'Private Design', props: { subtitle: 'Available only for you', disabled: !apiSettings.settings?.features.private_designs } },
+    { value: ProjectTypeScope.GLOBAL, title: 'Global Design', props: { subtitle: 'Available for all users', disabled: !auth.permissions.designer } },
+    { value: ProjectTypeScope.PRIVATE, title: 'Private Design', props: { subtitle: 'Available only for you', disabled: !auth.permissions.private_designs } },
   ];
 });
 const currentScope = ref<ProjectTypeScope>(scopeItems.value.find(item => !item.props.disabled)?.value || ProjectTypeScope.GLOBAL);

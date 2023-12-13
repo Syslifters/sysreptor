@@ -23,6 +23,7 @@ export type LockEditOptions<T> = {
   form?: Ref<VForm|undefined>;
   fetchState?: ReturnType<typeof useLazyFetch>;
   hasEditPermissions?: ComputedRef<boolean>;
+  canDelete?: ComputedRef<boolean>;
   errorMessage?: ComputedRef<string|null>;
   deleteConfirmInput?: ComputedRef<string|null>;
   performSave?: (data: T) => Promise<any>;
@@ -140,15 +141,21 @@ export function useLockEdit<T>(options: LockEditOptions<T>) {
       editMode: editMode.value,
       'onUpdate:editMode': (val: EditMode) => { editMode.value = val; },
       errorMessage: errorMessage.value,
-      ...((options.performSave && hasEditPermissions.value) ? {
+      ...((options.performSave) ? {
         save: options.performSave,
         lockUrl: lockUrl.value,
         unlockUrl: unlockUrl.value,
         form: options.form?.value,
+        ...(hasEditPermissions.value ? {
+          canSave: hasEditPermissions.value,
+        } : {}),
       } : {}),
-      ...((options.performDelete && hasEditPermissions.value) ? {
+      ...((options.performDelete) ? {
         delete: options.performDelete,
         deleteConfirmInput: options.deleteConfirmInput?.value,
+        ...(options.canDelete ? {
+          canDelete: options.canDelete.value,
+        } : {}),
       } : {}),
     });
   });
@@ -177,8 +184,8 @@ export function useProjectTypeLockEdit(options: {
   });
 
   const hasEditPermissions = computed(() => {
-    return (projectType.value.scope === ProjectTypeScope.GLOBAL && auth.hasScope('designer')) ||
-             (projectType.value.scope === ProjectTypeScope.PRIVATE && apiSettings.settings!.features.private_designs) ||
+    return (projectType.value.scope === ProjectTypeScope.GLOBAL && auth.permissions.designer) ||
+             (projectType.value.scope === ProjectTypeScope.PRIVATE && auth.permissions.private_designs) ||
              (projectType.value.scope === ProjectTypeScope.PROJECT && projectType.value.source === SourceEnum.CUSTOMIZED);
   });
   const errorMessage = computed(() => {

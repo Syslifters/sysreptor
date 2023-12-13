@@ -30,12 +30,12 @@
         <template #actions>
           <btn-create 
             to="/templates/new/" 
-            :disabled="!auth.hasScope('template_editor')"
+            :disabled="!auth.permissions.template_editor"
           />
           <btn-import 
             ref="importBtnRef"
             :import="performImport"
-            :disabled="!auth.hasScope('template_editor')"
+            :disabled="!auth.permissions.template_editor"
           />
         </template>
         <template #item="{item}">

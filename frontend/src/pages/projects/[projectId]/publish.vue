@@ -33,7 +33,7 @@
             button-icon="mdi-file-cog"
             tooltip-text="Customize Design for this project"
             dialog-text="Customize the current Design for this project. This allows you to adapt the appearence (HTML, CSS) of the design for this project only. The original design is not affected. Any changes made to the original design will not be automatically applied to the adapted design."
-            :disabled="project.readonly || projectType.source === 'customized'"
+            :disabled="project.readonly || projectType.source === 'customized' || !auth.permissions.update_project_settings"
             class="ml-1"
           />
         </div>
@@ -78,14 +78,14 @@
             v-if="!project.readonly"
             :value="project.readonly"
             :set-readonly="setReadonly"
-            :disabled="!canGenerateFinalReport"
+            :disabled="!canGenerateFinalReport || !auth.permissions.update_project_settings"
           />
         </div>
       </v-form>
 
       <error-list v-if="!pendingCheckMessages" :value="allMessages" :group="true" :show-no-message-info="true">
         <template #location="{msg}">
-          <NuxtLink v-if="messageLocationUrl(msg)" :to="messageLocationUrl(msg)" target="_blank">
+          <NuxtLink v-if="messageLocationUrl(msg)" :to="messageLocationUrl(msg)" target="_blank" class="text-primary">
             in {{ msg.location.type }}
             <span v-if="msg.location.name"> "{{ msg.location.name }}"</span>
             <span v-if="msg.location.path"> field "{{ msg.location.path }}"</span>
@@ -113,6 +113,7 @@ definePageMeta({
 });
 
 const route = useRoute();
+const auth = useAuth();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore()
 

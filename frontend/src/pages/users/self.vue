@@ -21,11 +21,12 @@
           title="API Tokens"
         />
         <v-list-item
-          v-if="apiSettings.settings!.features.archiving"
+          :disabled="!apiSettings.settings!.features.archiving"
           to="/users/self/publickeys/"
           prepend-icon="mdi-folder-key"
-          title="Archiving Public Keys"
-        />
+        >
+          <v-list-item-title><pro-info>Archiving Public Keys</pro-info></v-list-item-title>
+        </v-list-item>
       </v-list>
     </template>
 
