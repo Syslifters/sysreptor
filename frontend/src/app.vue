@@ -67,7 +67,9 @@ const theme = computed(() => {
   * [x] context actions
   * [x] save button
   * [x] delete button
-* [ ] sudo button in main drawer
-* [ ] sudo in user menu
+* [x] version history: temporary hover over sub-drawer
 * [ ] add "/PRO" badge when in community edition for disabled features
+  * [x] buttons and menus
+  * [ ] sudo button in main drawer ???
+  * [ ] sudo in user menu ???
 -->

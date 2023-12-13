@@ -77,6 +77,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
                 'private_designs': settings.ENABLE_PRIVATE_DESIGNS,
                 'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
                 'archiving': license.is_professional(),
+                'permissions': license.is_professional(),
             },
             'guest_permissions': {
                 'import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,

@@ -109,7 +109,7 @@
     </s-card>
 
     <s-card class="mt-4">
-      <v-card-title>Permissions</v-card-title>
+      <v-card-title><pro-info>Permissions</pro-info></v-card-title>
       <v-card-text>
         <s-checkbox
           :model-value="user.is_template_editor" @update:model-value="updateField('is_template_editor', $event)"
@@ -136,14 +136,6 @@
           density="compact"
         />
         <s-checkbox
-          :model-value="user.is_superuser" @update:model-value="updateField('is_superuser', $event)"
-          label="Superuser"
-          hint="Superusers have the highest privileges available. They have all permissions without explicitly assigning them."
-          :error-messages="errors?.is_superuser || []"
-          :disabled="!canEditSuperuserPermissions"
-          density="compact"
-        />
-        <s-checkbox
           :model-value="user.is_guest" @update:model-value="updateField('is_guest', $event)"
           label="Guest"
           hint="Guest are not allowed to list other users and might be further restricted by your system operator."
@@ -157,6 +149,14 @@
           hint="Global Archivers will be added to archives when archiving projects (besides project members) and are able to restore these projects. They need to have archiving public keys configured for this permission take effect."
           :error-messages="errors?.is_global_archiver || []"
           :disabled="!canEditGeneralPermissions || !apiSettings.settings!.features.archiving"
+          density="compact"
+        />
+        <s-checkbox
+          :model-value="user.is_superuser" @update:model-value="updateField('is_superuser', $event)"
+          label="Superuser"
+          hint="Superusers have the highest privileges available. They have all permissions without explicitly assigning them."
+          :error-messages="errors?.is_superuser || []"
+          :disabled="!canEditSuperuserPermissions"
           density="compact"
         />
         <s-checkbox
@@ -189,8 +189,8 @@ const user = computed(() => props.modelValue);
 const auth = useAuth();
 const apiSettings = useApiSettings();
 const canEdit = computed(() => (auth.permissions.user_manager && !user.value.is_system_user) || user.value.id === auth.user.value!.id);
-const canEditGeneralPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.permissions.user_manager);
-const canEditSuperuserPermissions = computed(() => canEditGeneralPermissions.value && auth.permissions.admin);
+const canEditGeneralPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.permissions.user_manager && apiSettings.settings!.features.permissions);
+const canEditSuperuserPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.permissions.user_manager && auth.permissions.admin);
 
 const rules = {
   required: [(v: any) => !!v || 'This field is required!'],

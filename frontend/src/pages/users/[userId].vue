@@ -25,8 +25,9 @@
           :disabled="!apiSettings.isSsoEnabled"
           :to="`/users/${user.id}/identities/`"
           prepend-icon="mdi-card-account-details"
-          title="SSO Identities"
-        />
+        >
+          <v-list-item-title><pro-info>SSO Identities</pro-info></v-list-item-title>
+        </v-list-item>
         <v-list-item
           :to="`/users/${user.id}/apitokens/`"
           prepend-icon="mdi-key-variant"

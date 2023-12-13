@@ -4,7 +4,9 @@
       <template #header>
         <s-sub-menu>
           <v-tab :to="`/projects/`" exact text="Projects" />
-          <v-tab :disabled="!apiSettings.settings!.features.archiving" to="/projects/archived/" text="Archived Projects" />
+          <v-tab :disabled="!apiSettings.settings!.features.archiving" to="/projects/archived/">
+            <pro-info>Archived Projects</pro-info>
+          </v-tab>
         </s-sub-menu>
       </template>
 

@@ -16,8 +16,9 @@
             :to="`/projects/${project.id}/archive/`"
             class="mr-1"
             prepend-icon="mdi-folder-lock-outline"
-            text="Archive"
-          />
+          >
+            <pro-info>Archive</pro-info>
+          </s-btn-secondary>
           <btn-history v-model="historyVisible" />
         </template>
         <template #context-menu>
@@ -143,7 +144,6 @@ import type { VForm } from "vuetify/lib/components/index.mjs";
 
 const route = useRoute();
 const auth = useAuth();
-const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 
 const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${route.params.projectId}/`, { method: 'GET', key: 'projectSettings:project' });

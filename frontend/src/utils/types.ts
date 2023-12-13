@@ -107,6 +107,7 @@ export type ApiSettings = {
         readonly private_designs: boolean;
         readonly spellcheck: boolean;
         readonly archiving: boolean;
+        readonly permissions: boolean;
     };
     readonly guest_permissions: {
       readonly import_projects: boolean;
