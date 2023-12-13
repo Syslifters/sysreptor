@@ -1,0 +1,15 @@
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('~/assets/fonts/noto/NotoSans-VariableFont_wdth,wght.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('~/assets/fonts/noto/NotoSans-Italic-VariableFont_wdth,wght.woff2') format('woff2');
+}
