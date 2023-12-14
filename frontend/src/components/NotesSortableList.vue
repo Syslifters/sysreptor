@@ -40,11 +40,6 @@
               </span>
             </v-list-item-subtitle>
           </template>
-          <template #append>
-            <div v-if="item.note.status_emoji" class="note-icon">
-              <s-emoji :value="item.note.status_emoji" size="small" class="emoji-icon" />
-            </div>
-          </template>
         </v-list-item>
 
         <v-list v-if="isExpanded(item.note)" density="compact" class="pt-0 pb-0">

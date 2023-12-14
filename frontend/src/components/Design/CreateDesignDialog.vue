@@ -18,12 +18,6 @@
           :required="false"
           autofocus
         />
-        <s-select 
-          v-model="currentScope"
-          :items="scopeItems"
-          label="Scope"
-          class="mt-4"
-        />
       </v-card-text>
 
       <v-card-actions>
@@ -52,22 +46,27 @@
 <script setup lang="ts">
 import { ProjectTypeScope } from "~/utils/types";
 
+const props = withDefaults(defineProps<{
+  projectTypeScope: ProjectTypeScope
+}>(), {
+  projectTypeScope: ProjectTypeScope.GLOBAL
+});
+
 const auth = useAuth();
 const projectTypeStore = useProjectTypeStore();
+
+const canCreate = computed(() => {
+  if (props.projectTypeScope === ProjectTypeScope.GLOBAL) {
+    return auth.permissions.value.designer;
+  } else {
+    return auth.permissions.value.private_designs;
+  }
+});
 
 const dialogVisible = ref(false);
 const currentDesign = ref<ProjectType|null>(null);
 const actionInProgress = ref(false);
 watch(actionInProgress, () => { currentDesign.value = null });
-
-const scopeItems = computed(() => {
-  return [
-    { value: ProjectTypeScope.GLOBAL, title: 'Global Design', props: { subtitle: 'Available for all users', disabled: !auth.permissions.designer } },
-    { value: ProjectTypeScope.PRIVATE, title: 'Private Design', props: { subtitle: 'Available only for you', disabled: !auth.permissions.private_designs } },
-  ];
-});
-const currentScope = ref<ProjectTypeScope>(scopeItems.value.find(item => !item.props.disabled)?.value || ProjectTypeScope.GLOBAL);
-const canCreate = computed(() => scopeItems.value.some(item => !item.props.disabled));
 
 async function actionWrapper(action: () => Promise<ProjectType>) {
   if (actionInProgress.value) {
@@ -89,7 +88,7 @@ async function actionWrapper(action: () => Promise<ProjectType>) {
 async function createEmptyDesign() {
   return await actionWrapper(async () => {
     return await projectTypeStore.create({
-      scope: currentScope.value,
+      scope: props.projectTypeScope,
       name: 'New Design',
     } as ProjectType);
   })
@@ -99,7 +98,7 @@ async function copyDesign() {
   return await actionWrapper(async () => {
     return await projectTypeStore.copy({
       id: currentDesign.value!.id,
-      scope: currentScope.value,
+      scope: props.projectTypeScope,
     });
   })
 }

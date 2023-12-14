@@ -407,13 +407,12 @@ class ProjectNotebookPageExportImportSerializer(ExportImportSerializer):
         model = ProjectNotebookPage
         fields = [
             'id', 'created', 'updated',
-            'title', 'text', 'checked', 'icon_emoji', 'status_emoji', 'assignee',
+            'title', 'text', 'checked', 'icon_emoji', 'assignee',
             'order', 'parent',
         ]
         extra_kwargs = {
             'created': {'read_only': False, 'required': False},
             'icon_emoji': {'required': False},
-            'status_emoji': {'required': False},
             'assignee': {'required': False}
         }
 

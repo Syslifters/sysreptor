@@ -65,7 +65,7 @@ const apiUrl = `/api/v1/pentestusers/${route.params.userId}/`
 const user = await useFetchE<User>(apiUrl, { method: 'GET' });
 
 const serverErrors = ref<any|null>(null);
-const canEdit = computed(() => auth.permissions.user_manager && !user.value.is_system_user);
+const canEdit = computed(() => auth.permissions.value.user_manager && !user.value.is_system_user);
 
 async function performSave(data: User) {
   try {

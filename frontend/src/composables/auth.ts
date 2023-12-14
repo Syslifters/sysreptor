@@ -118,7 +118,7 @@ export function useAuth() {
     loggedIn,
     user,
     store,
-    permissions: store.permissions,
+    permissions: computed(() => store.permissions),
     logout,
     redirect,
     redirectToReAuth,

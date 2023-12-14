@@ -3,8 +3,8 @@
     <list-view url="/api/v1/pentestprojects/?readonly=false">
       <template #title>Projects</template>
       <template #actions>
-        <btn-create to="/projects/new/" :disabled="!auth.permissions.create_projects" />
-        <btn-import ref="importBtn" :import="performImport" :disabled="!auth.permissions.import_projects" />
+        <btn-create to="/projects/new/" :disabled="!auth.permissions.value.create_projects" />
+        <btn-import ref="importBtn" :import="performImport" :disabled="!auth.permissions.value.import_projects" />
       </template>
       <template #tabs>
         <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active Projects" />

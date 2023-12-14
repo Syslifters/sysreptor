@@ -188,7 +188,6 @@ def create_usernotebookpage(**kwargs) -> UserNotebookPage:
         'text': 'Note text',
         'checked': random.choice([None, True, False]),
         'icon_emoji': random.choice([None, '🦖']),
-        'status_emoji': random.choice([None, '✔️', '🤡']),
     } | kwargs)
 
 
@@ -198,7 +197,6 @@ def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
         'text': 'Note text',
         'checked': random.choice([None, True, False]),
         'icon_emoji': random.choice([None, '🦖']),
-        'status_emoji': random.choice([None, '✔️', '🤡']),
     } | kwargs)
 
 

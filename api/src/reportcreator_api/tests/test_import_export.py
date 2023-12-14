@@ -175,7 +175,7 @@ class TestImportExport:
 
         assert p.notes.count() == self.project.notes.count()
         for i, s in zip(p.notes.order_by('note_id'), self.project.notes.order_by('note_id')):
-            assertKeysEqual(i, s, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'status_emoji', 'order'])
+            assertKeysEqual(i, s, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
             assert i.parent.note_id == s.parent.note_id if s.parent else i.parent is None
         assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in self.project.files.all()}
 
@@ -373,7 +373,7 @@ class TestCopyModel:
         
         for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id')):
             assert p_n != cp_n
-            assertKeysEqual(p_n, cp_n, ['note_id', 'title', 'text', 'checked', 'icon_emoji', 'status_emoji', 'order'])
+            assertKeysEqual(p_n, cp_n, ['note_id', 'title', 'text', 'checked', 'icon_emoji', 'order'])
             assert not cp_f.is_locked
             if p_n.parent:
                 assert p_n.parent.note_id == cp_n.parent.note_id
