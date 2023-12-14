@@ -72,14 +72,15 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
 
     async def spellcheck(self):
         data = self.validated_data
-        return await self.languagetool_request('/v2/check', {
+        return await self.languagetool_request('/v2/check', settings.SPELLCHECK_LANGUAGETOOL_CONFIG | {
             'language': data['language'],
             'data': json.dumps(data['data'], ensure_ascii=False),
+            'level': 'picky' if settings.SPELLCHECK_MODE_PICKY else 'default',
             **({
                 'preferredVariants': ','.join(self.spellcheck_languages),
             } if data['language'] == 'auto' else {}),
         })
-        
+
 
 def validate_singe_word(val):
     if ' ' in val:
@@ -127,4 +128,45 @@ class BackupSerializer(serializers.Serializer):
         except ValueError:
             raise serializers.ValidationError('Invalid base64 encoding')
 
+
+# TODO: spellcheck adaptions
+# * [x] update languagetool
+# * [x] picky mode + advanced config
+# * [x] spellcheck API: use picky mode + config
+# * [ ] frontend
+#   * [ ] in community: reset spellcheckEnabled to false on navigation
+#   * [x] rework spellcheck enabled
+#      * [x] localSettings.spellcheckEnabled
+#      * [x] MarkdownFieldContent
+#      * [x] MarkdownTextFieldContent
+#      * [x] MarkdownPage
+#      * [x] MarkdownToolbar
+#   * [x] pass spellcheckEnabled as props + event update:spellcheckEnabled
+#      * [x] section
+#      * [x] finding
+#      * [x] project note
+#      * [x] personal notes
+#      * [x] template
+#      * [x] preview data
+#      * [x] layout editor
+#      * [x] report fields
+#      * [x] finding fields
+#   * [ ] rework markdownEditorMode
+#      * [ ] localSettings.markdownEditorMode
+#      * [ ] MarkdownFieldContent
+#      * [ ] MarkdownTextFieldContent
+#      * [ ] MarkdownPage
+#      * [ ] MarkdownToolbar
+#   * [ ] pass markdownEditorMode as props + event update:markdownEditorMode
+#      * [ ] section
+#      * [ ] finding
+#      * [ ] project note
+#      * [ ] personal notes
+#      * [ ] template
+#      * [ ] preview data
+#      * [ ] layout editor
+#      * [ ] report fields
+#      * [ ] finding fields
+# * [ ] docs: new languagetool env variables
+# * [x] markdown images: add "{width=100%}""
         

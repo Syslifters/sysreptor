@@ -1,4 +1,4 @@
-FROM erikvl87/languagetool:6.1
+FROM erikvl87/languagetool:6.3
 
 # Add custom CA certificates
 ARG CA_CERTIFICATES=""

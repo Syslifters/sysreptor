@@ -124,8 +124,19 @@ Words are added to a global spell check dictionary by default, which is availabl
 Using both global and personal dictionaries at the same time is not possible. Words of personal dictionaries are not shared between users. If one user adds an unknown word to their personal dictionary, the spell checker will still detect an error for other users, even when they are working in the same project or finding.
 
 
-``` title="Example:"
+``` title="Spell check dictionary configuration"
 SPELLCHECK_DICTIONARY_PER_USER=false
+```
+
+The picky mode enables additional spell check rules. 
+
+It is also possible to selectively enable and disable rules or rule-categories by passing a LanguageTool configuration as JSON. 
+See https://languagetool.org/http-api/ for available options on the `/check` request.
+See https://community.languagetool.org/rule/list for available rules (note: rule IDs might differ for languages).
+
+``` title="Spell check rule configuration"
+SPELLCHECK_PICKY_MODE=true
+SPELLCHECK_LANGUAGETOOL_CONFIG='{"disabledRules": "TODO,TO_DO_HYPHEN,PASSIVE_VOICE,PASSIVE_SENTENCE_DE"}'
 ```
 
 ### Languages
