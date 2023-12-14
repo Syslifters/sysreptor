@@ -18,7 +18,7 @@
     <markdown-toolbar-button
       v-if="apiSettings.isProfessionalLicense"
       @click="toggleSpellcheck"
-      title="Spellcheck"
+      title="Spell check"
       icon="mdi-spellcheck"
       :disabled="props.disabled || !spellcheckSupported"
       :active="spellcheckEnabled"
@@ -26,7 +26,7 @@
     <markdown-toolbar-button
       v-else
       @click="toggleSpellcheck"
-      :title="'Spellcheck'"
+      :title="'Spell check (basic)'"
       icon="mdi-spellcheck"
       :dot="!spellcheckSupported ? undefined : (spellcheckEnabled ? 'warning' : 'error')"
       :disabled="props.disabled || !spellcheckSupported"
@@ -95,7 +95,7 @@ function toggleSpellcheck() {
   const newVal = !props.spellcheckEnabled;
   emit('update:spellcheckEnabled', newVal);
   if (newVal && !apiSettings.isProfessionalLicense) {
-    warningToast('Basic spellcheck enabled. Upgrade to Professional for advanced options.');
+    warningToast('Basic spell check enabled. Upgrade to SysReptor Professional for advanced options.');
   }
 }
 
