@@ -30,6 +30,13 @@ export const useLocalSettings = defineStore('settings', {
     setNoteExpandState({ noteId, isExpanded }: { noteId: string, isExpanded: boolean }) {
       this.noteExpandStates[noteId] = isExpanded;
     },
+    setAllSpellcheckSettings(val: boolean) {
+      this.reportingSpellcheckEnabled = val;
+      this.projectNoteSpellcheckEnabled = val;
+      this.userNoteSpellcheckEnabled = val;
+      this.designSpellcheckEnabled = val;
+      this.templateSpellcheckEnabled = val;
+    },
   },
   getters: {
     isNoteExpanded() {
