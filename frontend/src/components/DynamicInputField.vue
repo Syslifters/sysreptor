@@ -230,6 +230,8 @@
 
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
+import pick from 'lodash/pick';
+import { MarkdownEditorMode } from '~/utils/types';
 import type { MarkdownProps } from "~/composables/markdown";
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 
@@ -244,7 +246,9 @@ const props = defineProps<MarkdownProps & {
   disableValidation?: boolean;
 }>();
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: any): void;
+  'update:modelValue': [value: any];
+  'update:spellcheckEnabled': [value: boolean];
+  'update:markdownEditorMode': [value: MarkdownEditorMode];
 }>();
 
 function getInitialValue(fieldDef: FieldDefinition, useDefault = true): any {
@@ -373,12 +377,9 @@ const attrs = useAttrs();
 const fieldAttrs = computed(() => ({
   ...attrs,
   label: label.value,
-  disabled: props.disabled,
-  autofocus: props.autofocus,
-  lang: props.lang,
-  uploadFile: props.uploadFile,
-  rewriteFileUrl: props.rewriteFileUrl,
-  rewriteReferenceLink: props.rewriteReferenceLink,
+  ...pick(props, ['disabled', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink']),
+  'onUpdate:spellcheckEnabled': (v: boolean) => emit('update:spellcheckEnabled', v),
+  'onUpdate:markdownEditorMode': (v: MarkdownEditorMode) => emit('update:markdownEditorMode', v),
 }))
 </script>
 

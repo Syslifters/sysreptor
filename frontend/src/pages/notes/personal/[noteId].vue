@@ -24,8 +24,6 @@
               <markdown-text-field-content
                 ref="titleRef"
                 v-model="note.title"
-                :disabled="readonly"
-                :spellcheck-supported="true"
                 v-bind="inputFieldAttrs"
                 class="note-title"
               />
@@ -45,7 +43,6 @@
         <markdown-page
           ref="textRef"
           v-model="note.text"
-          :disabled="readonly"
           v-bind="inputFieldAttrs"
         />
       </template>
@@ -55,9 +52,11 @@
 
 <script setup lang="ts">
 import urlJoin from "url-join";
+import { MarkdownEditorMode } from "~/utils/types";
 import { uploadFileHelper } from "~/utils/upload";
 
 const route = useRoute();
+const localSettings = useLocalSettings();
 const userNotesStore = useUserNotesStore();
 
 const baseUrl = computed(() => `/api/v1/pentestusers/self/notes/${route.params.noteId}/`);
@@ -92,14 +91,20 @@ async function uploadFile(file: File) {
   if (obj.resource_type === 'file') {
     return `[${obj.name}](/files/name/${obj.name})`;
   } else {
-    return `![](/images/name/${obj.name})`;
+    return `![](/images/name/${obj.name}){width="100%"}`;
   }
 }
 function rewriteFileUrl(imgSrc: string) {
   return urlJoin('/api/v1/pentestusers/self/notes/', imgSrc);
 }
 const inputFieldAttrs = computed(() => ({
+  disabled: readonly.value,
   lang: 'auto',
+  spellcheckSupported: true,
+  spellcheckEnabled: localSettings.userNoteSpellcheckEnabled,
+  'onUpdate:spellcheckEnabled': (val: boolean) => { localSettings.userNoteSpellcheckEnabled = val }, 
+  markdownEditorMode: localSettings.userNoteMarkdownEditorMode,
+  'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { localSettings.userNoteMarkdownEditorMode = val },
   uploadFile,
   rewriteFileUrl,
 }));

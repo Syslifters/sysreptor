@@ -151,22 +151,26 @@ class BackupSerializer(serializers.Serializer):
 #      * [x] layout editor
 #      * [x] report fields
 #      * [x] finding fields
-#   * [ ] rework markdownEditorMode
-#      * [ ] localSettings.markdownEditorMode
-#      * [ ] MarkdownFieldContent
-#      * [ ] MarkdownTextFieldContent
-#      * [ ] MarkdownPage
-#      * [ ] MarkdownToolbar
-#   * [ ] pass markdownEditorMode as props + event update:markdownEditorMode
-#      * [ ] section
-#      * [ ] finding
-#      * [ ] project note
-#      * [ ] personal notes
-#      * [ ] template
-#      * [ ] preview data
-#      * [ ] layout editor
-#      * [ ] report fields
-#      * [ ] finding fields
-# * [ ] docs: new languagetool env variables
+#   * [x] rework markdownEditorMode
+#      * [x] localSettings.markdownEditorMode
+#      * [x] MarkdownFieldContent
+#      * [x] MarkdownPage
+#      * [x] MarkdownToolbar
+#   * [x] pass markdownEditorMode as props + event update:markdownEditorMode
+#      * [x] section
+#      * [x] finding
+#      * [x] project note
+#      * [x] personal notes
+#      * [x] template
+#      * [x] preview data
+#      * [x] layout editor
+#      * [x] report fields
+#      * [x] finding fields
+#      * [x] template history
+#      * [x] section history 
+#      * [x] finding history
+#      * [x] project note history
+
+# * [x] docs: new languagetool env variables
 # * [x] markdown images: add "{width=100%}""
         

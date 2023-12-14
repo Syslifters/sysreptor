@@ -68,12 +68,7 @@
             @update:model-value="updateSectionField(fieldId, $event)"
             :id="fieldId"
             :definition="props.projectType.report_fields[fieldId]"
-            :show-field-ids="true"
-            :upload-file="uploadFile"
-            :rewrite-file-url="rewriteFileUrl"
-            :selectable-users="[auth.user.value as UserShortInfo]"
-            :lang="props.projectType.language"
-            :disabled="props.disabled"
+            v-bind="fieldAttrs"
           />
         </div>
       </template>
@@ -84,12 +79,7 @@
             @update:model-value="updateFindingField(fieldId, $event)"
             :id="fieldId"
             :definition="props.projectType.finding_fields[fieldId]"
-            :show-field-ids="true"
-            :upload-file="uploadFile"
-            :rewrite-file-url="rewriteFileUrl"
-            :selectable-users="[auth.user.value as UserShortInfo]"
-            :lang="props.projectType.language"
-            :disabled="props.disabled"
+            v-bind="fieldAttrs"
           />
         </div>
       </template>
@@ -100,7 +90,7 @@
 <script setup lang="ts">
 import Draggable from "vuedraggable";
 import { v4 as uuidv4 } from "uuid";
-import { FieldDataType } from "~/utils/types";
+import { FieldDataType, MarkdownEditorMode } from "~/utils/types";
 import { scoreFromVector, levelNumberFromLevelName, levelNumberFromScore } from "~/utils/cvss";
 
 const props = defineProps<{
@@ -114,6 +104,7 @@ const emit = defineEmits<{
   'update:modelValue': [any];
 }>();
 
+const localSettings = useLocalSettings();
 const auth = useAuth();
 
 const menuSize = ref(20);
@@ -214,6 +205,19 @@ function riskLevel(finding: any) {
     return 'unknown';
   }
 }
+
+const fieldAttrs = computed(() => ({
+  showFieldIds: true,
+  uploadFile: props.uploadFile,
+  rewriteFileUrl: props.rewriteFileUrl,
+  selectableUsers: [auth.user.value],
+  lang: props.projectType.language,
+  disabled: props.disabled,
+  spellcheckEnabled: localSettings.designSpellcheckEnabled,
+  'onUpdate:spellcheckEnabled': (val: boolean) => { localSettings.designSpellcheckEnabled = val },
+  markdownEditorMode: localSettings.designMarkdownEditorMode,
+  'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { localSettings.designMarkdownEditorMode = val },
+}));
 </script>
 
 <style lang="scss" scoped>

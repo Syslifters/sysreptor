@@ -221,6 +221,8 @@
         @update:model-value="updateProperty('default', $event)"
         :definition="{...props.modelValue, label: 'Default Value', required: false, pattern: null} as FieldDefinition"
         :lang="props.lang"
+        v-model:spellcheck-enabled="localSettings.designSpellcheckEnabled"
+        v-model:markdown-editor-mode="localSettings.designMarkdownEditorMode"
         :disabled="props.disabled"
         :disable-validation="true"
       />
@@ -288,6 +290,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [FieldDefinitionWithId];
 }>();
+
+const localSettings = useLocalSettings();
 
 const rules = {
   id: [

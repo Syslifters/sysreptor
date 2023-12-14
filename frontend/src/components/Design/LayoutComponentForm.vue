@@ -179,6 +179,7 @@
 
 <script setup lang="ts">
 import pick from "lodash/pick";
+import { MarkdownEditorMode } from "~/utils/types";
 import type { MarkdownProps } from "~/composables/markdown";
 
 const props = defineProps<{
@@ -189,7 +190,15 @@ const emit = defineEmits<{
   'update:modelValue': [any];
 }>();
 
-const markdownProps = computed(() => pick(props, ['disabled', 'lang', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink']));
+const localSettings = useLocalSettings();
+
+const markdownProps = computed(() => ({
+  ...pick(props, ['disabled', 'lang', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink']),
+  spellcheckEnabled: localSettings.designSpellcheckEnabled,
+  'onUpdate:spellcheckEnabled': (value: boolean) => { localSettings.designSpellcheckEnabled = value },
+  markdownEditorMode: localSettings.designMarkdownEditorMode,
+  'onUpdate:markdownEditorMode': (value: MarkdownEditorMode) => { localSettings.designMarkdownEditorMode = value },
+}));
 
 const form = ref();
 watch(() => props.modelValue, () => {

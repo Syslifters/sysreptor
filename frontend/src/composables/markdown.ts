@@ -10,9 +10,12 @@ import {
   syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks
   // @ts-ignore
 } from "reportcreator-markdown/editor";
+import { MarkdownEditorMode } from '@/utils/types';
 
 export type MarkdownProps = {
   lang?: string|null;
+  spellcheckEnabled?: boolean;
+  markdownEditorMode?: MarkdownEditorMode;
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrl?: (fileSrc: string) => string;
   rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
@@ -36,6 +39,14 @@ export function makeMarkdownProps(options: { files: boolean, spellcheckSupported
       type: Boolean,
       default: options.spellcheckSupportedDefault,
     },
+    spellcheckEnabled: {
+      type: Boolean,
+      default: undefined,
+    },
+    markdownEditorMode: {
+      type: String as PropType<MarkdownEditorMode>,
+      default: MarkdownEditorMode.MARKDOWN_AND_PREVIEW,
+    },
     ...(options.files ? {
       uploadFile: {
         type: Function as PropType<MarkdownProps['uploadFile']>,
@@ -53,7 +64,7 @@ export function makeMarkdownProps(options: { files: boolean, spellcheckSupported
   }
 }
 export function makeMarkdownEmits() {
-  return ['update:modelValue', 'focus', 'blur'];
+  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'focus', 'blur'];
 }
 
 export function useMarkdownEditor({ props, emit, extensions }: {
@@ -63,24 +74,28 @@ export function useMarkdownEditor({ props, emit, extensions }: {
         disabled?: boolean;
         lang?: string|null;
         spellcheckSupported?: boolean;
+        spellcheckEnabled?: boolean;
+        markdownEditorMode?: MarkdownEditorMode;
         uploadFile?: (file: File) => Promise<string>;
         rewriteFileUrl?: (fileSrc: string) => string;
         rewriteReferenceLink?: (src: string) => string|null;
     }>;
     emit: any;
 }) {
-  const localSettings = useLocalSettings();
+  const apiSettings = useApiSettings();
   const theme = useTheme();
 
   const valueNotNull = computed(() => props.value.modelValue || '');
   const spellcheckLanguageToolEnabled = computed(() =>
     !props.value.disabled &&
     !!props.value.spellcheckSupported &&
-    localSettings.spellcheckLanguageToolEnabled(props.value.lang || null))
+    !!props.value.spellcheckEnabled &&
+    apiSettings.spellcheckLanguageToolSupportedForLanguage(props.value.lang));
   const spellcheckBrowserEnabled = computed(() =>
     !props.value.disabled &&
     !!props.value.spellcheckSupported &&
-    localSettings.spellcheckBrowserEnabled(props.value.lang || null))
+    !!props.value.spellcheckEnabled &&
+    !apiSettings.isProfessionalLicense);
   const previewCacheBuster = uuid4();
 
   async function performSpellcheckRequest(data: any): Promise<any> {
@@ -262,6 +277,10 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     uploadFiles: props.value.uploadFile ? uploadFiles : undefined,
     fileUploadInProgress: fileUploadInProgress.value,
     lang: props.value.lang,
+    spellcheckEnabled: props.value.spellcheckEnabled,
+    'onUpdate:spellcheckEnabled': (val: boolean) => emit('update:spellcheckEnabled', val),
+    markdownEditorMode: props.value.markdownEditorMode,
+    'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => emit('update:markdownEditorMode', val),
   }));
   const markdownStatusbarAttrs = computed(() => ({
     editorState: editorState.value,

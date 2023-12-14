@@ -52,15 +52,8 @@
     <v-window v-model="currentTab">
       <v-window-item v-for="(translation, idx) in template.translations" :key="idx">
         <dynamic-input-field
-          :model-value="translation.data.title"
-          @update:model-value="(v: string) => updateTranslationData(translation, fieldDefinitionTitle.id, v)"
-          :id="fieldDefinitionTitle.id"
-          :definition="fieldDefinitionTitle"
-          :selectable-users="[]"
-          :lang="translation.language"
-          :upload-file="uploadFile"
-          :rewrite-file-url="rewriteFileUrl"
           :disabled="props.readonly"
+          v-bind="fieldAttrs(translation, fieldDefinitionTitle)"
         />
 
         <s-status-selection
@@ -88,16 +81,9 @@
 
         <div v-for="d in visibleFieldDefinitionsExceptTitle" :key="d.id" class="d-flex flex-row">
           <dynamic-input-field
-            :model-value="(d.id in translation.data) ? translation.data[d.id] : mainTranslation.data[d.id]"
-            @update:model-value="(v: any) => updateTranslationData(translation, d.id, v)"
-            :id="d.id"
-            :definition="d"
-            :selectable-users="[]"
-            :lang="translation.language"
-            :upload-file="uploadFile"
-            :rewrite-file-url="rewriteFileUrl"
             :disabled="props.readonly || (!translation.is_main && !(d.id in translation.data))"
             class="flex-grow-width"
+            v-bind="fieldAttrs(translation, d)"
           />
           <div v-if="!translation.is_main" class="mt-4 ml-1">
             <s-btn-secondary
@@ -136,6 +122,7 @@
 <script setup lang="ts">
 import cloneDeep from "lodash/cloneDeep";
 import { v4 as uuidv4 } from "uuid";
+import { MarkdownEditorMode } from "~/utils/types";
 
 const props = withDefaults(defineProps<{
   modelValue: FindingTemplate;
@@ -157,8 +144,9 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: FindingTemplate): void;
 }>();
 
-const templateStore = useTemplateStore();
+const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
+const templateStore = useTemplateStore();
 useLazyAsyncData(async () => await templateStore.getFieldDefinition());
 
 const template = computed(() => props.modelValue);
@@ -245,6 +233,21 @@ async function createTranslation(language: string) {
 function deleteTranslation(translationId: string) {
   updateTemplateField('translations', template.value.translations.filter(tr => tr.id !== translationId))
 }
+
+const fieldAttrs = computed(() => (translation: FindingTemplateTranslation, definition: FieldDefinitionWithId) => ({
+  modelValue: (definition.id in translation.data) ? translation.data[definition.id] : mainTranslation.value.data[definition.id],
+  'onUpdate:modelValue': (v: any) => updateTranslationData(translation, definition.id, v),
+  id: definition.id,
+  definition,
+  lang: translation.language,
+  selectableUsers: [],
+  spellcheckEnabled: localSettings.templateSpellcheckEnabled,
+  'onUpdate:spellcheckEnabled': (value: boolean) => { localSettings.templateSpellcheckEnabled = value },
+  markdownEditorMode: localSettings.templateMarkdownEditorMode,
+  'onUpdate:markdownEditorMode': (value: MarkdownEditorMode) => { localSettings.templateMarkdownEditorMode = value },
+  uploadFile: props.uploadFile,
+  rewriteFileUrl: props.rewriteFileUrl,
+}))
 
 defineExpose({
   toolbarRef,

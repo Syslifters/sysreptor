@@ -36,7 +36,7 @@ function rewriteFileSource(imgSrc: string) {
     return imgSrc;
   }
 
-  return absoluteApiUrl(props.rewriteFileUrl(`${imgSrc}?c=${cacheBuster}`));
+  return absoluteApiUrl(props.rewriteFileUrl(`${imgSrc}?c=${cacheBuster.value}`));
 }
 const updatePreviewThrottled = throttle(() => {
   // Render markdown to HTML

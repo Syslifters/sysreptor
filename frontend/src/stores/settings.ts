@@ -4,8 +4,16 @@ import { MarkdownEditorMode } from "~/utils/types";
 export const useLocalSettings = defineStore('settings', {
   state: () => ({
     autoSaveEnabled: true,
-    markdownEditorMode: MarkdownEditorMode.MARKDOWN as MarkdownEditorMode,
-    spellcheckEnabled: true,
+    reportingMarkdownEditorMode: MarkdownEditorMode.MARKDOWN_AND_PREVIEW as MarkdownEditorMode,
+    projectNoteMarkdownEditorMode: MarkdownEditorMode.MARKDOWN_AND_PREVIEW as MarkdownEditorMode,
+    userNoteMarkdownEditorMode: MarkdownEditorMode.MARKDOWN_AND_PREVIEW as MarkdownEditorMode,
+    designMarkdownEditorMode: MarkdownEditorMode.MARKDOWN_AND_PREVIEW as MarkdownEditorMode,
+    templateMarkdownEditorMode: MarkdownEditorMode.MARKDOWN_AND_PREVIEW as MarkdownEditorMode,
+    reportingSpellcheckEnabled: true,
+    projectNoteSpellcheckEnabled: true,
+    userNoteSpellcheckEnabled: true,
+    designSpellcheckEnabled: true,
+    templateSpellcheckEnabled: true,
     reportInputMenuSize: 15,
     templateInputMenuSize: 15,
     notebookInputMenuSize: 15,
@@ -29,23 +37,6 @@ export const useLocalSettings = defineStore('settings', {
         const val = this.noteExpandStates[noteId];
         return val === undefined ? true : val;
       };
-    },
-    spellcheckLanguageToolEnabled() {
-      const apiSettings = useApiSettings();
-      return (lang: string|null) => {
-        return lang !== null &&
-            this.spellcheckEnabled &&
-            apiSettings.settings!.features.spellcheck &&
-            Boolean(apiSettings.settings!.languages.find(l => l.code === lang)?.spellcheck || lang === 'auto');
-      }
-    },
-    spellcheckBrowserEnabled() {
-      const apiSettings = useApiSettings();
-      return (lang: string|null) => {
-        return lang !== null &&
-            this.spellcheckEnabled &&
-            !apiSettings.settings!.features.spellcheck;
-      }
     },
   },
   persist: {
