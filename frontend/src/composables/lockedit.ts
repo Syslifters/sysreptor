@@ -184,8 +184,8 @@ export function useProjectTypeLockEdit(options: {
   });
 
   const hasEditPermissions = computed(() => {
-    return (projectType.value.scope === ProjectTypeScope.GLOBAL && auth.permissions.designer) ||
-             (projectType.value.scope === ProjectTypeScope.PRIVATE && auth.permissions.private_designs) ||
+    return (projectType.value.scope === ProjectTypeScope.GLOBAL && auth.permissions.value.designer) ||
+             (projectType.value.scope === ProjectTypeScope.PRIVATE && auth.permissions.value.private_designs) ||
              (projectType.value.scope === ProjectTypeScope.PROJECT && projectType.value.source === SourceEnum.CUSTOMIZED);
   });
   const errorMessage = computed(() => {

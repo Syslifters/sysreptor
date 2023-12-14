@@ -4,7 +4,7 @@
     <template #actions>
       <btn-create 
         to="/users/new/" 
-        :disabled="!auth.permissions.user_manager"
+        :disabled="!auth.permissions.value.user_manager"
       />
     </template>
     <template #item="{item: user}: {item: User}">

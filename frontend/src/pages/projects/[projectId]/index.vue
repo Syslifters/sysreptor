@@ -7,12 +7,12 @@
           <btn-readonly 
             :value="project.readonly" 
             :set-readonly="setReadonly" 
-            :disabled="!auth.permissions.update_project_settings"
+            :disabled="!auth.permissions.value.update_project_settings"
             class="ml-1 mr-1" 
           />
           <s-btn-secondary
             v-if="project.readonly"
-            :disabled="!auth.permissions.archive_projects"
+            :disabled="!auth.permissions.value.archive_projects"
             :to="`/projects/${project.id}/archive/`"
             class="mr-1"
             prepend-icon="mdi-folder-lock-outline"
@@ -25,7 +25,7 @@
           <btn-copy
             :copy="performCopy"
             confirm-text="The whole project will be copied including all members, sections, findings and images."
-            :disabled="!auth.permissions.create_projects"
+            :disabled="!auth.permissions.value.create_projects"
           />
           <btn-export
             :export-url="`/api/v1/pentestprojects/${project.id}/export/`"
@@ -159,12 +159,12 @@ const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
   hasEditPermissions: computed(() => {
     if (project.value?.readonly) {
       return false;
-    } else if (!auth.permissions.update_project_settings) {
+    } else if (!auth.permissions.value.update_project_settings) {
       return false;
     }
     return true;
   }),
-  canDelete: computed(() => auth.permissions.delete_projects),
+  canDelete: computed(() => auth.permissions.value.delete_projects),
   errorMessage: computed(() => {
     if (project.value?.readonly) {
       return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'

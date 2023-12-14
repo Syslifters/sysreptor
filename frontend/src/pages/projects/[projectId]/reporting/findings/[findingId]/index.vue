@@ -7,7 +7,7 @@
             :to="{path: '/templates/fromfinding/', query: {project: project.id, finding: finding.id}}"
             prepend-icon="mdi-view-compact"
             title="Save as template"
-            :disabled="!auth.permissions.template_editor"
+            :disabled="!auth.permissions.value.template_editor"
           />
         </template>
 

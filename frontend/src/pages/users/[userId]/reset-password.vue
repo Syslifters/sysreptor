@@ -35,7 +35,7 @@ const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/
 const password = ref(null);
 const serverErrors = ref<any|null>(null);
 
-const canEdit = computed(() => auth.permissions.user_manager && !user.value!.is_system_user);
+const canEdit = computed(() => auth.permissions.value.user_manager && !user.value!.is_system_user);
 
 const form = ref<VForm>();
 async function changePassword() {

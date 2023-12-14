@@ -48,13 +48,13 @@
         <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" :active="route.path.startsWith('/designs')" />
         <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" :active="route.path.startsWith('/notes')" />
         
-        <template v-if="auth.permissions.superuser || auth.permissions.user_manager || auth.permissions.view_license">
+        <template v-if="auth.permissions.value.superuser || auth.permissions.value.user_manager || auth.permissions.value.view_license">
           <v-list-item class="mt-6 pa-0" min-height="0">
             <v-list-subheader title="Administration" />
             <template #append>
               <template v-if="apiSettings.isProfessionalLicense">
                 <s-btn-icon
-                  v-if="auth.permissions.admin"
+                  v-if="auth.permissions.value.admin"
                   :to="{path: '/users/self/admin/disable/', query: { next: route.fullPath }}"
                   density="comfortable"
                 >
@@ -79,7 +79,7 @@
             title="Users" 
             prepend-icon="mdi-account-multiple" 
             :active="route.path.startsWith('/users') && !route.path.startsWith('/users/self')"
-            :disabled="!auth.permissions.user_manager" 
+            :disabled="!auth.permissions.value.user_manager" 
           />
           <license-info-menu-item />
         </template>

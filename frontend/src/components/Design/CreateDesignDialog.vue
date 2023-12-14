@@ -57,9 +57,9 @@ const projectTypeStore = useProjectTypeStore();
 
 const canCreate = computed(() => {
   if (props.projectTypeScope === ProjectTypeScope.GLOBAL) {
-    return auth.permissions.designer;
+    return auth.permissions.value.designer;
   } else {
-    return auth.permissions.private_designs;
+    return auth.permissions.value.private_designs;
   }
 });
 

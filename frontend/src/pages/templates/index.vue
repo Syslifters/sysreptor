@@ -29,12 +29,12 @@
       <template #actions>
         <btn-create 
           to="/templates/new/" 
-          :disabled="!auth.permissions.template_editor"
+          :disabled="!auth.permissions.value.template_editor"
         />
         <btn-import 
           ref="importBtnRef"
           :import="performImport"
-          :disabled="!auth.permissions.template_editor"
+          :disabled="!auth.permissions.value.template_editor"
         />
       </template>
       <template #item="{item}">

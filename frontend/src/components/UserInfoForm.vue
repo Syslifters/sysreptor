@@ -188,9 +188,9 @@ const user = computed(() => props.modelValue);
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
-const canEdit = computed(() => (auth.permissions.user_manager && !user.value.is_system_user) || user.value.id === auth.user.value!.id);
-const canEditGeneralPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.permissions.user_manager && apiSettings.settings!.features.permissions);
-const canEditSuperuserPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.permissions.user_manager && auth.permissions.admin);
+const canEdit = computed(() => (auth.permissions.value.user_manager && !user.value.is_system_user) || user.value.id === auth.user.value!.id);
+const canEditGeneralPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.permissions.value.user_manager && apiSettings.settings!.features.permissions);
+const canEditSuperuserPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.permissions.value.user_manager && auth.permissions.value.admin);
 
 const rules = {
   required: [(v: any) => !!v || 'This field is required!'],

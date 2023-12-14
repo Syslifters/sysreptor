@@ -21,7 +21,7 @@
             <btn-export
               :export-url="`/api/v1/findingtemplates/${template.id}/export/`"
               :name="`template-` + mainTranslation!.data.title"
-              :disabled="!auth.permissions.template_editor"
+              :disabled="!auth.permissions.value.template_editor"
             />
           </template>
         </template-editor>
@@ -69,7 +69,7 @@ const { toolbarAttrs, fetchLoaderAttrs, readonly } = useLockEdit({
   fetchState,
   baseUrl,
   toolbarRef: computed(() => (vm?.refs?.templateEditor as any)?.toolbarRef),
-  hasEditPermissions: computed(() => auth.permissions.template_editor),
+  hasEditPermissions: computed(() => auth.permissions.value.template_editor),
   performSave: async (data) => {
     const res = await templateStore.update(data!);
     for (const tr of template.value!.translations) {
