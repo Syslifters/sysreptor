@@ -72,14 +72,15 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
 
     async def spellcheck(self):
         data = self.validated_data
-        return await self.languagetool_request('/v2/check', {
+        return await self.languagetool_request('/v2/check', settings.SPELLCHECK_LANGUAGETOOL_CONFIG | {
             'language': data['language'],
             'data': json.dumps(data['data'], ensure_ascii=False),
+            'level': 'picky' if settings.SPELLCHECK_MODE_PICKY else 'default',
             **({
                 'preferredVariants': ','.join(self.spellcheck_languages),
             } if data['language'] == 'auto' else {}),
         })
-        
+
 
 def validate_singe_word(val):
     if ' ' in val:
@@ -127,4 +128,3 @@ class BackupSerializer(serializers.Serializer):
         except ValueError:
             raise serializers.ValidationError('Invalid base64 encoding')
 
-        

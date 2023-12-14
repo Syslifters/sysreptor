@@ -507,6 +507,8 @@ MAX_LOCK_TIME = timedelta(seconds=90)
 
 SPELLCHECK_URL = config('SPELLCHECK_URL', default=None)
 SPELLCHECK_DICTIONARY_PER_USER = config('SPELLCHECK_DICTIONARY_PER_USER', cast=bool, default=False)
+SPELLCHECK_MODE_PICKY = config('SPELLCHECK_MODE_PICKY', cast=bool, default=False)
+SPELLCHECK_LANGUAGETOOL_CONFIG = config('SPELLCHECK_LANGUAGETOOL_CONFIG', cast=json.loads, default='{"disabledRules": "TODO,TO_DO_HYPHEN"}')
 
 BACKUP_KEY = config('BACKUP_KEY', default=None)
 

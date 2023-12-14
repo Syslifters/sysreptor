@@ -75,6 +75,7 @@
 
 <script setup lang="ts">
 const route = useRoute();
+const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 
 const baseUrl = `/api/v1/pentestprojects/${route.params.projectId}/history/${route.params.historyDate}/notes/${route.params.noteId}/`;
@@ -82,6 +83,7 @@ const { data: note, project, readonly, toolbarAttrs, fetchLoaderAttrs, inputFiel
   baseUrl,
   fetchProjectType: false,
   historyDate: route.params.historyDate as string,
+  markdownEditorMode: computed({ get: () => localSettings.projectNoteMarkdownEditorMode, set: (val) => { localSettings.projectNoteMarkdownEditorMode = val } }),
 });
 const historyVisible = ref(false);
 const hasChildNotes = computed(() => false);

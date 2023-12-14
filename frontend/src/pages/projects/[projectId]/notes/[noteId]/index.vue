@@ -79,6 +79,7 @@
 import urlJoin from "url-join";
 
 const route = useRoute();
+const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 
 const baseUrl = `/api/v1/pentestprojects/${route.params.projectId}/notes/${route.params.noteId}/`;
@@ -86,6 +87,8 @@ const { data: note, project, readonly, toolbarAttrs, fetchLoaderAttrs, inputFiel
   baseUrl,
   fetchProjectType: false,
   canUploadFiles: true,
+  spellcheckEnabled: computed({ get: () => localSettings.projectNoteSpellcheckEnabled, set: (val) => { localSettings.projectNoteSpellcheckEnabled = val } }),
+  markdownEditorMode: computed({ get: () => localSettings.projectNoteMarkdownEditorMode, set: (val) => { localSettings.projectNoteMarkdownEditorMode = val } }),
   performSave: projectStore.partialUpdateNote,
   performDelete: async (project, note) => {
     await projectStore.deleteNote(project, note);

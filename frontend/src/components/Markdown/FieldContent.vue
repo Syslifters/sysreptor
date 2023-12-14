@@ -4,17 +4,17 @@
     <v-divider />
 
     <v-row no-gutters class="w-100">
-      <v-col :cols="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-show="localSettings.markdownEditorMode !== MarkdownEditorMode.PREVIEW">
+      <v-col :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-show="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW">
         <div
           ref="editorRef"
           class="mde-editor"
-          :class="{'mde-editor-side': localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW}"
+          :class="{'mde-editor-side': props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW}"
         />
       </v-col>
-      <v-col v-if="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW">
+      <v-col v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW">
         <v-divider vertical class="h-100" />
       </v-col>
-      <v-col :cols="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-if="localSettings.markdownEditorMode !== MarkdownEditorMode.MARKDOWN">
+      <v-col :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN">
         <markdown-preview v-bind="markdownPreviewAttrs" class="preview" />
       </v-col>
     </v-row>
@@ -25,8 +25,6 @@
 </template>
 
 <script setup lang="ts">
-const localSettings = useLocalSettings();
-
 const props = defineProps(makeMarkdownProps({
   files: true,
   spellcheckSupportedDefault: true,
@@ -34,7 +32,7 @@ const props = defineProps(makeMarkdownProps({
 const emit = defineEmits(makeMarkdownEmits());
 
 const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPreviewAttrs, focus, blur } = useMarkdownEditor({
-  props: computed(() => ({ ...props, spellcheckSupported: true })),
+  props: computed(() => ({ ...props, spellcheckSupported: true } as any)),
   emit,
   extensions: markdownEditorDefaultExtensions(),
 });

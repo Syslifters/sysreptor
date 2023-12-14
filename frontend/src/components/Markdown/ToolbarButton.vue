@@ -11,7 +11,7 @@
     </v-badge>
     <v-icon v-else size="small" :icon="props.icon" />
 
-    <s-tooltip v-if="props.title" :text="props.title" />
+    <s-tooltip v-if="props.title" activator="parent" location="top" :text="props.title" />
   </s-btn-icon>
 </template>
 

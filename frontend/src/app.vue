@@ -8,13 +8,13 @@
 
 <script setup lang="ts">
 const route = useRoute();
-useHeadExtended({
-  titleTemplate: title => rootTitleTemplate(title, route),
-});
-
 const auth = useAuth();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
+
+useHeadExtended({
+  titleTemplate: title => rootTitleTemplate(title, route),
+});
 
 const colorSchemeQueryList = window.matchMedia('(prefers-color-scheme: dark)');
 const systemThemeIsDark = ref<boolean>(colorSchemeQueryList.matches);
@@ -40,4 +40,12 @@ const theme = computed(() => {
     return baseTheme;
   }
 });
+
+const router = useRouter();
+watch(router.currentRoute, () => {
+  // Reset browser-based spellcheck on navigation
+  if (!apiSettings.settings?.features.spellcheck) {
+    localSettings.setAllSpellcheckSettings(false);
+  }
+})
 </script>

@@ -53,7 +53,8 @@ export const useApiSettings = defineStore('apisettings', {
       return this.settings?.features?.spellcheck || false;
     },
     spellcheckLanguageToolSupportedForLanguage() {
-      return (lang: string|null) => this.spellcheckLanguageToolSupported && this.settings!.languages.find(l => l.code === lang)?.spellcheck;
+      return (lang?: string|null) => this.spellcheckLanguageToolSupported && 
+        (!!this.settings!.languages.find(l => l.code === lang)?.spellcheck || lang === 'auto');
     },
   }
 })

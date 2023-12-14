@@ -17,16 +17,16 @@
     <span class="separator" />
     <markdown-toolbar-button
       v-if="apiSettings.isProfessionalLicense"
-      @click="spellcheckEnabled = !spellcheckEnabled"
-      title="Spellcheck"
+      @click="toggleSpellcheck"
+      title="Spell check"
       icon="mdi-spellcheck"
       :disabled="props.disabled || !spellcheckSupported"
       :active="spellcheckEnabled"
     />
     <markdown-toolbar-button
       v-else
-      @click="toggleBrowserSpellcheckCommunity"
-      :title="'Spellcheck (browser-based)'"
+      @click="toggleSpellcheck"
+      :title="'Spell check (basic)'"
       icon="mdi-spellcheck"
       :dot="!spellcheckSupported ? undefined : (spellcheckEnabled ? 'warning' : 'error')"
       :disabled="props.disabled || !spellcheckSupported"
@@ -37,9 +37,9 @@
     <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
     <span class="separator" />
     <v-spacer />
-    <markdown-toolbar-button v-if="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN" @click="setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN_AND_PREVIEW)" title="Markdown" icon="mdi-language-markdown" :active="true" />
-    <markdown-toolbar-button v-else-if="localSettings.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" @click="setMarkdownEditorMode(MarkdownEditorMode.PREVIEW)" title="Side-by-Side View" icon="mdi-view-split-vertical" :active="true" />
-    <markdown-toolbar-button v-else-if="localSettings.markdownEditorMode === MarkdownEditorMode.PREVIEW" @click="setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN)" title="Preview" icon="mdi-image-filter-hdr" :active="true" />
+    <markdown-toolbar-button v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN" @click="setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN_AND_PREVIEW)" title="Markdown" icon="mdi-language-markdown" :active="true" />
+    <markdown-toolbar-button v-else-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" @click="setMarkdownEditorMode(MarkdownEditorMode.PREVIEW)" title="Side-by-Side View" icon="mdi-view-split-vertical" :active="true" />
+    <markdown-toolbar-button v-else-if="props.markdownEditorMode === MarkdownEditorMode.PREVIEW" @click="setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN)" title="Preview" icon="mdi-image-filter-hdr" :active="true" />
   </v-toolbar>
 </template>
 
@@ -69,30 +69,33 @@ import { MarkdownEditorMode } from '@/utils/types';
 const props = defineProps<{
   editorView: EditorView;
   editorState: EditorState;
+  spellcheckEnabled?: boolean;
+  markdownEditorMode?: MarkdownEditorMode;
   disabled?: boolean;
   lang?: string;
   uploadFiles?: (files: FileList) => Promise<void>;
   fileUploadInProgress?: boolean;
 }>();
+const emit = defineEmits<{
+  'update:spellcheckEnabled': [value: boolean];
+  'update:markdownEditorMode': [value: MarkdownEditorMode];
+}>();
 
-const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 
 const spellcheckSupported = computed(() => {
   if (apiSettings.isProfessionalLicense) {
-    return apiSettings.spellcheckLanguageToolSupported;
+    return apiSettings.spellcheckLanguageToolSupportedForLanguage(props.lang);
   } else {
+    // Browser-based spellcheck
     return Boolean(props.lang);
   }
 });
-const spellcheckEnabled = computed({
-  get: () => localSettings.spellcheckEnabled && spellcheckSupported.value,
-  set: (val) => { localSettings.spellcheckEnabled = val },
-});
-function toggleBrowserSpellcheckCommunity() {
-  spellcheckEnabled.value = !spellcheckEnabled.value;
-  if (spellcheckEnabled.value) {
-    warningToast('Enabled browser-based spellcheck. Upgrade to Professional for built-in spellchecking.');
+function toggleSpellcheck() {
+  const newVal = !props.spellcheckEnabled;
+  emit('update:spellcheckEnabled', newVal);
+  if (newVal && !apiSettings.isProfessionalLicense) {
+    warningToast('Basic spell check enabled. Upgrade to SysReptor Professional for advanced options.');
   }
 }
 
@@ -135,7 +138,7 @@ async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
   const { y: prevTop } = toolbarRef.value!.$el.getBoundingClientRect();
 
   // Update editor mode => changes view and potentially causes layout jump
-  localSettings.markdownEditorMode = mode;
+  emit('update:markdownEditorMode', mode);
   await nextTick();
 
   // Restore position, such the toolbar is at the same position

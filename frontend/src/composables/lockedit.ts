@@ -6,7 +6,8 @@ import { formatISO9075 } from "date-fns";
 import {
   EditMode,
   ProjectTypeScope,
-  UploadedFileType
+  UploadedFileType,
+  MarkdownEditorMode,
 } from "~/utils/types";
 import type {
   PentestProject,
@@ -174,7 +175,6 @@ export function useProjectTypeLockEdit(options: {
   performDelete?: (data: ProjectType) => Promise<void>;
 }) {
   const auth = useAuth();
-  const apiSettings = useApiSettings();
   const projectType = computed(() => options.projectType.value);
 
   const baseUrl = computed(() => `/api/v1/projecttypes/${projectType.value.id}/`);
@@ -242,12 +242,15 @@ export function useProjectLockEdit<T>(options: {
   fetchProjectType: boolean;
   historyDate?: string;
   canUploadFiles?: boolean;
+  spellcheckEnabled?: Ref<boolean>;
+  markdownEditorMode?: Ref<MarkdownEditorMode>;
   performSave?: (project: PentestProject, data: T) => Promise<any>;
   performDelete?: (project: PentestProject, data: T) => Promise<any>;
   updateInStore?: (project: PentestProject, data: T) => any;
   autoSaveOnUpdateData? (options: { oldValue: T, newValue: T }): boolean;
 }) {
   const route = useRoute();
+  const localSettings = useLocalSettings();
   const projectStore = useProjectStore();
   const projectTypeStore = useProjectTypeStore();
 
@@ -306,7 +309,7 @@ export function useProjectLockEdit<T>(options: {
     const uploadUrl = urlJoin(projectUrl.value, options.canUploadFiles ? '/upload/' : '/images/');
     const res = await uploadFileHelper<UploadedFileInfo>(uploadUrl, file);
     if (res.resource_type === UploadedFileType.IMAGE) {
-      return `![](/images/name/${res.name})`;
+      return `![](/images/name/${res.name}){width="100%"}`;
     } else {
       return `[](/files/name/${res.name})`;
     }
@@ -329,9 +332,21 @@ export function useProjectLockEdit<T>(options: {
     return null;
   }
 
+  const spellcheckEnabled = options.spellcheckEnabled || computed({ 
+    get: () => localSettings.reportingSpellcheckEnabled && !options.historyDate,
+    set: (val: boolean) => { localSettings.reportingSpellcheckEnabled = val; }, 
+  });
+  const markdownEditorMode = options.markdownEditorMode || computed({
+    get: () => localSettings.reportingMarkdownEditorMode,
+    set: (val: MarkdownEditorMode) => { localSettings.reportingMarkdownEditorMode = val; },
+  })
   const inputFieldAttrs = computed(() => ({
     lang: project.value?.language || 'en-US',
     selectableUsers: [...(project.value?.members || []), ...(project.value?.imported_members || [])],
+    spellcheckEnabled: spellcheckEnabled.value,
+    'onUpdate:spellcheckEnabled': (val: boolean) => { spellcheckEnabled.value = val; },
+    markdownEditorMode: markdownEditorMode.value,
+    'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { markdownEditorMode.value = val; },
     uploadFile,
     rewriteFileUrl,
     rewriteReferenceLink,
