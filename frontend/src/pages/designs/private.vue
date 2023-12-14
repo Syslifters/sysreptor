@@ -3,10 +3,10 @@
     <list-view url="/api/v1/projecttypes/?scope=private&ordering=name">
       <template #title>Designs</template>
       <template #actions>
-        <design-create-design-dialog />
-        <design-import-design-dialog ref="importBtnRef" />
+        <design-create-design-dialog :project-type-scope="ProjectTypeScope.PRIVATE" />
+        <design-import-design-dialog ref="importBtnRef" :project-type-scope="ProjectTypeScope.PRIVATE" />
       </template>
-      <template #tabs>
+      <template #tabs v-if="apiSettings.settings!.features.private_designs">
         <v-tab :to="{ path: '/designs/', query: route.query }" exact prepend-icon="mdi-earth" text="Global Designs" />
         <v-tab :to="{ path: '/designs/private/', query: route.query }" prepend-icon="mdi-account" text="Private Designs" />
       </template>
@@ -27,6 +27,7 @@ useHeadExtended({
 });
 
 const route = useRoute();
+const apiSettings = useApiSettings();
 
 const importBtnRef = ref();
 </script>
