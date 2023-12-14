@@ -7,7 +7,7 @@
           <v-col cols="12" md="10">
             <v-text-field
               :model-value="items.search.value"
-              @update:model-value="listViewRef?.updateSearchQuery"
+              @update:model-value="listViewRef?.updateSearch"
               label="Search"
               spellcheck="false"
               hide-details="auto"
