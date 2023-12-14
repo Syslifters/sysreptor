@@ -1,5 +1,5 @@
 <template>
-  <full-height-page>
+  <full-height-page scrollbar>
     <v-container class="pt-0">
       <v-list v-if="items" class="pt-0 overflow-visible">
         <div class="list-header pt-2 mb-4">
@@ -32,7 +32,7 @@
         <page-loader :items="items" class="mt-4" />
         <v-list-item
           v-if="items.data.value.length === 0 && !items.hasNextPage.value"
-          text="No data found"
+          title="No data found"
         />
       </v-list>
     </v-container>

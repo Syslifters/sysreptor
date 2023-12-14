@@ -1,13 +1,13 @@
 <template>
   <file-drop-area @drop="importBtnRef?.performImport($event)" class="h-100">
     <list-view ref="listViewRef" url="/api/v1/findingtemplates/">
-      <template #title>Finding Templates</template>
+      <template #title>Templates</template>
       <template #searchbar="{items}">
         <v-row dense class="mb-2 w-100">
           <v-col cols="12" md="10">
             <v-text-field
               :model-value="items.search.value"
-              @update:model-value="listViewRef?.updateSearchQuery"
+              @update:model-value="listViewRef?.updateSearch"
               label="Search"
               spellcheck="false"
               hide-details="auto"

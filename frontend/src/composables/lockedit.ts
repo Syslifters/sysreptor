@@ -72,7 +72,7 @@ export function useLockEdit<T>(options: LockEditOptions<T>) {
     }
   });
   onBeforeRouteUpdate(async (to, from, next) => {
-    if (toolbarRef.value) {
+    if (toolbarRef.value && to.path !== from.path) {
       await toolbarRef.value.beforeLeave(to, from, (res = true) => {
         navigationInProgress.value = res;
       });

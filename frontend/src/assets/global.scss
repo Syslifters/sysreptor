@@ -17,10 +17,14 @@ body {
 }
 
 
-.toast-warning {
+.Vue-Toastification__toast--warning {
   // Vuetify warning color
-  background-color: #fb8c00 !important;
+  background-color: #FFC107 !important;
   color: black !important;
+
+  .Vue-Toastification__close-button {
+    color: black !important;
+  }
 }
 
 

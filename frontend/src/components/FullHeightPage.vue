@@ -4,8 +4,14 @@
       <slot name="header" />
     </div>
 
-    <div class="flex-grow-height overflow-y-auto">
+    <div class="flex-grow-height" :class="{'overflow-y-auto': !props.scrollbar, 'overflow-y-scroll': props.scrollbar}">
       <slot name="default" />
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+const props = defineProps<{
+  scrollbar?: boolean
+}>();
+</script>

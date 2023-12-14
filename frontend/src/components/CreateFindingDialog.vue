@@ -22,7 +22,7 @@
             <s-combobox
               v-model="searchInput"
               @update:search="(v: string|null) => templates.search.value = v || ''"
-              label="Finding Templates"
+              label="Template (optional)"
               :items="templates.data.value"
               item-value="id"
               :item-title="(t: FindingTemplate|string|null) => typeof t === 'string' ? t : ''"

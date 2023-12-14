@@ -110,6 +110,9 @@ onUpdated(postProcessRenderedHtml);
     background-color: rgba(var(--v-theme-on-surface), 0.05);
     border-left: 5px solid rgba(var(--v-theme-on-surface), 0.3);
   }
+  table, th, td {
+    border-color: rgb(var(--v-border-color));
+  }
 
   .file-download-preview {
     display: inline-flex;
