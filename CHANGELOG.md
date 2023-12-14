@@ -6,6 +6,7 @@
 * Disable buttons and menu entries when user does not have permissions
 * Fix save error for user fields
 * Ensure custom fonts are loaded before rendering charts and diagrams
+* Remove status emoji of notes
 
 
 ## v2023.145 - 2023-12-11

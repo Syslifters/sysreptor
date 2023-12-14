@@ -29,12 +29,6 @@
                 v-bind="inputFieldAttrs"
                 class="note-title"
               />
-              
-              <s-emoji-picker-field
-                v-model="note.status_emoji"
-                :disabled="readonly"
-                density="comfortable"
-              />
             </div>
           </template>
           <template #default>

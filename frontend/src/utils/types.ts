@@ -281,7 +281,6 @@ export type UserNote = BaseModel & Lockable & {
   text: string;
   checked: boolean|null;
   icon_emoji: string;
-  status_emoji: string;
 }
 
 export type ProjectNote = UserNote & {

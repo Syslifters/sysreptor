@@ -29,12 +29,6 @@
                 v-bind="inputFieldAttrs"
                 class="note-title"
               />
-              
-              <s-emoji-picker-field
-                v-model="note.status_emoji"
-                :disabled="readonly"
-                density="comfortable"
-              />
             </div>
           </template>
           <template #default>
@@ -100,7 +94,6 @@ const { data: note, project, readonly, toolbarAttrs, fetchLoaderAttrs, inputFiel
   updateInStore: projectStore.setNote,
   autoSaveOnUpdateData({ oldValue, newValue }): boolean {
     return oldValue.checked !== newValue.checked ||
-        oldValue.status_emoji !== newValue.status_emoji ||
         oldValue.icon_emoji !== newValue.icon_emoji ||
         oldValue.assignee?.id !== newValue.assignee?.id;
   }

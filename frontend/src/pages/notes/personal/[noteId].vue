@@ -29,12 +29,6 @@
                 v-bind="inputFieldAttrs"
                 class="note-title"
               />
-              
-              <s-emoji-picker-field
-                v-model="note.status_emoji"
-                :disabled="readonly"
-                density="comfortable"
-              />
             </div>
           </template>
           <template #context-menu>
@@ -81,7 +75,6 @@ const { readonly, toolbarAttrs, fetchLoaderAttrs } = useLockEdit({
   updateInStore: n => userNotesStore.setNote(n!),
   autoSaveOnUpdateData({ oldValue, newValue }): boolean {
     return oldValue!.checked !== newValue!.checked ||
-        oldValue!.status_emoji !== newValue!.status_emoji ||
         oldValue!.icon_emoji !== newValue!.icon_emoji;
   }
 });
