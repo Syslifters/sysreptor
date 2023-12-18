@@ -7,6 +7,7 @@
       <v-col :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-show="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW">
         <div
           ref="editorRef"
+          v-intersect="onIntersect"
           class="mde-editor"
           :class="{'mde-editor-side': props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW}"
         />
@@ -31,7 +32,7 @@ const props = defineProps(makeMarkdownProps({
 }));
 const emit = defineEmits(makeMarkdownEmits());
 
-const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPreviewAttrs, focus, blur } = useMarkdownEditor({
+const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
   props: computed(() => ({ ...props, spellcheckSupported: true } as any)),
   emit,
   extensions: markdownEditorDefaultExtensions(),
@@ -47,7 +48,7 @@ defineExpose({
 $mde-min-height: 15em;
 
 .mde-editor {
-  display: contents;
+  height: 100%;
 
   &-side.cm-editor {
     width: 50%;
@@ -56,6 +57,7 @@ $mde-min-height: 15em;
 
 :deep(.mde-editor) {
   /* set min-height, grow when lines overflow */
+  .cm-editor { height: 100%; }
   .cm-content, .cm-gutter { min-height: $mde-min-height; }
   .cm-scroller { overflow: auto; }
   .cm-wrap { border: 1px solid silver }

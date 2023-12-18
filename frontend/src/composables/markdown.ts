@@ -84,12 +84,14 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 }) {
   const apiSettings = useApiSettings();
   const theme = useTheme();
+  const editorWasInView = ref(false);
 
   const valueNotNull = computed(() => props.value.modelValue || '');
   const spellcheckLanguageToolEnabled = computed(() =>
     !props.value.disabled &&
     !!props.value.spellcheckSupported &&
     !!props.value.spellcheckEnabled &&
+    editorWasInView.value &&
     apiSettings.spellcheckLanguageToolSupportedForLanguage(props.value.lang));
   const spellcheckBrowserEnabled = computed(() =>
     !props.value.disabled &&
@@ -105,6 +107,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
       };
     }
 
+    await nextTick();
     return await $fetch('/api/v1/utils/spellcheck/', {
       method: 'POST',
       body: {
@@ -230,6 +233,11 @@ export function useMarkdownEditor({ props, emit, extensions }: {
       editorView.value.destroy();
     }
   });
+  function onIntersect(isIntersecting: boolean) {
+    if (isIntersecting) {
+      editorWasInView.value = true;
+    }
+  }
 
   watch(valueNotNull, () => {
     if (editorView.value && valueNotNull.value !== editorView.value.state.doc.toString()) {
@@ -301,6 +309,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     markdownToolbarAttrs,
     markdownStatusbarAttrs,
     markdownPreviewAttrs,
+    onIntersect,
     focus,
     blur,
   }
