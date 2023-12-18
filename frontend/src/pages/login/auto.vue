@@ -25,7 +25,7 @@
             />
             <s-btn-secondary
               to="/login/?logout=true"
-              text="Back"
+              text="Use another method"
             />
           </v-card-actions>
         </s-card>

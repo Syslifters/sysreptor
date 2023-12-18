@@ -12,7 +12,7 @@
             <s-btn-secondary
               v-if="apiSettings.settings!.auth_providers.length > 1"
               @click="step = Step.LIST"
-              text="Back"
+              text="Use another method"
             />
           </template>
         </login-form>

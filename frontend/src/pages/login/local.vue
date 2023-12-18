@@ -21,7 +21,7 @@
             <s-btn-secondary
               v-if="apiSettings.isSsoEnabled"
               to="/login/?logout=true"
-              text="Back"
+              text="Use another method"
             />
           </template>
         </login-form>

@@ -5,7 +5,7 @@
       <v-app-bar-nav-icon v-if="auth.loggedIn.value" @click="navigationDrawerVisible = !navigationDrawerVisible" :ripple="false">
         <svg-logo />
       </v-app-bar-nav-icon>
-      <div v-else class="menu-drawer-header">
+      <div v-else class="menu-drawer-header border-0">
         <svg-logo-text />
         <span class="license-text">{{ licenseText }}</span>
       </div>
@@ -249,7 +249,7 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
   display: flex;
   flex-direction: column-reverse;
   font-weight: 900;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   line-height: 1;
   color: rgb(var(--v-theme-logo));
 }
