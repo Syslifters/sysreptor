@@ -15,30 +15,94 @@ Other options:
 * `height`: Height of the chart in centimeter
 
 ## Example: Bar Chart of vulnerability risks
-The following charts shows the number of vulnerabilities for each risk level (none, low, medium, high, critical) in a bar chart.
+The following chart shows the number of vulnerabilities for each risk level (none, low, medium, high, critical) in a bar chart.
 Each risk level bar has a different color.
+
+![](/images/chart_finding_distribution.png)
 
 ```html
 <figure>
   <chart :width="15" :height="10" :config="{
     type: 'bar', 
     data: {
-       labels: ['Critical', 'High', 'Medium', 'Low', 'None'],
-       datasets: [{
-         data: [
-           finding_stats.count_critical,
-           finding_stats.count_high,
-           finding_stats.count_medium,
-           finding_stats.count_low,
-           finding_stats.count_info
-         ],
-         backgroundColor: ['#e21212', '#eb6020', '#cf8e2b', '#4d82a8', '#2d5f2e'],
-       }]
+      labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+      datasets: [{
+        data: [
+          finding_stats.count_critical,
+          finding_stats.count_high,
+          finding_stats.count_medium,
+          finding_stats.count_low,
+          finding_stats.count_info
+          ],
+          backgroundColor: [
+            cssvar('--color-risk-critical'), 
+            cssvar('--color-risk-high'), 
+            cssvar('--color-risk-medium'), 
+            cssvar('--color-risk-low'), 
+            cssvar('--color-risk-info')
+          ],
+      }]
     },
-    options: {scales: {y: {beginAtZero: true, ticks: {precision: 0}}}, plugins: {legend: {display: false}}}
+    options: {
+      scales: {y: {beginAtZero: true, ticks: {precision: 0}}}, 
+      plugins: {legend: {display: false}},
+    }
   }" />
-  <figcaption>Distribution of vulnerabilities</figcaption>
+  <figcaption>Distribution of identified vulnerabilities</figcaption>
 </figure>
+```
+
+
+## Example: Doughnut Chart of CVSS score
+The following chart shows the CVSS score criticality as a doughnut chart with the score inside as number.
+The higher the score, the more of the chart area is filled.
+
+![](/images/chart_cvss.png)
+
+```html
+<div class="cvss-chart">
+    <span class="cvss-chart-label"><span>{{ finding.cvss.score }}</span></span>
+    <chart :width="5" :height="5" :config="{
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [
+                    finding.cvss.score, 
+                    10.0 - finding.cvss.score
+                ],
+                backgroundColor: [
+                    cssvar('--color-risk-' + finding.cvss.level), 
+                    cssvar('--color-risk-' + finding.cvss.level) + '50',
+                ],
+            }],
+        },
+        options: {
+            borderWidth: 0,
+            cutout: '70%',
+        }
+    }" />
+</div>
+```
+
+```css
+.cvss-chart {
+  position: relative;
+  width: 3cm;
+  height: 3cm;
+}
+.cvss-chart img {
+  width: 100% !important;
+  height: 100% !important;
+}
+.cvss-chart-label {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 50%;
+  transform: translateY(-50%);
+  line-height: 1;
+  font-size: 25pt;
+}
 ```
 
 
