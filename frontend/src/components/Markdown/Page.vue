@@ -12,6 +12,7 @@
             ref="editorRef"
             class="mde-editor h-100 overflow-y-auto"
             :class="{'mde-editor-side': props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW}"
+            v-intersect.once="onIntersect"
           />
         </v-col>
         <v-col v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" class="h-100">
@@ -37,6 +38,12 @@ const { editorView, markdownToolbarAttrs, markdownPreviewAttrs, focus, blur } = 
   emit,
   extensions: markdownEditorPageExtensions(),
 });
+
+function onIntersect() {
+  if (editorView.value) {
+    editorView.value.scrollDOM.scrollTop = 0;
+  }
+}
 
 defineExpose({
   focus,
