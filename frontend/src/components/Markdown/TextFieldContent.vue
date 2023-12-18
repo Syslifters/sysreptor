@@ -1,6 +1,10 @@
 <template>
   <div class="mde-text-field-wrapper">
-    <div ref="editorRef" class="mde-text-field" />
+    <div 
+      ref="editorRef" 
+      v-intersect="onIntersect"
+      class="mde-text-field" 
+    />
   </div>
 </template>
 
@@ -17,7 +21,7 @@ const props = defineProps(makeMarkdownProps({
 }));
 const emit = defineEmits(makeMarkdownEmits());
 
-const { focus, blur } = useMarkdownEditor({
+const { onIntersect, focus, blur } = useMarkdownEditor({
   props: computed(() => props),
   emit,
   extensions: markdownEditorTextFieldExtensions(),

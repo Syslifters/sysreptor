@@ -10,6 +10,7 @@
         <v-col :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-show="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW" class="h-100">
           <div
             ref="editorRef"
+            v-intersect="onIntersect"
             class="mde-editor h-100 overflow-y-auto"
             :class="{'mde-editor-side': props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW}"
           />
@@ -32,7 +33,7 @@ const props = defineProps(makeMarkdownProps({
 }));
 const emit = defineEmits(makeMarkdownEmits());
 
-const { editorView, markdownToolbarAttrs, markdownPreviewAttrs, focus, blur } = useMarkdownEditor({
+const { editorView, markdownToolbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
   props: computed(() => ({ ...props, spellcheckSupported: true } as any)),
   emit,
   extensions: markdownEditorPageExtensions(),
