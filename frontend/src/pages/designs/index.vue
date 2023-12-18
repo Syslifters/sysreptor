@@ -7,8 +7,8 @@
         <design-import-design-dialog ref="importBtnRef" :project-type-scope="ProjectTypeScope.GLOBAL" />
       </template>
       <template #tabs v-if="apiSettings.settings!.features.private_designs">
-        <v-tab :to="{ path: '/designs/', query: route.query }" exact prepend-icon="mdi-earth" text="Global Designs" />
-        <v-tab :to="{ path: '/designs/private/', query: route.query }" prepend-icon="mdi-account" text="Private Designs" />
+        <v-tab :to="{ path: '/designs/', query: route.query }" exact prepend-icon="mdi-earth" text="Global" />
+        <v-tab :to="{ path: '/designs/private/', query: route.query }" prepend-icon="mdi-account" text="Private" />
       </template>
       <template #item="{item}">
         <v-list-item :to="`/designs/${item.id}/pdfdesigner/`" :title="item.name" />

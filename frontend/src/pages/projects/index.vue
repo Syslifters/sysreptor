@@ -7,10 +7,10 @@
         <btn-import ref="importBtn" :import="performImport" :disabled="!auth.permissions.value.import_projects" />
       </template>
       <template #tabs>
-        <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active Projects" />
-        <v-tab :to="{path: '/projects/finished/', query: route.query}" prepend-icon="mdi-flag-checkered" text="Finished Projects" />
+        <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active" />
+        <v-tab :to="{path: '/projects/finished/', query: route.query}" prepend-icon="mdi-flag-checkered" text="Finished" />
         <v-tab :to="{path: '/projects/archived/', query: route.query}" :disabled="!apiSettings.settings!.features.archiving" prepend-icon="mdi-folder-lock-outline">
-          <pro-info>Archived Projects</pro-info>
+          <pro-info>Archived</pro-info>
         </v-tab>
       </template>
       <template #item="{item}">

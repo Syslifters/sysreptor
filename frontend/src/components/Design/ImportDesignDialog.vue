@@ -3,7 +3,6 @@
     ref="importBtnRef"
     :import="performImport" 
     :disabled="!canImport"
-    class="ml-1 mr-1" 
   />
 </template>
 

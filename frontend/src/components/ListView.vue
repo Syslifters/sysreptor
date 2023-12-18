@@ -88,7 +88,7 @@ defineExpose({
   display: inline-block;
   
   &:deep() > * {
-    margin-left: 0.4rem;
+    margin-left: 0.5rem;
   }
 }
 
