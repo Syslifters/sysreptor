@@ -11,9 +11,9 @@
           <div
             ref="editorRef"
             v-intersect="onIntersect"
+            v-intersect.once="initialScrollTop"
             class="mde-editor h-100 overflow-y-auto"
             :class="{'mde-editor-side': props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW}"
-            v-intersect.once="onIntersect"
           />
         </v-col>
         <v-col v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" class="h-100">
@@ -40,7 +40,7 @@ const { editorView, markdownToolbarAttrs, markdownPreviewAttrs, onIntersect, foc
   extensions: markdownEditorPageExtensions(),
 });
 
-function onIntersect() {
+function initialScrollTop() {
   if (editorView.value) {
     editorView.value.scrollDOM.scrollTop = 0;
   }
