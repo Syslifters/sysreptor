@@ -16,7 +16,7 @@
         <v-divider vertical class="h-100" />
       </v-col>
       <v-col :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN">
-        <markdown-preview v-bind="markdownPreviewAttrs" class="preview" />
+        <markdown-preview v-bind="markdownPreviewAttrs" class="mde-preview" />
       </v-col>
     </v-row>
     <v-divider />
@@ -67,13 +67,7 @@ $mde-min-height: 15em;
   @import "@/assets/mde-highlight.scss";
 }
 
-.preview {
-  height: 100%;
+.mde-preview {
   min-height: $mde-min-height;
-  padding: 0.5em;
-
-  &-side {
-    width: 50%;
-  }
 }
 </style>

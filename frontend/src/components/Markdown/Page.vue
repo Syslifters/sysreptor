@@ -20,7 +20,7 @@
           <v-divider vertical class="h-100" />
         </v-col>
         <v-col :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN" class="h-100">
-          <markdown-preview v-bind="markdownPreviewAttrs" class="preview h-100 overflow-y-scroll" />
+          <markdown-preview v-bind="markdownPreviewAttrs" class="h-100 overflow-y-scroll" />
         </v-col>
       </v-row>
     </template>
@@ -68,15 +68,6 @@ defineExpose({
 
   .cm-content {
     font-family: monospace;
-  }
-}
-
-.preview {
-  height: 100%;
-  padding: 0.5em;
-
-  &-side {
-    width: 50%;
   }
 }
 </style>
