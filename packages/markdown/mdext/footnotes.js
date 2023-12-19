@@ -259,6 +259,30 @@ export const remarkToRehypeHandlersFootnotes = {
   },
 };
 
+export const remarkToRehypeHandersFootnotesPreview = {
+  footnote(state, node) {
+    const footnoteId = String(state.footnoteOrder.length + 1);
+    node.identifier = footnoteId;
+    state.footnoteOrder.push(footnoteId);
+    state.footnoteById.set(footnoteId, node);
+
+    return state.applyData(node, {
+      type: 'element',
+      tagName: 'sup',
+      properties: {
+        dataFootnoteRef: true,
+      },
+      children: [{type: 'text', value: footnoteId}],
+    })
+  },
+  footnoteDefinition(state, node) {
+    return null;
+  },
+  footnoteReference(state, node) {
+    return null;
+  },
+};
+
 
 export function rehypeFootnoteSeparator() {
   // add a footnote call separator tag between consecutive <footnote> tags
@@ -279,14 +303,13 @@ export function rehypeFootnoteSeparator() {
 export function rehypeFootnoteSeparatorPreview() {
   return tree => visit(tree, 'element', (node, index, parent) => {
     // Remove link from footnote call
-    if (node.tagName !== 'sup' || node.children.length !== 1 || !node.children[0]?.properties?.dataFootnoteRef) {
+    if (node.tagName !== 'sup' || node.properties?.dataFootnoteRef === undefined) {
       return;
     }
-    node.children = node.children[0].children;
 
     // Add footnote call separator
     const nextSibling = parent.children[index + 1];
-    if (nextSibling?.tagName !== 'sup' || nextSibling.children.length !== 1 || !nextSibling.children[0]?.properties?.dataFootnoteRef) {
+    if (nextSibling?.tagName !== 'sup' || nextSibling.properties?.dataFootnoteRef === undefined) {
       return;
     }
     parent.children.splice(index + 1, 0, {

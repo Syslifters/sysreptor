@@ -10,7 +10,7 @@ import { merge } from 'lodash';
 import mermaid from 'mermaid';
 import 'highlight.js/styles/default.css';
 
-import { remarkFootnotes, remarkToRehypeHandlersFootnotes, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './mdext/footnotes.js';
+import { remarkFootnotes, remarkToRehypeHandlersFootnotes, remarkToRehypeHandersFootnotesPreview, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './mdext/footnotes.js';
 import { remarkStrikethrough, remarkTaskListItem } from './mdext/gfm.js';
 import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources, rehypeRewriteFileLinks, rehypeTemplates, rehypeRawFixSelfClosingTags } from './mdext/rehypePlugins.js';
 import { remarkAttrs, remarkToRehypeAttrs } from './mdext/attrs.js';
@@ -86,7 +86,7 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource =
         allowDangerousHtml: true, 
         footnoteLabelTagName: 'h4',
         handlers: {
-          ...(preview ? {} : remarkToRehypeHandlersFootnotes),
+          ...(preview ? remarkToRehypeHandersFootnotesPreview : remarkToRehypeHandlersFootnotes),
           ...remarkToRehypeHandlersFigure,
           ...remarkToRehypeHandlersTableCaptions,
           ...remarkToRehypeAttrs,

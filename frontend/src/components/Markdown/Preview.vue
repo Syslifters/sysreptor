@@ -91,14 +91,13 @@ onUpdated(postProcessRenderedHtml);
   @import "@/assets/rendering/base-text.scss";
 
   .footnotes {
-    border-top: 1px solid black;
+    border-top: 1px solid currentColor;
     margin-top: 2em;
+    padding-top: 0.3em;
 
     h4 {
       font-size: 1em;
-    }
-    .data-footnote-backref {
-      display: none;
+      margin-top: 0;
     }
   }
 
