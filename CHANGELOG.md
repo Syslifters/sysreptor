@@ -7,6 +7,8 @@
 * Fix save error for user fields
 * Ensure custom fonts are loaded before rendering charts and diagrams
 * Remove status emoji of notes
+* Separate settings for spellcheck and markdown preview mode in projects, notes, templates, designs
+* Click to enlarge images in markdown preview
 
 
 ## v2023.145 - 2023-12-11
