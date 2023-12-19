@@ -12,7 +12,7 @@
         mandatory
         density="compact"
         :border="true"
-        color="primary"
+        color="primary-bg"
       >
         <v-btn 
           v-for="c in metric.choices" 

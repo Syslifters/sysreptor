@@ -184,14 +184,14 @@ watch(dialogVisible, (newVal) => {
   }
 });
 
-function switchCvssVersion(val: CvssVersion) {
-  editorCvssVersion.value = val;
+function switchCvssVersion(newValue: CvssVersion) {
+  const oldValue = editorCvssVersion.value;
+  editorCvssVersion.value = newValue;
 
   if (!props.cvssVersion) {
-    localSettings.cvssVersion = val;
+    localSettings.cvssVersion = newValue;
   }
-} 
-watch(editorCvssVersion, (newValue, oldValue) => {
+
   // Migrate metrics when changing CVSS versions
   const prevMetrics = { ...parsedEditorVector.value.metrics };
   if (newValue === CvssVersion.CVSS40 && oldValue === CvssVersion.CVSS31) {
@@ -204,7 +204,7 @@ watch(editorCvssVersion, (newValue, oldValue) => {
     updateMetric('A', prevMetrics.VA);
     updateMetric('S', ([parsedEditorVector.value.metrics.SC, parsedEditorVector.value.metrics.SI, parsedEditorVector.value.metrics.SA].some((v?: string) => v && v !== 'N')) ? 'C' : 'U');
   }
-});
+}
 
 function cvssInfo(vector: string|null) {
   const score = scoreFromVector(vector);
