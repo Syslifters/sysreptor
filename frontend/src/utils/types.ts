@@ -507,3 +507,8 @@ export type Breadcrumb = {
   to?: string;
 };
 export type Breadcrumbs = Breadcrumb[];
+
+export type PreviewImage = {
+  src: string;
+  caption?: string|null;
+};

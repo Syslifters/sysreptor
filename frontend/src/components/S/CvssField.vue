@@ -26,7 +26,8 @@
       <template #title>
         <span v-if="availableCvssVersions.length > 1">
           <v-btn-toggle
-            v-model="editorCvssVersion"
+            :model-value="editorCvssVersion"
+            @update:model-value="switchCvssVersion($event)"
             :disabled="props.disabled"
             mandatory
             :border="true"
@@ -182,9 +183,15 @@ watch(dialogVisible, (newVal) => {
     }
   }
 });
-watch(editorCvssVersion, (newValue, oldValue) => {
-  localSettings.cvssVersion = newValue;
 
+function switchCvssVersion(val: CvssVersion) {
+  editorCvssVersion.value = val;
+
+  if (!props.cvssVersion) {
+    localSettings.cvssVersion = val;
+  }
+} 
+watch(editorCvssVersion, (newValue, oldValue) => {
   // Migrate metrics when changing CVSS versions
   const prevMetrics = { ...parsedEditorVector.value.metrics };
   if (newValue === CvssVersion.CVSS40 && oldValue === CvssVersion.CVSS31) {

@@ -1,6 +1,9 @@
 <template>
-  <!-- eslint-disable-next-line vue/no-v-html -->
-  <div ref="previewRef" v-html="renderedMarkdown" class="preview" />
+  <div>
+    <!-- eslint-disable-next-line vue/no-v-html -->
+    <div ref="previewRef" v-html="renderedMarkdown" class="preview" />
+    <markdown-image-preview-dialog v-model="previewImageSrc" />
+  </div>
 </template>
 
 <script lang="ts">
@@ -71,8 +74,28 @@ async function postProcessRenderedHtml() {
   }
 }
 
-onMounted(postProcessRenderedHtml);
-onUpdated(postProcessRenderedHtml);
+const previewImageSrc = ref<PreviewImage|null>(null);
+function showPreviewImage(event: MouseEvent) {
+  const imgElement = event.target as HTMLImageElement;
+  if (imgElement && imgElement.tagName === 'IMG' && imgElement.src) {
+    const captionEl = imgElement.parentElement?.querySelector('figcaption');
+    previewImageSrc.value = {
+      src: imgElement.src,
+      caption: captionEl?.innerText,
+    }
+    event.stopPropagation();
+  }
+}
+
+onMounted(() => {
+  previewRef.value?.addEventListener('click', showPreviewImage);
+
+  postProcessRenderedHtml(); 
+});
+onUpdated(() => postProcessRenderedHtml());
+onBeforeUnmount(() => {
+  previewRef.value?.removeEventListener('click', showPreviewImage);
+})
 </script>
 
 <style lang="scss" scoped>
@@ -81,6 +104,8 @@ onUpdated(postProcessRenderedHtml);
 .preview {
   overflow: auto;
   word-wrap: break-word;
+  padding: 0.5em;
+  height: 100%;
 }
 
 .preview > :deep(*:first-child) {
@@ -112,6 +137,10 @@ onUpdated(postProcessRenderedHtml);
   }
   table, th, td {
     border-color: rgb(var(--v-border-color));
+  }
+
+  figure img {
+    cursor: zoom-in;
   }
 
   .file-download-preview {
