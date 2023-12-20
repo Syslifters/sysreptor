@@ -401,7 +401,7 @@ class ReportSectionExportImportSerializer(ExportImportSerializer):
 
 class ProjectNotebookPageExportImportSerializer(ExportImportSerializer):
     id = serializers.UUIDField(source='note_id')
-    parent = serializers.UUIDField(source='parent.note_id', allow_null=True)
+    parent = serializers.UUIDField(source='parent.note_id', allow_null=True, required=False)
 
     class Meta:
         model = ProjectNotebookPage
