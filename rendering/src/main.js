@@ -1,4 +1,4 @@
-import { createApp, compile } from 'vue';
+import vue, { createApp, compile, computed, ref } from 'vue';
 import { generateCodeFrame } from '@vue/shared';
 import ChartJsPluginDataLabels from 'chartjs-plugin-datalabels';
 import Pagebreak from './components/Pagebreak.vue';
@@ -12,7 +12,6 @@ import MermaidDiagram from './components/MermaidDiagram.vue';
 import Ref from './components/Ref.vue';
 import { callForTicks } from './utils';
 import lodash from 'lodash';
-
 
 // injected as global variables
 const REPORT_TEMPLATE = '<div>' + (window.REPORT_TEMPLATE || '') + '</div>';
@@ -59,20 +58,16 @@ const DEFAULT_COMPUTED = {
       count_info: this.findings_info.length,
     };
   },
-  lodash() {
-    return lodash;
-  },
   chartjsPlugins() {
     return {
       DataLabels: ChartJsPluginDataLabels
     };
   },
-  window() {
-    return window;
-  },
-  document() {
-    return document;
-  },
+  lodash: () => lodash,
+  window: () => window,
+  document: () => document,
+  vue: () => vue,
+  computed: () => computed,
 };
 
 const DEFAULT_METHODS = {
