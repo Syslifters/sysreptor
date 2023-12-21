@@ -5,6 +5,7 @@
     :dot-color="props.value.history_type === '+' ? 'success' : props.value.history_type === '-' ? 'error' : 'info'"
     :class="{'timeline-item-link': !!to, 'nuxt-link-active': isExactActive}"
     @click="to ? navigate() : undefined"
+    @auxclick="to ? openInNewTab($event) : undefined"
   >
     <slot name="info">
       <chip-date :value="props.value.history_date" />
@@ -29,6 +30,12 @@ const props = defineProps<{
 const { navigate, isExactActive } = useLink({
   to: props.to || '#'
 });
+function openInNewTab(event: MouseEvent) {
+  if (event.button === 1) {
+    event.preventDefault();
+    window.open(props.to!, '_blank');
+  }
+}
 </script>
 
 <style lang="scss" scoped>

@@ -55,7 +55,7 @@
         </edit-toolbar>
       </template>
       <template #default>
-        <project-history-timeline
+        <history-timeline-project
           v-model="historyVisible"
           :project="project"
           :note="note"

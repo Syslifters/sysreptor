@@ -37,7 +37,7 @@
         <btn-history v-model="historyVisible" />
       </edit-toolbar>
 
-      <project-history-timeline
+      <history-timeline-project
         v-model="historyVisible"
         :project="project"
         :finding="finding"

@@ -41,7 +41,7 @@
       </template>
     </edit-toolbar>
 
-    <template-history-timeline
+    <history-timeline-template
       v-if="history"
       v-model="historyVisible"
       :template="template"
