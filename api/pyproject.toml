@@ -6,27 +6,27 @@ authors = []
 packages = [{include = "reportcreator_api"}]
 
 [tool.poetry.dependencies]
-python = "~3.10"
-django = { extras = ["argon2"], version = "~4.2" }
+python = "~3.11"
+django = { extras = ["argon2"], version = "~5.0" }
 djangorestframework = "~3.14.0"
 adrf = "~0.1.2"
-weasyprint = "~60.1"
+weasyprint = "~60.2"
 
 django-phonenumber-field = { version = "^7.0.0", extras = ["phonenumberslite"] }
 django-csp = "^3.7"
 django-storages = "^1.13.2"
 drf-nested-routers = "^0.93.4"
 django-filter = "^23.1"
-drf-spectacular = { extras = ["sidecar"], version = "^0.26.3" }
+drf-spectacular = { extras = ["sidecar"], version = "^0.27.0" }
 django-simple-history = "^3.4.0"
 
 psycopg = { extras = ["binary"], version = "^3.1.8" }
 gunicorn = "^21.2.0"
-uvicorn = "^0.23.1"
+uvicorn = "^0.25.0"
 whitenoise = "^6.4.0"
 brotli = "^1.0.9"
 requests = "^2.28.2"
-httpx = "^0.25.0"
+httpx = "^0.26.0"
 regex = "^2023.10.3"
 
 jsonschema = "^4.17.3"
@@ -44,7 +44,7 @@ zipstream-ng = "^1.6.0"
 boto3 = "^1.26.5"
 playwright = "^1.32.1"
 pikepdf = "^8.5.1"
-celery = { extras = ["librabbitmq"], version = "^5.3" }
+celery = "^5.3.6"
 
 django-debug-toolbar = "^4.0.0"
 debugpy = "^1.6.7"

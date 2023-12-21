@@ -106,7 +106,7 @@ services:
     build:
       context: ..
       target: api-dev
-    command: sh -c "python3 manage.py migrate && python3 -m debugpy --listen 0.0.0.0:5678 -m uvicorn --reload --host 0.0.0.0 --port 8000 reportcreator_api.conf.asgi:application"
+    command: sh -c "python3 manage.py migrate && python3 -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 -m uvicorn --reload --host 0.0.0.0 --port 8000 reportcreator_api.conf.asgi:application"
     init: true
     volumes:
       - type: volume
