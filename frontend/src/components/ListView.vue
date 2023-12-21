@@ -28,7 +28,9 @@
           </v-tabs>
         </div>
 
-        <slot v-for="item in items.data.value" name="item" :item="item" />
+        <slot name="items" :items="items">
+          <slot v-for="item in items.data.value" name="item" :item="item" />
+        </slot>
         <page-loader :items="items" class="mt-4" />
         <v-list-item
           v-if="items.data.value.length === 0 && !items.hasNextPage.value"

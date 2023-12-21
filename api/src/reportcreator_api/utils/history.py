@@ -5,13 +5,14 @@ from django.utils import timezone
 from simple_history import models as history_models
 from simple_history import manager as history_manager
 from simple_history import signals as history_signals
-from simple_history import utils as history_utils
+
 
 from reportcreator_api.archive.crypto.fields import EncryptedField
 
 
 class HistoricalRecordBase(models.Model):
     history_prevent_cleanup = models.BooleanField(default=False, db_index=True)
+    history_title = EncryptedField(base_field=models.TextField(blank=True, null=True), null=True)
 
     class Meta:
         abstract = True

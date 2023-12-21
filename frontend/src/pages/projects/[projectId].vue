@@ -11,11 +11,15 @@
         <v-list-item :to="`/projects/${project.id}/reporting/`" prepend-icon="mdi-text" title="Reporting">
           <s-tooltip activator="parent" text="Reporting" />
         </v-list-item>
+        <v-list-item :to="`/projects/${project.id}/designer/`" v-if="projectType?.source === 'customized'" prepend-icon="mdi-pencil-ruler" title="Designer">
+          <s-tooltip activator="parent" text="Designer" />
+        </v-list-item>
         <v-list-item :to="`/projects/${project.id}/publish/`" prepend-icon="mdi-earth" title="Publish">
           <s-tooltip activator="parent" text="Publish" />
         </v-list-item>
-        <v-list-item :to="`/projects/${project.id}/designer/`" v-if="projectType?.source === 'customized'" prepend-icon="mdi-pencil-ruler" title="Designer">
-          <s-tooltip activator="parent" text="Designer" />
+        <v-list-item :to="`/projects/${project.id}/history/`" prepend-icon="mdi-history">
+          <v-list-item-title><pro-info>History</pro-info></v-list-item-title>
+          <s-tooltip activator="parent" text="History" />
         </v-list-item>
       </template>
     </s-sub-drawer>

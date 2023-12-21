@@ -39,7 +39,7 @@
         </template>
       </edit-toolbar>
 
-      <project-history-timeline
+      <history-timeline-project
         v-model="historyVisible"
         :project="project"
         :current-url="$route.fullPath"

@@ -33,7 +33,7 @@ def has_changes(a, b):
     return False
 
 
-def assert_history(obj, history_count=None, history_type=None, history_date=None, history_change_reason=None, history_user=None):
+def assert_history(obj, history_count=None, history_type=None, history_date=None, history_change_reason=None, history_user=None, history_title=None):
     try:
         obj.refresh_from_db()
     except ObjectDoesNotExist:
@@ -51,6 +51,8 @@ def assert_history(obj, history_count=None, history_type=None, history_date=None
         assert h.history_change_reason == history_change_reason
     if history_user:
         assert h.history_user == history_user
+    if history_title:
+        assert h.history_title == history_title
     assert not has_changes(obj, h)
 
 
@@ -63,7 +65,12 @@ class TestTemplateHistory:
 
     def assert_template_history_create(self, template, **kwargs):
         for o in [template] + list(template.translations.all()) + list(template.images.all()):
-            assert_history(o, history_count=1, history_type='+', history_date=template.history.all()[0].history_date, **kwargs)
+            assert_history(o, 
+                           history_count=1, 
+                           history_type='+', 
+                           history_date=template.history.all()[0].history_date, 
+                           history_title=o.get_language_display() if isinstance(o, FindingTemplateTranslation) else None, 
+                           **kwargs)
 
     def test_create_template_signal(self):
         t = FindingTemplate.objects.create(tags=['test'])
@@ -287,7 +294,12 @@ class TestProjectTypeHistory:
 
     def assert_history_create(self, pt, **kwargs):
         for o in [pt] + list(pt.assets.all()):
-            assert_history(o, history_count=1, history_type='+', history_date=pt.history.all()[0].history_date, **kwargs)
+            assert_history(o, 
+                           history_count=1, 
+                           history_type='+', 
+                           history_date=pt.history.all()[0].history_date, 
+                           history_title=o.name,
+                           **kwargs)
     
     def test_copy(self):
         pt = create_project_type().copy()
@@ -365,9 +377,17 @@ class TestProjectHistory:
             list(project.sections.all()) + list(project.findings.all()) + list(project.notes.all()) + \
             list(project.images.all()) + list(project.files.all())
         for o in objs:
-            assert_history(o, history_count=1, history_type='+', history_date=project.history.all()[0].history_date, **kwargs)
+            assert_history(o, 
+                           history_count=1, 
+                           history_type='+', 
+                           history_date=project.history.all()[0].history_date,
+                           history_title=o.section_label if isinstance(o, ReportSection) else 
+                                         o.data['title'] if isinstance(o, PentestFinding) else 
+                                         o.title if isinstance(o, ProjectNotebookPage) else 
+                                         o.name,
+                           **kwargs)
         for o in list(project.members.all()):
-            assert_history(o, history_count=1, history_type='+', history_date=project.history.all()[0].history_date)
+            assert_history(o, history_count=1, history_type='+', history_date=project.history.all()[0].history_date, history_title=o.user.username)
 
     def test_copy(self):
         p = create_project(members=[self.user]).copy()
