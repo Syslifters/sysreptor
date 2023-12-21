@@ -77,3 +77,30 @@ English (no commas, always "and"): <comma-and-join comma=" and " and=" and ">...
 German: <comma-and-join and=" und ">...</comma-and-join>
 French: <comma-and-join and=" et ">...</comma-and-join>
 ```
+
+
+## Helper Functions
+It is possible to define helper functions and variables inside the Vue template language to reuse logic.
+Setting variables only works for native DOM tag (e.g. `<div>`, `<span>`, etc.), but not for Vue components (e.g. `<template>`, `<table-of-contents>`, etc.).
+The name of the `:set` attributes does not matter, but they have to be unique per tag.
+Helper functions are defined at the start of the template, they can be used by following template elements.
+
+```html
+<div 
+  v-show="false" 
+  :set1="helperFunction1 = function() {
+    return report.title + ' processed by helper function';
+  }"
+  :set3="calculateCustomScore = (finding) => finding.exploitability * finding.impact"
+  :set2="computedProperty = computed(() => report.title + ' processed by computed property')"
+  
+/>
+<div>
+  Call helper function (without arguments): {{ helperFunction() }}<br>
+  Call helper function (with arguments): {{ calculateCustomScore(report.findings[0]) }}<br>
+  Use computed property: {{ computedProperty.value }}<br>
+</div>
+```
+
+Note that defining variables and helper functions is not officially supported by the Vue template language, but rather a workaround.
+For more details see: https://stackoverflow.com/questions/43999618/how-to-define-a-temporary-variable-in-vue-js-template

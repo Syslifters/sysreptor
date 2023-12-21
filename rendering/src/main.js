@@ -1,4 +1,4 @@
-import { createApp, compile, nextTick } from 'vue';
+import { createApp, compile, computed, ref } from 'vue';
 import { generateCodeFrame } from '@vue/shared';
 import ChartJsPluginDataLabels from 'chartjs-plugin-datalabels';
 import Pagebreak from './components/Pagebreak.vue';
@@ -12,7 +12,6 @@ import MermaidDiagram from './components/MermaidDiagram.vue';
 import Ref from './components/Ref.vue';
 import { callForTicks } from './utils';
 import lodash from 'lodash';
-
 
 // injected as global variables
 const REPORT_TEMPLATE = '<div>' + (window.REPORT_TEMPLATE || '') + '</div>';
@@ -59,20 +58,15 @@ const DEFAULT_COMPUTED = {
       count_info: this.findings_info.length,
     };
   },
-  lodash() {
-    return lodash;
-  },
   chartjsPlugins() {
     return {
       DataLabels: ChartJsPluginDataLabels
     };
   },
-  window() {
-    return window;
-  },
-  document() {
-    return document;
-  },
+  lodash: () => lodash,
+  window: () => window,
+  document: () => document,
+  computed: () => computed,
 };
 
 const DEFAULT_METHODS = {
@@ -144,6 +138,8 @@ if (!window.RENDERING_COMPLETED) {
     data: () => ({
       data: REPORT_DATA,
       _tickCount: 0,
+      _pendingPromises: [],
+      _observer: null,
     }),
     computed: {
       ...DEFAULT_COMPUTED,
@@ -153,12 +149,43 @@ if (!window.RENDERING_COMPLETED) {
       ...DEFAULT_METHODS,
       ...REPORT_METHODS,
     },
+    created() {
+      this._observer = new MutationObserver((mutationList) => {
+        for (const mutation of mutationList) {
+          if (mutation.type === 'childList') {
+            for (const node of mutation.addedNodes) {
+              if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === 'SCRIPT') {
+                this._pendingPromises.push(new Promise((resolve, reject) => {
+                  node.addEventListener('load', resolve);
+                  node.addEventListener('error', reject);
+                }));
+              }
+            }
+          }
+        }
+      });
+      this._observer.observe(document, { childList: true, subtree: true });
+    },
+    beforeUnmount() {
+      this._observer.disconnect();
+    },
     async mounted() {
-      // Wait some ticks before rendering is signaled as completed
-      // Allow multi-pass rendering (for e.g. table of contents)
-      await callForTicks(10, nextTick, () => {
-        this._tickCount += 1;
-      })
+      const waitUntilFinished = async () => {
+        // Wait some ticks before rendering is signaled as completed
+        // Allow multi-pass rendering (for e.g. table of contents)
+        await callForTicks(10, () => {
+          this._tickCount += 1;
+        });
+        // Wait for pending promises to finish
+        if (this._pendingPromises.length > 0) {
+          await Promise.allSettled(this._pendingPromises);
+          await callForTicks(10, () => {
+            this._tickCount += 1;
+          });
+        }
+      }
+      await waitUntilFinished();
+
       window.RENDERING_COMPLETED = true;
     },
   });

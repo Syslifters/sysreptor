@@ -80,6 +80,8 @@ class TestHtmlRendering:
         ("{{ formatDate('2022-09-21', 'long', 'en-US') }}", "September 21, 2022"),
         ("{{ formatDate('2022-09-21', 'full', 'en-US') }}", "Wednesday, September 21, 2022"),
         ("{{ formatDate('2022-09-21', {year: '2-digit', month: 'narrow', day: '2-digit', numberingSystem: 'latn'}, 'en-US') }}", "S 21, 22"),
+        ("""<div :set="helperFunction = function () { return report.title + ' function'; }">{{ helperFunction() }}</div>""", lambda self: f"<div set=\"function () {{ return report.title + ' function'; }}\">{self.project.data['title']} function</div>"),
+        ("""<div :set="computedVar = computed(() => report.title + ' computed')">{{ computedVar.value }}</div>""", lambda self: f"<div set=\"[object Object]\">{self.project.data['title']} computed</div>"),
     ])
     def test_variables_rendering(self, template, html):
         if callable(html):
