@@ -94,7 +94,7 @@ RUN npm run build
 
 
 
-FROM python:3.10-slim-bookworm AS api-dev
+FROM python:3.11-slim-bookworm AS api-dev
 
 # Add custom CA certificates
 ARG CA_CERTIFICATES=""

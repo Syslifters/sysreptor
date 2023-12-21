@@ -88,7 +88,7 @@ Helper functions are defined at the start of the template, they can be used by f
 ```html
 <div 
   v-show="false" 
-  :set1="helperFunction1 = function() {
+  :set1="helperFunction = function() {
     return report.title + ' processed by helper function';
   }"
   :set3="calculateCustomScore = (finding) => finding.exploitability * finding.impact"
