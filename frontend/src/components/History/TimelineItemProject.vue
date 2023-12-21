@@ -1,10 +1,15 @@
 <template>
   <history-timeline-item :value="props.item" :to="historyItemTo(props.item)">
     <template #title>
-      <span v-if="item.history_change_reason === 'Imported'">Imported {{ formatModelName(props.item.history_model) }}</span>
-      <span v-else-if="item.history_change_reason">{{ props.item.history_change_reason }}</span>
+      <span v-if="item.history_change_reason">{{ props.item.history_change_reason }}</span>
       <span v-else-if="props.item.history_type === '+'">Created {{ formatModelName(props.item.history_model) }}</span>
       <span v-else-if="props.item.history_type === '-'">Deleted {{ formatModelName(props.item.history_model) }}</span>
+    </template>
+    <template #append-infos v-if="props.details">
+      <v-chip size="small">
+        {{ formatModelName(props.item.history_model) }}
+        <span v-if="props.item.history_title">: {{ props.item.history_title }}</span>
+      </v-chip>
     </template>
   </history-timeline-item>
 </template>
@@ -14,7 +19,8 @@ import urlJoin from "url-join";
 
 const props = defineProps<{
   item: HistoryTimelineRecord;
-  project: PentestProject
+  project: PentestProject;
+  details: boolean;
 }>();
 
 function historyItemTo(historyRecord: HistoryTimelineRecord) {

@@ -19,7 +19,13 @@
         >
           <template #info><span /></template>
         </history-timeline-item>
-        <history-timeline-item-project v-for="item in items.data.value" :key="item.id" :item="item" :project="project" />
+        <history-timeline-item-project 
+          v-for="item in items.data.value" 
+          :key="item.id" 
+          :item="item" 
+          :project="project" 
+          :details="true"
+        />
       </v-timeline>
     </template>
   </list-view>

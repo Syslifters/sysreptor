@@ -4,8 +4,12 @@
       <history-timeline-item :value="item" :to="historyItemTo(item)">
         <template #title>
           <span v-if="item.history_change_reason">{{ item.history_change_reason }}</span>
-          <span v-else-if="item.history_type === '+'">Created {{ formatModelName(item.history_model) }}</span>
-          <span v-else-if="item.history_type === '-'">Deleted {{ formatModelName(item.history_model) }}</span>
+          <span v-else-if="item.history_type === '+'">
+            Created {{ formatModelName(item.history_model) }} {{ item.history_title }}
+          </span>
+          <span v-else-if="item.history_type === '-'">
+            Deleted {{ formatModelName(item.history_model) }} {{ item.history_title }}
+          </span>
         </template>
       </history-timeline-item>
     </template>
@@ -20,11 +24,7 @@ const props = defineProps<{
 
 const historyTimelineUrl = computed(() => {
   const tr = props.translation || props.template.translations.find(tr => tr.is_main)!;
-  let url = `/api/v1/findingtemplates/${props.template.id}/translations/${tr.id}/history-timeline/`;
-  if (tr.is_main) {
-    url += '?include_template_timeline=true';
-  }
-  return url;
+  return `/api/v1/findingtemplates/${props.template.id}/translations/${tr.id}/history-timeline/?include_template_timeline=true`;
 })
 
 function historyItemTo(item: HistoryTimelineRecord) {

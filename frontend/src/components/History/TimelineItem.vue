@@ -10,6 +10,7 @@
     <slot name="info">
       <chip-date :value="props.value.history_date" />
       <chip-member v-if="props.value.history_user" :value="props.value.history_user" />
+      <slot name="append-infos" />
       <br>
     </slot>
 

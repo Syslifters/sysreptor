@@ -452,6 +452,7 @@ export type HistoryTimelineRecord = {
   readonly history_user: UserShortInfo|null;
   readonly history_change_reason: string|null;
   readonly history_model: string;
+  readonly history_title: string;
   readonly id: string;
 }
 
