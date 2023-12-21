@@ -95,4 +95,8 @@ defineExpose({
 .list-header-tabs:deep(.v-tab) {
   text-transform: initial;
 }
+
+:deep(.v-list-item .v-list-item-subtitle) {
+  opacity: var(--v-high-emphasis-opacity);
+}
 </style>
