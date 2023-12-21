@@ -1,4 +1,4 @@
-import vue, { createApp, compile, computed, ref } from 'vue';
+import { createApp, compile, computed, ref } from 'vue';
 import { generateCodeFrame } from '@vue/shared';
 import ChartJsPluginDataLabels from 'chartjs-plugin-datalabels';
 import Pagebreak from './components/Pagebreak.vue';
@@ -66,7 +66,6 @@ const DEFAULT_COMPUTED = {
   lodash: () => lodash,
   window: () => window,
   document: () => document,
-  vue: () => vue,
   computed: () => computed,
 };
 
