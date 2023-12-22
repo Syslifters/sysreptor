@@ -32,7 +32,6 @@
             :loading="actionInProgress"
             :disabled="disabled"
             :color="($attrs.color as string|undefined) || buttonColor || 'secondary'"
-            class="ml-1 mr-1"
             @click="!props.confirm ? performAction() : null"
             v-bind="{...$attrs, ...tooltipProps, ...dialogProps}"
           />

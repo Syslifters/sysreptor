@@ -33,6 +33,8 @@
               @click="($refs.createFindingDialogRef as any)!.open()"
               :disabled="project.readonly"
               size="small"
+              variant="flat"
+              color="secondary"
               density="compact"
               class="ml-2"
             >

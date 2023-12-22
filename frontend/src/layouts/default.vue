@@ -27,7 +27,7 @@
         :active="false"
       >
         <v-icon icon="mdi-notebook" />
-        <s-tooltip activator="parent" location="bottom" text="Notes" />
+        <s-tooltip activator="parent" location="bottom" text="Personal Notes" />
       </s-btn-icon>
       <notification-menu-item v-if="auth.loggedIn.value" />
       <s-btn-icon href="https://docs.sysreptor.com/" target="_blank">
