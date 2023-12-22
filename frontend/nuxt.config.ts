@@ -70,12 +70,12 @@ export default defineNuxtConfig({
     server: {
       proxy: {
         '/api': {
-          target: 'http://api:8000',
+          target: 'http://127.0.0.1:8000',
           changeOrigin: false,
         },
-        '/admin': 'http://api:8000',
+        '/admin': 'http://127.0.0.1:8000',
         '/static': {
-          target: 'http://api:8000',
+          target: 'http://127.0.0.1:8000',
           bypass(req) {
             if (['/static/logo.svg', '/static/favicon.ico'].includes(req.url!) || req.url!.startsWith('/static/pdfviewer/')) {
               return req.url;

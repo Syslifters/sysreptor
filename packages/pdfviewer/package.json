@@ -5,7 +5,7 @@
   "scripts": {
     "build": "webpack",
     "build-watch": "webpack watch",
-    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --onlyAllow='MIT;Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0' --plainVertical > NOTICE",
+    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --plainVertical > NOTICE",
     "dependencies": "npm run generate-notice"
   },
   "dependencies": {

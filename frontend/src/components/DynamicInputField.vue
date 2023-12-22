@@ -71,6 +71,13 @@
       :disable-validation="props.disableValidation"
       v-bind="fieldAttrs"
     />
+    
+    <!-- OWASP -->
+    <s-owasp-field
+      v-else-if="definition.type === 'owasp'"
+      v-model="formValue"
+      v-bind="fieldAttrs"
+    />
 
     <!-- User -->
     <s-user-selection

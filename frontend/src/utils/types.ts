@@ -357,6 +357,7 @@ export enum FieldDataType {
   USER = 'user',
   OBJECT = 'object',
   LIST = 'list',
+  OWASP = 'owasp',
 }
 
 export enum FieldOrigin {
