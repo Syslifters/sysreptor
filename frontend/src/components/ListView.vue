@@ -33,7 +33,7 @@
         </slot>
         <page-loader :items="items" class="mt-4" />
         <v-list-item
-          v-if="items.data.value.length === 0 && !items.hasNextPage.value"
+          v-if="items.data.value.length === 0 && !items.hasNextPage.value && items.hasBaseURL.value"
           title="No data found"
         />
       </v-list>
@@ -45,7 +45,7 @@
 import { useSearchableCursorPaginationFetcher } from "~/composables/api";
 
 const props = defineProps<{
-  url: string
+  url: string|null;
 }>();
 
 const router = useRouter();
@@ -82,7 +82,7 @@ defineExpose({
 .list-header {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 10;
   background-color: vuetify.$list-background;
 }
 .list-header-actions {

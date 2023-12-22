@@ -17,8 +17,7 @@
         <v-list-item :to="`/projects/${project.id}/publish/`" prepend-icon="mdi-earth" title="Publish">
           <s-tooltip activator="parent" text="Publish" />
         </v-list-item>
-        <v-list-item :to="`/projects/${project.id}/history/`" prepend-icon="mdi-history">
-          <v-list-item-title><pro-info>History</pro-info></v-list-item-title>
+        <v-list-item :to="`/projects/${project.id}/history/`" prepend-icon="mdi-history" title="History">
           <s-tooltip activator="parent" text="History" />
         </v-list-item>
       </template>
