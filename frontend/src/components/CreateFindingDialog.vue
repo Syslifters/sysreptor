@@ -163,6 +163,10 @@ function onKeydown(event: KeyboardEvent) {
     searchInput.value = null;
   }
 }
+
+defineExpose({
+  open: () => { dialogVisible.value = true },
+});
 </script>
 
 <style lang="scss" scoped>

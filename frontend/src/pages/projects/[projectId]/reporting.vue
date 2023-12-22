@@ -29,15 +29,28 @@
 
           <v-list-subheader>
             <span>Findings</span>
+            <s-btn-icon
+              @click="($refs.createFindingDialogRef as any)!.open()"
+              :disabled="project.readonly"
+              size="small"
+              variant="flat"
+              color="secondary"
+              density="compact"
+              class="ml-2"
+            >
+              <v-icon icon="mdi-plus" />
+              <s-tooltip activator="parent" location="top">Add Finding (Ctrl+J)</s-tooltip>
+            </s-btn-icon>
             <v-spacer />
             <s-btn-icon
               v-if="projectType.finding_ordering.length > 0"
               @click="toggleOverrideFindingOrder"
               :disabled="project.readonly"
-              size="x-small"
+              size="small"
+              density="compact"
             >
               <v-icon :icon="project.override_finding_order ? 'mdi-sort-variant-off' : 'mdi-sort-variant'" />
-              <s-tooltip activator="parent">
+              <s-tooltip activator="parent" location="top">
                 <span v-if="project.override_finding_order">Custom order</span>
                 <span v-else>Default order</span>
               </s-tooltip>
@@ -83,7 +96,7 @@
         <div>
           <v-divider class="mb-1" />
           <v-list-item>
-            <create-finding-dialog :project="project" />
+            <create-finding-dialog ref="createFindingDialogRef" :project="project" />
           </v-list-item>
         </div>
       </v-list>

@@ -1,21 +1,8 @@
 <template>
   <split-menu v-model="localSettings.notebookInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
-      <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
+      <v-list density="compact" class="pt-0 pb-0 h-100 d-flex flex-column">
         <div>
-          <v-list-item-title class="text-h6 pl-2">Personal Notes</v-list-item-title>
-        </div>
-
-        <notes-sortable-list
-          :model-value="noteGroups"
-          @update:model-value="updateNoteOrder"
-          @update:note="updateNote"
-          to-prefix="/notes/personal/"
-          class="flex-grow-1 overflow-y-auto"
-        />
-
-        <div>
-          <v-divider />
           <v-list-item>
             <btn-confirm
               :action="createNote"
@@ -28,7 +15,16 @@
               block
             />
           </v-list-item>
+          <v-divider />
         </div>
+
+        <notes-sortable-list
+          :model-value="noteGroups"
+          @update:model-value="updateNoteOrder"
+          @update:note="updateNote"
+          to-prefix="/notes/personal/"
+          class="flex-grow-1 overflow-y-auto"
+        />
       </v-list>
     </template>
 
@@ -47,7 +43,7 @@ const userNotesStore = useUserNotesStore();
 
 useHeadExtended({
   titleTemplate: (title?: string|null) => userNotesTitleTemplate(title, route),
-  breadcrumbs: () => [{ title: 'Notes', to: '/notes/personal/' }],
+  breadcrumbs: () => [{ title: 'Personal Notes', to: '/notes/personal/' }],
 });
 
 await useAsyncDataE(async () => await userNotesStore.fetchNotes());

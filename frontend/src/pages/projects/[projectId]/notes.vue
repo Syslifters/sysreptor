@@ -1,18 +1,8 @@
 <template>
   <split-menu v-model="localSettings.notebookInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
-      <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
-        <notes-sortable-list
-          :model-value="noteGroups"
-          @update:model-value="updateNoteOrder"
-          @update:note="updateNote"
-          :disabled="project.readonly"
-          :to-prefix="`/projects/${$route.params.projectId}/notes/`"
-          class="flex-grow-1 overflow-y-auto"
-        />
-
+      <v-list density="compact" class="pt-0 pb-0 h-100 d-flex flex-column">
         <div>
-          <v-divider />
           <v-list-item>
             <btn-confirm
               :action="createNote"
@@ -24,9 +14,19 @@
               keyboard-shortcut="ctrl+j"
               size="small"
               block
+              class="ma-0"
             />
           </v-list-item>
+          <v-divider />
         </div>
+        <notes-sortable-list
+          :model-value="noteGroups"
+          @update:model-value="updateNoteOrder"
+          @update:note="updateNote"
+          :disabled="project.readonly"
+          :to-prefix="`/projects/${$route.params.projectId}/notes/`"
+          class="flex-grow-1 overflow-y-auto"
+        />
       </v-list>
     </template>
 
