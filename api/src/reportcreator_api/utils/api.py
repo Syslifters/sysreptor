@@ -4,7 +4,7 @@ import operator
 from types import NoneType
 from asgiref.sync import sync_to_async
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, F, OrderBy
 from django.http import StreamingHttpResponse, FileResponse, Http404
 from django.core.exceptions import PermissionDenied
 from django.utils.functional import classproperty
@@ -130,6 +130,9 @@ class CursorMultiPagination(pagination.CursorPagination):
     def _get_position_from_instance(self, instance, ordering):
         out = []
         for field_name in ordering:
+            if isinstance(field_name, OrderBy):
+                field_name = field_name.expression.name
+
             field_value = instance
             for k in field_name.lstrip('-').split('__'):
                 if isinstance(instance, dict):
@@ -167,8 +170,12 @@ class CursorMultiPagination(pagination.CursorPagination):
             q_objects_compare = {}
 
             for order, position in zip(self.ordering, current_position_list):
-                is_reversed = order.startswith("-")
-                order_attr = order.lstrip("-")
+                if isinstance(order, OrderBy):
+                    is_reversed = order.descending
+                    order_attr = order.expression.name
+                else:
+                    is_reversed = order.startswith("-")
+                    order_attr = order.lstrip("-")
 
                 q_objects_equals[order] = Q(**{order_attr: position})
 

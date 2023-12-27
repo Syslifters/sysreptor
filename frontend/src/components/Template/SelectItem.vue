@@ -1,6 +1,6 @@
 <template>
   <v-list-item-title class="w-100 d-flex">
-    <chip-cvss :risk-score="translation.risk_score" />
+    <chip-cvss :risk-score="translation.risk_score" :risk-level="translation.risk_level" />
     <div class="pt-2 pb-2 flex-grow-1 wrap-content">
       {{ translation.data.title }}
       <br />

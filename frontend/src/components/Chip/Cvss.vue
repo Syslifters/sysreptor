@@ -1,29 +1,38 @@
 <template>
   <v-chip class="ma-2" :class="'risk-level-' + levelNumber" label>
     <strong class="level-name">{{ levelName }}</strong>
-    <span class="score">{{ scoreFormatted }}</span>
+    <span class="score" v-if="props.riskScore !== null">{{ scoreFormatted }}</span>
   </v-chip>
 </template>
 
 <script setup lang="ts">
-import { levelNameFromScore, levelNumberFromScore, scoreFromVector } from "~/utils/cvss";
+import capitalize from "lodash/capitalize";
+import { RiskLevel } from "@/utils/types";
+import { levelNameFromScore, levelNumberFromLevelName, scoreFromVector } from "~/utils/cvss";
 
 const props = withDefaults(defineProps<{
   value?: string|null;
   riskScore?: number|null;
+  riskLevel?: RiskLevel|null;
 }>(), {
   value: null,
-  riskScore: null
+  riskScore: null,
+  riskLevel: null,
 });
 const score = computed(() => {
   if (props.riskScore !== null) {
     return props.riskScore;
   }
   return scoreFromVector(props.value);
-})
+});
 const scoreFormatted = computed(() => (score.value || 0).toFixed(1));
-const levelName = computed(() => levelNameFromScore(score.value));
-const levelNumber = computed(() => levelNumberFromScore(score.value));
+const levelName = computed(() => {
+  if (props.riskLevel) {
+    return capitalize(props.riskLevel);
+  }
+  return levelNameFromScore(score.value);
+});
+const levelNumber = computed(() => levelNumberFromLevelName(levelName.value));
 </script>
 
 <style lang="scss" scoped>
