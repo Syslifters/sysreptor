@@ -9,6 +9,8 @@
 * Remove status emoji of notes
 * Separate settings for spellcheck and markdown preview mode in projects, notes, templates, designs
 * Click to enlarge images in markdown preview
+* Consolidated project history
+* Fallback to severity if CVSS is undefined in template list
 
 
 ## v2023.145 - 2023-12-11

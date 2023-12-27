@@ -13,7 +13,7 @@ const user = await useFetchE<User>('/api/v1/pentestusers/self/', { method: 'GET'
 const serverErrors = ref<any|null>(null);
 async function performSave(data: User) {
   try {
-    const user = await $fetch<User>('/api/v1/users/self/', {
+    const user = await $fetch<User>('/api/v1/pentestusers/self/', {
       method: 'PATCH',
       body: data,
     });

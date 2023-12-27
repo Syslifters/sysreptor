@@ -141,7 +141,6 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
 
 <style lang="scss" scoped>
 @use 'sass:map';
-@use "@/assets/settings.scss" as settings;
 @use "@/assets/vuetify.scss" as vuetify;
 
 .height-fullscreen {
@@ -154,11 +153,6 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
 
 .main-container {
   height: 100%;
-
-  & > :deep(.v-main__wrap) {
-    height: 100%;
-    overflow-y: auto;
-  }
 }
 
 .menu-appbar {

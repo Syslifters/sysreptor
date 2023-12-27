@@ -1,5 +1,5 @@
 <template>
-  <v-btn icon>
+  <s-btn-icon>
     <v-icon icon="mdi-account" />
 
     <v-menu activator="parent" location="bottom">
@@ -42,7 +42,7 @@
         />
       </v-list>
     </v-menu>
-  </v-btn>
+  </s-btn-icon>
 </template>
 
 <script setup lang="ts">
