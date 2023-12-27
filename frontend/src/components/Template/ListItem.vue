@@ -1,7 +1,7 @@
 <template>
   <v-list-item>
     <v-list-item-title>
-      <chip-cvss :risk-score="translation.risk_score" />
+      <chip-cvss :risk-score="translation.risk_score" :risk-level="translation.risk_level" />
       {{ translation.data.title }}
     </v-list-item-title>
     <v-list-item-subtitle>

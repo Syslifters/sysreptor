@@ -327,7 +327,7 @@ export enum RiskLevel {
 
 export type FindingTemplateTranslation = BaseModel & {
   readonly risk_score: number;
-  readonly risk_level: string;
+  readonly risk_level: RiskLevel;
 
   language: string;
   status: ReviewStatus;
