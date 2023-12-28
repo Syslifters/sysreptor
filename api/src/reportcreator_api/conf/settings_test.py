@@ -35,6 +35,7 @@ AUTO_DELETE_ARCHIVE_AFTER = None
 
 PREFERRED_LANGUAGES = ['en-US', 'de-DE']
 
+INSTALLATION_ID = 'dummy-installation-id-used-in-unit-test'
 BACKUP_KEY = 'dummy-backup-key-used-in-unit-test'
 
 
