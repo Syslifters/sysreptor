@@ -1,4 +1,3 @@
-
 import base64
 import json
 import logging
@@ -125,6 +124,20 @@ def check_license(**kwargs):
 @acache('license.license_info', timeout=10 * 60)
 async def acheck_license(**kwargs):
     return await sync_to_async(check_license)(**kwargs)
+
+
+def get_license_info():
+    from reportcreator_api.users.models import PentestUser
+
+    return check_license() | {
+        'active_users': PentestUser.objects.get_licensed_user_count(),
+        'total_users': PentestUser.objects.get_total_user_count(),
+        'installation_id': settings.INSTALLATION_ID,
+        'software_version': settings.VERSION,
+    }
+
+async def aget_license_info():
+    return await sync_to_async(get_license_info)()
 
 
 def is_professional():

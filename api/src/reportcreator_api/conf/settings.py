@@ -10,10 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+import json
+import uuid
 from datetime import timedelta
 from decouple import config, Csv
 from pathlib import Path
-import json
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -558,6 +560,11 @@ LICENSE_VALIDATION_KEYS = [
     {'id': 'magenta', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAd10mgfTx0fuPO6KwcYU98RLhreCF+BQCeI6CAs0YztA='},
 ]
 LICENSE_COMMUNITY_MAX_USERS = 3
+
+INSTALLATION_ID_PATH = MEDIA_ROOT / 'instance_id'
+if not INSTALLATION_ID_PATH.exists():
+    INSTALLATION_ID_PATH.write_text(str(uuid.uuid4()))
+INSTALLATION_ID = INSTALLATION_ID_PATH.read_text().strip()
 
 
 # Languages

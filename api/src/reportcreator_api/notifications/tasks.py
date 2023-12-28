@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 
 from reportcreator_api.notifications.serializers import NotificationSpecSerializer
+from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils import license
 
 
@@ -15,7 +16,7 @@ async def fetch_notifications_request():
             headers={'Content-Type': 'application/json'}, 
             data=json.dumps({
                 'version': settings.VERSION,
-                'license': await license.acheck_license(),
+                'license': await license.aget_license_info(),
                 'instance_tags': settings.INSTANCE_TAGS,
             }, cls=DjangoJSONEncoder)
         )

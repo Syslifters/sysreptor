@@ -118,12 +118,8 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
     
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_name='license', url_path='license', methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsUserManagerOrSuperuserOrSystem])
-    def license_info(self, request, *args, **kwargs):
-        return Response(data=license.check_license() | {
-            'active_users': PentestUser.objects.get_licensed_user_count(),
-            'total_users': PentestUser.objects.get_total_user_count(),
-            'software_version': settings.VERSION,
-        })
+    async def license_info(self, request, *args, **kwargs):
+        return Response(data=await license.aget_license_info())
     
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
