@@ -18,6 +18,9 @@
     <template #no-data v-if="allItems.length === 0 && items.hasNextPage.value">
       <page-loader :items="items" />
     </template>
+    <template #item="{item: { raw: projectType}, props: itemProps}">
+      <design-list-item :item="projectType" :format-title="true" :to="null" lines="one" v-bind="itemProps" />
+    </template>
     <template #append v-if="appendLink">
       <s-btn-icon
         :to="`/designs/${returnObject ? (props.modelValue as ProjectType|null)?.id : props.modelValue}/pdfdesigner/`"
@@ -59,7 +62,7 @@ const emit = defineEmits<{
 const items = useSearchableCursorPaginationFetcher<ProjectType>({
   baseURL: '/api/v1/projecttypes/',
   query: {
-    ordering: 'scope',
+    ordering: 'status,scope,name,-created',
     scope: [ProjectTypeScope.GLOBAL, ProjectTypeScope.PRIVATE],
     ...props.queryFilters
   }

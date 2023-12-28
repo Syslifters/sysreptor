@@ -2,7 +2,7 @@
   <v-select
     :model-value="props.modelValue"
     @update:model-value="emit('update:modelValue', $event)"
-    :items="ReviewStatusItems"
+    :items="props.items"
     label="Status"
     hide-details="auto"
     :variant="props.variant"
@@ -23,18 +23,20 @@
 
 <script setup lang="ts">
 import { VSelect } from "vuetify/lib/components/index.mjs";
-import { ReviewStatus } from "~/utils/types";
+import { ReviewStatus, ProjectTypeStatus } from "~/utils/types";
 
 const props = withDefaults(defineProps<{
-  modelValue: ReviewStatus;
+  modelValue: ReviewStatus|ProjectTypeStatus;
+  items?: typeof ReviewStatusItems|typeof ProjectTypeStatusItems;
   variant?: VSelect['variant'];
   density?: VSelect['density'];
 }>(), {
+  items: () => ReviewStatusItems,
   variant: 'underlined',
   density: 'compact'
 });
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: ReviewStatus): void;
+  (e: 'update:modelValue', value: ReviewStatus|ProjectTypeStatus): void;
 }>();
 </script>
 
@@ -43,5 +45,8 @@ const emit = defineEmits<{
 
 .status-finished {
   color: settings.$status-color-finished !important;
+}
+.status-deprecated {
+  color: settings.$status-color-deprecated !important;
 }
 </style>

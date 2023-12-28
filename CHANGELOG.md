@@ -11,6 +11,7 @@
 * Click to enlarge images in markdown preview
 * Consolidated project history
 * Fallback to severity if CVSS is undefined in template list
+* Add status and tags to designs
 
 
 ## v2023.145 - 2023-12-11

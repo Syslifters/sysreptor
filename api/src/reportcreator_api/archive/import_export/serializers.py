@@ -7,7 +7,7 @@ from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsO
 
 from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectType, ReportSection, \
     SourceEnum, UploadedAsset, UploadedImage, UploadedFileBase, ProjectMemberInfo, UploadedProjectFile, Language, ReviewStatus, \
-    FindingTemplateTranslation, UploadedTemplateImage
+    FindingTemplateTranslation, UploadedTemplateImage, ProjectTypeStatus
 from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
@@ -320,13 +320,18 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
     class Meta:
         model = ProjectType
         fields = [
-            'format', 'id', 'created', 'updated', 'name', 'language', 
+            'format', 'id', 'created', 'updated', 
+            'name', 'language', 'status', 'tags',
             'report_fields', 'report_sections', 
             'finding_fields', 'finding_field_order', 'finding_ordering',
             'report_template', 'report_styles', 'report_preview_data', 
             'assets'
         ]
-        extra_kwargs = {'id': {'read_only': False}, 'created': {'read_only': False, 'required': False}}
+        extra_kwargs = {
+            'id': {'read_only': False}, 
+            'created': {'read_only': False, 'required': False},
+            'status': {'required': False, 'default': ProjectTypeStatus.FINISHED},
+        }
 
     def to_representation(self, instance):
         self.context.update({'project_type': instance})

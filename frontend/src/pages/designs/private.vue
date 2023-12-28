@@ -11,7 +11,7 @@
         <v-tab :to="{ path: '/designs/private/', query: route.query }" prepend-icon="mdi-account" text="Private" />
       </template>
       <template #item="{item}">
-        <v-list-item :to="`/designs/${item.id}/pdfdesigner/`" :title="item.name" />
+        <design-list-item :item="item" />
       </template>
     </list-view>
   </file-drop-area>

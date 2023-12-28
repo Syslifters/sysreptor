@@ -122,7 +122,7 @@ class TestImportExport:
         t = imported[0]
 
         assertKeysEqual(t, self.project_type, [
-            'created', 'name', 'language', 
+            'created', 'name', 'language', 'status', 'tags',
             'report_fields', 'report_sections', 
             'finding_fields', 'finding_field_order', 'finding_ordering',
             'report_template', 'report_styles', 'report_preview_data'])
@@ -326,7 +326,7 @@ class TestCopyModel:
         assert cp.copy_of == pt
         assert not cp.is_locked
         assertKeysEqual(pt, cp, {
-            'name', 'language', 'linked_project',
+            'name', 'language', 'status', 'tags', 'linked_project',
             'report_template', 'report_styles', 'report_preview_data', 
             'report_fields', 'report_sections', 
             'finding_fields', 'finding_field_order', 'finding_ordering',

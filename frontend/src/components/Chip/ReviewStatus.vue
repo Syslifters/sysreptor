@@ -6,10 +6,12 @@
 </template>
 
 <script setup lang="ts">
+import { ProjectTypeStatus, ReviewStatus } from '@/utils/types';
+
 const props = defineProps<{
-  value?: string|null
+  value?: ReviewStatus|ProjectTypeStatus|null
 }>();
-const statusInfo = computed(() => ReviewStatusItems.find(i => i.value === props.value))
+const statusInfo = computed(() => ProjectTypeStatusItems.find(i => i.value === props.value))
 </script>
 
 <style lang="scss" scoped>
@@ -17,5 +19,8 @@ const statusInfo = computed(() => ReviewStatusItems.find(i => i.value === props.
 
 .status-finished {
   color: settings.$status-color-finished !important;
+}
+.status-deprecated {
+  color: settings.$status-color-deprecated !important;
 }
 </style>

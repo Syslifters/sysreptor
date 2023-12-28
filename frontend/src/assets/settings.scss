@@ -16,4 +16,5 @@ $risk-color-levels: (
   5: $risk-color-critical
 );
 
-$status-color-finished: #4CAF50;  // green base
+$status-color-finished: rgb(var(--v-theme-success));
+$status-color-deprecated: rgb(var(--v-theme-error));
