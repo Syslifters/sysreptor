@@ -37,6 +37,19 @@
         :disabled="readonly"
         class="mt-4"
       />
+      <s-status-selection
+        v-model="projectType.status"
+        :items="ProjectTypeStatusItems"
+        :disabled="readonly"
+        variant="outlined"
+        density="default"
+        class="mt-4"
+      />
+      <s-tags
+        v-model="projectType.tags"
+        :disabled="readonly"
+        class="mt-4"
+      />
     </v-form>
   </v-container>
 </template>
@@ -50,7 +63,7 @@ const projectTypeStore = useProjectTypeStore();
 const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,
   delete: true,
-  saveFields: ['name', 'language'],
+  saveFields: ['name', 'language', 'status', 'tags'],
 }));
 
 async function performCopy() {

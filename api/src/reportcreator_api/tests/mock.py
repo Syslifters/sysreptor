@@ -11,7 +11,7 @@ from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsO
 from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, UserNotebookPage, PentestFinding, PentestProject, ProjectType, \
     UploadedAsset, UploadedImage, ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, \
     UploadedUserNotebookFile, Language, UserPublicKey, UploadedTemplateImage, FindingTemplateTranslation, \
-    ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, ReviewStatus
+    ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, ReviewStatus, ProjectTypeStatus
 from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, \
     report_fields_default, report_sections_default
 from reportcreator_api.pentests.models.project import ReportSection
@@ -139,6 +139,8 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     project_type = ProjectType.objects.create(**{
         'name': f'Project Type #{random.randint(1, 100000)}',
         'language': Language.ENGLISH,
+        'status': ProjectTypeStatus.FINISHED,
+        'tags': ['web', 'example'],
         'report_fields': report_fields_default() | additional_fields,
         'report_sections': report_sections_default(),
         'finding_fields': finding_fields_default() | additional_fields,

@@ -226,6 +226,17 @@ export const ReviewStatusItems = Object.freeze([
   { value: ReviewStatus.FINISHED, title: 'Finished', icon: 'mdi-check-all' }
 ]);
 
+export enum ProjectTypeStatus {
+  IN_PROGRESS = 'in-progress',
+  READY_FOR_REVIEW = 'ready-for-review',
+  NEEDS_IMPROVEMENT = 'needs-improvement',
+  FINISHED = 'finished',
+  DEPRECATED = 'deprecated',
+}
+export const ProjectTypeStatusItems = Object.freeze((ReviewStatusItems as any as {value: ProjectTypeStatus, title: string, icon: string}[]).concat([
+  { value: ProjectTypeStatus.DEPRECATED, title: 'Deprecated', icon: 'mdi-close-octagon-outline' },
+]))
+
 export type ProjectMember = UserShortInfo & {
   roles: string[];
 }
@@ -427,6 +438,8 @@ export type ProjectType = BaseModel & Lockable & {
 
   name: string;
   language: string;
+  status: ProjectTypeStatus;
+  tags: string[];
 
   report_template: string;
   report_styles: string;
