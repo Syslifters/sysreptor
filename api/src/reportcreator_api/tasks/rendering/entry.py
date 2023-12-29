@@ -19,6 +19,7 @@ from django.utils import timezone
 from reportcreator_api.pentests.customfields.sort import sort_findings
 from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.pentests import cvss
+from reportcreator_api.pentests import owasp
 from reportcreator_api.pentests.customfields.types import FieldDataType, FieldDefinition, EnumChoice
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure, iterate_fields
 from reportcreator_api.users.models import PentestUser
@@ -76,6 +77,13 @@ def format_template_field(value: Any, definition: FieldDefinition, members: Opti
             'level': cvss.level_from_score(score_metrics["final"]["score"]).value,
             'level_number': cvss.level_number_from_score(score_metrics["final"]["score"]),
             **score_metrics
+        }
+    elif value_type == FieldDataType.OWASP:
+        score_metrics = owasp.calculate_metrics(value)
+        log.info(score_metrics)
+        return {
+            'vector': value,
+            'level': score_metrics
         }
     elif value_type == FieldDataType.USER:
         return format_template_field_user(value, members=members)

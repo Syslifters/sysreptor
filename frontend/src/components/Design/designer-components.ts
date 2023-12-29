@@ -576,6 +576,127 @@ export class FindingsChapterComponent extends DesignerComponentBase {
         `);
       }
       htmlHeader += '\n  </tbody>\n</table>';
+    } else if (form.findingList.headerVariant === 'owasp-table') {
+      htmlHeader = trimLeadingWhitespace(`
+      <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
+      <table class="finding-header">
+          <thead>
+              <tr style="height: 0px;">
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+                  <th style="border: none;"></th>
+              </tr>
+          </thead>
+          <tbody>
+              <tr>
+                  <td class="finding-header-key text-center" colspan="4">Impact Level</td>
+                  <td class="finding-header-key text-center" colspan="4">LikeliHood Level</td>
+                  <td class="finding-header-key text-center" colspan="4">Risk Level</td>
+              </tr>
+              <tr>
+                  <td :class="'text-center risk-text risk-' + finding.owasp.level.impact" colspan="4">{{ finding.owasp.level.impact }}</td>
+                  <td :class="'text-center risk-text risk-' + finding.owasp.level.likelihood" colspan="4">{{ finding.owasp.level.likelihood }}</td>
+                  <td :class="'text-center risk-text risk-' + finding.owasp.level.risk" colspan="4">{{ finding.owasp.level.risk }}</td>
+              </tr>
+              <tr>
+                  <td class="finding-header-key" colspan="3">OWASP Standard</td>
+                  <td colspan="9">{{ finding.owasp_standard }}</td>
+              </tr>
+              <tr>
+                  <td class="finding-header-key" colspan="3">Tools</td>
+                  <td colspan="9">{{ finding.owasp_tools }}</td>
+              </tr>
+              <tr>
+                  <td class="finding-header-key" colspan="12">Description</td>
+              </tr>
+              <tr>
+                  <td colspan="12" class="markdown-padding">
+                      <markdown :text="finding.description"></markdown>
+                  </td>
+              </tr>
+              <tr>
+                  <td class="finding-header-key" colspan="12">Impact</td>
+              </tr>
+              <tr>
+                  <td colspan="12" class="markdown-padding">
+                      <markdown :text="finding.impact"></markdown>
+                  </td>
+              </tr>
+              <tr>
+                  <td class="finding-header-key" colspan="12">Mitigation</td>
+              </tr>
+              <tr>
+                  <td colspan="12" class="markdown-padding">
+                      <markdown :text="finding.mitigation"></markdown>
+                  </td>
+              </tr>
+              <tr>
+                  <td class="finding-header-key text-center" colspan="7">Vulnerable URL</td>
+                  <td class="finding-header-key text-center" colspan="5">Vulnerable Parameter</td>
+              </tr>
+              <tr>
+                  <td colspan="7" class="markdown-padding">
+                      <markdown :text="finding.vuln_url"></markdown>
+                  </td>
+                  <td colspan="5" class="markdown-padding">
+                      <markdown :text="finding.vuln_param"></markdown>
+                  </td>
+              </tr>
+              <tr>
+                  <td class="finding-header-key" colspan="12">Proof of concept</td>
+              </tr>
+              <tr>
+                  <td colspan="12" class="markdown-padding">
+                      <markdown :text="finding.vuln_param"></markdown>
+                  </td>
+              </tr>
+          </tbody>
+      </table>
+      `);
+      css += trimLeadingWhitespace(`
+        #${id} .finding-header-key {
+          font-weight: bold;
+          background-color: #CCD9FF;
+        }
+        #${id} .risk-text {
+          font-weight: bold;
+          text-transform: capitalize;
+        }
+        #${id} .risk-note {
+          background-color: #008AC9;
+        }
+        #${id} .risk-low {
+          background-color: #247A00;
+        }
+        #${id} .risk-medium {
+          background-color: #915100;
+        }
+        #${id} .risk-high {
+          background-color: #FF4B4B;
+        }
+        #${id} .risk-critical {
+          background-color: #DEA9FF;
+        }
+        #${id} table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        #${id} table, td, th {
+          border: 1px solid;
+        }
+        #${id} .markdown-padding {
+          padding: 1rem 1.25rem;
+        }
+      `);
     }
 
     const includeFields = context.projectType.finding_field_order

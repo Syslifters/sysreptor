@@ -10,8 +10,8 @@ export const OWASP_DEFINITION: OwaspDefinition = Object.freeze({
     name: "Likelihood Factors",
     choices: [
       {
-        id: 'I',
-        name: "Info",
+        id: 'N',
+        name: "Note",
       },
       {
         id: 'L',
@@ -24,6 +24,10 @@ export const OWASP_DEFINITION: OwaspDefinition = Object.freeze({
       {
         id: 'H',
         name: "High",
+      },
+      {
+        id: 'C',
+        name: "Critical",
       },
     ],
   },
@@ -32,8 +36,8 @@ export const OWASP_DEFINITION: OwaspDefinition = Object.freeze({
     name: "Impact Factors",
     choices: [
       {
-        id: 'I',
-        name: "Info",
+        id: 'N',
+        name: "Note",
       },
       {
         id: 'L',
@@ -46,6 +50,10 @@ export const OWASP_DEFINITION: OwaspDefinition = Object.freeze({
       {
         id: 'H',
         name: "High",
+      },
+      {
+        id: 'C',
+        name: "Critical",
       },
     ],
   },
@@ -54,8 +62,8 @@ export const OWASP_DEFINITION: OwaspDefinition = Object.freeze({
     name: "Overall Risk Severity",
     choices: [
       {
-        id: 'I',
-        name: "Info",
+        id: 'N',
+        name: "Note",
       },
       {
         id: 'L',
@@ -69,13 +77,17 @@ export const OWASP_DEFINITION: OwaspDefinition = Object.freeze({
         id: 'H',
         name: "High",
       },
+      {
+        id: 'C',
+        name: "Critical",
+      },
     ],
   },
 });
 const OWASP_METRICS_BASE: OwaspMetricsValueCollection = Object.freeze({
-  LF: { I: 0, L: 1, M: 2, H: 3 },
-  IF: { I: 0, L: 1, M: 2, H: 3 },
-  ORS: { I: 0, L: 1, M: 2, H: 3 },
+  LF: { N: 0, L: 1, M: 2, H: 3, C: 4 },
+  IF: { N: 0, L: 1, M: 2, H: 3, C: 4 },
+  ORS: { N: 0, L: 1, M: 2, H: 3, C: 4 },
 });
 const OWASP_METRICS: OwaspMetricsValueCollection = Object.freeze(
   Object.assign({}, OWASP_METRICS_BASE)
@@ -126,7 +138,7 @@ export function levelNumberFromScore(score?: number | null) {
 }
 
 export function levelNameFromScore(score?: number | null) {
-  return ["Info", "Low", "Medium", "High", "Critical"][
+  return ["Note", "Low", "Medium", "High", "Critical"][
     levelNumberFromScore(score) - 1
   ];
 }
@@ -134,7 +146,7 @@ export function levelNameFromScore(score?: number | null) {
 export function levelNumberFromLevelName(levelName?: string | null) {
   return (
     Math.max(
-      ["info", "low", "medium", "high", "critical"].indexOf(
+      ["note", "low", "medium", "high", "critical"].indexOf(
         levelName?.toLowerCase() || ""
       ),
       0

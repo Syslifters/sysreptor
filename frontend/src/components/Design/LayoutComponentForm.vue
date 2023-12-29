@@ -151,7 +151,7 @@
       />
       <s-select
         v-model="form.findingList.headerVariant"
-        :items="['default', 'table']"
+        :items="['default', 'table', 'owasp-table']"
         label="Finding List Variant"
         hint="Choose between some predefined styles"
         :disabled="props.disabled"

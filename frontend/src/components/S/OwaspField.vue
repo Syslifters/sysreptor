@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-col cols="12" v-for="m in metricOWASP" :key="m">
+    <v-col cols="12" md="6" v-for="m in metricOWASP" :key="m">
       <v-card
         variant="outlined"
         class="mb-2"

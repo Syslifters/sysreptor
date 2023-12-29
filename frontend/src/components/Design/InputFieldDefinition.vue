@@ -348,7 +348,7 @@ function updateType(type: FieldDataType) {
   // if type changes, ensure that default has the correct data type or set to null
   const def = props.modelValue.default;
   if (
-    ([FieldDataType.STRING, FieldDataType.MARKDOWN, FieldDataType.CVSS, FieldDataType.COMBOBOX].includes(type) && !(def instanceof String)) ||
+    ([FieldDataType.STRING, FieldDataType.MARKDOWN, FieldDataType.CVSS, FieldDataType.OWASP, FieldDataType.COMBOBOX].includes(type) && !(def instanceof String)) ||
         (type === FieldDataType.NUMBER && !(def instanceof Number)) ||
         (type === FieldDataType.BOOLEAN && !(def instanceof Boolean)) ||
         (type === FieldDataType.ENUM && !(newObj.choices || []).find(c => c.value === def)) ||
