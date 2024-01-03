@@ -1,6 +1,6 @@
 <template>
   <v-navigation-drawer
-    :rail="!localSettings.subDrawerExpanded"
+    :rail="!isExpanded"
     rail-width="36"
     width="180"
     permanent  
@@ -8,13 +8,13 @@
     class="subdrawer"
   >
     <v-list class="pa-0 h-100 d-flex flex-column" density="compact">
-      <slot />
+      <slot :is-expanded="isExpanded" />
       <v-spacer />
       <v-list-item 
         @click="localSettings.subDrawerExpanded = !localSettings.subDrawerExpanded"
         class="pa-0 ma-0"
         title="Collapse"
-        :prepend-icon="localSettings.subDrawerExpanded ? 'mdi-chevron-left' : 'mdi-chevron-right'" 
+        :prepend-icon="isExpanded ? 'mdi-chevron-left' : 'mdi-chevron-right'" 
       />
     </v-list>
   </v-navigation-drawer>
@@ -22,6 +22,7 @@
 
 <script setup lang="ts">
 const localSettings = useLocalSettings();
+const isExpanded = computed(() => localSettings.subDrawerExpanded);
 </script>
 
 <style lang="scss">
