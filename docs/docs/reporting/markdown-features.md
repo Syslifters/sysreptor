@@ -5,7 +5,7 @@ This document briefly describes the most important markdown syntax.
 Non-standard markdown syntax is described more detailed.
 
 ## Common Markdown
-~~~md linenums="1"
+~~~md
 # Heading h1
 ## Heading h2
 ### Heading h3
@@ -31,20 +31,20 @@ echo "multiline code block";
 ## Underline
 Underline is not supported in markdown. However you can insert HTML `<u>` tags to underline text.
 
-```md linenums="1"
+```md
 Text with <u>underlined</u> content.
 ```
 
 ## Images
 Images use the standard markdown syntax, but are rendered as figures with captions.
 
-```md linenums="1"
+```md
 ![Figure Caption](img.png){width="50%"}
 
 ![caption _with_ **markdown** `code`](img.png)
 ```
 
-``` html linenums="1"
+```html
 <figure>
   <img src="https://example.com/img.png" style="width: 50%">
   <figcaption>Figure Caption</figcaption>
@@ -52,7 +52,7 @@ Images use the standard markdown syntax, but are rendered as figures with captio
 ```
 
 ## Footnotes
-```md linenums="1"
+```md
 Text text^[footnote content] text.
 ```
 
@@ -60,7 +60,7 @@ Text text^[footnote content] text.
 For tables the GFM-like table syntax is used.
 This syntax is extended to support table captions.
 
-```md linenums="1"
+```md
 | table   | header  |
 | ------- | ------- |
 | cell    | value   |
@@ -78,7 +78,7 @@ Code blocks allow including source code and highlight it.
 
 The following example shows how to apply syntax highlighting to a HTTP request.
 Many other programming languages are also supported.
-````md linenums="1"
+````md
 ```http
 POST /login.php HTTP/1.1
 Host: sqli.example.com
@@ -100,7 +100,7 @@ In the rendered HTML code, the content inside the two `§§`-placeholders is wra
 This works in combination with language-based syntax highlighting.
 
 This example highlights the vulnerable POST-parameter `username` in the HTTP body.
-````md linenums="1"
+````md
 ```http highlight-manual
 POST /login.php HTTP/1.1
 Host: sqli.example.com
@@ -119,7 +119,7 @@ It is possible to specify a different escaple character via the `highlight-manua
 Make sure that the escape character is not present in the code block.
 
 The following example uses `"|"` as escape character and a custom HTML markup for highlighting.
-````md linenums="1"
+````md
 ```http highlight-manual="|"
 POST /login.php HTTP/1.1
 Host: sqli.example.com
@@ -140,7 +140,7 @@ Diagrams will be rendered as HTML `<figure>` elements.
 Like with images, you can set a caption and with/height.
 
 The following example shows how to create a simple flowchart. 
-````md linenums="1"
+````md
 ```mermaid caption="Organizational Structure" width="50%"
 flowchart TD
   A[👔 CEO]
@@ -153,7 +153,7 @@ flowchart TD
 ![Mermaid Diagram Example: Organizational Structure](/images/md_mermaid_diagram_organization.png){width="50%"}
 
 
-````md  linenums="1"
+````md
 ```mermaid caption="Man in the Middle Attack"
 %%{init: {"sequence": {"mirrorActors": false}}}%%
 sequenceDiagram
@@ -178,7 +178,7 @@ Place attributes in curly braces directly after the targeted element (without sp
 Attributes are key value pairs (`attr-name="attr-value"`)
 Shortcuts for setting the attribute `id` (`#id-value`) and `class` (`.class-value`) are supported.
 
-```md linenums="1"
+```md
 ## Headline in Table of Contents {.in-toc .numbered}
 
 ![image](img.png){#img-id .image-class1 .image-class2 width="50%"}
@@ -191,7 +191,7 @@ If something is not possible with markdown, you can fall back to writing HTML co
 
 
 Following example shows a figure containing two images side-by-side.
-```md linenums="1"
+```md
 Text *with* **markdown** `code`.
 
 <figure class="figure-side-by-side">
@@ -204,7 +204,7 @@ Text *with* **markdown** `code`.
 It is also possible to embed markdown inside HTML blocks. An empty line is required as a seperator between HTML and markdown.
 Following example shows a complex table that is not possible with the markdown table syntax.
 
-```md linenums="1"
+```md
 Text *with* **markdown** `code`.
 
 <table>

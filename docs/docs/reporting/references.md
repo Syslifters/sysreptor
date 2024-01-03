@@ -19,12 +19,12 @@ This allows you to reference for example:
 * and everything that has an `id`
 
 ## Reference Images
-```md linenums="1" title="Markdown"
+```md title="Markdown"
 ![SQL Injection](/assets/name/image.png){#sqli}
 As you see in [](#sqli) (e.g. rendered as "Figure 3")
 ```
 
-```html linenums="1" title="HTML"
+```html title="HTML"
 <figure id="sqli"><img src="/assets/name/image.png"><figcaption>SQL Injection</figcaption></figure>
 As you see in <ref to="sqli" /> (e.g. rendered as "Figure 3")
 ```
@@ -35,11 +35,11 @@ You need the finding ID of the finding you want to reference.
  1. Open the other finding that should be linked
  2. Copy the last UUID from the URL ![Grab the finding ID](/images/finding_id.png)
 
-```md linenums="1" title="Markdown"
+```md title="Markdown"
 See [](#00000000-0000-0000-0000-000000000000)... (e.g. rendered as "1.3 SQL injection")
 ```
 
-```html linenums="1" title="HTML"
+```html title="HTML"
 See <ref to="#00000000-0000-0000-0000-000000000000" />... (e.g. rendered as "1.3 SQL injection")
 ```
 
@@ -47,12 +47,12 @@ See <ref to="#00000000-0000-0000-0000-000000000000" />... (e.g. rendered as "1.3
 You can reference headings if your [design supports it](/designer/headings-and-table-of-contents/#referencing-sections-in-text-outside-of-toc).
 
 
-```md linenums="1" title="Markdown"
+```md title="Markdown"
 # Findings {#findings .in-toc.numbered}
 Find details in []"#findings" /> (rendered as "1 Findings").
 ```
 
-```html linenums="1" title="HTML"
+```html title="HTML"
 <h1 id="findings" class="in-toc numbered">Findings</h1>
 Find details in <ref to="findings" /> (rendered as "1 Findings").
 ```

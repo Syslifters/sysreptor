@@ -17,7 +17,7 @@ Our free cloud service to write your Hack The Box CPTS, CBBH, and CDSA reports.
 1. [Install](/setup/installation/){ target="_blank" } SysReptor
 2. Import all HTB Designs:
 
-```shell linenums="1"
+```shell
 cd sysreptor/deploy
 url="https://docs.sysreptor.com/assets/htb-designs.tar.gz"
 curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=design

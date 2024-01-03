@@ -13,7 +13,7 @@ If you want to customize the styles (like fonts, code blocks, etc.), have a look
 
 
 ## Headings
-```css linenums="1"
+```css
 /* Avoid page breaks in headlines */
 h1, h2, h3, h4, h5, h6 {
   break-inside: avoid;
@@ -27,7 +27,7 @@ h1, h2, h3, h4, h5, h6 {
 * `.code-block`: code block rendered from markdown
 * `.code-inline`: inline code rendered from markdown
 
-```css linenums="1"
+```css
 pre code {
   display: block !important;
   border: 1px solid black;
@@ -44,14 +44,14 @@ pre {
 ```
 
 ## Prevent page overflow of long texts
-```css linenums="1"
+```css
 html {
   overflow-wrap: break-word;
 }
 ```
 
 ## Justified texts
-```css linenums="1"
+```css
 p {
   text-align: justify;
   text-align-last: start;
@@ -60,7 +60,7 @@ p {
 
 ## Lists
 Style list marker separately with `::marker`
-```css linenums="1"
+```css
 li::marker {
   color: red;
 }
@@ -73,7 +73,7 @@ Following example uses two fonts for the document:
 `Roboto` for regular text (set for the whole `html` document) and 
 the monospace font `Source Code Pro` for `code` blocks.
 
-```css linenums="1"
+```css
 html {
   font-family: "Noto Sans", sans-serif;
   font-size: 10pt;

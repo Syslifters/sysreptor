@@ -16,13 +16,13 @@ We recommend to create a [backup](/backups/) of your installation before updatin
 
     It will then copy your `app.env` to the right location of your newer version. The new docker images are build and launched.
 
-    ```shell linenums="1" title="Run update script:"
+    ```shell title="Run update script:"
     bash sysreptor/update.sh
     ```
 
 === "Manual update"
     Download and extract the latest SysReptor release:
-    ```shell linenums="1"
+    ```shell
     curl -s -L --output sysreptor.tar.gz https://github.com/syslifters/sysreptor/releases/latest/download/source-prebuilt.tar.gz
     tar xzf sysreptor.tar.gz
     ```
@@ -30,11 +30,11 @@ We recommend to create a [backup](/backups/) of your installation before updatin
     Copy `deploy/app.env` from your old installation to the new installation.
 
     `cd` to `sysreptor/deploy`. Then, build Docker images and launch containers:
-    ```shell linenums="1" title="Community:"
+    ```shell title="Community:"
     docker compose -f docker-compose.yml up -d --build
     ```
 
-    ```shell linenums="1" title="Professional:"
+    ```shell title="Professional:"
     docker compose up -d --build
     ```
     
@@ -43,7 +43,7 @@ We recommend to create a [backup](/backups/) of your installation before updatin
 We recommend to deploy automatic updates and run the script once per day. This ensures you receive updates early and you regularly update all dependencies and base images.
 
 If `cron` is not installed, install and start:
-```shell linenums="1"
+```shell
 sudo apt update
 sudo apt install cron
 sudo systemctl start cron
@@ -51,12 +51,12 @@ sudo systemctl start cron
 ```
 
 Open `crontab`:
-```shell linenums="1"
+```shell
 crontab -e
 ```
 
 Schedule your update, e.g. every day at midnight:
-```shell linenums="1"
+```shell
 0 0 * * * /bin/bash /home/yourpath/sysreptor/update.sh
 ```
 

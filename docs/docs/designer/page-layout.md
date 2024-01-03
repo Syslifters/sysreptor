@@ -4,7 +4,7 @@
 Set the page margin such that all regular content fits in the page and there is enough space on the page borders for headers and footers.
 Page headers and footers should be inside the margin box to not overlap with text content.
 
-```css linenums="1"
+```css
 @page {
   size: A4 portrait;
   margin: 35mm 20mm 25mm 20mm;
@@ -20,7 +20,7 @@ See:
 * https://printcss.net/articles/running-headers-and-footers { target=_blank }
 * https://www.w3.org/TR/css-gcpm-3/#running-syntax { target=_blank }
 
-```css linenums="1"
+```css
 @page {
   @top-right {
     content: element(header-right);
@@ -34,7 +34,7 @@ See:
 }
 ```
 
-```html linenums="1"
+```html
 <div id="header">
   Text or 
   <img src="logo.png" alt="logo">
@@ -45,7 +45,7 @@ See:
 Headers and footers are also rendered on the title page by default.
 To hide them, override `content` containing the `element(header)` on the first page.
 
-```css linenums="1"
+```css
 @page :first {
   @top-right {
     content: "";
@@ -57,7 +57,7 @@ To hide them, override `content` containing the `element(header)` on the first p
 
 ## Page numbers
 The page number is a built-in CSS counter that can be used in `content`.
-```css linenums="1"
+```css
 /* Add page number at the bottom right corner of pages */
 @page {
   @bottom-right-corner {
@@ -82,7 +82,7 @@ The page counter then has to be used in a pseudo element such as `::before` or `
 The easiest way to add a pagebreak is to include a `<pagebreak />` component in the HTML template.
 
 In CSS page breaks can be controlled with 
-```css linenums="1"
+```css
 .selector {
   break-before: always;
   break-inside: avoid;
@@ -100,7 +100,7 @@ It is best to place element at specific offsets using `position: absolute` in co
 
 You may also want to disable headers and footers on the title page (described above).
 
-```css linenums="1"
+```css
 #page-cover {
   /* Use the full page; overlay page margin box */
   margin: -35mm -20mm 26mm -20mm;

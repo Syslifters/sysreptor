@@ -25,7 +25,7 @@
     Installation via script is the easiest option. You need (official) [Docker](https://docs.docker.com/engine/install/ubuntu/){ target=_blank }  installed.
 
     Install additional requirements of script installation:
-    ```shell linenums="1" 
+    ```shell
     sudo apt update
     sudo apt install sed curl openssl uuid-runtime coreutils
     ```
@@ -34,13 +34,13 @@
     Download and run:
 
     === "Professional"
-        ```shell linenums="1"
+        ```shell
         export SYSREPTOR_LICENSE='your_license_key' 
         curl -s https://docs.sysreptor.com/install.sh | bash
         ```
 
     === "Community"
-        ```shell linenums="1"
+        ```shell
         curl -s https://docs.sysreptor.com/install.sh | bash
         ```
 
@@ -52,24 +52,24 @@
     You need (official) [Docker](https://docs.docker.com/engine/install/ubuntu/){ target=_blank }  installed.
 
     Download and extract the latest SysReptor release:
-    ```shell linenums="1"
+    ```shell
     curl -s -L --output sysreptor.tar.gz https://github.com/syslifters/sysreptor/releases/latest/download/source-prebuilt.tar.gz
     tar xzf sysreptor.tar.gz
     ```
 
     Create your `app.env`:
-    ```shell linenums="1"
+    ```shell
     cd sysreptor/deploy
     cp app.env.example app.env
     ```
 
     Generate Django secret key and add to `app.env`:
-    ```shell linenums="1"
+    ```shell
     printf "SECRET_KEY=\"$(openssl rand -base64 64 | tr -d '\n=')\"\n"
     ```
 
     Generate data at rest encryption keys and add to `app.env`:
-    ```shell linenums="1"
+    ```shell
     KEY_ID=$(uuidgen) && printf "ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32)\", \"cipher\": \"AES-GCM\", \"revoked\": false}]\nDEFAULT_ENCRYPTION_KEY_ID=\"${KEY_ID}\"\n"
     ```
 
@@ -79,26 +79,26 @@
     ```
 
     Create docker volumes:
-    ```shell linenums="1"
+    ```shell
     docker volume create sysreptor-db-data
     docker volume create sysreptor-app-data
     ```
 
     Build Docker image and run container:
     === "Professional"
-        ```shell linenums="1"
+        ```shell
         docker compose up -d
         ```
 
     === "Community"
-        ```shell linenums="1"
+        ```shell
         docker compose -f docker-compose.yml up -d
         ```
 
     `-f docker-compose.yml` is specified for Community only to avoid inclusion of Docker Compose Override. This avoids to run an additional Docker container for spell checking and saves resources.
 
     Add initial superuser:
-    ```shell linenums="1"
+    ```shell
     username=reptor
     docker compose exec app python3 manage.py createsuperuser --username "$username"
     ```

@@ -12,7 +12,7 @@ We recommend a webserver like Caddy, nginx or Apache and to enable https.
 
     Create a `docker-compose.yml` (e.g. in a `caddy` directory outside your SysReptor files):
 
-    ```yml linenums="1"
+    ```yml
     version: '3.9'
     name: caddy
 
@@ -41,21 +41,21 @@ We recommend a webserver like Caddy, nginx or Apache and to enable https.
 
     You can install nginx on your host system:
 
-    ```shell linenums="1"
+    ```shell
     sudo apt-get update
     sudo apt-get install nginx
     ```
 
     Copy our nginx boilerplate configuration from the `deploy` directory to your nginx directory:
 
-    ```shell linenums="1"
+    ```shell
     sudo cp deploy/sysreptor.nginx /etc/nginx/sites-available/
     sudo ln -s /etc/nginx/sites-available/sysreptor.nginx /etc/nginx/sites-enabled/
     sudo rm /etc/nginx/sites-enabled/default
     ```
 
     You can optionally generate self-signed certificates:
-    ```shell linenums="1"
+    ```shell
     sudo apt-get update
     sudo apt-get install ssl-cert
     sudo make-ssl-cert generate-default-snakeoil
@@ -64,7 +64,7 @@ We recommend a webserver like Caddy, nginx or Apache and to enable https.
     Modify `sysreptor.nginx` and update the certificate paths in case you have trusted certificates (recommended).
 
     (Re)Start nginx:
-    ```shell linenums="1"
+    ```shell
     sudo systemctl restart nginx
     # sudo /etc/init.d/nginx restart
     ```

@@ -1,6 +1,6 @@
 # Tables
 ## Basic Table Styling
-```css linenums="1"
+```css
 table {
   width: 100%;
   caption-side: bottom;
@@ -38,7 +38,7 @@ See: https://www.w3.org/WAI/tutorials/tables/irregular/
 ### Vertial Text in Row headers
 Rotate text with `transform`.
 
-```html linenums="1"
+```html
 <table>
   <caption>Complex table with vertical text spanning multiple rows</caption>
   <tr>
@@ -51,7 +51,7 @@ Rotate text with `transform`.
 </table>
 ```
 
-```css linenums="1"
+```css
 .rowheader-vertical {
     width: 2em;
 }
@@ -69,7 +69,7 @@ Rotate text with `transform`.
 
 
 ## Table numbering
-```css linenums="1"
+```css
 html {
   counter-reset: table-counter;
 }
@@ -86,7 +86,7 @@ Works similar like table of contents.
 The component uses multi-pass rendering.
 In the first render-pass it does nothing, in the second pass it collects all previously rendered `<caption>` tags and provides them in the variable `items`.
 
-```html linenums="1"
+```html
 <list-of-tables v-slot="items">
   <section v-if="items.length > 0">
     <h1 class="in-toc">List of Tables</h1>
@@ -103,7 +103,7 @@ In the first render-pass it does nothing, in the second pass it collects all pre
 ```
 
 ### Referencing figure numbers
-```css linenums="1"
+```css
 .lot {
     padding-left: 0;
 }

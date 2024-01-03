@@ -138,6 +138,7 @@ markdown_extensions:
   - pymdownx.magiclink
   - pymdownx.highlight:
       use_pygments: true
+      linenums: true
   - pymdownx.snippets:
       url_download: true
   - admonition
