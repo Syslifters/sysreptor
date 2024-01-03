@@ -104,7 +104,7 @@ title: SysReptor Pentest Report Creator
 </figure>
 
 <figure markdown>
-  [![syslifters](images/syslifters-logo.png){ style="width: 220px" }](https://syslifters.com/en/home){ target=_blank }
+  [![syslifters](images/syslifters-logo.svg){ style="width: 220px" }](https://syslifters.com/en/home){ target=_blank }
 </figure>
 
 <br><div style="text-align:center">[:sauropod: Book a Demo](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ .md-button target="_blank" }</div>

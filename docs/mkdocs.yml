@@ -75,6 +75,9 @@ nav:
     
 theme:
   name: material
+  font:
+    text: Noto Sans
+    code: Noto Sans
   custom_dir: overrides
   logo: images/logo.svg
   features:
@@ -103,9 +106,9 @@ plugins:
       enabled: !ENV [CI, true]
       cards: !ENV [CI, true]
       cards_layout_options:
-        background_color: "#001827"
+        background_color: "#818b06"
         color: "#F9FDFF"
-        font_family: Exo
+        font_family: "Noto Sans"
   - tooltips
   - search
   - privacy:
