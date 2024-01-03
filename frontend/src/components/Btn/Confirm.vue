@@ -7,7 +7,7 @@
             v-if="buttonVariant === 'list-item'"
             :title="buttonText"
             :disabled="props.disabled"
-            @click="!props.confirm ? performAction() : null"
+            @click="onClick"
             link
             v-bind="{...$attrs, ...tooltipProps, ...dialogProps}"
           >
@@ -22,7 +22,7 @@
             :loading="actionInProgress"
             :disabled="disabled"
             :color="($attrs.color as string|undefined) || buttonColor || 'secondary'"
-            @click="!props.confirm ? performAction() : null"
+            @click="onClick"
             v-bind="{...$attrs, ...tooltipProps, ...dialogProps}"
           />
           <s-btn
@@ -32,7 +32,7 @@
             :loading="actionInProgress"
             :disabled="disabled"
             :color="($attrs.color as string|undefined) || buttonColor || 'secondary'"
-            @click="!props.confirm ? performAction() : null"
+            @click="onClick"
             v-bind="{...$attrs, ...tooltipProps, ...dialogProps}"
           />
         </template>
@@ -150,6 +150,18 @@ if (props.keyboardShortcut) {
     window.removeEventListener('keydown', onKeyDown);
   });
 }
+
+function onClick() {
+  if (props.confirm) {
+    confirmDialogVisible.value = true;
+  } else {
+    performAction();
+  }
+}
+
+defineExpose({
+  click: onClick,
+})
 </script>
 
 <style lang="scss" scoped>
