@@ -1,24 +1,24 @@
 <template>
   <full-height-page>
     <s-sub-drawer>
-      <template v-if="project">
+      <template #default="{ isExpanded }" v-if="project">
         <v-list-item :to="`/projects/${project.id}/`" exact prepend-icon="mdi-cogs" title="Settings">
-          <s-tooltip activator="parent" text="Project Settings" />
+          <s-tooltip v-if="!isExpanded" activator="parent" text="Project Settings" />
         </v-list-item>
         <v-list-item :to="`/projects/${project.id}/notes/`" prepend-icon="mdi-notebook" title="Notes">
-          <s-tooltip activator="parent" text="Notes" />
+          <s-tooltip v-if="!isExpanded" activator="parent" text="Notes" />
         </v-list-item>
         <v-list-item :to="`/projects/${project.id}/reporting/`" prepend-icon="mdi-text" title="Reporting">
-          <s-tooltip activator="parent" text="Reporting" />
+          <s-tooltip v-if="!isExpanded" activator="parent" text="Reporting" />
         </v-list-item>
         <v-list-item :to="`/projects/${project.id}/designer/`" v-if="projectType?.source === 'customized'" prepend-icon="mdi-pencil-ruler" title="Designer">
-          <s-tooltip activator="parent" text="Designer" />
+          <s-tooltip v-if="!isExpanded" activator="parent" text="Designer" />
         </v-list-item>
         <v-list-item :to="`/projects/${project.id}/publish/`" prepend-icon="mdi-earth" title="Publish">
-          <s-tooltip activator="parent" text="Publish" />
+          <s-tooltip v-if="!isExpanded" activator="parent" text="Publish" />
         </v-list-item>
         <v-list-item :to="`/projects/${project.id}/history/`" prepend-icon="mdi-history" title="History">
-          <s-tooltip activator="parent" text="History" />
+          <s-tooltip v-if="!isExpanded" activator="parent" text="History" />
         </v-list-item>
       </template>
     </s-sub-drawer>

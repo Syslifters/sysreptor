@@ -2,9 +2,36 @@
   <split-menu v-model="localSettings.notebookInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
       <v-list density="compact" class="pt-0 pb-0 h-100 d-flex flex-column">
+        <v-list-subheader>
+          <span>Notes</span>
+          <s-btn-icon
+            @click="($refs.createNoteBtnRef as any)!.click()"
+            :disabled="project.readonly"
+            size="small"
+            variant="flat"
+            color="secondary"
+            density="compact"
+            class="ml-2"
+          >
+            <v-icon icon="mdi-plus" />
+            <s-tooltip activator="parent" location="top">Add Note (Ctrl+J)</s-tooltip>
+          </s-btn-icon>
+        </v-list-subheader>
+
+        <notes-sortable-list
+          :model-value="noteGroups"
+          @update:model-value="updateNoteOrder"
+          @update:note="updateNote"
+          :disabled="project.readonly"
+          :to-prefix="`/projects/${$route.params.projectId}/notes/`"
+          class="flex-grow-1 overflow-y-auto"
+        />
+
         <div>
+          <v-divider />
           <v-list-item>
             <btn-confirm
+              ref="createNoteBtnRef"
               :action="createNote"
               :disabled="project.readonly"
               :confirm="false"
@@ -14,19 +41,9 @@
               keyboard-shortcut="ctrl+j"
               size="small"
               block
-              class="ma-0"
             />
           </v-list-item>
-          <v-divider />
         </div>
-        <notes-sortable-list
-          :model-value="noteGroups"
-          @update:model-value="updateNoteOrder"
-          @update:note="updateNote"
-          :disabled="project.readonly"
-          :to-prefix="`/projects/${$route.params.projectId}/notes/`"
-          class="flex-grow-1 overflow-y-auto"
-        />
       </v-list>
     </template>
 
