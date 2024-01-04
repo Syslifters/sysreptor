@@ -3,19 +3,22 @@ title: SysReptor Pentest Report Creator
 ---
 <h1 style="text-align: center;font-weight:bold;">Pentest Reports<br>Easy As Pie.</h1>
 
-<img 
-    style="display: block; 
-           margin-left: auto;
-           margin-right: auto;
-           margin-bottom: 40px;"
-    src="/assets/emojis/pie.svg"
-    viewBox="0 0 200 200"
-    height="200"
-    width="130"
-    alt="It's a pie. Because Pentest reports are as easy as pie.">
-</img>
+<div style="overflow: hidden;">
+  <img 
+      style="display: block; 
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: -5.3em;
+            width: 10em;"
+      src="/assets/dino/eating_cake.svg"
+      viewBox="0 0 200 200"
+      height="200"
+      width="130"
+      alt="It's a pie. Because Pentest reports are as easy as pie.">
+  </img>
+</div>
 
-<div class="grid cards" style="text-align:center;" markdown>
+<div class="grid cards" style="text-align: center; margin-top: 0;" markdown>
 
 -   __Customize Reports__
 

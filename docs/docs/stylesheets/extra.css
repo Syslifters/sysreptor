@@ -77,6 +77,13 @@
     transition: none;
   }
 
+  .md-nav__link:not(.md-nav__container):focus {
+    color: unset;
+  }
+  .md-nav__link:not(.md-nav__container):hover {
+    color: var(--md-accent-fg-color);
+  }
+
   @media print {
     .no-print {
         display:none !important;
