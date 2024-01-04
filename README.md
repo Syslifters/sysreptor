@@ -1,6 +1,6 @@
 <h1 align="center">
     <br>
-    <a href="https://docs.sysreptor.com/"><img src="https://docs.sysreptor.com/images/logo-invert-with-text.png" alt="SysReptor"></a>
+    <a href="https://docs.sysreptor.com/"><img src="/docs/docs/assets/dino/banner.svg" width="100%" alt="SysReptor"></a>
 </h1>
 
 <h4 align="center">Easy and customisable pentest report creator based on simple web technologies.</h4>
@@ -51,9 +51,13 @@ SysReptor is a fully customisable, offensive security reporting solution designe
 
 
 ## SysReptor Cloud
-You just want to start reporting and save yourself all the effort of setting up, configuring and maintaining a dedicated server? Then SysReptor Cloud is the right choice for you! Get to know SysReptor on our [Playground](https://cloud.sysreptor.com/demo) and if you like it, you can get your personal Cloud instance here:
+You just want to start reporting and save yourself all the effort of setting up, configuring and maintaining a dedicated server? Then SysReptor Cloud is the right choice for you! Get to know SysReptor on our [Playground](https://cloud.sysreptor.com/demo) and if you like it, you can get your personal Cloud instance [here](https://cloud.sysreptor.com/order/).
 
-<h3 align="center">🚀 Sign up <a class="md-button" href="https://cloud.sysreptor.com/order/">here</a></h3>
+<h3 align="center">
+    <a href="https://cloud.sysreptor.com/demo"><img src="/docs/docs/assets/dino/sign_demo.svg" width="15%" alt="Demo"></a>
+</h3>
+<h3 align="center">🦖 Try demo <a class="md-button" href="https://cloud.sysreptor.com/demo/">here</a></h3>
+<h3 align="center">🚀 Sign up for SysReptor Cloud <a class="md-button" href="https://cloud.sysreptor.com/order/">here</a></h3>
 
 <br>
 
