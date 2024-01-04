@@ -1,7 +1,7 @@
 <template>
   <split-menu v-model="localSettings.notebookInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
-      <v-list density="compact" class="pt-0 pb-0 h-100 d-flex flex-column">
+      <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
         <v-list-subheader>
           <span>Notes</span>
           <s-btn-icon
@@ -127,5 +127,9 @@ const updateNoteOrder = debounce(async (notes: NoteGroup<ProjectNote>) => {
   display: inline-block;
   margin: 0;
   padding: 0;
+}
+
+:deep(.v-list-subheader) {
+  padding-left: 0.5em !important;
 }
 </style>
