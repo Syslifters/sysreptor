@@ -1,4 +1,6 @@
 ---
+search:
+  exclude: true
 grammarly: false
 ---
 # AD Privileged Access Strategy

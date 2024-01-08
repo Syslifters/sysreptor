@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # SQL injection (SQLi)
 ## Description
 SQL Injection is a server-side vulnerability in web applications. It occurs when software developers create dynamic database queries that contain user input. To exploit this vulnerability, an attacker can craft user input so that the originally intended action of an SQL statement is changed. SQL injection vulnerabilities result from an application's failure to dynamically create database queries insecurely and to validate user input properly. The SQL language does not distinguish between control characters and data characters. Control characters in the data part of SQL statements must be encoded or escaped appropriately beforehand.

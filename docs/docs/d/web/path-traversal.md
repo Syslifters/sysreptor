@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Path traversal / Directory traversal
 ## Description
 Path Traversal is a web security vulnerability that allows an attacker to access files and directories on the underlying web server of a web application. 

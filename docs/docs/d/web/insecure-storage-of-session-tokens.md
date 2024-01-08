@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Insecure storage of session tokens
 ## Description
 Web browsers have security mechanims for protecting session tokens. Those mechanisms prevent access to the session token via JavaScript and ensuring that the session token is always sent via encrypted channels. They are however only applicable to Cookies.

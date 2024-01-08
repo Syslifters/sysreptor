@@ -1,6 +1,9 @@
 ---
 grammarly: false
+search:
+  exclude: true
 ---
+
 # Insecure ADIDNS
 ## Description
 Domain controller DNS can store its zone data in Active Directory Domain Services (AD DS). There is no need for a separate DNS replication topology like DNS zone transfers. Any domain controller in a domain running the DNS server service can update the DNS zones built into Active Directory. All zone data is automatically replicated by Active Directory replication with domain controllers. 

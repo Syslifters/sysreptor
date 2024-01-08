@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Cross-Site Request Forgery (CSRF)
 ## Description
 
