@@ -39,7 +39,7 @@ services:
     expose:
       - 8000
     ports:
-      - "127.0.0.1:8000:8000"
+      - ${BIND_PORT:-127.0.0.1:8000:8000}
     environment:
       DATABASE_HOST: db
       DATABASE_NAME: reportcreator
