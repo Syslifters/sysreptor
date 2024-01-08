@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## v2024.1 - 2024-01-08
 * Design and UI rework
 * Dark mode
 * Disable buttons and menu entries when user does not have permissions
