@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@codemirror/autocomplete 6.11.0
+@codemirror/autocomplete 6.11.1
 MIT
 MIT License
 
@@ -48,7 +48,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/commands 6.3.0
+@codemirror/commands 6.3.3
 MIT
 MIT License
 
@@ -98,7 +98,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-html 6.4.6
+@codemirror/lang-html 6.4.7
 MIT
 MIT License
 
@@ -148,7 +148,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-markdown 6.2.2
+@codemirror/lang-markdown 6.2.3
 MIT
 MIT License
 
@@ -173,7 +173,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-vue 0.1.2
+@codemirror/lang-vue 0.1.3
 MIT
 MIT License
 
@@ -198,7 +198,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/language 6.9.2
+@codemirror/language 6.10.0
 MIT
 MIT License
 
@@ -248,7 +248,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/state 6.3.1
+@codemirror/merge 6.5.0
+MIT
+MIT License
+
+Copyright (C) 2018-2022 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+@codemirror/state 6.4.0
 MIT
 MIT License
 
@@ -273,7 +298,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/view 6.22.0
+@codemirror/view 6.23.0
 MIT
 MIT License
 
@@ -316,7 +341,7 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-@lezer/common 1.1.1
+@lezer/common 1.2.0
 MIT
 MIT License
 
@@ -341,7 +366,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/css 1.1.4
+@lezer/css 1.1.6
 MIT
 MIT License
 
@@ -391,7 +416,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/html 1.3.6
+@lezer/html 1.3.8
 MIT
 MIT License
 
@@ -416,7 +441,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/javascript 1.4.9
+@lezer/javascript 1.4.12
 MIT
 MIT License
 
@@ -466,7 +491,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/markdown 1.1.1
+@lezer/markdown 1.2.0
 MIT
 MIT License
 
@@ -1568,7 +1593,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-cytoscape 3.27.0
+cytoscape 3.28.1
 MIT
 Copyright (c) 2016-2023, The Cytoscape Consortium.
 
@@ -2515,7 +2540,7 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
 IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-dompurify 3.0.6
+dompurify 3.0.8
 (MPL-2.0 OR Apache-2.0)
 DOMPurify
 Copyright 2023 Dr.-Ing. Mario Heiderich, Cure53
@@ -4433,7 +4458,7 @@ will be liable to anyone for any damages related to this
 software or this license, under any kind of legal claim.***
 
 
-json-parse-even-better-errors 3.0.0
+json-parse-even-better-errors 3.0.1
 MIT
 Copyright 2017 Kat Marchán
 Copyright npm, Inc.
@@ -4562,7 +4587,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-license-checker-rseidelsohn 4.2.10
+license-checker-rseidelsohn 4.3.0
 BSD-3-Clause
 Copyright 2012 Yahoo Inc.
 
@@ -4795,7 +4820,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-lru-cache 10.0.3
+lru-cache 10.1.0
 ISC
 The ISC License
 
@@ -17280,7 +17305,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-stylis 4.3.0
+stylis 4.3.1
 MIT
 MIT License
 
@@ -17970,7 +17995,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-web-worker 1.2.0
+web-worker 1.3.0
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004

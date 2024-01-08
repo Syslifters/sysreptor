@@ -24,14 +24,15 @@
     "lowlight": "^3.1.0",
     "lodash": "^4.17.21",
 
-    "@codemirror/view": "~6.22",
-    "@codemirror/state": "~6.3",
+    "@codemirror/view": "~6.23",
+    "@codemirror/state": "~6.4",
     "@codemirror/commands": "~6.3",
     "@codemirror/lint": "~6.4",
-    "@codemirror/language": "~6.9",
+    "@codemirror/merge": "~6.5",
+    "@codemirror/language": "~6.10",
     "@codemirror/lang-markdown": "~6.2",
     "@codemirror/lang-html": "~6.4",
-    "@codemirror/lang-vue": "~0.1.2",
+    "@codemirror/lang-vue": "~0.1.3",
     "@codemirror/lang-css": "~6.2",
 
     "mermaid": "^10.6.1"
