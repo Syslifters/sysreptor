@@ -1,7 +1,34 @@
-# Proxy Server
+# Network Settings
 :octicons-server-24: Self-Hosted
 
-Your SysReptor server should use a proxy for outbound connections? Here's how to configure.
+## Bind to different port or interface
+SysReptor is bound to port 8000 on localhost by default. If you want to bind it to a different port, use the `BIND_PORT` environment variable and restart your containers from the `deploy` directory.  
+
+The format is `IP:HOST_PORT:CONTAINER_PORT`(note that `CONTAINER_PORT` should always be 8000).
+
+``` title="Examples:"
+export BIND_PORT="127.0.0.1:8000:8000"
+export BIND_PORT="127.0.0.1:80:8000"  # Bind to localhost port 80
+export BIND_PORT="8000:8000"  # Bind to all interfaces
+export BIND_PORT="1.1.1.1:8000:8000"  # Bind to dedicated interface
+```
+
+=== "Professional"
+    ```bash linenums="1" title="Export port variable and run container"
+    export BIND_PORT="127.0.0.1:8000:8000"
+    cd deploy
+    docker compose up -d
+    ```
+=== "Community"
+    ```bash linenums="1" title="Export port variable and run container"
+    export BIND_PORT="127.0.0.1:8000:8000"
+    cd deploy
+    docker compose -f docker-compose.yml up -d
+    ```
+
+Binding SysReptor to a publicly reachable network port exposes the application to untrusted networks without encryption. We recommend setting up a [web server](webserver/).
+
+Make sure that environment variables are set persistently, e.g. by adding the `export` command to your `~/.profile`.
 
 ## Proxy Configuration
 
@@ -28,7 +55,9 @@ We pass the proxy environment variables (`HTTP_PROXY` and `HTTPS_PROXY`) from yo
     Loopback addresses (e. g. `127.0.0.1`) or `localhost` will not work.
 
 
-## CA Certificates
+Make sure that environment variables are set persistently, e.g. by adding the `export` command to your `~/.profile`.
+
+### CA Certificates
 
 Your proxy server will probably not have a publicly trusted CA certificate. Build your Docker image with custom CA certificates:
 
@@ -45,4 +74,4 @@ Your proxy server will probably not have a publicly trusted CA certificate. Buil
     docker compose -f docker-compose.yml up -d --build
     ```
 
-Make sure that the `SYSREPTOR_CA_CERTIFICATES` environment variable is set during [updates](../updates) to keep your custom CA trusted.
+Make sure that environment variables are set persistently, e.g. by adding the `export` command to your `~/.profile`.

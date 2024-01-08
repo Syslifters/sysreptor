@@ -1,6 +1,5 @@
 # Configuration
 `app.env` (located in `deploy` directory) controls the behaviour of your SysReptor installation.  
-**Note:** Environment variables in your `docker-compose.yml` override those in your `app.env`.
 
 After making changes, go to `sysreptor/deploy` and restart the containers:
 
@@ -50,19 +49,6 @@ KEY_ID=$(uuidgen) && printf "ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \
 ENCRYPTION_KEYS='[{"id": "TODO-change-me-unique-key-id-5cdda4c0-a16c-4ae2-8a16-aa2ff258530d", "key": "256 bit (32 byte) base64 encoded AES key", "cipher": "AES-GCM", "revoked": false}]'
 DEFAULT_ENCRYPTION_KEY_ID="TODO-change-me-unique-key-id-5cdda4c0-a16c-4ae2-8a16-aa2ff258530d"
 ```
-
-### Bind to different port or interface
-SysReptor is bound to port 8000 on localhost by default. If you want to bind it to a different port, use the `BIND_PORT` environment variable.  
-The format is `IP:HOST_PORT:CONTAINER_PORT`(note that `CONTAINER_PORT` should always be 8000).
-
-``` title="Examples:"
-BIND_PORT="127.0.0.1:8000:8000"
-BIND_PORT="127.0.0.1:80:8000"  # Bind to localhost port 80
-BIND_PORT="8000:8000"  # Bind to all interfaces
-BIND_PORT="1.1.1.1:8000:8000"  # Bind to dedicated interface
-```
-
-Binding SysReptor to a publicly reachable network port exposes the application to untrusted networks without encryption. We recommend setting up a [web server](webserver/).
 
 ### Debug mode
 Debug mode enables Django's debug toolbar and stack traces. Do not use debug mode in production environments.

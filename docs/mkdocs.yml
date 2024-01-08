@@ -8,7 +8,7 @@ nav:
     - Installation: setup/installation.md
     - Configuration: setup/configuration.md
     - Setup Webserver: setup/webserver.md
-    - Proxy Server: setup/proxy.md
+    - Network Settings: setup/network.md
     - Updates: setup/updates.md
     - Backups: setup/backups.md
   - Writing Reports:
@@ -124,6 +124,7 @@ plugins:
         "setup/oidc-azure-active-directory.md": "users/oidc-azure-active-directory.md"
         "setup/oidc-google.md": "users/oidc-google.md"
         "setup/oidc-generic.md": "users/oidc-generic.md"
+        "setup/proxy.md": "setup/network.md"
 
 markdown_extensions:
   - attr_list
