@@ -55,6 +55,6 @@ Make sure to not block outgoing traffic.
 
 Restart the docker container by going to `sysreptor/deploy` and:
 
-```shell linenums="1"
+```shell
 docker compose up -d
 ```

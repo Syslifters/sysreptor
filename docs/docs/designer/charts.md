@@ -113,7 +113,7 @@ We provide following plugins:
 
 Plugins are disabled by default. You can enable them using the `plugins` option in the `config` object of charts.
 
-```html
+```html 
 <chart :config="{
   plugins: [ chartjsPlugins.DataLabels ]
 }" />

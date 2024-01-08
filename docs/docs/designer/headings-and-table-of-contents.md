@@ -18,7 +18,7 @@ If you want to customize heading numberings or table of content (like margins, e
 CSS has counters to automatically number items such as headings, figures, etc. and also generate table of contents and list of figures with these numbers.
 
 This allows you to automatically produce a structure similar to
-```md linenums="1"
+```md
 1 Heading
 1.1 Subheading
 1.2 Subheading
@@ -57,7 +57,7 @@ Note that this `h2::before` rule is defined only once and applies to all `<h2>` 
 ### Basic Heading Numbering
 Add numbering to heading tags which have the class `numbered`.
 
-```css linenums="1"
+```css
 html {
   /* Define counters and reset them */
   counter-reset: h1-counter h2-counter h3-counter;
@@ -99,7 +99,7 @@ E.g. with A, A.1, A.2, B, B.1, etc. instead contiuned numbering 4, 4.1, 4.2, 5, 
 
 CSS counters can specify a counter style to use such as `upper-alpha` instead of decimal numbers.
 
-```css linenums="1"
+```css
 html {
   /* NOTE: only one html {} block with counter-reset rules should exist; if there exist multiple, they overwrite each other */
   counter-reset: h1-counter h2-counter h3-counter h1-appendix-counter;

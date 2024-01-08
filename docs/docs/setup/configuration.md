@@ -4,12 +4,12 @@
 After making changes, go to `sysreptor/deploy` and restart the containers:
 
 === "Professional"
-    ```shell linenums="1"
+    ```shell
     docker compose up -d
     ```
 
 === "Community"
-    ```shell linenums="1"
+    ```shell
     docker compose -f docker-compose.yml up -d
     ```
 

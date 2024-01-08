@@ -7,7 +7,7 @@ This allows to add captions with `<figcaption>` tags.
 It is recommended that you also use `<figure>` tags when placing images in your HTML template in text.
 Except for logos in headers or background images on the title page.
 
-```html linenums="1"
+```html
 <figure>
   <img src="...">
   <figcaption>Caption</figcaption>
@@ -15,7 +15,7 @@ Except for logos in headers or background images on the title page.
 ```
 
 ### Image width
-```md linenums="1"
+```md
 ![Image with half the page width](img.png){width="50%"}
 ![Exactly sized image](img.png){width="10cm" height="7cm"}
 ```
@@ -26,7 +26,7 @@ TODO: support inline images; maybe find/implement a markdown-only without the re
 -->
 
 ## Basic styling
-```css linenums="1"
+```css
 /* Image styling */
 /* Prevent images from overflowing figure or page width */
 img {
@@ -46,7 +46,7 @@ figcaption {
 
 
 ## Figure numbering 
-```css linenums="1"
+```css
 html {
   counter-reset: figure-counter;
 }
@@ -65,7 +65,7 @@ Works similar like table of contents.
 The component uses multi-pass rendering.
 In the first render-pass it does nothing, in the second pass it collects all previously rendered `<figcaption>` tags and provides them in the variable `items`.
 
-```html linenums="1"
+```html
 <list-of-figures id="lof" v-slot="items" >
     <section v-if="items.length > 0">
         <h1 class="in-toc">List of Figures</h1>
@@ -80,7 +80,7 @@ In the first render-pass it does nothing, in the second pass it collects all pre
 ```
 
 ### Referencing figure numbers
-```css linenums="1"
+```css
 #lof li {
     list-style: none;
     margin: 0;

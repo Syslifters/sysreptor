@@ -17,7 +17,7 @@ Our free cloud service to write your OffSec OSCP, OSWP, OSEP, OSWA, OSWE, OSED, 
 1. [Install](/setup/installation/){ target="_blank" } SysReptor
 2. Import all OffSec Designs:
 
-```shell linenums="1"
+```shell
 cd sysreptor/deploy
 url="https://docs.sysreptor.com/assets/offsec-designs.tar.gz"
 curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=design

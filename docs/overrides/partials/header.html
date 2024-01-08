@@ -9,41 +9,34 @@
 {% endif %}
 <style>
   .demo-button {
-    border-radius: .1rem;
-    background-color: var(--md-typeset-a-color);
+    border-radius: 0.1rem;
+    background-color: #4f4f4f;
     color: var(--md-primary-bg-color);
     cursor: pointer;
     display: inline-block;
     font-weight: 600;
     font-size: medium;
-    padding: .4em 1.5em;
-    transition: color 1250ms,background-color;
+    padding: 0.4em 1.5em;
+    transition: color 1250ms, background-color;
     margin-left: 20px;
   }
   .demo-button:hover {
-      background-color: var(--md-primary-fg-color--light);
-  }
-  .banner {
-      height: 100%;       /* Height of the banner */
-      top: 0;             /* Absolute top of page */
-      left: 0;
-      width: 100%;
-      z-index: 1;         /* Tells the renderer "this is important", otherwise Admonition and Code Blocks will render into it */
-      text-align: center;
-      vertical-align: middle;
-      font-weight: bold;
-      font-size: small;
-      color: #001827;
-      background-color: #0098DB;
+    background-color: var(--md-accent-fg-color);
   }
 
   .md-header {
-      top: 0px;          /* This setting prevents the Material header from imposing into the space of the banner! */
+    top: 0px; /* This setting prevents the Material header from imposing into the space of the banner! */
   }
 </style>
 <header class="{{ class }}" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="{{ lang.t('header') }}">
-    <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" title="{{ config.site_name | e }}" class="md-header__button md-logo" aria-label="{{ config.site_name }}" data-md-component="logo">
+    <a
+      href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}"
+      title="{{ config.site_name | e }}"
+      class="md-header__button md-logo"
+      aria-label="{{ config.site_name }}"
+      data-md-component="logo"
+    >
       {% include "partials/logo.html" %}
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -52,9 +45,7 @@
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
-          <span class="md-ellipsis">
-            {{ config.site_name }}
-          </span>
+          <span class="md-ellipsis"> {{ config.site_name }} </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
@@ -101,9 +92,10 @@
               {% endfor %}
             </ul>
           </div>
+          </div>
         </div>
       </div>
-    {% endif %}
+    {% endif %} 
     {% if "material/search" in config.plugins %}
       <label class="md-header__button md-icon" for="__search">
         {% include ".icons/material/magnify.svg" %}
@@ -122,11 +114,4 @@
       {% include "partials/tabs.html" %}
     {% endif %}
   {% endif %}
-
 </header>
-<!-- Custom Banner -->
-<!--
-<div class="banner">
-    <p style="display:inline-block;">🥳🥳 Community Edition was launched on 2 May! <a href="https://github.com/syslifters/sysreptor/" target="_blank" style="text-decoration: underline;">Get started now!</a></p>
-</div>
--->

@@ -5,7 +5,7 @@ The structure of this data depends on your defined report and finding fields, i.
 
 You can view the current data structure by dumping it in the PDF.
 
-```html linenums="1"
+```html
 <h1>All available data</h1>
 <pre>{{ data }}</pre>
 

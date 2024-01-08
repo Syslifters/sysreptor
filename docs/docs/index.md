@@ -3,19 +3,22 @@ title: SysReptor Pentest Report Creator
 ---
 <h1 style="text-align: center;font-weight:bold;">Pentest Reports<br>Easy As Pie.</h1>
 
-<img 
-    style="display: block; 
-           margin-left: auto;
-           margin-right: auto;
-           margin-bottom: 40px;"
-    src="/assets/emojis/pie.svg"
-    viewBox="0 0 200 200"
-    height="200"
-    width="130"
-    alt="It's a pie. Because Pentest reports are as easy as pie.">
-</img>
+<div style="overflow: hidden;">
+  <img 
+      style="display: block; 
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: -5.3em;
+            width: 10em;"
+      src="/assets/dino/eating_cake.svg"
+      viewBox="0 0 200 200"
+      height="200"
+      width="130"
+      alt="It's a pie. Because Pentest reports are as easy as pie.">
+  </img>
+</div>
 
-<div class="grid cards" style="text-align:center;" markdown>
+<div class="grid cards" style="text-align: center; margin-top: 0;" markdown>
 
 -   __Customize Reports__
 
@@ -104,7 +107,7 @@ title: SysReptor Pentest Report Creator
 </figure>
 
 <figure markdown>
-  [![syslifters](images/syslifters-logo.png){ style="width: 220px" }](https://syslifters.com/en/home){ target=_blank }
+  [![syslifters](images/syslifters-logo.svg){ style="width: 220px" }](https://syslifters.com/en/home){ target=_blank }
 </figure>
 
 <br><div style="text-align:center">[:sauropod: Book a Demo](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ .md-button target="_blank" }</div>

@@ -16,8 +16,9 @@ search:
     style="display: block; 
            margin-top: 3rem;
            margin-left: auto;
-           margin-right: auto;"
-    src="/images/logo-invert.svg"
+           margin-right: auto;
+           filter: invert(1);"
+    src="/images/logo.svg"
     viewBox="0 0 120 120"
     height="120"
     width="120"

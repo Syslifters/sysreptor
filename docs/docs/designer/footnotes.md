@@ -1,7 +1,7 @@
 # Footnotes
 
 ## Markdown
-```md linenums="1"
+```md
 Text text^[I'm a footnote [link](https://example.com)] text.
 ```
 
@@ -15,11 +15,11 @@ Footnotes use the built-in CSS counter `footnote`. It is incremented automatical
 * Styling the footnote number in the footnote box at the bottom of the page: `::footnote-marker { ... }`
 * Styling footnote text content (shown at the bottom of the page): same selector (and child elements) where you applied `float: footnote` (e.g. `footnote` element)
 
-```html linenums="1"
+```html
 This is a text with footnotes<footnote>I'm the footnote content</footnote> in it.
 ```
 
-```css linenums="1"
+```css
 /* Footnotes */
 @page {
   @footnote {

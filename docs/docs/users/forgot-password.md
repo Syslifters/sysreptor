@@ -8,7 +8,7 @@ title: Forgot your SysReptor Password?
 You can reset your password via the command line.  
 Go to `sysreptor/deploy` and run:
 
-```shell linenums="1"
+```shell
 username=reptor
 docker compose exec app python3 manage.py changepassword "$username"
 ```
