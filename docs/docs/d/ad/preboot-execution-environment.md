@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Preboot Execution Environment
 ## Description
 

@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Insecure name resolution protocols
 ## Description
 An attacker gets into a MitM position if, for example, he is able to manipulate the name resolution in a network. This is the case if an attacker has direct access to the network. The Link-Local Multicast Name Resolution (LLMNR), NetBIOS Name Service (NBT-NS) or Multicast DNS (mDNS) protocols are, in addition to Domain Name System (DNS), three alternative ways of resolving host names in a network. 

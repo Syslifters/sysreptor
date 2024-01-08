@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Resource-based Constrained Delegation (RBCD)
 ## Description
 Resource-based Constrained Delegation (RBCD) is a particular type of Kerberos delegation configured in-depth for computer accounts. A computer account uses it to decide which other computers to trust for Kerberos delegations. This differs from the other types of delegation (Unconstrained and Constrained Delegation), configured on the computer accounts that want to access the resource (outbound). 

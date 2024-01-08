@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Insecure HTTP cookies
 ## Description
 HTTP is a stateless protocol, meaning it cannot distinguish requests from different users without an additional mechanism. Addressing this problem requires a session mechanism. The most commonly used mechanism for managing HTTP sessions in browsers is cookie storage. An HTTP cookie is a small record that a server sends to a user's web browser. The browser can store the cookie and send it back to the same server for subsequent requests. Web applications can thus implement sessions for the stateless HTTP protocol. The server can use the HTTP cookie to distinguish requests from different users and to keep users logged in. 

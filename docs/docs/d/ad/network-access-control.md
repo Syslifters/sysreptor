@@ -1,6 +1,9 @@
 ---
 grammarly: false
+search:
+  exclude: true
 ---
+
 # Network Access Control
 ## Description
 Network Access Control (NAC) allows you to define and enforce policies for access into a corporate network. For example, when a computer connects to a network, it is only allowed to access resources if it meets the policy set by the company (e.g., virus protection, current system version, specific configuration, etc.). Once the policy is met, the computer can access network resources and the Internet within the policy set by the NAC solution. The basic form of NAC is the 802.1X standard. 

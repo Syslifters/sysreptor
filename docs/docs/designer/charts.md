@@ -107,8 +107,9 @@ The higher the score, the more of the chart area is filled.
 
 
 ## Plugins
-ChartJS supports plugins to extend the functionality of charts. 
-We provide following plugins:
+ChartJS supports plugins to extend the functionality of charts.  
+We provide the following plugins:
+
 * [chartjs-plugin-datalabels](https://chartjs-plugin-datalabels.netlify.app/guide/getting-started.html#configuration){ target=_blank }: Show labels on top of bars, lines, etc.
 
 Plugins are disabled by default. You can enable them using the `plugins` option in the `config` object of charts.

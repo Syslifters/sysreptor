@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Direct Memory Access
 ## Description
 Direct Memory Access (DMA) enables hardware devices such as network cards or USB controllers to access the system's main memory directly without involving the CPU. This allows faster data transfers.

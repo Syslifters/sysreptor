@@ -1,6 +1,9 @@
 ---
 grammarly: false
+search:
+  exclude: true
 ---
+
 # LSASS protection
 ## Description
 The Local Security Authority Subsystem Service is a process in Microsoft Windows operating systems that is responsible for enforcing security policy on the system. For this purpose, among other things, it temporarily stores the credentials of logged-in users in order to perform authentications against other systems (e.g. when opening a file share).
