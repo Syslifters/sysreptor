@@ -1,5 +1,9 @@
 # Changelog
 
+## v2024.3 - 2024-01-09
+* Fix PDF viewer crash in Chrome with Bitwarden browser extension
+
+
 ## v2024.1 - 2024-01-08
 * Design and UI rework
 * Dark mode
