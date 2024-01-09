@@ -1,65 +1,95 @@
 <template>
-  <fetch-loader v-bind="fetchLoaderAttrs">
-    <div v-if="finding && project && projectType" :key="project.id + finding.id">
-      <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
-        <div class="status-container ml-1 mr-1">
-          <s-status-selection v-model="finding.status" :disabled="readonly" />
-        </div>
-        <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
-          <s-user-selection
-            v-model="finding.assignee"
-            :selectable-users="project.members"
-            :disabled="readonly"
-            label="Assignee"
-            variant="underlined"
-            density="compact"
-          />
-        </div>
-
-        <s-btn-secondary
-          v-if="currentUrl"
-          :to="currentUrl" exact
-          class="ml-1 mr-1 d-none d-lg-inline-flex"
-          prepend-icon="mdi-undo"
-          text="Back to current version"
-        />
-        <btn-history v-model="historyVisible" />
-      </edit-toolbar>
-
-      <history-timeline-project
-        v-model="historyVisible"
-        :project="project"
-        :finding="finding"
-        :current-url="currentUrl"
-      />
-
-      <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
-        <dynamic-input-field
-          v-model="finding.data[fieldId]"
-          :disabled="readonly"
-          :id="fieldId"
-          :definition="projectType.finding_fields[fieldId]"
-          :autofocus="fieldId === 'title'"
-          v-bind="inputFieldAttrs"
+  <div>
+    <edit-toolbar v-bind="toolbarAttrs">
+      <div class="status-container ml-1 mr-1">
+        <s-status-selection v-model="finding.status" :disabled="true" />
+      </div>
+      <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
+        <s-user-selection
+          v-model="finding.assignee"
+          :selectable-users="fieldAttrsHistoric.selectableUsers"
+          :disabled="true"
+          label="Assignee"
+          variant="underlined"
+          density="compact"
         />
       </div>
+
+      <s-btn-secondary
+        v-if="currentUrl"
+        :to="currentUrl" exact
+        class="ml-1 mr-1 d-none d-lg-inline-flex"
+        prepend-icon="mdi-undo"
+        text="Back to current version"
+      />
+      <btn-history v-model="historyVisible" />
+    </edit-toolbar>
+
+    <history-timeline-project
+      v-model="historyVisible"
+      :project="fetchState.projectHistoric"
+      :finding="finding"
+      :current-url="currentUrl"
+    />
+
+    <div v-for="f in diffFieldProps" :key="f.id">
+      <dynamic-input-field-diff v-bind="f" />
     </div>
-  </fetch-loader>
+  </div>
 </template>
 
 <script setup lang="ts">
+import { useProjectHistory } from '~/composables/lockedit';
+
 const route = useRoute();
 const projectStore = useProjectStore();
 
-const { data: finding, project, projectType, readonly, toolbarAttrs, fetchLoaderAttrs, inputFieldAttrs } = useProjectLockEdit<PentestFinding>({
-  baseUrl: `/api/v1/pentestprojects/${route.params.projectId}/history/${route.params.historyDate}/findings/${route.params.findingId}/`,
-  fetchProjectType: true,
-  historyDate: route.params.historyDate as string,
+// TODO: fetch historic and current finding, historic and current projecttype
+// TODO: rewriteFileUrls: historic and current
+const { obj: finding, fetchState, toolbarAttrs, fieldAttrsHistoric, fieldAttrsCurrent } = await useProjectHistory<PentestFinding>({
+  subresourceUrlPart: `/findings/${route.params.findingId}/`,
 });
+const diffFieldProps = computed(() => {
+  const out = [];
+  for (const fieldId of fetchState.value.projectTypeHistoric.finding_field_order) {
+    out.push({
+      id: fieldId,
+      historic: {
+        value: fetchState.value.dataHistoric?.data?.[fieldId],
+        definition: fetchState.value.projectTypeHistoric.finding_fields[fieldId],
+        ...fieldAttrsHistoric.value,
+      },
+      current: {
+        value: fetchState.value.dataCurrent?.data?.[fieldId],
+        definition: fetchState.value.projectTypeCurrent?.finding_fields?.[fieldId],
+        ...fieldAttrsCurrent.value,
+      },
+    });
+  }
+  for (const fieldId of fetchState.value.projectTypeCurrent.finding_field_order) {
+    if (!fetchState.value.projectTypeHistoric.finding_field_order.includes(fieldId)) {
+      out.push({
+        id: fieldId,
+        historic: {
+          value: null,
+          definition: null,
+          ...fieldAttrsHistoric.value,
+        },
+        current: {
+          value: fetchState.value.dataCurrent?.data?.[fieldId],
+          definition: fetchState.value.projectTypeCurrent?.finding_fields?.[fieldId],
+          ...fieldAttrsCurrent.value,
+        },
+      });
+    }
+  }
+  return out;
+})
+
 const historyVisible = ref(false);
 const currentUrl = computed(() => {
-  if (project.value && finding.value && projectStore.findings(project.value.id).map(f => f.id).includes(finding.value.id)) {
-    return `/projects/${project.value.id}/reporting/findings/${finding.value.id}/`;
+  if (projectStore.findings(finding.value.project).map(f => f.id).includes(finding.value.id)) {
+    return `/projects/${finding.value.project}/reporting/findings/${finding.value.id}/`;
   }
   return null;
 });

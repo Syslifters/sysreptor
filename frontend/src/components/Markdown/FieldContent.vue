@@ -4,7 +4,10 @@
     <v-divider />
 
     <v-row no-gutters class="w-100">
-      <v-col :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-show="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW">
+      <v-col 
+        v-show="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW"
+        :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined"
+      >
         <div
           ref="editorRef"
           v-intersect="onIntersect"
@@ -15,7 +18,10 @@
       <v-col v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW">
         <v-divider vertical class="h-100" />
       </v-col>
-      <v-col :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN">
+      <v-col 
+        v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN"
+        :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" 
+      >
         <markdown-preview v-bind="markdownPreviewAttrs" class="mde-preview" />
       </v-col>
     </v-row>

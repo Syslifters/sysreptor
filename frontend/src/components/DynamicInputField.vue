@@ -76,7 +76,7 @@
     <s-user-selection
       v-else-if="definition.type === 'user'"
       :model-value="formValue"
-      @update:model-value="emitUpdate($event?.id || null)"
+      @update:model-value="emitUpdate(($event as UserShortInfo|null)?.id || null)"
       :selectable-users="selectableUsers"
       v-bind="fieldAttrs"
     />
@@ -231,7 +231,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
 import pick from 'lodash/pick';
-import { MarkdownEditorMode } from '~/utils/types';
+import { MarkdownEditorMode, type UserShortInfo } from '~/utils/types';
 import type { MarkdownProps } from "~/composables/markdown";
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 

@@ -7,7 +7,11 @@
 
     <template #default>
       <v-row no-gutters class="w-100 h-100">
-        <v-col :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-show="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW" class="h-100">
+        <v-col 
+          v-show="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW" 
+          :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" 
+          class="h-100"
+        >
           <div
             ref="editorRef"
             v-intersect="onIntersect"
@@ -16,10 +20,17 @@
             :class="{'mde-editor-side': props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW}"
           />
         </v-col>
-        <v-col v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" class="h-100">
+        <v-col 
+          v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" 
+          class="h-100"
+        >
           <v-divider vertical class="h-100" />
         </v-col>
-        <v-col :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN" class="h-100">
+        <v-col 
+          v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN" 
+          :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" 
+          class="h-100"
+        >
           <markdown-preview v-bind="markdownPreviewAttrs" class="h-100 overflow-y-scroll" />
         </v-col>
       </v-row>

@@ -20,7 +20,7 @@ import urlJoin from "url-join";
 const props = defineProps<{
   item: HistoryTimelineRecord;
   project: PentestProject;
-  details: boolean;
+  details?: boolean;
 }>();
 
 function historyItemTo(historyRecord: HistoryTimelineRecord) {

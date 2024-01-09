@@ -386,3 +386,104 @@ export function useProjectLockEdit<T>(options: {
     })
   }
 }
+
+export async function useProjectHistory<T>(options: {
+  subresourceUrlPart: string;
+}) {
+  const route = useRoute();
+  const projectStore = useProjectStore();
+  const projectTypeStore = useProjectTypeStore();
+
+  const projectUrlCurrent = computed(() => `/api/v1/pentestprojects/${route.params.projectId}/`);
+  const projectUrlHistoric = computed(() => `/api/v1/pentestprojects/${route.params.projectId}/history/${route.params.historyDate}/`);
+
+  const fetchState = await useAsyncDataE(async () => {
+    const [projectCurrent, projectHistoric, dataCurrent, dataHistoric] = await Promise.all([
+      projectStore.getById(route.params.projectId as string),
+      $fetch<PentestProject>(projectUrlHistoric.value, { method: 'GET' }),
+      $fetch<T>(urlJoin(projectUrlCurrent.value, options.subresourceUrlPart), { method: 'GET' }).catch(() => null),
+      $fetch<T>(urlJoin(projectUrlHistoric.value, options.subresourceUrlPart), { method: 'GET' }),
+    ]);
+
+    const [projectTypeCurrent, projectTypeHistoric] = await Promise.all([
+      projectTypeStore.getById(projectCurrent.project_type),
+      $fetch<ProjectType>(`/api/v1/projecttypes/${projectHistoric.project_type}/history/${route.params.historyDate}/`),
+    ]);
+    return {
+      projectCurrent,
+      projectHistoric,
+      dataCurrent,
+      dataHistoric,
+      projectTypeCurrent,
+      projectTypeHistoric,
+    };
+  }, { key: `projectHistory-${route.params.projectId}-${route.params.historyDate}-${options.subresourceUrlPart}` });
+
+  const projectTypeUrlCurrent = computed(() => `/api/v1/projecttypes/${fetchState.value.projectCurrent.project_type}/`);
+  const projectTypeUrlHistoric = computed(() => `/api/v1/projecttypes/${fetchState.value.projectHistoric.project_type}/history/${route.params.historyDate}/`);
+  function rewriteFileUrlCurrent(fileSrc: string) {
+    if (fileSrc.startsWith('/assets/')) {
+      return urlJoin(projectTypeUrlCurrent.value || '', fileSrc)
+    } else {
+      return urlJoin(projectUrlCurrent.value, fileSrc);
+    }
+  }
+  function rewriteFileUrlHistoric(fileSrc: string) {
+    if (fileSrc.startsWith('/assets/')) {
+      return urlJoin(projectTypeUrlHistoric.value || '', fileSrc)
+    } else {
+      return urlJoin(projectUrlHistoric.value, fileSrc);
+    }
+  }
+
+  function rewriteReferenceLink(refId: string) {
+    const finding = projectStore.findings(fetchState.value.projectCurrent.id || '').find(f => f.id === refId);
+    if (finding) {
+      return {
+        href: `/projects/${fetchState.value!.projectCurrent.id}/reporting/findings/${finding.id}/`,
+        title: `[Finding ${finding.data.title}]`,
+      };
+    }
+    return null;
+  }
+
+  const markdownEditorMode = ref(MarkdownEditorMode.MARKDOWN);
+  watch(markdownEditorMode, (val) => {
+    // Skip side-by-side view. There is not much space for it.
+    if (val === MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
+      markdownEditorMode.value = MarkdownEditorMode.PREVIEW;
+    }
+  });
+
+  const fieldAttrsCurrent = computed(() => ({
+    lang: fetchState.value.projectCurrent.language || 'en-US',
+    selectableUsers: [...fetchState.value.projectCurrent.members, ...fetchState.value.projectCurrent.imported_members],
+    markdownEditorMode: markdownEditorMode.value,
+    'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { markdownEditorMode.value = val; },
+    rewriteFileUrl: rewriteFileUrlCurrent,
+    rewriteReferenceLink,
+  }));
+  const fieldAttrsHistoric = computed(() => ({
+    lang: fetchState.value.projectHistoric.language || 'en-US',
+    selectableUsers: [...fetchState.value.projectHistoric.members, ...fetchState.value.projectHistoric.imported_members],
+    markdownEditorMode: markdownEditorMode.value,
+    'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { markdownEditorMode.value = val; },
+    rewriteFileUrl: rewriteFileUrlHistoric,
+    rewriteReferenceLink,
+  }));
+
+  const toolbarAttrs = computed(() => ({
+    ref: 'toolbarRef',
+    data: fetchState.value.dataHistoric,
+    editMode: EditMode.READONLY,
+    errorMessage: `This is a historical version from ${formatISO9075(new Date(route.params.historyDate as string))}.`,
+  }));
+
+  return {
+    fetchState,
+    obj: computed(() => fetchState.value.dataHistoric),
+    toolbarAttrs,
+    fieldAttrsCurrent,
+    fieldAttrsHistoric,
+  }
+}
