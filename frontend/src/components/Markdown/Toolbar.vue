@@ -1,43 +1,41 @@
 <template>
   <v-toolbar ref="toolbarRef" density="compact" flat class="toolbar">
-    <template v-if="props.editorView && props.editorState">
-      <markdown-toolbar-button @click="codemirrorAction(toggleStrong)" title="Bold" icon="mdi-format-bold" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strong')" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleEmphasis)" title="Italic" icon="mdi-format-italic" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'emphasis')" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleStrikethrough)" title="Strikethrough" icon="mdi-format-strikethrough" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strikethrough')" />
-      <span class="separator" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleListUnordered)" title="Bullet List" icon="mdi-format-list-bulleted" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'listUnordered')" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleListOrdered)" title="Numbered List" icon="mdi-format-list-numbered" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'listOrdered')" />
-      <markdown-toolbar-button @click="codemirrorAction(insertCodeBlock)" title="Code" icon="mdi-code-tags" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'codeFenced')" />
-      <markdown-toolbar-button @click="codemirrorAction(insertTable)" title="Table" icon="mdi-table" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'table')" />
-      <span class="separator" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleLink)" title="Link" icon="mdi-link" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'link')" />
-      <template v-if="uploadFiles">
-        <markdown-toolbar-button @click="fileInput.click()" title="Image" icon="mdi-image" :disabled="props.disabled || props.fileUploadInProgress" />
-        <input ref="fileInput" type="file" multiple @change="e => onUploadFiles(e as InputEvent)" @click.stop :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
-      </template>
-      <span class="separator" />
-      <markdown-toolbar-button
-        v-if="apiSettings.isProfessionalLicense"
-        @click="toggleSpellcheck"
-        title="Spell check"
-        icon="mdi-spellcheck"
-        :disabled="props.disabled || !spellcheckSupported"
-        :active="spellcheckEnabled"
-      />
-      <markdown-toolbar-button
-        v-else
-        @click="toggleSpellcheck"
-        :title="'Spell check (basic)'"
-        icon="mdi-spellcheck"
-        :dot="!spellcheckSupported ? undefined : (spellcheckEnabled ? 'warning' : 'error')"
-        :disabled="props.disabled || !spellcheckSupported"
-        :active="spellcheckEnabled"
-      />
-      <span class="separator" />
-      <markdown-toolbar-button @click="codemirrorAction(undo)" title="Undo" icon="mdi-undo" :disabled="props.disabled || !canUndo" />
-      <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
-      <span class="separator" />
+    <markdown-toolbar-button @click="codemirrorAction(toggleStrong)" title="Bold" icon="mdi-format-bold" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strong')" />
+    <markdown-toolbar-button @click="codemirrorAction(toggleEmphasis)" title="Italic" icon="mdi-format-italic" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'emphasis')" />
+    <markdown-toolbar-button @click="codemirrorAction(toggleStrikethrough)" title="Strikethrough" icon="mdi-format-strikethrough" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strikethrough')" />
+    <span class="separator" />
+    <markdown-toolbar-button @click="codemirrorAction(toggleListUnordered)" title="Bullet List" icon="mdi-format-list-bulleted" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'listUnordered')" />
+    <markdown-toolbar-button @click="codemirrorAction(toggleListOrdered)" title="Numbered List" icon="mdi-format-list-numbered" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'listOrdered')" />
+    <markdown-toolbar-button @click="codemirrorAction(insertCodeBlock)" title="Code" icon="mdi-code-tags" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'codeFenced')" />
+    <markdown-toolbar-button @click="codemirrorAction(insertTable)" title="Table" icon="mdi-table" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'table')" />
+    <span class="separator" />
+    <markdown-toolbar-button @click="codemirrorAction(toggleLink)" title="Link" icon="mdi-link" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'link')" />
+    <template v-if="uploadFiles">
+      <markdown-toolbar-button @click="fileInput.click()" title="Image" icon="mdi-image" :disabled="props.disabled || props.fileUploadInProgress" />
+      <input ref="fileInput" type="file" multiple @change="e => onUploadFiles(e as InputEvent)" @click.stop :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
     </template>
+    <span class="separator" />
+    <markdown-toolbar-button
+      v-if="apiSettings.isProfessionalLicense"
+      @click="toggleSpellcheck"
+      title="Spell check"
+      icon="mdi-spellcheck"
+      :disabled="props.disabled || !spellcheckSupported"
+      :active="spellcheckEnabled"
+    />
+    <markdown-toolbar-button
+      v-else
+      @click="toggleSpellcheck"
+      :title="'Spell check (basic)'"
+      icon="mdi-spellcheck"
+      :dot="!spellcheckSupported ? undefined : (spellcheckEnabled ? 'warning' : 'error')"
+      :disabled="props.disabled || !spellcheckSupported"
+      :active="spellcheckEnabled"
+    />
+    <span class="separator" />
+    <markdown-toolbar-button @click="codemirrorAction(undo)" title="Undo" icon="mdi-undo" :disabled="props.disabled || !canUndo" />
+    <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
+    <span class="separator" />
     <v-spacer />
     <markdown-toolbar-button v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN" @click="setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN_AND_PREVIEW)" title="Markdown" icon="mdi-language-markdown" :active="true" />
     <markdown-toolbar-button v-else-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" @click="setMarkdownEditorMode(MarkdownEditorMode.PREVIEW)" title="Side-by-Side View" icon="mdi-view-split-vertical" :active="true" />

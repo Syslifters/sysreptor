@@ -7,6 +7,7 @@
         :rules="rules.validCvssVector"
         :label="props.label"
         :disabled="props.disabled"
+        :readonly="props.readonly"
         spellcheck="false"
       />
     </div>
@@ -28,7 +29,7 @@
           <v-btn-toggle
             :model-value="editorCvssVersion"
             @update:model-value="switchCvssVersion($event)"
-            :disabled="props.disabled"
+            :disabled="props.disabled || props.readonly"
             mandatory
             :border="true"
             color="secondary"
@@ -38,12 +39,12 @@
             <v-btn 
               :value="CvssVersion.CVSS40" 
               :text="CvssVersion.CVSS40" 
-              :disabled="props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS40)" 
+              :disabled="props.disabled || props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS40)" 
             />
             <v-btn 
               :value="CvssVersion.CVSS31" 
               :text="CvssVersion.CVSS31" 
-              :disabled="props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS31)" 
+              :disabled="props.disabled || props.disabled || !availableCvssVersions.includes(CvssVersion.CVSS31)" 
             />
           </v-btn-toggle>
 
@@ -58,10 +59,10 @@
 
         <s-btn-icon
           @click="applyDialog"
-          :disabled="props.disabled"
+          :disabled="props.disabled || props.readonly"
         >
           <v-icon size="x-large">mdi-check-bold</v-icon>
-          <s-tooltip activator="parent" :disabled="props.disabled" text="Apply" />
+          <s-tooltip activator="parent" :disabled="props.disabled || props.readonly" text="Apply" />
         </s-btn-icon>
       </template>
 
@@ -80,7 +81,7 @@
                 @update:model-value="updateMetric(m, $event)"
                 :metric="CVSS40_DEFINITION[m]"
                 :single-line="true"
-                :disabled="props.disabled"
+                :disabled="props.disabled || props.readonly"
               />
             </v-card-text>
           </v-card>
@@ -107,7 +108,7 @@
                     :model-value="parsedEditorVector.metrics[m]"
                     @update:model-value="updateMetric(m, $event)"
                     :metric="CVSS31_DEFINITION[m]"
-                    :disabled="props.disabled"
+                    :disabled="props.disabled || props.readonly"
                   />
                 </v-col>
               </v-row>
@@ -129,6 +130,7 @@ const props = defineProps<{
   modelValue: string|null;
   label?: string;
   disabled?: boolean;
+  readonly?: boolean;
   cvssVersion?: CvssVersion|null;
   disableValidation?: boolean;
 }>();

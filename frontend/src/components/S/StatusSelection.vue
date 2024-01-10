@@ -26,7 +26,7 @@ import { VSelect } from "vuetify/lib/components/index.mjs";
 import { ReviewStatus, ProjectTypeStatus } from "~/utils/types";
 
 const props = withDefaults(defineProps<{
-  modelValue: ReviewStatus|ProjectTypeStatus;
+  modelValue: ReviewStatus|ProjectTypeStatus|null;
   items?: typeof ReviewStatusItems|typeof ProjectTypeStatusItems;
   variant?: VSelect['variant'];
   density?: VSelect['density'];

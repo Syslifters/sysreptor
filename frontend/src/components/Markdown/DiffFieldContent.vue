@@ -61,8 +61,11 @@ $mde-min-height: 15em;
   .cm-editor { height: 100%; }
   .cm-content, .cm-gutter { min-height: $mde-min-height; }
   .cm-scroller { overflow: auto; }
-  .cm-wrap { border: 1px solid silver }
-  .cm-gutters { background-color: inherit; }
+  .cm-wrap { border: 1px solid silver; }
+
+  .cm-merge-b {
+    border-left: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+  }
 }
 
 :deep(.mde-mergeview) {

@@ -1,5 +1,5 @@
 <template>
-  <s-card v-if="props.historic.definition?.type === 'object'" class="mt-4">
+  <s-card v-if="props.historic.definition?.type === 'object' && props.current.definition?.type === 'object'" class="mt-4">
     <v-card-title class="text-body-1 pb-0">{{ props.historic.definition.label }}</v-card-title>
     <v-card-text>
       <dynamic-input-field-diff 
@@ -9,7 +9,7 @@
       />>
     </v-card-text>
   </s-card>
-  <s-card v-else-if="props.historic.definition?.type === 'list'" class="mt-4">
+  <s-card v-else-if="props.historic.definition?.type === 'list' && props.current.definition?.type === 'list'" class="mt-4">
     <v-card-title class="text-body-1 pb-0">{{ props.historic.definition.label }}</v-card-title>
     <v-card-text>
       <v-list class="pa-0">
@@ -23,8 +23,10 @@
   </s-card>
   <markdown-diff-field
     v-else-if="props.historic.definition?.type === 'markdown' && ['markdown', 'string', undefined].includes(props.current.definition?.type)" 
+    :label="props.historic.definition.label"
     v-bind="markdownDiffAttrs"
     class="mt-4"
+    :class="{'highlight-changed': hasChanged}"
   />
   <v-row v-else>
     <v-col cols="6">
@@ -33,6 +35,7 @@
         :model-value="props.historic.value"
         :disabled="true"
         v-bind="props.historic"
+        :class="{'highlight-changed': hasChanged}"
       />
     </v-col>
     <v-col cols="6">
@@ -41,6 +44,7 @@
         :model-value="props.current.value"
         :disabled="true"
         v-bind="props.current"
+        :class="{'highlight-changed': hasChanged}"
       />
     </v-col>
   </v-row>
@@ -49,16 +53,7 @@
 <script setup lang="ts">
 import pick from 'lodash/pick';
 import merge from 'lodash/merge';
-import { MarkdownEditorMode, type FieldDefinition } from '~/utils/types';
 
-export type DiffFieldProps = {
-  value?: any;
-  definition?: FieldDefinition|null;
-  selectableUsers?: UserShortInfo[];
-  markdownEditorMode?: MarkdownEditorMode;
-  rewriteFileUrl?: (fileSrc: string) => string;
-  rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
-};
 export type Props = {
   id: string;
   historic: DiffFieldProps;
@@ -137,26 +132,50 @@ const markdownDiffAttrs = computed(() => merge({
   },
 }, inheritedDiffAttrs.value));
 
+const hasChanged = computed(() => {
+  return props.historic.definition?.type !== props.current.definition?.type || 
+    (props.historic.value !== props.current.value && (props.historic.value || props.current.value));
+});
 </script>
+
+<style lang="scss" scoped>
+.highlight-changed:deep() {
+  .v-field.v-field--variant-outlined {
+    .v-field__outline {
+      --v-field-border-width: 2px;
+    }
+
+    .v-field__outline__start, .v-field__outline__end, .v-field__outline__notch::before .v-field__outline__notch::after {
+      border-color: rgb(var(--v-theme-info));
+    }
+  }
+}
+</style>
 
 <!--
 TODO: history diff
-* [ ] side-by-side markdown diff
-* [ ] nested object, list diff
-* [ ] handle incompatible definition field types
-* [ ] handle missing fields
-* [ ] tests
-  * [ ] new: object, old: String
-  * [ ] new: String, old: object
-  * [ ] new: object, old: object
-  * [ ] new: object, old: undefined
-  * [ ] new: undefined, old: object
-* [ ] rewriteFileUrl: historic and current
-* [ ] history pages: obj+projecttype: historic and current
-* [ ] show history of deleted finding => do not crash
-* [ ] show history of deleted projecttype => do not crash
-* [ ] indicate changed non-markdown fields: colored border?
-* [ ] markdown diff
+* [x] side-by-side markdown diff
   * [x] extensions not applied to B (right side, current)
   * [x] handle lineWrapping with different line lengths => supported by @codemirror/merge
+  * [x] side-by-side preview
+  * [x] skip markdown_and_preview mode
+* [x] indicate changed non-markdown fields: colored border
+* [x] nested object, list diff
+* [x] handle incompatible definition field types
+* [x] handle missing fields
+* [x] rewriteFileUrl: historic and current
+* [x] history pages: fetch obj+projecttype: historic and current
+* [x] show history of deleted finding => do not crash
+* [ ] show history of deleted projecttype => do not crash
+* [ ] useHistory: fetch+error handling instead of useAsyncDataE
+* [ ] toggle diff in pages or always use diff ???
+* [ ] DynamicInputFieldDiff: readonly vs disabled?
+* [ ] cleanup
+  * [x] move composables to composables/history.ts
+  * [ ] helper functions for field diffing in composables/history.ts => use in pages and components
+* [ ] rework all history pages
+  * [ ] findings
+  * [ ] sections
+  * [ ] notes
+  * [ ] templates
 -->

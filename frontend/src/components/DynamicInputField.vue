@@ -142,7 +142,7 @@
           <draggable
             v-model="formValue"
             :item-key="(item: any) => formValue.indexOf(item)"
-            :disabled="props.disabled"
+            :disabled="props.disabled || props.readonly"
             handle=".draggable-handle"
           >
             <template #item="{element: entryVal, index: entryIdx}">
@@ -168,7 +168,7 @@
                     <btn-delete
                       :delete="() => emitInputList('delete', entryIdx as number)"
                       :confirm="!isEmptyOrDefault(entryVal, definition.items!)"
-                      :disabled="props.disabled"
+                      :disabled="props.disabled || props.readonly"
                       density="compact"
                       button-variant="icon"
                       class="mb-4"
@@ -176,7 +176,7 @@
 
                     <s-btn-icon 
                       @click="emitInputList('move', entryIdx, entryIdx - 1)"
-                      :disabled="props.disabled || entryIdx === 0"
+                      :disabled="props.disabled || props.readonly || entryIdx === 0"
                       density="compact"
                     >
                       <v-icon icon="mdi-arrow-up-drop-circle-outline" />
@@ -184,7 +184,7 @@
                     </s-btn-icon>
                     <s-btn-icon
                       @click="emitInputList('move', entryIdx, entryIdx + 1)"
-                      :disabled="props.disabled || entryIdx === formValue.length - 1"
+                      :disabled="props.disabled || props.readonly || entryIdx === formValue.length - 1"
                       density="compact"
                     >
                       <v-icon icon="mdi-arrow-down-drop-circle-outline" />
@@ -195,13 +195,13 @@
                     <v-icon
                       size="x-large"
                       class="draggable-handle" 
-                      :disabled="props.disabled"
+                      :disabled="props.disabled || props.readonly"
                       icon="mdi-drag-horizontal" 
                     />
                     <btn-delete
                       :delete="() => emitInputList('delete', entryIdx as number)"
                       :confirm="!isEmptyOrDefault(entryVal, definition.items!)"
-                      :disabled="props.disabled"
+                      :disabled="props.disabled || props.readonly"
                       button-variant="icon"
                     />
                   </div>
@@ -213,7 +213,7 @@
           <v-list-item class="pa-0">
             <s-btn-secondary
               @click="emitInputList('add')"
-              :disabled="props.disabled"
+              :disabled="props.disabled || props.readonly"
               prepend-icon="mdi-plus"
               text="Add"
             />
@@ -242,6 +242,7 @@ const props = defineProps<MarkdownProps & {
   showFieldIds?: boolean;
   selectableUsers?: UserShortInfo[];
   disabled?: boolean;
+  readonly?: boolean;
   autofocus?: boolean;
   disableValidation?: boolean;
 }>();
@@ -377,7 +378,7 @@ const attrs = useAttrs();
 const fieldAttrs = computed(() => ({
   ...attrs,
   label: label.value,
-  ...pick(props, ['disabled', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink']),
+  ...pick(props, ['disabled', 'readonly', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink']),
   'onUpdate:spellcheckEnabled': (v: boolean) => emit('update:spellcheckEnabled', v),
   'onUpdate:markdownEditorMode': (v: MarkdownEditorMode) => emit('update:markdownEditorMode', v),
 }))

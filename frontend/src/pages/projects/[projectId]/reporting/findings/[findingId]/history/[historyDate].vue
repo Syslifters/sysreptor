@@ -32,6 +32,14 @@
       :current-url="currentUrl"
     />
 
+    <v-row class="mt-0">
+      <v-col cols="6" class="pb-0">
+        <h2 class="text-h5 text-center">Historic Version</h2>
+      </v-col>
+      <v-col cols="6" class="pb-0">
+        <h2 class="text-h5 text-center">Current Version</h2>
+      </v-col>
+    </v-row>
     <div v-for="f in diffFieldProps" :key="f.id">
       <dynamic-input-field-diff v-bind="f" />
     </div>
@@ -39,13 +47,9 @@
 </template>
 
 <script setup lang="ts">
-import { useProjectHistory } from '~/composables/lockedit';
-
 const route = useRoute();
 const projectStore = useProjectStore();
 
-// TODO: fetch historic and current finding, historic and current projecttype
-// TODO: rewriteFileUrls: historic and current
 const { obj: finding, fetchState, toolbarAttrs, fieldAttrsHistoric, fieldAttrsCurrent } = await useProjectHistory<PentestFinding>({
   subresourceUrlPart: `/findings/${route.params.findingId}/`,
 });
