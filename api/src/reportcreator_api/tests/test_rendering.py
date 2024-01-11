@@ -40,7 +40,7 @@ class TestHtmlRendering:
     def render_html(self, template, additional_data={}):
         def render_only_html(data, language, **kwargs):
             html, msgs = render_to_html(template=template, styles='@import url("/assets/global/base.css");', data=merge(data, additional_data), resources={}, language=language)
-            return html.encode() if html else None, [m.to_dict() for m in msgs]
+            return html.encode() if html else None, msgs
         
         with mock.patch('reportcreator_api.tasks.rendering.render.render_pdf', render_only_html):
             res = async_to_sync(render_pdf)(self.project)

@@ -800,7 +800,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/css 1.1.6
+@lezer/css 1.1.7
 MIT
 MIT License
 
@@ -1686,7 +1686,7 @@ MIT
     SOFTWARE
 
 
-@types/eslint 8.56.1
+@types/eslint 8.56.2
 MIT
     MIT License
 
@@ -2061,7 +2061,7 @@ MIT
     SOFTWARE
 
 
-@types/node 20.10.7
+@types/node 20.11.0
 MIT
     MIT License
 
@@ -2530,7 +2530,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-core 3.4.5
+@vue/compiler-core 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2555,7 +2555,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-dom 3.4.5
+@vue/compiler-dom 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2580,7 +2580,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-sfc 3.4.5
+@vue/compiler-sfc 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2605,7 +2605,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-ssr 3.4.5
+@vue/compiler-ssr 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2787,7 +2787,7 @@ interface StyleCompileResults {
 Same as `compileStyle(StyleCompileOptions)` but it returns a Promise resolving to `StyleCompileResults`. It can be used with async postcss plugins.
 
 
-@vue/reactivity 3.4.5
+@vue/reactivity-transform 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2812,7 +2812,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/runtime-core 3.4.5
+@vue/reactivity 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2837,7 +2837,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/runtime-dom 3.4.5
+@vue/runtime-core 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2862,7 +2862,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/server-renderer 3.4.5
+@vue/runtime-dom 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2887,7 +2887,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/shared 3.4.5
+@vue/server-renderer 3.3.13
+MIT
+The MIT License (MIT)
+
+Copyright (c) 2018-present, Yuxi (Evan) You
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+@vue/shared 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -4815,7 +4840,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-bonjour-service 1.2.0
+bonjour-service 1.2.1
 MIT
 The MIT License (MIT)
 
@@ -6855,7 +6880,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-css-loader 6.8.1
+css-loader 6.9.0
 MIT
 Copyright JS Foundation and other contributors
 
@@ -9270,7 +9295,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-electron-to-chromium 1.4.623
+electron-to-chromium 1.4.628
 ISC
 Copyright 2018 Kilian Valkhof
 
@@ -25213,7 +25238,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-mini-css-extract-plugin 2.7.6
+mini-css-extract-plugin 2.7.7
 MIT
 Copyright JS Foundation and other contributors
 
@@ -36412,7 +36437,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-serialize-javascript 6.0.1
+serialize-javascript 6.0.2
 BSD-3-Clause
 Copyright 2014 Yahoo! Inc.
 All rights reserved.
@@ -39749,7 +39774,7 @@ This is an internal package used by `vue-loader` and `vueify`. It processes the 
 The buble implementation is built from a fork at https://github.com/yyx990803/buble
 
 
-vue 3.4.5
+vue 3.3.13
 MIT
 The MIT License (MIT)
 
