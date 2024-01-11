@@ -73,7 +73,7 @@
         />
         <s-language-selection
           :model-value="translation.language"
-          @update:model-value="(v: string) => updateTranslationField(translation, 'language', v)"
+          @update:model-value="(v: string|null) => updateTranslationField(translation, 'language', v)"
           :items="[currentLanguageInfo].concat(unusedLanguageInfos)"
           :disabled="props.readonly"
           class="mt-4"
@@ -178,7 +178,7 @@ const visibleFieldDefinitionsExceptTitle = computed(() => visibleFieldDefinition
 const fieldDefinitionTitle = computed(() => templateStore.fieldDefinitionList.find(f => f.id === 'title')!);
 
 function languageInfo(languageCode: string) {
-  return apiSettings.settings!.languages.find(l => l.code === languageCode) || { code: '??-??', name: 'Unknown' };
+  return apiSettings.settings!.languages.find(l => l.code === languageCode) || { code: '??-??', name: 'Unknown' } as Language;
 }
 const availableLanguageInfos = computed(() => apiSettings.settings!.languages.filter(l => l.enabled || initialLanguages.value.includes(l.code)));
 const unusedLanguageInfos = computed(() => availableLanguageInfos.value.filter(l => !template.value.translations.some(tr => tr.language === l.code)));

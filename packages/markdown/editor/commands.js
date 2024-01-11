@@ -264,6 +264,9 @@ export const deleteMarkupBackward = ({state, dispatch}) => {
 
 
 export function isTypeInSelection(state, type) {
+  if (!state) {
+    return false;
+  }
   let tree = syntaxTree(state);
   return state.selection.ranges.some(range => getIntersectionNodes(tree, range, n => n.name === type).length > 0);
 }

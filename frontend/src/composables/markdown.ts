@@ -31,6 +31,10 @@ export function makeMarkdownProps(options: { files: boolean, spellcheckSupported
       type: Boolean,
       default: false,
     },
+    readonly: {
+      type: Boolean,
+      default: false,
+    },
     lang: {
       type: String,
       default: null,
@@ -72,6 +76,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     props: ComputedRef<{
         modelValue: string|null;
         disabled?: boolean;
+        readonly?: boolean;
         lang?: string|null;
         spellcheckSupported?: boolean;
         spellcheckEnabled?: boolean;
@@ -88,13 +93,13 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 
   const valueNotNull = computed(() => props.value.modelValue || '');
   const spellcheckLanguageToolEnabled = computed(() =>
-    !props.value.disabled &&
+    !props.value.disabled && !props.value.readonly &&
     !!props.value.spellcheckSupported &&
     !!props.value.spellcheckEnabled &&
     editorWasInView.value &&
     apiSettings.spellcheckLanguageToolSupportedForLanguage(props.value.lang));
   const spellcheckBrowserEnabled = computed(() =>
-    !props.value.disabled &&
+    !props.value.disabled && !props.value.readonly &&
     !!props.value.spellcheckSupported &&
     !!props.value.spellcheckEnabled &&
     !apiSettings.isProfessionalLicense);
@@ -221,7 +226,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
         EditorView.theme({}, { dark: true }),
       ]),
     };
-    editorActions.value.disabled(Boolean(props.value.disabled));
+    editorActions.value.disabled(Boolean(props.value.disabled || props.value.readonly));
     editorActions.value.spellcheckLanguageTool(spellcheckLanguageToolEnabled.value);
     editorActions.value.spellcheckBrowser(spellcheckBrowserEnabled.value);
     editorActions.value.uploadFile(Boolean(props.value.uploadFile));
@@ -250,7 +255,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
       });
     }
   });
-  watch(() => props.value.disabled, () => editorActions.value.disabled?.(Boolean(props.value.disabled)));
+  watch([() => props.value.disabled, () => props.value.readonly], () => editorActions.value.disabled?.(Boolean(props.value.disabled || props.value.readonly)));
   watch(() => props.value.lang, () => {
     if (spellcheckLanguageToolEnabled.value) {
       forceLinting(editorView.value);
@@ -281,7 +286,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   const markdownToolbarAttrs = computed(() => ({
     editorView: editorView.value,
     editorState: editorState.value,
-    disabled: props.value.disabled,
+    disabled: props.value.disabled || props.value.readonly,
     uploadFiles: props.value.uploadFile ? uploadFiles : undefined,
     fileUploadInProgress: fileUploadInProgress.value,
     lang: props.value.lang,

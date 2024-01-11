@@ -64,3 +64,18 @@ body {
 .overflow-y-scroll {
   overflow-y: scroll !important;
 }
+
+
+// Specific utility classes used by multiple comonents
+// Highligh changed fields in diff views
+.diff-highlight-changed {
+  .v-field.v-field--variant-outlined {
+    .v-field__outline {
+      --v-field-border-width: 2px;
+    }
+
+    .v-field__outline__start, .v-field__outline__end, .v-field__outline__notch::before, .v-field__outline__notch::after {
+      border-color: rgb(var(--v-theme-primary));
+    }
+  }
+}

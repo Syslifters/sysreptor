@@ -59,8 +59,8 @@ const errorHeading = computed(() => {
 const errorMessage = computed(() => {
   let message = props.error.message || 'Error';
 
-  if (props.error?.data?.detail) {
-    message += ': ' + props.error?.data?.detail;
+  if ((props.error?.data as any)?.detail) {
+    message += ': ' + (props.error?.data as any)?.detail;
   } else if (Array.isArray(props.error?.data) && props.error?.data?.length === 1) {
     message += ': ' + props.error?.data[0];
   }

@@ -1,15 +1,15 @@
 <template>
   <fetch-loader v-bind="fetchLoaderAttrs">
-    <div v-if="finding && project && projectType" :key="project.id + finding.id">
-      <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
+    <div v-if="finding && fetchState.data.value">
+      <edit-toolbar v-bind="toolbarAttrs">
         <div class="status-container ml-1 mr-1">
-          <s-status-selection v-model="finding.status" :disabled="readonly" />
+          <s-status-selection v-model="finding.status" :disabled="true" />
         </div>
         <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
           <s-user-selection
             v-model="finding.assignee"
-            :selectable-users="project.members"
-            :disabled="readonly"
+            :selectable-users="fieldAttrsHistoric.selectableUsers"
+            :disabled="true"
             label="Assignee"
             variant="underlined"
             density="compact"
@@ -28,20 +28,21 @@
 
       <history-timeline-project
         v-model="historyVisible"
-        :project="project"
+        :project="fetchState.data.value.projectHistoric"
         :finding="finding"
         :current-url="currentUrl"
       />
 
-      <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
-        <dynamic-input-field
-          v-model="finding.data[fieldId]"
-          :disabled="readonly"
-          :id="fieldId"
-          :definition="projectType.finding_fields[fieldId]"
-          :autofocus="fieldId === 'title'"
-          v-bind="inputFieldAttrs"
-        />
+      <v-row class="mt-0">
+        <v-col cols="6" class="pb-0">
+          <h2 class="text-h5 text-center">Historic Version <chip-date :value="(route.params.historyDate as string)" /></h2>
+        </v-col>
+        <v-col cols="6" class="pb-0">
+          <h2 class="text-h5 text-center">Current Version</h2>
+        </v-col>
+      </v-row>
+      <div v-for="f in diffFieldProps" :key="f.id">
+        <dynamic-input-field-diff v-bind="f" />
       </div>
     </div>
   </fetch-loader>
@@ -51,15 +52,28 @@
 const route = useRoute();
 const projectStore = useProjectStore();
 
-const { data: finding, project, projectType, readonly, toolbarAttrs, fetchLoaderAttrs, inputFieldAttrs } = useProjectLockEdit<PentestFinding>({
-  baseUrl: `/api/v1/pentestprojects/${route.params.projectId}/history/${route.params.historyDate}/findings/${route.params.findingId}/`,
-  fetchProjectType: true,
-  historyDate: route.params.historyDate as string,
+const { obj: finding, fetchState, fetchLoaderAttrs, toolbarAttrs, fieldAttrsHistoric, fieldAttrsCurrent } = useProjectHistory<PentestFinding>({
+  subresourceUrlPart: `/findings/${route.params.findingId}/`,
 });
+const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
+  historic: {
+    value: fetchState.data.value?.dataHistoric?.data,
+    definition: fetchState.data.value?.projectTypeHistoric?.finding_fields,
+    fieldIds: fetchState.data.value?.projectTypeHistoric?.finding_field_order || [],
+    attrs: fieldAttrsHistoric.value,
+  },
+  current: {
+    value: fetchState.data.value?.dataCurrent?.data,
+    definition: fetchState.data.value?.projectTypeCurrent?.finding_fields,
+    fieldIds: fetchState.data.value?.projectTypeCurrent?.finding_field_order || [],
+    attrs: fieldAttrsCurrent.value,
+  },
+}));
+
 const historyVisible = ref(false);
 const currentUrl = computed(() => {
-  if (project.value && finding.value && projectStore.findings(project.value.id).map(f => f.id).includes(finding.value.id)) {
-    return `/projects/${project.value.id}/reporting/findings/${finding.value.id}/`;
+  if (finding.value && projectStore.findings(finding.value.project).map(f => f.id).includes(finding.value.id)) {
+    return `/projects/${finding.value.project}/reporting/findings/${finding.value.id}/`;
   }
   return null;
 });

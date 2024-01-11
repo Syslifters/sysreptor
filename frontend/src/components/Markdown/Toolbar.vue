@@ -67,8 +67,8 @@ import type { VToolbar } from 'vuetify/lib/components/index.mjs';
 import { MarkdownEditorMode } from '@/utils/types';
 
 const props = defineProps<{
-  editorView: EditorView;
-  editorState: EditorState;
+  editorView?: EditorView;
+  editorState?: EditorState;
   spellcheckEnabled?: boolean;
   markdownEditorMode?: MarkdownEditorMode;
   disabled?: boolean;
@@ -99,8 +99,8 @@ function toggleSpellcheck() {
   }
 }
 
-const canUndo = computed(() => undoDepth(props.editorState) > 0);
-const canRedo = computed(() => redoDepth(props.editorState) > 0);
+const canUndo = computed(() => props.editorState && undoDepth(props.editorState) > 0);
+const canRedo = computed(() => props.editorState && redoDepth(props.editorState) > 0);
 
 const fileInput = ref();
 async function onUploadFiles(event: InputEvent) {
@@ -116,6 +116,7 @@ async function onUploadFiles(event: InputEvent) {
 }
 
 function codemirrorAction(actionFn: (view: EditorView) => void) {
+  if (!props.editorView) { return; }
   try {
     return actionFn(props.editorView);
   } catch (err) {

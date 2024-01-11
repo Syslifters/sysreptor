@@ -11,7 +11,7 @@
     "dependencies": "npm run generate-notice"
   },
   "dependencies": {
-    "vue": "^3",
+    "vue": "~3.3",
     "chart.js": "^4",
     "chartjs-plugin-datalabels": "^2.2.0",
     "uuid": "^9",

@@ -1,9 +1,9 @@
 <template>
   <v-list-item :to="`/designs/${item.id}/pdfdesigner/`" :title="title" lines="two">
     <v-list-item-subtitle>
-      <chip-review-status :value="item.status" />
-      <chip-language :value="item.language" />
-      <chip-tag v-for="tag in props.item.tags" :key="tag" :value="tag" />
+      <chip-review-status v-if="item.status" :value="item.status" />
+      <chip-language v-if="item.language" :value="item.language" />
+      <chip-tag v-for="tag in props.item.tags || []" :key="tag" :value="tag" />
     </v-list-item-subtitle>
   </v-list-item>
 </template>

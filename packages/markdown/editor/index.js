@@ -2,6 +2,7 @@ import { EditorState, EditorSelection } from '@codemirror/state';
 import { EditorView, ViewUpdate, tooltips, scrollPastEnd, keymap, lineNumbers } from '@codemirror/view';
 import { history, historyKeymap, defaultKeymap, indentWithTab, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 import { forceLinting, setDiagnostics } from '@codemirror/lint';
+import { MergeView } from '@codemirror/merge';
 import { syntaxHighlighting, indentUnit } from '@codemirror/language';
 import { vueLanguage } from '@codemirror/lang-vue';
 import { cssLanguage } from '@codemirror/lang-css';
@@ -14,7 +15,7 @@ import { toggleStrong, toggleEmphasis, toggleStrikethrough, toggleListUnordered,
 import 'highlight.js/styles/default.css';
 
 export {
-  EditorState, EditorView, ViewUpdate, EditorSelection,
+  EditorState, EditorView, ViewUpdate, EditorSelection, MergeView,
   tooltips, scrollPastEnd, forceLinting, setDiagnostics,
   history, historyKeymap, keymap, undo, redo, undoDepth, redoDepth,
   vueLanguage, cssLanguage,

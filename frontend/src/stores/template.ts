@@ -1,5 +1,5 @@
 import sortBy from "lodash/sortBy";
-import type { FieldDefinition, FieldDefinitionDict, FindingTemplate } from "~/utils/types";
+import type { FieldDefinitionWithIdAndVisible, FieldDefinitionDict, FindingTemplate } from "~/utils/types";
 
 export const useTemplateStore = defineStore('templates', {
   state: () => ({
@@ -7,7 +7,7 @@ export const useTemplateStore = defineStore('templates', {
     getFieldDefinitionSync: null as Promise<FieldDefinitionDict>|null,
   }),
   getters: {
-    fieldDefinitionList(): (FieldDefinition & { id: string; visible: boolean })[] {
+    fieldDefinitionList(): FieldDefinitionWithIdAndVisible[] {
       if (!this.fieldDefinition) {
         return [];
       }

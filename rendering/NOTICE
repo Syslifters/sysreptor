@@ -22,7 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-@babel/code-frame 7.23.4
+@babel/code-frame 7.23.5
 MIT
 MIT License
 
@@ -48,7 +48,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/compat-data 7.23.3
+@babel/compat-data 7.23.5
 MIT
 MIT License
 
@@ -74,7 +74,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/helper-compilation-targets 7.22.15
+@babel/helper-compilation-targets 7.23.6
 MIT
 MIT License
 
@@ -126,7 +126,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/helper-validator-option 7.22.15
+@babel/helper-validator-option 7.23.5
 MIT
 MIT License
 
@@ -178,7 +178,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/parser 7.23.4
+@babel/parser 7.23.6
 MIT
 Copyright (C) 2012-2014 by various contributors (see AUTHORS)
 
@@ -226,7 +226,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@codemirror/autocomplete 6.11.0
+@codemirror/autocomplete 6.11.1
 MIT
 MIT License
 
@@ -251,7 +251,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/commands 6.3.0
+@codemirror/commands 6.3.3
 MIT
 MIT License
 
@@ -301,7 +301,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-html 6.4.6
+@codemirror/lang-html 6.4.7
 MIT
 MIT License
 
@@ -351,7 +351,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-markdown 6.2.2
+@codemirror/lang-markdown 6.2.3
 MIT
 MIT License
 
@@ -376,7 +376,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-vue 0.1.2
+@codemirror/lang-vue 0.1.3
 MIT
 MIT License
 
@@ -401,7 +401,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/language 6.9.2
+@codemirror/language 6.10.0
 MIT
 MIT License
 
@@ -451,7 +451,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/state 6.3.1
+@codemirror/merge 6.5.0
+MIT
+MIT License
+
+Copyright (C) 2018-2022 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+@codemirror/state 6.4.0
 MIT
 MIT License
 
@@ -476,7 +501,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/view 6.22.0
+@codemirror/view 6.23.0
 MIT
 MIT License
 
@@ -750,7 +775,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@lezer/common 1.1.1
+@lezer/common 1.2.0
 MIT
 MIT License
 
@@ -775,7 +800,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/css 1.1.4
+@lezer/css 1.1.7
 MIT
 MIT License
 
@@ -825,7 +850,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/html 1.3.6
+@lezer/html 1.3.8
 MIT
 MIT License
 
@@ -850,7 +875,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/javascript 1.4.9
+@lezer/javascript 1.4.12
 MIT
 MIT License
 
@@ -900,7 +925,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/markdown 1.1.1
+@lezer/markdown 1.2.0
 MIT
 MIT License
 
@@ -1253,7 +1278,7 @@ MIT
    limitations under the License.
 
 
-@polka/url 1.0.0-next.23
+@polka/url 1.0.0-next.24
 MIT
 # @polka/url [![npm](https://badgen.now.sh/npm/v/@polka/url)](https://npmjs.org/package/@polka/url)
 
@@ -1661,7 +1686,7 @@ MIT
     SOFTWARE
 
 
-@types/eslint 8.44.7
+@types/eslint 8.56.2
 MIT
     MIT License
 
@@ -2011,7 +2036,7 @@ MIT
     SOFTWARE
 
 
-@types/node-forge 1.3.10
+@types/node-forge 1.3.11
 MIT
     MIT License
 
@@ -2036,7 +2061,7 @@ MIT
     SOFTWARE
 
 
-@types/node 20.9.4
+@types/node 20.11.0
 MIT
     MIT License
 
@@ -2111,7 +2136,7 @@ MIT
     SOFTWARE
 
 
-@types/qs 6.9.10
+@types/qs 6.9.11
 MIT
     MIT License
 
@@ -2505,7 +2530,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-core 3.3.8
+@vue/compiler-core 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2530,7 +2555,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-dom 3.3.8
+@vue/compiler-dom 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2555,7 +2580,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-sfc 3.3.8
+@vue/compiler-sfc 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2580,7 +2605,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/compiler-ssr 3.3.8
+@vue/compiler-ssr 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2762,7 +2787,7 @@ interface StyleCompileResults {
 Same as `compileStyle(StyleCompileOptions)` but it returns a Promise resolving to `StyleCompileResults`. It can be used with async postcss plugins.
 
 
-@vue/reactivity-transform 3.3.8
+@vue/reactivity-transform 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2787,7 +2812,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/reactivity 3.3.8
+@vue/reactivity 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2812,7 +2837,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/runtime-core 3.3.8
+@vue/runtime-core 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2837,7 +2862,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/runtime-dom 3.3.8
+@vue/runtime-dom 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2862,7 +2887,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/server-renderer 3.3.8
+@vue/server-renderer 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -2887,7 +2912,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@vue/shared 3.3.8
+@vue/shared 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -3918,7 +3943,7 @@ Parser.extend(importAssertions).parse('...');
 This plugin is released under an MIT License.
 
 
-acorn-walk 8.3.0
+acorn-walk 8.3.1
 MIT
 MIT License
 
@@ -3943,7 +3968,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-acorn 8.11.2
+acorn 8.11.3
 MIT
 MIT License
 
@@ -4534,31 +4559,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-array-flatten 2.1.2
-MIT
-The MIT License (MIT)
-
-Copyright (c) 2014 Blake Embrey (hello@blakeembrey.com)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-
 array-union 2.1.0
 MIT
 MIT License
@@ -4840,7 +4840,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-bonjour-service 1.1.1
+bonjour-service 1.2.1
 MIT
 The MIT License (MIT)
 
@@ -4955,7 +4955,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-browserslist 4.22.1
+browserslist 4.22.2
 MIT
 The MIT License (MIT)
 
@@ -5171,7 +5171,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-caniuse-lite 1.0.30001564
+caniuse-lite 1.0.30001576
 CC-BY-4.0
 Attribution 4.0 International
 
@@ -5764,7 +5764,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-chart.js 4.4.0
+chart.js 4.4.1
 MIT
 The MIT License (MIT)
 
@@ -5842,7 +5842,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-clean-css 5.3.2
+clean-css 5.3.3
 MIT
 Copyright (C) 2017 JakubPawlowicz.com
 
@@ -5922,7 +5922,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-cli-spinners 2.9.1
+cli-spinners 2.9.2
 MIT
 MIT License
 
@@ -6880,7 +6880,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-css-loader 6.8.1
+css-loader 6.9.0
 MIT
 Copyright JS Foundation and other contributors
 
@@ -7106,7 +7106,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-csstype 3.1.2
+csstype 3.1.3
 MIT
 Copyright (c) 2017-2018 Fredrik Nicol
 
@@ -7176,7 +7176,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-cytoscape 3.27.0
+cytoscape 3.28.1
 MIT
 Copyright (c) 2016-2023, The Cytoscape Consortium.
 
@@ -8426,31 +8426,6 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-dns-equal 1.0.0
-MIT
-The MIT License (MIT)
-
-Copyright (c) 2016 Thomas Watson Steen
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 dns-packet 5.6.1
 MIT
 The MIT License (MIT)
@@ -8545,7 +8520,7 @@ THIS IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRE
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-dompurify 3.0.6
+dompurify 3.0.8
 (MPL-2.0 OR Apache-2.0)
 DOMPurify
 Copyright 2023 Dr.-Ing. Mario Heiderich, Cure53
@@ -9320,7 +9295,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-electron-to-chromium 1.4.592
+electron-to-chromium 1.4.628
 ISC
 Copyright 2018 Kilian Valkhof
 
@@ -10434,7 +10409,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-fastq 1.15.0
+fastq 1.16.0
 ISC
 Copyright (c) 2015-2020, Matteo Collina <matteo.collina@gmail.com>
 
@@ -10572,7 +10547,7 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-follow-redirects 1.15.3
+follow-redirects 1.15.4
 MIT
 Copyright 2014–present Olivier Lalonde <olalonde@gmail.com>, James Talmage <james@talmage.io>, Ruben Verborgh
 
@@ -12055,7 +12030,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-html-webpack-plugin 5.5.3
+html-webpack-plugin 5.6.0
 MIT
 Copyright JS Foundation and other contributors
 
@@ -13599,7 +13574,7 @@ This library is a fork of 'better-json-errors' by Kat Marchán, extended and
 distributed under the terms of the MIT license above.
 
 
-json-parse-even-better-errors 3.0.0
+json-parse-even-better-errors 3.0.1
 MIT
 Copyright 2017 Kat Marchán
 Copyright npm, Inc.
@@ -13939,7 +13914,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-license-checker-rseidelsohn 4.2.10
+license-checker-rseidelsohn 4.3.0
 BSD-3-Clause
 Copyright 2012 Yahoo Inc.
 
@@ -14563,7 +14538,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-lru-cache 10.0.3
+lru-cache 10.1.0
 ISC
 The ISC License
 
@@ -25263,7 +25238,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-mini-css-extract-plugin 2.7.6
+mini-css-extract-plugin 2.7.7
 MIT
 Copyright JS Foundation and other contributors
 
@@ -25500,7 +25475,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-mrmime 1.0.1
+mrmime 2.0.0
 MIT
 The MIT License (MIT)
 
@@ -26140,7 +26115,7 @@ POSSIBILITY OF SUCH DAMAGES.
 
 
 
-node-releases 2.0.13
+node-releases 2.0.14
 MIT
 The MIT License
 
@@ -27629,7 +27604,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-postcss-modules-scope 3.0.0
+postcss-modules-scope 3.1.0
 ISC
 ISC License (ISC)
 
@@ -27960,7 +27935,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 
-postcss-selector-parser 6.0.13
+postcss-selector-parser 6.0.15
 MIT
 Copyright (c) Ben Briggs <beneb.info@gmail.com> (http://beneb.info)
 
@@ -28088,7 +28063,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-postcss 8.4.31
+postcss 8.4.33
 MIT
 The MIT License (MIT)
 
@@ -36462,7 +36437,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-serialize-javascript 6.0.1
+serialize-javascript 6.0.2
 BSD-3-Clause
 Copyright 2014 Yahoo! Inc.
 All rights reserved.
@@ -36803,7 +36778,7 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-sirv 2.0.3
+sirv 2.0.4
 MIT
 # sirv ![CI](https://github.com/lukeed/sirv/workflows/CI/badge.svg)
 
@@ -38428,7 +38403,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 
-stylis 4.3.0
+stylis 4.3.1
 MIT
 MIT License
 
@@ -38567,7 +38542,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-terser-webpack-plugin 5.3.9
+terser-webpack-plugin 5.3.10
 MIT
 Copyright JS Foundation and other contributors
 
@@ -38591,7 +38566,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-terser 5.24.0
+terser 5.26.0
 BSD-2-Clause
 Copyright 2012-2018 (c) Mihai Bazon <mihai.bazon@gmail.com>
 
@@ -39737,7 +39712,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vue-loader 17.3.1
+vue-loader 17.4.2
 MIT
 MIT License
 
@@ -39799,7 +39774,7 @@ This is an internal package used by `vue-loader` and `vueify`. It processes the 
 The buble implementation is built from a fork at https://github.com/yyx990803/buble
 
 
-vue 3.3.8
+vue 3.3.13
 MIT
 The MIT License (MIT)
 
@@ -39961,7 +39936,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-web-worker 1.2.0
+web-worker 1.3.0
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004
@@ -40759,7 +40734,7 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 
 
-whatwg-fetch 3.6.19
+whatwg-fetch 3.6.20
 MIT
 Copyright (c) 2014-2023 GitHub, Inc.
 
@@ -40954,7 +40929,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-ws 8.14.2
+ws 8.16.0
 MIT
 Copyright (c) 2011 Einar Otto Stangvik <einaros@gmail.com>
 Copyright (c) 2013 Arnout Kazemier and contributors

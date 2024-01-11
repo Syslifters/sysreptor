@@ -404,6 +404,8 @@ export type FieldDefinition = {
   items?: FieldDefinition;
 }
 
+export type FieldDefinitionWithIdAndVisible = FieldDefinition & { id: string; visible: boolean };
+
 export type FieldDefinitionWithId = FieldDefinition & {
   id: string;
 };

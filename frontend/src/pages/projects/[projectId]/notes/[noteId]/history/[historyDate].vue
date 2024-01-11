@@ -1,6 +1,6 @@
 <template>
   <fetch-loader v-bind="fetchLoaderAttrs" class="h-100">
-    <full-height-page v-if="project && note" :key="project.id + note.id">
+    <full-height-page v-if="note && fetchState.data.value">
       <template #header>
         <edit-toolbar v-bind="toolbarAttrs">
           <template #title>
@@ -9,7 +9,7 @@
                 <s-btn-icon
                   @click="note.checked = note.checked === null ? false : !note.checked ? true : null"
                   :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
-                  :disabled="readonly"
+                  :disabled="true"
                   density="comfortable"
                 />
               </div>
@@ -17,16 +17,15 @@
                 v-if="note.checked === null"
                 v-model="note.icon_emoji"
                 :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
-                :disabled="readonly"
+                :disabled="true"
                 density="comfortable"
               />
               
               <markdown-text-field-content
-                ref="titleRef"
                 v-model="note.title"
-                :disabled="readonly"
+                :disabled="true"
                 :spellcheck-supported="true"
-                v-bind="inputFieldAttrs"
+                v-bind="fieldAttrsHistoric"
                 class="note-title"
               />
             </div>
@@ -35,8 +34,8 @@
             <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
               <s-user-selection
                 v-model="note.assignee"
-                :selectable-users="project.members"
-                :disabled="readonly"
+                :selectable-users="fieldAttrsHistoric.selectableUsers"
+                :disabled="true"
                 label="Assignee"
                 variant="underlined"
                 density="compact"
@@ -57,17 +56,12 @@
       <template #default>
         <history-timeline-project
           v-model="historyVisible"
-          :project="project"
+          :project="fetchState.data.value.projectHistoric"
           :note="note"
           :current-url="currentUrl"
         />
-
-        <markdown-page
-          ref="textRef"
-          v-model="note.text"
-          :disabled="readonly"
-          v-bind="inputFieldAttrs"
-        />
+        
+        <markdown-diff-page v-bind="markdownPageAttrs" />
       </template>
     </full-height-page>
   </fetch-loader>
@@ -75,21 +69,27 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 
-const baseUrl = `/api/v1/pentestprojects/${route.params.projectId}/history/${route.params.historyDate}/notes/${route.params.noteId}/`;
-const { data: note, project, readonly, toolbarAttrs, fetchLoaderAttrs, inputFieldAttrs } = useProjectLockEdit<ProjectNote>({
-  baseUrl,
-  fetchProjectType: false,
-  historyDate: route.params.historyDate as string,
-  markdownEditorMode: computed({ get: () => localSettings.projectNoteMarkdownEditorMode, set: (val) => { localSettings.projectNoteMarkdownEditorMode = val } }),
+const { obj: note, fetchState, fetchLoaderAttrs, toolbarAttrs, fieldAttrsHistoric, fieldAttrsCurrent } = useProjectHistory<ProjectNote>({
+  subresourceUrlPart: `/notes/${route.params.noteId}/`,
 });
+const markdownPageAttrs = computed(() => ({
+  historic: {
+    value: fetchState.data.value?.dataHistoric?.text,
+    ...fieldAttrsHistoric.value
+  },
+  current: {
+    value: fetchState.data.value?.dataCurrent?.text,
+    ...fieldAttrsCurrent.value
+  },
+}))
+
 const historyVisible = ref(false);
 const hasChildNotes = computed(() => false);
 const currentUrl = computed(() => {
-  if (projectStore.notes(project.value?.id || '').map(n => n.id).includes(note.value?.id || '')) {
-    return `/projects/${project.value!.id}/notes/${note.value!.id}/`;
+  if (projectStore.notes(fetchState.data.value?.projectHistoric.id || '').map(n => n.id).includes(note.value?.id || '')) {
+    return `/projects/${fetchState.data.value!.projectHistoric.id}/notes/${note.value!.id}/`;
   }
   return null;
 });

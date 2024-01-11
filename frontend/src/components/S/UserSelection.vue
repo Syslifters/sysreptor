@@ -25,6 +25,7 @@ const props = withDefaults(defineProps<{
   label?: string;
   required?: boolean;
   disabled?: boolean;
+  readonly?: boolean;
   multiple?: boolean;
   clearable?: boolean;
   preventUnselectingSelf?: boolean;
@@ -101,6 +102,7 @@ const autocompleteAttrs = computed(() =>
       };
     },
     disabled: props.disabled,
+    readonly: props.readonly,
     returnObject: true,
     clearable: props.clearable,
     spellcheck: 'false',
