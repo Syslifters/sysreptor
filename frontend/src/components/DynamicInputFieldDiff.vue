@@ -26,7 +26,7 @@
     :label="props.historic.definition.label"
     v-bind="markdownDiffAttrs"
     class="mt-4"
-    :class="{'highlight-changed': hasChanged}"
+    :class="{'diff-highlight-changed': hasChanged}"
   />
   <v-row v-else>
     <v-col cols="6">
@@ -37,7 +37,7 @@
         :model-value="props.historic.value"
         :disabled="!hasChanged"
         :readonly="hasChanged"
-        :class="{'highlight-changed': hasChanged}"
+        :class="{'diff-highlight-changed': hasChanged}"
       />
     </v-col>
     <v-col cols="6">
@@ -48,7 +48,7 @@
         :definition="props.current.definition"
         :disabled="!hasChanged"
         :readonly="hasChanged"
-        :class="{'highlight-changed': hasChanged}"
+        :class="{'diff-highlight-changed': hasChanged}"
       />
     </v-col>
   </v-row>
@@ -118,25 +118,9 @@ const markdownDiffAttrs = computed(() => merge({
 
 const hasChanged = computed(() => {
   return props.historic.definition?.type !== props.current.definition?.type || 
-    (props.historic.value !== props.current.value && (props.historic.value || props.current.value));
+    (props.historic.value !== props.current.value && (!!props.historic.value || !!props.current.value));
 });
 </script>
-
-<style lang="scss" scoped>
-$highlight-changed-color: rgb(var(--v-theme-success));
-
-.highlight-changed:deep() {
-  .v-field.v-field--variant-outlined {
-    .v-field__outline {
-      --v-field-border-width: 2px;
-    }
-
-    .v-field__outline__start, .v-field__outline__end, .v-field__outline__notch::before, .v-field__outline__notch::after {
-      border-color: $highlight-changed-color;
-    }
-  }
-}
-</style>
 
 <!--
 TODO: history diff
@@ -156,18 +140,18 @@ TODO: history diff
 * [x] show history of deleted projecttype => do not crash
 * [x] markdown-diff-page for notes
 * [x] markdown-diff-field: toolbar markdownEditorMode button not visible
-* [ ] show all template fields with values in history (enable in field selection, similar to create template from finding page)
+* [x] show only used template fields in history
 * [ ] feedback
   * [x] side-by-side string field diff => no
   * [x] toggle diff in pages or always use diff => always diff
   * [x] disable unchanged fields, readonly changed fields
   * [ ] remove historic banner; add date to history headline => does not work for notes
   * [ ] finished project: readonly instead of disabled
-* [ ] rework all history pages
+* [x] rework all history pages
   * [x] findings
   * [x] sections
   * [x] notes
-  * [ ] templates
+  * [x] templates
 * [ ] cleanup
   * [x] move composables to composables/history.ts
   * [x] helper functions for field diffing in composables/history.ts => use in pages and components
