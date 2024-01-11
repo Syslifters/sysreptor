@@ -151,7 +151,7 @@ watch(projectType, () => loadPdf(false), { deep: true })
 
 async function uploadFile(file: File) {
   const img = await uploadFileHelper<UploadedFileInfo>(`/api/v1/projecttypes/${projectType.value.id}/assets/`, file);
-  return `![](/assets/name/${img.name}){width="100%"}`;
+  return `![](/assets/name/${img.name}){width="auto"}`;
 }
 function rewriteFileUrl(imgSrc: string) {
   return urlJoin(`/api/v1/projecttypes/${projectType.value.id}/`, imgSrc);
