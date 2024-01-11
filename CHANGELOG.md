@@ -1,5 +1,9 @@
 # Changelog
 
+## Next
+* Diff-view for version history
+
+
 ## v2024.3 - 2024-01-09
 * Fix PDF viewer crash in Chrome with Bitwarden browser extension
 

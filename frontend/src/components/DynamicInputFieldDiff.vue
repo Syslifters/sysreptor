@@ -121,39 +121,3 @@ const hasChanged = computed(() => {
     (props.historic.value !== props.current.value && (!!props.historic.value || !!props.current.value));
 });
 </script>
-
-<!--
-TODO: history diff
-* [x] side-by-side markdown diff
-  * [x] extensions not applied to B (right side, current)
-  * [x] handle lineWrapping with different line lengths => supported by @codemirror/merge
-  * [x] side-by-side preview
-  * [x] skip markdown_and_preview mode
-* [x] indicate changed non-markdown fields: colored border
-* [x] nested object, list diff
-* [x] handle incompatible definition field types
-* [x] handle missing fields
-* [x] rewriteFileUrl: historic and current
-* [x] history pages: fetch obj+projecttype: historic and current
-* [x] show history of deleted finding => do not crash
-* [x] useHistory: fetch+error handling instead of useAsyncDataE
-* [x] show history of deleted projecttype => do not crash
-* [x] markdown-diff-page for notes
-* [x] markdown-diff-field: toolbar markdownEditorMode button not visible
-* [x] show only used template fields in history
-* [ ] feedback
-  * [x] side-by-side string field diff => no
-  * [x] toggle diff in pages or always use diff => always diff
-  * [x] disable unchanged fields, readonly changed fields
-  * [ ] remove historic banner; add date to history headline => does not work for notes
-  * [ ] finished project: readonly instead of disabled
-* [x] rework all history pages
-  * [x] findings
-  * [x] sections
-  * [x] notes
-  * [x] templates
-* [ ] cleanup
-  * [x] move composables to composables/history.ts
-  * [x] helper functions for field diffing in composables/history.ts => use in pages and components
-  * [ ] fix typescript errors
--->
