@@ -68,7 +68,7 @@
                 :project-type="projectType"
                 :upload-file="uploadFile"
                 :rewrite-file-url="rewriteFileUrl"
-                :disabled="readonly"
+                :readonly="readonly"
               />
             </v-window-item>
           </v-window>

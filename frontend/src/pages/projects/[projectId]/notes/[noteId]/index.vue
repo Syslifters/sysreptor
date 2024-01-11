@@ -17,14 +17,14 @@
                 v-if="note.checked === null"
                 v-model="note.icon_emoji"
                 :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
-                :disabled="readonly"
+                :readonly="readonly"
                 density="comfortable"
               />
               
               <markdown-text-field-content
                 ref="titleRef"
                 v-model="note.title"
-                :disabled="readonly"
+                :readonly="readonly"
                 :spellcheck-supported="true"
                 v-bind="inputFieldAttrs"
                 class="note-title"
@@ -36,7 +36,7 @@
               <s-user-selection
                 v-model="note.assignee"
                 :selectable-users="project.members"
-                :disabled="readonly"
+                :readonly="readonly"
                 label="Assignee"
                 variant="underlined"
                 density="compact"
@@ -67,7 +67,7 @@
         <markdown-page
           ref="textRef"
           v-model="note.text"
-          :disabled="readonly"
+          :readonly="readonly"
           v-bind="inputFieldAttrs"
         />
       </template>

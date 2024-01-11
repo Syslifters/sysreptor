@@ -82,11 +82,17 @@ const cssEditor = ref();
 const pdfRenderingInProgress = computed(() => pdfPreviewRef.value?.renderingInProgress);
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectdesigner:project' })
-const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
-  id: project.value.project_type,
-  save: true,
-  saveFields: ['report_template', 'report_styles', 'report_preview_data'],
-}));
+const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit({
+  ...await useProjectTypeLockEditOptions({
+    id: project.value.project_type,
+    save: true,
+    saveFields: ['report_template', 'report_styles', 'report_preview_data'],
+  }),
+  hasEditPermissions: computed(() => !project.value.readonly),
+  errorMessage: computed(() => project.value.readonly ? 
+    'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.' : 
+    null),
+});
 
 async function fetchPdf() {
   return await $fetch<PdfResponse>(`/api/v1/pentestprojects/${project.value.id}/preview/`, {

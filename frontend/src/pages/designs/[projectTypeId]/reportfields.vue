@@ -120,7 +120,7 @@
                     :rules="rules.sectionId"
                     required
                     spellcheck="false"
-                    :disabled="readonly"
+                    :readonly="readonly"
                   />
                 </v-col>
                 <v-col>
@@ -130,7 +130,7 @@
                     label="Label"
                     required
                     spellcheck="false"
-                    :disabled="readonly"
+                    :readonly="readonly"
                   />
                 </v-col>
               </v-row>
@@ -144,7 +144,7 @@
                 @update:model-value="updateCurrentSectionField(f, $event)"
                 :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
                 :lang="projectType.language"
-                :disabled="readonly"
+                :readonly="readonly"
               />
               <s-btn-secondary
                 @click.stop="addField(currentItemSection!)"
@@ -162,7 +162,7 @@
             @update:model-value="updateCurrentField"
             :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentItemField!.origin as any)"
             :lang="projectType.language"
-            :disabled="readonly"
+            :readonly="readonly"
           />
         </template>
       </template>

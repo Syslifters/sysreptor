@@ -1,6 +1,5 @@
 <template>
   <s-btn-icon
-    :disabled="disabled"
     :ripple="false"
   >
     <s-emoji v-if="props.modelValue" :value="props.modelValue" />
@@ -9,7 +8,7 @@
     <v-menu
       activator="parent"
       v-model="dialogVisible"
-      :disabled="disabled"
+      :disabled="props.readonly"
       :close-on-content-click="false"
     >
       <picker
@@ -45,11 +44,11 @@ import "emoji-mart-vue-fast/css/emoji-mart.css";
 
 const props = withDefaults(defineProps<{
   modelValue: string|null;
-  disabled?: boolean;
+  readonly?: boolean;
   emptyIcon?: string;
 }>(), {
   modelValue: null,
-  disabled: false,
+  readonly: false,
   emptyIcon: 'mdi-emoticon-outline',
 });
 const emit = defineEmits<{

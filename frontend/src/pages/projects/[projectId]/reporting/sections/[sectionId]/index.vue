@@ -3,13 +3,13 @@
     <div v-if="section && project && projectType" :key="project.id + section.id">
       <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
         <div class="status-container ml-1 mr-1">
-          <s-status-selection v-model="section.status" :disabled="readonly" />
+          <s-status-selection v-model="section.status" :readonly="readonly" />
         </div>
         <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
           <s-user-selection
             v-model="section.assignee"
             :selectable-users="project.members"
-            :disabled="readonly"
+            :readonly="readonly"
             label="Assignee"
             variant="underlined"
             density="compact"
@@ -29,7 +29,7 @@
       <div v-for="fieldId in section.fields" :key="fieldId">
         <dynamic-input-field
           v-model="section.data[fieldId]"
-          :disabled="readonly"
+          :readonly="readonly"
           :id="fieldId"
           :definition="projectType.report_fields[fieldId]"
           v-bind="inputFieldAttrs"

@@ -17,7 +17,7 @@
                 v-if="note.checked === null"
                 v-model="note.icon_emoji"
                 :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
-                :disabled="readonly"
+                :readonly="readonly"
                 density="comfortable"
               />
               
@@ -98,7 +98,7 @@ function rewriteFileUrl(imgSrc: string) {
   return urlJoin('/api/v1/pentestusers/self/notes/', imgSrc);
 }
 const inputFieldAttrs = computed(() => ({
-  disabled: readonly.value,
+  readonly: readonly.value,
   lang: 'auto',
   spellcheckSupported: true,
   spellcheckEnabled: localSettings.userNoteSpellcheckEnabled,

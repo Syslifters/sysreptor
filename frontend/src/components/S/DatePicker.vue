@@ -7,7 +7,7 @@
     :rules="rules"
     prepend-inner-icon="mdi-calendar"
     spellcheck="false"
-    clearable
+    :clearable="props.readonly"
     @click:clear="emits('update:modelValue', null)"
     v-bind="$attrs"
   >

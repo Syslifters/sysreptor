@@ -5,7 +5,9 @@
     v-model:menu="menuVisible"
     :items="props.items"
     :disabled="props.disabled"
-    multiple chips closable-chips
+    :readonly="props.readonly"
+    multiple chips 
+    :closable-chips="!props.readonly"
     density="compact"
     variant="solo"
     hide-details="auto"
@@ -26,7 +28,7 @@
       </v-chip>
     </template>
     <template #append-inner>
-      <v-chip size="small" :disabled="disabled" @click="menuVisible = true">
+      <v-chip size="small" @click="menuVisible = true">
         <v-icon size="small" icon="mdi-plus" />
       </v-chip>
     </template>
@@ -38,6 +40,7 @@ const props = defineProps<{
   modelValue: string[];
   items: string[];
   disabled?: boolean;
+  readonly?: boolean;
 }>();
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string[]): void;

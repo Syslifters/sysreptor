@@ -52,14 +52,14 @@
     <v-window v-model="currentTab">
       <v-window-item v-for="(translation, idx) in template.translations" :key="idx">
         <dynamic-input-field
-          :disabled="props.readonly"
+          :readonly="props.readonly"
           v-bind="fieldAttrs(translation, fieldDefinitionTitle)"
         />
 
         <s-status-selection
           :model-value="translation.status"
           @update:model-value="(v: any) => updateTranslationField(translation, 'status', v)"
-          :disabled="props.readonly"
+          :readonly="props.readonly"
           variant="outlined"
           density="default"
           class="mt-4"
@@ -68,20 +68,21 @@
           :model-value="template.tags"
           @update:model-value="(v: string[]) => updateTemplateField('tags', v)"
           :items="templateTagSuggestions"
-          :disabled="props.readonly"
+          :readonly="props.readonly"
           class="mt-4"
         />
         <s-language-selection
           :model-value="translation.language"
           @update:model-value="(v: string|null) => updateTranslationField(translation, 'language', v)"
           :items="[currentLanguageInfo].concat(unusedLanguageInfos)"
-          :disabled="props.readonly"
+          :readonly="props.readonly"
           class="mt-4"
         />
 
         <div v-for="d in visibleFieldDefinitionsExceptTitle" :key="d.id" class="d-flex flex-row">
           <dynamic-input-field
-            :disabled="props.readonly || (!translation.is_main && !(d.id in translation.data))"
+            :readonly="props.readonly"
+            :disabled="!translation.is_main && !(d.id in translation.data)"
             class="flex-grow-width"
             v-bind="fieldAttrs(translation, d)"
           />

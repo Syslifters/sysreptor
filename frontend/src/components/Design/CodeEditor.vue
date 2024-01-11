@@ -34,10 +34,10 @@ monaco.languages.html.htmlDefaults.setOptions({
 const props = withDefaults(defineProps<{
   modelValue: string,
   language?: string,
-  disabled?: boolean,
+  readonly?: boolean,
 }>(), {
   language: 'plaintext',
-  disabled: false,
+  readonly: false,
 });
 const emits = defineEmits< {
   (e: 'update:modelValue', modelValue: string): void
@@ -52,7 +52,7 @@ onMounted(() => {
   editor = monaco.editor.create(editorElement.value!, {
     value: props.modelValue,
     language: props.language,
-    readOnly: props.disabled,
+    readOnly: props.readonly,
     theme: theme.current.value.dark ? 'vs-dark' : 'vs',
     minimap: {
       enabled: false,
@@ -80,7 +80,7 @@ watch(() => props.modelValue, (val) => {
     editor.setValue(val);
   }
 });
-watch(() => props.disabled, (val) => {
+watch(() => props.readonly, (val) => {
   if (editor) {
     editor.updateOptions({ readOnly: val });
   }

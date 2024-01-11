@@ -95,7 +95,7 @@
             <design-finding-ordering-definition
               v-model="projectType.finding_ordering"
               :project-type="projectType"
-              :disabled="readonly"
+              :readonly="readonly"
             />
 
             <design-input-field-definition
@@ -103,7 +103,7 @@
               :model-value="f" @update:model-value="updateField(f, $event)"
               :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
               :lang="projectType.language"
-              :disabled="readonly"
+              :readonly="readonly"
             />
           </template>
           <design-input-field-definition
@@ -111,7 +111,7 @@
             :model-value="currentField" @update:model-value="updateCurrentField"
             :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentField.origin as any)"
             :lang="projectType.language"
-            :disabled="readonly"
+            :readonly="readonly"
           />
         </div>
       </template>

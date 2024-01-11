@@ -17,7 +17,7 @@
           v-model="findings"
           item-key="id"
           handle=".draggable-handle"
-          :disabled="disabled || projectType.finding_ordering.length !== 0"
+          :disabled="props.readonly || projectType.finding_ordering.length !== 0"
         >
           <template #item="{element: finding}">
             <v-list-item
@@ -28,7 +28,7 @@
             >
               <template #prepend>
                 <div v-if="projectType.finding_ordering.length === 0" class="draggable-handle mr-2">
-                  <v-icon :disabled="disabled" icon="mdi-drag-horizontal" />
+                  <v-icon :disabled="props.readonly" icon="mdi-drag-horizontal" />
                 </div>
               </template>
               <template #default>
@@ -37,7 +37,7 @@
               <template #append>
                 <btn-delete
                   :delete="() => deleteFinding(finding)"
-                  :disabled="props.disabled"
+                  :disabled="props.readonly"
                   button-variant="icon"
                   size="small"
                   density="comfortable"
@@ -50,7 +50,7 @@
         <v-list-item>
           <s-btn-secondary
             @click="createFinding"
-            :disabled="props.disabled"
+            :disabled="props.readonly"
             size="x-small"
             block
             prepend-icon="mdi-plus"
@@ -96,7 +96,7 @@ import { scoreFromVector, levelNumberFromLevelName, levelNumberFromScore } from 
 const props = defineProps<{
   modelValue: any;
   projectType: ProjectType;
-  disabled?: boolean;
+  readonly?: boolean;
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrl?: (fileSrc: string) => string;
 }>();
@@ -212,7 +212,7 @@ const fieldAttrs = computed(() => ({
   rewriteFileUrl: props.rewriteFileUrl,
   selectableUsers: [auth.user.value],
   lang: props.projectType.language,
-  disabled: props.disabled,
+  readonly: props.readonly,
   spellcheckEnabled: localSettings.designSpellcheckEnabled,
   'onUpdate:spellcheckEnabled': (val: boolean) => { localSettings.designSpellcheckEnabled = val },
   markdownEditorMode: localSettings.designMarkdownEditorMode,

@@ -28,26 +28,26 @@
       <s-text-field
         v-model="projectType.name"
         label="Name"
-        :disabled="readonly"
+        :readonly="readonly"
         class="mt-4"
         spellcheck="false"
       />
       <s-language-selection
         v-model="projectType.language"
-        :disabled="readonly"
+        :readonly="readonly"
         class="mt-4"
       />
       <s-status-selection
         v-model="projectType.status"
         :items="ProjectTypeStatusItems"
-        :disabled="readonly"
+        :readonly="readonly"
         variant="outlined"
         density="default"
         class="mt-4"
       />
       <s-tags
         v-model="projectType.tags"
-        :disabled="readonly"
+        :readonly="readonly"
         class="mt-4"
       />
     </v-form>

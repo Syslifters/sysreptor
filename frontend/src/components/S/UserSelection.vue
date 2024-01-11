@@ -104,7 +104,7 @@ const autocompleteAttrs = computed(() =>
     disabled: props.disabled,
     readonly: props.readonly,
     returnObject: true,
-    clearable: props.clearable,
+    clearable: props.clearable && !props.readonly,
     spellcheck: 'false',
   },
   props.multiple ? {

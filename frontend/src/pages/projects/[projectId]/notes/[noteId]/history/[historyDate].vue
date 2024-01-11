@@ -17,13 +17,13 @@
                 v-if="note.checked === null"
                 v-model="note.icon_emoji"
                 :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
-                :disabled="true"
+                :readonly="true"
                 density="comfortable"
               />
               
               <markdown-text-field-content
                 v-model="note.title"
-                :disabled="true"
+                :readonly="true"
                 :spellcheck-supported="true"
                 v-bind="fieldAttrsHistoric"
                 class="note-title"
@@ -35,7 +35,7 @@
               <s-user-selection
                 v-model="note.assignee"
                 :selectable-users="fieldAttrsHistoric.selectableUsers"
-                :disabled="true"
+                :readonly="true"
                 label="Assignee"
                 variant="underlined"
                 density="compact"
