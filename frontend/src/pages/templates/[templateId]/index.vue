@@ -91,7 +91,7 @@ const { toolbarAttrs, fetchLoaderAttrs, readonly } = useLockEdit({
 
 async function uploadFile(file: File) {
   const img = await uploadFileHelper<UploadedFileInfo>(urlJoin(baseUrl.value, '/images/'), file);
-  return `![](/images/name/${img.name}){width="100%"}`;
+  return `![](/images/name/${img.name}){width="auto"}`;
 }
 function rewriteFileUrl(imgSrc: string) {
   return urlJoin(baseUrl.value, imgSrc);

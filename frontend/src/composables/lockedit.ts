@@ -309,7 +309,7 @@ export function useProjectLockEdit<T>(options: {
     const uploadUrl = urlJoin(projectUrl.value, options.canUploadFiles ? '/upload/' : '/images/');
     const res = await uploadFileHelper<UploadedFileInfo>(uploadUrl, file);
     if (res.resource_type === UploadedFileType.IMAGE) {
-      return `![](/images/name/${res.name}){width="100%"}`;
+      return `![](/images/name/${res.name}){width="auto"}`;
     } else {
       return `[](/files/name/${res.name})`;
     }
