@@ -4,6 +4,7 @@
       <btn-confirm
         :action="() => dialogVisible = true"
         :confirm="false"
+        :disabled="project.readonly"
         button-text="Add"
         button-icon="mdi-plus"
         tooltip-text="Add Finding (Ctrl+J)"

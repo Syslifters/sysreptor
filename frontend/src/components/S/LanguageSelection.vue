@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<{
   items: null
 });
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: Language): void
+  (e: 'update:modelValue', value: string): void
 }>()
 const initialLanguage = props.modelValue;
 

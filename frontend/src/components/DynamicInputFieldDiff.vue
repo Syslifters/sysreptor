@@ -6,7 +6,7 @@
         v-for="fieldProps in objectFields" 
         :key="fieldProps.id"
         v-bind="fieldProps"
-      />>
+      />
     </v-card-text>
   </s-card>
   <s-card v-else-if="props.historic.definition?.type === 'list' && props.current.definition?.type === 'list'" class="mt-4">
@@ -32,18 +32,22 @@
     <v-col cols="6">
       <dynamic-input-field
         v-if="props.historic.definition"
-        :model-value="props.historic.value"
-        :disabled="true"
         v-bind="props.historic"
+        :definition="props.historic.definition"
+        :model-value="props.historic.value"
+        :disabled="!hasChanged"
+        :readonly="hasChanged"
         :class="{'highlight-changed': hasChanged}"
       />
     </v-col>
     <v-col cols="6">
       <dynamic-input-field 
         v-if="props.current.definition" 
-        :model-value="props.current.value"
-        :disabled="true"
         v-bind="props.current"
+        :model-value="props.current.value"
+        :definition="props.current.definition"
+        :disabled="!hasChanged"
+        :readonly="hasChanged"
         :class="{'highlight-changed': hasChanged}"
       />
     </v-col>
@@ -53,14 +57,9 @@
 <script setup lang="ts">
 import pick from 'lodash/pick';
 import merge from 'lodash/merge';
+import type { DynamicInputFieldDiffProps } from '~/composables/history';
 
-export type Props = {
-  id: string;
-  historic: DiffFieldProps;
-  current: DiffFieldProps;
-}
-
-const props = defineProps<Props>();
+const props = defineProps<DynamicInputFieldDiffProps>();
 
 const attrs = useAttrs();
 const inheritedDiffAttrs = computed(() => {
@@ -72,42 +71,25 @@ const inheritedDiffAttrs = computed(() => {
   };
 });
 
-const objectFields = computed(() => {
-  if (props.historic.definition?.type !== 'object') {
-    return [];
-  }
-  const fields = Object.entries(props.historic.definition.properties!)
-    .map(([id, def]) => merge({
-      id,
-      historic: {
-        value: props.historic.value?.[id],
-        definition: def,
-      },
-      current: {
-        value: props.current.value?.[id],
-        definition: props.current.definition?.properties?.[id],
-      },
-    }, inheritedDiffAttrs.value)) as Props[];
-  fields.push(...Object.entries(props.current.definition?.properties || {})
-    .filter(([id, _def]) => !(id in (props.historic.definition?.properties || {})))
-    .map(([id, def]) => merge({
-      id,
-      historic: {
-        value: undefined,
-        definition: undefined,
-      },
-      current: {
-        value: props.current.value?.[id],
-        definition: def,
-      },
-    }, inheritedDiffAttrs.value)));
-  return fields;
-});
+const objectFields = computed(() => formatHistoryObjectFieldProps({
+  historic: {
+    value: props.historic.value,
+    definition: props.historic.definition?.properties,
+    fieldIds: Object.keys(props.historic.definition?.properties || {}),
+    attrs: inheritedDiffAttrs.value.historic,
+  },
+  current: {
+    value: props.current.value,
+    definition: props.current.definition?.properties,
+    fieldIds: Object.keys(props.current.definition?.properties || {}),
+    attrs: inheritedDiffAttrs.value.current,
+  },
+}));
 const listItemFields = computed(() => {
   if (props.historic.definition?.type !== 'list') {
     return [];
   }
-  const items = [] as Props[];
+  const items = [] as DynamicInputFieldDiffProps[];
   for (let i = 0; i < Math.max((props.historic.value || []).length, props.current.definition?.type === 'list' ? (props.current.value || []).length : 0); i++) {
     items.push(merge({
       id: String(i),
@@ -124,6 +106,8 @@ const listItemFields = computed(() => {
   return items;
 });
 const markdownDiffAttrs = computed(() => merge({
+  disabled: !hasChanged.value,
+  readonly: hasChanged.value,
   historic: {
     value: props.historic.value,
   },
@@ -139,14 +123,16 @@ const hasChanged = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+$highlight-changed-color: rgb(var(--v-theme-success));
+
 .highlight-changed:deep() {
   .v-field.v-field--variant-outlined {
     .v-field__outline {
       --v-field-border-width: 2px;
     }
 
-    .v-field__outline__start, .v-field__outline__end, .v-field__outline__notch::before .v-field__outline__notch::after {
-      border-color: rgb(var(--v-theme-info));
+    .v-field__outline__start, .v-field__outline__end, .v-field__outline__notch::before, .v-field__outline__notch::after {
+      border-color: $highlight-changed-color;
     }
   }
 }
@@ -166,16 +152,24 @@ TODO: history diff
 * [x] rewriteFileUrl: historic and current
 * [x] history pages: fetch obj+projecttype: historic and current
 * [x] show history of deleted finding => do not crash
-* [ ] show history of deleted projecttype => do not crash
-* [ ] useHistory: fetch+error handling instead of useAsyncDataE
-* [ ] toggle diff in pages or always use diff ???
-* [ ] DynamicInputFieldDiff: readonly vs disabled?
+* [x] useHistory: fetch+error handling instead of useAsyncDataE
+* [x] show history of deleted projecttype => do not crash
+* [x] markdown-diff-page for notes
+* [x] markdown-diff-field: toolbar markdownEditorMode button not visible
+* [ ] show all template fields with values in history (enable in field selection, similar to create template from finding page)
+* [ ] feedback
+  * [x] side-by-side string field diff => no
+  * [x] toggle diff in pages or always use diff => always diff
+  * [x] disable unchanged fields, readonly changed fields
+  * [ ] remove historic banner; add date to history headline => does not work for notes
+  * [ ] finished project: readonly instead of disabled
+* [ ] rework all history pages
+  * [x] findings
+  * [x] sections
+  * [x] notes
+  * [ ] templates
 * [ ] cleanup
   * [x] move composables to composables/history.ts
-  * [ ] helper functions for field diffing in composables/history.ts => use in pages and components
-* [ ] rework all history pages
-  * [ ] findings
-  * [ ] sections
-  * [ ] notes
-  * [ ] templates
+  * [x] helper functions for field diffing in composables/history.ts => use in pages and components
+  * [ ] fix typescript errors
 -->

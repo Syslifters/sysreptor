@@ -4,16 +4,19 @@
     <v-divider />
     <div 
       v-show="props.historic.markdownEditorMode !== MarkdownEditorMode.PREVIEW"
-      ref="mergeRef" 
+      ref="mergeViewRef" 
       class="mde-mergeview" 
     />
     
-    <v-row v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW">
+    <v-row v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW" no-gutters>
       <v-col cols="6">
         <markdown-preview
           v-bind="markdownPreviewAttrsHistoric" 
           class="mde-preview" 
         />
+      </v-col>
+      <v-col>
+        <v-divider vertical class="h-100" />
       </v-col>
       <v-col cols="6">
         <markdown-preview
@@ -26,21 +29,11 @@
 </template>
 
 <script setup lang="ts">
-import type { MarkdownEditorMode } from '#imports';
+import type { DiffFieldProps, MarkdownEditorMode } from '#imports';
 
 const props = defineProps<{
-  historic: {
-    value?: string|null;
-    markdownEditorMode?: MarkdownEditorMode;
-    rewriteFileUrll?: (fileSrc: string) => string;
-    rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
-  },
-  current: {
-    value?: string|null;
-    markdownEditorMode?: MarkdownEditorMode;
-    rewriteFileUrll?: (fileSrc: string) => string;
-    rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
-  },
+  historic: DiffFieldProps,
+  current: DiffFieldProps,
 }>();
 
 const { markdownPreviewAttrsHistoric, markdownPreviewAttrsCurrent, markdownToolbarAttrs } = useMarkdownDiff({
@@ -63,7 +56,7 @@ $mde-min-height: 15em;
   .cm-scroller { overflow: auto; }
   .cm-wrap { border: 1px solid silver; }
 
-  .cm-merge-b {
+  .cm-merge-a, .cm-merge-b {
     border-left: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
   }
 }

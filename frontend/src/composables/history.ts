@@ -6,7 +6,7 @@ import {
   MergeView, EditorView, EditorState,
   // @ts-ignore
 } from "reportcreator-markdown/editor";
-import { MarkdownEditorMode } from '@/utils/types';
+import { MarkdownEditorMode, type FieldDefinitionDict } from '@/utils/types';
 
 export type DiffFieldProps = {
   value?: any;
@@ -17,6 +17,12 @@ export type DiffFieldProps = {
   rewriteFileUrl?: (fileSrc: string) => string;
   rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
 };
+
+export type DynamicInputFieldDiffProps = {
+  id: string;
+  historic: DiffFieldProps;
+  current: DiffFieldProps;
+}
 
 export function useMarkdownDiff({ props, extensions }: {
   extensions: any[];
@@ -32,12 +38,12 @@ export function useMarkdownDiff({ props, extensions }: {
   const valueNotNullCurrent = computed(() => props.value.current.value || '');
 
   const vm = getCurrentInstance()!;
-  const mergeRef = computed(() => vm.refs.mergeRef);
+  const mergeViewRef = computed(() => vm.refs.mergeViewRef);
   const mergeView = shallowRef<MergeView|null>(null);
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
   function initializeMergeView() {
     mergeView.value = new MergeView({
-      parent: mergeRef.value,
+      parent: mergeViewRef.value,
       root: document,
       orientation: "a-b",
       highlightChanges: true,
@@ -131,7 +137,42 @@ export function useMarkdownDiff({ props, extensions }: {
   }
 }
 
-export async function useProjectHistory<T>(options: {
+export function formatHistoryObjectFieldProps(options: {
+  historic: {
+    value?: any;
+    definition?: FieldDefinitionDict;
+    fieldIds: string[];
+    attrs?: any;
+  },
+  current: {
+    value?: any;
+    definition?: FieldDefinitionDict;
+    fieldIds: string[];
+    attrs?: any;
+  },
+}) {
+  const out = [] as DynamicInputFieldDiffProps[];
+  for (const fieldId of options.historic.fieldIds.concat(options.current.fieldIds)) {
+    if (!out.some(f => f.id === fieldId)) {
+      out.push({
+        id: fieldId,
+        historic: {
+          value: options.historic.value?.[fieldId],
+          definition: options.historic.definition?.[fieldId],
+          ...options.historic.attrs,
+        },
+        current: {
+          value: options.current.value?.[fieldId],
+          definition: options.current.definition?.[fieldId],
+          ...options.current.attrs,
+        },
+      });
+    }
+  }
+  return out;
+}
+
+export function useProjectHistory<T>(options: {
   subresourceUrlPart: string;
 }) {
   const route = useRoute();
@@ -141,8 +182,7 @@ export async function useProjectHistory<T>(options: {
   const projectUrlCurrent = computed(() => `/api/v1/pentestprojects/${route.params.projectId}/`);
   const projectUrlHistoric = computed(() => `/api/v1/pentestprojects/${route.params.projectId}/history/${route.params.historyDate}/`);
 
-  // TODO: error handling => show error in frontend instead of crashing => useFetch like in lockedit
-  const fetchState = await useAsyncDataE(async () => {
+  const fetchState = useLazyAsyncData(async () => {
     const [projectCurrent, projectHistoric, dataCurrent, dataHistoric] = await Promise.all([
       projectStore.getById(route.params.projectId as string),
       $fetch<PentestProject>(projectUrlHistoric.value, { method: 'GET' }),
@@ -162,10 +202,10 @@ export async function useProjectHistory<T>(options: {
       projectTypeCurrent,
       projectTypeHistoric,
     };
-  }, { key: `projectHistory-${route.params.projectId}-${route.params.historyDate}-${options.subresourceUrlPart}` });
+  });
 
-  const projectTypeUrlCurrent = computed(() => `/api/v1/projecttypes/${fetchState.value.projectCurrent.project_type}/`);
-  const projectTypeUrlHistoric = computed(() => `/api/v1/projecttypes/${fetchState.value.projectHistoric.project_type}/history/${route.params.historyDate}/`);
+  const projectTypeUrlCurrent = computed(() => `/api/v1/projecttypes/${fetchState.data.value?.projectCurrent.project_type}/`);
+  const projectTypeUrlHistoric = computed(() => `/api/v1/projecttypes/${fetchState.data.value?.projectHistoric.project_type}/history/${route.params.historyDate}/`);
   function rewriteFileUrlCurrent(fileSrc: string) {
     if (fileSrc.startsWith('/assets/')) {
       return urlJoin(projectTypeUrlCurrent.value || '', fileSrc)
@@ -182,10 +222,10 @@ export async function useProjectHistory<T>(options: {
   }
 
   function rewriteReferenceLink(refId: string) {
-    const finding = projectStore.findings(fetchState.value.projectCurrent.id || '').find(f => f.id === refId);
+    const finding = projectStore.findings(fetchState.data.value?.projectCurrent.id || '').find(f => f.id === refId);
     if (finding) {
       return {
-        href: `/projects/${fetchState.value!.projectCurrent.id}/reporting/findings/${finding.id}/`,
+        href: `/projects/${fetchState.data.value?.projectCurrent.id}/reporting/findings/${finding.id}/`,
         title: `[Finding ${finding.data.title}]`,
       };
     }
@@ -201,16 +241,16 @@ export async function useProjectHistory<T>(options: {
   });
 
   const fieldAttrsCurrent = computed(() => ({
-    lang: fetchState.value.projectCurrent.language || 'en-US',
-    selectableUsers: [...fetchState.value.projectCurrent.members, ...fetchState.value.projectCurrent.imported_members],
+    lang: fetchState.data.value?.projectCurrent.language || 'en-US',
+    selectableUsers: [...(fetchState.data.value?.projectCurrent.members || []), ...(fetchState.data.value?.projectCurrent.imported_members || [])],
     markdownEditorMode: markdownEditorMode.value,
     'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { markdownEditorMode.value = val; },
     rewriteFileUrl: rewriteFileUrlCurrent,
     rewriteReferenceLink,
   }));
   const fieldAttrsHistoric = computed(() => ({
-    lang: fetchState.value.projectHistoric.language || 'en-US',
-    selectableUsers: [...fetchState.value.projectHistoric.members, ...fetchState.value.projectHistoric.imported_members],
+    lang: fetchState.data.value?.projectHistoric.language || 'en-US',
+    selectableUsers: [...(fetchState.data.value?.projectHistoric.members || []), ...(fetchState.data.value?.projectHistoric.imported_members || [])],
     markdownEditorMode: markdownEditorMode.value,
     'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { markdownEditorMode.value = val; },
     rewriteFileUrl: rewriteFileUrlHistoric,
@@ -219,16 +259,24 @@ export async function useProjectHistory<T>(options: {
 
   const toolbarAttrs = computed(() => ({
     ref: 'toolbarRef',
-    data: fetchState.value.dataHistoric,
+    data: fetchState.data.value?.dataHistoric,
     editMode: EditMode.READONLY,
-    errorMessage: `This is a historical version from ${formatISO9075(new Date(route.params.historyDate as string))}.`,
+    errorMessage: `This is a historic version from ${formatISO9075(new Date(route.params.historyDate as string))}.`,
+  }));
+  const fetchLoaderAttrs = computed(() => ({
+    fetchState: {
+      data: fetchState.data.value,
+      error: fetchState.error.value,
+      pending: fetchState.pending.value,
+    },
   }));
 
   return {
     fetchState,
-    obj: computed(() => fetchState.value.dataHistoric),
+    obj: computed(() => fetchState.data.value?.dataHistoric),
     toolbarAttrs,
     fieldAttrsCurrent,
     fieldAttrsHistoric,
+    fetchLoaderAttrs,
   }
 }

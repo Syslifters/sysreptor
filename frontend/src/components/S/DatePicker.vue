@@ -3,6 +3,7 @@
     :model-value="props.modelValue"
     @update:model-value="emits('update:modelValue', $event)"
     :disabled="props.disabled"
+    :readonly="props.readonly"
     :rules="rules"
     prepend-inner-icon="mdi-calendar"
     spellcheck="false"
@@ -12,14 +13,14 @@
   >
     <v-menu
       v-model="datePickerVisible"
-      :disabled="props.disabled"
+      :disabled="props.disabled || props.readonly"
       :close-on-content-click="false"
       min-width="0"
       activator="parent"
     >
       <v-date-picker
         v-model="dateValue"
-        :disabled="props.disabled"
+        :disabled="props.disabled || props.disabled"
         view-mode="month"
         show-adjacent-months
         show-week
@@ -33,10 +34,12 @@ import { formatISO, isValid, parseISO } from "date-fns";
 const props = withDefaults(defineProps<{
   modelValue?: string|null;
   disabled?: boolean;
+  readonly?: boolean;
   locale?: string;
 }>(), {
   modelValue: null,
   disabled: false,
+  readonly: false,
   locale: 'en',
 });
 const emits = defineEmits<{
