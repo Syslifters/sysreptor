@@ -320,7 +320,7 @@ export function rehypeFootnoteSeparatorPreview() {
       },
       children: [{
         type: 'text',
-        value: ', ',
+        value: ',',
       }],
     });
   })

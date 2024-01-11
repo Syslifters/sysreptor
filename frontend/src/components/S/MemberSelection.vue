@@ -4,8 +4,8 @@
     @update:model-value="updateMembers"
     label="Members"
     :multiple="true"
-    :disabled="disabled"
-    :readonly="disableAdd"
+    :disabled="props.disabled"
+    :readonly="props.readonly || disableAdd"
     :prevent-unselecting-self="preventUnselectingSelf"
     menu-icon=""
     :clearable="false"
@@ -22,12 +22,13 @@
           :model-value="getRoles(user)"
           @update:model-value="setRoles(user, $event)"
           :items="allRoles"
+          :readonly="props.readonly"
         />
 
         <template #append>
           <s-btn-icon
             @click.stop="removeMember(user)"
-            :readonly="preventUnselectingSelf && user.id === auth.user.value!.id"
+            :disabled="props.readonly || preventUnselectingSelf && user.id === auth.user.value!.id"
             icon="mdi-delete"
           />
         </template>
@@ -39,6 +40,7 @@
         size="small"
         prepend-icon="mdi-plus"
         text="Add"
+        :disabled="props.readonly || disableAdd"
       />
     </template>
   </s-user-selection>
@@ -51,6 +53,7 @@ import uniq from "lodash/uniq";
 const props = withDefaults(defineProps<{
   modelValue: ProjectMember[],
   disabled?: boolean,
+  readonly?: boolean,
   disableAdd?: boolean,
   preventUnselectingSelf?: boolean,
 }>(), {});

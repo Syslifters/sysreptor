@@ -3,9 +3,11 @@
     :model-value="props.modelValue"
     @update:model-value="emit('update:modelValue', $event)"
     :items="tagSuggestions"
+    :readonly="props.readonly"
     label="Tags"
     multiple
-    chips closable-chips
+    chips 
+    :closable-chips="!props.readonly"
     spellcheck="false"
   >
     <template #chip="{item, props: chipProps}">
@@ -20,8 +22,10 @@
 const props = withDefaults(defineProps<{
   modelValue: string[];
   items?: string[];
+  readonly?: boolean;
 }>(), {
   items: () => ([]),
+  readonly: false,
 });
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string[]): void

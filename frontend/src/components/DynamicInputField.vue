@@ -32,7 +32,7 @@
       :items="[{value: null as string|null, label: '---'}].concat(definition.choices!)"
       item-title="label"
       item-value="value"
-      clearable
+      :clearable="!props.readonly"
       v-bind="fieldAttrs"
     />
 
@@ -41,7 +41,7 @@
       v-else-if="definition.type === 'combobox'"
       v-model="formValue"
       :items="definition.suggestions"
-      clearable
+      :clearable="!props.readonly"
       spellcheck="false"
       v-bind="fieldAttrs"
     />

@@ -8,7 +8,8 @@
             @update:model-value="!props.isObjectProperty ? updateProperty('id', $event) : null"
             @change="updateProperty('id', $event.target.value)"
             :rules="rules.id"
-            :disabled="props.disabled || !props.canChangeStructure"
+            :disabled="!props.canChangeStructure"
+            :readonly="props.readonly"
             label="ID"
             hint="Used to access this field in report templates"
             required
@@ -20,7 +21,8 @@
             :model-value="props.modelValue.type"
             @update:model-value="updateType($event)"
             :items="Object.values(FieldDataType)"
-            :disabled="props.disabled || !props.canChangeStructure"
+            :disabled="!props.canChangeStructure"
+            :readonly="props.readonly"
             label="Data Type"
             hint="Data type of this field. Controls the allowed values and input form."
             required
@@ -31,7 +33,7 @@
           <s-text-field
             :model-value="props.modelValue.label"
             @update:model-value="updateProperty('label', $event)"
-            :disabled="props.disabled"
+            :readonly="props.readonly"
             label="Label"
             hint="Friendly name used in input forms for this field"
             required
@@ -44,7 +46,8 @@
         :model-value="props.modelValue.type"
         @update:model-value="updateProperty('type', $event)"
         :items="Object.values(FieldDataType)"
-        :disabled="props.disabled || !props.canChangeStructure"
+        :disabled="!props.canChangeStructure"
+        :readonly="props.readonly"
         label="Data Type"
         hint="Data type of this field. Controls the allowed values and input form."
         required
@@ -55,7 +58,7 @@
           <s-checkbox
             :model-value="props.modelValue.required || false"
             @update:model-value="updateProperty('required', $event)"
-            :disabled="props.disabled"
+            :readonly="props.readonly"
             label="Required"
             hint="Determines whether this field is required must be filled or optional"
           />
@@ -67,7 +70,7 @@
             <s-checkbox
               :model-value="props.modelValue.spellcheck || false"
               @update:model-value="updateProperty('spellcheck', $event)"
-              :disabled="props.disabled"
+              :readonly="props.readonly"
               label="Spellcheck Supported"
               hint="Support spellchecking for this fields text content."
             />
@@ -78,10 +81,10 @@
               :model-value="props.modelValue.pattern"
               @update:model-value="updateProperty('pattern', $event)"
               :items="predefinedRegexPatterns.map(p => p.value)"
-              :disabled="props.disabled"
+              :readonly="props.readonly"
               label="Pattern"
               hint="RegEx pattern to validate the input against."
-              clearable
+              :clearable="!props.readonly"
               :rules="rules.pattern"
               spellcheck="false"
             >
@@ -103,7 +106,7 @@
               :model-value="props.modelValue.cvss_version || null"
               @update:model-value="updateProperty('cvss_version', $event)"
               :items="[{ title: 'Any', value: null }, CvssVersion.CVSS40, CvssVersion.CVSS31]"
-              :disabled="props.disabled"
+              :readonly="props.readonly"
               label="CVSS Version"
               hint="Require a specific CVSS version"
               class="mt-2"
@@ -119,7 +122,7 @@
           :model-value="props.modelValue.choices || []"
           @update:model-value="updateEnumChoice('sort', 0, $event)"
           :item-key="(item: EnumFieldChoiceDefinition) => (props.modelValue.choices || []).indexOf(item)"
-          :disabled="props.disabled || !props.canChangeStructure"
+          :disabled="props.readonly || !props.canChangeStructure"
           handle=".draggable-handle"
         >
           <template #item="{ element: choice, index: choiceIdx }">
@@ -129,7 +132,7 @@
                   <v-icon
                     size="x-large"
                     class="draggable-handle"
-                    :disabled="props.disabled || !props.canChangeStructure"
+                    :disabled="props.readonly || !props.canChangeStructure"
                     icon="mdi-drag-horizontal"
                   />
                 </template>
@@ -139,7 +142,8 @@
                       <s-text-field
                         :model-value="choice.value"
                         @update:model-value="updateEnumChoice('updateValue', choiceIdx, $event)"
-                        :disabled="props.disabled || !props.canChangeStructure"
+                        :disabled="!props.canChangeStructure"
+                        :readonly="props.readonly"
                         :rules="rules.choice"
                         label="Value"
                         required
@@ -151,7 +155,7 @@
                       <s-text-field
                         :model-value="choice.label"
                         @update:model-value="updateEnumChoice('updateLabel', choiceIdx, $event)"
-                        :disabled="props.disabled"
+                        :readonly="props.readonly"
                         label="Label"
                         required
                         spellcheck="false"
@@ -164,7 +168,7 @@
                   <btn-delete
                     :delete="() => updateEnumChoice('delete', choiceIdx)"
                     :confirm="false"
-                    :disabled="props.disabled || !props.canChangeStructure"
+                    :disabled="props.readonly || !props.canChangeStructure"
                     button-variant="icon"
                   />
                 </template>
@@ -175,7 +179,7 @@
         <v-list-item>
           <s-btn-secondary
             @click="updateEnumChoice('add', 0)"
-            :disabled="props.disabled || !props.canChangeStructure"
+            :disabled="props.readonly || !props.canChangeStructure"
             prepend-icon="mdi-plus"
             text="Add Value"
           />
@@ -189,7 +193,8 @@
             <s-text-field
               :model-value="suggestion"
               @update:model-value="updateComboboxSuggestion('update', suggestionIdx, $event)"
-              :disabled="props.disabled || !props.canChangeStructure"
+              :disabled="!props.canChangeStructure"
+              :readonly="props.readonly"
               label="Value"
               required
               spellcheck="false"
@@ -200,7 +205,7 @@
             <btn-delete
               :delete="() => updateComboboxSuggestion('delete', suggestionIdx)"
               :confirm="false"
-              :disabled="props.disabled || !props.canChangeStructure"
+              :disabled="props.readonly || !props.canChangeStructure"
               button-variant="icon"
             />
           </template>
@@ -208,7 +213,7 @@
         <v-list-item>
           <s-btn-secondary
             @click="updateComboboxSuggestion('add', 0)"
-            :disabled="props.disabled || !props.canChangeStructure"
+            :disabled="props.readonly || !props.canChangeStructure"
             prepend-icon="mdi-plus"
             text="Add Value"
           />
@@ -219,23 +224,23 @@
         v-if="![FieldDataType.OBJECT, FieldDataType.LIST, FieldDataType.USER].includes(props.modelValue.type as any)"
         :model-value="props.modelValue.default"
         @update:model-value="updateProperty('default', $event)"
-        :definition="{...props.modelValue, label: 'Default Value', required: false, pattern: null} as FieldDefinition"
+        :definition="({...props.modelValue, label: 'Default Value', required: false, pattern: null} as FieldDefinition)"
         :lang="props.lang"
         v-model:spellcheck-enabled="localSettings.designSpellcheckEnabled"
         v-model:markdown-editor-mode="localSettings.designMarkdownEditorMode"
-        :disabled="props.disabled"
+        :readonly="props.readonly"
         :disable-validation="true"
       />
 
       <!-- List Item -->
       <design-input-field-definition
         v-else-if="props.modelValue.type === FieldDataType.LIST"
-        :model-value="props.modelValue.items! as FieldDefinitionWithId"
+        :model-value="(props.modelValue.items! as FieldDefinitionWithId)"
         @update:model-value="updateProperty('items', $event)"
         :is-list-item="true"
         :can-change-structure="props.canChangeStructure"
         :lang="props.lang"
-        :disabled="props.disabled"
+        :readonly="props.readonly"
       />
       <!-- Object -->
       <v-list v-else-if="props.modelValue.type === FieldDataType.OBJECT">
@@ -247,13 +252,13 @@
               :is-object-property="true"
               :can-change-structure="props.canChangeStructure"
               :lang="props.lang"
-              :disabled="props.disabled"
+              :readonly="props.readonly"
             />
           </template>
           <template #append>
             <btn-delete
               :delete="() => updateObject('delete', f.id)"
-              :disabled="props.disabled || !props.canChangeStructure"
+              :disabled="props.readonly || !props.canChangeStructure"
               button-variant="icon"
             />
           </template>
@@ -263,7 +268,7 @@
         <v-list-item>
           <s-btn-secondary
             @click="updateObject('add')"
-            :disabled="props.disabled || !props.canChangeStructure"
+            :disabled="props.readonly || !props.canChangeStructure"
             prepend-icon="mdi-plus"
             text="Add property"
           />
@@ -284,7 +289,7 @@ const props = defineProps<{
   canChangeStructure?: boolean;
   isListItem?: boolean;
   isObjectProperty?: boolean;
-  disabled?: boolean;
+  readonly?: boolean;
   lang?: string|null;
 }>();
 const emit = defineEmits<{

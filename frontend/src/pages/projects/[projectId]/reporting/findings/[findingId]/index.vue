@@ -21,13 +21,13 @@
           <s-tooltip activator="parent" text="This finding was created from a template: show template" />
         </s-btn-icon>
         <div class="status-container ml-1 mr-1">
-          <s-status-selection v-model="finding.status" :disabled="readonly" />
+          <s-status-selection v-model="finding.status" :readonly="readonly" />
         </div>
         <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
           <s-user-selection
             v-model="finding.assignee"
             :selectable-users="project.members"
-            :disabled="readonly"
+            :readonly="readonly"
             label="Assignee"
             variant="underlined"
             density="compact"
@@ -47,7 +47,7 @@
       <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
         <dynamic-input-field
           v-model="finding.data[fieldId]"
-          :disabled="readonly"
+          :readonly="readonly"
           :id="fieldId"
           :definition="projectType.finding_fields[fieldId]"
           :autofocus="fieldId === 'title'"

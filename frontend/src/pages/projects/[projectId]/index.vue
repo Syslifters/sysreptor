@@ -61,17 +61,17 @@
         v-model="project.name"
         label="Name"
         :error-messages="serverErrors?.name || []"
-        :disabled="readonly"
+        :readonly="readonly"
         spellcheck="false"
         class="mt-4"
       />
 
       <s-project-type-selection
         :model-value="projectType || project.project_type"
-        @update:model-value="projectType = $event"
+        @update:model-value="projectType = ($event as ProjectType|null)"
         :query-filters="{scope: [ProjectTypeScope.GLOBAL, ProjectTypeScope.PRIVATE, ProjectTypeScope.PROJECT], linked_project: project.id}"
         :error-messages="serverErrors?.project_type || []"
-        :disabled="readonly"
+        :readonly="readonly"
         :append-link="true"
         return-object
         class="mt-4"
@@ -107,19 +107,19 @@
       <s-language-selection
         v-model="project.language"
         :error-messages="serverErrors?.language || []"
-        :disabled="readonly"
+        :readonly="readonly"
         class="mt-4"
       />
       <s-tags
         v-model="project.tags"
         :error-messages="serverErrors?.tags || []"
-        :disabled="readonly"
+        :readonly="readonly"
         class="mt-4"
       />
       <s-member-selection
         v-model="project.members"
         :error-messages="serverErrors?.members || []"
-        :disabled="readonly"
+        :readonly="readonly"
         :required="true"
         label="Members"
         class="mt-4"
@@ -129,7 +129,7 @@
         v-model="project.imported_members"
         :selectable-users="project.imported_members"
         :error-messages="serverErrors?.imported_members || []"
-        :disabled="readonly"
+        :readonly="readonly"
         :disable-add="true"
         label="Members (imported)"
         hint="These users do not exist on this instance, they were imported from somewhere else. They do not have access, but can be included in reports."
@@ -148,7 +148,7 @@ const projectStore = useProjectStore();
 
 const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${route.params.projectId}/`, { method: 'GET', key: 'projectSettings:project' });
 const serverErrors = ref<any|null>(null);
-const projectType = ref(null);
+const projectType = ref<ProjectType|null>(null);
 const historyVisible = ref(false);
 
 const formRef = ref<VForm>();

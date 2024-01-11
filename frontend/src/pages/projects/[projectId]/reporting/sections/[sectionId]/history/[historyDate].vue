@@ -3,13 +3,13 @@
     <div v-if="section && fetchState.data.value">
       <edit-toolbar v-bind="toolbarAttrs">
         <div class="status-container ml-1 mr-1">
-          <s-status-selection v-model="section.status" :disabled="true" />
+          <s-status-selection v-model="section.status" :readonly="true" />
         </div>
         <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
           <s-user-selection
             v-model="section.assignee"
             :selectable-users="fieldAttrsHistoric.selectableUsers"
-            :disabled="true"
+            :readonly="true"
             label="Assignee"
             variant="underlined"
             density="compact"

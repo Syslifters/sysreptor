@@ -173,6 +173,8 @@ export function useProjectTypeLockEdit(options: {
   projectType: Ref<ProjectType>,
   performSave?: (data: ProjectType) => Promise<void>;
   performDelete?: (data: ProjectType) => Promise<void>;
+  hasEditPermissions?: ComputedRef<boolean>;
+  errorMessage?: ComputedRef<string|null>;
 }) {
   const auth = useAuth();
   const projectType = computed(() => options.projectType.value);
@@ -184,11 +186,17 @@ export function useProjectTypeLockEdit(options: {
   });
 
   const hasEditPermissions = computed(() => {
+    if (options.hasEditPermissions && !options.hasEditPermissions.value) {
+      return false;
+    }
     return (projectType.value.scope === ProjectTypeScope.GLOBAL && auth.permissions.value.designer) ||
-             (projectType.value.scope === ProjectTypeScope.PRIVATE && auth.permissions.value.private_designs) ||
-             (projectType.value.scope === ProjectTypeScope.PROJECT && projectType.value.source === SourceEnum.CUSTOMIZED);
+            (projectType.value.scope === ProjectTypeScope.PRIVATE && auth.permissions.value.private_designs) ||
+            (projectType.value.scope === ProjectTypeScope.PROJECT && projectType.value.source === SourceEnum.CUSTOMIZED);
   });
   const errorMessage = computed(() => {
+    if (options.errorMessage?.value) {
+      return options.errorMessage.value;
+    }
     if (projectType.value.scope === ProjectTypeScope.PROJECT) {
       if (projectType.value.source === SourceEnum.SNAPSHOT) {
         return `This design cannot be edited because it is a snapshot from ${projectType.value.created.split('T')[0]}.`

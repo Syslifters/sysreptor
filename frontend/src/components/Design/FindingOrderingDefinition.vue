@@ -11,7 +11,7 @@
           :model-value="props.modelValue"
           @update:model-value="emit('update:modelValue', $event)"
           item-key="field"
-          :disabled="props.disabled"
+          :disabled="props.readonly"
           handle=".draggable-handle"
         >
           <template #item="{element: orderConfig, index: idx}">
@@ -19,7 +19,7 @@
               <template #prepend>
                 <span v-if="idx === 0">Sort by</span>
                 <span v-else>then by</span>
-                <v-icon size="x-large" class="draggable-handle ml-6" :disabled="props.disabled" icon="mdi-drag-horizontal" />
+                <v-icon size="x-large" class="draggable-handle ml-6" :disabled="props.readonly" icon="mdi-drag-horizontal" />
               </template>
               <template #default>
                 <v-row dense>
@@ -31,7 +31,7 @@
                       :items="[{id: orderConfig.field}].concat(availableFindingFields)"
                       item-title="id"
                       item-value="id"
-                      :disabled="props.disabled"
+                      :readonly="props.readonly"
                       class="mt-2"
                     />
                   </v-col>
@@ -41,7 +41,7 @@
                       @update:model-value="updateOrder(idx, orderConfig, $event)"
                       label="Order"
                       :items="[SortOrder.ASC, SortOrder.DESC]"
-                      :disabled="props.disabled"
+                      :readonly="props.readonly"
                       class="mt-2"
                     />
                   </v-col>
@@ -52,7 +52,7 @@
                 <btn-delete
                   :delete="() => deleteOrderConfig(orderConfig)"
                   :confirm="false"
-                  :disabled="props.disabled"
+                  :disabled="props.readonly"
                   button-variant="icon"
                 />
               </template>
@@ -63,7 +63,7 @@
         <v-list-item>
           <s-btn-secondary
             @click="addField"
-            :disabled="props.disabled || availableFindingFields.length === 0"
+            :disabled="props.readonly || availableFindingFields.length === 0"
             prepend-icon="mdi-plus"
             text="Add"
           />
@@ -80,7 +80,7 @@ import { SortOrder } from '~/utils/types';
 const props = defineProps<{
   modelValue: FindingOrderingDefinition[];
   projectType: ProjectType;
-  disabled?: boolean;
+  readonly?: boolean;
 }>();
 const emit = defineEmits<{
   'update:modelValue': [FindingOrderingDefinition[]];

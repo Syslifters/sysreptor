@@ -3,13 +3,13 @@
     <div v-if="finding && fetchState.data.value">
       <edit-toolbar v-bind="toolbarAttrs">
         <div class="status-container ml-1 mr-1">
-          <s-status-selection v-model="finding.status" :disabled="true" />
+          <s-status-selection v-model="finding.status" :readonly="true" />
         </div>
         <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
           <s-user-selection
             v-model="finding.assignee"
             :selectable-users="fieldAttrsHistoric.selectableUsers"
-            :disabled="true"
+            :readonly="true"
             label="Assignee"
             variant="underlined"
             density="compact"

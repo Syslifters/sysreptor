@@ -7,8 +7,9 @@
     :item-title="formatProjectTypeTitle"
     item-value="id"
     :return-object="props.returnObject"
+    :readonly="props.readonly"
     :rules="rules"
-    :clearable="!props.required"
+    :clearable="!props.required && !props.readonly"
     :hide-no-data="false"
     spellcheck="false"
   >
@@ -43,6 +44,7 @@ const props = withDefaults(defineProps<{
   modelValue: ProjectType|string|null,
   returnObject?: boolean,
   required?: boolean,
+  readonly?: boolean,
   additionalItems?: ProjectType[],
   queryFilters?: Object,
   appendLink?: boolean,
@@ -50,6 +52,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   returnObject: false,
   required: false,
+  readonly: false,
   additionalItems: () => [],
   queryFilters: () => ({}),
   appendLink: false,
