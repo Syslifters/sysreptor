@@ -33,4 +33,9 @@ export default defineConfig({
       fileName: () => 'bundle.js',
     },
   },
+  define: {
+    'process.env': {
+      NODE_ENV: 'development',
+    },
+  },
 });

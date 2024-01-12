@@ -111,6 +111,7 @@ const templateCompilerOptions = {
   whitespace: 'preserve',
   getTextMode: (node) => {
     // Parse slot content of <markdown> as raw text and do not interpret as html/vue-template
+    // TODO: getTextMode gets removed in Vue 3.4 => find an alternative
     return ['markdown', 'mermaid-diagram'].includes(node.tag) ? 2 /* TextModes.RAWTEXT */ : 0 /* TextModes.DATA */;
   },
     isCustomElement: tag => ['footnote'].includes(tag),
