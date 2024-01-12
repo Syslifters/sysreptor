@@ -127,5 +127,5 @@ Further [configurations](/setup/configuration/) can be edited in `sysreptor/depl
 
 # Upgrade to Professional
 1. Add your license key to `deploy/app.env` (`LICENSE='your_license_key'`)
-2. `cd` to `deploy/app.env` and run `docker compose up -d`
+2. `cd` to `deploy/` and run `docker compose up -d`
 3. Enjoy
