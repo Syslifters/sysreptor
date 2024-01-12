@@ -59,6 +59,9 @@ nav:
           - Projectfindings: cli/projects-and-templates/projectfindings.md
           - Template: cli/projects-and-templates/template.md
           - Translate: cli/projects-and-templates/translate.md
+      - Utils:
+          - Unpackarchive: cli/utils/unpackarchive.md
+          - Packarchive: cli/utils/packarchive.md
       - Importers:
           - Ghostwriter: cli/importers/ghostwriter.md
       - Writing plugins:
