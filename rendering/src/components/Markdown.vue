@@ -1,8 +1,6 @@
 <script>
 import { defineComponent, h } from 'vue';
 import { renderMarkdownToHtml } from 'reportcreator-markdown';
-import 'highlight.js/styles/default.css';
-
 
 export default {
   name: 'markdown',

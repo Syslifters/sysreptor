@@ -1,4 +1,4 @@
-import { createApp, compile, computed, ref } from 'vue';
+import { createApp, compile, computed } from 'vue';
 import { generateCodeFrame } from '@vue/shared';
 import ChartJsPluginDataLabels from 'chartjs-plugin-datalabels';
 import Pagebreak from './components/Pagebreak.vue';
