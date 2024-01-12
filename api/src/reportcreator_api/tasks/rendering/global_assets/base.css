@@ -40,6 +40,7 @@ footnote {
 /* Footnote number in text */
 ::footnote-call {
   content: counter(footnote);
+  font-size: 70%;
 }
 .footnote-call-separator {
   content: ',';
