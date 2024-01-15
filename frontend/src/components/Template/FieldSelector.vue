@@ -26,25 +26,20 @@
 </template>
 
 <script setup lang="ts">
-import { FieldOrigin } from "~/utils/types";
+import { FieldOrigin, type ProjectType } from "~/utils/types";
 
 const props = defineProps<{
-  visibleFieldIds?: string[];
+  fieldDefinitionList?: TemplateFieldDefinition[];
 }>();
-const disabled = computed(() => props.visibleFieldIds !== undefined);
+const disabled = computed(() => props.fieldDefinitionList !== undefined);
 
 const localSettings = useLocalSettings();
-const templateStore = useTemplateStore();
 const projectTypeStore = useProjectTypeStore();
+const templateStore = useTemplateStore();
 useLazyAsyncData(async () => await templateStore.getFieldDefinition());
 
-const fieldDefinitionList = computed(() => {
-  if (props.visibleFieldIds !== undefined) {
-    return templateStore.fieldDefinitionList.map(d => ({ ...d, visible: props.visibleFieldIds?.includes(d.id) }));
-  } else {
-    return templateStore.fieldDefinitionList;
-  }
-});
+const fieldDefinitionList = computed(() => props.fieldDefinitionList || templateStore.fieldDefinitionList);
+
 const templateFieldFilterDesign = computed({
   get: () => {
     if (disabled.value) {
@@ -61,18 +56,17 @@ const templateFieldFilterDesign = computed({
 });
 
 watch(() => localSettings.templateFieldFilterDesign, async (val: string) => {
-  if (!val) {
-    localSettings.templateFieldFilterDesign = 'all';
-  } else if (val === 'all') {
-    localSettings.templateFieldFilterHiddenFields = [];
+  let design = null;
+  if (!val || val === 'all') {
+    design = null;
   } else {
     try {
-      const projectType = await projectTypeStore.getById(val);
-      localSettings.templateFieldFilterHiddenFields = templateStore.fieldDefinitionList.filter(d => !Object.keys(projectType.finding_fields).includes(d.id)).map(d => d.id);
+      design = await projectTypeStore.getById(val);
     } catch (error) {
-      localSettings.templateFieldFilterDesign = 'all';
+      design = null;
     }
   }
+  templateStore.setDesignFilter({ design, clear: true });
 });
 
 function toggleFieldVisible(d: {id: string}) {

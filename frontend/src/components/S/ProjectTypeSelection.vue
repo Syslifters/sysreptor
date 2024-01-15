@@ -94,6 +94,11 @@ useLazyAsyncData(async () => {
         emit('update:modelValue', initialProjectType.value);
       }
     }
+  } else if (props.modelValue && props.returnObject && !isObject(props.modelValue)) {
+    initialProjectType.value = props.additionalItems.find(pt => pt.id === props.modelValue) || null;
+    if (initialProjectType.value) {
+      emit('update:modelValue', initialProjectType.value);
+    }
   }
 });
 

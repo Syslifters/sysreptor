@@ -59,6 +59,7 @@ import urlJoin from "url-join";
 const route = useRoute();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
+const projectTypeStore = useProjectTypeStore();
 const templateStore = useTemplateStore();
 
 useHeadExtended({
@@ -76,6 +77,10 @@ const _fetchState = useLazyAsyncData(async () => {
     $fetch<PentestFinding>(`/api/v1/pentestprojects/${route.query.project}/findings/${route.query.finding}/`, { method: 'GET' }),
     templateStore.getFieldDefinition(),
   ]);
+
+  // set design filter: show only fields from finding
+  const design = await projectTypeStore.getById(project.project_type);
+  templateStore.setDesignFilter({ design, clear: true });
 
   const template = {
     id: uuidv4(),
