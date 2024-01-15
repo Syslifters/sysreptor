@@ -156,6 +156,21 @@ class TestHtmlRendering:
                     '</div>'
                 ])
             )
+    
+    @pytest.mark.parametrize(['props', 'items', 'html'], [
+        ('', [], '<span></span>'),
+        ('', ['a'], '<span>a</span>'),
+        ('', ['a', 'b'], '<span>a and b</span>'),
+        ('', ['a', 'b', 'c'], '<span>a, b and c</span>'),
+        ('comma=";" and="+"', ['a', 'b', 'c'], '<span>a;b+c</span>'),
+    ])
+    def test_comma_and_join(self, props, items, html):
+        actual_html = self.render_html(
+            f"""<comma-and-join {props}><template v-for="v, idx in report.field_list" #[idx]>{{{{ v }}}}</template></comma-and-join>""",
+            {'report': {'field_list': items}}
+        ).replace('<!---->', '')
+        assert actual_html == html
+
 
     def test_toc_rendering(self):
         html = self.render_html("""
