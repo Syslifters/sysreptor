@@ -1,6 +1,6 @@
-adrf==0.1.3 ; python_version >= "3.12" and python_version < "3.13" \
-    --hash=sha256:b848cab61d645e969261edf3fa1072411f8bfa84283fcbddd6a42b1f3ef57ce6 \
-    --hash=sha256:f76e0ff59af5359bbdd5087fae13f3ab152b6aaebb59350d5aea5e88ea588d7d
+adrf==0.1.2 ; python_version >= "3.12" and python_version < "3.13" \
+    --hash=sha256:a33f8f51f0f80072ffb2af061df1fb119bc00adaa720a2972049d4aa33155337 \
+    --hash=sha256:ce7160878ba27999d333752941cde0687c1a205fc26fa0eda1bad3924958dc69
 amqp==5.2.0 ; python_version >= "3.12" and python_version < "3.13" \
     --hash=sha256:827cb12fb0baa892aad844fd95258143bce4027fdac4fccddbc43330fd281637 \
     --hash=sha256:a1ecff425ad063ad42a486c902807d1482311481c8ad95a72694b2975e75f7fd
@@ -642,9 +642,6 @@ inflection==0.5.1 ; python_version >= "3.12" and python_version < "3.13" \
 iniconfig==2.0.0 ; python_version >= "3.12" and python_version < "3.13" \
     --hash=sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3 \
     --hash=sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374
-isort==5.12.0 ; python_version >= "3.12" and python_version < "3.13" \
-    --hash=sha256:8bef7dde241278824a6d83f44a544709b065191b95b6e50894bdc722fcba0504 \
-    --hash=sha256:f84c2818376e66cf843d497486ea8fed8700b340f308f076c6fb1229dff318b6
 jmespath==1.0.1 ; python_version >= "3.12" and python_version < "3.13" \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
     --hash=sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe

@@ -2,20 +2,19 @@
 
 [[package]]
 name = "adrf"
-version = "0.1.3"
+version = "0.1.2"
 description = "Async support for Django REST framework"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "adrf-0.1.3-py3-none-any.whl", hash = "sha256:b848cab61d645e969261edf3fa1072411f8bfa84283fcbddd6a42b1f3ef57ce6"},
-    {file = "adrf-0.1.3.tar.gz", hash = "sha256:f76e0ff59af5359bbdd5087fae13f3ab152b6aaebb59350d5aea5e88ea588d7d"},
+    {file = "adrf-0.1.2-py3-none-any.whl", hash = "sha256:a33f8f51f0f80072ffb2af061df1fb119bc00adaa720a2972049d4aa33155337"},
+    {file = "adrf-0.1.2.tar.gz", hash = "sha256:ce7160878ba27999d333752941cde0687c1a205fc26fa0eda1bad3924958dc69"},
 ]
 
 [package.dependencies]
 async-property = ">=0.2.2"
 django = ">=4.1"
 djangorestframework = ">=3.14.0"
-isort = "5.12.0"
 
 [[package]]
 name = "amqp"
@@ -1395,23 +1394,6 @@ files = [
     {file = "iniconfig-2.0.0-py3-none-any.whl", hash = "sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374"},
     {file = "iniconfig-2.0.0.tar.gz", hash = "sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3"},
 ]
-
-[[package]]
-name = "isort"
-version = "5.12.0"
-description = "A Python utility / library to sort Python imports."
-optional = false
-python-versions = ">=3.8.0"
-files = [
-    {file = "isort-5.12.0-py3-none-any.whl", hash = "sha256:f84c2818376e66cf843d497486ea8fed8700b340f308f076c6fb1229dff318b6"},
-    {file = "isort-5.12.0.tar.gz", hash = "sha256:8bef7dde241278824a6d83f44a544709b065191b95b6e50894bdc722fcba0504"},
-]
-
-[package.extras]
-colors = ["colorama (>=0.4.3)"]
-pipfile-deprecated-finder = ["pip-shims (>=0.5.2)", "pipreqs", "requirementslib"]
-plugins = ["setuptools"]
-requirements-deprecated-finder = ["pip-api", "pipreqs"]
 
 [[package]]
 name = "jmespath"
@@ -2892,4 +2874,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.12"
-content-hash = "46f2a57aea78f5f559fba74fc10eb31de0abaa120846c7dcd50612b61f60a17d"
+content-hash = "287fa44568bfd40b53fe321c9176df14eb91aaba756db94c7195e5e9cd68f024"

@@ -9,7 +9,7 @@ packages = [{include = "reportcreator_api"}]
 python = "~3.12"
 django = { extras = ["argon2"], version = "~5.0" }
 djangorestframework = "~3.14.0"
-adrf = "~0.1.2"
+adrf = "==0.1.2"  # bug in 0.1.3 causes authentication errors
 weasyprint = "~60.2"
 
 django-phonenumber-field = { version = "^7.0.0", extras = ["phonenumberslite"] }
