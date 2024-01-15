@@ -110,3 +110,12 @@ const allItems = computed(() => {
   return out;
 })
 </script>
+
+<style lang="scss" scoped>
+:deep() {
+  .v-field__input input {
+    flex: 1 1;
+    position: absolute;
+  }
+}
+</style>

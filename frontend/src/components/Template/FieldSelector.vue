@@ -1,6 +1,6 @@
 <template>
-  <v-list density="compact">
-    <v-list-item>
+  <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
+    <v-list-item class="pl-2 pr-2 pt-0">
       <s-project-type-selection
         v-model="templateFieldFilterDesign"
         :query-filters="{scope: [ProjectTypeScope.GLOBAL]}"
@@ -11,22 +11,32 @@
       />
     </v-list-item>
 
-    <v-list-item v-for="d in fieldDefinitionList" :key="d.id">
-      <v-list-item-title class="text-body-2">{{ d.id }}</v-list-item-title>
-      <template #append v-if="d.origin !== FieldOrigin.CORE">
-        <s-btn-icon
-          @click="toggleFieldVisible(d)"
-          :icon="d.visible ? 'mdi-eye' : 'mdi-eye-off'"
-          :disabled="disabled"
-          size="x-small"
-        />
-      </template>
-    </v-list-item>
+    <div class="flex-grow-1 overflow-y-auto">
+      <v-hover v-for="d in fieldDefinitionList" :key="d.id">
+        <template #default="{ isHovering, props: hoverProps }">
+          <v-list-item 
+            @click="toggleFieldVisible(d)"
+            link
+            :class="{'item-disabled': !d.visible}" 
+            v-bind="hoverProps"
+          >
+            <v-list-item-title class="text-body-2">{{ d.id }}</v-list-item-title>
+            <template #append v-if="d.origin !== FieldOrigin.CORE && isHovering">
+              <s-btn-icon
+                :icon="d.visible ? 'mdi-eye' : 'mdi-eye-off'"
+                :disabled="disabled"
+                size="x-small"
+              />
+            </template>
+          </v-list-item>
+        </template>
+      </v-hover>
+    </div>
   </v-list>
 </template>
 
 <script setup lang="ts">
-import { FieldOrigin, type ProjectType } from "~/utils/types";
+import { FieldOrigin, type ProjectType, type TemplateFieldDefinition } from "~/utils/types";
 
 const props = defineProps<{
   fieldDefinitionList?: TemplateFieldDefinition[];
@@ -69,7 +79,11 @@ watch(() => localSettings.templateFieldFilterDesign, async (val: string) => {
   templateStore.setDesignFilter({ design, clear: true });
 });
 
-function toggleFieldVisible(d: {id: string}) {
+function toggleFieldVisible(d: TemplateFieldDefinition) {
+  if (disabled.value || d.origin === FieldOrigin.CORE) {
+    return;
+  }
+
   if (localSettings.templateFieldFilterHiddenFields.includes(d.id)) {
     localSettings.templateFieldFilterHiddenFields = localSettings.templateFieldFilterHiddenFields.filter(f => f !== d.id);
   } else {
@@ -77,3 +91,9 @@ function toggleFieldVisible(d: {id: string}) {
   }
 }
 </script>
+
+<style scoped lang="scss">
+.item-disabled {
+  opacity: var(--v-disabled-opacity);
+}
+</style>

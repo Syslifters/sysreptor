@@ -4,6 +4,7 @@
 * Diff-view for version history
 * Set form fields readonly instead of disabled
 * Update build system of Vue PDF rendering script from webpack to vite
+* Improve template field overview UI
 
 
 ## v2024.3 - 2024-01-09
