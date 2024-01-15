@@ -3,10 +3,10 @@ import { generateCodeFrame } from '@vue/shared';
 import ChartJsPluginDataLabels from 'chartjs-plugin-datalabels';
 import Pagebreak from './components/Pagebreak.vue';
 import Markdown from './components/Markdown.vue';
-import CommaAndJoin from './components/CommaAndJoin.js';
-import TableOfContents from './components/TableOfContents.js';
-import ListOfFigures from './components/ListOfFigures.js';
-import ListOfTables from './components/ListOfTables';
+import CommaAndJoin from './components/CommaAndJoin.vue';
+import TableOfContents from './components/TableOfContents.vue';
+import ListOfFigures from './components/ListOfFigures.vue';
+import ListOfTables from './components/ListOfTables.vue';
 import Chart from './components/ChartVue.vue';
 import MermaidDiagram from './components/MermaidDiagram.vue';
 import Ref from './components/Ref.vue';
@@ -16,8 +16,6 @@ import lodash from 'lodash';
 // injected as global variables
 const REPORT_TEMPLATE = '<div>' + (window.REPORT_TEMPLATE || '') + '</div>';
 const REPORT_DATA = window.REPORT_DATA || { report: {}, findings: [] };
-const REPORT_COMPUTED = window.REPORT_COMPUTED || {};
-const REPORT_METHODS = window.REPORT_METHODS || {};
 
 
 const DEFAULT_COMPUTED = {
@@ -144,11 +142,9 @@ if (!window.RENDERING_COMPLETED) {
     }),
     computed: {
       ...DEFAULT_COMPUTED,
-      ...REPORT_COMPUTED,
     },
     methods: {
       ...DEFAULT_METHODS,
-      ...REPORT_METHODS,
     },
     created() {
       this._observer = new MutationObserver((mutationList) => {
