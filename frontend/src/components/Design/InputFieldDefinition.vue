@@ -6,7 +6,7 @@
           <s-text-field
             :model-value="props.modelValue.id"
             @update:model-value="!props.isObjectProperty ? updateProperty('id', $event) : null"
-            @change="updateProperty('id', $event.target.value)"
+            @change="props.isObjectProperty ? updateProperty('id', $event.target.value) : null"
             :rules="rules.id"
             :disabled="!props.canChangeStructure"
             :readonly="props.readonly"

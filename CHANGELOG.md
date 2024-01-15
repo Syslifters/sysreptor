@@ -5,6 +5,7 @@
 * Set form fields readonly instead of disabled
 * Update build system of Vue PDF rendering script from webpack to vite
 * Improve template field overview UI
+* Fix error while editing ID of nested field of report section in designer
 
 
 ## v2024.3 - 2024-01-09
