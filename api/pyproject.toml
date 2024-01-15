@@ -6,7 +6,7 @@ authors = []
 packages = [{include = "reportcreator_api"}]
 
 [tool.poetry.dependencies]
-python = "~3.11"
+python = "~3.12"
 django = { extras = ["argon2"], version = "~5.0" }
 djangorestframework = "~3.14.0"
 adrf = "~0.1.2"
