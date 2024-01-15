@@ -94,6 +94,11 @@ useLazyAsyncData(async () => {
         emit('update:modelValue', initialProjectType.value);
       }
     }
+  } else if (props.modelValue && props.returnObject && !isObject(props.modelValue)) {
+    initialProjectType.value = props.additionalItems.find(pt => pt.id === props.modelValue) || null;
+    if (initialProjectType.value) {
+      emit('update:modelValue', initialProjectType.value);
+    }
   }
 });
 
@@ -105,3 +110,12 @@ const allItems = computed(() => {
   return out;
 })
 </script>
+
+<style lang="scss" scoped>
+:deep() {
+  .v-field__input input {
+    flex: 1 1;
+    position: absolute;
+  }
+}
+</style>

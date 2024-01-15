@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { MarkdownEditorMode, type Language, type FindingTemplate, type FindingTemplateTranslation } from "~/utils/types";
+import { MarkdownEditorMode } from "~/utils/types";
 
 const props = defineProps<{
   historic: {
@@ -112,7 +112,7 @@ const props = defineProps<{
   }
   initialLanguage?: string|null;
   toolbarAttrs?: Object;
-  visibleFieldIds: string[];
+  fieldDefinitionList: TemplateFieldDefinition[];
   historyDate: string;
 }>();
 
@@ -153,9 +153,9 @@ const currentTab = computed({
 
 const historyVisible = ref(false);
 
-const visibleFieldDefinitions = computed(() => templateStore.fieldDefinitionList.filter(d => props.visibleFieldIds?.includes(d.id)));
+const visibleFieldDefinitions = computed(() => props.fieldDefinitionList.filter(f => f.visible));
 const visibleFieldDefinitionsExceptTitle = computed(() => visibleFieldDefinitions.value.filter(f => f.id !== 'title'));
-const fieldDefinitionTitle = computed(() => templateStore.fieldDefinitionList.find(f => f.id === 'title')!);
+const fieldDefinitionTitle = computed(() => props.fieldDefinitionList.find(f => f.id === 'title')!);
 
 function languageInfo(languageCode: string) {
   return apiSettings.settings!.languages.find(l => l.code === languageCode) || { code: '??-??', name: 'Unknown' } as Language;

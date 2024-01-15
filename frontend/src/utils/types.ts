@@ -404,7 +404,11 @@ export type FieldDefinition = {
   items?: FieldDefinition;
 }
 
-export type FieldDefinitionWithIdAndVisible = FieldDefinition & { id: string; visible: boolean };
+export type TemplateFieldDefinition = FieldDefinition & { 
+  id: string; 
+  visible: boolean;
+  used_in_designs: boolean;
+};
 
 export type FieldDefinitionWithId = FieldDefinition & {
   id: string;

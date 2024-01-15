@@ -127,14 +127,17 @@ import { MarkdownEditorMode } from "~/utils/types";
 
 const props = withDefaults(defineProps<{
   modelValue: FindingTemplate;
+  fieldDefinitionList?: TemplateFieldDefinition[];
   initialLanguage?: string|null;
   readonly?: boolean;
   toolbarAttrs?: Object;
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrl?: (fileSrc: string) => string;
   history?: boolean;
+  
 }>(), {
   initialLanguage: null,
+  fieldDefinitionList: undefined,
   toolbarAttrs: () => ({}),
   uploadFile: undefined,
   rewriteFileUrl: undefined,
@@ -174,9 +177,9 @@ const templateTagSuggestions = [
   'config', 'update', 'development', 'crypto',
 ];
 
-const visibleFieldDefinitions = computed(() => templateStore.fieldDefinitionList.filter(f => f.visible));
+const visibleFieldDefinitions = computed(() => (props.fieldDefinitionList || templateStore.fieldDefinitionList).filter(f => f.visible));
 const visibleFieldDefinitionsExceptTitle = computed(() => visibleFieldDefinitions.value.filter(f => f.id !== 'title'));
-const fieldDefinitionTitle = computed(() => templateStore.fieldDefinitionList.find(f => f.id === 'title')!);
+const fieldDefinitionTitle = computed(() => (props.fieldDefinitionList || templateStore.fieldDefinitionList).find(f => f.id === 'title')!);
 
 function languageInfo(languageCode: string) {
   return apiSettings.settings!.languages.find(l => l.code === languageCode) || { code: '??-??', name: 'Unknown' } as Language;

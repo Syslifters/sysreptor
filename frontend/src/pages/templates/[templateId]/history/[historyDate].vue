@@ -1,7 +1,7 @@
 <template>
   <split-menu v-model="localSettings.templateInputMenuSize">
     <template #menu>
-      <template-field-selector :visible-field-ids="visibleFieldIds" />
+      <template-field-selector :field-definition-list="fieldDefinitionList" />
     </template>
 
     <template #default>
@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import urlJoin from "url-join";
+import sortBy from "lodash/sortBy";
 import { formatISO9075 } from "date-fns";
 
 const route = useRoute();
@@ -46,12 +47,13 @@ const fetchState = useLazyAsyncData(async () => {
     templateHistoric,
   };
 });
-const visibleFieldIds = computed(() => {
+const fieldDefinitionList = computed(() => {
   // Show only fields that are used in any translation. Hide unused fields.
   const fieldIdsInUse = ['title']
-    .concat(fetchState.data.value?.templateHistoric.translations?.flatMap(tr => Object.entries(tr.data).filter(([_id, val]) => !!val).map(([id, _val]) => id)) || [])
-    .concat(fetchState.data.value?.templateCurrent.translations?.flatMap(tr => Object.entries(tr.data).filter(([_id, val]) => !!val).map(([id, _val]) => id)) || []);
-  return templateStore.fieldDefinitionList.filter(d => fieldIdsInUse.includes(d.id)).map(d => d.id);
+    .concat(fetchState.data.value?.templateHistoric.translations?.flatMap(tr => Object.entries(tr.data).filter(([_id, val]) => !!val && val.length !== 0).map(([id, _val]) => id)) || [])
+    .concat(fetchState.data.value?.templateCurrent.translations?.flatMap(tr => Object.entries(tr.data).filter(([_id, val]) => !!val && val.length !== 0).map(([id, _val]) => id)) || []);
+  const fieldDefinitionList = templateStore.fieldDefinitionList.map(d => ({ ...d, visible: fieldIdsInUse.includes(d.id) }));
+  return sortBy(fieldDefinitionList, [d => d.visible ? 0 : 1]);
 });
 
 function rewriteFileUrlHistoric(imgSrc: string) {
@@ -83,7 +85,7 @@ const editorDiffAttrs = computed(() => ({
     editMode: EditMode.READONLY,
     errorMessage: `This is a historic version from ${formatISO9075(new Date(route.params.historyDate as string))}.`,
   },
-  visibleFieldIds: visibleFieldIds.value,
+  fieldDefinitionList: fieldDefinitionList.value,
   historyDate: route.params.historyDate as string,
 }));
 useHeadExtended({

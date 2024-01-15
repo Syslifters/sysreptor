@@ -1,6 +1,6 @@
 <template>
-  <v-list density="compact">
-    <v-list-item>
+  <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
+    <v-list-item class="pl-2 pr-2 pt-0">
       <s-project-type-selection
         v-model="templateFieldFilterDesign"
         :query-filters="{scope: [ProjectTypeScope.GLOBAL]}"
@@ -11,40 +11,45 @@
       />
     </v-list-item>
 
-    <v-list-item v-for="d in fieldDefinitionList" :key="d.id">
-      <v-list-item-title class="text-body-2">{{ d.id }}</v-list-item-title>
-      <template #append v-if="d.origin !== FieldOrigin.CORE">
-        <s-btn-icon
-          @click="toggleFieldVisible(d)"
-          :icon="d.visible ? 'mdi-eye' : 'mdi-eye-off'"
-          :disabled="disabled"
-          size="x-small"
-        />
-      </template>
-    </v-list-item>
+    <div class="flex-grow-1 overflow-y-auto">
+      <v-hover v-for="d in fieldDefinitionList" :key="d.id">
+        <template #default="{ isHovering, props: hoverProps }">
+          <v-list-item 
+            @click="toggleFieldVisible(d)"
+            link
+            :class="{'item-disabled': !d.visible}" 
+            v-bind="hoverProps"
+          >
+            <v-list-item-title class="text-body-2">{{ d.id }}</v-list-item-title>
+            <template #append v-if="d.origin !== FieldOrigin.CORE && isHovering">
+              <s-btn-icon
+                :icon="d.visible ? 'mdi-eye' : 'mdi-eye-off'"
+                :disabled="disabled"
+                size="x-small"
+              />
+            </template>
+          </v-list-item>
+        </template>
+      </v-hover>
+    </div>
   </v-list>
 </template>
 
 <script setup lang="ts">
-import { FieldOrigin } from "~/utils/types";
+import { FieldOrigin, type ProjectType, type TemplateFieldDefinition } from "~/utils/types";
 
 const props = defineProps<{
-  visibleFieldIds?: string[];
+  fieldDefinitionList?: TemplateFieldDefinition[];
 }>();
-const disabled = computed(() => props.visibleFieldIds !== undefined);
+const disabled = computed(() => props.fieldDefinitionList !== undefined);
 
 const localSettings = useLocalSettings();
-const templateStore = useTemplateStore();
 const projectTypeStore = useProjectTypeStore();
+const templateStore = useTemplateStore();
 useLazyAsyncData(async () => await templateStore.getFieldDefinition());
 
-const fieldDefinitionList = computed(() => {
-  if (props.visibleFieldIds !== undefined) {
-    return templateStore.fieldDefinitionList.map(d => ({ ...d, visible: props.visibleFieldIds?.includes(d.id) }));
-  } else {
-    return templateStore.fieldDefinitionList;
-  }
-});
+const fieldDefinitionList = computed(() => props.fieldDefinitionList || templateStore.fieldDefinitionList);
+
 const templateFieldFilterDesign = computed({
   get: () => {
     if (disabled.value) {
@@ -61,21 +66,24 @@ const templateFieldFilterDesign = computed({
 });
 
 watch(() => localSettings.templateFieldFilterDesign, async (val: string) => {
-  if (!val) {
-    localSettings.templateFieldFilterDesign = 'all';
-  } else if (val === 'all') {
-    localSettings.templateFieldFilterHiddenFields = [];
+  let design = null;
+  if (!val || val === 'all') {
+    design = null;
   } else {
     try {
-      const projectType = await projectTypeStore.getById(val);
-      localSettings.templateFieldFilterHiddenFields = templateStore.fieldDefinitionList.filter(d => !Object.keys(projectType.finding_fields).includes(d.id)).map(d => d.id);
+      design = await projectTypeStore.getById(val);
     } catch (error) {
-      localSettings.templateFieldFilterDesign = 'all';
+      design = null;
     }
   }
+  templateStore.setDesignFilter({ design, clear: true });
 });
 
-function toggleFieldVisible(d: {id: string}) {
+function toggleFieldVisible(d: TemplateFieldDefinition) {
+  if (disabled.value || d.origin === FieldOrigin.CORE) {
+    return;
+  }
+
   if (localSettings.templateFieldFilterHiddenFields.includes(d.id)) {
     localSettings.templateFieldFilterHiddenFields = localSettings.templateFieldFilterHiddenFields.filter(f => f !== d.id);
   } else {
@@ -83,3 +91,9 @@ function toggleFieldVisible(d: {id: string}) {
   }
 }
 </script>
+
+<style scoped lang="scss">
+.item-disabled {
+  opacity: var(--v-disabled-opacity);
+}
+</style>
