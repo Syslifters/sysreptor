@@ -136,25 +136,21 @@
               </v-row>
             </v-card-text>
           </s-card>
-          <s-card class="mt-4">
-            <v-card-text>
-              <design-input-field-definition
-                v-for="f in currentItemSection!.fields" :key="f.id"
-                :model-value="f"
-                @update:model-value="updateCurrentSectionField(f, $event)"
-                :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
-                :lang="projectType.language"
-                :readonly="readonly"
-              />
-              <s-btn-secondary
-                @click.stop="addField(currentItemSection!)"
-                :disabled="readonly"
-                class="mt-4"
-                prepend-icon="mdi-plus"
-                text="Add Field"
-              />
-            </v-card-text>
-          </s-card>
+          <design-input-field-definition
+            v-for="f in currentItemSection!.fields" :key="f.id"
+            :model-value="f"
+            @update:model-value="updateCurrentSectionField(f, $event)"
+            :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
+            :lang="projectType.language"
+            :readonly="readonly"
+          />
+          <s-btn-secondary
+            @click.stop="addField(currentItemSection!)"
+            :disabled="readonly"
+            class="mt-4"
+            prepend-icon="mdi-plus"
+            text="Add Field"
+          />
         </template>
         <template v-else-if="currentItemIsField">
           <design-input-field-definition
@@ -219,7 +215,10 @@ const rules = {
 
 function updateField(field: FieldDefinitionWithId, val: FieldDefinitionWithId) {
   // Update field order in section
-  const section = projectType.value.report_sections.find(s => s.fields.includes(field.id))!;
+  const section = projectType.value.report_sections.find(s => s.fields.includes(field.id));
+  if (!section) {
+    return;
+  }
   const oldIdx = section.fields.indexOf(field.id);
   if (oldIdx !== -1) {
     section.fields[oldIdx] = val.id;
