@@ -105,7 +105,6 @@ onBeforeUnmount(() => {
   overflow: auto;
   word-wrap: break-word;
   padding: 0.5em;
-  height: 100%;
 }
 
 .preview > :deep(*:first-child) {
