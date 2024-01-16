@@ -6,15 +6,16 @@
 
 <script setup>
 import { v4 as uuidv4 } from "uuid";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, getCurrentInstance } from "vue";
 import { callForTicks } from "@/utils";
 
 const shouldRender = ref(false);
 const items = ref([]);
+const vm = getCurrentInstance();
 
 function updateItems() {
   items.value = [];
-  for (const el of vm.vnode.el.querySelectorAll('table caption')) {
+  for (const el of vm.root.vnode.el.querySelectorAll('table caption')) {
     if (!el.id) {
       el.setAttribute('id', uuidv4());
     }
