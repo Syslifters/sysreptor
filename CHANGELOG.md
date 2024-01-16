@@ -7,6 +7,7 @@
 * Improve template field overview UI
 * Fix error while editing ID of nested field of report section in designer
 * Add demo data archives as TOML files to repository
+* Fix resizing PDF viewer loses mouse focus in Firefox
 
 
 ## v2024.3 - 2024-01-09
