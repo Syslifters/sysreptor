@@ -301,7 +301,7 @@ export function useProjectLockEdit<T>(options: {
   });
   const errorMessage = computed(() => {
     if (options.historyDate) {
-      return `This is a historic version from ${formatISO9075(new Date(options.historyDate))}.`
+      return `You are comparing a historic version from ${formatISO9075(new Date(options.historyDate))} to the current version.`;
     }
     if (project.value?.readonly) {
       return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'
