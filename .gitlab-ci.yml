@@ -205,6 +205,8 @@ build-docs:
     - set +e
     - python3 -c 'from hooks import *; generate_software_lists()' || EXIT_CODE=$?
     - set -e
+    # Pack demo data archives
+    - for archive_dir in ../demo_data/*; do reptor packarchive "$archive_dir" -o "docs/assets/${archive_dir##*/}.tar.gz"; done
     # Fetch remote docs from reptor CLI
     - mkdir -p docs/cli && cd docs/cli
     - git init && git remote add -f origin https://github.com/Syslifters/reptor.git

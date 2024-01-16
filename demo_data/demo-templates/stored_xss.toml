@@ -1,0 +1,55 @@
+format = "templates/v2"
+id = "30590c34-f04c-4817-8a1b-317c4044c540"
+tags = [
+    "web",
+]
+images = []
+
+[[translations]]
+id = "a06c073d-3d04-492f-a516-e453b982b4c6"
+is_main = true
+language = "en-US"
+status = "finished"
+
+[translations.data]
+title = "Stored Cross-Site Scripting (XSS)"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:N"
+summary = """
+At the time of testing, the web application stored user input unchecked and later included it in HTTP responses in an insecure manner. 
+It was thus vulnerable to stored cross-site scripting (XSS) attacks.  
+Exploitation of Stored XSS vulnerabilities does not require user interaction, making them more dangerous than Reflected XSS vulnerabilities.
+"""
+description = """
+We were able to identify a stored XSS vulnerability in the web application during testing. 
+Due to incorrect validation and encoding of data, we were able to inject malicious scripts into the web application and store them persistently.
+
+**TODO: technical description**
+
+Cross-site scripting (XSS) is a common web security vulnerability where malicious scripts can be injected into web applications due to insufficient validation or encoding of data. 
+In XSS attacks, attackers embed JavaScript code in the content delivered by the vulnerable web application.
+
+The goal in stored XSS attacks is to place script code on pages visited by other users. 
+Simply visiting the affected subpage is enough for the script code to be executed in the victim's web browser. 
+
+For an attack, malicious scripts are injected into the web application by the attacker and stored and included in subsequent HTTP responses of the application. 
+The malicious script is ultimately executed in the victim's web browser and can potentially access cookies, session tokens or other sensitive information. 
+
+If the attack is successful, an attacker gains control over web application functions and data in the victim's context. 
+If the affected user has privileged access, an attacker may be able to gain complete control over the web application.
+"""
+recommendation = """
+* Ensure that all processed data is filtered as rigorously as possible. Filtering and validation should be done based on expected and valid inputs.
+* Data should be encoded before the web application includes it in HTTP responses. Encoding should be done contextually, that is, depending on where the web application inserts data in the HTML document, the appropriate encoding syntax must be considered.
+* The HTTP headers `Content-Type` (e.g. `text/plain`) and `X-Content-Type-Options: nosniff` can be set for HTTP responses that do not contain HTML and JavaScript. 
+* We recommend to additionally use a Content Security Policy (CSP) to control which client-side scripts are allowed and which are forbidden.
+* Detailed information and help on preventing XSS can be found in the linked Cross-Site Scripting Prevention Cheat Sheet from OWASP.
+"""
+short_recommendation = """\
+User input should be validated and filtered based on expected or valid input. \
+It should be ensured that data is properly encoded contextually before it is included in HTTP responses.\
+"""
+references = [
+    "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html",
+]
+affected_components = []
+

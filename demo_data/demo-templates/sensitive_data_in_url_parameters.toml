@@ -1,0 +1,41 @@
+format = "templates/v2"
+id = "e5f017ed-75ee-49c0-8e14-0f46ca606dc1"
+tags = [
+    "web",
+]
+images = []
+
+[[translations]]
+id = "30ef53c4-3aee-4a8e-9099-4313f466b672"
+is_main = true
+language = "en-US"
+status = "finished"
+
+[translations.data]
+title = "Disclosure of sensitive data in URL parameters"
+cvss = "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+summary = """
+The web application sent sensitive data as URL parameters in HTTP requests. 
+Data sent as URL parameters is stored in the browser cache and can potentially appear in various other places such as web server logs, referer headers or shared systems. 
+Third parties could thus gain access to this sensitive data.
+"""
+description = """
+The application sent sensitive data in the URL parameter ''TODO'.
+**TODO: technical description**
+
+This could expose the data in the following places:
+* Referer Header
+* Web Logs
+* Shared Systems
+* Browser History
+* Browser Cache
+* Shoulder Surfing
+"""
+recommendation = """
+* The application should send all sensitive data in the body of an HTTP message, e.g. in the body of a POST request.
+* Furthermore, the transmission should be secured via encrypted communication via HTTPS.
+"""
+short_recommendation = "To protect sensitive data from access by third parties, it should be sent in the body of an HTTP message, e.g. via POST request."
+references = []
+affected_components = []
+

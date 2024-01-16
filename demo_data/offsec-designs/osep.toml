@@ -1,0 +1,580 @@
+format = "projecttypes/v1"
+id = "9efe3b9d-b0df-45e0-86d9-a5bc7bcbb525"
+name = "OSEP Exam Report v1.1"
+language = "en-US"
+finding_field_order = [
+    "title",
+    "proof",
+    "enumeration",
+    "compromise",
+    "postexploitation",
+    "privilegeescalation",
+    "screenshots",
+    "cvss",
+]
+report_template = """
+<div id="footer" data-sysreptor-generated="page-footer">
+    <div id="footer-left"><em>CONFIDENTIAL</em></div>
+    <div id="footer-center">{{ report.title }}</div>
+</div>
+
+<div v-if="report.watermark" id="watermark-osid">{{ report.osid }}</div>
+
+
+<section id="page-cover" data-sysreptor-generated="page-cover">
+    <div id="page-cover-background" />
+    <div id="page-cover-title">
+        <h1>Offensive Security</h1>
+        <h2>{{ report.title }}</h2>
+    </div>
+
+    <div id="page-cover-student">
+        <p id="page-cover-osid">
+            <strong>OSID: {{ report.osid }}</strong><br>
+            {{ report.mail }}<br>
+        </p>
+        <p id="page-cover-meta">
+            {{ formatDate(report.report_date, 'long') }}<br>
+            v{{ report.report_version }}
+        </p>
+    </div>
+</section>
+<pagebreak />
+
+
+<table-of-contents id="toc" v-slot="tocItems">
+    <h1>Table of Contents</h1>
+    <ul>
+        <li v-for="item in tocItems" :class="'toc-level' + item.level">
+            <ref :to="item.id" />
+        </li>
+    </ul>
+    <pagebreak />
+</table-of-contents>
+
+<markdown>
+    # Offensive Security OSEP Exam Documentation {.in-toc.numbered}
+    The Offensive Security OSEP exam documentation contains all efforts that were conducted in order to pass the Offensive Security Experienced Penetration Tester exam. This report will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has the technical knowledge required to pass the qualifications for the Offensive Security Experienced Penetration Tester certification.
+
+    ## Objective {.in-toc.numbered}
+    The objective of this assessment is to perform an external penetration test against the Offensive Security Exam network. The student is tasked with following methodical approach in obtaining access to the objective goals. This test should simulate an actual penetration test and how you would start from beginning to end, including enumeration and post-exploitation. The exam report is not meant to be a penetration test report, but rather a writeup of the steps taken to locate, enumerate and compromise the network.
+Enumeration and post-exploitation actions that lead to subsequent attacks with successful compromises should be included in the report.
+An example page has already been created for you at the latter portions of this document that should give you ample information on what is expected to pass this exam. Use the sample report as a guideline to get you through the reporting.
+
+    ## Requirements {.in-toc.numbered}
+    The student will be required to fill out this penetration testing report fully and to include the following sections:
+    * High level summery of findings, including the depth of compromise.
+    * Methodology walkthrough and detailed outline of steps taken including enumeration.
+    * Each finding with included screenshots, walkthrough, sample code or reference.
+    * Screenshot of any local.txt, proof.txt or secret.txt.
+</markdown>
+<pagebreak/>
+
+<section>
+    <h1 id="summary" class="in-toc numbered">High-Level Summary</h1>
+    <markdown :text="report.highlevel_summary" />
+</section>
+<pagebreak/>
+    
+<section>
+    <h1 id="findings" class="in-toc numbered">Findings</h1>
+    <div v-for="finding in findings">
+        <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
+        <div v-if="finding.proof">
+            <h3 class="in-toc numbered">Local.txt/Proof.txt/Secret.txt</h3>
+            <markdown :text="finding.proof" />
+        </div>
+        <div v-if="finding.enumeration">
+            <h3 class="in-toc numbered">Pre-Compromise Enumeration Steps</h3>
+            <markdown :text="finding.enumeration" />
+        </div>
+
+        <div v-if="finding.compromise">
+            <h3 class="in-toc numbered" >Compromise</h3>
+            <markdown :text="finding.compromise" />
+        </div>
+        
+        <div v-if="finding.postexploitation">
+            <h3 class="in-toc numbered">Post-Exploitation Enumeration Steps</h3>
+            <markdown :text="finding.postexploitation" />
+        </div>
+
+        <div v-if="finding.privilegeescalation">
+            <h3 class="in-toc numbered">Local Privilege Escalation</h3>
+            <markdown :text="finding.privilegeescalation" />
+        </div>
+
+        <div v-if="finding.screenshots">
+            <h3 class="in-toc numbered">Screenshots</h3>
+            <markdown :text="finding.screenshots" />
+        </div>
+        <pagebreak />
+    </div>
+</section>
+
+<section v-if="report.appendix_sections.length > 0" class="appendix">
+    <h1 id="appendix" class="in-toc numbered">Appendix</h1>
+
+    <div v-for="appendix_section in report.appendix_sections">
+        <h2 class="in-toc numbered">{{ appendix_section.title }}</h2>
+        <markdown :text="appendix_section.content" />
+    </div>
+    <pagebreak />
+</section>
+
+<section>
+    <div class="end-of-report">
+        End of Report<br>
+    </div>
+    <div class="end-of-report">
+        This report was rendered<br>
+        by <a href="https://docs.sysreptor.com/">SysReptor</a> with<br>
+        <span style="color:red;">&hearts;</span><br>
+    </div>
+</section>
+"""
+report_styles = """
+@import "/assets/global/base.css";
+
+/* Define variables */
+:root {
+    --color-risk-critical: #E83221;
+    --color-risk-high: #FF9300;
+    --color-risk-medium: #FFDA00;
+    --color-risk-low: #4285F5;
+    --color-risk-info: #00AE51;
+
+    --color-cover-page-bg: #3d85c6; 
+}
+
+/* Font settings */
+html {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 10pt;
+}
+
+
+/* Global styles */
+@page {
+    size: A4 portrait;
+    margin: 35mm 20mm 25mm 20mm;
+}
+
+a {
+    font-style: italic;
+    text-decoration: none;
+    color: inherit;
+}
+
+pre code {
+    border: 1px solid black;
+    padding: 0.2em !important;
+}
+code {
+    background-color: rgb(221, 221, 221);
+}
+
+th {
+    background-color: #ABABAB;
+    font-weight: bold;
+}
+tr.table-row-link td {
+    padding: 0;
+}
+tr.table-row-link td a {
+    display: block;
+    padding: 0.3em;
+    color: inherit;
+    text-decoration: none;
+    font-style: inherit;
+}
+.table-key {
+    background-color: #ABABAB;
+}
+
+
+/* Classes for risk colors */
+.risk-critical { color: var(--color-risk-critical) !important; font-weight: bold; }
+.risk-high { color: var(--color-risk-high) !important; font-weight: bold; }
+.risk-medium { color: var(--color-risk-medium) !important; font-weight: bold; }
+.risk-low { color: var(--color-risk-low) !important; font-weight: bold; }
+.risk-info { color: var(--color-risk-info) !important; font-weight: bold; }
+
+.risk-bg-critical { background-color: var(--color-risk-critical) !important; color: white !important; }
+.risk-bg-high { background-color: var(--color-risk-high) !important; }
+.risk-bg-medium { background-color: var(--color-risk-medium) !important; }
+.risk-bg-low { background-color: var(--color-risk-low) !important; }
+.risk-bg-info { background-color: var(--color-risk-info) !important; }
+
+/* Helper class for referencing page number */
+.ref-page::before { 
+    content: "" !important;
+}
+.ref-page::after {
+  content: target-counter(attr(href), page) !important;
+}
+.ref-page .ref-title {
+  display: none !important;
+}
+
+/* Table in finding chapters */
+.finding-heading .table-key {
+    height: 3em;
+    width: 10em;
+}
+
+
+.end-of-report {
+    text-align:center;
+    font-style:italic;
+    margin-top:70px;
+    line-height:1.7;
+}
+
+
+
+
+
+/* #region footer */
+@page {
+    @bottom-left { content: element(footer-left); }
+    @bottom-center { content: element(footer-center); }
+    @bottom-right-corner { content: counter(page); }
+}
+#footer #footer-left { position: running(footer-left); }
+#footer #footer-center { position: running(footer-center); }
+/* #endregion footer */
+
+/* #region watermark */
+#watermark-osid {
+    position: fixed;
+    top: 9cm;
+    left: 1cm;
+    transform: rotate(-45deg);
+    font-size: 90pt;
+    text-transform: uppercase;
+    opacity: 0.2;
+}
+/* #endregion watermark */
+
+/* #region page-cover */
+@page :first {
+    /* Footer on the cover page */
+    @bottom-right-corner {
+        content: "";
+    }
+    @bottom-right {
+        /* Page number */
+        content: counter(page);
+        font-size: 9pt;
+        color: white
+    }
+    @bottom-left {
+        content: "Confidential";
+        text-transform: uppercase;
+        font-style: italic;
+        color: white;
+    }
+     /* Pentest title should not appear on cover page */
+    @bottom-center {
+        content: '';
+    }
+}
+#page-cover-background{
+    position: absolute;
+    margin-top: -35mm;
+    margin-left: -20mm;
+    width: 210mm;
+    height: 297mm;
+    background-color: var(--color-cover-page-bg);
+}
+/* Title page elements */
+#page-cover-title {
+    position: absolute;
+    top: 20mm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-title h1 {
+    font-size: 32pt;
+}
+#page-cover-title h2 {
+    font-size: 24pt;
+}
+#page-cover-student {
+    position: absolute;
+    top: 11cm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-osid {
+    font-size: 14pt;
+}
+#page-cover-meta {
+    line-height: 2em;
+}
+/* #endregion page-cover */
+
+/* #region toc */
+#toc li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#toc .ref::before {
+    padding-right: 0.5em;
+}
+#toc .ref::after {
+    content: " " leader(".") " " target-counter(attr(href), page);
+}
+#toc .toc-level1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 0.8rem;
+}
+#toc .toc-level2 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  margin-left: 2rem;
+}
+#toc .toc-level3 {
+  font-size: 1rem;
+  margin-top: 0.4rem;
+  margin-left: 4rem;
+}
+#toc .toc-level4 {
+  font-size: 1rem;
+  margin-top: 0;
+  margin-left: 6rem;
+}
+/* #endregion toc */
+"""
+
+[report_fields]
+[report_fields.title]
+type = "string"
+label = "Title"
+origin = "core"
+default = "OSEP Exam Documentation"
+required = true
+spellcheck = true
+
+[report_fields.mail]
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[report_fields.osid]
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[report_fields.lastname]
+type = "string"
+label = "Lastname"
+origin = "custom"
+default = "Doe"
+required = true
+spellcheck = false
+
+[report_fields.firstname]
+type = "string"
+label = "Firstname"
+origin = "custom"
+default = "John"
+required = true
+spellcheck = false
+
+[report_fields.watermark]
+type = "boolean"
+label = "Watermark"
+origin = "custom"
+default = false
+
+[report_fields.report_date]
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[report_fields.report_version]
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "1.0"
+required = true
+spellcheck = false
+
+[report_fields.appendix_sections]
+type = "list"
+label = "Appendix"
+origin = "custom"
+required = true
+
+[report_fields.appendix_sections.items]
+type = "object"
+label = ""
+origin = "custom"
+
+[report_fields.appendix_sections.items.properties]
+[report_fields.appendix_sections.items.properties.title]
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO appendix title"
+required = true
+spellcheck = false
+
+[report_fields.appendix_sections.items.properties.content]
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+required = true
+
+[report_fields.highlevel_summary]
+type = "markdown"
+label = "High-Level Summary"
+origin = "custom"
+default = "TODO A brief description of the attack chain with machine names, including the depth of compromise should be included here."
+required = true
+
+[[report_sections]]
+id = "Student"
+label = "Student"
+fields = [
+    "firstname",
+    "lastname",
+    "osid",
+    "mail",
+]
+
+[[report_sections]]
+id = "other"
+label = "Document Control"
+fields = [
+    "title",
+    "report_date",
+    "report_version",
+    "watermark",
+]
+
+[[report_sections]]
+id = "highlevel_summary"
+label = "High-Level Summary"
+fields = [
+    "highlevel_summary",
+]
+
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+fields = [
+    "appendix_sections",
+]
+
+[finding_fields]
+[finding_fields.title]
+type = "string"
+label = "Target"
+origin = "core"
+default = "TODO Target Name"
+required = true
+spellcheck = true
+
+[finding_fields.cvss]
+type = "cvss"
+label = "CVSS (not required)"
+origin = "core"
+default = "n/a"
+required = false
+
+[finding_fields.proof]
+type = "markdown"
+label = "Proof.txt"
+origin = "custom"
+default = "TODO Provide the contents of local.txt, proof.txt or secret.txt"
+required = true
+
+[finding_fields.compromise]
+type = "markdown"
+label = "Compromise"
+origin = "custom"
+default = "TODO Provide a description of exploitation steps to compromise the machine and obtain shell access, the steps taken should be able to be easily followed and reproducible if necessary. Only the steps that ended up working are required. Include any custom code or references to public tools."
+required = true
+
+[finding_fields.enumeration]
+type = "markdown"
+label = "Enumeration"
+origin = "custom"
+default = "TODO Provide relevant techniques and methods used to perform enumeration prior to initial compromise, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."
+required = true
+
+[finding_fields.screenshots]
+type = "markdown"
+label = "Screenshots"
+origin = "custom"
+default = """
+TODO The exam control panel contains a section available to submit your proof files. The contents of the local.txt, proof.txt and secret.txt files obtained from your exam machines must be submitted in the control panel before your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
+
+Each local.txt, proof.txt and secret.txt found must be shown in a screenshot that includes the contents of the file, as well as the IP address of the target by using `ipconfig`, `ifconfig` or `ip addr`.
+"""
+required = true
+
+[finding_fields.postexploitation]
+type = "markdown"
+label = "Post-Exploitation"
+origin = "custom"
+default = "TODO Provide relevant post-exploitation enumeration steps related to the network or local privilege escalation, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."
+required = true
+
+[finding_fields.privilegeescalation]
+type = "markdown"
+label = "Privilege Escalation"
+origin = "custom"
+default = "TODO Provide a description of exploitation steps to escalate privileges on the machine if applicable, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."
+required = true
+
+[report_preview_data]
+[report_preview_data.report]
+title = "OSEP Exam Documentation"
+mail = "student@example.com"
+osid = "OS-XXXXX"
+watermark = true
+report_date = "2022-07-29"
+report_version = "1.0"
+highlevel_summary = "TODO A brief description of the attack chain with machine names, including the depth of compromise should be included here."
+firstname = "John"
+lastname = "Doe"
+
+[[report_preview_data.report.appendix_sections]]
+title = "Appendix Title"
+content = "Appendix content"
+
+[[report_preview_data.findings]]
+title = "192.168.X.X"
+cvss = "n/a"
+id = "b8395ecb-13fe-48dc-812d-5c739c448510"
+proof = "TODO Provide the contents of local.txt, proof.txt or secret.txt"
+compromise = "TODO Provide a description of exploitation steps to compromise the machine and obtain shell access, the steps taken should be able to be easily followed and reproducible if necessary. Only the steps that ended up working are required. Include any custom code or references to public tools."
+enumeration = "TODO Provide relevant techniques and methods used to perform enumeration prior to initial compromise, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."
+screenshots = """
+TODO The exam control panel contains a section available to submit your proof files. The contents of the local.txt, proof.txt and secret.txt files obtained from your exam machines must be submitted in the control panel before your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
+
+Each local.txt, proof.txt and secret.txt found must be shown in a screenshot that includes the contents of the file, as well as the IP address of the target by using `ipconfig`, `ifconfig` or `ip addr`.
+"""
+postexploitation = "TODO Provide relevant post-exploitation enumeration steps related to the network or local privilege escalation, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."
+privilegeescalation = "TODO Provide a description of exploitation steps to escalate privileges on the machine if applicable, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."
+
+[[assets]]
+id = "29d56052-480c-4b61-bd63-d8f48969975c"
+name = "LICENSE"

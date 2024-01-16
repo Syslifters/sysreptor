@@ -1,0 +1,87 @@
+format = "templates/v2"
+id = "0ebd8c6a-6386-4512-b5e5-d2d0b80f19dc"
+tags = [
+    "infrastructure",
+    "external",
+]
+images = []
+
+[[translations]]
+id = "24604e1d-a9c0-46e0-85d3-3674e024721c"
+is_main = true
+language = "en-US"
+status = "finished"
+
+[translations.data]
+title = "Untrusted TLS certificates"
+cvss = "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+summary = """
+Communication with the application at the transport layer level was not sufficiently protected due to untrusted TLS certificates. 
+TLS is used by many protocols to ensure the confidentiality and integrity of communication between two endpoints. 
+If web browsers do not trust an application's TLS certificate, the application may be vulnerable to man-in-the-middle attacks 
+and thus susceptible to eavesdropping or tampering with traffic. 
+Insufficient protection at the transport layer may allow communications between two parties to be compromised by an untrusted third party. 
+An attacker could thus obtain sensitive data (e.g., credentials) if necessary. 
+In the event of a successful attack, an attacker could gain complete control over all functions 
+and data of the application by compromising a privileged user account.
+"""
+description = """
+Transport Layer Security (TLS) is the successor to the now obsolete as well as insecure Secure Sockets Layer (SSL) protocol. 
+TLS is a cryptographic protocol developed for secure, encrypted communication between two or more parties. 
+The protocol is used in a wide variety of areas, including e-mail, instant messaging, and voice-over-IP. 
+The best known use of TLS is on the Web, where it ensures secure communication over HTTPS. 
+Primarily, TLS aims to ensure confidentiality, integrity, 
+but also authenticity through the use of certificates, between two or more parties.
+
+With TLS, the establishment of a secure connection takes place in several steps. 
+Client and server agree on the use of TLS in the first step. 
+This is done either by selecting a specific port (e.g. 443 for HTTP) or by making a protocol-specific request to the server (e.g. STARTTLS for SMTP). 
+A handshake procedure then begins, in which the client and server negotiate various parameters for the security of the communication link. 
+The handshake begins with the client and server agreeing on a respective supported cipher suite, consisting of the symmetric cipher and hash function. 
+The server then issues a digital certificate. 
+The certificate contains, among other things, the server name, the issuing certificate authority (CA), and the server's data asymmetric key. 
+Once the client has verified the validity of the certificate, it generates a symmetric session key for the secure connection. 
+This is done either by the client deriving a key from a random number. 
+The client encrypts the random number with the server's data key and sends the result to the server. 
+The server can use the private key to read the result and also derive the session key. 
+However, the client and server could also use the Diffie-Hellman algorithm to securely agree on a random session key. 
+Diffie-Hellman also offers the advantage of perfect forward secrecy (PFS). 
+PFS prevents subsequent decryption once the server's private key is known. 
+Session keys are not exchanged and thus cannot be reconstructed.
+
+The security of TLS-secured communication is based primarily on the trustworthiness of the digital certificate. 
+If the trustworthiness is not given, for example because the certificate has expired, 
+it contains an incorrect host name or it is a self-signed certificate, no secure key exchange between two endpoints can be guaranteed from the outset. 
+In some circumstances, the communication between two parties could be compromised by an untrusted third party in the course of a man-in-the-middle attack. 
+For example, an attacker could gain access to sensitive data or inject malicious data into the encrypted data stream to compromise either the client or the server.
+
+We reviewed the TLS certificates of the applications in scope and found untrusted certificates for the following applications:
+
+| host | expired | expiring soon | incorrect host name | incomplete certificate chain | self-signed certificate |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| TODO:443 | X | - | - | - | |
+"""
+recommendation = """
+* Acquire new certificates for services that do not have trusted TLS certificates. 
+* Generate sufficiently strong asymmetric keys with at least 2048 bits for certificates and protect the private key.
+* Use only modern cryptographic hash algorithms such as SHA-256.'
+* Make sure that the certificate contains the fully qualified name of the server. The following should also be considered when creating the certificate:
+    * Consider whether the "www" subdomain should also be included.
+    * Do not include unqualified host names in the certificate.
+    * Do not include IP addresses.
+    * Do not include internal domain names.
+* Create and use wildcard certificates only when there is a real need. Do not use wildcard certificates for convenience.
+* Choose an appropriate certificate authority that is trusted by all major browsers. For internal applications, an internal CA can be used. However, ensure that all users have imported the internal CA certificate and thus trust certificates issued by that CA. 
+* Check the TLS configuration, including certificates, at regular intervals and adjust as necessary. There are a number of online tools (such as SSLabs, sslyze, etc) that you can use to quickly perform the check.
+* For more information and help on TLS certificates, see the linked Transport Layer Protection Cheat Sheet from OWASP.
+"""
+short_recommendation = """\
+Ensure that TLS certificates used are universally valid and trusted. \
+Acquire new certificates for the affected services, if necessary. \
+Also, follow best practices recommendations for secure TLS server configuration.\
+"""
+references = [
+    "https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Protection_Cheat_Sheet.html",
+]
+affected_components = []
+
