@@ -42,9 +42,11 @@
         >
           <template #info><span /></template>
         </history-timeline-item>
-        <slot name="item" v-for="item in historyRecords.data.value" :item="item">
-          <history-timeline-item :value="item" />
-        </slot>
+        <template v-for="item, idx in historyRecords.data.value" :key="idx">
+          <slot v-if="!(idx === 0 && !item.history_change_reason)" name="item" :item="item">
+            <history-timeline-item :value="item" />
+          </slot>
+        </template>
       </v-timeline>
       <page-loader :items="historyRecords" />
     </div>
@@ -63,7 +65,7 @@ const emit = defineEmits<{
 
 const apiSettings = useApiSettings();
 
-const historyRecords = useSearchableCursorPaginationFetcher({
+const historyRecords = useSearchableCursorPaginationFetcher<HistoryTimelineRecord>({
   baseURL: props.url
 });
 function resetHistoryRecords() {
