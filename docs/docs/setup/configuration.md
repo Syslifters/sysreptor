@@ -134,7 +134,7 @@ See https://languagetool.org/http-api/ for available options on the `/check` req
 See https://community.languagetool.org/rule/list for available rules (note: rule IDs might differ for languages).
 
 ``` title="Spell check rule configuration"
-SPELLCHECK_PICKY_MODE=true
+SPELLCHECK_MODE_PICKY=true
 SPELLCHECK_LANGUAGETOOL_CONFIG='{"disabledRules": "TODO,TO_DO_HYPHEN,PASSIVE_VOICE,PASSIVE_SENTENCE_DE"}'
 ```
 
