@@ -261,7 +261,7 @@ export function useProjectHistory<T>(options: {
     ref: 'toolbarRef',
     data: fetchState.data.value?.dataHistoric,
     editMode: EditMode.READONLY,
-    errorMessage: `This is a historic version from ${formatISO9075(new Date(route.params.historyDate as string))}.`,
+    errorMessage: `You are comparing a historic version from ${formatISO9075(new Date(route.params.historyDate as string))} to the current version.`,
   }));
   const fetchLoaderAttrs = computed(() => ({
     fetchState: {

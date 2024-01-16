@@ -83,7 +83,7 @@ const editorDiffAttrs = computed(() => ({
   toolbarAttrs: {
     data: fetchState.data.value?.templateHistoric,
     editMode: EditMode.READONLY,
-    errorMessage: `This is a historic version from ${formatISO9075(new Date(route.params.historyDate as string))}.`,
+    errorMessage: `You are comparing a historic version from ${formatISO9075(new Date(route.params.historyDate as string))} to the current version.`,
   },
   fieldDefinitionList: fieldDefinitionList.value,
   historyDate: route.params.historyDate as string,
