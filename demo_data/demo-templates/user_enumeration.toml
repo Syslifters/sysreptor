@@ -1,0 +1,50 @@
+format = "templates/v2"
+id = "96c40db6-d642-4e37-80f7-a48a095e3fc0"
+tags = [
+    "web",
+]
+images = []
+
+[[translations]]
+id = "1359a02d-b683-48c6-952c-2f42d01ea3a8"
+is_main = true
+language = "en-US"
+status = "finished"
+
+[translations.data]
+title = "User Enumeration"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
+summary = """
+The web application was vulnerable to a user enumeration vulnerability. 
+User enumeration is a common vulnerability in web applications that occurs when an attacker can use brute force techniques to determine valid user accounts in a system. 
+Although user enumeration is a low risk in itself, it still provides an attacker with valuable information for follow-up attacks such as in brute force and credential stuffing attacks or in social engineering campaigns.
+"""
+description = """
+We were able to identify a user enumeration vulnerability in the web application, allowing us to determine valid user accounts using brute force techniques.
+
+**TODO: technical description**
+
+Often, as a result of a faulty configuration or design decision, web applications indicate when a user already exists in the system. 
+Two of the most common areas where this occurs are the login page or the "forgot password" feature of a web application. 
+One example is when a user enters incorrect credentials, they receive information that the password they entered was incorrect. 
+The information obtained can now be used by an attacker to determine whether or not a particular username already exists. 
+By trial and error, an attacker can use it to determine a list of valid usernames. 
+
+Once an attacker has such a list, they can address these user accounts in new attacks to obtain valid credentials. 
+In its simplest form, an attacker could perform a brute force attack. 
+In this, an attacker tries to guess a user account's credentials by automatically trying through passwords. 
+Often very large word lists containing frequently used passwords are used for this purpose. 
+An attacker could also use determined usernames to search past data leaks for passwords. 
+Credentials from data leaks, consisting of pairs of usernames and passwords, can be reused by an attacker in an automated attack. 
+This particular form of brute force attack, is also known as credential stuffing. 
+Alternatively, an attacker can use usernames in the course of social engineering campaigns to contact users directly.
+"""
+recommendation = """
+* Ensure that the web application always returns generic error messages when invalid usernames, passwords, or other credentials are entered. Identifies all relevant attack surfaces of the application for this purpose.
+* If the application defines usernames itself, user enumeration can be effectively prevented. The prerequisite for this is that user names are randomly generated so that they cannot be guessed.
+* The application can also use email addresses as usernames. If the username is not yet registered, an email message will contain a unique URL that can be used to complete the registration process. If the username exists, the user receives an email message with a URL to reset the password. In either case, an attacker cannot infer valid user accounts.
+* As an additional security measure, you could delete default system accounts as well as test accounts or rename them before releasing the system to production.
+"""
+short_recommendation = "Identify all application attack surfaces relevant to User Enumeration and ensures that the web application always returns generic error messages when invalid credentials are entered."
+references = []
+affected_components = []

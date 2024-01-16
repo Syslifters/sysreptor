@@ -1,0 +1,576 @@
+format = "projecttypes/v1"
+id = "ea7efb89-8c2b-4008-99e2-419611fdb979"
+name = "OSMR Exam Report v1.1"
+language = "en-US"
+finding_field_order = [
+    "title",
+    "proof",
+    "initial_analysis",
+    "vulnerability_discovery",
+    "exploit_creation",
+    "screenshots",
+    "cvss",
+]
+report_template = """
+<div id="footer" data-sysreptor-generated="page-footer">
+    <div id="footer-left"><em>CONFIDENTIAL</em></div>
+    <div id="footer-center">{{ report.title }}</div>
+</div>
+
+<div v-if="report.watermark" id="watermark-osid">{{ report.osid }}</div>
+
+
+<section id="page-cover" data-sysreptor-generated="page-cover">
+    <div id="page-cover-background" />
+    <div id="page-cover-title">
+        <h1>Offensive Security</h1>
+        <h2>{{ report.title }}</h2>
+    </div>
+
+    <div id="page-cover-student">
+        <p id="page-cover-osid">
+            <strong>OSID: {{ report.osid }}</strong><br>
+            {{ report.mail }}<br>
+        </p>
+        <p id="page-cover-meta">
+            {{ formatDate(report.report_date, 'long') }}<br>
+            v{{ report.report_version }}
+        </p>
+    </div>
+</section>
+<pagebreak />
+
+
+<table-of-contents id="toc" v-slot="tocItems">
+    <h1>Table of Contents</h1>
+    <ul>
+        <li v-for="item in tocItems" :class="'toc-level' + item.level">
+            <ref :to="item.id" />
+        </li>
+    </ul>
+    <pagebreak />
+</table-of-contents>
+
+<markdown>
+    # Offensive Security OSMR Exam Documentation {.in-toc.numbered}
+    The Offensive Security OSMR exam documentation contains all efforts that were conducted in order to pass the Offensive Security macOS Researcher exam. This report will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has the technical knowledge required to pass the qualifications for the Offensive Security macOS Researcher certification.
+
+    ## Objective {.in-toc.numbered}
+    The objective of this exam is to solve four given assignments as described in the control panel. The student is tasked with following a methodical approach in analyzing and solving the assignments. The exam report is meant to be a writeup of the steps taken to solve the assignment, including any analysis performed and code written.
+
+    An example page has already been created for you at the latter portions of this document that should give you ample information on what is expected to pass this exam. Use the sample report as a guideline to get you through the reporting, while removing any headlines that are not relevant to a specific assignment.
+
+    ## Requirements {.in-toc.numbered}
+    The student will be required to fill out this penetration testing report fully and to include the following sections:
+    * High-Level summary of assignment solutions.
+    * Methodology walkthrough and detailed outline of steps taken through analysis and all written code.
+    * Each finding with included screenshots, walkthrough, sample code or reference.
+    * Screenshots of proofs.
+</markdown>
+<pagebreak/>
+
+<section>
+    <h1 id="summary" class="in-toc numbered">High-Level Summary</h1>
+    <markdown :text="report.highlevel_summary" />
+</section>
+<pagebreak/>
+    
+<section>
+    <h1 id="findings" class="in-toc numbered">Assignments</h1>
+    <div v-for="finding in findings">
+        <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
+        <div v-if="finding.proof">
+            <h3 class="in-toc numbered">Proof.txt</h3>
+            <markdown :text="finding.proof" />
+        </div>
+        <div v-if="finding.initial_analysis">
+            <h3 class="in-toc numbered">Initial Analysis</h3>
+            <markdown :text="finding.initial_analysis" />
+        </div>
+        
+        <div v-if="finding.vulnerability_discovery">
+            <h3 class="in-toc numbered">Vulnerability Discovery</h3>
+            <markdown :text="finding.vulnerability_discovery" />
+        </div>
+
+        <div v-if="finding.exploit_creation">
+            <h3 class="in-toc numbered">Exploit or Bypass Creation</h3>
+            <markdown :text="finding.exploit_creation" />
+        </div>
+
+        <div v-if="finding.screenshots">
+            <h3 class="in-toc numbered">Screenshots</h3>
+            <markdown :text="finding.screenshots" />
+        </div>
+        <pagebreak />
+    </div>
+</section>
+
+<section v-if="report.appendix_sections.length > 0" class="appendix">
+    <h1 id="appendix" class="in-toc numbered">Appendix</h1>
+
+    <div v-for="appendix_section in report.appendix_sections">
+        <h2 class="in-toc numbered">{{ appendix_section.title }}</h2>
+        <markdown :text="appendix_section.content" />
+    </div>
+    <pagebreak />
+</section>
+
+<section>
+    <div class="end-of-report">
+        End of Report<br>
+    </div>
+    <div class="end-of-report">
+        This report was rendered<br>
+        by <a href="https://docs.sysreptor.com/">SysReptor</a> with<br>
+        <span style="color:red;">&hearts;</span><br>
+    </div>
+</section>
+"""
+report_styles = """
+@import "/assets/global/base.css";
+
+/* Define variables */
+:root {
+    --color-risk-critical: #E83221;
+    --color-risk-high: #FF9300;
+    --color-risk-medium: #FFDA00;
+    --color-risk-low: #4285F5;
+    --color-risk-info: #00AE51;
+
+    --color-cover-page-bg: #a0a0a0; 
+}
+
+/* Font settings */
+html {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 10pt;
+}
+
+
+/* Global styles */
+@page {
+    size: A4 portrait;
+    margin: 35mm 20mm 25mm 20mm;
+}
+
+a {
+    font-style: italic;
+    text-decoration: none;
+    color: inherit;
+}
+
+pre code {
+    border: 1px solid black;
+    padding: 0.2em !important;
+}
+code {
+    background-color: rgb(221, 221, 221);
+}
+
+th {
+    background-color: #ABABAB;
+    font-weight: bold;
+}
+tr.table-row-link td {
+    padding: 0;
+}
+tr.table-row-link td a {
+    display: block;
+    padding: 0.3em;
+    color: inherit;
+    text-decoration: none;
+    font-style: inherit;
+}
+.table-key {
+    background-color: #ABABAB;
+}
+
+
+/* Classes for risk colors */
+.risk-critical { color: var(--color-risk-critical) !important; font-weight: bold; }
+.risk-high { color: var(--color-risk-high) !important; font-weight: bold; }
+.risk-medium { color: var(--color-risk-medium) !important; font-weight: bold; }
+.risk-low { color: var(--color-risk-low) !important; font-weight: bold; }
+.risk-info { color: var(--color-risk-info) !important; font-weight: bold; }
+
+.risk-bg-critical { background-color: var(--color-risk-critical) !important; color: white !important; }
+.risk-bg-high { background-color: var(--color-risk-high) !important; }
+.risk-bg-medium { background-color: var(--color-risk-medium) !important; }
+.risk-bg-low { background-color: var(--color-risk-low) !important; }
+.risk-bg-info { background-color: var(--color-risk-info) !important; }
+
+/* Helper class for referencing page number */
+.ref-page::before { 
+    content: "" !important;
+}
+.ref-page::after {
+  content: target-counter(attr(href), page) !important;
+}
+.ref-page .ref-title {
+  display: none !important;
+}
+
+/* Table in finding chapters */
+.finding-heading .table-key {
+    height: 3em;
+    width: 10em;
+}
+
+
+.end-of-report {
+    text-align:center;
+    font-style:italic;
+    margin-top:70px;
+    line-height:1.7;
+}
+
+
+
+
+
+/* #region footer */
+@page {
+    @bottom-left { content: element(footer-left); }
+    @bottom-center { content: element(footer-center); }
+    @bottom-right-corner { content: counter(page); }
+}
+#footer #footer-left { position: running(footer-left); }
+#footer #footer-center { position: running(footer-center); }
+/* #endregion footer */
+
+/* #region watermark */
+#watermark-osid {
+    position: fixed;
+    top: 9cm;
+    left: 1cm;
+    transform: rotate(-45deg);
+    font-size: 90pt;
+    text-transform: uppercase;
+    opacity: 0.2;
+}
+/* #endregion watermark */
+
+/* #region page-cover */
+@page :first {
+    /* Footer on the cover page */
+    @bottom-right-corner {
+        content: "";
+    }
+    @bottom-right {
+        /* Page number */
+        content: counter(page);
+        font-size: 9pt;
+        color: white
+    }
+    @bottom-left {
+        content: "Confidential";
+        text-transform: uppercase;
+        font-style: italic;
+        color: white;
+    }
+     /* Pentest title should not appear on cover page */
+    @bottom-center {
+        content: '';
+    }
+}
+#page-cover-background{
+    position: absolute;
+    margin-top: -35mm;
+    margin-left: -20mm;
+    width: 210mm;
+    height: 297mm;
+    background-color: var(--color-cover-page-bg);
+}
+/* Title page elements */
+#page-cover-title {
+    position: absolute;
+    top: 20mm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-title h1 {
+    font-size: 32pt;
+}
+#page-cover-title h2 {
+    font-size: 24pt;
+}
+#page-cover-student {
+    position: absolute;
+    top: 11cm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-osid {
+    font-size: 14pt;
+}
+#page-cover-meta {
+    line-height: 2em;
+}
+/* #endregion page-cover */
+
+/* #region toc */
+#toc li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#toc .ref::before {
+    padding-right: 0.5em;
+}
+#toc .ref::after {
+    content: " " leader(".") " " target-counter(attr(href), page);
+}
+#toc .toc-level1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 0.8rem;
+}
+#toc .toc-level2 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  margin-left: 2rem;
+}
+#toc .toc-level3 {
+  font-size: 1rem;
+  margin-top: 0.4rem;
+  margin-left: 4rem;
+}
+#toc .toc-level4 {
+  font-size: 1rem;
+  margin-top: 0;
+  margin-left: 6rem;
+}
+/* #endregion toc */
+"""
+
+[report_fields]
+[report_fields.title]
+type = "string"
+label = "Title"
+origin = "core"
+default = "OSMR Exam Documentation"
+required = true
+spellcheck = true
+
+[report_fields.mail]
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[report_fields.osid]
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[report_fields.lastname]
+type = "string"
+label = "Lastname"
+origin = "custom"
+default = "Doe"
+required = true
+spellcheck = false
+
+[report_fields.firstname]
+type = "string"
+label = "Firstname"
+origin = "custom"
+default = "John"
+required = true
+spellcheck = false
+
+[report_fields.watermark]
+type = "boolean"
+label = "Watermark"
+origin = "custom"
+default = false
+
+[report_fields.report_date]
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[report_fields.report_version]
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "1.0"
+required = true
+spellcheck = false
+
+[report_fields.appendix_sections]
+type = "list"
+label = "Appendix"
+origin = "custom"
+required = true
+
+[report_fields.appendix_sections.items]
+type = "object"
+label = ""
+origin = "custom"
+
+[report_fields.appendix_sections.items.properties]
+[report_fields.appendix_sections.items.properties.title]
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO appendix title"
+required = true
+spellcheck = false
+
+[report_fields.appendix_sections.items.properties.content]
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+required = true
+
+[report_fields.highlevel_summary]
+type = "markdown"
+label = "High-Level Summary"
+origin = "custom"
+default = "TODO A brief description of the assignments that were solved, including the overall exploitation steps."
+required = true
+
+[[report_sections]]
+id = "Student"
+label = "Student"
+fields = [
+    "firstname",
+    "lastname",
+    "osid",
+    "mail",
+]
+
+[[report_sections]]
+id = "other"
+label = "Document Control"
+fields = [
+    "title",
+    "report_date",
+    "report_version",
+    "watermark",
+]
+
+[[report_sections]]
+id = "highlevel_summary"
+label = "High-Level Summary"
+fields = [
+    "highlevel_summary",
+]
+
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+fields = [
+    "appendix_sections",
+]
+
+[finding_fields]
+[finding_fields.title]
+type = "string"
+label = "Assignment"
+origin = "core"
+default = "TODO Assignment Name"
+required = true
+spellcheck = true
+
+[finding_fields.cvss]
+type = "cvss"
+label = "CVSS (not required)"
+origin = "core"
+default = "n/a"
+required = false
+
+[finding_fields.proof]
+type = "markdown"
+label = "Proof.txt"
+origin = "custom"
+default = "TODO Provide the contents of local.txt, proof.txt or secret.txt."
+required = true
+
+[finding_fields.screenshots]
+type = "markdown"
+label = "Screenshots"
+origin = "custom"
+default = """
+TODO The exam control panel contains a section available to submit your proof files. The contents of the local.txt, proof.txt or secret.txt files obtained from your exam machines must be submitted in the control panel before your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
+
+Each local.txt, proof.txt or secret.txt found must be shown in a screenshot that includes the con-tents of the file, as well as the IP address of the target by using ipconfig.
+"""
+required = true
+
+[finding_fields.exploit_creation]
+type = "markdown"
+label = "Exploit or Bypass Creation"
+origin = "custom"
+default = "TODO Provide a description of steps to create the exploit or security control bypass. At the end of this section the full exploit (or bypass) code should be developed while an explanation of each step should be performed."
+required = true
+
+[finding_fields.initial_analysis]
+type = "markdown"
+label = "Initial Analysis"
+origin = "custom"
+default = "TODO Provide relevant techniques and methods used to perform enumeration and discovery of the application and/or the environment. The steps taken should be reproducible and easy to under-stand. Include any custom code or references to public tools."
+required = true
+
+[finding_fields.vulnerability_discovery]
+type = "markdown"
+label = "Vulnerability Discovery"
+origin = "custom"
+default = """
+TODO Provide relevant analysis steps to locate vulnerability inside the application or environment, this includes results from static analysis and/or dynamic analysis. Explain the vulnerability identified.
+
+Only the steps that ended up working are required.
+
+"""
+required = true
+
+[report_preview_data]
+[report_preview_data.report]
+title = "OSMR Exam Documentation"
+mail = "student@example.com"
+osid = "OS-XXXXX"
+watermark = true
+report_date = "2022-07-29"
+report_version = "1.0"
+highlevel_summary = "TODO A brief description of the assignments that were solved, including the overall exploitation steps."
+firstname = "John"
+lastname = "Doe"
+
+[[report_preview_data.report.appendix_sections]]
+title = "Appendix Title"
+content = "Appendix content"
+
+[[report_preview_data.findings]]
+title = "TODO Assignment Name"
+cvss = "n/a"
+id = "cc0cb8c0-5ee8-4fc9-b1a0-a659e31ac2fb"
+proof = "TODO Provide the contents of local.txt, proof.txt or secret.txt."
+screenshots = """
+TODO The exam control panel contains a section available to submit your proof files. The contents of the local.txt, proof.txt or secret.txt files obtained from your exam machines must be submitted in the control panel before your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
+
+Each local.txt, proof.txt or secret.txt found must be shown in a screenshot that includes the con-tents of the file, as well as the IP address of the target by using ipconfig.
+"""
+exploit_creation = "TODO Provide a description of steps to create the exploit or security control bypass. At the end of this section the full exploit (or bypass) code should be developed while an explanation of each step should be performed."
+initial_analysis = "TODO Provide relevant techniques and methods used to perform enumeration and discovery of the application and/or the environment. The steps taken should be reproducible and easy to under-stand. Include any custom code or references to public tools."
+vulnerability_discovery = """
+TODO Provide relevant analysis steps to locate vulnerability inside the application or environment, this includes results from static analysis and/or dynamic analysis. Explain the vulnerability identified.
+
+Only the steps that ended up working are required.
+
+"""
+
+[[assets]]
+id = "675262f8-fd52-4714-bf61-57de672585df"
+name = "LICENSE"

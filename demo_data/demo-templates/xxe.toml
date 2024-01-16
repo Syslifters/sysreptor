@@ -1,0 +1,70 @@
+format = "templates/v2"
+id = "a955ef8b-b04f-4c7d-b1cc-60194bc34fe4"
+tags = [
+    "web",
+]
+images = []
+
+[[translations]]
+id = "456e2ed1-c943-4721-8a78-d5a85f6b7e23"
+is_main = true
+language = "en-US"
+status = "finished"
+
+[translations.data]
+title = "XML External Entity Injection (XXE)"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+summary = """
+The web application processed XML documents in an insecure manner, which made it vulnerable to XML External Entity (XXE) Injection attacks. 
+XXE Injection is a vulnerability in web applications that allows an attacker to interfere with the processing of XML documents by an XML parser. 
+This attack can lead to disclosure of confidential data, denial of service, server-side request forgery, and other severe impact on the underlying system or other backend systems.
+"""
+description = """
+We identified an XXE injection vulnerability in the web application. 
+The XML parser allowed the definition of XXEs, which could create a malicious XML document. 
+The XXE contained a URL that referenced an external domain. 
+After the XXE was dereferenced by the parser, the web application interacted with this domain, which is evident from the DNS requests.
+
+**TODO: technical description**
+
+Extensible Markup Language (XML) is a standardized markup language and file format for storing, transmitting, and reconstructing arbitrary data. 
+The language encodes data in a format that is readable by both humans and machines. 
+The structure of an XML document is defined in the XML standard. 
+The standard provides for a concept called an entity. 
+Entities provide the ability to reference content that is provided remotely by a server or resides locally on the server. 
+When the XML parser evaluates the XML document, the entity it contains is replaced with the referenced value. 
+Entities are defined in so-called Document Type Definitions (DTDs).
+
+DTDs define the structure and composition of an XML document. 
+They can either be completely contained in the XML document itself, so-called internal DTDs, or they can be loaded from another location, so-called external DTDs. 
+A combination of both variants is also possible. 
+XML External Entities (XXE) are a special form of XML entities whose contents are loaded from outside the DTD in which they are declared. 
+
+An XXE is declared in the DTD with the SYSTEM keyword and a URI from where the content should be loaded. 
+For example:
+
+`<!DOCTYPE dtd [ <!ENTITY xxe SYSTEM "http://syslifters.com" > ]>`
+
+The URI can also use the `file://` protocol scheme. 
+Content can be loaded from local files as a result. 
+For example:
+
+`<!DOCTYPE dtd [ <!ENTITY xxe SYSTEM "file:///path/to/local/file" > ]>`
+
+When evaluating XML documents, the XML parser replaces occurring XXEs with the contents by dereferencing the defined URIs. 
+If the URI contains manipulated data, this could have serious consequences. 
+An attacker can exploit this to perform server-side request forgery (SSRF) attacks and compromise the underlying server or other backend infrastructure. 
+XXE injection vulnerabilities can also be exploited to cause service/application downtime (denial of service) or expose sensitive data such as local system files.
+"""
+recommendation = """
+* The XML parser should be configured to use a local static DTD and not allow external DTDs declared in the XML document.
+* We recommend limiting the functions of the XML parsing library to the minimum needed (see the documentation of the library used).
+* User input should be validated before parsing if possible.
+* Detailed information and help on preventing XXE injections can be found in the linked XML External Entity Prevention Cheat Sheet from OWASP.
+"""
+short_recommendation = "Disable support for external DTDs in the XML parsing library."
+references = [
+    "https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html",
+]
+affected_components = []
+

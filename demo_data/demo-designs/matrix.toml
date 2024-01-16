@@ -1,0 +1,965 @@
+format = "projecttypes/v1"
+id = "70ff91a6-567e-45c9-87d9-0587551bc8ff"
+name = "Demo Matrix v1.1"
+language = "en-US"
+finding_field_order = [
+    "title",
+    "cvss",
+    "summary",
+    "short_recommendation",
+    "affected_components",
+    "description",
+    "recommendation",
+    "references",
+    "retest_status",
+    "retest_notes",
+]
+report_template = """
+<div id="header" data-sysreptor-generated="page-header">
+  <div id="header-left">
+    <img src="/assets/name/header-logo.png" alt="logo" />
+  </div>
+  <div id="header-right">
+    <span class="highlight">Security Maximale GmbH</span><br>
+    Example Street 47 | 4771 Example<br>
+    FN 12345 v | District Court Example<br>
+  </div>
+</div>
+
+
+<section id="page-cover">
+  <div id="page-cover-background">
+    <img id="page-cover-background-img" src="/assets/name/background.svg" alt="">
+  </div>
+
+  <img id="page-cover-logo" src="/assets/name/logo-transparent.png" alt="">
+
+  <div id="page-cover-infobox">
+    <h1 id="page-cover-title">{{ report.title }}</h1>
+  </div>
+
+  <div id="page-cover-customer">
+    <p>
+      <strong>Customer:</strong><br>
+      <strong><span class="highlight">{{ report.customer }}</span></strong><br>
+      {{ report.report_date }}<br>
+      v<template v-if="report.document_history.length > 0">
+        {{ report.document_history[report.document_history.length - 1].version }}
+      </template>
+      <template v-else>0.0</template>
+    </p>
+  </div>
+
+  <div id="page-cover-contact">
+    <strong>Contact:</strong><br>
+    {{ report.lead_pentester.name }}<br>
+    {{ report.lead_pentester.phone }}<br>
+    <strong><a :href="'mailto:' + report.lead_pentester.email" class="highlight">{{ report.lead_pentester.email }}</a></strong>
+  </div>
+</section>
+
+<table-of-contents id="toc" v-slot="tocItems">
+  <h1>Table of Contents</h1>
+  <ul>
+    <li v-for="item in tocItems" :class="'toc-level' + item.level">
+      <ref :to="item.id" />
+    </li>
+  </ul>
+  <pagebreak />
+</table-of-contents>
+
+
+<section>
+  <h1 id="management-summary" class="in-toc">Executive Summary</h1>
+  <markdown :text="report.executive_summary" />
+</section>
+<pagebreak />
+
+<section>
+  <h1 id="scope" class="in-toc">Methodology and Scope</h1>
+  <markdown :text="report.scope" />
+</section>
+<pagebreak />
+
+<section>
+  <h1 id="findings-summary" class="in-toc">Vulnerability Overview</h1>
+  <p>
+    In the course of this penetration test
+    <comma-and-join>
+      <template #critical v-if="finding_stats.count_critical > 0"><strong class="risk-critical">{{ finding_stats.count_critical }} Critical</strong></template>
+      <template #high v-if="finding_stats.count_high > 0"><strong class="risk-high">{{ finding_stats.count_high }} High</strong></template>
+      <template #medium v-if="finding_stats.count_medium > 0"><strong class="risk-medium">{{ finding_stats.count_medium }} Medium</strong></template>
+      <template #low v-if="finding_stats.count_low > 0"><strong class="risk-low">{{ finding_stats.count_low }} Low</strong></template>
+      <template #info v-if="finding_stats.count_info > 0"><strong class="risk-info">{{ finding_stats.count_info }} Info</strong></template>
+    </comma-and-join>
+    vulnerabilities were identified:
+  </p>
+
+  <figure>
+    <chart :width="15" :height="10" :config="{
+        type: 'bar', 
+        data: {
+            labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+            datasets: [{
+                data: [
+                    finding_stats.count_critical,
+                    finding_stats.count_high,
+                    finding_stats.count_medium,
+                    finding_stats.count_low,
+                    finding_stats.count_info
+                ],
+                backgroundColor: [
+                    cssvar('--color-risk-critical'), 
+                    cssvar('--color-risk-high'), 
+                    cssvar('--color-risk-medium'), 
+                    cssvar('--color-risk-low'), 
+                    cssvar('--color-risk-info')
+                ],
+            }]
+        },
+        options: {
+            scales: {y: {beginAtZero: true, ticks: {precision: 0}}}, 
+            plugins: {legend: {display: false}},
+        }
+    }" />
+    <figcaption id="distribution-of-identified-vulnerabilities">Distribution of identified vulnerabilities</figcaption>
+  </figure>
+
+  <div>
+    <p>A tabular overview of all vulnerabilities identified:</p>
+    <table class="finding-summary-table">
+      <thead>
+        <tr>
+          <th>Vulnerability</th>
+          <th align="center">Criticality</th>
+          <th v-if="report.is_retest" align="center">Remediation Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="finding in findings">
+          <td>
+            <ref :to="finding.id">{{ finding.title }}</ref>
+          </td>
+          <td align="center">
+            <ref :to="finding.id" :class="'risk-' + finding.cvss.level">{{ lodash.capitalize(finding.cvss.level) }}</ref>
+          </td>
+          <td v-if="report.is_retest" align="center">
+            <ref :to="finding.id" :class="'status-' + finding.retest_status.value">{{ finding.retest_status.label }}</ref>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="findings-list">
+    <p>A list of all vulnerabilities including a brief description:</p>
+    <div v-for="(finding, findingIndex) in findings">
+      <h6 :id="finding.id + 'overview'">
+        <ref :to="finding.id" class="finding-title">{{ finding.title }}</ref>
+        (<span :class="'risk-' + finding.cvss.level"><a v-if="finding.cvss.vector.startsWith('CVSS:3.1')" :href="'https://www.first.org/cvss/calculator/3.1#' + finding.cvss.vector" class="link-none">{{ capitalize(finding.cvss.level) }}: {{ finding.cvss.score}}</a><a v-else-if="finding.cvss.vector.startsWith('CVSS:3.0')" :href="'https://www.first.org/cvss/calculator/3.0#' + finding.cvss.vector" class="link-none">{{ finding.cvss.score }}</a><template v-else>{{ capitalize(finding.cvss.level) }}: {{ finding.cvss.score }}</template></span><template v-if="report.is_retest || (finding.retest_status.value && finding.retest_status.value !== 'open')"> | <span :class="'status-' + (finding.retest_status.value || 'open')">{{ finding.retest_status.label || 'Offen' }}</span></template>)
+      </h6>
+
+      <div v-if="finding.affected_components && finding.affected_components.length > 0">
+        Affects:
+        <markdown v-if="finding.affected_components.length == 1" :text="finding.affected_components[0]" class="markdown-inline" />
+        <ul v-else class="location-ul">
+          <li v-for="component in finding.affected_components">
+            <markdown :text="component" class="markdown-inline" />
+          </li>
+        </ul>
+      </div>
+      <markdown :text="finding.summary" />
+    </div>
+  </div>
+
+</section>
+<pagebreak />
+
+<section id="findings-list" class="findings-list">
+  <h1 id="findings-details" class="in-toc">Vulnerability Details</h1>
+  <div v-for="(finding, findingIndex) in findings">
+    <h2 :id="finding.id" class="in-toc" :data-toc-title="finding.title + ' (' + capitalize(finding.cvss.level) + ')'">
+      <ref :to="finding.id + 'overview'" class="finding-title">{{ finding.title }}</ref>
+    </h2>
+
+    <div>
+      <template v-if="report.is_retest || finding.retest_status.value !== 'open'">
+        <strong>Remediation Status: </strong><span :class="'finding-status-' + finding.retest_status.value">{{ finding.retest_status.label }}</span><br>
+      </template>
+      <strong>Criticality: </strong><span :class="'risk-' + finding.cvss.level">{{ capitalize(finding.cvss.level) }}</span><br>
+      <strong>CVSS-Score: </strong>
+      <span :class="'risk-' + finding.cvss.level">
+        <a v-if="finding.cvss.vector.startsWith('CVSS:3.1')" :href="'https://www.first.org/cvss/calculator/3.1#' + finding.cvss.vector" class="link-none">{{ finding.cvss.score}}</a>
+        <a v-else-if="finding.cvss.vector.startsWith('CVSS:3.0')" :href="'https://www.first.org/cvss/calculator/3.0#' + finding.cvss.vector" class="link-none">{{ finding.cvss.score }}</a>
+        <span v-else>{{ finding.cvss.score }}</span>
+      </span><br>
+      <template v-if="finding.affected_components && finding.affected_components.length > 0">
+        <strong>Affects: </strong>
+        <markdown v-if="finding.affected_components.length == 1" :text="finding.affected_components[0]" class="markdown-inline" />
+        <ul v-else class="location-ul">
+          <li v-for="component in finding.affected_components">
+            <markdown :text="component" class="markdown-inline" />
+          </li>
+        </ul>
+      </template>
+      <template v-if="finding.short_recommendation">
+        <strong>Recommendation: </strong>
+        <markdown :text="finding.short_recommendation" class="markdown-inline" /><br>
+      </template>
+    </div>
+
+    <div>
+      <h3>Overview</h3>
+      <markdown :text="finding.summary" />
+    </div>
+
+    <div v-if="finding.retest_notes">
+      <h3>Remarks on Remediation Status</h3>
+      <markdown :text="finding.retest_notes" />
+    </div>
+
+    <div>
+      <h3 :id="finding.id + '-description'">Description</h3>
+      <markdown :text="finding.description" />
+    </div>
+
+    <div>
+      <h3 :id="finding.id + '-recommendation'">Recommendation</h3>
+      <markdown :text="finding.recommendation" />
+    </div>
+
+    <div v-if="finding.references && finding.references.length > 0">
+      <h3>Additional Information</h3>
+      <ul>
+        <li v-for="reference in finding.references">
+          <a :href="reference">{{ reference }}</a>
+        </li>
+      </ul>
+    </div>
+
+    <pagebreak />
+  </div>
+</section>
+
+
+<section>
+  <h1 id="document-history" class="in-toc">List of Changes</h1>
+  <table>
+    <thead>
+      <tr>
+        <th align="center">Version</th>
+        <th align="center">Date</th>
+        <th>Description</th>
+        <th>Author</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in report.document_history">
+        <td align="center">{{ item.version }}</td>
+        <td align="center">{{ item.date }}</td>
+        <td>{{ item.description }}</td>
+        <td>
+          <comma-and-join>
+            <template v-for="author in item.authors" #[author]>{{ author }}</template>
+          </comma-and-join>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<markdown>
+  # Disclaimer {#disclaimer .in-toc}
+
+  Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</markdown>
+
+<markdown>
+  # Imprint {#imprint .in-toc}
+
+  Security Maximale GmbH<br>
+  Example Street 47 | 4711 Example<br>
+  FN 12345 v | District Court Example<br>
+</markdown>
+"""
+report_styles = """
+@import "/assets/global/base.css";
+
+/* Define variables */
+:root {
+    --color-risk-critical: #8c00fc;
+    --color-risk-high: #ed0003;
+    --color-risk-medium: #f0d400;
+    --color-risk-low: #009dff;
+    --color-risk-info: #00bc00;
+
+    --color-status-open: #ed0003;
+    --color-status-partial: #f0d400;
+    --color-status-resolved: #00e200;
+    --color-status-accepted: #00e200;
+    --color-status-changed: #009dff;
+
+    --color-highlight: #88ee44;
+}
+
+/* Font settings */
+html {
+    font-family: "Roboto Flex", sans-serif;
+    font-size: 11pt;
+}
+
+/* Classes for risk colors */
+.risk-critical { color: var(--color-risk-critical) !important; font-weight: bold; }
+.risk-high { color: var(--color-risk-high) !important; font-weight: bold; }
+.risk-medium { color: var(--color-risk-medium) !important; font-weight: bold; }
+.risk-low { color: var(--color-risk-low) !important; font-weight: bold; }
+.risk-info { color: var(--color-risk-info) !important; font-weight: bold; }
+
+.status-open { color: var(--color-status-open) !important; font-weight: bold; }
+.status-partial { color: var(--color-status-partial) !important; font-weight: bold; }
+.status-resolved { color: var(--color-status-resolved) !important; font-weight: bold; }
+.status-accepted { color: var(--color-status-accepted) !important; font-weight: bold; }
+.status-changed { color: var(--color-status-changed) !important; font-weight: bold; }
+
+.highlight { color: var(--color-highlight); }
+
+
+/* PDF-specific global styles */
+@page {
+    size: A4 portrait;
+    margin: 35mm 26mm 26mm 26mm;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+pre code {
+  background-color: whitesmoke;
+  padding: 0.2em !important;
+}
+
+.location-ul {
+    margin: 0;
+    margin-bottom:0.2em;
+}
+
+
+
+/* #region header */
+@page {
+    margin-top: 35mm;
+
+    --header-background-color: black;
+    --header-margin-bottom: 5mm;
+
+    @top-left-corner {
+        content: "";
+        margin-bottom: var(--header-margin-bottom);
+        background-color: var(--header-background-color); 
+    }
+    @top-left { 
+        content: element(header-left); 
+        margin-bottom: var(--header-margin-bottom);
+        background-color: var(--header-background-color); 
+        width: 51%;
+        margin-left: -1px;
+        margin-right: -1px;
+    }
+    @top-right { 
+        content: element(header-right); 
+        margin-bottom: var(--header-margin-bottom);
+        background-color: var(--header-background-color);  
+        width: 51%;
+        margin-left: -1px;
+        margin-right: -1px;
+    }
+    @top-right-corner { 
+        content: "";
+        margin-bottom: var(--header-margin-bottom); 
+        background-color: var(--header-background-color); 
+    }
+}
+#header #header-left { position: running(header-left); }
+#header #header-left {
+    width: 60%;
+}
+#header #header-left img {
+    width: auto;
+    height: auto;
+}
+#header #header-right { 
+    position: running(header-right); 
+    text-align: right;
+    color: white;
+    font-size: 9pt;
+}
+/* #endregion header */
+
+/* #region footer */
+@page {
+    @bottom-right-corner {
+        /* Page number */
+        content: counter(page) " / " counter(pages);
+        font-size: 9pt;
+    }
+}
+/* #endregion footer */
+
+/* #region page-cover */
+#page-cover {
+    margin: -35mm -26mm 10mm -26mm;
+}
+#page-cover-background {
+    width: 100%;
+    height: 120mm;
+    overflow: hidden;
+    background-color: black;
+}
+#page-cover-background-img {
+    width: 100%;
+    transform: scale(1.16) translateY(-11%);
+    opacity: 0.7;
+}
+#page-cover-logo {
+    position: absolute;
+    top: -30mm;
+    left: -7mm;
+    width: 50%;
+}
+#page-cover-logo-text {
+    position: absolute;
+    top: -12mm;
+    left: 4mm;
+    color: #ffffff;
+}
+#page-cover-infobox {
+    position: absolute;
+    top: 30mm;
+    left: -1mm;
+    width: 150mm;
+    color: #ffffff;
+}
+#page-cover-title {
+    font-size: 18pt;
+    font-weight: normal;
+    margin-top: 0;
+    margin-bottom: 0.3em;
+}
+#page-cover-customer {
+    position: absolute;
+    top: 43mm;
+    left: -1mm;
+    width: 150mm;
+    color: #ffffff;
+}
+#page-cover-contact {
+    position: absolute;
+    top: 46mm;
+    right: 4mm;
+    text-align: right;
+    color: #ffffff;
+}
+
+@page :first {
+    /* Hide header */
+    @top-left-corner { content: none !important; }
+    @top-left { content: none !important; }
+    @top-center { content: none !important; }
+    @top-right { content: none !important; }
+    @top-right-corner { content: none !important; }
+    /* Hide footer */
+    @bottom-left-corner { content: none !important; }
+    @bottom-left { content: none !important; }
+    @bottom-center { content: none !important; }
+    @bottom-right { content: none !important; }
+    @bottom-right-corner { content: none !important; }
+}
+/* #endregion page-cover */
+
+/* #region toc */
+#toc li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#toc .ref::before {
+    padding-right: 0.5em;
+}
+#toc .ref::after {
+    content: " " leader(" ") " " target-counter(attr(href), page);
+    font-weight: normal;
+}
+#toc .toc-level1 {
+  padding-left: 0;
+  margin-top: 0.7rem;
+  font-weight: bold;
+}
+#toc .toc-level2 {
+  padding-left: 1.5rem;
+  margin-top: 0.35rem;
+  font-weight: normal;
+}
+#toc .toc-level3 {
+  padding-left: 3rem;
+  margin-top: 0.25rem;
+  font-weight: normal;
+}
+#toc .toc-level4 {
+  padding-left: 4.5rem;
+  margin-top: 0;
+  font-weight: normal;
+}
+/* #endregion toc */
+
+/* #region findings-list */
+.findings-list {
+    counter-reset: finding-counter;
+}
+.findings-list .finding-title::before {
+    counter-increment: finding-counter;
+    content: counter(finding-counter) ". ";
+}
+/* #endregion findings-list */
+"""
+
+[report_fields]
+[report_fields.title]
+type = "string"
+label = "Title"
+origin = "core"
+default = "TODO report title"
+required = true
+spellcheck = true
+
+[report_fields.scope]
+type = "markdown"
+label = "Scope"
+origin = "custom"
+default = """
+**TODO scope**
+
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
+
+* Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.   
+* Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.   
+* Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.   
+
+At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur
+"""
+required = true
+
+[report_fields.customer]
+type = "string"
+label = "Customer"
+origin = "custom"
+default = "TODO customer"
+required = true
+spellcheck = false
+
+[report_fields.duration]
+type = "string"
+label = "Duration"
+origin = "custom"
+default = "TODO person days"
+required = true
+spellcheck = false
+
+[report_fields.end_date]
+type = "date"
+label = "Pentest End Date"
+origin = "custom"
+required = true
+
+[report_fields.is_retest]
+type = "boolean"
+label = "Is Retest"
+origin = "predefined"
+
+[report_fields.start_date]
+type = "date"
+label = "Pentest Start Date"
+origin = "custom"
+required = true
+
+[report_fields.report_date]
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[report_fields.lead_pentester]
+type = "object"
+label = "Lead Pentester"
+origin = "custom"
+
+[report_fields.lead_pentester.properties]
+[report_fields.lead_pentester.properties.name]
+type = "string"
+label = "Name"
+origin = "custom"
+default = "TODO name"
+required = true
+spellcheck = false
+
+[report_fields.lead_pentester.properties.email]
+type = "string"
+label = "Email"
+origin = "custom"
+default = "TODO email"
+required = true
+spellcheck = false
+
+[report_fields.lead_pentester.properties.phone]
+type = "string"
+label = "Phone Number"
+origin = "custom"
+default = "TODO phone"
+required = true
+spellcheck = false
+
+[report_fields.document_history]
+type = "list"
+label = "Document History"
+origin = "custom"
+required = true
+
+[report_fields.document_history.items]
+type = "object"
+label = ""
+origin = "custom"
+
+[report_fields.document_history.items.properties]
+[report_fields.document_history.items.properties.description]
+type = "string"
+label = "Description"
+origin = "custom"
+default = "TODO description"
+required = true
+spellcheck = false
+
+[report_fields.document_history.items.properties.date]
+type = "date"
+label = "Date"
+origin = "custom"
+required = true
+
+[report_fields.document_history.items.properties.authors]
+type = "list"
+label = "Authors"
+origin = "custom"
+required = true
+
+[report_fields.document_history.items.properties.authors.items]
+type = "string"
+label = ""
+origin = "custom"
+default = "TODO author"
+required = true
+spellcheck = false
+
+[report_fields.document_history.items.properties.version]
+type = "string"
+label = "Version"
+origin = "custom"
+default = "TODO version"
+required = true
+spellcheck = false
+
+[report_fields.executive_summary]
+type = "markdown"
+label = "Executive Summary"
+origin = "custom"
+default = """
+**TODO summary**
+
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
+
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
+
+Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse
+"""
+required = true
+
+[[report_sections]]
+id = "executive_summary"
+label = "Executive Summary"
+fields = [
+    "executive_summary",
+]
+
+[[report_sections]]
+id = "scope"
+label = "Scope"
+fields = [
+    "scope",
+    "duration",
+    "start_date",
+    "end_date",
+]
+
+[[report_sections]]
+id = "customer"
+label = "Customer"
+fields = [
+    "customer",
+]
+
+[[report_sections]]
+id = "other"
+label = "Other"
+fields = [
+    "title",
+    "report_date",
+    "lead_pentester",
+    "document_history",
+    "is_retest",
+]
+
+[finding_fields]
+[finding_fields.title]
+type = "string"
+label = "Title"
+origin = "core"
+default = "TODO: New Finding"
+required = true
+spellcheck = true
+
+[finding_fields.cvss]
+type = "cvss"
+label = "CVSS"
+origin = "core"
+default = "n/a"
+required = true
+
+[finding_fields.summary]
+type = "markdown"
+label = "Summary"
+origin = "predefined"
+default = "TODO summary"
+required = true
+
+[finding_fields.description]
+type = "markdown"
+label = "Technical Description"
+origin = "predefined"
+default = "TODO description"
+required = true
+
+[finding_fields.recommendation]
+type = "markdown"
+label = "Recommendation"
+origin = "predefined"
+default = "TODO recommendation"
+required = true
+
+[finding_fields.references]
+type = "list"
+label = "References"
+origin = "predefined"
+required = false
+
+[finding_fields.references.items]
+type = "string"
+label = ""
+origin = "predefined"
+required = true
+spellcheck = false
+
+[finding_fields.retest_notes]
+type = "markdown"
+label = "Re-test Notes"
+origin = "predefined"
+required = false
+
+[finding_fields.retest_status]
+type = "enum"
+label = "Re-test Status"
+origin = "predefined"
+required = false
+
+[[finding_fields.retest_status.choices]]
+label = "Open"
+value = "open"
+
+[[finding_fields.retest_status.choices]]
+label = "Resolved"
+value = "resolved"
+
+[[finding_fields.retest_status.choices]]
+label = "Partially Resolved"
+value = "partial"
+
+[[finding_fields.retest_status.choices]]
+label = "Changed"
+value = "changed"
+
+[[finding_fields.retest_status.choices]]
+label = "Accepted"
+value = "accepted"
+
+[finding_fields.affected_components]
+type = "list"
+label = "Affected Components"
+origin = "predefined"
+required = true
+
+[finding_fields.affected_components.items]
+type = "string"
+label = "Component"
+origin = "predefined"
+default = "TODO affected component"
+required = true
+spellcheck = false
+
+[finding_fields.short_recommendation]
+type = "string"
+label = "Short Recommendation"
+origin = "predefined"
+required = true
+spellcheck = true
+
+[report_preview_data]
+[report_preview_data.report]
+title = "Example Web-App"
+scope = """
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
+
+* Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.   
+* Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.   
+* Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.   
+
+At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur
+"""
+customer = "Example Customer"
+duration = "TODO person days"
+end_date = "2022-07-08"
+is_retest = true
+start_date = "2022-07-08"
+report_date = "2022-07-08"
+executive_summary = """
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
+
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
+
+Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse
+"""
+
+[report_preview_data.report.lead_pentester]
+name = "Maxima Mustermensch"
+email = "maxima@securitymaximale.com"
+phone = "+43 660 123 456 78 "
+
+[[report_preview_data.report.document_history]]
+description = "Draft"
+date = "2022-07-08"
+authors = [
+    "TODO Author1",
+]
+version = "0.1"
+
+[[report_preview_data.report.document_history]]
+description = "Final Report"
+date = "2022-07-08"
+authors = [
+    "TODO Author1",
+    "TODO Author2",
+]
+version = "1.0"
+
+[[report_preview_data.findings]]
+title = "Demo Finding Critical"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
+summary = "TODO summary"
+description = "TODO description"
+recommendation = "TODO recommendation"
+id = "c5012235-9cd4-475f-86de-0236de1b4b88"
+references = [
+    "https://example.com/reference1",
+    "https://example.com/reference2",
+]
+retest_notes = ""
+retest_status = "open"
+affected_components = [
+    "TODO affected component",
+]
+short_recommendation = ""
+
+[[report_preview_data.findings]]
+title = "Demo Finding Also Critical"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:L"
+summary = "TODO summary"
+description = "TODO description"
+recommendation = "TODO recommendation"
+id = "c6a6d51c-999c-4e8c-a506-596689e73f0b"
+references = []
+retest_notes = ""
+retest_status = "open"
+affected_components = []
+short_recommendation = ""
+
+[[report_preview_data.findings]]
+title = "Demo Finding Medium"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
+summary = "TODO summary"
+description = "TODO description"
+recommendation = "TODO recommendation"
+id = "e685494a-ada0-47cd-aeac-a82dd8fb7dae"
+references = []
+retest_notes = """
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Reiciendis culpa numquam incidunt eius non natus quos nemo, aspernatur magni praesentium laboriosam illum minima perferendis vero perspiciatis eum nisi. Corporis perspiciatis repudiandae at dolore quo facere, iste earum minima?
+Veritatis architecto nihil officiis optio fugit ducimus eveniet commodi tempora perspiciatis, dicta esse voluptatibus expedita officiis, facere perspiciatis id quos animi consequuntur sit nobis similique a nostrum optio, ipsa architecto corrupti est vitae. Quo qui deserunt ea odio exercitationem nobis suscipit illum, ipsam voluptatibus labore impedit vitae aliquid tempora iusto culpa repellat vel sed? Neque iste expedita vero, enim quae corrupti error rerum voluptas cumque autem quasi quia?
+"""
+retest_status = "open"
+affected_components = []
+short_recommendation = "maxime illo"
+
+[[report_preview_data.findings]]
+title = "Demo Finding Low"
+cvss = "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
+summary = "TODO summary"
+description = "TODO description"
+recommendation = "TODO recommendation"
+id = "cd3c3719-8536-43d4-878a-cdb9dc842b70"
+references = []
+retest_notes = ""
+retest_status = "open"
+affected_components = [
+    "TODO affected component",
+]
+short_recommendation = ""
+
+[[report_preview_data.findings]]
+title = "Demo Finding Info"
+cvss = "n/a"
+summary = "TODO summary"
+description = "TODO description"
+recommendation = "TODO recommendation"
+id = "e899b5cf-83d2-48bf-8838-9899246b67fc"
+references = [
+    "https://example.com",
+]
+retest_notes = ""
+retest_status = "open"
+affected_components = [
+    "TODO affected component",
+]
+short_recommendation = ""
+
+[[assets]]
+id = "4c177804-df1c-412f-9e24-d990273029b5"
+name = "LICENSE"
+
+[[assets]]
+id = "d818fe93-5621-446e-9c20-c8cb1999e3ff"
+name = "header-logo.png"
+
+[[assets]]
+id = "a8ad4ea9-e13a-4ffd-88c3-e70164f23ef9"
+name = "logo-transparent.png"
+
+[[assets]]
+id = "3c7d06af-2d0d-481f-83d7-dd7113e6a6d9"
+name = "background.svg"

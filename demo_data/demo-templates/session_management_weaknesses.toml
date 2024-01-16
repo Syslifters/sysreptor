@@ -1,0 +1,38 @@
+format = "templates/v2"
+id = "ad8385a7-9a58-41a5-937f-6e5f1bfef9e4"
+tags = [
+    "web",
+    "hardening",
+    "external",
+    "config",
+]
+images = []
+
+[[translations]]
+id = "3aeab6d6-b2e5-4905-b43b-f92a8432ac85"
+is_main = true
+language = "en-US"
+status = "finished"
+
+[translations.data]
+title = "Session management weaknesses"
+cvss = "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:L/I:L/A:N"
+summary = """
+We were able to identify weaknesses in the web application's session management. 
+The users' sessions were usable without time restrictions and therefore did not require re-authentication at any time. 
+People with access to a computer system could exploit this situation if another user had not explicitly logged out of the application beforehand.
+"""
+description = """
+We could determine that user sessions were usable without time restrictions. 
+This could allow attackers to take over user sessions that were not explicitly logged out beforehand.
+
+This could be possible, for example, by allowing a third person to operate a user's computer in which a session is still active. 
+In addition, it could be possible for attackers to reuse session tokens when they become known (e.g. via log files; locally or on proxy servers, etc.).
+"""
+recommendation = """
+* User sessions in web applications should time out automatically after a certain period of inactivity.
+* Depending on the criticality of the user authorization and the application, the timeout could be approximately between one hour and one day.
+"""
+short_recommendation = "Users should be logged out automatically after a certain period of inactivity."
+references = []
+affected_components = []
