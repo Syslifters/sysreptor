@@ -5,7 +5,7 @@
         <div class="text-center">
           <h1>{{ errorHeading }}</h1>
           <div v-if="props.error.statusCode === 404">
-            <icon class="emoji-heading" icon="game-icons:dinosaur-bones" />
+            <img src="~/assets/dino/notfound.svg" alt="" class="img-raptor" />
             <p class="text-center">
               This site has gone.<br />
               {{ errorMessage }}
@@ -81,5 +81,9 @@ h1 {
   font-size:7rem;
   display: block;
   margin: 15px auto 30px;
+}
+.img-raptor {
+  display: block;
+  width: 25rem;
 }
 </style>

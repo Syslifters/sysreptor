@@ -35,7 +35,11 @@
         <v-list-item
           v-if="items.data.value.length === 0 && !items.hasNextPage.value && items.hasBaseURL.value"
           title="No data found"
-        />
+        >
+          <div class="w-100 text-center">
+            <img src="~/assets/dino/notfound.svg" alt="" class="img-raptor" />
+          </div>
+        </v-list-item>
       </v-list>
     </v-container>
   </full-height-page>
@@ -100,5 +104,12 @@ defineExpose({
 
 :deep(.v-list-item .v-list-item-subtitle) {
   opacity: var(--v-high-emphasis-opacity);
+}
+
+.img-raptor {
+  width: 30em;
+  max-width: 50%;
+  max-height: 40vh;
+  margin-top: 1rem;
 }
 </style>
