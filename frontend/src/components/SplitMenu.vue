@@ -33,6 +33,16 @@ const emit = defineEmits<{
 </script>
 
 <style lang="scss" scoped>
+
+.splitpanes--dragging:deep() {
+  iframe {
+    // Fix dragging in Firefox when mouse moves over iframes. 
+    // Firefox does not emit mouse events (mousemove, mouseup, used by splitpanes) when mouse is over iframes.
+    // Setting pointer-events prevents iframes from eating mouse events.
+    pointer-events: none;
+  }
+}
+
 .splitpanes.default-theme:deep() {
   .splitpanes__pane {
     background-color: inherit;
