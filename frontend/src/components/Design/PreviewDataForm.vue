@@ -5,58 +5,75 @@
         v-model:selected="currentItemSelected"
         mandatory
         density="compact"
-        class="pt-0"
+        class="pb-0 pt-0 h-100 d-flex flex-column"
       >
-        <v-list-subheader class="mt-0">Sections</v-list-subheader>
-        <v-list-item v-for="section in projectType.report_sections" :key="section.id" :value="section.id" link>
-          <v-list-item-title class="text-body-2">{{ section.label }}</v-list-item-title>
-        </v-list-item>
+        <div class="flex-grow-1 overflow-y-auto">
+          <v-list-subheader title="Sections" class="mt-0" />
+          <v-list-item v-for="section in projectType.report_sections" :key="section.id" :value="section.id" link>
+            <v-list-item-title class="text-body-2">{{ section.label }}</v-list-item-title>
+          </v-list-item>
 
-        <v-list-subheader>Findings</v-list-subheader>
-        <draggable
-          v-model="findings"
-          item-key="id"
-          handle=".draggable-handle"
-          :disabled="props.readonly || projectType.finding_ordering.length !== 0"
-        >
-          <template #item="{element: finding}">
-            <v-list-item
-              :value="finding.id"
-              :class="'finding-level-' + riskLevel(finding)"
-              :ripple="false"
-              link
-            >
-              <template #prepend>
-                <div v-if="projectType.finding_ordering.length === 0" class="draggable-handle mr-2">
-                  <v-icon :disabled="props.readonly" icon="mdi-drag-horizontal" />
-                </div>
-              </template>
-              <template #default>
-                <v-list-item-title class="text-body-2">{{ finding.title }}</v-list-item-title>
-              </template>
-              <template #append>
-                <btn-delete
-                  :delete="() => deleteFinding(finding)"
-                  :disabled="props.readonly"
-                  button-variant="icon"
-                  size="small"
-                  density="comfortable"
-                />
-              </template>
-            </v-list-item>
-          </template>
-        </draggable>
+          <v-list-subheader>
+            <span>Findings</span>
+            <s-btn-icon
+              @click="createFinding"
+              :disabled="props.readonly"
+              icon="mdi-plus"
+              size="small"
+              variant="flat"
+              color="secondary"
+              density="compact"
+              class="ml-2"
+            />
+          </v-list-subheader>
+          <draggable
+            v-model="findings"
+            item-key="id"
+            handle=".draggable-handle"
+            :disabled="props.readonly || projectType.finding_ordering.length !== 0"
+          >
+            <template #item="{element: finding}">
+              <v-list-item
+                :value="finding.id"
+                :class="'finding-level-' + riskLevel(finding)"
+                :ripple="false"
+                link
+              >
+                <template #prepend>
+                  <div v-if="projectType.finding_ordering.length === 0" class="draggable-handle mr-2">
+                    <v-icon :disabled="props.readonly" icon="mdi-drag-horizontal" />
+                  </div>
+                </template>
+                <template #default>
+                  <v-list-item-title class="text-body-2">{{ finding.title }}</v-list-item-title>
+                </template>
+                <template #append>
+                  <btn-delete
+                    :delete="() => deleteFinding(finding)"
+                    :disabled="props.readonly"
+                    button-variant="icon"
+                    size="small"
+                    density="comfortable"
+                  />
+                </template>
+              </v-list-item>
+            </template>
+          </draggable>
+        </div>
 
-        <v-list-item>
-          <s-btn-secondary
-            @click="createFinding"
-            :disabled="props.readonly"
-            size="x-small"
-            block
-            prepend-icon="mdi-plus"
-            text="Create"
-          />
-        </v-list-item>
+        <div>
+          <v-divider class="mb-1" />
+          <v-list-item>
+            <s-btn-secondary
+              @click="createFinding"
+              :disabled="props.readonly"
+              size="small"
+              block
+              prepend-icon="mdi-plus"
+              text="Add"
+            />
+          </v-list-item>
+        </div>
       </v-list>
     </template>
 
