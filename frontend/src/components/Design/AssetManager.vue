@@ -35,7 +35,7 @@
 
       <v-col v-for="asset in assets.data.value" :key="asset.id" :cols="12" :md="3">
         <s-card density="compact">
-          <v-img v-if="isImage(asset)" alt="" :src="imageUrl(asset)" aspect-ratio="2" />
+          <v-img v-if="isImage(asset)" alt="" :src="absoluteAssetUrl(asset)" aspect-ratio="2" />
           <v-card-title>{{ asset.name }}</v-card-title>
           <v-card-text class="text--small pb-0">
             {{ assetUrl(asset) }}
@@ -45,11 +45,11 @@
             </s-btn-icon>
           </v-card-text>
           <v-card-actions>
-            <s-btn-icon :href="imageUrl(asset)" download density="comfortable">
+            <s-btn-icon :href="absoluteAssetUrl(asset)" download density="comfortable">
               <v-icon icon="mdi-download" />
               <s-tooltip activator="parent" text="Download asset" />
             </s-btn-icon>
-            <s-btn-icon :href="imageUrl(asset)" target="_blank" density="comfortable">
+            <s-btn-icon :href="absoluteAssetUrl(asset)" target="_blank" density="comfortable">
               <v-icon icon="mdi-open-in-new" />
               <s-tooltip activator="parent" text="Show image in new tab" />
             </s-btn-icon>
@@ -78,6 +78,7 @@
 <script setup lang="ts">
 import urlJoin from "url-join";
 import last from 'lodash/last';
+import { v4 as uuidv4 } from 'uuid';
 import { uploadFileHelper } from "~/utils/upload";
 import { absoluteApiUrl } from "~/utils/urls";
 
@@ -117,6 +118,7 @@ async function performFileUpload(files?: FileList|null) {
   }
 }
 
+const cacheBuster = ref(uuidv4());
 function isImage(asset: UploadedFileInfo) {
   // Detect file type by extension
   // Used for displaying image previews
@@ -125,8 +127,8 @@ function isImage(asset: UploadedFileInfo) {
 function assetUrl(asset: UploadedFileInfo) {
   return `/assets/name/${asset.name}`;
 }
-function imageUrl(asset: UploadedFileInfo) {
-  return absoluteApiUrl(urlJoin(`/api/v1/projecttypes/${props.projectType.id}/`, assetUrl(asset)));
+function absoluteAssetUrl(asset: UploadedFileInfo) {
+  return absoluteApiUrl(urlJoin(`/api/v1/projecttypes/${props.projectType.id}/`, assetUrl(asset)) + `?c=${cacheBuster.value}`);
 }
 
 async function performDelete(asset: UploadedFileInfo) {
