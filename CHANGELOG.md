@@ -10,6 +10,7 @@
 * Fix resizing PDF viewer loses mouse focus in Firefox
 * Add raptor mascot images as to empty pages
 * Increase contrast of nested form fields
+* Show more detailed error messages in frontend
 
 
 ## v2024.3 - 2024-01-09
