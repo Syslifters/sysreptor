@@ -1,5 +1,5 @@
 <template>
-  <s-card v-if="props.historic.definition?.type === 'object' && props.current.definition?.type === 'object'" class="mt-4">
+  <s-card v-if="props.historic.definition?.type === 'object' && props.current.definition?.type === 'object'" class="mt-4" :class="nestedClass">
     <v-card-title class="text-body-1 pb-0">{{ props.historic.definition.label }}</v-card-title>
     <v-card-text>
       <dynamic-input-field-diff 
@@ -9,10 +9,10 @@
       />
     </v-card-text>
   </s-card>
-  <s-card v-else-if="props.historic.definition?.type === 'list' && props.current.definition?.type === 'list'" class="mt-4">
+  <s-card v-else-if="props.historic.definition?.type === 'list' && props.current.definition?.type === 'list'" class="mt-4" :class="nestedClass">
     <v-card-title class="text-body-1 pb-0">{{ props.historic.definition.label }}</v-card-title>
     <v-card-text>
-      <v-list class="pa-0">
+      <v-list class="pa-0 bg-inherit">
         <v-list-item v-for="fieldProps in listItemFields" :key="fieldProps.id">
           <dynamic-input-field-diff 
             v-bind="fieldProps" 
@@ -33,8 +33,9 @@
       <dynamic-input-field
         v-if="props.historic.definition"
         v-bind="props.historic"
-        :definition="props.historic.definition"
         :model-value="props.historic.value"
+        :definition="props.historic.definition"
+        :nesting-level="props.nestingLevel"
         :disabled="!hasChanged"
         :readonly="hasChanged"
         :class="{'diff-highlight-changed': hasChanged}"
@@ -46,6 +47,7 @@
         v-bind="props.current"
         :model-value="props.current.value"
         :definition="props.current.definition"
+        :nesting-level="props.nestingLevel"
         :disabled="!hasChanged"
         :readonly="hasChanged"
         :class="{'diff-highlight-changed': hasChanged}"
@@ -66,6 +68,7 @@ const inheritedDiffAttrs = computed(() => {
   const copyFields = ['selectableUsers', 'onUpdate:markdownEditorMode', 'lang', 'markdownEditorMode', 'rewriteFileUrl', 'rewriteReferenceLink'];
   return {
     ...attrs,
+    nestingLevel: (props.nestingLevel || 0) + 1,
     historic: pick(props.historic, copyFields),
     current: pick(props.current, copyFields),
   };
@@ -83,6 +86,9 @@ const objectFields = computed(() => formatHistoryObjectFieldProps({
     definition: props.current.definition?.properties,
     fieldIds: Object.keys(props.current.definition?.properties || {}),
     attrs: inheritedDiffAttrs.value.current,
+  },
+  attrs: {
+    nestingLevel: inheritedDiffAttrs.value.nestingLevel,
   },
 }));
 const listItemFields = computed(() => {
@@ -120,4 +126,11 @@ const hasChanged = computed(() => {
   return props.historic.definition?.type !== props.current.definition?.type || 
     (props.historic.value !== props.current.value && (!!props.historic.value || !!props.current.value));
 });
+
+const nestedClass = computed(() => {
+  if ([FieldDataType.OBJECT, FieldDataType.LIST].includes(props.historic.definition?.type as any)) {
+    return (props.nestingLevel || 0) % 2 === 0 ? 'field-highlight-nested1' : 'field-highlight-nested2';
+  }
+  return undefined;
+})
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div :id="props.id" class="mt-4">
+  <div :id="props.id" class="mt-4" :class="nestedClass">
     <!-- String -->
     <markdown-text-field
       v-if="definition.type === 'string'"
@@ -87,16 +87,12 @@
 
       <v-card-text>
         <dynamic-input-field
-          v-for="(objectFieldDefinition, objectFieldId) in definition.properties"
+          v-for="(objectFieldDefinition, objectFieldId) in props.definition.properties"
           :key="objectFieldId"
           :model-value="formValue[objectFieldId]"
           @update:model-value="emitInputObject(objectFieldId as string, $event)"
-          :definition="objectFieldDefinition"
           :id="props.id ? (props.id + '.' + objectFieldId) : undefined"
-          :show-field-ids="showFieldIds"
-          :selectable-users="selectableUsers"
-          :disable-validation="props.disableValidation"
-          v-bind="fieldAttrs"
+          v-bind="inheritedAttrs(objectFieldDefinition)"
         />
       </v-card-text>
     </s-card>
@@ -138,7 +134,7 @@
           label="Enter one item per line"
           class="mt-4"
         />
-        <v-list v-else class="pa-0">
+        <v-list v-else class="pa-0 bg-inherit">
           <draggable
             v-model="formValue"
             :item-key="(item: any) => formValue.indexOf(item)"
@@ -152,12 +148,8 @@
                     :model-value="entryVal"
                     @update:model-value="emitInputList('update', entryIdx as number, $event)"
                     @keydown="onListKeyDown"
-                    :definition="definition.items!"
                     :id="id ? (id + '[' + entryIdx + ']') : undefined"
-                    :show-field-ids="showFieldIds"
-                    :selectable-users="selectableUsers"
-                    :disable-validation="props.disableValidation"
-                    v-bind="fieldAttrs"
+                    v-bind="inheritedAttrs(props.definition.items!)"
                   />
                 </template>
                 <template #append>
@@ -231,7 +223,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
 import pick from 'lodash/pick';
-import { MarkdownEditorMode, type UserShortInfo } from '~/utils/types';
+import { MarkdownEditorMode, type FieldDefinition, type UserShortInfo } from '~/utils/types';
 import type { MarkdownProps } from "~/composables/markdown";
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 
@@ -245,6 +237,7 @@ const props = defineProps<MarkdownProps & {
   readonly?: boolean;
   autofocus?: boolean;
   disableValidation?: boolean;
+  nestingLevel?: number;
 }>();
 const emit = defineEmits<{
   'update:modelValue': [value: any];
@@ -374,6 +367,13 @@ function onListKeyDown(event: KeyboardEvent) {
   }
 }
 
+const nestedClass = computed(() => {
+  if ([FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.type)) {
+    return (props.nestingLevel || 0) % 2 === 0 ? 'field-highlight-nested1' : 'field-highlight-nested2';
+  }
+  return undefined;
+});
+
 const attrs = useAttrs();
 const fieldAttrs = computed(() => ({
   ...attrs,
@@ -382,6 +382,17 @@ const fieldAttrs = computed(() => ({
   'onUpdate:spellcheckEnabled': (v: boolean) => emit('update:spellcheckEnabled', v),
   'onUpdate:markdownEditorMode': (v: MarkdownEditorMode) => emit('update:markdownEditorMode', v),
 }))
+const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
+  const nextNestingLevel = (props.nestingLevel || 0) + 1;
+  return {
+    definition: nestedDefinition,
+    selectableUsers: props.selectableUsers,
+    disableValidation: props.disableValidation,
+    showFieldIds: props.showFieldIds,
+    nestingLevel: nextNestingLevel,
+    ...fieldAttrs,
+  };
+});
 </script>
 
 <style lang="scss" scoped>

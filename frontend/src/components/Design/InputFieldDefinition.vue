@@ -1,7 +1,7 @@
 <template>
-  <s-card class="mt-4">
+  <s-card class="mt-4" :class="{'field-highlight-nested1': props.nestingLevel % 2 === 0, 'field-highlight-nested2': props.nestingLevel % 2 === 1}">
     <v-card-text>
-      <v-row v-if="!isListItem">
+      <v-row v-if="!props.isListItem">
         <v-col>
           <s-text-field
             :model-value="props.modelValue.id"
@@ -117,7 +117,7 @@
       </v-row>
 
       <!-- Enum choices -->
-      <v-list v-if="props.modelValue.type === FieldDataType.ENUM">
+      <v-list v-if="props.modelValue.type === FieldDataType.ENUM" class="bg-inherit">
         <draggable
           :model-value="props.modelValue.choices || []"
           @update:model-value="updateEnumChoice('sort', 0, $event)"
@@ -187,7 +187,7 @@
       </v-list>
 
       <!-- Combobox suggestions -->
-      <v-list v-if="props.modelValue.type === FieldDataType.COMBOBOX">
+      <v-list v-if="props.modelValue.type === FieldDataType.COMBOBOX" class="bg-inherit">
         <v-list-item v-for="(suggestion, suggestionIdx) in props.modelValue.suggestions || []" :key="suggestionIdx">
           <template #default>
             <s-text-field
@@ -238,18 +238,20 @@
         :model-value="(props.modelValue.items! as FieldDefinitionWithId)"
         @update:model-value="updateProperty('items', $event)"
         :is-list-item="true"
+        :nesting-level="props.nestingLevel + 1"
         :can-change-structure="props.canChangeStructure"
         :lang="props.lang"
         :readonly="props.readonly"
       />
       <!-- Object -->
-      <v-list v-else-if="props.modelValue.type === FieldDataType.OBJECT">
+      <v-list v-else-if="props.modelValue.type === FieldDataType.OBJECT" class="bg-inherit">
         <v-list-item v-for="f in objectFields" :key="f.id">
           <template #default>
             <design-input-field-definition
               :model-value="f"
               @update:model-value="updateObject('update', f.id, $event)"
               :is-object-property="true"
+              :nesting-level="props.nestingLevel + 1"
               :can-change-structure="props.canChangeStructure"
               :lang="props.lang"
               :readonly="props.readonly"
@@ -264,8 +266,8 @@
           </template>
         </v-list-item>
 
-        <v-divider />
         <v-list-item>
+          <v-divider class="mb-2" />
           <s-btn-secondary
             @click="updateObject('add')"
             :disabled="props.readonly || !props.canChangeStructure"
@@ -284,14 +286,18 @@ import Draggable from "vuedraggable";
 import { CvssVersion } from "@/utils/cvss/base";
 import { FieldDataType, FieldOrigin } from "@/utils/types";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: FieldDefinitionWithId;
   canChangeStructure?: boolean;
   isListItem?: boolean;
   isObjectProperty?: boolean;
   readonly?: boolean;
   lang?: string|null;
-}>();
+  nestingLevel?: number;
+}>(), {
+  lang: null,
+  nestingLevel: 0
+});
 const emit = defineEmits<{
   'update:modelValue': [FieldDefinitionWithId];
 }>();

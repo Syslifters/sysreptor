@@ -20,6 +20,7 @@ export type DiffFieldProps = {
 
 export type DynamicInputFieldDiffProps = {
   id: string;
+  nestingLevel?: number;
   historic: DiffFieldProps;
   current: DiffFieldProps;
 }
@@ -150,6 +151,7 @@ export function formatHistoryObjectFieldProps(options: {
     fieldIds: string[];
     attrs?: any;
   },
+  attrs?: any;
 }) {
   const out = [] as DynamicInputFieldDiffProps[];
   for (const fieldId of options.historic.fieldIds.concat(options.current.fieldIds)) {
@@ -166,6 +168,7 @@ export function formatHistoryObjectFieldProps(options: {
           definition: options.current.definition?.[fieldId],
           ...options.current.attrs,
         },
+        ...options.attrs,
       });
     }
   }
