@@ -1,3 +1,4 @@
+import isObject from "lodash/isObject";
 import { useToast } from "vue-toastification";
 
 export function requestErrorToast({ error, message }: { error: any, message?: string}) {
@@ -17,12 +18,18 @@ export function requestErrorToast({ error, message }: { error: any, message?: st
   }
   if (error?.data?.detail) {
     message += ': ' + error?.data?.detail;
-  } else if (Array.isArray(error?.data) && error?.data?.length === 1) {
-    message += ': ' + error?.data[0];
+  } else if (Array.isArray(error?.data)) {
+    message += ': ' + error.data.join(', ')
+  } else if (error?.data?.non_field_errors) {
+    message += ': ' + error.data.non_field_errors.join(', ');
   } else if (error?.status === 429) {
     message += ': Exceeded rate limit. Try again later.';
+  } else if (isObject(error?.data)) {
+    const entries = Object.values(error.data)
+      .filter(v => Array.isArray(v))
+      .flat();
+    message += ': ' + entries.join(', ');
   }
-
   errorToast(message);
 }
 
