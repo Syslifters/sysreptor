@@ -324,6 +324,7 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
             'name', 'language', 'status', 'tags',
             'report_fields', 'report_sections', 
             'finding_fields', 'finding_field_order', 'finding_ordering',
+            'default_notes',
             'report_template', 'report_styles', 'report_preview_data', 
             'assets'
         ]
