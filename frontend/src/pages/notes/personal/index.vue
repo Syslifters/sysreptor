@@ -16,5 +16,7 @@
   max-width: 50%;
   max-height: 50vh;
   margin-top: 20vh;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>

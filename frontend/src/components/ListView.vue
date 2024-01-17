@@ -111,5 +111,7 @@ defineExpose({
   max-width: 50%;
   max-height: 40vh;
   margin-top: 1rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>
