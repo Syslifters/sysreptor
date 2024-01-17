@@ -1,5 +1,5 @@
 <template>
-  <div class="w-100 d-flex flex-column text-center">
+  <div class="w-100 text-center">
     <img src="~/assets/dino/project.svg" alt="" class="img-raptor" />
     <div>
       <strong>Start writing report sections and findings</strong>
@@ -16,5 +16,7 @@
   max-width: 50%;
   max-height: 50vh;
   margin-top: 20vh;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>
