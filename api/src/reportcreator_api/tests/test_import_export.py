@@ -125,6 +125,7 @@ class TestImportExport:
             'created', 'name', 'language', 'status', 'tags',
             'report_fields', 'report_sections', 
             'finding_fields', 'finding_field_order', 'finding_ordering',
+            'default_notes',
             'report_template', 'report_styles', 'report_preview_data'])
         assert t.source == SourceEnum.IMPORTED
 
@@ -147,6 +148,7 @@ class TestImportExport:
             'created', 'name', 'language', 
             'report_fields', 'report_sections', 
             'finding_fields', 'finding_field_order', 'finding_ordering',
+            'default_notes',
             'report_template', 'report_styles', 'report_preview_data'])
         assert p.project_type.source == SourceEnum.IMPORTED_DEPENDENCY
         assert p.project_type.linked_project == p
@@ -330,6 +332,7 @@ class TestCopyModel:
             'report_template', 'report_styles', 'report_preview_data', 
             'report_fields', 'report_sections', 
             'finding_fields', 'finding_field_order', 'finding_ordering',
+            'default_notes',
         } - set(exclude_fields))
         
         assert set(pt.assets.values_list('id', flat=True)).intersection(cp.assets.values_list('id', flat=True)) == set()
