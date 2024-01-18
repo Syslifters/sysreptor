@@ -428,3 +428,17 @@ class TestNotesApi:
         assert note1_1.parent == note1
         assert note1_2.parent == note1
         assert note2_1.parent == note2
+
+    def test_delete_children(self):
+        self.user.notes.all().delete()
+
+        note1 = create_usernotebookpage(user=self.user, parent=None, order=1)
+        note1_1 = create_usernotebookpage(user=self.user, parent=note1, order=1)
+        create_usernotebookpage(user=self.user, parent=note1, order=2)
+        create_usernotebookpage(user=self.user, parent=note1_1, order=1)
+        note2 = create_usernotebookpage(user=self.user, parent=None, order=2)
+        note2_1 = create_usernotebookpage(user=self.user, parent=note2, order=1)
+
+        res = self.client.delete(reverse('usernotebookpage-detail', kwargs={'pentestuser_pk': 'self', 'id': note1.note_id}))
+        assert res.status_code == 204, res.data
+        assert set(n.id for n in self.user.notes.all()) == {note2.id, note2_1.id}
