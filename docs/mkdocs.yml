@@ -51,12 +51,14 @@ nav:
           - ZAP: cli/tools/zap.md
           - SSLyze: cli/tools/sslyze.md
       - Uploads:
+          - PushProject: cli/uploads/pushproject.md
           - Finding: cli/uploads/finding.md
           - File: cli/uploads/file.md
           - Note: cli/uploads/note.md
       - Projects and Templates:
           - Project: cli/projects-and-templates/project.md
-          - Projectfindings: cli/projects-and-templates/projectfindings.md
+          - CreateProject: cli/projects-and-templates/createproject.md
+          - ProjectFindings: cli/projects-and-templates/projectfindings.md
           - Template: cli/projects-and-templates/template.md
           - Translate: cli/projects-and-templates/translate.md
       - Utils:
