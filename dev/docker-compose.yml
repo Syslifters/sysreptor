@@ -66,6 +66,7 @@ services:
       context: ..
       target: pdfviewer-dev
     command: npm run build-watch
+    init: true
     volumes:
       - type: bind
         source: ../packages/pdfviewer/

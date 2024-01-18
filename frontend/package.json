@@ -2,6 +2,7 @@
   "name": "reportcreator-frontend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "nuxt dev",
     "generate": "nuxt generate",
@@ -11,9 +12,9 @@
     "dependencies": "npm run generate-notice"
   },
   "dependencies": {
-    "nuxt": "~3.8.1",
-    "vuetify": "~3.4.4",
-    "vuetify-nuxt-module": "^0.7.1",
+    "nuxt": "~3.9.3",
+    "vuetify": "~3.4.10",
+    "vuetify-nuxt-module": "^0.10.2",
     "@mdi/font": "^7.3.67",
     "pinia": "^2.1.7",
     "@pinia/nuxt": "^0.5.1",
@@ -27,7 +28,6 @@
 
     "@iconify/vue": "^4.1.1",
     "@iconify/icons-fluent-emoji": "^1.2.10",
-    "@iconify/icons-game-icons": "^1.2.1",
 
     "reportcreator-markdown": "../packages/markdown",
     "js-file-download": "^0.4.12",
@@ -37,11 +37,12 @@
     "zxcvbn": "^4.4.2",
     "@github/webauthn-json": "^2.1.1",
     "@elastic/apm-rum-vue": "^2.1.5",
-    "date-fns": "^2.30.0"
+    "date-fns": "^3.2.0"
   },
   "devDependencies": {
     "@nuxtjs/eslint-module": "^4.1.0",
     "@nuxtjs/eslint-config-typescript": "^12.0.0",
+    "@nuxt/test-utils": "^3.10.0",
     "@types/node": "^18",
     "@types/zxcvbn": "^4.4.2",
     "@types/lodash": "^4.14.199",
@@ -49,8 +50,8 @@
     "sass": "^1.69.3",
     "eslint": "^8.51.0",
     "license-checker-rseidelsohn": "^4.2.8",
-    "nuxt-vitest": "^0.11.3",
-    "vitest": "^0.33.0",
-    "happy-dom": "^12.9.1"
+    "vitest": "^1.2.1",
+    "happy-dom": "^13.1.4",
+    "vue-tsc": "^1.8.27"
   }
 }

@@ -888,14 +888,14 @@ MIT
    limitations under the License.
 
 
-@rollup/rollup-linux-x64-gnu 4.9.5
+@rollup/rollup-linux-x64-gnu 4.9.6
 MIT
 # `@rollup/rollup-linux-x64-gnu`
 
 This is the **x86_64-unknown-linux-gnu** binary for `rollup`
 
 
-@rollup/rollup-linux-x64-musl 4.9.5
+@rollup/rollup-linux-x64-musl 4.9.6
 MIT
 # `@rollup/rollup-linux-x64-musl`
 
@@ -17723,7 +17723,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <http://unlicense.org>
 
 
-rollup 4.9.5
+rollup 4.9.6
 MIT
 # Rollup core license
 Rollup is released under the MIT license:
@@ -19845,7 +19845,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vite 5.0.11
+vite 5.0.12
 MIT
 # Vite core license
 Vite is released under the MIT license:
