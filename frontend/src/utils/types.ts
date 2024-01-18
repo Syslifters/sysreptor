@@ -285,14 +285,17 @@ export type PentestFinding = BaseModel & Lockable & {
   };
 };
 
-export type UserNote = BaseModel & Lockable & {
-  order: number;
+export type NoteBase = {
+  id: string;
   parent: string|null;
+  order: number;
   title: string;
   text: string;
   checked: boolean|null;
-  icon_emoji: string;
+  icon_emoji: string|null;
 }
+
+export type UserNote = BaseModel & Lockable & NoteBase;
 
 export type ProjectNote = UserNote & {
   assignee: UserShortInfo|null;
@@ -463,6 +466,7 @@ export type ProjectType = BaseModel & Lockable & {
   finding_fields: FieldDefinitionDict;
   finding_field_order: string[];
   finding_ordering: FindingOrderingDefinition[];
+  default_notes: NoteBase[];
 }
 
 export type HistoryTimelineRecord = {

@@ -99,7 +99,7 @@ async function createNote() {
     parent: currentNote?.parent || null,
     order: (currentNote ? currentNote.order + 1 : null),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
-  } as ProjectNote)
+  } as unknown as ProjectNote)
   // Reload note list to get updated order
   await refreshListings();
 

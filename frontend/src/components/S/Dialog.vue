@@ -1,7 +1,7 @@
 <template>
   <v-dialog
     :model-value="props.modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
+    @update:model-value="emit('update:modelValue', $event)"
     :max-width="props.maxWidth"
     :retain-focus="false"
   >

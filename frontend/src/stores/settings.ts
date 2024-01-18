@@ -19,6 +19,7 @@ export const useLocalSettings = defineStore('settings', {
     notebookInputMenuSize: 15,
     reportFieldDefinitionMenuSize: 15,
     findingFieldDefinitionMenuSize: 15,
+    defaultNotesDefinitionMenuSize: 15,
     templateFieldFilterDesign: 'all',
     templateFieldFilterHiddenFields: [] as string[],
     noteExpandStates: {} as {[noteId: string]: boolean},

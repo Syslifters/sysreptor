@@ -14,6 +14,9 @@
         <v-list-item :to="`/designs/${$route.params.projectTypeId}/findingfields/`" prepend-icon="mdi-alpha-f-box" title="Finding Fields">
           <s-tooltip v-if="!isExpanded" activator="parent" text="Finding Fields" />
         </v-list-item>
+        <v-list-item :to="`/designs/${$route.params.projectTypeId}/notes/`" prepend-icon="mdi-notebook" title="Notes">
+          <s-tooltip v-if="!isExpanded" activator="parent" text="Notes" />
+        </v-list-item>
       </template>
     </s-sub-drawer>
 

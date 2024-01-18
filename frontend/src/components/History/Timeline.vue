@@ -1,7 +1,7 @@
 <template>
   <v-navigation-drawer
     :model-value="props.modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
+    @update:model-value="emit('update:modelValue', $event)"
     location="right"
     absolute
     temporary
