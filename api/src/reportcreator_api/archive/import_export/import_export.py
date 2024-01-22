@@ -165,9 +165,13 @@ def import_archive(archive_file, serializer_classes: list[Type[serializers.Seria
                             error = ex
                 if error:
                     raise error
-                obj = serializer.perform_import()
-                log.info(f'Imported object {obj=} obj.id={getattr(obj, "id", None)}')
-                imported_objects.append(obj)
+                imported_obj = serializer.perform_import()
+                for obj in imported_obj if isinstance(imported_obj, list) else [imported_obj]:
+                    log.info(f'Imported object {obj=} {obj.id}')
+                if isinstance(imported_obj, list):
+                    imported_objects.extend(imported_obj)
+                else:
+                    imported_objects.append(imported_obj)
             
             return imported_objects
     except Exception as ex:
