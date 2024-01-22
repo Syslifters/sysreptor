@@ -379,13 +379,14 @@ class AuthViewSet(viewsets.ViewSet):
         except OAuthError as ex:
             raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error)
         
+        email = token['userinfo'].get('email', 'unknown')
         identity = AuthIdentity.objects \
             .select_related('user') \
             .filter(provider=oidc_provider) \
             .filter(identifier=token['userinfo'].get('email')) \
             .first()
         if not identity:
-            raise exceptions.AuthenticationFailed()
+            raise exceptions.AuthenticationFailed(detail=f'Auth identity not configured for any user: SSO provider "{oidc_provider}" identifier "{email}" ')
 
         can_reauth = False
         if not settings.AUTHLIB_OAUTH_CLIENTS[oidc_provider].get('reauth_supported', False):
