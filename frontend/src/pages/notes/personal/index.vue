@@ -3,9 +3,6 @@
     <img src="~/assets/dino/notes.svg" alt="" class="img-raptor" />
     <div>
       <strong>Start writing notes</strong>
-      <p>
-        Select a note from the menu on the left to start editing or create a new note by clicking the add button. 
-      </p>
     </div>
   </div>
 </template>

@@ -3,9 +3,6 @@
     <img src="~/assets/dino/project.svg" alt="" class="img-raptor" />
     <div>
       <strong>Start writing report sections and findings</strong>
-      <p>
-        Select a section or finding from the menu on the left to start editing or create a new finding by clicking the add button. 
-      </p>
     </div>
   </div>
 </template>
