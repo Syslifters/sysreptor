@@ -4,17 +4,17 @@ import json
 import logging
 import tarfile
 from pathlib import Path
-from typing import Iterable, Type
+from typing import Iterable, Type, Union
 from django.conf import settings
-from django.utils import timezone
 from rest_framework import serializers
 from django.db import transaction
 from django.db.models import prefetch_related_objects, Prefetch
 from django.core.serializers.json import DjangoJSONEncoder
 
-from reportcreator_api.archive.import_export.serializers import PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer, \
+from reportcreator_api.archive.import_export.serializers import NotesExportImportSerializer, PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer, \
     FindingTemplateImportSerializerV1, FindingTemplateExportImportSerializerV2
-from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection
+from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection, NotebookPageMixin
+from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.history import history_context
 
 
@@ -166,7 +166,7 @@ def import_archive(archive_file, serializer_classes: list[Type[serializers.Seria
                 if error:
                     raise error
                 obj = serializer.perform_import()
-                log.info(f'Imported object {obj=} {obj.id=}')
+                log.info(f'Imported object {obj=} obj.id={getattr(obj, "id", None)}')
                 imported_objects.append(obj)
             
             return imported_objects
@@ -209,6 +209,9 @@ def export_projects(data: Iterable[PentestProject], export_all=False):
         'add_design_notice_file': True,
     })
 
+def export_notes(data: Union[PentestProject, PentestUser]):
+    return export_archive_iter(data, serializer_class=NotesExportImportSerializer)
+
 
 def import_templates(archive_file):
     return import_archive(archive_file, serializer_classes=[FindingTemplateExportImportSerializerV2, FindingTemplateImportSerializerV1])
@@ -218,4 +221,9 @@ def import_project_types(archive_file):
 
 def import_projects(archive_file):
     return import_archive(archive_file, serializer_classes=[PentestProjectExportImportSerializer])
+
+def import_notes(archive_file, context):
+    if not context.get('project') and not context.get('user'):
+        raise ValueError('Either project or user must be provided')
+    return import_archive(archive_file, serializer_classes=[NotesExportImportSerializer], context=context)
 

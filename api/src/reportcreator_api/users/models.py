@@ -73,6 +73,9 @@ class PentestUser(BaseModel, AbstractUser):
         return self.is_active and self.is_superuser and \
             getattr(self, 'admin_permissions_enabled', False) if license.is_professional() else True
 
+    def is_file_referenced(self, f) -> bool:
+        return any(map(lambda n: n.is_file_referenced(f), self.notes.all()))
+
 
 class AuthIdentity(BaseModel):
     PROVIDER_REMOTE_USER = 'remoteuser'

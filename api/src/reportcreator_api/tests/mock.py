@@ -249,12 +249,12 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}] * 2):
         UploadedImage.objects.create(linked_object=project, **{
             'name': f'file{idx}.png', 
-            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=image_kwargs.pop('content', create_png_file()))
         } | image_kwargs)
     for idx, file_kwargs in enumerate(files_kwargs if files_kwargs is not None else [{}] * 2):
         UploadedProjectFile.objects.create(linked_object=project, **{
             'name': f'file{idx}.pdf', 
-            'file': SimpleUploadedFile(name=f'file{idx}.pdf', content=f'%PDF-1.3{idx}'.encode())
+            'file': SimpleUploadedFile(name=f'file{idx}.pdf', content=file_kwargs.pop('content', f'%PDF-1.3{idx}'.encode()))
         } | file_kwargs)
 
     return project
