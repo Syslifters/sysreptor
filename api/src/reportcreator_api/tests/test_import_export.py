@@ -251,6 +251,7 @@ class TestImportExport:
         notes = list(self.project.notes.all().select_related('parent'))
         images = {(i.name, i.file.read()) for i in self.project.images.all() if self.project.is_file_referenced(i, findings=False, sections=False, notes=True)}
         files = {(f.name, f.file.read()) for f in self.project.files.all() if self.project.is_file_referenced(f, findings=False, sections=False, notes=True)}
+        self.project.refresh_from_db()
         self.project.notes.all().delete()
         self.project.images.all().delete()
         self.project.files.all().delete()
@@ -283,6 +284,7 @@ class TestImportExport:
         notes = list(self.user.notes.all().select_related('parent'))
         images = {(i.name, i.file.read()) for i in self.user.images.all()}
         files = {(f.name, f.file.read()) for f in self.user.files.all()}
+        self.user.refresh_from_db()
         self.user.notes.all().delete()
         self.user.images.all().delete()
         self.user.files.all().delete()
@@ -315,6 +317,7 @@ class TestImportExport:
         notes = [self.p_note1, self.p_note1_1]
         images = {(i.name, i.file.read()) for i in [self.project.images.filter_name('image-note.png').get()]}
         files = {(f.name, f.file.read()) for f in [self.project.files.filter_name('file.txt').get()]}
+        self.project.refresh_from_db()
         self.project.notes.all().delete()
         self.project.images.all().delete()
         self.project.files.all().delete()
@@ -330,6 +333,7 @@ class TestImportExport:
 
     def test_export_import_notes_project_partial_sublevel(self):
         archive = archive_to_file(export_notes(self.project, notes=[self.p_note1_1]))
+        self.project.refresh_from_db()
         self.project.notes.all().delete()
         self.project.images.all().delete()
         self.project.files.all().delete()
