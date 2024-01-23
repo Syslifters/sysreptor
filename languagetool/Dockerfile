@@ -10,7 +10,7 @@ RUN mkdir -p /usr/local/share/ca-certificates/ && \
 
 # PostgreSQL support
 RUN apk add postgresql-client zip unzip wget \
-    && wget https://jdbc.postgresql.org/download/postgresql-42.6.0.jar -P libs --quiet \
+    && wget https://jdbc.postgresql.org/download/postgresql-42.7.1.jar -P libs --quiet \
     && mkdir -p org/languagetool/server \
     && unzip -p languagetool-server.jar org/languagetool/server/mybatis-config.xml | \
         sed '/^\s*<\/dataSource>/i<property name="driver.prepareThreshold" value="0"\/>' \

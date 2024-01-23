@@ -38,11 +38,9 @@
 
 <script setup lang="ts">
 import { Icon, addIcon } from '@iconify/vue/dist/offline';
-import dinosaurBonesIcon from '@iconify/icons-game-icons/dinosaur-bones';
 import faceWithPeekingEyeIcon from '@iconify/icons-fluent-emoji/face-with-peeking-eye';
 import type { NuxtError } from 'nuxt/app';
 
-addIcon('game-icons:dinosaur-bones', dinosaurBonesIcon);
 addIcon('fluent-emoji:face-with-peeking-eye', faceWithPeekingEyeIcon);
 
 const props = defineProps<{
