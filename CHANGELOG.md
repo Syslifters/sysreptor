@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## v2024.8 - 2024-01-23
 * Diff-view for version history
 * Set form fields readonly instead of disabled
 * Update build system of Vue PDF rendering script from webpack to vite
