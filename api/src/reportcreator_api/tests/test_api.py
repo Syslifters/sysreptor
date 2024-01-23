@@ -29,7 +29,7 @@ def export_archive(obj):
 
 
 def export_notes_archive(obj):
-    return ContentFile(content=b''.join(export_notes([obj] if obj else [])), name='export.tar.gz')
+    return ContentFile(content=b''.join(export_notes(obj)) if obj else b'', name='export.tar.gz')
 
 
 def viewset_urls(basename, get_kwargs, create_data={}, list=False, retrieve=False, create=False, update=False, update_partial=False, destroy=False, lock=False, unlock=False, history_timeline=False):
@@ -103,7 +103,8 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('pentestproject preview', lambda s, c: c.post(reverse('pentestproject-preview', kwargs={'pk': get_obj(s).pk}), data={})),
             ('pentestproject generate', lambda s, c: c.post(reverse('pentestproject-generate', kwargs={'pk': get_obj(s).pk}), data={'password': 'pdf-password'})),
             ('pentestproject md2html', lambda s, c: c.post(reverse('pentestproject-md2html', kwargs={'pk': get_obj(s).pk}), data={})),
-            ('projectnotebookpage export', lambda s, c: c.post(reverse('projectnotebookpage-export', kwargs={'project_pk': get_obj(s).pk}))),
+            ('projectnotebookpage export', lambda s, c: c.post(reverse('projectnotebookpage-export', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
+            ('projectnotebookpage export-all', lambda s, c: c.post(reverse('projectnotebookpage-export-all', kwargs={'project_pk': get_obj(s).pk}))),
             ('projectnotebookpage export-pdf', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
 
             ('pentestprojecthistory project', lambda s, c: c.get(reverse('pentestprojecthistory-detail', kwargs={'project_pk': get_obj(s).pk, 'history_date': s.history_date}))),
@@ -198,7 +199,8 @@ def guest_urls():
         *file_viewset_urls('uploadedusernotebookfile', get_obj=lambda s: s.current_user.files.first() if s.current_user else UploadedUserNotebookFile(name='nonexistent.pdf'), get_base_kwargs=lambda s: {'pentestuser_pk': 'self'}, read=True, write=True),
         ('usernotebookpage upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
         ('usernotebookpage upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
-        ('usernotebookoage export', lambda s, c: c.post(reverse('usernotebookpage-export', kwargs={'pentestuser_pk': 'self'}))),
+        ('usernotebookoage export', lambda s, c: c.post(reverse('usernotebookpage-export', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
+        ('usernotebookoage export-all', lambda s, c: c.post(reverse('usernotebookpage-export-all', kwargs={'pentestuser_pk': 'self'}))),
         ('usernotebookpage export-pdf', lambda s, c: c.post(reverse('usernotebookpage-export-pdf', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
         ('usernotebookpage import', lambda s, c: c.post(reverse('usernotebookpage-import', kwargs={'pentestuser_pk': 'self'}), data={'file': export_notes_archive(s.current_user)}, format='multipart')),
 

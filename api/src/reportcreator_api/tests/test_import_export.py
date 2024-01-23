@@ -1,4 +1,3 @@
-from datetime import datetime
 import json
 import tarfile
 import pytest
@@ -68,14 +67,15 @@ class TestImportExport:
                 {'name': 'image-note.png', 'content': create_png_file() + b'image2'}],
             files_kwargs=[{'name': 'file.txt', 'content': b'file1'}],
         )
-        p_note1 = create_projectnotebookpage(project=self.project, title='Note 1', text='Note text 1 ![](/images/name/image-note.png)')
-        create_projectnotebookpage(project=self.project, parent=p_note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
+        self.p_note1 = create_projectnotebookpage(project=self.project, order=1, title='Note 1', text='Note text 1 ![](/images/name/image-note.png)')
+        self.p_note1_1 = create_projectnotebookpage(project=self.project, parent=self.p_note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
+        self.p_note2 = create_projectnotebookpage(project=self.project, order=2, title='Note 2', text='Note text 2')
         
         with override_settings(COMPRESS_IMAGES=False):
             yield
 
     def update_references(self, text, files_original, files_updated):
-        updated_map = {f.file.read(): f.name for f in files_updated}
+        updated_map = {f.file.read(): f.name for f in sorted(files_updated, key=lambda f: f.updated)}
         for f_name, f_content in files_original:
             if f_name in text:
                 text = text.replace(f_name, updated_map[f_content])
@@ -247,7 +247,7 @@ class TestImportExport:
             import_projects(archive)
 
     def test_export_import_notes_project(self):
-        archive = archive_to_file(export_notes(data=[self.project]))
+        archive = archive_to_file(export_notes(self.project))
         notes = list(self.project.notes.all().select_related('parent'))
         images = {(i.name, i.file.read()) for i in self.project.images.all() if self.project.is_file_referenced(i, findings=False, sections=False, notes=True)}
         files = {(f.name, f.file.read()) for f in self.project.files.all() if self.project.is_file_referenced(f, findings=False, sections=False, notes=True)}
@@ -257,9 +257,8 @@ class TestImportExport:
 
         # Import notes
         imported = import_notes(archive, context={'project': self.project})
-        assert len(imported) == 1
-        assert len(imported[0]) == len(notes)
-        for i, n in zip(sorted(imported[0], key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
+        assert len(imported) == len(notes)
+        for i, n in zip(sorted(imported, key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
             assertKeysEqual(i, n, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
             assert (i.parent.note_id if i.parent else None) == (n.parent.note_id if n.parent else None)
         assert {(i.name, i.file.read()) for i in self.project.images.all()} == images
@@ -268,9 +267,8 @@ class TestImportExport:
         # Import notes again: test name collission prevention
         archive.seek(0)
         imported2 = import_notes(archive, context={'project': self.project})
-        assert len(imported2) == 1
-        assert len(imported2[0]) == len(notes)
-        for i, n in zip(sorted(imported2[0], key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
+        assert len(imported2) == len(notes)
+        for i, n in zip(sorted(imported2, key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
             assertKeysEqual(i, n, ['title', 'checked', 'icon_emoji'])
             assert i.text == self.update_references(n.text, images.union(files), list(self.project.images.all()) + list(self.project.files.all()))
             assert i.note_id != n.note_id
@@ -281,7 +279,7 @@ class TestImportExport:
         assert len(self.project.files.all()) == len(files) * 2
 
     def test_export_import_notes_user(self):
-        archive = archive_to_file(export_notes(data=[self.user]))
+        archive = archive_to_file(export_notes(self.user))
         notes = list(self.user.notes.all().select_related('parent'))
         images = {(i.name, i.file.read()) for i in self.user.images.all()}
         files = {(f.name, f.file.read()) for f in self.user.files.all()}
@@ -291,9 +289,8 @@ class TestImportExport:
 
         # Import notes
         imported = import_notes(archive, context={'user': self.user})
-        assert len(imported) == 1
-        assert len(imported[0]) == len(notes)
-        for i, n in zip(sorted(imported[0], key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
+        assert len(imported) == len(notes)
+        for i, n in zip(sorted(imported, key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
             assertKeysEqual(i, n, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
             assert (i.parent.note_id if i.parent else None) == (n.parent.note_id if n.parent else None)
         assert {(i.name, i.file.read()) for i in self.user.images.all()} == images
@@ -302,9 +299,8 @@ class TestImportExport:
         # Import notes again: test name collission prevention
         archive.seek(0)
         imported2 = import_notes(archive, context={'user': self.user})
-        assert len(imported2) == 1
-        assert len(imported2[0]) == len(notes)
-        for i, n in zip(sorted(imported2[0], key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
+        assert len(imported2) == len(notes)
+        for i, n in zip(sorted(imported2, key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
             assertKeysEqual(i, n, ['title', 'checked', 'icon_emoji'])
             assert i.text == self.update_references(n.text, images.union(files), list(self.user.images.all()) + list(self.user.files.all()))
             assert i.note_id != n.note_id
@@ -313,6 +309,36 @@ class TestImportExport:
             
         assert len(self.user.images.all()) == len(images) * 2
         assert len(self.user.files.all()) == len(files) * 2
+
+    def test_export_import_notes_project_partial_toplevel(self):
+        archive = archive_to_file(export_notes(self.project, notes=[self.p_note1]))
+        notes = [self.p_note1, self.p_note1_1]
+        images = {(i.name, i.file.read()) for i in [self.project.images.filter_name('image-note.png').get()]}
+        files = {(f.name, f.file.read()) for f in [self.project.files.filter_name('file.txt').get()]}
+        self.project.notes.all().delete()
+        self.project.images.all().delete()
+        self.project.files.all().delete()
+
+        # Import notes
+        imported = import_notes(archive, context={'project': self.project})
+        assert len(imported) == len(notes)
+        for i, n in zip(sorted(imported, key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
+            assertKeysEqual(i, n, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
+            assert (i.parent.note_id if i.parent else None) == (n.parent.note_id if n.parent else None)
+        assert {(i.name, i.file.read()) for i in self.project.images.all()} == images
+        assert {(f.name, f.file.read()) for f in self.project.files.all()} == files
+
+    def test_export_import_notes_project_partial_sublevel(self):
+        archive = archive_to_file(export_notes(self.project, notes=[self.p_note1_1]))
+        self.project.notes.all().delete()
+        self.project.images.all().delete()
+        self.project.files.all().delete()
+
+        # Import notes
+        imported = import_notes(archive, context={'project': self.project})
+        assert len(imported) == 1
+        assertKeysEqual(imported[0], self.p_note1_1, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
+        assert imported[0].parent is None
 
 
 @pytest.mark.django_db

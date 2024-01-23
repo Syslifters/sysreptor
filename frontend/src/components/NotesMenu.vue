@@ -27,6 +27,7 @@
             />
             <btn-export
               v-if="props.exportUrl"
+              button-text="Export All"
               :export-url="props.exportUrl"
               :name="props.exportName"
               :disabled="props.readonly"

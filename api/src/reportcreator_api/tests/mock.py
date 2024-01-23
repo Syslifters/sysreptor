@@ -243,6 +243,9 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
     for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 3:
         create_finding(project=project, **finding_kwargs)
     
+    if notes_kwargs is not None:
+        # Delete default notes
+        project.notes.all().delete()
     for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}] * 3:
         create_projectnotebookpage(project=project, **note_kwargs)
 

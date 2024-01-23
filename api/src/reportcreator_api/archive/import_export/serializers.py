@@ -642,6 +642,15 @@ class NotesExportImportSerializer(ExportImportSerializer):
             self.context['user'] = self.instance
         self.Meta.model = PentestProject if self.context.get('project') else PentestUser
 
+    def export(self):
+        out = super().export()
+        # Set parent_id = None for exported child-notes
+        exported_ids = set(map(lambda n: n['id'], out['notes']))
+        for n in out['notes']:
+            if n['parent'] and n['parent'] not in exported_ids:
+                n['parent'] = None
+        return out
+
     def export_files(self) -> Iterable[tuple[str, File]]:
         imgf = self.fields['images']
         imgf.instance = list(imgf.get_attribute(self.instance).all())

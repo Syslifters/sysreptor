@@ -31,6 +31,10 @@
           </template>
           <template #context-menu>
             <btn-export
+              :export-url="exportUrl"
+              :name="'notes-' + note.title"
+            />
+            <btn-export
               :export-url="exportPdfUrl"
               :name="note.title"
               extension=".pdf"
@@ -77,6 +81,7 @@ const { readonly, toolbarAttrs, fetchLoaderAttrs } = useLockEdit({
         oldValue!.icon_emoji !== newValue!.icon_emoji;
   }
 });
+const exportUrl = computed(() => urlJoin(baseUrl.value, '/export/'));
 const exportPdfUrl = computed(() => urlJoin(baseUrl.value, '/export-pdf/'));
 const hasChildNotes = computed(() => {
   if (!note.value) {
