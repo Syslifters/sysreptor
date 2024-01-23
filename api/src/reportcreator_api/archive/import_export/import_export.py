@@ -4,17 +4,18 @@ import json
 import logging
 import tarfile
 from pathlib import Path
-from typing import Iterable, Type
+from typing import Iterable, Optional, Type, Union
 from django.conf import settings
-from django.utils import timezone
 from rest_framework import serializers
 from django.db import transaction
 from django.db.models import prefetch_related_objects, Prefetch
 from django.core.serializers.json import DjangoJSONEncoder
 
-from reportcreator_api.archive.import_export.serializers import PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer, \
+from reportcreator_api.archive.import_export.serializers import NotesExportImportSerializer, PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer, \
     FindingTemplateImportSerializerV1, FindingTemplateExportImportSerializerV2
-from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection
+from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection, NotebookPageMixin
+from reportcreator_api.pentests.models.notes import UserNotebookPage
+from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.history import history_context
 
 
@@ -165,9 +166,13 @@ def import_archive(archive_file, serializer_classes: list[Type[serializers.Seria
                             error = ex
                 if error:
                     raise error
-                obj = serializer.perform_import()
-                log.info(f'Imported object {obj=} {obj.id=}')
-                imported_objects.append(obj)
+                imported_obj = serializer.perform_import()
+                for obj in imported_obj if isinstance(imported_obj, list) else [imported_obj]:
+                    log.info(f'Imported object {obj=} {obj.id}')
+                if isinstance(imported_obj, list):
+                    imported_objects.extend(imported_obj)
+                else:
+                    imported_objects.append(imported_obj)
             
             return imported_objects
     except Exception as ex:
@@ -209,6 +214,31 @@ def export_projects(data: Iterable[PentestProject], export_all=False):
         'add_design_notice_file': True,
     })
 
+def export_notes(project_or_user: PentestProject|PentestUser, notes: Optional[Iterable[ProjectNotebookPage|UserNotebookPage]] = None):
+    notes_qs = project_or_user.notes \
+        .select_related('parent')
+    if notes is not None:
+        # Only export sepcified notes and their children
+        def get_children_recursive(note, all_notes):
+            out = [note]
+            for n in all_notes:
+                if n.parent_id == note.id:
+                    out.extend(get_children_recursive(n, all_notes))
+            return out
+        
+        all_notes = list(project_or_user.notes.all())
+        export_notes = []
+        for n in notes:
+            if (isinstance(project_or_user, PentestProject) and getattr(n, 'project', None) != project_or_user) or \
+                (isinstance(project_or_user, PentestUser) and getattr(n, 'user', None) != project_or_user):
+                raise serializers.ValidationError(f'Note {n.id} does not belong to {project_or_user}')
+            export_notes.extend(get_children_recursive(n, all_notes))
+        notes_qs = notes_qs \
+            .filter(id__in=map(lambda n: n.id, export_notes))
+    
+    prefetch_related_objects([project_or_user], Prefetch('notes', queryset=notes_qs))
+    return export_archive_iter([project_or_user], serializer_class=NotesExportImportSerializer)
+
 
 def import_templates(archive_file):
     return import_archive(archive_file, serializer_classes=[FindingTemplateExportImportSerializerV2, FindingTemplateImportSerializerV1])
@@ -218,4 +248,9 @@ def import_project_types(archive_file):
 
 def import_projects(archive_file):
     return import_archive(archive_file, serializer_classes=[PentestProjectExportImportSerializer])
+
+def import_notes(archive_file, context):
+    if not context.get('project') and not context.get('user'):
+        raise ValueError('Either project or user must be provided')
+    return import_archive(archive_file, serializer_classes=[NotesExportImportSerializer], context=context)
 

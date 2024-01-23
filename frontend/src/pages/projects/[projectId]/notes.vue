@@ -1,50 +1,22 @@
 <template>
   <split-menu v-model="localSettings.notebookInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
-      <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
-        <v-list-subheader>
-          <span>Notes</span>
-          <s-btn-icon
-            @click="($refs.createNoteBtnRef as any)!.click()"
-            :disabled="project.readonly"
-            size="small"
-            variant="flat"
-            color="secondary"
-            density="compact"
-            class="ml-2"
-          >
-            <v-icon icon="mdi-plus" />
-            <s-tooltip activator="parent" location="top">Add Note (Ctrl+J)</s-tooltip>
-          </s-btn-icon>
-        </v-list-subheader>
-
+      <notes-menu
+        title="Notes"
+        :create-note="createNote"
+        :perform-import="performImport"
+        :export-url="`/api/v1/pentestprojects/${project.id}/notes/export/`"
+        :export-name="'notes-' + project.name"
+        :readonly="project.readonly"
+      >
         <notes-sortable-list
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
           @update:note="updateNote"
           :disabled="project.readonly"
           :to-prefix="`/projects/${$route.params.projectId}/notes/`"
-          class="flex-grow-1 overflow-y-auto"
         />
-
-        <div>
-          <v-divider />
-          <v-list-item>
-            <btn-confirm
-              ref="createNoteBtnRef"
-              :action="createNote"
-              :disabled="project.readonly"
-              :confirm="false"
-              button-text="Add"
-              button-icon="mdi-plus"
-              tooltip-text="Add Note (Ctrl+J)"
-              keyboard-shortcut="ctrl+j"
-              size="small"
-              block
-            />
-          </v-list-item>
-        </div>
-      </v-list>
+      </notes-menu>
     </template>
 
     <template #default>
@@ -105,6 +77,12 @@ async function createNote() {
 
   await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, query: { focus: 'title' } })
 }
+async function performImport(file: File) {
+  const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);
+  const note = res.find(n => n.parent === null)!;
+  await refreshListings();
+  await navigateTo(`/projects/${project.value.id}/notes/${note.id}/`);
+}
 async function updateNote(note: ProjectNote) {
   try {
     await projectStore.partialUpdateNote(project.value, note, ['checked']);
@@ -121,15 +99,3 @@ const updateNoteOrder = debounce(async (notes: NoteGroup<ProjectNote>) => {
   }
 }, 0);
 </script>
-
-<style lang="scss" scoped>
-.note-checked {
-  display: inline-block;
-  margin: 0;
-  padding: 0;
-}
-
-:deep(.v-list-subheader) {
-  padding-left: 0.5em !important;
-}
-</style>

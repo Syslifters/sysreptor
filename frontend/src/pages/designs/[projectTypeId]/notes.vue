@@ -2,49 +2,19 @@
   <v-form ref="form" class="h-100">
     <split-menu v-model="localSettings.defaultNotesDefinitionMenuSize" :content-props="{ class: 'pa-0 h-100' }">
       <template #menu>
-        <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
-          <v-list-subheader>
-            <span>Initial Notes</span>
-            <s-btn-icon
-              @click="($refs.createNoteBtnRef as any)!.click()"
-              :disabled="readonly"
-              size="small"
-              variant="flat"
-              color="secondary"
-              density="compact"
-              class="ml-2"
-            >
-              <v-icon icon="mdi-plus" />
-              <s-tooltip activator="parent" location="top">Add Note (Ctrl+J)</s-tooltip>
-            </s-btn-icon>
-          </v-list-subheader>
-          
+        <notes-menu
+          title="Initial Notes"
+          :create-note="createNote"
+          :readonly="readonly"
+        >
           <notes-sortable-list
             v-model="noteGroups"
             :selected="currentNote"
             @update:selected="selectNote"
             @update:note="updateNoteChecked"
             :disabled="readonly"
-            class="flex-grow-1 overflow-y-auto"
           />
-          <div>
-            <v-divider />
-            <v-list-item>
-              <btn-confirm
-                ref="createNoteBtnRef"
-                :action="() => createNote()"
-                :disabled="readonly"
-                :confirm="false"
-                button-text="Add"
-                button-icon="mdi-plus"
-                tooltip-text="Add Note (Ctrl+J)"
-                keyboard-shortcut="ctrl+j"
-                size="small"
-                block
-              />
-            </v-list-item>
-          </div>
-        </v-list>
+        </notes-menu>
       </template>
       <template #default>
         <full-height-page>

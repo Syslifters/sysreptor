@@ -1,5 +1,5 @@
 from typing import Iterable
-from django.conf import settings
+from uuid import uuid4
 from django.core.files import File
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
@@ -7,7 +7,7 @@ from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsO
 
 from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectType, ReportSection, \
     SourceEnum, UploadedAsset, UploadedImage, UploadedFileBase, ProjectMemberInfo, UploadedProjectFile, Language, ReviewStatus, \
-    FindingTemplateTranslation, UploadedTemplateImage, ProjectTypeStatus
+    FindingTemplateTranslation, UploadedTemplateImage, ProjectTypeStatus, UserNotebookPage, UploadedUserNotebookImage, UploadedUserNotebookFile
 from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
@@ -130,12 +130,12 @@ class FileListExportImportSerializer(serializers.ListSerializer):
         return self.context['archive'].extractfile(self.child.get_path_in_archive(name))
 
     def create(self, validated_data):
-        child_model_class = self.child.Meta.model
+        child_model_class = self.child.get_model_class()
         objs = [
             child_model_class(**attrs | {
                 'name_hash': UploadedFileBase.hash_name(attrs['name']),
                 'file': File(
-                    file=self.extract_file(attrs['name']), 
+                    file=self.extract_file(attrs.pop('name_internal', None) or attrs['name']), 
                     name=attrs['name']), 
                 'linked_object': self.child.get_linked_object(),
         }) for attrs in validated_data]
@@ -148,8 +148,14 @@ class FileListExportImportSerializer(serializers.ListSerializer):
 class FileExportImportSerializer(ExportImportSerializer):
     class Meta:
         fields = ['id', 'created', 'updated', 'name']
-        extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False, 'required': False}}
+        extra_kwargs = {
+            'id': {'read_only': True}, 
+            'created': {'read_only': False, 'required': False}
+        }
         list_serializer_class = FileListExportImportSerializer
+
+    def get_model_class(self):
+        return self.Meta.model
 
     def validate_name(self, name):
         if '/' in name or '\\' in name or '\x00' in name:
@@ -405,7 +411,7 @@ class ReportSectionExportImportSerializer(ExportImportSerializer):
         return out
 
 
-class ProjectNotebookPageExportImportSerializer(ExportImportSerializer):
+class NotebookPageExportImportSerializer(ExportImportSerializer):
     id = serializers.UUIDField(source='note_id')
     parent = serializers.UUIDField(source='parent.note_id', allow_null=True, required=False)
 
@@ -413,27 +419,67 @@ class ProjectNotebookPageExportImportSerializer(ExportImportSerializer):
         model = ProjectNotebookPage
         fields = [
             'id', 'created', 'updated',
-            'title', 'text', 'checked', 'icon_emoji', 'assignee',
+            'title', 'text', 'checked', 'icon_emoji',
             'order', 'parent',
         ]
         extra_kwargs = {
             'created': {'read_only': False, 'required': False},
             'icon_emoji': {'required': False},
+        }
+
+
+class ProjectNotebookPageExportImportSerializer(NotebookPageExportImportSerializer):
+    class Meta(NotebookPageExportImportSerializer.Meta):
+        fields = NotebookPageExportImportSerializer.Meta.fields + ['assignee']
+        extra_kwargs = NotebookPageExportImportSerializer.Meta.extra_kwargs | {
             'assignee': {'required': False}
         }
 
 
-class ProjectNotebookPageListExportImportSerializer(serializers.ListSerializer):
-    child = ProjectNotebookPageExportImportSerializer()
+class NotebookPageListExportImportSerializer(serializers.ListSerializer):
+    @property
+    def linked_object(self):
+        if project := self.context.get('project'):
+            return project
+        elif user := self.context.get('user'):
+            return user
+        else:
+            raise serializers.ValidationError('Missing project or user reference')
+
+    def create_instance(self, validated_data):
+        note_data = omit_keys(validated_data, ['parent'])
+        if isinstance(self.linked_object, PentestProject):
+            return ProjectNotebookPage(project=self.linked_object, **note_data)
+        else:
+            return UserNotebookPage(user=self.linked_object, **note_data)
 
     def create(self, validated_data):
-        instances = [ProjectNotebookPage(project=self.context['project'], **omit_keys(d, ['parent'])) for d in validated_data]
+        # Check for note ID collisions and update note_id on collision
+        existing_instances = list(self.linked_object.notes.all())
+        existing_ids = set(map(lambda n: n.note_id, existing_instances))
+        for n in validated_data:
+            if n['note_id'] in existing_ids:
+                old_id = n['note_id']
+                new_id = uuid4()
+                n['note_id'] = new_id
+                for cn in validated_data:
+                    if cn.get('parent', {}).get('note_id') == old_id:
+                        cn['parent']['note_id'] = new_id
+
+        # Create instances
+        instances = [self.create_instance(d) for d in validated_data]
         for i, d in zip(instances, validated_data):
             if d.get('parent'):
                 i.parent = next(filter(lambda e: e.note_id == d.get('parent', {}).get('note_id'), instances), None)
-
         ProjectNotebookPage.objects.check_parent_and_order(instances)
-        bulk_create_with_history(ProjectNotebookPage, instances)
+
+        # Update order to new top-level notes: append to end after existing notes
+        existing_toplevel_count = len([n for n in existing_instances if not n.parent])
+        for n in instances:
+            if not n.parent_id:
+                n.order += existing_toplevel_count
+
+        bulk_create_with_history(ProjectNotebookPage if isinstance(self.linked_object, PentestProject) else UserNotebookPage, instances)
         return instances
 
 
@@ -445,7 +491,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
     report_data = serializers.DictField(source='data_all')
     sections = ReportSectionExportImportSerializer(many=True)
     findings = PentestFindingExportImportSerializer(many=True)
-    notes = ProjectNotebookPageListExportImportSerializer(required=False)
+    notes = NotebookPageListExportImportSerializer(child=ProjectNotebookPageExportImportSerializer(), required=False)
     images = UploadedImageExportImportSerializer(many=True)
     files = UploadedProjectFileExportImportSerializer(many=True, required=False)
 
@@ -533,3 +579,116 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
 
         return project
 
+
+class NotesImageExportImportSerializer(FileExportImportSerializer):
+    class Meta(FileExportImportSerializer.Meta):
+        model = UploadedImage
+
+    def get_model_class(self):
+        return UploadedImage if isinstance(self.get_linked_object(), PentestProject) else UploadedUserNotebookImage
+    
+    def get_linked_object(self):
+        if project := self.context.get('project'):
+            return project
+        elif user := self.context.get('user'):
+            return user
+        else:
+            raise serializers.ValidationError('Missing project or user reference')
+    
+    def get_path_in_archive(self, name):
+        return str(self.context.get('import_id') or self.get_linked_object().id) + '-images/' + name
+    
+    def is_file_referenced(self, f):
+        if isinstance(self.get_linked_object(), PentestProject):
+            return self.get_linked_object().is_file_referenced(f, findings=False, sections=False, notes=True)
+        else:
+            return self.get_linked_object().is_file_referenced(f)
+
+
+class NotesFileExportImportSerializer(FileExportImportSerializer):
+    class Meta(FileExportImportSerializer.Meta):
+        model = UploadedProjectFile
+
+    def get_model_class(self):
+        return UploadedProjectFile if isinstance(self.get_linked_object(), PentestProject) else UploadedUserNotebookFile
+
+    def get_linked_object(self):
+        if project := self.context.get('project'):
+            return project
+        elif user := self.context.get('user'):
+            return user
+        else:
+            raise serializers.ValidationError('Missing project or user reference')
+    
+    def get_path_in_archive(self, name):
+        return str(self.context.get('import_id') or self.get_linked_object().id) + '-files/' + name
+
+
+class NotesExportImportSerializer(ExportImportSerializer):
+    format = FormatField('notes/v1')
+    id = serializers.UUIDField()
+    notes = NotebookPageListExportImportSerializer(child=NotebookPageExportImportSerializer())
+    images = FileListExportImportSerializer(child=NotesImageExportImportSerializer(), required=False)
+    files = FileListExportImportSerializer(child=NotesFileExportImportSerializer(), required=False)
+
+    class Meta:
+        fields = ['format', 'id', 'notes', 'images', 'files']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if isinstance(self.instance, PentestProject):
+            self.context['project'] = self.instance
+        elif isinstance(self.instance, PentestUser):
+            self.context['user'] = self.instance
+        self.Meta.model = PentestProject if self.context.get('project') else PentestUser
+
+    def export(self):
+        out = super().export()
+        # Set parent_id = None for exported child-notes
+        exported_ids = set(map(lambda n: n['id'], out['notes']))
+        for n in out['notes']:
+            if n['parent'] and n['parent'] not in exported_ids:
+                n['parent'] = None
+        return out
+
+    def export_files(self) -> Iterable[tuple[str, File]]:
+        imgf = self.fields['images']
+        imgf.instance = list(imgf.get_attribute(self.instance).all())
+        yield from imgf.export_files()
+
+        ff = self.fields['files']
+        ff.instance = list(ff.get_attribute(self.instance).all())
+        yield from ff.export_files()
+
+    def create(self, validated_data):
+        # Check for file name collisions and rename files and update references
+        linked_object = self.context.get('project') or self.context.get('user')
+        existing_images = set(map(lambda i: i.name, linked_object.images.all()))
+        for ii in validated_data['images']:
+            i_name = ii['name']
+            while ii['name'] in existing_images:
+                ii['name'] = UploadedImage.objects.randomize_name(i_name)
+                ii['name_internal'] = i_name
+            if i_name != ii['name']:
+                for n in validated_data['notes']:
+                    n['text'] = n['text'].replace(f'/images/name/{i_name}', f'/images/name/{ii["name"]}')
+
+        existing_files = set(map(lambda f: f.name, linked_object.files.all()))
+        for fi in validated_data['files']:
+            f_name = fi['name']
+            while fi['name'] in existing_files:
+                fi['name'] = UploadedProjectFile.objects.randomize_name(f_name)
+                fi['name_internal'] = f_name
+            if f_name != fi['name']:
+                for n in validated_data['notes']:
+                    n['text'] = n['text'].replace(f'/files/name/{f_name}', f'/files/name/{fi["name"]}')
+
+        # Import notes
+        notes = self.fields['notes'].create(validated_data['notes'])
+
+        # Import images and files
+        self.context.update({'import_id': validated_data['id']})
+        self.fields['images'].create(validated_data.get('images', []))
+        self.fields['files'].create(validated_data.get('files', []))
+
+        return notes

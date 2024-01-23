@@ -9,6 +9,7 @@ from django.http import FileResponse, StreamingHttpResponse
 from django.test import override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
+from reportcreator_api.archive.import_export.import_export import export_notes
 from reportcreator_api.users.models import AuthIdentity, PentestUser
 from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, ProjectTypeScope, SourceEnum, \
     UploadedUserNotebookImage, UploadedUserNotebookFile, Language
@@ -25,6 +26,10 @@ def export_archive(obj):
     elif isinstance(obj, PentestProject):
         exp = export_projects([obj])
     return ContentFile(content=b''.join(exp), name='export.tar.gz')
+
+
+def export_notes_archive(obj):
+    return ContentFile(content=b''.join(export_notes(obj)) if obj else b'', name='export.tar.gz')
 
 
 def viewset_urls(basename, get_kwargs, create_data={}, list=False, retrieve=False, create=False, update=False, update_partial=False, destroy=False, lock=False, unlock=False, history_timeline=False):
@@ -98,6 +103,8 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('pentestproject preview', lambda s, c: c.post(reverse('pentestproject-preview', kwargs={'pk': get_obj(s).pk}), data={})),
             ('pentestproject generate', lambda s, c: c.post(reverse('pentestproject-generate', kwargs={'pk': get_obj(s).pk}), data={'password': 'pdf-password'})),
             ('pentestproject md2html', lambda s, c: c.post(reverse('pentestproject-md2html', kwargs={'pk': get_obj(s).pk}), data={})),
+            ('projectnotebookpage export', lambda s, c: c.post(reverse('projectnotebookpage-export', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
+            ('projectnotebookpage export-all', lambda s, c: c.post(reverse('projectnotebookpage-export-all', kwargs={'project_pk': get_obj(s).pk}))),
             ('projectnotebookpage export-pdf', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
 
             ('pentestprojecthistory project', lambda s, c: c.get(reverse('pentestprojecthistory-detail', kwargs={'project_pk': get_obj(s).pk, 'history_date': s.history_date}))),
@@ -112,6 +119,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('pentestproject finding-fromtemplate', lambda s, c: c.post(reverse('finding-fromtemplate', kwargs={'project_pk': get_obj(s).pk}), data={'template': s.template.pk})),
             ('finding sort', lambda s, c: c.post(reverse('finding-sort', kwargs={'project_pk': get_obj(s).pk}), data=[{'id': get_obj(s).findings.first().finding_id, 'order': 1}])),
             ('projectnotebookpage sort', lambda s, c: c.post(reverse('projectnotebookpage-sort', kwargs={'project_pk': get_obj(s).pk}), data=[{'id': get_obj(s).notes.first().note_id, 'parent': None, 'order': 1}])),
+            ('projectnotebookpage import', lambda s, c: c.post(reverse('projectnotebookpage-import', kwargs={'project_pk': get_obj(s).pk}), data={'file': export_notes_archive(get_obj(s))}, format='multipart')),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
         ])
@@ -191,7 +199,10 @@ def guest_urls():
         *file_viewset_urls('uploadedusernotebookfile', get_obj=lambda s: s.current_user.files.first() if s.current_user else UploadedUserNotebookFile(name='nonexistent.pdf'), get_base_kwargs=lambda s: {'pentestuser_pk': 'self'}, read=True, write=True),
         ('usernotebookpage upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
         ('usernotebookpage upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
+        ('usernotebookoage export', lambda s, c: c.post(reverse('usernotebookpage-export', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
+        ('usernotebookoage export-all', lambda s, c: c.post(reverse('usernotebookpage-export-all', kwargs={'pentestuser_pk': 'self'}))),
         ('usernotebookpage export-pdf', lambda s, c: c.post(reverse('usernotebookpage-export-pdf', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
+        ('usernotebookpage import', lambda s, c: c.post(reverse('usernotebookpage-import', kwargs={'pentestuser_pk': 'self'}), data={'file': export_notes_archive(s.current_user)}, format='multipart')),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True, history_timeline=True),

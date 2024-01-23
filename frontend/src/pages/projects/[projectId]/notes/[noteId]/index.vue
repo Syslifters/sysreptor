@@ -48,6 +48,10 @@
 
           <template #context-menu>
             <btn-export
+              :export-url="exportUrl"
+              :name="'notes-' + note.title"
+            />
+            <btn-export
               :export-url="exportPdfUrl"
               :name="note.title"
               extension=".pdf"
@@ -102,6 +106,7 @@ const { data: note, project, readonly, toolbarAttrs, fetchLoaderAttrs, inputFiel
   }
 });
 const historyVisible = ref(false);
+const exportUrl = computed(() => urlJoin(baseUrl, '/export/'));
 const exportPdfUrl = computed(() => urlJoin(baseUrl, '/export-pdf/'));
 const hasChildNotes = computed(() => {
   if (!project.value || !note.value) {

@@ -102,7 +102,7 @@ class HistoryManager(history_manager.HistoryManager):
 def bulk_create_with_history(model, objs, history_date=None, history_change_reason=None, **kwargs):
     out = model.objects.bulk_create(objs=objs)
 
-    if settings.SIMPLE_HISTORY_ENABLED:
+    if settings.SIMPLE_HISTORY_ENABLED and hasattr(model, 'history'):
         bulk_create_history(
             model, 
             objs=objs, 
