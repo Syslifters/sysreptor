@@ -1,6 +1,7 @@
 import random
 from datetime import datetime, timedelta
 from unittest import mock
+from uuid import uuid4
 from django.utils import timezone
 from rest_framework.test import APIClient
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -145,6 +146,9 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
         'report_sections': report_sections_default(),
         'finding_fields': finding_fields_default() | additional_fields,
         'finding_field_order': finding_field_order_default(),
+        'default_notes': [
+            {'id': str(uuid4()), 'parent': None, 'order': 1, 'checked': None, 'icon_emoji': '🦖', 'title': 'Default note 1', 'text': 'Default note 1 text'},
+        ],
         'report_template': '''<section><h1>{{ report.title }}</h1></section><section v-for="finding in findings"><h2>{{ finding.title }}</h2></section>''',
         'report_styles': '''@page { size: A4 portrait; } h1 { font-size: 3em; font-weight: bold; }''',
         'report_preview_data': {

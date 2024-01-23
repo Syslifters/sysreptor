@@ -11,7 +11,7 @@
 import type { LockInfo } from '@/utils/types';
 
 const props = defineProps<{
-  value: LockInfo|null;
+  value?: LockInfo|null;
 }>();
 </script>
 

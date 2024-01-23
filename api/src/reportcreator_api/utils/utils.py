@@ -1,9 +1,9 @@
 import uuid
 import itertools
-from datetime import date, datetime
+from datetime import date
 from django.utils import timezone, dateparse
 from itertools import groupby
-from typing import Union, Iterable, OrderedDict
+from typing import Union, Iterable, OrderedDict, Any
 
 
 def remove_duplicates(lst: list) -> list:
@@ -23,6 +23,13 @@ def find_all_indices(s: str, find: str):
 
 def get_key_or_attr(d: Union[dict, object], k: str, default=None):
     return d.get(k, default) if isinstance(d, (dict, OrderedDict)) else getattr(d, k, default)
+
+
+def set_key_or_attr(d: Union[dict, object], k: str, value: Any):
+    if isinstance(d, (dict, OrderedDict)):
+        d[k] = value
+    else:
+        setattr(d, k, value)
 
 
 def copy_keys(d: Union[dict, object], keys: Iterable[str]) -> dict:

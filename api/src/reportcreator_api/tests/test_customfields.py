@@ -1,12 +1,13 @@
 import copy
-from datetime import timedelta
 import itertools
 import pytest
+from datetime import timedelta
+from uuid import uuid4
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from reportcreator_api.pentests.customfields.mixins import CustomFieldsMixin
-from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE, FINDING_FIELDS_PREDEFINED, REPORT_FIELDS_CORE, finding_fields_default
+from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE, FINDING_FIELDS_PREDEFINED, REPORT_FIELDS_CORE
 from reportcreator_api.pentests.customfields.sort import sort_findings
 from reportcreator_api.pentests.customfields.types import FieldDataType, field_definition_to_dict, parse_field_definition
 from reportcreator_api.pentests.customfields.validators import FieldDefinitionValidator, FieldValuesValidator
@@ -14,7 +15,9 @@ from reportcreator_api.pentests.customfields.utils import check_definitions_comp
 from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, Language
 from reportcreator_api.tasks.rendering.entry import format_template_field_object
 from reportcreator_api.tests.mock import create_finding, create_project_type, create_project, create_template, create_user
+from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.utils.utils import copy_keys, omit_keys
+
 
 
 
@@ -606,3 +609,46 @@ class TestFindingSorting:
             project_type=create_project_type(finding_ordering=finding_ordering),
             findings_kwargs=[{'data': f} for f in findings_kwargs]
         )
+
+
+@pytest.mark.django_db
+class TestDefaultNotes:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.project_type = create_project_type()
+
+    @pytest.mark.parametrize(['valid', 'default_notes'], [
+        (True, []),
+        (True, [{'id': '11111111-1111-1111-1111-111111111111', 'parent': None, 'order': 1, 'checked': True, 'icon_emoji': '🦖', 'title': 'Note title', 'text': 'Note text content'}]),
+        (True, [{'id': '11111111-1111-1111-1111-111111111111', 'parent': None}, {'parent': '11111111-1111-1111-1111-111111111111'}]),
+        (False, [{'parent': '22222222-2222-2222-2222-222222222222'}]),
+        (False, [{'id': '11111111-1111-1111-1111-111111111111', 'parent': '11111111-1111-1111-1111-111111111111'}]),
+        (False, [{'id': '11111111-1111-1111-1111-111111111111', 'parent': '22222222-2222-2222-2222-222222222222'}, {'id': '22222222-2222-2222-2222-222222222222', 'parent': '11111111-1111-1111-1111-111111111111'}])
+    ])
+    def test_default_notes(self, valid, default_notes):
+        # Test default_notes validation
+        is_valid = True
+        try:
+            self.project_type.default_notes = [{
+                'id': str(uuid4()),
+                'parent': None,
+                'order': 0,
+                'checked': None,
+                'icon_emoji': None,
+                'title': 'Note',
+                'text': 'Note text',
+            } | n for n in default_notes]
+            self.project_type.full_clean()
+            self.project_type.save()
+        except ValidationError:
+            is_valid = False
+        assert is_valid == valid
+        
+        # Test note created from default_notes in project
+        if is_valid:
+            p = create_project(project_type=self.project_type)
+            for dn in self.project_type.default_notes:
+                n = p.notes.get(note_id=dn['id'])
+                assert (str(n.parent.note_id) if n.parent else None) == dn['parent']
+                assertKeysEqual(dn, n, ['order', 'checked', 'icon_emoji', 'title', 'text'])
+

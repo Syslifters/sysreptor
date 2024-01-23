@@ -13,8 +13,6 @@ export const useTemplateStore = defineStore('templates', {
         return [];
       }
 
-      // TODO: move fields with used_in_designs=False to the end
-      // TODO: order fields by finding_field_order from design
       const fieldFilterHiddenFields = useLocalSettings().templateFieldFilterHiddenFields;
       return sortBy(
         Object.keys(this.fieldDefinition).map(id => ({ 

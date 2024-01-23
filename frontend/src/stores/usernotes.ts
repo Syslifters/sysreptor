@@ -1,14 +1,14 @@
 import groupBy from "lodash/groupBy";
 import sortBy from "lodash/sortBy";
 import pick from "lodash/pick";
-import type { UserNote } from "~/utils/types";
+import type { UserNote, NoteBase } from "~/utils/types";
 
-export type NoteGroup<T extends UserNote> = {
+export type NoteGroup<T extends NoteBase> = {
   note: T;
   children: NoteGroup<T>;
 }[];
 
-export function groupNotes<T extends UserNote>(noteList: T[]): NoteGroup<T> {
+export function groupNotes<T extends NoteBase>(noteList: T[]): NoteGroup<T> {
   const groups = groupBy(noteList, 'parent');
 
   function collectChildren(parentId: string|null): NoteGroup<T> {
@@ -18,7 +18,7 @@ export function groupNotes<T extends UserNote>(noteList: T[]): NoteGroup<T> {
   return collectChildren(null);
 }
 
-export function sortNotes<T extends UserNote>(noteGroups: NoteGroup<T>, commitNote: (n: T) => void) {
+export function sortNotes<T extends NoteBase>(noteGroups: NoteGroup<T>, commitNote: (n: T) => void) {
   function setParentAndOrder(children: NoteGroup<T>, parentId: string|null) {
     for (let i = 0; i < children.length; i++) {
       const note = {

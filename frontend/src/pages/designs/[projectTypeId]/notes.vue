@@ -1,0 +1,206 @@
+<template>
+  <v-form ref="form" class="h-100">
+    <split-menu v-model="localSettings.defaultNotesDefinitionMenuSize" :content-props="{ class: 'pa-0 h-100' }">
+      <template #menu>
+        <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
+          <v-list-subheader>
+            <span>Initial Notes</span>
+            <s-btn-icon
+              @click="($refs.createNoteBtnRef as any)!.click()"
+              :disabled="readonly"
+              size="small"
+              variant="flat"
+              color="secondary"
+              density="compact"
+              class="ml-2"
+            >
+              <v-icon icon="mdi-plus" />
+              <s-tooltip activator="parent" location="top">Add Note (Ctrl+J)</s-tooltip>
+            </s-btn-icon>
+          </v-list-subheader>
+          
+          <notes-sortable-list
+            v-model="noteGroups"
+            :selected="currentNote"
+            @update:selected="selectNote"
+            @update:note="updateNoteChecked"
+            :disabled="readonly"
+            class="flex-grow-1 overflow-y-auto"
+          />
+          <div>
+            <v-divider />
+            <v-list-item>
+              <btn-confirm
+                ref="createNoteBtnRef"
+                :action="() => createNote()"
+                :disabled="readonly"
+                :confirm="false"
+                button-text="Add"
+                button-icon="mdi-plus"
+                tooltip-text="Add Note (Ctrl+J)"
+                keyboard-shortcut="ctrl+j"
+                size="small"
+                block
+              />
+            </v-list-item>
+          </div>
+        </v-list>
+      </template>
+      <template #default>
+        <full-height-page>
+          <template #header>
+            <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form">
+              <template #title v-if="currentNote">
+                <div class="note-title-container">
+                  <div>
+                    <s-btn-icon
+                      @click="currentNote.checked = currentNote.checked === null ? false : !currentNote.checked ? true : null"
+                      :icon="currentNote.checked === null ? 'mdi-checkbox-blank-off-outline' : currentNote.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
+                      :disabled="readonly"
+                      density="comfortable"
+                    />
+                  </div>
+                  <s-emoji-picker-field
+                    v-if="currentNote.checked === null"
+                    v-model="currentNote.icon_emoji"
+                    :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
+                    :readonly="readonly"
+                    density="comfortable"
+                  />
+              
+                  <markdown-text-field-content
+                    ref="titleRef"
+                    v-model="currentNote.title"
+                    :readonly="readonly"
+                    :spellcheck-supported="true"
+                    :lang="projectType.language"
+                    v-model:spellcheckEnabled="localSettings.designSpellcheckEnabled"
+                    class="note-title"
+                  />
+                </div>
+              </template>
+              <template #context-menu v-if="currentNote">
+                <btn-delete
+                  :delete="() => deleteNote(currentNote!)"
+                  :disabled="readonly"
+                  button-variant="list-item"
+                  color="error"
+                />
+              </template>
+            </edit-toolbar>
+          </template>
+          <template #default v-if="currentNote">
+            <markdown-page
+              ref="textRef"
+              v-model="currentNote.text"
+              :readonly="readonly"
+              :lang="projectType.language"
+              v-model:spellcheckEnabled="localSettings.designSpellcheckEnabled"
+              v-model:markdownEditorMode="localSettings.designMarkdownEditorMode"
+            />
+          </template>
+        </full-height-page>
+      </template>
+    </split-menu>
+  </v-form>
+</template>
+
+<script setup lang="ts">
+import { v4 as uuid4 } from 'uuid';
+
+const localSettings = useLocalSettings();
+
+const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
+  save: true,
+  saveFields: ['default_notes'],
+}));
+
+const currentNote = ref<NoteBase|null>(null);
+const hasChildNotes = computed(() => projectType.value.default_notes.some(n => n.parent === currentNote.value?.id));
+const noteGroups = computed({
+  get: () => groupNotes(projectType.value.default_notes),
+  set: (val) => {
+    const notes = [] as NoteBase[];
+    sortNotes(val, (n) => { 
+      notes.push(n); 
+    });
+    projectType.value.default_notes = notes;
+    currentNote.value = projectType.value.default_notes.find(n => n.id === currentNote.value?.id) || null;
+  },
+})
+
+const titleRef = ref();
+const textRef = ref();
+async function createNote() {
+  const newNote = {
+    id: uuid4(),
+    parent: null,
+    order: noteGroups.value.length + 1,
+    checked: null,
+    icon_emoji: null,
+    title: 'New Note',
+    text: '',
+  } as NoteBase;
+
+  if (currentNote.value) {
+    // Insert after current note
+    newNote.parent = currentNote.value.parent;
+    newNote.order = currentNote.value.order + 1;
+    newNote.checked = [true, false].includes(currentNote.value.checked as any) ? false : null;
+    // Make space after current note
+    for (const n of projectType.value.default_notes) {
+      if (n.parent === newNote.parent && n.order >= newNote.order) {
+        n.order += 1;
+      }
+    }
+  }
+  projectType.value.default_notes.push(newNote);
+  currentNote.value = newNote;
+  await nextTick();
+  titleRef.value?.focus();
+}
+function deleteNote(note: NoteBase) {
+  // Recursively delete child notes
+  projectType.value.default_notes
+    .filter(n => n.parent === note.id)
+    .forEach(n => deleteNote(n));
+
+  // Delete note
+  projectType.value.default_notes = projectType.value.default_notes.filter(n => n.id !== note.id);
+  if (currentNote.value?.id === note.id) {
+    currentNote.value = null;
+  }
+}
+function updateNoteChecked(note: NoteBase) {
+  const dn = projectType.value.default_notes.find(n => n.id === note.id);
+  if (dn) {
+    dn.checked = note.checked;
+  }
+}
+async function selectNote(note: NoteBase) {
+  currentNote.value = note;
+  await nextTick();
+  textRef.value?.focus();
+}
+
+</script>
+
+<style scoped lang="scss">
+.note-title-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  
+  & > * {
+    flex-shrink: 0;
+  }
+
+  .note-title {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 0.25em;
+    margin-right: 0.25em;
+  }
+}
+</style>

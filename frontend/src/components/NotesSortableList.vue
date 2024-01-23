@@ -11,7 +11,10 @@
     <template #item="{ element: item }">
       <div>
         <v-list-item
-          :to="toPrefix + item.note.id + '/'"
+          :to="toPrefix ? (props.toPrefix + item.note.id + '/') : undefined"
+          @click="emit('update:selected', item.note)"
+          link
+          :active="props.selected ? props.selected.id === item.note.id : undefined"
           :ripple="false"
           class="note-list-item"
         >
@@ -46,7 +49,9 @@
           <notes-sortable-list
             :model-value="item.children || []"
             @update:model-value="v => updateChildren(item, v)"
-            @update:note="$emit('update:note', $event)"
+            :selected="props.selected"
+            @update:selected="emit('update:selected', $event)"
+            @update:note="emit('update:note', $event)"
             :disabled="props.disabled"
             :to-prefix="props.toPrefix"
             class="child-list"
@@ -65,12 +70,15 @@ const localSettings = useLocalSettings();
 
 const props = defineProps<{
   modelValue: NoteGroup<UserNote>;
-  toPrefix: string;
+  selected?: UserNote|null;
+  toPrefix?: string;
   disabled?: boolean;
 }>();
 const emit = defineEmits<{
   (e: 'update:modelValue', value: NoteGroup<UserNote>): void;
+  (e: 'update:selected', value: UserNote|null): void;
   (e: 'update:note', value: UserNote): void;
+  (e: 'select', value: UserNote): void;
 }>();
 
 const localValue = ref([...props.modelValue]);
