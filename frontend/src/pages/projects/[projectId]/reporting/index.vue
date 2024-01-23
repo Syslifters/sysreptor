@@ -2,7 +2,7 @@
   <div class="w-100 text-center">
     <img src="~/assets/dino/project.svg" alt="" class="img-raptor" />
     <div>
-      <strong>Start writing report sections and findings</strong>
+      <strong>Start writing your report</strong>
     </div>
   </div>
 </template>
