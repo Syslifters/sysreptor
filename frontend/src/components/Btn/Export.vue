@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<{
   extension: '.tar.gz',
 });
 
-const filename = computed(() => (props.name || 'export').replaceAll(' ', '-') + props.extension);
+const filename = computed(() => (props.name || 'export').replaceAll(/[ @#/\\]/g, '-').replaceAll(/-+/g, '-') + props.extension);
 
 async function performExport() {
   const res = await $fetch<ArrayBuffer>(props.exportUrl, {

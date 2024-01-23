@@ -271,7 +271,7 @@ class TestImportExport:
         assert len(imported2) == 1
         assert len(imported2[0]) == len(notes)
         for i, n in zip(sorted(imported2[0], key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
-            assertKeysEqual(i, n, ['title', 'checked', 'icon_emoji', 'order'])
+            assertKeysEqual(i, n, ['title', 'checked', 'icon_emoji'])
             assert i.text == self.update_references(n.text, images.union(files), list(self.project.images.all()) + list(self.project.files.all()))
             assert i.note_id != n.note_id
             if n.parent:
@@ -305,7 +305,7 @@ class TestImportExport:
         assert len(imported2) == 1
         assert len(imported2[0]) == len(notes)
         for i, n in zip(sorted(imported2[0], key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
-            assertKeysEqual(i, n, ['title', 'checked', 'icon_emoji', 'order'])
+            assertKeysEqual(i, n, ['title', 'checked', 'icon_emoji'])
             assert i.text == self.update_references(n.text, images.union(files), list(self.user.images.all()) + list(self.user.files.all()))
             assert i.note_id != n.note_id
             if n.parent:

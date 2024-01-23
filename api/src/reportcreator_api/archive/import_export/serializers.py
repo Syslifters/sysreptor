@@ -454,10 +454,11 @@ class NotebookPageListExportImportSerializer(serializers.ListSerializer):
             return UserNotebookPage(user=self.linked_object, **note_data)
 
     def create(self, validated_data):
-        # Check for note ID collisions
-        existing_instances = set(map(lambda n: n.note_id, self.linked_object.notes.all()))
+        # Check for note ID collisions and update note_id on collision
+        existing_instances = list(self.linked_object.notes.all())
+        existing_ids = set(map(lambda n: n.note_id, existing_instances))
         for n in validated_data:
-            if n['note_id'] in existing_instances:
+            if n['note_id'] in existing_ids:
                 old_id = n['note_id']
                 new_id = uuid4()
                 n['note_id'] = new_id
@@ -470,8 +471,14 @@ class NotebookPageListExportImportSerializer(serializers.ListSerializer):
         for i, d in zip(instances, validated_data):
             if d.get('parent'):
                 i.parent = next(filter(lambda e: e.note_id == d.get('parent', {}).get('note_id'), instances), None)
-        
         ProjectNotebookPage.objects.check_parent_and_order(instances)
+
+        # Update order to new top-level notes: append to end after existing notes
+        existing_toplevel_count = len([n for n in existing_instances if not n.parent])
+        for n in instances:
+            if not n.parent_id:
+                n.order += existing_toplevel_count
+
         bulk_create_with_history(ProjectNotebookPage if isinstance(self.linked_object, PentestProject) else UserNotebookPage, instances)
         return instances
 

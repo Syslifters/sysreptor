@@ -1,47 +1,20 @@
 <template>
   <split-menu v-model="localSettings.notebookInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
-      <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
-        <v-list-subheader>
-          <span>Personal Notes</span>
-          <s-btn-icon
-            @click="($refs.createNoteBtnRef as any)!.click()"
-            size="small"
-            variant="flat"
-            color="secondary"
-            density="compact"
-            class="ml-2"
-          >
-            <v-icon icon="mdi-plus" />
-            <s-tooltip activator="parent" location="top">Add Note (Ctrl+J)</s-tooltip>
-          </s-btn-icon>
-        </v-list-subheader>
-
+      <notes-menu
+        title="Personal Notes"
+        :create-note="createNote"
+        :perform-import="performImport"
+        :export-url="`/api/v1/pentestusers/self/notes/export/`"
+        :export-name="'notes-' + auth.user.value!.username"
+      >
         <notes-sortable-list
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
           @update:note="updateNote"
           to-prefix="/notes/personal/"
-          class="flex-grow-1 overflow-y-auto"
         />
-
-        <div>
-          <v-divider />
-          <v-list-item>
-            <btn-confirm
-              ref="createNoteBtnRef"
-              :action="createNote"
-              :confirm="false"
-              button-text="Add"
-              button-icon="mdi-plus"
-              tooltip-text="Add Note (Ctrl+J)"
-              keyboard-shortcut="ctrl+j"
-              size="small"
-              block
-            />
-          </v-list-item>
-        </div>
-      </v-list>
+      </notes-menu>
     </template>
 
     <template #default>
@@ -54,6 +27,7 @@
 import debounce from "lodash/debounce";
 
 const route = useRoute();
+const auth = useAuth();
 const localSettings = useLocalSettings();
 const userNotesStore = useUserNotesStore();
 
@@ -96,6 +70,12 @@ async function createNote() {
   await refreshListings();
   await navigateTo({ path: `/notes/personal/${obj.id}/`, query: { focus: 'title' } });
 }
+async function performImport(file: File) {
+  const res = await uploadFileHelper<UserNote[]>(`/api/v1/pentestusers/self/notes/import/`, file);
+  const note = res.find(n => n.parent === null)!;
+  await refreshListings();
+  await navigateTo(`/notes/personal/${note.id}/`);
+}
 async function updateNote(note: ProjectNote) {
   try {
     await userNotesStore.partialUpdateNote(note, ['checked']);
@@ -112,15 +92,3 @@ const updateNoteOrder = debounce(async (notes: NoteGroup<UserNote>) => {
   }
 }, 0);
 </script>
-
-<style lang="scss" scoped>
-.note-checked {
-  display: inline-block;
-  margin: 0;
-  padding: 0;
-}
-
-:deep(.v-list-subheader) {
-  padding-left: 0.5em !important;
-}
-</style>
