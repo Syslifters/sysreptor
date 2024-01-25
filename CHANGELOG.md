@@ -4,6 +4,8 @@
 * Define initial note structure for projects in designs
 * Allow exporting and importing notes
 * Fix chapter number always prepended to title in `<ref />` component
+* Fix attributes not inherited to nested input fields
+* Fix readonly code editor in PDF designer still writable
 
 
 ## v2024.8 - 2024-01-23

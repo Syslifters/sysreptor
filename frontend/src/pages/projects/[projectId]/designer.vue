@@ -36,7 +36,7 @@
               v-model="projectType.report_template"
               language="html"
               class="h-100"
-              :disabled="readonly"
+              :readonly="readonly"
             />
           </v-window-item>
           <v-window-item :value="PdfDesignerTab.CSS" class="h-100">
@@ -45,7 +45,7 @@
               v-model="projectType.report_styles"
               language="css"
               class="h-100"
-              :disabled="readonly"
+              :readonly="readonly"
             />
           </v-window-item>
           <v-window-item :value="PdfDesignerTab.ASSETS" class="h-100 overflow-y-auto">

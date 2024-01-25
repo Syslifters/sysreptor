@@ -48,7 +48,7 @@ const props = withDefaults(defineProps<{
   import: (file: File) => Promise<void>;
   loading?: boolean;
   disabled?: boolean;
-  buttonVariant: 'icon' | 'list-item';
+  buttonVariant?: 'icon' | 'list-item';
 }>(), {
   loading: false,
   disabled: false,
