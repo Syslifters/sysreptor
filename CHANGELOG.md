@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## v2024.10 - 2024-01-25
 * Define initial note structure for projects in designs
 * Allow exporting and importing notes
 * Include project name in default PDF filename on puglish project page
