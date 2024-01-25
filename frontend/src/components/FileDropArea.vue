@@ -2,9 +2,9 @@
   <div
     class="drag-drop-area"
     @drop.prevent="onDrop"
-    @dragover.prevent="showDropArea = true"
-    @dragenter.prevent="showDropArea = true"
-    @dragleave.prevent="showDropArea = false"
+    @dragover="onDragEnter"
+    @dragenter="onDragEnter"
+    @dragleave="onDragLeave"
   >
     <slot name="default" />
 
@@ -22,6 +22,8 @@
 </template>
 
 <script setup lang="ts">
+import debounce from 'lodash/debounce';
+
 const props = withDefaults(defineProps<{
   disabled?: boolean,
   multiple?: boolean,
@@ -34,9 +36,24 @@ const emit = defineEmits<{
 }>();
 
 const showDropArea = ref(false);
-function onDrop(event: DragEvent) {
+const hideDropArea = debounce(() => {
   showDropArea.value = false;
-  if (props.disabled) {
+}, 100);
+
+function onDragEnter(event: DragEvent) {
+  if ((event.dataTransfer?.types || []).includes('Files')) {
+    event.preventDefault();
+    showDropArea.value = true;
+    hideDropArea.cancel();
+  }
+}
+function onDragLeave() {
+  hideDropArea();
+}
+
+function onDrop(event: DragEvent) {
+  hideDropArea();
+  if (props.disabled || !(event.dataTransfer?.types || []).includes('Files')) {
     return;
   }
 
