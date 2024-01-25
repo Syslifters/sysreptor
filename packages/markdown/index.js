@@ -46,7 +46,6 @@ const rehypeSanitizeSchema = merge({}, defaultSchema, {
     'section': [allClasses].concat(defaultSchema.attributes['section']),
     'ref': ['to', ':to'],
     'markdown': ['text', ':text'],
-    
   }
 });
 

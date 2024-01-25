@@ -7,9 +7,8 @@ from asgiref.sync import async_to_sync
 from unittest import mock
 from pytest_django.asserts import assertHTMLEqual
 from django.test import override_settings
-from django.core.files.uploadedfile import SimpleUploadedFile
 
-from reportcreator_api.tests.mock import create_imported_member, create_project_type, create_project, create_user, create_finding
+from reportcreator_api.tests.mock import create_imported_member, create_png_file, create_project_type, create_project, create_user, create_finding
 from reportcreator_api.tasks.rendering.entry import render_pdf, render_project_markdown_fields_to_html
 from reportcreator_api.tasks.rendering.render import render_to_html
 from reportcreator_api.utils.utils import copy_keys, merge
@@ -25,7 +24,10 @@ class TestHtmlRendering:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user = create_user()
-        self.project_type = create_project_type(assets_kwargs=[{'name': 'test.js', 'file': SimpleUploadedFile(name='test.js', content=b'console.log("Script loaded");')}])
+        self.project_type = create_project_type(assets_kwargs=[
+            {'name': 'image.png', 'content': create_png_file()},
+            {'name': 'test.js', 'content': b'console.log("Script loaded");'},
+        ])
         self.project = create_project(
             project_type=self.project_type, 
             members=[self.user], 
@@ -171,6 +173,41 @@ class TestHtmlRendering:
         ).replace('<!---->', '')
         assert actual_html == html
 
+    @pytest.mark.parametrize(['template', 'expected'], [
+        ('<ref to="h1" />' , '<a href="#h1" class="ref ref-heading"><span class="ref-title">H1</span></a>'),
+        ('<ref to="h1-numbered" />' , '<a href="#h1-numbered" class="ref ref-heading ref-heading-level1"><span class="ref-title">H1 numbered</span></a>'),
+        ('<ref to="h1.1-numbered" />', '<a href="#h1.1-numbered" class="ref ref-heading ref-heading-level2"><span class="ref-title">H1.1 numbered</span></a>'),
+        ('<ref to="h1-numbered-appendix" />', '<a href="#h1-numbered-appendix" class="ref ref-heading ref-appendix ref-appendix-level1"><span class="ref-title">H1 appendix</span></a>'),
+        ('<ref to="h1.1-numbered-appendix" />', '<a href="#h1.1-numbered-appendix" class="ref ref-heading ref-appendix ref-appendix-level2"><span class="ref-title">H1.1 appendix</span></a>'),
+        ('<ref to="h1-numbered">title</ref>', '<a href="#h1-numbered" class="ref"><span class="ref-title">title</span></a>'),
+        ('<ref to="fig1" />', '<a href="#fig1-caption" class="ref ref-figure"><span class="ref-title">caption1</span></a>'),
+        ('<ref to="fig2-img" />', '<a href="#fig2-caption" class="ref ref-figure"><span class="ref-title">caption2</span></a>'),
+        ('<ref to="fig3-caption" />', '<a href="#fig3-caption" class="ref ref-figure"><span class="ref-title">caption3</span></a>'),
+        ('<ref to="fig1">title</ref>', '<a href="#fig1-caption" class="ref"><span class="ref-title">title</span></a>'),
+        ('<ref to="table1" />', '<a href="#table1-caption" class="ref ref-table"><span class="ref-title">caption1</span></a>'),
+        ('<ref to="table2-caption" />', '<a href="#table2-caption" class="ref ref-table"><span class="ref-title">caption2</span></a>'),
+        ('<ref to="table1">title</ref>', '<a href="#table1-caption" class="ref"><span class="ref-title">title</span></a>'),
+        ('<ref to="other">title</ref>', '<a href="#other" class="ref"><span class="ref-title">title</span></a>'),
+    ])
+    def test_ref_rendering(self, template, expected):
+        html = self.render_html(f"""
+            <main>{template}</main>
+            <h1 id="h1">H1</h1>
+            <h1 id="h1-numbered" class="numbered">H1 numbered</h1>    
+            <h2 id="h1.1-numbered" class="numbered">H1.1 numbered</h2>
+            <div class="appendix">
+                <h1 id="h1-numbered-appendix" class="numbered">H1 appendix</h1>
+                <h2 id="h1.1-numbered-appendix" class="numbered">H1.1 appendix</h2>
+            </div>
+            <figure id="fig1"><img id="fig1-img" src="/assets/name/image.png" /><figcaption id="fig1-caption">caption1</figcaption></figure>
+            <figure id="fig2"><img id="fig2-img" src="/assets/name/image.png" /><figcaption id="fig2-caption">caption2</figcaption></figure>
+            <figure id="fig3"><img id="fig3-img" src="/assets/name/image.png" /><figcaption id="fig3-caption">caption3</figcaption></figure>
+            <table id="table1"><caption id="table1-caption">caption1</caption></table>
+            <table id="table2"><caption id="table2-caption">caption2</caption></table>
+            <div id="other">other</div>
+        """)
+        actual = self.extract_html_part(html, '<main>', '</main>')[6:-7]
+        assertHTMLEqual(actual, expected)
 
     def test_toc_rendering(self):
         html = self.render_html("""
@@ -209,6 +246,52 @@ class TestHtmlRendering:
             <li class="toc-level2"><a href="#h2.1" class="ref ref-heading ref-heading-level2"><span class="ref-title">H2.1</span></a></li>
             <li class="toc-level1"><a href="#a" class="ref ref-heading ref-appendix ref-appendix-level1"><span class="ref-title">Appendix</span></a></li>
             <li class="toc-level2"><a href="#a.1" class="ref ref-heading ref-appendix ref-appendix-level2"><span class="ref-title">A.1</span></a></li>
+        </ul>
+        """)
+
+    def test_lof_rendering(self):
+        html = self.render_html("""
+        <list-of-figures v-slot="figures">
+            <section v-if="figures">
+                <h1 id="lof" class="in-lof">List of Figures</h1>
+                <ul>
+                    <li v-for="figure in figures">
+                        <ref :to="figure.id" />
+                    </li>
+                </ul>
+            </section>
+        </list-of-figures>
+        <figure><img src="/assets/name/image.png" /><figcaption id="fig1">caption1</figcaption></figure>
+        <figure><img src="/assets/name/image.png" /><figcaption id="fig2">caption2</figcaption></figure>
+        <figure><img src="/assets/name/image.png" /><figcaption id="fig3">caption3</figcaption></figure>
+        """)
+        assertHTMLEqual(self.extract_html_part(html, '<ul>', '</ul>'), """
+        <ul>
+            <li><a href="#fig1" class="ref ref-figure"><span class="ref-title">caption1</span></a></li>
+            <li><a href="#fig2" class="ref ref-figure"><span class="ref-title">caption2</span></a></li>
+            <li><a href="#fig3" class="ref ref-figure"><span class="ref-title">caption3</span></a></li>
+        </ul>
+        """)
+    
+    def test_lot_rendering(self):
+        html = self.render_html("""
+        <list-of-tables v-slot="tables">
+            <section v-if="tables">
+                <h1 id="lot" class="in-lot">List of Tables</h1>
+                <ul>
+                    <li v-for="table in tables">
+                        <ref :to="table.id" />
+                    </li>
+                </ul>
+            </section>
+        </list-of-tables>
+        <table><caption id="table1">caption1</caption></table>
+        <table><caption id="table2">caption2</caption></table>
+        """)
+        assertHTMLEqual(self.extract_html_part(html, '<ul>', '</ul>'), """
+        <ul>
+            <li><a href="#table1" class="ref ref-table"><span class="ref-title">caption1</span></a></li>
+            <li><a href="#table2" class="ref ref-table"><span class="ref-title">caption2</span></a></li>
         </ul>
         """)
 
