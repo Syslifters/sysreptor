@@ -390,7 +390,7 @@ const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
     disableValidation: props.disableValidation,
     showFieldIds: props.showFieldIds,
     nestingLevel: nextNestingLevel,
-    ...fieldAttrs,
+    ...fieldAttrs.value,
   };
 });
 </script>
