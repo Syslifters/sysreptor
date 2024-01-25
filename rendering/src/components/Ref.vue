@@ -34,7 +34,7 @@ const toId = computed(() => {
 });
 const refClasses = computed(() => {
   const out = ['ref'];
-  if (refEl.value) {
+  if (!slots.default && refEl.value) {
     if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(refEl.value.tagName)) {
       const level = Number.parseInt(refEl.value.tagName.slice(1)) || 1;
 

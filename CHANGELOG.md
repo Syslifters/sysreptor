@@ -3,6 +3,7 @@
 ## Next
 * Define initial note structure for projects in designs
 * Allow exporting and importing notes
+* Fix chapter number always prepended to title in `<ref />` component
 
 
 ## v2024.8 - 2024-01-23

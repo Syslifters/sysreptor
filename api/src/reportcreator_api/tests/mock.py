@@ -159,7 +159,7 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     for idx, asset_kwargs in enumerate(assets_kwargs if assets_kwargs is not None else [{}] * 2):
         UploadedAsset.objects.create(linked_object=project_type, **{
             'name': f'file{idx}.png',
-            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=asset_kwargs.pop('content', create_png_file()))
         } | asset_kwargs)
 
     UploadedAsset.objects.create(linked_object=project_type, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=b'file1'))
