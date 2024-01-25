@@ -1,0 +1,212 @@
+format = "notes/v1"
+id = "9f09fa6e-9287-447e-a1dd-f048ecc394db"
+images = []
+files = []
+
+[[notes]]
+id = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 1
+title = "OWASP Web Security Testing Guide v4.2"
+text = """
+See [https://owasp.org/www-project-web-security-testing-guide/](https://owasp.org/www-project-web-security-testing-guide/)
+"""
+
+[[notes]]
+id = "c877febe-e5b2-4277-9b3b-c4e59c695f45"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 1
+checked = false
+title = "Information Gathering"
+text = """
+* [ ] Conduct Search Engine Discovery Reconnaissance for Information Leakage (WSTG-INFO-01)
+* [ ] Fingerprint Web Server (WSTG-INFO-02)
+* [ ] Review Webserver Metafiles for Information Leakage (WSTG-INFO-03)
+* [ ] Enumerate Applications on Webserver (WSTG-INFO-04)
+* [ ] Review Webpage Content for Information Leakage (WSTG-INFO-05)
+* [ ] Identify Application Entry Points (WSTG-INFO-06)
+* [ ] Map Execution Paths Through Application (WSTG-INFO-07)
+* [ ] Fingerprint Web Application Framework (WSTG-INFO-08)
+* [ ] Map Application Architecture (WSTG-INFO-10)
+"""
+
+[[notes]]
+id = "722b25d4-ccde-41f3-b057-52ab4957eb38"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 2
+checked = false
+title = "Configuration and Deployment Management Testing"
+text = """
+* [ ] Test Network Infrastructure Configuration (WSTG-CONF-01)
+* [ ] Test Application Platform Configuration (WSTG-CONF-02)
+* [ ] Test File Extensions Handling for Sensitive Information (WSTG-CONF-03)
+* [ ] Review Old Backup and Unreferenced Files for Sensitive Information (WSTG-CONF-04)
+* [ ] Enumerate Infrastructure and Application Admin Interfaces (WSTG-CONF-05)
+* [ ] Test HTTP Methods (WSTG-CONF-06)
+* [ ] Test HTTP Strict Transport Security (WSTG-CONF-07)
+* [ ] Test RIA Cross Domain Policy (WSTG-CONF-08)
+* [ ] Test File Permission (WSTG-CONF-09)
+* [ ] Test for Subdomain Takeover (WSTG-CONF-10)
+* [ ] Test Cloud Storage (WSTG-CONF-11)
+"""
+
+[[notes]]
+id = "ca91ad18-3c6e-4375-8cd2-5b9f31ddaaf6"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 3
+checked = false
+title = "Identity Management Testing"
+text = """
+* [ ] Test Role Definitions (WSTG-IDNT-01)
+* [ ] Test User Registration Process (WSTG-IDNT-02)
+* [ ] Test Account Provisioning Process (WSTG-IDNT-03)
+* [ ] Testing for Account Enumeration and Guessable User Account (WSTG-IDNT-04)
+* [ ] Testing for Weak or Unenforced Username Policy (WSTG-IDNT-05)
+"""
+
+[[notes]]
+id = "83d8cb14-6c31-4d80-8a61-5207dd18d4f8"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 4
+checked = false
+title = "Authentication Testing"
+text = """
+* [ ] Testing for Credentials Transported over an Encrypted Channel (WSTG-ATHN-01)
+* [ ] Testing for Default Credentials (WSTG-ATHN-02)
+* [ ] Testing for Weak Lock Out Mechanism (WSTG-ATHN-03)
+* [ ] Testing for Bypassing Authentication Schema (WSTG-ATHN-04)
+* [ ] Testing for Vulnerable Remember Password (WSTG-ATHN-05)
+* [ ] Testing for Browser Cache Weaknesses (WSTG-ATHN-06)
+* [ ] Testing for Weak Password Policy (WSTG-ATHN-07)
+* [ ] Testing for Weak Security Question Answer (WSTG-ATHN-08)
+* [ ] Testing for Weak Password Change or Reset Functionalities (WSTG-ATHN-09)
+* [ ] Testing for Weaker Authentication in Alternative Channel (WSTG-ATHN-10)
+"""
+
+[[notes]]
+id = "56a8124f-9825-4a56-9cb9-db5e3d1fa705"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 5
+checked = false
+title = "Session Management Testing"
+text = """
+* [ ] Testing for Session Management Schema (WSTG-SESS-01)
+* [ ] Testing for Cookies Attributes (WSTG-SESS-02)
+* [ ] Testing for Session Fixation (WSTG-SESS-03)
+* [ ] Testing for Exposed Session Variables (WSTG-SESS-04)
+* [ ] Testing for Cross Site Request Forgery (WSTG-SESS-05)
+* [ ] Testing for Logout Functionality (WSTG-SESS-06)
+* [ ] Testing Session Timeout (WSTG-SESS-07)
+* [ ] Testing for Session Puzzling (WSTG-SESS-08)
+* [ ] Testing for Session Hijacking (WSTG-SESS-09)
+"""
+
+[[notes]]
+id = "ef67ec27-f187-417d-9651-f0f91828791c"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 6
+checked = false
+title = "Input Validation Testing"
+text = """
+* [ ] Testing for Reflected Cross Site Scripting (WSTG-INPV-01)
+* [ ] Testing for Stored Cross Site Scripting (WSTG-INPV-02)
+* [ ] Testing for HTTP Parameter Pollution (WSTG-INPV-04)
+* [ ] Testing for SQL Injection (WSTG-INPV-05)
+    * [ ] Testing for Oracle
+    * [ ] Testing for MySQL
+    * [ ] Testing for SQL Server
+    * [ ] Testing PostgreSQL
+    * [ ] Testing for MS Access
+    * [ ] Testing for NoSQL Injection
+    * [ ] Testing for ORM Injection
+    * [ ] Testing for Client-side
+* [ ] Testing for LDAP Injection (WSTG-INPV-06)
+* [ ] Testing for XML Injection (WSTG-INPV-07)
+* [ ] Testing for SSI Injection (WSTG-INPV-08)
+* [ ] Testing for XPath Injection (WSTG-INPV-09)
+* [ ] Testing for IMAP SMTP Injection (WSTG-INPV-10)
+* [ ] Testing for Code Injection (WSTG-INPV-11)
+    * [ ] Testing for Local File Inclusion
+    * [ ] Testing for Remote File Inclusion
+* [ ] Testing for Command Injection (WSTG-INPV-12)
+* [ ] Testing for Format String Injection (WSTG-INPV-13)
+* [ ] Testing for Incubated Vulnerability (WSTG-INPV-14)
+* [ ] Testing for HTTP Splitting Smuggling (WSTG-INPV-15)
+* [ ] Testing for HTTP Incoming Requests (WSTG-INPV-16)
+* [ ] Testing for Host Header Injection (WSTG-INPV-17)
+* [ ] Testing for Server-side Template Injection (WSTG-INPV-18)
+* [ ] Testing for Server-Side Request Forgery (WSTG-INPV-19)
+"""
+
+[[notes]]
+id = "b3993bf9-d1ac-404c-8b3c-8e78e76f0eb1"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 7
+checked = false
+title = "Testing for Error Handling"
+text = """
+* [ ] Testing for Improper Error Handling (WSTG-ERRH-01)
+* [ ] Testing for Stack Traces (WSTG-ERRH-02)
+"""
+
+[[notes]]
+id = "7343c846-3a94-4fdf-8e6e-c3f16e46d555"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 8
+checked = false
+title = "Testing for Weak Cryptography"
+text = """
+* [ ] Testing for Weak Transport Layer Security (WSTG-CRYP-01)
+* [ ] Testing for Padding Oracle (WSTG-CRYP-02)
+* [ ] Testing for Sensitive Information Sent via Unencrypted Channels (WSTG-CRYP-03)
+* [ ] Testing for Weak Encryption (WSTG-CRYP-04)
+"""
+
+[[notes]]
+id = "8ffe4ff6-870e-4735-8574-a41ff854fc5c"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 9
+checked = false
+title = "Business Logic Testing"
+text = """
+* [ ] Test Business Logic Data Validation (WSTG-BUSL-01)
+* [ ] Test Ability to Forge Requests (WSTG-BUSL-02)
+* [ ] Test Integrity Checks (WSTG-BUSL-03)
+* [ ] Test for Process Timing (WSTG-BUSL-04)
+* [ ] Test Number of Times a Function Can Be Used Limits (WSTG-BUSL-05)
+* [ ] Testing for the Circumvention of Work Flows (WSTG-BUSL-06)
+* [ ] Test Defenses Against Application Misuse (WSTG-BUSL-07)
+* [ ] Test Upload of Unexpected File Types (WSTG-BUSL-08)
+* [ ] Test Upload of Malicious Files (WSTG-BUSL-09)
+"""
+
+[[notes]]
+id = "92ffcbf5-2cae-4325-8e48-0a5bb7468e0a"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 10
+checked = false
+title = "Client-Side Testing"
+text = """
+* [ ] Testing for DOM-Based Cross Site Scripting (WSTG-CLNT-01)
+* [ ] Testing for JavaScript Execution (WSTG-CLNT-02)
+* [ ] Testing for HTML Injection (WSTG-CLNT-03)
+* [ ] Testing for Client-side URL Redirect (WSTG-CLNT-04)
+* [ ] Testing for CSS Injection (WSTG-CLNT-05)
+* [ ] Testing for Client-side Resource Manipulation (WSTG-CLNT-06)
+* [ ] Testing Cross Origin Resource Sharing (WSTG-CLNT-07)
+* [ ] Testing for Cross Site Flashing (WSTG-CLNT-08)
+* [ ] Testing for Clickjacking (WSTG-CLNT-09)
+* [ ] Testing WebSockets (WSTG-CLNT-10)
+* [ ] Testing Web Messaging (WSTG-CLNT-11)
+* [ ] Testing Browser Storage (WSTG-CLNT-12)
+* [ ] Testing for Cross Site Script Inclusion (WSTG-CLNT-13)
+"""
+
+[[notes]]
+id = "264930ad-7d6b-4630-a95b-3aed68a2fda9"
+parent = "17add0ca-711a-4e56-b64f-5ff1477ed831"
+order = 11
+checked = false
+title = "API Testing"
+text = """
+* [ ] Testing GraphQL
+"""
