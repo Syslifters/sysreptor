@@ -43,7 +43,7 @@
           <template #info><span /></template>
         </history-timeline-item>
         <template v-for="item, idx in historyRecords.data.value" :key="idx">
-          <slot v-if="!(idx === 0 && !item.history_change_reason)" name="item" :item="item">
+          <slot v-if="!(idx === 0 && item.history_type === '~' && !item.history_change_reason)" name="item" :item="item">
             <history-timeline-item :value="item" />
           </slot>
         </template>
