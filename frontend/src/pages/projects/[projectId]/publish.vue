@@ -133,7 +133,7 @@ function generateNewPassword() {
 const form = ref({
   encryptReport: true,
   password: generateNewPassword(),
-  filename: 'report.pdf',
+  filename: (project.value.name + '_report.pdf').replaceAll(/[\\/]/g, '').replaceAll(/\s+/g, ' '),
 });
 const rules = {
   filename: [(v: string) => (Boolean(v) && /^[^/\\]+$/.test(v)) || 'Invalid filename'],
