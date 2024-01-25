@@ -3,6 +3,7 @@
 ## Next
 * Define initial note structure for projects in designs
 * Allow exporting and importing notes
+* Include project name in default PDF filename on puglish project page
 * Fix chapter number always prepended to title in `<ref />` component
 * Fix attributes not inherited to nested input fields
 * Fix readonly code editor in PDF designer still writable
