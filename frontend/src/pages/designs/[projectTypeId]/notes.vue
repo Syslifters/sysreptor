@@ -59,8 +59,9 @@
               </template>
             </edit-toolbar>
           </template>
-          <template #default v-if="currentNote">
+          <template #default>
             <markdown-page
+              v-if="currentNote"
               ref="textRef"
               v-model="currentNote.text"
               :readonly="readonly"
@@ -68,6 +69,12 @@
               v-model:spellcheckEnabled="localSettings.designSpellcheckEnabled"
               v-model:markdownEditorMode="localSettings.designMarkdownEditorMode"
             />
+            <div v-else class="w-100 text-center">
+              <img src="~/assets/dino/notes.svg" alt="" class="img-raptor" />
+              <div>
+                <strong>Define initial notes applied to new projects</strong>
+              </div>
+            </div>
           </template>
         </full-height-page>
       </template>
@@ -172,5 +179,14 @@ async function selectNote(note: NoteBase) {
     margin-left: 0.25em;
     margin-right: 0.25em;
   }
+}
+
+.img-raptor {
+  width: 30em;
+  max-width: 50%;
+  max-height: 50vh;
+  margin-top: 20vh;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>
