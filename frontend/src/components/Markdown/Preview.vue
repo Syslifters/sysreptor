@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <div ref="previewRef" v-html="renderedMarkdown" class="preview" />
+    <div ref="previewRef" v-html="renderedMarkdown" @click.stop class="preview" />
     <markdown-image-preview-dialog v-model="previewImageSrc" />
   </div>
 </template>
