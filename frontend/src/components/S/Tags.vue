@@ -7,6 +7,7 @@
     label="Tags"
     multiple
     chips 
+    :hide-no-data="false"
     :closable-chips="!props.readonly"
     spellcheck="false"
   >
@@ -14,6 +15,13 @@
       <v-chip size="small" v-bind="chipProps">
         <v-icon size="small" start icon="mdi-tag" class="ml-0" /> {{ item.title }}
       </v-chip>
+    </template>
+    <template #no-data><span /></template>
+    <template #append-item>
+      <v-list-item
+        title="Type to add custom tags..."
+        subtitle="Apply with [enter]"
+      />
     </template>
   </s-combobox>
 </template>

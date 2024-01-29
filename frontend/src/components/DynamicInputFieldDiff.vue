@@ -78,13 +78,13 @@ const objectFields = computed(() => formatHistoryObjectFieldProps({
   historic: {
     value: props.historic.value,
     definition: props.historic.definition?.properties,
-    fieldIds: Object.keys(props.historic.definition?.properties || {}),
+    fieldIds: Object.keys(props.historic.definition?.properties || {}).sort(),
     attrs: inheritedDiffAttrs.value.historic,
   },
   current: {
     value: props.current.value,
     definition: props.current.definition?.properties,
-    fieldIds: Object.keys(props.current.definition?.properties || {}),
+    fieldIds: Object.keys(props.current.definition?.properties || {}).sort(),
     attrs: inheritedDiffAttrs.value.current,
   },
   attrs: {

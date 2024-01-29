@@ -87,12 +87,12 @@
 
       <v-card-text>
         <dynamic-input-field
-          v-for="(objectFieldDefinition, objectFieldId) in props.definition.properties"
+          v-for="objectFieldId in Object.keys(props.definition.properties || {}).sort()"
           :key="objectFieldId"
           :model-value="formValue[objectFieldId]"
           @update:model-value="emitInputObject(objectFieldId as string, $event)"
           :id="props.id ? (props.id + '.' + objectFieldId) : undefined"
-          v-bind="inheritedAttrs(objectFieldDefinition)"
+          v-bind="inheritedAttrs(props.definition.properties![objectFieldId])"
         />
       </v-card-text>
     </s-card>
