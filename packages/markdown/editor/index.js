@@ -12,7 +12,7 @@ export { spellcheck, spellcheckTheme } from 'reportcreator-markdown/editor/spell
 export { highlightTodos } from 'reportcreator-markdown/editor/todos';
 export { markdownHighlightStyle, markdownHighlightCodeBlocks } from 'reportcreator-markdown/editor/highlight';
 export { 
-  toggleStrong, toggleEmphasis, toggleStrikethrough, 
+  toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
   toggleListUnordered, toggleListOrdered, toggleTaskList,
   toggleLink, insertCodeBlock, insertTable, 
   isTypeInSelection, isTaskListInSelection,

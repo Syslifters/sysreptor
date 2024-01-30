@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest'
 import {
   EditorState, EditorSelection, EditorView,
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
-  toggleStrong, toggleEmphasis, toggleStrikethrough, 
+  toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
   toggleListUnordered, toggleListOrdered, toggleTaskList,
   toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup
 } from 'reportcreator-markdown/editor';
@@ -122,6 +122,23 @@ describe('toggleLink', () => {
     "|a [te|xt]() b": "|a [te|xt]() b",
   })) {
     testCommand(toggleLink, before, after);
+  }
+});
+
+describe('toggleFootnote', () => {
+  for (const [before, after] of Object.entries({
+    "a | b": "a ^[|text|] b",
+    "a |text| b": "a ^[|text|] b",
+    "a ^[|text|] b": "a |text| b",
+    "a |^[text]| b": "a |text| b",
+    "a ^[te|xt] b": "a te|xt b",
+    "|a ^[text] b|": "|a text b|",
+    "|a ^[te|xt] b": "|a te|xt b",
+    "a ^[|] b": "a | b",
+    "|a ^|[text] b": "|a |text b",
+    "a ^|[text]| b": "a |text| b",
+  })) {
+    testCommand(toggleFootnote, before, after);
   }
 });
 

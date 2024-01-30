@@ -397,6 +397,15 @@ export function toggleStrikethrough({state, dispatch}) {
   });
 }
 
+export function toggleFootnote({state, dispatch}) {
+  return toggleMarkerType({state, dispatch}, {
+    type: 'inlineFootnote',
+    markerTypes: ['inlineFootnoteMarker', 'inlineFootnoteStartMarker', 'inlineFootnoteEndMarker'],
+    startMarker: '^[',
+    endMarker: ']'
+  });
+}
+
 export function toggleListUnordered({state, dispatch}) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => n.name === 'listUnordered',
