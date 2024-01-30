@@ -1,5 +1,14 @@
 # Changelog
 
+
+## Next
+* Break text in tables to prevent tables overflowing page in base styles
+* UI: Add hint how to add custom tags
+* Fix text selection in markdown preview focus changed to editor
+* Fix object field properties not always sorted
+* Fix newline not inserted at empty last line of markdown editor in Firefox
+
+
 ## v2024.10 - 2024-01-25
 * Define initial note structure for projects in designs
 * Allow exporting and importing notes
