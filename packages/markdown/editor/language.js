@@ -38,10 +38,11 @@ const nodeTypes = [
   'codeText', 'codeFenced', 'table', 'blockQuote',
   'heading1', 'heading2', 'heading3', 'heading4', 'heading5', 'heading6',
   'link', 'image', 'resource', 'label', 'labelMarker', 'labelText',
-  'inlineFootnote', 'textAttributes', 'templateVariable', 'todo',
+  'inlineFootnote', 'inlineFootnoteMarker', 'inlineFootnoteStartMarker', 'inlineFootnoteEndMarker',
+  'textAttributes', 'templateVariable', 'todo',
   'htmlText', 'htmlFlow',
   'data', 'paragraph', 'content', 'document', 'lineEnding',
-  'listOrdered', 'listUnordered', 'listItem', 'listItemPrefix', 'blockQuotePrefix', 'listItemMarker', 
+  'listOrdered', 'listUnordered', 'listItem', 'listItemPrefix', 'blockQuotePrefix', 'listItemMarker', 'taskListCheck',
 ];
 const nodeSet = new NodeSet([NodeType.none].concat(nodeTypes.map((type, idx) => NodeType.define({id: idx + 1, name: type}))))
   .extend(markdownHighlighting)

@@ -397,6 +397,15 @@ export function toggleStrikethrough({state, dispatch}) {
   });
 }
 
+export function toggleFootnote({state, dispatch}) {
+  return toggleMarkerType({state, dispatch}, {
+    type: 'inlineFootnote',
+    markerTypes: ['inlineFootnoteMarker', 'inlineFootnoteStartMarker', 'inlineFootnoteEndMarker'],
+    startMarker: '^[',
+    endMarker: ']'
+  });
+}
+
 export function toggleListUnordered({state, dispatch}) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => n.name === 'listUnordered',
@@ -483,6 +492,87 @@ export function toggleListOrdered({state, dispatch}) {
         .filter(i => intersectsRange(range, i))  // Get selected listItems
         .flatMap(n => getChildren(n))
         .filter(n => n.name === 'listItemPrefix');
+      let newRange = range;
+      const changes = [];
+      for (const cn of removeMarkers) {
+        const change = {from: cn.from, to: cn.to};
+        newRange = moveRangeDelete(newRange, range, change)
+        changes.push(change);
+      }
+      return { range: newRange, changes };
+    }
+  });
+}
+
+
+
+function isTaskListItem(node, doc) {
+  const contentNode = node.firstChild?.nextSibling;
+  if (node.name !== 'listItem' || node.firstChild?.name !== 'listItemPrefix' || !contentNode) {
+    return false;
+  }
+  const content = doc.slice(contentNode.from, contentNode.to).text[0] || '';
+  return content.startsWith('[ ]') || content.startsWith('[x]');
+}
+
+function isTaskList(node, doc) {
+  return node.name === 'listUnordered' && getChildren(node).some(c => isTaskListItem(c, doc));
+}
+
+export function isTaskListInSelection(state) {
+  if (!state) {
+    return false;
+  }
+  let tree = syntaxTree(state);
+  return state.selection.ranges.some(range => getIntersectionNodes(tree, range, n => isTaskList(n, state.doc)).length > 0);
+}
+
+export function toggleTaskList({state, dispatch}) {
+  return toggleMarkdownAction({state, dispatch}, {
+    isInSelection: n => isTaskList(n, state.doc),
+    enable: (range, tree) => {
+      // Add marker to start of each line
+      // If line is a listItem of an listOrdered: replace the marker
+      const changes = [];
+      let newRange = range;
+      for (const line of linesInRange(state.doc, range)) {
+        const listItemNumber = getIntersectionNodes(tree, line, n => n.name === 'listItem' && !isTaskListItem(n, state.doc))
+          .flatMap(n => getChildren(n))
+          .filter(n => n.name === 'listItemPrefix')
+          .find(n => intersectsRange(line, n));
+        
+        if (listItemNumber) {
+          const change = {from: listItemNumber.from, to: listItemNumber.to, insert: '* [ ] '};
+          newRange = moveRangeInsert(moveRangeDelete(newRange, range, change), range, change);
+          changes.push(change);
+        } else {
+          const change = {from: line.from, insert: '* [ ] '};
+          newRange = moveRangeInsert(newRange, range, change);
+          changes.push(change);
+        }
+      }
+      return {
+        range: newRange,
+        changes,
+      };
+    },
+    disable: (range, foundNodes) => {
+      const removeMarkers = foundNodes
+        .flatMap(n => getChildren(n))  // Get all listItems
+        .filter(i => intersectsRange(range, i))  // Get selected listItems
+        .flatMap(n => getChildren(n))
+        .map(n => {
+          if (n.name === 'listItemPrefix') {
+            return n;
+          }
+          const taskListCheck = (state.doc.slice(n.from, n.to).text[0] || '').match(/^(?<check>\[[ |x]\]\s*)/)?.groups.check;
+          if (taskListCheck) {
+            // Remove taskListCheck and the following space
+            return {from: n.from, to: n.from + taskListCheck.length};
+          }
+          return null;
+        })
+        .filter(n => !!n);
       let newRange = range;
       const changes = [];
       for (const cn of removeMarkers) {
