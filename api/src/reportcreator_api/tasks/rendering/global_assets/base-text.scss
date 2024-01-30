@@ -11,6 +11,7 @@ The reason why the file extension is .scss is that the SCSS-preprocessor inlines
 table {
   width: 100%;
   caption-side: bottom;
+  overflow-wrap: anywhere;
 }
 table, th, td {
   border: 1px solid black;
