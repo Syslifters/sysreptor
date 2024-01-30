@@ -41,7 +41,7 @@ const nodeTypes = [
   'inlineFootnote', 'textAttributes', 'templateVariable', 'todo',
   'htmlText', 'htmlFlow',
   'data', 'paragraph', 'content', 'document', 'lineEnding',
-  'listOrdered', 'listUnordered', 'listItem', 'listItemPrefix', 'blockQuotePrefix', 'listItemMarker', 
+  'listOrdered', 'listUnordered', 'listItem', 'listItemPrefix', 'blockQuotePrefix', 'listItemMarker', 'taskListCheck',
 ];
 const nodeSet = new NodeSet([NodeType.none].concat(nodeTypes.map((type, idx) => NodeType.define({id: idx + 1, name: type}))))
   .extend(markdownHighlighting)

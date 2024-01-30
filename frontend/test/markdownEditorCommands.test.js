@@ -2,7 +2,9 @@ import { describe, test, expect } from 'vitest'
 import {
   EditorState, EditorSelection, EditorView,
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
-  toggleStrong, toggleEmphasis, toggleStrikethrough, toggleListUnordered, toggleListOrdered, toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup
+  toggleStrong, toggleEmphasis, toggleStrikethrough, 
+  toggleListUnordered, toggleListOrdered, toggleTaskList,
+  toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup
 } from 'reportcreator-markdown/editor';
 
 function createEditorState(textWithSelection, cursorMarker = '|') {
@@ -92,6 +94,21 @@ describe('toggleListOrdered', () => {
     testCommand(toggleListOrdered, before, after);
   }
 });
+
+describe('toggleTaskList', () => {
+  for (const [before, after] of Object.entries({
+    "|a\nb|": "|* [ ] a\n* [ ] b|",
+    "a|aa\nb": "* [ ] a|aa\nb",
+    "|* [ ] a\n* [ ] b|": "|a\nb|",
+    "* [ ] a|\n* [ ] b": "a|\n* [ ] b",
+    "|1. a\n2. b|": "|* [ ] a\n* [ ] b|",
+    "1. |a\n2. b": "* [ ] |a\n2. b",
+    "|": "|* [ ] ",
+    "* [ ] |": "|",
+  })) {
+    testCommand(toggleTaskList, before, after);
+  }
+})
 
 describe('toggleLink', () => {
   for (const [before, after] of Object.entries({
