@@ -131,7 +131,7 @@ export const insertNewlineContinueMarkup = ({state, dispatch}) => {
 
     let emptyLine = pos >= (inner.to - inner.spaceAfter.length) && !/\S/.test(line.text.slice(inner.to))
     // Empty line in list
-     if (inner.item && emptyLine) {
+    if (inner.item && emptyLine) {
       // let first = inner.node.firstChild, second = inner.node.getChild("listItem", "listItem")
       // // Not second item or blank line before: delete a level of markup
       // if (first.to >= pos || second && second.to < pos ||
@@ -140,7 +140,7 @@ export const insertNewlineContinueMarkup = ({state, dispatch}) => {
       let delTo, insert = ""
       if (next && next.item) { // Re-add marker for the list at the next level
         delTo = line.from + next.from
-          insert = next.marker(doc, 1)
+        insert = next.marker(doc, 1)
       } else {
         delTo = line.from + (next ? next.to : 0)
       }
