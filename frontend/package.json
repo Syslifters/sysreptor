@@ -12,8 +12,8 @@
     "dependencies": "npm run generate-notice"
   },
   "dependencies": {
-    "nuxt": "~3.9.3",
-    "vuetify": "~3.4.10",
+    "nuxt": "~3.10",
+    "vuetify": "~3.5",
     "vuetify-nuxt-module": "^0.10.2",
     "@mdi/font": "^7.3.67",
     "pinia": "^2.1.7",
@@ -24,7 +24,7 @@
     "splitpanes": "^3.1.5",
     "vuedraggable": "^4.1.0",
     "vue-toastification": "^2.0.0-rc.5",
-    "monaco-editor": "^0.44.0",
+    "monaco-editor": "^0.45.0",
 
     "@iconify/vue": "^4.1.1",
     "@iconify/icons-fluent-emoji": "^1.2.10",
