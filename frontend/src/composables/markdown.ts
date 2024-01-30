@@ -172,9 +172,8 @@ export function useMarkdownEditor({ props, emit, extensions }: {
         extensions: [
           ...extensions,
           history(),
-          keymap.of([historyKeymap]),
+          keymap.of([...defaultKeymap, ...historyKeymap]),
           tooltips({ parent: document.body }),
-          // EditorView.theme({}, { dark: theme.current.value.dark }),
           EditorView.domEventHandlers({
             blur: (event: FocusEvent) => emit('blur', event),
             focus: (event: FocusEvent) => emit('focus', event),
@@ -327,7 +326,7 @@ export function markdownEditorDefaultExtensions() {
     EditorView.lineWrapping,
     EditorState.tabSize.of(4),
     indentUnit.of('    '),
-    keymap.of([defaultKeymap, indentWithTab, historyKeymap]),
+    keymap.of([indentWithTab]),
     markdown(),
     syntaxHighlighting(markdownHighlightStyle),
     markdownHighlightCodeBlocks,

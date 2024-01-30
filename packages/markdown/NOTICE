@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@codemirror/autocomplete 6.11.1
+@codemirror/autocomplete 6.12.0
 MIT
 MIT License
 
@@ -98,7 +98,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-html 6.4.7
+@codemirror/lang-html 6.4.8
 MIT
 MIT License
 
@@ -148,7 +148,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-markdown 6.2.3
+@codemirror/lang-markdown 6.2.4
 MIT
 MIT License
 
@@ -298,7 +298,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/view 6.23.0
+@codemirror/view 6.23.1
 MIT
 MIT License
 
@@ -341,7 +341,7 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-@lezer/common 1.2.0
+@lezer/common 1.2.1
 MIT
 MIT License
 
@@ -441,7 +441,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/javascript 1.4.12
+@lezer/javascript 1.4.13
 MIT
 MIT License
 
@@ -466,7 +466,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/lr 1.3.14
+@lezer/lr 1.4.0
 MIT
 MIT License
 
@@ -2436,11 +2436,11 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-delaunator 5.0.0
+delaunator 5.0.1
 ISC
 ISC License
 
-Copyright (c) 2017, Mapbox
+Copyright (c) 2021, Mapbox
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -3148,7 +3148,7 @@ Original Code is [東アジアの文字幅 (East Asian Width) の判定 - 中途
     console.log(eaw.length('￠￦｡ￜㄅ뀀¢⟭a⊙①بف')) // 19
 
 
-elkjs 0.8.2
+elkjs 0.9.1
 EPL-2.0
 # Eclipse Public License - v 2.0
 
@@ -3716,7 +3716,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-hast-util-raw 9.0.1
+hast-util-raw 9.0.2
 MIT
 (The MIT License)
 
@@ -4820,7 +4820,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-lru-cache 10.1.0
+lru-cache 10.2.0
 ISC
 The ISC License
 
@@ -5164,7 +5164,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-mdast-util-to-hast 13.0.2
+mdast-util-to-hast 13.1.0
 MIT
 (The MIT License)
 
@@ -5268,7 +5268,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-mermaid 10.6.1
+mermaid 10.7.0
 MIT
 The MIT License (MIT)
 
@@ -8530,7 +8530,7 @@ abide by its terms.
 [api-unicode-whitespace]: #unicodewhitespacecode
 
 
-micromark-util-character 2.0.1
+micromark-util-character 2.1.0
 MIT
 # micromark-util-character
 
@@ -15352,7 +15352,7 @@ will be liable to anyone for any damages related to this
 software or this license, under any kind of legal claim.***
 
 
-property-information 6.4.0
+property-information 6.4.1
 MIT
 (The MIT License)
 
@@ -16556,7 +16556,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-remark-rehype 11.0.0
+remark-rehype 11.1.0
 MIT
 (The MIT License)
 
@@ -17044,7 +17044,7 @@ Apache-2.0
    limitations under the License.
 
 
-spdx-exceptions 2.3.0
+spdx-exceptions 2.4.0
 CC-BY-3.0
 The package exports an array of strings. Each string is an identifier
 for a license exception under the [Software Package Data Exchange
