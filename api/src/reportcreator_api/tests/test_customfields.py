@@ -363,6 +363,24 @@ class TestUpdateFieldDefinition:
         assert self.finding.data_all['field_string'], old_value
         assert self.finding.data['field_new'], 'default'
 
+    def test_change_default_report_field_sync_previewdata(self):
+        # If preview_data == default => update to new default value
+        default_val = 'default changed'
+        report_fields = copy.deepcopy(self.project_type.report_fields)
+        report_fields['field_string']['default'] = default_val
+        self.project_type.report_fields = report_fields
+        self.project_type.save()
+        self.refresh_data()
+        assert self.project_type.report_preview_data['report']['field_string'] == default_val
+
+        # If preview_data != default => do not update
+        preview_data_value = 'non-default value'
+        self.project_type.report_preview_data['report']['field_string'] = preview_data_value
+        report_fields['field_string']['default'] = 'default changed 2'
+        self.project_type.report_fields = report_fields
+        self.project_type.save()
+        assert self.project_type.report_preview_data['report']['field_string'] == preview_data_value
+
 
 @pytest.mark.django_db
 class TestPredefinedFields:
