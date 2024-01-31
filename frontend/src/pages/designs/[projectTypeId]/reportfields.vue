@@ -143,6 +143,7 @@
             :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
             :lang="projectType.language"
             :readonly="readonly"
+            :is-object-property="true"
           />
           <s-btn-secondary
             @click.stop="addField(currentItemSection!)"
