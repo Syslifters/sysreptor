@@ -17,7 +17,9 @@
             v-bind="{ ...$attrs, ...fieldProps }"
             @focus="focus()"
             @blur="blur()"
-          />
+          >
+            <template v-if="$slots['context-menu']" #context-menu="slotData"><slot name="context-menu" v-bind="slotData" /></template>
+          </markdown-field-content>
         </template>
       </s-field>
     </template>

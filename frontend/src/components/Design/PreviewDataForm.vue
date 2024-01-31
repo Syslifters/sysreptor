@@ -86,7 +86,26 @@
             :id="fieldId"
             :definition="props.projectType.report_fields[fieldId]"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #markdown-context-menu="{value, definition, disabled}">
+              <btn-confirm 
+                :action="() => setFieldDefinitionDefault(definition, value)"
+                button-text="Save as default value"
+                button-icon="mdi-content-save"
+                button-variant="list-item"
+                :confirm="false"
+                :disabled="disabled || value === definition.default"
+              />
+              <btn-confirm
+                :action="() => updateSectionField(fieldId, definition.default)"
+                button-text="Reset to default value"
+                button-icon="mdi-undo-variant"
+                button-variant="list-item"
+                :confirm="false"
+                :disabled="disabled || value === definition.default"
+              />
+            </template>
+          </dynamic-input-field>
         </div>
       </template>
       <template v-else-if="currentItemIsFinding">
@@ -97,7 +116,26 @@
             :id="fieldId"
             :definition="props.projectType.finding_fields[fieldId]"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #markdown-context-menu="{value, definition, disabled}">
+              <btn-confirm 
+                :action="() => setFieldDefinitionDefault(definition, value)"
+                button-text="Save as default value"
+                button-icon="mdi-content-save"
+                button-variant="list-item"
+                :confirm="false"
+                :disabled="disabled || value === definition.default"
+              />
+              <btn-confirm
+                :action="() => updateFindingField(fieldId, definition.default)"
+                button-text="Reset to default value"
+                button-icon="mdi-undo-variant"
+                button-variant="list-item"
+                :confirm="false"
+                :disabled="disabled || value === definition.default"
+              />
+            </template>
+          </dynamic-input-field>
         </div>
       </template>
     </template>
@@ -107,7 +145,7 @@
 <script setup lang="ts">
 import Draggable from "vuedraggable";
 import { v4 as uuidv4 } from "uuid";
-import { FieldDataType, MarkdownEditorMode } from "~/utils/types";
+import { FieldDataType, MarkdownEditorMode, type FieldDefinition } from "~/utils/types";
 import { scoreFromVector, levelNumberFromLevelName, levelNumberFromScore } from "~/utils/cvss";
 
 const props = defineProps<{
@@ -163,16 +201,10 @@ const findings = computed({
 });
 
 function updateSectionField(fieldId: string, value: any) {
-  emit('update:modelValue', {
-    ...props.modelValue,
-    report: {
-      ...props.modelValue.report,
-      [fieldId]: value,
-    }
-  });
+  emit('update:modelValue', setNested(props.modelValue, 'report.' + fieldId, value));
 }
 function updateFindingField(fieldId: string, value: any) {
-  const newFinding = { ...currentItem.value, [fieldId]: value };
+  const newFinding = setNested(currentItem.value, fieldId, value);
   emit('update:modelValue', {
     ...props.modelValue,
     findings: sortPreviewFindings(props.modelValue.findings.map((f: any) => f.id === currentItem.value.id ? newFinding : f)),
@@ -211,6 +243,9 @@ function deleteFinding(finding: any) {
   if (finding.id === currentItem.value?.id) {
     currentItem.value = null;
   }
+}
+function setFieldDefinitionDefault(definition: FieldDefinition, value: any) {
+  definition.default = value;
 }
 
 function riskLevel(finding: any) {
