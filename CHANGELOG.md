@@ -4,9 +4,12 @@
 ## Next
 * Break text in tables to prevent tables overflowing page in base styles
 * UI: Add hint how to add custom tags
+* UI: Add buttons for task list and footnote to markdown editor toolbar
+* Sync updated field default values to preview data fields
 * Fix text selection in markdown preview focus changed to editor
 * Fix object field properties not always sorted
 * Fix newline not inserted at empty last line of markdown editor in Firefox
+* Fix ID form field loses focus while writing in report field page
 
 
 ## v2024.10 - 2024-01-25
