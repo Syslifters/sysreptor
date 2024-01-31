@@ -86,7 +86,22 @@
             :id="fieldId"
             :definition="props.projectType.report_fields[fieldId]"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #markdown-context-menu="{disabled}">
+              <btn-confirm 
+                button-text="Save as default value"
+                button-icon="mdi-content-save"
+                button-variant="list-item"
+                :disabled="disabled"
+              />
+              <btn-confirm
+                button-text="Reset to default value"
+                button-icon="mdi-undo-variant"
+                button-variant="list-item"
+                :disabled="disabled"
+              />
+            </template>
+          </dynamic-input-field>
         </div>
       </template>
       <template v-else-if="currentItemIsFinding">
@@ -97,7 +112,22 @@
             :id="fieldId"
             :definition="props.projectType.finding_fields[fieldId]"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #markdown-context-menu="{disabled}">
+              <btn-confirm 
+                button-text="Save as default value"
+                button-icon="mdi-content-save"
+                button-variant="list-item"
+                :disabled="disabled"
+              />
+              <btn-confirm
+                button-text="Reset to default value"
+                button-icon="mdi-undo-variant"
+                button-variant="list-item"
+                :disabled="disabled"
+              />
+            </template>
+          </dynamic-input-field>
         </div>
       </template>
     </template>

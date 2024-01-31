@@ -38,6 +38,26 @@
     <markdown-toolbar-button @click="codemirrorAction(undo)" title="Undo" icon="mdi-undo" :disabled="props.disabled || !canUndo" />
     <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
     <span class="separator" />
+    <s-btn-icon 
+      v-if="slots['context-menu']"
+      size="small"
+      density="comfortable"
+    >
+      <v-icon icon="mdi-dots-vertical" />
+      <v-tooltip activator="parent" location="top" text="More actions" />
+
+      <v-menu activator="parent">
+        <template #default>
+          <v-list density="compact">
+            <slot 
+              name="context-menu" 
+              :disabled="props.disabled"
+            />
+          </v-list>
+        </template>
+      </v-menu>
+    </s-btn-icon>
+
     <v-spacer />
     <markdown-toolbar-button v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN" @click="setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN_AND_PREVIEW)" title="Markdown" icon="mdi-language-markdown" :active="true" />
     <markdown-toolbar-button v-else-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" @click="setMarkdownEditorMode(MarkdownEditorMode.PREVIEW)" title="Side-by-Side View" icon="mdi-view-split-vertical" :active="true" />
@@ -87,6 +107,7 @@ const emit = defineEmits<{
 }>();
 
 const apiSettings = useApiSettings();
+const slots = useSlots();
 
 const spellcheckSupported = computed(() => {
   if (apiSettings.isProfessionalLicense) {

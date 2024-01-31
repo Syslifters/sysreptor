@@ -6,7 +6,9 @@
         v-for="fieldProps in objectFields" 
         :key="fieldProps.id"
         v-bind="fieldProps"
-      />
+      >
+        <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+      </dynamic-input-field-diff>
     </v-card-text>
   </s-card>
   <s-card v-else-if="props.historic.definition?.type === 'list' && props.current.definition?.type === 'list'" class="mt-4" :class="nestedClass">
@@ -16,7 +18,9 @@
         <v-list-item v-for="fieldProps in listItemFields" :key="fieldProps.id">
           <dynamic-input-field-diff 
             v-bind="fieldProps" 
-          />
+          >
+            <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+          </dynamic-input-field-diff>
         </v-list-item>
       </v-list>
     </v-card-text>
@@ -39,7 +43,9 @@
         :disabled="!hasChanged"
         :readonly="hasChanged"
         :class="{'diff-highlight-changed': hasChanged}"
-      />
+      >
+        <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+      </dynamic-input-field>
     </v-col>
     <v-col cols="6">
       <dynamic-input-field 
@@ -51,7 +57,9 @@
         :disabled="!hasChanged"
         :readonly="hasChanged"
         :class="{'diff-highlight-changed': hasChanged}"
-      />
+      >
+        <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+      </dynamic-input-field>
     </v-col>
   </v-row>
 </template>

@@ -1,6 +1,8 @@
 <template>
   <div class="mde">
-    <markdown-toolbar v-if="editorView" v-bind="markdownToolbarAttrs" />
+    <markdown-toolbar v-if="editorView" v-bind="markdownToolbarAttrs">
+      <template v-if="$slots['context-menu']" #context-menu="slotData"><slot name="context-menu" v-bind="slotData" /></template>
+    </markdown-toolbar>
     <v-divider />
 
     <v-row no-gutters class="w-100">

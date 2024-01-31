@@ -15,7 +15,17 @@
       v-else-if="definition.type === 'markdown'"
       v-model="formValue"
       v-bind="fieldAttrs"
-    />
+    >
+      <template v-if="$slots['markdown-context-menu']" #context-menu="slotData">
+        <slot 
+          name="markdown-context-menu"
+          :id="props.id"
+          :value="formValue"
+          :definition="definition"
+          v-bind="slotData"
+        />
+      </template>
+    </markdown-field>
 
     <!-- Date -->
     <s-date-picker
@@ -93,7 +103,9 @@
           @update:model-value="emitInputObject(objectFieldId as string, $event)"
           :id="props.id ? (props.id + '.' + objectFieldId) : undefined"
           v-bind="inheritedAttrs(props.definition.properties![objectFieldId])"
-        />
+        >
+          <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+        </dynamic-input-field>
       </v-card-text>
     </s-card>
 
@@ -150,7 +162,9 @@
                     @keydown="onListKeyDown"
                     :id="id ? (id + '[' + entryIdx + ']') : undefined"
                     v-bind="inheritedAttrs(props.definition.items!)"
-                  />
+                  >
+                    <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+                  </dynamic-input-field>
                 </template>
                 <template #append>
                   <div 
