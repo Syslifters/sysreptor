@@ -3,7 +3,7 @@ import type { PropType } from "vue";
 import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,
-  forceLinting, highlightTodos, tooltips, scrollPastEnd,
+  forceLinting, highlightTodos, tooltips, scrollPastEnd, closeBrackets,
   history, historyKeymap, keymap, setDiagnostics,
   spellcheck, spellcheckTheme,
   lineNumbers, indentUnit, defaultKeymap, indentWithTab, markdown,
@@ -327,6 +327,7 @@ export function markdownEditorDefaultExtensions() {
     EditorState.tabSize.of(4),
     indentUnit.of('    '),
     keymap.of([indentWithTab]),
+    closeBrackets(),
     markdown(),
     syntaxHighlighting(markdownHighlightStyle),
     markdownHighlightCodeBlocks,

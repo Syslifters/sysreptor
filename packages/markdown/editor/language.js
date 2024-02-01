@@ -9,7 +9,14 @@ import { markdownParser } from "..";
 import { tags } from "./highlight";
 import { insertNewlineContinueMarkup, deleteMarkupBackward, toggleStrong, toggleEmphasis } from "./commands";
 
-const markdownLanguageFacet = defineLanguageFacet({block: {open: '<!--', close: '-->'}});
+const markdownLanguageFacet = defineLanguageFacet({
+  commentTokens: {
+    block: {open: '<!--', close: '-->'}
+  },
+  closeBrackets: {
+    brackets: ["(", "[", "{", "'", '"', "`", "*", "_", "~"],
+  },
+});
 
 const markdownHighlighting = styleTags({
   "strong/...": t.strong,
