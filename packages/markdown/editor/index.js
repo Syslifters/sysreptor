@@ -2,6 +2,7 @@ export { EditorState, EditorSelection } from '@codemirror/state';
 export { EditorView, ViewUpdate, tooltips, scrollPastEnd, keymap, lineNumbers } from '@codemirror/view';
 export { history, historyKeymap, defaultKeymap, indentWithTab, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 export { forceLinting, setDiagnostics } from '@codemirror/lint';
+export { closeBrackets } from "@codemirror/autocomplete";
 export { MergeView } from '@codemirror/merge';
 export { syntaxHighlighting, indentUnit } from '@codemirror/language';
 export { vueLanguage } from '@codemirror/lang-vue';
