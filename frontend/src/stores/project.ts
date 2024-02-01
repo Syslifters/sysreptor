@@ -14,18 +14,23 @@ export function sortFindings({ findings, projectType, overrideFindingOrder = fal
       projectType.finding_ordering.map(o => (finding: PentestFinding) => {
         const v = topLevelFields ? (finding as any)[o.field] : finding.data[o.field];
         const d = projectType.finding_fields[o.field];
-        if (!d || d.type in ['list', 'object', 'user'] || Array.isArray(v) || typeof v === 'object') {
+        if (!d || d.type in [FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER] || Array.isArray(v) || typeof v === 'object') {
           // Sorting by field is unsupported
           return '';
-        } else if (d.type === 'cvss') {
+        } else if (d.type === FieldDataType.CVSS) {
           return scoreFromVector(v) || 0;
-        } else if (d.type === 'enum') {
+        } else if (d.type === FieldDataType.CWE) {
+          if (!v) {
+            return -1;
+          } 
+          return Number(v.replace('CWE-'))
+        } else if (d.type === FieldDataType.ENUM) {
           return d.choices!.findIndex(c => c.value === v);
         } else if (v !== null && v !== undefined) {
           return v;
-        } else if (d.type === 'number') {
+        } else if (d.type === FieldDataType.NUMBER) {
           return 0;
-        } else if (d.type === 'boolean') {
+        } else if (d.type === FieldDataType.BOOLEAN) {
           return false;
         } else {
           return '';

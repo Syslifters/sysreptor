@@ -369,6 +369,7 @@ export enum FieldDataType {
   STRING = 'string',
   MARKDOWN = 'markdown',
   CVSS = 'cvss',
+  CWE = 'cwe',
   DATE = 'date',
   NUMBER = 'number',
   BOOLEAN = 'boolean',
