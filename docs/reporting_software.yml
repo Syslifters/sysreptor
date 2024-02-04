@@ -43,15 +43,15 @@ software:
     deployment: OnPrem
     price: Free and Open Source
 
-  - name: Reporter
+  - name: Security Reporter
     self: no
     url: https://securityreporter.app/
     discontinued: no
-    pros: 
-    cons: 
-    customization: '"Branded" (possibly not customizable)'
-    deployment: Cloud/OnPrem
-    price: From $ 160
+    pros: Exceptional (tech) support. Designed for high-quality, multilingual (optional) pentests, ensuring compliance with established international standards and best practices.
+    cons: No .doc(x) export, a deliberate choice to boost efficiency, security, integrity, and collaboration.
+    customization: 'Branded (highly customizable via theme editor)'
+    deployment: OnPrem only, ensuring you retain complete control over your setup and sensitive data
+    price: From $ 150 
 
   - name: PenTest.WS
     self: no
