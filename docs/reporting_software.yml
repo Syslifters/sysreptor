@@ -39,8 +39,8 @@ software:
     self: no
     url: https://securityreporter.app/
     discontinued: no
-    customization: 'Branded (highly customizable via theme editor)'
-    deployment: OnPrem only, ensuring you retain complete control over your setup and sensitive data
+    customization: 'Theme editor'
+    deployment: OnPrem
     price: From $ 150 
 
   - name: PenTest.WS
