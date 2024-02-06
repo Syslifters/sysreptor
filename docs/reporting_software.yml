@@ -7,8 +7,6 @@ software:
     self: no
     url: 
     discontinued: no
-    pros: 
-    cons: 
     customization: 
     deployment: 
     price: 
@@ -17,8 +15,6 @@ software:
     self: no
     url: https://vulnrepo.com/
     discontinued: no
-    pros: 
-    cons: 
     customization: Not provided
     deployment: OnPrem
     price: Free and Open Source
@@ -27,8 +23,6 @@ software:
     self: no
     url: https://github.com/salesforce/vulnreport
     discontinued: yes
-    pros: 
-    cons: 
     customization: Unknown
     deployment: OnPrem
     price: Free and Open Source
@@ -37,8 +31,6 @@ software:
     self: no
     url: https://github.com/1modm/petereport
     discontinued: no
-    pros: 
-    cons: 
     customization: LaTeX/Eisvogel
     deployment: OnPrem
     price: Free and Open Source
@@ -47,8 +39,6 @@ software:
     self: no
     url: https://securityreporter.app/
     discontinued: no
-    pros: Exceptional (tech) support. Designed for high-quality, multilingual (optional) pentests, ensuring compliance with established international standards and best practices.
-    cons: No .doc(x) export, a deliberate choice to boost efficiency, security, integrity, and collaboration.
     customization: 'Branded (highly customizable via theme editor)'
     deployment: OnPrem only, ensuring you retain complete control over your setup and sensitive data
     price: From $ 150 
@@ -57,8 +47,6 @@ software:
     self: no
     url: https://pentest.ws/
     discontinued: no
-    pros: 
-    cons: 
     customization: docx with custom syntax and HTML
     deployment: Cloud
     price: From $ 4.95
@@ -67,8 +55,6 @@ software:
     self: no
     url: https://faradaysec.com/
     discontinued: no
-    pros: 
-    cons: 
     customization: docx/Jinja2
     deployment: Cloud/OnPrem
     price: Free or from $ 120
@@ -77,8 +63,6 @@ software:
     self: no
     url: https://www.checksec.com/canopy.html
     discontinued: no
-    pros: 
-    cons: 
     customization: docx with custom Word plugin
     deployment: Cloud/OnPrem
     price: Unknown
@@ -87,8 +71,6 @@ software:
     self: no
     url: https://github.com/GhostManager/Ghostwriter
     discontinued: no
-    pros: 
-    cons: 
     customization: docx/Jinja2
     deployment: OnPrem
     price: Free and Open Source
@@ -97,8 +79,6 @@ software:
     self: no
     url: https://plextrac.com/
     discontinued: no
-    pros: Large set of predefined finding templates
-    cons: Intransparent product presentation
     customization: docx/Jinja2
     deployment: Cloud/OnPrem
     price: Top secret
@@ -107,8 +87,6 @@ software:
     self: no
     url: https://dradisframework.com/
     discontinued: no
-    pros: Activity feed and audit trail of reporting activity
-    cons: Cumbersome customizing in MS Word
     customization: docx (Dradis optionally customizes for you)
     deployment: Cloud/OnPrem
     price: Free or $ 79 or $ 149
@@ -117,8 +95,6 @@ software:
     self: no
     url: https://github.com/blacklanternsecurity/writehat
     discontinued: yes
-    pros: Focused on pentest reporting, from pentesters for pentesters
-    cons: Based on outdated Django version
     customization: HTML/Django Templating Language
     deployment: OnPrem
     price: Free and Open Source
@@ -127,8 +103,6 @@ software:
     self: no
     url: https://attackforge.com/
     discontinued: no
-    pros: Collaboration features
-    cons: Unintuitive project dashboard
     customization: docx with customized template tags
     deployment: Cloud or OnPrem (Enterprise only)
     price: Free or $ 30 to $ 50
@@ -137,8 +111,6 @@ software:
     self: no
     url: https://github.com/pwndoc/pwndoc
     discontinued: no
-    pros: Easy and focused on pentest reporting
-    cons: Cumbersome image upload
     customization: docx via docxtemplater
     deployment: OnPrem
     price: Free and Open Source
@@ -147,8 +119,6 @@ software:
     self: no
     url: https://hexway.io/hive/
     discontinued: no
-    pros: Lots of additional features
-    cons: Rather overloaded for reporting requirements
     customization: docx with jinja-like syntax (Hexway customizes for you)
     deployment: Cloud/OnPrem
     price: Free or $ 78
@@ -157,8 +127,6 @@ software:
     self: no
     url: https://github.com/reconmap/reconmap
     discontinued: no
-    pros: Intuitive, fast results
-    cons: Limited report customization (no conditials, images, etc)
     customization: docx via PHPWord
     deployment: OnPrem
     price: Free and Open Source
@@ -166,8 +134,6 @@ software:
   - name: Serpico
     url: https://github.com/SerpicoProject/Serpico
     discontinued: yes
-    pros: Fast results
-    cons: Discontinued, unresolved bugs
     customization: docx with custom Meta Language
     deployment: OnPrem
     price: Free and Open Source
@@ -176,8 +142,6 @@ software:
     self: yes
     url: https://docs.sysreptor.com
     discontinued: no
-    pros: Fastest to get started, Tailored to pentesting needs
-    cons: Limited permission management in free tier
     customization: HTML with VueJS
     deployment: Cloud/OnPrem
     price: Free or € 50
