@@ -127,6 +127,7 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
         'field_string': {'type': 'string', 'label': 'String Field', 'default': 'test'},
         'field_markdown': {'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
         'field_cvss': {'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
+        'field_cwe': {'type': 'cwe', 'label': 'CWE Field', 'default': 'CWE-89'},
         'field_date': {'type': 'date', 'label': 'Date Field', 'default': '2022-01-01'},
         'field_int': {'type': 'number', 'label': 'Number Field', 'default': 10},
         'field_bool': {'type': 'boolean', 'label': 'Boolean Field', 'default': False},

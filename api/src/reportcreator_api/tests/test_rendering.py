@@ -64,6 +64,7 @@ class TestHtmlRendering:
         ('{{ report.field_enum.value }}', lambda self: self.project.data['field_enum']),
         ('{{ findings[0].cvss.vector }}', lambda self: self.finding.data['cvss']),
         ('{{ findings[0].cvss.score }}', lambda self: str(cvss.calculate_score(self.finding.data['cvss']))),
+        ('{{ report.field_cwe.value }} {{ report.field_cwe.id }} {{ report.field_cwe.name }}', "CWE-89 89 Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"),
         ('{{ data.pentesters[0].name }}', lambda self: self.project.imported_members[0]['name']),
         ('<template v-for="r in data.pentesters[0].roles">{{ r }}</template>', lambda self: ''.join(self.project.imported_members[0]['roles'])),
         ('{{ data.pentesters[1].name }}', lambda self: self.user.name),

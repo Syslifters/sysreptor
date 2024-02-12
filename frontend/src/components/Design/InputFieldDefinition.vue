@@ -364,6 +364,7 @@ function updateType(type: FieldDataType) {
         (type === FieldDataType.NUMBER && !(def instanceof Number)) ||
         (type === FieldDataType.BOOLEAN && !(def instanceof Boolean)) ||
         (type === FieldDataType.ENUM && !(newObj.choices || []).find(c => c.value === def)) ||
+        (type === FieldDataType.CWE && (!(def instanceof String) || !def.startsWith('CWE-'))) ||
         (type === FieldDataType.DATE) ||
         (type === FieldDataType.USER)
   ) {

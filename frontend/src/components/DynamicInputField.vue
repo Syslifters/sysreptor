@@ -82,6 +82,13 @@
       v-bind="fieldAttrs"
     />
 
+    <!-- CWE -->
+    <s-cwe-field
+      v-else-if="definition.type === 'cwe'"
+      v-model="formValue"
+      v-bind="fieldAttrs"
+    />
+
     <!-- User -->
     <s-user-selection
       v-else-if="definition.type === 'user'"

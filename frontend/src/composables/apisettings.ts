@@ -1,10 +1,12 @@
 import { AuthProviderType } from '@/utils/types';
-import type { ApiSettings, AuthProvider } from '@/utils/types';
+import type { ApiSettings, AuthProvider, CWE } from '@/utils/types';
 
 export const useApiSettings = defineStore('apisettings', {
   state: () => ({
     settings: null as ApiSettings | null,
     getSettingsSync: null as Promise<ApiSettings> | null,
+    cwes: null as CWE[]|null,
+    getCwesSync: null as Promise<CWE[]>|null,
   }),
   actions: {
     async fetchSettings() : Promise<ApiSettings> {
@@ -26,6 +28,24 @@ export const useApiSettings = defineStore('apisettings', {
           return await this.getSettingsSync;
         } finally {
           this.getSettingsSync = null;
+        }
+      }
+    },
+    async fetchCwes(): Promise<CWE[]> {
+      this.cwes = await $fetch<CWE[]>('/api/v1/utils/cwes/', { method: 'GET' });
+      return this.cwes;
+    },
+    async getCwes(): Promise<CWE[]> {
+      if (this.cwes) {
+        return this.cwes;
+      } else if (this.getCwesSync) {
+        return await this.getCwesSync;
+      } else {
+        try {
+          this.getCwesSync = this.fetchCwes();
+          return await this.getCwesSync;
+        } finally {
+          this.getCwesSync = null;
         }
       }
     }

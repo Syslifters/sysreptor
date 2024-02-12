@@ -182,6 +182,7 @@ def public_urls():
 def guest_urls():
     return [
         ('utils list', lambda s, c: c.get(reverse('utils-list'))),
+        ('utils cwes', lambda s, c: c.get(reverse('utils-cwes'))),
 
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': 'self'}, retrieve=True, update=True, update_partial=True),
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {}, list=True),

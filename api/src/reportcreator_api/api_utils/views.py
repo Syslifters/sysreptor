@@ -14,6 +14,7 @@ from reportcreator_api.api_utils.serializers import LanguageToolAddWordSerialize
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.permissions import IsSystemUser, IsUserManagerOrSuperuserOrSystem
 from reportcreator_api.api_utils import backup_utils
+from reportcreator_api.pentests.customfields.types import CweField
 from reportcreator_api.users.models import AuthIdentity, PentestUser
 from reportcreator_api.utils.api import StreamingHttpResponseAsync, ViewSetAsync
 from reportcreator_api.utils import license
@@ -42,6 +43,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         return routers.APIRootView(api_root_dict={
             'settings': 'utils-settings',
             'license': 'utils-license',
+            'cwes': 'utils-cwes',
             'spellcheck': 'utils-spellcheck',
             'backup': 'utils-backup',
             'healthcheck': 'utils-healthcheck',
@@ -133,6 +135,10 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.save()
         return Response(data=data)
+    
+    @action(detail=False, methods=['get'])
+    def cwes(self, request, *args, **kwargs):
+        return Response(data=CweField.cwe_definitions())
     
     @action(detail=False, methods=['get'], authentication_classes=[], permission_classes=[])
     async def healthcheck(self, request, *args, **kwargs):

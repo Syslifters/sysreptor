@@ -19,7 +19,7 @@ from django.utils import timezone
 from reportcreator_api.pentests.customfields.sort import sort_findings
 from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.pentests import cvss
-from reportcreator_api.pentests.customfields.types import FieldDataType, FieldDefinition, EnumChoice
+from reportcreator_api.pentests.customfields.types import CweField, FieldDataType, FieldDefinition, EnumChoice
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure, iterate_fields
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.error_messages import MessageLocationInfo, MessageLocationType
@@ -70,12 +70,16 @@ def format_template_field(value: Any, definition: FieldDefinition, members: Opti
         return dataclasses.asdict(next(filter(lambda c: c.value == value, definition.choices), EnumChoice(value='', label='')))
     elif value_type == FieldDataType.CVSS:
         score_metrics = cvss.calculate_metrics(value)
-        return {
+        return score_metrics | {
             'vector': value,
             'score': str(round(score_metrics["final"]["score"], 2)),
             'level': cvss.level_from_score(score_metrics["final"]["score"]).value,
             'level_number': cvss.level_number_from_score(score_metrics["final"]["score"]),
-            **score_metrics
+        }
+    elif value_type == FieldDataType.CWE:
+        cwe_definition = next(filter(lambda c: value == f"CWE-{c['id']}", CweField.cwe_definitions()), {})
+        return cwe_definition | {
+            'value': value,
         }
     elif value_type == FieldDataType.USER:
         return format_template_field_user(value, members=members)
