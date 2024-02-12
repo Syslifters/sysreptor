@@ -80,7 +80,6 @@ def format_template_field(value: Any, definition: FieldDefinition, members: Opti
         cwe_definition = next(filter(lambda c: value == f"CWE-{c['id']}", CweField.cwe_definitions()), {})
         return cwe_definition | {
             'value': value,
-            'url': f"https://cwe.mitre.org/data/definitions/{cwe_definition['id']}.html" if cwe_definition else None,
         }
     elif value_type == FieldDataType.USER:
         return format_template_field_user(value, members=members)

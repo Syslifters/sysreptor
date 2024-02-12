@@ -2,11 +2,12 @@
 
 
 ## Next
+* Add CWE field type
 * Break text in tables to prevent tables overflowing page in base styles
-* UI: Add hint how to add custom tags
-* UI: Add buttons for task list and footnote to markdown editor toolbar
 * Sync updated field default values to preview data fields
 * Automatically close brackets and enclose selected text with brackets in markdown editor
+* UI: Add hint how to add custom tags
+* UI: Add buttons for task list and footnote to markdown editor toolbar
 * Fix text selection in markdown preview focus changed to editor
 * Fix object field properties not always sorted
 * Fix newline not inserted at empty last line of markdown editor in Firefox
