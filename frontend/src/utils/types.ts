@@ -537,3 +537,10 @@ export type PreviewImage = {
   src: string;
   caption?: string|null;
 };
+
+export type CWE = {
+  id: number;
+  name: string;
+  description: string;
+  parent: number|null;
+};
