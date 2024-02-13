@@ -49,7 +49,7 @@ You can reference headings if your [design supports it](/designer/headings-and-t
 
 ```md title="Markdown"
 # Findings {#findings .in-toc.numbered}
-Find details in []"#findings" /> (rendered as "1 Findings").
+Find details in [](#findings) (rendered as "1 Findings").
 ```
 
 ```html title="HTML"

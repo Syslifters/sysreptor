@@ -24,5 +24,9 @@ There exists no interactive CSS editor like dev tools console in browsers.
 However, you can set background colors or borders on elements to see where they are positioned and how big they are, e.g.
 
 ```
-{background: rgba(150,150,150,0.1)}
+<div id="element-to-debug">...</div>
+
+#element-to-debug {
+  background-color: rgba(255, 0, 0, 0.2);
+}
 ```
