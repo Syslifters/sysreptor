@@ -10,7 +10,6 @@ import ListOfTables from './components/ListOfTables.vue';
 import Chart from './components/ChartVue.vue';
 import MermaidDiagram from './components/MermaidDiagram.vue';
 import Ref from './components/Ref.vue';
-import Wrapper from './components/Wrapper.vue';
 import { callForTicks } from './utils';
 import lodash from 'lodash';
 
@@ -134,7 +133,7 @@ if (!window.RENDERING_COMPLETED) {
   const app = createApp({
     name: 'root',
     render: RENDER_FUNCTION,
-    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, MermaidDiagram, Ref, Wrapper },
+    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, MermaidDiagram, Ref },
     data: () => ({
       data: REPORT_DATA,
       _tickCount: 0,

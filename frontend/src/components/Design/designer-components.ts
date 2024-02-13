@@ -813,7 +813,7 @@ export class PageHeaderComponent extends DesignerComponentBase {
     }
 
     const id = createUniqueId('header', context);
-    let html = `<wrapper id="${id}" data-sysreptor-generated="page-header">\n`;
+    let html = `<div id="${id}" data-sysreptor-generated="page-header">\n`;
     let css = trimLeadingWhitespace(`
     @page {
         margin-top: 35mm;
@@ -849,6 +849,7 @@ export class PageHeaderComponent extends DesignerComponentBase {
         }
     }
 
+    #${id} { position: absolute; width: 0; }
     `) + '\n';
     if (form.header.left) {
       html += `<div id="${id}-left">\n${getHeaderTypeContent(form.header.left)}\n</div>\n`;
@@ -864,7 +865,7 @@ export class PageHeaderComponent extends DesignerComponentBase {
         css += `#${id}-right { height: 100%; width: auto; }\n#${id}-right img { width: auto; height: auto; }\n`;
       }
     }
-    html += '</wrapper>\n';
+    html += '</div>\n';
     return {
       html,
       css: `/* #region ${id} */\n${css}/* #endregion ${id} */`,
@@ -894,8 +895,8 @@ export class PageFooterComponent extends DesignerComponentBase {
 
   createCode(form: any, context: DesignerContext) {
     const id = createUniqueId('footer', context);
-    let html = `<wrapper id="${id}" data-sysreptor-generated="page-footer">\n`;
-    let css = ``;
+    let html = `<div id="${id}" data-sysreptor-generated="page-footer">\n`;
+    let css = `#${id} { position: absolute; width: 0; }\n`;
     let cssPage = '';
     if (form.footer.textLeft) {
       html += `<div id="${id}-left">${form.footer.textLeft}</div>\n`;
@@ -914,7 +915,7 @@ export class PageFooterComponent extends DesignerComponentBase {
       };
       cssPage += `    @bottom-right-corner { content: ${counterContents[form.footer.pageNumberStyle]}; }\n`;
     }
-    html += '</wrapper>';
+    html += '</div>';
     if (cssPage) {
       css = `@page {\n${cssPage}}\n` + css;
     }
