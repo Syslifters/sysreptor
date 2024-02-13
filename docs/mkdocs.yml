@@ -20,6 +20,7 @@ nav:
       - Locked Sections: reporting/locking.md
   - Designing Reports:
       - Designer: designer/designer.md
+      - Field Types: designer/field-types.md
       - Page Layout: designer/page-layout.md
       - Headings and ToC: designer/headings-and-table-of-contents.md
       - Tables: designer/tables.md

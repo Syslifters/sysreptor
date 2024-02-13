@@ -60,7 +60,7 @@
             @update:model-value="updateProperty('required', $event)"
             :readonly="props.readonly"
             label="Required"
-            hint="Determines whether this field is required must be filled or optional"
+            hint="Determines whether this field is required (must be filled) or optional (can be empty)"
           />
         </v-col>
 

@@ -43,6 +43,7 @@
       item-title="label"
       item-value="value"
       :clearable="!props.readonly"
+      spellcheck="false"
       v-bind="fieldAttrs"
     />
 
