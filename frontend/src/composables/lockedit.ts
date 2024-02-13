@@ -180,7 +180,6 @@ export function useProjectTypeLockEdit(options: {
   const projectType = computed(() => options.projectType.value);
 
   const baseUrl = computed(() => `/api/v1/projecttypes/${projectType.value.id}/`);
-  // const projectType = await useFetchE<ProjectType>(baseUrl.value, { method: 'GET' });
   useHeadExtended({
     title: projectType.value.name
   });

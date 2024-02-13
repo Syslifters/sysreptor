@@ -53,10 +53,13 @@ export function useAuth() {
   const loggedIn = computed(() => !!store.user);
 
   async function fetchUser() {
-    const { data } = await useFetch<User>('/api/v1/pentestusers/self/', {
-      method: 'GET',
-    });
-    store.user = data.value;
+    try {
+      store.user = await $fetch<User>('/api/v1/pentestusers/self/', {
+        method: 'GET',
+      });
+    } catch {
+      store.user = null;
+    }
     return store.user;
   }
 
@@ -83,10 +86,14 @@ export function useAuth() {
   }
 
   async function logout() {
-    await useFetch('/api/v1/auth/logout/', {
-      method: 'POST',
-      body: {}, // Send request as JSON to prevent CSRF errors
-    });
+    try {
+      await $fetch('/api/v1/auth/logout/', {
+        method: 'POST',
+        body: {}, // Send request as JSON to prevent CSRF errors
+      });
+    } catch {
+      // Ignore errors
+    }
     await navigateTo('/login/');
     store.user = null;
   }
