@@ -262,9 +262,9 @@ class TestHtmlRendering:
                 </ul>
             </section>
         </list-of-figures>
-        <figure><img src="/assets/name/image.png" /><figcaption id="fig1">caption1</figcaption></figure>
-        <figure><img src="/assets/name/image.png" /><figcaption id="fig2">caption2</figcaption></figure>
-        <figure><img src="/assets/name/image.png" /><figcaption id="fig3">caption3</figcaption></figure>
+        <figure id="fig1"><img src="/assets/name/image.png" /><figcaption>caption1</figcaption></figure>
+        <figure id="fig2"><img src="/assets/name/image.png" /><figcaption>caption2</figcaption></figure>
+        <figure id="fig3"><img src="/assets/name/image.png" /><figcaption>caption3</figcaption></figure>
         """)
         assertHTMLEqual(self.extract_html_part(html, '<ul>', '</ul>'), """
         <ul>
@@ -286,8 +286,8 @@ class TestHtmlRendering:
                 </ul>
             </section>
         </list-of-tables>
-        <table><caption id="table1">caption1</caption></table>
-        <table><caption id="table2">caption2</caption></table>
+        <table id="table1"><caption>caption1</caption></table>
+        <table id="table2"><caption>caption2</caption></table>
         """)
         assertHTMLEqual(self.extract_html_part(html, '<ul>', '</ul>'), """
         <ul>
