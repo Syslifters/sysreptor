@@ -1,7 +1,7 @@
 # Changelog
 
 
-## Next
+## v2024.13 - 2024-02-14
 * Add CWE field type
 * Break text in tables to prevent tables overflowing page in base styles
 * Sync updated field default values to preview data fields
