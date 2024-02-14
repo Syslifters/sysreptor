@@ -44,6 +44,8 @@ const themeLight = merge({}, themeCommon, {
     'on-header': themeLightTextColor,
     drawer: '#ededed',
     'on-drawer': themeLightTextColor,
+
+    'codemirror-selection': '#ADD6FF',
   },
   variables: {
     'border-color': themeLightTextColor,
@@ -65,6 +67,8 @@ const themeDark = merge({}, themeCommon, {
     'on-header': themeDarkTextColor,
     drawer: '#3c3c3c',
     'on-drawer': themeDarkTextColor,
+
+    'codemirror-selection': '#264F78',
   },
   variables: {
     'border-color': themeDarkTextColor,
