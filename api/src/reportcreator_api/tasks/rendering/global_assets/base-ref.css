@@ -87,12 +87,12 @@ h6.numbered {
 
 
 /* Increment figure counter */
-figcaption {
+figure:has(figcaption) {
   counter-increment: figure-counter;
 }
 
 /* Increment table counter */
-caption {
+table:has(caption) {
   counter-increment: table-counter;
 }
 
