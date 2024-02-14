@@ -1,5 +1,10 @@
 # Changelog
 
+## Next
+* Add component for cover pages in PDF designer layout editor
+* Reference `<figure>` tag instead of `<figcaption>` in `<ref />` component to jump to start of figure
+* Enable multi-selection in markdown editor
+
 
 ## v2024.13 - 2024-02-14
 * Add CWE field type
