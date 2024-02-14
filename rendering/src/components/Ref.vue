@@ -2,9 +2,7 @@
   <a :href="'#' + (refEl?.id || toId)"  :class="refClasses">
     <span class="ref-title">
       <slot name="default">
-        <template v-if="refEl && !error">
-          {{ refEl.getAttribute('data-toc-title') || refEl.textContent }}
-        </template>
+        <template v-if="refTitle">{{ refTitle }}</template>
       </slot>
     </span>
   </a>
@@ -48,13 +46,32 @@ const refClasses = computed(() => {
       } else {
         out.push('ref-heading');
       }
-    } else if (refEl.value.tagName === 'FIGCAPTION') {
+    } else if (['FIGCAPTION', 'FIGURE'].includes(refEl.value.tagName)) {
       out.push('ref-figure');
-    } else if (refEl.value.tagName === 'CAPTION') {
+    } else if (['CAPTION', 'TABLE'].includes(refEl.value.tagName)) {
       out.push('ref-table');
     }
   }
   return out;
+});
+const refTitle = computed(() => {
+  if (slots.default || !refEl.value || error.value) {
+    return null;
+  }
+
+  const titleAttr = refEl.value.getAttribute('data-toc-title');
+  if (titleAttr) {
+    return titleAttr
+  }
+
+  let titleEl = refEl.value;
+  if (titleEl.tagName === 'FIGURE') {
+    titleEl = titleEl.querySelector('figcaption');
+  } else if (titleEl.tagName === 'TABLE') {
+    titleEl = titleEl.querySelector('caption');
+  }
+
+  return titleEl.textContent;
 });
 
 
@@ -89,8 +106,19 @@ function updateReference() {
       return;
     }
   }
-  if (refEl.value.tagName === 'FIGCAPTION' && !refEl.value.id) {
-    refEl.value.setAttribute('id', uuidv4());
+  if (refEl.value.tagName === 'FIGCAPTION') {
+    // If possible, reference the figure instead of the caption
+    const figureEl = refEl.value.closest('figure');
+    if (figureEl) {
+      if (!figureEl.id) {
+        figureEl.setAttribute('id', uuidv4());
+      }
+      refEl.value = figureEl;
+    } else {
+      if (!refEl.value.id) {
+        refEl.value.setAttribute('id', uuidv4());
+      }
+    }
   }
 
   // Check table reference
@@ -104,12 +132,23 @@ function updateReference() {
       return;
     }
   }
-  if (refEl.value.tagName === 'CAPTION' && !refEl.value.id) {
-    refEl.value.setAttribute('id', uuidv4());
+  if (refEl.value.tagName === 'CAPTION') {
+    // If possible, reference the table instead of the caption
+    const tableEl = refEl.value.closest('table');
+    if (tableEl) {
+      if (!tableEl.id) {
+        tableEl.setAttribute('id', uuidv4());
+      }
+      refEl.value = tableEl;
+    } else {
+      if (!refEl.value.id) {
+        refEl.value.setAttribute('id', uuidv4());
+      }
+    }
   }
 
   // Check heading reference
-  const tagNames = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'FIGCAPTION', 'CAPTION'];
+  const tagNames = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'FIGURE', 'FIGCAPTION', 'TABLE', 'CAPTION'];
   if (!tagNames.map(t => t.toUpperCase()).includes(refEl.value.tagName) && !slots.default) {
     error.value = {
       message: 'Invalid reference',

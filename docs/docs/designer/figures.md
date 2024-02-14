@@ -51,7 +51,7 @@ html {
   counter-reset: figure-counter;
 }
 
-figcaption::before {
+figure:has(figcaption) {
     counter-increment: figure-counter;
     content: "Figure " counter(figure-counter) ": ";
 }

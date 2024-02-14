@@ -74,9 +74,11 @@ html {
   counter-reset: table-counter;
 }
 
-table caption::before {
+table:has(caption) {
     counter-increment: table-counter;
-    content: "Table " counter(table-counter) ": ";
+}
+caption::before {
+  content: "Table " counter(table-counter) " - ";
 }
 ```
 

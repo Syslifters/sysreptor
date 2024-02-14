@@ -181,13 +181,13 @@ class TestHtmlRendering:
         ('<ref to="h1-numbered-appendix" />', '<a href="#h1-numbered-appendix" class="ref ref-heading ref-appendix ref-appendix-level1"><span class="ref-title">H1 appendix</span></a>'),
         ('<ref to="h1.1-numbered-appendix" />', '<a href="#h1.1-numbered-appendix" class="ref ref-heading ref-appendix ref-appendix-level2"><span class="ref-title">H1.1 appendix</span></a>'),
         ('<ref to="h1-numbered">title</ref>', '<a href="#h1-numbered" class="ref"><span class="ref-title">title</span></a>'),
-        ('<ref to="fig1" />', '<a href="#fig1-caption" class="ref ref-figure"><span class="ref-title">caption1</span></a>'),
-        ('<ref to="fig2-img" />', '<a href="#fig2-caption" class="ref ref-figure"><span class="ref-title">caption2</span></a>'),
-        ('<ref to="fig3-caption" />', '<a href="#fig3-caption" class="ref ref-figure"><span class="ref-title">caption3</span></a>'),
-        ('<ref to="fig1">title</ref>', '<a href="#fig1-caption" class="ref"><span class="ref-title">title</span></a>'),
-        ('<ref to="table1" />', '<a href="#table1-caption" class="ref ref-table"><span class="ref-title">caption1</span></a>'),
-        ('<ref to="table2-caption" />', '<a href="#table2-caption" class="ref ref-table"><span class="ref-title">caption2</span></a>'),
-        ('<ref to="table1">title</ref>', '<a href="#table1-caption" class="ref"><span class="ref-title">title</span></a>'),
+        ('<ref to="fig1" />', '<a href="#fig1" class="ref ref-figure"><span class="ref-title">caption1</span></a>'),
+        ('<ref to="fig2-img" />', '<a href="#fig2" class="ref ref-figure"><span class="ref-title">caption2</span></a>'),
+        ('<ref to="fig3-caption" />', '<a href="#fig3" class="ref ref-figure"><span class="ref-title">caption3</span></a>'),
+        ('<ref to="fig1">title</ref>', '<a href="#fig1" class="ref"><span class="ref-title">title</span></a>'),
+        ('<ref to="table1" />', '<a href="#table1" class="ref ref-table"><span class="ref-title">caption1</span></a>'),
+        ('<ref to="table2-caption" />', '<a href="#table2" class="ref ref-table"><span class="ref-title">caption2</span></a>'),
+        ('<ref to="table1">title</ref>', '<a href="#table1" class="ref"><span class="ref-title">title</span></a>'),
         ('<ref to="other">title</ref>', '<a href="#other" class="ref"><span class="ref-title">title</span></a>'),
     ])
     def test_ref_rendering(self, template, expected):
@@ -262,9 +262,9 @@ class TestHtmlRendering:
                 </ul>
             </section>
         </list-of-figures>
-        <figure><img src="/assets/name/image.png" /><figcaption id="fig1">caption1</figcaption></figure>
-        <figure><img src="/assets/name/image.png" /><figcaption id="fig2">caption2</figcaption></figure>
-        <figure><img src="/assets/name/image.png" /><figcaption id="fig3">caption3</figcaption></figure>
+        <figure id="fig1"><img src="/assets/name/image.png" /><figcaption>caption1</figcaption></figure>
+        <figure id="fig2"><img src="/assets/name/image.png" /><figcaption>caption2</figcaption></figure>
+        <figure id="fig3"><img src="/assets/name/image.png" /><figcaption>caption3</figcaption></figure>
         """)
         assertHTMLEqual(self.extract_html_part(html, '<ul>', '</ul>'), """
         <ul>
@@ -286,8 +286,8 @@ class TestHtmlRendering:
                 </ul>
             </section>
         </list-of-tables>
-        <table><caption id="table1">caption1</caption></table>
-        <table><caption id="table2">caption2</caption></table>
+        <table id="table1"><caption>caption1</caption></table>
+        <table id="table2"><caption>caption2</caption></table>
         """)
         assertHTMLEqual(self.extract_html_part(html, '<ul>', '</ul>'), """
         <ul>
