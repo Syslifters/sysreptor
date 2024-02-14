@@ -162,7 +162,14 @@
         You can add and style the remaining fields afterwards in HTML.
       </p>
     </div>
-    <!--<div v-if="form.form === 'page-cover-create'">
+    <div v-if="form.form === 'page-cover-create'">
+      <s-select 
+        v-model="form.coverPage.background"
+        label="Page Background"
+        :items="[{value: null, title: 'none'}, {value: 'color', title: 'Color'}, {value: 'image', title: 'Image'}]"
+        :hint="form.coverPage.background === 'image' ? 'Image must be uploaded in assets as background.png. The background image can later be customized in CSS code.' : form.coverPage.background === 'color' ? 'The color can be customized later in CSS code' : ''"
+        :disabled="props.disabled"
+      />
       <s-checkbox
         v-model="form.coverPage.hideHeader"
         label="Hide header on page"
@@ -173,7 +180,7 @@
         label="Hide footer on page"
         :disabled="props.disabled"
       />
-    </div>-->
+    </div>
   </div>
 </template>
 
