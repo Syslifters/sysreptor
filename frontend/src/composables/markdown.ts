@@ -3,11 +3,12 @@ import type { PropType } from "vue";
 import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,
-  forceLinting, highlightTodos, tooltips, scrollPastEnd, closeBrackets,
+  forceLinting, highlightTodos, tooltips, scrollPastEnd, closeBrackets, 
+  drawSelection, rectangularSelection, crosshairCursor,
   history, historyKeymap, keymap, setDiagnostics,
   spellcheck, spellcheckTheme,
-  lineNumbers, indentUnit, defaultKeymap, indentWithTab, markdown,
-  syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks
+  lineNumbers, indentUnit, defaultKeymap, indentWithTab,
+  markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks
   // @ts-ignore
 } from "reportcreator-markdown/editor";
 import { MarkdownEditorMode } from '@/utils/types';
@@ -323,6 +324,9 @@ export function markdownEditorDefaultExtensions() {
   return [
     lineNumbers(),
     EditorState.allowMultipleSelections.of(true),
+    drawSelection(),
+    rectangularSelection(),
+    crosshairCursor(),
     EditorView.lineWrapping,
     EditorState.tabSize.of(4),
     indentUnit.of('    '),
