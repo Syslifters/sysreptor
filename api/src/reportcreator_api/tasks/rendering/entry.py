@@ -78,9 +78,12 @@ def format_template_field(value: Any, definition: FieldDefinition, members: Opti
         }
     elif value_type == FieldDataType.CWE:
         cwe_definition = next(filter(lambda c: value == f"CWE-{c['id']}", CweField.cwe_definitions()), {})
-        return cwe_definition | {
+        return {
+            'id': None,
+            'name': None,
+            'description': None,
             'value': value,
-        }
+        } | cwe_definition
     elif value_type == FieldDataType.USER:
         return format_template_field_user(value, members=members)
     elif value_type == FieldDataType.LIST:
