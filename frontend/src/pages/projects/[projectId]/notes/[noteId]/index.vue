@@ -7,7 +7,7 @@
             <div class="note-title-container">
               <div>
                 <s-btn-icon
-                  @click="note.checked = note.checked === null ? false : !note.checked ? true : null"
+                  @click="updateKey('checked', note.checked === null ? false : !note.checked ? true : null)"
                   :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
                   :disabled="readonly"
                   density="comfortable"
@@ -15,7 +15,8 @@
               </div>
               <s-emoji-picker-field
                 v-if="note.checked === null"
-                v-model="note.icon_emoji"
+                :model-value="note.icon_emoji"
+                @update:model-value="updateKey('icon_emoji', $event)"
                 :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
                 :readonly="readonly"
                 density="comfortable"
@@ -34,7 +35,8 @@
           <template #default>
             <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
               <s-user-selection
-                v-model="note.assignee"
+                :model-value="note.assignee"
+                @update:model-value="updateKey('assignee', $event)"
                 :selectable-users="project.members"
                 :readonly="readonly"
                 label="Assignee"
@@ -71,6 +73,7 @@
         <markdown-page
           ref="textRef"
           v-model="note.text"
+          :collab="{ path: `notes.${note.id}.text`, store: notesCollab }"
           :readonly="readonly"
           v-bind="inputFieldAttrs"
         />
@@ -86,25 +89,47 @@ const route = useRoute();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 
-const baseUrl = `/api/v1/pentestprojects/${route.params.projectId}/notes/${route.params.noteId}/`;
-const { data: note, project, readonly, toolbarAttrs, fetchLoaderAttrs, inputFieldAttrs } = useProjectLockEdit({
-  baseUrl,
-  fetchProjectType: false,
-  canUploadFiles: true,
-  spellcheckEnabled: computed({ get: () => localSettings.projectNoteSpellcheckEnabled, set: (val) => { localSettings.projectNoteSpellcheckEnabled = val } }),
-  markdownEditorMode: computed({ get: () => localSettings.projectNoteMarkdownEditorMode, set: (val) => { localSettings.projectNoteMarkdownEditorMode = val } }),
-  performSave: projectStore.partialUpdateNote,
-  performDelete: async (project, note) => {
-    await projectStore.deleteNote(project, note);
-    await navigateTo(`/projects/${project.id}/notes/`);
-  },
-  updateInStore: projectStore.setNote,
-  autoSaveOnUpdateData({ oldValue, newValue }): boolean {
-    return oldValue.checked !== newValue.checked ||
-        oldValue.icon_emoji !== newValue.icon_emoji ||
-        oldValue.assignee?.id !== newValue.assignee?.id;
+const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
+
+const notesCollab = computed(() => projectStore.notesCollab(project.value.id));
+const note = computed(() => notesCollab.value.data.value.notes[route.params.noteId as string]);
+const readonly = computed(() => project.value.readonly || notesCollab.value.connectionState.value !== CollabConnectionState.OPEN);
+
+// TODO: quick and dirty mocking
+const fetchLoaderAttrs = computed(() => ({
+  fetchState: {
+    pending: [CollabConnectionState.CONNECTING, CollabConnectionState.INITIALIZING].includes(notesCollab.value.connectionState.value),
+    error: null,
+    data: note.value,
   }
-});
+}));
+const inputFieldAttrs = computed(() => ({}));
+const toolbarAttrs = computed(() => ({}));
+
+function updateKey(key: string, value: any) {
+  notesCollab.value.updateKey(`notes.${route.params.noteId}.${key}`, value)
+}
+
+const baseUrl = `/api/v1/pentestprojects/${route.params.projectId}/notes/${route.params.noteId}/`;
+// TODO: support locking fallback ?
+// const { data: note, project, readonly, toolbarAttrs, fetchLoaderAttrs, inputFieldAttrs } = useProjectLockEdit({
+//   baseUrl,
+//   fetchProjectType: false,
+//   canUploadFiles: true,
+//   spellcheckEnabled: computed({ get: () => localSettings.projectNoteSpellcheckEnabled, set: (val) => { localSettings.projectNoteSpellcheckEnabled = val } }),
+//   markdownEditorMode: computed({ get: () => localSettings.projectNoteMarkdownEditorMode, set: (val) => { localSettings.projectNoteMarkdownEditorMode = val } }),
+//   performSave: projectStore.partialUpdateNote,
+//   performDelete: async (project, note) => {
+//     await projectStore.deleteNote(project, note);
+//     await navigateTo(`/projects/${project.id}/notes/`);
+//   },
+//   updateInStore: projectStore.setNote,
+//   autoSaveOnUpdateData({ oldValue, newValue }): boolean {
+//     return oldValue.checked !== newValue.checked ||
+//         oldValue.icon_emoji !== newValue.icon_emoji ||
+//         oldValue.assignee?.id !== newValue.assignee?.id;
+//   }
+// });
 const historyVisible = ref(false);
 const exportUrl = computed(() => urlJoin(baseUrl, '/export/'));
 const exportPdfUrl = computed(() => urlJoin(baseUrl, '/export-pdf/'));

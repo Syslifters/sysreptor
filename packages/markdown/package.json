@@ -29,6 +29,7 @@
     "@codemirror/commands": "~6.3",
     "@codemirror/lint": "~6.4",
     "@codemirror/merge": "~6.5",
+    "@codemirror/collab": "^6.1.1",
     "@codemirror/language": "~6.10",
     "@codemirror/lang-markdown": "~6.2",
     "@codemirror/lang-html": "~6.4",

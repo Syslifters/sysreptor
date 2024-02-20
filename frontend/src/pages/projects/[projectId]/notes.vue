@@ -36,66 +36,51 @@ definePageMeta({
   title: 'Notes',
 });
 
-const project = await useAsyncDataE(async () => {
-  const [project] = await Promise.all([
-    projectStore.getById(route.params.projectId as string),
-    projectStore.fetchNotes(route.params.projectId as string),
-  ]);
-  return project;
-}, { key: 'projectnotes:notes' });
+const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
 const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 
-async function refreshListings() {
-  try {
-    await projectStore.fetchNotes(project.value.id);
-  } catch (error) {
-    // hide error
-  }
-}
-const refreshListingsInterval = ref();
+const notesCollab = computed(() => projectStore.notesCollab(project.value.id));
 onMounted(() => {
-  refreshListingsInterval.value = setInterval(refreshListings, 10_000);
+  notesCollab.value.connect();
 });
 onBeforeUnmount(() => {
-  if (refreshListingsInterval.value) {
-    clearInterval(refreshListingsInterval.value);
-    refreshListingsInterval.value = undefined;
-  }
+  notesCollab.value.disconnect();
 });
 
-async function createNote() {
-  const currentNote = projectStore.notes(project.value.id).find(n => n.id === route.params.noteId);
-  const obj = await projectStore.createNote(project.value, {
-    title: 'New Note',
-    // Insert new note after the currently selected note, or at the end of the list
-    parent: currentNote?.parent || null,
-    order: (currentNote ? currentNote.order + 1 : null),
-    checked: [true, false].includes(currentNote?.checked as any) ? false : null,
-  } as unknown as ProjectNote)
-  // Reload note list to get updated order
-  await refreshListings();
+// TODO: Update to websockets API
+// async function createNote() {
+//   const currentNote = projectStore.notes(project.value.id).find(n => n.id === route.params.noteId);
+//   const obj = await projectStore.createNote(project.value, {
+//     title: 'New Note',
+//     // Insert new note after the currently selected note, or at the end of the list
+//     parent: currentNote?.parent || null,
+//     order: (currentNote ? currentNote.order + 1 : null),
+//     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
+//   } as unknown as ProjectNote)
+//   // Reload note list to get updated order
+//   await refreshListings();
 
-  await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, query: { focus: 'title' } })
-}
-async function performImport(file: File) {
-  const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);
-  const note = res.find(n => n.parent === null)!;
-  await refreshListings();
-  await navigateTo(`/projects/${project.value.id}/notes/${note.id}/`);
-}
-async function updateNote(note: ProjectNote) {
-  try {
-    await projectStore.partialUpdateNote(project.value, note, ['checked']);
-  } catch (error) {
-    requestErrorToast({ error });
-  }
-}
-// Execute in next tick: prevent two requests for events in the same tick
-const updateNoteOrder = debounce(async (notes: NoteGroup<ProjectNote>) => {
-  try {
-    await projectStore.sortNotes(project.value, notes);
-  } catch (error) {
-    requestErrorToast({ error });
-  }
-}, 0);
+//   await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, query: { focus: 'title' } })
+// }
+// async function performImport(file: File) {
+//   const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);
+//   const note = res.find(n => n.parent === null)!;
+//   await refreshListings();
+//   await navigateTo(`/projects/${project.value.id}/notes/${note.id}/`);
+// }
+// async function updateNote(note: ProjectNote) {
+//   try {
+//     await projectStore.partialUpdateNote(project.value, note, ['checked']);
+//   } catch (error) {
+//     requestErrorToast({ error });
+//   }
+// }
+// // Execute in next tick: prevent two requests for events in the same tick
+// const updateNoteOrder = debounce(async (notes: NoteGroup<ProjectNote>) => {
+//   try {
+//     await projectStore.sortNotes(project.value, notes);
+//   } catch (error) {
+//     requestErrorToast({ error });
+//   }
+// }, 0);
 </script>
