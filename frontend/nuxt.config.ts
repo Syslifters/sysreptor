@@ -58,7 +58,6 @@ export default defineNuxtConfig({
   },
 
   experimental: {
-    inlineSSRStyles: false,
     payloadExtraction: false,
   },
 
@@ -76,6 +75,29 @@ export default defineNuxtConfig({
           target: 'http://api:8000',
           changeOrigin: false,
         },
+        // '/ws': {
+        //   // TODO: proxy does not forward WebSocket requests to target
+        //   target: 'ws://api:8000',
+        //   changeOrigin: true,
+        //   ws: true,
+        //   secure: false,
+        //   configure: (proxy, _options) => {
+        //     console.log('Configuring WebSocket Proxy');
+        //     proxy.on('error', (err, _req, _res) => {
+        //       console.log('proxy error', err);
+        //     });
+        //     proxy.on('proxyReq', (proxyReq, req, _res) => {
+        //       console.log('Sending Request to the Target:', req.method, req.url);
+        //     });
+        //     proxy.on('proxyRes', (proxyRes, req, _res) => {
+        //       console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+        //     });
+        //     proxy.on('proxyReqWs', (proxyReq, req, socket, options, head) => {
+        //       console.log('Sending WebSocket Request to the Target:', req.url);
+        //     });
+        //   },
+        // },
+
         '/admin': 'http://api:8000',
         '/static': {
           target: 'http://api:8000',

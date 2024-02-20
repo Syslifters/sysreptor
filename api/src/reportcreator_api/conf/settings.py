@@ -139,7 +139,13 @@ SPECTACULAR_SETTINGS = {
 }
 
 
-WSGI_APPLICATION = 'reportcreator_api.conf.wsgi.application'
+# Websockets
+CHANNEL_LAYERS = {
+    'default': {
+        # TODO: configure postgres DB layer
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 
 # Database
