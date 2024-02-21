@@ -166,7 +166,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   function onUpdateText(event: any) {
     if (event.path === props.value.collab?.path) {
       // TODO: maybe we need to customize receiveUpdates to use a different versioning scheme (with server-side versions)?
-      editorView.value.dispatch(receiveUpdates(editorView.value.state, [{ clientID: event.client_id, changes: event.changes }]));
+      editorView.value.dispatch(receiveUpdates(editorView.value.state, event.changes));
     }
   }
 
@@ -193,7 +193,6 @@ export function useMarkdownEditor({ props, emit, extensions }: {
           ((props.value.collab) ? [
             collab({ 
               startVersion: 0, // TODO: use server-side versioning
-              clientID: props.value.collab.clientID, // TODO: do we need a global client_id or can it be a codemirror-generated ID?
             }),
             EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
               // TODO: emit updates to collab store

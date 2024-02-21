@@ -14,7 +14,6 @@ export enum CollabConnectionState {
 
 export type CollabStoreState<T> = {
   data: T;
-  clientID: string;
   connectionState: CollabConnectionState;
   websocket: WebSocket|null;
   websocketPath: string;
@@ -23,7 +22,6 @@ export type CollabStoreState<T> = {
 export function makeCollabStoreState<T>(websocketPath: string, data: T): CollabStoreState<T> {
   return {
     data,
-    clientID: '',
     connectionState: CollabConnectionState.CLOSED,
     websocketPath,
     websocket: null,
@@ -89,7 +87,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
       console.log('Received websocket message:', msgData);
       if (msgData.type === 'init') {
         storeState.connectionState = CollabConnectionState.OPEN;
-        storeState.clientID = msgData.clientID;
         // storeState.version = msgData.version;
         storeState.data = msgData.data;
       } else if (msgData.type === 'update.key') {
@@ -179,7 +176,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
 
 export type CollabPropType = {
   path: string;
-  clientID: string;
 };
 
 export function collabSubpath(collab: CollabPropType, subPath: string) {

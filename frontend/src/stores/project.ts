@@ -283,7 +283,6 @@ export const useProjectStore = defineStore('project', {
         data: computed(() => collabState.data),
         connectionState: computed(() => collabState.connectionState),
         props: computed(() => ({
-          clientID: collabState.clientID,
           path: collabState.websocketPath,
         })),
       };
