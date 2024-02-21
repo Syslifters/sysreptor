@@ -1,5 +1,9 @@
 import orderBy from "lodash/orderBy";
 import pick from "lodash/pick";
+import set from "lodash/set";
+import urlJoin from "url-join";
+// @ts-ignore
+import { ChangeSet } from "reportcreator-markdown/editor";
 import { groupNotes } from "@/stores/usernotes";
 import type { NoteGroup } from '@/stores/usernotes';
 import type { PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
@@ -50,7 +54,7 @@ export const useProjectStore = defineStore('project', {
         sections: ReportSection[],
         // notes: ProjectNote[],
         getByIdSync: Promise<PentestProject> | null,
-        notesCollab: ReturnType<typeof useCollab<{notes: { [key: string]: ProjectNote }}>>,
+        notesCollabState: CollabStoreState<{ notes: {[key: string]: ProjectNote}}>,
       }
     },
   }),
@@ -76,13 +80,10 @@ export const useProjectStore = defineStore('project', {
       return (projectId: string) => this.data[projectId]?.sections || [];
     },
     notes() {
-      return (projectId: string) => Object.values(this.data[projectId]?.notesCollab.data.value.notes || {});
+      return (projectId: string) => Object.values(this.data[projectId]?.notesCollabState.data.notes || {});
     },
     noteGroups() {
       return (projectId: string) => groupNotes(this.notes(projectId));
-    },
-    notesCollab() {
-      return (projectId: string) => this.data[projectId]?.notesCollab;
     },
   },
   actions: {
@@ -96,7 +97,7 @@ export const useProjectStore = defineStore('project', {
           findings: [],
           sections: [],
           getByIdSync: null,
-          notesCollab: useCollab(`/ws/pentestprojects/${projectId}/notes/`, { notes: {} }),
+          notesCollabState: makeCollabStoreState(`/ws/pentestprojects/${projectId}/notes/`, { notes: {} }),
           ...(initialStoreData || {})
         }
       }
@@ -271,63 +272,21 @@ export const useProjectStore = defineStore('project', {
       }
       return section;
     },
-    // async createNote(project: PentestProject, note: ProjectNote) {
-    //   note = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/`, {
-    //     method: 'POST',
-    //     body: note
-    //   });
-    //   this.ensureExists(project.id);
-    //   this.data[project.id].notes.push(note);
-    //   return note;
-    // },
-    // async partialUpdateNote(project: PentestProject, note: ProjectNote, fields?: string[]) {
-    //   note = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/${note.id}/`, {
-    //     method: 'PATCH',
-    //     body: fields ? pick(note, fields.concat(['id'])) : note,
-    //   });
-    //   return this.setNote(project, note);
-    // },
-    // setNote(project: PentestProject, note: ProjectNote) {
-    //   this.ensureExists(project.id);
-    //   const notes = this.data[project.id].notes;
-    //   const noteIdx = notes.findIndex(n => n.id === note.id)
-    //   if (noteIdx !== -1) {
-    //     notes[noteIdx] = note;
-    //   } else {
-    //     notes.push(note);
-    //   }
-    //   return note;
-    // },
-    // async deleteNote(project: PentestProject, note: ProjectNote) {
-    //   await $fetch(`/api/v1/pentestprojects/${project.id}/notes/${note.id}/`, {
-    //     method: 'DELETE'
-    //   });
-    //   if (project.id in this.data) {
-    //     this.data[project.id].notes = this.data[project.id].notes.filter(n => n.id !== note.id);
-    //   }
-    // },
-    // async sortNotes(project: PentestProject, noteGroups: NoteGroup<ProjectNote>) {
-    //   this.ensureExists(project.id)
-    //   const notes = [] as ProjectNote[];
-    //   sortNotes(noteGroups, (n) => {
-    //     notes.push(n);
-    //   });
-    //   this.data[project.id].notes = notes;
-    //   const res = await $fetch<{id: string; parent: string|null; order: number}[]>(`/api/v1/pentestprojects/${project.id}/notes/sort/`, {
-    //     method: 'POST',
-    //     body: notes.map(n => pick(n, ['id', 'parent', 'order']))
-    //   });
-    //   for (const note of this.data[project.id].notes) {
-    //     const no = res.find(n => n.id === note.id);
-    //     note.parent = no?.parent || null;
-    //     note.order = no?.order || 0;
-    //   }
-    // },
-    // async fetchNotes(projectId: string) {
-    //   const notes = await $fetch<ProjectNote[]>(`/api/v1/pentestprojects/${projectId}/notes/`, { method: 'GET' });
-    //   this.ensureExists(projectId);
-    //   this.data[projectId].notes = notes;
-    //   return this.data[projectId].notes;
-    // },
+    useNotesCollab(project: PentestProject) {
+      this.ensureExists(project.id);
+
+      const collabState = this.data[project.id].notesCollabState;
+      const collab = useCollab(collabState);
+
+      return {
+        ...collab,
+        data: computed(() => collabState.data),
+        connectionState: computed(() => collabState.connectionState),
+        props: computed(() => ({
+          clientID: collabState.clientID,
+          path: collabState.websocketPath,
+        })),
+      };
+    },
   },
 })

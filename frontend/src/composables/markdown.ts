@@ -8,7 +8,8 @@ import {
   history, historyKeymap, keymap, setDiagnostics,
   spellcheck, spellcheckTheme,
   lineNumbers, indentUnit, defaultKeymap, indentWithTab,
-  markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks
+  markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
+  collab, receiveUpdates, sendableUpdates,
   // @ts-ignore
 } from "reportcreator-markdown/editor";
 import { MarkdownEditorMode } from '@/utils/types';
@@ -17,6 +18,7 @@ export type MarkdownProps = {
   lang?: string|null;
   spellcheckEnabled?: boolean;
   markdownEditorMode?: MarkdownEditorMode;
+  collab?: CollabPropType;
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrl?: (fileSrc: string) => string;
   rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
@@ -52,6 +54,10 @@ export function makeMarkdownProps(options: { files: boolean, spellcheckSupported
       type: String as PropType<MarkdownEditorMode>,
       default: MarkdownEditorMode.MARKDOWN_AND_PREVIEW,
     },
+    collab: {
+      type: Object as PropType<CollabPropType>,
+      default: undefined,
+    },
     ...(options.files ? {
       uploadFile: {
         type: Function as PropType<MarkdownProps['uploadFile']>,
@@ -74,17 +80,11 @@ export function makeMarkdownEmits() {
 
 export function useMarkdownEditor({ props, emit, extensions }: {
     extensions: any[];
-    props: ComputedRef<{
+    props: ComputedRef<MarkdownProps & {
         modelValue: string|null;
         disabled?: boolean;
         readonly?: boolean;
-        lang?: string|null;
         spellcheckSupported?: boolean;
-        spellcheckEnabled?: boolean;
-        markdownEditorMode?: MarkdownEditorMode;
-        uploadFile?: (file: File) => Promise<string>;
-        rewriteFileUrl?: (fileSrc: string) => string;
-        rewriteReferenceLink?: (src: string) => string|null;
     }>;
     emit: any;
 }) {
@@ -163,11 +163,19 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     }
   }
 
+  function onUpdateText(event: any) {
+    if (event.path === props.value.collab?.path) {
+      // TODO: maybe we need to customize receiveUpdates to use a different versioning scheme (with server-side versions)?
+      editorView.value.dispatch(receiveUpdates(editorView.value.state, [{ clientID: event.client_id, changes: event.changes }]));
+    }
+  }
+
   const vm = getCurrentInstance()!;
   const editorRef = computed(() => vm.refs.editorRef);
   const editorView = shallowRef<EditorView|null>(null);
   const editorState = shallowRef<EditorState|null>(null);
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
+  const eventBusUpdateText = useEventBus('collab:update.text');
   function initializeEditorView() {
     editorView.value = new EditorView({
       parent: editorRef.value,
@@ -182,16 +190,40 @@ export function useMarkdownEditor({ props, emit, extensions }: {
             blur: (event: FocusEvent) => emit('blur', event),
             focus: (event: FocusEvent) => emit('focus', event),
           }),
-          EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
-            editorState.value = viewUpdate.state;
-            // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
-            if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
-              emit('update:modelValue', viewUpdate.state.doc.toString());
-            }
-          }),
+          ((props.value.collab) ? [
+            collab({ 
+              startVersion: 0, // TODO: use server-side versioning
+              clientID: props.value.collab.clientID, // TODO: do we need a global client_id or can it be a codemirror-generated ID?
+            }),
+            EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
+              // TODO: emit updates to collab store
+              const updates = sendableUpdates(viewUpdate.state);
+              if (updates?.length > 0) {
+                eventBusUpdateText.emit({
+                  path: props.value.collab?.path,
+                  changes: updates.map((u: any) => ({
+                    clientID: u.clientID,
+                    changes: u.changes.toJSON(),
+                  })),
+                });
+              }
+            }),
+          ] : [
+            EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
+              editorState.value = viewUpdate.state;
+              // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
+              if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
+                emit('update:modelValue', viewUpdate.state.doc.toString());
+              }
+            }),
+          ]),
         ]
       }),
     });
+    if (props.value.collab) {
+      eventBusUpdateText.on(onUpdateText);
+    }
+
     editorState.value = editorView.value.state;
     editorActions.value = {
       disabled: createEditorExtensionToggler(editorView.value, [
@@ -237,6 +269,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   }
   onMounted(() => initializeEditorView());
   onBeforeUnmount(() => {
+    eventBusUpdateText.off(onUpdateText);
     if (editorView.value) {
       editorView.value.destroy();
     }

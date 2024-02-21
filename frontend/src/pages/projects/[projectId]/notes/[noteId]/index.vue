@@ -73,7 +73,7 @@
         <markdown-page
           ref="textRef"
           v-model="note.text"
-          :collab="{ path: `notes.${note.id}.text`, store: notesCollab }"
+          :collab="collabSubpath(notesCollab.props.value, `notes.${route.params.noteId}.text`)"
           :readonly="readonly"
           v-bind="inputFieldAttrs"
         />
@@ -91,14 +91,14 @@ const projectStore = useProjectStore();
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
 
-const notesCollab = computed(() => projectStore.notesCollab(project.value.id));
-const note = computed(() => notesCollab.value.data.value.notes[route.params.noteId as string]);
-const readonly = computed(() => project.value.readonly || notesCollab.value.connectionState.value !== CollabConnectionState.OPEN);
+const notesCollab = projectStore.useNotesCollab(project.value);
+const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
+const readonly = computed(() => project.value.readonly || notesCollab.connectionState.value !== CollabConnectionState.OPEN);
 
 // TODO: quick and dirty mocking
 const fetchLoaderAttrs = computed(() => ({
   fetchState: {
-    pending: [CollabConnectionState.CONNECTING, CollabConnectionState.INITIALIZING].includes(notesCollab.value.connectionState.value),
+    pending: [CollabConnectionState.CONNECTING, CollabConnectionState.INITIALIZING].includes(notesCollab.connectionState.value),
     error: null,
     data: note.value,
   }
@@ -107,7 +107,10 @@ const inputFieldAttrs = computed(() => ({}));
 const toolbarAttrs = computed(() => ({}));
 
 function updateKey(key: string, value: any) {
-  notesCollab.value.updateKey(`notes.${route.params.noteId}.${key}`, value)
+  useEventBus('collab:update.key').emit({ 
+    path: collabSubpath(notesCollab.props.value, `notes.${route.params.noteId}.${key}`).path, 
+    value,
+  });
 }
 
 const baseUrl = `/api/v1/pentestprojects/${route.params.projectId}/notes/${route.params.noteId}/`;

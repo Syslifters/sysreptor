@@ -39,13 +39,21 @@ definePageMeta({
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
 const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 
-const notesCollab = computed(() => projectStore.notesCollab(project.value.id));
+const notesCollab = projectStore.useNotesCollab(project.value);
+watch(notesCollab.connectionState, (val) => {
+  console.log('notesCollab.connectionState', val);
+});
+watch(() => notesCollab.data.value, (val) => {
+  console.log('notesCollab.data', val);
+}, { deep: true });
+
 onMounted(() => {
-  notesCollab.value.connect();
+  notesCollab.connect();
 });
 onBeforeUnmount(() => {
-  notesCollab.value.disconnect();
+  notesCollab.disconnect();
 });
+
 
 // TODO: Update to websockets API
 // async function createNote() {

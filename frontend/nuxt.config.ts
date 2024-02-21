@@ -36,6 +36,7 @@ export default defineNuxtConfig({
   modules: [
     ['@nuxtjs/eslint-module', { lintOnStart: false }],
     'vuetify-nuxt-module',
+    '@vueuse/nuxt',
     '@pinia/nuxt',
     '@pinia-plugin-persistedstate/nuxt',
   ],

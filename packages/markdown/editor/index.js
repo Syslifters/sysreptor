@@ -1,4 +1,4 @@
-export { EditorState, EditorSelection } from '@codemirror/state';
+export { EditorState, EditorSelection, ChangeSet } from '@codemirror/state';
 export { EditorView, ViewUpdate, tooltips, scrollPastEnd, keymap, lineNumbers, drawSelection, rectangularSelection, crosshairCursor, } from '@codemirror/view';
 export { history, historyKeymap, defaultKeymap, indentWithTab, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 export { forceLinting, setDiagnostics } from '@codemirror/lint';
@@ -12,6 +12,7 @@ export { createEditorExtensionToggler } from 'reportcreator-markdown/editor/util
 export { spellcheck, spellcheckTheme } from 'reportcreator-markdown/editor/spellcheck';
 export { highlightTodos } from 'reportcreator-markdown/editor/todos';
 export { markdownHighlightStyle, markdownHighlightCodeBlocks } from 'reportcreator-markdown/editor/highlight';
+export { collab, receiveUpdates, sendableUpdates } from '@codemirror/collab';
 export { 
   toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
   toggleListUnordered, toggleListOrdered, toggleTaskList,

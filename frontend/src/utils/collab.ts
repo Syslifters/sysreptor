@@ -1,6 +1,9 @@
 import set from "lodash/set";
+import trimStart from "lodash/trimStart";
 import urlJoin from "url-join";
-import { Connect } from "vite";
+// @ts-ignore
+import { ChangeSet } from "reportcreator-markdown/editor";
+import type { PentestProject } from "./types";
 
 export enum CollabConnectionState {
   CLOSED = 'closed',
@@ -9,13 +12,22 @@ export enum CollabConnectionState {
   OPEN = 'open',
 };
 
-export type CollabState<T> = {
-  websocket: WebSocket|null;
-  connectionState: CollabConnectionState;
-  clientId: string;
-  version: number;
-  // unconfirmedUpdates: any[];
+export type CollabStoreState<T> = {
   data: T;
+  clientID: string;
+  connectionState: CollabConnectionState;
+  websocket: WebSocket|null;
+  websocketPath: string;
+}
+
+export function makeCollabStoreState<T>(websocketPath: string, data: T): CollabStoreState<T> {
+  return {
+    data,
+    clientID: '',
+    connectionState: CollabConnectionState.CLOSED,
+    websocketPath,
+    websocket: null,
+  }
 }
 
 export function useObservable() {
@@ -48,84 +60,131 @@ export function useObservable() {
   }
 }
 
-export function useCollab<T>(path: string, initialData: T) {
-  const websocket = ref<WebSocket|null>(null);
-  const connectionState = ref(CollabConnectionState.CLOSED);
-  const clientId = ref('');
-  const version = ref(0);
-  const data = ref(initialData);
-  const observable = useObservable();
-  
+export function useCollab(storeState: CollabStoreState<any>) {
+  const eventBusUpdateKey = useEventBus('collab:update.key');
+  const eventBusUpdateText = useEventBus('collab:update.text');
+
   function connect() {
-    if (connectionState.value !== CollabConnectionState.CLOSED) {
+    if (storeState.connectionState !== CollabConnectionState.CLOSED) {
       return;
     }
   
     const serverUrl = import.meta.env.DEV ? 
       'ws://localhost:8000' : 
       `${window.location.protocol === 'https' ? 'wss' : 'ws'}://${window.location.host}/`;
-    const wsUrl = urlJoin(serverUrl, path);
-    connectionState.value = CollabConnectionState.CONNECTING;
-    websocket.value = new WebSocket(wsUrl);
-    websocket.value.addEventListener('open', () => {
-      connectionState.value = CollabConnectionState.INITIALIZING;
+    const wsUrl = urlJoin(serverUrl, storeState.websocketPath);
+    storeState.connectionState = CollabConnectionState.CONNECTING;
+    storeState.websocket = new WebSocket(wsUrl);
+    storeState.websocket.addEventListener('open', () => {
+      storeState.connectionState = CollabConnectionState.INITIALIZING;
     })
-    websocket.value.addEventListener('close', () => {
-      connectionState.value = CollabConnectionState.CLOSED;
+    storeState.websocket.addEventListener('close', () => {
+      storeState.connectionState = CollabConnectionState.CLOSED;
     });
-    websocket.value.addEventListener('error', () => {
-      connectionState.value = CollabConnectionState.CLOSED;
+    storeState.websocket.addEventListener('error', () => {
+      storeState.connectionState = CollabConnectionState.CLOSED;
     });
-    websocket.value.addEventListener('message', (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'init') {
-        connectionState.value = CollabConnectionState.OPEN;
-        clientId.value = data.clientId;
-        version.value = data.version;
-        data.value = data.data;
-      } else if (data.type === 'update.key') {
+    storeState.websocket.addEventListener('message', (event: MessageEvent) => {
+      const msgData = JSON.parse(event.data);
+      console.log('Received websocket message:', msgData);
+      if (msgData.type === 'init') {
+        storeState.connectionState = CollabConnectionState.OPEN;
+        storeState.clientID = msgData.clientID;
+        // storeState.version = msgData.version;
+        storeState.data = msgData.data;
+      } else if (msgData.type === 'update.key') {
         // TODO: should we track unconfirmed updates, or is this irrelevant for update.key ?
-        set(data.value as Object, data.path, data.value);
-      } else if (data.type === 'update.text') {
+        eventBusUpdateKey.emit({ 
+          ...msgData, 
+          path: storeState.websocketPath + msgData.path, 
+          noWs: true, 
+        });
+      } else if (msgData.type === 'update.text') {
         // TODO: handle in codemirror or here??
-        observable.emit(data.type, data);
+        eventBusUpdateText.emit({ 
+          ...msgData, 
+          path: storeState.websocketPath + msgData.path,
+          noWs: true,
+        });
       } else {
         // eslint-disable-next-line no-console
-        console.error('Received unknown websocket message:', data);
+        console.error('Received unknown websocket message:', msgData);
       }
     });
+
+    eventBusUpdateKey.on(updateKey);
+    eventBusUpdateText.on(updateText);
   }
 
   function disconnect() {
-    if (connectionState.value === CollabConnectionState.CLOSED) {
+    if (storeState.connectionState === CollabConnectionState.CLOSED) {
       return;
     }
-    websocket.value?.close();
-    connectionState.value = CollabConnectionState.CLOSED;
-    websocket.value = null;
+    eventBusUpdateKey.off(updateKey);
+    eventBusUpdateText.off(updateText);
+    storeState.websocket?.close();
+    storeState.connectionState = CollabConnectionState.CLOSED;
+    storeState.websocket = null;
   }
 
-  function updateKey(path: string, value: any) {
-    if (connectionState.value !== CollabConnectionState.OPEN) {
+  function toDataPath(path: string) {
+    return trimStart(path.slice(storeState.websocketPath.length), '.');
+  }
+
+  function updateKey(event: any) {
+    if (!event.path?.startsWith(storeState.websocketPath)) {
+      // Event is not for us
       return;
     }
-  
-    websocket.value!.send(JSON.stringify({
-      type: 'update.key',
-      path,
-      value,
-    }));
-    set(data.value as Object, path, value);
+
+    const dataPath = toDataPath(event.path);
+    if (!event.noWs) {
+      // Propagate event to other clients
+      storeState.websocket?.send(JSON.stringify({
+        type: 'update.key',
+        path: dataPath,
+        value: event.value,
+      }));
+    }
+
+    // Update local state
+    console.log('collab:update.key', event);
+    set(storeState.data as Object, dataPath, event.value);
+  }
+
+  function updateText(event: any) {
+    if (!event.path?.startsWith(storeState.websocketPath)) {
+      // Event is not for us
+      return;
+    }
+    const dataPath = toDataPath(event.path);
+    if (!event.noWs) {
+      // Propagate event to other clients
+      storeState.websocket?.send(JSON.stringify({
+        type: 'update.text',
+        path: dataPath,
+        changes: event.changes,
+      }));
+    }
+
+    // Updating text field content is handled in useMarkdownEditor
+    console.log('collab:update.text', event);
   }
 
   return {
-    clientId,
-    connectionState,
-    data,
     connect,
     disconnect,
-    updateKey,
-    on: observable.on,
-    off: observable.off,
+  }
+}
+
+export type CollabPropType = {
+  path: string;
+  clientID: string;
+};
+
+export function collabSubpath(collab: CollabPropType, subPath: string) {
+  return {
+    ...collab,
+    path: collab.path + '.' + subPath,
   }
 }
