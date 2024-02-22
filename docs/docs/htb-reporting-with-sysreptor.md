@@ -48,7 +48,7 @@ curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemoda
 <a href="/assets/reports/HTB-CWEE-Report.pdf" target="_blank">
     <figure style="float:left;width:24%;margin:0.5em;">
         <img alt="HTB CWEE Report Demo" src="/assets/reports/HTB-CWEE-Report-Preview.png" style="border:1px solid;" />
-        <figcaption>HTB CDSA Report Demo</figcaption>
+        <figcaption>HTB CWEE Report Demo</figcaption>
     </figure>
 </a>
 </div>
