@@ -278,32 +278,32 @@ report_template = """
         </h2>
         <table class="finding-header">
             <tr>
-                <td :class="'risk-bg-' + finding.cvss.level">CWE</td>
+                <th :class="'risk-bg-' + finding.cvss.level">CWE</th>
                 <td>
                     {{ finding.cwe || '-' }}
                 </td>
             </tr>
             <tr>
-                <td :class="'risk-bg-' + finding.cvss.level">CVSS 3.1</td>
+                <th :class="'risk-bg-' + finding.cvss.level">CVSS 3.1</th>
                 <td>
                     <span v-if="!finding.cvss.vector || finding.cvss.vector === 'n/a'">N/A</span>
                     <span v-else>{{ finding.cvss.score}} / {{ finding.cvss.vector }}</span>
                 </td>
             </tr>
             <tr>
-                <td :class="'risk-bg-' + finding.cvss.level">Root Cause</td>
+                <th :class="'risk-bg-' + finding.cvss.level">Root Cause</th>
                 <td>
                     <markdown :text="finding.summary" />
                 </td>
             </tr>
             <tr>
-                <td :class="'risk-bg-' + finding.cvss.level">Impact</td>
+                <th :class="'risk-bg-' + finding.cvss.level">Impact</th>
                 <td>
                     <markdown :text="finding.impact" />
                 </td>
             </tr>
             <tr v-if="finding.affected_components.length > 0">
-                <td :class="'risk-bg-' + finding.cvss.level">Affected Component</td>
+                <th :class="'risk-bg-' + finding.cvss.level">Affected Component</th>
                 <td>
                     <span v-if="finding.affected_components.length === 0">-</span>
                     <span v-else-if="finding.affected_components.length === 1">{{ finding.affected_components[0]
@@ -314,13 +314,13 @@ report_template = """
                 </td>
             </tr>
             <tr>
-                <td :class="'risk-bg-' + finding.cvss.level">Remediation</td>
+                <th :class="'risk-bg-' + finding.cvss.level">Remediation</th>
                 <td>
                     <markdown :text="finding.recommendation" />
                 </td>
             </tr>
             <tr>
-                <td :class="'risk-bg-' + finding.cvss.level">References</td>
+                <th :class="'risk-bg-' + finding.cvss.level">References</th>
                 <td>
                     <span v-if="finding.references.length === 0">-</span>
                     <span v-else-if="finding.references.length === 1">{{ finding.references[0] }}</span>
@@ -557,9 +557,9 @@ footnote {
 
 
 /* Finding */
-.finding-header .table-key {
-    height: 3em;
-    width: 10em;
+.finding-header th {
+    font-weight: normal;
+    width: 7em;
 }
 .finding-header tr {
     break-inside: auto;
