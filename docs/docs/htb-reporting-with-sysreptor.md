@@ -5,7 +5,7 @@ Our free cloud service to write your Hack The Box CPTS, CBBH, and CDSA reports.
 💲 Free  
 📝 Write in markdown  
 ⚙️ Render your report to PDF  
-🛡️ CPTS, CBBH, CDSA  
+🛡️ CPTS, CBBH, CDSA, CWEE  
 🚀 Fully customizable  
 👌 No local software troubleshooting
 
@@ -42,6 +42,12 @@ curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemoda
 <a href="/assets/reports/HTB-CDSA-Report.pdf" target="_blank">
     <figure style="float:left;width:24%;margin:0.5em;">
         <img alt="HTB CDSA Report Demo" src="/assets/reports/HTB-CDSA-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>HTB CDSA Report Demo</figcaption>
+    </figure>
+</a>
+<a href="/assets/reports/HTB-CWEE-Report.pdf" target="_blank">
+    <figure style="float:left;width:24%;margin:0.5em;">
+        <img alt="HTB CWEE Report Demo" src="/assets/reports/HTB-CWEE-Report-Preview.png" style="border:1px solid;" />
         <figcaption>HTB CDSA Report Demo</figcaption>
     </figure>
 </a>
