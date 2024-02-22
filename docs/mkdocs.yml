@@ -48,19 +48,20 @@ nav:
       - Getting Started: cli/getting-started.md
       - Setup: cli/setup.md
       - Tools:
+          - Nessus: cli/tools/nessus.md
+          - OpenVAS: cli/tools/openvas.md
           - Nmap: cli/tools/nmap.md
-          - ZAP: cli/tools/zap.md
           - SSLyze: cli/tools/sslyze.md
-      - Uploads:
-          - PushProject: cli/uploads/pushproject.md
-          - Finding: cli/uploads/finding.md
-          - File: cli/uploads/file.md
-          - Note: cli/uploads/note.md
+          - ZAP: cli/tools/zap.md
       - Projects and Templates:
           - Project: cli/projects-and-templates/project.md
           - CreateProject: cli/projects-and-templates/createproject.md
-          - ProjectFindings: cli/projects-and-templates/projectfindings.md
+          - PushProject: cli/projects-and-templates/pushproject.md
+          - Finding: cli/projects-and-templates/finding.md
+          - ExportFindings: cli/projects-and-templates/exportfindings.md
           - Template: cli/projects-and-templates/template.md
+          - File: cli/projects-and-templates/file.md
+          - Note: cli/projects-and-templates/note.md
           - Translate: cli/projects-and-templates/translate.md
       - Utils:
           - Unpackarchive: cli/utils/unpackarchive.md
