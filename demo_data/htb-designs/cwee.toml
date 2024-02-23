@@ -709,9 +709,7 @@ origin = "custom"
 default = """
 {{ report.candidate.a_name }} performed testing under a mixture of "blackbox" and a "whitebox" approach from {{ formatDate(report.pentest_start, 'long', 'en-US') }} to {{ formatDate(report.pentest_end, 'long', 'en-US') }}, as follows:
 
-- `{{ report.customers[0].customer_short }}` <markdown :text="report.customers[0].pentest_approach" class="markdown-inline" />
-- `{{ report.customers[1].customer_short }}` <markdown :text="report.customers[1].pentest_approach" class="markdown-inline" />
-- `{{ report.customers[2].customer_short }}` <markdown :text="report.customers[2].pentest_approach" class="markdown-inline" />
+<ul><li v-for="customer in report.customers"> <code>{{ customer.customer_short }}</code> <markdown :text="customer.pentest_approach" class="markdown-inline" /></li></ul>
 
 Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
 
@@ -891,7 +889,7 @@ type = "markdown"
 label = "Executive Summary"
 origin = "custom"
 default = """
-{{ report.customers[0].customer_full }} (“{{ report.customers[0].customer_short }}” herein), {{ report.customers[1].customer_full }} (“{{ report.customers[1].customer_short }}” herein), and {{ report.customers[2].customer_full }} (“{{ report.customers[2].customer_short }}” herein) have invited {{ report.candidate.a_name }} to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
+{{ report.customers[0]?.customer_full }} (“{{ report.customers[0]?.customer_short }}” herein), {{ report.customers[1]?.customer_full }} (“{{ report.customers[1]?.customer_short }}” herein), and {{ report.customers[2]?.customer_full }} (“{{ report.customers[2]?.customer_short }}” herein) have invited {{ report.candidate.a_name }} to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
 
 All web-related findings were considered in-scope, as long as they can be proven harmful to the client with a Medium-High impact. The following types of activities were considered out-of-scope for this test:
 
@@ -1170,7 +1168,7 @@ zugreift.
 target_systems = "TODO: fill field in report"
 internal_contact = "TODO: fill field in report"
 executive_summary = """
-{{ report.customers[0].customer_full }} (“{{ report.customers[0].customer_short }}” herein), {{ report.customers[1].customer_full }} (“{{ report.customers[1].customer_short }}” herein), and {{ report.customers[2].customer_full }} (“{{ report.customers[2].customer_short }}” herein) have invited {{ report.candidate.a_name }} to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
+{{ report.customers[0]?.customer_full }} (“{{ report.customers[0]?.customer_short }}” herein), {{ report.customers[1]?.customer_full }} (“{{ report.customers[1]?.customer_short }}” herein), and {{ report.customers[2]?.customer_full }} (“{{ report.customers[2]?.customer_short }}” herein) have invited {{ report.candidate.a_name }} to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
 
 All web-related findings were considered in-scope, as long as they can be proven harmful to the client with a Medium-High impact. The following types of activities were considered out-of-scope for this test:
 
@@ -1187,9 +1185,7 @@ customer_full = "Royal Flush Ltd."
 approach = """
 {{ report.candidate.a_name }} performed testing under a mixture of "blackbox" and a "whitebox" approach from {{ formatDate(report.pentest_start, 'long', 'en-US') }} to {{ formatDate(report.pentest_end, 'long', 'en-US') }}, as follows:
 
-- `{{ report.customers[0].customer_short }}` <markdown :text="report.customers[0].pentest_approach" class="markdown-inline" />
-- `{{ report.customers[1].customer_short }}` <markdown :text="report.customers[1].pentest_approach" class="markdown-inline" />
-- `{{ report.customers[2].customer_short }}` <markdown :text="report.customers[2].pentest_approach" class="markdown-inline" />
+<ul><li v-for="customer in report.customers"> <code>{{ customer.customer_short }}</code> <markdown :text="customer.pentest_approach" class="markdown-inline" /></li></ul>
 
 Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
 
