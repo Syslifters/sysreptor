@@ -21,6 +21,13 @@ def find_all_indices(s: str, find: str):
             idx += 1
 
 
+def get_at(lst: list, idx: int, default=None):
+    try:
+        return lst[idx]
+    except IndexError:
+        return default
+
+
 def get_key_or_attr(d: Union[dict, object], k: str, default=None):
     return d.get(k, default) if isinstance(d, (dict, OrderedDict)) else getattr(d, k, default)
 

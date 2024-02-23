@@ -94,6 +94,9 @@ const project = await useAsyncDataE(async () => await projectStore.getById(route
 const notesCollab = projectStore.useNotesCollab(project.value);
 const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
 const readonly = computed(() => project.value.readonly || notesCollab.connectionState.value !== CollabConnectionState.OPEN);
+watch(() => note.value?.text, () => {
+  console.log('note text changed', note.value.text);
+});
 
 // TODO: quick and dirty mocking
 const fetchLoaderAttrs = computed(() => ({

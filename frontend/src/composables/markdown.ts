@@ -9,7 +9,7 @@ import {
   spellcheck, spellcheckTheme,
   lineNumbers, indentUnit, defaultKeymap, indentWithTab,
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
-  collab, receiveUpdates, sendableUpdates,
+  collab, receiveUpdates, sendableUpdates, ChangeSet,
   // @ts-ignore
 } from "reportcreator-markdown/editor";
 import { MarkdownEditorMode } from '@/utils/types';
@@ -164,9 +164,15 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   }
 
   function onUpdateText(event: any) {
-    if (event.path === props.value.collab?.path) {
+    if (event.path === props.value.collab?.path && event.source !== 'editor') {
+      // TODO: state management: race conditions between event bus updates and v-model updates: errors while applying updates (e.g. when typing fast)
       // TODO: maybe we need to customize receiveUpdates to use a different versioning scheme (with server-side versions)?
-      editorView.value.dispatch(receiveUpdates(editorView.value.state, event.changes));
+      const transaction = receiveUpdates(editorView.value.state, event.updates.map((u: any) => ({
+        clientID: u.clientID,
+        changes: ChangeSet.fromJSON(u.changes),
+      })));
+      console.log('Markdown onUpdateText', transaction);
+      editorView.value.dispatch(transaction);
     }
   }
 
@@ -176,6 +182,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   const editorState = shallowRef<EditorState|null>(null);
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
   const eventBusUpdateText = useEventBus('collab:update.text');
+  const eventBusUpdateKey = useEventBus('collab:update.key');
   function initializeEditorView() {
     editorView.value = new EditorView({
       parent: editorRef.value,
@@ -190,38 +197,35 @@ export function useMarkdownEditor({ props, emit, extensions }: {
             blur: (event: FocusEvent) => emit('blur', event),
             focus: (event: FocusEvent) => emit('focus', event),
           }),
+          EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
+            editorState.value = viewUpdate.state;
+            // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
+            if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
+              emit('update:modelValue', viewUpdate.state.doc.toString());
+            }
+          }),
           ((props.value.collab) ? [
             collab({ 
               startVersion: 0, // TODO: use server-side versioning
             }),
             EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
-              // TODO: emit updates to collab store
               const updates = sendableUpdates(viewUpdate.state);
               if (updates?.length > 0) {
                 eventBusUpdateText.emit({
                   path: props.value.collab?.path,
-                  changes: updates.map((u: any) => ({
+                  updates: updates.map((u: any) => ({
                     clientID: u.clientID,
                     changes: u.changes.toJSON(),
                   })),
+                  source: 'editor',
                 });
               }
             }),
-          ] : [
-            EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
-              editorState.value = viewUpdate.state;
-              // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
-              if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
-                emit('update:modelValue', viewUpdate.state.doc.toString());
-              }
-            }),
-          ]),
+          ] : []),
         ]
       }),
     });
-    if (props.value.collab) {
-      eventBusUpdateText.on(onUpdateText);
-    }
+    eventBusUpdateText.on(onUpdateText);
 
     editorState.value = editorView.value.state;
     editorActions.value = {

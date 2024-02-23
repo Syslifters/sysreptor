@@ -91,17 +91,17 @@ export function useCollab(storeState: CollabStoreState<any>) {
         storeState.data = msgData.data;
       } else if (msgData.type === 'update.key') {
         // TODO: should we track unconfirmed updates, or is this irrelevant for update.key ?
-        eventBusUpdateKey.emit({ 
+        eventBusUpdateKey.emit({
           ...msgData, 
           path: storeState.websocketPath + msgData.path, 
-          noWs: true, 
+          source: 'ws',
         });
       } else if (msgData.type === 'update.text') {
         // TODO: handle in codemirror or here??
         eventBusUpdateText.emit({ 
           ...msgData, 
           path: storeState.websocketPath + msgData.path,
-          noWs: true,
+          source: 'ws',
         });
       } else {
         // eslint-disable-next-line no-console
@@ -135,7 +135,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
     }
 
     const dataPath = toDataPath(event.path);
-    if (!event.noWs) {
+    if (event.source !== 'ws') {
       // Propagate event to other clients
       storeState.websocket?.send(JSON.stringify({
         type: 'update.key',
@@ -155,12 +155,12 @@ export function useCollab(storeState: CollabStoreState<any>) {
       return;
     }
     const dataPath = toDataPath(event.path);
-    if (!event.noWs) {
+    if (event.source !== 'ws') {
       // Propagate event to other clients
       storeState.websocket?.send(JSON.stringify({
         type: 'update.text',
         path: dataPath,
-        changes: event.changes,
+        updates: event.updates,
       }));
     }
 
@@ -179,8 +179,9 @@ export type CollabPropType = {
 };
 
 export function collabSubpath(collab: CollabPropType, subPath: string) {
+  const addDot = !collab.path.endsWith('.') && !collab.path.endsWith('/');
   return {
     ...collab,
-    path: collab.path + '.' + subPath,
+    path: collab.path + (addDot ? '.' : '') + subPath,
   }
 }

@@ -1,9 +1,5 @@
 import orderBy from "lodash/orderBy";
 import pick from "lodash/pick";
-import set from "lodash/set";
-import urlJoin from "url-join";
-// @ts-ignore
-import { ChangeSet } from "reportcreator-markdown/editor";
 import { groupNotes } from "@/stores/usernotes";
 import type { NoteGroup } from '@/stores/usernotes';
 import type { PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
