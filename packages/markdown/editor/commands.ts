@@ -1,29 +1,26 @@
-import {countColumn, EditorSelection} from "@codemirror/state"
-import {indentUnit, syntaxTree} from "@codemirror/language"
+import { type SyntaxNode, Tree } from "@lezer/common"
+import { type ChangeSpec, countColumn, EditorSelection, EditorState, Line, SelectionRange, type StateCommand, Text, Transaction } from "@codemirror/state"
+import { indentUnit, syntaxTree } from "@codemirror/language"
 import { markdownLanguage } from "./language";
-import {linesInRange, getChildren, intersectsRange, getIntersectionNodes, moveRangeDelete, moveRangeInsert} from './codemirror-utils';
+import { linesInRange, getChildren, intersectsRange, getIntersectionNodes, moveRangeDelete, moveRangeInsert } from './codemirror-utils';
+
+
+type CommandArg = {state: EditorState, dispatch: (tr: Transaction) => void};
 
 
 class Context {
   constructor(
-    node,
-    from,
-    to,
-    spaceBefore,
-    spaceAfter,
-    type,
-    item
+    readonly node: SyntaxNode,
+    readonly from: number,
+    readonly to: number,
+    readonly spaceBefore: string,
+    readonly spaceAfter: string,
+    readonly type: string,
+    readonly item: SyntaxNode|null
   ) {
-    this.node = node;
-    this.from = from;
-    this.to = to;
-    this.spaceBefore = spaceBefore;
-    this.spaceAfter = spaceAfter;
-    this.type = type;
-    this.item = item;
   }
 
-  blank(maxWidth = null, trailing = true) {
+  blank(maxWidth: number|null = null, trailing = true) {
     let result = this.spaceBefore;
     if (this.node.name === "blockQuote") { 
       result += ">";
@@ -41,49 +38,49 @@ class Context {
     }
   }
 
-  marker(doc, add) {
-    let number = this.node.name == "listOrdered" ? String((+itemNumber(this.item, doc)[2] + add)) : ""
+  marker(doc: Text, add: number) {
+    let number = this.node.name == "listOrdered" ? String((+itemNumber(this.item!, doc)![2] + add)) : ""
     return this.spaceBefore + number + this.type + this.spaceAfter
   }
 }
 
-function getContext(selectedNode, doc) {
-  let nodes = []
-  for (let cur = selectedNode; cur && cur.name != "document"; cur = cur.parent) {
+function getContext(selectedNode: SyntaxNode, doc: Text) {
+  let nodes = [] as SyntaxNode[]
+  for (let cur: SyntaxNode|null = selectedNode; cur && cur.name != "document"; cur = cur.parent) {
     if (cur.name == "listItem" || cur.name == "blockQuote")
       nodes.push(cur)
   }
-  let context = [];
+  let context = [] as Context[];
   for (let i = nodes.length - 1; i >= 0; i--) {
     let node = nodes[i], match;
     let line = doc.lineAt(node.from), startPos = node.from - line.from;
     if (node.name == "blockQuote" && (match = /^ *>( ?)/.exec(line.text.slice(startPos)))) {
       context.push(new Context(node, startPos, startPos + match[0].length, "", match[1], ">", null));
-    } else if (node.name == "listItem" && node.parent.name == "listOrdered" &&
+    } else if (node.name == "listItem" && node.parent!.name == "listOrdered" &&
                (match = /^( *)\d+([.)])( *)/.exec(line.text.slice(startPos)))) {
       let after = match[3], len = match[0].length
       if (after.length >= 4) { after = after.slice(0, after.length - 4); len -= 4 }
-      context.push(new Context(node.parent, startPos, startPos + len, match[1], after, match[2], node));
-    } else if (node.name == "listItem" && node.parent.name == "listUnordered" &&
+      context.push(new Context(node.parent!, startPos, startPos + len, match[1], after, match[2], node));
+    } else if (node.name == "listItem" && node.parent!.name == "listUnordered" &&
                (match = /^( *)([-+*])( {1,4}\[[ xX]\])?( +)/.exec(line.text.slice(startPos)))) {
       let after = match[4], len = match[0].length
       if (after.length > 4) { after = after.slice(0, after.length - 4); len -= 4 }
       let type = match[2]
       if (match[3]) type += match[3].replace(/[xX]/, ' ')
-      context.push(new Context(node.parent, startPos, startPos + len, match[1], after, type, node));
+      context.push(new Context(node.parent!, startPos, startPos + len, match[1], after, type, node));
     }
   }
   return context
 }
 
-function itemNumber(item, doc) {
+function itemNumber(item: SyntaxNode, doc: Text) {
   return /^(\s*)(\d+)(?=[.)])/.exec(doc.sliceString(item.from, item.from + 10))
 }
 
-function renumberList(after, doc, changes, offset = 0) {
+function renumberList(after: SyntaxNode, doc: Text, changes: ChangeSpec[], offset = 0) {
   for (let prev = -1, node = after;;) {
     if (node.name == "listItem") {
-      let m = itemNumber(node, doc)
+      let m = itemNumber(node, doc)!
       let number = +m[2]
       if (prev >= 0) {
         if (number != prev + 1) return
@@ -97,8 +94,8 @@ function renumberList(after, doc, changes, offset = 0) {
   }
 }
 
-function normalizeIndent(content, state) {
-  let blank = /^[ \t]*/.exec(content)[0].length
+function normalizeIndent(content: string, state: EditorState) {
+  let blank = /^[ \t]*/.exec(content)![0].length
   if (!blank || state.facet(indentUnit) != "\t") return content
   let col = countColumn(content, 4, blank)
   let space = ""
@@ -118,9 +115,9 @@ function normalizeIndent(content, state) {
 /// The command does nothing in non-Markdown context, so it should
 /// not be used as the only binding for Enter (even in a Markdown
 /// document, HTML and code regions might use a different language).
-export const insertNewlineContinueMarkup = ({state, dispatch}) => {
+export const insertNewlineContinueMarkup: StateCommand = ({state, dispatch}) => {
   let tree = syntaxTree(state), {doc} = state
-  let dont = null, changes = state.changeByRange(range => {
+  let dont: {range: SelectionRange}|null = null, changes = state.changeByRange(range => {
     if (!range.empty || !markdownLanguage.isActiveAt(state, range.from)) return dont = {range}
     let pos = range.from, line = doc.lineAt(pos)
     let context = getContext(tree.resolveInner(pos, -1), doc)
@@ -149,7 +146,7 @@ export const insertNewlineContinueMarkup = ({state, dispatch}) => {
         renumberList(inner.item, doc, changes, -2);
       }
       if (next && next.node.name == "listOrdered") {
-        renumberList(next.item, doc, changes);
+        renumberList(next.item!, doc, changes);
       }
       return {range: EditorSelection.cursor(delTo + insert.length), changes}
       // } else { // Move second item down, making tight two-item list non-tight
@@ -169,14 +166,14 @@ export const insertNewlineContinueMarkup = ({state, dispatch}) => {
       }
     }
 
-    let changes = []
+    let changes: ChangeSpec[] = []
     if (inner.node.name == "listOrdered") {
-      renumberList(inner.item, doc, changes);
+      renumberList(inner.item!, doc, changes);
     }
     let continued = inner.item && inner.item.from < line.from;
     let insert = "";
     // If not dedented
-    if (!continued || /^[\s\d.)\-+*>]*/.exec(line.text)[0].length >= inner.to) {
+    if (!continued || /^[\s\d.)\-+*>]*/.exec(line.text)![0].length >= inner.to) {
       for (let i = 0, e = context.length - 1; i <= e; i++) {
         insert += i == e && !continued ? context[i].marker(doc, 1)
           : context[i].blank(i < e ? countColumn(line.text, 4, context[i + 1].from) - insert.length : null)
@@ -199,16 +196,16 @@ export const insertNewlineContinueMarkup = ({state, dispatch}) => {
 }
 
 
-function nonTightList(node, doc) {
+function nonTightList(node: SyntaxNode, doc: Text) {
   if (node.name != "listOrdered" && node.name != "listUnordered") return false
-  let first = node.firstChild, second = node.getChild("listItem", "listItem")
+  let first = node.firstChild!, second = node.getChild("listItem", "listItem")
   if (!second) return false
   let line1 = doc.lineAt(first.to), line2 = doc.lineAt(second.from)
   let empty = /^[\s>]*$/.test(line1.text)
   return line1.number + (empty ? 0 : 1) < line2.number
 }
 
-function blankLine(context, state, line) {
+function blankLine(context: Context[], state: EditorState, line: Line) {
   let insert = ""
   for (let i = 0, e = context.length - 2; i <= e; i++) {
     insert += context[i].blank(i < e ? countColumn(line.text, 4, context[i + 1].from) - insert.length : null, i < e)
@@ -216,23 +213,21 @@ function blankLine(context, state, line) {
   return normalizeIndent(insert, state)
 }
 
-
-
-function isMark(node) {
+function isMark(node: SyntaxNode) {
   return node.name == "blockQuotePrefix" || node.name == "listItemPrefix"
 }
 
-function contextNodeForDelete(tree, pos) {
+function contextNodeForDelete(tree: Tree, pos: number) {
   let node = tree.resolveInner(pos, -1), scan = pos
   if (isMark(node)) {
     scan = node.from
-    node = node.parent
+    node = node.parent!
   }
   for (let prev; prev = node.childBefore(scan);) {
     if (isMark(prev)) {
       scan = prev.from
     } else if (prev.name == "listOrdered" || prev.name == "listUnordered") {
-      node = prev.lastChild
+      node = prev.lastChild!
       scan = node.to
     } else {
       break
@@ -251,9 +246,9 @@ function contextNodeForDelete(tree, pos) {
 /// When not after Markdown block markup, this command will return
 /// false, so it is intended to be bound alongside other deletion
 /// commands, with a higher precedence than the more generic commands.
-export const deleteMarkupBackward = ({state, dispatch}) => {
+export const deleteMarkupBackward: StateCommand = ({state, dispatch}) => {
   let tree = syntaxTree(state)
-  let dont = null, changes = state.changeByRange(range => {
+  let dont: {range: SelectionRange}|null = null, changes = state.changeByRange(range => {
     let pos = range.from, {doc} = state
     if (range.empty && markdownLanguage.isActiveAt(state, range.from)) {
       let line = doc.lineAt(pos)
@@ -293,7 +288,7 @@ export const deleteMarkupBackward = ({state, dispatch}) => {
 }
 
 
-export function isTypeInSelection(state, type) {
+export function isTypeInSelection(state: EditorState|null|undefined, type: string) {
   if (!state) {
     return false;
   }
@@ -302,7 +297,13 @@ export function isTypeInSelection(state, type) {
 }
 
 
-function toggleMarkdownAction({state, dispatch}, { isInSelection, enable, disable }) {
+function toggleMarkdownAction(
+  {state, dispatch}: {state: EditorState, dispatch: (tr: Transaction) => void}, 
+  { isInSelection, enable, disable }: { 
+    isInSelection: (node: SyntaxNode) => boolean, 
+    enable?: (range: SelectionRange, tree: Tree) => { range: SelectionRange, changes: ChangeSpec[] }, 
+    disable?: (range: SelectionRange, foundNodes: SyntaxNode[]) => { range: SelectionRange, changes: ChangeSpec[] }
+  }) {
   const tree = syntaxTree(state);
 
   const changes = state.changeByRange(range => {
@@ -331,7 +332,12 @@ function toggleMarkdownAction({state, dispatch}, { isInSelection, enable, disabl
 }
 
 
-function toggleMarkerType({state, dispatch}, { type, markerTypes = [], startMarker = null, endMarker = null}) {
+function toggleMarkerType({state, dispatch}: CommandArg, { type, markerTypes, startMarker, endMarker}: {
+  type: string,
+  markerTypes: string[],
+  startMarker: string,
+  endMarker: string
+}) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => {
       return n.name === type || (n.name === 'data' && state.doc.sliceString(n.from, n.to) === startMarker + endMarker)
@@ -359,7 +365,7 @@ function toggleMarkerType({state, dispatch}, { type, markerTypes = [], startMark
         .flatMap(n => getChildren(n).concat(n))
         .filter(c => markerTypes.includes(c.name) || (c.name === 'data' && state.doc.sliceString(c.from, c.to) === startMarker + endMarker));
       let newRange = range;
-      const changes = [];
+      const changes: ChangeSpec[] = [];
       for (const cn of removeMarkers) {
         const change = {from: cn.from, to: cn.to};
         newRange = moveRangeDelete(newRange, range, change)
@@ -370,7 +376,7 @@ function toggleMarkerType({state, dispatch}, { type, markerTypes = [], startMark
   });
 }
 
-export function toggleStrong({state, dispatch}) {
+export function toggleStrong({state, dispatch}: CommandArg) {
   return toggleMarkerType({state, dispatch}, {
     type: 'strong',
     markerTypes: ['strongSequence'],
@@ -379,7 +385,7 @@ export function toggleStrong({state, dispatch}) {
   });
 }
 
-export function toggleEmphasis({state, dispatch}) {
+export function toggleEmphasis({state, dispatch}: CommandArg) {
   return toggleMarkerType({state, dispatch}, {
     type: 'emphasis',
     markerTypes: ['emphasisSequence'],
@@ -388,7 +394,7 @@ export function toggleEmphasis({state, dispatch}) {
   });
 }
 
-export function toggleStrikethrough({state, dispatch}) {
+export function toggleStrikethrough({state, dispatch}: CommandArg) {
   return toggleMarkerType({state, dispatch}, {
     type: 'strikethrough',
     markerTypes: ['strikethroughSequence'],
@@ -397,7 +403,7 @@ export function toggleStrikethrough({state, dispatch}) {
   });
 }
 
-export function toggleFootnote({state, dispatch}) {
+export function toggleFootnote({state, dispatch}: CommandArg) {
   return toggleMarkerType({state, dispatch}, {
     type: 'inlineFootnote',
     markerTypes: ['inlineFootnoteMarker', 'inlineFootnoteStartMarker', 'inlineFootnoteEndMarker'],
@@ -406,16 +412,16 @@ export function toggleFootnote({state, dispatch}) {
   });
 }
 
-export function toggleListUnordered({state, dispatch}) {
+export function toggleListUnordered({state, dispatch}: CommandArg) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => n.name === 'listUnordered',
     enable: (range, tree) => {
       // Add marker to start of each line
       // If line is a listItem of an listOrdered: replace the marker
-      const changes = [];
+      const changes: ChangeSpec[] = [];
       let newRange = range;
       for (const line of linesInRange(state.doc, range)) {
-        const listItemNumber = getIntersectionNodes(tree, line, n => n.name === 'listItem' && n.parent.name === 'listOrdered')
+        const listItemNumber = getIntersectionNodes(tree, line, n => n.name === 'listItem' && n.parent!.name === 'listOrdered')
           .flatMap(n => getChildren(n))
           .filter(n => n.name === 'listItemPrefix')
           .find(n => intersectsRange(line, n));
@@ -442,7 +448,7 @@ export function toggleListUnordered({state, dispatch}) {
         .flatMap(n => getChildren(n))
         .filter(n => n.name === 'listItemPrefix');
       let newRange = range;
-      const changes = [];
+      const changes: ChangeSpec[] = [];
       for (const cn of removeMarkers) {
         const change = {from: cn.from, to: cn.to};
         newRange = moveRangeDelete(newRange, range, change)
@@ -453,20 +459,20 @@ export function toggleListUnordered({state, dispatch}) {
   });
 }
 
-export function toggleListOrdered({state, dispatch}) {
+export function toggleListOrdered({state, dispatch}: CommandArg) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => n.name === 'listOrdered',
     enable: (range, tree) => {
       // Add marker to start of each line
       // If line is a listItem of an listUnordered: replace the marker
-      const changes = [];
+      const changes: ChangeSpec[] = [];
       let newRange = range;
       let itemNumber = 0;
       for (const line of linesInRange(state.doc, range)) {
         itemNumber += 1;
         const listItemNumber =  itemNumber + '. ';
 
-        const listItemBullet = getIntersectionNodes(tree, line, n => n.name === 'listItem' && n.parent.name === 'listUnordered')
+        const listItemBullet = getIntersectionNodes(tree, line, n => n.name === 'listItem' && n.parent!.name === 'listUnordered')
           .flatMap(n => getChildren(n))
           .filter(n => n.name === 'listItemPrefix')
           .find(n => intersectsRange(line, n));
@@ -493,7 +499,7 @@ export function toggleListOrdered({state, dispatch}) {
         .flatMap(n => getChildren(n))
         .filter(n => n.name === 'listItemPrefix');
       let newRange = range;
-      const changes = [];
+      const changes: ChangeSpec[] = [];
       for (const cn of removeMarkers) {
         const change = {from: cn.from, to: cn.to};
         newRange = moveRangeDelete(newRange, range, change)
@@ -506,20 +512,20 @@ export function toggleListOrdered({state, dispatch}) {
 
 
 
-function isTaskListItem(node, doc) {
+function isTaskListItem(node: SyntaxNode, doc: Text) {
   const contentNode = node.firstChild?.nextSibling;
   if (node.name !== 'listItem' || node.firstChild?.name !== 'listItemPrefix' || !contentNode) {
     return false;
   }
-  const content = doc.slice(contentNode.from, contentNode.to).text[0] || '';
+  const content = doc.slice(contentNode.from, contentNode.to).toString() || '';
   return content.startsWith('[ ]') || content.startsWith('[x]');
 }
 
-function isTaskList(node, doc) {
+function isTaskList(node: SyntaxNode, doc: Text) {
   return node.name === 'listUnordered' && getChildren(node).some(c => isTaskListItem(c, doc));
 }
 
-export function isTaskListInSelection(state) {
+export function isTaskListInSelection(state?: EditorState|null) {
   if (!state) {
     return false;
   }
@@ -527,13 +533,13 @@ export function isTaskListInSelection(state) {
   return state.selection.ranges.some(range => getIntersectionNodes(tree, range, n => isTaskList(n, state.doc)).length > 0);
 }
 
-export function toggleTaskList({state, dispatch}) {
+export function toggleTaskList({state, dispatch}: CommandArg) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => isTaskList(n, state.doc),
     enable: (range, tree) => {
       // Add marker to start of each line
       // If line is a listItem of an listOrdered: replace the marker
-      const changes = [];
+      const changes: ChangeSpec[] = [];
       let newRange = range;
       for (const line of linesInRange(state.doc, range)) {
         const listItemNumber = getIntersectionNodes(tree, line, n => n.name === 'listItem' && !isTaskListItem(n, state.doc))
@@ -565,7 +571,7 @@ export function toggleTaskList({state, dispatch}) {
           if (n.name === 'listItemPrefix') {
             return n;
           }
-          const taskListCheck = (state.doc.slice(n.from, n.to).text[0] || '').match(/^(?<check>\[[ |x]\]\s*)/)?.groups.check;
+          const taskListCheck = (state.doc.slice(n.from, n.to).toString() || '').match(/^(?<check>\[[ |x]\]\s*)/)?.groups!.check;
           if (taskListCheck) {
             // Remove taskListCheck and the following space
             return {from: n.from, to: n.from + taskListCheck.length};
@@ -574,9 +580,9 @@ export function toggleTaskList({state, dispatch}) {
         })
         .filter(n => !!n);
       let newRange = range;
-      const changes = [];
+      const changes: ChangeSpec[] = [];
       for (const cn of removeMarkers) {
-        const change = {from: cn.from, to: cn.to};
+        const change = {from: cn!.from, to: cn!.to};
         newRange = moveRangeDelete(newRange, range, change)
         changes.push(change);
       }
@@ -586,7 +592,7 @@ export function toggleTaskList({state, dispatch}) {
 }
 
 
-export function toggleLink({state, dispatch}) {
+export function toggleLink({state, dispatch}: CommandArg) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => n.name === 'link',
     enable: (range) => {
@@ -604,11 +610,11 @@ export function toggleLink({state, dispatch}) {
         .filter(n => 
           getChildren(n)
           .flatMap(c => getChildren(c))
-          .filter(c => c.name === 'labelText' && c.parent.name === 'label' && range.from >= c.from && range.to <= c.to)
+          .filter(c => c.name === 'labelText' && c.parent!.name === 'label' && range.from >= c.from && range.to <= c.to)
           .length === 1)
         .flatMap(n => getChildren(n).flatMap(c => getChildren(c)))
-        .filter(c => !(c.name === 'labelText' && c.parent.name === 'label'));
-      const changes = [];
+        .filter(c => !(c.name === 'labelText' && c.parent!.name === 'label'));
+      const changes: ChangeSpec[] = [];
       let newRange = range;
       for (const n of linksToRemove) {
         const change = {from: n.from, to: n.to};
@@ -623,7 +629,7 @@ export function toggleLink({state, dispatch}) {
   });
 }
 
-export function insertCodeBlock({state, dispatch}) {
+export function insertCodeBlock({state, dispatch}: CommandArg) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => n.name === 'codeFenced',
     enable: (range) => {
@@ -641,7 +647,7 @@ export function insertCodeBlock({state, dispatch}) {
   })
 }
 
-export function insertTable({state, dispatch}) {
+export function insertTable({state, dispatch}: CommandArg) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => n.name === 'table',
     enable: (range) => {

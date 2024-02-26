@@ -1,7 +1,18 @@
-import { micromarkEventsToTree, parseMicromarkEvents } from './micromark-utils.js';
+import { type Event } from 'micromark-util-types';
+import { type MicromarkTreeNode, micromarkEventsToTree, parseMicromarkEvents } from './micromark-utils.js';
 
 
-function createBlockSeparator(pos) {
+export type AnnotatedText = {
+  offset: number;
+} & ({
+  text: string;
+} | {
+  markup: string;
+  interpretAs: string;
+});
+
+
+function createBlockSeparator(pos: number) {
   return {
     type: 'annotatedTextBlockSeparator', 
     text: '', 
@@ -16,15 +27,17 @@ function createBlockSeparator(pos) {
       start: pos,
       end: pos,
     },
-  };
+  } as MicromarkTreeNode;
 }
 
-export function extractLeafNodesFromMicromarkTree(tree, {interpretAsLeafNodes = [], interpretAsLeafNodesFns = {}, wrapTypesWithBlockSeparators = []}) {
-  const leafNodes = [];
+export function extractLeafNodesFromMicromarkTree(tree: MicromarkTreeNode[], {
+  interpretAsLeafNodes = [], interpretAsLeafNodesFns = {}, wrapTypesWithBlockSeparators = []
+}: {interpretAsLeafNodes: string[], interpretAsLeafNodesFns: Record<string, (node: MicromarkTreeNode) => boolean>, wrapTypesWithBlockSeparators: string[]}) {
+  const leafNodes = [] as MicromarkTreeNode[];
   collectLeafNodes(tree);
   return leafNodes;
 
-  function collectLeafNodes(t) {
+  function collectLeafNodes(t: MicromarkTreeNode[]) {
     for (const n of t) {
       const wrapWithSeparators = wrapTypesWithBlockSeparators.includes(n.type);
       if (wrapWithSeparators) {
@@ -46,7 +59,7 @@ export function extractLeafNodesFromMicromarkTree(tree, {interpretAsLeafNodes = 
 
 
 
-function micromarkToAnnotatedText(text, events) {
+function micromarkToAnnotatedText(text: string, events: Event[]) {
   const tree = micromarkEventsToTree(text, events);
   // console.log('micromark tree', tree);
 
@@ -77,8 +90,8 @@ function micromarkToAnnotatedText(text, events) {
     'templateVariable': '`code`',
     'labelText': '`code`',
     'htmlTextData': '`code`',
-  };
-  const annotatedText = [];
+  } as {[key: string]: string};
+  const annotatedText = [] as AnnotatedText[];
   for (const n of leafNodes) {
     if (n.type === 'lineEnding') {
       // Workaround for micromark bug: the end position of lineEnding elements is wrong (overlaps with next element)
@@ -88,12 +101,12 @@ function micromarkToAnnotatedText(text, events) {
       });
     } else if (textTypes.includes(n.type)) {
       annotatedText.push({
-        text: n.text,
+        text: n.text!,
         offset: n.enter.start.offset,
       });
     } else {
       annotatedText.push({
-        markup: n.text,
+        markup: n.text!,
         offset: n.enter.start.offset,
         interpretAs: markupTypesInterpretAs[n.type] || '',
       });
@@ -107,7 +120,7 @@ export function annotatedTextParse() {
   const micromarkExtensions = this.data('micromarkExtensions') || [];
   this.parser = parser;
 
-  function parser(text) {
+  function parser(text: string) {
     const events = parseMicromarkEvents(text, {extensions: micromarkExtensions});
     return micromarkToAnnotatedText(text, events);
   }

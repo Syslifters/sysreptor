@@ -86,7 +86,6 @@ import {
   undoDepth,
   isTypeInSelection,
   isTaskListInSelection,
-  // @ts-ignore
 } from 'reportcreator-markdown/editor';
 import type { VToolbar } from 'vuetify/lib/components/index.mjs';
 import { MarkdownEditorMode } from '@/utils/types';

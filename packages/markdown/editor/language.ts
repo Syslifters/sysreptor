@@ -1,13 +1,15 @@
-import { micromarkEventsToTree, parseMicromarkEvents } from "./micromark-utils";
+import { micromarkEventsToTree, parseMicromarkEvents, type MicromarkTreeNode } from "./micromark-utils";
 import { LanguageSupport, Language, defineLanguageFacet, languageDataProp, indentNodeProp } from '@codemirror/language';
-import {html} from "@codemirror/lang-html"
-import {Prec} from "@codemirror/state";
+import { html } from "@codemirror/lang-html"
+import { Prec } from "@codemirror/state";
 import { keymap } from '@codemirror/view';
-import { Parser, Tree, NodeSet, NodeType, parseMixed } from '@lezer/common';
-import {styleTags, tags as t} from "@lezer/highlight"
+import { Parser, Tree, NodeSet, NodeType, type Input, TreeFragment, type PartialParse, parseMixed } from '@lezer/common';
+import { styleTags, tags as t } from "@lezer/highlight"
+import { type Event } from 'micromark-util-types';
 import { markdownParser } from "..";
 import { tags } from "./highlight";
 import { insertNewlineContinueMarkup, deleteMarkupBackward, toggleStrong, toggleEmphasis } from "./commands";
+import type { Range } from "./codemirror-utils";
 
 const markdownLanguageFacet = defineLanguageFacet({
   commentTokens: {
@@ -57,11 +59,11 @@ const nodeSet = new NodeSet([NodeType.none].concat(nodeTypes.map((type, idx) => 
   .extend(indentNodeProp.add({ document: () => null }));
 
 
-function modifySyntaxTree(tree) {
+function modifySyntaxTree(tree: MicromarkTreeNode[]) {
   visitTree(tree);
   return tree;
 
-  function visitTree(t) {
+  function visitTree(t: MicromarkTreeNode[]) {
     for (const n of t) {
       visitNode(n);
       if ((n.children?.length || 0) > 0) {
@@ -69,11 +71,11 @@ function modifySyntaxTree(tree) {
       }
     }
   }
-  function visitNode(n) {
+  function visitNode(n: MicromarkTreeNode) {
     // Add ListItem nodes
     if (['listOrdered', 'listUnordered'].includes(n.type)) {
-      let listItems = [];
-      let currentListItem = [];
+      let listItems = [] as any[];
+      let currentListItem = [] as any[];
       for (const c of n.children) {
         if (c.type === 'listItemPrefix') {
           addListItem();
@@ -107,18 +109,18 @@ function modifySyntaxTree(tree) {
   }
 }
 
-function micromarkToLezerSyntaxTree(text, events) {
+function micromarkToLezerSyntaxTree(text: string, events: Event[]) {
   const tree = modifySyntaxTree(micromarkEventsToTree(text, events));
   // console.log('markdown syntax tree', tree);
   
-  function toBuffer(node) {
-    const buffer = [];
+  function toBuffer(node: MicromarkTreeNode) {
+    const buffer = [] as number[];
     for (const c of node.children || []) {
       buffer.push(...toBuffer(c));
     }
     let nodeId = nodeSet.types.find(t => t.name === node.enter.type);
     if (node.type === 'atxHeading' && node.children.length >= 1 && node.children[0].type === 'atxHeadingSequence') {
-      nodeId = nodeSet.types.find(t => t.name === 'heading' + node.children[0].text.length || 0);
+      nodeId = nodeSet.types.find(t => t.name === 'heading' + node.children[0].text?.length || 0);
     }
     
     buffer.push((nodeId || NodeType.none).id, node.enter.start.offset, node.enter.end.offset, 4 + buffer.length);
@@ -126,9 +128,9 @@ function micromarkToLezerSyntaxTree(text, events) {
   }
 
   return Tree.build({
-    buffer: tree.length > 0 ? toBuffer({children: tree, enter: {type: 'document', start: tree[0].enter.start, end: tree.slice(-1)[0].enter.end}}) : [],
+    buffer: tree.length > 0 ? toBuffer({children: tree, enter: {type: 'document', start: tree[0].enter.start, end: tree.slice(-1)[0].enter.end}} as unknown as MicromarkTreeNode) : [],
     nodeSet: nodeSet,
-    topID: nodeSet.types.find(t => t.name === 'document').id,
+    topID: nodeSet.types.find(t => t.name === 'document')!.id,
   });
 }
 
@@ -137,33 +139,36 @@ export function lezerSyntaxTreeParse() {
   const micromarkExtensions = this.data('micromarkExtensions') || [];
   this.Parser = parser;
 
-  function parser(text) {
+  function parser(text: string) {
     const events = parseMicromarkEvents(text, {extensions: micromarkExtensions});
     return micromarkToLezerSyntaxTree(text, events);
   }
 }
 
 
-class BlockContext {
-  constructor(parser, input, fragments, ranges) {
-    this.parser = parser;
-    this.input = input;
-    this.fragments = fragments;
-    this.ranges = ranges;
+class BlockContext implements PartialParse {
+  stoppedAt: number | null;
+
+  constructor(
+    readonly parser: MarkdownParser, 
+    readonly input: Input, 
+    readonly fragments: TreeFragment[], 
+    readonly ranges: Range[],
+  ) {
     this.stoppedAt = null;
   }
   
   advance() {
     return markdownParser()
-    .use(lezerSyntaxTreeParse)
-    .parse(this.input.read(0, this.input.length));
+      .use(lezerSyntaxTreeParse)
+      .parse(this.input.read(0, this.input.length)) as unknown as Tree;
   }
 
   get parsedPos() {
     return this.input.length;
   }
 
-  stopAt(pos) {
+  stopAt(pos: number) {
     this.stoppedAt = pos;
   }
 
@@ -171,7 +176,7 @@ class BlockContext {
 
 
 class MarkdownParser extends Parser {
-  createParse(input, fragments, ranges) {
+  createParse(input: Input, fragments: TreeFragment[], ranges: Range[]) {
     const mdParser = new BlockContext(this, input, fragments, ranges);
     return parseMixed((node, input) => {
       if (['htmlText', 'htmlFlow'].includes(node.name)) {

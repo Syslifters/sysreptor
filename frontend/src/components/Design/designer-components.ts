@@ -3,7 +3,6 @@ import escape from 'lodash/escape';
 import unescape from 'lodash/unescape';
 import escapeRegExp from 'lodash/escapeRegExp';
 import kebabCase from 'lodash/kebabCase';
-// @ts-ignore
 import { cssLanguage, vueLanguage } from 'reportcreator-markdown/editor';
 import { FieldDataType } from "~/utils/types";
 

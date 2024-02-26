@@ -10,8 +10,7 @@ import {
   lineNumbers, indentUnit, defaultKeymap, indentWithTab,
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
   collab, receiveUpdates, sendableUpdates, ChangeSet,
-  // @ts-ignore
-} from "reportcreator-markdown/editor";
+} from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '@/utils/types';
 
 export type MarkdownProps = {
@@ -135,7 +134,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 
   const fileUploadInProgress = ref(false);
   async function uploadFiles(files?: FileList, pos?: number|null) {
-    if (!props.value.uploadFile || !files || files.length === 0 || fileUploadInProgress.value) {
+    if (!editorView.value || !props.value.uploadFile || !files || files.length === 0 || fileUploadInProgress.value) {
       return;
     }
 
@@ -296,7 +295,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   });
   watch([() => props.value.disabled, () => props.value.readonly], () => editorActions.value.disabled?.(Boolean(props.value.disabled || props.value.readonly)));
   watch(() => props.value.lang, () => {
-    if (spellcheckLanguageToolEnabled.value) {
+    if (spellcheckLanguageToolEnabled.value && editorView.value) {
       forceLinting(editorView.value);
     }
   });

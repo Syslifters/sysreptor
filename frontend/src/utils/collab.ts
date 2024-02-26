@@ -1,9 +1,7 @@
 import set from "lodash/set";
 import trimStart from "lodash/trimStart";
 import urlJoin from "url-join";
-// @ts-ignore
 import { ChangeSet } from "reportcreator-markdown/editor";
-import type { PentestProject } from "./types";
 
 export enum CollabConnectionState {
   CLOSED = 'closed',

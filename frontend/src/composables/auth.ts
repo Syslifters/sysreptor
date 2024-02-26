@@ -1,4 +1,4 @@
-import type { NavigateToOptions } from "nuxt/dist/app/composables/router";
+import type { NavigateToOptions } from '#app/composables/router'
 import type { LocationQueryValue } from "#vue-router";
 import { AuthProviderType } from "@/utils/types";
 import type { AuthProvider, User } from "@/utils/types";

@@ -4,7 +4,6 @@ import { v4 as uuid4 } from 'uuid';
 import {
   createEditorExtensionToggler,
   MergeView, EditorView, EditorState,
-  // @ts-ignore
 } from "reportcreator-markdown/editor";
 import { MarkdownEditorMode, type FieldDefinitionDict } from '@/utils/types';
 
@@ -39,7 +38,7 @@ export function useMarkdownDiff({ props, extensions }: {
   const valueNotNullCurrent = computed(() => props.value.current.value || '');
 
   const vm = getCurrentInstance()!;
-  const mergeViewRef = computed(() => vm.refs.mergeViewRef);
+  const mergeViewRef = computed(() => vm.refs.mergeViewRef as HTMLElement);
   const mergeView = shallowRef<MergeView|null>(null);
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
   function initializeMergeView() {

@@ -1,6 +1,6 @@
 import { syntaxTree } from "@codemirror/language";
-import { RangeSetBuilder } from "@codemirror/state";
-import { Decoration, ViewPlugin } from "@codemirror/view";
+import { RangeSet, RangeSetBuilder } from "@codemirror/state";
+import { Decoration, EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { tags as t, Tag, tagHighlighter } from "@lezer/highlight";
 import { linesInRange } from "./codemirror-utils";
 
@@ -42,18 +42,18 @@ export const markdownHighlightStyle = tagHighlighter([
 
 // https://discuss.codemirror.net/t/how-to-define-highlighting-styles-for-blocks/4029
 export const markdownHighlightCodeBlocks = ViewPlugin.fromClass(class {
-  decorations = Decoration.none;
+  decorations: RangeSet<Decoration> = Decoration.none;
 
-  constructor(view) {
+  constructor(view: EditorView) {
     this.updateDecorations(view);
   }
 
-  update(update) {
+  update(update: ViewUpdate) {
     this.updateDecorations(update.view);
   }
 
-  updateDecorations(view) {
-    let builder = new RangeSetBuilder();
+  updateDecorations(view: EditorView) {
+    let builder = new RangeSetBuilder<Decoration>();
     syntaxTree(view.state).iterate({
       enter: (n) => {
         if (n.name === 'codeFenced') {

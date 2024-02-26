@@ -11,7 +11,6 @@
 </template>
 
 <script setup lang="ts">
-// @ts-ignore
 import { EditorState } from 'reportcreator-markdown/editor';
 
 const props = defineProps<{
