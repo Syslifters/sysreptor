@@ -1,7 +1,6 @@
 import set from "lodash/set";
 import trimStart from "lodash/trimStart";
 import urlJoin from "url-join";
-import { ChangeSet } from "reportcreator-markdown/editor";
 
 export enum CollabConnectionState {
   CLOSED = 'closed',
@@ -15,6 +14,7 @@ export type CollabStoreState<T> = {
   connectionState: CollabConnectionState;
   websocket: WebSocket|null;
   websocketPath: string;
+  version: number;
 }
 
 export function makeCollabStoreState<T>(websocketPath: string, data: T): CollabStoreState<T> {
@@ -23,6 +23,7 @@ export function makeCollabStoreState<T>(websocketPath: string, data: T): CollabS
     connectionState: CollabConnectionState.CLOSED,
     websocketPath,
     websocket: null,
+    version: 0,
   }
 }
 
@@ -85,7 +86,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
       console.log('Received websocket message:', msgData);
       if (msgData.type === 'init') {
         storeState.connectionState = CollabConnectionState.OPEN;
-        // storeState.version = msgData.version;
+        storeState.version = msgData.version;
         storeState.data = msgData.data;
       } else if (msgData.type === 'update.key') {
         // TODO: should we track unconfirmed updates, or is this irrelevant for update.key ?
@@ -174,6 +175,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
 
 export type CollabPropType = {
   path: string;
+  version: number;
 };
 
 export function collabSubpath(collab: CollabPropType, subPath: string) {

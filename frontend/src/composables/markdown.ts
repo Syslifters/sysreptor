@@ -11,6 +11,7 @@ import {
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
   collab, receiveUpdates, sendableUpdates, ChangeSet,
 } from "reportcreator-markdown/editor/index";
+import type { Update } from 'reportcreator-markdown/editor/collab';
 import { MarkdownEditorMode } from '@/utils/types';
 
 export type MarkdownProps = {
@@ -167,7 +168,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
       // TODO: state management: race conditions between event bus updates and v-model updates: errors while applying updates (e.g. when typing fast)
       // TODO: maybe we need to customize receiveUpdates to use a different versioning scheme (with server-side versions)?
       const transaction = receiveUpdates(editorView.value.state, event.updates.map((u: any) => ({
-        clientID: u.clientID,
+        ...u,
         changes: ChangeSet.fromJSON(u.changes),
       })));
       console.log('Markdown onUpdateText', transaction);
@@ -176,7 +177,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   }
 
   const vm = getCurrentInstance()!;
-  const editorRef = computed(() => vm.refs.editorRef);
+  const editorRef = computed(() => vm.refs.editorRef as HTMLElement);
   const editorView = shallowRef<EditorView|null>(null);
   const editorState = shallowRef<EditorState|null>(null);
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
@@ -205,17 +206,14 @@ export function useMarkdownEditor({ props, emit, extensions }: {
           }),
           ((props.value.collab) ? [
             collab({ 
-              startVersion: 0, // TODO: use server-side versioning
+              startVersion: props.value.collab.version,
             }),
             EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
               const updates = sendableUpdates(viewUpdate.state);
               if (updates?.length > 0) {
                 eventBusUpdateText.emit({
                   path: props.value.collab?.path,
-                  updates: updates.map((u: any) => ({
-                    clientID: u.clientID,
-                    changes: u.changes.toJSON(),
-                  })),
+                  updates,
                   source: 'editor',
                 });
               }

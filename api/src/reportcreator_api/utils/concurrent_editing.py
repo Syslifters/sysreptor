@@ -170,13 +170,14 @@ class ChangeSet:
 @dataclasses.dataclass
 class Update:
     client_id: str
+    version: float
     changes: ChangeSet
 
     @classmethod
     def from_dict(cls, u: dict):
         if not isinstance(u, dict) or not isinstance(u.get('clientID'), str) or not isinstance(u.get('changes'), list) or len(u['changes']) == 0:
             raise ValueError(f'Invalid update')
-        return Update(client_id=u['clientID'], changes=ChangeSet.from_dict(u['changes']))
+        return Update(client_id=u['clientID'], version=u['version'], changes=ChangeSet.from_dict(u['changes']))
     
     def to_dict(self):
         return {

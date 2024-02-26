@@ -1,7 +1,6 @@
 import orderBy from "lodash/orderBy";
 import pick from "lodash/pick";
 import { groupNotes } from "@/stores/usernotes";
-import type { NoteGroup } from '@/stores/usernotes';
 import type { PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
 import { scoreFromVector } from "~/utils/cvss";
 
@@ -280,6 +279,7 @@ export const useProjectStore = defineStore('project', {
         connectionState: computed(() => collabState.connectionState),
         props: computed(() => ({
           path: collabState.websocketPath,
+          version: collabState.version,
         })),
       };
     },
