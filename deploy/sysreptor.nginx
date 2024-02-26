@@ -6,7 +6,7 @@ server {
 }
 
 server {
-	listen 443 ssl default_server;
+	listen 443 ssl http2 default_server;
 	server_name _;
 
 	ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
@@ -30,5 +30,9 @@ server {
 	location / {
 		include proxy_params;
 		proxy_pass http://127.0.0.1:8000;
+
+		# Websockets
+		proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
 	}
 }
