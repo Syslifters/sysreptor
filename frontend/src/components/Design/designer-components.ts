@@ -434,7 +434,7 @@ export class ChartComponent extends DesignerComponentBase {
     return {
       form: 'chart-create',
       chart: {
-        chartType: 'bar', // pie, doughnut
+        chartType: 'bar (horizontal)', // pie, doughnut
         caption: 'Distribution of identified vulnerabilities',
       }
     };
@@ -442,39 +442,481 @@ export class ChartComponent extends DesignerComponentBase {
 
   createCode(form: any, context: DesignerContext) {
     const id = createUniqueId(kebabCase(form.chart.caption || 'chart'), context);
-    return {
-      html: trimLeadingWhitespace(`
-      <figure>
-        <chart :width="15" :height="10" :config="{
-            type: '${form.chart.chartType}',
+    if (form.chart.chartType == "bar (vertical)") {
+      return {
+        html: trimLeadingWhitespace(`
+        <figure>
+          <chart :width="15" :height="10" :config="{
+                plugins: [ chartjsPlugins.DataLabels ],
+                type: 'bar', 
+                data: {
+                labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+                datasets: [
+                    {
+                        data: [
+                            finding_stats.count_critical,
+                            finding_stats.count_high,
+                            finding_stats.count_medium,
+                            finding_stats.count_low,
+                            finding_stats.count_info
+                        ],
+                        backgroundColor: [
+                            cssvar('--color-risk-critical'), 
+                            cssvar('--color-risk-high'), 
+                            cssvar('--color-risk-medium'), 
+                            cssvar('--color-risk-low'), 
+                            cssvar('--color-risk-info')
+                        ],
+                        datalabels: {
+                            align: 'start',
+                            anchor: 'end',
+                            display: function(context) {
+                                return context.dataset.data[context.dataIndex] !== 0; // Hide datalabel if value is 0
+                            }
+                        }
+                    }
+                ]
+                },
+                options: {
+                    layout: {
+                        padding: {
+                            left: 25,
+                            right: 25,
+                            top: 25,
+                            bottom: 25
+                        }
+                    },
+                    indexAxis: 'y',
+                    scales: {
+                        y: {
+                            grid: {display: false},
+                            beginAtZero: true,
+                            ticks: {
+                                padding: 5,
+                                z: 1,
+                                color: ['#505050'],
+                                font: {
+                                    size: 25,
+                                    family: 'Noto Sans'
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: true,
+                                color: 'grey'
+                            },
+                            ticks: {
+                                display: true,
+                                precision: 0,
+                                color: '#505050',
+                                font: {
+                                    size: 25,
+                                    family: 'Noto Sans'
+                                }
+                            }
+                        }
+                    }, 
+                    plugins: {
+                        legend: {display: false},
+                        datalabels: {
+                            display: 'auto',
+                            padding: {
+                                right: 15,
+                            },
+                            color: ['white'],
+                            font: {
+                                size: 25
+                            },
+                        }
+                    },
+                }
+            }" />
+          <figcaption id="${id}">${form.chart.caption}</figcaption>
+        </figure>`)
+      };
+    } else if (form.chart.chartType == "pie") {
+      return {
+        html: trimLeadingWhitespace(`
+        <figure>
+          <chart :width="15" :height="10" :config="{
+                plugins: [ chartjsPlugins.DataLabels ],
+                type: 'pie', 
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+                    datasets: [
+                        {
+                            data: [
+                                finding_stats.count_critical,
+                                finding_stats.count_high,
+                                finding_stats.count_medium,
+                                finding_stats.count_low,
+                                finding_stats.count_info
+                            ],
+                            backgroundColor: [
+                                cssvar('--color-risk-critical'), 
+                                cssvar('--color-risk-high'), 
+                                cssvar('--color-risk-medium'), 
+                                cssvar('--color-risk-low'), 
+                                cssvar('--color-risk-info')
+                            ],
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'start',
+                                formatter: function(value, context) {
+                                    return value + ' ' + context.chart.data.labels[context.dataIndex]; // Add label to datalabel
+                                }
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    layout: {
+                        padding: {
+                            left: 25,
+                            right: 25,
+                            top: 25,
+                            bottom: 25
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right',
+                            labels: {
+                                color: '#505050',
+                                font: {
+                                    size: 25
+                                }
+                            }
+                        },
+                        datalabels: {
+                            display: 'auto',
+                            padding: {
+                                top: 25,
+                                bottom: 25,
+                                right: 25,
+                                left: 25,
+                            },
+                            color: ['white'],
+                            font: {
+                                size: 25
+                            },
+                        }
+                    },
+                }
+            }" />
+          <figcaption id="${id}">${form.chart.caption}</figcaption>
+        </figure>`)
+      };
+    } else if (form.chart.chartType == "doughnut") {
+      return {
+        html: trimLeadingWhitespace(`
+        <figure>
+          <chart :width="15" :height="10" :config="{
+                plugins: [ chartjsPlugins.DataLabels ],
+                type: 'doughnut', 
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+                    datasets: [
+                        {
+                            data: [
+                                finding_stats.count_critical,
+                                finding_stats.count_high,
+                                finding_stats.count_medium,
+                                finding_stats.count_low,
+                                finding_stats.count_info
+                            ],
+                            backgroundColor: [
+                                cssvar('--color-risk-critical'), 
+                                cssvar('--color-risk-high'), 
+                                cssvar('--color-risk-medium'), 
+                                cssvar('--color-risk-low'), 
+                                cssvar('--color-risk-info')
+                            ],
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'start',
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    layout: {
+                        padding: {
+                            left: 25,
+                            right: 25,
+                            top: 25,
+                            bottom: 25
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right',
+                            labels: {
+                                color: '#505050',
+                                font: {
+                                    size: 25
+                                }
+                            }
+                        },
+                        datalabels: {
+                            display: 'auto',
+                            padding: {
+                                top: 25,
+                                bottom: 25,
+                                right: 25,
+                                left: 25,
+                            },
+                            color: ['white'],
+                            font: {
+                                size: 25
+                            },
+                            display: function(context) {
+                                return context.dataset.data[context.dataIndex] !== 0; // Hide datalabel if value is 0
+                            },
+                        }
+                    },
+                }
+            }" />
+          <figcaption id="${id}">${form.chart.caption}</figcaption>
+        </figure>`)
+      };
+    } else if (form.chart.chartType == "polarArea") {
+      return {
+        html: trimLeadingWhitespace(`
+        <figure>
+          <chart :width="15" :height="10" :config="{
+                plugins: [ chartjsPlugins.DataLabels ],
+                type: 'polarArea', 
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+                    datasets: [
+                        {
+                            data: [
+                                finding_stats.count_critical,
+                                finding_stats.count_high,
+                                finding_stats.count_medium,
+                                finding_stats.count_low,
+                                finding_stats.count_info
+                            ],
+                            backgroundColor: [  
+                                cssvar('--color-risk-critical'), 
+                                cssvar('--color-risk-high'), 
+                                cssvar('--color-risk-medium'), 
+                                cssvar('--color-risk-low'), 
+                                cssvar('--color-risk-info')
+                            ],
+                            datalabels: {
+                                anchor: 'center',
+                                align: 'center'
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            ticks: {
+                                precision: 0,
+                                display: false,
+                                z: 1,
+                                font: {
+                                    size: 25,
+                                    family: 'Noto Sans'
+                                }
+                            },
+                            grid: {color: 'grey'}
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right',
+                            labels: {
+                                color: '#505050',
+                                font: {
+                                    size: 25
+                                }
+                            }
+                        },
+                        datalabels: {
+                            display: 'auto',
+                            padding: {
+                                top: 25,
+                                bottom: 25,
+                                right: 25,
+                                left: 25,
+                            },
+                            color: ['white'],
+                            font: {
+                                size: 25
+                            },
+                        }
+                    },
+                }
+            }" />
+          <figcaption id="${id}">${form.chart.caption}</figcaption>
+        </figure>`)
+      };
+    } else if (form.chart.chartType == "radar") {
+      return {
+        html: trimLeadingWhitespace(`
+        <figure>
+          <chart :width="15" :height="10" :config="{
+            type: 'radar', 
             data: {
                 labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
-                datasets: [{
-                    data: [
-                        finding_stats.count_critical,
-                        finding_stats.count_high,
-                        finding_stats.count_medium,
-                        finding_stats.count_low,
-                        finding_stats.count_info
-                    ],
-                    backgroundColor: [
-                        cssvar('--color-risk-critical'),
-                        cssvar('--color-risk-high'),
-                        cssvar('--color-risk-medium'),
-                        cssvar('--color-risk-low'),
-                        cssvar('--color-risk-info')
-                    ],
-                }]
+                datasets: [
+                    {
+                        data: [
+                            finding_stats.count_critical,
+                            finding_stats.count_high,
+                            finding_stats.count_medium,
+                            finding_stats.count_low,
+                            finding_stats.count_info
+                        ],
+                        backgroundColor: [
+                            'rgba(232, 50, 33, 0.5)'
+                        ],
+                    }
+                ]
             },
             options: {
-                scales: {y: {beginAtZero: true, ticks: {precision: 0}}},
-                plugins: {legend: {display: false}},
+                scales: {
+                    r: {
+                        grid: {color: 'grey'},
+                        pointLabels: {
+                            font: {
+                               size: 25,
+                               family: 'Noto Sans'
+                           }
+                        },
+                        ticks: {
+                            precision: 0,
+                            display: true,
+                            font: {
+                                  size: 25,
+                                  family: 'Noto Sans'
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                        position: 'right',
+                        labels: {
+                            font: {
+                                size: 25
+                            }
+                        }
+                    }
+                },
             }
         }" />
-        <figcaption id="${id}">${form.chart.caption}</figcaption>
-      </figure>
-      `)
-    };
+          <figcaption id="${id}">${form.chart.caption}</figcaption>
+        </figure>`)
+      };
+    } else {
+      // horizontal bar or line
+      return {
+        html: trimLeadingWhitespace(`
+        <figure>
+          <chart :width="15" :height="10" :config="{
+              plugins: [ chartjsPlugins.DataLabels ],
+              type: '${(form.chart.chartType == "line") ? "line" : "bar"}', 
+              data: {
+                  labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+                  datasets: [
+                      {
+                          data: [
+                              finding_stats.count_critical,
+                              finding_stats.count_high,
+                              finding_stats.count_medium,
+                              finding_stats.count_low,
+                              finding_stats.count_info
+                          ],
+                          backgroundColor: [
+                              cssvar('--color-risk-critical'), 
+                              cssvar('--color-risk-high'), 
+                              cssvar('--color-risk-medium'), 
+                              cssvar('--color-risk-low'), 
+                              cssvar('--color-risk-info')
+                          ],
+                          datalabels: {
+                              display: function(context) {
+                                  return context.dataset.data[context.dataIndex] !== 0; // Hide datalabel if value is 0
+                              }
+                          }
+                      }
+                  ]
+              },
+              options: {
+                  layout: {
+                  padding: {
+                      left: 50,
+                      right: 50,
+                      top: 50,
+                      bottom: 50
+                  }
+              },
+              scales: {
+                  y: {
+                      grid:{
+                          display: true,
+                          color: 'grey'
+                      },
+                      beginAtZero: true,
+                      ticks: {
+                          precision: 0,
+                          color: '#505050',
+                          font: {
+                              size: 25,
+                              family: 'Noto Sans',
+                          }
+                      }
+                  },
+                  x: {
+                      grid: {
+                          display: false
+                      },
+                      ticks: {
+                          color: '#505050',
+                          font: {
+                              size: 25,
+                              family: 'Noto Sans',
+                          }
+                      }
+                  }
+              },
+              plugins: {
+                  legend: {
+                      display: false,
+                      labels: {
+                          font: {
+                              size: 25
+                          }
+                      }
+                  },
+                  datalabels: {
+                      display: 'auto',
+                      padding: {
+                          right: 15,
+                          },
+                          color: ['white'],
+                          font: {
+                              size: 25
+                          },
+                      }
+                  },
+              }
+          }" />
+          <figcaption id="${id}">${form.chart.caption}</figcaption>
+        </figure>`)
+      };
+    }
   }
 }
 
