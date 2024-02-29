@@ -7,6 +7,21 @@ echo ""
 
 error=1
 docker=1
+
+# Verifica a distribuição Linux e instala o pacote uuid-runtime correspondente
+
+if [[ -e /etc/os-release ]]; then
+    source /etc/os-release
+    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+        sudo apt update
+        sudo apt install -y uuid-runtime
+    elif [[ "$ID" == "centos" || "$ID" == "rhel" || "$ID" == "fedora" ]]; then
+        sudo yum install -y uuid
+    else [[ "$ID" == "arch" ]]; then
+        sudo pacman -S --noconfirm util-linux
+    fi
+fi
+
 for cmd in curl openssl tar uuidgen docker sed
 do
     if
