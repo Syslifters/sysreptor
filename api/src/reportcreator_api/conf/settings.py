@@ -445,12 +445,15 @@ if CELERY_SECURE_WORKER:
 
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 CELERY_WORKER_SEND_TASK_EVENTS = False
-CELERY_TASK_TIME_LIMIT = 60
-CELERY_TASK_SOFT_TIME_LIMIT = 55
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # Execute tasks locally, if no broker is configured
 CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
+
+# Time limits are only enforced if a broker is configured and an external worker is used (but not in eager mode).
+# Self-hosted SysReptor instances use the eager mode by default, resulting in no PDF rendering time limits being applied.
+CELERY_TASK_SOFT_TIME_LIMIT = config('PDF_RENDERING_TIME_LIMIT', cast=int, default=60)
+CELERY_TASK_TIME_LIMIT = CELERY_TASK_SOFT_TIME_LIMIT + 5
 
 
 # History
