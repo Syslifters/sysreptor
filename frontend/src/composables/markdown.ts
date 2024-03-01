@@ -152,9 +152,12 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 
       const mdFileText = results.filter(u => u).join('\n');
       if (pos === undefined || pos === null) {
-        pos = editorView.value.state.selection.main.from;
+        pos = editorView.value.state.selection.main.to;
       }
-      editorView.value.dispatch({ changes: { from: pos, to: pos, insert: mdFileText } });
+      editorView.value.dispatch(editorView.value.state.update({ 
+        changes: { from: pos, to: pos, insert: mdFileText },
+        selection: { anchor: pos! + mdFileText.length },
+      }));
     } finally {
       fileUploadInProgress.value = false;
     }
