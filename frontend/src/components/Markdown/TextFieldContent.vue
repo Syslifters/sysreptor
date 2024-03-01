@@ -63,9 +63,11 @@ defineExpose({
     border-radius: 10%;
   }
 
-  // Hide scrollbar
   .cm-scroller {
+    // Hide scrollbar
     overflow: hidden;
+    // Prevent cutting off spellcheck error underline
+    padding-bottom: 1px;
   }
 }
 </style>
