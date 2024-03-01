@@ -1,5 +1,10 @@
 # Changelog
 
+
+## Next
+* Allow configuring the PDF rendering timeout (applies only when a separate worker is used)
+
+
 ## v2024.16 - 2024-02-22
 * Add component for cover pages in PDF designer layout editor
 * Reference `<figure>` tag instead of `<figcaption>` in `<ref />` component to jump to start of figure
