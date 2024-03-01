@@ -3,6 +3,9 @@
 
 ## Next
 * Allow configuring the PDF rendering timeout (applies only when a separate worker is used)
+* Add filename in markdown editor for uploaded files
+* Move cursor after uploaded file/image in markdown editor
+* Prevent cutting off spellcheck error underlines in string fields
 
 
 ## v2024.16 - 2024-02-22

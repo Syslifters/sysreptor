@@ -1,7 +1,7 @@
 <template>
   <split-menu v-model="localSettings.reportInputMenuSize">
     <template #menu>
-      <v-list density="compact" class="pb-0 h-100 d-flex flex-column">
+      <v-list density="compact" class="pb-0 pt-0 h-100 d-flex flex-column">
         <div class="flex-grow-1 overflow-y-auto">
           <v-list-subheader title="Sections" class="mt-0" />
           <v-list-item
