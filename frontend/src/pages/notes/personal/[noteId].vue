@@ -96,7 +96,7 @@ async function uploadFile(file: File) {
   if (obj.resource_type === 'file') {
     return `[${obj.name}](/files/name/${obj.name})`;
   } else {
-    return `![](/images/name/${obj.name}){width="auto"}`;
+    return `![${obj.name}](/images/name/${obj.name}){width="auto"}`;
   }
 }
 function rewriteFileUrl(imgSrc: string) {

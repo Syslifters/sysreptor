@@ -318,7 +318,7 @@ export function useProjectLockEdit<T>(options: {
     if (res.resource_type === UploadedFileType.IMAGE) {
       return `![](/images/name/${res.name}){width="auto"}`;
     } else {
-      return `[](/files/name/${res.name})`;
+      return `[${res.name}](/files/name/${res.name})`;
     }
   }
   function rewriteFileUrl(fileSrc: string) {
