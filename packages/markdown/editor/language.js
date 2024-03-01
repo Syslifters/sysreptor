@@ -14,7 +14,7 @@ const markdownLanguageFacet = defineLanguageFacet({
     block: {open: '<!--', close: '-->'}
   },
   closeBrackets: {
-    brackets: ["(", "[", "{", "'", '"', "`", "*", "_", "~"],
+    brackets: ["(", "[", "{", "'", '"', "`", "_", "~"],
   },
 });
 
