@@ -57,7 +57,7 @@
     <div v-if="form.form === 'chart-create'" class="mb-4">
       <s-select
         v-model="form.chart.chartType"
-        :items="['bar', 'pie', 'doughnut', 'line', 'radar', 'polarArea']"
+        :items="['bar (horizontal)', 'bar (vertical)', 'pie', 'doughnut', 'line', 'radar', 'polarArea']"
         label="Chart Type"
         class="mb-4"
         :disabled="props.disabled"
