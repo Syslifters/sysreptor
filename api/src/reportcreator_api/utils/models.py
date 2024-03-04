@@ -94,3 +94,9 @@ def disable_for_loaddata(signal_handler):
             return
         signal_handler(*args, **kwargs)
     return wrapper
+
+
+class SubqueryCount(models.Subquery):
+    template = "(SELECT count(*) FROM (%(subquery)s) _count)"
+    output_field = models.PositiveIntegerField()
+

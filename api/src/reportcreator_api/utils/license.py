@@ -144,6 +144,10 @@ def is_professional():
     return check_license().get('type', LicenseType.COMMUNITY) == LicenseType.PROFESSIONAL
 
 
+async def ais_professional():
+    return (await acheck_license()).get('type', LicenseType.COMMUNITY) == LicenseType.PROFESSIONAL
+
+
 def validate_login_allowed(user):
     if not is_professional() and not user.is_superuser:
         raise LicenseError('Only superusers are allowed to login. A Professional license is required to enable user roles.')
