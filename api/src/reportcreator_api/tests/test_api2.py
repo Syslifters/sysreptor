@@ -187,6 +187,11 @@ class TestTemplateApi:
         })
         assert (res.status_code == 201) is expected, res.data
 
+    def test_copy_template(self):
+        cp = self.client.post(reverse('findingtemplate-copy', kwargs={'pk': self.template.id})).json()
+        assert cp['id'] != str(self.template.id)
+        assert cp['copy_of'] == str(self.template.id)
+
     def update_template(self, template, data):
         res = self.client.put(reverse('findingtemplate-detail', kwargs={'pk': self.template.id}), data)
         self.template.refresh_from_db()

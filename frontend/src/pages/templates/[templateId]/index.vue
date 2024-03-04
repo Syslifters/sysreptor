@@ -18,6 +18,10 @@
           :history="true"
         >
           <template #toolbar-context-menu>
+            <btn-copy
+              :disabled="!auth.permissions.value.template_editor"
+              :copy="performCopy"
+            />
             <btn-export
               :export-url="`/api/v1/findingtemplates/${template.id}/export/`"
               :name="`template-` + mainTranslation!.data.title"
@@ -95,5 +99,13 @@ async function uploadFile(file: File) {
 }
 function rewriteFileUrl(imgSrc: string) {
   return urlJoin(baseUrl.value, imgSrc);
+}
+
+async function performCopy() {
+  if (!template.value) {
+    return;
+  }
+  const obj = await templateStore.copy(template.value);
+  await navigateTo(`/templates/${obj.id}/`);
 }
 </script>

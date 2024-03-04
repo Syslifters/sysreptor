@@ -52,6 +52,12 @@ export const useTemplateStore = defineStore('templates', {
         method: 'DELETE',
       });
     },
+    async copy(template: FindingTemplate) {
+      return await $fetch<FindingTemplate>(`/api/v1/findingtemplates/${template.id}/copy/`, {
+        method: 'POST',
+        body: {},
+      });
+    },
     async createFromFinding(template: FindingTemplate, projectId: string) {
       return await $fetch<FindingTemplate>(`/api/v1/findingtemplates/fromfinding/`, {
         method: 'POST',
