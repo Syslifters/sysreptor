@@ -78,6 +78,10 @@ class TestTemplateHistory:
         tr = FindingTemplateTranslation.objects.create(template=t, language=Language.FRENCH_FR, title='test')
         assert_history(tr, history_count=1, history_type='+')
 
+    def test_copy(self):
+        t = create_template().copy()
+        self.assert_template_history_create(t, history_change_reason='Duplicated')
+
     @pytest.mark.parametrize(['changes', 'change_reason'], [
         ({'status': ReviewStatus.FINISHED}, 'Status changed to Finished'),
         ({'language': Language.FRENCH_FR}, 'Language changed to French (fr-FR)'),

@@ -36,7 +36,7 @@ def members_equal(a, b):
 @pytest.mark.django_db
 class TestImportExport:
     @pytest.fixture(autouse=True)
-    def setUp(self) -> None:
+    def setUp(self):
         self.user = create_user(
             images_kwargs=[{'name': 'image-note.png'}], 
             files_kwargs=[{'name': 'file.txt'}],
@@ -380,7 +380,7 @@ class TestLinkedProject:
 @pytest.mark.django_db
 class TestFileDelete:
     @pytest.fixture(autouse=True)
-    def setUp(self) -> None:
+    def setUp(self):
         with override_settings(SIMPLE_HISTORY_ENABLED=False):
             p = create_project()
             self.image = p.images.first()
@@ -506,6 +506,26 @@ class TestCopyModel:
         cp = pt.copy()
 
         self.assert_project_type_copy_equal(pt, cp)
+
+    def test_copy_template(self):
+        user = create_user()
+        t = create_template()
+        t.lock(user)
+        cp = t.copy()
+
+        assert t != cp
+        assert cp.copy_of == t
+        assert cp.usage_count == 0
+        assert not cp.is_locked
+        assert t.main_translation != cp.main_translation
+        assertKeysEqual(t, cp, ['tags'])
+
+        assert set(t.images.values_list('id', flat=True)).intersection(cp.images.values_list('id', flat=True)) == set()
+        assert {(i.name, i.file.read()) for i in t.images.all()} == {(i.name, i.file.read()) for i in cp.images.all()}
+
+        for t_tr, cp_tr in zip(t.translations.order_by('language'), cp.translations.order_by('language')):
+            assert t_tr != cp_tr
+            assertKeysEqual(t_tr, cp_tr, ['language', 'status', 'is_main', 'risk_score', 'risk_level', 'title', 'data_all'])
 
 
 @pytest.mark.parametrize('original,cleaned', [

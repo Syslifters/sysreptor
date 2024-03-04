@@ -247,6 +247,7 @@ def template_editor_urls():
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, create=True, update=True, update_partial=True, destroy=True, lock=True, unlock=True),
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), create=True, create_data={'language': Language.GERMAN_DE, 'data': {'title': 'test'}}, update=True, update_partial=True),
         *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, write=True),
+        ('findingtemplate copy', lambda s, c: c.post(reverse('findingtemplate-copy', kwargs={'pk': s.template.pk}), data={})),
         ('findingtemplate export', lambda s, c: c.post(reverse('findingtemplate-export', kwargs={'pk': s.template.pk}))),
         ('findingtemplate import', lambda s, c: c.post(reverse('findingtemplate-import'), data={'file': export_archive(s.template)}, format='multipart')),
         ('findingtemplate fromfinding', lambda s, c: c.post(reverse('findingtemplate-fromfinding'), data={'project': s.project.id, 'translations': [{'is_main': True, 'data': {'title': 'title'}}]})),

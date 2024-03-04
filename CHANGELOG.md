@@ -7,6 +7,7 @@
 * Move cursor after uploaded file/image in markdown editor
 * Prevent cutting off spellcheck error underlines in string fields
 * Add more language variants for spellcheck
+* Allow duplicating finding templates
 
 
 ## v2024.16 - 2024-02-22
