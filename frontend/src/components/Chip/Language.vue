@@ -1,7 +1,7 @@
 <template>
   <v-chip class="ma-1" size="small">
     <v-icon size="small" start icon="mdi-translate" />
-    {{ languageInfo.name }}
+    {{ languageInfo.name.split('(')[0] }} ({{ languageInfo.code }})
   </v-chip>
 </template>
 

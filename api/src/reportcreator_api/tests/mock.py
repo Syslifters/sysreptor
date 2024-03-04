@@ -83,7 +83,7 @@ def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> F
         'recommendation': 'Template Recommendation',
         'unknown_field': 'test',
     } | kwargs.pop('data', {})
-    language = kwargs.pop('language', Language.ENGLISH)
+    language = kwargs.pop('language', Language.ENGLISH_US)
     status = kwargs.pop('status', ReviewStatus.IN_PROGRESS)
 
     template = FindingTemplate(**{
@@ -140,7 +140,7 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     }
     project_type = ProjectType.objects.create(**{
         'name': f'Project Type #{random.randint(1, 100000)}',
-        'language': Language.ENGLISH,
+        'language': Language.ENGLISH_US,
         'status': ProjectTypeStatus.FINISHED,
         'tags': ['web', 'example'],
         'report_fields': report_fields_default() | additional_fields,
@@ -216,7 +216,7 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
     project = PentestProject.objects.create(**{
         'project_type': project_type,
         'name': f'Pentest Project #{random.randint(1, 100000)}',
-        'language': Language.ENGLISH,
+        'language': Language.ENGLISH_US,
         'tags': ['web', 'customer:test'],
         'unknown_custom_fields': {f: report_data.pop(f) for f in set(report_data.keys()) - set(project_type.report_fields.keys())}
     } | kwargs)

@@ -5,7 +5,7 @@
         <v-tabs v-model="currentTab" center-active>
           <v-tab v-for="tr in translationInfos" :key="tr.id">
             <v-icon size="small" start icon="mdi-translate" />
-            {{ languageInfo(tr.language).name }}
+            {{ languageInfo(tr.language).name.split('(')[0] }} ({{ tr.language }})
           </v-tab>
         </v-tabs>
       </template>

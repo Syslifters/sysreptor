@@ -289,7 +289,7 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
                 'text': note_text
             }
         },
-        language=note.project.language if is_project_note else Language.ENGLISH,
+        language=note.project.language if is_project_note else Language.ENGLISH_US,
         resources=resources
     )
     res = await get_celery_result_async(task)

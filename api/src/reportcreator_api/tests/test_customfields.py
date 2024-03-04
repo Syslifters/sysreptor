@@ -528,7 +528,7 @@ class TestTemplateTranslation:
     @pytest.fixture(autouse=True)
     def setUp(self):
         create_project_type()  # create dummy project_type to get field_defintions
-        self.template = create_template(language=Language.ENGLISH, data={
+        self.template = create_template(language=Language.ENGLISH_US, data={
             'title': 'Title main',
             'description': 'Description main',
             'recommendation': 'Recommendation main',
@@ -536,7 +536,7 @@ class TestTemplateTranslation:
             'field_unknown': 'unknown',
         })
         self.main = self.template.main_translation
-        self.trans = FindingTemplateTranslation.objects.create(template=self.template, language=Language.GERMAN, title='Title translation')
+        self.trans = FindingTemplateTranslation.objects.create(template=self.template, language=Language.GERMAN_DE, title='Title translation')
     
     def test_template_translation_inheritance(self):
         self.trans.update_data({'title': 'Title translation', 'description': 'Description translation'})
