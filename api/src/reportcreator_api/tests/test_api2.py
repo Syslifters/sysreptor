@@ -169,21 +169,21 @@ class TestTemplateApi:
     def setUp(self):
         self.user = create_user(is_template_editor=True)
         self.client = api_client(self.user)
-        self.template = create_template(language=Language.ENGLISH, translations_kwargs=[{'language': Language.GERMAN}])
+        self.template = create_template(language=Language.ENGLISH_US, translations_kwargs=[{'language': Language.GERMAN_DE}])
         self.trans_en = self.template.main_translation
-        self.trans_de = self.template.translations.get(language=Language.GERMAN)
+        self.trans_de = self.template.translations.get(language=Language.GERMAN_DE)
 
     @pytest.mark.parametrize(['translations', 'expected'], [
         ([], False),
         ([{'is_main': False}], False),
-        ([{'is_main': True, 'language': Language.ENGLISH}, {'is_main': True, 'language': Language.GERMAN}], False),
-        ([{'is_main': True, 'language': Language.ENGLISH}, {'is_main': False, 'language': Language.ENGLISH}], False),
-        ([{'is_main': True, 'language': Language.ENGLISH}, {'is_main': False, 'language': Language.GERMAN}], True),
+        ([{'is_main': True, 'language': Language.ENGLISH_US}, {'is_main': True, 'language': Language.GERMAN_DE}], False),
+        ([{'is_main': True, 'language': Language.ENGLISH_US}, {'is_main': False, 'language': Language.ENGLISH_US}], False),
+        ([{'is_main': True, 'language': Language.ENGLISH_US}, {'is_main': False, 'language': Language.GERMAN_DE}], True),
     ])
     def test_create(self, translations, expected):
         res = self.client.post(reverse('findingtemplate-list'), data={
             'tags': ['test'],
-            'translations': [{'language': Language.ENGLISH, 'data': {'title': 'test'}} | t for t in translations],
+            'translations': [{'language': Language.ENGLISH_US, 'data': {'title': 'test'}} | t for t in translations],
         })
         assert (res.status_code == 201) is expected, res.data
 
@@ -202,11 +202,11 @@ class TestTemplateApi:
 
     def test_update_swap_languages(self):
         data = self.client.get(reverse('findingtemplate-detail', kwargs={'pk': self.template.id})).data
-        data['translations'][0]['language'] = Language.GERMAN
-        data['translations'][1]['language'] = Language.ENGLISH
+        data['translations'][0]['language'] = Language.GERMAN_DE
+        data['translations'][1]['language'] = Language.ENGLISH_US
         assert self.update_template(self.template, data).status_code == 200
-        assert self.trans_en.language == Language.GERMAN.value
-        assert self.trans_de.language == Language.ENGLISH.value
+        assert self.trans_en.language == Language.GERMAN_DE.value
+        assert self.trans_de.language == Language.ENGLISH_US.value
     
     def test_update_change_main(self):
         data = self.client.get(reverse('findingtemplate-detail', kwargs={'pk': self.template.id})).data
@@ -350,19 +350,19 @@ class TestTemplateApi:
     
     def test_template_search(self):
         search_term = 'tls crypt'
-        t_title_tag_data_de = create_template(language=Language.GERMAN, data={'title': 'Weak TLS', 'description': 'Weak crypto'}, tags=['crypto'])
-        t_title_data_en_de = create_template(language=Language.ENGLISH, data={'title': 'Weak TLS', 'description': 'Weak crypto'}, 
-                                             translations_kwargs=[{'language': Language.GERMAN, 'data': {'title': 'Weak TLS', 'description': 'Weak crypto'}}])
-        t_data_en = create_template(language=Language.ENGLISH, data={'title': 'Unrelated', 'description': 'Improve TLS encryption'})
-        t_partial_term_match = create_template(language=Language.GERMAN, data={'title': 'Unrelated', 'description': 'Improve TLS'})
-        t_no_match = create_template(language=Language.GERMAN, data={'title': 'Unrelated', 'description': 'Unrelated'})
+        t_title_tag_data_de = create_template(language=Language.GERMAN_DE, data={'title': 'Weak TLS', 'description': 'Weak crypto'}, tags=['crypto'])
+        t_title_data_en_de = create_template(language=Language.ENGLISH_US, data={'title': 'Weak TLS', 'description': 'Weak crypto'}, 
+                                             translations_kwargs=[{'language': Language.GERMAN_DE, 'data': {'title': 'Weak TLS', 'description': 'Weak crypto'}}])
+        t_data_en = create_template(language=Language.ENGLISH_US, data={'title': 'Unrelated', 'description': 'Improve TLS encryption'})
+        t_partial_term_match = create_template(language=Language.GERMAN_DE, data={'title': 'Unrelated', 'description': 'Improve TLS'})
+        t_no_match = create_template(language=Language.GERMAN_DE, data={'title': 'Unrelated', 'description': 'Unrelated'})
         
         # Best match first ordered by search rank
         self.assert_search_result({'search': search_term}, [t_title_tag_data_de, t_title_data_en_de, t_data_en])
         # Templates of preferred language first, then other languages, ordered by search rank
-        self.assert_search_result({'search': search_term, 'preferred_language': Language.ENGLISH}, [t_title_data_en_de, t_data_en, t_title_tag_data_de])
+        self.assert_search_result({'search': search_term, 'preferred_language': Language.ENGLISH_US}, [t_title_data_en_de, t_data_en, t_title_tag_data_de])
         # Only templates of language, ordered by search rank
-        self.assert_search_result({'search': search_term, 'language': Language.ENGLISH}, [t_title_data_en_de, t_data_en])
+        self.assert_search_result({'search': search_term, 'language': Language.ENGLISH_US}, [t_title_data_en_de, t_data_en])
         # All templates
         self.assert_search_result({}, [t_no_match, t_partial_term_match, t_data_en, t_title_data_en_de, t_title_tag_data_de, self.template])
 

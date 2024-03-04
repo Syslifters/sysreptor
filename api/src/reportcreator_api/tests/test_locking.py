@@ -76,7 +76,7 @@ class TestLocking:
         client_u1 = api_client(self.user1)
         assert client_u1.patch(reverse('findingtemplatetranslation-detail', kwargs={'template_pk': self.template.id, 'pk': self.template.main_translation.id}), data={}).status_code == 200
         res_create = client_u1.post(reverse('findingtemplatetranslation-list', kwargs={'template_pk': self.template.id}), data={
-            'language': Language.FRENCH,
+            'language': Language.FRENCH_FR,
             'data': {'title': 'French template'}
         })
         assert res_create.status_code == 201

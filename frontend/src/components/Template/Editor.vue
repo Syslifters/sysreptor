@@ -24,7 +24,7 @@
               <v-list>
                 <v-list-item v-for="lang in unusedLanguageInfos" :key="lang.code" link @click="createTranslation(lang.code)">
                   <template #prepend> <v-icon size="small" start icon="mdi-translate" /></template>
-                  <template #title>{{ lang.name }} ({{ lang.code }})</template>
+                  <template #title>{{ lang.name }}</template>
                 </v-list-item>
               </v-list>
             </v-menu>

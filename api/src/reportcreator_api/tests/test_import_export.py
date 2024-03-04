@@ -46,9 +46,9 @@ class TestImportExport:
         create_usernotebookpage(user=self.user, parent=u_note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
 
         self.template = create_template(
-            language=Language.ENGLISH, 
+            language=Language.ENGLISH_US, 
             translations_kwargs=[
-                {'language': Language.GERMAN, 'data': {'title': 'Template translation', 'description': 'Template description translation ![](/images/name/image.png)'}},
+                {'language': Language.GERMAN_DE, 'data': {'title': 'Template translation', 'description': 'Template description translation ![](/images/name/image.png)'}},
             ],
             images_kwargs=[{'name': 'image.png'}],    
         )

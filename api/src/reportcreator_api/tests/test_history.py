@@ -75,12 +75,12 @@ class TestTemplateHistory:
     def test_create_template_signal(self):
         t = FindingTemplate.objects.create(tags=['test'])
         assert_history(t, history_count=1, history_type='+')
-        tr = FindingTemplateTranslation.objects.create(template=t, language=Language.FRENCH, title='test')
+        tr = FindingTemplateTranslation.objects.create(template=t, language=Language.FRENCH_FR, title='test')
         assert_history(tr, history_count=1, history_type='+')
 
     @pytest.mark.parametrize(['changes', 'change_reason'], [
         ({'status': ReviewStatus.FINISHED}, 'Status changed to Finished'),
-        ({'language': Language.FRENCH}, 'Language changed to French'),
+        ({'language': Language.FRENCH_FR}, 'Language changed to French (fr-FR)'),
         ({'data': {'title': 'changed title'}}, None)
     ])
     def test_update_translation(self, changes, change_reason):
@@ -143,8 +143,8 @@ class TestTemplateHistory:
         res = self.client.post(reverse('findingtemplate-list'), data={
             'tags': ['test'],
             'translations': [
-                {'is_main': True, 'language': Language.ENGLISH, 'data': {'title': 'test'}},
-                {'is_main': False, 'language': Language.GERMAN, 'data': {'title': 'test'}},
+                {'is_main': True, 'language': Language.ENGLISH_US, 'data': {'title': 'test'}},
+                {'is_main': False, 'language': Language.GERMAN_DE, 'data': {'title': 'test'}},
             ],
         })
         assert res.status_code == 201
@@ -167,9 +167,9 @@ class TestTemplateHistory:
         self.assert_template_history_create(FindingTemplate.objects.get(id=data['id']))
 
     def test_update_template_api(self):
-        t = create_template(tags=['test'], data={'title': 'test'}, translations_kwargs=[{'language': Language.GERMAN, 'data': {'title': 'test'}}])
+        t = create_template(tags=['test'], data={'title': 'test'}, translations_kwargs=[{'language': Language.GERMAN_DE, 'data': {'title': 'test'}}])
         tr1 = t.main_translation
-        tr2 = t.translations.get(language=Language.GERMAN)
+        tr2 = t.translations.get(language=Language.GERMAN_DE)
 
         # Update without changes: no history
         res = self.client.patch(reverse('findingtemplate-detail', kwargs={'pk': t.id}), data=self.client.get(reverse('findingtemplate-detail', kwargs={'pk': t.id})).data)
@@ -201,7 +201,7 @@ class TestTemplateHistory:
         data['translations'][1]['is_main'] = True
         res = self.client.patch(reverse('findingtemplate-detail', kwargs={'pk': t.id}), data=data)
         assert res.status_code == 200
-        assert_history(t, history_count=3, history_type='~', history_change_reason='Main translation changed to German', history_user=self.user)
+        assert_history(t, history_count=3, history_type='~', history_change_reason='Main translation changed to German (de-DE)', history_user=self.user)
 
         assert_history(tr1, history_count=1, history_type='+')
         assert_history(tr2, history_count=1, history_type='+')
@@ -212,7 +212,7 @@ class TestTemplateHistory:
         return out
 
     def test_history_api(self):
-        t = create_template(language=Language.ENGLISH, tags=['tag1'], data={'title': 'title 1'}, translations_kwargs=[], images_kwargs=[])
+        t = create_template(language=Language.ENGLISH_US, tags=['tag1'], data={'title': 'title 1'}, translations_kwargs=[], images_kwargs=[])
         tr1 = t.main_translation
         tr1_id = tr1.id
         history = []
@@ -230,7 +230,7 @@ class TestTemplateHistory:
         ti1 = UploadedTemplateImage.objects.create(linked_object=t, name='file-new.png', file=SimpleUploadedFile(name=f'file-new.png', content=b'file-new'))
         add_history_test()
         # Add translation
-        tr2 = create_template_translation(template=t, language=Language.GERMAN, data={'title': 'title 2'})
+        tr2 = create_template_translation(template=t, language=Language.GERMAN_DE, data={'title': 'title 2'})
         add_history_test()
         # Update template and translation
         t.tags = ['tag2']
@@ -266,8 +266,8 @@ class TestTemplateHistory:
         self.assert_template_history_create(t, history_change_reason='Imported')
 
     def test_history_api_show_deleted(self):
-        t = create_template(translations_kwargs=[{'language': Language.GERMAN, 'data': {'title': 'title'}}])
-        tr = t.translations.get(language=Language.GERMAN)
+        t = create_template(translations_kwargs=[{'language': Language.GERMAN_DE, 'data': {'title': 'title'}}])
+        tr = t.translations.get(language=Language.GERMAN_DE)
         tr_id = tr.id
         ref_before_delete = self.client.get(reverse('findingtemplate-detail', kwargs={'pk': t.id})).data
         tr.history.all().delete()

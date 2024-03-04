@@ -245,7 +245,7 @@ def regular_user_urls():
 def template_editor_urls():
     return {
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, create=True, update=True, update_partial=True, destroy=True, lock=True, unlock=True),
-        *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), create=True, create_data={'language': Language.GERMAN, 'data': {'title': 'test'}}, update=True, update_partial=True),
+        *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), create=True, create_data={'language': Language.GERMAN_DE, 'data': {'title': 'test'}}, update=True, update_partial=True),
         *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, write=True),
         ('findingtemplate export', lambda s, c: c.post(reverse('findingtemplate-export', kwargs={'pk': s.template.pk}))),
         ('findingtemplate import', lambda s, c: c.post(reverse('findingtemplate-import'), data={'file': export_archive(s.template)}, format='multipart')),
