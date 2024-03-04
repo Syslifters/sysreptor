@@ -4,7 +4,7 @@
     @update:model-value="emit('update:modelValue', $event)"
     :items="languageInfos"
     item-value="code"
-    :item-title="(l: Language) => l.name + (l.code ? ' (' + l.code + ')' : '')"
+    item-title="name"
     label="Language"
   >
     <template #prepend-inner>

@@ -5,7 +5,7 @@
         <v-tabs v-model="currentTab" center-active>
           <v-tab v-for="tr in template.translations" :key="tr.id">
             <v-icon size="small" start icon="mdi-translate" />
-            {{ languageInfo(tr.language).name.split('(')[0] }} ({{ tr.language }})
+            {{ languageInfo(tr.language).name }}
             <btn-delete
               v-if="!tr.is_main"
               :disabled="props.readonly"
@@ -24,7 +24,7 @@
               <v-list>
                 <v-list-item v-for="lang in unusedLanguageInfos" :key="lang.code" link @click="createTranslation(lang.code)">
                   <template #prepend> <v-icon size="small" start icon="mdi-translate" /></template>
-                  <template #title>{{ lang.name }} ({{ lang.code }})</template>
+                  <template #title>{{ lang.name }}</template>
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -109,8 +109,8 @@
             >
               <v-icon size="small" icon="mdi-pencil" />
               <s-tooltip activator="parent">
-                Override field in {{ currentLanguageInfo.name.split('(')[0] }} ({{ currentLanguageInfo.code }}) translation.<br>
-                Currently it is inherited from the main language {{ mainLanguageInfo.name.split('(')[0] }} ({{ mainLanguageInfo.code }}).
+                Override field in {{ currentLanguageInfo.name }} translation.<br>
+                Currently it is inherited from the main language {{ mainLanguageInfo.name }}.
               </s-tooltip>
             </s-btn-secondary>
           </div>
