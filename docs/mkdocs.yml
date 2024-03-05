@@ -59,6 +59,7 @@ nav:
           - PushProject: cli/projects-and-templates/pushproject.md
           - Finding: cli/projects-and-templates/finding.md
           - ExportFindings: cli/projects-and-templates/exportfindings.md
+          - DeleteFindings: cli/projects-and-templates/deletefindings.md
           - Template: cli/projects-and-templates/template.md
           - File: cli/projects-and-templates/file.md
           - Note: cli/projects-and-templates/note.md
@@ -67,6 +68,7 @@ nav:
           - Unpackarchive: cli/utils/unpackarchive.md
           - Packarchive: cli/utils/packarchive.md
       - Importers:
+          - DefectDojo: cli/importers/defectdojo.md
           - Ghostwriter: cli/importers/ghostwriter.md
       - Writing plugins:
           - Tools: cli/writing-plugins/tools.md
