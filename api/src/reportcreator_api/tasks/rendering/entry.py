@@ -148,13 +148,15 @@ async def format_project_template_data(project: PentestProject, project_type: Op
     )
 
 
-async def get_celery_result_async(task, timeout=timedelta(seconds=settings.CELERY_TASK_TIME_LIMIT)):
+async def get_celery_result_async(task, timeout=timedelta(seconds=settings.PDF_RENDERING_TIME_LIMIT + 5)):
     start_time = timezone.now()
     while not task.ready():
         if timezone.now() > start_time + timeout:
             logging.error('PDF rendering task timeout')
             raise TimeoutError('PDF rendering timeout')
         await asyncio.sleep(0.2)
+    if isinstance(task.result, Exception):
+        raise task.result
     return task.result
 
 
