@@ -6,7 +6,12 @@ from reportcreator_api.utils.logging import log_timing
 from reportcreator_api.tasks.rendering import render
 
 
-@shared_task(name='reportcreator.render_pdf', expires=settings.CELERY_TASK_TIME_LIMIT)
+@shared_task(
+    name='reportcreator.render_pdf', 
+    soft_time_limit=settings.PDF_RENDERING_TIME_LIMIT, 
+    time_limit=settings.PDF_RENDERING_TIME_LIMIT + 5, 
+    expires=settings.PDF_RENDERING_TIME_LIMIT + 5,
+)
 @log_timing
 def render_pdf_task(*args, **kwargs) -> dict:
     pdf, msgs = render.render_pdf(*args, **kwargs)
