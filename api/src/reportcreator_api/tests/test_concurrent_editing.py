@@ -49,7 +49,7 @@ class TestTextTransformations:
         # Combine changes
         combined_change = ChangeSet.from_dict(operations[0]['changes'])
         for op in operations[1:]:
-            combined_change = combined_change.compose_desc(ChangeSet.from_dict(op['changes']))
+            combined_change = combined_change.compose(ChangeSet.from_dict(op['changes']))
             assert combined_change.apply('') == op['expected']
 
     @pytest.mark.parametrize(['text', 'change1', 'change2', 'expected'], [
@@ -62,8 +62,8 @@ class TestTextTransformations:
     def test_operational_transform(self, text, change1, change2, expected):
         c1 = ChangeSet.from_dict(change1)
         c2 = ChangeSet.from_dict(change2)
-        assert c1.compose_desc(c2.map(c1)).apply(text) == expected
-        assert c2.compose_desc(c1.map(c2, True)).apply(text) == expected
+        assert c1.compose(c2.map(c1)).apply(text) == expected
+        assert c2.compose(c1.map(c2, True)).apply(text) == expected
         
         text1 = c1.apply(text)
         updates = rebase_updates(updates=[Update(client_id='c2', changes=c2)], over=[Update(client_id='c1', changes=c1)])

@@ -92,7 +92,7 @@ class ChangeSet:
         """
         return map_set(self, other, before)
 
-    def compose_desc(self, other: 'ChangeSet'):
+    def compose(self, other: 'ChangeSet'):
         """
         Compute the combined effect of applying another set of changes
         after this one. The length of the document after this set should
@@ -175,13 +175,15 @@ class Update:
 
     @classmethod
     def from_dict(cls, u: dict):
-        if not isinstance(u, dict) or not isinstance(u.get('clientID'), str) or not isinstance(u.get('changes'), list) or len(u['changes']) == 0:
+        if not isinstance(u, dict) or not isinstance(u.get('clientID'), str) or not isinstance(u.get('version'), float) or \
+           not isinstance(u.get('changes'), list) or len(u['changes']) == 0:
             raise ValueError(f'Invalid update')
         return Update(client_id=u['clientID'], version=u['version'], changes=ChangeSet.from_dict(u['changes']))
     
     def to_dict(self):
         return {
             'clientID': self.client_id,
+            'version': self.version,
             'changes': self.changes.to_dict()
         }
 
@@ -393,6 +395,9 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
     filtered out, and secondly, has been moved over the other changes
     so that they apply to the current document version.
     """
+    import logging
+    logging.info(f'rebase_updates: updates={updates}, over={over}')
+
     if not updates or not over:
         return updates
     
@@ -406,7 +411,7 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
             skip += 1
         else:
             if changes:
-                changes = changes.compose_desc(update.changes)
+                changes = changes.compose(update.changes)
             else:
                 changes = update.changes
     

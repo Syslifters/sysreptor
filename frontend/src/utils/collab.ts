@@ -88,14 +88,14 @@ export function useCollab(storeState: CollabStoreState<any>) {
         storeState.connectionState = CollabConnectionState.OPEN;
         storeState.version = msgData.version;
         storeState.data = msgData.data;
-      } else if (msgData.type === 'update.key') {
+      } else if (msgData.type === 'collab.update.key') {
         // TODO: should we track unconfirmed updates, or is this irrelevant for update.key ?
         eventBusUpdateKey.emit({
           ...msgData, 
           path: storeState.websocketPath + msgData.path, 
           source: 'ws',
         });
-      } else if (msgData.type === 'update.text') {
+      } else if (msgData.type === 'collab.update.text') {
         // TODO: handle in codemirror or here??
         eventBusUpdateText.emit({ 
           ...msgData, 

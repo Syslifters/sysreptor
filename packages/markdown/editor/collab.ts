@@ -137,14 +137,18 @@ export function receiveUpdates(state: EditorState, updates: readonly Update[]) {
     }
   }
 
-  if (own) unconfirmed = unconfirmed.slice(own)
-  if (unconfirmed.length) {
-    if (changes) unconfirmed = unconfirmed.map(update => {
-      let updateChanges = update.changes.map(changes!)
-      changes = changes!.map(update.changes, true)
-      return new LocalUpdate(update.origin, updateChanges, StateEffect.mapEffects(update.effects, changes!), clientID)
-    })
-    if (effects.length) {
+  if (own) { 
+    unconfirmed = unconfirmed.slice(own);
+  }
+  if (unconfirmed.length > 0) {
+    if (changes) {
+        unconfirmed = unconfirmed.map(update => {
+          let updateChanges = update.changes.map(changes!)
+          changes = changes!.map(update.changes, true)
+          return new LocalUpdate(update.origin, updateChanges, StateEffect.mapEffects(update.effects, changes!), clientID, version)
+        });
+      }
+    if (effects.length > 0) {
       let composed = unconfirmed.reduce((ch, u) => ch.compose(u.changes),
                                         ChangeSet.empty(unconfirmed[0].changes.length))
       effects = StateEffect.mapEffects(effects, composed)
@@ -152,7 +156,9 @@ export function receiveUpdates(state: EditorState, updates: readonly Update[]) {
   }
 
   if (!changes) {
-    return state.update({annotations: [collabReceive.of(new CollabState(version, unconfirmed))]})
+    return state.update({annotations: [
+      collabReceive.of(new CollabState(version, unconfirmed))
+    ]});
   } else {
     return state.update({
       changes: changes,

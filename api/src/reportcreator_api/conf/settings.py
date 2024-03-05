@@ -35,8 +35,16 @@ DEBUG = False  # config('DEBUG', cast=bool, default=False)
 ALLOWED_HOSTS = ['*']
 APPEND_SLASH = True
 
-# Application definition
 
+# Internationalization
+# https://docs.djangoproject.com/en/4.0/topics/i18n/
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+
+
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,6 +58,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'drf_spectacular_sidecar',
     'simple_history',
+    'channels',
+    'channels_postgres',
 
     'reportcreator_api',
     'reportcreator_api.users',
@@ -139,32 +149,39 @@ SPECTACULAR_SETTINGS = {
 }
 
 
+# Database
+# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
+DEFAULT_DATABASE_CONFIG = {
+    'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
+    'HOST': config('DATABASE_HOST', default=''),
+    'PORT': config('DATABASE_PORT', default='5432'),
+    'NAME': config('DATABASE_NAME', default=''),
+    'USER': config('DATABASE_USER', default=''),
+    'PASSWORD': config('DATABASE_PASSWORD', default=''),
+    # TODO: debug only
+    # 'DISABLE_SERVER_SIDE_CURSORS': True,
+    # 'OPTIONS': {
+    #     'prepare_threshold': None,
+    # }
+}
+DATABASES = {
+    'default': DEFAULT_DATABASE_CONFIG,
+    'channels_postgres': DEFAULT_DATABASE_CONFIG,
+}
+
+
+
 # Websockets
 CHANNEL_LAYERS = {
     'default': {
-        # TODO: configure postgres DB layer
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'BACKEND': 'reportcreator_api.utils.channels.CustomizedPostgresChannelLayer',
+        'CONFIG': DEFAULT_DATABASE_CONFIG | {
+            'TIME_ZONE': TIME_ZONE,
+            'group_expiry': 60,
+        },
     },
 }
 
-
-# Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
-        'HOST': config('DATABASE_HOST', default=''),
-        'PORT': config('DATABASE_PORT', default='5432'),
-        'NAME': config('DATABASE_NAME', default=''),
-        'USER': config('DATABASE_USER', default=''),
-        'PASSWORD': config('DATABASE_PASSWORD', default=''),
-        'DISABLE_SERVER_SIDE_CURSORS': True,
-        'OPTIONS': {
-            'prepare_threshold': None,
-        }
-    },
-}
 
 
 # Password validation
@@ -259,18 +276,6 @@ LOCAL_USER_AUTH_ENABLED = config('LOCAL_USER_AUTH_ENABLED', cast=bool, default=T
 
 DEFAULT_AUTH_PROVIDER = config('DEFAULT_AUTH_PROVIDER', default=None)
 DEFAULT_REAUTH_PROVIDER = config('DEFAULT_REAUTH_PROVIDER', default=DEFAULT_AUTH_PROVIDER)
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.0/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
