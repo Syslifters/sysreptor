@@ -580,7 +580,7 @@ ELASTIC_APM_ENABLED = config('ELASTIC_APM_ENABLED', cast=bool, default=False)
 ELASTIC_APM = {
     'ENABLED': ELASTIC_APM_ENABLED,
     'SERVICE_NAME': config('ELASTIC_APM_SERVICE_NAME', default=''),
-    'SERVICE_TOKEN': config('ELASTIC_APM_SERVICE_TOKEN', default=''),
+    'API_KEY': config('ELASTIC_APM_SERVICE_TOKEN', default=''),
     'SERVER_URL': config('ELASTIC_APM_SERVER_URL', default=''),
     'SPAN_COMPRESSION_ENABLED': False,
     'DJANGO_AUTOINSERT_MIDDLEWARE': False,
