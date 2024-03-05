@@ -36,6 +36,7 @@ fi
 if
     test 0 -eq "$error"
 then
+    echo "See prerequisites at https://docs.sysreptor.com/setup/installation/#installation-via-script"
     exit -1
 fi
 if
