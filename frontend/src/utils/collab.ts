@@ -58,8 +58,8 @@ export function useObservable() {
 }
 
 export function useCollab(storeState: CollabStoreState<any>) {
-  const eventBusUpdateKey = useEventBus('collab:update.key');
-  const eventBusUpdateText = useEventBus('collab:update.text');
+  const eventBusUpdateKey = useEventBus('collab.update_key');
+  const eventBusUpdateText = useEventBus('collab.update_text');
 
   function connect() {
     if (storeState.connectionState !== CollabConnectionState.CLOSED) {
@@ -88,14 +88,14 @@ export function useCollab(storeState: CollabStoreState<any>) {
         storeState.connectionState = CollabConnectionState.OPEN;
         storeState.version = msgData.version;
         storeState.data = msgData.data;
-      } else if (msgData.type === 'collab.update.key') {
-        // TODO: should we track unconfirmed updates, or is this irrelevant for update.key ?
+      } else if (msgData.type === 'collab.update_key') {
+        // TODO: should we track unconfirmed updates, or is this irrelevant for collab.update_key ?
         eventBusUpdateKey.emit({
           ...msgData, 
           path: storeState.websocketPath + msgData.path, 
           source: 'ws',
         });
-      } else if (msgData.type === 'collab.update.text') {
+      } else if (msgData.type === 'collab.update_text') {
         // TODO: handle in codemirror or here??
         eventBusUpdateText.emit({ 
           ...msgData, 
@@ -137,14 +137,14 @@ export function useCollab(storeState: CollabStoreState<any>) {
     if (event.source !== 'ws') {
       // Propagate event to other clients
       storeState.websocket?.send(JSON.stringify({
-        type: 'update.key',
+        type: 'collab.update_key',
         path: dataPath,
         value: event.value,
       }));
     }
 
     // Update local state
-    console.log('collab:update.key', event);
+    console.log('collab.update_key', event);
     set(storeState.data as Object, dataPath, event.value);
   }
 
@@ -157,14 +157,14 @@ export function useCollab(storeState: CollabStoreState<any>) {
     if (event.source !== 'ws') {
       // Propagate event to other clients
       storeState.websocket?.send(JSON.stringify({
-        type: 'update.text',
+        type: 'collab.update_text',
         path: dataPath,
         updates: event.updates,
       }));
     }
 
     // Updating text field content is handled in useMarkdownEditor
-    console.log('collab:update.text', event);
+    console.log('collab.update_text', event);
   }
 
   return {

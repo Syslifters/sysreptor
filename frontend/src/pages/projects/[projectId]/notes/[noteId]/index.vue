@@ -110,7 +110,7 @@ const inputFieldAttrs = computed(() => ({}));
 const toolbarAttrs = computed(() => ({}));
 
 function updateKey(key: string, value: any) {
-  useEventBus('collab:update.key').emit({ 
+  useEventBus('collab.update_key').emit({ 
     path: collabSubpath(notesCollab.props.value, `notes.${route.params.noteId}.${key}`).path, 
     value,
   });

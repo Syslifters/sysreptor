@@ -151,22 +151,19 @@ SPECTACULAR_SETTINGS = {
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-DEFAULT_DATABASE_CONFIG = {
-    'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
-    'HOST': config('DATABASE_HOST', default=''),
-    'PORT': config('DATABASE_PORT', default='5432'),
-    'NAME': config('DATABASE_NAME', default=''),
-    'USER': config('DATABASE_USER', default=''),
-    'PASSWORD': config('DATABASE_PASSWORD', default=''),
-    # TODO: debug only
-    # 'DISABLE_SERVER_SIDE_CURSORS': True,
-    # 'OPTIONS': {
-    #     'prepare_threshold': None,
-    # }
-}
 DATABASES = {
-    'default': DEFAULT_DATABASE_CONFIG,
-    'channels_postgres': DEFAULT_DATABASE_CONFIG,
+    'default': {
+        'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
+        'HOST': config('DATABASE_HOST', default=''),
+        'PORT': config('DATABASE_PORT', default='5432'),
+        'NAME': config('DATABASE_NAME', default=''),
+        'USER': config('DATABASE_USER', default=''),
+        'PASSWORD': config('DATABASE_PASSWORD', default=''),
+        'DISABLE_SERVER_SIDE_CURSORS': True,
+        'OPTIONS': {
+            'prepare_threshold': None,
+        }
+    }
 }
 
 
@@ -175,7 +172,7 @@ DATABASES = {
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'reportcreator_api.utils.channels.CustomizedPostgresChannelLayer',
-        'CONFIG': DEFAULT_DATABASE_CONFIG | {
+        'CONFIG': DATABASES['default'] | {
             'TIME_ZONE': TIME_ZONE,
             'group_expiry': 60,
         },
@@ -515,6 +512,11 @@ PERIODIC_TASKS = [
         'id': 'cleanup_history',
         'task': 'reportcreator_api.pentests.tasks.cleanup_history',
         'schedule': timedelta(minutes=5),
+    },
+    {
+        'id': 'cleanup_collab_events',
+        'task': 'reportcreator_api.pentests.tasks.cleanup_collab_events',
+        'schedule': timedelta(hours=1),
     },
 ]
 

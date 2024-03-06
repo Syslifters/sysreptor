@@ -181,8 +181,8 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   const editorView = shallowRef<EditorView|null>(null);
   const editorState = shallowRef<EditorState|null>(null);
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
-  const eventBusUpdateText = useEventBus('collab:update.text');
-  const eventBusUpdateKey = useEventBus('collab:update.key');
+  const eventBusUpdateText = useEventBus('collab.update_text');
+  const eventBusUpdateKey = useEventBus('collab.update_key');
   function initializeEditorView() {
     editorView.value = new EditorView({
       parent: editorRef.value,
