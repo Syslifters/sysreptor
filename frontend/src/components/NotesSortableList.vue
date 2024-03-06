@@ -2,7 +2,7 @@
   <draggable
     :model-value="localValue"
     @update:model-value="updateModelValue"
-    :item-key="(item: NoteGroup<UserNote>[number]) => item.note.id"
+    :item-key="(item: NoteGroup<NoteBase>[number]) => item.note.id"
     group="notes"
     :delay="50"
     :disabled="props.disabled"
@@ -33,7 +33,6 @@
               <v-icon v-else-if="item.children.length > 0" size="small" class="text-disabled" icon="mdi-folder-outline" />
               <v-icon v-else size="small" class="text-disabled" icon="mdi-note-text-outline" />
             </div>
-            <s-lock-info :value="item.note.lock_info" />
           </template>
           <template #default>
             <v-list-item-title class="text-body-2">{{ item.note.title }}</v-list-item-title>
@@ -69,16 +68,16 @@ const auth = useAuth();
 const localSettings = useLocalSettings();
 
 const props = defineProps<{
-  modelValue: NoteGroup<UserNote>;
-  selected?: UserNote|null;
+  modelValue: NoteGroup<NoteBase>;
+  selected?: NoteBase|null;
   toPrefix?: string;
   disabled?: boolean;
 }>();
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: NoteGroup<UserNote>): void;
-  (e: 'update:selected', value: UserNote|null): void;
-  (e: 'update:checked', value: UserNote): void;
-  (e: 'select', value: UserNote): void;
+  (e: 'update:modelValue', value: NoteGroup<NoteBase>): void;
+  (e: 'update:selected', value: NoteBase|null): void;
+  (e: 'update:checked', value: NoteBase): void;
+  (e: 'select', value: NoteBase): void;
 }>();
 
 const localValue = ref([...props.modelValue]);
@@ -86,26 +85,23 @@ watch(() => props.modelValue, (val) => {
   localValue.value = val;
 }, { immediate: true });
 
-function isExpanded(note: UserNote) {
+function isExpanded(note: NoteBase) {
   return localSettings.isNoteExpanded(note.id);
 }
-function toggleExpanded(note: UserNote) {
+function toggleExpanded(note: NoteBase) {
   localSettings.setNoteExpandState({ noteId: note.id, isExpanded: !isExpanded(note) });
 }
 
-function updateModelValue(val: NoteGroup<UserNote>) {
+function updateModelValue(val: NoteGroup<NoteBase>) {
   localValue.value = val;
   emit('update:modelValue', localValue.value);
 }
-function updateChildren(item: { note: UserNote, children: NoteGroup<UserNote> }, children: NoteGroup<UserNote>) {
+function updateChildren(item: { note: NoteBase, children: NoteGroup<NoteBase> }, children: NoteGroup<NoteBase>) {
   const itemIdx = localValue.value.findIndex(i => i.note.id === item.note.id);
   localValue.value[itemIdx] = Object.assign({}, localValue.value[itemIdx], { children });
   emit('update:modelValue', localValue.value);
 }
-function updateChecked(note: UserNote, checked: boolean) {
-  if (note.lock_info) {
-    return;
-  }
+function updateChecked(note: NoteBase, checked: boolean) {
   emit('update:checked', { ...note, checked });
 }
 </script>

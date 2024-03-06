@@ -295,9 +295,9 @@ export type NoteBase = {
   icon_emoji: string|null;
 }
 
-export type UserNote = BaseModel & Lockable & NoteBase;
+export type UserNote = BaseModel & NoteBase;
 
-export type ProjectNote = UserNote & {
+export type ProjectNote = BaseModel & NoteBase & {
   assignee: UserShortInfo|null;
 };
 

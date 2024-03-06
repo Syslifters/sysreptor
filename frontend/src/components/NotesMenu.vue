@@ -27,7 +27,7 @@
               <btn-import 
                 v-if="props.performImport"
                 ref="importBtnRef"
-                :import="performImport"
+                :import="props.performImport"
                 :disabled="props.readonly"
                 button-variant="list-item"
               />
@@ -52,7 +52,7 @@
         <v-list-item>
           <btn-confirm
             ref="createNoteBtnRef"
-            :action="createNote"
+            :action="props.createNote!"
             :disabled="!canCreate"
             :confirm="false"
             button-text="Add"

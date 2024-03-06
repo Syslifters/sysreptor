@@ -7,13 +7,13 @@
         :perform-import="performImport"
         :export-url="`/api/v1/pentestprojects/${project.id}/notes/export/`"
         :export-name="'notes-' + project.name"
-        :readonly="project.readonly"
+        :readonly="readonly"
       >
         <notes-sortable-list
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
           @update:checked="updateNoteChecked"
-          :disabled="project.readonly"
+          :disabled="readonly"
           :to-prefix="`/projects/${$route.params.projectId}/notes/`"
         />
       </notes-menu>
@@ -40,6 +40,7 @@ const project = await useAsyncDataE(async () => await projectStore.getById(route
 const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 
 const notesCollab = projectStore.useNotesCollab(project.value);
+const readonly = computed(() => project.value.readonly || notesCollab.connectionState.value !== CollabConnectionState.OPEN);
 watch(notesCollab.connectionState, (val) => {
   console.log('notesCollab.connectionState', val);
 });
