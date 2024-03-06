@@ -51,7 +51,7 @@
             @update:model-value="v => updateChildren(item, v)"
             :selected="props.selected"
             @update:selected="emit('update:selected', $event)"
-            @update:note="emit('update:note', $event)"
+            @update:checked="emit('update:checked', $event)"
             :disabled="props.disabled"
             :to-prefix="props.toPrefix"
             class="child-list"
@@ -77,7 +77,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: NoteGroup<UserNote>): void;
   (e: 'update:selected', value: UserNote|null): void;
-  (e: 'update:note', value: UserNote): void;
+  (e: 'update:checked', value: UserNote): void;
   (e: 'select', value: UserNote): void;
 }>();
 
@@ -106,7 +106,7 @@ function updateChecked(note: UserNote, checked: boolean) {
   if (note.lock_info) {
     return;
   }
-  emit('update:note', { ...note, checked });
+  emit('update:checked', { ...note, checked });
 }
 </script>
 

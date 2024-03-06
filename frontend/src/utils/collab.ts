@@ -1,4 +1,5 @@
 import set from "lodash/set";
+import unset from "lodash/unset";
 import trimStart from "lodash/trimStart";
 import urlJoin from "url-join";
 
@@ -57,7 +58,7 @@ export function useObservable() {
   }
 }
 
-export function useCollab(storeState: CollabStoreState<any>) {
+export function useCollab(storeState: CollabStoreState<any>, options?: { handleAdditionalWebSocketMessages?: (msgData: any) => boolean }) {
   const eventBusUpdateKey = useEventBus('collab.update_key');
   const eventBusUpdateText = useEventBus('collab.update_text');
 
@@ -102,7 +103,11 @@ export function useCollab(storeState: CollabStoreState<any>) {
           path: storeState.websocketPath + msgData.path,
           source: 'ws',
         });
-      } else {
+      } else if (msgData.type === 'collab.create') {
+        set(storeState.data as Object, msgData.path, msgData.value);
+      } else if (msgData.type === 'collab.delete') {
+        unset(storeState.data as Object, msgData.path);
+      } else if (!options?.handleAdditionalWebSocketMessages?.(msgData)) {
         // eslint-disable-next-line no-console
         console.error('Received unknown websocket message:', msgData);
       }

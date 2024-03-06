@@ -11,7 +11,7 @@
         <notes-sortable-list
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
-          @update:note="updateNote"
+          @update:checked="updateNote"
           to-prefix="/notes/personal/"
         />
       </notes-menu>

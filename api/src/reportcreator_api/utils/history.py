@@ -65,7 +65,7 @@ class HistoricalRecords(history_models.HistoricalRecords):
         elif hasattr(self.context, 'history_user'):
             return self.context.history_user
         else:
-            return super().get_history_user()
+            return super().get_history_user(instance)
 
 
 class HistoricalQuerySet(history_manager.HistoricalQuerySet):

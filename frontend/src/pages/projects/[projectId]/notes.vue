@@ -12,7 +12,7 @@
         <notes-sortable-list
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
-          @update:note="updateNote"
+          @update:checked="updateNoteChecked"
           :disabled="project.readonly"
           :to-prefix="`/projects/${$route.params.projectId}/notes/`"
         />
@@ -54,41 +54,35 @@ onBeforeUnmount(() => {
   notesCollab.disconnect();
 });
 
+async function createNote() {
+  const currentNote = projectStore.notes(project.value.id).find(n => n.id === route.params.noteId);
+  const obj = await projectStore.createNote(project.value, {
+    title: 'New Note',
+    // Insert new note after the currently selected note, or at the end of the list
+    parent: currentNote?.parent || null,
+    order: (currentNote ? currentNote.order + 1 : null),
+    checked: [true, false].includes(currentNote?.checked as any) ? false : null,
+  } as unknown as ProjectNote)
+  await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, query: { focus: 'title' } })
+}
+async function performImport(file: File) {
+  const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);
+  const note = res.find(n => n.parent === null)!;
+  await navigateTo(`/projects/${project.value.id}/notes/${note.id}/`);
+}
 
-// TODO: Update to websockets API
-// async function createNote() {
-//   const currentNote = projectStore.notes(project.value.id).find(n => n.id === route.params.noteId);
-//   const obj = await projectStore.createNote(project.value, {
-//     title: 'New Note',
-//     // Insert new note after the currently selected note, or at the end of the list
-//     parent: currentNote?.parent || null,
-//     order: (currentNote ? currentNote.order + 1 : null),
-//     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
-//   } as unknown as ProjectNote)
-//   // Reload note list to get updated order
-//   await refreshListings();
-
-//   await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, query: { focus: 'title' } })
-// }
-// async function performImport(file: File) {
-//   const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);
-//   const note = res.find(n => n.parent === null)!;
-//   await refreshListings();
-//   await navigateTo(`/projects/${project.value.id}/notes/${note.id}/`);
-// }
-// async function updateNote(note: ProjectNote) {
-//   try {
-//     await projectStore.partialUpdateNote(project.value, note, ['checked']);
-//   } catch (error) {
-//     requestErrorToast({ error });
-//   }
-// }
-// // Execute in next tick: prevent two requests for events in the same tick
-// const updateNoteOrder = debounce(async (notes: NoteGroup<ProjectNote>) => {
-//   try {
-//     await projectStore.sortNotes(project.value, notes);
-//   } catch (error) {
-//     requestErrorToast({ error });
-//   }
-// }, 0);
+function updateNoteChecked(note: ProjectNote) {
+  useEventBus('collab.update_key').emit({ 
+    path: collabSubpath(notesCollab.props.value, `notes.${note.id}.checked`).path, 
+    value: note.checked,
+  });
+}
+// Execute in next tick: prevent two requests for events in the same tick
+const updateNoteOrder = debounce(async (notes: NoteGroup<ProjectNote>) => {
+  try {
+    await projectStore.sortNotes(project.value, notes);
+  } catch (error) {
+    requestErrorToast({ error });
+  }
+}, 0);
 </script>

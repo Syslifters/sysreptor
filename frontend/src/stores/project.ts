@@ -267,11 +267,45 @@ export const useProjectStore = defineStore('project', {
       }
       return section;
     },
+    async createNote(project: PentestProject, note: ProjectNote) {
+      note = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/`, {
+        method: 'POST',
+        body: note
+      });
+      this.ensureExists(project.id);
+      this.data[project.id].notesCollabState.data.notes[note.id] = note;
+      return note;
+    },
+    async sortNotes(project: PentestProject, noteGroups: NoteGroup<ProjectNote>) {
+      this.ensureExists(project.id)
+      const notes = [] as ProjectNote[];
+      sortNotes(noteGroups, (n) => {
+        notes.push(n);
+      });
+      this.data[project.id].notesCollabState.data.notes = Object.fromEntries(notes.map(n => [n.id, n]));
+      await $fetch<{id: string; parent: string|null; order: number}[]>(`/api/v1/pentestprojects/${project.id}/notes/sort/`, {
+        method: 'POST',
+        body: notes.map(n => pick(n, ['id', 'parent', 'order']))
+      });
+    },
     useNotesCollab(project: PentestProject) {
       this.ensureExists(project.id);
 
       const collabState = this.data[project.id].notesCollabState;
-      const collab = useCollab(collabState);
+      const collab = useCollab(collabState, {
+        handleAdditionalWebSocketMessages: (msgData: any) => {
+          if (msgData.type === 'collab.sort' && msgData.path === 'notes') {
+            for (const note of Object.values(collabState.data.notes)) {
+              const no = msgData.sort.find((n: ProjectNote) => n.id === note.id);
+              note.parent = no?.parent || null;
+              note.order = no?.order || 0;
+            }
+            return true;
+          } else {
+            return false;
+          }
+        }
+      });
 
       return {
         ...collab,
