@@ -65,6 +65,8 @@ export function useCollab(storeState: CollabStoreState<any>, options?: { handleA
   const eventBusUpdateKey = useEventBus('collab.update_key');
   const eventBusUpdateText = useEventBus('collab.update_text');
 
+  // TODO: on initial connection failed (or permission denied): fetch list via REST API and set readonly
+
   function connect() {
     if (storeState.connectionState !== CollabConnectionState.CLOSED) {
       return;
@@ -74,6 +76,7 @@ export function useCollab(storeState: CollabStoreState<any>, options?: { handleA
       'ws://localhost:8000' : 
       `${window.location.protocol === 'https' ? 'wss' : 'ws'}://${window.location.host}/`;
     const wsUrl = urlJoin(serverUrl, storeState.websocketPath);
+    console.log('useCollab.connect websocket', wsUrl);
     storeState.connectionState = CollabConnectionState.CONNECTING;
     storeState.websocket = new WebSocket(wsUrl);
     storeState.websocket.addEventListener('open', () => {
@@ -124,6 +127,7 @@ export function useCollab(storeState: CollabStoreState<any>, options?: { handleA
     if (storeState.connectionState === CollabConnectionState.CLOSED) {
       return;
     }
+    console.log('useCollab.disconnect websocket');
     eventBusUpdateKey.off(updateKey);
     eventBusUpdateText.off(updateText);
     storeState.websocket?.close();

@@ -9,7 +9,7 @@
                 <s-btn-icon
                   @click="updateKey('checked', note.checked === null ? false : !note.checked ? true : null)"
                   :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
-                  :disabled="readonly"
+                  :disabled="notesCollab.readonly.value"
                   density="comfortable"
                 />
               </div>
@@ -18,7 +18,7 @@
                 :model-value="note.icon_emoji"
                 @update:model-value="updateKey('icon_emoji', $event)"
                 :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
-                :readonly="readonly"
+                :readonly="notesCollab.readonly.value"
                 density="comfortable"
               />
               
@@ -26,7 +26,7 @@
                 ref="titleRef"
                 :model-value="note.title"
                 :collab="collabSubpath(notesCollab.props.value, `notes.${route.params.noteId}.title`)"
-                :readonly="readonly"
+                :readonly="notesCollab.readonly.value"
                 :spellcheck-supported="true"
                 v-bind="inputFieldAttrs"
                 class="note-title"
@@ -39,7 +39,7 @@
                 :model-value="note.assignee"
                 @update:model-value="updateKey('assignee', $event)"
                 :selectable-users="project.members"
-                :readonly="readonly"
+                :readonly="notesCollab.readonly.value"
                 label="Assignee"
                 variant="underlined"
                 density="compact"
@@ -75,7 +75,7 @@
           ref="textRef"
           :model-value="note.text"
           :collab="collabSubpath(notesCollab.props.value, `notes.${route.params.noteId}.text`)"
-          :readonly="readonly"
+          :readonly="notesCollab.readonly.value"
           v-bind="inputFieldAttrs"
         />
       </template>
@@ -94,7 +94,6 @@ const project = await useAsyncDataE(async () => await projectStore.getById(route
 
 const notesCollab = projectStore.useNotesCollab(project.value);
 const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
-const readonly = computed(() => project.value.readonly || notesCollab.connectionState.value !== CollabConnectionState.OPEN);
 watch(() => note.value?.text, () => {
   console.log('note text changed', note.value.text);
 });
@@ -102,7 +101,7 @@ watch(() => note.value?.text, () => {
 // TODO: quick and dirty mocking
 const fetchLoaderAttrs = computed(() => ({
   fetchState: {
-    pending: [CollabConnectionState.CONNECTING, CollabConnectionState.INITIALIZING].includes(notesCollab.connectionState.value),
+    pending: [CollabConnectionState.CONNECTING, CollabConnectionState.INITIALIZING].includes(notesCollab.connectionState.value) && !note.value,
     error: null,
     data: note.value,
   }

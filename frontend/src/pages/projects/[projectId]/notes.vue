@@ -7,19 +7,40 @@
         :perform-import="performImport"
         :export-url="`/api/v1/pentestprojects/${project.id}/notes/export/`"
         :export-name="'notes-' + project.name"
-        :readonly="readonly"
+        :readonly="notesCollab.readonly.value"
       >
         <notes-sortable-list
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
           @update:checked="updateNoteChecked"
-          :disabled="readonly"
+          :disabled="notesCollab.readonly.value"
           :to-prefix="`/projects/${$route.params.projectId}/notes/`"
         />
       </notes-menu>
     </template>
 
     <template #default>
+      <v-snackbar
+        :model-value="notesCollab.connectionState.value !== CollabConnectionState.OPEN"
+        color="warning"
+        disabled
+      >
+        <!-- TODO: delay on initial load -->
+        <template #text>
+          <span v-if="notesCollab.connectionState.value === CollabConnectionState.CLOSED">Lost connection to the server</span>
+          <span v-else>Connecting...</span>
+        </template>
+        <template #actions>
+          <v-btn
+            v-if="notesCollab.connectionState.value === CollabConnectionState.CLOSED"
+            @click="notesCollab.connect()"
+            variant="text"
+            size="small"
+            text="Try again"
+          />
+          <v-progress-circular v-else indeterminate size="25" />
+        </template>
+      </v-snackbar>
       <nuxt-page />
     </template>
   </split-menu>
@@ -40,7 +61,6 @@ const project = await useAsyncDataE(async () => await projectStore.getById(route
 const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 
 const notesCollab = projectStore.useNotesCollab(project.value);
-const readonly = computed(() => project.value.readonly || notesCollab.connectionState.value !== CollabConnectionState.OPEN);
 watch(notesCollab.connectionState, (val) => {
   console.log('notesCollab.connectionState', val);
 });
@@ -72,16 +92,16 @@ async function performImport(file: File) {
   await navigateTo(`/projects/${project.value.id}/notes/${note.id}/`);
 }
 
-function updateNoteChecked(note: ProjectNote) {
+function updateNoteChecked(note: NoteBase) {
   useEventBus('collab.update_key').emit({ 
     path: collabSubpath(notesCollab.props.value, `notes.${note.id}.checked`).path, 
     value: note.checked,
   });
 }
 // Execute in next tick: prevent two requests for events in the same tick
-const updateNoteOrder = debounce(async (notes: NoteGroup<ProjectNote>) => {
+const updateNoteOrder = debounce(async (notes: NoteGroup<NoteBase>) => {
   try {
-    await projectStore.sortNotes(project.value, notes);
+    await projectStore.sortNotes(project.value, notes as NoteGroup<ProjectNote>);
   } catch (error) {
     requestErrorToast({ error });
   }

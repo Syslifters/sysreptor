@@ -311,6 +311,7 @@ export const useProjectStore = defineStore('project', {
         ...collab,
         data: computed(() => collabState.data),
         connectionState: computed(() => collabState.connectionState),
+        readonly: computed(() => project.readonly || collabState.connectionState !== CollabConnectionState.OPEN),
         props: computed(() => ({
           path: collabState.websocketPath,
           version: collabState.version,
