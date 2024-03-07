@@ -1,5 +1,8 @@
 # Changelog
 
+## Next
+* Add Content Security Policy directive form-action
+
 
 ## v2024.19 - 2024-03-05
 * Allow configuring the PDF rendering timeout (applies only when a separate worker is used)
