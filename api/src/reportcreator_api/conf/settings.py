@@ -348,6 +348,7 @@ CSP_WORKER_SRC = ["'self'"]
 CSP_CONNECT_SRC = ["'self'", "data:"]
 CSP_FRAME_SRC = ["'self'"]
 CSP_FRAME_ANCESTORS = ["'self'"]
+CSP_FORM_ACTION = ["'self'"]
 # nuxt, vuetify and markdown preview use inline styles
 CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
 # unsafe-inline: 
