@@ -24,7 +24,8 @@
               
               <markdown-text-field-content
                 ref="titleRef"
-                v-model="note.title"
+                :model-value="note.title"
+                :collab="collabSubpath(notesCollab.props.value, `notes.${route.params.noteId}.title`)"
                 :readonly="readonly"
                 :spellcheck-supported="true"
                 v-bind="inputFieldAttrs"
@@ -72,7 +73,7 @@
 
         <markdown-page
           ref="textRef"
-          v-model="note.text"
+          :model-value="note.text"
           :collab="collabSubpath(notesCollab.props.value, `notes.${route.params.noteId}.text`)"
           :readonly="readonly"
           v-bind="inputFieldAttrs"

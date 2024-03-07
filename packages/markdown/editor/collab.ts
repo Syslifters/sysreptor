@@ -52,7 +52,7 @@ class LocalUpdate implements Update {
   ) {}
 }
 
-class CollabState {
+export class CollabState {
   constructor(
     // The version up to which changes have been confirmed.
     readonly version: number,
@@ -62,7 +62,7 @@ class CollabState {
   ) {}
 }
 
-type CollabConfig = {
+export type CollabConfig = {
   /// The starting document version. Defaults to 0.
   startVersion?: number,
   /// This client's identifying [ID](#collab.getClientID). Will be a
@@ -87,7 +87,7 @@ const collabConfig = Facet.define<CollabConfig & {generatedID: string}, Required
   }
 })
 
-const collabReceive = Annotation.define<CollabState>()
+export const collabReceive = Annotation.define<CollabState>()
 
 const collabField = StateField.define({
   create(state) {

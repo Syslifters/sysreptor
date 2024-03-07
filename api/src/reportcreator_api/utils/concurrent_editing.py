@@ -159,6 +159,9 @@ class ChangeSet:
         Apply the changes in this set to a document, returning the new
         document.
         """
+        # Normalize line breaks to get consistent positions
+        doc = doc.replace('\r\n', '\n')
+
         if self.length != len(doc):
             raise ValueError(f'Applying change set to a document with the wrong length')
         for (from_a, to_a, from_b, to_b, text) in self.iter_changes(False):
@@ -403,6 +406,7 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
     
     changes = None
     skip = 0
+    version = None
     for update in over:
         other = updates[skip] if skip < len(updates) else None
         if other and other.client_id == update.client_id:
@@ -414,6 +418,8 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
                 changes = changes.compose(update.changes)
             else:
                 changes = update.changes
+        if version is None or update.version > version:
+            version = update.version
     
     if skip:
         updates = updates[skip:]
@@ -427,6 +433,7 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
             changes = changes.map_desc(update.changes, True)
             out.append(Update(
                 client_id=update.client_id,
+                version=version,
                 changes=updated_changes
             ))
         return out

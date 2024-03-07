@@ -66,11 +66,11 @@ class TestTextTransformations:
         assert c2.compose(c1.map(c2, True)).apply(text) == expected
         
         text1 = c1.apply(text)
-        updates = rebase_updates(updates=[Update(client_id='c2', changes=c2)], over=[Update(client_id='c1', changes=c1)])
+        updates = rebase_updates(updates=[Update(client_id='c2', version=2, changes=c2)], over=[Update(client_id='c1', version=1, changes=c1)])
         assert len(updates) == 1
         assert updates[0].changes.apply(text1) == expected
 
         # Rebase already applied changes
-        assert rebase_updates(updates=[Update(client_id='c2', changes=c2)], over=[Update(client_id='c1', changes=c1), Update(client_id='c2', changes=c2)]) == []
+        assert rebase_updates(updates=[Update(client_id='c2', version=2, changes=c2)], over=[Update(client_id='c1', version=1, changes=c1), Update(client_id='c2', version=2, changes=c2)]) == []
 
     

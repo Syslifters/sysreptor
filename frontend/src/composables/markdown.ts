@@ -9,9 +9,8 @@ import {
   spellcheck, spellcheckTheme,
   lineNumbers, indentUnit, defaultKeymap, indentWithTab,
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
-  collab, receiveUpdates, sendableUpdates, ChangeSet,
+  collab, receiveUpdates, sendableUpdates, collabReceive, CollabState, ChangeSet,
 } from "reportcreator-markdown/editor/index";
-import type { Update } from 'reportcreator-markdown/editor/collab';
 import { MarkdownEditorMode } from '@/utils/types';
 
 export type MarkdownProps = {
@@ -164,9 +163,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   }
 
   function onUpdateText(event: any) {
-    if (event.path === props.value.collab?.path && event.source !== 'editor') {
-      // TODO: state management: race conditions between event bus updates and v-model updates: errors while applying updates (e.g. when typing fast)
-      // TODO: maybe we need to customize receiveUpdates to use a different versioning scheme (with server-side versions)?
+    if (editorView.value && event.path === props.value.collab?.path && event.source !== 'editor') {
       const transaction = receiveUpdates(editorView.value.state, event.updates.map((u: any) => ({
         ...u,
         changes: ChangeSet.fromJSON(u.changes),
@@ -182,7 +179,6 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   const editorState = shallowRef<EditorState|null>(null);
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
   const eventBusUpdateText = useEventBus('collab.update_text');
-  const eventBusUpdateKey = useEventBus('collab.update_key');
   function initializeEditorView() {
     editorView.value = new EditorView({
       parent: editorRef.value,
@@ -282,13 +278,18 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 
   watch(valueNotNull, () => {
     if (editorView.value && valueNotNull.value !== editorView.value.state.doc.toString()) {
-      editorView.value.dispatch({
+      console.log('useMarkdownEditor watch valueNotNull');
+      editorView.value.dispatch(editorView.value.state.update({
         changes: {
           from: 0,
           to: editorView.value.state.doc.length,
           insert: valueNotNull.value,
-        }
-      });
+        },
+        annotations: props.value.collab ? [
+          // Clear unconfirmed collab updates
+          collabReceive.of(new CollabState(props.value.collab.version, [])),
+        ] : undefined,
+      }));
     }
   });
   watch([() => props.value.disabled, () => props.value.readonly], () => editorActions.value.disabled?.(Boolean(props.value.disabled || props.value.readonly)));

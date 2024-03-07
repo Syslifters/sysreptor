@@ -1,5 +1,6 @@
 import set from "lodash/set";
 import unset from "lodash/unset";
+import throttle from "lodash/throttle";
 import trimStart from "lodash/trimStart";
 import urlJoin from "url-join";
 
@@ -15,6 +16,7 @@ export type CollabStoreState<T> = {
   connectionState: CollabConnectionState;
   websocket: WebSocket|null;
   websocketPath: string;
+  websocketSendThrottle: Map<string, (msg: string) => void>;
   version: number;
 }
 
@@ -24,6 +26,7 @@ export function makeCollabStoreState<T>(websocketPath: string, data: T): CollabS
     connectionState: CollabConnectionState.CLOSED,
     websocketPath,
     websocket: null,
+    websocketSendThrottle: new Map(),
     version: 0,
   }
 }
@@ -85,19 +88,19 @@ export function useCollab(storeState: CollabStoreState<any>, options?: { handleA
     storeState.websocket.addEventListener('message', (event: MessageEvent) => {
       const msgData = JSON.parse(event.data);
       console.log('Received websocket message:', msgData);
+      if (msgData.version && msgData.version > storeState.version) {
+        storeState.version = msgData.version;
+      }
       if (msgData.type === 'init') {
         storeState.connectionState = CollabConnectionState.OPEN;
-        storeState.version = msgData.version;
         storeState.data = msgData.data;
       } else if (msgData.type === 'collab.update_key') {
-        // TODO: should we track unconfirmed updates, or is this irrelevant for collab.update_key ?
         eventBusUpdateKey.emit({
           ...msgData, 
           path: storeState.websocketPath + msgData.path, 
           source: 'ws',
         });
       } else if (msgData.type === 'collab.update_text') {
-        // TODO: handle in codemirror or here??
         eventBusUpdateText.emit({ 
           ...msgData, 
           path: storeState.websocketPath + msgData.path,
@@ -141,7 +144,7 @@ export function useCollab(storeState: CollabStoreState<any>, options?: { handleA
     const dataPath = toDataPath(event.path);
     if (event.source !== 'ws') {
       // Propagate event to other clients
-      storeState.websocket?.send(JSON.stringify({
+      sendUpdateWebsocket(JSON.stringify({
         type: 'collab.update_key',
         path: dataPath,
         value: event.value,
@@ -149,7 +152,6 @@ export function useCollab(storeState: CollabStoreState<any>, options?: { handleA
     }
 
     // Update local state
-    console.log('collab.update_key', event);
     set(storeState.data as Object, dataPath, event.value);
   }
 
@@ -160,8 +162,12 @@ export function useCollab(storeState: CollabStoreState<any>, options?: { handleA
     }
     const dataPath = toDataPath(event.path);
     if (event.source !== 'ws') {
+      if (!storeState.websocketSendThrottle.has(dataPath)) {
+        storeState.websocketSendThrottle.set(dataPath, throttle(sendUpdateWebsocket, 1000, { leading: false, trailing: true }));
+      }
+
       // Propagate event to other clients
-      storeState.websocket?.send(JSON.stringify({
+      storeState.websocketSendThrottle.get(dataPath)!(JSON.stringify({
         type: 'collab.update_text',
         path: dataPath,
         updates: event.updates,
@@ -169,7 +175,10 @@ export function useCollab(storeState: CollabStoreState<any>, options?: { handleA
     }
 
     // Updating text field content is handled in useMarkdownEditor
-    console.log('collab.update_text', event);
+  }
+  function sendUpdateWebsocket(msg: string) {
+    console.log('sendUpdateWebsocket', msg);
+    storeState.websocket?.send(msg);
   }
 
   return {
