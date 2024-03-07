@@ -25,6 +25,7 @@ export const useLocalSettings = defineStore('settings', {
     noteExpandStates: {} as {[noteId: string]: boolean},
     cvssVersion: CvssVersion.CVSS31,
     subDrawerExpanded: true,
+    encryptPdfEnabled: true,
     theme: null as 'light'|'dark'|null,
   }),
   actions: {

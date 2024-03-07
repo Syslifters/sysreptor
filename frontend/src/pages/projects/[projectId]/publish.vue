@@ -40,11 +40,11 @@
 
         <!-- Set password for encrypting report -->
         <div>
-          <s-checkbox v-model="form.encryptReport" label="Encrypt report PDF" />
+          <s-checkbox v-model="localSettings.encryptPdfEnabled" label="Encrypt report PDF" />
           <s-text-field
-            v-if="form.encryptReport"
+            v-if="localSettings.encryptPdfEnabled"
             v-model="form.password"
-            :error-messages="(form.encryptReport && form.password.length === 0) ? ['Password required'] : []"
+            :error-messages="(localSettings.encryptPdfEnabled && form.password.length === 0) ? ['Password required'] : []"
             label="PDF password"
             append-inner-icon="mdi-lock-reset" @click:append-inner="form.password = generateNewPassword()"
             spellcheck="false"
@@ -114,6 +114,7 @@ definePageMeta({
 
 const route = useRoute();
 const auth = useAuth();
+const localSettings = useLocalSettings()
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore()
 
@@ -131,7 +132,6 @@ function generateNewPassword() {
   return sampleSize(charset, 20).join('');
 }
 const form = ref({
-  encryptReport: true,
   password: generateNewPassword(),
   filename: (project.value.name + '_report.pdf').replaceAll(/[\\/]/g, '').replaceAll(/\s+/g, ' '),
 });
@@ -145,7 +145,7 @@ const canGenerateFinalReport = computed(() => {
   return !hasErrors.value &&
         !checksOrPreviewInProgress.value &&
         pdfPreviewRef.value?.pdfData !== null &&
-        (form.value.encryptReport ? form.value.password.length > 0 : true);
+        (localSettings.encryptPdfEnabled ? form.value.password.length > 0 : true);
 });
 
 function refreshPreviewAndChecks() {
@@ -166,7 +166,7 @@ async function generateFinalReport() {
   const res = await $fetch<ArrayBuffer>(`/api/v1/pentestprojects/${project.value.id}/generate/`, {
     method: 'POST',
     body: {
-      password: form.value.encryptReport ? form.value.password : null,
+      password: localSettings.encryptPdfEnabled ? form.value.password : null,
     },
     responseType: "arrayBuffer"
   })
@@ -182,7 +182,7 @@ async function customizeDesign() {
 
 function messageLocationUrl(msg: ErrorMessage) {
   if (!msg || !msg.location) {
-    return null;
+    return undefined;
   } else if (msg.location.type === 'section') {
     return `/projects/${project.value.id}/reporting/sections/${msg.location.id}/` + (msg.location.path ? '#' + msg.location.path : '');
   } else if (msg.location.type === 'finding') {
@@ -191,6 +191,6 @@ function messageLocationUrl(msg: ErrorMessage) {
     return `/designs/${project.value.project_type}/pdfdesigner/`;
   }
 
-  return null;
+  return undefined;
 }
 </script>
