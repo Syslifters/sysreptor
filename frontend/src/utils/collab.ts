@@ -16,15 +16,21 @@ export type CollabStoreState<T> = {
   connectionState: CollabConnectionState;
   websocket: WebSocket|null;
   websocketPath: string;
+  handleAdditionalWebSocketMessages?: (event: any) => boolean
   websocketSendThrottle: Map<string, (msg: string) => void>;
   version: number;
 }
 
-export function makeCollabStoreState<T>(websocketPath: string, data: T): CollabStoreState<T> {
+export function makeCollabStoreState<T>(options: {
+  websocketPath: string, 
+  initialData: T,
+  handleAdditionalWebSocketMessages?: (event: any) => boolean
+}): CollabStoreState<T> {
   return {
-    data,
+    data: options.initialData,
+    websocketPath: options.websocketPath,
+    handleAdditionalWebSocketMessages: options.handleAdditionalWebSocketMessages,
     connectionState: CollabConnectionState.CLOSED,
-    websocketPath,
     websocket: null,
     websocketSendThrottle: new Map(),
     version: 0,
@@ -61,7 +67,7 @@ export function useObservable() {
   }
 }
 
-export function useCollab(storeState: CollabStoreState<any>, options?: { handleAdditionalWebSocketMessages?: (msgData: any) => boolean }) {
+export function useCollab(storeState: CollabStoreState<any>) {
   const eventBusUpdateKey = useEventBus('collab.update_key');
   const eventBusUpdateText = useEventBus('collab.update_text');
 
@@ -113,7 +119,7 @@ export function useCollab(storeState: CollabStoreState<any>, options?: { handleA
         set(storeState.data as Object, msgData.path, msgData.value);
       } else if (msgData.type === 'collab.delete') {
         unset(storeState.data as Object, msgData.path);
-      } else if (!options?.handleAdditionalWebSocketMessages?.(msgData)) {
+      } else if (!storeState.handleAdditionalWebSocketMessages?.(msgData)) {
         // eslint-disable-next-line no-console
         console.error('Received unknown websocket message:', msgData);
       }

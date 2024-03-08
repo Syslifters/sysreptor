@@ -21,13 +21,14 @@
 
     <template #default>
       <v-snackbar
+        v-if="notesCollab.hasEditPermissions.value"
         :model-value="notesCollab.connectionState.value !== CollabConnectionState.OPEN"
+        timeout="-1"
         color="warning"
-        disabled
       >
-        <!-- TODO: delay on initial load -->
+        <!-- TODO: delay on initial load ? -->
         <template #text>
-          <span v-if="notesCollab.connectionState.value === CollabConnectionState.CLOSED">Lost connection to the server</span>
+          <span v-if="notesCollab.connectionState.value === CollabConnectionState.CLOSED">Server connection lost</span>
           <span v-else>Connecting...</span>
         </template>
         <template #actions>
@@ -61,15 +62,12 @@ const project = await useAsyncDataE(async () => await projectStore.getById(route
 const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 
 const notesCollab = projectStore.useNotesCollab(project.value);
-watch(notesCollab.connectionState, (val) => {
-  console.log('notesCollab.connectionState', val);
-});
-watch(() => notesCollab.data.value, (val) => {
-  console.log('notesCollab.data', val);
-}, { deep: true });
-
-onMounted(() => {
-  notesCollab.connect();
+onMounted(async () => {
+  if (notesCollab.hasEditPermissions.value) {
+    notesCollab.connect();
+  } else {
+    await projectStore.fetchNotes(project.value);
+  }
 });
 onBeforeUnmount(() => {
   notesCollab.disconnect();
@@ -94,7 +92,7 @@ async function performImport(file: File) {
 
 function updateNoteChecked(note: NoteBase) {
   useEventBus('collab.update_key').emit({ 
-    path: collabSubpath(notesCollab.props.value, `notes.${note.id}.checked`).path, 
+    path: collabSubpath(notesCollab.collabProps.value, `notes.${note.id}.checked`).path, 
     value: note.checked,
   });
 }

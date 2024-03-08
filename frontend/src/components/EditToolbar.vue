@@ -111,7 +111,7 @@ const props = withDefaults(defineProps<{
   lockUrl?: string,
   unlockUrl?: string,
   editMode?: EditMode,
-  errorMessage?: string,
+  errorMessage?: string|null,
 }>(), {
   data: undefined,
   form: undefined,

@@ -92,7 +92,23 @@ export const useProjectStore = defineStore('project', {
           findings: [],
           sections: [],
           getByIdSync: null,
-          notesCollabState: makeCollabStoreState(`/ws/pentestprojects/${projectId}/notes/`, { notes: {} }),
+          notesCollabState: makeCollabStoreState({
+            websocketPath: `/ws/pentestprojects/${projectId}/notes/`,
+            initialData: { notes: {} },
+            handleAdditionalWebSocketMessages: (msgData: any) => {
+              const collabState = this.data[projectId].notesCollabState;
+              if (msgData.type === 'collab.sort' && msgData.path === 'notes') {
+                for (const note of Object.values(collabState.data.notes)) {
+                  const no = msgData.sort.find((n: ProjectNote) => n.id === note.id);
+                  note.parent = no?.parent || null;
+                  note.order = no?.order || 0;
+                }
+                return true;
+              } else {
+                return false;
+              }
+            }
+          }),
           ...(initialStoreData || {})
         }
       }
@@ -276,6 +292,14 @@ export const useProjectStore = defineStore('project', {
       this.data[project.id].notesCollabState.data.notes[note.id] = note;
       return note;
     },
+    async deleteNote(project: PentestProject, note: ProjectNote) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/notes/${note.id}/`, {
+        method: 'DELETE'
+      });
+      if (project.id in this.data) {
+        delete this.data[project.id].notesCollabState.data.notes[note.id];
+      }
+    },
     async sortNotes(project: PentestProject, noteGroups: NoteGroup<ProjectNote>) {
       this.ensureExists(project.id)
       const notes = [] as ProjectNote[];
@@ -288,31 +312,27 @@ export const useProjectStore = defineStore('project', {
         body: notes.map(n => pick(n, ['id', 'parent', 'order']))
       });
     },
+    async fetchNotes(project: PentestProject) {
+      const notes = await $fetch<ProjectNote[]>(`/api/v1/pentestprojects/${project.id}/notes/`, { method: 'GET' });
+      this.ensureExists(project.id);
+      this.data[project.id].notesCollabState.data.notes = Object.fromEntries(notes.map(n => [n.id, n]));
+      return notes;
+    },
     useNotesCollab(project: PentestProject) {
       this.ensureExists(project.id);
 
       const collabState = this.data[project.id].notesCollabState;
-      const collab = useCollab(collabState, {
-        handleAdditionalWebSocketMessages: (msgData: any) => {
-          if (msgData.type === 'collab.sort' && msgData.path === 'notes') {
-            for (const note of Object.values(collabState.data.notes)) {
-              const no = msgData.sort.find((n: ProjectNote) => n.id === note.id);
-              note.parent = no?.parent || null;
-              note.order = no?.order || 0;
-            }
-            return true;
-          } else {
-            return false;
-          }
-        }
-      });
+      const collab = useCollab(collabState);
+
+      const hasEditPermissions = computed(() => !project.readonly);
 
       return {
         ...collab,
         data: computed(() => collabState.data),
         connectionState: computed(() => collabState.connectionState),
-        readonly: computed(() => project.readonly || collabState.connectionState !== CollabConnectionState.OPEN),
-        props: computed(() => ({
+        hasEditPermissions,
+        readonly: computed(() => !hasEditPermissions || collabState.connectionState !== CollabConnectionState.OPEN),
+        collabProps: computed(() => ({
           path: collabState.websocketPath,
           version: collabState.version,
         })),
