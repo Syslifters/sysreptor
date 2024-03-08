@@ -37,41 +37,22 @@ export function makeCollabStoreState<T>(options: {
   }
 }
 
-export function useObservable() {
-  const observers = new Map<string, Set<(event: unknown) => void>>();
-  function on(name: string, callback: (event: unknown) => void) {
-    if (!observers.has(name)) {
-      observers.set(name, new Set());
-    }
-    observers.get(name)!.add(callback);
-  }
-  function off(name: string, callback: (event: unknown) => void) {
-    if (!observers.has(name)) {
-      return;
-    }
-    observers.get(name)!.delete(callback);
-  }
-  function emit(name: string, event: unknown) {
-    if (!observers.has(name)) {
-      return;
-    }
-    for (const callback of observers.get(name)!) {
-      callback(event);
-    }
-  }
-
-  return {
-    on,
-    off,
-    emit,
-  }
-}
-
 export function useCollab(storeState: CollabStoreState<any>) {
   const eventBusUpdateKey = useEventBus('collab.update_key');
   const eventBusUpdateText = useEventBus('collab.update_text');
 
-  // TODO: on initial connection failed (or permission denied): fetch list via REST API and set readonly
+  // TODO: handle update_text events in store instead of codemirror
+  // * codemirror: only emit @collab events (via default vue event mechanism or eventBus?)
+  // * store: add update to per-path unconfirmedUpdates
+  // * store: apply update to local data
+  // * store: send (throttled) update to websocket
+  // * server: process update, update version, broadcast to all clients
+  // * store: receive update from websocket
+  // * store: remove from unconfirmedUpdates (similar logic to codemirror receiveUpdates)
+  // implementation notes notes:
+  // * codemirror undo/redo: how to differentiate between local and remote changes? => send event from store to codemirror (via event bus) for changes from websocket with remote: true/false, right before applying update in store
+  // * how to store awareness information: cursor, selection, etc. => separate data structure store for awareness infos
+  // * on connect: clear unconfirmedUpdates, fetch initial data from server
 
   function connect() {
     if (storeState.connectionState !== CollabConnectionState.CLOSED) {
