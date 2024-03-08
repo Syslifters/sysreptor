@@ -30,7 +30,7 @@ MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-ygvn9(x==kcv#r%pccf4rlzyz7_1v1b83$19&b2lsj6uz$mbro')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', cast=bool, default=False)
+DEBUG = False  # config('DEBUG', cast=bool, default=False)
 
 ALLOWED_HOSTS = ['*']
 APPEND_SLASH = True
@@ -629,7 +629,7 @@ LOGGING = {
             'class': 'logging.StreamHandler',
         },
         'elasticapm': {
-            'level': 'WARNING',
+            'level': 'INFO',
             'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
         },
     },
