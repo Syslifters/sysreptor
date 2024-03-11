@@ -20,9 +20,9 @@
     </template>
 
     <template #default>
-      <collab-loader :collab="notesCollab" />
-
-      <nuxt-page />
+      <collab-loader :collab="notesCollab">
+        <nuxt-page />
+      </collab-loader>
     </template>
   </split-menu>
 </template>
