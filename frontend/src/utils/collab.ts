@@ -154,7 +154,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
     const dataPath = toDataPath(event.path);
     if (event.source !== 'ws') {
       if (!storeState.websocketSendThrottle.has(dataPath)) {
-        storeState.websocketSendThrottle.set(dataPath, throttle(sendUpdateWebsocket, 1000, { leading: false, trailing: true }));
+        storeState.websocketSendThrottle.set(dataPath, throttle(sendUpdateWebsocket, 200, { leading: false, trailing: true }));
       }
 
       // Propagate event to other clients
