@@ -116,7 +116,7 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
         # Prevent loading images and media to speed up template rendering.
         # Only weasyprint needs them for PDF rendering
         if route.request.resource_type in ['image', 'media']:
-            route.reject()
+            route.abort()
             return
 
         try:
