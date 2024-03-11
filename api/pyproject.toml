@@ -10,7 +10,7 @@ python = "~3.12"
 django = { extras = ["argon2"], version = "~5.0" }
 djangorestframework = "~3.14.0"
 adrf = "==0.1.2"  # bug in 0.1.3 causes authentication errors: see https://github.com/em1208/adrf/issues/28
-weasyprint = "~61.1"
+weasyprint = "~61.2"
 
 django-phonenumber-field = { version = "^7.0.0", extras = ["phonenumberslite"] }
 django-csp = "^3.7"
