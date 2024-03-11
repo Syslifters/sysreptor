@@ -75,7 +75,7 @@ export const useProjectStore = defineStore('project', {
       return (projectId: string) => this.data[projectId]?.sections || [];
     },
     notes() {
-      return (projectId: string) => Object.values(this.data[projectId]?.notesCollabState.data.notes || {});
+      return (projectId: string) => Object.values(this.data[projectId]?.notesCollabState.data.notes || {}) as ProjectNote[];
     },
     noteGroups() {
       return (projectId: string) => groupNotes(this.notes(projectId));
@@ -98,7 +98,7 @@ export const useProjectStore = defineStore('project', {
             handleAdditionalWebSocketMessages: (msgData: any) => {
               const collabState = this.data[projectId].notesCollabState;
               if (msgData.type === 'collab.sort' && msgData.path === 'notes') {
-                for (const note of Object.values(collabState.data.notes)) {
+                for (const note of Object.values(collabState.data.notes) as ProjectNote[]) {
                   const no = msgData.sort.find((n: ProjectNote) => n.id === note.id);
                   note.parent = no?.parent || null;
                   note.order = no?.order || 0;

@@ -10,7 +10,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from reportcreator_api.tasks.models import PeriodicTask, TaskStatus
-from reportcreator_api.pentests.models import PentestProject, ArchivedProject, OperationalTransformationEvent, OperationalTransformationEventType
+from reportcreator_api.pentests.models import PentestProject, ArchivedProject, CollabEvent, CollabEventType
 from reportcreator_api.pentests.tasks import cleanup_collab_events, cleanup_project_files, cleanup_usernotebook_files, cleanup_template_files, \
     reset_stale_archive_restores, automatically_archive_projects, automatically_delete_archived_projects
 from reportcreator_api.tests.mock import create_archived_project, create_project, create_template, create_user, mock_time
@@ -463,9 +463,9 @@ class TestAutoArchiveDeletion:
 class TestCleanupCollabEvents:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.collab_event = OperationalTransformationEvent.objects.create(
+        self.collab_event = CollabEvent.objects.create(
             related_id=uuid4(),
-            type=OperationalTransformationEventType.UPDATE_TEXT,
+            type=CollabEventType.UPDATE_TEXT,
             path='notes',
             version=1,
             data={'updates': []}
@@ -474,8 +474,8 @@ class TestCleanupCollabEvents:
     def test_delete(self):
         with mock_time(after=timedelta(days=1)):
             async_to_sync(cleanup_collab_events)(None)
-            assert not OperationalTransformationEvent.objects.filter(id=self.collab_event.id).exists()
+            assert not CollabEvent.objects.filter(id=self.collab_event.id).exists()
     
     def test_not_deleted_too_new(self):
         async_to_sync(cleanup_collab_events)(None)
-        assert OperationalTransformationEvent.objects.filter(id=self.collab_event.id).exists()
+        assert CollabEvent.objects.filter(id=self.collab_event.id).exists()

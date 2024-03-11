@@ -291,11 +291,11 @@ async function performLockRequest(forceLock: boolean) {
 }
 
 async function performLock(forceLock = false) {
-  // eslint-disable-next-line no-console
-  console.log('EditToolbar.performLock');
   if (lockingInProgress.value || !props.lockUrl || (props.editMode === EditMode.READONLY && !forceLock) || isDestroying.value) {
     return;
   }
+  // eslint-disable-next-line no-console
+  console.log('EditToolbar.performLock');
 
   lockingInProgress.value = true;
   if (!refreshLockInterval.value) {

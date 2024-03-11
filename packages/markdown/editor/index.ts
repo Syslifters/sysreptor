@@ -1,4 +1,4 @@
-export { EditorState, EditorSelection, ChangeSet } from '@codemirror/state';
+export { EditorState, EditorSelection, ChangeSet, Text, Transaction } from '@codemirror/state';
 export { EditorView, ViewUpdate, tooltips, scrollPastEnd, keymap, lineNumbers, drawSelection, rectangularSelection, crosshairCursor, } from '@codemirror/view';
 export { history, historyKeymap, defaultKeymap, indentWithTab, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 export { forceLinting, setDiagnostics } from '@codemirror/lint';
@@ -12,7 +12,6 @@ export { createEditorExtensionToggler } from './utils';
 export { spellcheck, spellcheckTheme } from './spellcheck';
 export { highlightTodos } from './todos';
 export { markdownHighlightStyle, markdownHighlightCodeBlocks } from './highlight';
-export { collab, receiveUpdates, sendableUpdates, collabReceive, CollabState } from './collab';
 export { 
   toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
   toggleListUnordered, toggleListOrdered, toggleTaskList,

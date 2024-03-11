@@ -1,6 +1,7 @@
+import asyncio
 import uuid
 import itertools
-from datetime import date
+from datetime import date, timedelta
 from django.utils import timezone, dateparse
 from itertools import groupby
 from typing import Union, Iterable, OrderedDict, Any
@@ -132,3 +133,16 @@ def batched(iterable, n):
     while batch := tuple(itertools.islice(it, n)):
         yield batch
 
+
+async def aretry(func, timeout=timedelta(seconds=1), interval=timedelta(seconds=0.1), retry_for=None):
+    timeout_abs = timezone.now() + timeout
+    while True:
+        try:
+            return await func()
+        except Exception as ex:
+            if retry_for and not isinstance(ex, retry_for):
+                raise
+            elif timezone.now() > timeout_abs:
+                raise
+            else:
+                await asyncio.sleep(interval.total_seconds())

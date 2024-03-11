@@ -25,6 +25,7 @@
               ref="titleRef"
               :model-value="note.title"
               :collab="collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.title`)"
+              @collab="notesCollab.onCollabEvent"
               :readonly="notesCollab.readonly.value"
               :spellcheck-supported="true"
               v-bind="inputFieldAttrs"
@@ -74,6 +75,7 @@
         ref="textRef"
         :model-value="note.text"
         :collab="collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.text`)"
+        @collab="notesCollab.onCollabEvent"
         :readonly="notesCollab.readonly.value"
         v-bind="inputFieldAttrs"
       />
@@ -109,32 +111,14 @@ const toolbarAttrs = computed(() => ({
 }));
 
 function updateKey(key: string, value: any) {
-  useEventBus('collab.update_key').emit({ 
-    path: collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.${key}`).path, 
+  notesCollab.onCollabEvent({
+    type: 'collab.update_key',
+    path: collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.${key}`).path,
     value,
-  });
+  })
 }
 
 const baseUrl = `/api/v1/pentestprojects/${route.params.projectId}/notes/${route.params.noteId}/`;
-// TODO: support locking fallback ?
-// const { data: note, project, readonly, toolbarAttrs, fetchLoaderAttrs, inputFieldAttrs } = useProjectLockEdit({
-//   baseUrl,
-//   fetchProjectType: false,
-//   canUploadFiles: true,
-//   spellcheckEnabled: computed({ get: () => localSettings.projectNoteSpellcheckEnabled, set: (val) => { localSettings.projectNoteSpellcheckEnabled = val } }),
-//   markdownEditorMode: computed({ get: () => localSettings.projectNoteMarkdownEditorMode, set: (val) => { localSettings.projectNoteMarkdownEditorMode = val } }),
-//   performSave: projectStore.partialUpdateNote,
-//   performDelete: async (project, note) => {
-//     await projectStore.deleteNote(project, note);
-//     await navigateTo(`/projects/${project.id}/notes/`);
-//   },
-//   updateInStore: projectStore.setNote,
-//   autoSaveOnUpdateData({ oldValue, newValue }): boolean {
-//     return oldValue.checked !== newValue.checked ||
-//         oldValue.icon_emoji !== newValue.icon_emoji ||
-//         oldValue.assignee?.id !== newValue.assignee?.id;
-//   }
-// });
 const historyVisible = ref(false);
 const exportUrl = computed(() => urlJoin(baseUrl, '/export/'));
 const exportPdfUrl = computed(() => urlJoin(baseUrl, '/export-pdf/'));

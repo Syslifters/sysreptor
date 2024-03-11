@@ -1,8 +1,10 @@
+import get from "lodash/get";
 import set from "lodash/set";
 import unset from "lodash/unset";
 import throttle from "lodash/throttle";
 import trimStart from "lodash/trimStart";
 import urlJoin from "url-join";
+import { ChangeSet, Text } from "reportcreator-markdown/editor"
 
 export enum CollabConnectionState {
   CLOSED = 'closed',
@@ -11,14 +13,22 @@ export enum CollabConnectionState {
   OPEN = 'open',
 };
 
+export type TextUpdate = {
+  changes: ChangeSet;
+}
+
 export type CollabStoreState<T> = {
   data: T;
   connectionState: CollabConnectionState;
   websocket: WebSocket|null;
   websocketPath: string;
-  handleAdditionalWebSocketMessages?: (event: any) => boolean
-  websocketSendThrottle: Map<string, (msg: string) => void>;
+  handleAdditionalWebSocketMessages?: (event: any) => boolean;
+  perPathState: Map<string, {
+    websocketSendThrottle: (msg: string) => void;
+    unconfirmedTextUpdates: TextUpdate[];
+  }>;
   version: number;
+  clientID: string;
 }
 
 export function makeCollabStoreState<T>(options: {
@@ -32,27 +42,14 @@ export function makeCollabStoreState<T>(options: {
     handleAdditionalWebSocketMessages: options.handleAdditionalWebSocketMessages,
     connectionState: CollabConnectionState.CLOSED,
     websocket: null,
-    websocketSendThrottle: new Map(),
+    perPathState: new Map(),
     version: 0,
+    clientID: '',
   }
 }
 
 export function useCollab(storeState: CollabStoreState<any>) {
-  const eventBusUpdateKey = useEventBus('collab.update_key');
-  const eventBusUpdateText = useEventBus('collab.update_text');
-
-  // TODO: handle update_text events in store instead of codemirror
-  // * codemirror: only emit @collab events (via default vue event mechanism or eventBus?)
-  // * store: add update to per-path unconfirmedUpdates
-  // * store: apply update to local data
-  // * store: send (throttled) update to websocket
-  // * server: process update, update version, broadcast to all clients
-  // * store: receive update from websocket
-  // * store: remove from unconfirmedUpdates (similar logic to codemirror receiveUpdates)
-  // implementation notes notes:
-  // * codemirror undo/redo: how to differentiate between local and remote changes? => send event from store to codemirror (via event bus) for changes from websocket with remote: true/false, right before applying update in store
-  // * how to store awareness information: cursor, selection, etc. => separate data structure store for awareness infos
-  // * on connect: clear unconfirmedUpdates, fetch initial data from server
+  const eventBusBeforeApplyRemoteTextChange = useEventBus('collab:beforeApplyRemoteTextChanges');
 
   function connect() {
     if (storeState.connectionState !== CollabConnectionState.CLOSED) {
@@ -64,6 +61,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
       `${window.location.protocol === 'https' ? 'wss' : 'ws'}://${window.location.host}/`;
     const wsUrl = urlJoin(serverUrl, storeState.websocketPath);
     console.log('useCollab.connect websocket', wsUrl);
+    storeState.perPathState.clear();
     storeState.connectionState = CollabConnectionState.CONNECTING;
     storeState.websocket = new WebSocket(wsUrl);
     storeState.websocket.addEventListener('open', () => {
@@ -84,18 +82,12 @@ export function useCollab(storeState: CollabStoreState<any>) {
       if (msgData.type === 'init') {
         storeState.connectionState = CollabConnectionState.OPEN;
         storeState.data = msgData.data;
+        storeState.clientID = msgData.client_id;
       } else if (msgData.type === 'collab.update_key') {
-        eventBusUpdateKey.emit({
-          ...msgData, 
-          path: storeState.websocketPath + msgData.path, 
-          source: 'ws',
-        });
+        // Update local state
+        set(storeState.data as Object, msgData.path, msgData.value);
       } else if (msgData.type === 'collab.update_text') {
-        eventBusUpdateText.emit({ 
-          ...msgData, 
-          path: storeState.websocketPath + msgData.path,
-          source: 'ws',
-        });
+        receiveUpdateText(msgData);
       } else if (msgData.type === 'collab.create') {
         set(storeState.data as Object, msgData.path, msgData.value);
       } else if (msgData.type === 'collab.delete') {
@@ -105,9 +97,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
         console.error('Received unknown websocket message:', msgData);
       }
     });
-
-    eventBusUpdateKey.on(updateKey);
-    eventBusUpdateText.on(updateText);
   }
 
   function disconnect() {
@@ -115,15 +104,29 @@ export function useCollab(storeState: CollabStoreState<any>) {
       return;
     }
     console.log('useCollab.disconnect websocket');
-    eventBusUpdateKey.off(updateKey);
-    eventBusUpdateText.off(updateText);
     storeState.websocket?.close();
     storeState.connectionState = CollabConnectionState.CLOSED;
     storeState.websocket = null;
+    storeState.perPathState.clear()
+  }
+
+  function websocketSend(msg: string) {
+    console.log('sendUpdateWebsocket', msg);
+    storeState.websocket?.send(msg);
   }
 
   function toDataPath(path: string) {
     return trimStart(path.slice(storeState.websocketPath.length), '.');
+  }
+
+  function ensurePerPathState(path: string) {
+    if (!storeState.perPathState.has(path)) {
+      storeState.perPathState.set(path, {
+        websocketSendThrottle: throttle(websocketSend, 1000, { leading: false, trailing: true }),
+        unconfirmedTextUpdates: [],
+      });
+    }
+    return storeState.perPathState.get(path)!;
   }
 
   function updateKey(event: any) {
@@ -132,18 +135,18 @@ export function useCollab(storeState: CollabStoreState<any>) {
       return;
     }
 
-    const dataPath = toDataPath(event.path);
-    if (event.source !== 'ws') {
-      // Propagate event to other clients
-      sendUpdateWebsocket(JSON.stringify({
-        type: 'collab.update_key',
-        path: dataPath,
-        value: event.value,
-      }));
-    }
-
     // Update local state
+    const dataPath = toDataPath(event.path);
     set(storeState.data as Object, dataPath, event.value);
+
+    // Propagate event to other clients
+    websocketSend(JSON.stringify({
+      type: 'collab.update_key',
+      path: dataPath,
+      client_id: storeState.clientID,
+      version: storeState.version,
+      value: event.value,
+    }));
   }
 
   function updateText(event: any) {
@@ -152,35 +155,109 @@ export function useCollab(storeState: CollabStoreState<any>) {
       return;
     }
     const dataPath = toDataPath(event.path);
-    if (event.source !== 'ws') {
-      if (!storeState.websocketSendThrottle.has(dataPath)) {
-        storeState.websocketSendThrottle.set(dataPath, throttle(sendUpdateWebsocket, 200, { leading: false, trailing: true }));
-      }
+    const perPathState = ensurePerPathState(dataPath);
 
-      // Propagate event to other clients
-      storeState.websocketSendThrottle.get(dataPath)!(JSON.stringify({
-        type: 'collab.update_text',
-        path: dataPath,
-        updates: event.updates,
-      }));
+    // Update local state
+    const text = get(storeState.data as Object, dataPath) || '';
+    let cmText = Text.of(text.split(/\r?\n/));
+    for (const u of event.updates) {
+      cmText = ChangeSet.fromJSON(u.changes).apply(cmText);
+    }
+    set(storeState.data as Object, dataPath, cmText.toString());
+
+    // Track unconfirmed changes
+    perPathState.unconfirmedTextUpdates.push(...event.updates.map((u: any) => ({
+      changes: ChangeSet.fromJSON(u.changes),
+    })));
+
+    // Propagate unconfirmed events to other clients
+    perPathState.websocketSendThrottle(JSON.stringify({
+      type: 'collab.update_text',
+      path: dataPath,
+      client_id: storeState.clientID,
+      version: storeState.version,
+      updates: perPathState.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
+    }));
+  }
+
+  function receiveUpdateText(event: any) {
+    const perPathState = ensurePerPathState(event.path);
+    let changes: ChangeSet|null = null;
+    let version = storeState.version;
+    let own = 0;
+    for (const update of event.updates.map((u: any) => ({ changes: ChangeSet.fromJSON(u.changes) }))) {
+      const ours = own < perPathState.unconfirmedTextUpdates.length ? perPathState.unconfirmedTextUpdates[own] : null;
+      if (ours && storeState.clientID === event.client_id) {
+        if (changes) {
+          changes = changes.map(ours.changes, true);
+        }
+        own++;
+      } else {
+        changes = changes ? changes.compose(update.changes) : update.changes;
+      }
+      if (update.version > version) {
+        version = update.version;
+      }
     }
 
-    // Updating text field content is handled in useMarkdownEditor
+    let unconfirmed = perPathState.unconfirmedTextUpdates.slice(own)
+    if (unconfirmed.length > 0) {
+      if (changes) {
+        unconfirmed = unconfirmed.map((update: any) => {
+          const updateChanges = update.changes.map(changes!);
+          changes = changes!.map(update.changes, true);
+          return {
+            ...update,
+            version,
+            updates: updateChanges,
+          };
+        });
+      }
+    }
+
+    // Update store
+    storeState.version = version;
+    perPathState.unconfirmedTextUpdates = unconfirmed;
+
+    if (changes) {
+      // Send an event to the active markdown editor to apply changes before updating store state.
+      // This allows the markdown editor to annotate the changes as remote change and handle it differently from local changes.
+      // e.g. not add it to its local history to be able to only undo local changes, not remote changes of other users.
+      eventBusBeforeApplyRemoteTextChange.emit({
+        path: storeState.websocketPath + event.path,
+        changes,
+      })
+
+      // Apply changes to store state
+      const text = get(storeState.data as Object, event.path) || '';
+      let cmText = Text.of(text.split(/\r?\n/));
+      cmText = changes.apply(cmText);
+      set(storeState.data as Object, event.path, cmText.toString());
+    }
   }
-  function sendUpdateWebsocket(msg: string) {
-    console.log('sendUpdateWebsocket', msg);
-    storeState.websocket?.send(msg);
+
+  function onCollabEvent(event: any) {
+    if (event.type === 'collab.update_key') {
+      updateKey(event);
+    } else if (event.type === 'collab.update_text') {
+      updateText(event);
+    } else {
+      // eslint-disable-next-line no-console
+      console.error('Trying to send unknown collab event:', event);
+    }
   }
 
   return {
     connect,
     disconnect,
+    updateKey,
+    updateText,
+    onCollabEvent,
   }
 }
 
 export type CollabPropType = {
   path: string;
-  version: number;
 };
 
 export function collabSubpath(collab: CollabPropType, subPath: string) {

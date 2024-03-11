@@ -9,7 +9,7 @@ import {
   spellcheck, spellcheckTheme,
   lineNumbers, indentUnit, defaultKeymap, indentWithTab,
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
-  collab, receiveUpdates, sendableUpdates, collabReceive, CollabState, ChangeSet,
+  Transaction,
 } from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '@/utils/types';
 
@@ -74,7 +74,7 @@ export function makeMarkdownProps(options: { files: boolean, spellcheckSupported
   }
 }
 export function makeMarkdownEmits() {
-  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'focus', 'blur'];
+  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'collab', 'focus', 'blur'];
 }
 
 export function useMarkdownEditor({ props, emit, extensions }: {
@@ -162,14 +162,16 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     }
   }
 
-  function onUpdateText(event: any) {
-    if (editorView.value && event.path === props.value.collab?.path && event.source !== 'editor') {
-      const transaction = receiveUpdates(editorView.value.state, event.updates.map((u: any) => ({
-        ...u,
-        changes: ChangeSet.fromJSON(u.changes),
-      })));
-      console.log('Markdown onUpdateText', transaction);
-      editorView.value.dispatch(transaction);
+  function onBeforeApplyRemoteTextChange(event: any) {
+    if (editorView.value && event.path === props.value.collab?.path) {
+      console.log('Markdown onBeforeRemoteTextChange', event);
+      editorView.value.dispatch(editorView.value.state.update({
+        changes: event.changes,
+        annotations: [
+          Transaction.addToHistory.of(false),
+          Transaction.remote.of(true),
+        ]
+      }));
     }
   }
 
@@ -178,7 +180,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   const editorView = shallowRef<EditorView|null>(null);
   const editorState = shallowRef<EditorState|null>(null);
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
-  const eventBusUpdateText = useEventBus('collab.update_text');
+  const eventBusBeforeApplyRemoteTextChanges = useEventBus('collab:beforeApplyRemoteTextChanges');
   function initializeEditorView() {
     editorView.value = new EditorView({
       parent: editorRef.value,
@@ -197,28 +199,25 @@ export function useMarkdownEditor({ props, emit, extensions }: {
             editorState.value = viewUpdate.state;
             // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
             if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
+              // Collab updates
+              for (const tr of viewUpdate.transactions) {
+                if (tr.docChanged && !tr.annotation(Transaction.remote)) {
+                  emit('collab', {
+                    type: 'collab.update_text',
+                    path: props.value.collab?.path,
+                    updates: [{ changes: tr.changes.toJSON() }],
+                  })
+                }
+              }
+
+              // Model-value updates
               emit('update:modelValue', viewUpdate.state.doc.toString());
             }
           }),
-          ((props.value.collab) ? [
-            collab({ 
-              startVersion: props.value.collab.version,
-            }),
-            EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
-              const updates = sendableUpdates(viewUpdate.state);
-              if (updates?.length > 0) {
-                eventBusUpdateText.emit({
-                  path: props.value.collab?.path,
-                  updates,
-                  source: 'editor',
-                });
-              }
-            }),
-          ] : []),
         ]
       }),
     });
-    eventBusUpdateText.on(onUpdateText);
+    eventBusBeforeApplyRemoteTextChanges.on(onBeforeApplyRemoteTextChange);
 
     editorState.value = editorView.value.state;
     editorActions.value = {
@@ -265,7 +264,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   }
   onMounted(() => initializeEditorView());
   onBeforeUnmount(() => {
-    eventBusUpdateText.off(onUpdateText);
+    eventBusBeforeApplyRemoteTextChanges.off(onBeforeApplyRemoteTextChange);
     if (editorView.value) {
       editorView.value.destroy();
     }
@@ -285,10 +284,6 @@ export function useMarkdownEditor({ props, emit, extensions }: {
           to: editorView.value.state.doc.length,
           insert: valueNotNull.value,
         },
-        annotations: props.value.collab ? [
-          // Clear unconfirmed collab updates
-          collabReceive.of(new CollabState(props.value.collab.version, [])),
-        ] : undefined,
       }));
     }
   });
