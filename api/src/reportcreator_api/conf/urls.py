@@ -18,7 +18,7 @@ from reportcreator_api.pentests.views import \
     ArchivedProjectViewSet, ArchivedProjectKeyPartViewSet, UserPublicKeyViewSet
 from reportcreator_api.users.views import APITokenViewSet, PentestUserViewSet, MFAMethodViewSet, AuthViewSet, AuthIdentityViewSet
 from reportcreator_api.notifications.views import NotificationViewSet
-from reportcreator_api.pentests.consumers import ProjectNotesConsumer, DemoConsumer
+from reportcreator_api.pentests.consumers import ProjectNotesConsumer, UserNotesConsumer, DemoConsumer
 
 
 router = DefaultRouter()
@@ -92,6 +92,7 @@ urlpatterns = [
 
 websocket_urlpatterns = [
     path('ws/pentestprojects/<uuid:project_id>/notes/', ProjectNotesConsumer.as_asgi()),
+    path('ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi()),
     path('ws/demo/', DemoConsumer.as_asgi()),
 ]
 

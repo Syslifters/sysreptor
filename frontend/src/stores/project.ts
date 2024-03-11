@@ -328,14 +328,8 @@ export const useProjectStore = defineStore('project', {
 
       return {
         ...collab,
-        data: computed(() => collabState.data),
-        connectionState: computed(() => collabState.connectionState),
         hasEditPermissions,
-        readonly: computed(() => !hasEditPermissions || collabState.connectionState !== CollabConnectionState.OPEN),
-        collabProps: computed(() => ({
-          path: collabState.websocketPath,
-          version: collabState.version,
-        })),
+        readonly: computed(() => !hasEditPermissions.value || collabState.connectionState !== CollabConnectionState.OPEN),
       };
     },
   },

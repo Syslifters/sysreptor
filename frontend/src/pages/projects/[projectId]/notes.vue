@@ -20,28 +20,8 @@
     </template>
 
     <template #default>
-      <v-snackbar
-        v-if="notesCollab.hasEditPermissions.value"
-        :model-value="notesCollab.connectionState.value !== CollabConnectionState.OPEN"
-        timeout="-1"
-        color="warning"
-      >
-        <!-- TODO: delay on initial load ? -->
-        <template #text>
-          <span v-if="notesCollab.connectionState.value === CollabConnectionState.CLOSED">Server connection lost</span>
-          <span v-else>Connecting...</span>
-        </template>
-        <template #actions>
-          <v-btn
-            v-if="notesCollab.connectionState.value === CollabConnectionState.CLOSED"
-            @click="notesCollab.connect()"
-            variant="text"
-            size="small"
-            text="Try again"
-          />
-          <v-progress-circular v-else indeterminate size="25" />
-        </template>
-      </v-snackbar>
+      <collab-loader :collab="notesCollab" />
+
       <nuxt-page />
     </template>
   </split-menu>
@@ -91,8 +71,9 @@ async function performImport(file: File) {
 }
 
 function updateNoteChecked(note: NoteBase) {
-  useEventBus('collab.update_key').emit({ 
-    path: collabSubpath(notesCollab.collabProps.value, `notes.${note.id}.checked`).path, 
+  notesCollab.onCollabEvent({
+    type: 'collab.update_key',
+    path: collabSubpath(notesCollab.collabProps.value, `notes.${note.id}.checked`).path,
     value: note.checked,
   });
 }

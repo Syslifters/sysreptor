@@ -7,17 +7,21 @@
         :perform-import="performImport"
         :export-url="`/api/v1/pentestusers/self/notes/export/`"
         :export-name="'notes-' + auth.user.value!.username"
+        :readonly="notesCollab.readonly.value"
       >
         <notes-sortable-list
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
-          @update:checked="updateNote"
+          @update:checked="updateNoteChecked"
+          :disabled="notesCollab.readonly.value"
           to-prefix="/notes/personal/"
         />
       </notes-menu>
     </template>
 
     <template #default>
+      <collab-loader :collab="notesCollab" />
+
       <nuxt-page />
     </template>
   </split-menu>
@@ -36,25 +40,18 @@ useHeadExtended({
   breadcrumbs: () => [{ title: 'Personal Notes', to: '/notes/personal/' }],
 });
 
-await useAsyncDataE(async () => await userNotesStore.fetchNotes());
 const noteGroups = computed(() => userNotesStore.noteGroups);
 
-async function refreshListings() {
-  try {
+const notesCollab = userNotesStore.useNotesCollab();
+onMounted(async () => {
+  if (notesCollab.hasEditPermissions.value) {
+    notesCollab.connect();
+  } else {
     await userNotesStore.fetchNotes();
-  } catch (error) {
-    // hide error
   }
-}
-const refreshListingsInterval = ref();
-onMounted(() => {
-  refreshListingsInterval.value = setInterval(refreshListings, 10_000);
 });
 onBeforeUnmount(() => {
-  if (refreshListingsInterval.value) {
-    clearInterval(refreshListingsInterval.value);
-    refreshListingsInterval.value = undefined;
-  }
+  notesCollab.disconnect();
 });
 
 async function createNote() {
@@ -66,27 +63,24 @@ async function createNote() {
     order: (currentNote ? currentNote.order + 1 : null),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
   } as UserNote);
-  // Reload note list to get updated order
-  await refreshListings();
   await navigateTo({ path: `/notes/personal/${obj.id}/`, query: { focus: 'title' } });
 }
 async function performImport(file: File) {
   const res = await uploadFileHelper<UserNote[]>(`/api/v1/pentestusers/self/notes/import/`, file);
   const note = res.find(n => n.parent === null)!;
-  await refreshListings();
   await navigateTo(`/notes/personal/${note.id}/`);
 }
-async function updateNote(note: ProjectNote) {
-  try {
-    await userNotesStore.partialUpdateNote(note, ['checked']);
-  } catch (error) {
-    requestErrorToast({ error });
-  }
+function updateNoteChecked(note: NoteBase) {
+  notesCollab.onCollabEvent({
+    type: 'collab.update_key',
+    path: collabSubpath(notesCollab.collabProps.value, `notes.${note.id}.checked`).path,
+    value: note.checked,
+  });
 }
 // Execute in next tick: prevent two requests for events in the same tick
-const updateNoteOrder = debounce(async (notes: NoteGroup<UserNote>) => {
+const updateNoteOrder = debounce(async (notes: NoteGroup<NoteBase>) => {
   try {
-    await userNotesStore.sortNotes(notes);
+    await userNotesStore.sortNotes(notes as NoteGroup<UserNote>);
   } catch (error) {
     requestErrorToast({ error });
   }

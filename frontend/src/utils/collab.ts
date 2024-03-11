@@ -253,6 +253,11 @@ export function useCollab(storeState: CollabStoreState<any>) {
     updateKey,
     updateText,
     onCollabEvent,
+    data: computed(() => storeState.data),
+    connectionState: computed(() => storeState.connectionState),
+    collabProps: computed(() => ({
+      path: storeState.websocketPath,
+    })),
   }
 }
 
