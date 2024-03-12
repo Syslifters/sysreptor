@@ -91,9 +91,9 @@ urlpatterns = [
 
 
 websocket_urlpatterns = [
-    path('ws/pentestprojects/<uuid:project_id>/notes/', ProjectNotesConsumer.as_asgi()),
-    path('ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi()),
-    path('ws/demo/', DemoConsumer.as_asgi()),
+    path('ws/pentestprojects/<uuid:project_id>/notes/', ProjectNotesConsumer.as_asgi(), name='projectnotebookpage-ws'),
+    path('ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi(), name='usernotebookpage-ws'),
+    path('ws/demo/', DemoConsumer.as_asgi(), name='demo-ws'),
 ]
 
 

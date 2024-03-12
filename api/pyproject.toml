@@ -25,7 +25,7 @@ gunicorn = "^21.2.0"
 uvicorn = { extras = ["standard"], version = "^0.27.1" }
 whitenoise = "^6.4.0"
 brotli = "^1.0.9"
-channels = "^4.0.0"
+channels = { "extras" = ["daphne"], version = "^4.0.0" }
 channels-postgres = "^1.0.4"
 
 requests = "^2.28.2"
@@ -52,6 +52,7 @@ django-debug-toolbar = "^4.0.0"
 debugpy = "^1.6.7"
 watchdog = "^4.0.0"
 pytest-django = "^4.5.2"
+pytest-asyncio = "^0.23.5"
 pytest-xdist = "^3.2.1"
 pytest-cov = "^4.0.0"
 elastic-apm = "^6.20.0"
