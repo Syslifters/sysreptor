@@ -112,7 +112,7 @@ async def ws_connect(path, user):
         await consumer.disconnect()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 class TestCollaborativeTextEditing:
     @pytest_asyncio.fixture(autouse=True)
@@ -162,8 +162,7 @@ class TestCollaborativeTextEditing:
         await self.note.arefresh_from_db()
         assert self.note.text == 'A1234B'
 
-
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 class TestProjectNotesDbSync:
     @pytest_asyncio.fixture(autouse=True)
@@ -301,7 +300,7 @@ class TestProjectNotesDbSync:
         assert res['type'] == 'websocket.close'
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 class TestConsumerPermissions:
     async def ws_connect(self, path, user):
