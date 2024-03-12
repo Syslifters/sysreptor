@@ -10,6 +10,7 @@ from django.test import override_settings
 from django.urls import reverse
 from django.conf import settings
 from django.core import management
+from django.utils.crypto import get_random_string
 from django.core.files.storage import storages, FileSystemStorage
 
 from reportcreator_api.archive import crypto
@@ -188,8 +189,8 @@ class TestSymmetricEncryptionTests:
 
 class TestEncryptedStorage:
     @pytest.fixture(autouse=True)
-    def setUp(self) -> None:
-        location = f'/tmp/test-{random.randint(1, 10000000)}/'
+    def setUp(self):
+        location = f'/tmp/test-{get_random_string(8)}/'
         self.storage_plain = FileSystemStorage(location=location)
         self.storage_crypto = EncryptedFileSystemStorage(location=location)
         self.plaintext = b'This is a test file content which should be encrypted'
