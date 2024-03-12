@@ -38,7 +38,7 @@ def assert_storage_file_encrypted(file, expected):
 
 class TestSymmetricEncryptionTests:
     @pytest.fixture(autouse=True)
-    def setUp(self) -> None:
+    def setUp(self):
         self.key = crypto.EncryptionKey(id='test-key', key=b'a' * (256 // 8))
         self.nonce = b'n' * 16
         self.plaintext = b'This is a plaintext content which will be encrypted in unit tests. ' + (b'a' * 100) + b' lorem impsum long text'
@@ -228,7 +228,7 @@ class TestEncryptedStorage:
 @pytest.mark.django_db
 class TestEncryptedDbField:
     @pytest.fixture(autouse=True)
-    def setUp(self) -> None:
+    def setUp(self):
         self.template = create_template()
         project = create_project()
         self.finding = project.findings.first()
@@ -276,7 +276,7 @@ class TestEncryptedDbField:
 @pytest.mark.django_db
 class TestEncryptDataCommand:
     @pytest.fixture(autouse=True)
-    def setUp(self) -> None:
+    def setUp(self):
         with override_settings(
             ENCRYPTION_KEYS={},
             DEFAULT_ENCRYPTION_KEY_ID=None,

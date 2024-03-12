@@ -1,6 +1,7 @@
+import pytest
+import pytest_asyncio
 import contextlib
 from datetime import timedelta
-import pytest
 from asgiref.sync import sync_to_async
 from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
@@ -112,8 +113,9 @@ async def ws_connect(path, user):
 
 
 @pytest.mark.django_db
+@pytest.mark.asyncio
 class TestCollaborativeTextEditing:
-    @pytest.fixture(autouse=True)
+    @pytest_asyncio.fixture(autouse=True)
     async def setUp(self):
         def setup_db():
             self.user1 = create_user()
@@ -162,8 +164,9 @@ class TestCollaborativeTextEditing:
 
 
 @pytest.mark.django_db
+@pytest.mark.asyncio
 class TestProjectNotesDbSync:
-    @pytest.fixture(autouse=True)
+    @pytest_asyncio.fixture(autouse=True)
     async def setUp(self):
         def setup_db():
             self.user1 = create_user()
@@ -299,6 +302,7 @@ class TestProjectNotesDbSync:
 
 
 @pytest.mark.django_db
+@pytest.mark.asyncio
 class TestConsumerPermissions:
     async def ws_connect(self, path, user):
         consumer = WebsocketCommunicator(
