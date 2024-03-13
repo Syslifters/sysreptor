@@ -153,7 +153,7 @@ SPECTACULAR_SETTINGS = {
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
+        'ENGINE': 'django.db.backends.postgresql',
         'HOST': config('DATABASE_HOST', default=''),
         'PORT': config('DATABASE_PORT', default='5432'),
         'NAME': config('DATABASE_NAME', default=''),
@@ -169,15 +169,26 @@ DATABASES = {
 
 
 # Websockets
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'reportcreator_api.utils.channels.CustomizedPostgresChannelLayer',
-        'CONFIG': DATABASES['default'] | {
-            'TIME_ZONE': TIME_ZONE,
-            'group_expiry': 60,
+REDIS_URL = config('REDIS_URL', default=None)
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [REDIS_URL],
+            },
         },
-    },
-}
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'reportcreator_api.utils.channels.CustomizedPostgresChannelLayer',
+            'CONFIG': DATABASES['default'] | {
+                'TIME_ZONE': TIME_ZONE,
+                'group_expiry': 60,
+            },
+        },
+    }
 
 
 
