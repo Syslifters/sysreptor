@@ -164,7 +164,6 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 
   function onBeforeApplyRemoteTextChange(event: any) {
     if (editorView.value && event.path === props.value.collab?.path) {
-      console.log('Markdown onBeforeRemoteTextChange', event);
       editorView.value.dispatch(editorView.value.state.update({
         changes: event.changes,
         annotations: [
@@ -277,7 +276,6 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 
   watch(valueNotNull, () => {
     if (editorView.value && valueNotNull.value !== editorView.value.state.doc.toString()) {
-      console.log('useMarkdownEditor watch valueNotNull');
       editorView.value.dispatch(editorView.value.state.update({
         changes: {
           from: 0,

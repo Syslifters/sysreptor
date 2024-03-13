@@ -4,6 +4,7 @@ set -e
 
 allow_only="MIT"
 allow_only="$allow_only;MIT License"
+allow_only="$allow_only;BSD"
 allow_only="$allow_only;BSD License"
 allow_only="$allow_only;Apache Software License"
 allow_only="$allow_only;GNU Library or Lesser General Public License (LGPL)"
@@ -14,6 +15,7 @@ allow_only="$allow_only;Mozilla Public License 1.1 (MPL 1.1)"
 allow_only="$allow_only;Mozilla Public License 2.0 (MPL 2.0)"
 allow_only="$allow_only;Historical Permission Notice and Disclaimer (HPND)"
 allow_only="$allow_only;Python Software Foundation License"
+allow_only="$allow_only;Zope Public License"
 
 ignore="webencodings"
 ignore="$ignore pyphen"

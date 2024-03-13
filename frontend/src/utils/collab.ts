@@ -60,7 +60,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
       'ws://localhost:8000' : 
       `${window.location.protocol === 'https' ? 'wss' : 'ws'}://${window.location.host}/`;
     const wsUrl = urlJoin(serverUrl, storeState.websocketPath);
-    console.log('useCollab.connect websocket', wsUrl);
     storeState.perPathState.clear();
     storeState.connectionState = CollabConnectionState.CONNECTING;
     storeState.websocket = new WebSocket(wsUrl);
@@ -75,7 +74,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
     });
     storeState.websocket.addEventListener('message', (event: MessageEvent) => {
       const msgData = JSON.parse(event.data);
-      console.log('Received websocket message:', msgData);
       if (msgData.version && msgData.version > storeState.version) {
         storeState.version = msgData.version;
       }
@@ -103,7 +101,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
     if (storeState.connectionState === CollabConnectionState.CLOSED) {
       return;
     }
-    console.log('useCollab.disconnect websocket');
     storeState.websocket?.close();
     storeState.connectionState = CollabConnectionState.CLOSED;
     storeState.websocket = null;
@@ -111,7 +108,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
   }
 
   function websocketSend(msg: string) {
-    console.log('sendUpdateWebsocket', msg);
     storeState.websocket?.send(msg);
   }
 
