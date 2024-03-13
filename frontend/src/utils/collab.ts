@@ -201,9 +201,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
           const updateChanges = update.changes.map(changes!);
           changes = changes!.map(update.changes, true);
           return {
-            ...update,
-            version,
-            updates: updateChanges,
+            changes: updateChanges,
           };
         });
       }
