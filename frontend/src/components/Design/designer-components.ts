@@ -441,7 +441,7 @@ export class ChartComponent extends DesignerComponentBase {
 
   createCode(form: any, context: DesignerContext) {
     const id = createUniqueId(kebabCase(form.chart.caption || 'chart'), context);
-    if (form.chart.chartType == "bar (vertical)") {
+    if (form.chart.chartType === "bar (vertical)") {
       return {
         html: trimLeadingWhitespace(`
         <figure>
@@ -534,7 +534,7 @@ export class ChartComponent extends DesignerComponentBase {
           <figcaption id="${id}">${form.chart.caption}</figcaption>
         </figure>`)
       };
-    } else if (form.chart.chartType == "pie") {
+    } else if (form.chart.chartType === "pie") {
       return {
         html: trimLeadingWhitespace(`
         <figure>
@@ -608,7 +608,7 @@ export class ChartComponent extends DesignerComponentBase {
           <figcaption id="${id}">${form.chart.caption}</figcaption>
         </figure>`)
       };
-    } else if (form.chart.chartType == "doughnut") {
+    } else if (form.chart.chartType === "doughnut") {
       return {
         html: trimLeadingWhitespace(`
         <figure>
@@ -682,7 +682,7 @@ export class ChartComponent extends DesignerComponentBase {
           <figcaption id="${id}">${form.chart.caption}</figcaption>
         </figure>`)
       };
-    } else if (form.chart.chartType == "polarArea") {
+    } else if (form.chart.chartType === "polarArea") {
       return {
         html: trimLeadingWhitespace(`
         <figure>
@@ -759,7 +759,7 @@ export class ChartComponent extends DesignerComponentBase {
           <figcaption id="${id}">${form.chart.caption}</figcaption>
         </figure>`)
       };
-    } else if (form.chart.chartType == "radar") {
+    } else if (form.chart.chartType === "radar") {
       return {
         html: trimLeadingWhitespace(`
         <figure>
@@ -825,7 +825,7 @@ export class ChartComponent extends DesignerComponentBase {
         <figure>
           <chart :width="15" :height="10" :config="{
               plugins: [ chartjsPlugins.DataLabels ],
-              type: '${(form.chart.chartType == "line") ? "line" : "bar"}', 
+              type: '${(form.chart.chartType === "line") ? "line" : "bar"}', 
               data: {
                   labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
                   datasets: [

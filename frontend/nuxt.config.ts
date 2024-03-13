@@ -1,3 +1,5 @@
+import { createProxyServer } from "httpxy"
+
 const isDev = process.env.NODE_ENV === 'development';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -76,28 +78,11 @@ export default defineNuxtConfig({
           target: 'http://api:8000',
           changeOrigin: false,
         },
-        // '/ws': {
-        //   // TODO: proxy does not forward WebSocket requests to target
-        //   target: 'ws://api:8000',
-        //   changeOrigin: true,
-        //   ws: true,
-        //   secure: false,
-        //   configure: (proxy, _options) => {
-        //     console.log('Configuring WebSocket Proxy');
-        //     proxy.on('error', (err, _req, _res) => {
-        //       console.log('proxy error', err);
-        //     });
-        //     proxy.on('proxyReq', (proxyReq, req, _res) => {
-        //       console.log('Sending Request to the Target:', req.method, req.url);
-        //     });
-        //     proxy.on('proxyRes', (proxyRes, req, _res) => {
-        //       console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
-        //     });
-        //     proxy.on('proxyReqWs', (proxyReq, req, socket, options, head) => {
-        //       console.log('Sending WebSocket Request to the Target:', req.url);
-        //     });
-        //   },
-        // },
+        '/ws': {
+          target: 'ws://api:8000',
+          changeOrigin: false,
+          ws: true,
+        },
 
         '/admin': 'http://api:8000',
         '/static': {
@@ -109,6 +94,19 @@ export default defineNuxtConfig({
           },
         },
       }
+    },
+  },
+  hooks: {
+    // Websocket proxy workaround: https://github.com/nuxt/cli/issues/107#issuecomment-1850751905
+    listen(server) {
+      const proxy = createProxyServer({ target: { host: "api", port: 8000 }, ws: true })
+
+      server.on("upgrade", (req, socket, head) => {
+        if (req.url!.startsWith('/ws')) {
+          // @ts-ignore
+          proxy.ws(req, socket, head);
+        }
+      })
     },
   },
 
