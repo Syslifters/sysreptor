@@ -4,7 +4,7 @@ import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,
   forceLinting, highlightTodos, tooltips, scrollPastEnd, closeBrackets, 
-  drawSelection, rectangularSelection, crosshairCursor,
+  drawSelection, rectangularSelection, crosshairCursor, dropCursor,
   history, historyKeymap, keymap, setDiagnostics,
   spellcheck, spellcheckTheme,
   lineNumbers, indentUnit, defaultKeymap, indentWithTab,
@@ -205,25 +205,23 @@ export function useMarkdownEditor({ props, emit, extensions }: {
                     emit('collab', {
                       type: 'collab.update_text',
                       path: props.value.collab.path,
-                      updates: [{ changes: tr.changes.toJSON(), selection: tr.selection?.toJSON() }],
-                    })
+                      updates: [{ changes: tr.changes, selection: tr.selection }],
+                    });
                   }
                 }
               }
 
               // Model-value updates
               emit('update:modelValue', viewUpdate.state.doc.toString());
-            } else if (props.value.collab && viewUpdate.selectionSet) {
-              // Awareness updates
-              for (const tr of viewUpdate.transactions) {
-                if (!tr.annotation(Transaction.remote)) {
-                  emit('collab', {
-                    type: 'collab.awareness',
-                    path: props.value.collab.path,
-                    selection: tr.newSelection.toJSON(),
-                  })
-                }
-              }
+            } else if (props.value.collab && (viewUpdate.selectionSet || viewUpdate.focusChanged)) {
+              // Collab awareness updates
+              const hasFocus = editorView.value?.hasFocus || false;
+              emit('collab', {
+                type: 'collab.awareness',
+                path: props.value.collab.path,
+                focus: hasFocus,
+                selection: viewUpdate.state.selection,
+              });
             }
           }),
         ]
@@ -370,6 +368,7 @@ export function markdownEditorDefaultExtensions() {
     drawSelection(),
     rectangularSelection(),
     crosshairCursor(),
+    dropCursor(),
     EditorView.lineWrapping,
     EditorState.tabSize.of(4),
     indentUnit.of('    '),

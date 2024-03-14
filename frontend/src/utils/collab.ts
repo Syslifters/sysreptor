@@ -16,6 +16,7 @@ export enum CollabConnectionState {
 
 export type TextUpdate = {
   changes: ChangeSet;
+  selection?: EditorSelection;
 }
 
 export type CollabStoreState<T> = {
@@ -25,11 +26,24 @@ export type CollabStoreState<T> = {
   websocketPath: string;
   handleAdditionalWebSocketMessages?: (event: any) => boolean;
   perPathState: Map<string, {
-    websocketSendThrottle: (msg: string) => void;
+    sendUpdateTextThrottled: (msg: string) => void;
     unconfirmedTextUpdates: TextUpdate[];
   }>;
-  clients: {client_id: string; user: UserShortInfo; color: string;}[];
-  // awareness: {[key: string]: {client_id: string, path: string, selection?: EditorSelection}};
+  awareness: {
+    local: {
+      path: string|null;
+      selection?: EditorSelection;
+    };
+    remote: {
+      [key: string]: {
+        client_id: string;
+        path: string;
+        selection?: EditorSelection;
+      }
+    };
+    clients: {client_id: string; user: UserShortInfo; color: string;}[];
+    sendAwarenessThrottled?: ReturnType<typeof throttle<(msg: string) => void>>;
+  },
   version: number;
   clientID: string;
 }
@@ -46,8 +60,13 @@ export function makeCollabStoreState<T>(options: {
     connectionState: CollabConnectionState.CLOSED,
     websocket: null,
     perPathState: new Map(),
-    clients: [],
-    // awareness: {},
+    awareness: {
+      local: {
+        path: 'notes',
+      },
+      remote: {},
+      clients: [],
+    },
     version: 0,
     clientID: '',
   }
@@ -64,6 +83,13 @@ export function useCollab(storeState: CollabStoreState<any>) {
     const serverUrl = `${window.location.protocol === 'http:' ? 'ws' : 'wss'}://${window.location.host}/`;
     const wsUrl = urlJoin(serverUrl, storeState.websocketPath);
     storeState.perPathState?.clear();
+    storeState.awareness.local = { path: null };
+    storeState.awareness = {
+      local: { path: null },
+      remote: {},
+      clients: [],
+      sendAwarenessThrottled: throttle(websocketSend, 1000, { leading: false, trailing: true })
+    }
     storeState.connectionState = CollabConnectionState.CONNECTING;
     storeState.websocket = new WebSocket(wsUrl);
     storeState.websocket.addEventListener('open', () => {
@@ -96,12 +122,36 @@ export function useCollab(storeState: CollabStoreState<any>) {
       } else if (msgData.type === 'collab.delete') {
         unset(storeState.data as Object, msgData.path);
       } else if (msgData.type === 'collab.connect') {
-        storeState.clients.push(msgData);
+        // Add new client
+        storeState.awareness.clients.push(msgData);
         if (msgData.client_id !== storeState.clientID) {
-          // TODO: send own awareness information
+          // Immediately send own awareness information to new client
+          storeState.awareness.sendAwarenessThrottled?.(JSON.stringify({
+            type: 'collab.awareness',
+            path: storeState.awareness.local.path,
+            version: storeState.version,
+            selection: storeState.awareness.local.selection?.toJSON(),
+          }));
+          storeState.awareness.sendAwarenessThrottled?.flush();
         }
       } else if (msgData.type === 'collab.disconnect') {
-        storeState.clients = storeState.clients.filter(c => c.client_id !== msgData.client_id);
+        // Remove client
+        storeState.awareness.clients = storeState.awareness.clients.filter(c => c.client_id !== msgData.client_id);
+      } else if (msgData.type === 'collab.awareness') {
+        if (msgData.client_id !== storeState.clientID) {
+          let selection = msgData.selection ? EditorSelection.fromJSON(msgData.selection) : undefined;
+          if (selection) {
+            // Map onto unconfirmedTextUpdates
+            for (const u of storeState.perPathState.get(msgData.path)?.unconfirmedTextUpdates || []) {
+              selection = selection.map(u.changes);
+            }
+          }
+          storeState.awareness.remote[msgData.client_id] = {
+            client_id: msgData.client_id,
+            path: msgData.path,
+            selection,
+          };
+        }
       } else if (!storeState.handleAdditionalWebSocketMessages?.(msgData)) {
         // eslint-disable-next-line no-console
         console.error('Received unknown websocket message:', msgData);
@@ -130,7 +180,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
   function ensurePerPathState(path: string) {
     if (!storeState.perPathState.has(path)) {
       storeState.perPathState.set(path, {
-        websocketSendThrottle: throttle(websocketSend, 1000, { leading: false, trailing: true }),
+        sendUpdateTextThrottled: throttle(websocketSend, 1000, { leading: false, trailing: true }),
         unconfirmedTextUpdates: [],
       });
     }
@@ -151,7 +201,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
     websocketSend(JSON.stringify({
       type: 'collab.update_key',
       path: dataPath,
-      client_id: storeState.clientID,
       version: storeState.version,
       value: event.value,
     }));
@@ -168,23 +217,66 @@ export function useCollab(storeState: CollabStoreState<any>) {
     // Update local state
     const text = get(storeState.data as Object, dataPath) || '';
     let cmText = Text.of(text.split(/\r?\n/));
+    let selection = storeState.awareness.local.path === dataPath ? storeState.awareness.local.selection : undefined;
     for (const u of event.updates) {
-      cmText = ChangeSet.fromJSON(u.changes).apply(cmText);
+      // Apply text changes
+      cmText = u.changes.apply(cmText);
+      // Update local selection
+      if (u.selection) {
+        selection = u.selection;
+        // Cancel pending awareness update => awareness info is included in the next collab.update_text message
+        storeState.awareness.sendAwarenessThrottled?.cancel();
+      } else {
+        selection = selection?.map(u.changes);
+      }
+      // Map selections of other clients onto changes
+      for (const remoteAwareness of Object.values(storeState.awareness.remote)) {
+        if (remoteAwareness.path === dataPath) {
+          remoteAwareness.selection = remoteAwareness.selection?.map(u.changes);
+        }
+      }
     }
     set(storeState.data as Object, dataPath, cmText.toString());
+    storeState.awareness.local = {
+      path: dataPath,
+      selection,
+    };
 
     // Track unconfirmed changes
     perPathState.unconfirmedTextUpdates.push(...event.updates.map((u: any) => ({
-      changes: ChangeSet.fromJSON(u.changes),
+      changes: u.changes,
     })));
 
     // Propagate unconfirmed events to other clients
-    perPathState.websocketSendThrottle(JSON.stringify({
+    perPathState.sendUpdateTextThrottled(JSON.stringify({
       type: 'collab.update_text',
       path: dataPath,
-      client_id: storeState.clientID,
       version: storeState.version,
-      updates: perPathState.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
+      updates: perPathState.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON(), selection: u.selection?.toJSON() })),
+    }));
+  }
+
+  function updateAwareness(event: any) {
+    if (!event.path?.startsWith(storeState.websocketPath)) {
+      // Event is not for us
+      return;
+    } else if (event.focus === false && event.path !== storeState.awareness.local.path) {
+      // On focus other field: do not propagate unfocus event
+      return;
+    }
+
+    console.log('updateAwareness', event);
+    const dataPath = toDataPath(event.path);
+    storeState.awareness.local = {
+      path: dataPath,
+      selection: event.selection,
+    };
+
+    storeState.awareness.sendAwarenessThrottled?.(JSON.stringify({
+      type: 'collab.awareness',
+      path: dataPath,
+      version: storeState.version,
+      selection: event.selection,
     }));
   }
 
@@ -239,6 +331,17 @@ export function useCollab(storeState: CollabStoreState<any>) {
       let cmText = Text.of(text.split(/\r?\n/));
       cmText = changes.apply(cmText);
       set(storeState.data as Object, event.path, cmText.toString());
+
+      // Update local selection
+      if (storeState.awareness.local.path === event.path) {
+        storeState.awareness.local.selection = storeState.awareness.local.selection?.map(changes);
+      }
+      // Update remote selections
+      for (const remoteAwareness of Object.values(storeState.awareness.remote)) {
+        if (remoteAwareness.path === event.path) {
+          remoteAwareness.selection = remoteAwareness.selection?.map(changes);
+        }
+      }
     }
   }
 
@@ -247,11 +350,18 @@ export function useCollab(storeState: CollabStoreState<any>) {
       updateKey(event);
     } else if (event.type === 'collab.update_text') {
       updateText(event);
+    } else if (event.type === 'collab.awareness') {
+      updateAwareness(event);
     } else {
       // eslint-disable-next-line no-console
       console.error('Trying to send unknown collab event:', event);
     }
   }
+
+  watch(() => storeState.awareness.local, () => {
+    // TODO: debug only
+    console.log('awareness.local changed', storeState.awareness.local.path, storeState.awareness.local.selection?.toJSON());
+  }, { deep: true });
 
   return {
     connect,

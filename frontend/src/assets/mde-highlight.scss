@@ -5,8 +5,8 @@
   outline: none !important;
 }
 
-.cm-focused .cm-selectionBackground { background-color: rgba(var(--v-theme-codemirror-selection), 1) !important; }
-.cm-selectionBackground { background-color: rgba(var(--v-theme-codemirror-selection), 0.5) !important; }
+// .cm-selectionBackground { display: none; }
+.cm-focused .cm-selectionBackground { display: initial; background-color: rgba(var(--v-theme-codemirror-selection), 1) !important; }
 .cm-cursor { border-left-color: rgb(var(--v-theme-on-surface)); }
 
 

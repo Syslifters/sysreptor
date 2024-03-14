@@ -7,13 +7,12 @@ from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
 from channels.testing import WebsocketCommunicator
 from channels.routing import URLRouter
-from reportcreator_api.pentests.consumers import ProjectNotesConsumer
 
 from reportcreator_api.pentests.models.collab import CollabEventType
 from reportcreator_api.pentests.models.project import ProjectMemberInfo
 from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time
 from reportcreator_api.conf.urls import websocket_urlpatterns
-from reportcreator_api.utils.text_transformations import ChangeSet, Update, rebase_updates
+from reportcreator_api.utils.text_transformations import ChangeSet, EditorSelection, SelectionRange, Update, rebase_updates
 
 
 class TestTextTransformations:
@@ -87,6 +86,37 @@ class TestTextTransformations:
         # Rebase already applied changes
         assert rebase_updates(updates=[Update(client_id='c2', version=2, changes=c2)], over=[Update(client_id='c1', version=1, changes=c1), Update(client_id='c2', version=2, changes=c2)]) == []
 
+    @pytest.mark.parametrize(['selection', 'change', 'expected'], [
+        # Cursor
+        ([{'anchor': 10, 'head': 10}], [5, [0, 'inserted before'], 20], [{'anchor': 25, 'head': 25}]),
+        ([{'anchor': 10, 'head': 10}], [5, [5, ''], 20], [{'anchor': 5, 'head': 5}]),  # deleted before
+        ([{'anchor': 10, 'head': 10}], [20, [0, 'inserted after']], [{'anchor': 10, 'head': 10}]),
+        ([{'anchor': 20, 'head': 20}], [0, [15, 'replaced before'], 20], [{'anchor': 20, 'head': 20}]),
+        ([{'anchor': 10, 'head': 10}], [5, [0, 'inserted over'], 20], [{'anchor': 23, 'head': 23}]),
+        ([{'anchor': 10, 'head': 10}], [5, [10, ''], 20], [{'anchor': 5, 'head': 5}]),  # delete over
+        # Single range
+        ([{'anchor': 10, 'head': 15}], [5, [0, 'inserted before'], 20], [{'anchor': 25, 'head': 30}]),
+        ([{'anchor': 10, 'head': 15}], [5, [5, ''], 20], [{'anchor': 5, 'head': 10}]),  # deleted before
+        ([{'anchor': 10, 'head': 15}], [20, [0, 'inserted after']], [{'anchor': 10, 'head': 15}]),
+        ([{'anchor': 10, 'head': 15}], [5, [0, 'inserted before'], 30, [0, 'inserted after']], [{'anchor': 25, 'head': 30}]),
+        ([{'anchor': 10, 'head': 20}], [15, [0, 'inserted inside'], 20], [{'anchor': 10, 'head': 35}]),
+        ([{'anchor': 10, 'head': 40}], [15, [15, 'replaced inside'], 40], [{'anchor': 10, 'head': 40}]),
+        ([{'anchor': 10, 'head': 20}], [12, [5, ''], 20], [{'anchor': 10, 'head': 15}]), # delete inside
+        ([{'anchor': 10, 'head': 20}], [5, [10, ''], 20], [{'anchor': 5, 'head': 10}]), # delete overlapping start
+        ([{'anchor': 10, 'head': 20}], [15, [10, ''], 20], [{'anchor': 10, 'head': 15}]), # delete overlapping end
+        ([{'anchor': 10, 'head': 20}], [5, [20, ''], 20], [{'anchor': 5, 'head': 5}]), # delete whole range
+        # Multiple ranges
+        ([{'anchor': 10, 'head': 15}, {'anchor': 20, 'head': 25}], [5, [0, 'inserted before'], 20], [{'anchor': 25, 'head': 30}, {'anchor': 35, 'head': 40}]),
+        ([{'anchor': 10, 'head': 15}, {'anchor': 20, 'head': 25}], [5, [5, ''], 20], [{'anchor': 5, 'head': 10}, {'anchor': 15, 'head': 20}]),  # deleted before
+        ([{'anchor': 10, 'head': 15}, {'anchor': 20, 'head': 25}], [17, [0, 'inserted between'], 20], [{'anchor': 10, 'head': 15}, {'anchor': 36, 'head': 41}]),
+    ])
+    def test_selection_mapping(self, selection, change, expected):
+        selection = EditorSelection(main=0, ranges=[SelectionRange.from_dict(r) for r in selection])
+        change = ChangeSet.from_dict(change)
+        expected = EditorSelection(main=0, ranges=[SelectionRange.from_dict(r) for r in expected])
+        actual = selection.map(change)
+        assert actual == expected
+
 
 @contextlib.asynccontextmanager
 async def ws_connect(path, user):
@@ -107,6 +137,11 @@ async def ws_connect(path, user):
         setattr(consumer, 'init', init)
         setattr(consumer, 'client_id', init['client_id'])
 
+        # Consume collab.connect message
+        connect = await consumer.receive_json_from()
+        assert connect.get('type') == 'collab.connect'
+        assert connect.get('client_id') == init['client_id']
+
         yield consumer
     finally:
         await consumer.disconnect()
@@ -126,6 +161,7 @@ class TestCollaborativeTextEditing:
 
         async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user1) as self.client1, \
                    ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user2) as self.client2:
+            await self.client1.receive_json_from() # collab.connect client2
             yield
     
     async def test_concurrent_updates(self):
@@ -162,6 +198,10 @@ class TestCollaborativeTextEditing:
         await self.note.arefresh_from_db()
         assert self.note.text == 'A1234B'
 
+    # TODO: test rebase selection
+    # TODO: test collab.awareness
+
+
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 class TestProjectNotesDbSync:
@@ -178,6 +218,7 @@ class TestProjectNotesDbSync:
 
         async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user1) as self.client1, \
                    ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user2) as self.client2:
+            await self.client1.receive_json_from() # collab.connect client2
             yield
 
     async def refresh_data(self):
