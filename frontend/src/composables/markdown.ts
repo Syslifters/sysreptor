@@ -199,18 +199,31 @@ export function useMarkdownEditor({ props, emit, extensions }: {
             // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
             if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
               // Collab updates
-              for (const tr of viewUpdate.transactions) {
-                if (tr.docChanged && !tr.annotation(Transaction.remote)) {
-                  emit('collab', {
-                    type: 'collab.update_text',
-                    path: props.value.collab?.path,
-                    updates: [{ changes: tr.changes.toJSON() }],
-                  })
+              if (props.value.collab) {
+                for (const tr of viewUpdate.transactions) {
+                  if (tr.docChanged && !tr.annotation(Transaction.remote)) {
+                    emit('collab', {
+                      type: 'collab.update_text',
+                      path: props.value.collab.path,
+                      updates: [{ changes: tr.changes.toJSON(), selection: tr.selection?.toJSON() }],
+                    })
+                  }
                 }
               }
 
               // Model-value updates
               emit('update:modelValue', viewUpdate.state.doc.toString());
+            } else if (props.value.collab && viewUpdate.selectionSet) {
+              // Awareness updates
+              for (const tr of viewUpdate.transactions) {
+                if (!tr.annotation(Transaction.remote)) {
+                  emit('collab', {
+                    type: 'collab.awareness',
+                    path: props.value.collab.path,
+                    selection: tr.newSelection.toJSON(),
+                  })
+                }
+              }
             }
           }),
         ]

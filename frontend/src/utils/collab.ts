@@ -4,7 +4,8 @@ import unset from "lodash/unset";
 import throttle from "lodash/throttle";
 import trimStart from "lodash/trimStart";
 import urlJoin from "url-join";
-import { ChangeSet, Text } from "reportcreator-markdown/editor"
+import { ChangeSet, EditorSelection, Text } from "reportcreator-markdown/editor"
+import { type UserShortInfo } from "@/utils/types"
 
 export enum CollabConnectionState {
   CLOSED = 'closed',
@@ -27,6 +28,8 @@ export type CollabStoreState<T> = {
     websocketSendThrottle: (msg: string) => void;
     unconfirmedTextUpdates: TextUpdate[];
   }>;
+  clients: {client_id: string; user: UserShortInfo; color: string;}[];
+  // awareness: {[key: string]: {client_id: string, path: string, selection?: EditorSelection}};
   version: number;
   clientID: string;
 }
@@ -43,6 +46,8 @@ export function makeCollabStoreState<T>(options: {
     connectionState: CollabConnectionState.CLOSED,
     websocket: null,
     perPathState: new Map(),
+    clients: [],
+    // awareness: {},
     version: 0,
     clientID: '',
   }
@@ -72,6 +77,8 @@ export function useCollab(storeState: CollabStoreState<any>) {
     });
     storeState.websocket.addEventListener('message', (event: MessageEvent) => {
       const msgData = JSON.parse(event.data);
+      console.log('Received websocket message:', msgData);
+
       if (msgData.version && msgData.version > storeState.version) {
         storeState.version = msgData.version;
       }
@@ -88,6 +95,13 @@ export function useCollab(storeState: CollabStoreState<any>) {
         set(storeState.data as Object, msgData.path, msgData.value);
       } else if (msgData.type === 'collab.delete') {
         unset(storeState.data as Object, msgData.path);
+      } else if (msgData.type === 'collab.connect') {
+        storeState.clients.push(msgData);
+        if (msgData.client_id !== storeState.clientID) {
+          // TODO: send own awareness information
+        }
+      } else if (msgData.type === 'collab.disconnect') {
+        storeState.clients = storeState.clients.filter(c => c.client_id !== msgData.client_id);
       } else if (!storeState.handleAdditionalWebSocketMessages?.(msgData)) {
         // eslint-disable-next-line no-console
         console.error('Received unknown websocket message:', msgData);
