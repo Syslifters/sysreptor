@@ -3,6 +3,7 @@
 ## Next
 * Add Content Security Policy directive form-action
 * Remember "Encrypt PDF" setting in browser's local storage
+* Fix force change design API request not sent
 
 
 ## v2024.19 - 2024-03-05
