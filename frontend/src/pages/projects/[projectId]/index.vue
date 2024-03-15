@@ -1,7 +1,7 @@
 <template>
   <v-container class="pt-0">
     <v-form ref="formRef">
-      <edit-toolbar v-bind="toolbarAttrs">
+      <edit-toolbar v-bind="toolbarAttrs" ref="toolbarRef">
         <template #title>Project Settings</template>
         <template #default>
           <btn-readonly 
@@ -153,7 +153,9 @@ const historyVisible = ref(false);
 
 const formRef = ref<VForm>();
 const toolbarRef = ref();
+
 const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
+  toolbarRef,
   data: project,
   form: formRef,
   hasEditPermissions: computed(() => {
