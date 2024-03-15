@@ -213,7 +213,9 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 
               // Model-value updates
               emit('update:modelValue', viewUpdate.state.doc.toString());
-            } else if (props.value.collab && (viewUpdate.selectionSet || viewUpdate.focusChanged)) {
+            } 
+            
+            if (props.value.collab && (viewUpdate.selectionSet || viewUpdate.focusChanged)) {
               // Collab awareness updates
               const hasFocus = editorView.value?.hasFocus || false;
               emit('collab', {
@@ -224,6 +226,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
               });
             }
           }),
+          // TODO: extension for collab remote awareness
         ]
       }),
     });
@@ -311,6 +314,10 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   });
   watch(spellcheckBrowserEnabled, val => editorActions.value.spellcheckBrowser?.(val));
   watch(theme.current, val => editorActions.value.darkTheme?.(val.dark));
+
+  watch(() => props.value.collab?.otherClientAwareness, (val) => {
+    console.log('markdown collab.otherClientAwareness', val?.map(a => ({ client_id: a.client_id, selection: a.selection?.toJSON() })));
+  }, { deep: true });
 
   function focus() {
     if (editorView.value) {

@@ -243,12 +243,10 @@ class Update:
     client_id: str
     version: float
     changes: ChangeSet
-    selection: Optional[EditorSelection] = None
 
     def to_dict(self):
         return {
             'changes': self.changes.to_dict(),
-            **({'selection': self.selection.to_dict()} if self.selection else {}),
         }
 
     @classmethod
@@ -260,7 +258,6 @@ class Update:
             client_id=u['client_id'], 
             version=u['version'], 
             changes=ChangeSet.from_dict(u['changes']),
-            selection=EditorSelection.from_dict(u.get('selection')) if u.get('selection') else None
         )
 
 
@@ -509,6 +506,5 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
                 client_id=update.client_id,
                 version=version,
                 changes=updated_changes,
-                selection=update.selection.map(changes) if update.selection else None
             ))
         return out
