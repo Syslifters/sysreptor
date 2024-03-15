@@ -57,7 +57,8 @@ def create_database_dump():
     """
     Return a database dump of django models. It uses the same format as "manage.py dumpdata --format=jsonl".
     """
-    exclude_models = ['contenttypes.ContentType', 'sessions.Session', 'users.Session', 'admin.LogEntry', 'auth.Permission', 'auth.Group', 'pentests.LockInfo']
+    exclude_models = ['contenttypes.ContentType', 'sessions.Session', 'users.Session', 'admin.LogEntry', 'auth.Permission', 'auth.Group', 
+                      'pentests.LockInfo', 'pentests.CollabEvent']
     try:
         app_list = [app_config for app_config in apps.get_app_configs() if app_config.models_module is not None]
         models = list(itertools.chain(*map(lambda a: a.get_models(), app_list)))

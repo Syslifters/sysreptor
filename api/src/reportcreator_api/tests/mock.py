@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from unittest import mock
 from uuid import uuid4
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from rest_framework.test import APIClient
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -31,7 +32,7 @@ def create_png_file() -> bytes:
 
 
 def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, images_kwargs=None, files_kwargs=None, **kwargs) -> PentestUser:
-    username = f'user{random.randint(0, 100000)}'
+    username = f'user_{get_random_string(8)}'
     user = PentestUser.objects.create_user(**{
         'username': username,
         'password': None,
@@ -64,7 +65,7 @@ def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, 
 
 
 def create_imported_member(roles=None, **kwargs):
-    username = f'user{random.randint(0, 100000)}'
+    username = f'user_{get_random_string(8)}'
     return RelatedUserDataExportImportSerializer(instance=ProjectMemberInfo(
         user=PentestUser(**{
             'username': username,
@@ -78,7 +79,7 @@ def create_imported_member(roles=None, **kwargs):
 @history_context()
 def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> FindingTemplate:
     data = {
-        'title': f'Finding Template #{random.randint(1, 100000)}',
+        'title': f'Finding Template #{get_random_string(8)}',
         'description': 'Template Description',
         'recommendation': 'Template Recommendation',
         'unknown_field': 'test',
@@ -139,7 +140,7 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
         'field_list_objects': {'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': {'nested1': {'type': 'string', 'label': 'Nested object field', 'default': None}}}},
     }
     project_type = ProjectType.objects.create(**{
-        'name': f'Project Type #{random.randint(1, 100000)}',
+        'name': f'Project Type #{get_random_string(8)}',
         'language': Language.ENGLISH_US,
         'status': ProjectTypeStatus.FINISHED,
         'tags': ['web', 'example'],
@@ -171,7 +172,7 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
 def create_finding(project, template=None, **kwargs) -> PentestFinding:
     data = ensure_defined_structure(
         value={
-            'title': f'Finding #{random.randint(0, 100000)}',
+            'title': f'Finding #{get_random_string(8)}',
             'cvss': 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
             'description': 'Finding Description',
             'recommendation': 'Finding Recommendation',
@@ -191,7 +192,7 @@ def create_finding(project, template=None, **kwargs) -> PentestFinding:
 
 def create_usernotebookpage(**kwargs) -> UserNotebookPage:
     return UserNotebookPage.objects.create(**{
-        'title': f'Note #{random.randint(0, 100000)}',
+        'title': f'Note #{get_random_string(8)}',
         'text': 'Note text',
         'checked': random.choice([None, True, False]),
         'icon_emoji': random.choice([None, '🦖']),
@@ -200,7 +201,7 @@ def create_usernotebookpage(**kwargs) -> UserNotebookPage:
 
 def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
     return ProjectNotebookPage.objects.create(**{
-        'title': f'Note #{random.randint(0, 100000)}',
+        'title': f'Note #{get_random_string(8)}',
         'text': 'Note text',
         'checked': random.choice([None, True, False]),
         'icon_emoji': random.choice([None, '🦖']),
@@ -215,7 +216,7 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
     } | report_data
     project = PentestProject.objects.create(**{
         'project_type': project_type,
-        'name': f'Pentest Project #{random.randint(1, 100000)}',
+        'name': f'Pentest Project #{get_random_string(8)}',
         'language': Language.ENGLISH_US,
         'tags': ['web', 'customer:test'],
         'unknown_custom_fields': {f: report_data.pop(f) for f in set(report_data.keys()) - set(project_type.report_fields.keys())}
@@ -266,7 +267,7 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
 
 def create_public_key(**kwargs):
     dummy_data = {
-        'name': f'Public key #{random.randint(1, 100000)}',
+        'name': f'Public key #{get_random_string(8)}',
     }
     if 'public_key' not in kwargs:
         dummy_data |= {
@@ -305,7 +306,7 @@ def create_public_key(**kwargs):
 
 
 def create_archived_project(project=None, **kwargs):
-    name = project.name if project else f'Archive #{random.randint(1, 100000)}'
+    name = project.name if project else f'Archive #{get_random_string(8)}'
     users = [m.user for m in project.members.all()] if project else [create_user(public_key=True)]
 
     archive = ArchivedProject.objects.create(name=name, threshold=1, file=SimpleUploadedFile('archive.tar.gz', crypto.MAGIC + b'dummy-data'))

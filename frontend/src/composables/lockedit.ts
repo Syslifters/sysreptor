@@ -244,6 +244,95 @@ export async function useProjectTypeLockEditOptions(options: {save?: boolean, de
   };
 }
 
+export function useProjectEditBase(options: {
+  project: ComputedRef<PentestProject|undefined|null>,
+  historyDate?: string,
+  canUploadFiles?: boolean,
+  spellcheckEnabled?: Ref<boolean>;
+  markdownEditorMode?: Ref<MarkdownEditorMode>;
+}) {
+  const route = useRoute();
+  const localSettings = useLocalSettings();
+  const projectStore = useProjectStore();
+
+  const projectId = computed(() => options.project.value?.id || route.params.projectId);
+
+  const hasEditPermissions = computed(() => {
+    if (options.historyDate) {
+      return false;
+    }
+    if (options.project.value) {
+      return !options.project.value?.readonly;
+    }
+    return true;
+  });
+  const errorMessage = computed(() => {
+    if (options.historyDate) {
+      return `You are comparing a historic version from ${formatISO9075(new Date(options.historyDate))} to the current version.`;
+    }
+    if (options.project.value?.readonly) {
+      return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'
+    }
+    return null;
+  });
+
+  const projectUrl = computed(() => `/api/v1/pentestprojects/${projectId.value}/`);
+  const projectTypeUrl = computed(() => options.project.value ? `/api/v1/projecttypes/${options.project.value.project_type}/` : null);
+
+  async function uploadFile(file: File) {
+    const uploadUrl = urlJoin(projectUrl.value, options.canUploadFiles ? '/upload/' : '/images/');
+    const res = await uploadFileHelper<UploadedFileInfo>(uploadUrl, file);
+    if (res.resource_type === UploadedFileType.IMAGE) {
+      return `![](/images/name/${res.name}){width="auto"}`;
+    } else {
+      return `[${res.name}](/files/name/${res.name})`;
+    }
+  }
+  function rewriteFileUrl(fileSrc: string) {
+    if (fileSrc.startsWith('/assets/')) {
+      return urlJoin(projectTypeUrl.value || '', fileSrc)
+    } else {
+      return urlJoin(projectUrl.value, fileSrc);
+    }
+  }
+  function rewriteReferenceLink(refId: string) {
+    const finding = projectStore.findings(options.project.value?.id || '').find(f => f.id === refId);
+    if (finding) {
+      return {
+        href: `/projects/${options.project.value!.id}/reporting/findings/${finding.id}/`,
+        title: `[Finding ${finding.data.title}]`,
+      };
+    }
+    return null;
+  }
+
+  const spellcheckEnabled = options.spellcheckEnabled || computed({ 
+    get: () => localSettings.reportingSpellcheckEnabled && !options.historyDate,
+    set: (val: boolean) => { localSettings.reportingSpellcheckEnabled = val; }, 
+  });
+  const markdownEditorMode = options.markdownEditorMode || computed({
+    get: () => localSettings.reportingMarkdownEditorMode,
+    set: (val: MarkdownEditorMode) => { localSettings.reportingMarkdownEditorMode = val; },
+  })
+  const inputFieldAttrs = computed(() => ({
+    lang: options.project.value?.language || 'en-US',
+    selectableUsers: [...(options.project.value?.members || []), ...(options.project.value?.imported_members || [])],
+    spellcheckEnabled: spellcheckEnabled.value,
+    'onUpdate:spellcheckEnabled': (val: boolean) => { spellcheckEnabled.value = val; },
+    markdownEditorMode: markdownEditorMode.value,
+    'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { markdownEditorMode.value = val; },
+    uploadFile,
+    rewriteFileUrl,
+    rewriteReferenceLink,
+  }));
+
+  return {
+    hasEditPermissions,
+    errorMessage,
+    inputFieldAttrs,
+  }
+}
+
 export function useProjectLockEdit<T>(options: {
   baseUrl: string;
   fetchProjectType: boolean;
@@ -257,7 +346,6 @@ export function useProjectLockEdit<T>(options: {
   autoSaveOnUpdateData? (options: { oldValue: T, newValue: T }): boolean;
 }) {
   const route = useRoute();
-  const localSettings = useLocalSettings();
   const projectStore = useProjectStore();
   const projectTypeStore = useProjectTypeStore();
 
@@ -289,75 +377,8 @@ export function useProjectLockEdit<T>(options: {
       }
     }
   });
-  const hasEditPermissions = computed(() => {
-    if (options.historyDate) {
-      return false;
-    }
-    if (project.value) {
-      return !project.value?.readonly;
-    }
-    return true;
-  });
-  const errorMessage = computed(() => {
-    if (options.historyDate) {
-      return `You are comparing a historic version from ${formatISO9075(new Date(options.historyDate))} to the current version.`;
-    }
-    if (project.value?.readonly) {
-      return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'
-    }
-    return null;
-  });
 
   const baseUrl = computed(() => options.baseUrl);
-  const projectUrl = computed(() => `/api/v1/pentestprojects/${route.params.projectId}/`);
-  const projectTypeUrl = computed(() => project.value ? `/api/v1/projecttypes/${project.value.project_type}/` : null);
-
-  async function uploadFile(file: File) {
-    const uploadUrl = urlJoin(projectUrl.value, options.canUploadFiles ? '/upload/' : '/images/');
-    const res = await uploadFileHelper<UploadedFileInfo>(uploadUrl, file);
-    if (res.resource_type === UploadedFileType.IMAGE) {
-      return `![](/images/name/${res.name}){width="auto"}`;
-    } else {
-      return `[${res.name}](/files/name/${res.name})`;
-    }
-  }
-  function rewriteFileUrl(fileSrc: string) {
-    if (fileSrc.startsWith('/assets/')) {
-      return urlJoin(projectTypeUrl.value || '', fileSrc)
-    } else {
-      return urlJoin(projectUrl.value, fileSrc);
-    }
-  }
-  function rewriteReferenceLink(refId: string) {
-    const finding = projectStore.findings(project.value?.id || '').find(f => f.id === refId);
-    if (finding) {
-      return {
-        href: `/projects/${project.value!.id}/reporting/findings/${finding.id}/`,
-        title: `[Finding ${finding.data.title}]`,
-      };
-    }
-    return null;
-  }
-
-  const spellcheckEnabled = options.spellcheckEnabled || computed({ 
-    get: () => localSettings.reportingSpellcheckEnabled && !options.historyDate,
-    set: (val: boolean) => { localSettings.reportingSpellcheckEnabled = val; }, 
-  });
-  const markdownEditorMode = options.markdownEditorMode || computed({
-    get: () => localSettings.reportingMarkdownEditorMode,
-    set: (val: MarkdownEditorMode) => { localSettings.reportingMarkdownEditorMode = val; },
-  })
-  const inputFieldAttrs = computed(() => ({
-    lang: project.value?.language || 'en-US',
-    selectableUsers: [...(project.value?.members || []), ...(project.value?.imported_members || [])],
-    spellcheckEnabled: spellcheckEnabled.value,
-    'onUpdate:spellcheckEnabled': (val: boolean) => { spellcheckEnabled.value = val; },
-    markdownEditorMode: markdownEditorMode.value,
-    'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { markdownEditorMode.value = val; },
-    uploadFile,
-    rewriteFileUrl,
-    rewriteReferenceLink,
-  }));
 
   async function performDelete(data: T|null) {
     if (data && project.value && options.performDelete) {
@@ -375,16 +396,24 @@ export function useProjectLockEdit<T>(options: {
     }
   }
 
+  const projectEditBase = useProjectEditBase({
+    project,
+    historyDate: options.historyDate,
+    canUploadFiles: options.canUploadFiles,
+    spellcheckEnabled: options.spellcheckEnabled,
+    markdownEditorMode: options.markdownEditorMode,
+  })
+
   return {
+    ...projectEditBase,
     data,
     project,
     projectType,
-    inputFieldAttrs,
     ...useLockEdit<T|null>({
       data,
       baseUrl,
-      hasEditPermissions,
-      errorMessage,
+      hasEditPermissions: projectEditBase.hasEditPermissions,
+      errorMessage: projectEditBase.errorMessage,
       fetchState,
       performSave: options.performSave ? performSave : undefined,
       performDelete: options.performDelete ? performDelete : undefined,

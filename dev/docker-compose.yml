@@ -21,6 +21,10 @@ services:
       timeout: 5s
       retries: 30
     stop_grace_period: 120s
+  # redis:
+  #   image: redis:7
+  #   expose:
+  #     - 6379
   # rabbitmq:
   #   image: rabbitmq:3
   #   hostname: rabbitmq
@@ -132,6 +136,7 @@ services:
       DATABASE_PASSWORD: reportcreator
       MFA_FIDO2_RP_ID: localhost
       SPELLCHECK_URL: http://languagetool:8010/
+      # REDIS_URL: redis://redis:6379
       # CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
       # CELERY_RESULT_BACKEND: reportcreator_api.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
     env_file: ../deploy/app.env
@@ -140,6 +145,8 @@ services:
         condition: service_healthy
       languagetool:
         condition: service_started
+      # redis:
+      #   condition: service_started
       # rendering-worker:
       #   condition: service_started
   frontend:

@@ -10,6 +10,7 @@ from django.test import override_settings
 from django.urls import reverse
 from django.conf import settings
 from django.core import management
+from django.utils.crypto import get_random_string
 from django.core.files.storage import storages, FileSystemStorage
 
 from reportcreator_api.archive import crypto
@@ -37,7 +38,7 @@ def assert_storage_file_encrypted(file, expected):
 
 class TestSymmetricEncryptionTests:
     @pytest.fixture(autouse=True)
-    def setUp(self) -> None:
+    def setUp(self):
         self.key = crypto.EncryptionKey(id='test-key', key=b'a' * (256 // 8))
         self.nonce = b'n' * 16
         self.plaintext = b'This is a plaintext content which will be encrypted in unit tests. ' + (b'a' * 100) + b' lorem impsum long text'
@@ -188,8 +189,8 @@ class TestSymmetricEncryptionTests:
 
 class TestEncryptedStorage:
     @pytest.fixture(autouse=True)
-    def setUp(self) -> None:
-        location = f'/tmp/test-{random.randint(1, 10000000)}/'
+    def setUp(self):
+        location = f'/tmp/test-{get_random_string(8)}/'
         self.storage_plain = FileSystemStorage(location=location)
         self.storage_crypto = EncryptedFileSystemStorage(location=location)
         self.plaintext = b'This is a test file content which should be encrypted'
@@ -227,7 +228,7 @@ class TestEncryptedStorage:
 @pytest.mark.django_db
 class TestEncryptedDbField:
     @pytest.fixture(autouse=True)
-    def setUp(self) -> None:
+    def setUp(self):
         self.template = create_template()
         project = create_project()
         self.finding = project.findings.first()
@@ -275,7 +276,7 @@ class TestEncryptedDbField:
 @pytest.mark.django_db
 class TestEncryptDataCommand:
     @pytest.fixture(autouse=True)
-    def setUp(self) -> None:
+    def setUp(self):
         with override_settings(
             ENCRYPTION_KEYS={},
             DEFAULT_ENCRYPTION_KEY_ID=None,

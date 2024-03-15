@@ -1,57 +1,60 @@
 <template>
-  <fetch-loader v-bind="fetchLoaderAttrs" class="h-100">
-    <full-height-page v-if="note" :key="note.id">
-      <template #header>
-        <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
-          <template #title>
-            <div class="note-title-container">
-              <div>
-                <s-btn-icon
-                  @click="note.checked = note.checked === null ? false : !note.checked ? true : null"
-                  :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
-                  :disabled="readonly"
-                  density="comfortable"
-                />
-              </div>
-              <s-emoji-picker-field
-                v-if="note.checked === null"
-                v-model="note.icon_emoji"
-                :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
-                :readonly="readonly"
+  <full-height-page v-if="note" :key="note.id">
+    <template #header>
+      <edit-toolbar v-bind="toolbarAttrs">
+        <template #title>
+          <div class="note-title-container">
+            <div>
+              <s-btn-icon
+                @click="updateKey('checked', note.checked === null ? false : !note.checked ? true : null)"
+                :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
+                :disabled="notesCollab.readonly.value"
                 density="comfortable"
               />
-              
-              <markdown-text-field-content
-                ref="titleRef"
-                v-model="note.title"
-                v-bind="inputFieldAttrs"
-                class="note-title"
-              />
             </div>
-          </template>
-          <template #context-menu>
-            <btn-export
-              :export-url="exportUrl"
-              :name="'notes-' + note.title"
+            <s-emoji-picker-field
+              v-if="note.checked === null"
+              :model-value="note.icon_emoji"
+              @update:model-value="updateKey('icon_emoji', $event)"
+              :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
+              :readonly="notesCollab.readonly.value"
+              density="comfortable"
             />
-            <btn-export
-              :export-url="exportPdfUrl"
-              :name="note.title"
-              extension=".pdf"
-              button-text="Export as PDF"
+              
+            <markdown-text-field-content
+              ref="titleRef"
+              :model-value="note.title"
+              :collab="collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.title`)"
+              @collab="notesCollab.onCollabEvent"
+              v-bind="inputFieldAttrs"
+              class="note-title"
             />
-          </template>
-        </edit-toolbar>
-      </template>
-      <template #default>
-        <markdown-page
-          ref="textRef"
-          v-model="note.text"
-          v-bind="inputFieldAttrs"
-        />
-      </template>
-    </full-height-page>
-  </fetch-loader>
+          </div>
+        </template>
+        <template #context-menu>
+          <btn-export
+            :export-url="exportUrl"
+            :name="'notes-' + note.title"
+          />
+          <btn-export
+            :export-url="exportPdfUrl"
+            :name="note.title"
+            extension=".pdf"
+            button-text="Export as PDF"
+          />
+        </template>
+      </edit-toolbar>
+    </template>
+    <template #default>
+      <markdown-page
+        ref="textRef"
+        :model-value="note.text"
+        :collab="collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.text`)"
+        @collab="notesCollab.onCollabEvent"
+        v-bind="inputFieldAttrs"
+      />
+    </template>
+  </full-height-page>
 </template>
 
 <script setup lang="ts">
@@ -63,24 +66,26 @@ const route = useRoute();
 const localSettings = useLocalSettings();
 const userNotesStore = useUserNotesStore();
 
-const baseUrl = computed(() => `/api/v1/pentestusers/self/notes/${route.params.noteId}/`);
-const fetchState = useLazyFetch<UserNote>(baseUrl.value, { method: 'GET' });
-const note = computed(() => fetchState.data.value);
-const { readonly, toolbarAttrs, fetchLoaderAttrs } = useLockEdit({
-  baseUrl,
-  data: fetchState.data,
-  fetchState,
-  performSave: async n => await userNotesStore.partialUpdateNote(n!),
-  performDelete: async (n) => {
-    await userNotesStore.deleteNote(n!);
+const notesCollab = userNotesStore.useNotesCollab();
+const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
+
+const toolbarAttrs = computed(() => ({
+  data: note.value,
+  delete: async (note: ProjectNote) => {
+    await userNotesStore.deleteNote(note);
     await navigateTo('/notes/personal/');
   },
-  updateInStore: n => userNotesStore.setNote(n!),
-  autoSaveOnUpdateData({ oldValue, newValue }): boolean {
-    return oldValue!.checked !== newValue!.checked ||
-        oldValue!.icon_emoji !== newValue!.icon_emoji;
-  }
-});
+}));
+
+function updateKey(key: string, value: any) {
+  notesCollab.onCollabEvent({
+    type: 'collab.update_key',
+    path: collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.${key}`).path,
+    value,
+  })
+}
+
+const baseUrl = computed(() => `/api/v1/pentestusers/self/notes/${route.params.noteId}/`);
 const exportUrl = computed(() => urlJoin(baseUrl.value, '/export/'));
 const exportPdfUrl = computed(() => urlJoin(baseUrl.value, '/export-pdf/'));
 const hasChildNotes = computed(() => {
@@ -103,7 +108,7 @@ function rewriteFileUrl(imgSrc: string) {
   return urlJoin('/api/v1/pentestusers/self/notes/', imgSrc);
 }
 const inputFieldAttrs = computed(() => ({
-  readonly: readonly.value,
+  readonly: notesCollab.readonly.value,
   lang: 'auto',
   spellcheckSupported: true,
   spellcheckEnabled: localSettings.userNoteSpellcheckEnabled,
@@ -117,8 +122,8 @@ const inputFieldAttrs = computed(() => ({
 // Autofocus input
 const titleRef = ref();
 const textRef = ref();
-watch(() => fetchLoaderAttrs.value.fetchState.pending, async (pending) => {
-  if (!pending) {
+watch(note, async (note) => {
+  if (note) {
     await nextTick();
     if (route.query?.focus === 'title') {
       titleRef.value?.focus();
@@ -126,7 +131,7 @@ watch(() => fetchLoaderAttrs.value.fetchState.pending, async (pending) => {
       textRef.value?.focus();
     }
   }
-});
+}, { immediate: true });
 </script>
 
 <style lang="scss" scoped>

@@ -1,7 +1,8 @@
 import { markdownToAnnotatedText } from "..";
-import { linter, setDiagnostics, forEachDiagnostic } from "@codemirror/lint";
+import { linter, setDiagnostics, forEachDiagnostic, type Diagnostic } from "@codemirror/lint";
 import elt from "crelt";
 import { EditorView } from "@codemirror/view";
+import { type AnnotatedText } from "./annotatedtext";
 
 
 const MAX_REPLACEMENTS = 5;
@@ -18,10 +19,13 @@ const STYLE_ISSUE_TYPES = [
 ];
 
 
-export function spellcheck({ performSpellcheckRequest, performSpellcheckAddWordRequest }) {
+export function spellcheck({ performSpellcheckRequest, performSpellcheckAddWordRequest }: {
+  performSpellcheckRequest: (request: any) => Promise<any>,
+  performSpellcheckAddWordRequest?: (request: any) => Promise<void>,
+}) {
   return linter(async (view) => {
     const initial = view.state.doc.toString();
-    const annotatedText = markdownToAnnotatedText(initial);
+    const annotatedText = markdownToAnnotatedText(initial) as unknown as AnnotatedText[];
     if (annotatedText.length === 0) {
       return [];
     }
@@ -36,7 +40,7 @@ export function spellcheck({ performSpellcheckRequest, performSpellcheckAddWordR
       return [];
     }
     
-    return spellcheckResults.matches.map(m => {
+    return spellcheckResults.matches.map((m: any) => {
       const severity = SPELLING_RULE_IDS.some(r => m.rule.id.includes(r)) ? 'error' :
                        STYLE_ISSUE_TYPES.some(r => m.rule.id.includes(r)) ? 'info' : 
                        'warning';
@@ -55,19 +59,19 @@ export function spellcheck({ performSpellcheckRequest, performSpellcheckAddWordR
             ),
           );
         },
-        actions: m.replacements.slice(0, MAX_REPLACEMENTS).map(r => ({
+        actions: m.replacements.slice(0, MAX_REPLACEMENTS).map((r: any) => ({
           name: r.value,
-          apply(view, from, to) {
+          apply(view: EditorView, from: number, to: number) {
             view.dispatch({changes: {from, to, insert: r.value}});
           }
         })).concat((performSpellcheckAddWordRequest && severity === 'error') ? [{
           name: `Add "${view.state.doc.sliceString(from, to)}" to dictionary`,
-          async apply(view, from, to) {
+          async apply(view: EditorView, from: number, to: number) {
             const word = view.state.doc.sliceString(from, to);
             await performSpellcheckAddWordRequest({ word });
             
             // remove spellcheck errors for word
-            const diagnostics = []
+            const diagnostics = [] as Diagnostic[]
             forEachDiagnostic(view.state, (d, from, to) => {
               if (!(d.severity === 'error' && view.state.doc.sliceString(from, to) == word)) {
                 diagnostics.push(d);
@@ -82,11 +86,11 @@ export function spellcheck({ performSpellcheckRequest, performSpellcheckAddWordR
 }
 
 
-function svg(content, attrs = `viewBox="0 0 40 40"`) {
+function svg(content: string, attrs = `viewBox="0 0 40 40"`) {
   return `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" ${attrs}>${encodeURIComponent(content)}</svg>')`
 }
 
-function underline(color) {
+function underline(color: string) {
   return svg(`<path d="m0 2.5 l2 -1.5 l1 0 l2 1.5 l1 0" stroke="${color}" fill="none" stroke-width=".7"/>`,
              `width="6" height="3"`)
 }

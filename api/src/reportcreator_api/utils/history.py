@@ -58,6 +58,14 @@ class HistoricalRecords(history_models.HistoricalRecords):
         return super().get_extra_fields(model, fields) | {
             'instance': property(get_instance),
         }
+    
+    def get_history_user(self, instance):
+        if hasattr(instance, '_history_user'):
+            return instance._history_user
+        elif hasattr(self.context, 'history_user'):
+            return self.context.history_user
+        else:
+            return super().get_history_user(instance)
 
 
 class HistoricalQuerySet(history_manager.HistoricalQuerySet):

@@ -19,6 +19,7 @@
     "pinia": "^2.1.7",
     "@pinia/nuxt": "^0.5.1",
     "@pinia-plugin-persistedstate/nuxt": "^1.2.0",
+    "@vueuse/nuxt": "^10.8.0",
 
     "emoji-mart-vue-fast": "^15.0.0",
     "splitpanes": "^3.1.5",

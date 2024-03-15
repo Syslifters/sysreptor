@@ -35,8 +35,16 @@ DEBUG = False  # config('DEBUG', cast=bool, default=False)
 ALLOWED_HOSTS = ['*']
 APPEND_SLASH = True
 
-# Application definition
 
+# Internationalization
+# https://docs.djangoproject.com/en/4.0/topics/i18n/
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+
+
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,6 +58,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'drf_spectacular_sidecar',
     'simple_history',
+    'channels',
+    'channels_postgres',
 
     'reportcreator_api',
     'reportcreator_api.users',
@@ -139,15 +149,11 @@ SPECTACULAR_SETTINGS = {
 }
 
 
-WSGI_APPLICATION = 'reportcreator_api.conf.wsgi.application'
-
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
+        'ENGINE': 'django.db.backends.postgresql',
         'HOST': config('DATABASE_HOST', default=''),
         'PORT': config('DATABASE_PORT', default='5432'),
         'NAME': config('DATABASE_NAME', default=''),
@@ -157,8 +163,33 @@ DATABASES = {
         'OPTIONS': {
             'prepare_threshold': None,
         }
-    },
+    }
 }
+
+
+
+# Websockets
+REDIS_URL = config('REDIS_URL', default=None)
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [REDIS_URL],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'reportcreator_api.utils.channels.CustomizedPostgresChannelLayer',
+            'CONFIG': DATABASES['default'] | {
+                'TIME_ZONE': TIME_ZONE,
+                'group_expiry': 60,
+            },
+        },
+    }
+
 
 
 # Password validation
@@ -253,18 +284,6 @@ LOCAL_USER_AUTH_ENABLED = config('LOCAL_USER_AUTH_ENABLED', cast=bool, default=T
 
 DEFAULT_AUTH_PROVIDER = config('DEFAULT_AUTH_PROVIDER', default=None)
 DEFAULT_REAUTH_PROVIDER = config('DEFAULT_REAUTH_PROVIDER', default=DEFAULT_AUTH_PROVIDER)
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.0/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -504,6 +523,11 @@ PERIODIC_TASKS = [
         'id': 'cleanup_history',
         'task': 'reportcreator_api.pentests.tasks.cleanup_history',
         'schedule': timedelta(minutes=5),
+    },
+    {
+        'id': 'cleanup_collab_events',
+        'task': 'reportcreator_api.pentests.tasks.cleanup_collab_events',
+        'schedule': timedelta(hours=1),
     },
 ]
 

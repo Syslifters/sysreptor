@@ -1,3 +1,5 @@
+import { createProxyServer } from "httpxy"
+
 const isDev = process.env.NODE_ENV === 'development';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -36,6 +38,7 @@ export default defineNuxtConfig({
   modules: [
     ['@nuxtjs/eslint-module', { lintOnStart: false }],
     'vuetify-nuxt-module',
+    '@vueuse/nuxt',
     '@pinia/nuxt',
     '@pinia-plugin-persistedstate/nuxt',
   ],
@@ -58,7 +61,6 @@ export default defineNuxtConfig({
   },
 
   experimental: {
-    inlineSSRStyles: false,
     payloadExtraction: false,
   },
 
@@ -76,6 +78,12 @@ export default defineNuxtConfig({
           target: 'http://api:8000',
           changeOrigin: false,
         },
+        '/ws': {
+          target: 'ws://api:8000',
+          changeOrigin: false,
+          ws: true,
+        },
+
         '/admin': 'http://api:8000',
         '/static': {
           target: 'http://api:8000',
@@ -86,6 +94,19 @@ export default defineNuxtConfig({
           },
         },
       }
+    },
+  },
+  hooks: {
+    // Websocket proxy workaround: https://github.com/nuxt/cli/issues/107#issuecomment-1850751905
+    listen(server) {
+      const proxy = createProxyServer({ target: { host: "api", port: 8000 }, ws: true })
+
+      server.on("upgrade", (req, socket, head) => {
+        if (req.url!.startsWith('/ws')) {
+          // @ts-ignore
+          proxy.ws(req, socket, head);
+        }
+      })
     },
   },
 

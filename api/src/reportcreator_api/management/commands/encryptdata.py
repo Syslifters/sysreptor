@@ -8,7 +8,7 @@ from reportcreator_api.pentests import storages
 
 from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
     UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, ProjectNotebookPage, UserNotebookPage, UserPublicKey, \
-    ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, UploadedTemplateImage, ReportSection
+    ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, UploadedTemplateImage, ReportSection, CollabEvent
 from reportcreator_api.pentests.models.project import ProjectMemberInfo
 from reportcreator_api.pentests.models.template import FindingTemplate, FindingTemplateTranslation
 from reportcreator_api.users.models import MFAMethod, PentestUser, Session
@@ -55,6 +55,7 @@ class Command(BaseCommand):
         self.encrypt_db_fields(UserPublicKey, ['public_key'])
         self.encrypt_db_fields(ArchivedProjectKeyPart, ['key_part'])
         self.encrypt_db_fields(ArchivedProjectPublicKeyEncryptedKeyPart, ['encrypted_data'])
+        self.encrypt_db_fields(CollabEvent, ['data'])
         # Encrypt only history DB fields
         self.encrypt_db_fields(ProjectMemberInfo, [])
         self.encrypt_db_fields(FindingTemplate, [])

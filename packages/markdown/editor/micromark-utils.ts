@@ -1,18 +1,28 @@
+import { type Event } from 'micromark-util-types';
 import { parse } from 'micromark/lib/parse';
 import { preprocess } from 'micromark/lib/preprocess';
 import { postprocess } from 'micromark/lib/postprocess';
 
 
-export function parseMicromarkEvents(text, options) {
+export type MicromarkTreeNode = {
+  enter: any,
+  exit: any,
+  children: MicromarkTreeNode[],
+  type: string,
+  text: string|null,
+}
+
+
+export function parseMicromarkEvents(text: string, options: any) {
   return postprocess(parse(options).document().write(preprocess()(text, undefined, true)));
 }
 
-export function micromarkEventsToTree(text, events) {
+export function micromarkEventsToTree(text: string, events: Event[]) {
   // console.log('micromark events', events);
 
   // build enter/exit tree of nested elements
-  const tree = [];
-  const stack = [];
+  const tree = [] as MicromarkTreeNode[];
+  const stack = [] as MicromarkTreeNode[];
   for (const [action, node, context] of events) {
     if (action === 'enter') {
       const treeNode = {
@@ -22,7 +32,7 @@ export function micromarkEventsToTree(text, events) {
 
         type: node.type,
         text: null,
-      };
+      } as MicromarkTreeNode;
       if (stack.length > 0) {
         stack[stack.length - 1].children.push(treeNode);
       } else {

@@ -17,7 +17,7 @@ import { remarkAttrs, remarkToRehypeAttrs } from './mdext/attrs.js';
 import { remarkFigure, remarkToRehypeHandlersFigure } from './mdext/image.js';
 import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './mdext/tables.js';
 import { rehypeReferenceLink, rehypeReferenceLinkPreview } from './mdext/reference.js';
-import { annotatedTextParse } from './editor/annotatedtext.js';
+import { annotatedTextParse } from './editor/annotatedtext';
 import { remarkTemplateVariables } from './mdext/templates.js';
 import { remarkTodoMarker } from './mdext/todo.js';
 import { rehypeHighlightCode } from './mdext/codeHighlight.js';
@@ -78,6 +78,12 @@ export function formatMarkdown(text) {
   return md.processSync(text).value;
 }
 
+/**
+ * 
+ * @param {string} text 
+ * @param {*} options 
+ * @returns {string}
+ */
 export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource = null, rewriteReferenceLink = null} = {}) {
   const md = markdownParser()
       .use(remarkParse)
@@ -118,7 +124,11 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource =
     return mdHtml;
 }
 
-
+/**
+ * 
+ * @param {string} text 
+ * @returns {import('./editor/annotatedtext').AnnotatedText[]}
+ */
 export function markdownToAnnotatedText(text) {
   const md = markdownParser()
     .use(annotatedTextParse);

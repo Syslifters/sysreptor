@@ -7,20 +7,22 @@
         :perform-import="performImport"
         :export-url="`/api/v1/pentestprojects/${project.id}/notes/export/`"
         :export-name="'notes-' + project.name"
-        :readonly="project.readonly"
+        :readonly="notesCollab.readonly.value"
       >
         <notes-sortable-list
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
-          @update:note="updateNote"
-          :disabled="project.readonly"
+          @update:checked="updateNoteChecked"
+          :disabled="notesCollab.readonly.value"
           :to-prefix="`/projects/${$route.params.projectId}/notes/`"
         />
       </notes-menu>
     </template>
 
     <template #default>
-      <nuxt-page />
+      <collab-loader :collab="notesCollab" class="h-100">
+        <nuxt-page />
+      </collab-loader>
     </template>
   </split-menu>
 </template>
@@ -36,31 +38,19 @@ definePageMeta({
   title: 'Notes',
 });
 
-const project = await useAsyncDataE(async () => {
-  const [project] = await Promise.all([
-    projectStore.getById(route.params.projectId as string),
-    projectStore.fetchNotes(route.params.projectId as string),
-  ]);
-  return project;
-}, { key: 'projectnotes:notes' });
+const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
 const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 
-async function refreshListings() {
-  try {
-    await projectStore.fetchNotes(project.value.id);
-  } catch (error) {
-    // hide error
+const notesCollab = projectStore.useNotesCollab(project.value);
+onMounted(async () => {
+  if (notesCollab.hasEditPermissions.value) {
+    notesCollab.connect();
+  } else {
+    await projectStore.fetchNotes(project.value);
   }
-}
-const refreshListingsInterval = ref();
-onMounted(() => {
-  refreshListingsInterval.value = setInterval(refreshListings, 10_000);
 });
 onBeforeUnmount(() => {
-  if (refreshListingsInterval.value) {
-    clearInterval(refreshListingsInterval.value);
-    refreshListingsInterval.value = undefined;
-  }
+  notesCollab.disconnect();
 });
 
 async function createNote() {
@@ -72,28 +62,25 @@ async function createNote() {
     order: (currentNote ? currentNote.order + 1 : null),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
   } as unknown as ProjectNote)
-  // Reload note list to get updated order
-  await refreshListings();
-
   await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, query: { focus: 'title' } })
 }
 async function performImport(file: File) {
   const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);
   const note = res.find(n => n.parent === null)!;
-  await refreshListings();
   await navigateTo(`/projects/${project.value.id}/notes/${note.id}/`);
 }
-async function updateNote(note: ProjectNote) {
-  try {
-    await projectStore.partialUpdateNote(project.value, note, ['checked']);
-  } catch (error) {
-    requestErrorToast({ error });
-  }
+
+function updateNoteChecked(note: NoteBase) {
+  notesCollab.onCollabEvent({
+    type: 'collab.update_key',
+    path: collabSubpath(notesCollab.collabProps.value, `notes.${note.id}.checked`).path,
+    value: note.checked,
+  });
 }
 // Execute in next tick: prevent two requests for events in the same tick
-const updateNoteOrder = debounce(async (notes: NoteGroup<ProjectNote>) => {
+const updateNoteOrder = debounce(async (notes: NoteGroup<NoteBase>) => {
   try {
-    await projectStore.sortNotes(project.value, notes);
+    await projectStore.sortNotes(project.value, notes as NoteGroup<ProjectNote>);
   } catch (error) {
     requestErrorToast({ error });
   }

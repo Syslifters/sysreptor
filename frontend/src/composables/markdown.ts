@@ -8,15 +8,16 @@ import {
   history, historyKeymap, keymap, setDiagnostics,
   spellcheck, spellcheckTheme,
   lineNumbers, indentUnit, defaultKeymap, indentWithTab,
-  markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks
-  // @ts-ignore
-} from "reportcreator-markdown/editor";
+  markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
+  Transaction,
+} from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '@/utils/types';
 
 export type MarkdownProps = {
   lang?: string|null;
   spellcheckEnabled?: boolean;
   markdownEditorMode?: MarkdownEditorMode;
+  collab?: CollabPropType;
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrl?: (fileSrc: string) => string;
   rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
@@ -52,6 +53,10 @@ export function makeMarkdownProps(options: { files: boolean, spellcheckSupported
       type: String as PropType<MarkdownEditorMode>,
       default: MarkdownEditorMode.MARKDOWN_AND_PREVIEW,
     },
+    collab: {
+      type: Object as PropType<CollabPropType>,
+      default: undefined,
+    },
     ...(options.files ? {
       uploadFile: {
         type: Function as PropType<MarkdownProps['uploadFile']>,
@@ -69,22 +74,16 @@ export function makeMarkdownProps(options: { files: boolean, spellcheckSupported
   }
 }
 export function makeMarkdownEmits() {
-  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'focus', 'blur'];
+  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'collab', 'focus', 'blur'];
 }
 
 export function useMarkdownEditor({ props, emit, extensions }: {
     extensions: any[];
-    props: ComputedRef<{
+    props: ComputedRef<MarkdownProps & {
         modelValue: string|null;
         disabled?: boolean;
         readonly?: boolean;
-        lang?: string|null;
         spellcheckSupported?: boolean;
-        spellcheckEnabled?: boolean;
-        markdownEditorMode?: MarkdownEditorMode;
-        uploadFile?: (file: File) => Promise<string>;
-        rewriteFileUrl?: (fileSrc: string) => string;
-        rewriteReferenceLink?: (src: string) => string|null;
     }>;
     emit: any;
 }) {
@@ -135,7 +134,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 
   const fileUploadInProgress = ref(false);
   async function uploadFiles(files?: FileList, pos?: number|null) {
-    if (!props.value.uploadFile || !files || files.length === 0 || fileUploadInProgress.value) {
+    if (!editorView.value || !props.value.uploadFile || !files || files.length === 0 || fileUploadInProgress.value) {
       return;
     }
 
@@ -163,11 +162,24 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     }
   }
 
+  function onBeforeApplyRemoteTextChange(event: any) {
+    if (editorView.value && event.path === props.value.collab?.path) {
+      editorView.value.dispatch(editorView.value.state.update({
+        changes: event.changes,
+        annotations: [
+          Transaction.addToHistory.of(false),
+          Transaction.remote.of(true),
+        ]
+      }));
+    }
+  }
+
   const vm = getCurrentInstance()!;
-  const editorRef = computed(() => vm.refs.editorRef);
+  const editorRef = computed(() => vm.refs.editorRef as HTMLElement);
   const editorView = shallowRef<EditorView|null>(null);
   const editorState = shallowRef<EditorState|null>(null);
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
+  const eventBusBeforeApplyRemoteTextChanges = useEventBus('collab:beforeApplyRemoteTextChanges');
   function initializeEditorView() {
     editorView.value = new EditorView({
       parent: editorRef.value,
@@ -186,12 +198,26 @@ export function useMarkdownEditor({ props, emit, extensions }: {
             editorState.value = viewUpdate.state;
             // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
             if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
+              // Collab updates
+              for (const tr of viewUpdate.transactions) {
+                if (tr.docChanged && !tr.annotation(Transaction.remote)) {
+                  emit('collab', {
+                    type: 'collab.update_text',
+                    path: props.value.collab?.path,
+                    updates: [{ changes: tr.changes.toJSON() }],
+                  })
+                }
+              }
+
+              // Model-value updates
               emit('update:modelValue', viewUpdate.state.doc.toString());
             }
           }),
         ]
       }),
     });
+    eventBusBeforeApplyRemoteTextChanges.on(onBeforeApplyRemoteTextChange);
+
     editorState.value = editorView.value.state;
     editorActions.value = {
       disabled: createEditorExtensionToggler(editorView.value, [
@@ -237,6 +263,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   }
   onMounted(() => initializeEditorView());
   onBeforeUnmount(() => {
+    eventBusBeforeApplyRemoteTextChanges.off(onBeforeApplyRemoteTextChange);
     if (editorView.value) {
       editorView.value.destroy();
     }
@@ -249,18 +276,18 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 
   watch(valueNotNull, () => {
     if (editorView.value && valueNotNull.value !== editorView.value.state.doc.toString()) {
-      editorView.value.dispatch({
+      editorView.value.dispatch(editorView.value.state.update({
         changes: {
           from: 0,
           to: editorView.value.state.doc.length,
           insert: valueNotNull.value,
-        }
-      });
+        },
+      }));
     }
   });
   watch([() => props.value.disabled, () => props.value.readonly], () => editorActions.value.disabled?.(Boolean(props.value.disabled || props.value.readonly)));
   watch(() => props.value.lang, () => {
-    if (spellcheckLanguageToolEnabled.value) {
+    if (spellcheckLanguageToolEnabled.value && editorView.value) {
       forceLinting(editorView.value);
     }
   });

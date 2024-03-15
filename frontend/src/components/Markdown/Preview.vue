@@ -65,7 +65,7 @@ async function postProcessRenderedHtml() {
   });
 
   // Render mermaid diagrams
-  const mermaidNodes = previewRef.value!.querySelectorAll('.preview div.mermaid-diagram');
+  const mermaidNodes = previewRef.value!.querySelectorAll<HTMLElement>('.preview div.mermaid-diagram');
   try {
     await mermaid.run({ nodes: mermaidNodes });
   } catch (e: any) {

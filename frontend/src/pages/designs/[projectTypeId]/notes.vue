@@ -11,7 +11,7 @@
             v-model="noteGroups"
             :selected="currentNote"
             @update:selected="selectNote"
-            @update:note="updateNoteChecked"
+            @update:checked="updateNoteChecked"
             :disabled="readonly"
           />
         </notes-menu>

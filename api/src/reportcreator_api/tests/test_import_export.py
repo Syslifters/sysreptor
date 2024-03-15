@@ -491,7 +491,6 @@ class TestCopyModel:
         for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id')):
             assert p_n != cp_n
             assertKeysEqual(p_n, cp_n, ['note_id', 'title', 'text', 'checked', 'icon_emoji', 'order'])
-            assert not cp_f.is_locked
             if p_n.parent:
                 assert p_n.parent.note_id == cp_n.parent.note_id
                 assert p_n.parent != cp_n.parent
