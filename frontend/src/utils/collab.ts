@@ -56,7 +56,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
       return;
     }
   
-    const serverUrl = `${window.location.protocol === 'https' ? 'wss' : 'ws'}://${window.location.host}/`;
+    const serverUrl = `${window.location.protocol === 'http:' ? 'ws' : 'wss'}://${window.location.host}/`;
     const wsUrl = urlJoin(serverUrl, storeState.websocketPath);
     storeState.perPathState.clear();
     storeState.connectionState = CollabConnectionState.CONNECTING;
