@@ -100,8 +100,8 @@ export function rehypeRewriteFileLinks({ rewriteFileUrl }) {
 export function rehypeTemplates() {
   return tree => visit(tree, 'element', node => {
     if (node.tagName === 'template') {
-      node.children = node.content?.children || [];
       node.tagName = 'span';
+      node.children = node.content?.children || [];
     }
   })
 }
@@ -114,4 +114,13 @@ export function rehypeRawFixSelfClosingTags() {
   return tree => visit(tree, 'raw', (node) => {
     node.value = node.value.replaceAll(/<(?<tag>[a-zA-Z0-9-]+)(?<attrs>[^>]*)\/>/g, "<$<tag>$<attrs>></$<tag>>");
   });
+}
+
+
+export function rehypeRawFixPassthroughStitches() {
+  return tree => visit(tree, 'comment', (node, index, parent) => {
+    if (node.value?.stitch) {
+      parent.children.splice(index, 1, node.value.stitch);
+    }
+  })
 }

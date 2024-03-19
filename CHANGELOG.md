@@ -5,6 +5,8 @@
 * Remember "Encrypt PDF" setting in browser's local storage
 * Fix force change design API request not sent
 * Collaborative editing in notes
+* Markdown editor: Improve vue template variable handling
+* Markdown editor: Allow escaping curly braces
 
 
 ## v2024.19 - 2024-03-05
