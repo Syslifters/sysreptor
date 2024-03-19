@@ -30,7 +30,7 @@ MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-ygvn9(x==kcv#r%pccf4rlzyz7_1v1b83$19&b2lsj6uz$mbro')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False  # config('DEBUG', cast=bool, default=False)
+DEBUG = config('DEBUG', cast=bool, default=False)
 
 ALLOWED_HOSTS = ['*']
 APPEND_SLASH = True
@@ -581,7 +581,7 @@ INSTANCE_TAGS = config('INSTANCE_TAGS', cast=Csv(delimiter=';'), default='on-pre
 NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://cloud.sysreptor.com/api/v1/notifications/')
 
 # License
-LICENSE = config('LICENSE', default=None)
+LICENSE = None # TODO: config('LICENSE', default=None)
 LICENSE_VALIDATION_KEYS = [
     {'id': 'amber', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAkqCS3lZbrzh+2mKTYymqPHtKBrh8glFxnj9OcoQR9xQ='},
     {'id': 'silver', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAwu/cl0CZSSBFOzFSz/hhUQQjHIKiT4RS3ekPevSKn7w='},

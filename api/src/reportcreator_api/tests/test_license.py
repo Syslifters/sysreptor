@@ -15,6 +15,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.utils.crypto import get_random_string
 
+from reportcreator_api.users.models import APIToken
 from reportcreator_api.utils import license
 from reportcreator_api.tests.mock import create_project, create_project_type, create_public_key, create_template, create_user, api_client
 
@@ -167,6 +168,18 @@ class TestCommunityLicenseRestrictions:
         with pytest.raises(license.LicenseError):
             self.user_regular.is_active = True
             self.user_regular.save()
+
+    def test_apitoken_limit(self):
+        APIToken.objects.create(user=self.user_regular)
+
+        with pytest.raises(license.LicenseLimitExceededError):
+            APIToken.objects.create(user=self.user_regular)
+
+    def test_apitoken_no_expiry(self):
+        session = self.client.session
+        session.setdefault('authentication_info', {})['reauth_time'] = timezone.now().isoformat()
+        session.save()
+        assert_api_license_error(self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test', 'expire_date': timezone.now().date().isoformat()}))
     
 
 @pytest.mark.django_db

@@ -1,15 +1,12 @@
-import secrets
-from typing import Any
 import pyotp
-from fido2.server import Fido2Server, AttestedCredentialData
-from fido2.webauthn import PublicKeyCredentialRpEntity, PublicKeyCredentialUserEntity, UserVerificationRequirement, AuthenticatorAttachment, \
-    AttestationObject, CollectedClientData
+from fido2.server import AttestedCredentialData
+from fido2.webauthn import PublicKeyCredentialUserEntity, UserVerificationRequirement, AuthenticatorAttachment
 from fido2.utils import websafe_encode, websafe_decode
-from django.conf import settings
 from django.db import models
 from django.contrib.sessions.base_session import BaseSessionManager
 from django.contrib.auth.models import UserManager
 from django.utils.crypto import get_random_string
+from django.utils import timezone
 
 
 class SessionQueryset(models.QuerySet):
@@ -90,6 +87,10 @@ class APITokenQuerySet(models.QuerySet):
         if user.is_admin or user.is_user_manager:
             return self
         return self.filter(user=user)
+    
+    def only_active(self):
+        return self \
+            .filter(models.Q(expire_date=None) | models.Q(expire_date__lte=timezone.now().date()))
 
 
 class APITokenManager(models.Manager.from_queryset(APITokenQuerySet)):

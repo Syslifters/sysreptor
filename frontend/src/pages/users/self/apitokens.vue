@@ -63,7 +63,14 @@
                       label="Expire Date (optional)"
                       :error-messages="setupWizard.errors?.expire_date"
                       :min-date="formatISO9075(new Date(), { representation: 'date' })"
-                    />
+                      :disabled="!apiSettings.isProfessionalLicense"
+                    >
+                      <template #label><pro-info>Expire Date (optional)</pro-info></template>
+                    </s-date-picker>
+
+                    <v-alert v-if="setupWizard.errors?.detail" color="error" class="mt-4">
+                      {{ setupWizard.errors.detail }}
+                    </v-alert>
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer />
@@ -108,6 +115,8 @@
 import { formatISO9075 } from 'date-fns';
 
 const auth = useAuth();
+const apiSettings = useApiSettings();
+
 const apiTokens = await useAsyncDataE<ApiToken[]>(async () => {
   try {
     return await $fetch<ApiToken[]>('/api/v1/pentestusers/self/apitokens/', { method: 'GET' });
