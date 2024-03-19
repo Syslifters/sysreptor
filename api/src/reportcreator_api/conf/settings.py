@@ -581,7 +581,7 @@ INSTANCE_TAGS = config('INSTANCE_TAGS', cast=Csv(delimiter=';'), default='on-pre
 NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://cloud.sysreptor.com/api/v1/notifications/')
 
 # License
-LICENSE = None # TODO: config('LICENSE', default=None)
+LICENSE = config('LICENSE', default=None)
 LICENSE_VALIDATION_KEYS = [
     {'id': 'amber', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAkqCS3lZbrzh+2mKTYymqPHtKBrh8glFxnj9OcoQR9xQ='},
     {'id': 'silver', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAwu/cl0CZSSBFOzFSz/hhUQQjHIKiT4RS3ekPevSKn7w='},
