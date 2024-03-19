@@ -1,10 +1,11 @@
 # Changelog
 
 ## Next
-* Add Content Security Policy directive form-action
+* Collaborative editing in notes
 * Remember "Encrypt PDF" setting in browser's local storage
 * Fix force change design API request not sent
-* Collaborative editing in notes
+* Add Content Security Policy directive form-action
+* Fix API token expiring today shown as expired in UI
 * Markdown editor: Improve vue template variable handling
 * Markdown editor: Allow escaping curly braces
 

@@ -21,6 +21,7 @@
       <v-date-picker
         v-model="dateValue"
         :disabled="props.disabled || props.disabled"
+        :min="props.minDate"
         view-mode="month"
         show-adjacent-months
         show-week
@@ -36,11 +37,13 @@ const props = withDefaults(defineProps<{
   disabled?: boolean;
   readonly?: boolean;
   locale?: string;
+  minDate?: string;
 }>(), {
   modelValue: null,
   disabled: false,
   readonly: false,
   locale: 'en',
+  minDate: undefined,
 });
 const emits = defineEmits<{
   (e: 'update:modelValue', modelValue: string|null): void,

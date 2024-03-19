@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatDistanceToNow, parseISO, formatISO9075 } from 'date-fns';
+import { formatDistanceToNow, parseISO, formatISO9075, endOfDay, endOfToday } from 'date-fns';
 
 const props = withDefaults(defineProps<{
   value?: string|null,
@@ -34,5 +34,5 @@ const formattedDate = computed(() => {
   }
   return 'in ' + formatDistanceToNow(date.value);
 });
-const isExpired = computed(() => date.value && date.value < new Date());
+const isExpired = computed(() => date.value && endOfDay(date.value) < endOfToday());
 </script>
