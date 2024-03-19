@@ -62,6 +62,7 @@
                       v-model="setupWizard.form.expire_date"
                       label="Expire Date (optional)"
                       :error-messages="setupWizard.errors?.expire_date"
+                      :min-date="formatISO9075(new Date(), { representation: 'date' })"
                     />
                   </v-card-text>
                   <v-card-actions>
@@ -104,6 +105,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatISO9075 } from 'date-fns';
+
 const auth = useAuth();
 const apiTokens = await useAsyncDataE<ApiToken[]>(async () => {
   try {
