@@ -2,9 +2,8 @@
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
-import rehypeStringify from 'rehype-stringify';
-import rehypeRaw from 'rehype-raw';
 import remarkStringify from 'remark-stringify';
+import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { merge } from 'lodash';
 import mermaid from 'mermaid';
@@ -12,16 +11,17 @@ import 'highlight.js/styles/default.css';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, remarkToRehypeHandersFootnotesPreview, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './mdext/footnotes.js';
 import { remarkStrikethrough, remarkTaskListItem } from './mdext/gfm.js';
-import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources, rehypeRewriteFileLinks, rehypeTemplates, rehypeRawFixSelfClosingTags } from './mdext/rehypePlugins.js';
+import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources, rehypeRewriteFileLinks, rehypeTemplates, rehypeRawFixSelfClosingTags, rehypeRawFixPassthroughStitches } from './mdext/rehypePlugins.js';
 import { remarkAttrs, remarkToRehypeAttrs } from './mdext/attrs.js';
 import { remarkFigure, remarkToRehypeHandlersFigure } from './mdext/image.js';
 import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './mdext/tables.js';
 import { rehypeReferenceLink, rehypeReferenceLinkPreview } from './mdext/reference.js';
 import { annotatedTextParse } from './editor/annotatedtext';
-import { remarkTemplateVariables } from './mdext/templates.js';
+import { remarkTemplateVariables, remarkToRehypeTemplateVariables, rehypeTemplateVariables } from './mdext/templates.js';
 import { remarkTodoMarker } from './mdext/todo.js';
 import { rehypeHighlightCode } from './mdext/codeHighlight.js';
 import { modifiedCommonmarkFeatures } from './mdext/modified-commonmark.js';
+import { rehypeStringify } from './mdext/stringify.js';
 
 const allClasses = ['className', /^.*$/];
 const rehypeSanitizeSchema = merge({}, defaultSchema, {
@@ -35,7 +35,7 @@ const rehypeSanitizeSchema = merge({}, defaultSchema, {
     'abbr', 'bdo', 'cite', 'dfn', 'time', 'var', 'wbr',
   ].concat(defaultSchema.tagNames),
   attributes: {
-    '*': ['className', 'style', 'data*', 'v-if', 'v-for', 'v-bind', 'v-on'].concat(defaultSchema.attributes['*']),
+    '*': ['className', 'style', 'data*', 'v-if', 'v-else-if', 'v-else', 'v-for', 'v-bind', 'v-on', 'v-show', 'v-pre', 'v-text'].concat(defaultSchema.attributes['*']),
     'a': ['download', 'target', 'rel', allClasses].concat(defaultSchema.attributes['a']),
     'img': ['loading'].concat(defaultSchema.attributes['img']),
     'code': [allClasses].concat(defaultSchema.attributes['code']),
@@ -85,7 +85,7 @@ export function formatMarkdown(text) {
  * @returns {string}
  */
 export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource = null, rewriteReferenceLink = null} = {}) {
-  const md = markdownParser()
+  let md = markdownParser()
       .use(remarkParse)
       .use(remarkRehype, { 
         allowDangerousHtml: true, 
@@ -95,21 +95,26 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource =
           ...remarkToRehypeHandlersFigure,
           ...remarkToRehypeHandlersTableCaptions,
           ...remarkToRehypeAttrs,
+          ...remarkToRehypeTemplateVariables,
         }
       })
       .use(rehypeTableCaptions)
       .use(rehypeHighlightCode, { preview })
       .use(rehypeRawFixSelfClosingTags)
-      .use(rehypeRaw)
-      .use(rehypeConvertAttrsToStyle)
+      .use(rehypeRaw, { passThrough: ['templateVariable']})
       .use(rehypeTemplates)
+      .use(rehypeRawFixPassthroughStitches)
+      .use(rehypeTemplateVariables, { preview })
+      .use(rehypeConvertAttrsToStyle)
       .use(preview ? rehypeFootnoteSeparatorPreview : rehypeFootnoteSeparator)
       .use(preview ? rehypeReferenceLinkPreview : rehypeReferenceLink, { rewriteReferenceLink })
       .use(rehypeRewriteImageSources, {rewriteImageSource: rewriteFileSource})
       .use(rehypeRewriteFileLinks, {rewriteFileUrl: rewriteFileSource})
-      .use(rehypeLinkTargetBlank)
-      .use(rehypeSanitize, rehypeSanitizeSchema)
-      .use(rehypeStringify);
+      .use(rehypeLinkTargetBlank);
+    if (preview) {
+      md = md.use(rehypeSanitize, rehypeSanitizeSchema);
+    }
+    md = md.use(rehypeStringify);
 
     // Normalize linebreaks
     text = text.replace(/\r\n/g, '\n');

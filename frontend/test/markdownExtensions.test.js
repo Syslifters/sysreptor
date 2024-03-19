@@ -33,13 +33,14 @@ describe('Markdown extensions', () => {
     '# Heading {#id .class style="color:red"}': '<h1 id="id" class="class" style="color:red">Heading </h1>',
     '## Heading{#id}': '<h2 id="id">Heading</h2>',
     '### Heading [link](https://example.com){.class}': '<h3>Heading <a href="https://example.com" class="class" target="_blank" rel="nofollow noopener noreferrer">link</a></h3>',
-    '#### Heading\n{#id}': { html: '<h4>Heading</h4>\n<p>{#id}</p>', formatted: '#### Heading\n\n{#id}' },
+    '#### Heading\n{#id}': { html: '<h4>Heading</h4>\n<p>&#x7B;#id&#x7D;</p>', formatted: '#### Heading\n\n{#id}' },
     // Template varaibles
     '{{ var }}': '<p>{{ var }}</p>',
     'text **{{ var }}** text': '<p>text <strong>{{ var }}</strong> text</p>',
+    'text {{ (var1 < 0 && var2 > 0) ? \'a\' : "b" }} text': '<p>text {{ (var1 < 0 && var2 > 0) ? \'a\' : "b" }} text</p>',
     'text {{ var **with** _code_ `code` }} text': '<p>text {{ var **with** _code_ `code` }} text</p>',
     'text {{ var with curly braces {a: "abc", b: "def"}[var] }} text': '<p>text {{ var with curly braces {a: "abc", b: "def"}[var] }} text</p>',
-    'text {no var}} {{ no var } text': '<p>text {no var}} {{ no var } text</p>',
+    'text {no var}} {{ no var } text': '<p>text &#x7B;no var&#x7D;&#x7D; &#x7B;&#x7B; no var &#x7D; text</p>',
     'text <template v-if="var">{{ var }} text</template> text': '<p>text <span v-if="var">{{ var }} text</span> text</p>',
     'text <span v-for="v in var">{{ v }}</span> text': '<p>text <span v-for="v in var">{{ v }}</span> text</p>',
     // TO-DOs
@@ -73,6 +74,17 @@ describe('Markdown extensions', () => {
     // Self-closing tags
     'text\n\n<pagebreak />\n\ntext': '<p>text</p>\n<pagebreak></pagebreak>\n<p>text</p>',
     'text <ref to="ref" data-custom-attr="asf" /> text': '<p>text <ref to="ref" data-custom-attr="asf"></ref> text</p>',
+    // Line breaks
+    'text\ntext': '<p>text\ntext</p>',
+    'text  \ntext': { html: '<p>text<br>\ntext</p>', formatted: 'text\\\ntext' },
+    'text \\\ntext': '<p>text <br>\ntext</p>',
+    // Escaping
+    '\\# text': '<p># text</p>',
+    '\\<h1>test\\</h1>': '<p>&#x3C;h1>test&#x3C;/h1></p>',
+    '\\{\\{ text \\}\\}': { html: '<p>&#x7B;&#x7B; text &#x7D;&#x7D;</p>', formatted: '{{ text }}' },
+    '`{{ text }}`': '<p><code class="code-inline">&#x7B;&#x7B; text &#x7D;&#x7D;</code></p>',
+    '```\n{{ text }}\n```': codeBlock('&#x7B;&#x7B; text &#x7D;&#x7D;'),
+    '```\n\\# \\{\\{ text \\}\\}\n```': codeBlock('\\# \\&#x7B;\\&#x7B; text \\&#x7D;\\&#x7D;'),
   }).map(([md, expected]) => [md, typeof expected === 'string' ? { html: expected, formatted: md } : expected])) {
     test(md, () => {
       expect(renderMarkdownToHtml(md).trim()).toBe(expected.html);

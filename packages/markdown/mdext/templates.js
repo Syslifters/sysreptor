@@ -1,4 +1,5 @@
 import { codes } from 'micromark-util-symbol';
+import { visit } from 'unist-util-visit';
 import { addRemarkExtension } from './helpers';
 
 
@@ -71,11 +72,11 @@ function templateVariableFromMarkdown() {
   };
 
   function enterTemplateVariable(token) {
-    this.enter({type: 'templateVariable', value: ''}, token);
+    this.enter({ type: 'templateVariable', value: '' }, token);
   }
   function exitTemplateVariable(token) {
     const node = this.stack[this.stack.length - 1];
-    node.value = this.sliceSerialize(token); 
+    node.value = this.sliceSerialize(token);
     this.exit(token);
   }
 }
@@ -84,7 +85,7 @@ function templateVariableToMarkdown() {
   return {
     handlers: {
       templateVariable,
-    } 
+    }
   };
 
   function templateVariable(node, _, state) {
@@ -98,4 +99,26 @@ function templateVariableToMarkdown() {
 
 export function remarkTemplateVariables() {
   addRemarkExtension(this, templateVariableSyntax(), templateVariableFromMarkdown(), templateVariableToMarkdown());
+}
+
+
+export const remarkToRehypeTemplateVariables = {
+  templateVariable(state, node) {
+    return state.applyData(node, {
+      type: 'templateVariable',
+      value: node.value,
+    })
+  }
+}
+
+
+export function rehypeTemplateVariables({ preview = false }) {
+  return tree =>
+    visit(tree, 'templateVariable', (node) => {
+      if (preview) {
+        node.type = 'text';
+      } else {
+        node.type = 'raw';
+      }
+    });
 }
