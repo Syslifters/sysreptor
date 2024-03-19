@@ -37,12 +37,15 @@ export type CollabStoreState<T> = {
     other: {
       [key: string]: {
         client_id: string;
-        color: string;
-        user: UserShortInfo;
         path: string;
         selection?: EditorSelection;
       }
     };
+    clients: {
+      client_id: string;
+      client_color: string;
+      user: UserShortInfo;
+    }[];
     sendAwarenessThrottled?: ReturnType<typeof throttle<() => void>>;
   },
   version: number;
@@ -66,6 +69,7 @@ export function makeCollabStoreState<T>(options: {
         path: 'notes',
       },
       other: {},
+      clients: [],
     },
     version: 0,
     clientID: '',
@@ -86,6 +90,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
     storeState.awareness = {
       self: { path: storeState.awareness.self.path },
       other: {},
+      clients: [],
       sendAwarenessThrottled: throttle(websocketSendAwareness, 1000, { leading: false, trailing: true })
     }
     storeState.connectionState = CollabConnectionState.CONNECTING;
@@ -110,6 +115,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
         storeState.connectionState = CollabConnectionState.OPEN;
         storeState.data = msgData.data;
         storeState.clientID = msgData.client_id;
+        storeState.awareness.clients = msgData.clients;
         storeState.awareness.sendAwarenessThrottled?.();
       } else if (msgData.type === 'collab.update_key') {
         // Update local state
@@ -123,19 +129,13 @@ export function useCollab(storeState: CollabStoreState<any>) {
       } else if (msgData.type === 'collab.connect') {
         if (msgData.client_id !== storeState.clientID) {
           // Add new client
-          storeState.awareness.other[msgData.client_id] = {
-            client_id: msgData.client_id,
-            color: msgData.color,
-            user: msgData.user,
-            path: '',
-          }
-
-          // Send own awareness information to new client
-          storeState.awareness.sendAwarenessThrottled?.();
+          storeState.awareness.clients.push(msgData);
+          delete storeState.awareness.other[msgData.client_id];
         }
       } else if (msgData.type === 'collab.disconnect') {
         // Remove client
-        delete storeState.awareness.other[msgData.client_id];
+        storeState.awareness.clients = storeState.awareness.clients
+          .filter(c => c.client_id !== msgData.client_id);
       } else if (msgData.type === 'collab.awareness') {
         if (msgData.client_id !== storeState.clientID) {
           let selection = msgData.selection ? EditorSelection.fromJSON(msgData.selection) : undefined;
@@ -147,8 +147,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
           }
           storeState.awareness.other[msgData.client_id] = {
             client_id: msgData.client_id,
-            color: msgData.color,
-            user: msgData.user,
             path: msgData.path,
             selection,
           };
@@ -167,7 +165,8 @@ export function useCollab(storeState: CollabStoreState<any>) {
     storeState.websocket?.close();
     storeState.connectionState = CollabConnectionState.CLOSED;
     storeState.websocket = null;
-    storeState.perPathState?.clear()
+    storeState.perPathState?.clear();
+    storeState.version = 0;
   }
 
   function websocketSend(msg: string) {
@@ -360,15 +359,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
         storeState.awareness.self.selection = storeState.awareness.self.selection?.map(changes);
       }
       
-      // Add new client to awareness if not already present
-      if (event.client_id !== storeState.clientID && !(event.client_id in storeState.awareness.other)) {
-        storeState.awareness.other[event.client_id] = {
-          client_id: event.client_id,
-          color: event.color,
-          user: event.user,
-          path: event.path,
-        };
-      }
       // Update remote selections
       for (const a of Object.values(storeState.awareness.other)) {
         if (a.client_id === event.client_id) {
@@ -415,19 +405,28 @@ export function useCollab(storeState: CollabStoreState<any>) {
     connectionState: computed(() => storeState.connectionState),
     collabProps: computed(() => ({
       path: storeState.websocketPath,
-      otherClientAwareness: Object.values(storeState.awareness.other).map(a => ({ ...a, path: storeState.websocketPath + a.path })),
+      clients: storeState.awareness.clients.map((c) => {
+        const a = c.client_id === storeState.clientID ? storeState.awareness.self : storeState.awareness.other[c.client_id];
+        return {
+          ...c,
+          path: storeState.websocketPath + (a?.path || ''),
+          selection: a?.selection,
+          isSelf: c.client_id === storeState.clientID,
+        };
+      }),
     })),
   }
 }
 
 export type CollabPropType = {
   path: string;
-  otherClientAwareness: {
+  clients: {
     client_id: string;
+    client_color: string;
     user: UserShortInfo;
-    color: string;
     path: string;
     selection?: EditorSelection;
+    isSelf: boolean;
   }[];
 };
 
@@ -437,6 +436,6 @@ export function collabSubpath(collab: CollabPropType, subPath: string|null) {
   return {
     ...collab,
     path,
-    otherClientAwareness: collab.otherClientAwareness.filter(a => a.path.startsWith(path))
+    clients: collab.clients.filter(a => a.path.startsWith(path))
   };
 }

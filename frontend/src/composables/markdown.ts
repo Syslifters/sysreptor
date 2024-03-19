@@ -315,8 +315,8 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   watch(spellcheckBrowserEnabled, val => editorActions.value.spellcheckBrowser?.(val));
   watch(theme.current, val => editorActions.value.darkTheme?.(val.dark));
 
-  watch(() => props.value.collab?.otherClientAwareness, (val) => {
-    console.log('markdown collab.otherClientAwareness', val?.map(a => ({ client_id: a.client_id, selection: a.selection?.toJSON() })));
+  watch(() => props.value.collab?.clients, (val) => {
+    console.log('markdown collab.clients', val?.filter(c => !c.isSelf).map(a => ({ client_id: a.client_id, selection: a.selection?.toJSON() })));
   }, { deep: true });
 
   function focus() {
