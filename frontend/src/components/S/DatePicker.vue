@@ -11,6 +11,8 @@
     @click:clear="emits('update:modelValue', null)"
     v-bind="$attrs"
   >
+    <template #label v-if="$slots.label"><slot name="label" /></template>
+
     <v-menu
       v-model="datePickerVisible"
       :disabled="props.disabled || props.readonly"

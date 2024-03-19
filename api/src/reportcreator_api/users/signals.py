@@ -2,7 +2,7 @@ from django.db.models import signals
 from django.dispatch import receiver
 from django.conf import settings
 
-from reportcreator_api.users.models import PentestUser
+from reportcreator_api.users.models import APIToken, PentestUser
 from reportcreator_api.utils import license
 
 
@@ -41,3 +41,20 @@ def user_count_license_check(sender, instance, *args, **kwargs):
         if current_user_count + 1 > max_users:
             raise license.LicenseError(f'License limit exceeded. Your license allows max. {max_users} users. Please deactivate some users or extend your license.')
     
+
+@receiver(signals.pre_save, sender=APIToken)
+def api_token_license_limit(sender, instance, *args, **kwargs):
+    if license.is_professional():
+        return
+    
+    current_apitoken_count = APIToken.objects \
+        .filter(user=instance.user) \
+        .only_active() \
+        .count()
+    if current_apitoken_count >= 1:
+        raise license.LicenseLimitExceededError(
+            f'Community Edition allows max. 1 active API token per user. '
+            'Please delete some tokens or upgrade to Professional.')
+
+    if instance.expire_date:
+        raise license.LicenseError('API token expiration is not supported in Community edition.')
