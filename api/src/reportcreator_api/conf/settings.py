@@ -371,9 +371,11 @@ CSP_FORM_ACTION = ["'self'"]
 # nuxt, vuetify and markdown preview use inline styles
 CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
 # unsafe-inline: 
-#   Django Rest Framework inserts the CSRF token via an inline script. DRF will be CSP-compliant in version 3.15 (see https://github.com/encode/django-rest-framework/pull/8784)
-#   NuxtJS injects an inline script in index.html => solution: static hash
-CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'"]
+
+CSP_SCRIPT_SRC = [
+    "'self'", 
+    "'sha256-liYzJIUIz0xQN3/5nhzjNXcXcZEOFfPRL14CdEd6z1I='",  # hash of nuxt inline script injected in index.html
+]
 
 PERMISSIONS_POLICY = {
     'publickey-credentials-get': '(self)',

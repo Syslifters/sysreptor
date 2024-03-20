@@ -5,6 +5,7 @@
 * Remember "Encrypt PDF" setting in browser's local storage
 * Fix force change design API request not sent
 * Add Content Security Policy directive form-action
+* Strengthen Content Security Policy: remove script-src unsafe-inline
 * Fix API token expiring today shown as expired in UI
 * Markdown editor: Improve vue template variable handling
 * Markdown editor: Allow escaping curly braces
