@@ -8,7 +8,7 @@ packages = [{include = "reportcreator_api", from = "src"}]
 [tool.poetry.dependencies]
 python = "~3.12"
 django = { extras = ["argon2"], version = "~5.0" }
-djangorestframework = "~3.14.0"
+djangorestframework = "~3.15.0"
 adrf = "==0.1.2"  # bug in 0.1.3 causes authentication errors: see https://github.com/em1208/adrf/issues/28
 weasyprint = "~61.2"
 
@@ -16,13 +16,13 @@ django-phonenumber-field = { version = "^7.0.0", extras = ["phonenumberslite"] }
 django-csp = "^3.7"
 django-storages = "^1.13.2"
 drf-nested-routers = "^0.93.4"
-django-filter = "^23.1"
+django-filter = "^24.1"
 drf-spectacular = { extras = ["sidecar"], version = "^0.27.0" }
-django-simple-history = "^3.4.0"
+django-simple-history = "^3.5.0"
 
 psycopg = { extras = ["binary"], version = "^3.1.8" }
 gunicorn = "^21.2.0"
-uvicorn = { extras = ["standard"], version = "^0.28.0" }
+uvicorn = { extras = ["standard"], version = "^0.29.0" }
 whitenoise = "^6.4.0"
 brotli = "^1.0.9"
 channels = { "extras" = ["daphne"], version = "^4.0.0" }
@@ -38,7 +38,7 @@ pycryptodomex = "^3.17"
 pyotp = "^2.8.0"
 qrcode = { extras = ["pil"], version = "^7.4.2" }
 fido2 = "^1.1.1"
-authlib = "^1.2.0"
+authlib = "^1.3.0"
 python-gnupg = "^0.5.0"
 frozendict = "^2.3.8"
 
