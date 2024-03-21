@@ -10,6 +10,7 @@ import {
   lineNumbers, indentUnit, defaultKeymap, indentWithTab,
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
   Transaction,
+  remoteSelection, setRemoteClients,
 } from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '@/utils/types';
 
@@ -226,7 +227,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
               });
             }
           }),
-          // TODO: extension for collab remote awareness
+          remoteSelection(),
         ]
       }),
     });
@@ -315,8 +316,25 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   watch(spellcheckBrowserEnabled, val => editorActions.value.spellcheckBrowser?.(val));
   watch(theme.current, val => editorActions.value.darkTheme?.(val.dark));
 
-  watch(() => props.value.collab?.clients, (val) => {
-    console.log('markdown collab.clients', val?.filter(c => !c.isSelf).map(a => ({ client_id: a.client_id, selection: a.selection?.toJSON() })));
+  watch([() => props.value.collab?.clients, () => editorView.value], () => {
+    if (!editorView.value) {
+      return;
+    }
+    const remoteClients = (props.value.collab?.clients || []).filter(c => !c.isSelf && c.selection).map(c => ({
+      client_id: c.client_id,
+      color: c.client_color,
+      name: c.user.username + (c.user.name ? ` (${c.user.name})` : ''),
+      selection: c.selection!,
+    }));
+    if (remoteClients.length > 0) {
+      console.log('markdown collab.clients', remoteClients.map(a => ({ ...a, selection: a.selection?.toJSON() })));
+    }
+
+    editorView.value.dispatch({
+      effects: [
+        setRemoteClients.of(remoteClients)
+      ]
+    })
   }, { deep: true });
 
   function focus() {

@@ -79,12 +79,12 @@ class TestTextTransformations:
         assert c2.compose(c1.map(c2, True)).apply(text) == expected
         
         text1 = c1.apply(text)
-        updates = rebase_updates(updates=[Update(client_id='c2', version=2, changes=c2)], over=[Update(client_id='c1', version=1, changes=c1)])
+        updates, _ = rebase_updates(updates=[Update(client_id='c2', version=2, changes=c2)], selection=None, over=[Update(client_id='c1', version=1, changes=c1)])
         assert len(updates) == 1
         assert updates[0].changes.apply(text1) == expected
 
         # Rebase already applied changes
-        assert rebase_updates(updates=[Update(client_id='c2', version=2, changes=c2)], over=[Update(client_id='c1', version=1, changes=c1), Update(client_id='c2', version=2, changes=c2)]) == []
+        assert rebase_updates(updates=[Update(client_id='c2', version=2, changes=c2)], selection=None, over=[Update(client_id='c1', version=1, changes=c1), Update(client_id='c2', version=2, changes=c2)])[0] == []
 
     @pytest.mark.parametrize(['selection', 'change', 'expected'], [
         # Cursor
@@ -187,16 +187,21 @@ class TestCollaborativeTextEditing:
     async def test_rebase_updates(self):
         event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'notes.{self.note.note_id}.text', 'version': self.client1.init['version']}
         updates = [{'changes': [1, [0, '1'], 1]}, {'changes': [2, [0, '2'], 1]}, {'changes': [3, [0, '3'], 1]}, {'changes': [4, [0, '4'], 1]}]
-        await self.client1.send_json_to(event_base | {'updates': updates[:2]})
-        await self.client1.send_json_to(event_base | {'updates': updates})
+        await self.client1.send_json_to(event_base | {'updates': updates[:2], 'selection': {'main': 0, 'ranges': [{'anchor': 3, 'head': 3}]}})
+        await self.client1.send_json_to(event_base | {'updates': updates, 'selection': {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}})
 
         res1 = await self.client1.receive_json_from()
         assert res1['updates'] == updates[:2]
+        assert res1['selection'] == {'main': 0, 'ranges': [{'anchor': 3, 'head': 3}]}
         res2 = await self.client1.receive_json_from()
         assert res2['updates'] == updates[2:]
+        assert res2['selection'] == {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}
 
         await self.note.arefresh_from_db()
         assert self.note.text == 'A1234B'
+
+    # async def test_rebase_selection(self):
+    #     await self.client1.send_json_to()
 
     # TODO: test rebase selection
     # TODO: test collab.awareness

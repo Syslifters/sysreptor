@@ -1,5 +1,5 @@
 <template>
-  <span v-if="clientsAll.length > 0" class="avatar-group">
+  <div v-if="clientsAll.length > 0" class="avatar-group">
     <v-avatar 
       v-for="c in clientsVisible" 
       :key="c.client_id"
@@ -25,7 +25,7 @@
         </span>
       </s-tooltip>
     </v-avatar>
-  </span>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -43,6 +43,8 @@ const clientsHidden = computed(() => clientsAll.value.length > props.limit ? cli
 <style lang="scss" scoped>
 .avatar-group {
   line-height: 1rem;
+  display: flex;
+  flex-direction: row;
 }
 .avatar-group-item {
   font-size: small;

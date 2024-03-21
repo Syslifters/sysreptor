@@ -111,7 +111,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
       if (msgData.version && msgData.version > storeState.version) {
         storeState.version = msgData.version;
       }
-      if (msgData.type === 'init') {
+      if (msgData.type === 'collab.init') {
         storeState.connectionState = CollabConnectionState.OPEN;
         storeState.data = msgData.data;
         storeState.clientID = msgData.client_id;
@@ -413,7 +413,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
         const a = c.client_id === storeState.clientID ? 
           storeState.awareness.self : 
           storeState.awareness.other[c.client_id];
-        console.log('collabProps', storeState.awareness);
         return {
           ...c,
           path: storeState.websocketPath + (a?.path || ''),

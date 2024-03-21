@@ -19,4 +19,5 @@ export {
   isTypeInSelection, isTaskListInSelection,
   insertNewlineContinueMarkup
 } from './commands';
+export { setRemoteClients, remoteSelection } from './awareness';
 import 'highlight.js/styles/default.css';

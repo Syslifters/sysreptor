@@ -459,7 +459,7 @@ def compose_sets(setA: ChangeSet, setB: ChangeSet):
             b.forward(i_len)
 
 
-def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
+def rebase_updates(updates: list[Update], selection: Optional[EditorSelection], over: list[Update]) -> tuple[list[Update], Optional[EditorSelection]]:
     """
     Rebase and deduplicate an array of client-submitted updates that
     came in with an out-of-date version number. `over` should hold the
@@ -473,7 +473,7 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
     logging.info(f'rebase_updates: updates={updates}, over={over}')
 
     if not updates or not over:
-        return updates
+        return updates, selection
     
     changes = None
     skip = 0
@@ -496,7 +496,7 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
         updates = updates[skip:]
     
     if not changes:
-        return updates
+        return updates, selection
     else:
         out = []
         for update in updates:
@@ -507,4 +507,6 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
                 version=version,
                 changes=updated_changes,
             ))
-        return out
+        if selection:
+            selection = selection.map(changes)
+        return out, selection
