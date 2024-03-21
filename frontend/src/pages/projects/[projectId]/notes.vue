@@ -15,6 +15,7 @@
           @update:checked="updateNoteChecked"
           :disabled="notesCollab.readonly.value"
           :to-prefix="`/projects/${$route.params.projectId}/notes/`"
+          :collab="notesCollab.collabProps.value"
         />
       </notes-menu>
     </template>

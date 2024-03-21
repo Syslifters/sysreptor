@@ -116,6 +116,10 @@ export function useCollab(storeState: CollabStoreState<any>) {
         storeState.data = msgData.data;
         storeState.clientID = msgData.client_id;
         storeState.awareness.clients = msgData.clients;
+        storeState.awareness.other = Object.fromEntries(msgData.clients.filter((c: any) => c.client_id !== storeState.clientID).map((c: any) => [c.client_id, { 
+          path: c.awareness.path, 
+          selection: c.awareness.selection ? EditorSelection.fromJSON(c.awareness.selection) : undefined, 
+        }]));
         storeState.awareness.sendAwarenessThrottled?.();
       } else if (msgData.type === 'collab.update_key') {
         // Update local state
@@ -130,12 +134,12 @@ export function useCollab(storeState: CollabStoreState<any>) {
         if (msgData.client_id !== storeState.clientID) {
           // Add new client
           storeState.awareness.clients.push(msgData);
-          delete storeState.awareness.other[msgData.client_id];
         }
       } else if (msgData.type === 'collab.disconnect') {
         // Remove client
         storeState.awareness.clients = storeState.awareness.clients
           .filter(c => c.client_id !== msgData.client_id);
+        delete storeState.awareness.other[msgData.client_id];
       } else if (msgData.type === 'collab.awareness') {
         if (msgData.client_id !== storeState.clientID) {
           let selection = msgData.selection ? EditorSelection.fromJSON(msgData.selection) : undefined;
@@ -406,7 +410,10 @@ export function useCollab(storeState: CollabStoreState<any>) {
     collabProps: computed(() => ({
       path: storeState.websocketPath,
       clients: storeState.awareness.clients.map((c) => {
-        const a = c.client_id === storeState.clientID ? storeState.awareness.self : storeState.awareness.other[c.client_id];
+        const a = c.client_id === storeState.clientID ? 
+          storeState.awareness.self : 
+          storeState.awareness.other[c.client_id];
+        console.log('collabProps', storeState.awareness);
         return {
           ...c,
           path: storeState.websocketPath + (a?.path || ''),
