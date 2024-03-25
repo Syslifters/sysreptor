@@ -112,7 +112,7 @@ const toolbarAttrs = computed(() => ({
 
 function updateKey(key: string, value: any) {
   notesCollab.onCollabEvent({
-    type: 'collab.update_key',
+    type: CollabEventType.UPDATE_KEY,
     path: collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.${key}`).path,
     value,
   })

@@ -8,11 +8,11 @@ from django.contrib.auth.models import AnonymousUser
 from channels.testing import WebsocketCommunicator
 from channels.routing import URLRouter
 
-from reportcreator_api.pentests.models.collab import CollabEventType
-from reportcreator_api.pentests.models.project import ProjectMemberInfo
+from reportcreator_api.pentests.models import CollabEventType, CollabClientInfo, ProjectMemberInfo
 from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time
 from reportcreator_api.conf.urls import websocket_urlpatterns
 from reportcreator_api.utils.text_transformations import ChangeSet, EditorSelection, SelectionRange, Update, rebase_updates
+from reportcreator_api.utils.utils import copy_keys
 
 
 class TestTextTransformations:
@@ -119,7 +119,7 @@ class TestTextTransformations:
 
 
 @contextlib.asynccontextmanager
-async def ws_connect(path, user):
+async def ws_connect(path, user, consume_init=True, other_clients=None):
     consumer = WebsocketCommunicator(
         application=URLRouter(websocket_urlpatterns),
         path=path,
@@ -131,16 +131,22 @@ async def ws_connect(path, user):
         connected, _ = await consumer.connect()
         assert connected
 
-        # Consume initial message
-        init = await consumer.receive_json_from()
-        assert init.get('type') == 'init'
-        setattr(consumer, 'init', init)
-        setattr(consumer, 'client_id', init['client_id'])
+        if consume_init:
+            # Consume initial message
+            init = await consumer.receive_json_from()
+            assert init.get('type') == CollabEventType.INIT
+            setattr(consumer, 'init', init)
+            setattr(consumer, 'client_id', init['client_id'])
 
-        # Consume collab.connect message
-        connect = await consumer.receive_json_from()
-        assert connect.get('type') == 'collab.connect'
-        assert connect.get('client_id') == init['client_id']
+            # Consume collab.connect message
+            connect = await consumer.receive_json_from()
+            assert connect.get('type') == CollabEventType.CONNECT
+            assert connect.get('client_id') == init['client_id']
+
+            for c in (other_clients or []):
+                msg_connect = await c.receive_json_from()
+                assert msg_connect.get('type') == CollabEventType.CONNECT
+                assert msg_connect.get('client_id') == init['client_id']
 
         yield consumer
     finally:
@@ -160,29 +166,55 @@ class TestCollaborativeTextEditing:
         await sync_to_async(setup_db)()
 
         async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user1) as self.client1, \
-                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user2) as self.client2:
-            await self.client1.receive_json_from() # collab.connect client2
+                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
     
     async def test_concurrent_updates(self):
         # Concurrent updates of same version
         event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'notes.{self.note.note_id}.text', 'version': self.client1.init['version']}
-        await self.client1.send_json_to(event_base | {'updates': [{'changes': [1, [0, '1'], 1]}]})
-        await self.client2.send_json_to(event_base | {'updates': [{'changes': [1, [0, '2'], 1]}]})
+        await self.client1.send_json_to(event_base | {'updates': [{'changes': [1, [0, '1'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}})
+        await self.client2.send_json_to(event_base | {'updates': [{'changes': [1, [0, '2'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}})
+        
+        res1_c1 = await self.client1.receive_json_from()
+        res1_c2 = await self.client2.receive_json_from()
+        assert res1_c1 == res1_c2
+        assert res1_c1['updates'] == [{'changes': [1, [0, '1'], 1]}]
+        assert res1_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}
 
-        await self.client1.receive_json_from()
-        version = (await self.client1.receive_json_from())['version']
+        res2_c2 = await self.client2.receive_json_from()
+        res2_c1 = await self.client1.receive_json_from()
+        assert res2_c1 == res2_c2
+        assert res2_c1['updates'] == [{'changes': [2, [0, '2'], 1]}]
+        assert res2_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 3, 'head': 3}]}
+        version = res2_c1['version']
         assert version > self.client1.init['version']
-
+        
         await self.note.arefresh_from_db()
         assert self.note.text == 'A12B'
 
         # Third update after both previous changes (using updated version)
-        await self.client1.send_json_to(event_base | {'version': version, 'updates': [{'changes': [4, [0, '3']]}]})
-        await self.client1.receive_json_from()
+        await self.client1.send_json_to(event_base | {'version': version, 'updates': [{'changes': [4, [0, '3']]}], 'selection': {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}})
+        res3_c1 = await self.client1.receive_json_from()
+        res3_c2 = await self.client2.receive_json_from()
+        assert res3_c1 == res3_c2
+        assert res3_c1['updates'] == [{'changes': [4, [0, '3']]}]
+        assert res3_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}
 
         await self.note.arefresh_from_db()
         assert self.note.text == 'A12B3'
+
+    async def test_concurrent_updates_awareness(self):
+        event_base = {'path': f'notes.{self.note.note_id}.text', 'version': self.client1.init['version']}
+        await self.client1.send_json_to(event_base | {'type': CollabEventType.UPDATE_TEXT, 'updates': [{'changes': [1, [0, '1'], 1]}]})
+        await self.client2.send_json_to(event_base | {'type': CollabEventType.AWARENESS, 'selection': {'main': 0, 'ranges': [{'anchor': 0, 'head': 2}]}})
+
+        await self.client1.receive_json_from()
+        await self.client2.receive_json_from()
+
+        res1 = await self.client1.receive_json_from()
+        res2 = await self.client2.receive_json_from()
+        assert res1 == res2
+        assert res1['selection'] == {'main': 0, 'ranges': [{'anchor': 0, 'head': 3}]}
 
     async def test_rebase_updates(self):
         event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'notes.{self.note.note_id}.text', 'version': self.client1.init['version']}
@@ -200,11 +232,34 @@ class TestCollaborativeTextEditing:
         await self.note.arefresh_from_db()
         assert self.note.text == 'A1234B'
 
-    # async def test_rebase_selection(self):
-    #     await self.client1.send_json_to()
+    async def test_client_collab_info_lifecycle(self):
+        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user1, consume_init=False) as client:
+            # path of other clients in collab.init
+            init = await client.receive_json_from()
+            await client.receive_json_from()
+            init_client_infos = [c async for c in CollabClientInfo.objects.filter(client_id__in=[init['client_id'], self.client1.client_id, self.client2.client_id])]
+            assert [copy_keys(c, ['client_id', 'path']) for c in init['clients']] == \
+                   [copy_keys(c, ['client_id', 'path']) for c in init_client_infos]
 
-    # TODO: test rebase selection
-    # TODO: test collab.awareness
+            # client info created on connect
+            client_info = await CollabClientInfo.objects.select_related('user').aget(client_id=init['client_id'])
+            assert client_info.user == self.user1
+            assert client_info.path is None
+
+            # path updated on collab.awareness
+            await client.send_json_to({'type': CollabEventType.AWARENESS, 'path': f'notes.{self.note.note_id}.title', 'version': init['version']})
+            await client.receive_json_from()
+            await client_info.arefresh_from_db()
+            assert client_info.path == f'notes.{self.note.note_id}.title'
+
+            # path updated on collab.update_text
+            await client.send_json_to({'type': CollabEventType.UPDATE_TEXT, 'path': f'notes.{self.note.note_id}.text', 'version': init['version'], 'updates': [{'changes': [1, [0, '1'], 1]}]})
+            await client.receive_json_from()
+            await client_info.arefresh_from_db()
+            assert client_info.path == f'notes.{self.note.note_id}.text'
+
+        # deleted on disconnect
+        assert not await CollabClientInfo.objects.filter(client_id=init['client_id']).aexists()
 
 
 @pytest.mark.django_db(transaction=True)
@@ -222,8 +277,7 @@ class TestProjectNotesDbSync:
         await sync_to_async(setup_db)()
 
         async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user1) as self.client1, \
-                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user2) as self.client2:
-            await self.client1.receive_json_from() # collab.connect client2
+                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
 
     async def refresh_data(self):

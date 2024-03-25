@@ -14,6 +14,18 @@ export enum CollabConnectionState {
   OPEN = 'open',
 };
 
+export enum CollabEventType {
+  CONNECT = 'collab.connect',
+  DISCONNECT = 'collab.disconnect',
+  INIT = 'collab.init',
+  CREATE = 'collab.create',
+  UPDATE_KEY = 'collab.update_key',
+  UPDATE_TEXT = 'collab.update_text',
+  DELETE = 'collab.delete',
+  SORT = 'collab.sort',
+  AWARENESS = 'collab.awareness',
+}
+
 export type TextUpdate = {
   changes: ChangeSet;
   selection?: EditorSelection;
@@ -111,7 +123,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
       if (msgData.version && msgData.version > storeState.version) {
         storeState.version = msgData.version;
       }
-      if (msgData.type === 'collab.init') {
+      if (msgData.type === CollabEventType.INIT) {
         storeState.connectionState = CollabConnectionState.OPEN;
         storeState.data = msgData.data;
         storeState.clientID = msgData.client_id;
@@ -121,28 +133,28 @@ export function useCollab(storeState: CollabStoreState<any>) {
           selection: undefined, 
         }]));
         storeState.awareness.sendAwarenessThrottled?.();
-      } else if (msgData.type === 'collab.update_key') {
+      } else if (msgData.type === CollabEventType.UPDATE_KEY) {
         // Update local state
         set(storeState.data as Object, msgData.path, msgData.value);
-      } else if (msgData.type === 'collab.update_text') {
+      } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
         receiveUpdateText(msgData);
-      } else if (msgData.type === 'collab.create') {
+      } else if (msgData.type === CollabEventType.UPDATE_KEY) {
         set(storeState.data as Object, msgData.path, msgData.value);
-      } else if (msgData.type === 'collab.delete') {
+      } else if (msgData.type === CollabEventType.DELETE) {
         unset(storeState.data as Object, msgData.path);
-      } else if (msgData.type === 'collab.connect') {
+      } else if (msgData.type === CollabEventType.CONNECT) {
         if (msgData.client_id !== storeState.clientID) {
           // Add new client
           storeState.awareness.clients.push(msgData);
           // Send awareness info to new client
           storeState.awareness.sendAwarenessThrottled?.();
         }
-      } else if (msgData.type === 'collab.disconnect') {
+      } else if (msgData.type === CollabEventType.DISCONNECT) {
         // Remove client
         storeState.awareness.clients = storeState.awareness.clients
           .filter(c => c.client_id !== msgData.client_id);
         delete storeState.awareness.other[msgData.client_id];
-      } else if (msgData.type === 'collab.awareness') {
+      } else if (msgData.type === CollabEventType.AWARENESS) {
         if (msgData.client_id !== storeState.clientID) {
           let selection = msgData.selection ? EditorSelection.fromJSON(msgData.selection) : undefined;
           if (selection) {
@@ -181,7 +193,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
 
   function websocketSendAwareness() {
     websocketSend(JSON.stringify({
-      type: 'collab.awareness',
+      type: CollabEventType.AWARENESS,
       path: storeState.awareness.self.path,
       version: storeState.version,
       selection: storeState.awareness.self.selection?.toJSON(),
@@ -203,7 +215,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
     }
 
     websocketSend(JSON.stringify({
-      type: 'collab.update_text',
+      type: CollabEventType.UPDATE_TEXT,
       path,
       version: storeState.version,
       updates,
@@ -237,7 +249,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
 
     // Propagate event to other clients
     websocketSend(JSON.stringify({
-      type: 'collab.update_key',
+      type: CollabEventType.UPDATE_KEY,
       path: dataPath,
       version: storeState.version,
       value: event.value,
@@ -384,11 +396,11 @@ export function useCollab(storeState: CollabStoreState<any>) {
   }
 
   function onCollabEvent(event: any) {
-    if (event.type === 'collab.update_key') {
+    if (event.type === CollabEventType.UPDATE_KEY) {
       updateKey(event);
-    } else if (event.type === 'collab.update_text') {
+    } else if (event.type === CollabEventType.UPDATE_TEXT) {
       updateText(event);
-    } else if (event.type === 'collab.awareness') {
+    } else if (event.type === CollabEventType.AWARENESS) {
       updateAwareness(event);
     } else {
       // eslint-disable-next-line no-console

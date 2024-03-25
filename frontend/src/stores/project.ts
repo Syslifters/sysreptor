@@ -97,7 +97,7 @@ export const useProjectStore = defineStore('project', {
             initialData: { notes: {} },
             handleAdditionalWebSocketMessages: (msgData: any) => {
               const collabState = this.data[projectId].notesCollabState;
-              if (msgData.type === 'collab.sort' && msgData.path === 'notes') {
+              if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
                 for (const note of Object.values(collabState.data.notes) as ProjectNote[]) {
                   const no = msgData.sort.find((n: ProjectNote) => n.id === note.id);
                   note.parent = no?.parent || null;

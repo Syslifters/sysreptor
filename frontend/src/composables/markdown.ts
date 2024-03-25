@@ -204,7 +204,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
                 for (const tr of viewUpdate.transactions) {
                   if (tr.docChanged && !tr.annotation(Transaction.remote)) {
                     emit('collab', {
-                      type: 'collab.update_text',
+                      type: CollabEventType.UPDATE_TEXT,
                       path: props.value.collab.path,
                       updates: [{ changes: tr.changes, selection: tr.selection }],
                     });
@@ -220,7 +220,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
               // Collab awareness updates
               const hasFocus = editorView.value?.hasFocus || false;
               emit('collab', {
-                type: 'collab.awareness',
+                type: CollabEventType.AWARENESS,
                 path: props.value.collab.path,
                 focus: hasFocus,
                 selection: viewUpdate.state.selection,

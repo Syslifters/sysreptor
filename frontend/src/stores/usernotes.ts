@@ -41,7 +41,7 @@ export const useUserNotesStore = defineStore('usernotes', {
         initialData: { notes: {} as {[key: string]: UserNote} },
         handleAdditionalWebSocketMessages: (msgData: any) => {
           const collabState = (this as any).notesCollabState;
-          if (msgData.type === 'collab.sort' && msgData.path === 'notes') {
+          if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
             for (const note of Object.values(collabState.data.notes) as UserNote[]) {
               const no = msgData.sort.find((n: UserNote) => n.id === note.id);
               note.parent = no?.parent || null;

@@ -60,7 +60,7 @@ watch(() => router.currentRoute.value, collabAwarenessSendNavigate);
 function collabAwarenessSendNavigate() {
   const noteId = router.currentRoute.value.params.noteId;
   notesCollab.onCollabEvent({
-    type: 'collab.awareness',
+    type: CollabEventType.AWARENESS,
     path: collabSubpath(notesCollab.collabProps.value, noteId ? `notes.${noteId}` : null).path,
   });
 }
@@ -84,7 +84,7 @@ async function performImport(file: File) {
 
 function updateNoteChecked(note: NoteBase) {
   notesCollab.onCollabEvent({
-    type: 'collab.update_key',
+    type: CollabEventType.UPDATE_KEY,
     path: collabSubpath(notesCollab.collabProps.value, `notes.${note.id}.checked`).path,
     value: note.checked,
   });

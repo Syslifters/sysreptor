@@ -7,7 +7,7 @@
       density="compact"
       class="avatar-group-item"
     >
-      {{ c.user.first_name?.[0] }}{{ c.user.last_name?.[0] }}
+      {{ c.user.username[0] }}
       <s-tooltip activator="parent">
         {{ c.user.username }} <template v-if="c.user.name">({{ c.user.name }})</template>
       </s-tooltip>
