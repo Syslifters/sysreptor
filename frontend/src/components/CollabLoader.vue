@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isFirstLoad" class="centered" v-bind="$attrs">
+  <div v-if="isFirstLoad && props.collab.hasEditPermissions.value" class="centered" v-bind="$attrs">
     <v-progress-circular indeterminate size="50" />
   </div>
   <div v-else v-bind="$attrs">
@@ -46,7 +46,10 @@ const props = defineProps<{
 
 const isFirstLoad = ref(true);
 watch(() => props.collab.connectionState.value, (newState, oldState) => {
-  if (newState === CollabConnectionState.OPEN || (newState === CollabConnectionState.CLOSED && oldState !== undefined && oldState !== CollabConnectionState.CLOSED)) {
+  if (newState === CollabConnectionState.OPEN || 
+      (newState === CollabConnectionState.CLOSED && (
+        (oldState !== undefined && oldState !== CollabConnectionState.CLOSED) || 
+        !props.collab.hasEditPermissions.value))) {
     isFirstLoad.value = false;
   }
 }, { immediate: true });

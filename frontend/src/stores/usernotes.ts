@@ -57,7 +57,7 @@ export const useUserNotesStore = defineStore('usernotes', {
   },
   getters: {
     notes(): UserNote[] {
-      return Object.values(this.notesCollabState.data.notes);
+      return Object.values(this.notesCollabState?.data?.notes || {});
     },
     noteGroups(): NoteGroup<UserNote> {
       return groupNotes(this.notes);
@@ -65,7 +65,8 @@ export const useUserNotesStore = defineStore('usernotes', {
   },
   actions: {
     clear() {
-      this.notesCollabState = [];
+      this.useNotesCollab().disconnect();
+      this.notesCollabState.data = { notes: {} };
     },
     async createNote(note: UserNote) {
       note = await $fetch<UserNote>(`/api/v1/pentestusers/self/notes/`, {
