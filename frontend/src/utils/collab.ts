@@ -117,8 +117,8 @@ export function useCollab(storeState: CollabStoreState<any>) {
         storeState.clientID = msgData.client_id;
         storeState.awareness.clients = msgData.clients;
         storeState.awareness.other = Object.fromEntries(msgData.clients.filter((c: any) => c.client_id !== storeState.clientID).map((c: any) => [c.client_id, { 
-          path: c.awareness.path, 
-          selection: c.awareness.selection ? EditorSelection.fromJSON(c.awareness.selection) : undefined, 
+          path: c.path, 
+          selection: undefined, 
         }]));
         storeState.awareness.sendAwarenessThrottled?.();
       } else if (msgData.type === 'collab.update_key') {
@@ -134,6 +134,8 @@ export function useCollab(storeState: CollabStoreState<any>) {
         if (msgData.client_id !== storeState.clientID) {
           // Add new client
           storeState.awareness.clients.push(msgData);
+          // Send awareness info to new client
+          storeState.awareness.sendAwarenessThrottled?.();
         }
       } else if (msgData.type === 'collab.disconnect') {
         // Remove client
