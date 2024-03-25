@@ -58,7 +58,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
   
     const serverUrl = `${window.location.protocol === 'http:' ? 'ws' : 'wss'}://${window.location.host}/`;
     const wsUrl = urlJoin(serverUrl, storeState.websocketPath);
-    storeState.perPathState.clear();
+    storeState.perPathState?.clear();
     storeState.connectionState = CollabConnectionState.CONNECTING;
     storeState.websocket = new WebSocket(wsUrl);
     storeState.websocket.addEventListener('open', () => {
@@ -102,7 +102,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
     storeState.websocket?.close();
     storeState.connectionState = CollabConnectionState.CLOSED;
     storeState.websocket = null;
-    storeState.perPathState.clear()
+    storeState.perPathState?.clear()
   }
 
   function websocketSend(msg: string) {
