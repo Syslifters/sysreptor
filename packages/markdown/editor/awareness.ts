@@ -122,9 +122,8 @@ const remoteCursorLayer = layer({
 })
 
 
-const remoteCursorTooltip = hoverTooltip(
+const remoteCursorUsernameTooltip = hoverTooltip(
   (view, pos, side) => {
-    console.log('remoteCursorNameTooltip', pos, side);
     const tooltips = [] as Tooltip[];
     const line = view.state.doc.lineAt(pos);
     for (const c of view.state.field(remoteSelectionField)) {
@@ -201,7 +200,7 @@ export function remoteSelection() {
     remoteSelectionField, 
     remoteSelectionLayer,
     remoteCursorLayer,
-    remoteCursorTooltip,
+    remoteCursorUsernameTooltip,
     remoteSelectionTheme,
   ]
 }

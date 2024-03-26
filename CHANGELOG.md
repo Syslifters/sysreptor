@@ -2,6 +2,7 @@
 
 ## Next
 * Collaborative editing in notes
+* Show cursor position and selection of other users for collaborative editing in notes
 * Remember "Encrypt PDF" setting in browser's local storage
 * Fix force change design API request not sent
 * Add Content Security Policy directive form-action

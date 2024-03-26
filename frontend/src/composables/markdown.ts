@@ -326,9 +326,6 @@ export function useMarkdownEditor({ props, emit, extensions }: {
       name: c.user.username + (c.user.name ? ` (${c.user.name})` : ''),
       selection: c.selection!,
     }));
-    if (remoteClients.length > 0) {
-      console.log('markdown collab.clients', remoteClients.map(a => ({ ...a, selection: a.selection?.toJSON() })));
-    }
 
     editorView.value.dispatch({
       effects: [

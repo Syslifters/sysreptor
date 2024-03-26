@@ -118,7 +118,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
     });
     storeState.websocket.addEventListener('message', (event: MessageEvent) => {
       const msgData = JSON.parse(event.data);
-      console.log('Received websocket message:', msgData);
 
       if (msgData.version && msgData.version > storeState.version) {
         storeState.version = msgData.version;
@@ -307,7 +306,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
       return;
     }
 
-    console.log('updateAwareness', event);
     const dataPath = toDataPath(event.path);
     storeState.awareness.self = {
       path: dataPath,
@@ -425,11 +423,6 @@ export function useCollab(storeState: CollabStoreState<any>) {
       console.error('Trying to send unknown collab event:', event);
     }
   }
-
-  watch(() => storeState.awareness.self, () => {
-    // TODO: debug only
-    console.log('awareness.local changed', storeState.awareness.self.path, storeState.awareness.self.selection?.toJSON());
-  }, { deep: true });
 
   return {
     connect,
