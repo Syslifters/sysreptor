@@ -6,10 +6,10 @@ from reportcreator_api.notifications.models import NotificationSpec, UserNotific
 
 @admin.register(NotificationSpec)
 class NotificationSpecAdmin(BaseAdmin):
-    pass
+    list_display = ['id', 'title', 'created', 'active_until', 'visible_for_days']
 
 
 @admin.register(UserNotification)
 class UserNotificationAdmin(BaseAdmin):
-    pass
+    list_display = ['id', 'notification', 'user', 'created', 'visible_until', 'read']
 

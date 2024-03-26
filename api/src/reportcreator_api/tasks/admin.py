@@ -6,5 +6,5 @@ from reportcreator_api.tasks.models import PeriodicTask
 
 @admin.register(PeriodicTask)
 class NotificationSpecAdmin(BaseAdmin):
-    pass
+    list_display = ['id', 'status', 'started', 'completed', 'last_success']
 
