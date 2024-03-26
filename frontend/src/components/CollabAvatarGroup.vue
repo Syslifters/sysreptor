@@ -6,9 +6,13 @@
       size="small"
       density="compact"
       class="avatar-group-item"
+      :style="{'--avatar-border-color': c.client_color}"
     >
       {{ c.user.username[0] }}
       <s-tooltip activator="parent">
+        <v-avatar size="small" density="compact" class="avatar-group-item avatar-colored" :style="{'--avatar-border-color': c.client_color}"> 
+          {{ c.user.username[0] }}
+        </v-avatar>
         {{ c.user.username }} <template v-if="c.user.name">({{ c.user.name }})</template>
       </s-tooltip>
     </v-avatar>
@@ -17,10 +21,14 @@
       size="small"
       density="compact"
       class="avatar-group-item"
+      :style="{'--avatar-border-color': 'var(--v-theme-on-secondary)'}"
     >
       +{{ clientsHidden.length }}
       <s-tooltip activator="parent">
         <span v-for="c in clientsHidden" :key="c.client_id">
+          <v-avatar size="small" density="compact" class="avatar-group-item avatar-colored" :style="{'--avatar-border-color': c.client_color}"> 
+            {{ c.user.username[0] }}
+          </v-avatar>
           {{ c.user.username }} <template v-if="c.user.name">({{ c.user.name }})</template><br>
         </span>
       </s-tooltip>
@@ -50,7 +58,7 @@ const clientsHidden = computed(() => clientsAll.value.length > props.limit ? cli
   font-size: small;
   background-color: rgb(var(--v-theme-secondary));
   color: rgb(var(--v-theme-on-secondary));
-  border: 1px solid rgb(var(--v-theme-on-secondary), 0.75);
+  border: 2px solid var(--avatar-border-color);
 
   /* overlap */
   margin-right: -12px;

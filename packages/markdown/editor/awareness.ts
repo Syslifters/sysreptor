@@ -1,5 +1,5 @@
 import { EditorSelection, RangeSet, RangeValue, SelectionRange, StateEffect, StateField } from "@codemirror/state"
-import { EditorView, layer, RectangleMarker } from "@codemirror/view"
+import { EditorView, hoverTooltip, layer, RectangleMarker, type Tooltip } from "@codemirror/view"
 
 
 export type RemoteClientInfo = {
@@ -66,7 +66,7 @@ class ColoredRectangleMarker extends RectangleMarker {
       }
       const res = super.update(elt, prev);
       if (res) {
-        elt.style.backgroundColor = this.color;
+        elt.style.setProperty('--marker-color', this.color);
       }
       return res;
   }
@@ -122,6 +122,43 @@ const remoteCursorLayer = layer({
 })
 
 
+const remoteCursorTooltip = hoverTooltip(
+  (view, pos, side) => {
+    console.log('remoteCursorNameTooltip', pos, side);
+    const tooltips = [] as Tooltip[];
+    const line = view.state.doc.lineAt(pos);
+    for (const c of view.state.field(remoteSelectionField)) {
+      const cursorPos = c.selection.main.head;
+      if (cursorPos === pos || (cursorPos === pos + side && pos + side >= line.from && pos + side <= line.to)) {
+        tooltips.push({
+          pos: cursorPos,
+          end: cursorPos + side,
+          above: true,
+          arrow: true,
+          create: () => {
+            const dom = document.createElement("div")
+            dom.className = "cm-tooltip-remoteCursor"
+            dom.style.setProperty('--marker-color', c.color);
+            const arrow = document.createElement("div");
+            arrow.className = "cm-tooltip-arrow";
+            dom.appendChild(arrow);
+            const text = document.createElement("span");
+            text.className = 'cm-tooltip-remoteCursor-text';
+            text.textContent = c.name;
+            dom.appendChild(text);
+            return { dom };
+          }
+        });
+      }
+    }
+    return tooltips;
+  },
+  {
+    hoverTime: 0,
+  }
+)
+
+
 const remoteSelectionTheme = EditorView.theme({
   '.cm-remoteSelectionBackground': {
     backgroundColor: 'var(--marker-color)',
@@ -130,6 +167,31 @@ const remoteSelectionTheme = EditorView.theme({
   '.cm-remoteCursor': {
     borderLeft: '2px solid var(--marker-color)',
     marginLeft: '-1px',
+    pointerEvents: "none",
+    '&:after': {
+      content: '""',
+      display: 'block',
+      height: '3px',
+      width: '2px',
+      backgroundColor: 'var(--marker-color)',
+    }
+  },
+  '.cm-tooltip-remoteCursor': {
+    backgroundColor: 'var(--marker-color)',
+    padding: '0.1em 0.3em',
+    '& + .cm-tooltip-arrow': {
+      display: 'none',
+    },
+    '& > .cm-tooltip-arrow:after': {
+      borderTopColor: 'var(--marker-color)',
+    },
+    '& > .cm-tooltip-remoteCursor-text': {
+      // Black or white text depending on background color
+      background: 'inherit',
+      backgroundClip: 'text',
+      color: 'transparent',
+      filter: 'invert(1) grayscale(1) contrast(100)',
+    },
   },
 })
 
@@ -139,6 +201,7 @@ export function remoteSelection() {
     remoteSelectionField, 
     remoteSelectionLayer,
     remoteCursorLayer,
+    remoteCursorTooltip,
     remoteSelectionTheme,
   ]
 }
