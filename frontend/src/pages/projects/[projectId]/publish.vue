@@ -20,6 +20,7 @@
             @click="refreshPreviewAndChecks"
             prepend-icon="mdi-cached"
             text="Refresh PDF"
+            class="mr-1 mb-1"
           >
             <template #loader>
               <s-saving-loader-spinner />
@@ -34,7 +35,7 @@
             tooltip-text="Customize Design for this project"
             dialog-text="Customize the current Design for this project. This allows you to adapt the appearence (HTML, CSS) of the design for this project only. The original design is not affected. Any changes made to the original design will not be automatically applied to the adapted design."
             :disabled="project.readonly || projectType.source === 'customized' || !auth.permissions.value.update_project_settings"
-            class="ml-1"
+            class="mb-1"
           />
         </div>
 
