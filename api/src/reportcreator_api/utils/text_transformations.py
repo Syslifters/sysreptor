@@ -84,14 +84,6 @@ class ChangeSet:
                 parts.append([i_len] + self.inserted[i >> 1].split('\n'))
         return parts
 
-    def map_desc(self, other: 'ChangeSet', before: bool):
-        """
-        Compute the combined effect of applying another set of changes
-        after this one. The length of the document after this set should
-        match the length before `other`.
-        """
-        return map_set(self, other, before)
-
     def compose(self, other: 'ChangeSet'):
         """
         Compute the combined effect of applying another set of changes
@@ -123,6 +115,26 @@ class ChangeSet:
             return self
         else:
             return map_set(self, other, before)
+        
+    def map_pos(self, pos: int, assoc = -1):
+        posA = 0
+        posB = 0
+        for i in range(0, len(self.sections), 2):
+            i_len = self.sections[i]
+            ins = self.sections[i + 1]
+            endA = posA + i_len
+            if ins < 0:
+                if endA > pos:
+                    return posB + (pos - posA)
+                posB += i_len
+            else:
+                if endA > pos or endA == pos and assoc < 0 and i_len == 0:
+                    return posB if (pos == posA or assoc < 0) else posB + ins
+                posB += ins
+            posA = endA
+        if pos > posA:
+            raise ValueError(f'Position {pos} is out of range for ChangeSet of length {posA}')
+        return posB
         
     def iter_changes(self, individual):
         pos_a = 0
@@ -169,12 +181,85 @@ class ChangeSet:
         return doc
         
 
+@dataclasses.dataclass
+class SelectionRange:
+    anchor: int
+    head: int
+
+    @property
+    def empty(self):
+        return self.head == self.anchor
+
+    @classmethod
+    def from_dict(cls, r: dict):
+        if not isinstance(r, dict) or not isinstance(r.get('anchor'), int) or not isinstance(r.get('head'), int):
+            raise ValueError(f'Invalid selection range')
+        return SelectionRange(anchor=r['anchor'], head=r['head'])
+
+    def to_dict(self):
+        return {
+            'anchor': self.anchor,
+            'head': self.head
+        }
+    
+    def map(self, change: ChangeSet):
+        if self.empty:
+            anchor = head = change.map_pos(self.anchor, assoc=-1)
+        else:
+            assoc = 1 if self.anchor < self.head else -1
+            anchor = change.map_pos(self.anchor, assoc=assoc)
+            head = change.map_pos(self.head, assoc * -1)
+        return SelectionRange(head=head, anchor=anchor)
+
+
+@dataclasses.dataclass
+class EditorSelection:
+    ranges: list[SelectionRange]
+    main: int
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        if not d or not isinstance(d.get('ranges'), list) or not isinstance(d.get('main'), int) or not (0 <= d['main'] < len(d['ranges'])):
+            raise ValueError(f'Invalid selection')
+        return EditorSelection(ranges=[SelectionRange.from_dict(r) for r in d['ranges']], main=d['main'])
+    
+    def to_dict(self):
+        return {
+            'ranges': [r.to_dict() for r in self.ranges],
+            'main': self.main
+        }
+    
+    def map(self, change: ChangeSet):
+        if change.empty:
+            return self
+        return EditorSelection(
+            ranges=[range.map(change) for range in self.ranges],
+            main=self.main
+        )
+
 
 @dataclasses.dataclass
 class Update:
     client_id: str
     version: float
     changes: ChangeSet
+
+    def to_dict(self):
+        return {
+            'changes': self.changes.to_dict(),
+        }
+
+    @classmethod
+    def from_dict(cls, u: dict):
+        if not isinstance(u, dict) or not isinstance(u.get('client_id'), str) or not isinstance(u.get('version'), float) or \
+           not isinstance(u.get('changes'), list):
+            raise ValueError(f'Invalid update')
+        return Update(
+            client_id=u['client_id'], 
+            version=u['version'], 
+            changes=ChangeSet.from_dict(u['changes']),
+        )
+
 
 
 class SectionIter:
@@ -374,7 +459,7 @@ def compose_sets(setA: ChangeSet, setB: ChangeSet):
             b.forward(i_len)
 
 
-def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
+def rebase_updates(updates: list[Update], selection: Optional[EditorSelection], over: list[Update]) -> tuple[list[Update], Optional[EditorSelection]]:
     """
     Rebase and deduplicate an array of client-submitted updates that
     came in with an out-of-date version number. `over` should hold the
@@ -388,7 +473,7 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
     logging.info(f'rebase_updates: updates={updates}, over={over}')
 
     if not updates or not over:
-        return updates
+        return updates, selection
     
     changes = None
     skip = 0
@@ -397,7 +482,7 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
         other = updates[skip] if skip < len(updates) else None
         if other and other.client_id == update.client_id:
             if changes:
-                changes = changes.map_desc(other.changes, True)
+                changes = changes.map(other.changes, True)
             skip += 1
         else:
             if changes:
@@ -411,15 +496,17 @@ def rebase_updates(updates: list[Update], over: list[Update]) -> list[Update]:
         updates = updates[skip:]
     
     if not changes:
-        return updates
+        return updates, selection
     else:
         out = []
         for update in updates:
             updated_changes = update.changes.map(changes)
-            changes = changes.map_desc(update.changes, True)
+            changes = changes.map(update.changes, True)
             out.append(Update(
                 client_id=update.client_id,
                 version=version,
-                changes=updated_changes
+                changes=updated_changes,
             ))
-        return out
+        if selection:
+            selection = selection.map(changes)
+        return out, selection

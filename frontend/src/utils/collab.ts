@@ -4,7 +4,8 @@ import unset from "lodash/unset";
 import throttle from "lodash/throttle";
 import trimStart from "lodash/trimStart";
 import urlJoin from "url-join";
-import { ChangeSet, Text } from "reportcreator-markdown/editor"
+import { ChangeSet, EditorSelection, Text } from "reportcreator-markdown/editor"
+import { type UserShortInfo } from "@/utils/types"
 
 export enum CollabConnectionState {
   CLOSED = 'closed',
@@ -13,8 +14,21 @@ export enum CollabConnectionState {
   OPEN = 'open',
 };
 
+export enum CollabEventType {
+  CONNECT = 'collab.connect',
+  DISCONNECT = 'collab.disconnect',
+  INIT = 'collab.init',
+  CREATE = 'collab.create',
+  UPDATE_KEY = 'collab.update_key',
+  UPDATE_TEXT = 'collab.update_text',
+  DELETE = 'collab.delete',
+  SORT = 'collab.sort',
+  AWARENESS = 'collab.awareness',
+}
+
 export type TextUpdate = {
   changes: ChangeSet;
+  selection?: EditorSelection;
 }
 
 export type CollabStoreState<T> = {
@@ -24,9 +38,28 @@ export type CollabStoreState<T> = {
   websocketPath: string;
   handleAdditionalWebSocketMessages?: (event: any) => boolean;
   perPathState: Map<string, {
-    websocketSendThrottle: (msg: string) => void;
+    sendUpdateTextThrottled: () => void;
     unconfirmedTextUpdates: TextUpdate[];
   }>;
+  awareness: {
+    self: {
+      path: string|null;
+      selection?: EditorSelection;
+    };
+    other: {
+      [key: string]: {
+        client_id: string;
+        path: string;
+        selection?: EditorSelection;
+      }
+    };
+    clients: {
+      client_id: string;
+      client_color: string;
+      user: UserShortInfo;
+    }[];
+    sendAwarenessThrottled?: ReturnType<typeof throttle<() => void>>;
+  },
   version: number;
   clientID: string;
 }
@@ -43,12 +76,19 @@ export function makeCollabStoreState<T>(options: {
     connectionState: CollabConnectionState.CLOSED,
     websocket: null,
     perPathState: new Map(),
+    awareness: {
+      self: {
+        path: 'notes',
+      },
+      other: {},
+      clients: [],
+    },
     version: 0,
     clientID: '',
   }
 }
 
-export function useCollab(storeState: CollabStoreState<any>) {
+export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   const eventBusBeforeApplyRemoteTextChange = useEventBus('collab:beforeApplyRemoteTextChanges');
 
   function connect() {
@@ -59,6 +99,12 @@ export function useCollab(storeState: CollabStoreState<any>) {
     const serverUrl = `${window.location.protocol === 'http:' ? 'ws' : 'wss'}://${window.location.host}/`;
     const wsUrl = urlJoin(serverUrl, storeState.websocketPath);
     storeState.perPathState?.clear();
+    storeState.awareness = {
+      self: { path: storeState.awareness.self.path },
+      other: {},
+      clients: [],
+      sendAwarenessThrottled: throttle(websocketSendAwareness, 1000, { leading: false, trailing: true })
+    }
     storeState.connectionState = CollabConnectionState.CONNECTING;
     storeState.websocket = new WebSocket(wsUrl);
     storeState.websocket.addEventListener('open', () => {
@@ -72,22 +118,53 @@ export function useCollab(storeState: CollabStoreState<any>) {
     });
     storeState.websocket.addEventListener('message', (event: MessageEvent) => {
       const msgData = JSON.parse(event.data);
+
       if (msgData.version && msgData.version > storeState.version) {
         storeState.version = msgData.version;
       }
-      if (msgData.type === 'init') {
+      if (msgData.type === CollabEventType.INIT) {
         storeState.connectionState = CollabConnectionState.OPEN;
         storeState.data = msgData.data;
         storeState.clientID = msgData.client_id;
-      } else if (msgData.type === 'collab.update_key') {
+        storeState.awareness.clients = msgData.clients;
+        storeState.awareness.other = Object.fromEntries(msgData.clients.filter((c: any) => c.client_id !== storeState.clientID).map((c: any) => [c.client_id, { 
+          path: c.path, 
+          selection: undefined, 
+        }]));
+        storeState.awareness.sendAwarenessThrottled?.();
+      } else if (msgData.type === CollabEventType.UPDATE_KEY) {
         // Update local state
         set(storeState.data as Object, msgData.path, msgData.value);
-      } else if (msgData.type === 'collab.update_text') {
+      } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
         receiveUpdateText(msgData);
-      } else if (msgData.type === 'collab.create') {
+      } else if (msgData.type === CollabEventType.UPDATE_KEY) {
         set(storeState.data as Object, msgData.path, msgData.value);
-      } else if (msgData.type === 'collab.delete') {
+      } else if (msgData.type === CollabEventType.DELETE) {
         unset(storeState.data as Object, msgData.path);
+      } else if (msgData.type === CollabEventType.CONNECT) {
+        if (msgData.client_id !== storeState.clientID) {
+          // Add new client
+          storeState.awareness.clients.push(msgData);
+          // Send awareness info to new client
+          storeState.awareness.sendAwarenessThrottled?.();
+        }
+      } else if (msgData.type === CollabEventType.DISCONNECT) {
+        // Remove client
+        storeState.awareness.clients = storeState.awareness.clients
+          .filter(c => c.client_id !== msgData.client_id);
+        delete storeState.awareness.other[msgData.client_id];
+      } else if (msgData.type === CollabEventType.AWARENESS) {
+        if (msgData.client_id !== storeState.clientID) {
+          storeState.awareness.other[msgData.client_id] = {
+            client_id: msgData.client_id,
+            path: msgData.path,
+            selection: parseSelection({
+              selectionJson: msgData.selection, 
+              unconfirmed: storeState.perPathState.get(msgData.path)?.unconfirmedTextUpdates || [], 
+              text: get(storeState.data as Object, msgData.path) || ''
+            }),
+          };
+        }
       } else if (!storeState.handleAdditionalWebSocketMessages?.(msgData)) {
         // eslint-disable-next-line no-console
         console.error('Received unknown websocket message:', msgData);
@@ -102,11 +179,44 @@ export function useCollab(storeState: CollabStoreState<any>) {
     storeState.websocket?.close();
     storeState.connectionState = CollabConnectionState.CLOSED;
     storeState.websocket = null;
-    storeState.perPathState?.clear()
+    storeState.perPathState?.clear();
+    storeState.version = 0;
   }
 
   function websocketSend(msg: string) {
     storeState.websocket?.send(msg);
+  }
+
+  function websocketSendAwareness() {
+    websocketSend(JSON.stringify({
+      type: CollabEventType.AWARENESS,
+      path: storeState.awareness.self.path,
+      version: storeState.version,
+      selection: storeState.awareness.self.selection?.toJSON(),
+    }));
+  }
+
+  function websocketSendUpdateText(path: string) {
+    const updates = storeState.perPathState.get(path)?.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })) || [];
+    if (updates.length === 0) {
+      return;
+    }
+
+    let selection;
+    if (storeState.awareness.self.path === path) {
+      // Awareness info is included in update_text message
+      // No need to send it separately
+      selection = storeState.awareness.self.selection?.toJSON();
+      storeState.awareness.sendAwarenessThrottled?.cancel();
+    }
+
+    websocketSend(JSON.stringify({
+      type: CollabEventType.UPDATE_TEXT,
+      path,
+      version: storeState.version,
+      updates,
+      selection,
+    }));
   }
 
   function toDataPath(path: string) {
@@ -116,7 +226,7 @@ export function useCollab(storeState: CollabStoreState<any>) {
   function ensurePerPathState(path: string) {
     if (!storeState.perPathState.has(path)) {
       storeState.perPathState.set(path, {
-        websocketSendThrottle: throttle(websocketSend, 1000, { leading: false, trailing: true }),
+        sendUpdateTextThrottled: throttle(() => websocketSendUpdateText(path), 1000, { leading: false, trailing: true }),
         unconfirmedTextUpdates: [],
       });
     }
@@ -135,9 +245,8 @@ export function useCollab(storeState: CollabStoreState<any>) {
 
     // Propagate event to other clients
     websocketSend(JSON.stringify({
-      type: 'collab.update_key',
+      type: CollabEventType.UPDATE_KEY,
       path: dataPath,
-      client_id: storeState.clientID,
       version: storeState.version,
       value: event.value,
     }));
@@ -154,24 +263,56 @@ export function useCollab(storeState: CollabStoreState<any>) {
     // Update local state
     const text = get(storeState.data as Object, dataPath) || '';
     let cmText = Text.of(text.split(/\r?\n/));
+    let selection = storeState.awareness.self.path === dataPath ? storeState.awareness.self.selection : undefined;
     for (const u of event.updates) {
-      cmText = ChangeSet.fromJSON(u.changes).apply(cmText);
+      // Apply text changes
+      cmText = u.changes.apply(cmText);
+      // Update local selection
+      selection = selection?.map(u.changes);
+
+      // Map selections of other clients onto changes
+      for (const a of Object.values(storeState.awareness.other)) {
+        if (a.path === dataPath) {
+          a.selection = a.selection?.map(u.changes);
+        }
+      }
     }
+    // Update text
     set(storeState.data as Object, dataPath, cmText.toString());
+
+    // Update awareness
+    storeState.awareness.self = {
+      path: dataPath,
+      selection,
+    };
+    // Cancel pending awareness send: awareness info is included in the next update_text message
+    storeState.awareness.sendAwarenessThrottled?.cancel();
 
     // Track unconfirmed changes
     perPathState.unconfirmedTextUpdates.push(...event.updates.map((u: any) => ({
-      changes: ChangeSet.fromJSON(u.changes),
+      changes: u.changes,
     })));
 
     // Propagate unconfirmed events to other clients
-    perPathState.websocketSendThrottle(JSON.stringify({
-      type: 'collab.update_text',
+    perPathState.sendUpdateTextThrottled();
+  }
+
+  function updateAwareness(event: any) {
+    if (!event.path?.startsWith(storeState.websocketPath)) {
+      // Event is not for us
+      return;
+    } else if (event.focus === false && event.path !== storeState.awareness.self.path) {
+      // On focus other field: do not propagate unfocus event
+      return;
+    }
+
+    const dataPath = toDataPath(event.path);
+    storeState.awareness.self = {
       path: dataPath,
-      client_id: storeState.clientID,
-      version: storeState.version,
-      updates: perPathState.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
-    }));
+      selection: event.selection,
+    };
+
+    storeState.awareness.sendAwarenessThrottled?.();
   }
 
   function receiveUpdateText(event: any) {
@@ -225,14 +366,58 @@ export function useCollab(storeState: CollabStoreState<any>) {
       let cmText = Text.of(text.split(/\r?\n/));
       cmText = changes.apply(cmText);
       set(storeState.data as Object, event.path, cmText.toString());
+
+      // Update local selection
+      if (storeState.awareness.self.path === event.path) {
+        storeState.awareness.self.selection = storeState.awareness.self.selection?.map(changes);
+      }
+      
+      // Update remote selections
+      for (const a of Object.values(storeState.awareness.other)) {
+        if (a.client_id === event.client_id) {
+          a.path = event.path;
+          if (event.selection) {
+            a.selection = parseSelection({
+              selectionJson: event.selection,
+              unconfirmed,
+              text: cmText,
+            });
+          }
+        } else if (a.path === event.path) {
+          a.selection = a.selection?.map(changes);
+        }
+      }
+    }
+  }
+
+  function parseSelection(options: {selectionJson: any|undefined, unconfirmed: TextUpdate[], text: Text|string}) {
+    if (!options.selectionJson) {
+      return undefined;
+    }
+    try {
+      let selection = EditorSelection.fromJSON(options.selectionJson);
+      // Rebase selection onto unconfirmed changes
+      for (const u of options.unconfirmed) {
+        selection = selection.map(u.changes);
+      }
+      // Validate selection ranges are valid text positions
+      for (const r of selection.ranges) {
+        if (!(r.from >= 0 && r.to <= options.text.length)) {
+          return undefined;
+        }
+      }
+    } catch (e) {
+      return undefined;
     }
   }
 
   function onCollabEvent(event: any) {
-    if (event.type === 'collab.update_key') {
+    if (event.type === CollabEventType.UPDATE_KEY) {
       updateKey(event);
-    } else if (event.type === 'collab.update_text') {
+    } else if (event.type === CollabEventType.UPDATE_TEXT) {
       updateText(event);
+    } else if (event.type === CollabEventType.AWARENESS) {
+      updateAwareness(event);
     } else {
       // eslint-disable-next-line no-console
       console.error('Trying to send unknown collab event:', event);
@@ -249,18 +434,39 @@ export function useCollab(storeState: CollabStoreState<any>) {
     connectionState: computed(() => storeState.connectionState),
     collabProps: computed(() => ({
       path: storeState.websocketPath,
+      clients: storeState.awareness.clients.map((c) => {
+        const a = c.client_id === storeState.clientID ? 
+          storeState.awareness.self : 
+          storeState.awareness.other[c.client_id];
+        return {
+          ...c,
+          path: storeState.websocketPath + (a?.path || ''),
+          selection: a?.selection,
+          isSelf: c.client_id === storeState.clientID,
+        };
+      }),
     })),
   }
 }
 
 export type CollabPropType = {
   path: string;
+  clients: {
+    client_id: string;
+    client_color: string;
+    user: UserShortInfo;
+    path: string;
+    selection?: EditorSelection;
+    isSelf: boolean;
+  }[];
 };
 
-export function collabSubpath(collab: CollabPropType, subPath: string) {
-  const addDot = !collab.path.endsWith('.') && !collab.path.endsWith('/');
+export function collabSubpath(collab: CollabPropType, subPath: string|null) {
+  const addDot = !collab.path.endsWith('.') && !collab.path.endsWith('/') && subPath;
+  const path = collab.path + (addDot ? '.' : '') + (subPath || '');
   return {
     ...collab,
-    path: collab.path + (addDot ? '.' : '') + subPath,
-  }
+    path,
+    clients: collab.clients.filter(a => a.path.startsWith(path))
+  };
 }

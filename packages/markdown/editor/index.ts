@@ -1,5 +1,5 @@
 export { EditorState, EditorSelection, ChangeSet, Text, Transaction } from '@codemirror/state';
-export { EditorView, ViewUpdate, tooltips, scrollPastEnd, keymap, lineNumbers, drawSelection, rectangularSelection, crosshairCursor, } from '@codemirror/view';
+export { EditorView, ViewUpdate, tooltips, scrollPastEnd, keymap, lineNumbers, drawSelection, rectangularSelection, crosshairCursor, dropCursor } from '@codemirror/view';
 export { history, historyKeymap, defaultKeymap, indentWithTab, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 export { forceLinting, setDiagnostics } from '@codemirror/lint';
 export { closeBrackets } from "@codemirror/autocomplete";
@@ -19,4 +19,5 @@ export {
   isTypeInSelection, isTaskListInSelection,
   insertNewlineContinueMarkup
 } from './commands';
+export { setRemoteClients, remoteSelection } from './awareness';
 import 'highlight.js/styles/default.css';

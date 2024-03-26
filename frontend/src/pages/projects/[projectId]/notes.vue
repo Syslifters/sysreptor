@@ -15,6 +15,7 @@
           @update:checked="updateNoteChecked"
           :disabled="notesCollab.readonly.value"
           :to-prefix="`/projects/${$route.params.projectId}/notes/`"
+          :collab="notesCollab.collabProps.value"
         />
       </notes-menu>
     </template>
@@ -31,6 +32,7 @@
 import debounce from "lodash/debounce";
 
 const route = useRoute();
+const router = useRouter();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 
@@ -45,6 +47,7 @@ const notesCollab = projectStore.useNotesCollab(project.value);
 onMounted(async () => {
   if (notesCollab.hasEditPermissions.value) {
     notesCollab.connect();
+    collabAwarenessSendNavigate();
   } else {
     await projectStore.fetchNotes(project.value);
   }
@@ -52,6 +55,15 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   notesCollab.disconnect();
 });
+watch(() => router.currentRoute.value, collabAwarenessSendNavigate);
+
+function collabAwarenessSendNavigate() {
+  const noteId = router.currentRoute.value.params.noteId;
+  notesCollab.onCollabEvent({
+    type: CollabEventType.AWARENESS,
+    path: collabSubpath(notesCollab.collabProps.value, noteId ? `notes.${noteId}` : null).path,
+  });
+}
 
 async function createNote() {
   const currentNote = projectStore.notes(project.value.id).find(n => n.id === route.params.noteId);
@@ -72,7 +84,7 @@ async function performImport(file: File) {
 
 function updateNoteChecked(note: NoteBase) {
   notesCollab.onCollabEvent({
-    type: 'collab.update_key',
+    type: CollabEventType.UPDATE_KEY,
     path: collabSubpath(notesCollab.collabProps.value, `notes.${note.id}.checked`).path,
     value: note.checked,
   });

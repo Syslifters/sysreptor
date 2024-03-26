@@ -95,7 +95,7 @@ const _fetchState = useLazyAsyncData(async () => {
         return value && !(Array.isArray(value) && value.length === 0) && templateStore.fieldDefinitionList.some(d => d.id === key);
       })),
     }],
-  } as any as FindingTemplate;
+  } as unknown as FindingTemplate;
 
   return {
     project,

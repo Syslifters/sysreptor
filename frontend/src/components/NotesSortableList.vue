@@ -42,6 +42,12 @@
               </span>
             </v-list-item-subtitle>
           </template>
+          <template #append>
+            <collab-avatar-group 
+              v-if="props.collab"
+              :collab="collabSubpath(props.collab, `notes.${item.note.id}`)"
+            />
+          </template>
         </v-list-item>
 
         <v-list v-if="isExpanded(item.note)" density="compact" class="pt-0 pb-0">
@@ -53,6 +59,7 @@
             @update:checked="emit('update:checked', $event)"
             :disabled="props.disabled"
             :to-prefix="props.toPrefix"
+            :collab="props.collab"
             class="child-list"
           />
         </v-list>
@@ -72,6 +79,7 @@ const props = defineProps<{
   selected?: NoteBase|null;
   toPrefix?: string;
   disabled?: boolean;
+  collab?: CollabPropType;
 }>();
 const emit = defineEmits<{
   (e: 'update:modelValue', value: NoteGroup<NoteBase>): void;

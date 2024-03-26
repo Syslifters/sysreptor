@@ -19,7 +19,7 @@ function testFindingSort({ findings, findingOrdering = [], overrideFindingOrder 
       field_enum: { type: 'enum', label: 'Enum Field', choices: [{ value: 'enum1', label: 'Enum Value 1' }, { value: 'enum2', label: 'Enum Value 2' }], default: 'enum2' },
     },
     finding_ordering: findingOrdering,
-  } as any as ProjectType;
+  } as unknown as ProjectType;
   const sortedFindings = sortFindings({
     findings: reverse(unorderedFindings),
     projectType,
@@ -41,7 +41,7 @@ describe('Finding Sorting', () => {
         { order: 1 },
         { order: 2 },
         { order: 3 },
-      ] as any as PentestFinding[],
+      ] as unknown as PentestFinding[],
       overrideFindingOrder: true,
     });
   });
@@ -52,7 +52,7 @@ describe('Finding Sorting', () => {
         { order: 0, created: addDays(new Date(), -2).toISOString() },
         { order: 0, created: addDays(new Date(), -1).toISOString() },
         { order: 0, created: addDays(new Date(), -0).toISOString() },
-      ] as any as PentestFinding[],
+      ] as unknown as PentestFinding[],
       overrideFindingOrder: true,
     });
   });
@@ -73,7 +73,7 @@ describe('Finding Sorting', () => {
           created: new Date().toISOString(),
           order: 0,
           data: f,
-        })) as any as PentestFinding[],
+        })) as unknown as PentestFinding[],
         findingOrdering: config.order,
       });
     });

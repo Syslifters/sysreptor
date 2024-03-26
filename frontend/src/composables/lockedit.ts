@@ -14,8 +14,9 @@ import type {
   ProjectType,
   UploadedFileInfo,
 } from "~/utils/types";
-import { EditToolbar } from "#components";
+import { type EditToolbar } from "#components";
 
+// @ts-ignore
 export type ToolbarRef = Ref<InstanceType<typeof EditToolbar>>|ComputedRef<InstanceType<typeof EditToolbar>>;
 export type LockEditOptions<T> = {
   toolbarRef?: ToolbarRef;

@@ -1579,7 +1579,7 @@ let cacheControl = {
 `kv-asset-handler` sets and evaluates etags as [strong validators](https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests#Strong_validation). To preserve `etag` integrity, the format of the value deviates from the [RFC2616 recommendation to enclose the `etag` with quotation marks](https://tools.ietf.org/html/rfc2616#section-3.11). This is intentional. Cloudflare cache applies the `W/` prefix to all `etags` that use quoted-strings -- a process that converts the `etag` to a "weak validator" when served to a client.
 
 
-@codemirror/autocomplete 6.12.0
+@codemirror/autocomplete 6.15.0
 MIT
 MIT License
 
@@ -1679,7 +1679,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-javascript 6.2.1
+@codemirror/lang-javascript 6.2.2
 MIT
 MIT License
 
@@ -1754,7 +1754,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/language 6.10.0
+@codemirror/language 6.10.1
 MIT
 MIT License
 
@@ -1779,7 +1779,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lint 6.4.2
+@codemirror/lint 6.5.0
 MIT
 MIT License
 
@@ -1804,7 +1804,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/merge 6.5.0
+@codemirror/merge 6.6.1
 MIT
 MIT License
 
@@ -1829,7 +1829,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/state 6.4.0
+@codemirror/state 6.4.1
 MIT
 MIT License
 
@@ -1854,7 +1854,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/view 6.23.1
+@codemirror/view 6.26.0
 MIT
 MIT License
 
@@ -2935,7 +2935,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/css 1.1.7
+@lezer/css 1.1.8
 MIT
 MIT License
 
@@ -2985,7 +2985,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/html 1.3.8
+@lezer/html 1.3.9
 MIT
 MIT License
 
@@ -6497,7 +6497,7 @@ MIT
     SOFTWARE
 
 
-@types/hast 3.0.3
+@types/hast 3.0.4
 MIT
     MIT License
 
@@ -12711,31 +12711,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-cose-base 2.2.0
-MIT
-MIT License
-
-Copyright (c) 2019 - present, iVis@Bilkent.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 crc-32 1.2.2
 Apache-2.0
                                  Apache License
@@ -13361,29 +13336,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-cytoscape-fcose 2.2.0
-MIT
-Copyright (c) 2018 - present, iVis-at-Bilkent.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the “Software”), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 cytoscape 3.28.1
 MIT
 Copyright (c) 2016-2023, The Cytoscape Consortium.
@@ -13691,9 +13643,9 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 
-d3-geo 3.1.0
+d3-geo 3.1.1
 ISC
-Copyright 2010-2022 Mike Bostock
+Copyright 2010-2024 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -13893,9 +13845,9 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-d3-scale-chromatic 3.0.0
+d3-scale-chromatic 3.1.0
 ISC
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2024 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -14092,7 +14044,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 
-d3 7.8.5
+d3 7.9.0
 ISC
 Copyright 2010-2023 Mike Bostock
 
@@ -15325,40 +15277,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-diff 5.1.0
-BSD-3-Clause
-Software License Agreement (BSD License)
-
-Copyright (c) 2009-2015, Kevin Decker <kpdecker@gmail.com>
-
-All rights reserved.
-
-Redistribution and use of this software in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above
-  copyright notice, this list of conditions and the
-  following disclaimer.
-
-* Redistributions in binary form must reproduce the above
-  copyright notice, this list of conditions and the
-  following disclaimer in the documentation and/or other
-  materials provided with the distribution.
-
-* Neither the name of Kevin Decker nor the names of its
-  contributors may be used to endorse or promote products
-  derived from this software without specific prior
-  written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
-IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 diff 5.2.0
 BSD-3-Clause
 BSD 3-Clause License
@@ -15812,7 +15730,7 @@ THIS IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRE
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-dompurify 3.0.8
+dompurify 3.0.11
 (MPL-2.0 OR Apache-2.0)
 DOMPurify
 Copyright 2023 Dr.-Ing. Mario Heiderich, Cure53
@@ -16532,7 +16450,7 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-elkjs 0.9.1
+elkjs 0.9.2
 EPL-2.0
 # Eclipse Public License - v 2.0
 
@@ -20810,7 +20728,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-hasown 2.0.0
+hasown 2.0.1
 MIT
 MIT License
 
@@ -20835,7 +20753,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-hasown 2.0.1
+hasown 2.0.2
 MIT
 MIT License
 
@@ -24330,6 +24248,31 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+katex 0.16.10
+MIT
+The MIT License (MIT)
+
+Copyright (c) 2013-2020 Khan Academy and other contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
 keyv 4.5.4
 MIT
 <h1 align="center">
@@ -24926,31 +24869,6 @@ THE SOFTWARE.
 
 
 layout-base 1.0.2
-MIT
-MIT License
-
-Copyright (c) 2019 iVis@Bilkent
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-layout-base 2.0.1
 MIT
 MIT License
 
@@ -26182,7 +26100,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-mdast-util-phrasing 4.0.0
+mdast-util-phrasing 4.1.0
 MIT
 (The MIT License)
 
@@ -26603,7 +26521,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-mermaid 10.7.0
+mermaid 10.9.0
 MIT
 The MIT License (MIT)
 
@@ -46441,25 +46359,6 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-semver 7.5.4
-ISC
-The ISC License
-
-Copyright (c) Isaac Z. Schlueter and Contributors
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
-IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-
 semver 7.6.0
 ISC
 The ISC License
@@ -48725,46 +48624,6 @@ Apache-2.0
    limitations under the License.
 
 
-spdx-exceptions 2.4.0
-CC-BY-3.0
-The package exports an array of strings. Each string is an identifier
-for a license exception under the [Software Package Data Exchange
-(SPDX)][SPDX] software license metadata standard.
-
-[SPDX]: https://spdx.org
-
-## Copyright and Licensing
-
-### SPDX
-
-"SPDX" is a federally registered United States trademark of The Linux
-Foundation Corporation.
-
-From version 2.0 of the [SPDX] specification:
-
-> Copyright © 2010-2015 Linux Foundation and its Contributors. Licensed
-> under the Creative Commons Attribution License 3.0 Unported. All other
-> rights are expressly reserved.
-
-The Linux Foundation and the SPDX working groups are good people. Only
-they decide what "SPDX" means, as a standard and otherwise. I respect
-their work and their rights. You should, too.
-
-### This Package
-
-> I created this package by copying exception identifiers out of the
-> SPDX specification. That work was mechanical, routine, and required no
-> creativity whatsoever. - Kyle Mitchell, package author
-
-United States users concerned about intellectual property may wish to
-discuss the following Supreme Court decisions with their attorneys:
-
-- _Baker v. Selden_, 101 U.S. 99 (1879)
-
-- _Feist Publications, Inc., v. Rural Telephone Service Co._,
-  499 U.S. 340 (1991)
-
-
 spdx-exceptions 2.5.0
 CC-BY-3.0
 The package exports an array of strings. Each string is an identifier
@@ -48829,62 +48688,6 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-spdx-license-ids 3.0.16
-CC0-1.0
-# spdx-license-ids
-
-[![npm version](https://img.shields.io/npm/v/spdx-license-ids.svg)](https://www.npmjs.com/package/spdx-license-ids)
-[![Github Actions](https://action-badges.now.sh/jslicense/spdx-license-ids)](https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/results/jslicense/spdx-license-ids)
-
-A list of [SPDX license](https://spdx.org/licenses/) identifiers
-
-## Installation
-
-[Download JSON directly](https://raw.githubusercontent.com/jslicense/spdx-license-ids/main/index.json), or [use](https://docs.npmjs.com/cli/install) [npm](https://docs.npmjs.com/about-npm/):
-
-```
-npm install spdx-license-ids
-```
-
-## [Node.js](https://nodejs.org/) API
-
-### require('spdx-license-ids')
-
-Type: `string[]`
-
-All license IDs except for the currently deprecated ones.
-
-```javascript
-const ids = require('spdx-license-ids');
-//=> ['0BSD', 'AAL', 'ADSL', 'AFL-1.1', 'AFL-1.2', 'AFL-2.0', 'AFL-2.1', 'AFL-3.0', 'AGPL-1.0-only', ...]
-
-ids.includes('BSD-3-Clause'); //=> true
-ids.includes('CC-BY-1.0'); //=> true
-
-ids.includes('GPL-3.0'); //=> false
-```
-
-### require('spdx-license-ids/deprecated')
-
-Type: `string[]`
-
-Deprecated license IDs.
-
-```javascript
-const deprecatedIds = require('spdx-license-ids/deprecated');
-//=> ['AGPL-1.0', 'AGPL-3.0', 'GFDL-1.1', 'GFDL-1.2', 'GFDL-1.3', 'GPL-1.0', 'GPL-2.0', ...]
-
-deprecatedIds.includes('BSD-3-Clause'); //=> false
-deprecatedIds.includes('CC-BY-1.0'); //=> false
-
-deprecatedIds.includes('GPL-3.0'); //=> true
-```
-
-## License
-
-[Creative Commons Zero v1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/deed)
 
 
 spdx-license-ids 3.0.17
@@ -49573,7 +49376,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-style-mod 4.1.0
+style-mod 4.1.2
 MIT
 Copyright (C) 2018 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
 
@@ -50177,7 +49980,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-trough 2.1.0
+trough 2.2.0
 MIT
 (The MIT License)
 

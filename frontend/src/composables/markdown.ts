@@ -4,12 +4,13 @@ import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,
   forceLinting, highlightTodos, tooltips, scrollPastEnd, closeBrackets, 
-  drawSelection, rectangularSelection, crosshairCursor,
+  drawSelection, rectangularSelection, crosshairCursor, dropCursor,
   history, historyKeymap, keymap, setDiagnostics,
   spellcheck, spellcheckTheme,
   lineNumbers, indentUnit, defaultKeymap, indentWithTab,
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
   Transaction,
+  remoteSelection, setRemoteClients,
 } from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '@/utils/types';
 
@@ -199,20 +200,34 @@ export function useMarkdownEditor({ props, emit, extensions }: {
             // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
             if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
               // Collab updates
-              for (const tr of viewUpdate.transactions) {
-                if (tr.docChanged && !tr.annotation(Transaction.remote)) {
-                  emit('collab', {
-                    type: 'collab.update_text',
-                    path: props.value.collab?.path,
-                    updates: [{ changes: tr.changes.toJSON() }],
-                  })
+              if (props.value.collab) {
+                for (const tr of viewUpdate.transactions) {
+                  if (tr.docChanged && !tr.annotation(Transaction.remote)) {
+                    emit('collab', {
+                      type: CollabEventType.UPDATE_TEXT,
+                      path: props.value.collab.path,
+                      updates: [{ changes: tr.changes, selection: tr.selection }],
+                    });
+                  }
                 }
               }
 
               // Model-value updates
               emit('update:modelValue', viewUpdate.state.doc.toString());
+            } 
+            
+            if (props.value.collab && (viewUpdate.selectionSet || viewUpdate.focusChanged)) {
+              // Collab awareness updates
+              const hasFocus = editorView.value?.hasFocus || false;
+              emit('collab', {
+                type: CollabEventType.AWARENESS,
+                path: props.value.collab.path,
+                focus: hasFocus,
+                selection: viewUpdate.state.selection,
+              });
             }
           }),
+          remoteSelection(),
         ]
       }),
     });
@@ -301,6 +316,24 @@ export function useMarkdownEditor({ props, emit, extensions }: {
   watch(spellcheckBrowserEnabled, val => editorActions.value.spellcheckBrowser?.(val));
   watch(theme.current, val => editorActions.value.darkTheme?.(val.dark));
 
+  watch([() => props.value.collab?.clients, () => editorView.value], () => {
+    if (!editorView.value) {
+      return;
+    }
+    const remoteClients = (props.value.collab?.clients || []).filter(c => !c.isSelf && c.selection).map(c => ({
+      client_id: c.client_id,
+      color: c.client_color,
+      name: c.user.username + (c.user.name ? ` (${c.user.name})` : ''),
+      selection: c.selection!,
+    }));
+
+    editorView.value.dispatch({
+      effects: [
+        setRemoteClients.of(remoteClients)
+      ]
+    })
+  }, { deep: true });
+
   function focus() {
     if (editorView.value) {
       editorView.value.focus();
@@ -357,6 +390,7 @@ export function markdownEditorDefaultExtensions() {
     drawSelection(),
     rectangularSelection(),
     crosshairCursor(),
+    dropCursor(),
     EditorView.lineWrapping,
     EditorState.tabSize.of(4),
     indentUnit.of('    '),

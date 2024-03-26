@@ -72,7 +72,7 @@ async function performImport(file: File) {
 }
 function updateNoteChecked(note: NoteBase) {
   notesCollab.onCollabEvent({
-    type: 'collab.update_key',
+    type: CollabEventType.UPDATE_KEY,
     path: collabSubpath(notesCollab.collabProps.value, `notes.${note.id}.checked`).path,
     value: note.checked,
   });
