@@ -156,17 +156,14 @@ export function useCollab(storeState: CollabStoreState<any>) {
         delete storeState.awareness.other[msgData.client_id];
       } else if (msgData.type === CollabEventType.AWARENESS) {
         if (msgData.client_id !== storeState.clientID) {
-          let selection = msgData.selection ? EditorSelection.fromJSON(msgData.selection) : undefined;
-          if (selection) {
-            // Map onto unconfirmedTextUpdates
-            for (const u of storeState.perPathState.get(msgData.path)?.unconfirmedTextUpdates || []) {
-              selection = selection.map(u.changes);
-            }
-          }
           storeState.awareness.other[msgData.client_id] = {
             client_id: msgData.client_id,
             path: msgData.path,
-            selection,
+            selection: parseSelection({
+              selectionJson: msgData.selection, 
+              unconfirmed: storeState.perPathState.get(msgData.path)?.unconfirmedTextUpdates || [], 
+              text: get(storeState.data as Object, msgData.path) || ''
+            }),
           };
         }
       } else if (!storeState.handleAdditionalWebSocketMessages?.(msgData)) {
@@ -382,16 +379,37 @@ export function useCollab(storeState: CollabStoreState<any>) {
         if (a.client_id === event.client_id) {
           a.path = event.path;
           if (event.selection) {
-            const s = EditorSelection.fromJSON(event.selection);
-            for (const u of unconfirmed) {
-              s.map(u.changes);
-            }
-            a.selection = s;
+            a.selection = parseSelection({
+              selectionJson: event.selection,
+              unconfirmed,
+              text: cmText,
+            });
           }
         } else if (a.path === event.path) {
           a.selection = a.selection?.map(changes);
         }
       }
+    }
+  }
+
+  function parseSelection(options: {selectionJson: any|undefined, unconfirmed: TextUpdate[], text: Text|string}) {
+    if (!options.selectionJson) {
+      return undefined;
+    }
+    try {
+      let selection = EditorSelection.fromJSON(options.selectionJson);
+      // Rebase selection onto unconfirmed changes
+      for (const u of options.unconfirmed) {
+        selection = selection.map(u.changes);
+      }
+      // Validate selection ranges are valid text positions
+      for (const r of selection.ranges) {
+        if (!(r.from >= 0 && r.to <= options.text.length)) {
+          return undefined;
+        }
+      }
+    } catch (e) {
+      return undefined;
     }
   }
 
