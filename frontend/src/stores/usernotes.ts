@@ -1,7 +1,7 @@
 import groupBy from "lodash/groupBy";
 import sortBy from "lodash/sortBy";
 import pick from "lodash/pick";
-import type { UserNote, NoteBase } from "~/utils/types";
+import type { UserNote, NoteBase, ProjectNote } from "~/utils/types";
 
 export type NoteGroup<T extends NoteBase> = {
   note: T;
@@ -67,6 +67,11 @@ export const useUserNotesStore = defineStore('usernotes', {
     clear() {
       this.useNotesCollab().disconnect();
       this.notesCollabState.data = { notes: {} };
+      this.notesCollabState.awareness = {
+        self: { path: null },
+        other: {},
+        clients: []
+      };
     },
     async createNote(note: UserNote) {
       note = await $fetch<UserNote>(`/api/v1/pentestusers/self/notes/`, {
@@ -100,7 +105,7 @@ export const useUserNotesStore = defineStore('usernotes', {
     },
     useNotesCollab() {
       const collabState = this.notesCollabState;
-      const collab = useCollab(collabState);
+      const collab = useCollab(collabState as unknown as CollabStoreState<{ notes: {[key: string]: UserNote}}>);
 
       const hasEditPermissions = computed(() => true);
       return {

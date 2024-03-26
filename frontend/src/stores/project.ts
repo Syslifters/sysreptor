@@ -88,7 +88,7 @@ export const useProjectStore = defineStore('project', {
     ensureExists(projectId: string, initialStoreData?: Object) {
       if (!(projectId in this.data)) {
         this.data[projectId] = {
-          project: null as any as PentestProject,
+          project: null as unknown as PentestProject,
           findings: [],
           sections: [],
           getByIdSync: null,

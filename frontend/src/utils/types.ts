@@ -233,7 +233,7 @@ export enum ProjectTypeStatus {
   FINISHED = 'finished',
   DEPRECATED = 'deprecated',
 }
-export const ProjectTypeStatusItems = Object.freeze((ReviewStatusItems as any as {value: ProjectTypeStatus, title: string, icon: string}[]).concat([
+export const ProjectTypeStatusItems = Object.freeze((ReviewStatusItems as unknown as {value: ProjectTypeStatus, title: string, icon: string}[]).concat([
   { value: ProjectTypeStatus.DEPRECATED, title: 'Deprecated', icon: 'mdi-close-octagon-outline' },
 ]))
 

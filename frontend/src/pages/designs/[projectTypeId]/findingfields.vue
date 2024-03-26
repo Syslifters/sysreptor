@@ -154,7 +154,7 @@ const availablePredefinedFields = computed<FieldDefinitionWithId[]>(() => {
 });
 
 const currentField = ref<FieldDefinitionWithId|null>(null);
-const allFieldsPlaceholder = { id: null } as any as FieldDefinitionWithId;
+const allFieldsPlaceholder = { id: null } as unknown as FieldDefinitionWithId;
 const currentFieldSelection = computed({
   get: () => currentField.value ? [currentField.value] : [allFieldsPlaceholder],
   set: (val) => {

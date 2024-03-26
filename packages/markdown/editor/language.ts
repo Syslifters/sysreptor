@@ -136,8 +136,11 @@ function micromarkToLezerSyntaxTree(text: string, events: Event[]) {
 
 
 export function lezerSyntaxTreeParse() {
-  const micromarkExtensions = this.data('micromarkExtensions') || [];
-  this.Parser = parser;
+  // @ts-ignore
+  const self = this;
+
+  const micromarkExtensions = self.data('micromarkExtensions') || [];
+  self.Parser = parser;
 
   function parser(text: string) {
     const events = parseMicromarkEvents(text, {extensions: micromarkExtensions});

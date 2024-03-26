@@ -88,7 +88,7 @@ export function makeCollabStoreState<T>(options: {
   }
 }
 
-export function useCollab(storeState: CollabStoreState<any>) {
+export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   const eventBusBeforeApplyRemoteTextChange = useEventBus('collab:beforeApplyRemoteTextChanges');
 
   function connect() {

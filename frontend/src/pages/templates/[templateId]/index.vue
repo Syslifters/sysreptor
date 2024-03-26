@@ -14,7 +14,7 @@
           :upload-file="uploadFile"
           :rewrite-file-url="rewriteFileUrl"
           :readonly="readonly"
-          :initial-language="template!.translations.find(tr => tr.id === route.query?.translation_id)?.language || route.query?.language"
+          :initial-language="template!.translations.find(tr => tr.id === route.query?.translation_id)?.language || (route.query?.language as string|undefined)"
           :history="true"
         >
           <template #toolbar-context-menu>

@@ -34,7 +34,7 @@ const template = ref<FindingTemplate>({
       title: 'TODO: New Template Title',
     },
   }],
-} as any as FindingTemplate)
+} as unknown as FindingTemplate)
 
 async function performCreate() {
   const obj = await templateStore.create(template.value);
