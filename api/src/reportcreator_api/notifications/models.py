@@ -19,6 +19,9 @@ class NotificationSpec(BaseModel):
 
     objects = querysets.NotificationSpecManager()
 
+    def __str__(self) -> str:
+        return self.title
+
 
 class UserNotification(BaseModel):
     """
