@@ -8,6 +8,7 @@
 * Add Content Security Policy directive form-action
 * Strengthen Content Security Policy: remove script-src unsafe-inline
 * Fix API token expiring today shown as expired in UI
+* Fix squished buttons on publishing project page
 * Markdown editor: Improve vue template variable handling
 * Markdown editor: Allow escaping curly braces
 
