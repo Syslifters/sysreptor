@@ -12,7 +12,7 @@ from django.db.models import ProtectedError
 from django.conf import settings
 from django.forms import model_to_dict
 from django.core.serializers.json import DjangoJSONEncoder
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, SESSION_KEY
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
@@ -332,7 +332,7 @@ class AuthViewSet(viewsets.ViewSet):
 
         request.session.pop('login_state', None)
         first_login = not user.last_login
-        is_reauth = bool(request.session.get('authentication_info', {}).get('login_time')) and str(user.id) == request.session.get('_auth_user_id')
+        is_reauth = bool(request.session.get('authentication_info', {}).get('login_time')) and str(user.id) == request.session.get(SESSION_KEY)
         if is_reauth and can_reauth:
             request.session.cycle_key()
             request.session['authentication_info'] |= {

@@ -4,15 +4,17 @@ import contextlib
 from datetime import timedelta
 from asgiref.sync import sync_to_async
 from django.urls import reverse
+from django.conf import settings
+from django.utils.module_loading import import_string
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import SESSION_KEY, BACKEND_SESSION_KEY, HASH_SESSION_KEY
 from channels.testing import WebsocketCommunicator
-from channels.routing import URLRouter
 
 from reportcreator_api.pentests.models import CollabEventType, CollabClientInfo, ProjectMemberInfo
 from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time
-from reportcreator_api.conf.urls import websocket_urlpatterns
 from reportcreator_api.utils.text_transformations import ChangeSet, EditorSelection, SelectionRange, Update, rebase_updates
 from reportcreator_api.utils.utils import copy_keys
+from reportcreator_api.conf.asgi import application
 
 
 class TestTextTransformations:
@@ -118,13 +120,30 @@ class TestTextTransformations:
         assert actual == expected
 
 
+@sync_to_async
+def create_session(user):
+    if not user or user.is_anonymous:
+        return None
+    
+    engine = import_string(settings.SESSION_ENGINE)
+    session = engine.SessionStore()
+    session[SESSION_KEY] = str(user.id)
+    session[BACKEND_SESSION_KEY] = settings.AUTHENTICATION_BACKENDS[0]
+    session[HASH_SESSION_KEY] = user.get_session_auth_hash()
+    session['admin_permissions_enabled'] = True
+    session.save()
+    return session
+
+
 @contextlib.asynccontextmanager
 async def ws_connect(path, user, consume_init=True, other_clients=None):
+    session = await create_session(user)
     consumer = WebsocketCommunicator(
-        application=URLRouter(websocket_urlpatterns),
+        application=application,
         path=path,
+        headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())]
     )
-    consumer.scope['user'] = user
+    setattr(consumer, 'session', session)
 
     try:
         # Connect
@@ -399,19 +418,34 @@ class TestProjectNotesDbSync:
         res = await self.client1.receive_output()
         assert res['type'] == 'websocket.close'
 
+    async def test_logout_write(self):
+        await sync_to_async(self.client1.session.flush)()
+
+        await self.client1.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.checked', 'value': True})
+        res = await self.client1.receive_output()
+        assert res['type'] == 'websocket.close'
+
+    async def test_logout_read(self):
+        await sync_to_async(self.client1.session.flush)()
+
+        with mock_time(after=timedelta(minutes=2)):
+            await self.client2.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.checked', 'value': True})
+            await self.client2.receive_json_from()
+
+            res1 = await self.client1.receive_output()
+            assert res1['type'] == 'websocket.close'
+
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 class TestConsumerPermissions:
     async def ws_connect(self, path, user):
+        session = await create_session(user)
         consumer = WebsocketCommunicator(
-            application=URLRouter(websocket_urlpatterns),
+            application=application,
             path=path,
+            headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())] if session else []
         )
-        consumer.scope |= {
-            'user': user,
-            'session': {'admin_permissions_enabled': True},
-        }
         connected, _ = await consumer.connect()
         await consumer.disconnect()
         return connected

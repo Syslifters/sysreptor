@@ -315,6 +315,3 @@ class TestLicenseValidation:
         license_2 = b64encode(json.dumps(license_content).encode())
         license_info = license.decode_and_validate_license(license_2)
         assert license_info['type'] == license.LicenseType.PROFESSIONAL
-
-
-# TODO: test create system user when limit is exceeded
