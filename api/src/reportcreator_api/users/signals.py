@@ -10,6 +10,9 @@ from reportcreator_api.utils import license
 def user_count_license_check(sender, instance, *args, **kwargs):
     if not instance.is_active:
         return
+    
+    if instance.is_system_user and license.is_professional():
+        return
 
     # User created
     created = instance.id is None or instance._state.adding
@@ -40,7 +43,7 @@ def user_count_license_check(sender, instance, *args, **kwargs):
         max_users = license.check_license().get('users', 1)
         if current_user_count + 1 > max_users:
             raise license.LicenseError(f'License limit exceeded. Your license allows max. {max_users} users. Please deactivate some users or extend your license.')
-    
+
 
 @receiver(signals.pre_save, sender=APIToken)
 def api_token_license_limit(sender, instance, *args, **kwargs):
