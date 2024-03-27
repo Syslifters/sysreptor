@@ -35,7 +35,7 @@ class TestCommunityLicenseRestrictions:
         self.user_system = create_user(is_system_user=True, password=self.password)
         self.client = api_client(self.user)
 
-        with mock.patch('reportcreator_api.utils.license.check_license', lambda: {'type': license.LicenseType.COMMUNITY, 'users': 2, 'error': None}):
+        with mock.patch('reportcreator_api.utils.license.check_license', lambda **_: {'type': license.LicenseType.COMMUNITY, 'users': 2, 'error': None}):
             yield
 
     def test_spellcheck_disabled(self):
@@ -191,7 +191,7 @@ class TestProfessionalLicenseRestrictions:
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-        with mock.patch('reportcreator_api.utils.license.check_license', lambda: {'type': license.LicenseType.PROFESSIONAL, 'users': 1, 'error': None}):
+        with mock.patch('reportcreator_api.utils.license.check_license', lambda **_: {'type': license.LicenseType.PROFESSIONAL, 'users': 1, 'error': None}):
             yield
 
     def test_user_count_limit(self):
