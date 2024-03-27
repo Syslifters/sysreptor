@@ -103,7 +103,8 @@ const { inputFieldAttrs, errorMessage } = useProjectEditBase({
 });
 const toolbarAttrs = computed(() => ({
   data: note.value,
-  errorMessage: errorMessage.value,
+  errorMessage: errorMessage.value || 
+    (!notesCollab.hasLock.value ? 'This note is locked by another user. Upgrade to SysReptor Professional for lock-free collaborative editing.' : null),
   delete: async (note: ProjectNote) => {
     await projectStore.deleteNote(project.value, note);
     await navigateTo(`/projects/${project.value.id}/notes/`);
@@ -177,6 +178,7 @@ TODO: collab bugfixes
   * [x] ping/pong frames every X seconds + JS timeout
   * [x] timeout when no response is received
 * [x] avatar thicker border radius
-* [ ] Collaborative editing restrictions in community
-  * [ ] move to store.useCollab hasPermissions with noteId
+* [x] Collaborative editing restrictions in community
+  * [x] move to store.useCollab hasPermissions with noteId
+* [ ] unknown websocket message: collab.create
 -->
