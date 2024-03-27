@@ -197,10 +197,14 @@ class TestProfessionalLicenseRestrictions:
     def test_user_count_limit(self):
         with pytest.raises(license.LicenseLimitExceededError):
             create_user(username='new-user1', password=self.password)
+        # Create regular user
         assert_api_license_error(self.client.post(reverse('pentestuser-list'), data={
             'username': 'new-user2',
             'password': self.password,
         }))
+
+        # Create system user
+        create_user(is_system_user=True)
 
 
 @pytest.mark.django_db
@@ -311,3 +315,6 @@ class TestLicenseValidation:
         license_2 = b64encode(json.dumps(license_content).encode())
         license_info = license.decode_and_validate_license(license_2)
         assert license_info['type'] == license.LicenseType.PROFESSIONAL
+
+
+# TODO: test create system user when limit is exceeded
