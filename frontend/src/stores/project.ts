@@ -318,7 +318,7 @@ export const useProjectStore = defineStore('project', {
       this.data[project.id].notesCollabState.data.notes = Object.fromEntries(notes.map(n => [n.id, n]));
       return notes;
     },
-    useNotesCollab(project: PentestProject) {
+    useNotesCollab(project: PentestProject, noteId?: string) {
       this.ensureExists(project.id);
 
       const collabState = this.data[project.id].notesCollabState;
@@ -328,6 +328,7 @@ export const useProjectStore = defineStore('project', {
 
       return {
         ...collab,
+        collabProps: computed(() => collabSubpath(collab.collabProps.value, noteId ? `notes.${noteId}` : null)),
         hasEditPermissions,
         readonly: computed(() => !hasEditPermissions.value || collabState.connectionState !== CollabConnectionState.OPEN),
       };

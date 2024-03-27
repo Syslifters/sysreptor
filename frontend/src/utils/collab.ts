@@ -406,6 +406,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           return undefined;
         }
       }
+      return selection;
     } catch (e) {
       return undefined;
     }

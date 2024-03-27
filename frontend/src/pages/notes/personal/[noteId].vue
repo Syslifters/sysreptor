@@ -24,7 +24,7 @@
             <markdown-text-field-content
               ref="titleRef"
               :model-value="note.title"
-              :collab="collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.title`)"
+              :collab="collabSubpath(notesCollab.collabProps.value, 'title')"
               @collab="notesCollab.onCollabEvent"
               v-bind="inputFieldAttrs"
               class="note-title"
@@ -49,7 +49,7 @@
       <markdown-page
         ref="textRef"
         :model-value="note.text"
-        :collab="collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.text`)"
+        :collab="collabSubpath(notesCollab.collabProps.value, 'text')"
         @collab="notesCollab.onCollabEvent"
         v-bind="inputFieldAttrs"
       />
@@ -66,7 +66,7 @@ const route = useRoute();
 const localSettings = useLocalSettings();
 const userNotesStore = useUserNotesStore();
 
-const notesCollab = userNotesStore.useNotesCollab();
+const notesCollab = userNotesStore.useNotesCollab(route.params.noteId as string);
 const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
 
 const toolbarAttrs = computed(() => ({
@@ -80,7 +80,7 @@ const toolbarAttrs = computed(() => ({
 function updateKey(key: string, value: any) {
   notesCollab.onCollabEvent({
     type: CollabEventType.UPDATE_KEY,
-    path: collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.${key}`).path,
+    path: collabSubpath(notesCollab.collabProps.value, key).path,
     value,
   })
 }

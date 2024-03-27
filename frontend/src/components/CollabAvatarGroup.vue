@@ -58,10 +58,10 @@ const clientsHidden = computed(() => clientsAll.value.length > props.limit ? cli
   font-size: small;
   background-color: rgb(var(--v-theme-secondary));
   color: rgb(var(--v-theme-on-secondary));
-  border: 2px solid var(--avatar-border-color);
+  border: 3px solid var(--avatar-border-color);
 
   /* overlap */
-  margin-right: -12px;
+  margin-right: -6px;
   &:last-of-type {
     margin-right: 0;
   }

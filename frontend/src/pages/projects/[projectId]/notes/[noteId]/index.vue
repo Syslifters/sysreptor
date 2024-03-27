@@ -24,7 +24,7 @@
             <markdown-text-field-content
               ref="titleRef"
               :model-value="note.title"
-              :collab="collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.title`)"
+              :collab="collabSubpath(notesCollab.collabProps.value, 'title')"
               @collab="notesCollab.onCollabEvent"
               :readonly="notesCollab.readonly.value"
               :spellcheck-supported="true"
@@ -74,7 +74,7 @@
       <markdown-page
         ref="textRef"
         :model-value="note.text"
-        :collab="collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.text`)"
+        :collab="collabSubpath(notesCollab.collabProps.value, 'text')"
         @collab="notesCollab.onCollabEvent"
         :readonly="notesCollab.readonly.value"
         v-bind="inputFieldAttrs"
@@ -92,7 +92,7 @@ const projectStore = useProjectStore();
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
 
-const notesCollab = projectStore.useNotesCollab(project.value);
+const notesCollab = projectStore.useNotesCollab(project.value, route.params.noteId as string);
 const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
 
 const { inputFieldAttrs, errorMessage } = useProjectEditBase({
@@ -113,7 +113,7 @@ const toolbarAttrs = computed(() => ({
 function updateKey(key: string, value: any) {
   notesCollab.onCollabEvent({
     type: CollabEventType.UPDATE_KEY,
-    path: collabSubpath(notesCollab.collabProps.value, `notes.${route.params.noteId}.${key}`).path,
+    path: collabSubpath(notesCollab.collabProps.value, key).path,
     value,
   })
 }
@@ -169,3 +169,14 @@ watch(note, async (note) => {
   min-width: 17em;
 }
 </style>
+
+<!--
+TODO: collab bugfixes
+* [x] cursor and selections not shown => bug in parseSelection
+* [ ] faster network loss detection
+  * [ ] websocket timeout setting?
+  * [ ] ping/pong frames every 10 seconds + JS timeout
+* [x] avatar thicker border radius
+* [ ] Collaborative editing restrictions in community
+  * [ ] move to store.useCollab hasPermissions with noteId
+-->
