@@ -7,6 +7,11 @@ import urlJoin from "url-join";
 import { ChangeSet, EditorSelection, Text } from "reportcreator-markdown/editor"
 import { type UserShortInfo } from "@/utils/types"
 
+const WS_RESPONSE_TIMEOUT = 5_000;
+const WS_PING_INTERVAL = 30_000;
+const WS_THROTTLE_INTERVAL_UPDATE_TEXT = 1_000;
+const WS_THROTTLE_INTERVAL_AWARENESS = 1_000;
+
 export enum CollabConnectionState {
   CLOSED = 'closed',
   CONNECTING = 'connecting',
@@ -36,6 +41,7 @@ export type CollabStoreState<T> = {
   connectionState: CollabConnectionState;
   websocket: WebSocket|null;
   websocketPath: string;
+  websocketConnectionLostTimeout?: ReturnType<typeof throttle>;
   handleAdditionalWebSocketMessages?: (event: any) => boolean;
   perPathState: Map<string, {
     sendUpdateTextThrottled: () => void;
@@ -92,99 +98,125 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   const eventBusBeforeApplyRemoteTextChange = useEventBus('collab:beforeApplyRemoteTextChanges');
 
   function connect() {
-    if (storeState.connectionState !== CollabConnectionState.CLOSED) {
-      return;
-    }
-  
-    const serverUrl = `${window.location.protocol === 'http:' ? 'ws' : 'wss'}://${window.location.host}/`;
-    const wsUrl = urlJoin(serverUrl, storeState.websocketPath);
-    storeState.perPathState?.clear();
-    storeState.awareness = {
-      self: { path: storeState.awareness.self.path },
-      other: {},
-      clients: [],
-      sendAwarenessThrottled: throttle(websocketSendAwareness, 1000, { leading: false, trailing: true })
-    }
-    storeState.connectionState = CollabConnectionState.CONNECTING;
-    storeState.websocket = new WebSocket(wsUrl);
-    storeState.websocket.addEventListener('open', () => {
-      storeState.connectionState = CollabConnectionState.INITIALIZING;
-    })
-    storeState.websocket.addEventListener('close', () => {
-      storeState.connectionState = CollabConnectionState.CLOSED;
-    });
-    storeState.websocket.addEventListener('error', () => {
-      storeState.connectionState = CollabConnectionState.CLOSED;
-    });
-    storeState.websocket.addEventListener('message', (event: MessageEvent) => {
-      const msgData = JSON.parse(event.data);
-
-      if (msgData.version && msgData.version > storeState.version) {
-        storeState.version = msgData.version;
+    return new Promise<void>((resolve, reject) => {
+      if (storeState.connectionState !== CollabConnectionState.CLOSED) {
+        resolve();
+        return;
       }
-      if (msgData.type === CollabEventType.INIT) {
-        storeState.connectionState = CollabConnectionState.OPEN;
-        storeState.data = msgData.data;
-        storeState.clientID = msgData.client_id;
-        storeState.awareness.clients = msgData.clients;
-        storeState.awareness.other = Object.fromEntries(msgData.clients.filter((c: any) => c.client_id !== storeState.clientID).map((c: any) => [c.client_id, { 
-          path: c.path, 
-          selection: undefined, 
-        }]));
-        storeState.awareness.sendAwarenessThrottled?.();
-      } else if (msgData.type === CollabEventType.UPDATE_KEY) {
-        // Update local state
-        set(storeState.data as Object, msgData.path, msgData.value);
-      } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
-        receiveUpdateText(msgData);
-      } else if (msgData.type === CollabEventType.UPDATE_KEY) {
-        set(storeState.data as Object, msgData.path, msgData.value);
-      } else if (msgData.type === CollabEventType.DELETE) {
-        unset(storeState.data as Object, msgData.path);
-      } else if (msgData.type === CollabEventType.CONNECT) {
-        if (msgData.client_id !== storeState.clientID) {
-          // Add new client
-          storeState.awareness.clients.push(msgData);
-          // Send awareness info to new client
-          storeState.awareness.sendAwarenessThrottled?.();
-        }
-      } else if (msgData.type === CollabEventType.DISCONNECT) {
-        // Remove client
-        storeState.awareness.clients = storeState.awareness.clients
-          .filter(c => c.client_id !== msgData.client_id);
-        delete storeState.awareness.other[msgData.client_id];
-      } else if (msgData.type === CollabEventType.AWARENESS) {
-        if (msgData.client_id !== storeState.clientID) {
-          storeState.awareness.other[msgData.client_id] = {
-            client_id: msgData.client_id,
-            path: msgData.path,
-            selection: parseSelection({
-              selectionJson: msgData.selection, 
-              unconfirmed: storeState.perPathState.get(msgData.path)?.unconfirmedTextUpdates || [], 
-              text: get(storeState.data as Object, msgData.path) || ''
-            }),
-          };
-        }
-      } else if (!storeState.handleAdditionalWebSocketMessages?.(msgData)) {
+    
+      const serverUrl = `${window.location.protocol === 'http:' ? 'ws' : 'wss'}://${window.location.host}/`;
+      const wsUrl = urlJoin(serverUrl, storeState.websocketPath);
+      storeState.perPathState?.clear();
+      storeState.awareness = {
+        self: { path: storeState.awareness.self.path },
+        other: {},
+        clients: [],
+        sendAwarenessThrottled: throttle(websocketSendAwareness, WS_THROTTLE_INTERVAL_AWARENESS, { leading: false, trailing: true })
+      }
+      storeState.connectionState = CollabConnectionState.CONNECTING;
+      storeState.websocket = new WebSocket(wsUrl);
+      storeState.websocketConnectionLostTimeout = throttle(() => {
         // eslint-disable-next-line no-console
-        console.error('Received unknown websocket message:', msgData);
-      }
+        console.error('Websocket connection timed out');
+        storeState.websocket?.close()
+      }, WS_RESPONSE_TIMEOUT, { leading: false, trailing: true });
+      storeState.websocket.addEventListener('open', () => {
+        storeState.connectionState = CollabConnectionState.INITIALIZING;
+        websocketConnectionLossDetection();
+      })
+      storeState.websocket.addEventListener('close', (event) => {
+        storeState.connectionState = CollabConnectionState.CLOSED;
+        storeState.websocketConnectionLostTimeout?.cancel();
+        storeState.websocket = null;
+        
+        storeState.perPathState?.clear();
+        storeState.version = 0;
+        reject(event);
+      });
+      storeState.websocket.addEventListener('error', (event) => {
+        storeState.connectionState = CollabConnectionState.CLOSED;
+        reject(event)
+      });
+      storeState.websocket.addEventListener('message', (event: MessageEvent) => {
+        const msgData = JSON.parse(event.data);
+
+        // Reset connection loss detection
+        storeState.websocketConnectionLostTimeout?.cancel();
+  
+        if (msgData.version && msgData.version > storeState.version) {
+          storeState.version = msgData.version;
+        }
+        if (msgData.type === CollabEventType.INIT) {
+          storeState.connectionState = CollabConnectionState.OPEN;
+          storeState.data = msgData.data;
+          storeState.clientID = msgData.client_id;
+          storeState.awareness.clients = msgData.clients;
+          storeState.awareness.other = Object.fromEntries(msgData.clients.filter((c: any) => c.client_id !== storeState.clientID).map((c: any) => [c.client_id, { 
+            path: c.path, 
+            selection: undefined, 
+          }]));
+          storeState.awareness.sendAwarenessThrottled?.();
+          resolve();
+        } else if (msgData.type === CollabEventType.UPDATE_KEY) {
+          // Update local state
+          set(storeState.data as Object, msgData.path, msgData.value);
+        } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
+          receiveUpdateText(msgData);
+        } else if (msgData.type === CollabEventType.UPDATE_KEY) {
+          set(storeState.data as Object, msgData.path, msgData.value);
+        } else if (msgData.type === CollabEventType.CREATE) {
+          set(storeState.data as Object, msgData.path, msgData.value);
+        } else if (msgData.type === CollabEventType.DELETE) {
+          unset(storeState.data as Object, msgData.path);
+        } else if (msgData.type === CollabEventType.CONNECT) {
+          if (msgData.client_id !== storeState.clientID) {
+            // Add new client
+            storeState.awareness.clients.push(msgData);
+            // Send awareness info to new client
+            storeState.awareness.sendAwarenessThrottled?.();
+          }
+        } else if (msgData.type === CollabEventType.DISCONNECT) {
+          // Remove client
+          storeState.awareness.clients = storeState.awareness.clients
+            .filter(c => c.client_id !== msgData.client_id);
+          delete storeState.awareness.other[msgData.client_id];
+        } else if (msgData.type === CollabEventType.AWARENESS) {
+          if (msgData.client_id !== storeState.clientID) {
+            storeState.awareness.other[msgData.client_id] = {
+              client_id: msgData.client_id,
+              path: msgData.path,
+              selection: parseSelection({
+                selectionJson: msgData.selection, 
+                unconfirmed: storeState.perPathState.get(msgData.path)?.unconfirmedTextUpdates || [], 
+                text: get(storeState.data as Object, msgData.path) || ''
+              }),
+            };
+          }
+        } else if (msgData.type === 'ping') {
+          // Do nothing
+        } else if (!storeState.handleAdditionalWebSocketMessages?.(msgData)) {
+          // eslint-disable-next-line no-console
+          console.error('Received unknown websocket message:', msgData);
+        }
+      });
     });
   }
 
   function disconnect() {
-    if (storeState.connectionState === CollabConnectionState.CLOSED) {
-      return;
-    }
     storeState.websocket?.close();
-    storeState.connectionState = CollabConnectionState.CLOSED;
-    storeState.websocket = null;
-    storeState.perPathState?.clear();
-    storeState.version = 0;
   }
 
   function websocketSend(msg: string) {
     storeState.websocket?.send(msg);
+    storeState.websocketConnectionLostTimeout?.();
+  }
+
+  async function websocketConnectionLossDetection() {
+    const ws = storeState.websocket;
+    while (storeState.connectionState !== CollabConnectionState.CLOSED && storeState.websocket === ws) {
+      await new Promise(resolve => setTimeout(resolve, WS_PING_INTERVAL));
+      websocketSend(JSON.stringify({ type: 'ping' }));
+    }
   }
 
   function websocketSendAwareness() {
@@ -226,7 +258,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   function ensurePerPathState(path: string) {
     if (!storeState.perPathState.has(path)) {
       storeState.perPathState.set(path, {
-        sendUpdateTextThrottled: throttle(() => websocketSendUpdateText(path), 1000, { leading: false, trailing: true }),
+        sendUpdateTextThrottled: throttle(() => websocketSendUpdateText(path), WS_THROTTLE_INTERVAL_UPDATE_TEXT, { leading: false, trailing: true }),
         unconfirmedTextUpdates: [],
       });
     }
@@ -406,6 +438,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           return undefined;
         }
       }
+      return selection;
     } catch (e) {
       return undefined;
     }

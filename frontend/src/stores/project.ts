@@ -318,17 +318,32 @@ export const useProjectStore = defineStore('project', {
       this.data[project.id].notesCollabState.data.notes = Object.fromEntries(notes.map(n => [n.id, n]));
       return notes;
     },
-    useNotesCollab(project: PentestProject) {
+    useNotesCollab(project: PentestProject, noteId?: string) {
       this.ensureExists(project.id);
 
       const collabState = this.data[project.id].notesCollabState;
       const collab = useCollab(collabState);
+      const collabProps = computed(() => collabSubpath(collab.collabProps.value, noteId ? `notes.${noteId}` : null))
 
-      const hasEditPermissions = computed(() => !project.readonly);
+      const apiSettings = useApiSettings();
+      const auth = useAuth();
+      const hasLock = ref(true);
+      if (noteId && !apiSettings.isProfessionalLicense) {
+        hasLock.value = false;
+        watch(() => collabProps.value.clients, () => {
+          if (!hasLock.value && collabProps.value.clients.filter(c => c.user.id !== auth.user.value?.id).length === 0) {
+            hasLock.value = true;
+          }
+        }, { immediate: true });
+      }
+
+      const hasEditPermissions = computed(() => !project.readonly && hasLock.value);
 
       return {
         ...collab,
+        collabProps,
         hasEditPermissions,
+        hasLock,
         readonly: computed(() => !hasEditPermissions.value || collabState.connectionState !== CollabConnectionState.OPEN),
       };
     },

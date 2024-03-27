@@ -31,6 +31,7 @@
 import debounce from "lodash/debounce";
 
 const route = useRoute();
+const router = useRouter();
 const auth = useAuth();
 const localSettings = useLocalSettings();
 const userNotesStore = useUserNotesStore();
@@ -45,7 +46,8 @@ const noteGroups = computed(() => userNotesStore.noteGroups);
 const notesCollab = userNotesStore.useNotesCollab();
 onMounted(async () => {
   if (notesCollab.hasEditPermissions.value) {
-    notesCollab.connect();
+    await notesCollab.connect();
+    collabAwarenessSendNavigate();
   } else {
     await userNotesStore.fetchNotes();
   }
@@ -53,6 +55,14 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   notesCollab.disconnect();
 });
+watch(() => router.currentRoute.value, collabAwarenessSendNavigate);
+function collabAwarenessSendNavigate() {
+  const noteId = router.currentRoute.value.params.noteId;
+  notesCollab.onCollabEvent({
+    type: CollabEventType.AWARENESS,
+    path: collabSubpath(notesCollab.collabProps.value, noteId ? `notes.${noteId}` : null).path,
+  });
+}
 
 async function createNote() {
   const currentNote = userNotesStore.notes.find(n => n.id === route.params.noteId);

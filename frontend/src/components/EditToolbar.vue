@@ -69,7 +69,8 @@
 
     <v-alert v-if="props.errorMessage || lockError" type="warning" density="compact" class="mt-0 mb-0">
       <span v-if="props.errorMessage">
-        {{ props.errorMessage }}
+        <pro-info v-if="props.errorMessage.includes('SysReptor Professional')">{{ props.errorMessage }}</pro-info>
+        <span v-else>{{ props.errorMessage }}</span>
       </span>
       <span v-else-if="!lockInfo">
         Could not lock resource for editing.
