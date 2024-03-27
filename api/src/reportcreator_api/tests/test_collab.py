@@ -444,7 +444,7 @@ class TestConsumerPermissions:
         consumer = WebsocketCommunicator(
             application=application,
             path=path,
-            headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())]
+            headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())] if session else []
         )
         connected, _ = await consumer.connect()
         await consumer.disconnect()
