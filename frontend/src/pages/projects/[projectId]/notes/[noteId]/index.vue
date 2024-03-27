@@ -173,9 +173,9 @@ watch(note, async (note) => {
 <!--
 TODO: collab bugfixes
 * [x] cursor and selections not shown => bug in parseSelection
-* [ ] faster network loss detection
-  * [ ] websocket timeout setting?
-  * [ ] ping/pong frames every 10 seconds + JS timeout
+* [x] faster network loss detection
+  * [x] ping/pong frames every X seconds + JS timeout
+  * [x] timeout when no response is received
 * [x] avatar thicker border radius
 * [ ] Collaborative editing restrictions in community
   * [ ] move to store.useCollab hasPermissions with noteId

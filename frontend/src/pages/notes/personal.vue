@@ -46,7 +46,7 @@ const noteGroups = computed(() => userNotesStore.noteGroups);
 const notesCollab = userNotesStore.useNotesCollab();
 onMounted(async () => {
   if (notesCollab.hasEditPermissions.value) {
-    notesCollab.connect();
+    await notesCollab.connect();
     collabAwarenessSendNavigate();
   } else {
     await userNotesStore.fetchNotes();

@@ -46,7 +46,7 @@ const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 const notesCollab = projectStore.useNotesCollab(project.value);
 onMounted(async () => {
   if (notesCollab.hasEditPermissions.value) {
-    notesCollab.connect();
+    await notesCollab.connect();
     collabAwarenessSendNavigate();
   } else {
     await projectStore.fetchNotes(project.value);
