@@ -164,6 +164,8 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           receiveUpdateText(msgData);
         } else if (msgData.type === CollabEventType.UPDATE_KEY) {
           set(storeState.data as Object, msgData.path, msgData.value);
+        } else if (msgData.type === CollabEventType.CREATE) {
+          set(storeState.data as Object, msgData.path, msgData.value);
         } else if (msgData.type === CollabEventType.DELETE) {
           unset(storeState.data as Object, msgData.path);
         } else if (msgData.type === CollabEventType.CONNECT) {

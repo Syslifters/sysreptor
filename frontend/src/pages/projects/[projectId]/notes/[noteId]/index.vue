@@ -170,15 +170,3 @@ watch(note, async (note) => {
   min-width: 17em;
 }
 </style>
-
-<!--
-TODO: collab bugfixes
-* [x] cursor and selections not shown => bug in parseSelection
-* [x] faster network loss detection
-  * [x] ping/pong frames every X seconds + JS timeout
-  * [x] timeout when no response is received
-* [x] avatar thicker border radius
-* [x] Collaborative editing restrictions in community
-  * [x] move to store.useCollab hasPermissions with noteId
-* [ ] unknown websocket message: collab.create
--->
