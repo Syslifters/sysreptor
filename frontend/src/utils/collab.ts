@@ -116,9 +116,11 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       storeState.connectionState = CollabConnectionState.CONNECTING;
       storeState.websocket = new WebSocket(wsUrl);
       storeState.websocketConnectionLostTimeout = throttle(() => {
-        // eslint-disable-next-line no-console
-        console.error('Websocket connection timed out');
-        storeState.websocket?.close()
+        if (storeState.websocket && storeState.connectionState !== CollabConnectionState.CLOSED) {
+          // eslint-disable-next-line no-console
+          console.error('Websocket connection timed out', storeState.websocketPath);
+        }
+        storeState.websocket?.close();
       }, WS_RESPONSE_TIMEOUT, { leading: false, trailing: true });
       storeState.websocket.addEventListener('open', () => {
         storeState.connectionState = CollabConnectionState.INITIALIZING;
