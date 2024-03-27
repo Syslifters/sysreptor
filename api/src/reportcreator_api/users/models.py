@@ -62,7 +62,7 @@ class PentestUser(BaseModel, AbstractUser):
 
     @property
     def can_login_local(self) -> bool:
-        return (settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional()) and self.password and self.has_usable_password()
+        return (settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional(skip_db_checks=True)) and self.password and self.has_usable_password()
 
     @functools.cached_property
     def can_login_sso(self) -> bool:
@@ -71,7 +71,7 @@ class PentestUser(BaseModel, AbstractUser):
     @property
     def is_admin(self) -> bool:
         return self.is_active and self.is_superuser and \
-            getattr(self, 'admin_permissions_enabled', False) if license.is_professional() else True
+            getattr(self, 'admin_permissions_enabled', False) if license.is_professional(skip_db_checks=True) else True
 
     def is_file_referenced(self, f) -> bool:
         return any(map(lambda n: n.is_file_referenced(f), self.notes.all()))

@@ -76,7 +76,7 @@ def decode_license(license):
         raise LicenseError('Failed to load license: Invalid format.') from ex
 
 
-def decode_and_validate_license(license, skip_limit_validation=False):
+def decode_and_validate_license(license, skip_db_checks=False, skip_limit_validation=False):
     from reportcreator_api.users.models import PentestUser
 
     try:
@@ -93,12 +93,13 @@ def decode_and_validate_license(license, skip_limit_validation=False):
                 raise LicenseError(license_data | {'error': 'License expired: ' + period_info})
         
             # Validate license limits not exceeded
-            current_user_count = PentestUser.objects.get_licensed_user_count()
-            if current_user_count > license_data['users']:
-                raise LicenseError(license_data | {
-                    'error': f"License limit exceeded: You licensed max. {license_data['users']} users, but have currently {current_user_count} active users. "
-                            "Falling back to the free license. Please deactivate some users or extend your license."
-                })
+            if not skip_db_checks:
+                current_user_count = PentestUser.objects.get_licensed_user_count()
+                if current_user_count > license_data['users']:
+                    raise LicenseError(license_data | {
+                        'error': f"License limit exceeded: You licensed max. {license_data['users']} users, but have currently {current_user_count} active users. "
+                                "Falling back to the free license. Please deactivate some users or extend your license."
+                    })
 
         # All license checks are valid
         return {
@@ -121,7 +122,6 @@ def check_license(**kwargs):
     return decode_and_validate_license(license=settings.LICENSE, **kwargs)
 
 
-@acache('license.license_info', timeout=10 * 60)
 async def acheck_license(**kwargs):
     return await sync_to_async(check_license)(**kwargs)
 
@@ -140,12 +140,12 @@ async def aget_license_info():
     return await sync_to_async(get_license_info)()
 
 
-def is_professional():
-    return check_license().get('type', LicenseType.COMMUNITY) == LicenseType.PROFESSIONAL
+def is_professional(**kwargs):
+    return check_license(**kwargs).get('type', LicenseType.COMMUNITY) == LicenseType.PROFESSIONAL
 
 
-async def ais_professional():
-    return (await acheck_license()).get('type', LicenseType.COMMUNITY) == LicenseType.PROFESSIONAL
+async def ais_professional(**kwargs):
+    return (await acheck_license(**kwargs)).get('type', LicenseType.COMMUNITY) == LicenseType.PROFESSIONAL
 
 
 def validate_login_allowed(user):

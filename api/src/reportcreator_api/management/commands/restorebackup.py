@@ -17,7 +17,7 @@ class Command(BaseCommand):
         parser.add_argument('--keepfiles', action='store_true', default=False, help='Keep existing files in storages. Do not delete them.')
 
     def handle(self, file, key, keepfiles, **kwargs) -> str | None:
-        if not license.is_professional():
+        if not license.is_professional(skip_db_checks=True):
             raise CommandError('Professional license required')
         
         if key:

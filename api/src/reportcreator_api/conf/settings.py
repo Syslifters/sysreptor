@@ -481,7 +481,7 @@ PDF_RENDERING_TIME_LIMIT = config('PDF_RENDERING_TIME_LIMIT', cast=int, default=
 class LicenseCheckBooleanProxy:
     def __bool__(self):
         from reportcreator_api.utils import license
-        return license.is_professional()
+        return license.is_professional(skip_db_checks=True)
 SIMPLE_HISTORY_ENABLED = LicenseCheckBooleanProxy()
 SIMPLE_HISTORY_HISTORY_ID_USE_UUID = True
 SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
