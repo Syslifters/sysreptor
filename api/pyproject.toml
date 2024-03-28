@@ -65,3 +65,12 @@ elastic-apm = "^6.20.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+ignore = [
+  "E741",  # Ambiguous variable name: `l`
+]
+
