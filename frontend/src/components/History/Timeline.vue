@@ -1,10 +1,13 @@
 <template>
   <v-navigation-drawer
+    v-if="mobile ? props.modelValue : true"
     :model-value="props.modelValue"
     @update:model-value="emit('update:modelValue', $event)"
     location="right"
     absolute
     temporary
+    touchless
+    :mobile-breakpoint="0" 
     class="history-sidebar"
   >
     <div class="history-timeline-header">
@@ -64,6 +67,7 @@ const emit = defineEmits<{
 }>();
 
 const apiSettings = useApiSettings();
+const { mobile } = useDisplay();
 
 const historyRecords = useSearchableCursorPaginationFetcher<HistoryTimelineRecord>({
   baseURL: props.url

@@ -3,7 +3,8 @@
     :rail="!isExpanded"
     rail-width="36"
     width="180"
-    permanent  
+    permanent
+    touchless
     color="drawer"
     class="subdrawer"
   >
