@@ -18,7 +18,7 @@
       <template #actions>
         <v-btn
           v-if="props.collab.connectionState.value === CollabConnectionState.CLOSED"
-          @click="props.collab.connect()"
+          @click="reconnect()"
           variant="text"
           size="small"
           text="Try again"
@@ -40,12 +40,21 @@ const props = defineProps<{
   collab: {
     hasEditPermissions: ComputedRef<boolean>;
     connectionState: ComputedRef<CollabConnectionState>;
+    connectionError: ComputedRef<{ error: any, message?: string }>;
     connect: () => void;
   }
 }>();
 
 const isFirstLoad = ref(true);
-watch(() => props.collab.connectionState.value, (newState, oldState) => {
+const reconnectAttempted = ref(0);
+watch(() => props.collab.connectionState.value, async (newState, oldState) => {
+  if (newState === CollabConnectionState.OPEN) {
+    // Reset reconnect attempt counter
+    reconnectAttempted.value = 0;
+  } else if (newState === CollabConnectionState.CLOSED && !isFirstLoad.value && reconnectAttempted.value === 0) {
+    await reconnect();
+  }
+
   if (newState === CollabConnectionState.OPEN || 
       (newState === CollabConnectionState.CLOSED && (
         (oldState !== undefined && oldState !== CollabConnectionState.CLOSED) || 
@@ -53,6 +62,17 @@ watch(() => props.collab.connectionState.value, (newState, oldState) => {
     isFirstLoad.value = false;
   }
 }, { immediate: true });
+
+async function reconnect() {
+  reconnectAttempted.value += 1;
+  try {
+    await props.collab.connect();
+  } catch {
+    if (props.collab.connectionError.value) {
+      requestErrorToast(props.collab.connectionError.value);
+    }
+  }
+}
 </script>
 
 <style scoped>

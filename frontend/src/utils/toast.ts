@@ -6,7 +6,9 @@ export function requestErrorToast({ error, message }: { error: any, message?: st
   console.log('Request error', { error, message }, error?.data);
 
   if (!message) {
-    if (error?.options?.method === 'GET') {
+    if (error.reason) {
+      message = error.reason as string;
+    } else if (error?.options?.method === 'GET') {
       message = 'Failed to load data';
     } else if (['POST', 'PUT', 'PATCH'].includes(error?.options?.method)) {
       message = 'Failed to save data';
