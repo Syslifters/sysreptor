@@ -5,7 +5,6 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 
 from reportcreator_api.notifications.serializers import NotificationSpecSerializer
-from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils import license
 
 

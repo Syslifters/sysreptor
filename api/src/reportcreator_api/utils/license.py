@@ -10,7 +10,7 @@ from django.db import models
 from django.utils import dateparse, timezone
 from rest_framework import permissions
 
-from reportcreator_api.utils.decorators import acache, cache
+from reportcreator_api.utils.decorators import cache
 
 
 class LicenseError(Exception):

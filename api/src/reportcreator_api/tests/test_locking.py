@@ -23,8 +23,8 @@ class TestLocking:
         assert self.finding.lock_info_data.user == self.user1
         assert self.finding.lock(user=self.user1) == LockStatus.REFRESHED
         assert self.finding.lock(user=self.user2) == LockStatus.FAILED
-        assert self.finding.unlock(user=self.user2) == False
-        assert self.finding.unlock(user=self.user1) == True
+        assert self.finding.unlock(user=self.user2) is False
+        assert self.finding.unlock(user=self.user1) is True
         assert self.finding.lock(user=self.user2) == LockStatus.CREATED
 
         with mock_time(after=settings.MAX_LOCK_TIME * 2):

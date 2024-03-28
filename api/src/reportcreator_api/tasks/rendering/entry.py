@@ -1,5 +1,4 @@
 import dataclasses
-import io
 import logging
 import uuid
 import json

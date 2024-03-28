@@ -1,6 +1,4 @@
-import itertools
 import warnings
-import copy
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.test import override_settings

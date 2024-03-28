@@ -60,7 +60,7 @@ class ChangeSet:
             if isinstance(part, int):
                 sections.extend([part, -1])
             elif not isinstance(part, list) or len(part) == 0 or not isinstance(part[0], int) or not all(map(lambda e: isinstance(e, str), part[1:])):
-                raise ValueError(f'Invalid change')
+                raise ValueError('Invalid change')
             else:
                 while len(inserted) <= i:
                     inserted.append('')  # Text.empty
@@ -175,7 +175,7 @@ class ChangeSet:
         doc = doc.replace('\r\n', '\n')
 
         if self.length != len(doc):
-            raise ValueError(f'Applying change set to a document with the wrong length')
+            raise ValueError('Applying change set to a document with the wrong length')
         for (from_a, to_a, from_b, to_b, text) in self.iter_changes(False):
             doc = doc[:from_b] + text + doc[from_b + (to_a - from_a):]
         return doc
@@ -193,7 +193,7 @@ class SelectionRange:
     @classmethod
     def from_dict(cls, r: dict):
         if not isinstance(r, dict) or not isinstance(r.get('anchor'), int) or not isinstance(r.get('head'), int):
-            raise ValueError(f'Invalid selection range')
+            raise ValueError('Invalid selection range')
         return SelectionRange(anchor=r['anchor'], head=r['head'])
 
     def to_dict(self):
@@ -220,7 +220,7 @@ class EditorSelection:
     @classmethod
     def from_dict(cls, d: dict):
         if not d or not isinstance(d.get('ranges'), list) or not isinstance(d.get('main'), int) or not (0 <= d['main'] < len(d['ranges'])):
-            raise ValueError(f'Invalid selection')
+            raise ValueError('Invalid selection')
         return EditorSelection(ranges=[SelectionRange.from_dict(r) for r in d['ranges']], main=d['main'])
     
     def to_dict(self):
@@ -253,7 +253,7 @@ class Update:
     def from_dict(cls, u: dict):
         if not isinstance(u, dict) or not isinstance(u.get('client_id'), str) or not isinstance(u.get('version'), float) or \
            not isinstance(u.get('changes'), list):
-            raise ValueError(f'Invalid update')
+            raise ValueError('Invalid update')
         return Update(
             client_id=u['client_id'], 
             version=u['version'], 

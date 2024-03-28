@@ -1,6 +1,5 @@
 from django.db.models import signals
 from django.dispatch import receiver
-from django.conf import settings
 
 from reportcreator_api.users.models import APIToken, PentestUser
 from reportcreator_api.utils import license
@@ -56,7 +55,7 @@ def api_token_license_limit(sender, instance, *args, **kwargs):
         .count()
     if current_apitoken_count >= 1:
         raise license.LicenseLimitExceededError(
-            f'Community Edition allows max. 1 active API token per user. '
+            'Community Edition allows max. 1 active API token per user. '
             'Please delete some tokens or upgrade to Professional.')
 
     if instance.expire_date:

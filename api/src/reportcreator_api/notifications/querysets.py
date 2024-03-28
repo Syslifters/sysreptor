@@ -5,7 +5,6 @@ from django.db import models
 from django.utils import timezone
 from django.db.models import signals
 
-from reportcreator_api.utils import license
 
 
 class UserNotificationQuerySet(models.QuerySet):

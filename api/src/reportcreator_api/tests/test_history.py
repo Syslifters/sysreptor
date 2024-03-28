@@ -2,7 +2,6 @@ from django.test import override_settings
 import pytest
 import enum
 from datetime import timedelta
-from uuid import uuid4
 from asgiref.sync import async_to_sync
 from django.urls import reverse
 from django.utils import timezone
@@ -231,7 +230,7 @@ class TestTemplateHistory:
         # Initial template
         add_history_test()
         # Upload image
-        ti1 = UploadedTemplateImage.objects.create(linked_object=t, name='file-new.png', file=SimpleUploadedFile(name=f'file-new.png', content=b'file-new'))
+        ti1 = UploadedTemplateImage.objects.create(linked_object=t, name='file-new.png', file=SimpleUploadedFile(name='file-new.png', content=b'file-new'))
         add_history_test()
         # Add translation
         tr2 = create_template_translation(template=t, language=Language.GERMAN_DE, data={'title': 'title 2'})
@@ -244,7 +243,7 @@ class TestTemplateHistory:
         add_history_test()
         # Replace image
         ti1.delete()
-        UploadedTemplateImage.objects.create(linked_object=t, name='file-new2.png', file=SimpleUploadedFile(name=f'file-new2.png', content=b'file-new2'))
+        UploadedTemplateImage.objects.create(linked_object=t, name='file-new2.png', file=SimpleUploadedFile(name='file-new2.png', content=b'file-new2'))
         add_history_test()
         # Change main translation
         t.main_translation = tr2
@@ -341,7 +340,7 @@ class TestProjectTypeHistory:
         # Initial
         add_history_test()
         # Upload asset
-        a1 = UploadedAsset.objects.create(linked_object=pt, name='file-new.png', file=SimpleUploadedFile(name=f'file-new.png', content=b'file-new'))
+        a1 = UploadedAsset.objects.create(linked_object=pt, name='file-new.png', file=SimpleUploadedFile(name='file-new.png', content=b'file-new'))
         add_history_test()
         # Update fields
         pt.finding_fields = omit_keys(pt.finding_fields, ['cvss'])
@@ -591,7 +590,7 @@ class TestProjectHistory:
         res_f = self.client.get(reverse('pentestprojecthistory-finding', kwargs=url_kwargs | {'id': f.finding_id}))
         res_n = self.client.get(reverse('pentestprojecthistory-note', kwargs=url_kwargs | {'id': n.note_id}))
         assert res_s.status_code == res_f.status_code == res_n.status_code == 200
-        assert res_s.data['assignee'] == res_f.data['assignee'] == res_n.data['assignee'] == None
+        assert res_s.data['assignee'] == res_f.data['assignee'] == res_n.data['assignee'] is None
 
     def test_bulk_edit_members_api(self):
         u2 = create_user()

@@ -4,7 +4,7 @@ import operator
 from types import NoneType
 from asgiref.sync import sync_to_async
 from django.conf import settings
-from django.db.models import Q, F, OrderBy
+from django.db.models import Q, OrderBy
 from django.http import StreamingHttpResponse, FileResponse, Http404
 from django.core.exceptions import PermissionDenied
 from django.utils.functional import classproperty

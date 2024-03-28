@@ -3,7 +3,6 @@ import elasticapm
 from asgiref.sync import sync_to_async, iscoroutinefunction
 from datetime import timedelta
 from django.db import models, IntegrityError
-from django.db.models.functions import Rank
 from django.conf import settings
 from django.utils import timezone
 from django.utils.module_loading import import_string

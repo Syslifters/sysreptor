@@ -38,7 +38,7 @@ class TestBackup:
             self.user = create_user(mfa=True)
             self.project = create_project()
             self.image_history_only = UploadedImage.objects.create(
-                linked_object=self.project, name='file-deleted.png', file=SimpleUploadedFile(name=f'file-deleted.png', content=create_png_file()))
+                linked_object=self.project, name='file-deleted.png', file=SimpleUploadedFile(name='file-deleted.png', content=create_png_file()))
             self.image_history_only.delete()
             self.project_type = create_project_type()
             self.template = create_template()

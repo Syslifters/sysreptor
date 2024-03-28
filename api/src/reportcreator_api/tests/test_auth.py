@@ -96,7 +96,7 @@ class TestLogin:
     
     def test_login_backup_code(self):
         code = self.mfa_backup.data['backup_codes'][0]
-        res = self.assert_mfa_login(self.mfa_backup)
+        self.assert_mfa_login(self.mfa_backup)
         # Backup code invalidated
         self.mfa_backup.refresh_from_db()
         assert code not in self.mfa_backup.data['backup_codes']

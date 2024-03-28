@@ -1,7 +1,6 @@
 import io
 import json
 
-import elasticapm
 from django.db import models
 from django.core import checks
 

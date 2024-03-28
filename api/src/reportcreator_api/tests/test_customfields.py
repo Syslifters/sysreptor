@@ -65,7 +65,7 @@ def test_definition_formats(valid, definition):
     res_valid = True
     try:
         FieldDefinitionValidator()(definition)
-    except ValidationError as ex:
+    except ValidationError:
         res_valid = False
     assert res_valid == valid
 
@@ -557,7 +557,7 @@ class TestTemplateTranslation:
         }
         self.trans.save()
         assert 'description' not in self.trans.data
-        assert self.trans.data['recommendation'] == None
+        assert self.trans.data['recommendation'] is None
         assert self.trans.data['field_list'] == ['first', None]
         assert self.trans.data['field_object'] == {'nested1': None}
 

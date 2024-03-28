@@ -162,7 +162,7 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
             page.add_script_tag(content=get_render_script())
 
             # Wait for template to finish rendering
-            page.wait_for_function("""window.RENDERING_COMPLETED === true""");
+            page.wait_for_function("""window.RENDERING_COMPLETED === true""")
 
             # Format messages
             for m in console_output:
@@ -191,7 +191,7 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
                 page.evaluate("""() => document.head.querySelectorAll('script').forEach(s => s.remove())""")
                 # Get rendered HTML
                 html = page.content()
-    except Exception as ex:
+    except Exception:
         messages.add(ErrorMessage(
             level=MessageLevel.ERROR,
             message='Error rendering HTML template',
@@ -276,7 +276,7 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
                 optimize_images=False,
                 finisher=weasyprint_strip_pdf_metadata
             )
-        except Exception as ex:
+        except Exception:
             logging.exception('Error rendering PDF')
             messages.add(ErrorMessage(
                 level=MessageLevel.ERROR,

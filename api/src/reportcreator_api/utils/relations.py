@@ -1,6 +1,5 @@
-from django.db.models import OneToOneRel, OneToOneField, ForeignObject
+from django.db.models import OneToOneField
 from django.db.models.fields.related_descriptors import ReverseOneToOneDescriptor
-from django.db.models.fields.related import RelatedField
 from django.contrib.contenttypes.fields import GenericRelation, GenericRel, GenericForeignKey
 from simple_history.models import is_historic
 

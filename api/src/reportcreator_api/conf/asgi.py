@@ -17,7 +17,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reportcreator_api.conf.settings
 django_asgi_app = get_asgi_application()
 
 
-from reportcreator_api.conf.urls import websocket_urlpatterns
+from reportcreator_api.conf.urls import websocket_urlpatterns  # noqa: E402
 application = ProtocolTypeRouter({
     'http': django_asgi_app,
     'websocket': AuthMiddlewareStack(URLRouter(websocket_urlpatterns)),

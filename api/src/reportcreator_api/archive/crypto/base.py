@@ -227,7 +227,7 @@ class DecryptionStream(io.RawIOBase):
                 self.metadata['key'] = keys.get(self.metadata['key_id'])
             else:
                 raise CryptoError('Either a key or a multiple available keys must be given')
-        except CryptoError as ex:
+        except CryptoError:
             raise
         except Exception as ex:
             raise CryptoError('Failed to load metadata') from ex

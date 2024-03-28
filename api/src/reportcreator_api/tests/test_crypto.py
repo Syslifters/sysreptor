@@ -19,7 +19,7 @@ from reportcreator_api.pentests.models import PentestFinding, PentestProject, Pr
     UploadedAsset, UploadedImage, UploadedProjectFile, \
     ArchivedProject, UserPublicKey
 from reportcreator_api.management.commands import encryptdata
-from reportcreator_api.tests.mock import api_client, create_archived_project, create_project, create_public_key, create_template, create_user, create_project_type
+from reportcreator_api.tests.mock import api_client, create_archived_project, create_project, create_public_key, create_template, create_user
 from reportcreator_api.utils.storages import EncryptedFileSystemStorage
 
 

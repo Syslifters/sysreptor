@@ -12,9 +12,11 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 import json
 import uuid
+import fido2.features
 from datetime import timedelta
 from decouple import config, Csv
 from pathlib import Path
+from kombu import Queue
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -232,7 +234,6 @@ MFA_FIDO2_RP_ID = config('MFA_FIDO2_RP_ID', default='')
 MFA_LOGIN_TIMEOUT = timedelta(minutes=5)
 SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT = timedelta(minutes=15)
 
-import fido2.features
 fido2.features.webauthn_json_mapping.enabled = True
 
 
@@ -420,8 +421,8 @@ USE_X_FORWARDED_PORT = config('USE_X_FORWARDED_PORT', cast=bool, default=False)
 
 # Monkey-Patch django to disable CSRF everywhere
 # CSRF middlware class is used as middleware and internally by DjangoRestFramework
-from django.middleware import csrf
-from reportcreator_api.utils.middleware import CustomCsrfMiddleware
+from django.middleware import csrf  # noqa: E402
+from reportcreator_api.utils.middleware import CustomCsrfMiddleware  # noqa: E402
 csrf.CsrfViewMiddleware = CustomCsrfMiddleware
 
 
@@ -440,7 +441,6 @@ CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='rpc://')
 CELERY_RESULT_EXPIRES = timedelta(seconds=30)
 CELERY_TASK_DEFAULT_EXCHANGE = 'tasks'
 CELERY_TASK_QUEUES_NO_DECLARE = config('CELERY_TASK_QUEUES_NO_DECLARE', cast=bool, default=False)
-from kombu import Queue
 CELERY_TASK_QUEUES = [
     Queue('rendering', routing_key='tasks.rendering', no_declare=CELERY_TASK_QUEUES_NO_DECLARE),
 ]
@@ -549,7 +549,7 @@ COMPRESS_IMAGES = config('COMPRESS_IMAGES', cast=bool, default=True)
 REGEX_VALIDATION_TIMEOUT = timedelta(milliseconds=500)
 
 
-from reportcreator_api.archive.crypto import EncryptionKey
+from reportcreator_api.archive.crypto import EncryptionKey  # noqa: E402
 ENCRYPTION_KEYS = EncryptionKey.from_json_list(config('ENCRYPTION_KEYS', default=''))
 DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
 ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=bool, default=True)

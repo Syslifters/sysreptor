@@ -15,7 +15,7 @@ from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.permissions import IsSystemUser, IsUserManagerOrSuperuserOrSystem
 from reportcreator_api.api_utils import backup_utils
 from reportcreator_api.pentests.customfields.types import CweField
-from reportcreator_api.users.models import AuthIdentity, PentestUser
+from reportcreator_api.users.models import AuthIdentity
 from reportcreator_api.utils.api import StreamingHttpResponseAsync, ViewSetAsync
 from reportcreator_api.utils import license
 from reportcreator_api.pentests.models import Language

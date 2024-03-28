@@ -221,11 +221,7 @@ class AuthIdentityViewSet(UserSubresourceViewSetMixin, viewsets.ModelViewSet):
         return super().get_serializer_context() | {
             'user': self.get_user()
         }
-    
-    def get_serializer_context(self):
-        return super().get_serializer_context() | {
-            'user': self.get_user()
-        }
+
 
 class APITokenViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     serializer_class = APITokenSerializer

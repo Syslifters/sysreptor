@@ -1,9 +1,7 @@
 from datetime import timedelta
 from urllib.parse import urlparse
-from asgiref.sync import iscoroutinefunction
 from django.conf import settings
 from django.utils import timezone, cache, deprecation
-from django.utils.decorators import sync_and_async_middleware
 from django.middleware.csrf import CsrfViewMiddleware
 
 
