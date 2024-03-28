@@ -41,6 +41,7 @@ export type CollabStoreState<T> = {
   connectionState: CollabConnectionState;
   websocket: WebSocket|null;
   websocketPath: string;
+  connectionError?: { error: any, message?: string };
   websocketConnectionLostTimeout?: ReturnType<typeof throttle>;
   handleAdditionalWebSocketMessages?: (event: any) => boolean;
   perPathState: Map<string, {
@@ -113,6 +114,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         clients: [],
         sendAwarenessThrottled: throttle(websocketSendAwareness, WS_THROTTLE_INTERVAL_AWARENESS, { leading: false, trailing: true })
       }
+      storeState.connectionError = undefined;
       storeState.connectionState = CollabConnectionState.CONNECTING;
       storeState.websocket = new WebSocket(wsUrl);
       storeState.websocketConnectionLostTimeout = throttle(() => {
@@ -120,24 +122,35 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           // eslint-disable-next-line no-console
           console.error('Websocket connection timed out', storeState.websocketPath);
         }
-        storeState.websocket?.close();
+        storeState.websocket?.close(4504);
       }, WS_RESPONSE_TIMEOUT, { leading: false, trailing: true });
       storeState.websocket.addEventListener('open', () => {
         storeState.connectionState = CollabConnectionState.INITIALIZING;
         websocketConnectionLossDetection();
       })
       storeState.websocket.addEventListener('close', (event) => {
-        storeState.connectionState = CollabConnectionState.CLOSED;
-        storeState.websocketConnectionLostTimeout?.cancel();
-        storeState.websocket = null;
+        // Error handling
+        if (event.code === 4443 || (event.code === 1006 && storeState.connectionState === CollabConnectionState.CONNECTING)) {
+          storeState.connectionError = { error: event, message: event.reason || 'Permission denied' };
+        } else if (storeState.connectionState === CollabConnectionState.CONNECTING) {
+          storeState.connectionError = { error: event, message: event.reason || 'Failed to establish connection' };
+        } else if (event.code === 4504) {
+          // Possible reasons: network outage, browser tab becomes inactive, server crashes
+          storeState.connectionError = { error: event, message: event.reason || 'Connection timeout: Server connection lost' };
+        } else if (event.code !== 1000) {
+          storeState.connectionError = { error: event, message: event.reason };
+        }
+        // eslint-disable-next-line no-console
+        console.log('Websocket closed', event, storeState.connectionError);
         
+        // Reset data
+        storeState.websocket = null;
+        storeState.websocketConnectionLostTimeout?.cancel();
         storeState.perPathState?.clear();
         storeState.version = 0;
-        reject(event);
-      });
-      storeState.websocket.addEventListener('error', (event) => {
         storeState.connectionState = CollabConnectionState.CLOSED;
-        reject(event)
+
+        reject(storeState.connectionError);
       });
       storeState.websocket.addEventListener('message', (event: MessageEvent) => {
         const msgData = JSON.parse(event.data);
@@ -205,7 +218,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function disconnect() {
-    storeState.websocket?.close();
+    storeState.websocket?.close(1000, 'Disconnect');
   }
 
   function websocketSend(msg: string) {
@@ -467,6 +480,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     onCollabEvent,
     data: computed(() => storeState.data),
     connectionState: computed(() => storeState.connectionState),
+    connectionError: computed(() => storeState.connectionError),
     collabProps: computed(() => ({
       path: storeState.websocketPath,
       clients: storeState.awareness.clients.map((c) => {
