@@ -32,7 +32,7 @@ class CustomCsrfMiddleware(CsrfViewMiddleware):
 class ExtendSessionMiddleware(deprecation.MiddlewareMixin):
     def process_request(self, request):
         if request.session and request.session.session_key and \
-            request.session.get_expiry_date() - timezone.now() > timedelta(request.session.get_expiry_age() / 2):
+            request.session.expire_date - timezone.now() > timedelta(seconds=request.session.get_expiry_age() / 2):
             # Extend session lifetime
             # When a session value is changed the session is updated in the DB and its lifetime is reset to SESSION_COOKIE_AGE
             # This does not affect the "Expire" attribute on the session cookie.
