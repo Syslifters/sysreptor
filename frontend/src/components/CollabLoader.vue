@@ -40,7 +40,7 @@ const props = defineProps<{
   collab: {
     hasEditPermissions: ComputedRef<boolean>;
     connectionState: ComputedRef<CollabConnectionState>;
-    connectionError: ComputedRef<{ error: any, message?: string }>;
+    connectionError: ComputedRef<{ error: any, message?: string }|undefined>;
     connect: () => void;
   }
 }>();
