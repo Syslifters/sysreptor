@@ -140,9 +140,9 @@ async def format_project_template_data(project: PentestProject, project_type: Op
         'pentesters': [u async for u in project.members.all()],
     }
     return await sync_to_async(format_template_data)(
-        data=data, 
-        project_type=project_type, 
-        imported_members=project.imported_members, 
+        data=data,
+        project_type=project_type,
+        imported_members=project.imported_members,
         override_finding_order=project.override_finding_order
     )
 
@@ -167,7 +167,7 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
         if project:
             resources |= {'/images/name/' + i.name: b64encode(i.file.read()).decode() for i in project.images.all() if project.is_file_referenced(i)}
         return resources
-    
+
     task = await sync_to_async(tasks.render_pdf_task.delay)(
         template=report_template,
         styles=report_styles,
@@ -219,7 +219,7 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
     )
     if not res.get('pdf'):
         return res
-    
+
     def format_output():
         from reportcreator_api.pentests.serializers.project import PentestProjectDetailSerializer
 
@@ -277,9 +277,9 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
                 if is_project_note:
                     absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f.name}))
                 else:
-                    absolute_file_url = request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f.name})) 
+                    absolute_file_url = request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f.name}))
                 note_text = note_text.replace(f'/files/name/{f.name}', absolute_file_url)
-    
+
     task = await sync_to_async(tasks.render_pdf_task.delay)(
         template="""<h1>{{ data.note.title }}</h1><markdown :text="data.note.text" />""",
         styles="""@import "/assets/global/base.css";""",

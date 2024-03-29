@@ -40,7 +40,7 @@ class EncryptionKey:
             'cipher': EncryptionCipher(e['cipher']),
             'key': base64.b64decode(e['key']),
         }))), json.loads(data)))
-    
+
 
 class ReadIntoAdapter(FileProxyMixin):
     def __init__(self, file) -> None:
@@ -121,7 +121,7 @@ class EncryptionStream(io.RawIOBase):
         self.header_written = False
         self.key = key
         self.cipher = self._init_cipher(nonce=nonce)
-        
+
     def readable(self) -> bool:
         return False
 
@@ -158,7 +158,7 @@ class EncryptionStream(io.RawIOBase):
     def write(self, data: bytes):
         if self.closed:
             raise ValueError('write() on closed stream')
-        
+
         # Encrypt data
         self._ensure_header()
         self.fileobj.write(self.cipher.encrypt(data))
@@ -176,7 +176,7 @@ class EncryptionStream(io.RawIOBase):
             self.fileobj.write(tag)
         finally:
             super().close()
-        
+
 
 class DecryptionStream(io.RawIOBase):
     def __init__(self, fileobj, key: Optional[EncryptionKey] = None, keys: Optional[dict[str, EncryptionKey]] = None) -> None:
@@ -192,7 +192,7 @@ class DecryptionStream(io.RawIOBase):
 
     def readable(self) -> bool:
         return True
-    
+
     def writable(self) -> bool:
         return False
 
@@ -203,7 +203,7 @@ class DecryptionStream(io.RawIOBase):
         # Check magic
         if self.fileobj.read(len(MAGIC)) != MAGIC:
             raise CryptoError('Invalid header: magic not found')
-        
+
         # Read metadata
         metadata_buffer = bytearray()
         while True:
@@ -214,7 +214,7 @@ class DecryptionStream(io.RawIOBase):
                 break
             else:
                 metadata_buffer.extend(b)
-        
+
         # Decode metadata
         try:
             self.metadata = json.loads(metadata_buffer)
@@ -242,8 +242,8 @@ class DecryptionStream(io.RawIOBase):
         try:
             if self.metadata['key'].cipher == EncryptionCipher.AES_GCM:
                 self.cipher = AES.new(
-                    mode=AES.MODE_GCM, 
-                    key=self.metadata['key'].key, 
+                    mode=AES.MODE_GCM,
+                    key=self.metadata['key'].key,
                     nonce=self.metadata['nonce']
                 )
             else:
@@ -265,7 +265,7 @@ class DecryptionStream(io.RawIOBase):
         res = self.auth_tag_buffer[:-self.auth_tag_len]
         del self.auth_tag_buffer[:-self.auth_tag_len]
         return self.cipher.decrypt(res)
-    
+
     def readinto(self, buf) -> int:
         val = self.read(len(buf))
         buf[:len(val)] = val
@@ -329,14 +329,14 @@ class DecryptionStream(io.RawIOBase):
                         b'\x00' * fill +
                         long_to_bytes(8 * len(nonce), 8))
             j0 = _GHASH(hash_subkey, _ghash_clmul or _ghash_portable).update(ghash_in).digest()
-        
+
         # Step 3 - Prepare GCTR cipher for encryption/decryption
         nonce_ctr = j0[:12]
         iv_ctr = (bytes_to_long(j0) + 1 + skip_blocks) & 0xFFFFFFFF
         return AES.new(
-            mode=AES.MODE_CTR, 
-            key=key, 
-            initial_value=iv_ctr, 
+            mode=AES.MODE_CTR,
+            key=key,
+            initial_value=iv_ctr,
             nonce=nonce_ctr)
 
     def _verify_auth_tag(self):
@@ -347,7 +347,7 @@ class DecryptionStream(io.RawIOBase):
             # Read everything to update the internal auth tag calculation
             while _ := self.read():
                 pass
-            
+
             self.cipher.verify(self.auth_tag_buffer)
             self.auth_tag_verified = True
         except Exception as ex:

@@ -20,7 +20,7 @@ def public_key_info(public_key: str):
     with create_gpg() as gpg:
         with tempfile.NamedTemporaryFile(mode='w') as f:
             f.write(public_key)
-            f.flush() 
+            f.flush()
             res = gpg.scan_keys(f.name)
         if len(res) == 0:
             raise CryptoError('Invalid public key format')
@@ -33,7 +33,7 @@ def public_key_info(public_key: str):
         encryption_key_info = next(filter(lambda s: s.get('type') == 'sub' and s.get('cap') == 'e', key_info.get('subkey_info').values()), None)
         if not encryption_key_info:
             raise CryptoError('No encryption key provided. PGP key does not contain an encryption subkey.')
-        
+
         # Allowed encryption ciphers: RSA, ECDH, ElGamal with min. key size
         if encryption_key_info.get('algo') not in ['1', '2', '16', '18']:
             raise CryptoError('Unsupported algorithm')
@@ -41,7 +41,7 @@ def public_key_info(public_key: str):
             raise CryptoError('Key length too short. The minimum supported RSA key size is 3072 bit')
         elif encryption_key_info.get('algo') in ['18'] and int(encryption_key_info.get('length', 0)) < 256:
             raise CryptoError('Key length too short. The minimum supported Elliptic Curve size is 256 bit')
-        
+
         return key_info
 
 

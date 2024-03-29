@@ -55,9 +55,9 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
     @action(detail=False, url_name='settings', url_path='settings', authentication_classes=[], permission_classes=[])
     def settings_endpoint(self, *args, **kwargs):
         languages = [{
-            'code': l.value, 
-            'name': l.label, 
-            'spellcheck': l.spellcheck, 
+            'code': l.value,
+            'name': l.label,
+            'spellcheck': l.spellcheck,
             'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES
         } for l in remove_duplicates(list(map(Language, settings.PREFERRED_LANGUAGES)) + list(Language))]
 
@@ -113,33 +113,33 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
                 filename += '.crypt'
             else:
                 response['Content-Type'] = 'application/zip'
-            
+
             response['Content-Disposition'] = f"attachment; filename={filename}"
             log.info('Sending Backup')
             return response
-    
+
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_name='license', url_path='license', methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsUserManagerOrSuperuserOrSystem])
     async def license_info(self, request, *args, **kwargs):
         return Response(data=await license.aget_license_info())
-    
+
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
     async def spellcheck(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.spellcheck()
         return Response(data=data)
-    
+
     @action(detail=False, url_name='spellcheck-add-word', url_path='spellcheck/words', methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
     async def spellcheck_add_word(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.save()
         return Response(data=data)
-    
+
     @action(detail=False, methods=['get'])
     def cwes(self, request, *args, **kwargs):
         return Response(data=CweField.cwe_definitions())
-    
+
     @action(detail=False, methods=['get'], authentication_classes=[], permission_classes=[])
     async def healthcheck(self, request, *args, **kwargs):
         # Trigger periodic tasks

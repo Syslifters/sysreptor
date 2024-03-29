@@ -31,7 +31,7 @@ def normalize_filename(name):
 def image_contains_transparent_pixels(img):
     if 'A' not in img.getbands():
         return False
-    
+
     a_band_index = img.getbands().index('A')
     return any(map(lambda d: d[a_band_index] != 255, img.getdata()))
 
@@ -50,7 +50,7 @@ def compress_image(file, name=None):
             img_format = img.format
             if img_format == 'SVG':
                 raise UnidentifiedImageError('Do not compress SVG')
-            
+
             # resize image to a max size
             img.thumbnail(size=(2000, 2000), resample=Image.Resampling.LANCZOS)
 
@@ -78,7 +78,7 @@ def compress_image(file, name=None):
                 name_path = Path(name)
                 if name_path.suffix:
                     name = name[:-len(name_path.suffix)] + file_extension
-            
+
             if isinstance(file, File):
                 return ContentFile(content=out.getvalue(), name=name or file.name), name
             else:

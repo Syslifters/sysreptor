@@ -12,7 +12,7 @@ def check_sensitive_operation_timeout(request):
     """
     Check if the current session was fully authenticated (password + MFA) before a short period of time (settings.SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT).
     """
-    try: 
+    try:
         reauth_time = datetime.fromisoformat(request.session.get('authentication_info', {}).get('reauth_time'))
         if reauth_time + settings.SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT >= timezone.now():
             return True
@@ -67,7 +67,7 @@ class MFAMethodViewSetPermissons(permissions.BasePermission):
         if user == request.user:
             check_sensitive_operation_timeout(request)
             return True
-        
+
         if not request.user.is_admin and not request.user.is_user_manager:
             return False
         if request.method in permissions.SAFE_METHODS:

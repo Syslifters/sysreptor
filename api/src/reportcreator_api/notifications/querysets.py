@@ -52,19 +52,19 @@ class NotificationSpecManager(models.Manager.from_queryset(NotificationSpecQuery
             return required_version and current_version < required_version
         else:
             return current_version == self.parse_version(version_condition)
-    
+
     def users_for_notification(self, notification):
         from reportcreator_api.users.models import PentestUser
 
         if notification.active_until and notification.active_until < timezone.now().date():
             return PentestUser.objects.none()
-        
+
         # User conditions
         users = PentestUser.objects.all()
         for role in ['is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager']:
             if role in notification.user_conditions and isinstance(notification.user_conditions[role], bool):
                 users = users.filter(**{role: notification.user_conditions[role]})
-        
+
         return users
 
     def notifications_for_user(self, user):

@@ -21,21 +21,21 @@ class HistoricalRecordBase(models.Model):
 class HistoricalRecords(history_models.HistoricalRecords):
     def __init__(self, excluded_fields=tuple(), **kwargs):
         super().__init__(
-            bases=[HistoricalRecordBase], 
+            bases=[HistoricalRecordBase],
             history_change_reason_field=EncryptedField(base_field=models.TextField(blank=True, null=True), null=True),
-            excluded_fields=('updated', 'lock_info_data') + tuple(excluded_fields), 
+            excluded_fields=('updated', 'lock_info_data') + tuple(excluded_fields),
             **kwargs
         )
 
     def post_save(self, instance, created, using=None, **kwargs):
         if getattr(instance, 'skip_history_when_saving', False):
-            # Allow skip_history_when_saving also for create 
+            # Allow skip_history_when_saving also for create
             return
         if not created and not set(instance.changed_fields).intersection(map(lambda f: f.attname, instance.history.model.tracked_fields)):
             # Skip history when there were no changes
             return
         return super().post_save(instance, created, using, **kwargs)
-    
+
     def get_extra_fields(self, model, fields):
         excluded_fields = self.excluded_fields
         def get_instance(self):
@@ -58,7 +58,7 @@ class HistoricalRecords(history_models.HistoricalRecords):
         return super().get_extra_fields(model, fields) | {
             'instance': property(get_instance),
         }
-    
+
     def get_history_user(self, instance):
         if hasattr(instance, '_history_user'):
             return instance._history_user
@@ -112,23 +112,23 @@ def bulk_create_with_history(model, objs, history_date=None, history_change_reas
 
     if settings.SIMPLE_HISTORY_ENABLED and hasattr(model, 'history'):
         bulk_create_history(
-            model, 
-            objs=objs, 
-            history_type='+', 
+            model,
+            objs=objs,
+            history_type='+',
             history_date=history_date,
             history_change_reason=history_change_reason,
             history_prevent_cleanup=True
         )
-    
+
     return out
 
 
 @transaction.atomic
 def bulk_update_with_history(model, objs, fields, history_date=None, history_change_reason=None, history_prevent_cleanup=None):
     """
-    Customization of simple_history.utils.bulk_update_with_history that 
-    respects settings.SIMPLE_HISTORY_ENABLED, 
-    sends the pre_create_historical_record signal and 
+    Customization of simple_history.utils.bulk_update_with_history that
+    respects settings.SIMPLE_HISTORY_ENABLED,
+    sends the pre_create_historical_record signal and
     support settings additional history model fields.
     """
     objs = list(objs)
@@ -136,9 +136,9 @@ def bulk_update_with_history(model, objs, fields, history_date=None, history_cha
     out = model.objects.bulk_update(objs=objs, fields=fields)
     if settings.SIMPLE_HISTORY_ENABLED:
         bulk_create_history(
-            model, 
-            objs=filter(lambda obj: set(obj.changed_fields).intersection(fields), objs), 
-            history_type='~', 
+            model,
+            objs=filter(lambda obj: set(obj.changed_fields).intersection(fields), objs),
+            history_type='~',
             history_date=history_date,
             history_change_reason=history_change_reason,
             history_prevent_cleanup=history_prevent_cleanup
@@ -149,7 +149,7 @@ def bulk_update_with_history(model, objs, fields, history_date=None, history_cha
 def bulk_create_history(model, objs, history_type=None, history_date=None, history_change_reason=None, history_prevent_cleanup=None):
     if not settings.SIMPLE_HISTORY_ENABLED:
         return
-    
+
     historical_records = []
     for obj in objs:
         historical_obj = model.history.model(
@@ -161,7 +161,7 @@ def bulk_create_history(model, objs, history_type=None, history_date=None, histo
             **{f.attname: getattr(obj, f.attname) for f in model.history.model.tracked_fields}
         )
         history_signals.pre_create_historical_record.send(
-            sender=model.history.model, 
+            sender=model.history.model,
             instance=obj,
             history_instance=historical_obj,
             history_date=historical_obj.history_date,
@@ -192,7 +192,7 @@ def history_context(override_existing=False, history_date=None, **kwargs):
                     continue
             setattr(HistoricalRecords.context, k, v)
         yield
-    finally: 
+    finally:
         for k, v in kwargs.items():
             if k in restore_map:
                 setattr(HistoricalRecords.context, k, restore_map[k])
@@ -213,7 +213,7 @@ def merge_with_previous_history(instance):
     h = instance.history.all().first()
     if not h:
         return
-    
+
     for f in instance.__class__.history.model.tracked_fields:
         setattr(h, f.attname, getattr(instance, f.attname))
     h.save()

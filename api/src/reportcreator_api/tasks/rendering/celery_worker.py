@@ -16,7 +16,7 @@ class SecureWorkerFixup:
         self.app = app
         if settings.CELERY_SECURE_WORKER:
             self.install()
-    
+
     def install(self):
         signals.task_prerun.connect(self.on_task_prerun)
 
@@ -66,7 +66,7 @@ class CustomRPCBackend(RPCBackend):
         routing_key, correlation_id = self.destination_for(task_id, request)
         if not routing_key:
             return
-        
+
         with self.connection() as conn:
             with self.app.amqp.Producer(conn) as producer:
                 producer.publish(

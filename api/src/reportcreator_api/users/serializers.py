@@ -37,7 +37,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
         if (is_mfa_enabled := getattr(obj, 'is_mfa_enabled', None)) is not None:
             return is_mfa_enabled
         return obj.mfa_methods.all().exists()
-    
+
     def get_extra_kwargs(self):
         user = self.context['request'].user
         read_only = not (getattr(user, 'is_user_manager', False) or getattr(user, 'is_admin', False))
@@ -51,7 +51,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'username': {'read_only': read_only},
             'is_active': {'read_only': read_only},
         }
-    
+
     def validate_is_active(self, value):
         if self.instance and self.instance.id == self.context['request'].user.id:
             if not value:
@@ -65,15 +65,15 @@ class CreateUserSerializer(PentestUserDetailSerializer):
         extra_kwargs = {
             'password': {'write_only': True}
         }
-    
+
     def get_extra_kwargs(self):
         return super().get_extra_kwargs() | {
-            'password': 
-                {'required': False, 'allow_null': True, 'default': None} 
-                if license.is_professional() and (not settings.LOCAL_USER_AUTH_ENABLED or settings.REMOTE_USER_AUTH_ENABLED or settings.AUTHLIB_OAUTH_CLIENTS) else 
+            'password':
+                {'required': False, 'allow_null': True, 'default': None}
+                if license.is_professional() and (not settings.LOCAL_USER_AUTH_ENABLED or settings.REMOTE_USER_AUTH_ENABLED or settings.AUTHLIB_OAUTH_CLIENTS) else
                 {}
         }
-    
+
     def validate_password(self, value):
         if value:
             validate_password(value, user=self.instance)
@@ -130,11 +130,11 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = PentestUser
         fields = ['password']
-    
+
     def validate_password(self, value):
         validate_password(value, user=self.instance)
         return value
-    
+
     def update(self, instance, validated_data):
         instance.set_password(validated_data['password'])
         instance.save()
@@ -164,7 +164,7 @@ class LoginSerializer(serializers.Serializer):
             user = PentestUser.objects.get(username=attrs['username'])
         except PentestUser.DoesNotExist:
             user = PentestUser()
-        
+
         if not user.check_password(attrs['password']):
             raise serializers.ValidationError('Invalid username or password')
 
@@ -241,7 +241,7 @@ class AuthIdentitySerializer(serializers.ModelSerializer):
     class Meta:
         model = AuthIdentity
         fields = ['id', 'created', 'updated', 'provider', 'identifier']
-    
+
     def create(self, validated_data):
         return super().create(validated_data | {'user': self.context['user']})
 

@@ -21,7 +21,7 @@ class Command(BaseCommand):
     def handle(self, file, key, **kwargs) -> str | None:
         if not license.is_professional(skip_db_checks=True):
             raise CommandError('Professional license required')
-        
+
         # Create backup iterator
         z = create_backup()
         if key:
@@ -30,4 +30,4 @@ class Command(BaseCommand):
         # Write backup to file
         for c in to_chunks(z):
             file.write(c)
-    
+

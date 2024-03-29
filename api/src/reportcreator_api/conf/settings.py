@@ -324,7 +324,7 @@ STORAGES = {
             'location': config('UPLOADED_ASSET_LOCATION', default=MEDIA_ROOT / 'uploadedassets', cast=Path)
         },
     },
-    'uploaded_files': { 
+    'uploaded_files': {
         'BACKEND': UPLOADED_FILE_STORAGE,
         'OPTIONS': {
             'location': config('UPLOADED_FILE_LOCATION', default=MEDIA_ROOT / 'uploadedfiles', cast=Path),
@@ -371,45 +371,45 @@ CSP_FRAME_ANCESTORS = ["'self'"]
 CSP_FORM_ACTION = ["'self'"]
 # nuxt, vuetify and markdown preview use inline styles
 CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
-# unsafe-inline: 
+# unsafe-inline:
 
 CSP_SCRIPT_SRC = [
-    "'self'", 
+    "'self'",
     "'sha256-liYzJIUIz0xQN3/5nhzjNXcXcZEOFfPRL14CdEd6z1I='",  # hash of nuxt inline script injected in index.html
 ]
 
 PERMISSIONS_POLICY = {
     'publickey-credentials-get': '(self)',
     'clipboard-write': '(self)',
-    'accelerometer': '()', 
-    'ambient-light-sensor': '()', 
-    'autoplay': '()', 
-    'battery': '()', 
-    'camera': '()', 
-    'cross-origin-isolated': '()', 
-    'display-capture': '()', 
-    'document-domain': '()', 
-    'encrypted-media': '()', 
-    'execution-while-not-rendered': '()', 
-    'execution-while-out-of-viewport': '()', 
-    'fullscreen': '()', 
-    'geolocation': '()', 
-    'gyroscope': '()', 
-    'keyboard-map': '()', 
-    'magnetometer': '()', 
-    'microphone': '()', 
-    'midi': '()', 
-    'navigation-override': '()', 
-    'payment': '()', 
-    'picture-in-picture': '()', 
-    'screen-wake-lock': '()', 
-    'sync-xhr': '()', 
-    'usb': '()', 
-    'web-share': '()', 
+    'accelerometer': '()',
+    'ambient-light-sensor': '()',
+    'autoplay': '()',
+    'battery': '()',
+    'camera': '()',
+    'cross-origin-isolated': '()',
+    'display-capture': '()',
+    'document-domain': '()',
+    'encrypted-media': '()',
+    'execution-while-not-rendered': '()',
+    'execution-while-out-of-viewport': '()',
+    'fullscreen': '()',
+    'geolocation': '()',
+    'gyroscope': '()',
+    'keyboard-map': '()',
+    'magnetometer': '()',
+    'microphone': '()',
+    'midi': '()',
+    'navigation-override': '()',
+    'payment': '()',
+    'picture-in-picture': '()',
+    'screen-wake-lock': '()',
+    'sync-xhr': '()',
+    'usb': '()',
+    'web-share': '()',
     'xr-spatial-tracking': '()',
-    'clipboard-read': '()', 
-    'gamepad': '()', 
-    'speaker-selection': '()', 
+    'clipboard-read': '()',
+    'gamepad': '()',
+    'speaker-selection': '()',
 }
 
 
@@ -463,7 +463,7 @@ if CELERY_SECURE_WORKER:
     CELERY_BROKER_POOL_LIMIT = 0
     CELERY_TASK_ACKS_LATE = False
     CELERY_WORKER_ENABLE_REMOTE_CONTROL = True
-    
+
 
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 CELERY_WORKER_SEND_TASK_EVENTS = False

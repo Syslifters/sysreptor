@@ -45,9 +45,9 @@ class PeriodicTaskManager(models.Manager.from_queryset(PeriodicTaskQuerySet)):
         else:
             try:
                 task_info['model'] = await PeriodicTask.objects.acreate(
-                    id=task_info['id'], 
-                    status=TaskStatus.RUNNING, 
-                    started=timezone.now(), 
+                    id=task_info['id'],
+                    status=TaskStatus.RUNNING,
+                    started=timezone.now(),
                     completed=None
                 )
             except IntegrityError:
@@ -70,7 +70,7 @@ class PeriodicTaskManager(models.Manager.from_queryset(PeriodicTaskQuerySet)):
             task_info['model'].status = TaskStatus.FAILED
             task_info['model'].completed = timezone.now()
         log.info(f'Completed periodic task "{task_info["id"]}" with status "{task_info["model"].status}"')
-        
+
         await task_info['model'].asave()
 
     async def run_all_pending_tasks(self):

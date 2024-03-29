@@ -12,7 +12,7 @@ async def fetch_notifications_request():
     async with httpx.AsyncClient(timeout=10) as client:
         res = await client.post(
             url=settings.NOTIFICATION_IMPORT_URL,
-            headers={'Content-Type': 'application/json'}, 
+            headers={'Content-Type': 'application/json'},
             data=json.dumps({
                 'version': settings.VERSION,
                 'license': await license.aget_license_info(),

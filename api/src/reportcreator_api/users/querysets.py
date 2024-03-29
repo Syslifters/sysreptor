@@ -25,8 +25,8 @@ class SessionManager(BaseSessionManager, models.Manager.from_queryset(SessionQue
         from reportcreator_api.users.models import Session
 
         s = Session(
-            session_key=session_key, 
-            session_data=self.encode(session_dict), 
+            session_key=session_key,
+            session_data=self.encode(session_dict),
             expire_date=expire_date
         )
         if session_dict:
@@ -48,7 +48,7 @@ class PentestUserQuerySet(models.QuerySet):
             # Only show users that are members in projects where the guest user is also a member
             return self \
                 .filter(
-                    models.Q(pk=user.pk) | 
+                    models.Q(pk=user.pk) |
                     models.Q(pk__in=PentestUser.objects.filter(projectmemberinfo__project__members__user=user)))
         else:
             return self
@@ -57,12 +57,12 @@ class PentestUserQuerySet(models.QuerySet):
         from reportcreator_api.users.models import MFAMethod
         return self \
             .annotate(is_mfa_enabled=models.Exists(MFAMethod.objects.filter(user=models.OuterRef('pk'))))
-    
+
     def annotate_has_public_keys(self):
         from reportcreator_api.pentests.models import UserPublicKey
         return self \
             .annotate(has_public_keys=models.Exists(UserPublicKey.objects.only_enabled().filter(user=models.OuterRef('pk'))))
-    
+
     def only_with_public_keys(self):
         return self \
             .annotate_has_public_keys() \
@@ -73,7 +73,7 @@ class PentestUserQuerySet(models.QuerySet):
             .only_active() \
             .exclude(is_system_user=True) \
             .count()
-    
+
     def get_total_user_count(self):
         return self.count()
 
@@ -87,7 +87,7 @@ class APITokenQuerySet(models.QuerySet):
         if user.is_admin or user.is_user_manager:
             return self
         return self.filter(user=user)
-    
+
     def only_active(self):
         return self \
             .filter(models.Q(expire_date=None) | models.Q(expire_date__lte=timezone.now().date()))
@@ -180,7 +180,7 @@ class MFAMethodManager(models.Manager.from_queryset(MFAMethodQuerySet)):
         from reportcreator_api.users.models import MFAMethod
         server = MFAMethod.get_fido2_server()
         auth_data = server.register_complete(
-            state=instance.data.get('state'), 
+            state=instance.data.get('state'),
             response=response
         )
         instance.data = {

@@ -42,7 +42,7 @@ class Command(BaseCommand):
 
         if type == 'project':
             add_member = list(map(self.get_user, add_member))
-        
+
         import_func = {
             'design': import_project_types,
             'template': import_templates,

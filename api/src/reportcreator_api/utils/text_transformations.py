@@ -41,7 +41,7 @@ class ChangeSet:
         False when there are actual changes in this set.
         """
         return len(self.sections) == 0 or (len(self.sections) == 2 and self.sections[1] < 0)
-    
+
     @property
     def length(self):
         """
@@ -67,7 +67,7 @@ class ChangeSet:
                 inserted[i] = '\n'.join(part[1:])
                 sections.extend([part[0], len(inserted[i])])
         return ChangeSet(sections=sections, inserted=inserted)
-    
+
     def to_dict(self):
         """
         Serialize this change set to a JSON-representable value.
@@ -104,7 +104,7 @@ class ChangeSet:
         applied to the document produced by applying `other`. When
         `before` is `true`, order changes as if `this` comes before
         `other`, otherwise (the default) treat `other` as coming first.
-        
+
         Given two changes `A` and `B`, `A.compose(B.map(A))` and
         `B.compose(A.map(B, true))` will produce the same document. This
         provides a basic form of [operational
@@ -115,7 +115,7 @@ class ChangeSet:
             return self
         else:
             return map_set(self, other, before)
-        
+
     def map_pos(self, pos: int, assoc = -1):
         posA = 0
         posB = 0
@@ -135,7 +135,7 @@ class ChangeSet:
         if pos > posA:
             raise ValueError(f'Position {pos} is out of range for ChangeSet of length {posA}')
         return posB
-        
+
     def iter_changes(self, individual):
         pos_a = 0
         pos_b = 0
@@ -165,7 +165,7 @@ class ChangeSet:
                 pos_a = end_a
                 pos_b = end_b
 
-        
+
     def apply(self, doc: str):
         """
         Apply the changes in this set to a document, returning the new
@@ -179,7 +179,7 @@ class ChangeSet:
         for (from_a, to_a, from_b, to_b, text) in self.iter_changes(False):
             doc = doc[:from_b] + text + doc[from_b + (to_a - from_a):]
         return doc
-        
+
 
 @dataclasses.dataclass
 class SelectionRange:
@@ -201,7 +201,7 @@ class SelectionRange:
             'anchor': self.anchor,
             'head': self.head
         }
-    
+
     def map(self, change: ChangeSet):
         if self.empty:
             anchor = head = change.map_pos(self.anchor, assoc=-1)
@@ -222,13 +222,13 @@ class EditorSelection:
         if not d or not isinstance(d.get('ranges'), list) or not isinstance(d.get('main'), int) or not (0 <= d['main'] < len(d['ranges'])):
             raise ValueError('Invalid selection')
         return EditorSelection(ranges=[SelectionRange.from_dict(r) for r in d['ranges']], main=d['main'])
-    
+
     def to_dict(self):
         return {
             'ranges': [r.to_dict() for r in self.ranges],
             'main': self.main
         }
-    
+
     def map(self, change: ChangeSet):
         if change.empty:
             return self
@@ -255,8 +255,8 @@ class Update:
            not isinstance(u.get('changes'), list):
             raise ValueError('Invalid update')
         return Update(
-            client_id=u['client_id'], 
-            version=u['version'], 
+            client_id=u['client_id'],
+            version=u['version'],
             changes=ChangeSet.from_dict(u['changes']),
         )
 
@@ -274,16 +274,16 @@ class SectionIter:
     @property
     def done(self):
         return self.ins == -2
-    
+
     @property
     def text(self):
         index = (self.i - 2) >> 1
         return '' if index >= len(self.set.inserted) else self.set.inserted[index]
-    
+
     @property
     def len2(self):
         return self.len if self.ins < 0 else self.ins
-    
+
     def next(self):
         if self.i < len(self.set.sections):
             self.len = self.set.sections[self.i]
@@ -293,14 +293,14 @@ class SectionIter:
             self.len = 0
             self.ins = -2
         self.off = 0
-    
+
     def forward(self, i_len: int):
         if i_len == self.len:
             self.next()
         else:
             self.len -= i_len
             self.off += i_len
-    
+
     def forward2(self, i_len: int):
         if self.ins == -1:
             self.forward(i_len)
@@ -323,7 +323,7 @@ class SectionIter:
 def add_section(sections: list[int], i_len: int, ins: int, force_join=False):
     if i_len == 0 and ins < 0:
         return
-    
+
     last = len(sections) - 2
     if last >= 0 and ins < 0 and ins == sections[last + 1]:
         sections[last] += i_len
@@ -339,7 +339,7 @@ def add_section(sections: list[int], i_len: int, ins: int, force_join=False):
 def add_insert(values: list[str], sections: list[int], value: str):
     if len(value) == 0:
         return
-    
+
     index = (len(sections) - 2) >> 1
     if index < len(values):
         values[-1] += value
@@ -453,7 +453,7 @@ def compose_sets(setA: ChangeSet, setB: ChangeSet):
                 add_section(sections, 0 if a.off else a.len, 0 if b.off else b.ins, open)
                 if insert is not None and not b.off:
                     add_insert(insert, sections, b.text)
-            
+
             open = (a.ins > i_len or (b.ins >= 0 and b.len > i_len)) and (open or len(sections) > section_len)
             a.forward2(i_len)
             b.forward(i_len)
@@ -474,7 +474,7 @@ def rebase_updates(updates: list[Update], selection: Optional[EditorSelection], 
 
     if not updates or not over:
         return updates, selection
-    
+
     changes = None
     skip = 0
     version = None
@@ -491,10 +491,10 @@ def rebase_updates(updates: list[Update], selection: Optional[EditorSelection], 
                 changes = update.changes
         if version is None or update.version > version:
             version = update.version
-    
+
     if skip:
         updates = updates[skip:]
-    
+
     if not changes:
         return updates, selection
     else:

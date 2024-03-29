@@ -49,7 +49,7 @@ class PentestUser(BaseModel, AbstractUser):
             ((self.first_name + ' ') if self.first_name else '') + \
             ((self.middle_name + ' ') if self.middle_name else '') + \
             (self.last_name or '') + \
-            ((', ' + self.title_after) if self.title_after else '') 
+            ((', ' + self.title_after) if self.title_after else '')
 
     @property
     def scope(self) -> list[str]:
@@ -67,7 +67,7 @@ class PentestUser(BaseModel, AbstractUser):
     @functools.cached_property
     def can_login_sso(self) -> bool:
         return bool(self.auth_identities.all())
-    
+
     @property
     def is_admin(self) -> bool:
         return self.is_active and self.is_superuser and \
@@ -96,20 +96,20 @@ class APIToken(BaseModel):
     token_plaintext = None
 
     objects = querysets.APITokenManager()
-    
+
     def save(self, *args, **kwargs):
         from reportcreator_api.users.auth import UnsaltedSHA3_256PasswordHasher
         if not self.token_hash:
             self.token_plaintext = secrets.token_bytes(32).hex()
             self.token_hash = UnsaltedSHA3_256PasswordHasher().encode(self.token_plaintext, '')
         return super().save(*args, **kwargs)
-    
+
     @property
     def token_formatted(self) -> str:
         if not self.token_plaintext:
             return None
         return 'sysreptor_' + b64encode(f'{self.id}:{self.token_plaintext}'.encode()).decode()
-    
+
     def validate_token(self, token_plaintext):
         from reportcreator_api.users.auth import UnsaltedSHA3_256PasswordHasher
         return UnsaltedSHA3_256PasswordHasher().verify(token_plaintext, self.token_hash)
@@ -147,7 +147,7 @@ class MFAMethodType(models.TextChoices):
 class MFAMethod(BaseModel):
     user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='mfa_methods')
     method_type = models.CharField(max_length=255, choices=MFAMethodType.choices)
-    is_primary = models.BooleanField(default=False) 
+    is_primary = models.BooleanField(default=False)
     name = models.CharField(max_length=255, default="", blank=True)
     data = EncryptedField(base_field=models.JSONField())
 

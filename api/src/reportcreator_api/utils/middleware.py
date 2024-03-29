@@ -13,16 +13,16 @@ class CustomCsrfMiddleware(CsrfViewMiddleware):
             return None
 
         return super().process_view(request, *args, **kwargs)
-    
+
     def _origin_verified(self, request):
         if super()._origin_verified(request):
             return True
-        
+
         try:
             parsed_origin = urlparse(request.META["HTTP_ORIGIN"])
         except ValueError:
             return False
-        
+
         # Allow skipping origin checks
         return parsed_origin.scheme + '://*' in settings.CSRF_TRUSTED_ORIGINS
 

@@ -46,7 +46,7 @@ class ShamirLarge(Shamir):
         result = b''
         for i in range(blocks):
             block_shares = [
-                    (int(idx), share[i*SHAMIR_BLOCK_SIZE:(i+1)*SHAMIR_BLOCK_SIZE]) 
+                    (int(idx), share[i*SHAMIR_BLOCK_SIZE:(i+1)*SHAMIR_BLOCK_SIZE])
                 for idx, share in shares]
             result += Shamir.combine(block_shares, ssss)
         return result

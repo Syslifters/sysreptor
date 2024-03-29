@@ -50,10 +50,10 @@ class UserSubresourceViewSetMixin(views.APIView):
         user_pk = self.kwargs.get('pentestuser_pk')
         if user_pk == 'self':
             return self.request.user
-        
+
         qs = PentestUser.objects.all()
         return get_object_or_404(qs, pk=user_pk)
-    
+
     def get_serializer_context(self):
         return super().get_serializer_context() | {
             'user': self.get_user()
@@ -105,7 +105,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
     def change_password(self, request, *args, **kwargs):
         self.kwargs['pk'] = 'self'
         return self.update(request, *args, **kwargs)
-    
+
     @action(detail=False, url_path='self/admin/enable', methods=['post'])
     def enable_admin_permissions(self, request, *args, **kwargs):
         request.session['admin_permissions_enabled'] = True
@@ -113,7 +113,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
         request.user.admin_permissions_enabled = True
         self.kwargs['pk'] = 'self'
         return self.retrieve(request=request, *args, **kwargs)
-    
+
     @action(detail=False, url_path='self/admin/disable', methods=['post'])
     def disable_admin_permissions(self, request, *args, **kwargs):
         request.session.pop('admin_permissions_enabled', False)
@@ -125,7 +125,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
     @action(detail=True, url_path='reset-password', methods=['post'])
     def reset_password(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
-    
+
     def perform_destroy(self, instance):
         try:
             instance.delete()
@@ -165,7 +165,7 @@ class MFAMethodViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixin
     def register_totp_begin(self, request, *args, **kwargs):
         instance = MFAMethod.objects.create_totp(save=False, user=self.get_user(), name='TOTP')
         return self.perform_register_begin(request, instance, {'qrcode': instance.get_totp_qrcode()})
-    
+
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_path='register/fido2/begin', methods=['post'])
     def register_fido2_begin(self, request, *args, **kwargs):
@@ -200,7 +200,7 @@ class MFAMethodViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixin
         mfa_register_state = json.loads(request.session['mfa_register'])
         mfa_register_state['user'] = self.get_user()
         instance = MFAMethod(**mfa_register_state)
-        
+
         serializer = self.get_serializer(instance=instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -226,10 +226,10 @@ class AuthIdentityViewSet(UserSubresourceViewSetMixin, viewsets.ModelViewSet):
 class APITokenViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     serializer_class = APITokenSerializer
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [APITokenViewSetPermissions]
-    
+
     def get_queryset(self):
         return self.get_user().api_tokens.all()
-    
+
     def get_serializer_class(self):
         if self.action == 'create':
             return APITokenCreateSerializer
@@ -251,7 +251,7 @@ class AuthViewSet(viewsets.ViewSet):
 
     def get_serializer(self, *args, **kwargs):
         return self.get_serializer_class()(context={'request': self.request}, *args, **kwargs)
-    
+
     @action(detail=False, methods=['post'], authentication_classes=[], permission_classes=[LocalUserAuthPermissions])
     def login(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -303,7 +303,7 @@ class AuthViewSet(viewsets.ViewSet):
         state = request.session.get('login_state', {}).pop('fido2_state', None)
         try:
             MFAMethod.get_fido2_server().authenticate_complete(
-                state=state, 
+                state=state,
                 credentials=MFAMethod.objects.get_fido2_user_credentials(request.user),
                 response=request.data
             )
@@ -369,12 +369,12 @@ class AuthViewSet(viewsets.ViewSet):
     def login_oidc_complete(self, request, oidc_provider, *args, **kwargs):
         if not request.session.get('login_state', {}).get('status') == 'oidc-callback-required':
             raise APIBadRequestError('No OIDC login in progress for session')
-        
+
         try:
             token = oauth.create_client(oidc_provider).authorize_access_token(request)
         except OAuthError as ex:
             raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error)
-        
+
         email = token['userinfo'].get('email', 'unknown')
         identity = AuthIdentity.objects \
             .select_related('user') \
@@ -394,7 +394,7 @@ class AuthViewSet(viewsets.ViewSet):
             f'oidc_{oidc_provider}_login_hint': token['userinfo'].get('login_hint'),
         }
         return res
-    
+
     @action(detail=False, url_path='login/remoteuser', methods=['post'], permission_classes=[RemoteUserAuthPermissions])
     def login_remoteuser(self, request, *args, **kwargs):
         remote_user_identifier = request.META.get('HTTP_' + settings.REMOTE_USER_AUTH_HEADER.upper().replace('-', '_'))

@@ -84,7 +84,7 @@ def is_date_string(val):
         return True
     except (ValueError, TypeError, AttributeError):
         return False
-    
+
 
 def parse_date_string(val):
     out = dateparse.parse_datetime(val)

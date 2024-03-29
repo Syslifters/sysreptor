@@ -11,7 +11,7 @@ from reportcreator_api.utils.models import disable_for_loaddata
 def notification_created(sender, instance, created, *args, **kwargs):
     if not created:
         return
-    
+
     NotificationSpec.objects.assign_to_users(instance)
 
 
@@ -20,6 +20,6 @@ def notification_created(sender, instance, created, *args, **kwargs):
 def user_created(sender, instance, created, *args, **kwargs):
     if not created:
         return
-    
+
     NotificationSpec.objects.assign_to_notifications(instance)
 

@@ -11,7 +11,7 @@ def run_healthchecks(checks: dict[str, str]):
     for service, check_func_name in checks.items():
         check_func = import_string(check_func_name)
         res[service] = check_func()
-    
+
     has_errors = not all(res.values())
     return Response(data=res, status=503 if has_errors else 200)
 

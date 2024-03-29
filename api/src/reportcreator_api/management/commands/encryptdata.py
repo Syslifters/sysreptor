@@ -22,7 +22,7 @@ class Command(BaseCommand):
         file_name_map = {}
         for model in models:
             data_list = list(model.objects.all().values('id', 'name', 'file'))
-            history_list = list(model.history.all().values('history_id', 'name', 'file')) if hasattr(model, 'history') else []  
+            history_list = list(model.history.all().values('history_id', 'name', 'file')) if hasattr(model, 'history') else []
             for data in data_list + history_list:
                 if data['file'] not in file_name_map:
                     with storage.open(data['file'], mode='rb') as old_file:
@@ -32,12 +32,12 @@ class Command(BaseCommand):
             model.objects.bulk_update(map(lambda d: model(**d), data_list), ['name', 'file'])
             if hasattr(model, 'history'):
                 model.history.model.objects.bulk_update(map(lambda d: model.history.model(**d), history_list), ['name', 'file', 'history_change_reason'])
-    
+
     def encrypt_db_fields(self, model, fields):
         if fields:
             model.objects.bulk_update(model.objects.all().iterator(), fields)
         if hasattr(model, 'history'):
-            model.history.model.objects.bulk_update(model.history.model.objects.all().iterator(), fields + ['history_change_reason'])                    
+            model.history.model.objects.bulk_update(model.history.model.objects.all().iterator(), fields + ['history_change_reason'])
 
     def encrypt_data(self):
         # Encrypt DB fields
@@ -81,5 +81,5 @@ class Command(BaseCommand):
                 raise CommandError('Invalid DEFAULT_ENCRYPTION_KEY_ID')
             with override_settings(ENCRYPTION_PLAINTEXT_FALLBACK=True):
                 self.encrypt_data()
-        
+
 

@@ -46,7 +46,7 @@ class MessageLocationInfo:
 
     def for_path(self, path: Union[None, str, tuple[str], list[str]]):
         return MessageLocationInfo(**(dataclasses.asdict(self)  |{'path': format_path(path)}))
-    
+
     def to_dict(self):
         return dataclasses.asdict(self) | {
             'type': self.type.value,
@@ -65,7 +65,7 @@ class ErrorMessage:
             'level': self.level.value,
             'location': self.location.to_dict() if self.location else None,
         }
-    
+
     @classmethod
     def from_dict(cls, data):
         location = data.get('location')

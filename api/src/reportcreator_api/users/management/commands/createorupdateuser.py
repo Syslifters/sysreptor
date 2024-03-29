@@ -25,7 +25,7 @@ class Command(BaseCommand):
 
     def handle(self, username, password, is_superuser, is_system_user, *args, **kwargs):
         password = password or os.environ.get('DJANGO_SUPERUSER_PASSWORD')
-        
+
         if not password or not username:
             raise CommandError("username and password (DJANGO_SUPERUSER_PASSWORD) must be set")
         if len(password) < 15:
@@ -34,7 +34,7 @@ class Command(BaseCommand):
         user = PentestUser.objects.filter(username=username).first()
         if not user:
             user = PentestUser(username=username)
-        
+
         user.set_password(password)
         if is_superuser:
             user.is_superuser = True

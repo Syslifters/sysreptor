@@ -8,11 +8,11 @@ class SessionStore(BaseDbSessionStore):
     @classmethod
     def get_model_class(cls):
         return Session
-    
+
     @property
     def expire_date(self):
         return getattr(self._session_instance, 'expire_date', None) or self.get_expiry_date()
-    
+
     def load(self):
         s = self._get_session_from_db()
         self._session_instance = s

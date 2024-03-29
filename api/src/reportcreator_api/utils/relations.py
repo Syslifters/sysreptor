@@ -40,7 +40,7 @@ class ReverseGenericOneToOneDescriptor(ReverseOneToOneDescriptor):
     def __get__(self, instance, cls=None):
         if instance is None:
             return self
-        
+
         # Disable for historic models
         if is_historic(instance):
             return None
@@ -66,7 +66,7 @@ class ReverseGenericOneToOneDescriptor(ReverseOneToOneDescriptor):
             self.related.set_cached_value(instance, rel_obj)
 
         return rel_obj
-    
+
     def __set__(self, instance, value):
         if value is None:
             # Update the cached related instance (if any) & clear the cache.

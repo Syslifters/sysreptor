@@ -35,7 +35,7 @@ class GenericAPIViewAsync(GenericAPIViewAsyncMixin, generics.GenericAPIView, Asy
     @property
     def action(self):
         return self._action
-    
+
     @action.setter
     def action(self, value):
         self._action = value
@@ -47,7 +47,7 @@ class GenericAPIViewAsync(GenericAPIViewAsyncMixin, generics.GenericAPIView, Asy
 
     async def aget_object(self):
         return await sync_to_async(super().get_object)()
-    
+
 
 class ViewSetAsync(GenericAPIViewAsyncMixin, AdrfAsyncViewSet):
     @classproperty
@@ -126,7 +126,7 @@ class CursorMultiPagination(pagination.CursorPagination):
 
     def get_ordering(self, request, queryset, view):
         return queryset.query.order_by if queryset.ordered else self.ordering
-    
+
     def _get_position_from_instance(self, instance, ordering):
         out = []
         for field_name in ordering:
@@ -188,7 +188,7 @@ class CursorMultiPagination(pagination.CursorPagination):
                     q_objects_compare[order] = Q(
                         **{(order_attr + "__gt"): position}
                     )
-            
+
             filter_list = []
             # starting with the second field
             for i in range(len(self.ordering)):

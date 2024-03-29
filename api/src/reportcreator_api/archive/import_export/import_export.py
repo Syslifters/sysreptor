@@ -40,7 +40,7 @@ def _yield_chunks(buffer: io.BytesIO, last_chunk=False):
     val = buffer.getvalue()
     buffer.truncate(0)
     buffer.seek(0)
-    
+
     num_chunks, len_remaining = divmod(len(val), BLOCKSIZE)
     for i in range(num_chunks):
         yield val[i * BLOCKSIZE:(i + 1) * BLOCKSIZE]
@@ -69,7 +69,7 @@ def _tarfile_addfile(buffer, archive: tarfile.TarFile, tarinfo, file_chunks) -> 
     for chunk in file_chunks:
         archive.fileobj.write(chunk)
         yield from _yield_chunks(buffer)
-    
+
     blocks, remainder = divmod(tarinfo.size, tarfile.BLOCKSIZE)
     if remainder > 0:
         archive.fileobj.write(tarfile.NUL * (tarfile.BLOCKSIZE - remainder))
@@ -93,17 +93,17 @@ def export_archive_iter(data, serializer_class: Type[serializers.Serializer], co
                 data = serializer.export()
                 archive_data = json.dumps(data, cls=DjangoJSONEncoder).encode()
                 yield from _tarfile_addfile(
-                    buffer=buffer, 
+                    buffer=buffer,
                     archive=archive,
-                    tarinfo=build_tarinfo(name=f'{obj.id}.json', size=len(archive_data)), 
+                    tarinfo=build_tarinfo(name=f'{obj.id}.json', size=len(archive_data)),
                     file_chunks=[archive_data]
                 )
-                
+
                 for name, file in serializer.export_files():
                     yield from _tarfile_addfile(
                         buffer=buffer,
                         archive=archive,
-                        tarinfo=build_tarinfo(name=name, size=file.size), 
+                        tarinfo=build_tarinfo(name=name, size=file.size),
                         file_chunks=file.chunks()
                     )
 
@@ -173,7 +173,7 @@ def import_archive(archive_file, serializer_classes: list[Type[serializers.Seria
                     imported_objects.extend(imported_obj)
                 else:
                     imported_objects.append(imported_obj)
-            
+
             return imported_objects
     except Exception as ex:
         # Rollback partially imported data. DB rollback is done in the decorator
@@ -201,12 +201,12 @@ def export_project_types(data: Iterable[ProjectType]):
 
 def export_projects(data: Iterable[PentestProject], export_all=False):
     prefetch_related_objects(
-        data, 
-        Prefetch('findings', PentestFinding.objects.select_related('assignee')), 
-        Prefetch('sections', ReportSection.objects.select_related('assignee')), 
+        data,
+        Prefetch('findings', PentestFinding.objects.select_related('assignee')),
+        Prefetch('sections', ReportSection.objects.select_related('assignee')),
         Prefetch('notes', ProjectNotebookPage.objects.select_related('parent')),
         Prefetch('members', ProjectMemberInfo.objects.select_related('user')),
-        'images', 
+        'images',
         'project_type__assets',
     )
     return export_archive_iter(data, serializer_class=PentestProjectExportImportSerializer, context={
@@ -225,7 +225,7 @@ def export_notes(project_or_user: PentestProject|PentestUser, notes: Optional[It
                 if n.parent_id == note.id:
                     out.extend(get_children_recursive(n, all_notes))
             return out
-        
+
         all_notes = list(project_or_user.notes.all())
         export_notes = []
         for n in notes:
@@ -235,7 +235,7 @@ def export_notes(project_or_user: PentestProject|PentestUser, notes: Optional[It
             export_notes.extend(get_children_recursive(n, all_notes))
         notes_qs = notes_qs \
             .filter(id__in=map(lambda n: n.id, export_notes))
-    
+
     prefetch_related_objects([project_or_user], Prefetch('notes', queryset=notes_qs))
     return export_archive_iter([project_or_user], serializer_class=NotesExportImportSerializer)
 

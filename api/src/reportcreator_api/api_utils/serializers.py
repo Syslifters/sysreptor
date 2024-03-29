@@ -42,7 +42,7 @@ class LanguageToolSerializerBase(serializers.Serializer):
     async def languagetool_request(self, path, data):
         if not settings.SPELLCHECK_URL:
             raise exceptions.PermissionDenied('Spell checker not configured')
-        
+
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 res = await client.post(
@@ -119,7 +119,7 @@ class BackupSerializer(serializers.Serializer):
     def validate_aes_key(self, value):
         if not value:
             return None
-        
+
         try:
             key_bytes = b64decode(value)
             if len(key_bytes) != 32:

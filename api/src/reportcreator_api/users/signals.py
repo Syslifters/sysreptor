@@ -9,7 +9,7 @@ from reportcreator_api.utils import license
 def user_count_license_check(sender, instance, *args, **kwargs):
     if not instance.is_active:
         return
-    
+
     if instance.is_system_user and license.is_professional():
         return
 
@@ -26,7 +26,7 @@ def user_count_license_check(sender, instance, *args, **kwargs):
             raise license.LicenseLimitExceededError(
                 f'License limit exceeded. Your license allows max. {max_users} users. '
                 'Please deactivate some users or extend your license.')
-    
+
     # User updated
     if (created or 'is_superuser' in instance.changed_fields) and not instance.is_superuser and not license.is_professional():
         raise license.LicenseError('Cannot create non-superusers in Community edition. Professional license is required for user roles.')
@@ -48,7 +48,7 @@ def user_count_license_check(sender, instance, *args, **kwargs):
 def api_token_license_limit(sender, instance, *args, **kwargs):
     if license.is_professional():
         return
-    
+
     current_apitoken_count = APIToken.objects \
         .filter(user=instance.user) \
         .only_active() \

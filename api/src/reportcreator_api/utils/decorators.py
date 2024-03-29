@@ -9,7 +9,7 @@ def cache(key, **cache_kwargs):
             val = django_cache.get(key)
             if val is not None:
                 return val
-            else: 
+            else:
                 val = func(*args, **kwargs)
                 django_cache.set(key=key, value=val, **cache_kwargs)
                 return val
@@ -23,7 +23,7 @@ def acache(key, **cache_kwargs):
             val = await django_cache.aget(key)
             if val is not None:
                 return val
-            else: 
+            else:
                 val = await func(*args, **kwargs)
                 await django_cache.aset(key=key, value=val, **cache_kwargs)
                 return val

@@ -11,7 +11,7 @@ def log_timing(fn):
     def inner(*args, **kwargs):
         start_time = timezone.now()
         out = fn(*args, **kwargs)
-        timing = timezone.now() - start_time     
+        timing = timezone.now() - start_time
         log.info(f'Function {fn.__name__} took {timing}')
         return out
     return inner

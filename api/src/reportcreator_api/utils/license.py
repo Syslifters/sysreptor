@@ -41,7 +41,7 @@ def verify_signature(data: str, signature: dict):
         return False
     if public_key['algorithm'] != signature['algorithm'] or signature['algorithm'] != 'ed25519':
         return False
-    
+
     try:
         verifier = eddsa.new(key=ECC.import_key(base64.b64decode(public_key['key'])), mode='rfc8032')
         verifier.verify(msg_or_hash=SHA512.new(data.encode()), signature=base64.b64decode(signature['signature']))
@@ -82,7 +82,7 @@ def decode_and_validate_license(license, skip_db_checks=False, skip_limit_valida
     try:
         if not license:
             raise LicenseError(None)
-        
+
         license_data = decode_license(license)
         if not skip_limit_validation:
             # Validate license
@@ -91,7 +91,7 @@ def decode_and_validate_license(license, skip_db_checks=False, skip_limit_valida
                 raise LicenseError(license_data | {'error': 'License not yet valid: ' + period_info})
             elif license_data['valid_until'] < timezone.now().date():
                 raise LicenseError(license_data | {'error': 'License expired: ' + period_info})
-        
+
             # Validate license limits not exceeded
             if not skip_db_checks:
                 current_user_count = PentestUser.objects.get_licensed_user_count()
@@ -109,7 +109,7 @@ def decode_and_validate_license(license, skip_db_checks=False, skip_limit_valida
     except LicenseError as ex:
         if license:
             logging.exception('License validation failed')
-        
+
         error_details = ex.detail if isinstance(ex.detail, dict) else {'error': ex.detail}
         return error_details | {
             'type': LicenseType.COMMUNITY,

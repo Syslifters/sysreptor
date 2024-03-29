@@ -19,10 +19,10 @@ class Command(BaseCommand):
     def handle(self, file, key, keepfiles, **kwargs) -> str | None:
         if not license.is_professional(skip_db_checks=True):
             raise CommandError('Professional license required')
-        
+
         if key:
             file = crypto.open(file, key=key)
-        
+
         try:
             with tempfile.TemporaryFile(mode='w+b') as f:
                 shutil.copyfileobj(file, f)

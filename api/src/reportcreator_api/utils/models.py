@@ -26,7 +26,7 @@ class ModelDiffMixin(models.Model):
         d2 = self._dict
         diffs = [(k, (v, d2[k])) for k, v in d1.items() if v != d2[k]]
         return dict(diffs)
-    
+
     @property
     def initial(self):
         return self.__initial
