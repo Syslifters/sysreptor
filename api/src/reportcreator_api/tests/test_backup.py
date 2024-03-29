@@ -30,7 +30,7 @@ from reportcreator_api.tests.mock import (
 )
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestBackup:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -146,7 +146,7 @@ class TestBackup:
             self.assert_backup(z)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestBackupRestore:
     @pytest.fixture(autouse=True)
     def setUp(self):

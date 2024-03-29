@@ -434,8 +434,8 @@ class ApiRequestsAndPermissionsTestData:
         return (timezone.now() + timedelta(days=1)).isoformat()
 
 
-@pytest.mark.django_db
-@pytest.mark.parametrize(['username', 'name', 'perform_request', 'initialize_dependencies', 'expected'], sorted(build_test_parameters(), key=lambda t: (t[0], t[1], t[4])))
+@pytest.mark.django_db()
+@pytest.mark.parametrize(('username', 'name', 'perform_request', 'initialize_dependencies', 'expected'), sorted(build_test_parameters(), key=lambda t: (t[0], t[1], t[4])))
 def test_api_requests(username, name, perform_request, initialize_dependencies, expected):
     with override_settings(
             GUEST_USERS_CAN_IMPORT_PROJECTS=False,

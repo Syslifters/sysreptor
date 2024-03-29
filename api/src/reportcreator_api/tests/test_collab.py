@@ -74,7 +74,7 @@ class TestTextTransformations:
             combined_change = combined_change.compose(ChangeSet.from_dict(op['changes']))
             assert combined_change.apply('') == op['expected']
 
-    @pytest.mark.parametrize(['text', 'change1', 'change2', 'expected'], [
+    @pytest.mark.parametrize(('text', 'change1', 'change2', 'expected'), [
         ('line1\nline2\n', [4, [1, '0'], 7], [10, [1, '1'], 1], 'line0\nline1\n'),
         ('line1\nline2\n', [5, [0, '', ''], 7], [7, [3], 2], 'line1\n\nl2\n'),
         ('line1\nline2\n', [5, [7]], [9, [0, 'e'], 3], 'line1e'),
@@ -95,7 +95,7 @@ class TestTextTransformations:
         # Rebase already applied changes
         assert rebase_updates(updates=[Update(client_id='c2', version=2, changes=c2)], selection=None, over=[Update(client_id='c1', version=1, changes=c1), Update(client_id='c2', version=2, changes=c2)])[0] == []
 
-    @pytest.mark.parametrize(['selection', 'change', 'expected'], [
+    @pytest.mark.parametrize(('selection', 'change', 'expected'), [
         # Cursor
         ([{'anchor': 10, 'head': 10}], [5, [0, 'inserted before'], 20], [{'anchor': 25, 'head': 25}]),
         ([{'anchor': 10, 'head': 10}], [5, [5, ''], 20], [{'anchor': 5, 'head': 5}]),  # deleted before
@@ -180,7 +180,7 @@ async def ws_connect(path, user, consume_init=True, other_clients=None):
 
 
 @pytest.mark.django_db(transaction=True)
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestCollaborativeTextEditing:
     @pytest_asyncio.fixture(autouse=True)
     async def setUp(self):
@@ -289,7 +289,7 @@ class TestCollaborativeTextEditing:
 
 
 @pytest.mark.django_db(transaction=True)
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestProjectNotesDbSync:
     @pytest_asyncio.fixture(autouse=True)
     async def setUp(self):
@@ -444,7 +444,7 @@ class TestProjectNotesDbSync:
 
 
 @pytest.mark.django_db(transaction=True)
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestConsumerPermissions:
     async def ws_connect(self, path, user):
         session = await create_session(user)
@@ -457,7 +457,7 @@ class TestConsumerPermissions:
         await consumer.disconnect()
         return connected
 
-    @pytest.mark.parametrize(['expected', 'user_name', 'project_name'], [
+    @pytest.mark.parametrize(('expected', 'user_name', 'project_name'), [
         (True, 'member', 'project'),
         (True, 'admin', 'project'),
         (False, 'unauthorized', 'project'),
@@ -482,7 +482,7 @@ class TestConsumerPermissions:
         user, project = await sync_to_async(setup_db)()
         assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/notes/', user) == expected
 
-    @pytest.mark.parametrize(['expected', 'user_name'], [
+    @pytest.mark.parametrize(('expected', 'user_name'), [
         (True, 'self'),
         (False, 'admin'),
         (False, 'unauthorized'),

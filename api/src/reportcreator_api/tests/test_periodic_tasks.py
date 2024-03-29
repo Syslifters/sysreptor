@@ -38,7 +38,7 @@ def task_failure():
     raise Exception('Failed task')
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestPeriodicTaskScheduling:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -124,7 +124,7 @@ class TestPeriodicTaskScheduling:
             async_to_sync(PeriodicTask.objects.run_all_pending_tasks)()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestCleanupUnreferencedFiles:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -336,7 +336,7 @@ class TestCleanupUnreferencedFiles:
         assert template_new.images.count() == 0
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestResetStaleArchiveRestore:
     def test_reset_stale(self):
         with mock_time(before=timedelta(days=10)):
@@ -397,7 +397,7 @@ class TestResetStaleArchiveRestore:
         assert keypart2.is_decrypted
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestAutoProjectArchiving:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -447,7 +447,7 @@ class TestAutoProjectArchiving:
             assert not PentestProject.objects.filter(id=self.project.id).exists()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestAutoArchiveDeletion:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -473,7 +473,7 @@ class TestAutoArchiveDeletion:
             assert ArchivedProject.objects.filter(id=self.archive.id).exists()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestCleanupCollabEvents:
     @pytest.fixture(autouse=True)
     def setUp(self):

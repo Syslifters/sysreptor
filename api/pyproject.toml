@@ -72,12 +72,15 @@ line-length = 120
 [tool.ruff.lint]
 select = [
   "E4", "E7", "E9", "F", # default rules
-  "W", "I", "UP", "COM", "T10", "T20", "DJ", "INP", "PIE",
+  "W", "I", "UP", "COM", "T10", "T20", "INP", "PIE",  # misc rules
+  "DJ",  # django rules
+  "PT",  # pytest rules
   # "B",
-  # "PT"
+  
 ]
 ignore = [
   "E741",  # Ambiguous variable name: `l`
   "DJ001",  # Avoid using null=True on string-based fields in django models
+  "PT004",  # Fixture setUp does not return anything, add leading underscore
 ]
 

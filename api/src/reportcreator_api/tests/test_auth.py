@@ -12,7 +12,7 @@ from reportcreator_api.users.models import APIToken, AuthIdentity, MFAMethod, MF
 from reportcreator_api.utils.utils import omit_keys
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestLogin:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -141,7 +141,7 @@ class TestLogin:
         self.assert_api_access(False)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestMfaMethodRegistration:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -192,7 +192,7 @@ class TestMfaMethodRegistration:
             assert res3.status_code == 403
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestEnableAdminPermissions:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -249,7 +249,7 @@ class TestEnableAdminPermissions:
         assert not self.has_admin_access()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestAPITokenAuth:
     @pytest.fixture(autouse=True)
     def setUp(self):

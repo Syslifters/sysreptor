@@ -349,8 +349,9 @@ def create_archived_project(project=None, **kwargs):
 
 
 def mock_time(before=None, after=None):
-    return mock.patch('django.utils.timezone.now',
-                      lambda: datetime.now(tz=timezone.get_current_timezone()) - (before or timedelta()) + (after or timedelta()))
+    def now():
+        return datetime.now(tz=timezone.get_current_timezone()) - (before or timedelta()) + (after or timedelta())
+    return mock.patch('django.utils.timezone.now', now)
 
 
 def api_client(user=None):

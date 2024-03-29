@@ -26,7 +26,7 @@ from reportcreator_api.tests.mock import (
 from reportcreator_api.tests.utils import assertKeysEqual
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestProjectApi:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -117,9 +117,9 @@ class TestProjectApi:
         assert [f.data['title'] for f in project.findings.order_by('order')] == expected_order
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestProjectTypeApi:
-    @pytest.mark.parametrize('user,scope,expected', [
+    @pytest.mark.parametrize(('user', 'scope', 'expected'), [
         ('designer', ProjectTypeScope.GLOBAL, True),
         ('designer', ProjectTypeScope.PRIVATE, True),
         ('regular', ProjectTypeScope.GLOBAL, False),
@@ -136,7 +136,7 @@ class TestProjectTypeApi:
             assert pt.linked_project is None
             assert pt.linked_user == (user if scope == 'private' else None)
 
-    @pytest.mark.parametrize('user,scope,expected', [
+    @pytest.mark.parametrize(('user', 'scope', 'expected'), [
         ('designer', ProjectTypeScope.GLOBAL, True),
         ('designer', ProjectTypeScope.PRIVATE, True),
         ('regular', ProjectTypeScope.GLOBAL, False),
@@ -154,7 +154,7 @@ class TestProjectTypeApi:
             assert pt.linked_project is None
             assert pt.linked_user == (user if scope == 'private' else None)
 
-    @pytest.mark.parametrize('user,project_type,scope,expected', [
+    @pytest.mark.parametrize(('user', 'project_type', 'scope', 'expected'), [
         ('designer', 'global', ProjectTypeScope.GLOBAL, True),
         ('designer', 'global', ProjectTypeScope.PRIVATE, True),
         ('designer', 'private', ProjectTypeScope.GLOBAL, True),
@@ -179,7 +179,7 @@ class TestProjectTypeApi:
             assert pt.copy_of == project_type
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestTemplateApi:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -189,7 +189,7 @@ class TestTemplateApi:
         self.trans_en = self.template.main_translation
         self.trans_de = self.template.translations.get(language=Language.GERMAN_DE)
 
-    @pytest.mark.parametrize(['translations', 'expected'], [
+    @pytest.mark.parametrize(('translations', 'expected'), [
         ([], False),
         ([{'is_main': False}], False),
         ([{'is_main': True, 'language': Language.ENGLISH_US}, {'is_main': True, 'language': Language.GERMAN_DE}], False),
@@ -388,7 +388,7 @@ class TestTemplateApi:
         self.assert_search_result({}, [t_no_match, t_partial_term_match, t_data_en, t_title_data_en_de, t_title_tag_data_de, self.template])
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestNotesApi:
     @pytest.fixture(autouse=True)
     def setUp(self):

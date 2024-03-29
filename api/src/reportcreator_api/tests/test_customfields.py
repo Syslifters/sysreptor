@@ -34,7 +34,7 @@ from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.utils.utils import copy_keys, omit_keys
 
 
-@pytest.mark.parametrize('valid,definition', [
+@pytest.mark.parametrize(('valid', 'definition'), [
     (True, {}),
     (False, {'f': {}}),
     (False, {'f': {'type': 'string'}}),
@@ -85,7 +85,7 @@ def test_definition_formats(valid, definition):
     assert res_valid == valid
 
 
-@pytest.mark.parametrize('valid,definition,value', [
+@pytest.mark.parametrize(('valid', 'definition', 'value'), [
     (True, {
             'field_string': {'type': 'string', 'label': 'String Field', 'default': 'test'},
             'field_string2': {'type': 'string', 'label': 'String Field', 'default': None},
@@ -136,7 +136,7 @@ def test_field_values(valid, definition, value):
     assert res_valid == valid
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 def test_user_field_value():
     user = create_user()
     FieldValuesValidator(parse_field_definition({'field_user': {'type': 'user', 'label': 'User Field'}}))({'field_user': str(user.id)})
@@ -152,7 +152,7 @@ class CustomFieldsTestModel(CustomFieldsMixin):
         return self._field_definition
 
 
-@pytest.mark.parametrize('definition,old_value,new_value', [
+@pytest.mark.parametrize(('definition', 'old_value', 'new_value'), [
     ({'a': {'type': 'string'}}, {'a': 'old'}, {'a': 'new'}),
     ({'a': {'type': 'string'}}, {'a': 'text'}, {'a': None}),
     ({'a': {'type': 'number'}}, {'a': 10}, {'a': None}),
@@ -166,7 +166,7 @@ def test_update_field_values(definition, old_value, new_value):
     assert m.data == new_value
 
 
-@pytest.mark.parametrize('compatible,a,b', [
+@pytest.mark.parametrize(('compatible', 'a', 'b'), [
     (True, {'a': {'type': 'string'}}, {'b': {'type': 'string'}}),
     (True, {'a': {'type': 'string'}}, {'a': {'type': 'string'}}),
     (True, {'a': {'type': 'string', 'label': 'left', 'default': 'left', 'required': False}}, {'a': {'type': 'string', 'label': 'right', 'default': 'right', 'required': True}}),
@@ -187,7 +187,7 @@ def test_definitions_compatible(compatible, a, b):
     assert check_definitions_compatible(parse_field_definition(a), parse_field_definition(b))[0] == compatible
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestUpdateFieldDefinition:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
@@ -403,7 +403,7 @@ class TestUpdateFieldDefinition:
         assert self.project_type.report_preview_data['report']['field_string'] == preview_data_value
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestPredefinedFields:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
@@ -413,21 +413,21 @@ class TestPredefinedFields:
         self.finding = create_finding(project=project)
 
     def test_change_structure(self):
+        self.project_type.finding_fields |= {
+            'description': {'type': 'list', 'label': 'Changed', 'items': {'type': 'string', 'default': 'changed'}},
+        }
         with pytest.raises(ValidationError):
-            self.project_type.finding_fields |= {
-                'description': {'type': 'list', 'label': 'Changed', 'items': {'type': 'string', 'default': 'changed'}},
-            }
             self.project_type.clean_fields()
 
     def test_add_conflicting_field(self):
+        self.project_type.finding_fields |= {
+            'recommendation': {'type': 'list', 'label': 'Changed', 'items': {'type': 'string', 'default': 'changed'}},
+        }
         with pytest.raises(ValidationError):
-            self.project_type.finding_fields |= {
-                'recommendation': {'type': 'list', 'label': 'Changed', 'items': {'type': 'string', 'default': 'changed'}},
-            }
             self.project_type.clean_fields()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestTemplateFieldDefinition:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -478,7 +478,7 @@ class TestTemplateFieldDefinition:
         assert self.template.main_translation.data['field1'] == []
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestReportSectionDefinition:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -538,7 +538,7 @@ class TestReportSectionDefinition:
         assert self.project.sections.get(section_id='section2').data['field1'] == old_value
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestTemplateTranslation:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -598,7 +598,7 @@ class TestTemplateTranslation:
         assert 'field_unknown' not in self.trans.data
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestFindingSorting:
     def assert_finding_order(self, findings_kwargs, **project_kwargs):
         findings_kwargs = reversed(self.format_findings_kwargs(findings_kwargs))
@@ -639,7 +639,7 @@ class TestFindingSorting:
                 {'order': 1, 'created': timezone.now() - timedelta(days=0)},
             ])
 
-    @pytest.mark.parametrize(['finding_ordering', 'findings_kwargs'], [
+    @pytest.mark.parametrize(('finding_ordering', 'findings_kwargs'), [
         ([{'field': 'cvss', 'order': 'desc'}], [{'cvss': 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'}, {'cvss': 'CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:C/C:L/I:L/A:L'}, {'cvss': None}]),  # CVSS
         ([{'field': 'field_string', 'order': 'asc'}], [{'field_string': 'aaa'}, {'field_string': 'bbb'}, {'field_string': 'ccc'}]),  # string field
         ([{'field': 'field_int', 'order': 'asc'}], [{'field_int': 1}, {'field_int': 10}, {'field_int': 13}]),  # number
@@ -657,13 +657,13 @@ class TestFindingSorting:
         )
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestDefaultNotes:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.project_type = create_project_type()
 
-    @pytest.mark.parametrize(['valid', 'default_notes'], [
+    @pytest.mark.parametrize(('valid', 'default_notes'), [
         (True, []),
         (True, [{'id': '11111111-1111-1111-1111-111111111111', 'parent': None, 'order': 1, 'checked': True, 'icon_emoji': '🦖', 'title': 'Note title', 'text': 'Note text content'}]),
         (True, [{'id': '11111111-1111-1111-1111-111111111111', 'parent': None}, {'parent': '11111111-1111-1111-1111-111111111111'}]),

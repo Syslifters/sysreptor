@@ -27,7 +27,7 @@ def html_load_script(src):
     return f"""<component :is="{{ template: '<div />', mounted() {{ const script = document.createElement('script'); script.type = 'text/javascript'; script.src='{src}'; document.head.appendChild(script); }} }}" />"""
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestHtmlRendering:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -66,7 +66,7 @@ class TestHtmlRendering:
         else:
             return html[html.index(start):html.index(end) + len(end)]
 
-    @pytest.mark.parametrize('template,html', [
+    @pytest.mark.parametrize(("template", "html"), [
         ('{{ report.field_string }}', lambda self: self.project.data['field_string']),
         ('{{ report.field_int }}', lambda self: str(self.project.data['field_int'])),
         ('{{ report.field_enum.value }}', lambda self: self.project.data['field_enum']),
@@ -100,7 +100,7 @@ class TestHtmlRendering:
         actual_html = self.render_html(template)
         assert actual_html == html
 
-    @pytest.mark.parametrize('template,expected', [
+    @pytest.mark.parametrize(("template", "expected"), [
         ('text </p>', {'level': 'error', 'message': 'Template compilation error: Invalid end tag.'}),
         ('{{ report.nonexistent_variable.prop }}', {'level': 'error', 'message': "TypeError: Cannot read properties of undefined (reading 'prop')"}),
         ('{{ nonexistent_variable }}', {'level': 'warning', 'message': 'Property "nonexistent_variable" was accessed during render but is not defined on instance.'}),
@@ -168,7 +168,7 @@ class TestHtmlRendering:
                 ]),
             )
 
-    @pytest.mark.parametrize(['props', 'items', 'html'], [
+    @pytest.mark.parametrize(("props", "items", "html"), [
         ('', [], '<span></span>'),
         ('', ['a'], '<span>a</span>'),
         ('', ['a', 'b'], '<span>a and b</span>'),
@@ -182,7 +182,7 @@ class TestHtmlRendering:
         ).replace('<!---->', '')
         assert actual_html == html
 
-    @pytest.mark.parametrize(['template', 'expected'], [
+    @pytest.mark.parametrize(("template", "expected"), [
         ('<ref to="h1" />' , '<a href="#h1" class="ref ref-heading"><span class="ref-title">H1</span></a>'),
         ('<ref to="h1-numbered" />' , '<a href="#h1-numbered" class="ref ref-heading ref-heading-level1"><span class="ref-title">H1 numbered</span></a>'),
         ('<ref to="h1.1-numbered" />', '<a href="#h1.1-numbered" class="ref ref-heading ref-heading-level2"><span class="ref-title">H1.1 numbered</span></a>'),
@@ -335,7 +335,7 @@ class TestHtmlRendering:
         """)
         assert re.fullmatch(r'^\s*<div class="mermaid-diagram">\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="">\s*</div>\s*$', html)
 
-    @pytest.mark.parametrize('password,encrypted', [
+    @pytest.mark.parametrize(("password", "encrypted"), [
         ('password', True),
         ('', False),
     ])

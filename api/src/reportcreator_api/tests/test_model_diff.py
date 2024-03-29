@@ -6,7 +6,7 @@ from reportcreator_api.pentests.models import PentestFinding, PentestProject, Re
 from .mock import create_project, create_project_type
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 def test_model_diff():
     finding = create_project().findings.first()
 
@@ -20,7 +20,7 @@ def test_model_diff():
     assert f.get_field_diff('custom_fields'), (finding.custom_fields, f.custom_fields)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 def test_diff_related():
     project_type = create_project_type()
     project_type2 = create_project_type()
@@ -33,7 +33,7 @@ def test_diff_related():
     assert p.get_field_diff('project_type_id') == (project_type.id, project_type2.id)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 def test_diff_deferred_fields():
     project = create_project()
 

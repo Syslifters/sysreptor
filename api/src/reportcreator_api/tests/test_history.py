@@ -85,7 +85,7 @@ def assert_history(obj, history_count=None, history_type=None, history_date=None
     assert not has_changes(obj, h)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestTemplateHistory:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -111,7 +111,7 @@ class TestTemplateHistory:
         t = create_template().copy()
         self.assert_template_history_create(t, history_change_reason='Duplicated')
 
-    @pytest.mark.parametrize(['changes', 'change_reason'], [
+    @pytest.mark.parametrize(('changes', 'change_reason'), [
         ({'status': ReviewStatus.FINISHED}, 'Status changed to Finished'),
         ({'language': Language.FRENCH_FR}, 'Language changed to French (fr-FR)'),
         ({'data': {'title': 'changed title'}}, None),
@@ -318,7 +318,7 @@ class TestTemplateHistory:
         assert len(res_after_delete.data['translations']) == 1
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestProjectTypeHistory:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -398,7 +398,7 @@ class TestProjectTypeHistory:
                 assert b''.join(iter(res_i)) == content
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestProjectHistory:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -673,7 +673,7 @@ class TestProjectHistory:
         assert res_after_delete.status_code == 404
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestHistoryCleanup:
     @pytest.fixture(autouse=True)
     def setUp(self):

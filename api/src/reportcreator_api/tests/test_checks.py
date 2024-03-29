@@ -16,14 +16,14 @@ def assertContainsCheckResults(actual, expected):
             if e.message == a.message and e.location.type == a.location.type and e.location.id == a.location.id and e.location.path == a.location.path:
                 break
         else:
-            assert False, f'{e} not in check results'
+            pytest.fail(f'{e} not in check results')
 
 
 def assertNotContainsCheckResults(actual, expected):
     for e in expected:
         for a in actual:
             if e.message == a.message and e.location.type == a.location.type and e.location.id == a.location.id and e.location.path == a.location.path:
-                assert False, f'{e} in check results'
+                pytest.fail(f'{e} in check results')
 
 
 def set_all_required(definiton, required):
@@ -156,7 +156,7 @@ def test_invalid_cvss():
     ])
 
 
-@pytest.mark.parametrize(['expected', 'cvss_version', 'cvss_vector'], [
+@pytest.mark.parametrize(('expected', 'cvss_version', 'cvss_vector'), [
     (True, None, 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H'),
     (True, None, 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'),
     (True, None, 'CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'),
@@ -219,7 +219,7 @@ def test_review_status():
     ])
 
 
-@pytest.mark.parametrize(['pattern', 'value', 'expected'], [
+@pytest.mark.parametrize(('pattern', 'value', 'expected'), [
     (r'^[a-z]+$', 'abc', True),
     (r'^[a-z]+$', 'abc123', False),
     (r'^([a-$', 'abc', 'error'),

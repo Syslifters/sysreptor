@@ -13,7 +13,7 @@ from reportcreator_api.tests.mock import (
 )
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestLocking:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:

@@ -14,7 +14,7 @@ from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.users.models import PentestUser
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestNotifications:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -24,7 +24,7 @@ class TestNotifications:
         self.user_user_manager = create_user(username='user_manager', is_user_manager=True)
         self.user_superuser = create_user(username='superuser', is_superuser=True)
 
-    @pytest.mark.parametrize('notification,expected_users', [
+    @pytest.mark.parametrize(('notification', 'expected_users'), [
         (NotificationSpec(), ['regular', 'template_editor', 'designer', 'user_manager', 'superuser']),
         (NotificationSpec(active_until=(timezone.now() - timedelta(days=10)).date()), []),
         (NotificationSpec(user_conditions={'is_superuser': True}), ['superuser']),
@@ -51,7 +51,7 @@ class TestNotifications:
         assert NotificationSpec.objects.create(visible_for_days=None).usernotification_set.first().visible_until is None
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestNotificationImport:
     @pytest.fixture(autouse=True)
     def setUp(self):

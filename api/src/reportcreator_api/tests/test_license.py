@@ -33,7 +33,7 @@ def assert_api_license_error(res):
     assert res.data['code'] == 'license'
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestCommunityLicenseRestrictions:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -43,7 +43,7 @@ class TestCommunityLicenseRestrictions:
         self.user_system = create_user(is_system_user=True, password=self.password)
         self.client = api_client(self.user)
 
-        with mock.patch('reportcreator_api.utils.license.check_license', lambda **_: {'type': license.LicenseType.COMMUNITY, 'users': 2, 'error': None}):
+        with mock.patch('reportcreator_api.utils.license.check_license', return_value={'type': license.LicenseType.COMMUNITY, 'users': 2, 'error': None}):
             yield
 
     def test_spellcheck_disabled(self):
@@ -162,8 +162,8 @@ class TestCommunityLicenseRestrictions:
         }))
 
         # Update is_superuser: Try to exceed limit by making existing users superusers
+        self.user_regular.is_superuser = True
         with pytest.raises(license.LicenseError):
-            self.user_regular.is_superuser = True
             self.user_regular.save()
         assert_api_license_error(self.client.patch(reverse('pentestuser-detail', kwargs={'pk': self.user_regular.pk}), data={'is_superuser': True}))
 
@@ -173,8 +173,8 @@ class TestCommunityLicenseRestrictions:
         self.user_regular.save()
 
         # Update is_active: Try to exceed limit by enabling disabled superusers
+        self.user_regular.is_active = True
         with pytest.raises(license.LicenseError):
-            self.user_regular.is_active = True
             self.user_regular.save()
 
     def test_apitoken_limit(self):
@@ -190,7 +190,7 @@ class TestCommunityLicenseRestrictions:
         assert_api_license_error(self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test', 'expire_date': timezone.now().date().isoformat()}))
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestProfessionalLicenseRestrictions:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -199,7 +199,7 @@ class TestProfessionalLicenseRestrictions:
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-        with mock.patch('reportcreator_api.utils.license.check_license', lambda **_: {'type': license.LicenseType.PROFESSIONAL, 'users': 1, 'error': None}):
+        with mock.patch('reportcreator_api.utils.license.check_license', return_value={'type': license.LicenseType.PROFESSIONAL, 'users': 1, 'error': None}):
             yield
 
     def test_user_count_limit(self):
@@ -215,7 +215,7 @@ class TestProfessionalLicenseRestrictions:
         create_user(is_system_user=True)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestLicenseValidation:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -255,7 +255,7 @@ class TestLicenseValidation:
             'valid_until': (timezone.now() + timedelta(days=30)).date().isoformat(),
         } | kwargs, [(self.license_public_key, self.license_private_key)])
 
-    @pytest.mark.parametrize('license_str,error', [
+    @pytest.mark.parametrize(('license_str', 'error'), [
         (None, None),
         ('', None),
         ('asdf', 'load'),
@@ -270,7 +270,7 @@ class TestLicenseValidation:
         else:
             assert error is None
 
-    @pytest.mark.parametrize('valid,license_data,error', [
+    @pytest.mark.parametrize(('valid', 'license_data', 'error'), [
         (False, {'valid_from': '3000-01-01'}, 'not yet valid'),
         (False, {'valid_until': '2000-01-1'}, 'expired'),
         (False, {'users': -10}, 'user count'),

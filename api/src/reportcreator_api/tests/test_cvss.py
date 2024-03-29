@@ -3,7 +3,7 @@ import pytest
 from reportcreator_api.pentests import cvss
 
 
-@pytest.mark.parametrize("vector,score", [
+@pytest.mark.parametrize(("vector", "score"), [
     (None, 0.0),
     ('n/a', 0.0),
 
@@ -63,7 +63,7 @@ def test_cvss(vector, score):
     assert cvss.calculate_score(vector) == score
 
 
-@pytest.mark.parametrize("vector,metrics", [
+@pytest.mark.parametrize(("vector", "metrics"), [
     ('CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L', {
         "version": "3.0",
         "base": {

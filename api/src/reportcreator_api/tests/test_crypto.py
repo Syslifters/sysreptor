@@ -193,8 +193,7 @@ class TestSymmetricEncryptionTests:
 
     def test_plaintext_fallback_disabled_encryption(self):
         with pytest.raises(crypto.CryptoError):
-            enc = io.BytesIO()
-            with crypto.open(fileobj=enc, mode='w', key=None, plaintext_fallback=False) as c:
+            with crypto.open(fileobj=io.BytesIO(), mode='w', key=None, plaintext_fallback=False) as c:
                 c.write(self.plaintext)
 
     def test_plaintext_fallback_disabled_decryption(self):
@@ -240,7 +239,7 @@ class TestEncryptedStorage:
         assert self.storage_crypto.size(filename) == len(self.storage_crypto.open(filename, mode='rb').read())
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestEncryptedDbField:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -288,7 +287,7 @@ class TestEncryptedDbField:
         assert_db_field_encrypted(PentestFinding.objects.filter(id=self.finding.id).values('custom_fields'), False)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestEncryptDataCommand:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -333,7 +332,7 @@ class TestEncryptDataCommand:
             assert_storage_file_encrypted(a.file, True)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestProjectArchivingEncryption:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -394,7 +393,7 @@ class TestProjectArchivingEncryption:
         res2 = client.delete(reverse('userpublickey-detail', kwargs={'pentestuser_pk': 'self', 'pk': user.public_keys.first().id}))
         assert res2.status_code == 204
 
-    @pytest.mark.parametrize(['expected', 'threshold', 'num_users_with_key', 'num_users_without_key'], [
+    @pytest.mark.parametrize(('expected', 'threshold', 'num_users_with_key', 'num_users_without_key'), [
         (False, 1, 0, 2),  # no users with key
         (False, 2, 1, 2),  # too few users with key
         (False, 5, 3, 0),  # threshold too high

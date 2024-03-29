@@ -58,7 +58,7 @@ def members_equal(a, b):
     return format_members(a) == format_members(b)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestImportExport:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -370,7 +370,7 @@ class TestImportExport:
         assert imported[0].parent is None
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestLinkedProject:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -402,7 +402,7 @@ class TestLinkedProject:
         assert self.project_type.linked_project is None
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestFileDelete:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -460,7 +460,7 @@ class TestFileDelete:
             self.assertFileExists(a.file, True)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestCopyModel:
     def assert_project_type_copy_equal(self, pt, cp, exclude_fields=[]):
         assert pt != cp
@@ -552,7 +552,7 @@ class TestCopyModel:
             assertKeysEqual(t_tr, cp_tr, ['language', 'status', 'is_main', 'risk_score', 'risk_level', 'title', 'data_all'])
 
 
-@pytest.mark.parametrize('original,cleaned', [
+@pytest.mark.parametrize(('original', 'cleaned'), [
     ('test.txt', 'test.txt'),
     # Attacks
     ('te\x00st.txt', 'te-st.txt'),
@@ -566,7 +566,7 @@ class TestCopyModel:
     ('te_st_.txt', 'te-st-.txt'),
     ('t![e]()st.txt', 't--e---st.txt'),
 ])
-@pytest.mark.django_db
+@pytest.mark.django_db()
 def test_uploadedfile_filename(original, cleaned):
     actual_name = UploadedAsset.objects.create(name=original, file=ContentFile(b'test'), linked_object=create_project_type()).name
     assert actual_name == cleaned
