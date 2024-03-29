@@ -1,15 +1,16 @@
 from collections import OrderedDict
 from uuid import UUID
-from rest_framework import serializers
-from django.utils import timezone
-from django.contrib.auth.password_validation import validate_password
+
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from django.conf import settings
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
 
-from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod, MFAMethodType, AuthIdentity
+from reportcreator_api.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
 from reportcreator_api.utils import license
 
 

@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from reportcreator_api.utils.admin import BaseAdmin
 from reportcreator_api.tasks.models import PeriodicTask
+from reportcreator_api.utils.admin import BaseAdmin
 
 
 @admin.register(PeriodicTask)

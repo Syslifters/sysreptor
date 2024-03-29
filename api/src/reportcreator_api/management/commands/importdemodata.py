@@ -1,14 +1,15 @@
 import argparse
+import logging
 import shutil
 import tempfile
 import uuid
-import logging
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from reportcreator_api.archive.import_export import import_project_types, import_projects, import_templates
 from reportcreator_api.pentests.models import PentestProject
 from reportcreator_api.users.models import PentestUser
-from reportcreator_api.archive.import_export import import_project_types, import_templates, import_projects
 
 
 class Command(BaseCommand):

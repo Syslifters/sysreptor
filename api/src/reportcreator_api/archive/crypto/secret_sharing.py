@@ -1,6 +1,5 @@
 from Cryptodome.Protocol.SecretSharing import Shamir
 
-
 SHAMIR_BLOCK_SIZE = 16
 
 

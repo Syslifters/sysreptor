@@ -1,6 +1,6 @@
 import os
-from celery import Celery, signals
 
+from celery import Celery, signals
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reportcreator_api.conf.settings')
 
@@ -25,5 +25,6 @@ celery_app.autodiscover_tasks()
 @signals.setup_logging.connect()
 def setup_logging(*args, **kwargs):
     import logging.config
+
     from django.conf import settings
     logging.config.dictConfig(settings.LOGGING)

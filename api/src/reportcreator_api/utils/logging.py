@@ -1,7 +1,7 @@
 import logging
-from django.utils import timezone, deprecation
-from django.utils.functional import wraps
 
+from django.utils import deprecation, timezone
+from django.utils.functional import wraps
 
 log = logging.getLogger()
 

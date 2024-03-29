@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 
+from reportcreator_api.users.models import AuthIdentity, MFAMethod, PentestUser
 from reportcreator_api.utils.admin import BaseAdmin, admin_change_url
-from reportcreator_api.users.models import PentestUser, MFAMethod, AuthIdentity
 
 
 @admin.register(PentestUser)

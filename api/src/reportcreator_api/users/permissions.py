@@ -1,11 +1,12 @@
 from datetime import datetime
+
 from django.conf import settings
 from django.utils import timezone
-from rest_framework import permissions, authentication, exceptions
+from rest_framework import authentication, exceptions, permissions
 
+from reportcreator_api.users.auth import forbidden_with_apitoken_auth
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils import license
-from reportcreator_api.users.auth import forbidden_with_apitoken_auth
 
 
 def check_sensitive_operation_timeout(request):

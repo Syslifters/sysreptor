@@ -1,30 +1,41 @@
+import asyncio
 import dataclasses
+import json
 import logging
 import uuid
-import json
-import asyncio
-import elasticapm
-from lxml import etree
+from base64 import b64decode, b64encode
 from datetime import timedelta
-from asgiref.sync import sync_to_async
 from types import NoneType
 from typing import Any, Optional, Union
-from base64 import b64encode, b64decode
+
+import elasticapm
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
+from lxml import etree
 
-from reportcreator_api.pentests.customfields.sort import sort_findings
-from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.pentests import cvss
-from reportcreator_api.pentests.customfields.types import CweField, FieldDataType, FieldDefinition, EnumChoice
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure, iterate_fields
+from reportcreator_api.pentests.customfields.sort import sort_findings
+from reportcreator_api.pentests.customfields.types import CweField, EnumChoice, FieldDataType, FieldDefinition
+from reportcreator_api.pentests.customfields.utils import (
+    HandleUndefinedFieldsOptions,
+    ensure_defined_structure,
+    iterate_fields,
+)
+from reportcreator_api.pentests.models import (
+    Language,
+    PentestProject,
+    ProjectMemberInfo,
+    ProjectNotebookPage,
+    ProjectType,
+    UserNotebookPage,
+)
+from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.error_messages import MessageLocationInfo, MessageLocationType
-from reportcreator_api.pentests.models import PentestProject, ProjectType, ProjectMemberInfo, ProjectNotebookPage, UserNotebookPage, Language
 from reportcreator_api.utils.utils import copy_keys, get_key_or_attr
-
 
 log = logging.getLogger(__name__)
 

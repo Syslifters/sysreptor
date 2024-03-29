@@ -1,24 +1,25 @@
 import json
 import logging
 import re
-from pathlib import Path
-from unittest import mock
-from playwright.sync_api import sync_playwright
-from typing import Optional
 from base64 import b64decode
+from contextlib import contextmanager
 from html import escape as html_escape
 from io import BytesIO
-from pikepdf import Pdf, Encryption
-from contextlib import contextmanager
+from pathlib import Path
+from typing import Optional
+from unittest import mock
+
+from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
+from pikepdf import Encryption, Pdf
+from playwright.sync_api import sync_playwright
 from weasyprint import HTML, default_url_fetcher
+from weasyprint.logger import LOGGER as WEASYPRINT_LOGGER
 from weasyprint.text.fonts import FontConfiguration
 from weasyprint.urls import URLFetchingError
-from weasyprint.logger import LOGGER as WEASYPRINT_LOGGER
-from django.core.serializers.json import DjangoJSONEncoder
-from django.conf import settings
 
-from reportcreator_api.utils.logging import log_timing
 from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
+from reportcreator_api.utils.logging import log_timing
 
 # Base URL prefix for PDF rendering. Is never actually called
 FAKE_BASE_URL = 'https://pdf.sysreptor.com'

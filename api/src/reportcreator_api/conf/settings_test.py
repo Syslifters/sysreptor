@@ -1,6 +1,5 @@
 from reportcreator_api.conf.settings import *  # noqa: F403
 
-
 STORAGES = STORAGES | {  # noqa: F405
     'uploaded_images': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
     'uploaded_assets': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
@@ -48,4 +47,5 @@ BACKUP_KEY = 'dummy-backup-key-used-in-unit-test'
 
 # Disable license check
 from reportcreator_api.utils import license  # noqa: E402
+
 license.check_license = lambda **kwargs: {'type': license.LicenseType.PROFESSIONAL, 'users': 1000}

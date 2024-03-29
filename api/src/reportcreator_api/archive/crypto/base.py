@@ -4,13 +4,12 @@ import enum
 import io
 import json
 from typing import Optional
+
 from Cryptodome.Cipher import AES
 from Cryptodome.Cipher._mode_gcm import _GHASH, _ghash_clmul, _ghash_portable
-from Cryptodome.Util.number import long_to_bytes, bytes_to_long
-
+from Cryptodome.Util.number import bytes_to_long, long_to_bytes
 from django.conf import settings
 from django.core.files.utils import FileProxyMixin
-
 
 # Magic bytes to identify encrypted data
 # Invalid UTF-8, such that an error occurs when someone tries to load encrypted data as text

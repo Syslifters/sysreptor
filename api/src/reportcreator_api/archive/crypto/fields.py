@@ -1,8 +1,8 @@
 import io
 import json
 
-from django.db import models
 from django.core import checks
+from django.db import models
 
 from reportcreator_api.archive.crypto import base as crypto
 

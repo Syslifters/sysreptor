@@ -1,9 +1,10 @@
 import logging
-import elasticapm
-from asgiref.sync import sync_to_async, iscoroutinefunction
 from datetime import timedelta
-from django.db import models, IntegrityError
+
+import elasticapm
+from asgiref.sync import iscoroutinefunction, sync_to_async
 from django.conf import settings
+from django.db import IntegrityError, models
 from django.utils import timezone
 from django.utils.module_loading import import_string
 

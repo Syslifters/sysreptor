@@ -1,6 +1,7 @@
 import os
 
-from django.core.management import CommandError, BaseCommand
+from django.core.management import BaseCommand, CommandError
+
 from reportcreator_api.users.models import PentestUser
 
 

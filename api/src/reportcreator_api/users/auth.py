@@ -1,9 +1,10 @@
 import hashlib
 from base64 import b64decode
 from uuid import UUID
+
 from django.contrib.auth.hashers import BasePasswordHasher, mask_hash
-from django.utils.crypto import constant_time_compare
 from django.utils import timezone
+from django.utils.crypto import constant_time_compare
 from rest_framework import authentication, exceptions
 
 from reportcreator_api.utils import license

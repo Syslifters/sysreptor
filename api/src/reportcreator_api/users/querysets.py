@@ -1,12 +1,12 @@
 import pyotp
-from fido2.server import AttestedCredentialData
-from fido2.webauthn import PublicKeyCredentialUserEntity, UserVerificationRequirement, AuthenticatorAttachment
-from fido2.utils import websafe_encode, websafe_decode
-from django.db import models
-from django.contrib.sessions.base_session import BaseSessionManager
 from django.contrib.auth.models import UserManager
-from django.utils.crypto import get_random_string
+from django.contrib.sessions.base_session import BaseSessionManager
+from django.db import models
 from django.utils import timezone
+from django.utils.crypto import get_random_string
+from fido2.server import AttestedCredentialData
+from fido2.utils import websafe_decode, websafe_encode
+from fido2.webauthn import AuthenticatorAttachment, PublicKeyCredentialUserEntity, UserVerificationRequirement
 
 
 class SessionQueryset(models.QuerySet):

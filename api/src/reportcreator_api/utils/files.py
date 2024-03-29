@@ -1,12 +1,13 @@
-import string
 import io
 import logging
-from django.conf import settings
+import string
 from pathlib import Path
-from PIL import Image, ImageOps, UnidentifiedImageError
-from django.core.files.base import ContentFile, File
-from reportcreator_api.utils.logging import log_timing
 
+from django.conf import settings
+from django.core.files.base import ContentFile, File
+from PIL import Image, ImageOps, UnidentifiedImageError
+
+from reportcreator_api.utils.logging import log_timing
 
 log = logging.getLogger(__name__)
 

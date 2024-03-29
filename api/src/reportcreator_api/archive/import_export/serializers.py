@@ -1,13 +1,33 @@
 from typing import Iterable
 from uuid import uuid4
-from django.core.files import File
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import serializers
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
-from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectType, ReportSection, \
-    SourceEnum, UploadedAsset, UploadedImage, UploadedFileBase, ProjectMemberInfo, UploadedProjectFile, Language, ReviewStatus, \
-    FindingTemplateTranslation, UploadedTemplateImage, ProjectTypeStatus, UserNotebookPage, UploadedUserNotebookImage, UploadedUserNotebookFile
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.files import File
+from rest_framework import serializers
+
+from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from reportcreator_api.pentests.models import (
+    FindingTemplate,
+    FindingTemplateTranslation,
+    Language,
+    PentestFinding,
+    PentestProject,
+    ProjectMemberInfo,
+    ProjectNotebookPage,
+    ProjectType,
+    ProjectTypeStatus,
+    ReportSection,
+    ReviewStatus,
+    SourceEnum,
+    UploadedAsset,
+    UploadedFileBase,
+    UploadedImage,
+    UploadedProjectFile,
+    UploadedTemplateImage,
+    UploadedUserNotebookFile,
+    UploadedUserNotebookImage,
+    UserNotebookPage,
+)
 from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer

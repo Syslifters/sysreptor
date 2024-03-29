@@ -1,8 +1,8 @@
 from django.db import models
 
 from reportcreator_api.notifications import querysets
-from reportcreator_api.utils.models import BaseModel
 from reportcreator_api.users.models import PentestUser
+from reportcreator_api.utils.models import BaseModel
 
 
 class NotificationSpec(BaseModel):

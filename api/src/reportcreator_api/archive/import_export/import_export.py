@@ -5,19 +5,32 @@ import logging
 import tarfile
 from pathlib import Path
 from typing import Iterable, Optional, Type
-from django.conf import settings
-from rest_framework import serializers
-from django.db import transaction
-from django.db.models import prefetch_related_objects, Prefetch
-from django.core.serializers.json import DjangoJSONEncoder
 
-from reportcreator_api.archive.import_export.serializers import NotesExportImportSerializer, PentestProjectExportImportSerializer, ProjectTypeExportImportSerializer, \
-    FindingTemplateImportSerializerV1, FindingTemplateExportImportSerializerV2
-from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectMemberInfo, ProjectType, ReportSection
+from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db import transaction
+from django.db.models import Prefetch, prefetch_related_objects
+from rest_framework import serializers
+
+from reportcreator_api.archive.import_export.serializers import (
+    FindingTemplateExportImportSerializerV2,
+    FindingTemplateImportSerializerV1,
+    NotesExportImportSerializer,
+    PentestProjectExportImportSerializer,
+    ProjectTypeExportImportSerializer,
+)
+from reportcreator_api.pentests.models import (
+    FindingTemplate,
+    PentestFinding,
+    PentestProject,
+    ProjectMemberInfo,
+    ProjectNotebookPage,
+    ProjectType,
+    ReportSection,
+)
 from reportcreator_api.pentests.models.notes import UserNotebookPage
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.history import history_context
-
 
 log = logging.getLogger(__name__)
 

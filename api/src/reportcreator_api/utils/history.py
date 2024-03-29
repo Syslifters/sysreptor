@@ -1,11 +1,11 @@
 from contextlib import contextmanager
-from django.db import models, transaction
-from django.conf import settings
-from django.utils import timezone
-from simple_history import models as history_models
-from simple_history import manager as history_manager
-from simple_history import signals as history_signals
 
+from django.conf import settings
+from django.db import models, transaction
+from django.utils import timezone
+from simple_history import manager as history_manager
+from simple_history import models as history_models
+from simple_history import signals as history_signals
 
 from reportcreator_api.archive.crypto.fields import EncryptedField
 

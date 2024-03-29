@@ -1,24 +1,25 @@
 import functools
 import hmac
 import secrets
+from base64 import b64encode
+from io import BytesIO
+from urllib.parse import urlparse
+
 import pyotp
 import qrcode
 import qrcode.image.pil
-from urllib.parse import urlparse
-from io import BytesIO
-from base64 import b64encode
-from fido2.server import Fido2Server, _verify_origin_for_rp
-from fido2.webauthn import PublicKeyCredentialRpEntity
 from django.conf import settings
-from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.sessions.base_session import AbstractBaseSession
+from django.db import models
 from django.utils.translation import gettext_lazy as _
+from fido2.server import Fido2Server, _verify_origin_for_rp
+from fido2.webauthn import PublicKeyCredentialRpEntity
 
-from reportcreator_api.utils import license
 from reportcreator_api.archive.crypto.fields import EncryptedField
-from reportcreator_api.utils.models import BaseModel
 from reportcreator_api.users import querysets
+from reportcreator_api.utils import license
+from reportcreator_api.utils.models import BaseModel
 
 
 class PentestUser(BaseModel, AbstractUser):

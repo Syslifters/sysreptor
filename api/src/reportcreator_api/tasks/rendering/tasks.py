@@ -1,9 +1,10 @@
 from base64 import b64encode
+
 from celery import shared_task
 from django.conf import settings
 
-from reportcreator_api.utils.logging import log_timing
 from reportcreator_api.tasks.rendering import render
+from reportcreator_api.utils.logging import log_timing
 
 
 @shared_task(

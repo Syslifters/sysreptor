@@ -1,8 +1,9 @@
 from datetime import timedelta
 from urllib.parse import urlparse
+
 from django.conf import settings
-from django.utils import timezone, cache, deprecation
 from django.middleware.csrf import CsrfViewMiddleware
+from django.utils import cache, deprecation, timezone
 
 
 class CustomCsrfMiddleware(CsrfViewMiddleware):

@@ -1,6 +1,7 @@
 import functools
-from frozendict import frozendict
+
 from django.core.cache import cache as django_cache
+from frozendict import frozendict
 
 
 def cache(key, **cache_kwargs):

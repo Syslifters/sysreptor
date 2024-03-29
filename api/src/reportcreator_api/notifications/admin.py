@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from reportcreator_api.utils.admin import BaseAdmin
 from reportcreator_api.notifications.models import NotificationSpec, UserNotification
+from reportcreator_api.utils.admin import BaseAdmin
 
 
 @admin.register(NotificationSpec)

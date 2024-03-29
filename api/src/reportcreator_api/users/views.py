@@ -1,30 +1,50 @@
 import functools
 import json
-from uuid import UUID
 from datetime import datetime, timedelta
+from uuid import UUID
+
 from authlib.integrations.django_client import OAuth, OAuthError
-from rest_framework.response import Response
-from rest_framework import views, viewsets, status, filters, mixins, serializers, exceptions
-from rest_framework.decorators import action
-from rest_framework.settings import api_settings
-from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import ProtectedError
 from django.conf import settings
-from django.forms import model_to_dict
+from django.contrib.auth import SESSION_KEY, login, logout
 from django.core.serializers.json import DjangoJSONEncoder
-from django.contrib.auth import login, logout, SESSION_KEY
+from django.db.models import ProtectedError
+from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
+from rest_framework import exceptions, filters, mixins, serializers, status, views, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.settings import api_settings
 
+from reportcreator_api.users.models import AuthIdentity, MFAMethod, PentestUser
+from reportcreator_api.users.permissions import (
+    APITokenViewSetPermissions,
+    AuthIdentityViewSetPermissions,
+    LocalUserAuthPermissions,
+    MFALoginInProgressAuthentication,
+    MFAMethodViewSetPermissons,
+    RemoteUserAuthPermissions,
+    UserViewSetPermissions,
+)
+from reportcreator_api.users.serializers import (
+    APITokenCreateSerializer,
+    APITokenSerializer,
+    AuthIdentitySerializer,
+    CreateUserSerializer,
+    LoginMFACodeSerializer,
+    LoginSerializer,
+    MFAMethodRegisterBackupCodesSerializer,
+    MFAMethodRegisterBeginSerializer,
+    MFAMethodRegisterFIDO2Serializer,
+    MFAMethodRegisterTOTPSerializer,
+    MFAMethodSerializer,
+    PentestUserDetailSerializer,
+    PentestUserSerializer,
+    ResetPasswordSerializer,
+)
 from reportcreator_api.utils import license
-from reportcreator_api.users.models import PentestUser, MFAMethod, AuthIdentity
-from reportcreator_api.users.permissions import APITokenViewSetPermissions, LocalUserAuthPermissions, RemoteUserAuthPermissions, UserViewSetPermissions, MFAMethodViewSetPermissons, MFALoginInProgressAuthentication, \
-    AuthIdentityViewSetPermissions
-from reportcreator_api.users.serializers import APITokenCreateSerializer, APITokenSerializer, CreateUserSerializer, MFAMethodRegisterBeginSerializer, PentestUserDetailSerializer, PentestUserSerializer, \
-    ResetPasswordSerializer, MFAMethodSerializer, LoginSerializer, LoginMFACodeSerializer, MFAMethodRegisterBackupCodesSerializer, \
-    MFAMethodRegisterTOTPSerializer, MFAMethodRegisterFIDO2Serializer, AuthIdentitySerializer
-
 
 oauth = OAuth()
 for name, config in settings.AUTHLIB_OAUTH_CLIENTS.items():

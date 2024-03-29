@@ -1,4 +1,5 @@
 from django.contrib.sessions.backends.db import SessionStore as BaseDbSessionStore
+
 from reportcreator_api.users.models import Session
 
 

@@ -1,5 +1,6 @@
-from contextlib import contextmanager
 import tempfile
+from contextlib import contextmanager
+
 import gnupg
 
 from reportcreator_api.archive.crypto.base import CryptoError

@@ -1,12 +1,28 @@
 import warnings
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.test import override_settings
-from reportcreator_api.pentests import storages
 
-from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
-    UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, ProjectNotebookPage, UserNotebookPage, UserPublicKey, \
-    ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, UploadedTemplateImage, ReportSection, CollabEvent
+from reportcreator_api.pentests import storages
+from reportcreator_api.pentests.models import (
+    ArchivedProjectKeyPart,
+    ArchivedProjectPublicKeyEncryptedKeyPart,
+    CollabEvent,
+    PentestFinding,
+    PentestProject,
+    ProjectNotebookPage,
+    ProjectType,
+    ReportSection,
+    UploadedAsset,
+    UploadedImage,
+    UploadedProjectFile,
+    UploadedTemplateImage,
+    UploadedUserNotebookFile,
+    UploadedUserNotebookImage,
+    UserNotebookPage,
+    UserPublicKey,
+)
 from reportcreator_api.pentests.models.project import ProjectMemberInfo
 from reportcreator_api.pentests.models.template import FindingTemplate, FindingTemplateTranslation
 from reportcreator_api.users.models import MFAMethod, PentestUser, Session

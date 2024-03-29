@@ -1,28 +1,36 @@
 import contextlib
+import io
+import itertools
+import json
 import logging
 import os
-from unittest import mock
 import zipfile
-import zipstream
-import boto3
-import io
-import json
-import itertools
 from pathlib import Path
-from django.conf import settings
+from unittest import mock
+
+import boto3
+import zipstream
 from django.apps import apps
+from django.conf import settings
 from django.core import serializers
-from django.core.serializers.json import DjangoJSONEncoder
 from django.core.management import call_command
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, transaction
+from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.recorder import MigrationRecorder
-from django.db.migrations.executor import MigrationExecutor
 
 from reportcreator_api.archive import crypto
-from reportcreator_api.pentests.models import UploadedImage, UploadedAsset, UploadedProjectFile, ArchivedProject, \
-    UploadedUserNotebookFile, UploadedUserNotebookImage, UploadedTemplateImage
 from reportcreator_api.pentests import storages
+from reportcreator_api.pentests.models import (
+    ArchivedProject,
+    UploadedAsset,
+    UploadedImage,
+    UploadedProjectFile,
+    UploadedTemplateImage,
+    UploadedUserNotebookFile,
+    UploadedUserNotebookImage,
+)
 from reportcreator_api.pentests.models.project import ProjectMemberRole
 
 

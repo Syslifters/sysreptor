@@ -12,12 +12,12 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 import json
 import uuid
-import fido2.features
 from datetime import timedelta
-from decouple import config, Csv
 from pathlib import Path
-from kombu import Queue
 
+import fido2.features
+from decouple import Csv, config
+from kombu import Queue
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -422,7 +422,9 @@ USE_X_FORWARDED_PORT = config('USE_X_FORWARDED_PORT', cast=bool, default=False)
 # Monkey-Patch django to disable CSRF everywhere
 # CSRF middlware class is used as middleware and internally by DjangoRestFramework
 from django.middleware import csrf  # noqa: E402
+
 from reportcreator_api.utils.middleware import CustomCsrfMiddleware  # noqa: E402
+
 csrf.CsrfViewMiddleware = CustomCsrfMiddleware
 
 
@@ -550,6 +552,7 @@ REGEX_VALIDATION_TIMEOUT = timedelta(milliseconds=500)
 
 
 from reportcreator_api.archive.crypto import EncryptionKey  # noqa: E402
+
 ENCRYPTION_KEYS = EncryptionKey.from_json_list(config('ENCRYPTION_KEYS', default=''))
 DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
 ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=bool, default=True)

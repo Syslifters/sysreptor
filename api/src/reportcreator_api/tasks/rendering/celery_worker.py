@@ -1,10 +1,11 @@
 import gc
 from pathlib import Path
+
 from celery import Celery, signals
 from celery.backends.base import Backend
-from celery.backends.rpc import RPCBackend, ResultConsumer
-from kombu import pools
+from celery.backends.rpc import ResultConsumer, RPCBackend
 from django.conf import settings
+from kombu import pools
 
 
 class SecureWorkerFixup:
