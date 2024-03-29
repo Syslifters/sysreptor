@@ -83,13 +83,7 @@ class ReverseGenericOneToOneDescriptor(ReverseOneToOneDescriptor):
         elif not isinstance(value, self.related.related_model):
             # An object must be an instance of the related class.
             raise ValueError(
-                'Cannot assign "%r": "%s.%s" must be a "%s" instance.'
-                % (
-                    value,
-                    instance._meta.object_name,
-                    self.related.get_accessor_name(),
-                    self.related.related_model._meta.object_name,
-                )
+                f'Cannot assign "{value!r}": "{instance._meta.object_name}.{self.related.get_accessor_name()}" must be a "{self.related.related_model._meta.object_name}" instance.'
             )
         else:
             # Set the related instance cache used by __get__ to avoid an SQL query

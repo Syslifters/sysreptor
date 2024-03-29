@@ -637,7 +637,7 @@ if DEBUG:
     MIDDLEWARE += [
         'debug_toolbar.middleware.DebugToolbarMiddleware',
     ]
-    INTERNAL_IPS = type(str('c'), (), {'__contains__': lambda *a: True})()
+    INTERNAL_IPS = type('c', (), {'__contains__': lambda *a: True})()
 
 
 

@@ -28,7 +28,7 @@ from reportcreator_api.pentests.models import (
     UploadedUserNotebookImage,
     UserNotebookPage,
 )
-from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
+from reportcreator_api.pentests.serializers.project import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
 from reportcreator_api.utils.history import bulk_create_with_history, merge_with_previous_history
