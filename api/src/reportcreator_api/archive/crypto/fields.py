@@ -10,16 +10,14 @@ from reportcreator_api.archive.crypto import base as crypto
 class EncryptedField(models.BinaryField):
     def __init__(self, base_field, editable=True, *args, **kwargs) -> None:
         self.base_field = base_field
-        super().__init__(editable=editable, *args, **kwargs)
+        super().__init__(*args, editable=editable, **kwargs)
 
     @property
     def model(self):
         try:
             return self.__dict__["model"]
-        except KeyError:
-            raise AttributeError(
-                "'%s' object has no attribute 'model'" % self.__class__.__name__
-            )
+        except KeyError as ex:
+            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute 'model'") from ex
 
     @model.setter
     def model(self, model):

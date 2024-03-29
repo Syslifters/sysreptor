@@ -176,7 +176,7 @@ class ChangeSet:
 
         if self.length != len(doc):
             raise ValueError('Applying change set to a document with the wrong length')
-        for (from_a, to_a, from_b, to_b, text) in self.iter_changes(False):
+        for (from_a, to_a, from_b, _to_b, text) in self.iter_changes(False):
             doc = doc[:from_b] + text + doc[from_b + (to_a - from_a):]
         return doc
 

@@ -24,11 +24,10 @@ class Command(BaseCommand):
         try:
             return PentestUser.objects.get(id=uuid.UUID(u))
         except Exception:
-            pass
-        try:
-            return PentestUser.objects.get(username=u)
-        except PentestUser.DoesNotExist:
-            raise CommandError(f'User "{u}" not found')
+            try:
+                return PentestUser.objects.get(username=u)
+            except PentestUser.DoesNotExist:
+                raise CommandError(f'User "{u}" not found') from None
 
     def handle(self, file, type, add_member, *args, **options):
         log = logging.getLogger(__name__)

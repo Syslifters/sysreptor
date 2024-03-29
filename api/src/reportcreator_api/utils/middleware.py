@@ -42,7 +42,7 @@ class ExtendSessionMiddleware(deprecation.MiddlewareMixin):
 class AdminSessionMiddleware(deprecation.MiddlewareMixin):
     def process_request(self, request):
         if request.user and request.session and request.session.get('admin_permissions_enabled'):
-            setattr(request.user, 'admin_permissions_enabled', True)
+            request.user.admin_permissions_enabled = True
 
 
 class CacheControlMiddleware(deprecation.MiddlewareMixin):

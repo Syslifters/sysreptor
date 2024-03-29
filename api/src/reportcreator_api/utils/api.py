@@ -87,8 +87,8 @@ class _SyncIterableToAsync:
         """
         try:
             return next(it)
-        except StopIteration:
-            raise StopAsyncIteration
+        except StopIteration as ex:
+            raise StopAsyncIteration() from ex
 
 
 def sync_iterable_to_async(sync_iterable):

@@ -84,7 +84,7 @@ class RelatedUserIdExportImportSerializer(RelatedUserSerializer):
         except serializers.ValidationError as ex:
             if isinstance(ex.__cause__, ObjectDoesNotExist):
                 # If user does not exit: ignore
-                raise serializers.SkipField()
+                raise serializers.SkipField() from ex
             else:
                 raise
 
@@ -132,8 +132,8 @@ class OptionalPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
             raise serializers.SkipField()
         try:
             return self.get_queryset().get(pk=data)
-        except ObjectDoesNotExist:
-            raise serializers.SkipField()
+        except ObjectDoesNotExist as ex:
+            raise serializers.SkipField() from ex
 
 
 class FileListExportImportSerializer(serializers.ListSerializer):

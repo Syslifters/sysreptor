@@ -52,9 +52,9 @@ class LanguageToolSerializerBase(serializers.Serializer):
                 if res.status_code != 200:
                     raise exceptions.APIException(detail='Spellcheck error', code='spellcheck')
                 return res.json()
-        except httpx.ReadTimeout:
+        except httpx.ReadTimeout as ex:
             logging.exception('LanguageTool timeout')
-            raise exceptions.APIException(detail='Spellcheck timeout', code='spellcheck')
+            raise exceptions.APIException(detail='Spellcheck timeout', code='spellcheck') from ex
 
 
 class LanguageToolSerializer(LanguageToolSerializerBase):
@@ -125,6 +125,6 @@ class BackupSerializer(serializers.Serializer):
             if len(key_bytes) != 32:
                 raise serializers.ValidationError('Invalid key length: must be a 256-bit AES key')
             return value
-        except ValueError:
-            raise serializers.ValidationError('Invalid base64 encoding')
+        except ValueError as ex:
+            raise serializers.ValidationError('Invalid base64 encoding') from ex
 

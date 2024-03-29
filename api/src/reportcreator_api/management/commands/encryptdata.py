@@ -86,7 +86,7 @@ class Command(BaseCommand):
 
         if decrypt:
             if settings.DEFAULT_ENCRYPTION_KEY_ID:
-                warnings.warn('A DEFAULT_ENCRYPTION_KEY_ID is configured. New and updated data will be encrypted while storing it. Set DEFAULT_ENCRYPTION_KEY_ID=None to permanently disable encryption.')
+                warnings.warn('A DEFAULT_ENCRYPTION_KEY_ID is configured. New and updated data will be encrypted while storing it. Set DEFAULT_ENCRYPTION_KEY_ID=None to permanently disable encryption.', stacklevel=1)
 
             with override_settings(DEFAULT_ENCRYPTION_KEY_ID=None, ENCRYPTION_PLAINTEXT_FALLBACK=True):
                 self.encrypt_data()

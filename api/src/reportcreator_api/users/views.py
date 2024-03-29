@@ -132,7 +132,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
         request.session.cycle_key()
         request.user.admin_permissions_enabled = True
         self.kwargs['pk'] = 'self'
-        return self.retrieve(request=request, *args, **kwargs)
+        return self.retrieve(*args, request=request, **kwargs)
 
     @action(detail=False, url_path='self/admin/disable', methods=['post'])
     def disable_admin_permissions(self, request, *args, **kwargs):
@@ -140,7 +140,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
         request.session.cycle_key()
         request.user.admin_permissions_enabled = False
         self.kwargs['pk'] = 'self'
-        return self.retrieve(request=request, *args, **kwargs)
+        return self.retrieve(*args, request=request, **kwargs)
 
     @action(detail=True, url_path='reset-password', methods=['post'])
     def reset_password(self, request, *args, **kwargs):
@@ -149,9 +149,10 @@ class PentestUserViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         try:
             instance.delete()
-        except ProtectedError:
+        except ProtectedError as ex:
             raise serializers.ValidationError(
-                detail='Cannot delete user because it is a member of one or more projects.')
+                detail='Cannot delete user because it is a member of one or more projects.'
+            ) from ex
 
 
 class MFAMethodViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
@@ -194,7 +195,9 @@ class MFAMethodViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixin
         instance = MFAMethod.objects.create_fido2_begin(user=self.get_user(), name='Security Key')
         return self.perform_register_begin(request, instance, {'state': None})
 
-    def perform_register_begin(self, request, instance, additional_response_data={}):
+    def perform_register_begin(self, request, instance, additional_response_data=None):
+        if additional_response_data is None:
+            additional_response_data = {}
         request.session['mfa_register'] = json.dumps(model_to_dict(instance), cls=DjangoJSONEncoder)
         response_data = instance.data | additional_response_data
         return Response(response_data, status=status.HTTP_200_OK)
@@ -270,7 +273,7 @@ class AuthViewSet(viewsets.ViewSet):
             return serializers.Serializer
 
     def get_serializer(self, *args, **kwargs):
-        return self.get_serializer_class()(context={'request': self.request}, *args, **kwargs)
+        return self.get_serializer_class()(*args, context={'request': self.request}, **kwargs)
 
     @action(detail=False, methods=['post'], authentication_classes=[], permission_classes=[LocalUserAuthPermissions])
     def login(self, request, *args, **kwargs):
@@ -393,7 +396,7 @@ class AuthViewSet(viewsets.ViewSet):
         try:
             token = oauth.create_client(oidc_provider).authorize_access_token(request)
         except OAuthError as ex:
-            raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error)
+            raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error) from ex
 
         email = token['userinfo'].get('email', 'unknown')
         identity = AuthIdentity.objects \

@@ -92,17 +92,17 @@ class HistoryManager(history_manager.HistoryManager):
         try:
             # historical records are sorted in reverse chronological order
             history_obj = queryset[0]
-        except IndexError:
+        except IndexError as ex:
             raise self.instance.DoesNotExist(
                 "%s had not yet been created." % self.instance._meta.object_name
-            )
+            ) from ex
         if history_obj.history_type == "-" and history_obj.history_date != date:
             raise self.instance.DoesNotExist(
                 "%s had already been deleted." % self.instance._meta.object_name
             )
         result = history_obj.instance
         historic = getattr(result, history_manager.SIMPLE_HISTORY_REVERSE_ATTR_NAME)
-        setattr(historic, "_as_of", date)
+        historic._as_of = date
         return result
 
 
@@ -193,7 +193,7 @@ def history_context(override_existing=False, history_date=None, **kwargs):
             setattr(HistoricalRecords.context, k, v)
         yield
     finally:
-        for k, v in kwargs.items():
+        for k in kwargs.keys():
             if k in restore_map:
                 setattr(HistoricalRecords.context, k, restore_map[k])
             else:
