@@ -31,7 +31,7 @@ class EncryptedField(models.BinaryField):
                 checks.Error(
                     "Base field for EncryptedField cannot be a related field.",
                     obj=self,
-                )
+                ),
             )
         else:
             # Remove the field name checks as they are not needed here.
@@ -44,7 +44,7 @@ class EncryptedField(models.BinaryField):
                     checks.Error(
                         "Base field for EncryptedField has errors:\n    %s" % messages,
                         obj=self,
-                    )
+                    ),
                 )
         return errors
 

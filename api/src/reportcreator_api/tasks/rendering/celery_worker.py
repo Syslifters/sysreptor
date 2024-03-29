@@ -45,7 +45,7 @@ class CustomRPCResultConsumer(ResultConsumer):
             queues=[initial_queue],
             callbacks=[self.on_state_change],
             no_ack=no_ack,
-            accept=self.accept
+            accept=self.accept,
         )
         self._consumer.consume()
 
@@ -60,7 +60,7 @@ class CustomRPCBackend(RPCBackend):
     def connection(self):
         return self.app.amqp.Connection(
             self.url.replace('reportcreator_api.tasks.rendering.celery_worker:CustomRPCBackend', 'pyamqp'),
-            connect_timeout=self.app.conf.broker_connection_timeout
+            connect_timeout=self.app.conf.broker_connection_timeout,
         )
 
     def store_result(self, task_id, result, state, traceback=None, request=None, **kwargs):

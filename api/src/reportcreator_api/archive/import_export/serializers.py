@@ -170,7 +170,7 @@ class FileExportImportSerializer(ExportImportSerializer):
         fields = ['id', 'created', 'updated', 'name']
         extra_kwargs = {
             'id': {'read_only': True},
-            'created': {'read_only': False, 'required': False}
+            'created': {'read_only': False, 'required': False},
         }
         list_serializer_class = FileListExportImportSerializer
 
@@ -282,7 +282,7 @@ class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
         images_data = validated_data.pop('images', [])
         translations_data = validated_data.pop('translations')
         instance = FindingTemplate(**{
-            'source': SourceEnum.IMPORTED
+            'source': SourceEnum.IMPORTED,
         } | validated_data)
         instance.save_without_historical_record()
         self.context['template'] = instance
@@ -352,7 +352,7 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
             'finding_fields', 'finding_field_order', 'finding_ordering',
             'default_notes',
             'report_template', 'report_styles', 'report_preview_data',
-            'assets'
+            'assets',
         ]
         extra_kwargs = {
             'id': {'read_only': False},
@@ -405,7 +405,7 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
                 value=data,
                 definition=project.project_type.finding_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
-                include_unknown=True)
+                include_unknown=True),
         } | validated_data)
 
 
@@ -452,7 +452,7 @@ class ProjectNotebookPageExportImportSerializer(NotebookPageExportImportSerializ
     class Meta(NotebookPageExportImportSerializer.Meta):
         fields = NotebookPageExportImportSerializer.Meta.fields + ['assignee']
         extra_kwargs = NotebookPageExportImportSerializer.Meta.extra_kwargs | {
-            'assignee': {'required': False}
+            'assignee': {'required': False},
         }
 
 
@@ -575,7 +575,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
                 value=report_data,
                 definition=project_type.report_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
-                include_unknown=True
+                include_unknown=True,
             ),
         })
         project_type.linked_project = project

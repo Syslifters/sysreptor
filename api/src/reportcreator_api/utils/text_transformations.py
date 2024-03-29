@@ -199,7 +199,7 @@ class SelectionRange:
     def to_dict(self):
         return {
             'anchor': self.anchor,
-            'head': self.head
+            'head': self.head,
         }
 
     def map(self, change: ChangeSet):
@@ -226,7 +226,7 @@ class EditorSelection:
     def to_dict(self):
         return {
             'ranges': [r.to_dict() for r in self.ranges],
-            'main': self.main
+            'main': self.main,
         }
 
     def map(self, change: ChangeSet):
@@ -234,7 +234,7 @@ class EditorSelection:
             return self
         return EditorSelection(
             ranges=[range.map(change) for range in self.ranges],
-            main=self.main
+            main=self.main,
         )
 
 

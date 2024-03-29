@@ -24,7 +24,7 @@ class HistoricalRecords(history_models.HistoricalRecords):
             bases=[HistoricalRecordBase],
             history_change_reason_field=EncryptedField(base_field=models.TextField(blank=True, null=True), null=True),
             excluded_fields=('updated', 'lock_info_data') + tuple(excluded_fields),
-            **kwargs
+            **kwargs,
         )
 
     def post_save(self, instance, created, using=None, **kwargs):
@@ -94,11 +94,11 @@ class HistoryManager(history_manager.HistoryManager):
             history_obj = queryset[0]
         except IndexError as ex:
             raise self.instance.DoesNotExist(
-                "%s had not yet been created." % self.instance._meta.object_name
+                "%s had not yet been created." % self.instance._meta.object_name,
             ) from ex
         if history_obj.history_type == "-" and history_obj.history_date != date:
             raise self.instance.DoesNotExist(
-                "%s had already been deleted." % self.instance._meta.object_name
+                "%s had already been deleted." % self.instance._meta.object_name,
             )
         result = history_obj.instance
         historic = getattr(result, history_manager.SIMPLE_HISTORY_REVERSE_ATTR_NAME)
@@ -117,7 +117,7 @@ def bulk_create_with_history(model, objs, history_date=None, history_change_reas
             history_type='+',
             history_date=history_date,
             history_change_reason=history_change_reason,
-            history_prevent_cleanup=True
+            history_prevent_cleanup=True,
         )
 
     return out
@@ -141,7 +141,7 @@ def bulk_update_with_history(model, objs, fields, history_date=None, history_cha
             history_type='~',
             history_date=history_date,
             history_change_reason=history_change_reason,
-            history_prevent_cleanup=history_prevent_cleanup
+            history_prevent_cleanup=history_prevent_cleanup,
         )
     return out
 
@@ -158,7 +158,7 @@ def bulk_create_history(model, objs, history_type=None, history_date=None, histo
             history_change_reason=getattr(obj, '_history_change_reason', None) or history_change_reason,
             history_user=model.history.model.get_default_history_user(obj),
             history_prevent_cleanup=history_prevent_cleanup or False,
-            **{f.attname: getattr(obj, f.attname) for f in model.history.model.tracked_fields}
+            **{f.attname: getattr(obj, f.attname) for f in model.history.model.tracked_fields},
         )
         history_signals.pre_create_historical_record.send(
             sender=model.history.model,
@@ -181,7 +181,7 @@ def history_context(override_existing=False, history_date=None, **kwargs):
     If override_existing is False, context information set in an outer history_context() call will not be overwritten and only new infos will be added.
     """
     kwargs = {
-        'history_date': history_date or timezone.now()
+        'history_date': history_date or timezone.now(),
     } | kwargs
     restore_map = {}
     try:

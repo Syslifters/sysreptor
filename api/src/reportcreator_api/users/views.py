@@ -76,7 +76,7 @@ class UserSubresourceViewSetMixin(views.APIView):
 
     def get_serializer_context(self):
         return super().get_serializer_context() | {
-            'user': self.get_user()
+            'user': self.get_user(),
         }
 
 
@@ -151,7 +151,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
             instance.delete()
         except ProtectedError as ex:
             raise serializers.ValidationError(
-                detail='Cannot delete user because it is a member of one or more projects.'
+                detail='Cannot delete user because it is a member of one or more projects.',
             ) from ex
 
 
@@ -242,7 +242,7 @@ class AuthIdentityViewSet(UserSubresourceViewSetMixin, viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         return super().get_serializer_context() | {
-            'user': self.get_user()
+            'user': self.get_user(),
         }
 
 
@@ -328,7 +328,7 @@ class AuthViewSet(viewsets.ViewSet):
             MFAMethod.get_fido2_server().authenticate_complete(
                 state=state,
                 credentials=MFAMethod.objects.get_fido2_user_credentials(request.user),
-                response=request.data
+                response=request.data,
             )
         except ValueError as ex:
             if ex.args and len(ex.args) == 1 and isinstance(ex.args[0], str):
@@ -381,7 +381,7 @@ class AuthViewSet(viewsets.ViewSet):
         if request.GET.get('reauth') and settings.AUTHLIB_OAUTH_CLIENTS[oidc_provider].get('reauth_supported', False):
             redirect_kwargs |= {
                 'prompt': 'login',
-                'max_age': 0
+                'max_age': 0,
             }
             if login_hint := request.session.get('authentication_info', {}).get(f'oidc_{oidc_provider}_login_hint'):
                 redirect_kwargs |= {'login_hint': login_hint}

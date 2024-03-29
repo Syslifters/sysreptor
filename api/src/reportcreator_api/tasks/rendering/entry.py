@@ -129,7 +129,7 @@ def format_template_data(data: dict, project_type: ProjectType, imported_members
     data['pentesters'] = sorted(
         members,
         key=lambda u: (0 if 'lead' in u.get('roles', []) else 1 if 'pentester' in u.get(
-            'roles', []) else 2 if 'reviewer' in u.get('roles', []) else 10, u.get('username'))
+            'roles', []) else 2 if 'reviewer' in u.get('roles', []) else 10, u.get('username')),
     )
     return data
 
@@ -154,7 +154,7 @@ async def format_project_template_data(project: PentestProject, project_type: Op
         data=data,
         project_type=project_type,
         imported_members=project.imported_members,
-        override_finding_order=project.override_finding_order
+        override_finding_order=project.override_finding_order,
     )
 
 
@@ -186,7 +186,7 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
         language=project.language if project else project_type.language,
         password=password,
         output=output,
-        resources=await sync_to_async(format_resources)()
+        resources=await sync_to_async(format_resources)(),
     )
     res = await get_celery_result_async(task)
     # Set message location info to ProjectType (if not available)
@@ -298,11 +298,11 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
             'note': {
                 'id': str(note.id),
                 'title': note.title,
-                'text': note_text
-            }
+                'text': note_text,
+            },
         },
         language=note.project.language if is_project_note else Language.ENGLISH_US,
-        resources=resources
+        resources=resources,
     )
     res = await get_celery_result_async(task)
     return res
@@ -323,7 +323,7 @@ async def render_pdf(project: PentestProject, project_type: Optional[ProjectType
         report_template=report_template,
         report_styles=report_styles,
         data=data,
-        password=password
+        password=password,
     )
 
 
@@ -335,5 +335,5 @@ async def render_pdf_preview(project_type: ProjectType, report_template: str, re
         project_type=project_type,
         report_template=report_template,
         report_styles=report_styles,
-        data=data
+        data=data,
     )

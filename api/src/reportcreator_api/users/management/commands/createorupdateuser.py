@@ -18,10 +18,10 @@ class Command(BaseCommand):
             help='Specifies the password for the user.',
         )
         parser.add_argument(
-            '--superuser', dest='is_superuser', action='store_true', default=False
+            '--superuser', dest='is_superuser', action='store_true', default=False,
         )
         parser.add_argument(
-            '--system', dest='is_system_user', action='store_true', default=False
+            '--system', dest='is_system_user', action='store_true', default=False,
         )
 
     def handle(self, username, password, is_superuser, is_system_user, *args, **kwargs):

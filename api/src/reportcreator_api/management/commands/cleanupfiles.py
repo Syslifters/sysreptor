@@ -31,7 +31,7 @@ class Command(BaseCommand):
             UploadedTemplateImage,
             UploadedProjectFile,
             UploadedUserNotebookFile,
-            ArchivedProject
+            ArchivedProject,
         ]
         for model in models:
             model.objects \

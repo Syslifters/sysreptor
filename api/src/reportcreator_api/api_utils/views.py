@@ -61,7 +61,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
             'code': l.value,
             'name': l.label,
             'spellcheck': l.spellcheck,
-            'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES
+            'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES,
         } for l in remove_duplicates(list(map(Language, settings.PREFERRED_LANGUAGES)) + list(Language))]
 
         auth_providers = \

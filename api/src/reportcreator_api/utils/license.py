@@ -99,7 +99,7 @@ def decode_and_validate_license(license, skip_db_checks=False, skip_limit_valida
                 if current_user_count > license_data['users']:
                     raise LicenseError(license_data | {
                         'error': f"License limit exceeded: You licensed max. {license_data['users']} users, but have currently {current_user_count} active users. "
-                                "Falling back to the free license. Please deactivate some users or extend your license."
+                                "Falling back to the free license. Please deactivate some users or extend your license.",
                     })
 
         # All license checks are valid

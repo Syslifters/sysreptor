@@ -91,7 +91,7 @@ def get_page():
             chromium_sandbox=False,
             handle_sigint=False,
             handle_sigterm=False,
-            handle_sighup=False
+            handle_sighup=False,
         ) as browser:
             with browser.new_context(
                 base_url=FAKE_BASE_URL,
@@ -132,7 +132,7 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
             page.on('pageerror', lambda exc: messages.add(ErrorMessage(
                 level=MessageLevel.ERROR,
                 message='Uncaught error during template rendering',
-                details=str(exc)
+                details=str(exc),
             )))
 
             # Catch all requests
@@ -275,13 +275,13 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
                 font_config=font_config,
                 presentational_hints=True,
                 optimize_images=False,
-                finisher=weasyprint_strip_pdf_metadata
+                finisher=weasyprint_strip_pdf_metadata,
             )
         except Exception:
             logging.exception('Error rendering PDF')
             messages.add(ErrorMessage(
                 level=MessageLevel.ERROR,
-                message='Error rendering PDF'
+                message='Error rendering PDF',
             ))
 
     return res, messages
@@ -298,7 +298,7 @@ def encrypt_pdf(pdf_data: bytes, password: Optional[str]) -> bytes:
         pdf.save(
             filename_or_stream=out,
             encryption=Encryption(owner=password, user=password, aes=True, R=6) if password else False,
-            compress_streams=True
+            compress_streams=True,
         )
         return out.getvalue()
 
@@ -321,7 +321,7 @@ def render_pdf(template: str, styles: str, data: dict, resources: dict, language
     pdf, pdf_msgs = render_to_pdf(
         html_content=html,
         resources=resources,
-        data=data
+        data=data,
     )
     msgs |= pdf_msgs
     if pdf is None:
@@ -329,7 +329,7 @@ def render_pdf(template: str, styles: str, data: dict, resources: dict, language
 
     pdf_enc = encrypt_pdf(
         pdf_data=pdf,
-        password=password
+        password=password,
     )
     return pdf_enc, msgs
 

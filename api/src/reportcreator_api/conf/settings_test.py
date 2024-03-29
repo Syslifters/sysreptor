@@ -14,7 +14,7 @@ CACHES = {
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    }
+    },
 }
 
 REST_FRAMEWORK |= {  # noqa: F405

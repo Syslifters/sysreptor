@@ -8,8 +8,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reportcreator_api.conf.settings
 celery_app = Celery(
     'reportcreator',
     fixups=Celery.builtin_fixups | {
-        'reportcreator_api.tasks.rendering.celery_worker:SecureWorkerFixup'
-    }
+        'reportcreator_api.tasks.rendering.celery_worker:SecureWorkerFixup',
+    },
 )
 
 # Using a string here means the worker doesn't have to serialize

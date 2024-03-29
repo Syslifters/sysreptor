@@ -18,7 +18,7 @@ async def fetch_notifications_request():
                 'version': settings.VERSION,
                 'license': await license.aget_license_info(),
                 'instance_tags': settings.INSTANCE_TAGS,
-            }, cls=DjangoJSONEncoder)
+            }, cls=DjangoJSONEncoder),
         )
         res.raise_for_status()
         return res.json()

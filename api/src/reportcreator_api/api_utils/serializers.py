@@ -47,7 +47,7 @@ class LanguageToolSerializerBase(serializers.Serializer):
             async with httpx.AsyncClient(timeout=10) as client:
                 res = await client.post(
                     url=urljoin(settings.SPELLCHECK_URL, path),
-                    data=self.languagetool_auth() | data
+                    data=self.languagetool_auth() | data,
                 )
                 if res.status_code != 200:
                     raise exceptions.APIException(detail='Spellcheck error', code='spellcheck')

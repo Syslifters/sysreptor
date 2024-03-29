@@ -27,7 +27,7 @@ class SessionManager(BaseSessionManager, models.Manager.from_queryset(SessionQue
         s = Session(
             session_key=session_key,
             session_data=self.encode(session_dict),
-            expire_date=expire_date
+            expire_date=expire_date,
         )
         if session_dict:
             s.save()
@@ -110,7 +110,7 @@ class MFAMethodQuerySet(models.QuerySet):
                 models.When(models.Q(method_type=MFAMethodType.FIDO2), then=1),
                 models.When(models.Q(method_type=MFAMethodType.TOTP), then=2),
                 models.When(models.Q(method_type=MFAMethodType.BACKUP), then=3),
-                default=4
+                default=4,
             )) \
             .order_by('-is_primary', 'method_type_order', 'created')
 
@@ -123,8 +123,8 @@ class MFAMethodManager(models.Manager.from_queryset(MFAMethodQuerySet)):
             'data': {
                 'backup_codes': [
                     get_random_string(length=12) for _ in range(10)
-                ]
-            }
+                ],
+            },
         }
         out = MFAMethod(**kwargs)
         if save:
@@ -140,7 +140,7 @@ class MFAMethodManager(models.Manager.from_queryset(MFAMethodQuerySet)):
                 's': totp.secret,
                 'digits': totp.digits,
                 'interval': totp.interval,
-            }
+            },
         }
         out = MFAMethod(**kwargs)
         if save:
@@ -164,7 +164,7 @@ class MFAMethodManager(models.Manager.from_queryset(MFAMethodQuerySet)):
             ),
             credentials=self.get_fido2_user_credentials(user),
             user_verification=UserVerificationRequirement.PREFERRED,
-            authenticator_attachment=AuthenticatorAttachment.CROSS_PLATFORM
+            authenticator_attachment=AuthenticatorAttachment.CROSS_PLATFORM,
         )
 
         kwargs |= {
@@ -181,10 +181,10 @@ class MFAMethodManager(models.Manager.from_queryset(MFAMethodQuerySet)):
         server = MFAMethod.get_fido2_server()
         auth_data = server.register_complete(
             state=instance.data.get('state'),
-            response=response
+            response=response,
         )
         instance.data = {
-            'device': websafe_encode(auth_data.credential_data)
+            'device': websafe_encode(auth_data.credential_data),
         }
         if save:
             instance.save()

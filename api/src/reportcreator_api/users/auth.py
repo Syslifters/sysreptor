@@ -99,6 +99,6 @@ def forbidden_with_apitoken_auth(request):
     if isinstance(request.auth, APIToken):
         raise exceptions.PermissionDenied(
             detail='This operation is not permitted with API Token authentication. Log in to the web user interface.',
-            code='permission_denied_with_apitoken_auth'
+            code='permission_denied_with_apitoken_auth',
         )
     return True

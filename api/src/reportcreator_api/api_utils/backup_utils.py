@@ -78,7 +78,7 @@ def create_database_dump():
                             'python',
                             [e],
                             use_natural_foreign_keys=False,
-                            use_natural_primary_keys=False
+                            use_natural_primary_keys=False,
                         )[0], cls=DjangoJSONEncoder, ensure_ascii=True).encode() + b'\n'
     except Exception as ex:
         logging.exception('Error creating database dump')
@@ -199,7 +199,7 @@ def destroy_database():
         cursor.execute(
             'DROP TABLE IF EXISTS ' +
             ', '.join([connection.ops.quote_name(t) for t in tables]) +
-            ' CASCADE;'
+            ' CASCADE;',
         )
 
 

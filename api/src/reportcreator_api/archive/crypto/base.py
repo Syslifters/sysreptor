@@ -243,7 +243,7 @@ class DecryptionStream(io.RawIOBase):
                 self.cipher = AES.new(
                     mode=AES.MODE_GCM,
                     key=self.metadata['key'].key,
-                    nonce=self.metadata['nonce']
+                    nonce=self.metadata['nonce'],
                 )
             else:
                 raise CryptoError('Unsupported cipher')

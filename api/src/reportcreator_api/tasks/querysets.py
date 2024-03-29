@@ -49,7 +49,7 @@ class PeriodicTaskManager(models.Manager.from_queryset(PeriodicTaskQuerySet)):
                     id=task_info['id'],
                     status=TaskStatus.RUNNING,
                     started=timezone.now(),
-                    completed=None
+                    completed=None,
                 )
             except IntegrityError:
                 return

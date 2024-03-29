@@ -164,8 +164,8 @@ DATABASES = {
         'DISABLE_SERVER_SIDE_CURSORS': True,
         'OPTIONS': {
             'prepare_threshold': None,
-        }
-    }
+        },
+    },
 }
 
 
@@ -271,7 +271,7 @@ if OIDC_GOOGLE_CLIENT_ID and OIDC_GOOGLE_CLIENT_SECRET:
                 'code_challenge_method': 'S256',
             },
             'reauth_supported': False,
-        }
+        },
     }
 
 if oidc_config := config('OIDC_AUTHLIB_OAUTH_CLIENTS', cast=json.loads, default="{}"):
@@ -321,7 +321,7 @@ STORAGES = {
     'uploaded_assets': {
         'BACKEND': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
         'OPTIONS': {
-            'location': config('UPLOADED_ASSET_LOCATION', default=MEDIA_ROOT / 'uploadedassets', cast=Path)
+            'location': config('UPLOADED_ASSET_LOCATION', default=MEDIA_ROOT / 'uploadedassets', cast=Path),
         },
     },
     'uploaded_files': {
@@ -648,7 +648,7 @@ LOGGING = {
     'formatters': {
         'default': {
             'class': 'logging.Formatter',
-            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
         },
     },
     'handlers': {
@@ -697,5 +697,5 @@ LOGGING = {
             'handlers': logging_handlers,
             'propagate': False,
         },
-    }
+    },
 }

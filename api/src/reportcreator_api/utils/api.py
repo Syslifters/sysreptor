@@ -183,11 +183,11 @@ class CursorMultiPagination(pagination.CursorPagination):
                 # Test for: (cursor reversed) XOR (queryset reversed)
                 if self.cursor.reverse != is_reversed:
                     q_objects_compare[order] = Q(
-                        **{(order_attr + "__lt"): position}
+                        **{(order_attr + "__lt"): position},
                     )
                 else:
                     q_objects_compare[order] = Q(
-                        **{(order_attr + "__gt"): position}
+                        **{(order_attr + "__gt"): position},
                     )
 
             filter_list = []

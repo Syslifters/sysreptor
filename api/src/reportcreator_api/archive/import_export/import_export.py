@@ -109,7 +109,7 @@ def export_archive_iter(data, serializer_class: Type[serializers.Serializer], co
                     buffer=buffer,
                     archive=archive,
                     tarinfo=build_tarinfo(name=f'{obj.id}.json', size=len(archive_data)),
-                    file_chunks=[archive_data]
+                    file_chunks=[archive_data],
                 )
 
                 for name, file in serializer.export_files():
@@ -117,7 +117,7 @@ def export_archive_iter(data, serializer_class: Type[serializers.Serializer], co
                         buffer=buffer,
                         archive=archive,
                         tarinfo=build_tarinfo(name=name, size=file.size),
-                        file_chunks=file.chunks()
+                        file_chunks=file.chunks(),
                     )
 
             design_notice_file = (settings.PDF_RENDER_SCRIPT_PATH / '..' / 'NOTICE_DESIGNS').resolve()
@@ -127,7 +127,7 @@ def export_archive_iter(data, serializer_class: Type[serializers.Serializer], co
                     buffer=buffer,
                     archive=archive,
                     tarinfo=build_tarinfo(name='NOTICE', size=len(design_notice_text)),
-                    file_chunks=[design_notice_text]
+                    file_chunks=[design_notice_text],
                 )
 
         yield from _yield_chunks(buffer=buffer, last_chunk=True)

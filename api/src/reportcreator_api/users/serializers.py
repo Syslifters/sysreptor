@@ -64,7 +64,7 @@ class CreateUserSerializer(PentestUserDetailSerializer):
     class Meta(PentestUserDetailSerializer.Meta):
         fields = PentestUserDetailSerializer.Meta.fields + ['password']
         extra_kwargs = {
-            'password': {'write_only': True}
+            'password': {'write_only': True},
         }
 
     def get_extra_kwargs(self):
@@ -72,7 +72,7 @@ class CreateUserSerializer(PentestUserDetailSerializer):
             'password':
                 {'required': False, 'allow_null': True, 'default': None}
                 if license.is_professional() and (not settings.LOCAL_USER_AUTH_ENABLED or settings.REMOTE_USER_AUTH_ENABLED or settings.AUTHLIB_OAUTH_CLIENTS) else
-                {}
+                {},
         }
 
     def validate_password(self, value):
