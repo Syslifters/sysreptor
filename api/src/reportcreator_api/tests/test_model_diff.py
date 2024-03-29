@@ -1,8 +1,9 @@
 import pytest
 from pytest_django.asserts import assertNumQueries
 
-from reportcreator_api.pentests.models import PentestProject, PentestFinding, ReviewStatus
-from .mock import create_project_type, create_project
+from reportcreator_api.pentests.models import PentestFinding, PentestProject, ReviewStatus
+
+from .mock import create_project, create_project_type
 
 
 @pytest.mark.django_db
@@ -39,7 +40,7 @@ def test_diff_deferred_fields():
     # Deferred fields should not cause DB queries
     with assertNumQueries(1):
         p = PentestProject.objects.only('id', 'readonly').get(id=project.id)
-        
+
         # Changes on deferred fields are not detected
         p.name = 'changed'   # write deferred
         assert not p.has_changed

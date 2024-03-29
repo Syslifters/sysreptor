@@ -1,23 +1,31 @@
 import json
-import pytest
-from uuid import uuid4
-from django.test import override_settings
-from Cryptodome.Signature import eddsa
-from Cryptodome.PublicKey import ECC
-from Cryptodome.Hash import SHA512
 from base64 import b64decode, b64encode
 from datetime import timedelta
+from unittest import mock
+from uuid import uuid4
+
+import pytest
+from Cryptodome.Hash import SHA512
+from Cryptodome.PublicKey import ECC
+from Cryptodome.Signature import eddsa
 from django.conf import settings
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from unittest import mock
-from rest_framework.test import APIClient
-from rest_framework import status
 from django.utils.crypto import get_random_string
+from rest_framework import status
+from rest_framework.test import APIClient
 
+from reportcreator_api.tests.mock import (
+    api_client,
+    create_project,
+    create_project_type,
+    create_public_key,
+    create_template,
+    create_user,
+)
 from reportcreator_api.users.models import APIToken
 from reportcreator_api.utils import license
-from reportcreator_api.tests.mock import create_project, create_project_type, create_public_key, create_template, create_user, api_client
 
 
 def assert_api_license_error(res):
@@ -70,10 +78,10 @@ class TestCommunityLicenseRestrictions:
 
         # No history entries created
         for o in [
-            pt, pt.assets.first(), 
+            pt, pt.assets.first(),
             t, t.main_translation, t.images.first(),
             p, p.sections.first(), p.findings.first(), p.notes.first(), p.images.first(), p.files.first()]:
-            assert o.history.all().count() == 0 
+            assert o.history.all().count() == 0
 
         # History timeline API
         assert_api_license_error(self.client.get(reverse('findingtemplatetranslation-history-timeline', kwargs={'template_pk': t.id, 'pk': t.main_translation.id})))
@@ -95,12 +103,12 @@ class TestCommunityLicenseRestrictions:
         assert_api_license_error(self.client.get(reverse('pentestprojecthistory-note', kwargs=p_url_kwargs | {'id': p.notes.first().note_id})))
         assert_api_license_error(self.client.get(reverse('pentestprojecthistory-image-by-name', kwargs=p_url_kwargs | {'filename': p.images.first().name})))
         assert_api_license_error(self.client.get(reverse('pentestprojecthistory-file-by-name', kwargs=p_url_kwargs | {'filename': p.files.first().name})))
-        
+
     def test_prevent_login_of_nonsuperusers(self):
         self.client.force_authenticate(None)
         assert_api_license_error(self.client.post(reverse('auth-login'), data={
             'username': self.user_regular.username,
-            'password': self.password
+            'password': self.password,
         }))
 
     def test_prevent_login_of_system_users(self):
@@ -150,7 +158,7 @@ class TestCommunityLicenseRestrictions:
         assert_api_license_error(self.client.post(reverse('pentestuser-list'), data={
             'username': 'new-user3',
             'password': self.password,
-            'is_superuser': True
+            'is_superuser': True,
         }))
 
         # Update is_superuser: Try to exceed limit by making existing users superusers
@@ -180,7 +188,7 @@ class TestCommunityLicenseRestrictions:
         session.setdefault('authentication_info', {})['reauth_time'] = timezone.now().isoformat()
         session.save()
         assert_api_license_error(self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test', 'expire_date': timezone.now().date().isoformat()}))
-    
+
 
 @pytest.mark.django_db
 class TestProfessionalLicenseRestrictions:
@@ -220,7 +228,7 @@ class TestLicenseValidation:
         public_key = {
             'id': str(uuid4()),
             'algorithm': 'ed25519',
-            'key': b64encode(private_key.public_key().export_key(format='DER')).decode()
+            'key': b64encode(private_key.public_key().export_key(format='DER')).decode(),
         }
         return private_key, public_key
 
@@ -232,12 +240,12 @@ class TestLicenseValidation:
             'algorithm': public_key['algorithm'],
             'signature': b64encode(signature).decode(),
         }
-    
+
     def sign_license(self, license_data, keys):
         license_data_str = json.dumps(license_data)
         return b64encode(json.dumps({
             'data': license_data_str,
-            'signatures': [self.sign_license_data(license_data_str, k[0], k[1]) for k in keys]
+            'signatures': [self.sign_license_data(license_data_str, k[0], k[1]) for k in keys],
         }).encode()).decode()
 
     def signed_license(self, **kwargs):
@@ -299,7 +307,7 @@ class TestLicenseValidation:
                 'key_id': self.license_public_key['id'],
                 'algorithm': self.license_public_key['algorithm'],
                 'signature': b64encode(signature).decode(),
-            }]
+            }],
         }).encode()).decode())
         assert license_info['type'] != license.LicenseType.PROFESSIONAL
         assert 'no valid signature' in license_info['error'].lower()

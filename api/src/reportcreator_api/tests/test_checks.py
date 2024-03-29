@@ -1,11 +1,11 @@
-import pytest
 from datetime import timedelta
+
+import pytest
 from django.test import override_settings
 
 from reportcreator_api.pentests.models import ReviewStatus
 from reportcreator_api.tests.mock import create_finding, create_project, create_project_type
-from reportcreator_api.utils.error_messages import MessageLevel, MessageLocationInfo, MessageLocationType, ErrorMessage
-
+from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
 
 pytestmark = pytest.mark.django_db
 
@@ -76,7 +76,7 @@ def test_check_empty():
     }
     empty_field_paths = [
         'field_string', 'field_markdown', 'field_int', 'field_date', 'field_enum', 'field_user',
-        'field_list', 'field_object.nested1', 'field_list_objects[0].nested1'
+        'field_list', 'field_object.nested1', 'field_list_objects[0].nested1',
     ]
     project_type = create_project_type()
     set_all_required(project_type.report_fields, True)
@@ -111,7 +111,7 @@ def test_check_empty_not_required():
     }
     empty_field_paths = [
         'field_string', 'field_markdown', 'field_int', 'field_date', 'field_enum', 'field_user',
-        'field_list', 'field_object.nested1', 'field_list_objects[0].nested1'
+        'field_list', 'field_object.nested1', 'field_list_objects[0].nested1',
     ]
     project_type = create_project_type()
     set_all_required(project_type.report_fields, False)
@@ -166,7 +166,7 @@ def test_invalid_cvss():
     (False, 'CVSS:4.0', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'),
     (True, 'CVSS:4.0', 'n/a'),
     (True, 'CVSS:3.1', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'),
-    (False, 'CVSS:3.1', 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H')
+    (False, 'CVSS:3.1', 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H'),
 ])
 def test_invalid_cvss_version(expected, cvss_version, cvss_vector):
     project = create_project(findings_kwargs=[], project_type=create_project_type(finding_fields={
@@ -251,5 +251,5 @@ def test_regex_timeout():
     f = create_finding(project=p, data={'field_regex': 'abc'})
     assertContainsCheckResults(p.perform_checks(), [
         ErrorMessage(level=MessageLevel.ERROR, message='Regex timeout', location=MessageLocationInfo(
-            type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex'))
+            type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex')),
     ])

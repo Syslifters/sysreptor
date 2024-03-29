@@ -1,12 +1,28 @@
 import io
 from uuid import uuid4
-from django.urls import reverse
+
 import pytest
+from django.urls import reverse
 
 from reportcreator_api.archive.import_export.import_export import export_project_types
 from reportcreator_api.pentests.cvss import CVSSLevel
-from reportcreator_api.pentests.models import ProjectType, ProjectTypeScope, SourceEnum, FindingTemplate, FindingTemplateTranslation, Language, ReviewStatus
-from reportcreator_api.tests.mock import create_project, create_project_type, create_template, create_user, create_usernotebookpage, api_client
+from reportcreator_api.pentests.models import (
+    FindingTemplate,
+    FindingTemplateTranslation,
+    Language,
+    ProjectType,
+    ProjectTypeScope,
+    ReviewStatus,
+    SourceEnum,
+)
+from reportcreator_api.tests.mock import (
+    api_client,
+    create_project,
+    create_project_type,
+    create_template,
+    create_user,
+    create_usernotebookpage,
+)
 from reportcreator_api.tests.utils import assertKeysEqual
 
 
@@ -17,7 +33,7 @@ class TestProjectApi:
         self.user = create_user()
         self.project_type = create_project_type()
 
-        self.client = api_client(self.user) 
+        self.client = api_client(self.user)
 
     def test_create_project(self):
         p = self.client.post(reverse('pentestproject-list'), data={
@@ -57,7 +73,7 @@ class TestProjectApi:
 
         # ProjectType changed
         p = self.client.patch(reverse('pentestproject-detail', kwargs={'pk': project.id}), data={
-            'project_type': self.project_type.id
+            'project_type': self.project_type.id,
         }).json()
 
         assert p['project_type'] not in [str(project.project_type.id), str(self.project_type.id)]
@@ -72,7 +88,7 @@ class TestProjectApi:
             'roles': [],
         }])
         res = self.client.patch(reverse('pentestproject-detail', kwargs={'pk': project.id}), data={
-            'imported_members': [{'id': project.imported_members[0]['id'], 'roles': ['pentester']}]
+            'imported_members': [{'id': project.imported_members[0]['id'], 'roles': ['pentester']}],
         })
         assert res.status_code == 200
         project.refresh_from_db()
@@ -85,7 +101,7 @@ class TestProjectApi:
             {'data': {'title': 'Finding 2'}, 'order': 4},
             {'data': {'title': 'Finding 3'}, 'order': 1},
             {'data': {'title': 'Finding 4'}, 'order': 2},
-            {'data': {'title': 'Finding 5'}, 'order': 3}
+            {'data': {'title': 'Finding 5'}, 'order': 3},
         ])
         def finding_by_title(title):
             return next(filter(lambda f: f.data['title'] == title, project.findings.all()))
@@ -212,7 +228,7 @@ class TestTemplateApi:
         assert self.update_template(self.template, data).status_code == 200
         assert self.trans_en.language == Language.GERMAN_DE.value
         assert self.trans_de.language == Language.ENGLISH_US.value
-    
+
     def test_update_change_main(self):
         data = self.client.get(reverse('findingtemplate-detail', kwargs={'pk': self.template.id})).data
         data['translations'][0]['is_main'] = False
@@ -221,7 +237,7 @@ class TestTemplateApi:
         assert not self.trans_en.is_main
         assert self.trans_de.is_main
         assert self.template.main_translation == self.trans_de
-    
+
     def test_update_add_delete_translations(self):
         data = self.client.get(reverse('findingtemplate-detail', kwargs={'pk': self.template.id})).data
         data['translations'][1] = {
@@ -278,7 +294,7 @@ class TestTemplateApi:
             'data': {
                 'title': 'title translation',
                 'description': 'description translation',
-            }
+            },
         }).status_code == 200
         f1 = self.client.post(reverse('finding-fromtemplate', kwargs={'project_pk': project.id}), data={
             'template': self.template.id,
@@ -292,7 +308,7 @@ class TestTemplateApi:
         self.client.patch(reverse('findingtemplatetranslation-detail', kwargs={'template_pk': self.template.id, 'pk': self.trans_de.id}), {
             'data': {
                 'title': 'title translation',
-            }
+            },
         })
         f2 = self.client.post(reverse('finding-fromtemplate', kwargs={'project_pk': project.id}), data={
             'template': self.template.id,
@@ -328,7 +344,7 @@ class TestTemplateApi:
             'data': {
                 'title': 'finding title',
                 'description': '![image](/images/name/image.png)',
-            }
+            },
         }], images_kwargs=[{'name': 'image.png'}, {'name': 'image_unreferenced.png'}])
         finding = project.findings.first()
 
@@ -352,16 +368,16 @@ class TestTemplateApi:
         res = self.client.get(reverse('findingtemplate-list'), data=params)
         assert res.status_code == 200
         assert [t['id'] for t in res.data['results']] == [str(t.id) for t in expected_result]
-    
+
     def test_template_search(self):
         search_term = 'tls crypt'
         t_title_tag_data_de = create_template(language=Language.GERMAN_DE, data={'title': 'Weak TLS', 'description': 'Weak crypto'}, tags=['crypto'])
-        t_title_data_en_de = create_template(language=Language.ENGLISH_US, data={'title': 'Weak TLS', 'description': 'Weak crypto'}, 
+        t_title_data_en_de = create_template(language=Language.ENGLISH_US, data={'title': 'Weak TLS', 'description': 'Weak crypto'},
                                              translations_kwargs=[{'language': Language.GERMAN_DE, 'data': {'title': 'Weak TLS', 'description': 'Weak crypto'}}])
         t_data_en = create_template(language=Language.ENGLISH_US, data={'title': 'Unrelated', 'description': 'Improve TLS encryption'})
         t_partial_term_match = create_template(language=Language.GERMAN_DE, data={'title': 'Unrelated', 'description': 'Improve TLS'})
         t_no_match = create_template(language=Language.GERMAN_DE, data={'title': 'Unrelated', 'description': 'Unrelated'})
-        
+
         # Best match first ordered by search rank
         self.assert_search_result({'search': search_term}, [t_title_tag_data_de, t_title_data_en_de, t_data_en])
         # Templates of preferred language first, then other languages, ordered by search rank
@@ -393,8 +409,8 @@ class TestNotesApi:
         ]
 
         res = self.client.post(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': 'self'}), data=
-            [{'id': n.note_id, 'parent': None, 'order': idx + 1} for idx, n in enumerate(top_level)] + 
-            [{'id': n.note_id, 'parent': n.parent.note_id, 'order': idx + 1} for idx, n in enumerate(sub_level)]
+            [{'id': n.note_id, 'parent': None, 'order': idx + 1} for idx, n in enumerate(top_level)] +
+            [{'id': n.note_id, 'parent': n.parent.note_id, 'order': idx + 1} for idx, n in enumerate(sub_level)],
         )
         assert res.status_code == 200, res.data
         for idx, n in enumerate(top_level):
@@ -407,7 +423,7 @@ class TestNotesApi:
             assert n.parent == note1
             assert n.order == idx + 1
             assert next(filter(lambda rn: rn['id'] == str(n.note_id), res.data))['order'] == n.order
-    
+
     def test_sort_change_parent(self):
         note1 = create_usernotebookpage(user=self.user, parent=None, order=1)
         note2 = create_usernotebookpage(user=self.user, parent=None, order=2)
@@ -415,7 +431,7 @@ class TestNotesApi:
         note1_2 = create_usernotebookpage(user=self.user, parent=None, order=3)
         note2_1 = create_usernotebookpage(user=self.user, parent=note1, order=1)
         note3 = create_usernotebookpage(user=self.user, parent=note1, order=2)
-        
+
         res = self.client.post(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': 'self'}), data=[
             {'id': note1.note_id, 'parent': None, 'order': 1},
             {'id': note1_1.note_id, 'parent': note1.note_id, 'order': 1},

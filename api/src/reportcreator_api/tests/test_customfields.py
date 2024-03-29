@@ -1,20 +1,35 @@
 import copy
 import itertools
-import pytest
 from datetime import timedelta
 from uuid import uuid4
+
+import pytest
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from reportcreator_api.pentests.customfields.mixins import CustomFieldsMixin
-from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE, FINDING_FIELDS_PREDEFINED, REPORT_FIELDS_CORE
+from reportcreator_api.pentests.customfields.predefined_fields import (
+    FINDING_FIELDS_CORE,
+    FINDING_FIELDS_PREDEFINED,
+    REPORT_FIELDS_CORE,
+)
 from reportcreator_api.pentests.customfields.sort import sort_findings
-from reportcreator_api.pentests.customfields.types import FieldDataType, field_definition_to_dict, parse_field_definition
-from reportcreator_api.pentests.customfields.validators import FieldDefinitionValidator, FieldValuesValidator
+from reportcreator_api.pentests.customfields.types import (
+    FieldDataType,
+    field_definition_to_dict,
+    parse_field_definition,
+)
 from reportcreator_api.pentests.customfields.utils import check_definitions_compatible
+from reportcreator_api.pentests.customfields.validators import FieldDefinitionValidator, FieldValuesValidator
 from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, Language
 from reportcreator_api.tasks.rendering.entry import format_template_field_object
-from reportcreator_api.tests.mock import create_finding, create_project_type, create_project, create_template, create_user
+from reportcreator_api.tests.mock import (
+    create_finding,
+    create_project,
+    create_project_type,
+    create_template,
+    create_user,
+)
 from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.utils.utils import copy_keys, omit_keys
 
@@ -131,7 +146,7 @@ class CustomFieldsTestModel(CustomFieldsMixin):
     def __init__(self, field_definition, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._field_definition = parse_field_definition(field_definition)
-    
+
     @property
     def field_definition(self):
         return self._field_definition
@@ -182,7 +197,7 @@ class TestUpdateFieldDefinition:
 
         self.project_other = create_project()
         self.finding_other = create_finding(project=self.project_other)
-    
+
     def refresh_data(self):
         self.project_type.refresh_from_db()
         self.project.refresh_from_db()
@@ -201,7 +216,7 @@ class TestUpdateFieldDefinition:
         section = self.project.sections.get(section_id='other')
         assert 'field_new' in section.section_definition['fields']
         assert self.project_type.report_preview_data['report']['field_new'] == default_value
-        
+
         # New field added to projects
         assert 'field_new' in section.data
         assert section.data['field_new'] == default_value
@@ -256,7 +271,7 @@ class TestUpdateFieldDefinition:
         assert self.finding.data_all['field_string'] == old_value
 
         assert 'field_string' in self.finding_other.data
-    
+
     def test_change_type_report_field(self):
         self.project_type.report_fields |= {
             'field_string': {'type': 'object', 'label': 'Changed type', 'properties': {'nested': {'type': 'string', 'label': 'Nested field', 'default': 'default'}}},
@@ -267,7 +282,7 @@ class TestUpdateFieldDefinition:
         assert isinstance(self.project_type.report_preview_data['report']['field_string'], dict)
         section = self.project.sections.get(section_id='other')
         assert section.data['field_string'] == {'nested': 'default'}
-    
+
     def test_change_type_finding_field(self):
         self.project_type.finding_fields |= {
             'field_string': {'type': 'object', 'label': 'Changed type', 'properties': {'nested': {'type': 'string', 'label': 'Nested field', 'default': 'default'}}},
@@ -285,7 +300,7 @@ class TestUpdateFieldDefinition:
         self.project_type.report_fields = report_fields
         self.project_type.save()
         self.refresh_data()
-        
+
         assert self.project_type.report_preview_data['report']['field_string'] == default_val
 
         assert self.project.data['field_string'] != default_val
@@ -346,7 +361,7 @@ class TestUpdateFieldDefinition:
     def test_change_project_type_report_fields(self):
         old_value = self.project.data['field_string']
         project_type_new = create_project_type(report_fields=field_definition_to_dict(REPORT_FIELDS_CORE) | {
-            'field_new': {'type': 'string', 'default': 'default', 'label': 'New field'}
+            'field_new': {'type': 'string', 'default': 'default', 'label': 'New field'},
         })
         self.project.project_type = project_type_new
         self.project.save()
@@ -359,7 +374,7 @@ class TestUpdateFieldDefinition:
     def test_change_project_type_finding_fields(self):
         old_value = self.project.data['field_string']
         project_type_new = create_project_type(finding_fields=field_definition_to_dict(FINDING_FIELDS_CORE) | {
-            'field_new': {'type': 'string', 'default': 'default', 'label': 'New field'}
+            'field_new': {'type': 'string', 'default': 'default', 'label': 'New field'},
         })
         self.project.project_type = project_type_new
         self.project.save()
@@ -400,17 +415,17 @@ class TestPredefinedFields:
     def test_change_structure(self):
         with pytest.raises(ValidationError):
             self.project_type.finding_fields |= {
-                'description': {'type': 'list', 'label': 'Changed', 'items': {'type': 'string', 'default': 'changed'}}
+                'description': {'type': 'list', 'label': 'Changed', 'items': {'type': 'string', 'default': 'changed'}},
             }
             self.project_type.clean_fields()
 
     def test_add_conflicting_field(self):
         with pytest.raises(ValidationError):
             self.project_type.finding_fields |= {
-                'recommendation': {'type': 'list', 'label': 'Changed', 'items': {'type': 'string', 'default': 'changed'}}
+                'recommendation': {'type': 'list', 'label': 'Changed', 'items': {'type': 'string', 'default': 'changed'}},
             }
             self.project_type.clean_fields()
-    
+
 
 @pytest.mark.django_db
 class TestTemplateFieldDefinition:
@@ -420,25 +435,25 @@ class TestTemplateFieldDefinition:
             finding_fields=field_definition_to_dict(FINDING_FIELDS_CORE | {
                 'field1': {'type': 'string', 'default': 'default', 'label': 'Field 1'},
                 'field_conflict': {'type': 'string', 'default': 'default', 'label': 'Conflicting field type'},
-            })
+            }),
         )
         self.project_type2 = create_project_type(
             finding_fields=field_definition_to_dict(FINDING_FIELDS_CORE | {
                 'field2': {'type': 'string', 'default': 'default', 'label': 'Field 2'},
-                'field_conflict': {'type': 'list', 'label': 'conflicting field type', 'items': {'type': 'string', 'default': 'default'}}
-            })
+                'field_conflict': {'type': 'list', 'label': 'conflicting field type', 'items': {'type': 'string', 'default': 'default'}},
+            }),
         )
         self.project_type_hidden = create_project_type(
             finding_fields=field_definition_to_dict(FINDING_FIELDS_CORE | {
                 'field_hidden': {'type': 'string', 'default': 'default', 'label': 'Field of hidden ProjectType'},
-            })
+            }),
         )
         project_hidden = create_project(project_type=self.project_type_hidden)
         self.project_type_hidden.linked_project = project_hidden
         self.project_type_hidden.save()
 
         self.template = create_template(data={'title': 'test', 'field1': 'f1 value', 'field2': 'f2 value'})
-    
+
     def test_get_template_field_definition(self):
         assert \
             set(FindingTemplate.field_definition.keys()) == \
@@ -475,16 +490,16 @@ class TestReportSectionDefinition:
                 'field3': field_definition,
             },
             report_sections=[
-                {'id': 'section1', 'fields': ['field1'], 'label': 'Section 1'}, 
+                {'id': 'section1', 'fields': ['field1'], 'label': 'Section 1'},
                 {'id': 'section2', 'fields': ['field2'], 'label': ['Section 2']},
-            ]
+            ],
         )
         self.project = create_project(project_type=self.project_type)
-    
+
     def test_fields_in_no_section_put_it_other_section(self):
         assert set(self.project.sections.values_list('section_id', flat=True)) == {'section1', 'section2', 'other'}
         assert set(self.project.sections.get(section_id='other').section_fields) == set(REPORT_FIELDS_CORE.keys()) | {'field3'}
-    
+
     def test_add_section(self):
         self.project_type.report_fields |= {'field_new': {'type': 'string', 'default': 'default', 'label': 'new field'}}
         self.project_type.report_sections += [{'id': 'section_new', 'fields': ['field_new']}]
@@ -494,7 +509,7 @@ class TestReportSectionDefinition:
         section_new = self.project.sections.get(section_id='section_new')
         assert section_new.section_fields == ['field_new']
         assert section_new.data['field_new'] == 'default'
-    
+
     def test_delete_section(self):
         old_value = self.project.sections.get(section_id='section1').data['field1']
         report_sections = copy.deepcopy(self.project_type.report_sections)
@@ -507,7 +522,7 @@ class TestReportSectionDefinition:
 
         assert not self.project.sections.filter(section_id='section1').exists()
         assert self.project.sections.get(section_id='section2').data['field1'] == old_value
-    
+
     def test_move_field_to_other_section(self):
         old_value = self.project.sections.get(section_id='section1').data['field1']
         report_sections = copy.deepcopy(self.project_type.report_sections)
@@ -537,7 +552,7 @@ class TestTemplateTranslation:
         })
         self.main = self.template.main_translation
         self.trans = FindingTemplateTranslation.objects.create(template=self.template, language=Language.GERMAN_DE, title='Title translation')
-    
+
     def test_template_translation_inheritance(self):
         self.trans.update_data({'title': 'Title translation', 'description': 'Description translation'})
         self.trans.save()
@@ -592,11 +607,11 @@ class TestFindingSorting:
             **project_kwargs)
         findings_sorted = sort_findings(
             findings=[format_template_field_object(
-                    {'id': str(f.id), 'created': str(f.created), 'order': f.order, **f.data}, 
-                    definition=project.project_type.finding_fields_obj) 
+                    {'id': str(f.id), 'created': str(f.created), 'order': f.order, **f.data},
+                    definition=project.project_type.finding_fields_obj)
                 for f in project.findings.all()],
             project_type=project.project_type,
-            override_finding_order=project.override_finding_order
+            override_finding_order=project.override_finding_order,
         )
         findings_sorted_titles = [f['title'] for f in findings_sorted]
         assert findings_sorted_titles == [f'f{i + 1}' for i in range(len(findings_sorted_titles))]
@@ -611,7 +626,7 @@ class TestFindingSorting:
         self.assert_finding_order(override_finding_order=True, findings_kwargs=[
             {'order': 1},
             {'order': 2},
-            {'order': 3}
+            {'order': 3},
         ])
 
     def test_fallback_order(self):
@@ -619,9 +634,9 @@ class TestFindingSorting:
             override_finding_order=False,
             project_type=create_project_type(finding_ordering=[]),
             findings_kwargs=[
-                {'order': 1, 'created': timezone.now() - timedelta(days=2)}, 
-                {'order': 1, 'created': timezone.now() - timedelta(days=1)}, 
-                {'order': 1, 'created': timezone.now() - timedelta(days=0)}
+                {'order': 1, 'created': timezone.now() - timedelta(days=2)},
+                {'order': 1, 'created': timezone.now() - timedelta(days=1)},
+                {'order': 1, 'created': timezone.now() - timedelta(days=0)},
             ])
 
     @pytest.mark.parametrize(['finding_ordering', 'findings_kwargs'], [
@@ -638,7 +653,7 @@ class TestFindingSorting:
         self.assert_finding_order(
             override_finding_order=False,
             project_type=create_project_type(finding_ordering=finding_ordering),
-            findings_kwargs=[{'data': f} for f in findings_kwargs]
+            findings_kwargs=[{'data': f} for f in findings_kwargs],
         )
 
 
@@ -654,7 +669,7 @@ class TestDefaultNotes:
         (True, [{'id': '11111111-1111-1111-1111-111111111111', 'parent': None}, {'parent': '11111111-1111-1111-1111-111111111111'}]),
         (False, [{'parent': '22222222-2222-2222-2222-222222222222'}]),
         (False, [{'id': '11111111-1111-1111-1111-111111111111', 'parent': '11111111-1111-1111-1111-111111111111'}]),
-        (False, [{'id': '11111111-1111-1111-1111-111111111111', 'parent': '22222222-2222-2222-2222-222222222222'}, {'id': '22222222-2222-2222-2222-222222222222', 'parent': '11111111-1111-1111-1111-111111111111'}])
+        (False, [{'id': '11111111-1111-1111-1111-111111111111', 'parent': '22222222-2222-2222-2222-222222222222'}, {'id': '22222222-2222-2222-2222-222222222222', 'parent': '11111111-1111-1111-1111-111111111111'}]),
     ])
     def test_default_notes(self, valid, default_notes):
         # Test default_notes validation
@@ -674,7 +689,7 @@ class TestDefaultNotes:
         except ValidationError:
             is_valid = False
         assert is_valid == valid
-        
+
         # Test note created from default_notes in project
         if is_valid:
             p = create_project(project_type=self.project_type)

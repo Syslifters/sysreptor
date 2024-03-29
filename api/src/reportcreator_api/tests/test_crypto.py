@@ -2,24 +2,39 @@ import base64
 import io
 import json
 import random
-import pytest
-from uuid import UUID
 from contextlib import contextmanager
+from uuid import UUID
+
+import pytest
+from django.conf import settings
+from django.core import management
+from django.core.files.storage import FileSystemStorage, storages
 from django.db import connection
 from django.test import override_settings
 from django.urls import reverse
-from django.conf import settings
-from django.core import management
 from django.utils.crypto import get_random_string
-from django.core.files.storage import storages, FileSystemStorage
 
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.crypto import pgp
-from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, \
-    UploadedAsset, UploadedImage, UploadedProjectFile, \
-    ArchivedProject, UserPublicKey
 from reportcreator_api.management.commands import encryptdata
-from reportcreator_api.tests.mock import api_client, create_archived_project, create_project, create_public_key, create_template, create_user
+from reportcreator_api.pentests.models import (
+    ArchivedProject,
+    PentestFinding,
+    PentestProject,
+    ProjectType,
+    UploadedAsset,
+    UploadedImage,
+    UploadedProjectFile,
+    UserPublicKey,
+)
+from reportcreator_api.tests.mock import (
+    api_client,
+    create_archived_project,
+    create_project,
+    create_public_key,
+    create_template,
+    create_user,
+)
 from reportcreator_api.utils.storages import EncryptedFileSystemStorage
 
 
@@ -56,7 +71,7 @@ class TestSymmetricEncryptionTests:
     def open_decrypt(self, ct, **kwargs):
         with crypto.open(fileobj=io.BytesIO(ct), mode='r', keys={self.key.id: self.key}, **kwargs) as c:
             yield c
-    
+
     def decrypt(self, ct, **kwargs):
         with self.open_decrypt(ct, **kwargs) as c:
             return c.read()
@@ -66,7 +81,7 @@ class TestSymmetricEncryptionTests:
         metadata = json.loads(enc[len(crypto.MAGIC):ct_start_index].decode())
         metadata |= m
         return crypto.MAGIC + json.dumps(metadata).encode() + enc[ct_start_index:]
- 
+
     def test_encryption_decryption(self):
         enc = self.encrypt(self.plaintext)
         assert enc.startswith(crypto.MAGIC)
@@ -80,7 +95,7 @@ class TestSymmetricEncryptionTests:
                 c.write(bytes([b]))
         assert enc.getvalue() == self.encrypt(self.plaintext)
         assert self.decrypt(enc.getvalue()) == self.plaintext
-    
+
     def test_decryptions_chunked(self):
         dec = b''
         with self.open_decrypt(self.encrypt(self.plaintext)) as c:
@@ -120,16 +135,16 @@ class TestSymmetricEncryptionTests:
         enc = self.encrypt(self.plaintext)[:10]
         with pytest.raises(crypto.CryptoError):
             self.decrypt(enc)
-    
+
     def test_corrupted_magic(self):
         enc = self.encrypt(self.plaintext)
         enc = b'\x00\x00' + enc[2:]
         assert self.decrypt(enc) == enc
-    
+
     def test_partial_magic(self):
         enc = crypto.MAGIC[2:]
         assert self.decrypt(enc) == enc
-    
+
     def test_missing_tag(self):
         enc = self.encrypt(self.plaintext)
         enc = enc[:enc.index(b'\x00') + 3]
@@ -164,12 +179,12 @@ class TestSymmetricEncryptionTests:
             c.seek(0, io.SEEK_SET)
             assert c.tell() == 0
             assert c.read(5) == self.plaintext[:5]
-            
+
     def test_encrypt_revoked_key(self):
         self.key.revoked = True
         with pytest.raises(crypto.CryptoError):
             self.encrypt(self.plaintext)
-    
+
     def test_decrypt_revoked_key(self):
         enc = self.encrypt(self.plaintext)
         self.key.revoked = True
@@ -214,7 +229,7 @@ class TestEncryptedStorage:
         filename = self.storage_crypto.save('test.txt', io.BytesIO(b''))
         with self.storage_crypto.open(filename, mode='wb') as f:
             f.write(self.plaintext)
-        
+
         enc = self.storage_plain.open(filename, mode='rb').read()
         assert enc.startswith(crypto.MAGIC)
         dec = self.storage_crypto.open(filename, mode='rb').read()
@@ -237,10 +252,10 @@ class TestEncryptedDbField:
         with override_settings(
             ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},
             DEFAULT_ENCRYPTION_KEY_ID='test-key',
-            ENCRYPTION_PLAINTEXT_FALLBACK=True
+            ENCRYPTION_PLAINTEXT_FALLBACK=True,
         ):
             yield
-    
+
     def test_transparent_encryption(self):
         # Test transparent encryption/decryption. No encrypted data should be returned to caller
         data_dict = {'test': 'content'}
@@ -269,7 +284,7 @@ class TestEncryptedDbField:
         self.finding.custom_fields = {'test': 'content'}
         self.finding.template_id = self.template.id
         self.finding.save()
-        
+
         assert_db_field_encrypted(PentestFinding.objects.filter(id=self.finding.id).values('custom_fields'), False)
 
 
@@ -285,14 +300,14 @@ class TestEncryptDataCommand:
                 'uploaded_images': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': '/tmp/uploadedimages'}},
                 'uploaded_assets': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': '/tmp/uploadedassets'}},
                 'uploaded_files': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': '/tmp/uploadedfiles'}},
-            }
+            },
         ):
             UploadedImage.file.field.storage = storages['uploaded_images']
             UploadedAsset.file.field.storage = storages['uploaded_assets']
             UploadedProjectFile.file.field.storage = storages['uploaded_files']
             self.project = create_project()
             yield
-    
+
     @override_settings(
         ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},
         DEFAULT_ENCRYPTION_KEY_ID='test-key',
@@ -308,7 +323,7 @@ class TestEncryptDataCommand:
         for f in p.get().files.all():
             assert_db_field_encrypted(UploadedProjectFile.objects.filter(id=f.id).values('name'), True)
             assert_storage_file_encrypted(f.file, True)
-        
+
         pt = ProjectType.objects.filter(id=self.project.project_type.id)
         assert_db_field_encrypted(pt.values('report_template'), True)
         assert_db_field_encrypted(pt.values('report_styles'), True)
@@ -324,12 +339,12 @@ class TestProjectArchivingEncryption:
     def setUp(self):
         with pgp.create_gpg() as self.gpg:
             yield
-            
+
     def create_user_with_private_key(self, **kwargs):
         user = create_user(public_key=False, **kwargs)
         master_key = self.gpg.gen_key(self.gpg.gen_key_input(
-            key_type='EdDSA', 
-            key_curve='ed25519', 
+            key_type='EdDSA',
+            key_curve='ed25519',
             no_protection=True,
             subkey_type='ECDH',
             subkey_curve='nistp384',
@@ -337,14 +352,14 @@ class TestProjectArchivingEncryption:
         public_key_pem = self.gpg.export_keys(master_key.fingerprint)
         create_public_key(user=user, public_key=public_key_pem)
         return user
-    
+
     def test_register_public_key(self):
         user = create_user()
         client = api_client(user)
 
         master_key = self.gpg.gen_key(self.gpg.gen_key_input(
-            key_type='EdDSA', 
-            key_curve='ed25519', 
+            key_type='EdDSA',
+            key_curve='ed25519',
             no_protection=True,
             subkey_type='ECDH',
             subkey_curve='nistp384',
@@ -364,7 +379,7 @@ class TestProjectArchivingEncryption:
         assert res.status_code == 201
         user_public_key = UserPublicKey.objects.get(id=res.data['id'])
         assert user_public_key.public_key == public_key_pem
-    
+
     def test_delete_public_key(self):
         user = create_user(public_key=True)
         archive = create_archived_project(project=create_project(members=[user], readonly=True))
@@ -383,7 +398,7 @@ class TestProjectArchivingEncryption:
         (False, 1, 0, 2),  # no users with key
         (False, 2, 1, 2),  # too few users with key
         (False, 5, 3, 0),  # threshold too high
-        (True, 2, 3, 1),  
+        (True, 2, 3, 1),
     ])
     def test_archiving_validation(self, expected, threshold, num_users_with_key, num_users_without_key):
         with override_settings(ARCHIVING_THRESHOLD=threshold):
@@ -419,7 +434,7 @@ class TestProjectArchivingEncryption:
         res_k1 = client.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs=keypart_kwargs1))
         assert res_k1.status_code == 200
         res_d1 = client.post(reverse('archivedprojectkeypart-decrypt', kwargs=keypart_kwargs1), data={
-            'data': self.gpg.decrypt(res_k1.data[0]['encrypted_data']).data.decode().split('\n')[1]
+            'data': self.gpg.decrypt(res_k1.data[0]['encrypted_data']).data.decode().split('\n')[1],
         })
         assert res_d1.status_code == 200
         assert res_d1.data['status'] == 'key-part-decrypted'
@@ -433,7 +448,7 @@ class TestProjectArchivingEncryption:
         res_k2 = client2.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs=keypart_kwargs2))
         assert res_k2.status_code == 200
         res_d2 = client2.post(reverse('archivedprojectkeypart-decrypt', kwargs=keypart_kwargs2), data={
-            'data': self.gpg.decrypt(res_k2.data[0]['encrypted_data']).data.decode().split('\n')[1]
+            'data': self.gpg.decrypt(res_k2.data[0]['encrypted_data']).data.decode().split('\n')[1],
         })
         assert res_d2.status_code == 200
         assert res_d2.data['status'] == 'project-restored'

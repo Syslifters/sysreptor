@@ -1,20 +1,27 @@
-import pytest
-import pytest_asyncio
 import contextlib
 from datetime import timedelta
-from asgiref.sync import sync_to_async
-from django.urls import reverse
-from django.conf import settings
-from django.utils.module_loading import import_string
-from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth import SESSION_KEY, BACKEND_SESSION_KEY, HASH_SESSION_KEY
-from channels.testing import WebsocketCommunicator
 
-from reportcreator_api.pentests.models import CollabEventType, CollabClientInfo, ProjectMemberInfo
-from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time
-from reportcreator_api.utils.text_transformations import ChangeSet, EditorSelection, SelectionRange, Update, rebase_updates
-from reportcreator_api.utils.utils import copy_keys
+import pytest
+import pytest_asyncio
+from asgiref.sync import sync_to_async
+from channels.testing import WebsocketCommunicator
+from django.conf import settings
+from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY
+from django.contrib.auth.models import AnonymousUser
+from django.urls import reverse
+from django.utils.module_loading import import_string
+
 from reportcreator_api.conf.asgi import application
+from reportcreator_api.pentests.models import CollabClientInfo, CollabEventType, ProjectMemberInfo
+from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time
+from reportcreator_api.utils.text_transformations import (
+    ChangeSet,
+    EditorSelection,
+    SelectionRange,
+    Update,
+    rebase_updates,
+)
+from reportcreator_api.utils.utils import copy_keys
 
 
 class TestTextTransformations:
@@ -79,7 +86,7 @@ class TestTextTransformations:
         c2 = ChangeSet.from_dict(change2)
         assert c1.compose(c2.map(c1)).apply(text) == expected
         assert c2.compose(c1.map(c2, True)).apply(text) == expected
-        
+
         text1 = c1.apply(text)
         updates, _ = rebase_updates(updates=[Update(client_id='c2', version=2, changes=c2)], selection=None, over=[Update(client_id='c1', version=1, changes=c1)])
         assert len(updates) == 1
@@ -124,7 +131,7 @@ class TestTextTransformations:
 def create_session(user):
     if not user or user.is_anonymous:
         return None
-    
+
     engine = import_string(settings.SESSION_ENGINE)
     session = engine.SessionStore()
     session[SESSION_KEY] = str(user.id)
@@ -141,7 +148,7 @@ async def ws_connect(path, user, consume_init=True, other_clients=None):
     consumer = WebsocketCommunicator(
         application=application,
         path=path,
-        headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())]
+        headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())],
     )
     setattr(consumer, 'session', session)
 
@@ -187,13 +194,13 @@ class TestCollaborativeTextEditing:
         async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user1) as self.client1, \
                    ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
-    
+
     async def test_concurrent_updates(self):
         # Concurrent updates of same version
         event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'notes.{self.note.note_id}.text', 'version': self.client1.init['version']}
         await self.client1.send_json_to(event_base | {'updates': [{'changes': [1, [0, '1'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}})
         await self.client2.send_json_to(event_base | {'updates': [{'changes': [1, [0, '2'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}})
-        
+
         res1_c1 = await self.client1.receive_json_from()
         res1_c2 = await self.client2.receive_json_from()
         assert res1_c1 == res1_c2
@@ -207,7 +214,7 @@ class TestCollaborativeTextEditing:
         assert res2_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 3, 'head': 3}]}
         version = res2_c1['version']
         assert version > self.client1.init['version']
-        
+
         await self.note.arefresh_from_db()
         assert self.note.text == 'A12B'
 
@@ -331,7 +338,7 @@ class TestProjectNotesDbSync:
         res2 = await self.client2.receive_json_from()
         for k, v in (event | {'client_id': self.client1.client_id}).items():
             assert res1[k] == res2[k] == v
-        
+
         # Changes synced to DB
         await self.refresh_data()
         assert self.note.text == 'ABCD'
@@ -344,7 +351,7 @@ class TestProjectNotesDbSync:
 
     async def test_create_sync(self):
         res_api = await sync_to_async(self.api_client1.post)(
-            path=reverse('projectnotebookpage-list', kwargs={'project_pk': self.project.id}), 
+            path=reverse('projectnotebookpage-list', kwargs={'project_pk': self.project.id}),
             data={'title': 'new', 'text': 'new'})
         # Create event
         res1 = await self.client1.receive_json_from()
@@ -367,9 +374,9 @@ class TestProjectNotesDbSync:
 
     async def test_update_key_sync(self):
         await sync_to_async(self.api_client1.patch)(
-            path=reverse('projectnotebookpage-detail', kwargs={'project_pk': self.project.id, 'id': self.note.note_id}), 
+            path=reverse('projectnotebookpage-detail', kwargs={'project_pk': self.project.id, 'id': self.note.note_id}),
             data={'checked': True, 'title': 'updated'})
-        
+
         r1_1 = await self.client1.receive_json_from()
         r1_2 = await self.client1.receive_json_from()
         res1 = {r1_1['path']: r1_1, r1_2['path']: r1_2}
@@ -399,7 +406,7 @@ class TestProjectNotesDbSync:
         await self.client1.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.checked', 'value': True})
         res = await self.client1.receive_output()
         assert res['type'] == 'websocket.close'
-        
+
     async def test_member_removed_read(self):
         await ProjectMemberInfo.objects.filter(project=self.project, user=self.user1).adelete()
 
@@ -444,7 +451,7 @@ class TestConsumerPermissions:
         consumer = WebsocketCommunicator(
             application=application,
             path=path,
-            headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())] if session else []
+            headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())] if session else [],
         )
         connected, _ = await consumer.connect()
         await consumer.disconnect()
@@ -490,6 +497,6 @@ class TestConsumerPermissions:
                 'unauthorized': create_user(),
                 'anonymous': AnonymousUser(),
             }
-            return users[user_name], user_notes    
+            return users[user_name], user_notes
         user, user_notes = await sync_to_async(setup_db)()
         assert await self.ws_connect(f'/ws/pentestusers/{user_notes.id}/notes/', user) == expected

@@ -68,17 +68,13 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 120
-extend-exclude = [
-  "**/migrations/*.py",
-  "src/reportcreator_api/tests",
-]
 
 [tool.ruff.lint]
 select = [
   "E4", "E7", "E9", "F", # default rules
-  "W", "I", "UP", "COM", "T10",
+  "W", "I", "UP", "COM", "T10", "T20", "DJ", "INP", "PIE",
   # "B",
-  "DJ"
+  # "PT"
 ]
 ignore = [
   "E741",  # Ambiguous variable name: `l`

@@ -1,21 +1,38 @@
 from datetime import timedelta
-import pytest
 from functools import cached_property
 from typing import Optional
 from uuid import uuid4
-from django.urls import reverse
+
+import pytest
 from django.core.files.base import ContentFile
 from django.http import FileResponse, StreamingHttpResponse
 from django.test import override_settings
+from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
-from reportcreator_api.archive.import_export.import_export import export_notes
-from reportcreator_api.users.models import AuthIdentity, PentestUser
-from reportcreator_api.pentests.models import ProjectType, FindingTemplate, PentestProject, ProjectTypeScope, SourceEnum, \
-    UploadedUserNotebookImage, UploadedUserNotebookFile, Language
-from reportcreator_api.notifications.models import NotificationSpec, UserNotification
-from reportcreator_api.tests.mock import create_archived_project, create_user, create_project, create_project_type, create_template, create_png_file
+
 from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates
+from reportcreator_api.archive.import_export.import_export import export_notes
+from reportcreator_api.notifications.models import NotificationSpec, UserNotification
+from reportcreator_api.pentests.models import (
+    FindingTemplate,
+    Language,
+    PentestProject,
+    ProjectType,
+    ProjectTypeScope,
+    SourceEnum,
+    UploadedUserNotebookFile,
+    UploadedUserNotebookImage,
+)
+from reportcreator_api.tests.mock import (
+    create_archived_project,
+    create_png_file,
+    create_project,
+    create_project_type,
+    create_template,
+    create_user,
+)
+from reportcreator_api.users.models import AuthIdentity, PentestUser
 
 
 def export_archive(obj):
@@ -70,14 +87,14 @@ def file_viewset_urls(basename, get_obj, get_base_kwargs=None, read=False, write
     if write:
         out.extend([
             (basename + ' create', lambda s, c: c.post(
-                path=reverse(basename + '-list', kwargs=get_kwargs(s, False)), 
+                path=reverse(basename + '-list', kwargs=get_kwargs(s, False)),
                 data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())},
                 format='multipart',
             )),
             (basename + ' update', lambda s, c: c.put(
                 path=reverse(basename + '-detail', kwargs=get_kwargs(s, True)),
                 data={'name': 'image.png', 'file': ContentFile(name='image2.png', content=create_png_file())},
-                format='multipart'
+                format='multipart',
             )),
         ])
     return out
@@ -163,7 +180,7 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=Fal
 def expect_result(urls, allowed_users=None):
     all_users = {'public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'}
     urls = [((*u, None) if len(u) == 2 else u) for u in urls]
-    
+
     for user in allowed_users or []:
         yield from [(user, *u, True) for u in urls]
     for user in all_users - set(allowed_users or []):
@@ -252,7 +269,7 @@ def template_editor_urls():
         ('findingtemplate import', lambda s, c: c.post(reverse('findingtemplate-import'), data={'file': export_archive(s.template)}, format='multipart')),
         ('findingtemplate fromfinding', lambda s, c: c.post(reverse('findingtemplate-fromfinding'), data={'project': s.project.id, 'translations': [{'is_main': True, 'data': {'title': 'title'}}]})),
     }
-    
+
 
 def designer_urls():
     return [
@@ -290,7 +307,7 @@ def superuser_urls():
         *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project_unauthorized.pk} | ({'pk': s.archived_project_unauthorized.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
         ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project_unauthorized.pk, 'pk': s.archived_project_unauthorized.key_parts.first().pk}))),
     ]
-    
+
 
 def forbidden_urls():
     return [
@@ -308,31 +325,31 @@ def forbidden_urls():
 def build_test_parameters():
     yield from expect_result(
         urls=public_urls(),
-        allowed_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser']
+        allowed_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
     )
     yield from expect_result(
         urls=guest_urls(),
-        allowed_users=['guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser']
+        allowed_users=['guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
     )
     yield from expect_result(
-        urls=regular_user_urls(), 
+        urls=regular_user_urls(),
         allowed_users=['regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
     )
     yield from expect_result(
-        urls=template_editor_urls(), 
-        allowed_users=['template_editor', 'superuser'], 
+        urls=template_editor_urls(),
+        allowed_users=['template_editor', 'superuser'],
     )
     yield from expect_result(
-        urls=designer_urls(), 
-        allowed_users=['designer', 'superuser'], 
+        urls=designer_urls(),
+        allowed_users=['designer', 'superuser'],
     )
     yield from expect_result(
-        urls=user_manager_urls(), 
-        allowed_users=['user_manager', 'superuser'], 
+        urls=user_manager_urls(),
+        allowed_users=['user_manager', 'superuser'],
     )
     yield from expect_result(
-        urls=superuser_urls(), 
-        allowed_users=['superuser'], 
+        urls=superuser_urls(),
+        allowed_users=['superuser'],
     )
     yield from expect_result(
         urls=forbidden_urls(),
@@ -353,7 +370,7 @@ class ApiRequestsAndPermissionsTestData:
         user = self.create_user(username='other')
         AuthIdentity.objects.create(user=user, provider='dummy', identifier='other.user@example.com')
         return user
-    
+
     @cached_property
     def notification(self):
         NotificationSpec.objects.create(text='Test')
@@ -362,43 +379,43 @@ class ApiRequestsAndPermissionsTestData:
     @cached_property
     def project(self):
         return create_project(members=[self.current_user] if self.current_user else [self.user_other])
-    
+
     @cached_property
     def project_readonly(self):
         return create_project(members=[self.current_user] if self.current_user else [self.user_other], readonly=True)
-    
+
     @cached_property
     def project_unauthorized(self):
         return create_project(members=[self.user_other])
-    
+
     @cached_property
     def project_readonly_unauthorized(self):
         return create_project(members=[self.user_other], readonly=True)
-    
+
     @cached_property
     def archived_project(self):
         return create_archived_project(self.project_readonly)
-    
+
     @cached_property
     def archived_project_unauthorized(self):
         return create_archived_project(self.project_readonly_unauthorized)
-    
+
     @cached_property
     def project_type(self):
         return create_project_type()
-    
+
     @cached_property
     def project_type_customized(self):
         return create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=self.project)
 
     @cached_property
-    def project_type_customized_unauthorized(self): 
+    def project_type_customized_unauthorized(self):
         return create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=self.project_unauthorized)
-    
+
     @cached_property
     def project_type_snapshot(self):
         return create_project_type(source=SourceEnum.SNAPSHOT, linked_project=self.project)
-    
+
     @cached_property
     def project_type_private(self):
         return create_project_type(source=SourceEnum.CREATED, linked_user=self.current_user)
@@ -410,7 +427,7 @@ class ApiRequestsAndPermissionsTestData:
     @cached_property
     def template(self):
         return create_template()
-    
+
     @property
     def history_date(self):
         # Use a history date in the future to ensure it is always after the actual object is created and never before
@@ -429,8 +446,8 @@ def test_api_requests(username, name, perform_request, initialize_dependencies, 
             AUTHLIB_OAUTH_CLIENTS={
                 'dummy': {
                     'label': 'Dummy',
-                }
-            }
+                },
+            },
         ):
         user_map = {
             'public': lambda: None,
