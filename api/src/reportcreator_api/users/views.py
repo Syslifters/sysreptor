@@ -62,8 +62,8 @@ class APIBadRequestError(exceptions.APIException):
 class UserSubresourceViewSetMixin(views.APIView):
     pagination_class = None
 
-    @functools.cache
-    def get_user(self):
+    @functools.cached_property
+    def _get_user(self):
         if not self.request:
             return None
 
@@ -73,6 +73,9 @@ class UserSubresourceViewSetMixin(views.APIView):
 
         qs = PentestUser.objects.all()
         return get_object_or_404(qs, pk=user_pk)
+
+    def get_user(self):
+        return self._get_user
 
     def get_serializer_context(self):
         return super().get_serializer_context() | {

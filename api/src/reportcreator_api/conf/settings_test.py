@@ -1,6 +1,7 @@
 from reportcreator_api.conf.settings import *  # noqa: F403
+from reportcreator_api.conf.settings import REST_FRAMEWORK, STORAGES
 
-STORAGES = STORAGES | {  # noqa: F405
+STORAGES = STORAGES | {
     'uploaded_images': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
     'uploaded_assets': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
     'uploaded_files': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
@@ -17,7 +18,7 @@ CHANNEL_LAYERS = {
     },
 }
 
-REST_FRAMEWORK |= {  # noqa: F405
+REST_FRAMEWORK |= {
     'DEFAULT_THROTTLE_CLASSES': [],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }

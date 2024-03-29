@@ -74,9 +74,9 @@ line-length = 120
 extend-select = [
   "W", "I", "UP", "ASYNC", "COM", "T10", "T20", "INP", "PIE",  # misc rules
   "S",  # bandit SAST
+  "B",  # bugbear rules
   "DJ",  # django rules
   "PT",  # pytest rules
-  # "B",
 ]
 ignore = [
   "E741",  # Ambiguous variable name: `l`
