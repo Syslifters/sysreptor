@@ -17,8 +17,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            sql="CREATE VIEW users AS " +
-                "SELECT ('x' || translate(u.id::text, '-', ''))::bit(63)::bigint AS id, u.id::text AS email, u.id::text AS api_key FROM users_pentestuser u " +
+            sql="CREATE VIEW users AS "
+                "SELECT ('x' || translate(u.id::text, '-', ''))::bit(63)::bigint AS id, u.id::text AS email, u.id::text AS api_key FROM users_pentestuser u "
                 "UNION SELECT 1 AS id, 'languagetool' AS email, 'languagetool' AS api_key;",
             reverse_sql="DROP VIEW users;",
         ),

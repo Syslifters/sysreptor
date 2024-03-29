@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from django.core.files.storage import FileSystemStorage, InMemoryStorage
 from storages.backends.s3 import S3Storage
@@ -14,8 +14,7 @@ class FileSystemOverwriteStorage(FileSystemStorage):
         super().__init__(location=location, **kwargs)
 
         # Create directory if it does not exist
-        if not os.path.exists(location):
-            os.makedirs(location)
+        Path(location).mkdir(parents=True, exist_ok=True)
 
     def _save(self, name, content):
         self.delete(name)

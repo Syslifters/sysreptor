@@ -218,8 +218,8 @@ def create_usernotebookpage(**kwargs) -> UserNotebookPage:
     return UserNotebookPage.objects.create(**{
         'title': f'Note #{get_random_string(8)}',
         'text': 'Note text',
-        'checked': random.choice([None, True, False]),
-        'icon_emoji': random.choice([None, '🦖']),
+        'checked': random.choice([None, True, False]),  # noqa: S311
+        'icon_emoji': random.choice([None, '🦖']),  # noqa: S311,
     } | kwargs)
 
 
@@ -227,17 +227,17 @@ def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
     return ProjectNotebookPage.objects.create(**{
         'title': f'Note #{get_random_string(8)}',
         'text': 'Note text',
-        'checked': random.choice([None, True, False]),
-        'icon_emoji': random.choice([None, '🦖']),
+        'checked': random.choice([None, True, False]),  # noqa: S311
+        'icon_emoji': random.choice([None, '🦖']),  # noqa: S311,
     } | kwargs)
 
 
-def create_project(project_type=None, members=[], report_data={}, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, **kwargs) -> PentestProject:
+def create_project(project_type=None, members=None, report_data=None, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, **kwargs) -> PentestProject:
     project_type = project_type or create_project_type()
     report_data = {
         'title': 'Report title',
         'unknown_field': 'test',
-    } | report_data
+    } | (report_data or {})
     project = PentestProject.objects.create(**{
         'project_type': project_type,
         'name': f'Pentest Project #{get_random_string(8)}',
@@ -256,7 +256,7 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
     ReportSection.history.bulk_update(section_histories, ['custom_fields'])
 
     member_infos = []
-    for m in members:
+    for m in (members or []):
         if isinstance(m, PentestUser):
             member_infos.append(ProjectMemberInfo(project=project, user=m, roles=ProjectMemberRole.default_roles))
         elif isinstance(m, ProjectMemberInfo):

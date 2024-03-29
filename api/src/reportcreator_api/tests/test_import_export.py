@@ -462,7 +462,7 @@ class TestFileDelete:
 
 @pytest.mark.django_db()
 class TestCopyModel:
-    def assert_project_type_copy_equal(self, pt, cp, exclude_fields=[]):
+    def assert_project_type_copy_equal(self, pt, cp, exclude_fields=None):
         assert pt != cp
         assert cp.copy_of == pt
         assert not cp.is_locked
@@ -472,7 +472,7 @@ class TestCopyModel:
             'report_fields', 'report_sections',
             'finding_fields', 'finding_field_order', 'finding_ordering',
             'default_notes',
-        } - set(exclude_fields))
+        } - set(exclude_fields or []))
 
         assert set(pt.assets.values_list('id', flat=True)).intersection(cp.assets.values_list('id', flat=True)) == set()
         assert {(a.name, a.file.read()) for a in pt.assets.all()} == {(a.name, a.file.read()) for a in cp.assets.all()}

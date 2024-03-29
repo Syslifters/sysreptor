@@ -34,7 +34,7 @@ def set_all_required(definiton, required):
         elif definiton['type'] == 'list':
             set_all_required(definiton['items'], required)
     elif isinstance(definiton, dict):
-        for k, d in definiton.items():
+        for d in definiton.values():
             set_all_required(d, required)
 
 

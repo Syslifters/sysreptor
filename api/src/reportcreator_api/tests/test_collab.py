@@ -150,7 +150,7 @@ async def ws_connect(path, user, consume_init=True, other_clients=None):
         path=path,
         headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())],
     )
-    setattr(consumer, 'session', session)
+    consumer.session = session
 
     try:
         # Connect
@@ -161,8 +161,8 @@ async def ws_connect(path, user, consume_init=True, other_clients=None):
             # Consume initial message
             init = await consumer.receive_json_from()
             assert init.get('type') == CollabEventType.INIT
-            setattr(consumer, 'init', init)
-            setattr(consumer, 'client_id', init['client_id'])
+            consumer.init = init
+            consumer.client_id = init['client_id']
 
             # Consume collab.connect message
             connect = await consumer.receive_json_from()

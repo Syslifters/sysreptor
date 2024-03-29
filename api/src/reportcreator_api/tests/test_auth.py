@@ -6,6 +6,7 @@ from django.conf import settings
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time
 from reportcreator_api.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType
@@ -16,7 +17,7 @@ from reportcreator_api.utils.utils import omit_keys
 class TestLogin:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.password = 'Password1!'
+        self.password = get_random_string(32)
         self.user = create_user(username='user', password=self.password)
         self.user_mfa = create_user(username='user_mfa', password=self.password)
         self.mfa_backup = MFAMethod.objects.create_backup(user=self.user_mfa)
@@ -78,7 +79,7 @@ class TestLogin:
         self.assert_api_access(False)
 
     def test_login_failure(self):
-        self.assert_login(user=self.user, password='invalid_password', success=False)
+        self.assert_login(user=self.user, password='invalid_password', success=False)  # noqa: S106
 
     def test_login_mfa(self):
         self.assert_login(user=self.user_mfa, status='mfa-required')
@@ -145,7 +146,7 @@ class TestLogin:
 class TestMfaMethodRegistration:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.password = 'Password1!'
+        self.password = get_random_string(32)
         self.user = create_user(username='user', password=self.password)
         self.client = api_client()
         self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
@@ -198,7 +199,7 @@ class TestEnableAdminPermissions:
     def setUp(self):
         self.project_not_member = create_project()
 
-        self.password = 'Password1!'
+        self.password = get_random_string(32)
         self.user = create_user(is_superuser=True, password=self.password)
         self.client = api_client()
         self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})

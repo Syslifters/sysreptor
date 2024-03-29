@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import random
+import tempfile
 from contextlib import contextmanager
 from uuid import UUID
 
@@ -12,7 +13,6 @@ from django.core.files.storage import FileSystemStorage, storages
 from django.db import connection
 from django.test import override_settings
 from django.urls import reverse
-from django.utils.crypto import get_random_string
 
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.crypto import pgp
@@ -204,17 +204,17 @@ class TestSymmetricEncryptionTests:
 class TestEncryptedStorage:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        location = f'/tmp/test-{get_random_string(8)}/'
-        self.storage_plain = FileSystemStorage(location=location)
-        self.storage_crypto = EncryptedFileSystemStorage(location=location)
-        self.plaintext = b'This is a test file content which should be encrypted'
+        with tempfile.TemporaryDirectory() as location:
+            self.storage_plain = FileSystemStorage(location=location)
+            self.storage_crypto = EncryptedFileSystemStorage(location=location)
+            self.plaintext = b'This is a test file content which should be encrypted'
 
-        with override_settings(
-            ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},
-            DEFAULT_ENCRYPTION_KEY_ID='test-key',
-            ENCRYPTION_PLAINTEXT_FALLBACK=True,
-        ):
-            yield
+            with override_settings(
+                ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},
+                DEFAULT_ENCRYPTION_KEY_ID='test-key',
+                ENCRYPTION_PLAINTEXT_FALLBACK=True,
+            ):
+                yield
 
     def test_save(self):
         filename = self.storage_crypto.save('test.txt', io.BytesIO(self.plaintext))
@@ -291,21 +291,22 @@ class TestEncryptedDbField:
 class TestEncryptDataCommand:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        with override_settings(
-            ENCRYPTION_KEYS={},
-            DEFAULT_ENCRYPTION_KEY_ID=None,
-            ENCRYPTION_PLAINTEXT_FALLBACK=True,
-            STORAGES=settings.STORAGES | {
-                'uploaded_images': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': '/tmp/uploadedimages'}},
-                'uploaded_assets': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': '/tmp/uploadedassets'}},
-                'uploaded_files': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': '/tmp/uploadedfiles'}},
-            },
-        ):
-            UploadedImage.file.field.storage = storages['uploaded_images']
-            UploadedAsset.file.field.storage = storages['uploaded_assets']
-            UploadedProjectFile.file.field.storage = storages['uploaded_files']
-            self.project = create_project()
-            yield
+        with tempfile.TemporaryDirectory() as location:
+            with override_settings(
+                ENCRYPTION_KEYS={},
+                DEFAULT_ENCRYPTION_KEY_ID=None,
+                ENCRYPTION_PLAINTEXT_FALLBACK=True,
+                STORAGES=settings.STORAGES | {
+                    'uploaded_images': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedimages'}},
+                    'uploaded_assets': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedassets'}},
+                    'uploaded_files': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedfiles'}},
+                },
+            ):
+                UploadedImage.file.field.storage = storages['uploaded_images']
+                UploadedAsset.file.field.storage = storages['uploaded_assets']
+                UploadedProjectFile.file.field.storage = storages['uploaded_files']
+                self.project = create_project()
+                yield
 
     @override_settings(
         ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},
@@ -461,6 +462,6 @@ class TestProjectArchivingEncryption:
         archive = create_archived_project(project=create_project(members=[user], readonly=True))
 
         res = api_client(user).post(reverse('archivedprojectkeypart-decrypt', kwargs={'archivedproject_pk': archive.id, 'pk': archive.key_parts.first().id}), {
-            'data': base64.b64encode(random.randbytes(32)).decode(),
+            'data': base64.b64encode(random.randbytes(32)).decode(),  # noqa: S311
         })
         assert res.status_code == 400

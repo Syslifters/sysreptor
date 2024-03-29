@@ -47,9 +47,9 @@ class TestHtmlRendering:
         with override_settings(CELERY_TASK_ALWAYS_EAGER=True):
             yield
 
-    def render_html(self, template, additional_data={}):
+    def render_html(self, template, additional_data=None):
         def render_only_html(data, language, **kwargs):
-            html, msgs = render_to_html(template=template, styles='@import url("/assets/global/base.css");', data=merge(data, additional_data), resources={}, language=language)
+            html, msgs = render_to_html(template=template, styles='@import url("/assets/global/base.css");', data=merge(data, additional_data or {}), resources={}, language=language)
             return html.encode() if html else None, msgs
 
         with mock.patch('reportcreator_api.tasks.rendering.render.render_pdf', render_only_html):

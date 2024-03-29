@@ -49,7 +49,7 @@ def export_notes_archive(obj):
     return ContentFile(content=b''.join(export_notes(obj)) if obj else b'', name='export.tar.gz')
 
 
-def viewset_urls(basename, get_kwargs, create_data={}, list=False, retrieve=False, create=False, update=False, update_partial=False, destroy=False, lock=False, unlock=False, history_timeline=False):
+def viewset_urls(basename, get_kwargs, create_data=None, list=False, retrieve=False, create=False, update=False, update_partial=False, destroy=False, lock=False, unlock=False, history_timeline=False):
     list_urlname = basename + '-list'
     detail_urlname = basename + '-detail'
 
@@ -59,7 +59,7 @@ def viewset_urls(basename, get_kwargs, create_data={}, list=False, retrieve=Fals
     if retrieve:
         out.append((basename + ' retrieve', lambda s, c: c.get(reverse(detail_urlname, kwargs=get_kwargs(s, True)))))
     if create:
-        out.append((basename + ' create', lambda s, c: c.post(reverse(list_urlname, kwargs=get_kwargs(s, False)), data=c.get(reverse(detail_urlname, kwargs=get_kwargs(s, True))).data | create_data)))
+        out.append((basename + ' create', lambda s, c: c.post(reverse(list_urlname, kwargs=get_kwargs(s, False)), data=c.get(reverse(detail_urlname, kwargs=get_kwargs(s, True))).data | (create_data or {}))))
     if update:
         out.append((basename + ' update', lambda s, c: c.put(reverse(detail_urlname, kwargs=get_kwargs(s, True)), data=c.get(reverse(detail_urlname, kwargs=get_kwargs(s, True))).data)))
     if update_partial:

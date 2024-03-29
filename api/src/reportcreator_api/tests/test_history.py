@@ -353,8 +353,8 @@ class TestProjectTypeHistory:
         pt = create_project_type()
         pt_id = pt.id
         pt.delete()
-        ProjectType.history.filter(id=pt_id).count() == 0
-        UploadedAsset.history.filter(linked_object_id=pt_id).count() == 0
+        assert ProjectType.history.filter(id=pt_id).count() == 0
+        assert UploadedAsset.history.filter(linked_object_id=pt_id).count() == 0
 
     def test_history_api(self):
         pt = create_project_type()
@@ -441,13 +441,13 @@ class TestProjectHistory:
         p = create_project(members=[self.user])
         pid = p.id
         p.delete()
-        PentestProject.history.filter(id=pid).count() == 0
-        PentestFinding.history.filter(project_id=pid).count() == 0
-        ReportSection.history.filter(project_id=pid).count() == 0
-        ProjectNotebookPage.history.filter(project_id=pid).count() == 0
-        ProjectMemberInfo.history.filter(project_id=pid).count() == 0
-        UploadedImage.history.filter(linked_object_id=pid).count() == 0
-        UploadedAsset.history.filter(linked_object_id=pid).count() == 0
+        assert PentestProject.history.filter(id=pid).count() == 0
+        assert PentestFinding.history.filter(project_id=pid).count() == 0
+        assert ReportSection.history.filter(project_id=pid).count() == 0
+        assert ProjectNotebookPage.history.filter(project_id=pid).count() == 0
+        assert ProjectMemberInfo.history.filter(project_id=pid).count() == 0
+        assert UploadedImage.history.filter(linked_object_id=pid).count() == 0
+        assert UploadedAsset.history.filter(linked_object_id=pid).count() == 0
 
     def test_change_project_type(self):
         p = create_project(members=[self.user])
