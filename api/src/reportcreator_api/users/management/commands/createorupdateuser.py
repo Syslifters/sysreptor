@@ -23,8 +23,12 @@ class Command(BaseCommand):
         parser.add_argument(
             '--system', dest='is_system_user', action='store_true', default=False,
         )
+        parser.add_argument(
+            '--initial-saas-user', dest='is_initial_saas_user', action='store_true', default=False,
+            help='Only for saas operator',
+        )
 
-    def handle(self, username, password, is_superuser, is_system_user, *args, **kwargs):
+    def handle(self, username, password, is_superuser, is_system_user, is_initial_saas_user, *args, **kwargs):
         password = password or os.environ.get('DJANGO_SUPERUSER_PASSWORD')
 
         if not password or not username:
@@ -33,6 +37,13 @@ class Command(BaseCommand):
             raise CommandError("password must be at least 15 characters")
 
         user = PentestUser.objects.filter(username=username).first()
+
+        if is_initial_saas_user:
+            if user:
+                raise CommandError("User already exists")
+            if PentestUser.objects.filter(is_system_user=False).count() > 0:
+                raise CommandError("System already contains users, abort")
+
         if not user:
             user = PentestUser(username=username)
 
