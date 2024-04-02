@@ -13,6 +13,10 @@
 * Markdown editor: Allow escaping curly braces
 
 
+## v2024.20 - 2024-04-02
+* Fix PDF rendering hanging on headless chromium startup
+
+
 ## v2024.19 - 2024-03-05
 * Allow configuring the PDF rendering timeout (applies only when a separate worker is used)
 * Add filename in markdown editor for uploaded files
