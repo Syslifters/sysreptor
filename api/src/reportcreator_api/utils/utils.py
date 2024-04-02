@@ -1,10 +1,11 @@
 import asyncio
-import uuid
 import itertools
+import uuid
 from datetime import date, timedelta
-from django.utils import timezone, dateparse
 from itertools import groupby
-from typing import Union, Iterable, OrderedDict, Any
+from typing import Any, Iterable, OrderedDict, Union
+
+from django.utils import dateparse, timezone
 
 
 def remove_duplicates(lst: list) -> list:
@@ -84,7 +85,7 @@ def is_date_string(val):
         return True
     except (ValueError, TypeError, AttributeError):
         return False
-    
+
 
 def parse_date_string(val):
     out = dateparse.parse_datetime(val)

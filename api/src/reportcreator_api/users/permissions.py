@@ -1,18 +1,19 @@
 from datetime import datetime
+
 from django.conf import settings
 from django.utils import timezone
-from rest_framework import permissions, authentication, exceptions
+from rest_framework import authentication, exceptions, permissions
 
+from reportcreator_api.users.auth import forbidden_with_apitoken_auth
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils import license
-from reportcreator_api.users.auth import forbidden_with_apitoken_auth
 
 
 def check_sensitive_operation_timeout(request):
     """
     Check if the current session was fully authenticated (password + MFA) before a short period of time (settings.SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT).
     """
-    try: 
+    try:
         reauth_time = datetime.fromisoformat(request.session.get('authentication_info', {}).get('reauth_time'))
         if reauth_time + settings.SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT >= timezone.now():
             return True
@@ -67,7 +68,7 @@ class MFAMethodViewSetPermissons(permissions.BasePermission):
         if user == request.user:
             check_sensitive_operation_timeout(request)
             return True
-        
+
         if not request.user.is_admin and not request.user.is_user_manager:
             return False
         if request.method in permissions.SAFE_METHODS:

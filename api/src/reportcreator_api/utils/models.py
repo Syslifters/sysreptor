@@ -2,9 +2,10 @@
 import functools
 import itertools
 import uuid
+
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
-from django.contrib.contenttypes.fields import GenericRelation
 
 
 class ModelDiffMixin(models.Model):
@@ -16,8 +17,15 @@ class ModelDiffMixin(models.Model):
     class Meta:
         abstract = True
 
+    def save(self, *args, **kwargs):
+        """
+        Saves model and set initial state.
+        """
+        super().save(*args, **kwargs)
+        self.clear_changed_fields()
+
     def __init__(self, *args, **kwargs):
-        super(ModelDiffMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.__initial = self._dict
 
     @property
@@ -26,7 +34,7 @@ class ModelDiffMixin(models.Model):
         d2 = self._dict
         diffs = [(k, (v, d2[k])) for k, v in d1.items() if v != d2[k]]
         return dict(diffs)
-    
+
     @property
     def initial(self):
         return self.__initial
@@ -47,13 +55,6 @@ class ModelDiffMixin(models.Model):
 
     def clear_changed_fields(self):
         self.__initial = self._dict
-
-    def save(self, *args, **kwargs):
-        """
-        Saves model and set initial state.
-        """
-        super(ModelDiffMixin, self).save(*args, **kwargs)
-        self.clear_changed_fields()
 
     @property
     def _dict(self):

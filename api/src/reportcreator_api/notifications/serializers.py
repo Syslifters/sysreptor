@@ -1,8 +1,9 @@
 from datetime import timedelta
+
 from django.utils import timezone
 from rest_framework import serializers
 
-from reportcreator_api.notifications.models import UserNotification, NotificationSpec
+from reportcreator_api.notifications.models import NotificationSpec, UserNotification
 
 
 class NotificationSpecContentSerializer(serializers.ModelSerializer):

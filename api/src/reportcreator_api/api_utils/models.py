@@ -11,3 +11,5 @@ class LanguageToolIgnoreWords(models.Model):
     class Meta:
         db_table = 'ignore_words'
 
+    def __str__(self):
+        return self.ignore_word

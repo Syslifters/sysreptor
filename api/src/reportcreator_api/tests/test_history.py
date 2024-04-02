@@ -1,23 +1,52 @@
-from django.test import override_settings
-import pytest
 import enum
 from datetime import timedelta
-from uuid import uuid4
+
+import pytest
 from asgiref.sync import async_to_sync
-from django.urls import reverse
-from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import SimpleUploadedFile
-from reportcreator_api.archive.import_export.import_export import export_project_types, export_projects, export_templates, import_project_types, import_projects, import_templates
+from django.test import override_settings
+from django.urls import reverse
+from django.utils import timezone
+
+from reportcreator_api.archive.import_export.import_export import (
+    export_project_types,
+    export_projects,
+    export_templates,
+    import_project_types,
+    import_projects,
+    import_templates,
+)
+from reportcreator_api.pentests.models import (
+    FindingTemplate,
+    FindingTemplateTranslation,
+    Language,
+    ProjectType,
+    ReviewStatus,
+    UploadedTemplateImage,
+)
 from reportcreator_api.pentests.models.files import UploadedAsset, UploadedImage
 from reportcreator_api.pentests.models.notes import ProjectNotebookPage
-from reportcreator_api.pentests.models.project import PentestFinding, PentestProject, ProjectMemberInfo, ProjectMemberRole, ReportSection
+from reportcreator_api.pentests.models.project import (
+    PentestFinding,
+    PentestProject,
+    ProjectMemberInfo,
+    ProjectMemberRole,
+    ReportSection,
+)
 from reportcreator_api.pentests.tasks import cleanup_history
 from reportcreator_api.tasks.models import PeriodicTask
-
-from reportcreator_api.tests.mock import create_finding, create_project_type, create_projectnotebookpage, create_template_translation, create_user, api_client, create_template, create_project, mock_time
-from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, UploadedTemplateImage, \
-    ReviewStatus, Language, ProjectType
+from reportcreator_api.tests.mock import (
+    api_client,
+    create_finding,
+    create_project,
+    create_project_type,
+    create_projectnotebookpage,
+    create_template,
+    create_template_translation,
+    create_user,
+    mock_time,
+)
 from reportcreator_api.tests.test_import_export import archive_to_file
 from reportcreator_api.utils.utils import copy_keys, omit_keys
 
@@ -41,7 +70,7 @@ def assert_history(obj, history_count=None, history_type=None, history_date=None
 
     if history_count is not None:
         assert obj.history.all().count() == history_count
-    
+
     h = obj.history.all()[0]
     if history_type:
         assert h.history_type == history_type
@@ -56,7 +85,7 @@ def assert_history(obj, history_count=None, history_type=None, history_date=None
     assert not has_changes(obj, h)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestTemplateHistory:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -65,11 +94,11 @@ class TestTemplateHistory:
 
     def assert_template_history_create(self, template, **kwargs):
         for o in [template] + list(template.translations.all()) + list(template.images.all()):
-            assert_history(o, 
-                           history_count=1, 
-                           history_type='+', 
-                           history_date=template.history.all()[0].history_date, 
-                           history_title=o.get_language_display() if isinstance(o, FindingTemplateTranslation) else None, 
+            assert_history(o,
+                           history_count=1,
+                           history_type='+',
+                           history_date=template.history.all()[0].history_date,
+                           history_title=o.get_language_display() if isinstance(o, FindingTemplateTranslation) else None,
                            **kwargs)
 
     def test_create_template_signal(self):
@@ -82,10 +111,10 @@ class TestTemplateHistory:
         t = create_template().copy()
         self.assert_template_history_create(t, history_change_reason='Duplicated')
 
-    @pytest.mark.parametrize(['changes', 'change_reason'], [
+    @pytest.mark.parametrize(('changes', 'change_reason'), [
         ({'status': ReviewStatus.FINISHED}, 'Status changed to Finished'),
         ({'language': Language.FRENCH_FR}, 'Language changed to French (fr-FR)'),
-        ({'data': {'title': 'changed title'}}, None)
+        ({'data': {'title': 'changed title'}}, None),
     ])
     def test_update_translation(self, changes, change_reason):
         t = create_template()
@@ -127,7 +156,7 @@ class TestTemplateHistory:
         tr.history.all().delete()
         tr.save()
         assert tr.history.all().count() == 0
-    
+
     def test_delete_translation_signal(self):
         tr = create_template().main_translation
         tr_id = tr.id
@@ -142,7 +171,7 @@ class TestTemplateHistory:
         assert FindingTemplate.history.filter(id=tid).count() == 0
         assert FindingTemplateTranslation.history.filter(template_id=tid).count() == 0
         assert UploadedTemplateImage.history.filter(linked_object_id=tid).count() == 0
-    
+
     def test_create_template_api(self):
         res = self.client.post(reverse('findingtemplate-list'), data={
             'tags': ['test'],
@@ -153,20 +182,20 @@ class TestTemplateHistory:
         })
         assert res.status_code == 201
         self.assert_template_history_create(FindingTemplate.objects.get(id=res.data['id']))
-    
+
     def test_create_from_finding_api(self):
         project = create_project(members=[self.user], findings_kwargs=[{
             'data': {
                 'title': 'finding title',
                 'description': '![image](/images/name/image.png)',
-            }
+            },
         }], images_kwargs=[{'name': 'image.png'}, {'name': 'image_unreferenced.png'}])
         finding = project.findings.first()
         data = self.client.post(reverse('findingtemplate-fromfinding'), data={
             'project': project.id,
             'translations': [
-                {'is_main': True, 'language': project.language, 'data': finding.data}
-            ]
+                {'is_main': True, 'language': project.language, 'data': finding.data},
+            ],
         }).data
         self.assert_template_history_create(FindingTemplate.objects.get(id=data['id']))
 
@@ -225,13 +254,13 @@ class TestTemplateHistory:
             history.append({
                 'history_date': timezone.now(),
                 'template': self.client.get(reverse('findingtemplate-detail', kwargs={'pk': t.id})).data,
-                'images': {i.name: i.file.read() for i in t.images.all()}
+                'images': {i.name: i.file.read() for i in t.images.all()},
             })
 
         # Initial template
         add_history_test()
         # Upload image
-        ti1 = UploadedTemplateImage.objects.create(linked_object=t, name='file-new.png', file=SimpleUploadedFile(name=f'file-new.png', content=b'file-new'))
+        ti1 = UploadedTemplateImage.objects.create(linked_object=t, name='file-new.png', file=SimpleUploadedFile(name='file-new.png', content=b'file-new'))
         add_history_test()
         # Add translation
         tr2 = create_template_translation(template=t, language=Language.GERMAN_DE, data={'title': 'title 2'})
@@ -244,7 +273,7 @@ class TestTemplateHistory:
         add_history_test()
         # Replace image
         ti1.delete()
-        UploadedTemplateImage.objects.create(linked_object=t, name='file-new2.png', file=SimpleUploadedFile(name=f'file-new2.png', content=b'file-new2'))
+        UploadedTemplateImage.objects.create(linked_object=t, name='file-new2.png', file=SimpleUploadedFile(name='file-new2.png', content=b'file-new2'))
         add_history_test()
         # Change main translation
         t.main_translation = tr2
@@ -264,7 +293,7 @@ class TestTemplateHistory:
                 res_i = self.client.get(reverse('findingtemplatehistory-image-by-name', kwargs={'template_pk': t.id, 'history_date': h['history_date'].isoformat(), 'filename': name}))
                 assert res_i.status_code == 200
                 assert b''.join(iter(res_i)) == content
-            
+
     def test_history_import(self):
         t = import_templates(archive_to_file(export_templates([create_template()])))[0]
         self.assert_template_history_create(t, history_change_reason='Imported')
@@ -289,7 +318,7 @@ class TestTemplateHistory:
         assert len(res_after_delete.data['translations']) == 1
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestProjectTypeHistory:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -298,17 +327,17 @@ class TestProjectTypeHistory:
 
     def assert_history_create(self, pt, **kwargs):
         for o in [pt] + list(pt.assets.all()):
-            assert_history(o, 
-                           history_count=1, 
-                           history_type='+', 
-                           history_date=pt.history.all()[0].history_date, 
+            assert_history(o,
+                           history_count=1,
+                           history_type='+',
+                           history_date=pt.history.all()[0].history_date,
                            history_title=o.name,
                            **kwargs)
-    
+
     def test_copy(self):
         pt = create_project_type().copy()
         self.assert_history_create(pt, history_change_reason='Duplicated')
-    
+
     def test_import(self):
         pt = import_project_types(archive_to_file(export_project_types([create_project_type()])))[0]
         self.assert_history_create(pt, history_change_reason='Imported')
@@ -319,14 +348,14 @@ class TestProjectTypeHistory:
             'scope': 'global',
         })
         self.assert_history_create(ProjectType.objects.get(id=res.data['id']))
-    
+
     def test_delete(self):
         pt = create_project_type()
         pt_id = pt.id
         pt.delete()
-        ProjectType.history.filter(id=pt_id).count() == 0
-        UploadedAsset.history.filter(linked_object_id=pt_id).count() == 0
-    
+        assert ProjectType.history.filter(id=pt_id).count() == 0
+        assert UploadedAsset.history.filter(linked_object_id=pt_id).count() == 0
+
     def test_history_api(self):
         pt = create_project_type()
         history = []
@@ -335,13 +364,13 @@ class TestProjectTypeHistory:
             history.append({
                 'history_date': timezone.now(),
                 'instance': self.client.get(reverse('projecttype-detail', kwargs={'pk': pt.id})).data,
-                'assets': {a.name: a.file.read() for a in pt.assets.all()}
+                'assets': {a.name: a.file.read() for a in pt.assets.all()},
             })
-        
+
         # Initial
         add_history_test()
         # Upload asset
-        a1 = UploadedAsset.objects.create(linked_object=pt, name='file-new.png', file=SimpleUploadedFile(name=f'file-new.png', content=b'file-new'))
+        a1 = UploadedAsset.objects.create(linked_object=pt, name='file-new.png', file=SimpleUploadedFile(name='file-new.png', content=b'file-new'))
         add_history_test()
         # Update fields
         pt.finding_fields = omit_keys(pt.finding_fields, ['cvss'])
@@ -369,25 +398,25 @@ class TestProjectTypeHistory:
                 assert b''.join(iter(res_i)) == content
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestProjectHistory:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user = create_user()
         self.client = api_client(self.user)
-    
+
     def assert_history_create(self, project, **kwargs):
         objs = [project] + \
             list(project.sections.all()) + list(project.findings.all()) + list(project.notes.all()) + \
             list(project.images.all()) + list(project.files.all())
         for o in objs:
-            assert_history(o, 
-                           history_count=1, 
-                           history_type='+', 
+            assert_history(o,
+                           history_count=1,
+                           history_type='+',
                            history_date=project.history.all()[0].history_date,
-                           history_title=o.section_label if isinstance(o, ReportSection) else 
-                                         o.data['title'] if isinstance(o, PentestFinding) else 
-                                         o.title if isinstance(o, ProjectNotebookPage) else 
+                           history_title=o.section_label if isinstance(o, ReportSection) else
+                                         o.data['title'] if isinstance(o, PentestFinding) else
+                                         o.title if isinstance(o, ProjectNotebookPage) else
                                          o.name,
                            **kwargs)
         for o in list(project.members.all()):
@@ -396,38 +425,38 @@ class TestProjectHistory:
     def test_copy(self):
         p = create_project(members=[self.user]).copy()
         self.assert_history_create(p, history_change_reason=f'Duplicated from project "{p.name}"')
-    
+
     def test_import(self):
         p = import_projects(archive_to_file(export_projects([create_project(members=[self.user])])))[0]
         self.assert_history_create(p, history_change_reason='Imported')
-    
+
     def test_create_api(self):
         res = self.client.post(reverse('pentestproject-list'), data={
             'name': 'test',
             'project_type': create_project_type().id,
         })
         self.assert_history_create(PentestProject.objects.get(id=res.data['id']))
-    
+
     def test_delete(self):
         p = create_project(members=[self.user])
         pid = p.id
         p.delete()
-        PentestProject.history.filter(id=pid).count() == 0
-        PentestFinding.history.filter(project_id=pid).count() == 0
-        ReportSection.history.filter(project_id=pid).count() == 0
-        ProjectNotebookPage.history.filter(project_id=pid).count() == 0
-        ProjectMemberInfo.history.filter(project_id=pid).count() == 0
-        UploadedImage.history.filter(linked_object_id=pid).count() == 0
-        UploadedAsset.history.filter(linked_object_id=pid).count() == 0
-    
+        assert PentestProject.history.filter(id=pid).count() == 0
+        assert PentestFinding.history.filter(project_id=pid).count() == 0
+        assert ReportSection.history.filter(project_id=pid).count() == 0
+        assert ProjectNotebookPage.history.filter(project_id=pid).count() == 0
+        assert ProjectMemberInfo.history.filter(project_id=pid).count() == 0
+        assert UploadedImage.history.filter(linked_object_id=pid).count() == 0
+        assert UploadedAsset.history.filter(linked_object_id=pid).count() == 0
+
     def test_change_project_type(self):
         p = create_project(members=[self.user])
         sections_prev = list(p.sections.all())
 
         p.project_type = create_project_type(
-            finding_fields=copy_keys(p.project_type.finding_fields, ['title', 'cvss']) | {'field_new': {'type': 'string'}}, 
+            finding_fields=copy_keys(p.project_type.finding_fields, ['title', 'cvss']) | {'field_new': {'type': 'string'}},
             report_fields=copy_keys(p.project_type.finding_fields, ['title']),
-            report_sections=[{'id': 'new', 'label': 'New', 'fields': ['title']}]
+            report_sections=[{'id': 'new', 'label': 'New', 'fields': ['title']}],
         )
         p.save()
 
@@ -467,7 +496,7 @@ class TestProjectHistory:
                 'sections': [self.client.get(reverse('section-detail', kwargs={'project_pk': p.id, 'id': s.section_id})).data for s in p.sections.all()],
                 'notes': [self.client.get(reverse('projectnotebookpage-detail', kwargs={'project_pk': p.id, 'id': n.note_id})).data for n in p.notes.all()],
                 'images': {i.name: i.file.read() for i in p.images.all()},
-                'files': {f.name: f.file.read() for f in p.images.all()}
+                'files': {f.name: f.file.read() for f in p.images.all()},
             })
 
         # Initial
@@ -489,7 +518,7 @@ class TestProjectHistory:
         s.update_data({'executive_summary': 'new content'})
         s.save()
         add_history_test()
-        
+
         # Create note
         n = create_projectnotebookpage(project=p, title='title', text='text')
         add_history_test()
@@ -516,9 +545,9 @@ class TestProjectHistory:
 
         # Change project_type
         p.project_type = create_project_type(
-            finding_fields=copy_keys(p.project_type.finding_fields, ['title', 'cvss']) | {'field_new': {'type': 'string'}}, 
+            finding_fields=copy_keys(p.project_type.finding_fields, ['title', 'cvss']) | {'field_new': {'type': 'string'}},
             report_fields=copy_keys(p.project_type.finding_fields, ['title']),
-            report_sections=[{'id': 'new', 'label': 'New', 'fields': ['title']}]
+            report_sections=[{'id': 'new', 'label': 'New', 'fields': ['title']}],
         )
         p.save()
         add_history_test()
@@ -591,7 +620,7 @@ class TestProjectHistory:
         res_f = self.client.get(reverse('pentestprojecthistory-finding', kwargs=url_kwargs | {'id': f.finding_id}))
         res_n = self.client.get(reverse('pentestprojecthistory-note', kwargs=url_kwargs | {'id': n.note_id}))
         assert res_s.status_code == res_f.status_code == res_n.status_code == 200
-        assert res_s.data['assignee'] == res_f.data['assignee'] == res_n.data['assignee'] == None
+        assert res_s.data['assignee'] == res_f.data['assignee'] == res_n.data['assignee'] is None
 
     def test_bulk_edit_members_api(self):
         u2 = create_user()
@@ -644,7 +673,7 @@ class TestProjectHistory:
         assert res_after_delete.status_code == 404
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestHistoryCleanup:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -660,7 +689,7 @@ class TestHistoryCleanup:
                 [{'history_type': '+', 'cleanup': False}] + \
                 history_entries + \
                 [{'history_type': '-', 'cleanup': False}]
-        
+
         with mock_time(before=before if before is not None else timedelta(days=10)):
             finding = create_project(findings_kwargs=[{}]).findings.first()
             finding.history.all().delete()
@@ -673,11 +702,11 @@ class TestHistoryCleanup:
                     history_date=history_date,
                     history_user=h.get('history_user', None),
                     history_prevent_cleanup=h.get('history_prevent_cleanup', False),
-                    **{f.attname: getattr(finding, f.attname) for f in PentestFinding.history.model.tracked_fields}
+                    **{f.attname: getattr(finding, f.attname) for f in PentestFinding.history.model.tracked_fields},
                 )
-        
+
         async_to_sync(cleanup_history)(task_info={
-            'model': PeriodicTask(last_success=None)
+            'model': PeriodicTask(last_success=None),
         })
 
         for h in history_entries:
@@ -690,7 +719,7 @@ class TestHistoryCleanup:
             {'history_type': '~', 'cleanup': True},
             {'history_type': '-', 'cleanup': False},
         ], pad=True)
-    
+
     def test_keep_first_last(self):
         self.assert_history_cleanup([
             {'history_type': '~', 'cleanup': False},
@@ -698,14 +727,14 @@ class TestHistoryCleanup:
             {'history_type': '~', 'cleanup': True},
             {'history_type': '~', 'cleanup': False},
         ], pad=False)
-    
+
     def test_keep_prevent_cleanup(self):
         self.assert_history_cleanup([
             {'cleanup': True},
             {'history_prevent_cleanup': True, 'cleanup': False},
             {'cleanup': True},
         ], pad=True)
-    
+
     def test_keep_latest_before_pause(self):
         self.assert_history_cleanup([
             {'cleanup': True},
@@ -713,7 +742,7 @@ class TestHistoryCleanup:
             {'after': timedelta(days=1), 'cleanup': True},
             {'cleanup': True},
         ], pad=True)
-    
+
     def test_keep_latest_before_pause_per_user(self):
         self.assert_history_cleanup([
             {'history_user': self.u1, 'cleanup': True},

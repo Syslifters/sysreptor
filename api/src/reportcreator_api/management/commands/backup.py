@@ -1,8 +1,9 @@
 import argparse
+
 from django.core.management.base import BaseCommand, CommandError, CommandParser
+
 from reportcreator_api.api_utils.backup_utils import create_backup, encrypt_backup, to_chunks
 from reportcreator_api.archive import crypto
-
 from reportcreator_api.utils import license
 
 
@@ -21,7 +22,7 @@ class Command(BaseCommand):
     def handle(self, file, key, **kwargs) -> str | None:
         if not license.is_professional(skip_db_checks=True):
             raise CommandError('Professional license required')
-        
+
         # Create backup iterator
         z = create_backup()
         if key:
@@ -30,4 +31,4 @@ class Command(BaseCommand):
         # Write backup to file
         for c in to_chunks(z):
             file.write(c)
-    
+

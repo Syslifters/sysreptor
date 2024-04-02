@@ -1,12 +1,12 @@
 import pyotp
-from fido2.server import AttestedCredentialData
-from fido2.webauthn import PublicKeyCredentialUserEntity, UserVerificationRequirement, AuthenticatorAttachment
-from fido2.utils import websafe_encode, websafe_decode
-from django.db import models
-from django.contrib.sessions.base_session import BaseSessionManager
 from django.contrib.auth.models import UserManager
-from django.utils.crypto import get_random_string
+from django.contrib.sessions.base_session import BaseSessionManager
+from django.db import models
 from django.utils import timezone
+from django.utils.crypto import get_random_string
+from fido2.server import AttestedCredentialData
+from fido2.utils import websafe_decode, websafe_encode
+from fido2.webauthn import AuthenticatorAttachment, PublicKeyCredentialUserEntity, UserVerificationRequirement
 
 
 class SessionQueryset(models.QuerySet):
@@ -25,9 +25,9 @@ class SessionManager(BaseSessionManager, models.Manager.from_queryset(SessionQue
         from reportcreator_api.users.models import Session
 
         s = Session(
-            session_key=session_key, 
-            session_data=self.encode(session_dict), 
-            expire_date=expire_date
+            session_key=session_key,
+            session_data=self.encode(session_dict),
+            expire_date=expire_date,
         )
         if session_dict:
             s.save()
@@ -48,7 +48,7 @@ class PentestUserQuerySet(models.QuerySet):
             # Only show users that are members in projects where the guest user is also a member
             return self \
                 .filter(
-                    models.Q(pk=user.pk) | 
+                    models.Q(pk=user.pk) |
                     models.Q(pk__in=PentestUser.objects.filter(projectmemberinfo__project__members__user=user)))
         else:
             return self
@@ -57,12 +57,12 @@ class PentestUserQuerySet(models.QuerySet):
         from reportcreator_api.users.models import MFAMethod
         return self \
             .annotate(is_mfa_enabled=models.Exists(MFAMethod.objects.filter(user=models.OuterRef('pk'))))
-    
+
     def annotate_has_public_keys(self):
         from reportcreator_api.pentests.models import UserPublicKey
         return self \
             .annotate(has_public_keys=models.Exists(UserPublicKey.objects.only_enabled().filter(user=models.OuterRef('pk'))))
-    
+
     def only_with_public_keys(self):
         return self \
             .annotate_has_public_keys() \
@@ -73,7 +73,7 @@ class PentestUserQuerySet(models.QuerySet):
             .only_active() \
             .exclude(is_system_user=True) \
             .count()
-    
+
     def get_total_user_count(self):
         return self.count()
 
@@ -87,7 +87,7 @@ class APITokenQuerySet(models.QuerySet):
         if user.is_admin or user.is_user_manager:
             return self
         return self.filter(user=user)
-    
+
     def only_active(self):
         return self \
             .filter(models.Q(expire_date=None) | models.Q(expire_date__lte=timezone.now().date()))
@@ -110,7 +110,7 @@ class MFAMethodQuerySet(models.QuerySet):
                 models.When(models.Q(method_type=MFAMethodType.FIDO2), then=1),
                 models.When(models.Q(method_type=MFAMethodType.TOTP), then=2),
                 models.When(models.Q(method_type=MFAMethodType.BACKUP), then=3),
-                default=4
+                default=4,
             )) \
             .order_by('-is_primary', 'method_type_order', 'created')
 
@@ -123,8 +123,8 @@ class MFAMethodManager(models.Manager.from_queryset(MFAMethodQuerySet)):
             'data': {
                 'backup_codes': [
                     get_random_string(length=12) for _ in range(10)
-                ]
-            }
+                ],
+            },
         }
         out = MFAMethod(**kwargs)
         if save:
@@ -140,7 +140,7 @@ class MFAMethodManager(models.Manager.from_queryset(MFAMethodQuerySet)):
                 's': totp.secret,
                 'digits': totp.digits,
                 'interval': totp.interval,
-            }
+            },
         }
         out = MFAMethod(**kwargs)
         if save:
@@ -164,7 +164,7 @@ class MFAMethodManager(models.Manager.from_queryset(MFAMethodQuerySet)):
             ),
             credentials=self.get_fido2_user_credentials(user),
             user_verification=UserVerificationRequirement.PREFERRED,
-            authenticator_attachment=AuthenticatorAttachment.CROSS_PLATFORM
+            authenticator_attachment=AuthenticatorAttachment.CROSS_PLATFORM,
         )
 
         kwargs |= {
@@ -180,11 +180,11 @@ class MFAMethodManager(models.Manager.from_queryset(MFAMethodQuerySet)):
         from reportcreator_api.users.models import MFAMethod
         server = MFAMethod.get_fido2_server()
         auth_data = server.register_complete(
-            state=instance.data.get('state'), 
-            response=response
+            state=instance.data.get('state'),
+            response=response,
         )
         instance.data = {
-            'device': websafe_encode(auth_data.credential_data)
+            'device': websafe_encode(auth_data.credential_data),
         }
         if save:
             instance.save()

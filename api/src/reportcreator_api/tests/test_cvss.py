@@ -3,7 +3,7 @@ import pytest
 from reportcreator_api.pentests import cvss
 
 
-@pytest.mark.parametrize("vector,score", [
+@pytest.mark.parametrize(("vector", "score"), [
     (None, 0.0),
     ('n/a', 0.0),
 
@@ -63,28 +63,28 @@ def test_cvss(vector, score):
     assert cvss.calculate_score(vector) == score
 
 
-@pytest.mark.parametrize("vector,metrics", [
+@pytest.mark.parametrize(("vector", "metrics"), [
     ('CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L', {
         "version": "3.0",
         "base": {
             "score": 4.6,
             "exploitability": 1.181753232,
-            "impact": 3.3733761599999994
+            "impact": 3.3733761599999994,
         },
         "temporal": {
             "score": 4.6,
             "exploitability": 1.181753232,
-            "impact": 3.3733761599999994
+            "impact": 3.3733761599999994,
         },
         "environmental": {
             "score": 4.6,
             "exploitability": 1.181753232,
-            "impact": 3.3733761599999994
+            "impact": 3.3733761599999994,
         },
         "final": {
             "score": 4.6,
             "exploitability": 1.181753232,
-            "impact": 3.3733761599999994
+            "impact": 3.3733761599999994,
         },
     }),
     ('CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L/E:P', {
@@ -92,22 +92,22 @@ def test_cvss(vector, score):
         "base": {
             "score": 4.6,
             "exploitability": 1.181753232,
-            "impact": 3.3733761599999994
+            "impact": 3.3733761599999994,
         },
         "temporal": {
             "score": 4.4,
             "exploitability": 1.181753232,
-            "impact": 3.3733761599999994
+            "impact": 3.3733761599999994,
         },
         "environmental": {
             "score": 4.4,
             "exploitability": 1.181753232,
-            "impact": 3.3733761599999994
+            "impact": 3.3733761599999994,
         },
         "final": {
             "score": 4.4,
             "exploitability": 1.181753232,
-            "impact": 3.3733761599999994
+            "impact": 3.3733761599999994,
         },
     }),
     ('CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L/E:P/MAC:L/MC:H', {
@@ -115,22 +115,22 @@ def test_cvss(vector, score):
         "base": {
             "score": 4.6,
             "exploitability": 1.181753232,
-            "impact": 3.3733761599999994
+            "impact": 3.3733761599999994,
         },
         "temporal": {
             "score": 4.4,
             "exploitability": 1.181753232,
-            "impact": 3.3733761599999994
+            "impact": 3.3733761599999994,
         },
         "environmental": {
             "score": 6.4,
             "exploitability": 2.0680681560000003,
-            "impact": 4.70139168
+            "impact": 4.70139168,
         },
         "final": {
             "score": 6.4,
             "exploitability": 2.0680681560000003,
-            "impact": 4.70139168
+            "impact": 4.70139168,
         },
     }),
     ('CVSS:3.1/AV:A/AC:H/PR:N/UI:R/S:C/C:H/I:L/A:L', {
@@ -138,22 +138,22 @@ def test_cvss(vector, score):
         "base": {
             "score": 7.0,
             "exploitability": 1.181753232,
-            "impact": 5.268807630773988
+            "impact": 5.268807630773988,
         },
         "temporal": {
             "score": 7.0,
             "exploitability": 1.181753232,
-            "impact": 5.268807630773988
+            "impact": 5.268807630773988,
         },
         "environmental": {
             "score": 7.0,
             "exploitability": 1.181753232,
-            "impact": 5.2614179224506845
+            "impact": 5.2614179224506845,
         },
         "final": {
             "score": 7.0,
             "exploitability": 1.181753232,
-            "impact": 5.268807630773988
+            "impact": 5.268807630773988,
         },
     }),
     ('CVSS:3.1/AV:A/AC:H/PR:N/UI:R/S:C/C:H/I:L/A:L/RL:O', {
@@ -161,22 +161,22 @@ def test_cvss(vector, score):
         "base": {
             "score": 7.0,
             "exploitability": 1.181753232,
-            "impact": 5.268807630773988
+            "impact": 5.268807630773988,
         },
         "temporal": {
             "score": 6.7,
             "exploitability": 1.181753232,
-            "impact": 5.268807630773988
+            "impact": 5.268807630773988,
         },
         "environmental": {
             "score": 6.7,
             "exploitability": 1.181753232,
-            "impact": 5.2614179224506845
+            "impact": 5.2614179224506845,
         },
         "final": {
             "score": 6.7,
             "exploitability": 1.181753232,
-            "impact": 5.268807630773988
+            "impact": 5.268807630773988,
         },
     }),
     ('CVSS:3.1/AV:A/AC:H/PR:N/UI:R/S:C/C:H/I:L/A:L/RL:O/CR:H/MPR:H', {
@@ -184,22 +184,22 @@ def test_cvss(vector, score):
         "base": {
             "score": 7.0,
             "exploitability": 1.181753232,
-            "impact": 5.268807630773988
+            "impact": 5.268807630773988,
         },
         "temporal": {
             "score": 6.7,
             "exploitability": 1.181753232,
-            "impact": 5.268807630773988
+            "impact": 5.268807630773988,
         },
         "environmental": {
             "score": 7.1,
             "exploitability": 0.69514896,
-            "impact": 6.123536263797863
+            "impact": 6.123536263797863,
         },
         "final": {
             "score": 7.1,
             "exploitability": 0.69514896,
-            "impact": 6.123536263797863
+            "impact": 6.123536263797863,
         },
     }),
     ('CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H', {
@@ -207,22 +207,22 @@ def test_cvss(vector, score):
         "base": {
             "score": 9.9,
             "exploitability": 3.1096342200000002,
-            "impact": 6.0477304915445185
+            "impact": 6.0477304915445185,
         },
         "temporal": {
             "score": 9.9,
             "exploitability": 3.1096342200000002,
-            "impact": 6.0477304915445185
+            "impact": 6.0477304915445185,
         },
         "environmental": {
             "score": 10.0,
             "exploitability": 3.1096342200000002,
-            "impact": 6.1280263288099786
+            "impact": 6.1280263288099786,
         },
         "final": {
             "score": 9.9,
             "exploitability": 3.1096342200000002,
-            "impact": 6.0477304915445185
+            "impact": 6.0477304915445185,
         },
     }),
     ('CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N', {
@@ -230,22 +230,22 @@ def test_cvss(vector, score):
         "base": {
             "score": 6.4,
             "exploitability": 5.49,
-            "impact": 7.843935000000001
+            "impact": 7.843935000000001,
         },
         "temporal": {
             "score": 6.4,
             "exploitability": 5.49,
-            "impact": 7.843935000000001
+            "impact": 7.843935000000001,
         },
         "environmental": {
             "score": 6.4,
             "exploitability": 5.49,
-            "impact": 7.843935000000001
+            "impact": 7.843935000000001,
         },
         "final": {
             "score": 6.4,
             "exploitability": 5.49,
-            "impact": 7.843935000000001
+            "impact": 7.843935000000001,
         },
     }),
     ('CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N/E:U', {
@@ -253,22 +253,22 @@ def test_cvss(vector, score):
         "base": {
             "score": 6.4,
             "exploitability": 5.49,
-            "impact": 7.843935000000001
+            "impact": 7.843935000000001,
         },
         "temporal": {
             "score": 5.4,
             "exploitability": 5.49,
-            "impact": 7.843935000000001
+            "impact": 7.843935000000001,
         },
         "environmental": {
             "score": 5.4,
             "exploitability": 5.49,
-            "impact": 7.843935000000001
+            "impact": 7.843935000000001,
         },
         "final": {
             "score": 5.4,
             "exploitability": 5.49,
-            "impact": 7.843935000000001
+            "impact": 7.843935000000001,
         },
     }),
     ('CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N/E:U/CDP:L/CR:H', {
@@ -276,22 +276,22 @@ def test_cvss(vector, score):
         "base": {
             "score": 6.4,
             "exploitability": 5.49,
-            "impact": 7.843935000000001
+            "impact": 7.843935000000001,
         },
         "temporal": {
             "score": 5.4,
             "exploitability": 5.49,
-            "impact": 7.843935000000001
+            "impact": 7.843935000000001,
         },
         "environmental": {
             "score": 6.1,
             "exploitability": 5.49,
-            "impact": 8.34033585
+            "impact": 8.34033585,
         },
         "final": {
             "score": 6.1,
             "exploitability": 5.49,
-            "impact": 8.34033585
+            "impact": 8.34033585,
         },
     }),
 ])

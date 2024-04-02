@@ -1,7 +1,6 @@
-from django.db.models import OneToOneRel, OneToOneField, ForeignObject
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRel, GenericRelation
+from django.db.models import OneToOneField
 from django.db.models.fields.related_descriptors import ReverseOneToOneDescriptor
-from django.db.models.fields.related import RelatedField
-from django.contrib.contenttypes.fields import GenericRelation, GenericRel, GenericForeignKey
 from simple_history.models import is_historic
 
 
@@ -41,7 +40,7 @@ class ReverseGenericOneToOneDescriptor(ReverseOneToOneDescriptor):
     def __get__(self, instance, cls=None):
         if instance is None:
             return self
-        
+
         # Disable for historic models
         if is_historic(instance):
             return None
@@ -67,7 +66,7 @@ class ReverseGenericOneToOneDescriptor(ReverseOneToOneDescriptor):
             self.related.set_cached_value(instance, rel_obj)
 
         return rel_obj
-    
+
     def __set__(self, instance, value):
         if value is None:
             # Update the cached related instance (if any) & clear the cache.
@@ -84,13 +83,7 @@ class ReverseGenericOneToOneDescriptor(ReverseOneToOneDescriptor):
         elif not isinstance(value, self.related.related_model):
             # An object must be an instance of the related class.
             raise ValueError(
-                'Cannot assign "%r": "%s.%s" must be a "%s" instance.'
-                % (
-                    value,
-                    instance._meta.object_name,
-                    self.related.get_accessor_name(),
-                    self.related.related_model._meta.object_name,
-                )
+                f'Cannot assign "{value!r}": "{instance._meta.object_name}.{self.related.get_accessor_name()}" must be a "{self.related.related_model._meta.object_name}" instance.',
             )
         else:
             # Set the related instance cache used by __get__ to avoid an SQL query

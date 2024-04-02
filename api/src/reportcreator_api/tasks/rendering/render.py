@@ -1,24 +1,25 @@
 import json
 import logging
 import re
-from pathlib import Path
-from unittest import mock
-from playwright.sync_api import sync_playwright
-from typing import Optional
 from base64 import b64decode
+from contextlib import contextmanager
 from html import escape as html_escape
 from io import BytesIO
-from pikepdf import Pdf, Encryption
-from contextlib import contextmanager
+from pathlib import Path
+from typing import Optional
+from unittest import mock
+
+from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
+from pikepdf import Encryption, Pdf
+from playwright.sync_api import sync_playwright
 from weasyprint import HTML, default_url_fetcher
+from weasyprint.logger import LOGGER as WEASYPRINT_LOGGER
 from weasyprint.text.fonts import FontConfiguration
 from weasyprint.urls import URLFetchingError
-from weasyprint.logger import LOGGER as WEASYPRINT_LOGGER
-from django.core.serializers.json import DjangoJSONEncoder
-from django.conf import settings
 
-from reportcreator_api.utils.logging import log_timing
 from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
+from reportcreator_api.utils.logging import log_timing
 
 # Base URL prefix for PDF rendering. Is never actually called
 FAKE_BASE_URL = 'https://pdf.sysreptor.com'
@@ -39,7 +40,7 @@ def get_location_info(content: str, objs: list[dict], type: MessageLocationType,
     def check_obj(obj, path, **kwargs):
         for k, v in obj.items():
             if res := check_field(val=v, path=path + [k], **kwargs):
-                return res 
+                return res
 
     for o in objs:
         if res := check_field(val=o, path=[], id=o.get('id'), name=get_name(o) if get_name else None):
@@ -67,7 +68,7 @@ def request_handler(url, resources: dict[str, str], messages: set[ErrorMessage],
             message='Resource not found',
             details=f'Could not find resource for URL "{url}". Check if the URL is correct and the resource exists on the server.',
             location=get_location_info(content=url, objs=data.get('findings', []), type=MessageLocationType.FINDING, get_name=lambda f: f.get('title')) or
-                     get_location_info(content=url, objs=data.get('sections', {}).values(), type=MessageLocationType.SECTION, get_name=lambda s: s.get('label')) or 
+                     get_location_info(content=url, objs=data.get('sections', {}).values(), type=MessageLocationType.SECTION, get_name=lambda s: s.get('label')) or
                      None,
         ))
         raise URLFetchingError('Resource not found')
@@ -90,7 +91,7 @@ def get_page():
             chromium_sandbox=False,
             handle_sigint=False,
             handle_sigterm=False,
-            handle_sighup=False
+            handle_sighup=False,
         ) as browser:
             with browser.new_context(
                 base_url=FAKE_BASE_URL,
@@ -129,9 +130,9 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
             console_output = []
             page.on('console', lambda l: console_output.append(l))
             page.on('pageerror', lambda exc: messages.add(ErrorMessage(
-                level=MessageLevel.ERROR, 
-                message='Uncaught error during template rendering', 
-                details=str(exc)
+                level=MessageLevel.ERROR,
+                message='Uncaught error during template rendering',
+                details=str(exc),
             )))
 
             # Catch all requests
@@ -156,13 +157,13 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
                 window.REPORT_TEMPLATE = {json.dumps(template, cls=DjangoJSONEncoder)};
                 window.REPORT_DATA = {json.dumps(data, cls=DjangoJSONEncoder)};
             }}""")
-            
+
             if styles:
                 page.add_style_tag(content=styles)
             page.add_script_tag(content=get_render_script())
 
             # Wait for template to finish rendering
-            page.wait_for_function("""window.RENDERING_COMPLETED === true""");
+            page.wait_for_function("""window.RENDERING_COMPLETED === true""")
 
             # Format messages
             for m in console_output:
@@ -185,13 +186,13 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
                 if msg['level'] not in ['error', 'warning', 'info']:
                     msg['level'] = 'info'
                 messages.add(ErrorMessage(**msg | {'level': MessageLevel(msg['level'])}))
-            
+
             if not any(map(lambda m: m.level == MessageLevel.ERROR, messages)):
                 # Remove script tag from HTML output
                 page.evaluate("""() => document.head.querySelectorAll('script').forEach(s => s.remove())""")
                 # Get rendered HTML
                 html = page.content()
-    except Exception as ex:
+    except Exception:
         messages.add(ErrorMessage(
             level=MessageLevel.ERROR,
             message='Error rendering HTML template',
@@ -217,7 +218,7 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
         if url.startswith('data:'):
             return default_url_fetcher(url=url, timeout=timeout, ssl_context=ssl_context)
         return request_handler(url=url, resources=resources, messages=messages, data=data)
-    
+
     def weasyprint_capture_logs(msg, *args, **kwargs):
         ignore_messages = [
             # Loading errors are already handled by the weasyprint URL fetcher
@@ -227,7 +228,7 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
             'Failed to load attachment:',
             # Suppress message for unsupported "overflow-x" rule use by highlight.js markdown code block syntax highlighting
             'Ignored `overflow-x:',
-        ]    
+        ]
         html_messages = [
             'Invalid date in <meta name="',
             'Anchor defined twice:',
@@ -260,7 +261,7 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
             message=message_text,
             details=details_text,
         ))
-    
+
     # Capture weasyprint logs and provide as messages
     res = None
     with mock.patch.object(WEASYPRINT_LOGGER, 'error', new=weasyprint_capture_logs, spec=True), \
@@ -271,16 +272,16 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
             font_config = FontConfiguration()
             html = HTML(string=html_content, base_url=FAKE_BASE_URL, url_fetcher=weasyprint_request_handler)
             res = html.write_pdf(
-                font_config=font_config, 
+                font_config=font_config,
                 presentational_hints=True,
                 optimize_images=False,
-                finisher=weasyprint_strip_pdf_metadata
+                finisher=weasyprint_strip_pdf_metadata,
             )
-        except Exception as ex:
+        except Exception:
             logging.exception('Error rendering PDF')
             messages.add(ErrorMessage(
                 level=MessageLevel.ERROR,
-                message='Error rendering PDF'
+                message='Error rendering PDF',
             ))
 
     return res, messages
@@ -295,9 +296,9 @@ def encrypt_pdf(pdf_data: bytes, password: Optional[str]) -> bytes:
         out = BytesIO()
         # Encrypt PDF with AES-256
         pdf.save(
-            filename_or_stream=out, 
+            filename_or_stream=out,
             encryption=Encryption(owner=password, user=password, aes=True, R=6) if password else False,
-            compress_streams=True
+            compress_streams=True,
         )
         return out.getvalue()
 
@@ -316,19 +317,19 @@ def render_pdf(template: str, styles: str, data: dict, resources: dict, language
         return html, msgs
     elif output == 'html':
         return html.encode(), msgs
-    
+
     pdf, pdf_msgs = render_to_pdf(
         html_content=html,
         resources=resources,
-        data=data
+        data=data,
     )
     msgs |= pdf_msgs
     if pdf is None:
         return pdf, msgs
 
     pdf_enc = encrypt_pdf(
-        pdf_data=pdf, 
-        password=password
+        pdf_data=pdf,
+        password=password,
     )
     return pdf_enc, msgs
 

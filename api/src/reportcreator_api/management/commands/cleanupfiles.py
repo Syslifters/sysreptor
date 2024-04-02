@@ -1,7 +1,15 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from reportcreator_api.pentests.models import ArchivedProject, UploadedAsset, UploadedImage, UploadedProjectFile, \
-    UploadedUserNotebookImage, UploadedUserNotebookFile, UploadedTemplateImage
+
+from reportcreator_api.pentests.models import (
+    ArchivedProject,
+    UploadedAsset,
+    UploadedImage,
+    UploadedProjectFile,
+    UploadedTemplateImage,
+    UploadedUserNotebookFile,
+    UploadedUserNotebookImage,
+)
 
 
 class Command(BaseCommand):
@@ -23,7 +31,7 @@ class Command(BaseCommand):
             UploadedTemplateImage,
             UploadedProjectFile,
             UploadedUserNotebookFile,
-            ArchivedProject
+            ArchivedProject,
         ]
         for model in models:
             model.objects \

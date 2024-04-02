@@ -1,27 +1,36 @@
-import pytest
 import base64
 import io
 import zipfile
 from datetime import datetime
+
+import pytest
 from django.conf import settings
-from django.forms import model_to_dict
-from django.http import StreamingHttpResponse
-from django.urls import reverse
-from django.test import override_settings
 from django.core import serializers
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.management import call_command, CommandError
+from django.core.management import CommandError, call_command
+from django.forms import model_to_dict
+from django.http import StreamingHttpResponse
+from django.test import override_settings
+from django.urls import reverse
 
+from reportcreator_api.api_utils.backup_utils import destroy_database
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.crypto.base import EncryptionKey
+from reportcreator_api.management.commands import restorebackup
 from reportcreator_api.notifications.models import NotificationSpec
 from reportcreator_api.pentests.models import UploadedImage
-from reportcreator_api.tests.mock import api_client, create_archived_project, create_png_file, create_project, create_project_type, create_template, create_user
-from reportcreator_api.api_utils.backup_utils import destroy_database
-from reportcreator_api.management.commands import restorebackup
+from reportcreator_api.tests.mock import (
+    api_client,
+    create_archived_project,
+    create_png_file,
+    create_project,
+    create_project_type,
+    create_template,
+    create_user,
+)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestBackup:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -38,13 +47,13 @@ class TestBackup:
             self.user = create_user(mfa=True)
             self.project = create_project()
             self.image_history_only = UploadedImage.objects.create(
-                linked_object=self.project, name='file-deleted.png', file=SimpleUploadedFile(name=f'file-deleted.png', content=create_png_file()))
+                linked_object=self.project, name='file-deleted.png', file=SimpleUploadedFile(name='file-deleted.png', content=create_png_file()))
             self.image_history_only.delete()
             self.project_type = create_project_type()
             self.template = create_template()
             self.archived_project = create_archived_project()
             self.notification = NotificationSpec.objects.create(title='test', text='test')
-            
+
             yield
 
     def assert_backup_obj(self, backup, obj):
@@ -57,7 +66,7 @@ class TestBackup:
             obj_formatted['history_date'] = datetime.fromisoformat(df[:23] + df[26:])
         assert model_to_dict(data.object) == obj_formatted
         return data
-    
+
     def assert_backup_file(self, backup, z, dir, obj, stored_encrypted=False):
         if obj.pk:
             self.assert_backup_obj(backup, obj)
@@ -106,7 +115,7 @@ class TestBackup:
         if not backup_key:
             backup_key = self.backup_key
         return api_client(user).post(reverse('utils-backup'), data={'key': backup_key, 'aes_key': base64.b64encode(aes_key).decode() if aes_key else None})
-    
+
     def test_backup(self):
         # Create backup
         res = self.backup_request()
@@ -114,7 +123,7 @@ class TestBackup:
         assert isinstance(res, StreamingHttpResponse)
         z = b''.join(res.streaming_content)
         self.assert_backup(z)
-        
+
     def test_backup_permissions(self):
         user_regular = create_user()
         assert self.backup_request(user=user_regular).status_code == 403
@@ -137,7 +146,7 @@ class TestBackup:
             self.assert_backup(z)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestBackupRestore:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -162,14 +171,14 @@ class TestBackupRestore:
 
     def backup_request(self, aes_key=None):
         return api_client(self.user_system).post(reverse('utils-backup'), data={'key': self.backup_key, 'aes_key': base64.b64encode(aes_key).decode() if aes_key else None})
-    
+
     def delete_file(self, file_obj):
         file_name = file_obj.file.name
         file_content = file_obj.file.read()
         file_obj.file.storage.delete(file_name)
         return {
-            'obj': file_obj, 
-            'name': file_name, 
+            'obj': file_obj,
+            'name': file_name,
             'content': file_content,
         }
 
@@ -192,7 +201,7 @@ class TestBackupRestore:
 
         # Restore backup
         call_command(restorebackup.Command(), file=io.BytesIO(backup), key=EncryptionKey(id=None, key=self.backup_encryption_key), keepfiles=True)
-        
+
         # Validate restored data
         self.project.refresh_from_db()
         self.project_type.refresh_from_db()

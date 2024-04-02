@@ -1,7 +1,9 @@
 import io
 from typing import Iterator
 from uuid import uuid4
+
 from django.core.files import File
+
 from reportcreator_api.archive.crypto import base as crypto
 from reportcreator_api.utils.utils import is_uuid
 
@@ -18,7 +20,7 @@ class IterableToFileAdapter(File):
                 self.buffer += next(self.iterator)
             except StopIteration:
                 break
-        
+
         out = self.buffer[:size]
         self.buffer = self.buffer[size:]
         return out
@@ -46,7 +48,7 @@ class EncryptedFileAdapter(File):
                 buf.truncate(0)
                 buf.seek(0)
         yield buf.getvalue()
-    
+
     def chunks(self, chunk_size=None) -> Iterator[bytes]:
         return self._encrypted_chunks(self._original_file, chunk_size)
 
@@ -54,12 +56,12 @@ class EncryptedFileAdapter(File):
 class EncryptedStorageMixin:
     def open(self, name, mode='rb', **kwargs):
         return File(file=crypto.open(fileobj=super().open(name=name, mode=mode, **kwargs), mode=mode), name=name)
-    
+
     def save(self, name, content, max_length=None):
         if not is_uuid(name.replace('/', '')):
             name = str(uuid4())
         return super().save(name=name, content=EncryptedFileAdapter(file=File(content)), max_length=max_length)
-    
+
     def size(self, name):
         size = super().size(name)
         with crypto.open(fileobj=super().open(name=name, mode='rb'), mode='r') as c:

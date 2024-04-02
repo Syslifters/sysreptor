@@ -1,28 +1,36 @@
 import contextlib
+import io
+import itertools
+import json
 import logging
 import os
-from unittest import mock
 import zipfile
-import zipstream
-import boto3
-import io
-import json
-import itertools
 from pathlib import Path
-from django.conf import settings
+from unittest import mock
+
+import boto3
+import zipstream
 from django.apps import apps
+from django.conf import settings
 from django.core import serializers
-from django.core.serializers.json import DjangoJSONEncoder
 from django.core.management import call_command
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, transaction
+from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.recorder import MigrationRecorder
-from django.db.migrations.executor import MigrationExecutor
 
 from reportcreator_api.archive import crypto
-from reportcreator_api.pentests.models import UploadedImage, UploadedAsset, UploadedProjectFile, ArchivedProject, \
-    UploadedUserNotebookFile, UploadedUserNotebookImage, UploadedTemplateImage
 from reportcreator_api.pentests import storages
+from reportcreator_api.pentests.models import (
+    ArchivedProject,
+    UploadedAsset,
+    UploadedImage,
+    UploadedProjectFile,
+    UploadedTemplateImage,
+    UploadedUserNotebookFile,
+    UploadedUserNotebookImage,
+)
 from reportcreator_api.pentests.models.project import ProjectMemberRole
 
 
@@ -57,7 +65,7 @@ def create_database_dump():
     """
     Return a database dump of django models. It uses the same format as "manage.py dumpdata --format=jsonl".
     """
-    exclude_models = ['contenttypes.ContentType', 'sessions.Session', 'users.Session', 'admin.LogEntry', 'auth.Permission', 'auth.Group', 
+    exclude_models = ['contenttypes.ContentType', 'sessions.Session', 'users.Session', 'admin.LogEntry', 'auth.Permission', 'auth.Group',
                       'pentests.LockInfo', 'pentests.CollabEvent', 'pentests.CollabClientInfo']
     try:
         app_list = [app_config for app_config in apps.get_app_configs() if app_config.models_module is not None]
@@ -67,10 +75,10 @@ def create_database_dump():
                 for e in model._default_manager.order_by(model._meta.pk.name).iterator():
                     yield json.dumps(
                         serializers.serialize(
-                            'python', 
-                            [e], 
+                            'python',
+                            [e],
                             use_natural_foreign_keys=False,
-                            use_natural_primary_keys=False
+                            use_natural_primary_keys=False,
                         )[0], cls=DjangoJSONEncoder, ensure_ascii=True).encode() + b'\n'
     except Exception as ex:
         logging.exception('Error creating database dump')
@@ -109,7 +117,7 @@ def create_backup():
     backup_files(z, 'uploadedassets', storages.get_uploaded_asset_storage(), [UploadedAsset])
     backup_files(z, 'uploadedfiles', storages.get_uploaded_file_storage(), [UploadedProjectFile, UploadedUserNotebookFile])
     backup_files(z, 'archivedfiles', storages.get_archive_file_storage(), [ArchivedProject])
-    
+
     return z
 
 
@@ -156,7 +164,7 @@ def to_chunks(z):
         while len(buffer) > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
             yield bytes(buffer[:settings.FILE_UPLOAD_MAX_MEMORY_SIZE])
             del buffer[:settings.FILE_UPLOAD_MAX_MEMORY_SIZE]
-    
+
     yield bytes(buffer)
 
 
@@ -189,9 +197,9 @@ def destroy_database():
     connection.check_constraints()
     with connection.cursor() as cursor:
         cursor.execute(
-            'DROP TABLE IF EXISTS ' + 
-            ', '.join([connection.ops.quote_name(t) for t in tables]) + 
-            ' CASCADE;'
+            'DROP TABLE IF EXISTS ' +
+            ', '.join([connection.ops.quote_name(t) for t in tables]) +
+            ' CASCADE;',
         )
 
 
@@ -217,7 +225,7 @@ def restore_database_dump(f):
                 objs_with_deferred_fields.append(obj)
         for obj in objs_with_deferred_fields:
             obj.save_deferred_fields()
-    
+
     # Check DB constraints
     connection.check_constraints()
 
@@ -239,9 +247,9 @@ def delete_all_storage_files():
     Delete all files from storages
     """
     storage_list = [
-        storages.get_uploaded_image_storage(), 
-        storages.get_uploaded_asset_storage(), 
-        storages.get_uploaded_file_storage(), 
+        storages.get_uploaded_image_storage(),
+        storages.get_uploaded_asset_storage(),
+        storages.get_uploaded_file_storage(),
         storages.get_archive_file_storage(),
     ]
     for storage in storage_list:
@@ -262,9 +270,9 @@ def walk_zip_dir(d):
 
 def restore_files(z):
     storage_dirs = {
-        'uploadedimages': storages.get_uploaded_image_storage(), 
-        'uploadedassets': storages.get_uploaded_asset_storage(), 
-        'uploadedfiles': storages.get_uploaded_file_storage(), 
+        'uploadedimages': storages.get_uploaded_image_storage(),
+        'uploadedassets': storages.get_uploaded_asset_storage(),
+        'uploadedfiles': storages.get_uploaded_file_storage(),
         'archivedfiles': storages.get_archive_file_storage(),
     }
     for d, storage in storage_dirs.items():
@@ -294,7 +302,7 @@ def restore_backup(z, keepfiles=True):
         migrations_info = json.loads(migrations_file.read_text())
         assert migrations_info.get('format') == 'migrations/v1'
         migrations = migrations_info.get('current', [])
-    
+
     # Delete all DB data
     logging.info('Begin destroying DB. Dropping all tables.')
     destroy_database()
@@ -318,14 +326,14 @@ def restore_backup(z, keepfiles=True):
     with z.open('backup.jsonl') as f:
         restore_database_dump(f)
     logging.info('Finished restoring DB data')
-    
+
     # Restore files
     logging.info('Begin restoring files')
     if not keepfiles:
         delete_all_storage_files()
     restore_files(z)
     logging.info('Finished restoring files')
-    
+
     # Apply remaining migrations
     logging.info('Begin running new migrations')
     with constraint_checks_immediate():

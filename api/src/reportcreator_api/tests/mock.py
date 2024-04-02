@@ -2,24 +2,48 @@ import random
 from datetime import datetime, timedelta
 from unittest import mock
 from uuid import uuid4
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from rest_framework.test import APIClient
-from django.core.files.uploadedfile import SimpleUploadedFile
 
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
+from reportcreator_api.pentests.customfields.predefined_fields import (
+    finding_field_order_default,
+    finding_fields_default,
+    report_fields_default,
+    report_sections_default,
+)
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
-from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, UserNotebookPage, PentestFinding, PentestProject, ProjectType, \
-    UploadedAsset, UploadedImage, ProjectMemberInfo, ProjectMemberRole, UploadedProjectFile, UploadedUserNotebookImage, \
-    UploadedUserNotebookFile, Language, UserPublicKey, UploadedTemplateImage, FindingTemplateTranslation, \
-    ArchivedProject, ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, ReviewStatus, ProjectTypeStatus
-from reportcreator_api.pentests.customfields.predefined_fields import finding_field_order_default, finding_fields_default, \
-    report_fields_default, report_sections_default
+from reportcreator_api.pentests.models import (
+    ArchivedProject,
+    ArchivedProjectKeyPart,
+    ArchivedProjectPublicKeyEncryptedKeyPart,
+    FindingTemplate,
+    FindingTemplateTranslation,
+    Language,
+    PentestFinding,
+    PentestProject,
+    ProjectMemberInfo,
+    ProjectMemberRole,
+    ProjectNotebookPage,
+    ProjectType,
+    ProjectTypeStatus,
+    ReviewStatus,
+    UploadedAsset,
+    UploadedImage,
+    UploadedProjectFile,
+    UploadedTemplateImage,
+    UploadedUserNotebookFile,
+    UploadedUserNotebookImage,
+    UserNotebookPage,
+    UserPublicKey,
+)
 from reportcreator_api.pentests.models.project import ReportSection
-from reportcreator_api.users.models import APIToken, PentestUser, MFAMethod
+from reportcreator_api.users.models import APIToken, MFAMethod, PentestUser
 from reportcreator_api.utils.history import bulk_create_with_history, history_context
-
 
 
 def create_png_file() -> bytes:
@@ -52,13 +76,13 @@ def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, 
         create_usernotebookpage(user=user, **note_kwargs)
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
         UploadedUserNotebookImage.objects.create(linked_object=user, **{
-            'name': f'file{idx}.png', 
-            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
+            'name': f'file{idx}.png',
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file()),
         } | image_kwargs)
     for idx, file_kwargs in enumerate(files_kwargs if files_kwargs is not None else [{}]):
         UploadedUserNotebookFile.objects.create(linked_object=user, **{
-            'name': f'file{idx}.pdf', 
-            'file': SimpleUploadedFile(name=f'file{idx}.pdf', content=f'%PDF-1.3{idx}'.encode())
+            'name': f'file{idx}.pdf',
+            'file': SimpleUploadedFile(name=f'file{idx}.pdf', content=f'%PDF-1.3{idx}'.encode()),
         } | file_kwargs)
 
     return user
@@ -72,7 +96,7 @@ def create_imported_member(roles=None, **kwargs):
             'email': f'{username}@example.com',
             'first_name': 'Imported',
             'last_name': 'User',
-        } | kwargs), 
+        } | kwargs),
         roles=roles if roles is not None else ProjectMemberRole.default_roles)).data
 
 
@@ -103,11 +127,11 @@ def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> F
 
     for translation_kwargs in (translations_kwargs or []):
         create_template_translation(template=template, **translation_kwargs)
-    
+
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
         UploadedTemplateImage.objects.create(linked_object=template, **{
-            'name': f'file{idx}.png', 
-            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file())
+            'name': f'file{idx}.png',
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file()),
         } | image_kwargs)
 
     return template
@@ -154,14 +178,14 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
         'report_template': '''<section><h1>{{ report.title }}</h1></section><section v-for="finding in findings"><h2>{{ finding.title }}</h2></section>''',
         'report_styles': '''@page { size: A4 portrait; } h1 { font-size: 3em; font-weight: bold; }''',
         'report_preview_data': {
-            'report': {'title': 'Demo Report', 'field_string': 'test', 'field_int': 5, 'unknown_field': 'test'}, 
-            'findings': [{'title': 'Demo finding', 'unknown_field': 'test'}]
-        }
+            'report': {'title': 'Demo Report', 'field_string': 'test', 'field_int': 5, 'unknown_field': 'test'},
+            'findings': [{'title': 'Demo finding', 'unknown_field': 'test'}],
+        },
     } | kwargs)
     for idx, asset_kwargs in enumerate(assets_kwargs if assets_kwargs is not None else [{}] * 2):
         UploadedAsset.objects.create(linked_object=project_type, **{
             'name': f'file{idx}.png',
-            'file': SimpleUploadedFile(name=f'file{idx}.png', content=asset_kwargs.pop('content', create_png_file()))
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=asset_kwargs.pop('content', create_png_file())),
         } | asset_kwargs)
 
     UploadedAsset.objects.create(linked_object=project_type, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=b'file1'))
@@ -194,8 +218,8 @@ def create_usernotebookpage(**kwargs) -> UserNotebookPage:
     return UserNotebookPage.objects.create(**{
         'title': f'Note #{get_random_string(8)}',
         'text': 'Note text',
-        'checked': random.choice([None, True, False]),
-        'icon_emoji': random.choice([None, '🦖']),
+        'checked': random.choice([None, True, False]),  # noqa: S311
+        'icon_emoji': random.choice([None, '🦖']),  # noqa: S311,
     } | kwargs)
 
 
@@ -203,23 +227,23 @@ def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
     return ProjectNotebookPage.objects.create(**{
         'title': f'Note #{get_random_string(8)}',
         'text': 'Note text',
-        'checked': random.choice([None, True, False]),
-        'icon_emoji': random.choice([None, '🦖']),
+        'checked': random.choice([None, True, False]),  # noqa: S311
+        'icon_emoji': random.choice([None, '🦖']),  # noqa: S311,
     } | kwargs)
 
 
-def create_project(project_type=None, members=[], report_data={}, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, **kwargs) -> PentestProject:
+def create_project(project_type=None, members=None, report_data=None, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, **kwargs) -> PentestProject:
     project_type = project_type or create_project_type()
     report_data = {
         'title': 'Report title',
         'unknown_field': 'test',
-    } | report_data
+    } | (report_data or {})
     project = PentestProject.objects.create(**{
         'project_type': project_type,
         'name': f'Pentest Project #{get_random_string(8)}',
         'language': Language.ENGLISH_US,
         'tags': ['web', 'customer:test'],
-        'unknown_custom_fields': {f: report_data.pop(f) for f in set(report_data.keys()) - set(project_type.report_fields.keys())}
+        'unknown_custom_fields': {f: report_data.pop(f) for f in set(report_data.keys()) - set(project_type.report_fields.keys())},
     } | kwargs)
 
     sections = project.sections.all()
@@ -230,9 +254,9 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
             sh.custom_fields = s.custom_fields
     ReportSection.objects.bulk_update(sections, ['custom_fields'])
     ReportSection.history.bulk_update(section_histories, ['custom_fields'])
-    
+
     member_infos = []
-    for m in members:
+    for m in (members or []):
         if isinstance(m, PentestUser):
             member_infos.append(ProjectMemberInfo(project=project, user=m, roles=ProjectMemberRole.default_roles))
         elif isinstance(m, ProjectMemberInfo):
@@ -244,7 +268,7 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
 
     for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 3:
         create_finding(project=project, **finding_kwargs)
-    
+
     if notes_kwargs is not None:
         # Delete default notes
         project.notes.all().delete()
@@ -253,13 +277,13 @@ def create_project(project_type=None, members=[], report_data={}, findings_kwarg
 
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}] * 2):
         UploadedImage.objects.create(linked_object=project, **{
-            'name': f'file{idx}.png', 
-            'file': SimpleUploadedFile(name=f'file{idx}.png', content=image_kwargs.pop('content', create_png_file()))
+            'name': f'file{idx}.png',
+            'file': SimpleUploadedFile(name=f'file{idx}.png', content=image_kwargs.pop('content', create_png_file())),
         } | image_kwargs)
     for idx, file_kwargs in enumerate(files_kwargs if files_kwargs is not None else [{}] * 2):
         UploadedProjectFile.objects.create(linked_object=project, **{
-            'name': f'file{idx}.pdf', 
-            'file': SimpleUploadedFile(name=f'file{idx}.pdf', content=file_kwargs.pop('content', f'%PDF-1.3{idx}'.encode()))
+            'name': f'file{idx}.pdf',
+            'file': SimpleUploadedFile(name=f'file{idx}.pdf', content=file_kwargs.pop('content', f'%PDF-1.3{idx}'.encode())),
         } | file_kwargs)
 
     return project
@@ -271,7 +295,7 @@ def create_public_key(**kwargs):
     }
     if 'public_key' not in kwargs:
         dummy_data |= {
-            'public_key': 
+            'public_key':
                 '-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n' +
                 'mDMEZBryexYJKwYBBAHaRw8BAQdAI2A6jJCXSGP10s2H1duX22saF2lX4CtGzX+H\n' +
                 'xm4nN8W0LEF1dG9nZW5lcmF0ZWQgS2V5IDx1bnNwZWNpZmllZEA3MmNmMGYzYTc4\n' +
@@ -287,19 +311,19 @@ def create_public_key(**kwargs):
                 '=jbm4\n' +
                 '-----END PGP PUBLIC KEY BLOCK-----\n',
             'public_key_info': {
-                'cap': 'scaESCA', 
-                'algo': '22', 
-                'type': 'pub', 
-                'curve': 'ed25519', 
+                'cap': 'scaESCA',
+                'algo': '22',
+                'type': 'pub',
+                'curve': 'ed25519',
                 'subkey_info': {
                     'C3B01D1054571D18': {
-                        'cap': 'e', 
-                        'algo': '18', 
-                        'type': 'sub', 
-                        'curve': 'nistp384', 
-                    }
-                }
-            }
+                        'cap': 'e',
+                        'algo': '18',
+                        'type': 'sub',
+                        'curve': 'nistp384',
+                    },
+                },
+            },
         }
 
     return UserPublicKey.objects.create(**dummy_data | kwargs)
@@ -316,7 +340,7 @@ def create_archived_project(project=None, **kwargs):
         key_parts.append(ArchivedProjectKeyPart(archived_project=archive, user=u, encrypted_key_part=b'dummy-data'))
         for pk in u.public_keys.all():
             encrypted_key_parts.append(ArchivedProjectPublicKeyEncryptedKeyPart(key_part=key_parts[-1], public_key=pk, encrypted_data='dummy-data'))
-            
+
     if not encrypted_key_parts:
         raise ValueError('No public keys set for users')
     ArchivedProjectKeyPart.objects.bulk_create(key_parts)
@@ -325,8 +349,9 @@ def create_archived_project(project=None, **kwargs):
 
 
 def mock_time(before=None, after=None):
-    return mock.patch('django.utils.timezone.now',
-                      lambda: datetime.now(tz=timezone.get_current_timezone()) - (before or timedelta()) + (after or timedelta()))
+    def now():
+        return datetime.now(tz=timezone.get_current_timezone()) - (before or timedelta()) + (after or timedelta())
+    return mock.patch('django.utils.timezone.now', now)
 
 
 def api_client(user=None):

@@ -1,16 +1,17 @@
-from functools import reduce
 import json
 import operator
+from functools import reduce
 from types import NoneType
-from asgiref.sync import sync_to_async
-from django.conf import settings
-from django.db.models import Q, F, OrderBy
-from django.http import StreamingHttpResponse, FileResponse, Http404
-from django.core.exceptions import PermissionDenied
-from django.utils.functional import classproperty
+
 from adrf.views import APIView as AsyncAPIView
 from adrf.viewsets import ViewSet as AdrfAsyncViewSet
-from rest_framework import exceptions, views, generics, pagination
+from asgiref.sync import sync_to_async
+from django.conf import settings
+from django.core.exceptions import PermissionDenied
+from django.db.models import OrderBy, Q
+from django.http import FileResponse, Http404, StreamingHttpResponse
+from django.utils.functional import classproperty
+from rest_framework import exceptions, generics, pagination, views
 from rest_framework.response import Response
 
 from reportcreator_api.archive.crypto import CryptoError
@@ -35,7 +36,7 @@ class GenericAPIViewAsync(GenericAPIViewAsyncMixin, generics.GenericAPIView, Asy
     @property
     def action(self):
         return self._action
-    
+
     @action.setter
     def action(self, value):
         self._action = value
@@ -47,7 +48,7 @@ class GenericAPIViewAsync(GenericAPIViewAsyncMixin, generics.GenericAPIView, Asy
 
     async def aget_object(self):
         return await sync_to_async(super().get_object)()
-    
+
 
 class ViewSetAsync(GenericAPIViewAsyncMixin, AdrfAsyncViewSet):
     @classproperty
@@ -86,8 +87,8 @@ class _SyncIterableToAsync:
         """
         try:
             return next(it)
-        except StopIteration:
-            raise StopAsyncIteration
+        except StopIteration as ex:
+            raise StopAsyncIteration() from ex
 
 
 def sync_iterable_to_async(sync_iterable):
@@ -126,7 +127,7 @@ class CursorMultiPagination(pagination.CursorPagination):
 
     def get_ordering(self, request, queryset, view):
         return queryset.query.order_by if queryset.ordered else self.ordering
-    
+
     def _get_position_from_instance(self, instance, ordering):
         out = []
         for field_name in ordering:
@@ -182,13 +183,13 @@ class CursorMultiPagination(pagination.CursorPagination):
                 # Test for: (cursor reversed) XOR (queryset reversed)
                 if self.cursor.reverse != is_reversed:
                     q_objects_compare[order] = Q(
-                        **{(order_attr + "__lt"): position}
+                        **{(order_attr + "__lt"): position},
                     )
                 else:
                     q_objects_compare[order] = Q(
-                        **{(order_attr + "__gt"): position}
+                        **{(order_attr + "__gt"): position},
                     )
-            
+
             filter_list = []
             # starting with the second field
             for i in range(len(self.ordering)):

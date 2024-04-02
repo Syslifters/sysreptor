@@ -1,25 +1,33 @@
-from base64 import b64decode
-import pytest
 import io
 import re
-import pikepdf
-from asgiref.sync import async_to_sync
+from base64 import b64decode
 from unittest import mock
-from pytest_django.asserts import assertHTMLEqual
-from django.test import override_settings
 
-from reportcreator_api.tests.mock import create_imported_member, create_png_file, create_project_type, create_project, create_user, create_finding
+import pikepdf
+import pytest
+from asgiref.sync import async_to_sync
+from django.test import override_settings
+from pytest_django.asserts import assertHTMLEqual
+
+from reportcreator_api.pentests import cvss
 from reportcreator_api.tasks.rendering.entry import render_pdf, render_project_markdown_fields_to_html
 from reportcreator_api.tasks.rendering.render import render_to_html
+from reportcreator_api.tests.mock import (
+    create_finding,
+    create_imported_member,
+    create_png_file,
+    create_project,
+    create_project_type,
+    create_user,
+)
 from reportcreator_api.utils.utils import copy_keys, merge
-from reportcreator_api.pentests import cvss
 
 
 def html_load_script(src):
     return f"""<component :is="{{ template: '<div />', mounted() {{ const script = document.createElement('script'); script.type = 'text/javascript'; script.src='{src}'; document.head.appendChild(script); }} }}" />"""
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestHtmlRendering:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -29,28 +37,28 @@ class TestHtmlRendering:
             {'name': 'test.js', 'content': b'console.log("Script loaded");'},
         ])
         self.project = create_project(
-            project_type=self.project_type, 
-            members=[self.user], 
+            project_type=self.project_type,
+            members=[self.user],
             imported_members=[create_imported_member(roles=['lead'])],
-            findings_kwargs=[], 
+            findings_kwargs=[],
             report_data={'field_user': str(self.user.id)})
         self.finding = create_finding(project=self.project)
 
         with override_settings(CELERY_TASK_ALWAYS_EAGER=True):
             yield
-    
-    def render_html(self, template, additional_data={}):
+
+    def render_html(self, template, additional_data=None):
         def render_only_html(data, language, **kwargs):
-            html, msgs = render_to_html(template=template, styles='@import url("/assets/global/base.css");', data=merge(data, additional_data), resources={}, language=language)
+            html, msgs = render_to_html(template=template, styles='@import url("/assets/global/base.css");', data=merge(data, additional_data or {}), resources={}, language=language)
             return html.encode() if html else None, msgs
-        
+
         with mock.patch('reportcreator_api.tasks.rendering.render.render_pdf', render_only_html):
             res = async_to_sync(render_pdf)(self.project)
             assert not res['messages']
             html = b64decode(res['pdf']).decode()
             return self.extract_html_part(html)
 
-    def extract_html_part(self, html, start=None, end=None):       
+    def extract_html_part(self, html, start=None, end=None):
         if not start and not end:
             body_start = html.index('<body')
             content_start = html.index('><div>', body_start + 1) + 6
@@ -58,7 +66,7 @@ class TestHtmlRendering:
         else:
             return html[html.index(start):html.index(end) + len(end)]
 
-    @pytest.mark.parametrize('template,html', [
+    @pytest.mark.parametrize(("template", "html"), [
         ('{{ report.field_string }}', lambda self: self.project.data['field_string']),
         ('{{ report.field_int }}', lambda self: str(self.project.data['field_int'])),
         ('{{ report.field_enum.value }}', lambda self: self.project.data['field_enum']),
@@ -92,7 +100,7 @@ class TestHtmlRendering:
         actual_html = self.render_html(template)
         assert actual_html == html
 
-    @pytest.mark.parametrize('template,expected', [
+    @pytest.mark.parametrize(("template", "expected"), [
         ('text </p>', {'level': 'error', 'message': 'Template compilation error: Invalid end tag.'}),
         ('{{ report.nonexistent_variable.prop }}', {'level': 'error', 'message': "TypeError: Cannot read properties of undefined (reading 'prop')"}),
         ('{{ nonexistent_variable }}', {'level': 'warning', 'message': 'Property "nonexistent_variable" was accessed during render but is not defined on instance.'}),
@@ -112,8 +120,8 @@ class TestHtmlRendering:
 
     def test_markdown_rendering(self):
         assertHTMLEqual(
-            self.render_html('<markdown :text="data.md" />', {'md': 'text _with_ **markdown** `code`'}), 
-            '<div class="markdown"><p>text <em>with</em> <strong>markdown</strong> <code class="code-inline">code</code></p></div>'
+            self.render_html('<markdown :text="data.md" />', {'md': 'text _with_ **markdown** `code`'}),
+            '<div class="markdown"><p>text <em>with</em> <strong>markdown</strong> <code class="code-inline">code</code></p></div>',
         )
         assertHTMLEqual(
             self.render_html('<markdown>\n' + '\n'.join((' ' * 6) + l for l in [
@@ -156,11 +164,11 @@ class TestHtmlRendering:
                     '<span class="code-block-line" data-line-number="5">&lt;!-- comment preserved --&gt;</span>',
                     '</code></pre>',
                     '<p><span>Variable: Report title</span></p>',
-                    '</div>'
-                ])
+                    '</div>',
+                ]),
             )
-    
-    @pytest.mark.parametrize(['props', 'items', 'html'], [
+
+    @pytest.mark.parametrize(("props", "items", "html"), [
         ('', [], '<span></span>'),
         ('', ['a'], '<span>a</span>'),
         ('', ['a', 'b'], '<span>a and b</span>'),
@@ -170,11 +178,11 @@ class TestHtmlRendering:
     def test_comma_and_join(self, props, items, html):
         actual_html = self.render_html(
             f"""<comma-and-join {props}><template v-for="v, idx in report.field_list" #[idx]>{{{{ v }}}}</template></comma-and-join>""",
-            {'report': {'field_list': items}}
+            {'report': {'field_list': items}},
         ).replace('<!---->', '')
         assert actual_html == html
 
-    @pytest.mark.parametrize(['template', 'expected'], [
+    @pytest.mark.parametrize(("template", "expected"), [
         ('<ref to="h1" />' , '<a href="#h1" class="ref ref-heading"><span class="ref-title">H1</span></a>'),
         ('<ref to="h1-numbered" />' , '<a href="#h1-numbered" class="ref ref-heading ref-heading-level1"><span class="ref-title">H1 numbered</span></a>'),
         ('<ref to="h1.1-numbered" />', '<a href="#h1.1-numbered" class="ref ref-heading ref-heading-level2"><span class="ref-title">H1.1 numbered</span></a>'),
@@ -194,7 +202,7 @@ class TestHtmlRendering:
         html = self.render_html(f"""
             <main>{template}</main>
             <h1 id="h1">H1</h1>
-            <h1 id="h1-numbered" class="numbered">H1 numbered</h1>    
+            <h1 id="h1-numbered" class="numbered">H1 numbered</h1>
             <h2 id="h1.1-numbered" class="numbered">H1.1 numbered</h2>
             <div class="appendix">
                 <h1 id="h1-numbered-appendix" class="numbered">H1 appendix</h1>
@@ -233,7 +241,7 @@ class TestHtmlRendering:
             <h1 class="in-toc numbered" id="a">Appendix</h1>
             <h2 class="in-toc numbered" id="a.1">A.1</h2>
         </div>
-        """
+        """,
         )
         assertHTMLEqual(self.extract_html_part(html, '<ul>', '</ul>'), """
         <ul>
@@ -273,7 +281,7 @@ class TestHtmlRendering:
             <li><a href="#fig3" class="ref ref-figure"><span class="ref-title">caption3</span></a></li>
         </ul>
         """)
-    
+
     def test_lot_rendering(self):
         html = self.render_html("""
         <list-of-tables v-slot="tables">
@@ -299,7 +307,7 @@ class TestHtmlRendering:
     def test_chart_rendering(self):
         html = self.render_html("""
         <chart :width="15" :height="10" :config="{
-            type: 'bar', 
+            type: 'bar',
             data: {
                 labels: ['Critical', 'High', 'Medium', 'Low', 'None'],
                 datasets: [{
@@ -323,13 +331,13 @@ class TestHtmlRendering:
         <mermaid-diagram>
             graph TD
                 A --> B;
-        </mermaid-diagram>                     
+        </mermaid-diagram>
         """)
         assert re.fullmatch(r'^\s*<div class="mermaid-diagram">\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="">\s*</div>\s*$', html)
 
-    @pytest.mark.parametrize('password,encrypted', [
+    @pytest.mark.parametrize(("password", "encrypted"), [
         ('password', True),
-        ('', False)
+        ('', False),
     ])
     def test_pdf_encryption(self, password, encrypted):
         pdf_data = b64decode(async_to_sync(render_pdf)(project=self.project, password=password)['pdf'])

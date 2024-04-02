@@ -1,24 +1,25 @@
 import functools
 import hmac
 import secrets
+from base64 import b64encode
+from io import BytesIO
+from urllib.parse import urlparse
+
 import pyotp
 import qrcode
 import qrcode.image.pil
-from urllib.parse import urlparse
-from io import BytesIO
-from base64 import b64encode
-from fido2.server import Fido2Server, _verify_origin_for_rp
-from fido2.webauthn import PublicKeyCredentialRpEntity
 from django.conf import settings
-from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.sessions.base_session import AbstractBaseSession
+from django.db import models
 from django.utils.translation import gettext_lazy as _
+from fido2.server import Fido2Server, _verify_origin_for_rp
+from fido2.webauthn import PublicKeyCredentialRpEntity
 
-from reportcreator_api.utils import license
 from reportcreator_api.archive.crypto.fields import EncryptedField
-from reportcreator_api.utils.models import BaseModel
 from reportcreator_api.users import querysets
+from reportcreator_api.utils import license
+from reportcreator_api.utils.models import BaseModel
 
 
 class PentestUser(BaseModel, AbstractUser):
@@ -49,7 +50,7 @@ class PentestUser(BaseModel, AbstractUser):
             ((self.first_name + ' ') if self.first_name else '') + \
             ((self.middle_name + ' ') if self.middle_name else '') + \
             (self.last_name or '') + \
-            ((', ' + self.title_after) if self.title_after else '') 
+            ((', ' + self.title_after) if self.title_after else '')
 
     @property
     def scope(self) -> list[str]:
@@ -67,7 +68,7 @@ class PentestUser(BaseModel, AbstractUser):
     @functools.cached_property
     def can_login_sso(self) -> bool:
         return bool(self.auth_identities.all())
-    
+
     @property
     def is_admin(self) -> bool:
         return self.is_active and self.is_superuser and \
@@ -96,20 +97,20 @@ class APIToken(BaseModel):
     token_plaintext = None
 
     objects = querysets.APITokenManager()
-    
+
     def save(self, *args, **kwargs):
         from reportcreator_api.users.auth import UnsaltedSHA3_256PasswordHasher
         if not self.token_hash:
             self.token_plaintext = secrets.token_bytes(32).hex()
             self.token_hash = UnsaltedSHA3_256PasswordHasher().encode(self.token_plaintext, '')
         return super().save(*args, **kwargs)
-    
+
     @property
     def token_formatted(self) -> str:
         if not self.token_plaintext:
             return None
         return 'sysreptor_' + b64encode(f'{self.id}:{self.token_plaintext}'.encode()).decode()
-    
+
     def validate_token(self, token_plaintext):
         from reportcreator_api.users.auth import UnsaltedSHA3_256PasswordHasher
         return UnsaltedSHA3_256PasswordHasher().verify(token_plaintext, self.token_hash)
@@ -147,7 +148,7 @@ class MFAMethodType(models.TextChoices):
 class MFAMethod(BaseModel):
     user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='mfa_methods')
     method_type = models.CharField(max_length=255, choices=MFAMethodType.choices)
-    is_primary = models.BooleanField(default=False) 
+    is_primary = models.BooleanField(default=False)
     name = models.CharField(max_length=255, default="", blank=True)
     data = EncryptedField(base_field=models.JSONField())
 

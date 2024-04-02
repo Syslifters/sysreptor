@@ -1,9 +1,10 @@
 import hashlib
 from base64 import b64decode
 from uuid import UUID
+
 from django.contrib.auth.hashers import BasePasswordHasher, mask_hash
-from django.utils.crypto import constant_time_compare
 from django.utils import timezone
+from django.utils.crypto import constant_time_compare
 from rest_framework import authentication, exceptions
 
 from reportcreator_api.utils import license
@@ -11,7 +12,7 @@ from reportcreator_api.utils import license
 
 class UnsaltedSHA3_256PasswordHasher(BasePasswordHasher):
     """
-    SHA3 256-bit password hash. 
+    SHA3 256-bit password hash.
     Used to store API tokens, where regular password hashers are too expensive.
     """
 
@@ -87,8 +88,8 @@ class APITokenAuthentication(authentication.BaseAuthentication):
         if token.user.is_superuser:
             token.user.admin_permissions_enabled = True
 
-        return token.user, token    
-        
+        return token.user, token
+
     def authenticate_header(self, request):
         return self.keyword
 
@@ -97,7 +98,7 @@ def forbidden_with_apitoken_auth(request):
     from reportcreator_api.users.models import APIToken
     if isinstance(request.auth, APIToken):
         raise exceptions.PermissionDenied(
-            detail='This operation is not permitted with API Token authentication. Log in to the web user interface.', 
-            code='permission_denied_with_apitoken_auth'
+            detail='This operation is not permitted with API Token authentication. Log in to the web user interface.',
+            code='permission_denied_with_apitoken_auth',
         )
     return True

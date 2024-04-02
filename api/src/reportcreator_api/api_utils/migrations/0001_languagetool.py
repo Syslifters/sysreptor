@@ -1,5 +1,5 @@
-from django.db import migrations, models
 from django.conf import settings
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -17,10 +17,10 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            sql="CREATE VIEW users AS " + 
-                "SELECT ('x' || translate(u.id::text, '-', ''))::bit(63)::bigint AS id, u.id::text AS email, u.id::text AS api_key FROM users_pentestuser u " +
+            sql="CREATE VIEW users AS "
+                "SELECT ('x' || translate(u.id::text, '-', ''))::bit(63)::bigint AS id, u.id::text AS email, u.id::text AS api_key FROM users_pentestuser u "
                 "UNION SELECT 1 AS id, 'languagetool' AS email, 'languagetool' AS api_key;",
-            reverse_sql="DROP VIEW users;"
+            reverse_sql="DROP VIEW users;",
         ),
         migrations.CreateModel(
             name='LanguageToolIgnoreWords',
@@ -33,6 +33,6 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'ignore_words',
-            }
-        )
+            },
+        ),
     ]

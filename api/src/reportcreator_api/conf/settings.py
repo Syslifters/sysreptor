@@ -13,9 +13,11 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import json
 import uuid
 from datetime import timedelta
-from decouple import config, Csv
 from pathlib import Path
 
+import fido2.features
+from decouple import Csv, config
+from kombu import Queue
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -162,8 +164,8 @@ DATABASES = {
         'DISABLE_SERVER_SIDE_CURSORS': True,
         'OPTIONS': {
             'prepare_threshold': None,
-        }
-    }
+        },
+    },
 }
 
 
@@ -232,7 +234,6 @@ MFA_FIDO2_RP_ID = config('MFA_FIDO2_RP_ID', default='')
 MFA_LOGIN_TIMEOUT = timedelta(minutes=5)
 SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT = timedelta(minutes=15)
 
-import fido2.features
 fido2.features.webauthn_json_mapping.enabled = True
 
 
@@ -270,7 +271,7 @@ if OIDC_GOOGLE_CLIENT_ID and OIDC_GOOGLE_CLIENT_SECRET:
                 'code_challenge_method': 'S256',
             },
             'reauth_supported': False,
-        }
+        },
     }
 
 if oidc_config := config('OIDC_AUTHLIB_OAUTH_CLIENTS', cast=json.loads, default="{}"):
@@ -320,10 +321,10 @@ STORAGES = {
     'uploaded_assets': {
         'BACKEND': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
         'OPTIONS': {
-            'location': config('UPLOADED_ASSET_LOCATION', default=MEDIA_ROOT / 'uploadedassets', cast=Path)
+            'location': config('UPLOADED_ASSET_LOCATION', default=MEDIA_ROOT / 'uploadedassets', cast=Path),
         },
     },
-    'uploaded_files': { 
+    'uploaded_files': {
         'BACKEND': UPLOADED_FILE_STORAGE,
         'OPTIONS': {
             'location': config('UPLOADED_FILE_LOCATION', default=MEDIA_ROOT / 'uploadedfiles', cast=Path),
@@ -370,45 +371,45 @@ CSP_FRAME_ANCESTORS = ["'self'"]
 CSP_FORM_ACTION = ["'self'"]
 # nuxt, vuetify and markdown preview use inline styles
 CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
-# unsafe-inline: 
+# unsafe-inline:
 
 CSP_SCRIPT_SRC = [
-    "'self'", 
+    "'self'",
     "'sha256-liYzJIUIz0xQN3/5nhzjNXcXcZEOFfPRL14CdEd6z1I='",  # hash of nuxt inline script injected in index.html
 ]
 
 PERMISSIONS_POLICY = {
     'publickey-credentials-get': '(self)',
     'clipboard-write': '(self)',
-    'accelerometer': '()', 
-    'ambient-light-sensor': '()', 
-    'autoplay': '()', 
-    'battery': '()', 
-    'camera': '()', 
-    'cross-origin-isolated': '()', 
-    'display-capture': '()', 
-    'document-domain': '()', 
-    'encrypted-media': '()', 
-    'execution-while-not-rendered': '()', 
-    'execution-while-out-of-viewport': '()', 
-    'fullscreen': '()', 
-    'geolocation': '()', 
-    'gyroscope': '()', 
-    'keyboard-map': '()', 
-    'magnetometer': '()', 
-    'microphone': '()', 
-    'midi': '()', 
-    'navigation-override': '()', 
-    'payment': '()', 
-    'picture-in-picture': '()', 
-    'screen-wake-lock': '()', 
-    'sync-xhr': '()', 
-    'usb': '()', 
-    'web-share': '()', 
+    'accelerometer': '()',
+    'ambient-light-sensor': '()',
+    'autoplay': '()',
+    'battery': '()',
+    'camera': '()',
+    'cross-origin-isolated': '()',
+    'display-capture': '()',
+    'document-domain': '()',
+    'encrypted-media': '()',
+    'execution-while-not-rendered': '()',
+    'execution-while-out-of-viewport': '()',
+    'fullscreen': '()',
+    'geolocation': '()',
+    'gyroscope': '()',
+    'keyboard-map': '()',
+    'magnetometer': '()',
+    'microphone': '()',
+    'midi': '()',
+    'navigation-override': '()',
+    'payment': '()',
+    'picture-in-picture': '()',
+    'screen-wake-lock': '()',
+    'sync-xhr': '()',
+    'usb': '()',
+    'web-share': '()',
     'xr-spatial-tracking': '()',
-    'clipboard-read': '()', 
-    'gamepad': '()', 
-    'speaker-selection': '()', 
+    'clipboard-read': '()',
+    'gamepad': '()',
+    'speaker-selection': '()',
 }
 
 
@@ -420,8 +421,10 @@ USE_X_FORWARDED_PORT = config('USE_X_FORWARDED_PORT', cast=bool, default=False)
 
 # Monkey-Patch django to disable CSRF everywhere
 # CSRF middlware class is used as middleware and internally by DjangoRestFramework
-from django.middleware import csrf
-from reportcreator_api.utils.middleware import CustomCsrfMiddleware
+from django.middleware import csrf  # noqa: E402
+
+from reportcreator_api.utils.middleware import CustomCsrfMiddleware  # noqa: E402
+
 csrf.CsrfViewMiddleware = CustomCsrfMiddleware
 
 
@@ -440,7 +443,6 @@ CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='rpc://')
 CELERY_RESULT_EXPIRES = timedelta(seconds=30)
 CELERY_TASK_DEFAULT_EXCHANGE = 'tasks'
 CELERY_TASK_QUEUES_NO_DECLARE = config('CELERY_TASK_QUEUES_NO_DECLARE', cast=bool, default=False)
-from kombu import Queue
 CELERY_TASK_QUEUES = [
     Queue('rendering', routing_key='tasks.rendering', no_declare=CELERY_TASK_QUEUES_NO_DECLARE),
 ]
@@ -463,7 +465,7 @@ if CELERY_SECURE_WORKER:
     CELERY_BROKER_POOL_LIMIT = 0
     CELERY_TASK_ACKS_LATE = False
     CELERY_WORKER_ENABLE_REMOTE_CONTROL = True
-    
+
 
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 CELERY_WORKER_SEND_TASK_EVENTS = False
@@ -549,7 +551,8 @@ COMPRESS_IMAGES = config('COMPRESS_IMAGES', cast=bool, default=True)
 REGEX_VALIDATION_TIMEOUT = timedelta(milliseconds=500)
 
 
-from reportcreator_api.archive.crypto import EncryptionKey
+from reportcreator_api.archive.crypto import EncryptionKey  # noqa: E402
+
 ENCRYPTION_KEYS = EncryptionKey.from_json_list(config('ENCRYPTION_KEYS', default=''))
 DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
 ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=bool, default=True)
@@ -634,7 +637,7 @@ if DEBUG:
     MIDDLEWARE += [
         'debug_toolbar.middleware.DebugToolbarMiddleware',
     ]
-    INTERNAL_IPS = type(str('c'), (), {'__contains__': lambda *a: True})()
+    INTERNAL_IPS = type('c', (), {'__contains__': lambda *a: True})()
 
 
 
@@ -645,7 +648,7 @@ LOGGING = {
     'formatters': {
         'default': {
             'class': 'logging.Formatter',
-            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
         },
     },
     'handlers': {
@@ -694,5 +697,5 @@ LOGGING = {
             'handlers': logging_handlers,
             'propagate': False,
         },
-    }
+    },
 }

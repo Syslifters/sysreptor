@@ -1,22 +1,23 @@
 from datetime import timedelta
-import pytest
+
 import pyotp
+import pytest
 from django.conf import settings
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from django.test import override_settings
+from django.utils.crypto import get_random_string
 
-from reportcreator_api.utils.utils import omit_keys
-from reportcreator_api.tests.mock import create_project, create_user, mock_time, api_client
+from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time
 from reportcreator_api.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType
+from reportcreator_api.utils.utils import omit_keys
 
 
-
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestLogin:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.password = 'Password1!'
+        self.password = get_random_string(32)
         self.user = create_user(username='user', password=self.password)
         self.user_mfa = create_user(username='user_mfa', password=self.password)
         self.mfa_backup = MFAMethod.objects.create_backup(user=self.user_mfa)
@@ -43,7 +44,7 @@ class TestLogin:
             assert res.status_code in [400, 403]
             self.assert_api_access(False)
         return res
-    
+
     def assert_mfa_login(self, mfa_method, data=None, user=None, success=True):
         self.assert_login(user=user or self.user_mfa, status='mfa-required')
         if mfa_method.method_type == MFAMethodType.BACKUP:
@@ -58,7 +59,7 @@ class TestLogin:
             })
         elif mfa_method.method_type == MFAMethodType.FIDO2:
             pass
-        
+
         if success:
             assert res.status_code == 200
             self.assert_api_access(True)
@@ -66,7 +67,7 @@ class TestLogin:
             assert res.status_code in [400, 403]
             self.assert_api_access(False)
         return res
-    
+
     def test_login(self):
         self.assert_login(user=self.user)
         self.assert_api_access(True)
@@ -76,10 +77,10 @@ class TestLogin:
         res = self.client.post(reverse('auth-logout'))
         assert res.status_code == 204
         self.assert_api_access(False)
-    
+
     def test_login_failure(self):
-        self.assert_login(user=self.user, password='invalid_password', success=False)
-    
+        self.assert_login(user=self.user, password='invalid_password', success=False)  # noqa: S106
+
     def test_login_mfa(self):
         self.assert_login(user=self.user_mfa, status='mfa-required')
         self.assert_api_access(False)
@@ -93,14 +94,14 @@ class TestLogin:
             })
         assert res.status_code == 400
         self.assert_api_access(False)
-    
+
     def test_login_backup_code(self):
         code = self.mfa_backup.data['backup_codes'][0]
-        res = self.assert_mfa_login(self.mfa_backup)
+        self.assert_mfa_login(self.mfa_backup)
         # Backup code invalidated
         self.mfa_backup.refresh_from_db()
         assert code not in self.mfa_backup.data['backup_codes']
-    
+
     def test_login_backup_code_failure(self):
         self.assert_mfa_login(self.mfa_backup, data={'code': 'invalid'}, success=False)
 
@@ -141,11 +142,11 @@ class TestLogin:
         self.assert_api_access(False)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestMfaMethodRegistration:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.password = 'Password1!'
+        self.password = get_random_string(32)
         self.user = create_user(username='user', password=self.password)
         self.client = api_client()
         self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
@@ -192,20 +193,20 @@ class TestMfaMethodRegistration:
             assert res3.status_code == 403
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestEnableAdminPermissions:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.project_not_member = create_project()
 
-        self.password = 'Password1!'
+        self.password = get_random_string(32)
         self.user = create_user(is_superuser=True, password=self.password)
         self.client = api_client()
         self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
 
     def has_admin_access(self):
         return self.client.get(reverse('pentestproject-detail', kwargs={'pk': self.project_not_member.pk})).status_code == 200
-    
+
     def test_enable_admin_permissions(self):
         assert not self.has_admin_access()
 
@@ -247,9 +248,9 @@ class TestEnableAdminPermissions:
         assert not self.client.session.get('admin_permissions_enabled')
 
         assert not self.has_admin_access()
-        
 
-@pytest.mark.django_db
+
+@pytest.mark.django_db()
 class TestAPITokenAuth:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -261,7 +262,7 @@ class TestAPITokenAuth:
         res = self.client.get(url, HTTP_AUTHORIZATION='Bearer ' + self.api_token.token_formatted)
         assert (res.status_code == 200) == expected
         return res
-    
+
     def test_api_token_auth(self):
         res = self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), True)
         assert res.data['id'] == str(self.user.id)
@@ -269,7 +270,7 @@ class TestAPITokenAuth:
     def test_full_admin_permissions_without_reauth(self):
         project_not_member = create_project()
         self.assert_api_access(reverse('pentestproject-detail', kwargs={'pk': project_not_member.pk}), True)
-    
+
     def test_user_inactive(self):
         self.user.is_active = False
         self.user.save()

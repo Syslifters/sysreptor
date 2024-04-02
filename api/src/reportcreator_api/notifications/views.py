@@ -1,4 +1,4 @@
-from rest_framework import viewsets, mixins, permissions
+from rest_framework import mixins, permissions, viewsets
 from rest_framework.settings import api_settings
 
 from reportcreator_api.notifications.serializers import UserNotificationSerializer

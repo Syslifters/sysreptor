@@ -1,28 +1,31 @@
 import logging
-from asgiref.sync import sync_to_async
 from base64 import b64decode
+
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils import timezone
-from rest_framework import viewsets, routers
-from rest_framework.serializers import Serializer
-from rest_framework.response import Response
+from drf_spectacular.utils import OpenApiTypes, extend_schema
+from rest_framework import routers, viewsets
 from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.serializers import Serializer
 from rest_framework.settings import api_settings
-from drf_spectacular.utils import extend_schema, OpenApiTypes
 
-from reportcreator_api.api_utils.serializers import LanguageToolAddWordSerializer, LanguageToolSerializer, BackupSerializer
+from reportcreator_api.api_utils import backup_utils
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.permissions import IsSystemUser, IsUserManagerOrSuperuserOrSystem
-from reportcreator_api.api_utils import backup_utils
+from reportcreator_api.api_utils.serializers import (
+    BackupSerializer,
+    LanguageToolAddWordSerializer,
+    LanguageToolSerializer,
+)
 from reportcreator_api.pentests.customfields.types import CweField
-from reportcreator_api.users.models import AuthIdentity, PentestUser
-from reportcreator_api.utils.api import StreamingHttpResponseAsync, ViewSetAsync
-from reportcreator_api.utils import license
-from reportcreator_api.pentests.models import Language
-from reportcreator_api.pentests.models import ProjectMemberRole
+from reportcreator_api.pentests.models import Language, ProjectMemberRole
 from reportcreator_api.tasks.models import PeriodicTask
+from reportcreator_api.users.models import AuthIdentity
+from reportcreator_api.utils import license
+from reportcreator_api.utils.api import StreamingHttpResponseAsync, ViewSetAsync
 from reportcreator_api.utils.utils import copy_keys, remove_duplicates
-
 
 log = logging.getLogger(__name__)
 
@@ -55,10 +58,10 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
     @action(detail=False, url_name='settings', url_path='settings', authentication_classes=[], permission_classes=[])
     def settings_endpoint(self, *args, **kwargs):
         languages = [{
-            'code': l.value, 
-            'name': l.label, 
-            'spellcheck': l.spellcheck, 
-            'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES
+            'code': l.value,
+            'name': l.label,
+            'spellcheck': l.spellcheck,
+            'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES,
         } for l in remove_duplicates(list(map(Language, settings.PREFERRED_LANGUAGES)) + list(Language))]
 
         auth_providers = \
@@ -113,33 +116,33 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
                 filename += '.crypt'
             else:
                 response['Content-Type'] = 'application/zip'
-            
+
             response['Content-Disposition'] = f"attachment; filename={filename}"
             log.info('Sending Backup')
             return response
-    
+
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_name='license', url_path='license', methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsUserManagerOrSuperuserOrSystem])
     async def license_info(self, request, *args, **kwargs):
         return Response(data=await license.aget_license_info())
-    
+
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
     async def spellcheck(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.spellcheck()
         return Response(data=data)
-    
+
     @action(detail=False, url_name='spellcheck-add-word', url_path='spellcheck/words', methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
     async def spellcheck_add_word(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.save()
         return Response(data=data)
-    
+
     @action(detail=False, methods=['get'])
     def cwes(self, request, *args, **kwargs):
         return Response(data=CweField.cwe_definitions())
-    
+
     @action(detail=False, methods=['get'], authentication_classes=[], permission_classes=[])
     async def healthcheck(self, request, *args, **kwargs):
         # Trigger periodic tasks

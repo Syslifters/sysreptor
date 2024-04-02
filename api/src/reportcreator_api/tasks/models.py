@@ -1,8 +1,8 @@
 from django.db import models
 from django.utils import timezone
 
-from reportcreator_api.utils.models import BaseModel
 from reportcreator_api.tasks import querysets
+from reportcreator_api.utils.models import BaseModel
 
 
 class TaskStatus(models.TextChoices):

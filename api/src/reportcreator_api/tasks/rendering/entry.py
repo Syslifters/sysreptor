@@ -1,31 +1,41 @@
+import asyncio
 import dataclasses
-import io
+import json
 import logging
 import uuid
-import json
-import asyncio
-import elasticapm
-from lxml import etree
+from base64 import b64decode, b64encode
 from datetime import timedelta
-from asgiref.sync import sync_to_async
 from types import NoneType
 from typing import Any, Optional, Union
-from base64 import b64encode, b64decode
+
+import elasticapm
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
+from lxml import etree
 
-from reportcreator_api.pentests.customfields.sort import sort_findings
-from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.pentests import cvss
-from reportcreator_api.pentests.customfields.types import CweField, FieldDataType, FieldDefinition, EnumChoice
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure, iterate_fields
+from reportcreator_api.pentests.customfields.sort import sort_findings
+from reportcreator_api.pentests.customfields.types import CweField, EnumChoice, FieldDataType, FieldDefinition
+from reportcreator_api.pentests.customfields.utils import (
+    HandleUndefinedFieldsOptions,
+    ensure_defined_structure,
+    iterate_fields,
+)
+from reportcreator_api.pentests.models import (
+    Language,
+    PentestProject,
+    ProjectMemberInfo,
+    ProjectNotebookPage,
+    ProjectType,
+    UserNotebookPage,
+)
+from reportcreator_api.tasks.rendering import tasks
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.error_messages import MessageLocationInfo, MessageLocationType
-from reportcreator_api.pentests.models import PentestProject, ProjectType, ProjectMemberInfo, ProjectNotebookPage, UserNotebookPage, Language
 from reportcreator_api.utils.utils import copy_keys, get_key_or_attr
-
 
 log = logging.getLogger(__name__)
 
@@ -119,7 +129,7 @@ def format_template_data(data: dict, project_type: ProjectType, imported_members
     data['pentesters'] = sorted(
         members,
         key=lambda u: (0 if 'lead' in u.get('roles', []) else 1 if 'pentester' in u.get(
-            'roles', []) else 2 if 'reviewer' in u.get('roles', []) else 10, u.get('username'))
+            'roles', []) else 2 if 'reviewer' in u.get('roles', []) else 10, u.get('username')),
     )
     return data
 
@@ -141,10 +151,10 @@ async def format_project_template_data(project: PentestProject, project_type: Op
         'pentesters': [u async for u in project.members.all()],
     }
     return await sync_to_async(format_template_data)(
-        data=data, 
-        project_type=project_type, 
-        imported_members=project.imported_members, 
-        override_finding_order=project.override_finding_order
+        data=data,
+        project_type=project_type,
+        imported_members=project.imported_members,
+        override_finding_order=project.override_finding_order,
     )
 
 
@@ -168,7 +178,7 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
         if project:
             resources |= {'/images/name/' + i.name: b64encode(i.file.read()).decode() for i in project.images.all() if project.is_file_referenced(i)}
         return resources
-    
+
     task = await sync_to_async(tasks.render_pdf_task.delay)(
         template=report_template,
         styles=report_styles,
@@ -176,7 +186,7 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
         language=project.language if project else project_type.language,
         password=password,
         output=output,
-        resources=await sync_to_async(format_resources)()
+        resources=await sync_to_async(format_resources)(),
     )
     res = await get_celery_result_async(task)
     # Set message location info to ProjectType (if not available)
@@ -220,7 +230,7 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
     )
     if not res.get('pdf'):
         return res
-    
+
     def format_output():
         from reportcreator_api.pentests.serializers.project import PentestProjectDetailSerializer
 
@@ -278,9 +288,9 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
                 if is_project_note:
                     absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f.name}))
                 else:
-                    absolute_file_url = request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f.name})) 
+                    absolute_file_url = request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f.name}))
                 note_text = note_text.replace(f'/files/name/{f.name}', absolute_file_url)
-    
+
     task = await sync_to_async(tasks.render_pdf_task.delay)(
         template="""<h1>{{ data.note.title }}</h1><markdown :text="data.note.text" />""",
         styles="""@import "/assets/global/base.css";""",
@@ -288,11 +298,11 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
             'note': {
                 'id': str(note.id),
                 'title': note.title,
-                'text': note_text
-            }
+                'text': note_text,
+            },
         },
         language=note.project.language if is_project_note else Language.ENGLISH_US,
-        resources=resources
+        resources=resources,
     )
     res = await get_celery_result_async(task)
     return res
@@ -313,7 +323,7 @@ async def render_pdf(project: PentestProject, project_type: Optional[ProjectType
         report_template=report_template,
         report_styles=report_styles,
         data=data,
-        password=password
+        password=password,
     )
 
 
@@ -325,5 +335,5 @@ async def render_pdf_preview(project_type: ProjectType, report_template: str, re
         project_type=project_type,
         report_template=report_template,
         report_styles=report_styles,
-        data=data
+        data=data,
     )

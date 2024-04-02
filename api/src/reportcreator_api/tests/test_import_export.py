@@ -1,15 +1,40 @@
+import io
 import json
 import tarfile
+
 import pytest
-import io
 from django.core.files.base import ContentFile
 from django.test import override_settings
 from rest_framework.exceptions import ValidationError
+
+from reportcreator_api.archive.import_export import (
+    export_project_types,
+    export_projects,
+    export_templates,
+    import_project_types,
+    import_projects,
+    import_templates,
+)
 from reportcreator_api.archive.import_export.import_export import build_tarinfo, export_notes, import_notes
-from reportcreator_api.pentests.models import PentestProject, ProjectType, SourceEnum, UploadedAsset, UploadedImage, Language
+from reportcreator_api.pentests.models import (
+    Language,
+    PentestProject,
+    ProjectType,
+    SourceEnum,
+    UploadedAsset,
+    UploadedImage,
+)
+from reportcreator_api.tests.mock import (
+    create_finding,
+    create_png_file,
+    create_project,
+    create_project_type,
+    create_projectnotebookpage,
+    create_template,
+    create_user,
+    create_usernotebookpage,
+)
 from reportcreator_api.tests.utils import assertKeysEqual
-from reportcreator_api.archive.import_export import export_project_types, export_projects, export_templates, import_project_types, import_projects, import_templates
-from reportcreator_api.tests.mock import create_png_file, create_projectnotebookpage, create_project, create_project_type, create_template, create_user, create_finding, create_usernotebookpage
 
 
 def archive_to_file(archive_iterator):
@@ -33,44 +58,44 @@ def members_equal(a, b):
     return format_members(a) == format_members(b)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestImportExport:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user = create_user(
-            images_kwargs=[{'name': 'image-note.png'}], 
+            images_kwargs=[{'name': 'image-note.png'}],
             files_kwargs=[{'name': 'file.txt'}],
-            notes_kwargs=[]
+            notes_kwargs=[],
         )
         u_note1 = create_usernotebookpage(user=self.user, title='Note 1', text='Note text 1 ![](/images/name/image-note.png)')
         create_usernotebookpage(user=self.user, parent=u_note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
 
         self.template = create_template(
-            language=Language.ENGLISH_US, 
+            language=Language.ENGLISH_US,
             translations_kwargs=[
                 {'language': Language.GERMAN_DE, 'data': {'title': 'Template translation', 'description': 'Template description translation ![](/images/name/image.png)'}},
             ],
-            images_kwargs=[{'name': 'image.png'}],    
+            images_kwargs=[{'name': 'image.png'}],
         )
         self.project_type = create_project_type()
         self.project = create_project(
-            project_type=self.project_type, 
+            project_type=self.project_type,
             members=[self.user],
-            report_data={'field_user': str(self.user.id)},  
+            report_data={'field_user': str(self.user.id)},
             findings_kwargs=[
                 {'assignee': self.user, 'template': self.template, 'data': {'description': '![](/images/name/image.png)'}},
                 {'assignee': None, 'template': None},
             ],
             notes_kwargs=[],
             images_kwargs=[
-                {'name': 'image.png', 'content': create_png_file() + b'image1'}, 
+                {'name': 'image.png', 'content': create_png_file() + b'image1'},
                 {'name': 'image-note.png', 'content': create_png_file() + b'image2'}],
             files_kwargs=[{'name': 'file.txt', 'content': b'file1'}],
         )
         self.p_note1 = create_projectnotebookpage(project=self.project, order=1, title='Note 1', text='Note text 1 ![](/images/name/image-note.png)')
         self.p_note1_1 = create_projectnotebookpage(project=self.project, parent=self.p_note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
         self.p_note2 = create_projectnotebookpage(project=self.project, order=2, title='Note 2', text='Note text 2')
-        
+
         with override_settings(COMPRESS_IMAGES=False):
             yield
 
@@ -80,7 +105,7 @@ class TestImportExport:
             if f_name in text:
                 text = text.replace(f_name, updated_map[f_content])
         return text
-    
+
     def test_export_import_template_v2(self):
         archive = archive_to_file(export_templates([self.template]))
         imported = import_templates(archive)
@@ -116,7 +141,7 @@ class TestImportExport:
         }
         archive = create_archive([template_data])
         imported = import_templates(archive)
-        
+
         assert len(imported) == 1
         t = imported [0]
 
@@ -139,7 +164,7 @@ class TestImportExport:
 
         assertKeysEqual(t, self.project_type, [
             'created', 'name', 'language', 'status', 'tags',
-            'report_fields', 'report_sections', 
+            'report_fields', 'report_sections',
             'finding_fields', 'finding_field_order', 'finding_ordering',
             'default_notes',
             'report_template', 'report_styles', 'report_preview_data'])
@@ -151,7 +176,7 @@ class TestImportExport:
         assertKeysEqual(p, project, ['name', 'language', 'tags', 'data', 'override_finding_ordering', 'data_all', 'unknown_custom_fields'])
         assert members_equal(p.members, project.members)
         assert p.source == SourceEnum.IMPORTED
-        
+
         assert p.sections.count() == project.sections.count()
         for i, s in zip(p.sections.order_by('section_id'), project.sections.order_by('section_id')):
             assertKeysEqual(i, s, ['section_id', 'created', 'assignee', 'status', 'data'])
@@ -161,14 +186,14 @@ class TestImportExport:
             assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
 
         assertKeysEqual(p.project_type, project.project_type, [
-            'created', 'name', 'language', 
-            'report_fields', 'report_sections', 
+            'created', 'name', 'language',
+            'report_fields', 'report_sections',
             'finding_fields', 'finding_field_order', 'finding_ordering',
             'default_notes',
             'report_template', 'report_styles', 'report_preview_data'])
         assert p.project_type.source == SourceEnum.IMPORTED_DEPENDENCY
         assert p.project_type.linked_project == p
-        
+
         assert {(a.name, a.file.read()) for a in p.project_type.assets.all()} == {(a.name, a.file.read()) for a in project.project_type.assets.all()}
 
     def test_export_import_project(self):
@@ -215,7 +240,7 @@ class TestImportExport:
         assert p.data_all == self.project.data_all
         for i, s in zip(p.findings.order_by('created'), self.project.findings.order_by('created')):
             assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
-        
+
         # Test nonexistent user is added to project.imported_members
         assert len(p.imported_members) == 1
         assert p.imported_members[0]['id'] == str(old_user_id)
@@ -233,7 +258,7 @@ class TestImportExport:
         assert p2.members.count() == 1
         assert len(p2.imported_members) == 0
         members_equal(p2.members, self.project.members)
-    
+
     def test_import_nonexistent_template_reference(self):
         archive = archive_to_file(export_projects([self.project]))
         self.template.delete()
@@ -275,7 +300,7 @@ class TestImportExport:
             assert i.note_id != n.note_id
             if n.parent:
                 assert i.parent.note_id != n.parent.note_id
-            
+
         assert len(self.project.images.all()) == len(images) * 2
         assert len(self.project.files.all()) == len(files) * 2
 
@@ -308,7 +333,7 @@ class TestImportExport:
             assert i.note_id != n.note_id
             if n.parent:
                 assert i.parent.note_id != n.parent.note_id
-            
+
         assert len(self.user.images.all()) == len(images) * 2
         assert len(self.user.files.all()) == len(files) * 2
 
@@ -345,7 +370,7 @@ class TestImportExport:
         assert imported[0].parent is None
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestLinkedProject:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -353,12 +378,12 @@ class TestLinkedProject:
         self.project = create_project(project_type=self.project_type, source=SourceEnum.IMPORTED)
         self.project_type.linked_project = self.project
         self.project_type.save()
-    
+
     def test_delete_linked_project(self):
         # On delete linked_project: project_type should also be deleted
         self.project.delete()
         assert not ProjectType.objects.filter(id=self.project_type.id).exists()
-    
+
     def test_delete_linked_project_multiple_project_types(self):
         # On delete linked_project
         unused_pt = create_project_type(linked_project=self.project, source=SourceEnum.IMPORTED_DEPENDENCY)
@@ -366,7 +391,7 @@ class TestLinkedProject:
         self.project.delete()
         assert not ProjectType.objects.filter(id=self.project_type.id).exists()
         assert not ProjectType.objects.filter(id=unused_pt.id).exists()
-    
+
     def test_delete_linked_project_project_type_used_by_another_project(self):
         second_p = create_project(project_type=self.project_type)
 
@@ -375,9 +400,9 @@ class TestLinkedProject:
         assert PentestProject.objects.filter(id=second_p.id).exists()
         self.project_type.refresh_from_db()
         assert self.project_type.linked_project is None
-    
 
-@pytest.mark.django_db
+
+@pytest.mark.django_db()
 class TestFileDelete:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -395,7 +420,7 @@ class TestFileDelete:
         except ValueError:
             exists = False
         assert exists == expected
-    
+
     def test_delete_file_referenced_only_once(self):
         self.image.delete()
         self.assertFileExists(self.image.file, False)
@@ -435,20 +460,20 @@ class TestFileDelete:
             self.assertFileExists(a.file, True)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestCopyModel:
-    def assert_project_type_copy_equal(self, pt, cp, exclude_fields=[]):
+    def assert_project_type_copy_equal(self, pt, cp, exclude_fields=None):
         assert pt != cp
         assert cp.copy_of == pt
         assert not cp.is_locked
         assertKeysEqual(pt, cp, {
             'name', 'language', 'status', 'tags', 'linked_project',
-            'report_template', 'report_styles', 'report_preview_data', 
-            'report_fields', 'report_sections', 
+            'report_template', 'report_styles', 'report_preview_data',
+            'report_fields', 'report_sections',
             'finding_fields', 'finding_field_order', 'finding_ordering',
             'default_notes',
-        } - set(exclude_fields))
-        
+        } - set(exclude_fields or []))
+
         assert set(pt.assets.values_list('id', flat=True)).intersection(cp.assets.values_list('id', flat=True)) == set()
         assert {(a.name, a.file.read()) for a in pt.assets.all()} == {(a.name, a.file.read()) for a in cp.assets.all()}
 
@@ -465,7 +490,7 @@ class TestCopyModel:
         assert cp.copy_of == p
         assert not cp.readonly
         assertKeysEqual(p, cp, [
-            'name', 'source', 'language', 'tags', 'override_finding_ordering', 'imported_members', 'data_all'
+            'name', 'source', 'language', 'tags', 'override_finding_ordering', 'imported_members', 'data_all',
         ])
         self.assert_project_type_copy_equal(p.project_type, cp.project_type, exclude_fields=['source', 'linked_project'])
         assert cp.project_type.source == SourceEnum.SNAPSHOT
@@ -482,12 +507,12 @@ class TestCopyModel:
             assert p_s != cp_s
             assertKeysEqual(p_s, cp_s, ['section_id', 'assignee', 'status', 'data'])
             assert not cp_s.is_locked
-        
+
         for p_f, cp_f in zip(p.findings.order_by('finding_id'), cp.findings.order_by('finding_id')):
             assert p_f != cp_f
             assertKeysEqual(p_f, cp_f, ['finding_id', 'assignee', 'status', 'order', 'data', 'template'])
             assert not cp_f.is_locked
-        
+
         for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id')):
             assert p_n != cp_n
             assertKeysEqual(p_n, cp_n, ['note_id', 'title', 'text', 'checked', 'icon_emoji', 'order'])
@@ -527,7 +552,7 @@ class TestCopyModel:
             assertKeysEqual(t_tr, cp_tr, ['language', 'status', 'is_main', 'risk_score', 'risk_level', 'title', 'data_all'])
 
 
-@pytest.mark.parametrize('original,cleaned', [
+@pytest.mark.parametrize(('original', 'cleaned'), [
     ('test.txt', 'test.txt'),
     # Attacks
     ('te\x00st.txt', 'te-st.txt'),
@@ -541,7 +566,7 @@ class TestCopyModel:
     ('te_st_.txt', 'te-st-.txt'),
     ('t![e]()st.txt', 't--e---st.txt'),
 ])
-@pytest.mark.django_db
+@pytest.mark.django_db()
 def test_uploadedfile_filename(original, cleaned):
     actual_name = UploadedAsset.objects.create(name=original, file=ContentFile(b'test'), linked_object=create_project_type()).name
     assert actual_name == cleaned

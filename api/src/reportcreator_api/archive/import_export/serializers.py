@@ -1,14 +1,34 @@
 from typing import Iterable
 from uuid import uuid4
-from django.core.files import File
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import serializers
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
-from reportcreator_api.pentests.models import FindingTemplate, ProjectNotebookPage, PentestFinding, PentestProject, ProjectType, ReportSection, \
-    SourceEnum, UploadedAsset, UploadedImage, UploadedFileBase, ProjectMemberInfo, UploadedProjectFile, Language, ReviewStatus, \
-    FindingTemplateTranslation, UploadedTemplateImage, ProjectTypeStatus, UserNotebookPage, UploadedUserNotebookImage, UploadedUserNotebookFile
-from reportcreator_api.pentests.serializers import ProjectMemberInfoSerializer
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.files import File
+from rest_framework import serializers
+
+from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from reportcreator_api.pentests.models import (
+    FindingTemplate,
+    FindingTemplateTranslation,
+    Language,
+    PentestFinding,
+    PentestProject,
+    ProjectMemberInfo,
+    ProjectNotebookPage,
+    ProjectType,
+    ProjectTypeStatus,
+    ReportSection,
+    ReviewStatus,
+    SourceEnum,
+    UploadedAsset,
+    UploadedFileBase,
+    UploadedImage,
+    UploadedProjectFile,
+    UploadedTemplateImage,
+    UploadedUserNotebookFile,
+    UploadedUserNotebookImage,
+    UserNotebookPage,
+)
+from reportcreator_api.pentests.serializers.project import ProjectMemberInfoSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
 from reportcreator_api.utils.history import bulk_create_with_history, merge_with_previous_history
@@ -64,7 +84,7 @@ class RelatedUserIdExportImportSerializer(RelatedUserSerializer):
         except serializers.ValidationError as ex:
             if isinstance(ex.__cause__, ObjectDoesNotExist):
                 # If user does not exit: ignore
-                raise serializers.SkipField()
+                raise serializers.SkipField() from ex
             else:
                 raise
 
@@ -74,7 +94,7 @@ class UserDataSerializer(serializers.ModelSerializer):
         model = PentestUser
         fields = [
             'id', 'email', 'phone', 'mobile',
-            'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after', 
+            'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
         ]
         extra_kwargs = {'id': {'read_only': False}}
 
@@ -82,7 +102,7 @@ class UserDataSerializer(serializers.ModelSerializer):
 class RelatedUserDataExportImportSerializer(ProjectMemberInfoSerializer):
     def __init__(self, **kwargs):
         super().__init__(user_serializer=UserDataSerializer, **kwargs)
-    
+
     def to_internal_value(self, data):
         try:
             return ProjectMemberInfo(**super().to_internal_value(data))
@@ -91,14 +111,14 @@ class RelatedUserDataExportImportSerializer(ProjectMemberInfoSerializer):
                 return data
             else:
                 raise
-        
+
 
 class ProjectMemberListExportImportSerializer(serializers.ListSerializer):
     child = RelatedUserDataExportImportSerializer()
 
     def to_representation(self, project):
         return super().to_representation(project.members.all()) + project.imported_members
-    
+
     def to_internal_value(self, data):
         return {self.field_name: super().to_internal_value(data)}
 
@@ -106,14 +126,14 @@ class ProjectMemberListExportImportSerializer(serializers.ListSerializer):
 class OptionalPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     def __init__(self, **kwargs):
         super().__init__(**{'required': False, 'allow_null': True, 'default': None} | kwargs)
-    
+
     def to_internal_value(self, data):
         if data is None:
             raise serializers.SkipField()
         try:
             return self.get_queryset().get(pk=data)
-        except ObjectDoesNotExist:
-            raise serializers.SkipField()
+        except ObjectDoesNotExist as ex:
+            raise serializers.SkipField() from ex
 
 
 class FileListExportImportSerializer(serializers.ListSerializer):
@@ -135,8 +155,8 @@ class FileListExportImportSerializer(serializers.ListSerializer):
             child_model_class(**attrs | {
                 'name_hash': UploadedFileBase.hash_name(attrs['name']),
                 'file': File(
-                    file=self.extract_file(attrs.pop('name_internal', None) or attrs['name']), 
-                    name=attrs['name']), 
+                    file=self.extract_file(attrs.pop('name_internal', None) or attrs['name']),
+                    name=attrs['name']),
                 'linked_object': self.child.get_linked_object(),
         }) for attrs in validated_data]
 
@@ -149,8 +169,8 @@ class FileExportImportSerializer(ExportImportSerializer):
     class Meta:
         fields = ['id', 'created', 'updated', 'name']
         extra_kwargs = {
-            'id': {'read_only': True}, 
-            'created': {'read_only': False, 'required': False}
+            'id': {'read_only': True},
+            'created': {'read_only': False, 'required': False},
         }
         list_serializer_class = FileListExportImportSerializer
 
@@ -186,7 +206,7 @@ class FindingTemplateImportSerializerV1(ExportImportSerializer):
         model = FindingTemplate
         fields = ['format', 'id', 'created', 'updated', 'tags', 'language', 'status', 'data']
         extra_kwargs = {'id': {'read_only': True}, 'created': {'read_only': False, 'required': False}}
-    
+
     def create(self, validated_data):
         main_translation_data = {k[len('main_translation__'):]: validated_data.pop(k) for k in validated_data.copy().keys() if k.startswith('main_translation__')}
         template = FindingTemplate.objects.create(**{
@@ -224,7 +244,7 @@ class UploadedTemplateImageExportImportSerializer(FileExportImportSerializer):
 
     def get_linked_object(self):
         return self.context['template']
-    
+
     def get_path_in_archive(self, name):
         # Get ID of old project_type from archive
         return str(self.context.get('template_id') or self.get_linked_object().id) + '-images/' + name
@@ -246,23 +266,23 @@ class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
         if len(set(map(lambda t: t.get('language'), value))) != len(value):
             raise serializers.ValidationError('Duplicate template language detected')
         return value
-    
+
     def to_representation(self, instance):
         self.context.update({'template': instance})
         return super().to_representation(instance)
-    
+
     def export_files(self) -> Iterable[tuple[str, File]]:
         self.context.update({'template': self.instance})
         imgf = self.fields['images']
         imgf.instance = list(imgf.get_attribute(self.instance).all())
         yield from imgf.export_files()
-    
+
     def create(self, validated_data):
         old_id = validated_data.pop('id')
         images_data = validated_data.pop('images', [])
         translations_data = validated_data.pop('translations')
         instance = FindingTemplate(**{
-            'source': SourceEnum.IMPORTED
+            'source': SourceEnum.IMPORTED,
         } | validated_data)
         instance.save_without_historical_record()
         self.context['template'] = instance
@@ -286,10 +306,10 @@ class UploadedImageExportImportSerializer(FileExportImportSerializer):
 
     def get_linked_object(self):
         return self.context['project']
-    
+
     def is_file_referenced(self, f):
         return self.get_linked_object().is_file_referenced(f, findings=True, sections=True, notes=self.context.get('export_all', True))
-    
+
     def get_path_in_archive(self, name):
         # Get ID of old project_type from archive
         return str(self.context.get('project_id') or self.get_linked_object().id) + '-images/' + name
@@ -301,7 +321,7 @@ class UploadedProjectFileExportImportSerializer(FileExportImportSerializer):
 
     def get_linked_object(self):
         return self.context['project']
-    
+
     def get_path_in_archive(self, name):
         # Get ID of old project_type from archive
         return str(self.context.get('project_id') or self.get_linked_object().id) + '-files/' + name
@@ -310,10 +330,10 @@ class UploadedProjectFileExportImportSerializer(FileExportImportSerializer):
 class UploadedAssetExportImportSerializer(FileExportImportSerializer):
     class Meta(FileExportImportSerializer.Meta):
         model = UploadedAsset
-    
+
     def get_linked_object(self):
         return self.context['project_type']
-    
+
     def get_path_in_archive(self, name):
         # Get ID of old project_type from archive
         return str(self.context.get('project_type_id') or self.get_linked_object().id) + '-assets/' + name
@@ -326,16 +346,16 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
     class Meta:
         model = ProjectType
         fields = [
-            'format', 'id', 'created', 'updated', 
+            'format', 'id', 'created', 'updated',
             'name', 'language', 'status', 'tags',
-            'report_fields', 'report_sections', 
+            'report_fields', 'report_sections',
             'finding_fields', 'finding_field_order', 'finding_ordering',
             'default_notes',
-            'report_template', 'report_styles', 'report_preview_data', 
-            'assets'
+            'report_template', 'report_styles', 'report_preview_data',
+            'assets',
         ]
         extra_kwargs = {
-            'id': {'read_only': False}, 
+            'id': {'read_only': False},
             'created': {'read_only': False, 'required': False},
             'status': {'required': False, 'default': ProjectTypeStatus.FINISHED},
         }
@@ -385,7 +405,7 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
                 value=data,
                 definition=project.project_type.finding_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
-                include_unknown=True)
+                include_unknown=True),
         } | validated_data)
 
 
@@ -432,7 +452,7 @@ class ProjectNotebookPageExportImportSerializer(NotebookPageExportImportSerializ
     class Meta(NotebookPageExportImportSerializer.Meta):
         fields = NotebookPageExportImportSerializer.Meta.fields + ['assignee']
         extra_kwargs = NotebookPageExportImportSerializer.Meta.extra_kwargs | {
-            'assignee': {'required': False}
+            'assignee': {'required': False},
         }
 
 
@@ -503,7 +523,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
             'report_data', 'sections', 'findings', 'notes', 'images', 'files',
         ]
         extra_kwargs = {
-            'id': {'read_only': False}, 
+            'id': {'read_only': False},
             'created': {'read_only': False, 'required': False},
             'tags': {'required': False},
         }
@@ -514,7 +534,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
             del fields['notes']
             del fields['files']
         return fields
-    
+
     def to_representation(self, instance):
         self.context.update({'project': instance})
         return super().to_representation(instance)
@@ -532,7 +552,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         if ff := self.fields.get('files'):
             ff.instance = list(ff.get_attribute(self.instance).all())
             yield from ff.export_files()
-    
+
     def create(self, validated_data):
         old_id = validated_data.pop('id')
         members = validated_data.pop('members', validated_data.pop('pentesters', []))
@@ -555,7 +575,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
                 value=report_data,
                 definition=project_type.report_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
-                include_unknown=True
+                include_unknown=True,
             ),
         })
         project_type.linked_project = project
@@ -586,7 +606,7 @@ class NotesImageExportImportSerializer(FileExportImportSerializer):
 
     def get_model_class(self):
         return UploadedImage if isinstance(self.get_linked_object(), PentestProject) else UploadedUserNotebookImage
-    
+
     def get_linked_object(self):
         if project := self.context.get('project'):
             return project
@@ -594,10 +614,10 @@ class NotesImageExportImportSerializer(FileExportImportSerializer):
             return user
         else:
             raise serializers.ValidationError('Missing project or user reference')
-    
+
     def get_path_in_archive(self, name):
         return str(self.context.get('import_id') or self.get_linked_object().id) + '-images/' + name
-    
+
     def is_file_referenced(self, f):
         if isinstance(self.get_linked_object(), PentestProject):
             return self.get_linked_object().is_file_referenced(f, findings=False, sections=False, notes=True)
@@ -619,7 +639,7 @@ class NotesFileExportImportSerializer(FileExportImportSerializer):
             return user
         else:
             raise serializers.ValidationError('Missing project or user reference')
-    
+
     def get_path_in_archive(self, name):
         return str(self.context.get('import_id') or self.get_linked_object().id) + '-files/' + name
 

@@ -1,30 +1,50 @@
 import functools
 import json
-from uuid import UUID
 from datetime import datetime, timedelta
+from uuid import UUID
+
 from authlib.integrations.django_client import OAuth, OAuthError
-from rest_framework.response import Response
-from rest_framework import views, viewsets, status, filters, mixins, serializers, exceptions
-from rest_framework.decorators import action
-from rest_framework.settings import api_settings
-from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import ProtectedError
 from django.conf import settings
-from django.forms import model_to_dict
+from django.contrib.auth import SESSION_KEY, login, logout
 from django.core.serializers.json import DjangoJSONEncoder
-from django.contrib.auth import login, logout, SESSION_KEY
+from django.db.models import ProtectedError
+from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
+from rest_framework import exceptions, filters, mixins, serializers, status, views, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.settings import api_settings
 
+from reportcreator_api.users.models import AuthIdentity, MFAMethod, PentestUser
+from reportcreator_api.users.permissions import (
+    APITokenViewSetPermissions,
+    AuthIdentityViewSetPermissions,
+    LocalUserAuthPermissions,
+    MFALoginInProgressAuthentication,
+    MFAMethodViewSetPermissons,
+    RemoteUserAuthPermissions,
+    UserViewSetPermissions,
+)
+from reportcreator_api.users.serializers import (
+    APITokenCreateSerializer,
+    APITokenSerializer,
+    AuthIdentitySerializer,
+    CreateUserSerializer,
+    LoginMFACodeSerializer,
+    LoginSerializer,
+    MFAMethodRegisterBackupCodesSerializer,
+    MFAMethodRegisterBeginSerializer,
+    MFAMethodRegisterFIDO2Serializer,
+    MFAMethodRegisterTOTPSerializer,
+    MFAMethodSerializer,
+    PentestUserDetailSerializer,
+    PentestUserSerializer,
+    ResetPasswordSerializer,
+)
 from reportcreator_api.utils import license
-from reportcreator_api.users.models import PentestUser, MFAMethod, AuthIdentity
-from reportcreator_api.users.permissions import APITokenViewSetPermissions, LocalUserAuthPermissions, RemoteUserAuthPermissions, UserViewSetPermissions, MFAMethodViewSetPermissons, MFALoginInProgressAuthentication, \
-    AuthIdentityViewSetPermissions
-from reportcreator_api.users.serializers import APITokenCreateSerializer, APITokenSerializer, CreateUserSerializer, MFAMethodRegisterBeginSerializer, PentestUserDetailSerializer, PentestUserSerializer, \
-    ResetPasswordSerializer, MFAMethodSerializer, LoginSerializer, LoginMFACodeSerializer, MFAMethodRegisterBackupCodesSerializer, \
-    MFAMethodRegisterTOTPSerializer, MFAMethodRegisterFIDO2Serializer, AuthIdentitySerializer
-
 
 oauth = OAuth()
 for name, config in settings.AUTHLIB_OAUTH_CLIENTS.items():
@@ -42,21 +62,24 @@ class APIBadRequestError(exceptions.APIException):
 class UserSubresourceViewSetMixin(views.APIView):
     pagination_class = None
 
-    @functools.cache
-    def get_user(self):
+    @functools.cached_property
+    def _get_user(self):
         if not self.request:
             return None
 
         user_pk = self.kwargs.get('pentestuser_pk')
         if user_pk == 'self':
             return self.request.user
-        
+
         qs = PentestUser.objects.all()
         return get_object_or_404(qs, pk=user_pk)
-    
+
+    def get_user(self):
+        return self._get_user
+
     def get_serializer_context(self):
         return super().get_serializer_context() | {
-            'user': self.get_user()
+            'user': self.get_user(),
         }
 
 
@@ -105,33 +128,34 @@ class PentestUserViewSet(viewsets.ModelViewSet):
     def change_password(self, request, *args, **kwargs):
         self.kwargs['pk'] = 'self'
         return self.update(request, *args, **kwargs)
-    
+
     @action(detail=False, url_path='self/admin/enable', methods=['post'])
     def enable_admin_permissions(self, request, *args, **kwargs):
         request.session['admin_permissions_enabled'] = True
         request.session.cycle_key()
         request.user.admin_permissions_enabled = True
         self.kwargs['pk'] = 'self'
-        return self.retrieve(request=request, *args, **kwargs)
-    
+        return self.retrieve(*args, request=request, **kwargs)
+
     @action(detail=False, url_path='self/admin/disable', methods=['post'])
     def disable_admin_permissions(self, request, *args, **kwargs):
         request.session.pop('admin_permissions_enabled', False)
         request.session.cycle_key()
         request.user.admin_permissions_enabled = False
         self.kwargs['pk'] = 'self'
-        return self.retrieve(request=request, *args, **kwargs)
+        return self.retrieve(*args, request=request, **kwargs)
 
     @action(detail=True, url_path='reset-password', methods=['post'])
     def reset_password(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
-    
+
     def perform_destroy(self, instance):
         try:
             instance.delete()
-        except ProtectedError:
+        except ProtectedError as ex:
             raise serializers.ValidationError(
-                detail='Cannot delete user because it is a member of one or more projects.')
+                detail='Cannot delete user because it is a member of one or more projects.',
+            ) from ex
 
 
 class MFAMethodViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
@@ -165,7 +189,7 @@ class MFAMethodViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixin
     def register_totp_begin(self, request, *args, **kwargs):
         instance = MFAMethod.objects.create_totp(save=False, user=self.get_user(), name='TOTP')
         return self.perform_register_begin(request, instance, {'qrcode': instance.get_totp_qrcode()})
-    
+
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_path='register/fido2/begin', methods=['post'])
     def register_fido2_begin(self, request, *args, **kwargs):
@@ -174,7 +198,9 @@ class MFAMethodViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixin
         instance = MFAMethod.objects.create_fido2_begin(user=self.get_user(), name='Security Key')
         return self.perform_register_begin(request, instance, {'state': None})
 
-    def perform_register_begin(self, request, instance, additional_response_data={}):
+    def perform_register_begin(self, request, instance, additional_response_data=None):
+        if additional_response_data is None:
+            additional_response_data = {}
         request.session['mfa_register'] = json.dumps(model_to_dict(instance), cls=DjangoJSONEncoder)
         response_data = instance.data | additional_response_data
         return Response(response_data, status=status.HTTP_200_OK)
@@ -200,7 +226,7 @@ class MFAMethodViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixin
         mfa_register_state = json.loads(request.session['mfa_register'])
         mfa_register_state['user'] = self.get_user()
         instance = MFAMethod(**mfa_register_state)
-        
+
         serializer = self.get_serializer(instance=instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -219,21 +245,17 @@ class AuthIdentityViewSet(UserSubresourceViewSetMixin, viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         return super().get_serializer_context() | {
-            'user': self.get_user()
+            'user': self.get_user(),
         }
-    
-    def get_serializer_context(self):
-        return super().get_serializer_context() | {
-            'user': self.get_user()
-        }
+
 
 class APITokenViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     serializer_class = APITokenSerializer
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [APITokenViewSetPermissions]
-    
+
     def get_queryset(self):
         return self.get_user().api_tokens.all()
-    
+
     def get_serializer_class(self):
         if self.action == 'create':
             return APITokenCreateSerializer
@@ -254,8 +276,8 @@ class AuthViewSet(viewsets.ViewSet):
             return serializers.Serializer
 
     def get_serializer(self, *args, **kwargs):
-        return self.get_serializer_class()(context={'request': self.request}, *args, **kwargs)
-    
+        return self.get_serializer_class()(*args, context={'request': self.request}, **kwargs)
+
     @action(detail=False, methods=['post'], authentication_classes=[], permission_classes=[LocalUserAuthPermissions])
     def login(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -307,9 +329,9 @@ class AuthViewSet(viewsets.ViewSet):
         state = request.session.get('login_state', {}).pop('fido2_state', None)
         try:
             MFAMethod.get_fido2_server().authenticate_complete(
-                state=state, 
+                state=state,
                 credentials=MFAMethod.objects.get_fido2_user_credentials(request.user),
-                response=request.data
+                response=request.data,
             )
         except ValueError as ex:
             if ex.args and len(ex.args) == 1 and isinstance(ex.args[0], str):
@@ -362,7 +384,7 @@ class AuthViewSet(viewsets.ViewSet):
         if request.GET.get('reauth') and settings.AUTHLIB_OAUTH_CLIENTS[oidc_provider].get('reauth_supported', False):
             redirect_kwargs |= {
                 'prompt': 'login',
-                'max_age': 0
+                'max_age': 0,
             }
             if login_hint := request.session.get('authentication_info', {}).get(f'oidc_{oidc_provider}_login_hint'):
                 redirect_kwargs |= {'login_hint': login_hint}
@@ -373,12 +395,12 @@ class AuthViewSet(viewsets.ViewSet):
     def login_oidc_complete(self, request, oidc_provider, *args, **kwargs):
         if not request.session.get('login_state', {}).get('status') == 'oidc-callback-required':
             raise APIBadRequestError('No OIDC login in progress for session')
-        
+
         try:
             token = oauth.create_client(oidc_provider).authorize_access_token(request)
         except OAuthError as ex:
-            raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error)
-        
+            raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error) from ex
+
         email = token['userinfo'].get('email', 'unknown')
         identity = AuthIdentity.objects \
             .select_related('user') \
@@ -398,7 +420,7 @@ class AuthViewSet(viewsets.ViewSet):
             f'oidc_{oidc_provider}_login_hint': token['userinfo'].get('login_hint'),
         }
         return res
-    
+
     @action(detail=False, url_path='login/remoteuser', methods=['post'], permission_classes=[RemoteUserAuthPermissions])
     def login_remoteuser(self, request, *args, **kwargs):
         remote_user_identifier = request.META.get('HTTP_' + settings.REMOTE_USER_AUTH_HEADER.upper().replace('-', '_'))

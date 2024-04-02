@@ -1,10 +1,9 @@
 from datetime import timedelta
 from urllib.parse import urlparse
-from asgiref.sync import iscoroutinefunction
+
 from django.conf import settings
-from django.utils import timezone, cache, deprecation
-from django.utils.decorators import sync_and_async_middleware
 from django.middleware.csrf import CsrfViewMiddleware
+from django.utils import cache, deprecation, timezone
 
 
 class CustomCsrfMiddleware(CsrfViewMiddleware):
@@ -15,16 +14,16 @@ class CustomCsrfMiddleware(CsrfViewMiddleware):
             return None
 
         return super().process_view(request, *args, **kwargs)
-    
+
     def _origin_verified(self, request):
         if super()._origin_verified(request):
             return True
-        
+
         try:
             parsed_origin = urlparse(request.META["HTTP_ORIGIN"])
         except ValueError:
             return False
-        
+
         # Allow skipping origin checks
         return parsed_origin.scheme + '://*' in settings.CSRF_TRUSTED_ORIGINS
 
@@ -43,7 +42,7 @@ class ExtendSessionMiddleware(deprecation.MiddlewareMixin):
 class AdminSessionMiddleware(deprecation.MiddlewareMixin):
     def process_request(self, request):
         if request.user and request.session and request.session.get('admin_permissions_enabled'):
-            setattr(request.user, 'admin_permissions_enabled', True)
+            request.user.admin_permissions_enabled = True
 
 
 class CacheControlMiddleware(deprecation.MiddlewareMixin):

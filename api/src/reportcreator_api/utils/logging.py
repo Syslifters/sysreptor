@@ -1,7 +1,7 @@
 import logging
-from django.utils import timezone, deprecation
-from django.utils.functional import wraps
 
+from django.utils import deprecation, timezone
+from django.utils.functional import wraps
 
 log = logging.getLogger()
 
@@ -11,7 +11,7 @@ def log_timing(fn):
     def inner(*args, **kwargs):
         start_time = timezone.now()
         out = fn(*args, **kwargs)
-        timing = timezone.now() - start_time     
+        timing = timezone.now() - start_time
         log.info(f'Function {fn.__name__} took {timing}')
         return out
     return inner

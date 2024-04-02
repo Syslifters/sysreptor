@@ -1,5 +1,4 @@
 from channels_postgres.core import PostgresChannelLayer
-from channels_postgres.db import DatabaseLayer
 
 from reportcreator_api.utils.utils import omit_keys
 

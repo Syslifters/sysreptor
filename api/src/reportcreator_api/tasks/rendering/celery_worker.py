@@ -1,10 +1,11 @@
 import gc
 from pathlib import Path
+
 from celery import Celery, signals
 from celery.backends.base import Backend
-from celery.backends.rpc import RPCBackend, ResultConsumer
-from kombu import pools
+from celery.backends.rpc import ResultConsumer, RPCBackend
 from django.conf import settings
+from kombu import pools
 
 
 class SecureWorkerFixup:
@@ -16,7 +17,7 @@ class SecureWorkerFixup:
         self.app = app
         if settings.CELERY_SECURE_WORKER:
             self.install()
-    
+
     def install(self):
         signals.task_prerun.connect(self.on_task_prerun)
 
@@ -44,7 +45,7 @@ class CustomRPCResultConsumer(ResultConsumer):
             queues=[initial_queue],
             callbacks=[self.on_state_change],
             no_ack=no_ack,
-            accept=self.accept
+            accept=self.accept,
         )
         self._consumer.consume()
 
@@ -59,14 +60,14 @@ class CustomRPCBackend(RPCBackend):
     def connection(self):
         return self.app.amqp.Connection(
             self.url.replace('reportcreator_api.tasks.rendering.celery_worker:CustomRPCBackend', 'pyamqp'),
-            connect_timeout=self.app.conf.broker_connection_timeout
+            connect_timeout=self.app.conf.broker_connection_timeout,
         )
 
     def store_result(self, task_id, result, state, traceback=None, request=None, **kwargs):
         routing_key, correlation_id = self.destination_for(task_id, request)
         if not routing_key:
             return
-        
+
         with self.connection() as conn:
             with self.app.amqp.Producer(conn) as producer:
                 producer.publish(

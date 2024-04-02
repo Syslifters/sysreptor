@@ -1,14 +1,28 @@
-import itertools
 import warnings
-import copy
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.test import override_settings
-from reportcreator_api.pentests import storages
 
-from reportcreator_api.pentests.models import PentestFinding, PentestProject, ProjectType, UploadedAsset, UploadedImage, \
-    UploadedProjectFile, UploadedUserNotebookImage, UploadedUserNotebookFile, ProjectNotebookPage, UserNotebookPage, UserPublicKey, \
-    ArchivedProjectKeyPart, ArchivedProjectPublicKeyEncryptedKeyPart, UploadedTemplateImage, ReportSection, CollabEvent
+from reportcreator_api.pentests import storages
+from reportcreator_api.pentests.models import (
+    ArchivedProjectKeyPart,
+    ArchivedProjectPublicKeyEncryptedKeyPart,
+    CollabEvent,
+    PentestFinding,
+    PentestProject,
+    ProjectNotebookPage,
+    ProjectType,
+    ReportSection,
+    UploadedAsset,
+    UploadedImage,
+    UploadedProjectFile,
+    UploadedTemplateImage,
+    UploadedUserNotebookFile,
+    UploadedUserNotebookImage,
+    UserNotebookPage,
+    UserPublicKey,
+)
 from reportcreator_api.pentests.models.project import ProjectMemberInfo
 from reportcreator_api.pentests.models.template import FindingTemplate, FindingTemplateTranslation
 from reportcreator_api.users.models import MFAMethod, PentestUser, Session
@@ -24,7 +38,7 @@ class Command(BaseCommand):
         file_name_map = {}
         for model in models:
             data_list = list(model.objects.all().values('id', 'name', 'file'))
-            history_list = list(model.history.all().values('history_id', 'name', 'file')) if hasattr(model, 'history') else []  
+            history_list = list(model.history.all().values('history_id', 'name', 'file')) if hasattr(model, 'history') else []
             for data in data_list + history_list:
                 if data['file'] not in file_name_map:
                     with storage.open(data['file'], mode='rb') as old_file:
@@ -34,12 +48,12 @@ class Command(BaseCommand):
             model.objects.bulk_update(map(lambda d: model(**d), data_list), ['name', 'file'])
             if hasattr(model, 'history'):
                 model.history.model.objects.bulk_update(map(lambda d: model.history.model(**d), history_list), ['name', 'file', 'history_change_reason'])
-    
+
     def encrypt_db_fields(self, model, fields):
         if fields:
             model.objects.bulk_update(model.objects.all().iterator(), fields)
         if hasattr(model, 'history'):
-            model.history.model.objects.bulk_update(model.history.model.objects.all().iterator(), fields + ['history_change_reason'])                    
+            model.history.model.objects.bulk_update(model.history.model.objects.all().iterator(), fields + ['history_change_reason'])
 
     def encrypt_data(self):
         # Encrypt DB fields
@@ -72,7 +86,7 @@ class Command(BaseCommand):
 
         if decrypt:
             if settings.DEFAULT_ENCRYPTION_KEY_ID:
-                warnings.warn('A DEFAULT_ENCRYPTION_KEY_ID is configured. New and updated data will be encrypted while storing it. Set DEFAULT_ENCRYPTION_KEY_ID=None to permanently disable encryption.')
+                warnings.warn('A DEFAULT_ENCRYPTION_KEY_ID is configured. New and updated data will be encrypted while storing it. Set DEFAULT_ENCRYPTION_KEY_ID=None to permanently disable encryption.', stacklevel=1)
 
             with override_settings(DEFAULT_ENCRYPTION_KEY_ID=None, ENCRYPTION_PLAINTEXT_FALLBACK=True):
                 self.encrypt_data()
@@ -83,5 +97,5 @@ class Command(BaseCommand):
                 raise CommandError('Invalid DEFAULT_ENCRYPTION_KEY_ID')
             with override_settings(ENCRYPTION_PLAINTEXT_FALLBACK=True):
                 self.encrypt_data()
-        
+
 

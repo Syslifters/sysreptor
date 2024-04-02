@@ -1,14 +1,14 @@
 import json
 import logging
-import httpx
-from functools import cached_property
 from base64 import b64decode
+from functools import cached_property
 from urllib.parse import urljoin
+
+import httpx
 from django.conf import settings
-from rest_framework import serializers, exceptions
+from rest_framework import exceptions, serializers
 
 from reportcreator_api.pentests.models import Language
-
 
 log = logging.getLogger(__name__)
 
@@ -42,19 +42,19 @@ class LanguageToolSerializerBase(serializers.Serializer):
     async def languagetool_request(self, path, data):
         if not settings.SPELLCHECK_URL:
             raise exceptions.PermissionDenied('Spell checker not configured')
-        
+
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 res = await client.post(
                     url=urljoin(settings.SPELLCHECK_URL, path),
-                    data=self.languagetool_auth() | data
+                    data=self.languagetool_auth() | data,
                 )
                 if res.status_code != 200:
                     raise exceptions.APIException(detail='Spellcheck error', code='spellcheck')
                 return res.json()
-        except httpx.ReadTimeout:
+        except httpx.ReadTimeout as ex:
             logging.exception('LanguageTool timeout')
-            raise exceptions.APIException(detail='Spellcheck timeout', code='spellcheck')
+            raise exceptions.APIException(detail='Spellcheck timeout', code='spellcheck') from ex
 
 
 class LanguageToolSerializer(LanguageToolSerializerBase):
@@ -119,12 +119,12 @@ class BackupSerializer(serializers.Serializer):
     def validate_aes_key(self, value):
         if not value:
             return None
-        
+
         try:
             key_bytes = b64decode(value)
             if len(key_bytes) != 32:
                 raise serializers.ValidationError('Invalid key length: must be a 256-bit AES key')
             return value
-        except ValueError:
-            raise serializers.ValidationError('Invalid base64 encoding')
+        except ValueError as ex:
+            raise serializers.ValidationError('Invalid base64 encoding') from ex
 

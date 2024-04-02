@@ -1,5 +1,5 @@
-from reportcreator_api.conf.settings import *
-
+from reportcreator_api.conf.settings import *  # noqa: F403
+from reportcreator_api.conf.settings import REST_FRAMEWORK, STORAGES
 
 STORAGES = STORAGES | {
     'uploaded_images': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
@@ -15,11 +15,13 @@ CACHES = {
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    }
+    },
 }
 
-REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = []
-REST_FRAMEWORK['TEST_REQUEST_DEFAULT_FORMAT'] = 'json'
+REST_FRAMEWORK |= {
+    'DEFAULT_THROTTLE_CLASSES': [],
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+}
 
 
 LOCAL_USER_AUTH_ENABLED = True
@@ -45,5 +47,6 @@ BACKUP_KEY = 'dummy-backup-key-used-in-unit-test'
 
 
 # Disable license check
-from reportcreator_api.utils import license
+from reportcreator_api.utils import license  # noqa: E402
+
 license.check_license = lambda **kwargs: {'type': license.LicenseType.PROFESSIONAL, 'users': 1000}

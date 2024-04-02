@@ -1,8 +1,8 @@
 from django.db import models
 
 from reportcreator_api.notifications import querysets
-from reportcreator_api.utils.models import BaseModel
 from reportcreator_api.users.models import PentestUser
+from reportcreator_api.utils.models import BaseModel
 
 
 class NotificationSpec(BaseModel):
@@ -30,7 +30,7 @@ class UserNotification(BaseModel):
     user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='notifications')
     notification = models.ForeignKey(to=NotificationSpec, on_delete=models.CASCADE)
 
-    visible_until = models.DateTimeField(null=True, blank=True, )
+    visible_until = models.DateTimeField(null=True, blank=True )
     read = models.BooleanField(default=False, db_index=True)
 
     objects = models.Manager.from_queryset(querysets.UserNotificationQuerySet)()

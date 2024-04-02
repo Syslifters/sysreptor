@@ -1,5 +1,6 @@
 
 from urllib.parse import urlencode, urlunsplit
+
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
@@ -19,7 +20,7 @@ def admin_url(label, app_name, model_name, type_name, params=None, *args, **kwar
     if params:
         admin_url_query = urlencode(params)
 
-    admin_path = reverse('admin:%s_%s_%s' % (app_name, model_name, type_name), args=args, kwargs=kwargs)
+    admin_path = reverse(f'admin:{app_name}_{model_name}_{type_name}', args=args, kwargs=kwargs)
     admin_url = urlunsplit(['', '', admin_path, admin_url_query, ''])
     return format_html('<a href="{}">{}</a>', admin_url, label)
 

@@ -1,19 +1,20 @@
-import pytest
 import uuid
-from unittest import mock
-from asgiref.sync import async_to_sync
 from datetime import timedelta
+from unittest import mock
+
+import pytest
+from asgiref.sync import async_to_sync
 from django.test import override_settings
 from django.utils import timezone
-from reportcreator_api.notifications.tasks import fetch_notifications
 
+from reportcreator_api.notifications.models import NotificationSpec
+from reportcreator_api.notifications.tasks import fetch_notifications
 from reportcreator_api.tests.mock import create_user
 from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.users.models import PentestUser
-from reportcreator_api.notifications.models import NotificationSpec
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestNotifications:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -22,8 +23,8 @@ class TestNotifications:
         self.user_designer = create_user(username='designer', is_designer=True)
         self.user_user_manager = create_user(username='user_manager', is_user_manager=True)
         self.user_superuser = create_user(username='superuser', is_superuser=True)
-    
-    @pytest.mark.parametrize('notification,expected_users', [
+
+    @pytest.mark.parametrize(('notification', 'expected_users'), [
         (NotificationSpec(), ['regular', 'template_editor', 'designer', 'user_manager', 'superuser']),
         (NotificationSpec(active_until=(timezone.now() - timedelta(days=10)).date()), []),
         (NotificationSpec(user_conditions={'is_superuser': True}), ['superuser']),
@@ -50,7 +51,7 @@ class TestNotifications:
         assert NotificationSpec.objects.create(visible_for_days=None).usernotification_set.first().visible_until is None
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestNotificationImport:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -65,34 +66,34 @@ class TestNotificationImport:
                 "active_until": None,
                 "visible_for_days": 14,
                 "user_conditions": {
-                    "is_superuser": True
+                    "is_superuser": True,
                 },
                 "title": "Test",
                 "text": "Test",
-                "link_url": ""
-            }
+                "link_url": "",
+            },
         ]
         async def mock_fetch_notifications_request():
             return self.notification_import_data
         with mock.patch('reportcreator_api.notifications.tasks.fetch_notifications_request', mock_fetch_notifications_request), \
              override_settings(NOTIFICATION_IMPORT_URL='https://example.com/'):
             yield
-    
+
     def test_create(self):
         async_to_sync(fetch_notifications)(None)
         n = NotificationSpec.objects.get()
-        assertKeysEqual(n, self.notification_import_data[0], ['id', 'title', 'text', 'link_url', 
+        assertKeysEqual(n, self.notification_import_data[0], ['id', 'title', 'text', 'link_url',
             'active_until', 'visible_for_days', 'user_conditions'])
         assert self.user_notification.notifications.get().notification == n
         assert self.user_no_notification.notifications.count() == 0
-    
+
     def test_refetch(self):
         async_to_sync(fetch_notifications)(None)
         before = NotificationSpec.objects.get()
         async_to_sync(fetch_notifications)(None)
         after = NotificationSpec.objects.get()
         assertKeysEqual(before, after, ['id', 'created', 'updated', 'active_until'])
-    
+
     def test_delete(self):
         async_to_sync(fetch_notifications)(None)
         self.notification_import_data = []
