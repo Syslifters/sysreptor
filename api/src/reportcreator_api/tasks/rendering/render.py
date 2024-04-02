@@ -86,7 +86,6 @@ def get_page():
     with sync_playwright() as playwright:
         with playwright.chromium.launch(
             executable_path=settings.CHROMIUM_EXECUTABLE,
-            args=['--single-process'],
             headless=True,
             chromium_sandbox=False,
             handle_sigint=False,
