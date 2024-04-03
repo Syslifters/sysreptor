@@ -154,7 +154,7 @@ function updateNoteChecked(note: NoteBase) {
     dn.checked = note.checked;
   }
 }
-async function selectNote(note: NoteBase) {
+async function selectNote(note: NoteBase|null) {
   currentNote.value = note;
   await nextTick();
   textRef.value?.focus();

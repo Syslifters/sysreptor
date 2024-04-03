@@ -10,10 +10,6 @@
             :to="`/projects/${$route.params.projectId}/reporting/sections/${section.id}/`"
             density="compact"
           >
-            <template #prepend>
-              <s-lock-info :value="section.lock_info" />
-            </template>
-
             <template #default>
               <v-list-item-title class="text-body-2">{{ section.label }}</v-list-item-title>
               <v-list-item-subtitle>
@@ -75,7 +71,6 @@
                   <div v-if="sortFindingsManual" class="draggable-handle mr-2">
                     <v-icon :disabled="project.readonly" icon="mdi-drag-horizontal" />
                   </div>
-                  <s-lock-info :value="finding.lock_info" />
                 </template>
                 <template #default>
                   <v-list-item-title class="text-body-2">{{ finding.data.title }}</v-list-item-title>

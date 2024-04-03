@@ -106,8 +106,8 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
 
     out = [
         *viewset_urls('pentestproject', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=update, update_partial=update, destroy=destory, history_timeline=read),
-        *viewset_urls('section', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).sections.first().section_id} if detail else {}), list=read, retrieve=read, update=write, update_partial=write, lock=write, unlock=write, history_timeline=read),
-        *viewset_urls('finding', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).findings.first().finding_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, lock=write, unlock=write, history_timeline=read),
+        *viewset_urls('section', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).sections.first().section_id} if detail else {}), list=read, retrieve=read, update=write, update_partial=write, history_timeline=read),
+        *viewset_urls('finding', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).findings.first().finding_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, history_timeline=read),
         *viewset_urls('projectnotebookpage', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).notes.first().note_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, history_timeline=read),
         *file_viewset_urls('uploadedimage', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).images.first(), read=read, write=write),
         *file_viewset_urls('uploadedprojectfile', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).files.first(), read=read, write=write),
