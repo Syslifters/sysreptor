@@ -98,7 +98,9 @@
     </template>
 
     <template #default>
-      <nuxt-page />
+      <collab-loader :collab="reportingCollab" class="h-100">
+        <nuxt-page />
+      </collab-loader>
     </template>
   </split-menu>
 </template>
@@ -107,41 +109,41 @@
 import Draggable from "vuedraggable";
 import { scoreFromVector, levelNumberFromScore, levelNumberFromLevelName } from "~/utils/cvss";
 
-definePageMeta({
-  title: 'Reporting'
-});
-
 const route = useRoute();
+const router = useRouter();
 const auth = useAuth();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore()
 const projectTypeStore = useProjectTypeStore();
 
+definePageMeta({
+  title: 'Reporting'
+});
+
 const project = await useAsyncDataE(async () => await projectStore.fetchById(route.params.projectId as string), { key: 'reporting:project' });
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'reporting:projectType' });
 const findings = computed(() => projectStore.findings(project.value.id, { projectType: projectType.value }));
-const sections = computed(() => projectStore.sections(project.value.id));
+const sections = computed(() => projectStore.sections(project.value.id, { projectType: projectType.value }));
 const sortFindingsManual = computed(() => project.value.override_finding_order || projectType.value.finding_ordering.length === 0);
 
-// Periodically refresh lists. Updates project, sections, findings in store
-async function refreshListings() {
-  try {
-    project.value = await projectStore.fetchById(project.value.id);
-    projectType.value = await projectTypeStore.getById(project.value.project_type);
-  } catch (error) {
-    // hide error
+const reportingCollab = projectStore.useReportingCollab({ project: project.value });
+onMounted(async () => {
+  if (reportingCollab.hasEditPermissions.value) {
+    await reportingCollab.connect();
+    collabAwarenessSendNavigate();
+  } else {
+    await projectStore.fetchFindingsAndSections(project.value);
   }
+});
+
+function collabAwarenessSendNavigate() {
+  const findingId = router.currentRoute.value.params.findingId;
+  const sectionId = router.currentRoute.value.params.sectionId;
+  reportingCollab.onCollabEvent({
+    type: CollabEventType.AWARENESS,
+    path: collabSubpath(reportingCollab.collabProps.value, findingId ? `findings.${findingId}` : sectionId ? `sections.${sectionId}` : null).path,
+  });
 }
-const refreshListingsInterval = ref();
-onMounted(() => {
-  refreshListingsInterval.value = setInterval(refreshListings, 10_000);
-});
-onBeforeUnmount(() => {
-  if (refreshListingsInterval.value) {
-    clearInterval(refreshListingsInterval.value);
-    refreshListingsInterval.value = undefined;
-  }
-});
 
 // Sort findings
 const wasOverrideFindingOrder = ref(false);

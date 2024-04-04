@@ -1,58 +1,81 @@
 <template>
-  <fetch-loader v-bind="fetchLoaderAttrs">
-    <div v-if="section && project && projectType" :key="project.id + section.id">
-      <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
-        <div class="status-container ml-1 mr-1">
-          <s-status-selection v-model="section.status" :readonly="readonly" />
-        </div>
-        <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
-          <s-user-selection
-            v-model="section.assignee"
-            :selectable-users="project.members"
-            :readonly="readonly"
-            label="Assignee"
-            variant="underlined"
-            density="compact"
-          />
-        </div>
-
-        <btn-history v-model="historyVisible" />
-      </edit-toolbar>
-
-      <history-timeline-project
-        v-model="historyVisible"
-        :project="project"
-        :section="section"
-        :current-url="route.fullPath"
-      />
-
-      <div v-for="fieldId in section.fields" :key="fieldId">
-        <dynamic-input-field
-          v-model="section.data[fieldId]"
-          :readonly="readonly"
-          :id="fieldId"
-          :definition="projectType.report_fields[fieldId]"
-          v-bind="inputFieldAttrs"
+  <div v-if="section && project && projectType" :key="project.id + section.id">
+    <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
+      <div class="status-container ml-1 mr-1">
+        <s-status-selection 
+          :model-value="section.status"
+          @update:model-value="updateKey('status', $event)"
+          :readonly="readonly" 
         />
       </div>
+      <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
+        <s-user-selection
+          :model-value="section.assignee"
+          @update:model-value="updateKey('assignee', $event)"
+          :selectable-users="project.members"
+          :readonly="readonly"
+          label="Assignee"
+          variant="underlined"
+          density="compact"
+        />
+      </div>
+
+      <btn-history v-model="historyVisible" />
+    </edit-toolbar>
+
+    <history-timeline-project
+      v-model="historyVisible"
+      :project="project"
+      :section="section"
+      :current-url="route.fullPath"
+    />
+
+    <div v-for="fieldId in section.fields" :key="fieldId">
+      <dynamic-input-field
+        :model-value="section.data[fieldId]"
+        :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldId}`)"
+        @collab="reportingCollab.onCollabEvent"
+        :readonly="readonly"
+        :id="fieldId"
+        :definition="projectType.report_fields[fieldId]"
+        v-bind="inputFieldAttrs"
+      />
     </div>
-  </fetch-loader>
+  </div>
 </template>
 
 <script setup lang="ts">
 const route = useRoute();
+const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
+const projectTypeStore = useProjectTypeStore();
 
-const { data: section, project, projectType, readonly, toolbarAttrs, fetchLoaderAttrs, inputFieldAttrs } = useProjectLockEdit({
-  baseUrl: `/api/v1/pentestprojects/${route.params.projectId}/sections/${route.params.sectionId}/`,
-  fetchProjectType: true,
-  performSave: projectStore.updateSection,
-  updateInStore: projectStore.setSection,
-  autoSaveOnUpdateData({ oldValue, newValue }): boolean {
-    return oldValue.status !== newValue.status || oldValue.assignee?.id !== newValue.assignee?.id;
-  }
+const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'sections:project' });
+const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'sections:projectType' });
+
+const reportingCollab = projectStore.useReportingCollab({ project: project.value, sectionId: route.params.sectionId as string });
+const section = computed(() => reportingCollab.data.value.sections[route.params.sectionId as string]);
+const readonly = computed(() => reportingCollab.readonly.value);
+
+const { inputFieldAttrs, errorMessage } = useProjectEditBase({
+  project: computed(() => project.value),
+  spellcheckEnabled: computed({ get: () => localSettings.reportingSpellcheckEnabled, set: (val) => { localSettings.reportingSpellcheckEnabled = val } }),
+  markdownEditorMode: computed({ get: () => localSettings.reportingMarkdownEditorMode, set: (val) => { localSettings.reportingMarkdownEditorMode = val } }),
 });
+const toolbarAttrs = computed(() => ({
+  data: section.value,
+  errorMessage: errorMessage.value || 
+    (!reportingCollab.hasLock.value ? 'This section is locked by another user. Upgrade to SysReptor Professional for lock-free collaborative editing.' : null),
+}));
 const historyVisible = ref(false);
+
+function updateKey(key: string, value: any) {
+  reportingCollab.onCollabEvent({
+    type: CollabEventType.UPDATE_KEY,
+    path: collabSubpath(reportingCollab.collabProps.value, key).path,
+    value,
+  })
+}
 </script>
 
 <style lang="scss" scoped>

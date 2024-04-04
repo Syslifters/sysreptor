@@ -249,6 +249,15 @@ export const useProjectStore = defineStore('project', {
         body: orderedFindings.map(f => ({ id: f.id, order: f.order })),
       });
     },
+    async fetchFindingsAndSections(project: PentestProject) {
+      this.ensureExists(project.id);
+      let projectData = this.data[project.id].project! as PentestProject & { sections?: ReportSection[], findings?: PentestFinding[] };
+      if (!projectData.findings || !projectData.sections) {
+        projectData = await this.fetchById(project.id) as PentestProject & { sections: ReportSection[], findings: PentestFinding[] }; ;
+      }
+      this.data[project.id].reportingCollabState.data.findings = Object.fromEntries(projectData.findings!.map(f => [f.id, f]));
+      this.data[project.id].reportingCollabState.data.sections = Object.fromEntries(projectData.sections!.map(s => [s.id, s]));
+    },
     async createNote(project: PentestProject, note: ProjectNote) {
       note = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/`, {
         method: 'POST',
