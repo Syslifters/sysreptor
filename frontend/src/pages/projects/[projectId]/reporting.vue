@@ -19,6 +19,10 @@
               </v-list-item-subtitle>
             </template>
             <template #append>
+              <collab-avatar-group 
+                :collab="collabSubpath(reportingCollab.collabProps.value, `sections.${section.id}`)"
+                :class="{'mr-2': section.status !== ReviewStatus.IN_PROGRESS}"
+              />
               <s-status-info :value="section.status" />
             </template>
           </v-list-item>
@@ -81,6 +85,10 @@
                   </v-list-item-subtitle>
                 </template>
                 <template #append>
+                  <collab-avatar-group 
+                    :collab="collabSubpath(reportingCollab.collabProps.value, `findings.${finding.id}`)"
+                    :class="{'mr-2': finding.status !== ReviewStatus.IN_PROGRESS}"
+                  />
                   <s-status-info :value="finding.status" />
                 </template>
               </v-list-item>
@@ -135,6 +143,10 @@ onMounted(async () => {
     await projectStore.fetchFindingsAndSections(project.value);
   }
 });
+onBeforeUnmount(() => {
+  reportingCollab.disconnect();
+});
+watch(() => router.currentRoute.value, collabAwarenessSendNavigate);
 
 function collabAwarenessSendNavigate() {
   const findingId = router.currentRoute.value.params.findingId;

@@ -45,7 +45,7 @@ export type CollabStoreState<T> = {
   websocketConnectionLostTimeout?: ReturnType<typeof throttle>;
   handleAdditionalWebSocketMessages?: (event: any) => boolean;
   perPathState: Map<string, {
-    sendUpdateTextThrottled: () => void;
+    sendUpdateTextThrottled: ReturnType<typeof throttle>;
     unconfirmedTextUpdates: TextUpdate[];
   }>;
   awareness: {
@@ -146,6 +146,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         // Reset data
         storeState.websocket = null;
         storeState.websocketConnectionLostTimeout?.cancel();
+        storeState.awareness.sendAwarenessThrottled?.cancel();
+        for (const perPathState of storeState.perPathState.values()) {
+          perPathState.sendUpdateTextThrottled.cancel();
+        }
         storeState.perPathState?.clear();
         storeState.version = 0;
         storeState.connectionState = CollabConnectionState.CLOSED;
