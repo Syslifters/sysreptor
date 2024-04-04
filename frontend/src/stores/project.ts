@@ -45,11 +45,12 @@ export const useProjectStore = defineStore('project', {
     data: {} as {
       [key: string]: {
         project: PentestProject|null,
-        findings: PentestFinding[],
-        sections: ReportSection[],
+        // findings: PentestFinding[],
+        // sections: ReportSection[],
         // notes: ProjectNote[],
         getByIdSync: Promise<PentestProject> | null,
         notesCollabState: CollabStoreState<{ notes: {[key: string]: ProjectNote}}>,
+        reportingCollabState: CollabStoreState<{ findings: {[key: string]: PentestFinding }, sections: {[key: string]: ReportSection } }>,
       }
     },
   }),
@@ -60,7 +61,8 @@ export const useProjectStore = defineStore('project', {
     findings() {
       return (projectId: string, { projectType = null as ProjectType|null } = {}) => {
         const projectState = this.data[projectId]
-        let findings = projectState?.findings || [];
+        let findings = Object.values(this.data[projectId]?.reportingCollabState.data.findings || {});
+        // Sort findings
         if (projectState && projectType) {
           findings = sortFindings({
             findings,
@@ -72,10 +74,17 @@ export const useProjectStore = defineStore('project', {
       };
     },
     sections() {
-      return (projectId: string) => this.data[projectId]?.sections || [];
+      return (projectId: string, { projectType = null as ProjectType|null } = {}) => {
+        let sections = Object.values(this.data[projectId]?.reportingCollabState.data.sections || {});
+        // Sort sections
+        if (projectType) {
+          sections = orderBy(sections, [(s: ReportSection) => projectType.report_sections.findIndex(rs => rs.id === s.id)]);
+        }
+        return sections;
+      };
     },
     notes() {
-      return (projectId: string) => Object.values(this.data[projectId]?.notesCollabState.data.notes || {}) as ProjectNote[];
+      return (projectId: string) => Object.values(this.data[projectId]?.notesCollabState.data.notes || {});
     },
     noteGroups() {
       return (projectId: string) => groupNotes(this.notes(projectId));
@@ -89,8 +98,6 @@ export const useProjectStore = defineStore('project', {
       if (!(projectId in this.data)) {
         this.data[projectId] = {
           project: null as unknown as PentestProject,
-          findings: [],
-          sections: [],
           getByIdSync: null,
           notesCollabState: makeCollabStoreState({
             websocketPath: `/ws/pentestprojects/${projectId}/notes/`,
@@ -98,10 +105,26 @@ export const useProjectStore = defineStore('project', {
             handleAdditionalWebSocketMessages: (msgData: any) => {
               const collabState = this.data[projectId].notesCollabState;
               if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
-                for (const note of Object.values(collabState.data.notes) as ProjectNote[]) {
+                for (const note of Object.values(collabState.data.notes)) {
                   const no = msgData.sort.find((n: ProjectNote) => n.id === note.id);
                   note.parent = no?.parent || null;
                   note.order = no?.order || 0;
+                }
+                return true;
+              } else {
+                return false;
+              }
+            }
+          }),
+          reportingCollabState: makeCollabStoreState({
+            websocketPath: `/ws/pentestprojects/${projectId}/reporting/`,
+            initialData: { findings: {}, sections: {} },
+            handleAdditionalWebSocketMessages: (msgData: any) => {
+              const collabState = this.data[projectId].reportingCollabState;
+              if (msgData.type === CollabEventType.SORT && msgData.path === 'findings') {
+                for (const finding of Object.values(collabState.data.findings)) {
+                  const fo = msgData.sort.find((n: PentestFinding) => n.id === finding.id);
+                  finding.order = fo?.order || 0;
                 }
                 return true;
               } else {
@@ -115,31 +138,13 @@ export const useProjectStore = defineStore('project', {
       return this.data[projectId];
     },
     setProject(project: PentestProject) {
-      const prev = { ...this.ensureExists(project.id) };
-      const next = { ...prev };
-
-      // Update project
-      next.project = project;
-      // Invalidate cached findings and section that contain inlined values of the project
-      if (prev.project?.project_type !== next.project.project_type || prev.project?.language !== next.project.language) {
-        next.findings = [];
-        next.sections = [];
-      }
-
-      // Set inlined data from detail response
-      if (Array.isArray((project as any).findings)) {
-        next.findings = (project as any).findings;
-      }
-      if (Array.isArray((project as any).sections)) {
-        next.sections = (project as any).sections;
-      }
-
-      this.data[project.id] = next;
-      return this.data[project.id];
+      this.ensureExists(project.id);
+      this.data[project.id].project = project;
+      return this.data[project.id].project!;
     },
     async fetchById(projectId: string): Promise<PentestProject> {
       const obj = await $fetch<PentestProject>(`/api/v1/pentestprojects/${projectId}/`, { method: 'GET' });
-      return this.setProject(obj).project!;
+      return this.setProject(obj);
     },
     async getById(projectId: string): Promise<PentestProject> {
       if (Array.isArray(projectId)) {
@@ -167,14 +172,14 @@ export const useProjectStore = defineStore('project', {
         method: 'POST',
         body: projectData
       });
-      return this.setProject(proj).project!;
+      return this.setProject(proj);
     },
     async partialUpdateProject(project: PentestProject, fields?: string[]) {
       const proj = await $fetch<PentestProject>(`/api/v1/pentestprojects/${project.id}/`, {
         method: 'PATCH',
         body: fields ? pick(project, fields?.concat(['id'])) : project,
       });
-      return this.setProject(proj).project!;
+      return this.setProject(proj);
     },
     async deleteProject(project: PentestProject) {
       await $fetch(`/api/v1/pentestprojects/${project.id}/`, {
@@ -189,7 +194,7 @@ export const useProjectStore = defineStore('project', {
         method: 'POST',
         body: {}
       });
-      return this.setProject(proj).project!;
+      return this.setProject(proj);
     },
     async setReadonly(project: PentestProject, readonly: boolean) {
       await $fetch(`/api/v1/pentestprojects/${project.id}/readonly/`, {
@@ -215,7 +220,7 @@ export const useProjectStore = defineStore('project', {
         body: findingData,
       });
       this.ensureExists(project.id)
-      this.data[project.id].findings.push(finding);
+      this.data[project.id].reportingCollabState.data.findings[finding.id] = finding;
       return finding;
     },
     async createFindingFromTemplate(project: PentestProject, findingFromTemplateData: { template: string, template_language: string }) {
@@ -224,64 +229,25 @@ export const useProjectStore = defineStore('project', {
         body: findingFromTemplateData,
       });
       this.ensureExists(project.id)
-      this.data[project.id].findings.push(finding);
+      this.data[project.id].reportingCollabState.data.findings[finding.id] = finding;
       return finding;
-    },
-    setFinding(project: PentestProject, finding: PentestFinding) {
-      this.ensureExists(project.id);
-      const findings = this.data[project.id].findings;
-      const findingIdx = findings.findIndex(f => f.id === finding.id)
-      if (findingIdx !== -1) {
-        findings[findingIdx] = finding;
-      } else {
-        findings.push(finding);
-      }
-      return finding;
-    },
-    async updateFinding(project: PentestProject, finding: PentestFinding) {
-      finding = await $fetch<PentestFinding>(`/api/v1/pentestprojects/${project.id}/findings/${finding.id}/`, {
-        method: 'PUT',
-        body: finding
-      });
-      return this.setFinding(project, finding);
     },
     async deleteFinding(project: PentestProject, finding: PentestFinding) {
       await $fetch(`/api/v1/pentestprojects/${project.id}/findings/${finding.id}/`, {
         method: 'DELETE'
       });
       if (project.id in this.data) {
-        this.data[project.id].findings = this.data[project.id].findings.filter(f => f.id !== finding.id);
+        delete this.data[project.id].reportingCollabState.data.findings[finding.id];
       }
     },
     async sortFindings(project: PentestProject, findings: PentestFinding[]) {
       this.ensureExists(project.id);
-      const orderedFindings = findings.map((f, idx) => ({ ...(this.data[project.id].findings.find(fs => fs.id === f.id) || f), order: idx + 1 }));
-      this.data[project.id].findings = orderedFindings;
-      const res = await $fetch<{ id: string; order: number }[]>(`/api/v1/pentestprojects/${project.id}/findings/sort/`, {
+      const orderedFindings = findings.map((f, idx) => ({ ...(this.findings(project.id).find(fs => fs.id === f.id) || f), order: idx + 1 }));
+      this.data[project.id].reportingCollabState.data.findings = Object.fromEntries(orderedFindings.map(f => [f.id, f]));
+      await $fetch<{ id: string; order: number }[]>(`/api/v1/pentestprojects/${project.id}/findings/sort/`, {
         method: 'POST',
         body: orderedFindings.map(f => ({ id: f.id, order: f.order })),
       });
-      for (const finding of this.data[project.id].findings) {
-        finding.order = res.find(f => f.id === finding.id)?.order || 0;
-      }
-    },
-    async updateSection(project: PentestProject, section: ReportSection) {
-      section = await $fetch<ReportSection>(`/api/v1/pentestprojects/${project.id}/sections/${section.id}/`, {
-        method: 'PUT',
-        body: section,
-      });
-      return this.setSection(project, section);
-    },
-    setSection(project: PentestProject, section: ReportSection) {
-      this.ensureExists(project.id);
-      const sections = this.data[project.id].sections;
-      const sectionIdx = sections.findIndex(s => s.id === section.id)
-      if (sectionIdx !== -1) {
-        sections[sectionIdx] = section;
-      } else {
-        sections.push(section);
-      }
-      return section;
     },
     async createNote(project: PentestProject, note: ProjectNote) {
       note = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/`, {
@@ -318,17 +284,17 @@ export const useProjectStore = defineStore('project', {
       this.data[project.id].notesCollabState.data.notes = Object.fromEntries(notes.map(n => [n.id, n]));
       return notes;
     },
-    useNotesCollab(project: PentestProject, noteId?: string) {
-      this.ensureExists(project.id);
+    useNotesCollab(options: { project: PentestProject, noteId?: string }) {
+      this.ensureExists(options.project.id);
 
-      const collabState = this.data[project.id].notesCollabState;
+      const collabState = this.data[options.project.id].notesCollabState;
       const collab = useCollab(collabState);
-      const collabProps = computed(() => collabSubpath(collab.collabProps.value, noteId ? `notes.${noteId}` : null))
+      const collabProps = computed(() => collabSubpath(collab.collabProps.value, options.noteId ? `notes.${options.noteId}` : null))
 
       const apiSettings = useApiSettings();
       const auth = useAuth();
       const hasLock = ref(true);
-      if (noteId && !apiSettings.isProfessionalLicense) {
+      if (options.noteId && !apiSettings.isProfessionalLicense) {
         hasLock.value = false;
         watch(() => collabProps.value.clients, () => {
           if (!hasLock.value && collabProps.value.clients.filter(c => c.user.id !== auth.user.value?.id).length === 0) {
@@ -337,7 +303,36 @@ export const useProjectStore = defineStore('project', {
         }, { immediate: true });
       }
 
-      const hasEditPermissions = computed(() => !project.readonly && hasLock.value);
+      const hasEditPermissions = computed(() => !options.project.readonly && hasLock.value);
+
+      return {
+        ...collab,
+        collabProps,
+        hasEditPermissions,
+        hasLock,
+        readonly: computed(() => !hasEditPermissions.value || collabState.connectionState !== CollabConnectionState.OPEN),
+      };
+    },
+    useReportingCollab(options: { project: PentestProject, findingId?: string, sectionId?: string }) {
+      this.ensureExists(options.project.id);
+
+      const collabState = this.data[options.project.id].reportingCollabState;
+      const collab = useCollab(collabState);
+      const collabProps = computed(() => collabSubpath(collab.collabProps.value, options.findingId ? `findings.${options.findingId}` : options.sectionId ? `sections.${options.sectionId}` : null));
+
+      const apiSettings = useApiSettings();
+      const auth = useAuth();
+      const hasLock = ref(true);
+      if ((options.findingId || options.sectionId) && !apiSettings.isProfessionalLicense) {
+        hasLock.value = false;
+        watch(() => collabProps.value.clients, () => {
+          if (!hasLock.value && collabProps.value.clients.filter(c => c.user.id !== auth.user.value?.id).length === 0) {
+            hasLock.value = true;
+          }
+        }, { immediate: true });
+      }
+
+      const hasEditPermissions = computed(() => !options.project.readonly && hasLock.value);
 
       return {
         ...collab,

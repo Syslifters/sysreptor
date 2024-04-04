@@ -43,7 +43,7 @@ definePageMeta({
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
 const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 
-const notesCollab = projectStore.useNotesCollab(project.value);
+const notesCollab = projectStore.useNotesCollab({ project: project.value });
 onMounted(async () => {
   if (notesCollab.hasEditPermissions.value) {
     await notesCollab.connect();
