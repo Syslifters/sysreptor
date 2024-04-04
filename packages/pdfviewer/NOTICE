@@ -41,7 +41,7 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-@jridgewell/gen-mapping 0.3.3
+@jridgewell/gen-mapping 0.3.5
 MIT
 Copyright 2022 Justin Ridgewell <jridgewell@google.com>
 
@@ -64,7 +64,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@jridgewell/resolve-uri 3.1.1
+@jridgewell/resolve-uri 3.1.2
 MIT
 Copyright 2019 Justin Ridgewell <jridgewell@google.com>
 
@@ -86,7 +86,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-@jridgewell/set-array 1.1.2
+@jridgewell/set-array 1.2.1
 MIT
 Copyright 2022 Justin Ridgewell <jridgewell@google.com>
 
@@ -109,7 +109,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@jridgewell/source-map 0.3.5
+@jridgewell/source-map 0.3.6
 MIT
 Copyright 2019 Justin Ridgewell <jridgewell@google.com>
 
@@ -156,7 +156,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@jridgewell/trace-mapping 0.3.19
+@jridgewell/trace-mapping 0.3.25
 MIT
 Copyright 2022 Justin Ridgewell <justin@ridgewell.name>
 
@@ -514,7 +514,7 @@ MIT
    limitations under the License.
 
 
-@types/eslint-scope 3.7.5
+@types/eslint-scope 3.7.7
 MIT
     MIT License
 
@@ -539,7 +539,7 @@ MIT
     SOFTWARE
 
 
-@types/eslint 8.44.4
+@types/eslint 8.56.7
 MIT
     MIT License
 
@@ -564,7 +564,7 @@ MIT
     SOFTWARE
 
 
-@types/estree 1.0.2
+@types/estree 1.0.5
 MIT
     MIT License
 
@@ -614,7 +614,7 @@ MIT
     SOFTWARE
 
 
-@types/json-schema 7.0.13
+@types/json-schema 7.0.15
 MIT
     MIT License
 
@@ -639,7 +639,7 @@ MIT
     SOFTWARE
 
 
-@types/node 20.8.6
+@types/node 20.12.4
 MIT
     MIT License
 
@@ -664,175 +664,29 @@ MIT
     SOFTWARE
 
 
-@webassemblyjs/ast 1.11.6
+@webassemblyjs/ast 1.12.1
 MIT
-# @webassemblyjs/ast
+MIT License
 
-> AST utils for webassemblyjs
+Copyright (c) 2018 Sven Sauleau <sven@sauleau.com>
 
-## Installation
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-```sh
-yarn add @webassemblyjs/ast
-```
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## Usage
-
-### Traverse
-
-```js
-import { traverse } from "@webassemblyjs/ast";
-
-traverse(ast, {
-  Module(path) {
-    console.log(path.node);
-  }
-});
-```
-
-### Instruction signatures
-
-```js
-import { signatures } from "@webassemblyjs/ast";
-
-console.log(signatures);
-```
-
-### Path methods
-
-- `findParent: NodeLocator`
-- `replaceWith: Node => void`
-- `remove: () => void`
-- `insertBefore: Node => void`
-- `insertAfter: Node => void`
-- `stop: () => void`
-
-### AST utils
-
-- function `module(id, fields, metadata)`
-- function `moduleMetadata(sections, functionNames, localNames)`
-- function `moduleNameMetadata(value)`
-- function `functionNameMetadata(value, index)`
-- function `localNameMetadata(value, localIndex, functionIndex)`
-- function `binaryModule(id, blob)`
-- function `quoteModule(id, string)`
-- function `sectionMetadata(section, startOffset, size, vectorOfSize)`
-- function `loopInstruction(label, resulttype, instr)`
-- function `instruction(id, args, namedArgs)`
-- function `objectInstruction(id, object, args, namedArgs)`
-- function `ifInstruction(testLabel, test, result, consequent, alternate)`
-- function `stringLiteral(value)`
-- function `numberLiteralFromRaw(value, raw)`
-- function `longNumberLiteral(value, raw)`
-- function `floatLiteral(value, nan, inf, raw)`
-- function `elem(table, offset, funcs)`
-- function `indexInFuncSection(index)`
-- function `valtypeLiteral(name)`
-- function `typeInstruction(id, functype)`
-- function `start(index)`
-- function `globalType(valtype, mutability)`
-- function `leadingComment(value)`
-- function `blockComment(value)`
-- function `data(memoryIndex, offset, init)`
-- function `global(globalType, init, name)`
-- function `table(elementType, limits, name, elements)`
-- function `memory(limits, id)`
-- function `funcImportDescr(id, signature)`
-- function `moduleImport(module, name, descr)`
-- function `moduleExportDescr(exportType, id)`
-- function `moduleExport(name, descr)`
-- function `limit(min, max)`
-- function `signature(params, results)`
-- function `program(body)`
-- function `identifier(value, raw)`
-- function `blockInstruction(label, instr, result)`
-- function `callInstruction(index, instrArgs)`
-- function `callIndirectInstruction(signature, intrs)`
-- function `byteArray(values)`
-- function `func(name, signature, body, isExternal, metadata)`
-- Constant`isModule`
-- Constant`isModuleMetadata`
-- Constant`isModuleNameMetadata`
-- Constant`isFunctionNameMetadata`
-- Constant`isLocalNameMetadata`
-- Constant`isBinaryModule`
-- Constant`isQuoteModule`
-- Constant`isSectionMetadata`
-- Constant`isLoopInstruction`
-- Constant`isInstruction`
-- Constant`isObjectInstruction`
-- Constant`isIfInstruction`
-- Constant`isStringLiteral`
-- Constant`isNumberLiteral`
-- Constant`isLongNumberLiteral`
-- Constant`isFloatLiteral`
-- Constant`isElem`
-- Constant`isIndexInFuncSection`
-- Constant`isValtypeLiteral`
-- Constant`isTypeInstruction`
-- Constant`isStart`
-- Constant`isGlobalType`
-- Constant`isLeadingComment`
-- Constant`isBlockComment`
-- Constant`isData`
-- Constant`isGlobal`
-- Constant`isTable`
-- Constant`isMemory`
-- Constant`isFuncImportDescr`
-- Constant`isModuleImport`
-- Constant`isModuleExportDescr`
-- Constant`isModuleExport`
-- Constant`isLimit`
-- Constant`isSignature`
-- Constant`isProgram`
-- Constant`isIdentifier`
-- Constant`isBlockInstruction`
-- Constant`isCallInstruction`
-- Constant`isCallIndirectInstruction`
-- Constant`isByteArray`
-- Constant`isFunc`
-- Constant`assertModule`
-- Constant`assertModuleMetadata`
-- Constant`assertModuleNameMetadata`
-- Constant`assertFunctionNameMetadata`
-- Constant`assertLocalNameMetadata`
-- Constant`assertBinaryModule`
-- Constant`assertQuoteModule`
-- Constant`assertSectionMetadata`
-- Constant`assertLoopInstruction`
-- Constant`assertInstruction`
-- Constant`assertObjectInstruction`
-- Constant`assertIfInstruction`
-- Constant`assertStringLiteral`
-- Constant`assertNumberLiteral`
-- Constant`assertLongNumberLiteral`
-- Constant`assertFloatLiteral`
-- Constant`assertElem`
-- Constant`assertIndexInFuncSection`
-- Constant`assertValtypeLiteral`
-- Constant`assertTypeInstruction`
-- Constant`assertStart`
-- Constant`assertGlobalType`
-- Constant`assertLeadingComment`
-- Constant`assertBlockComment`
-- Constant`assertData`
-- Constant`assertGlobal`
-- Constant`assertTable`
-- Constant`assertMemory`
-- Constant`assertFuncImportDescr`
-- Constant`assertModuleImport`
-- Constant`assertModuleExportDescr`
-- Constant`assertModuleExport`
-- Constant`assertLimit`
-- Constant`assertSignature`
-- Constant`assertProgram`
-- Constant`assertIdentifier`
-- Constant`assertBlockInstruction`
-- Constant`assertCallInstruction`
-- Constant`assertCallIndirectInstruction`
-- Constant`assertByteArray`
-- Constant`assertFunc`
-
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
 @webassemblyjs/floating-point-hex-parser 1.11.6
@@ -863,8 +717,29 @@ SOFTWARE.
 MIT
 
 
-@webassemblyjs/helper-buffer 1.11.6
+@webassemblyjs/helper-buffer 1.12.1
 MIT
+MIT License
+
+Copyright (c) 2018 Sven Sauleau <sven@sauleau.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
 @webassemblyjs/helper-numbers 1.11.6
@@ -875,8 +750,29 @@ MIT
 MIT
 
 
-@webassemblyjs/helper-wasm-section 1.11.6
+@webassemblyjs/helper-wasm-section 1.12.1
 MIT
+MIT License
+
+Copyright (c) 2018 Sven Sauleau <sven@sauleau.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
 @webassemblyjs/ieee754 1.11.6
@@ -1085,155 +981,129 @@ END OF TERMS AND CONDITIONS
 MIT
 
 
-@webassemblyjs/wasm-edit 1.11.6
+@webassemblyjs/wasm-edit 1.12.1
 MIT
-# @webassemblyjs/wasm-edit
+MIT License
 
-> Rewrite a WASM binary
+Copyright (c) 2018 Sven Sauleau <sven@sauleau.com>
 
-Replace in-place an AST node in the binary.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-## Installation
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-```sh
-yarn add @webassemblyjs/wasm-edit
-```
-
-## Usage
-
-Update:
-
-```js
-import { edit } from "@webassemblyjs/wasm-edit";
-
-const binary = [/*...*/];
-
-const visitors = {
-  ModuleImport({ node }) {
-    node.module = "foo";
-    node.name = "bar";
-  }
-};
-
-const newBinary = edit(binary, visitors);
-```
-
-Replace:
-
-```js
-import { edit } from "@webassemblyjs/wasm-edit";
-
-const binary = [/*...*/];
-
-const visitors = {
-  Instr(path) {
-    const newNode = t.callInstruction(t.indexLiteral(0));
-    path.replaceWith(newNode);
-  }
-};
-
-const newBinary = edit(binary, visitors);
-```
-
-Remove:
-
-```js
-import { edit } from "@webassemblyjs/wasm-edit";
-
-const binary = [/*...*/];
-
-const visitors = {
-  ModuleExport({ node }) {
-    path.remove()
-  }
-};
-
-const newBinary = edit(binary, visitors);
-```
-
-Insert:
-
-```js
-import { add } from "@webassemblyjs/wasm-edit";
-
-const binary = [/*...*/];
-
-const newBinary = add(actualBinary, [
-  t.moduleImport("env", "mem", t.memory(t.limit(1)))
-]);
-```
-
-## Providing the AST
-
-Providing an AST allows you to handle the decoding yourself, here is the API:
-
-```js
-addWithAST(Program, ArrayBuffer, Array<Node>): ArrayBuffer;
-editWithAST(Program, ArrayBuffer, visitors): ArrayBuffer;
-```
-
-Note that the AST will be updated in-place.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
-@webassemblyjs/wasm-gen 1.11.6
+@webassemblyjs/wasm-gen 1.12.1
 MIT
+MIT License
+
+Copyright (c) 2018 Sven Sauleau <sven@sauleau.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
-@webassemblyjs/wasm-opt 1.11.6
+@webassemblyjs/wasm-opt 1.12.1
 MIT
+MIT License
+
+Copyright (c) 2018 Sven Sauleau <sven@sauleau.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
-@webassemblyjs/wasm-parser 1.11.6
+@webassemblyjs/wasm-parser 1.12.1
 MIT
-# @webassemblyjs/wasm-parser
+MIT License
 
-> WebAssembly binary format parser
+Copyright (c) 2018 Sven Sauleau <sven@sauleau.com>
 
-## Installation
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-```sh
-yarn add @webassemblyjs/wasm-parser
-```
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## Usage
-
-```js
-import { decode } from "@webassemblyjs/wasm-parser";
-import { readFileSync } from "fs";
-
-const binary = readFileSync("/path/to/module.wasm");
-
-const decoderOpts = {};
-const ast = decode(binary, decoderOpts);
-```
-
-### Decoder options
-
-- `dump`: print dump information while decoding (default `false`)
-- `ignoreCodeSection`: ignore the code section (default `false`)
-- `ignoreDataSection`: ignore the data section (default `false`)
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
-
-@webassemblyjs/wast-printer 1.11.6
+@webassemblyjs/wast-printer 1.12.1
 MIT
-# @webassemblyjs/wast-parser
+MIT License
 
-> WebAssembly text format printer
+Copyright (c) 2018 Sven Sauleau <sven@sauleau.com>
 
-## Installation
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-```sh
-yarn add @webassemblyjs/wast-printer
-```
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## Usage
-
-```js
-import { print } from "@webassemblyjs/wast-printer"
-
-console.log(print(ast));
-```
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
 @webpack-cli/configtest 2.1.1
@@ -1662,7 +1532,7 @@ Parser.extend(importAssertions).parse('...');
 This plugin is released under an MIT License.
 
 
-acorn 8.10.0
+acorn 8.11.3
 MIT
 MIT License
 
@@ -2193,7 +2063,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-browserslist 4.22.1
+browserslist 4.23.0
 MIT
 The MIT License (MIT)
 
@@ -2267,7 +2137,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-caniuse-lite 1.0.30001549
+caniuse-lite 1.0.30001605
 CC-BY-4.0
 Attribution 4.0 International
 
@@ -3329,7 +3199,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-clean-css 5.3.2
+clean-css 5.3.3
 MIT
 Copyright (C) 2017 JakubPawlowicz.com
 
@@ -3609,7 +3479,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-css-loader 6.8.1
+css-loader 6.11.0
 MIT
 Copyright JS Foundation and other contributors
 
@@ -3748,7 +3618,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-detect-libc 2.0.2
+detect-libc 2.0.3
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004
@@ -4111,7 +3981,7 @@ Original Code is [東アジアの文字幅 (East Asian Width) の判定 - 中途
     console.log(eaw.length('￠￦｡ￜㄅ뀀¢⟭a⊙①بف')) // 19
 
 
-electron-to-chromium 1.4.556
+electron-to-chromium 1.4.726
 ISC
 Copyright 2018 Kilian Valkhof
 
@@ -4168,7 +4038,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-enhanced-resolve 5.15.0
+enhanced-resolve 5.16.0
 MIT
 Copyright JS Foundation and other contributors
 
@@ -4207,7 +4077,7 @@ THIS IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRE
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-envinfo 7.10.0
+envinfo 7.11.1
 MIT
 MIT License
 
@@ -4232,7 +4102,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-es-module-lexer 1.3.1
+es-module-lexer 1.5.0
 MIT
 MIT License
 -----------
@@ -4246,7 +4116,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-escalade 3.1.1
+escalade 3.1.2
 MIT
 MIT License
 
@@ -4557,7 +4427,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-fast-glob 3.3.1
+fast-glob 3.3.2
 MIT
 The MIT License (MIT)
 
@@ -4631,7 +4501,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-fastq 1.15.0
+fastq 1.17.1
 ISC
 Copyright (c) 2015-2020, Matteo Collina <matteo.collina@gmail.com>
 
@@ -4812,6 +4682,30 @@ the licensed code:
   DEALINGS IN THE SOFTWARE.
 
 
+function-bind 1.1.2
+MIT
+Copyright (c) 2013 Raynos.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+
 gauge 3.0.2
 ISC
 Copyright (c) 2014, Rebecca Turner <me@re-becca.org>
@@ -4946,7 +4840,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-glob 10.3.10
+glob 10.3.12
 ISC
 The ISC License
 
@@ -5053,30 +4947,29 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
 
-has 1.0.4
+hasown 2.0.2
 MIT
-Copyright (c) 2013 Thiago de Arruda
+MIT License
 
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
+Copyright (c) Jordan Harband and contributors
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
 he 1.2.0
@@ -5146,7 +5039,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 
-html-webpack-plugin 5.5.3
+html-webpack-plugin 5.6.0
 MIT
 Copyright JS Foundation and other contributors
 
@@ -5342,7 +5235,7 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-ignore 5.2.4
+ignore 5.3.1
 MIT
 Copyright (c) 2013 Kael Zhang <i@kael.me>, contributors
 http://kael.me/
@@ -5443,7 +5336,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-is-core-module 2.13.0
+is-core-module 2.13.1
 MIT
 The MIT License (MIT)
 
@@ -5735,7 +5628,7 @@ This library is a fork of 'better-json-errors' by Kat Marchán, extended and
 distributed under the terms of the MIT license above.
 
 
-json-parse-even-better-errors 3.0.0
+json-parse-even-better-errors 3.0.1
 MIT
 Copyright 2017 Kat Marchán
 Copyright npm, Inc.
@@ -5839,7 +5732,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-license-checker-rseidelsohn 4.2.10
+license-checker-rseidelsohn 4.3.0
 BSD-3-Clause
 Copyright 2012 Yahoo Inc.
 
@@ -6032,7 +5925,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-lru-cache 10.0.1
+lru-cache 10.2.0
 ISC
 The ISC License
 
@@ -6263,7 +6156,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-minimatch 9.0.3
+minimatch 9.0.4
 ISC
 The ISC License
 
@@ -6419,7 +6312,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-nan 2.18.0
+nan 2.19.0
 MIT
 The MIT License (MIT)
 
@@ -6432,7 +6325,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-nanoid 3.3.6
+nanoid 3.3.7
 MIT
 The MIT License (MIT)
 
@@ -6533,7 +6426,7 @@ SOFTWARE.
 
 
 
-node-releases 2.0.13
+node-releases 2.0.14
 MIT
 The MIT License
 
@@ -6902,7 +6795,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-path-scurry 1.10.1
+path-scurry 1.10.2
 BlueOak-1.0.0
 # Blue Oak Model License
 
@@ -7237,7 +7130,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-postcss-modules-extract-imports 3.0.0
+postcss-modules-extract-imports 3.1.0
 ISC
 Copyright 2015 Glen Maddern
 
@@ -7246,7 +7139,7 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-postcss-modules-local-by-default 4.0.3
+postcss-modules-local-by-default 4.0.5
 MIT
 The MIT License (MIT)
 
@@ -7270,7 +7163,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-postcss-modules-scope 3.0.0
+postcss-modules-scope 3.2.0
 ISC
 ISC License (ISC)
 
@@ -7291,7 +7184,7 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-postcss-selector-parser 6.0.13
+postcss-selector-parser 6.0.16
 MIT
 Copyright (c) Ben Briggs <beneb.info@gmail.com> (http://beneb.info)
 
@@ -7343,7 +7236,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 
-postcss 8.4.31
+postcss 8.4.38
 MIT
 The MIT License (MIT)
 
@@ -7391,7 +7284,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-punycode 2.3.0
+punycode 2.3.1
 MIT
 Copyright Mathias Bynens <https://mathiasbynens.be/>
 
@@ -7865,7 +7758,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-semver 7.5.4
+semver 7.6.0
 ISC
 The ISC License
 
@@ -7884,7 +7777,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-serialize-javascript 6.0.1
+serialize-javascript 6.0.2
 BSD-3-Clause
 Copyright 2014 Yahoo! Inc.
 All rights reserved.
@@ -8104,7 +7997,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-source-map-js 1.0.2
+source-map-js 1.2.0
 BSD-3-Clause
 
 Copyright (c) 2009-2011, Mozilla Foundation and contributors
@@ -8412,7 +8305,7 @@ Apache-2.0
    limitations under the License.
 
 
-spdx-exceptions 2.3.0
+spdx-exceptions 2.5.0
 CC-BY-3.0
 The package exports an array of strings. Each string is an identifier
 for a license exception under the [Software Package Data Exchange
@@ -8478,7 +8371,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-spdx-license-ids 3.0.16
+spdx-license-ids 3.0.17
 CC0-1.0
 # spdx-license-ids
 
@@ -8676,7 +8569,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-style-loader 3.3.3
+style-loader 3.3.4
 MIT
 Copyright JS Foundation and other contributors
 
@@ -8776,7 +8669,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-tar 6.2.0
+tar 6.2.1
 ISC
 The ISC License
 
@@ -8795,7 +8688,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-terser-webpack-plugin 5.3.9
+terser-webpack-plugin 5.3.10
 MIT
 Copyright JS Foundation and other contributors
 
@@ -8819,7 +8712,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-terser 5.22.0
+terser 5.30.3
 BSD-2-Clause
 Copyright 2012-2018 (c) Mihai Bazon <mihai.bazon@gmail.com>
 
@@ -8919,7 +8812,7 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
-undici-types 5.25.3
+undici-types 5.26.5
 MIT
 # undici-types
 
@@ -9226,7 +9119,7 @@ Apache-2.0
    limitations under the License.
 
 
-watchpack 2.4.0
+watchpack 2.4.1
 MIT
 Copyright JS Foundation and other contributors
 
@@ -9250,11 +9143,11 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-web-streams-polyfill 3.2.1
+web-streams-polyfill 3.3.3
 MIT
 The MIT License (MIT)
 
-Copyright (c) 2020 Mattias Buelens
+Copyright (c) 2024 Mattias Buelens
 Copyright (c) 2016 Diwank Singh Tomer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -9364,7 +9257,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-webpack 5.89.0
+webpack 5.91.0
 MIT
 Copyright JS Foundation and other contributors
 
