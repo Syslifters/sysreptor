@@ -16,7 +16,6 @@ from django.utils.module_loading import import_string
 
 from reportcreator_api.conf.asgi import application
 from reportcreator_api.pentests.customfields.utils import (
-    HandleUndefinedFieldsOptions,
     ensure_defined_structure,
     get_value_at_path,
     set_value_at_path,
@@ -469,6 +468,8 @@ class TestProjectReportingDbSync:
             self.user2 = create_user()
             self.project_type = create_project_type()
             initial_data = {
+                'field_int': 1,
+                'field_user': None,
                 'field_string': 'ABC',
                 'field_markdown': 'ABC',
                 'field_list': ['ABC'],
@@ -477,9 +478,8 @@ class TestProjectReportingDbSync:
             self.project = create_project(
                 project_type=self.project_type,
                 members=[self.user1, self.user2],
-                notes_kwargs=[{'checked': None, 'icon_emoji': None, 'text': 'ABC'}],
-                report_data=ensure_defined_structure(value=initial_data, definition=self.project_type.report_fields_obj, handle_undefined=HandleUndefinedFieldsOptions.FILL_DEMO_DATA),
-                findings_kwargs=[{'data': ensure_defined_structure(value=initial_data, definition=self.project_type.finding_fields_obj, handle_undefined=HandleUndefinedFieldsOptions.FILL_DEMO_DATA)}],
+                report_data=ensure_defined_structure(value=initial_data, definition=self.project_type.report_fields_obj),
+                findings_kwargs=[{'data': ensure_defined_structure(value=initial_data, definition=self.project_type.finding_fields_obj)}],
             )
             self.section = self.project.sections.get(section_id='other')
             self.section_path_prefix = f'sections.{self.section.section_id}'

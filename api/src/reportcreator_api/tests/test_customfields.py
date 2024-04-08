@@ -574,7 +574,7 @@ class TestTemplateTranslation:
         assert 'description' not in self.trans.data
         assert self.trans.data['recommendation'] is None
         assert self.trans.data['field_list'] == ['first', None]
-        assert self.trans.data['field_object'] == {'nested1': None}
+        assert self.trans.data['field_object']['nested1'] is None
 
     def test_undefined_in_main(self):
         self.main.custom_fields = {}

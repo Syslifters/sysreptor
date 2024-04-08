@@ -3,6 +3,7 @@ from datetime import timedelta
 import pytest
 from django.test import override_settings
 
+from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.pentests.models import ReviewStatus
 from reportcreator_api.tests.mock import create_finding, create_project, create_project_type
 from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
@@ -48,8 +49,15 @@ def test_check_todo():
     }
     todo_field_paths = ['field_string', 'field_markdown', 'field_list[1]',
                         'field_object.nested1', 'field_list_objects[0].nested1']
-    project = create_project(report_data=todo_fields)
-    finding = create_finding(project=project, data=todo_fields)
+    project_type = create_project_type()
+    project = create_project(
+        project_type=project_type,
+        report_data=ensure_defined_structure(value=todo_fields, definition=project_type.report_fields_obj),
+    )
+    finding = create_finding(
+        project=project,
+        data=ensure_defined_structure(value=todo_fields, definition=project_type.finding_fields_obj),
+    )
 
     assertContainsCheckResults(project.perform_checks(), [
         ErrorMessage(level=MessageLevel.WARNING, message='Unresolved TODO', location=MessageLocationInfo(
@@ -82,9 +90,14 @@ def test_check_empty():
     set_all_required(project_type.report_fields, True)
     set_all_required(project_type.finding_fields, True)
     project_type.save()
-    project = create_project(project_type=project_type,
-                             report_data=empty_fields)
-    finding = create_finding(project=project, data=empty_fields)
+    project = create_project(
+        project_type=project_type,
+        report_data=ensure_defined_structure(value=empty_fields, definition=project_type.report_fields_obj, handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE),
+    )
+    finding = create_finding(
+        project=project,
+        data=ensure_defined_structure(value=empty_fields, definition=project_type.finding_fields_obj, handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE),
+    )
 
     assertContainsCheckResults(project.perform_checks(), [
         ErrorMessage(level=MessageLevel.WARNING, message='Empty field', location=MessageLocationInfo(
@@ -117,9 +130,14 @@ def test_check_empty_not_required():
     set_all_required(project_type.report_fields, False)
     set_all_required(project_type.finding_fields, False)
     project_type.save()
-    project = create_project(project_type=project_type,
-                             report_data=empty_fields)
-    finding = create_finding(project=project, data=empty_fields)
+    project = create_project(
+        project_type=project_type,
+        report_data=ensure_defined_structure(value=empty_fields, definition=project_type.report_fields_obj),
+    )
+    finding = create_finding(
+        project=project,
+        data=ensure_defined_structure(value=empty_fields, definition=project_type.finding_fields_obj),
+    )
 
     assertNotContainsCheckResults(project.perform_checks(), [
         ErrorMessage(level=MessageLevel.WARNING, message='Empty field', location=MessageLocationInfo(
