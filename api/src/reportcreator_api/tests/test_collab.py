@@ -1,4 +1,6 @@
 import contextlib
+import itertools
+import json
 from datetime import timedelta
 
 import pytest
@@ -8,12 +10,26 @@ from channels.testing import WebsocketCommunicator
 from django.conf import settings
 from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY
 from django.contrib.auth.models import AnonymousUser
+from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from django.utils.module_loading import import_string
 
 from reportcreator_api.conf.asgi import application
-from reportcreator_api.pentests.models import CollabClientInfo, CollabEventType, ProjectMemberInfo
-from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time
+from reportcreator_api.pentests.customfields.utils import (
+    HandleUndefinedFieldsOptions,
+    ensure_defined_structure,
+    get_value_at_path,
+    set_value_at_path,
+)
+from reportcreator_api.pentests.models import (
+    CollabClientInfo,
+    CollabEventType,
+    PentestFinding,
+    ProjectMemberInfo,
+    ReportSection,
+    ReviewStatus,
+)
+from reportcreator_api.tests.mock import api_client, create_project, create_project_type, create_user, mock_time
 from reportcreator_api.utils.text_transformations import (
     ChangeSet,
     EditorSelection,
@@ -270,7 +286,7 @@ class TestCollaborativeTextEditing:
             # client info created on connect
             client_info = await CollabClientInfo.objects.select_related('user').aget(client_id=init['client_id'])
             assert client_info.user == self.user1
-            assert client_info.path is None
+            assert client_info.path == 'notes'
 
             # path updated on collab.awareness
             await client.send_json_to({'type': CollabEventType.AWARENESS, 'path': f'notes.{self.note.note_id}.title', 'version': init['version']})
@@ -366,7 +382,7 @@ class TestProjectNotesDbSync:
             assert res1[k] == res2[k] == v
 
     async def test_delete_sync(self):
-        await sync_to_async(self.note.delete)()
+        await self.note.adelete()
         res1 = await self.client1.receive_json_from()
         res2 = await self.client2.receive_json_from()
         for k, v in ({'type': CollabEventType.DELETE, 'path': self.note_path_prefix, 'client_id': None}).items():
@@ -445,6 +461,184 @@ class TestProjectNotesDbSync:
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio()
+class TestProjectReportingDbSync:
+    @pytest_asyncio.fixture(autouse=True)
+    async def setUp(self):
+        def setup_db():
+            self.user1 = create_user()
+            self.user2 = create_user()
+            self.project_type = create_project_type()
+            initial_data = {
+                'field_string': 'ABC',
+                'field_markdown': 'ABC',
+                'field_list': ['ABC'],
+                'field_list_objects': [{'field_int': 1, 'field_string': 'ABC'}],
+            }
+            self.project = create_project(
+                project_type=self.project_type,
+                members=[self.user1, self.user2],
+                notes_kwargs=[{'checked': None, 'icon_emoji': None, 'text': 'ABC'}],
+                report_data=ensure_defined_structure(value=initial_data, definition=self.project_type.report_fields_obj, handle_undefined=HandleUndefinedFieldsOptions.FILL_DEMO_DATA),
+                findings_kwargs=[{'data': ensure_defined_structure(value=initial_data, definition=self.project_type.finding_fields_obj, handle_undefined=HandleUndefinedFieldsOptions.FILL_DEMO_DATA)}],
+            )
+            self.section = self.project.sections.get(section_id='other')
+            self.section_path_prefix = f'sections.{self.section.section_id}'
+            self.finding = self.project.findings.all()[0]
+            self.finding_path_prefix = f'findings.{self.finding.finding_id}'
+            self.api_client1 = api_client(self.user1)
+        await sync_to_async(setup_db)()
+
+        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
+                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
+            yield
+
+    async def refresh_data(self, obj=None):
+        self.section = await ReportSection.objects \
+            .select_related('assignee', 'project__project_type') \
+            .aget(id=self.section.id)
+        self.finding = await PentestFinding.objects \
+            .select_related('assignee', 'project__project_type') \
+            .aget(id=self.finding.id)
+
+        obj_id = getattr(obj, 'id', None)
+        return self.section if obj_id == self.section.id else \
+               self.finding if obj_id == self.finding.id else \
+               None
+
+    @pytest.mark.parametrize(('obj_type', 'path', 'value'), [(a,) + b for a, b in itertools.product(['finding', 'section'], [
+        ('status', ReviewStatus.FINISHED),
+        ('data.field_int', 1337),
+        ('data.field_user', lambda s: str(s.user1.id)),
+        ('data.field_object.field_int', 1337),
+        ('data.field_list_objects.[0].field_int', 1337),
+        ('data.field_list', ['a', 'b', 'c']),
+    ])])
+    async def test_update_key(self, obj_type, path, value):
+        if obj_type == 'section':
+            obj = self.section
+            path_prefix = self.section_path_prefix
+        elif obj_type == 'finding':
+            obj = self.finding
+            path_prefix = self.finding_path_prefix
+
+        if callable(value):
+            value = value(self)
+        event = {'type': CollabEventType.UPDATE_KEY, 'path': path_prefix + '.' + path, 'value': value}
+        await self.client1.send_json_to(event)
+
+        # Websocket messages sent to clients
+        res1 = await self.client1.receive_json_from()
+        res2 = await self.client2.receive_json_from()
+        for k, v in (event | {'client_id': self.client1.client_id}).items():
+            assert res1[k] == res2[k] == v
+
+        # Changes synced to DB
+        obj = await self.refresh_data(obj)
+        path_parts = path.split('.')
+        value_db = getattr(obj, path_parts[0]) if len(path_parts) == 1 else get_value_at_path(obj.data, path_parts[1:])
+        assert value_db == value
+
+        # History entry created
+        assert await obj.history.acount() == 2
+        obj_h = await obj.history.order_by('-history_date').afirst()
+        assert obj_h.history_type == '~'
+        value_h = getattr(obj_h, path_parts[0]) if len(path_parts) == 1 else get_value_at_path(obj_h.custom_fields, path_parts[1:])
+        assert value_h == value_db
+
+    @pytest.mark.parametrize(('obj_type', 'path'), [(a,) + b for a, b in itertools.product(['finding', 'section'], [
+        ('data.field_string',),
+        ('data.field_markdown',),
+        ('data.field_list.[0]',),
+        ('data.field_list_objects.[0].field_string',),
+    ])])
+    async def test_update_text(self, obj_type, path):
+        if obj_type == 'section':
+            obj = self.section
+            path_prefix = self.section_path_prefix
+        elif obj_type == 'finding':
+            obj = self.finding
+            path_prefix = self.finding_path_prefix
+
+        event = {'type': CollabEventType.UPDATE_TEXT, 'path': path_prefix + '.' + path, 'updates': [{'changes': [3, [0, 'D']]}]}
+        await self.client1.send_json_to(event | {'version': self.client1.init['version']})
+
+        # Websocket messages sent to clients
+        res1 = await self.client1.receive_json_from()
+        res2 = await self.client2.receive_json_from()
+        for k, v in (event | {'client_id': self.client1.client_id}).items():
+            assert res1[k] == res2[k] == v
+
+        # Changes synced to DB
+        obj = await self.refresh_data(obj)
+        value_db = get_value_at_path(obj.data, path.split('.')[1:])
+        assert value_db == 'ABCD'
+
+        # History entry created
+        assert await obj.history.acount() == 2
+        obj_h = await obj.history.order_by('-history_date').afirst()
+        assert obj_h.history_type == '~'
+        value_h = get_value_at_path(obj_h.custom_fields, path.split('.')[1:])
+        assert value_h == value_db
+
+    async def test_create_finding_sync(self):
+        res_api = await sync_to_async(self.api_client1.post)(
+            path=reverse('finding-list', kwargs={'project_pk': self.project.id}),
+            data={'data': {'title': 'new finding'}})
+        api_data = json.loads(json.dumps(res_api.data, cls=DjangoJSONEncoder))
+        # Create event
+        res1 = await self.client1.receive_json_from()
+        res2 = await self.client2.receive_json_from()
+        for k, v in ({'type': CollabEventType.CREATE, 'path': f'findings.{res_api.data["id"]}', 'value': api_data, 'client_id': None}).items():
+            assert res1[k] == res2[k] == v
+
+    async def test_delete_finding_sync(self):
+        await self.finding.adelete()
+        res1 = await self.client1.receive_json_from()
+        res2 = await self.client2.receive_json_from()
+        for k, v in ({'type': CollabEventType.DELETE, 'path': self.finding_path_prefix, 'client_id': None}).items():
+            assert res1[k] == res2[k] == v
+
+    @pytest.mark.parametrize(('obj_type', 'path', 'value'), [(a,) + b for a, b in itertools.product(['finding', 'section'], [
+        ('status', ReviewStatus.FINISHED),
+        ('data.field_int', 1337),
+        ('data.field_object.field_int', 1337),
+        ('data.field_list_objects.[0].field_int', 1337),
+    ])])
+    async def test_update_key_sync(self, obj_type, path, value):
+        if obj_type == 'section':
+            obj = self.section
+            path_prefix = self.section_path_prefix
+        elif obj_type == 'finding':
+            obj = self.finding
+            path_prefix = self.finding_path_prefix
+
+        if path.startswith('data'):
+            updated_data = obj.data
+            set_value_at_path(updated_data, path.split('.')[1:], value)
+            obj.update_data(updated_data)
+        else:
+            setattr(obj, path, value)
+        await obj.asave()
+
+        # Websocket messages sent to clients
+        res1 = await self.client1.receive_json_from()
+        res2 = await self.client2.receive_json_from()
+        for k, v in {'type': CollabEventType.UPDATE_KEY, 'path': f'{path_prefix}.{path}', 'value': value, 'client_id': None}.items():
+            assert res1[k] == res2[k] == v
+
+    async def test_sort_findings_sync(self):
+        res = await sync_to_async(self.api_client1.post)(
+            path=reverse('finding-sort', kwargs={'project_pk': self.project.id}),
+            data=[{'id': self.finding.finding_id, 'order': 1, 'parent': None}])
+        res1 = await self.client1.receive_json_from()
+        res2 = await self.client2.receive_json_from()
+
+        for k, v in ({'type': CollabEventType.SORT, 'path': 'findings', 'client_id': None, 'sort': res.data}).items():
+            assert res1[k] == res2[k] == v
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio()
 class TestConsumerPermissions:
     async def ws_connect(self, path, user):
         session = await create_session(user)
@@ -465,7 +659,7 @@ class TestConsumerPermissions:
         (False, 'member', 'readonly'),
         (False, 'admin', 'readonly'),
     ])
-    async def test_project_note_permissions(self, expected, user_name, project_name):
+    async def test_project_permissions(self, expected, user_name, project_name):
         def setup_db():
             user_member = create_user()
             users = {
@@ -481,6 +675,7 @@ class TestConsumerPermissions:
             return users[user_name], projects[project_name]
         user, project = await sync_to_async(setup_db)()
         assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/notes/', user) == expected
+        assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/reporting/', user) == expected
 
     @pytest.mark.parametrize(('expected', 'user_name'), [
         (True, 'self'),
