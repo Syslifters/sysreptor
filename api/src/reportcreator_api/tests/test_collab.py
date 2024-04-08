@@ -324,15 +324,18 @@ class TestProjectNotesDbSync:
     async def refresh_data(self):
         await self.note.arefresh_from_db()
 
+    async def assert_event(self, event):
+        res1 = await self.client1.receive_json_from()
+        res2 = await self.client2.receive_json_from()
+        for k, v in event.items():
+            assert res1[k] == res2[k] == v
+
     async def test_update_key(self):
         event = {'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.icon_emoji', 'value': '👍'}
         await self.client1.send_json_to(event)
 
         # Websocket messages sent to clients
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        for k, v in (event | {'client_id': self.client1.client_id}).items():
-            assert res1[k] == res2[k] == v
+        await self.assert_event(event | {'client_id': self.client1.client_id})
 
         # Changes synced to DB
         await self.refresh_data()
@@ -349,10 +352,7 @@ class TestProjectNotesDbSync:
         await self.client1.send_json_to(event | {'version': self.client1.init['version']})
 
         # Websocket messages sent to clients
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        for k, v in (event | {'client_id': self.client1.client_id}).items():
-            assert res1[k] == res2[k] == v
+        await self.assert_event(event | {'client_id': self.client1.client_id})
 
         # Changes synced to DB
         await self.refresh_data()
@@ -369,23 +369,13 @@ class TestProjectNotesDbSync:
             path=reverse('projectnotebookpage-list', kwargs={'project_pk': self.project.id}),
             data={'title': 'new', 'text': 'new'})
         # Create event
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        for k, v in ({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'value': res_api.data, 'client_id': None}).items():
-            assert res1[k] == res2[k] == v
-
+        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'value': res_api.data, 'client_id': None})
         # Sort event
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        for k, v in ({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None}).items():
-            assert res1[k] == res2[k] == v
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
 
     async def test_delete_sync(self):
         await self.note.adelete()
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        for k, v in ({'type': CollabEventType.DELETE, 'path': self.note_path_prefix, 'client_id': None}).items():
-            assert res1[k] == res2[k] == v
+        await self.assert_event({'type': CollabEventType.DELETE, 'path': self.note_path_prefix, 'client_id': None})
 
     async def test_update_key_sync(self):
         await sync_to_async(self.api_client1.patch)(
@@ -409,11 +399,7 @@ class TestProjectNotesDbSync:
         res = await sync_to_async(self.api_client1.post)(
             path=reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}),
             data=[{'id': self.note.note_id, 'order': 1, 'parent': None}])
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-
-        for k, v in ({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data}).items():
-            assert res1[k] == res2[k] == v
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
 
     async def test_member_removed_write(self):
         await ProjectMemberInfo.objects.filter(project=self.project, user=self.user1).adelete()
@@ -492,6 +478,12 @@ class TestProjectReportingDbSync:
                    ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
 
+    async def assert_event(self, event):
+        res1 = await self.client1.receive_json_from()
+        res2 = await self.client2.receive_json_from()
+        for k, v in event.items():
+            assert res1[k] == res2[k] == v
+
     async def refresh_data(self, obj=None):
         self.section = await ReportSection.objects \
             .select_related('assignee', 'project__project_type') \
@@ -527,10 +519,7 @@ class TestProjectReportingDbSync:
         await self.client1.send_json_to(event)
 
         # Websocket messages sent to clients
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        for k, v in (event | {'client_id': self.client1.client_id}).items():
-            assert res1[k] == res2[k] == v
+        await self.assert_event(event | {'client_id': self.client1.client_id})
 
         # Changes synced to DB
         obj = await self.refresh_data(obj)
@@ -563,10 +552,7 @@ class TestProjectReportingDbSync:
         await self.client1.send_json_to(event | {'version': self.client1.init['version']})
 
         # Websocket messages sent to clients
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        for k, v in (event | {'client_id': self.client1.client_id}).items():
-            assert res1[k] == res2[k] == v
+        await self.assert_event(event | {'client_id': self.client1.client_id})
 
         # Changes synced to DB
         obj = await self.refresh_data(obj)
@@ -586,17 +572,11 @@ class TestProjectReportingDbSync:
             data={'data': {'title': 'new finding'}})
         api_data = json.loads(json.dumps(res_api.data, cls=DjangoJSONEncoder))
         # Create event
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        for k, v in ({'type': CollabEventType.CREATE, 'path': f'findings.{res_api.data["id"]}', 'value': api_data, 'client_id': None}).items():
-            assert res1[k] == res2[k] == v
+        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'findings.{res_api.data["id"]}', 'value': api_data, 'client_id': None})
 
     async def test_delete_finding_sync(self):
         await self.finding.adelete()
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        for k, v in ({'type': CollabEventType.DELETE, 'path': self.finding_path_prefix, 'client_id': None}).items():
-            assert res1[k] == res2[k] == v
+        await self.assert_event({'type': CollabEventType.DELETE, 'path': self.finding_path_prefix, 'client_id': None})
 
     @pytest.mark.parametrize(('obj_type', 'path', 'value'), [(a,) + b for a, b in itertools.product(['finding', 'section'], [
         ('status', ReviewStatus.FINISHED),
@@ -621,20 +601,32 @@ class TestProjectReportingDbSync:
         await obj.asave()
 
         # Websocket messages sent to clients
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        for k, v in {'type': CollabEventType.UPDATE_KEY, 'path': f'{path_prefix}.{path}', 'value': value, 'client_id': None}.items():
-            assert res1[k] == res2[k] == v
+        await self.assert_event({'type': CollabEventType.UPDATE_KEY, 'path': f'{path_prefix}.{path}', 'value': value, 'client_id': None})
 
     async def test_sort_findings_sync(self):
         res = await sync_to_async(self.api_client1.post)(
             path=reverse('finding-sort', kwargs={'project_pk': self.project.id}),
             data=[{'id': self.finding.finding_id, 'order': 1, 'parent': None}])
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'findings', 'client_id': None, 'sort': res.data})
 
-        for k, v in ({'type': CollabEventType.SORT, 'path': 'findings', 'client_id': None, 'sort': res.data}).items():
-            assert res1[k] == res2[k] == v
+    async def test_update_project_sync(self):
+        self.project.override_finding_order = True
+        await self.project.asave()
+        await self.assert_event({'type': CollabEventType.UPDATE_KEY, 'path': 'project.override_finding_order', 'value': True, 'client_id': None})
+
+        project_type = await sync_to_async(create_project_type)()
+        self.project.project_type = project_type
+        await self.project.asave()
+        event_project_type_changed = {'type': CollabEventType.UPDATE_KEY, 'path': 'project.project_type', 'value': str(project_type.id), 'client_id': None}
+        await self.assert_event(event_project_type_changed)
+
+        project_type.report_fields = project_type.report_fields | {'new_field': {'type': 'string'}}
+        await project_type.asave()
+        await self.assert_event(event_project_type_changed)
+
+        project_type.finding_fields = project_type.finding_fields | {'new_field': {'type': 'string'}}
+        await project_type.asave()
+        await self.assert_event(event_project_type_changed)
 
 
 @pytest.mark.django_db(transaction=True)

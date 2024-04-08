@@ -165,7 +165,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         if (msgData.version && msgData.version > storeState.version) {
           storeState.version = msgData.version;
         }
-        if (msgData.type === CollabEventType.INIT) {
+
+        if (storeState.handleAdditionalWebSocketMessages?.(msgData)) {
+          // Already handled
+        } else if (msgData.type === CollabEventType.INIT) {
           storeState.connectionState = CollabConnectionState.OPEN;
           storeState.data = msgData.data;
           storeState.clientID = msgData.client_id;
@@ -213,7 +216,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           }
         } else if (msgData.type === 'ping') {
           // Do nothing
-        } else if (!storeState.handleAdditionalWebSocketMessages?.(msgData)) {
+        } else {
           // eslint-disable-next-line no-console
           console.error('Received unknown websocket message:', msgData);
         }

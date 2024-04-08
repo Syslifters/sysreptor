@@ -1,5 +1,6 @@
 import orderBy from "lodash/orderBy";
 import pick from "lodash/pick";
+import set from "lodash/set";
 import { groupNotes } from "@/stores/usernotes";
 import type { PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
 import { scoreFromVector } from "~/utils/cvss";
@@ -118,7 +119,7 @@ export const useProjectStore = defineStore('project', {
           }),
           reportingCollabState: makeCollabStoreState({
             websocketPath: `/ws/pentestprojects/${projectId}/reporting/`,
-            initialData: { findings: {}, sections: {} },
+            initialData: { project: {}, findings: {}, sections: {} },
             handleAdditionalWebSocketMessages: (msgData: any) => {
               const collabState = this.data[projectId].reportingCollabState;
               if (msgData.type === CollabEventType.SORT && msgData.path === 'findings') {
@@ -127,6 +128,15 @@ export const useProjectStore = defineStore('project', {
                   finding.order = fo?.order || 0;
                 }
                 return true;
+              } else if (msgData.type === CollabEventType.UPDATE_KEY && msgData.path?.startsWith('project.')) {
+                set(this.data[projectId].project || {} as Object, msgData.path.slice('project.'.length), msgData.value);
+                if (msgData.path === 'project.project_type') {
+                  // Reload page on project_type changed to apply the new field definition
+                  reloadNuxtApp({ force: true });
+                }
+
+                // Let the default handler update the key in store state
+                return false;
               } else {
                 return false;
               }
