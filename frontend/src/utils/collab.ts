@@ -189,7 +189,15 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         } else if (msgData.type === CollabEventType.CREATE) {
           set(storeState.data as Object, msgData.path, msgData.value);
         } else if (msgData.type === CollabEventType.DELETE) {
-          unset(storeState.data as Object, msgData.path);
+          const pathParts = msgData.path.split('.');
+          const parentList = get(storeState.data as Object, pathParts.slice(0, -1).join('.'));
+          const parentListIndex = Number.parseInt(pathParts.slice(-1)?.[0].startsWith('[') ? pathParts.slice(-1)[0].slice(1, -1) : undefined);
+          
+          if (Array.isArray(parentList) && !Number.isNaN(parentListIndex)) {
+            parentList!.splice(parentListIndex, 1);
+          } else {
+            unset(storeState.data as Object, msgData.path);
+          }
         } else if (msgData.type === CollabEventType.CONNECT) {
           if (msgData.client_id !== storeState.clientID) {
             // Add new client
@@ -299,10 +307,43 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
 
     // Propagate event to other clients
     websocketSend(JSON.stringify({
-      type: CollabEventType.UPDATE_KEY,
+      type: event.type || CollabEventType.UPDATE_KEY,
       path: dataPath,
       version: storeState.version,
       value: event.value,
+    }));
+  }
+
+  function createListItem(event: any) {
+    if (!event.path?.startsWith(storeState.websocketPath)) {
+      // Event is not for us
+      return;
+    }
+
+    // Do not update local state here. Wait for server event.
+    // Propagate event to other clients
+    const dataPath = toDataPath(event.path);
+    websocketSend(JSON.stringify({
+      type: CollabEventType.CREATE,
+      path: dataPath,
+      version: storeState.version,
+      value: event.value,
+    }));
+  }
+
+  function deleteListItem(event: any) {
+    if (!event.path?.startsWith(storeState.websocketPath)) {
+      // Event is not for us
+      return;
+    }
+
+    // Do not update local state here. Wait for server event.
+    // Propagate event to other clients
+    const dataPath = toDataPath(event.path);
+    websocketSend(JSON.stringify({
+      type: CollabEventType.DELETE,
+      path: dataPath,
+      version: storeState.version,
     }));
   }
 
@@ -471,6 +512,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       updateKey(event);
     } else if (event.type === CollabEventType.UPDATE_TEXT) {
       updateText(event);
+    } else if (event.type === CollabEventType.CREATE) {
+      createListItem(event);
+    } else if (event.type === CollabEventType.DELETE) {
+      deleteListItem(event);
     } else if (event.type === CollabEventType.AWARENESS) {
       updateAwareness(event);
     } else {
@@ -482,8 +527,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   return {
     connect,
     disconnect,
-    updateKey,
-    updateText,
     onCollabEvent,
     data: computed(() => storeState.data),
     connectionState: computed(() => storeState.connectionState),

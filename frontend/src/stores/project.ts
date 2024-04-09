@@ -132,6 +132,7 @@ export const useProjectStore = defineStore('project', {
                 set(this.data[projectId].project || {} as Object, msgData.path.slice('project.'.length), msgData.value);
                 if (msgData.path === 'project.project_type') {
                   // Reload page on project_type changed to apply the new field definition
+                  this.useReportingCollab({ project: this.data[projectId].project! }).disconnect();
                   reloadNuxtApp({ force: true });
                 }
 

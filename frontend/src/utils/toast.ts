@@ -1,5 +1,6 @@
 import isObject from "lodash/isObject";
 import { useToast } from "vue-toastification";
+import { ConfirmToast } from "#components";
 
 export function requestErrorToast({ error, message }: { error: any, message?: string}) {
   // eslint-disable-next-line no-console
@@ -48,4 +49,22 @@ export function errorToast(message: string) {
 export function warningToast(message: string) {
   const toast = useToast();
   toast.warning(message);
+}
+
+export function collabConfirmToast(message: string) {
+  const toast = useToast();
+
+  return new Promise<boolean>((resolve) => {
+    toast.warning({
+      component: ConfirmToast,
+      props: {
+        message,
+      },
+      listeners: {
+        confirm: () => resolve(true),
+      },
+    }, {
+      onClose: () => resolve(false),
+    })
+  });
 }

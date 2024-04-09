@@ -202,17 +202,25 @@ class TestCollaborativeTextEditing:
         def setup_db():
             self.user1 = create_user()
             self.user2 = create_user()
-            self.project = create_project(members=[self.user1, self.user2], notes_kwargs=[{'text': 'AB'}])
-            self.note = self.project.notes.all()[0]
+            self.project = create_project(
+                members=[self.user1, self.user2],
+                findings_kwargs=[{'data': {'field_markdown': 'AB', 'field_list': ['A', 'B']}}],
+            )
+            self.finding = self.project.findings.all()[0]
         await sync_to_async(setup_db)()
 
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user1) as self.client1, \
-                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user2, other_clients=[self.client1]) as self.client2:
+        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
+                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
+
+    async def refresh_data(self):
+        self.finding = await PentestFinding.objects \
+            .select_related('project__project_type') \
+            .aget(id=self.finding.id)
 
     async def test_concurrent_updates(self):
         # Concurrent updates of same version
-        event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'notes.{self.note.note_id}.text', 'version': self.client1.init['version']}
+        event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'version': self.client1.init['version']}
         await self.client1.send_json_to(event_base | {'updates': [{'changes': [1, [0, '1'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}})
         await self.client2.send_json_to(event_base | {'updates': [{'changes': [1, [0, '2'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}})
 
@@ -230,8 +238,8 @@ class TestCollaborativeTextEditing:
         version = res2_c1['version']
         assert version > self.client1.init['version']
 
-        await self.note.arefresh_from_db()
-        assert self.note.text == 'A12B'
+        await self.refresh_data()
+        assert self.finding.data['field_markdown'] == 'A12B'
 
         # Third update after both previous changes (using updated version)
         await self.client1.send_json_to(event_base | {'version': version, 'updates': [{'changes': [4, [0, '3']]}], 'selection': {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}})
@@ -241,11 +249,11 @@ class TestCollaborativeTextEditing:
         assert res3_c1['updates'] == [{'changes': [4, [0, '3']]}]
         assert res3_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}
 
-        await self.note.arefresh_from_db()
-        assert self.note.text == 'A12B3'
+        await self.refresh_data()
+        assert self.finding.data['field_markdown'] == 'A12B3'
 
     async def test_concurrent_updates_awareness(self):
-        event_base = {'path': f'notes.{self.note.note_id}.text', 'version': self.client1.init['version']}
+        event_base = {'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'version': self.client1.init['version']}
         await self.client1.send_json_to(event_base | {'type': CollabEventType.UPDATE_TEXT, 'updates': [{'changes': [1, [0, '1'], 1]}]})
         await self.client2.send_json_to(event_base | {'type': CollabEventType.AWARENESS, 'selection': {'main': 0, 'ranges': [{'anchor': 0, 'head': 2}]}})
 
@@ -258,7 +266,7 @@ class TestCollaborativeTextEditing:
         assert res1['selection'] == {'main': 0, 'ranges': [{'anchor': 0, 'head': 3}]}
 
     async def test_rebase_updates(self):
-        event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'notes.{self.note.note_id}.text', 'version': self.client1.init['version']}
+        event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'version': self.client1.init['version']}
         updates = [{'changes': [1, [0, '1'], 1]}, {'changes': [2, [0, '2'], 1]}, {'changes': [3, [0, '3'], 1]}, {'changes': [4, [0, '4'], 1]}]
         await self.client1.send_json_to(event_base | {'updates': updates[:2], 'selection': {'main': 0, 'ranges': [{'anchor': 3, 'head': 3}]}})
         await self.client1.send_json_to(event_base | {'updates': updates, 'selection': {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}})
@@ -270,11 +278,53 @@ class TestCollaborativeTextEditing:
         assert res2['updates'] == updates[2:]
         assert res2['selection'] == {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}
 
-        await self.note.arefresh_from_db()
-        assert self.note.text == 'A1234B'
+        await self.refresh_data()
+        assert self.finding.data['field_markdown'] == 'A1234B'
+
+    async def test_concurrent_list_updates(self):
+        # Concurrent add list items
+        event_base_create = {'type': CollabEventType.CREATE, 'path': f'findings.{self.finding.finding_id}.data.field_list', 'version': self.client1.init['version']}
+        await self.client1.send_json_to(event_base_create | {'value': 'C'})
+        await self.client2.send_json_to(event_base_create | {'value': 'D'})
+
+        res1_c1 = await self.client1.receive_json_from()
+        res1_c2 = await self.client2.receive_json_from()
+        assert res1_c1 == res1_c2
+        assert res1_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list.[2]'
+        assert res1_c1['value'] == 'C'
+
+        res2_c1 = await self.client1.receive_json_from()
+        res2_c2 = await self.client2.receive_json_from()
+        assert res2_c1 == res2_c2
+        assert res2_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list.[3]'
+        assert res2_c1['value'] == 'D'
+
+        await self.refresh_data()
+        assert self.finding.data['field_list'] == ['A', 'B', 'C', 'D']
+
+        # Delete list item
+        await self.client1.send_json_to({'type': CollabEventType.DELETE, 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]', 'version': res2_c1['version']})
+        res3_c1 = await self.client1.receive_json_from()
+        res3_c2 = await self.client2.receive_json_from()
+        assert res3_c1 == res3_c2
+        assert res3_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list.[2]'
+
+        await self.refresh_data()
+        assert self.finding.data['field_list'] == ['A', 'B', 'D']
+
+        # Sort list
+        await self.client1.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': f'findings.{self.finding.finding_id}.data.field_list', 'version': res3_c1['version'], 'value': ['B', 'D', 'A']})
+        res4_c1 = await self.client1.receive_json_from()
+        res4_c2 = await self.client2.receive_json_from()
+        assert res4_c1 == res4_c2
+        assert res4_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list'
+        assert res4_c1['value'] == ['B', 'D', 'A']
+
+        await self.refresh_data()
+        assert self.finding.data['field_list'] == ['B', 'D', 'A']
 
     async def test_client_collab_info_lifecycle(self):
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user1, consume_init=False) as client:
+        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1, consume_init=False) as client:
             # path of other clients in collab.init
             init = await client.receive_json_from()
             await client.receive_json_from()
@@ -285,19 +335,19 @@ class TestCollaborativeTextEditing:
             # client info created on connect
             client_info = await CollabClientInfo.objects.select_related('user').aget(client_id=init['client_id'])
             assert client_info.user == self.user1
-            assert client_info.path == 'notes'
+            assert client_info.path is None
 
             # path updated on collab.awareness
-            await client.send_json_to({'type': CollabEventType.AWARENESS, 'path': f'notes.{self.note.note_id}.title', 'version': init['version']})
+            await client.send_json_to({'type': CollabEventType.AWARENESS, 'path': f'findings.{self.finding.finding_id}.data.field_string', 'version': init['version']})
             await client.receive_json_from()
             await client_info.arefresh_from_db()
-            assert client_info.path == f'notes.{self.note.note_id}.title'
+            assert client_info.path == f'findings.{self.finding.finding_id}.data.field_string'
 
             # path updated on collab.update_text
-            await client.send_json_to({'type': CollabEventType.UPDATE_TEXT, 'path': f'notes.{self.note.note_id}.text', 'version': init['version'], 'updates': [{'changes': [1, [0, '1'], 1]}]})
+            await client.send_json_to({'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'version': init['version'], 'updates': [{'changes': [1, [0, '1'], 1]}]})
             await client.receive_json_from()
             await client_info.arefresh_from_db()
-            assert client_info.path == f'notes.{self.note.note_id}.text'
+            assert client_info.path == f'findings.{self.finding.finding_id}.data.field_markdown'
 
         # deleted on disconnect
         assert not await CollabClientInfo.objects.filter(client_id=init['client_id']).aexists()

@@ -159,7 +159,8 @@
         />
         <v-list v-else class="pa-0 bg-inherit">
           <draggable
-            v-model="formValue"
+            :model-value="formValue"
+            @change="e => e.moved ? emitInputList('move', e.moved.oldIndex, e.moved.newIndex) : undefined"
             :item-key="(item: any) => formValue.indexOf(item)"
             :disabled="props.disabled || props.readonly"
             handle=".draggable-handle"
@@ -218,7 +219,7 @@
                     />
                     <btn-delete
                       :delete="() => emitInputList('delete', entryIdx as number)"
-                      :confirm="!isEmptyOrDefault(entryVal, definition.items!)"
+                      :confirm="false"
                       :disabled="props.disabled || props.readonly"
                       button-variant="icon"
                     />
@@ -297,22 +298,56 @@ function emitUpdate(val: any, options?: { preventCollabEvent?: boolean }) {
 function emitInputObject(objectFieldId: string, val: any) {
   emitUpdate({ ...formValue.value, [objectFieldId]: val }, { preventCollabEvent: true });
 }
-function emitInputList(action: string, entryIdx?: number, entryVal: any|number|null = null) {
-  // TODO: emit collab events for list actions
+async function emitInputList(action: string, entryIdx?: number, entryVal: any|number|null = null) {
   const newVal = [...formValue.value];
   if (action === "update") {
     newVal[entryIdx!] = entryVal;
   } else if (action === "delete") {
     newVal.splice(entryIdx!, 1);
+    if (props.collab) {
+      if (isListEditingLocked.value) {
+        const confirmed = await collabConfirmToast('Other users are editing this list. This operation might result in conflicts.');
+        if (!confirmed) {
+          return;
+        }
+      }
+
+      emit('collab', {
+        type: CollabEventType.DELETE,
+        path: collabSubpath(props.collab, `[${entryIdx}]`).path,
+      });
+    }
   } else if (action === 'add') {
     if (entryVal === null) {
       entryVal = getInitialValue(props.definition.items!);
     }
 
     newVal.push(entryVal);
+    if (props.collab) {
+      emit('collab', {
+        type: CollabEventType.CREATE,
+        path: props.collab.path,
+        value: entryVal,
+      });
+    }
   } else if (action === 'move') {
     const [moved] = newVal.splice(entryIdx!, 1);
     newVal.splice(entryVal!, 0, moved);
+
+    if (props.collab) {
+      if (isListEditingLocked.value) {
+        const confirmed = await collabConfirmToast('Other users are editing this list. This operation might result in conflicts.');
+        if (!confirmed) {
+          return;
+        }
+      }
+      
+      emit('collab', {
+        type: CollabEventType.UPDATE_KEY,
+        path: props.collab.path,
+        value: newVal,
+      });
+    }
   }
   emitUpdate(newVal, { preventCollabEvent: true });
 }
@@ -325,7 +360,12 @@ const formValue = computed({
     return props.modelValue;
   },
   set: val => emitUpdate(val, { 
-    preventCollabEvent: [FieldDataType.MARKDOWN, FieldDataType.STRING, FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.type) 
+    preventCollabEvent: [
+      FieldDataType.MARKDOWN, 
+      FieldDataType.STRING, 
+      FieldDataType.OBJECT,
+      FieldDataType.LIST,
+    ].includes(props.definition.type) 
   }),
 });
 const label = computed(() => {
@@ -396,7 +436,7 @@ onUnmounted(async () => {
 const bulkEditList = ref(false);
 function emitInputStringList(valuesListString?: string) {
   const values = (valuesListString || '').split('\n').filter(v => !!v);
-  emitUpdate(values, { preventCollabEvent: false }); // TODO: bulk update whole list ???
+  emitUpdate(values, { preventCollabEvent: false });
 }
 function onListKeyDown(event: KeyboardEvent) {
   // Disable vuetify list keyboard navigation
@@ -404,6 +444,11 @@ function onListKeyDown(event: KeyboardEvent) {
     event.stopPropagation();
   }
 }
+const isListEditingLocked = computed(() => {
+  // Other users are currently editing the list.
+  // Some collaborative list operations are not race-condition safe and should not be locked.
+  return props.definition.type === FieldDataType.LIST && props.collab && props.collab.clients.some(c => !c.isSelf);
+});
 
 const nestedClass = computed(() => {
   if ([FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.type)) {
