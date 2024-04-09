@@ -180,12 +180,18 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           storeState.awareness.sendAwarenessThrottled?.();
           resolve();
         } else if (msgData.type === CollabEventType.UPDATE_KEY) {
+          // Clear pending text events
+          for (const [k, v] of storeState.perPathState.entries()) {
+            if (msgData.path === k || msgData.path.startsWith(k + '.')) {
+              v.unconfirmedTextUpdates = [];
+              v.sendUpdateTextThrottled.cancel();
+            }
+          }
+
           // Update local state
           set(storeState.data as Object, msgData.path, msgData.value);
         } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
           receiveUpdateText(msgData);
-        } else if (msgData.type === CollabEventType.UPDATE_KEY) {
-          set(storeState.data as Object, msgData.path, msgData.value);
         } else if (msgData.type === CollabEventType.CREATE) {
           set(storeState.data as Object, msgData.path, msgData.value);
         } else if (msgData.type === CollabEventType.DELETE) {

@@ -633,6 +633,8 @@ class TestProjectReportingDbSync:
         ('data.field_int', 1337),
         ('data.field_object.field_int', 1337),
         ('data.field_list_objects.[0].field_int', 1337),
+        ('data.field_list', []),
+        ('data.field_list', ['A', 'B', 'C']),
     ])])
     async def test_update_key_sync(self, obj_type, path, value):
         if obj_type == 'section':
@@ -652,6 +654,7 @@ class TestProjectReportingDbSync:
 
         # Websocket messages sent to clients
         await self.assert_event({'type': CollabEventType.UPDATE_KEY, 'path': f'{path_prefix}.{path}', 'value': value, 'client_id': None})
+        assert await self.client1.receive_nothing()
 
     async def test_sort_findings_sync(self):
         res = await sync_to_async(self.api_client1.post)(
