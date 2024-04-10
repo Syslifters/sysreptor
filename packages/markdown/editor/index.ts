@@ -1,4 +1,4 @@
-export { EditorState, EditorSelection, ChangeSet, Text, Transaction } from '@codemirror/state';
+export { EditorState, EditorSelection, ChangeSet, Text, Transaction, type Extension } from '@codemirror/state';
 export { EditorView, ViewUpdate, tooltips, scrollPastEnd, keymap, lineNumbers, drawSelection, rectangularSelection, crosshairCursor, dropCursor } from '@codemirror/view';
 export { history, historyKeymap, defaultKeymap, indentWithTab, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 export { forceLinting, setDiagnostics } from '@codemirror/lint';
