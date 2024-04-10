@@ -72,11 +72,11 @@ const fetchLoaderAttrs = computed(() => ({
 }));
 const editorDiffAttrs = computed(() => ({
   historic: {
-    value: fetchState.data.value?.templateHistoric,
+    value: fetchState.data.value?.templateHistoric as FindingTemplate,
     rewriteFileUrl: rewriteFileUrlHistoric,
   },
   current: {
-    value: fetchState.data.value?.templateCurrent,
+    value: fetchState.data.value?.templateCurrent as FindingTemplate,
     rewriteFileUrl: rewriteFileUrlCurrent,
   },
   initialLanguage: route.query?.language as string,

@@ -105,7 +105,7 @@
       </template>
 
       <template #default>
-        <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form" />
+        <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm" />
 
         <template v-if="currentItemIsSection">
           <s-card>
@@ -171,6 +171,7 @@
 import Draggable from "vuedraggable";
 import omit from 'lodash/omit';
 import isEqual from 'lodash/isEqual';
+import { VForm } from "vuetify/components";
 import { uniqueName } from '@/utils/urls';
 import { FieldOrigin } from "~/utils/types";
 

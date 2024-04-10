@@ -61,7 +61,7 @@ onMounted(() => {
     codeLens: false,
     folding: true,
     lightbulb: {
-      enabled: false,
+      enabled: monaco.editor.ShowLightbulbIconMode.Off,
     },
     automaticLayout: true,
     wordWrap: 'on',

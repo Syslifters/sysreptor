@@ -101,6 +101,7 @@ export default defineNuxtConfig({
     listen(server) {
       const proxy = createProxyServer({ target: { host: "api", port: 8000 }, ws: true })
 
+      server.removeAllListeners("upgrade")
       server.on("upgrade", (req, socket, head) => {
         if (req.url!.startsWith('/ws')) {
           // @ts-ignore

@@ -86,12 +86,12 @@
 
       <error-list v-if="!pendingCheckMessages" :value="allMessages" :group="true" :show-no-message-info="true">
         <template #location="{msg}">
-          <NuxtLink v-if="messageLocationUrl(msg)" :to="messageLocationUrl(msg)" target="_blank" class="text-primary">
+          <NuxtLink v-if="messageLocationUrl(msg) && msg.location" :to="messageLocationUrl(msg)" target="_blank" class="text-primary">
             in {{ msg.location.type }}
             <span v-if="msg.location.name"> "{{ msg.location.name }}"</span>
             <span v-if="msg.location.path"> field "{{ msg.location.path }}"</span>
           </NuxtLink>
-          <span v-else-if="msg.location.name">
+          <span v-else-if="msg.location?.name">
             in {{ msg.location.type }}
             <span v-if="msg.location.name"> "{{ msg.location.name }}"</span>
             <span v-if="msg.location.path"> field "{{ msg.location.path }}"</span>

@@ -24,7 +24,7 @@ export type MarkdownProps = {
   rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
 }
 
-export function makeMarkdownProps(options: { files: boolean, spellcheckSupportedDefault: boolean }) {
+export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean } = { spellcheckSupportedDefault: true }) {
   return {
     modelValue: {
       type: String,
@@ -58,27 +58,25 @@ export function makeMarkdownProps(options: { files: boolean, spellcheckSupported
       type: Object as PropType<CollabPropType>,
       default: undefined,
     },
-    ...(options.files ? {
-      uploadFile: {
-        type: Function as PropType<MarkdownProps['uploadFile']>,
-        default: undefined,
-      },
-      rewriteFileUrl: {
-        type: Function as PropType<MarkdownProps['rewriteFileUrl']>,
-        default: undefined,
-      },
-      rewriteReferenceLink: {
-        type: Function as PropType<MarkdownProps['rewriteReferenceLink']>,
-        default: undefined,
-      },
-    } : {}),
+    uploadFile: {
+      type: Function as PropType<MarkdownProps['uploadFile']>,
+      default: undefined,
+    },
+    rewriteFileUrl: {
+      type: Function as PropType<MarkdownProps['rewriteFileUrl']>,
+      default: undefined,
+    },
+    rewriteReferenceLink: {
+      type: Function as PropType<MarkdownProps['rewriteReferenceLink']>,
+      default: undefined,
+    },
   }
 }
 export function makeMarkdownEmits() {
   return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'collab', 'focus', 'blur'];
 }
 
-export function useMarkdownEditor({ props, emit, extensions }: {
+export function useMarkdownEditor({ props, emit, extensions, fileUploadSupported }: {
     extensions: any[];
     props: ComputedRef<MarkdownProps & {
         modelValue: string|null;
@@ -87,6 +85,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
         spellcheckSupported?: boolean;
     }>;
     emit: any;
+    fileUploadSupported: boolean;
 }) {
   const apiSettings = useApiSettings();
   const theme = useTheme();
@@ -135,7 +134,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
 
   const fileUploadInProgress = ref(false);
   async function uploadFiles(files?: FileList, pos?: number|null) {
-    if (!editorView.value || !props.value.uploadFile || !files || files.length === 0 || fileUploadInProgress.value) {
+    if (!editorView.value || !props.value.uploadFile || !fileUploadSupported || !files || files.length === 0 || fileUploadInProgress.value) {
       return;
     }
 
@@ -273,7 +272,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     editorActions.value.disabled(Boolean(props.value.disabled || props.value.readonly));
     editorActions.value.spellcheckLanguageTool(spellcheckLanguageToolEnabled.value);
     editorActions.value.spellcheckBrowser(spellcheckBrowserEnabled.value);
-    editorActions.value.uploadFile(Boolean(props.value.uploadFile));
+    editorActions.value.uploadFile(Boolean(props.value.uploadFile) && fileUploadSupported);
     editorActions.value.darkTheme(theme.current.value.dark);
   }
   onMounted(() => initializeEditorView());
@@ -350,7 +349,7 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     editorView: editorView.value,
     editorState: editorState.value,
     disabled: props.value.disabled || props.value.readonly,
-    uploadFiles: props.value.uploadFile ? uploadFiles : undefined,
+    uploadFiles: (props.value.uploadFile && fileUploadSupported) ? uploadFiles : undefined,
     fileUploadInProgress: fileUploadInProgress.value,
     lang: props.value.lang,
     spellcheckEnabled: props.value.spellcheckEnabled,
@@ -359,8 +358,8 @@ export function useMarkdownEditor({ props, emit, extensions }: {
     'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => emit('update:markdownEditorMode', val),
   }));
   const markdownStatusbarAttrs = computed(() => ({
-    editorState: editorState.value,
-    fileUploadEnabled: Boolean(props.value.uploadFile),
+    editorState: editorState.value!,
+    fileUploadEnabled: Boolean(props.value.uploadFile) && fileUploadSupported,
     fileUploadInProgress: fileUploadInProgress.value,
   }));
   const markdownPreviewAttrs = computed(() => ({

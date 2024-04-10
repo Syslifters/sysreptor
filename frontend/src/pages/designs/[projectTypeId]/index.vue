@@ -1,7 +1,7 @@
 <template>
   <v-container class="pt-0">
     <v-form ref="form">
-      <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form">
+      <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm">
         <template #context-menu>
           <btn-copy
             :disabled="!auth.permissions.value.designer"
@@ -55,6 +55,7 @@
 </template>
 
 <script setup lang="ts">
+import { type VForm } from 'vuetify/components';
 import { useProjectTypeLockEditOptions } from "~/composables/lockedit";
 
 const auth = useAuth();

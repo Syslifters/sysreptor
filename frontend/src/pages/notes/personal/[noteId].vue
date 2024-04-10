@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import urlJoin from "url-join";
-import { MarkdownEditorMode } from "~/utils/types";
+import { MarkdownEditorMode, type UserNote } from "~/utils/types";
 import { uploadFileHelper } from "~/utils/upload";
 
 const route = useRoute();
@@ -71,7 +71,7 @@ const note = computed(() => notesCollab.data.value.notes[route.params.noteId as 
 
 const toolbarAttrs = computed(() => ({
   data: note.value,
-  delete: async (note: ProjectNote) => {
+  delete: async (note: UserNote) => {
     await userNotesStore.deleteNote(note);
     await navigateTo('/notes/personal/');
   },

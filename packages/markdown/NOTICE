@@ -298,7 +298,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/view 6.26.1
+@codemirror/view 6.26.2
 MIT
 MIT License
 
@@ -2517,10 +2517,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-dompurify 3.0.11
+dompurify 3.1.0
 (MPL-2.0 OR Apache-2.0)
 DOMPurify
-Copyright 2023 Dr.-Ing. Mario Heiderich, Cure53
+Copyright 2024 Dr.-Ing. Mario Heiderich, Cure53
 
 DOMPurify is free software; you can redistribute it and/or modify it under the
 terms of either:

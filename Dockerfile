@@ -1,4 +1,4 @@
-FROM node:18-alpine3.18 AS pdfviewer-dev
+FROM node:20-alpine3.19 AS pdfviewer-dev
 
 # Add custom CA certificates
 ARG CA_CERTIFICATES=""
@@ -23,7 +23,7 @@ RUN npm run build
 
 
 
-FROM node:18-alpine3.18 AS frontend-dev
+FROM node:20-alpine3.19 AS frontend-dev
 
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
@@ -65,7 +65,7 @@ RUN npm run generate
 
 
 
-FROM node:18-alpine3.18 AS rendering-dev
+FROM node:20-alpine3.19 AS rendering-dev
 
 # Add custom CA certificates
 ARG CA_CERTIFICATES=""

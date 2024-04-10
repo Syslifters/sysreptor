@@ -9,9 +9,9 @@
 import { ReviewStatus } from "~/utils/types";
 
 const props = defineProps<{
-  value: ReviewStatus;
+  value?: ReviewStatus|null;
 }>();
-const statusInfo = computed(() => ReviewStatusItems.find(i => i.value === props.value)!);
+const statusInfo = computed(() => ReviewStatusItems.find(i => i.value === props.value));
 </script>
 
 <style lang="scss" scoped>

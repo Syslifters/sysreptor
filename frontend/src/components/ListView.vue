@@ -45,7 +45,7 @@
   </full-height-page>
 </template>
 
-<script setup lang="ts" generic="T">
+<script setup lang="ts" generic="T = any">
 import { useSearchableCursorPaginationFetcher } from "~/composables/api";
 
 const props = defineProps<{
