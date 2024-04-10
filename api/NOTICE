@@ -3465,11 +3465,11 @@ Historical Permission Notice and Disclaimer (HPND)
 The Python Imaging Library (PIL) is
 
     Copyright © 1997-2011 by Secret Labs AB
-    Copyright © 1995-2011 by Fredrik Lundh
+    Copyright © 1995-2011 by Fredrik Lundh and contributors
 
 Pillow is the friendly PIL fork. It is
 
-    Copyright © 2010-2024 by Jeffrey A. Clark (Alex) and contributors.
+    Copyright © 2010-2024 by Jeffrey A. Clark and contributors
 
 Like PIL, Pillow is licensed under the open source HPND License:
 
@@ -5694,7 +5694,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 
 
-pyasn1-modules
+pyasn1_modules
 BSD License
 Copyright (c) 2005-2020, Ilya Etingof <etingof@gmail.com>
 All rights reserved.
@@ -5726,7 +5726,7 @@ pycparser
 BSD License
 pycparser -- A C parser in Python
 
-Copyright (c) 2008-2020, Eli Bendersky
+Copyright (c) 2008-2022, Eli Bendersky
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -5737,7 +5737,7 @@ are permitted provided that the following conditions are met:
 * Redistributions in binary form must reproduce the above copyright notice, 
   this list of conditions and the following disclaimer in the documentation 
   and/or other materials provided with the distribution.
-* Neither the name of Eli Bendersky nor the names of its contributors may 
+* Neither the name of the copyright holder nor the names of its contributors may 
   be used to endorse or promote products derived from this software without 
   specific prior written permission.
 
@@ -6402,29 +6402,6 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-
-pytz
-MIT License
-Copyright (c) 2003-2019 Stuart Bishop <stuart@stuartbishop.net>
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the "Software"),
-to deal in the Software without restriction, including without limitation
-the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
 
 
 qrcode
@@ -9212,3 +9189,26 @@ or special or punitive damages (including but not limited to loss of income,
 program interruption, loss of information, or other pecuniary loss) 
 arising out of use of this information, no matter the cause of action, 
 even if The MITRE Corporation has been advised of the possibility of such damages.
+
+randomcolor
+MIT License
+
+Copyright (c) 2016 Kevin Wu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

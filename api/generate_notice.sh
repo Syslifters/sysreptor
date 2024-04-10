@@ -21,9 +21,10 @@ ignore="webencodings"
 ignore="$ignore pyphen"
 ignore="$ignore freetype2"
 ignore="$ignore cwe"
+ignore="$ignore randomcolor"
 
 pip3 install pip-licenses
-pip-licenses --allow-only "$allow_only" >/dev/null
+pip-licenses --allow-only "$allow_only" --ignore-packages $ignore >/dev/null
 pip-licenses -l --no-license-path -f plain-vertical --no-version --ignore-packages $ignore > NOTICE
 
 
@@ -750,6 +751,31 @@ or special or punitive damages (including but not limited to loss of income,
 program interruption, loss of information, or other pecuniary loss) 
 arising out of use of this information, no matter the cause of action, 
 even if The MITRE Corporation has been advised of the possibility of such damages.
+EOF
+)
+
+randomcolor=$(cat << EOF
+MIT License
+
+Copyright (c) 2016 Kevin Wu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 EOF
 )
 

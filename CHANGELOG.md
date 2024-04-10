@@ -1,6 +1,6 @@
 # Changelog
 
-## v2024.027 - 2024-04-10
+## v2024.028 - 2024-04-10
 * Collaborative editing in notes
 * Show cursor position and selection of other users for collaborative editing in notes
 * Remember "Encrypt PDF" setting in browser's local storage
