@@ -91,7 +91,7 @@
   </div>
 </template>
 
-<script setup lang="ts" generic="T extends { id: string, lock_info?: LockInfo }">
+<script setup lang="ts" generic="T extends { id: string, lock_info?: LockInfo|null }">
 import debounce from 'lodash/debounce';
 import cloneDeep from 'lodash/cloneDeep';
 import isEqual from 'lodash/isEqual';
@@ -101,7 +101,7 @@ import type { LockInfo } from '@/utils/types';
 import { EditMode } from '@/utils/types';
 
 const props = withDefaults(defineProps<{
-  data?: T,
+  data?: T|null,
   form?: VForm,
   canSave?: boolean,
   canAutoSave?: boolean,

@@ -101,7 +101,7 @@ async function uploadSingleFile(file: File) {
     requestErrorToast({ error, message: 'Failed to upload ' + file.name });
   }
 }
-async function performFileUpload(files?: FileList|null) {
+async function performFileUpload(files?: File[]|FileList|null) {
   if (uploadInProgress.value || props.disabled || !files) {
     return;
   }

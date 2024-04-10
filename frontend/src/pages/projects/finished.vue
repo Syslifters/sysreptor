@@ -8,7 +8,7 @@
         <pro-info>Archived</pro-info>
       </v-tab>
     </template>
-    <template #item="{item}">
+    <template #item="{item}: {item: PentestProject}">
       <project-list-item :item="item" />
     </template>
   </list-view>

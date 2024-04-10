@@ -91,12 +91,12 @@ import type { VToolbar } from 'vuetify/lib/components/index.mjs';
 import { MarkdownEditorMode } from '@/utils/types';
 
 const props = defineProps<{
-  editorView?: EditorView;
-  editorState?: EditorState;
+  editorView?: EditorView|null;
+  editorState?: EditorState|null;
   spellcheckEnabled?: boolean;
   markdownEditorMode?: MarkdownEditorMode;
   disabled?: boolean;
-  lang?: string;
+  lang?: string|null;
   uploadFiles?: (files: FileList) => Promise<void>;
   fileUploadInProgress?: boolean;
 }>();

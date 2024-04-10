@@ -25,7 +25,7 @@ export function spellcheck({ performSpellcheckRequest, performSpellcheckAddWordR
 }) {
   return linter(async (view) => {
     const initial = view.state.doc.toString();
-    const annotatedText = markdownToAnnotatedText(initial) as unknown as AnnotatedText[];
+    const annotatedText = markdownToAnnotatedText(initial);
     if (annotatedText.length === 0) {
       return [];
     }

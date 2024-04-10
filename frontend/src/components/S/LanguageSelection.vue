@@ -22,9 +22,10 @@
 
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
-  modelValue: string|null;
+  modelValue?: string|null;
   items?: Language[]|null;
 }>(), {
+  modelValue: null,
   items: null
 });
 const emit = defineEmits<{

@@ -40,7 +40,7 @@
       >
         <history-timeline-item
           v-if="props.currentUrl"
-          :value="{history_type: '~', history_change_reason: 'Current Version'}"
+          :value="{history_type: '~', history_change_reason: 'Current Version'} as unknown as HistoryTimelineRecord"
           :to="currentUrl"
         >
           <template #info><span /></template>
@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-  modelValue: boolean;
+  modelValue?: boolean;
   url: string;
   currentUrl?: string|null;
 }>();

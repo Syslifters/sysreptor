@@ -18,13 +18,13 @@
         class="history-timeline-content"
       >
         <history-timeline-item
-          :value="{history_type: '~', history_change_reason: 'Current Version'}"
+          :value="{history_type: '~', history_change_reason: 'Current Version'} as unknown as HistoryTimelineRecord"
           :to="`/projects/${project.id}/reporting/`"
         >
           <template #info><span /></template>
         </history-timeline-item>
         <history-timeline-item-project 
-          v-for="item in items.data.value" 
+          v-for="item in (items.data.value as HistoryTimelineRecord[])" 
           :key="item.id" 
           :item="item" 
           :project="project" 

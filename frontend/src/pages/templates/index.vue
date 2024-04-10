@@ -37,7 +37,7 @@
           :disabled="!auth.permissions.value.template_editor"
         />
       </template>
-      <template #item="{item}">
+      <template #item="{item}: {item: FindingTemplate}">
         <template-list-item
           :template="item"
           :language="currentLanguage"
@@ -65,7 +65,7 @@ const auth = useAuth();
 
 const listViewRef = ref();
 
-const languageChoices = computed(() => [{ code: null as string|null, name: 'All' }].concat(apiSettings.settings!.languages.filter(l => l.enabled || l.code === route.query.language)));
+const languageChoices = computed(() => [{ code: null as string|null, name: 'All' } as Language].concat(apiSettings.settings!.languages.filter(l => l.enabled || l.code === route.query.language)));
 const currentLanguage = computed({
   get: () => (Array.isArray(route.query.language) ? route.query.language[0] : route.query.language) || null,
   set: (val) => {

@@ -10,10 +10,12 @@
 </template>
 
 <script setup lang="ts">
+import type { BtnConfirmVariant } from './Confirm.vue';
+
 const props = withDefaults(defineProps<{
   copy: () => Promise<void>;
   confirmText?: string;
-  buttonVariant?: string;
+  buttonVariant?: BtnConfirmVariant;
 }>(), {
   confirmText: undefined,
   buttonVariant: 'list-item',

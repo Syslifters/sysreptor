@@ -114,7 +114,7 @@ watch(dialogVisible, () => {
 });
 
 const templateLanguage = ref<string|null>(null);
-const templateLanguageChoices = computed(() => currentTemplate.value?.translations?.map(tr => apiSettings.settings!.languages.find(l => l.code === tr.language)) || []);
+const templateLanguageChoices = computed(() => currentTemplate.value?.translations?.map(tr => apiSettings.settings!.languages.find(l => l.code === tr.language)!) || []);
 const displayLanguage = computed(() => templateLanguage.value || props.project.language);
 watch(currentTemplate, () => {
   if (!currentTemplate.value) {

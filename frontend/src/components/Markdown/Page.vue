@@ -39,16 +39,14 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps(makeMarkdownProps({
-  files: true,
-  spellcheckSupportedDefault: true,
-}));
+const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
 
 const { editorView, markdownToolbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
   props: computed(() => ({ ...props, spellcheckSupported: true } as any)),
   emit,
   extensions: markdownEditorPageExtensions(),
+  fileUploadSupported: true,
 });
 
 function initialScrollTop() {

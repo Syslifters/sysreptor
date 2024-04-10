@@ -86,15 +86,15 @@ const archiverUsers = computed(() => allArchiverUsers.value.filter(u => u.can_re
 const threshold = computed(() => apiSettings.settings!.archiving_threshold);
 const canArchive = computed(() => apiSettings.settings!.features.archiving && threshold.value > 0 && threshold.value <= archiverUsers.value.length);
 const warnings = computed(() => {
-  const out = [];
+  const out = [] as ErrorMessage[];
   if (archiverUsers.value.length < threshold.value) {
     out.push({
-      level: 'error',
+      level: MessageLevel.ERROR,
       message: `Too few archivers. At least ${threshold.value} users are required to restore the archive.`,
     });
   } else if (threshold.value === archiverUsers.value.length) {
     out.push({
-      level: 'warning',
+      level: MessageLevel.WARNING,
       message: 'All archivers are required to restore the archive. If one user loses their key, the archive is lost forever. Consider adding more users before archiving.',
     });
   }

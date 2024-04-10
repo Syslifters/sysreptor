@@ -16,7 +16,6 @@ import {
 } from "~/composables/markdown";
 
 const props = defineProps(makeMarkdownProps({
-  files: false,
   spellcheckSupportedDefault: false
 }));
 const emit = defineEmits(makeMarkdownEmits());
@@ -25,6 +24,7 @@ const { onIntersect, focus, blur } = useMarkdownEditor({
   props: computed(() => props),
   emit,
   extensions: markdownEditorTextFieldExtensions(),
+  fileUploadSupported: false,
 });
 defineExpose({
   focus,

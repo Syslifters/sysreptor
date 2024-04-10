@@ -90,7 +90,7 @@
 
       <template #default>
         <div class="h-100">
-          <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form" />
+          <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm" />
           <template v-if="currentField === null">
             <design-finding-ordering-definition
               v-model="projectType.finding_ordering"
@@ -123,6 +123,7 @@
 import omit from 'lodash/omit';
 import sortBy from "lodash/sortBy";
 import Draggable from "vuedraggable";
+import type { VForm } from 'vuetify/components';
 import { uniqueName } from '@/utils/urls';
 import { useProjectTypeLockEditOptions } from "@/composables/lockedit";
 import { FieldDataType, FieldOrigin } from "@/utils/types";

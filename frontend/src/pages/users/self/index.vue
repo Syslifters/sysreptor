@@ -1,12 +1,14 @@
 <template>
   <v-form ref="form">
-    <edit-toolbar :data="user" :form="$refs.form" :save="performSave" />
+    <edit-toolbar :data="user" :form="$refs.form as VForm" :save="performSave" />
 
     <user-info-form v-model="user" :errors="serverErrors" />
   </v-form>
 </template>
 
 <script setup lang="ts">
+import { VForm } from 'vuetify/components';
+
 const auth = useAuth();
 const user = await useFetchE<User>('/api/v1/pentestusers/self/', { method: 'GET' });
 

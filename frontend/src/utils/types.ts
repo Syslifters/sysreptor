@@ -498,8 +498,8 @@ export enum MessageLocationType {
 export type ErrorMessage = {
   level: MessageLevel;
   message: string;
-  details: string|null;
-  location: {
+  details?: string|null;
+  location?: {
     type:MessageLocationType;
     id: string|null;
     name: string|null;

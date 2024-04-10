@@ -2,7 +2,7 @@
   <v-form ref="form">
     <edit-toolbar
       :data="user"
-      :form="$refs.form"
+      :form="$refs.form as VForm"
       :edit-mode="canEdit ? EditMode.EDIT : EditMode.READONLY"
       :save="performSave"
       :delete="performDelete"
@@ -55,6 +55,7 @@
 </template>
 
 <script setup lang="ts">
+import { VForm } from "vuetify/components";
 import { EditMode } from "~/utils/types";
 
 const route = useRoute();

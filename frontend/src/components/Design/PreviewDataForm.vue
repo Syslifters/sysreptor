@@ -262,7 +262,7 @@ const fieldAttrs = computed(() => ({
   showFieldIds: true,
   uploadFile: props.uploadFile,
   rewriteFileUrl: props.rewriteFileUrl,
-  selectableUsers: [auth.user.value],
+  selectableUsers: [auth.user.value!],
   lang: props.projectType.language,
   readonly: props.readonly,
   spellcheckEnabled: localSettings.designSpellcheckEnabled,

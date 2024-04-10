@@ -10,7 +10,7 @@
         <v-tab :to="{ path: '/designs/', query: route.query }" exact prepend-icon="mdi-earth" text="Global" />
         <v-tab :to="{ path: '/designs/private/', query: route.query }" prepend-icon="mdi-account" text="Private" />
       </template>
-      <template #item="{item}">
+      <template #item="{item}: {item: ProjectType}">
         <design-list-item :item="item" />
       </template>
     </list-view>

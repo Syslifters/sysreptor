@@ -154,7 +154,7 @@ export function useLockEdit<T>(options: LockEditOptions<T>) {
       } : {}),
       ...((options.performDelete) ? {
         delete: options.performDelete,
-        deleteConfirmInput: options.deleteConfirmInput?.value,
+        deleteConfirmInput: options.deleteConfirmInput?.value || undefined,
         ...(options.canDelete ? {
           canDelete: options.canDelete.value,
         } : {}),

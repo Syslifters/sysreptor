@@ -19,7 +19,7 @@
       <template #default>
         <full-height-page>
           <template #header>
-            <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form">
+            <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm">
               <template #title v-if="currentNote">
                 <div class="note-title-container">
                   <div>
@@ -84,6 +84,7 @@
 
 <script setup lang="ts">
 import { v4 as uuid4 } from 'uuid';
+import { VForm } from 'vuetify/components';
 
 const localSettings = useLocalSettings();
 
@@ -154,7 +155,7 @@ function updateNoteChecked(note: NoteBase) {
     dn.checked = note.checked;
   }
 }
-async function selectNote(note: NoteBase) {
+async function selectNote(note: NoteBase|null) {
   currentNote.value = note;
   await nextTick();
   textRef.value?.focus();
