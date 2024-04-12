@@ -27,7 +27,7 @@
     Install additional requirements of script installation:
     ```shell
     sudo apt update
-    sudo apt install sed curl openssl uuid-runtime coreutils
+    sudo apt install -y sed curl openssl uuid-runtime coreutils
     ```
 
     The user running the installation script must have the permission to use docker.  

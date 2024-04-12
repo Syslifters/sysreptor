@@ -45,7 +45,7 @@ We recommend to deploy automatic updates and run the script once per day. This e
 If `cron` is not installed, install and start:
 ```shell
 sudo apt update
-sudo apt install cron
+sudo apt install -y cron
 sudo systemctl start cron
 #sudo /etc/init.d/cron start
 ```
