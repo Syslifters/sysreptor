@@ -2,6 +2,8 @@
   <s-autocomplete
     :model-value="props.modelValue"
     @update:model-value="emit('update:modelValue', $event)"
+    @focus="emit('focus', $event)"
+    @blur="emit('blur', $event)"
     :items="items"
     :item-title="cweTitle"
     :custom-filter="filterCweItem"
@@ -38,6 +40,8 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   'update:modelValue': [value: string|null];
+  'focus': [e: FocusEvent];
+  'blur': [e: FocusEvent];
 }>();
 
 const apiSettings = useApiSettings();

@@ -4,6 +4,8 @@
       <s-text-field
         :model-value="props.modelValue"
         @update:model-value="emit('update:modelValue', $event)"
+        @focus="emit('focus', $event)"
+        @blur="emit('blur', $event)"
         :rules="rules.validCvssVector"
         :label="props.label"
         :disabled="props.disabled"
@@ -135,7 +137,9 @@ const props = defineProps<{
   disableValidation?: boolean;
 }>();
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string|null): void;
+  'update:modelValue': [value: string|null];
+  'focus': [e: FocusEvent];
+  'blur': [e: FocusEvent];
 }>();
 
 const localSettings = useLocalSettings();

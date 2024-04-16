@@ -318,6 +318,11 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       version: storeState.version,
       value: event.value,
     }));
+
+    if (event.updateAwareness) {
+      storeState.awareness.self = { path: dataPath };
+      storeState.awareness.sendAwarenessThrottled?.();
+    }
   }
 
   function createListItem(event: any) {
