@@ -306,7 +306,7 @@ async function emitInputList(action: string, entryIdx?: number, entryVal: any|nu
     newVal.splice(entryIdx!, 1);
     if (props.collab) {
       if (isListEditingLocked.value) {
-        const confirmed = await collabConfirmToast('Other users are editing this list. This operation might result in conflicts.');
+        const confirmed = await collabConfirmToast();
         if (!confirmed) {
           return;
         }
@@ -336,7 +336,7 @@ async function emitInputList(action: string, entryIdx?: number, entryVal: any|nu
 
     if (props.collab) {
       if (isListEditingLocked.value) {
-        const confirmed = await collabConfirmToast('Other users are editing this list. This operation might result in conflicts.');
+        const confirmed = await collabConfirmToast();
         if (!confirmed) {
           return;
         }

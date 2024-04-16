@@ -51,14 +51,15 @@ export function warningToast(message: string) {
   toast.warning(message);
 }
 
-export function collabConfirmToast(message: string) {
+export function collabConfirmToast(message?: string) {
   const toast = useToast();
 
   return new Promise<boolean>((resolve) => {
     toast.warning({
       component: ConfirmToast,
       props: {
-        message,
+        message: message || "Other users are editing this list. This operation might result in conflicts.",
+        buttonText: "Force change",
       },
       listeners: {
         confirm: () => resolve(true),
@@ -68,3 +69,9 @@ export function collabConfirmToast(message: string) {
     })
   });
 }
+
+// TODO: Collab findings
+// * [x] collab lock confirm text: "Force change"
+// * [x] update collab confirm text
+// * [ ] selection position error on move list element wiht different length
+// * [ ] collab.awareness for collab.update_key
