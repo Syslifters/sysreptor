@@ -469,9 +469,6 @@ def rebase_updates(updates: list[Update], selection: Optional[EditorSelection], 
     filtered out, and secondly, has been moved over the other changes
     so that they apply to the current document version.
     """
-    import logging
-    logging.info(f'rebase_updates: updates={updates}, over={over}')
-
     if not updates or not over:
         return updates, selection
 
