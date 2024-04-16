@@ -320,18 +320,23 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     const dataPath = toDataPath(event.path);
     set(storeState.data as Object, dataPath, event.value);
 
+    // Update awareness
+    if (event.updateAwareness) {
+      storeState.awareness.self = {
+        path: dataPath,
+        selection: undefined,
+      };
+      storeState.awareness.sendAwarenessThrottled?.cancel();
+    }
+
     // Propagate event to other clients
     websocketSend(JSON.stringify({
       type: event.type || CollabEventType.UPDATE_KEY,
       path: dataPath,
       version: storeState.version,
       value: event.value,
+      update_awareness: event.updateAwareness,
     }));
-
-    if (event.updateAwareness) {
-      storeState.awareness.self = { path: dataPath };
-      storeState.awareness.sendAwarenessThrottled?.();
-    }
   }
 
   function createListItem(event: any) {
@@ -430,12 +435,13 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     }
 
     const dataPath = toDataPath(event.path);
-    storeState.awareness.self = {
-      path: dataPath,
-      selection: event.selection,
-    };
-
-    storeState.awareness.sendAwarenessThrottled?.();
+    if (storeState.awareness.self.path !== dataPath || storeState.awareness.self.selection !== event.selection) {
+      storeState.awareness.self = {
+        path: dataPath,
+        selection: event.selection,
+      };
+      storeState.awareness.sendAwarenessThrottled?.();
+    }
   }
 
   function receiveUpdateText(event: any) {
