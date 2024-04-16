@@ -481,9 +481,7 @@ class TestCopyModel:
         user = create_user()
         p = create_project(members=[user], readonly=True, source=SourceEnum.IMPORTED)
         create_projectnotebookpage(project=p, parent=p.notes.first())
-        finding = create_finding(project=p, template=create_template())
-        finding.lock(user)
-        p.sections.first().lock(user)
+        create_finding(project=p, template=create_template())
         cp = p.copy()
 
         assert p != cp
@@ -506,12 +504,10 @@ class TestCopyModel:
         for p_s, cp_s in zip(p.sections.order_by('section_id'), cp.sections.order_by('section_id')):
             assert p_s != cp_s
             assertKeysEqual(p_s, cp_s, ['section_id', 'assignee', 'status', 'data'])
-            assert not cp_s.is_locked
 
         for p_f, cp_f in zip(p.findings.order_by('finding_id'), cp.findings.order_by('finding_id')):
             assert p_f != cp_f
             assertKeysEqual(p_f, cp_f, ['finding_id', 'assignee', 'status', 'order', 'data', 'template'])
-            assert not cp_f.is_locked
 
         for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id')):
             assert p_n != cp_n

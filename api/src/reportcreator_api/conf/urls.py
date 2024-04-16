@@ -10,7 +10,7 @@ from rest_framework_nested.routers import NestedSimpleRouter
 
 from reportcreator_api.api_utils.views import UtilsViewSet
 from reportcreator_api.notifications.views import NotificationViewSet
-from reportcreator_api.pentests.consumers import ProjectNotesConsumer, UserNotesConsumer
+from reportcreator_api.pentests.consumers import ProjectNotesConsumer, ProjectReportingConsumer, UserNotesConsumer
 from reportcreator_api.pentests.views import (
     ArchivedProjectKeyPartViewSet,
     ArchivedProjectViewSet,
@@ -111,6 +111,7 @@ urlpatterns = [
 
 
 websocket_urlpatterns = [
+    path('ws/pentestprojects/<uuid:project_id>/reporting/', ProjectReportingConsumer.as_asgi(), name='projectnotebookpage-ws'),
     path('ws/pentestprojects/<uuid:project_id>/notes/', ProjectNotesConsumer.as_asgi(), name='projectnotebookpage-ws'),
     path('ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi(), name='usernotebookpage-ws'),
 ]

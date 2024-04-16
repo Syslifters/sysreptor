@@ -66,7 +66,7 @@ const route = useRoute();
 const localSettings = useLocalSettings();
 const userNotesStore = useUserNotesStore();
 
-const notesCollab = userNotesStore.useNotesCollab(route.params.noteId as string);
+const notesCollab = userNotesStore.useNotesCollab({ noteId: route.params.noteId as string });
 const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
 
 const toolbarAttrs = computed(() => ({

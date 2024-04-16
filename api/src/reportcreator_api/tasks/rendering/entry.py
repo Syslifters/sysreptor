@@ -23,6 +23,7 @@ from reportcreator_api.pentests.customfields.utils import (
     HandleUndefinedFieldsOptions,
     ensure_defined_structure,
     iterate_fields,
+    set_value_at_path,
 )
 from reportcreator_api.pentests.models import (
     Language,
@@ -248,14 +249,10 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
             path = json.loads(path_str)
             if path[0] == 'sections':
                 section_data = next(filter(lambda s: s['id'] == path[1], result['sections']))['data']
-                for p in path[2:-1]:
-                    section_data = section_data[p]
-                section_data[path[-1]] = html
+                set_value_at_path(section_data, path[2:], html)
             elif path[0] == 'findings':
                 finding_data = next(filter(lambda f: f['id'] == path[1], result['findings']))['data']
-                for p in path[2:-1]:
-                    finding_data = finding_data[p]
-                finding_data[path[-1]] = html
+                set_value_at_path(finding_data, path[2:], html)
 
         return {
             'result': result,

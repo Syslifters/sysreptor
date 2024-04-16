@@ -4,6 +4,7 @@
     <markdown-text-field
       v-if="definition.type === 'string'"
       v-model="formValue"
+      :collab="props.collab"
       validate-on="input lazy"
       :spellcheck-supported="definition.spellcheck"
       :rules="[(v: string) => validateRegexPattern(v)]"
@@ -14,6 +15,7 @@
     <markdown-field
       v-else-if="definition.type === 'markdown'"
       v-model="formValue"
+      :collab="props.collab"
       v-bind="fieldAttrs"
     >
       <template v-if="$slots['markdown-context-menu']" #context-menu="slotData">
@@ -109,6 +111,7 @@
           :key="objectFieldId"
           :model-value="formValue[objectFieldId]"
           @update:model-value="emitInputObject(objectFieldId as string, $event)"
+          :collab="props.collab ? collabSubpath(props.collab, objectFieldId) : undefined"
           :id="props.id ? (props.id + '.' + objectFieldId) : undefined"
           v-bind="inheritedAttrs(props.definition.properties![objectFieldId])"
         >
@@ -156,7 +159,8 @@
         />
         <v-list v-else class="pa-0 bg-inherit">
           <draggable
-            v-model="formValue"
+            :model-value="formValue"
+            @change="e => e.moved ? emitInputList('move', e.moved.oldIndex, e.moved.newIndex) : undefined"
             :item-key="(item: any) => formValue.indexOf(item)"
             :disabled="props.disabled || props.readonly"
             handle=".draggable-handle"
@@ -167,8 +171,9 @@
                   <dynamic-input-field
                     :model-value="entryVal"
                     @update:model-value="emitInputList('update', entryIdx as number, $event)"
+                    :collab="props.collab ? collabSubpath(props.collab, `[${entryIdx}]`) : undefined"
                     @keydown="onListKeyDown"
-                    :id="id ? (id + '[' + entryIdx + ']') : undefined"
+                    :id="id ? `${id}[${entryIdx}]` : undefined"
                     v-bind="inheritedAttrs(props.definition.items!)"
                   >
                     <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
@@ -214,7 +219,7 @@
                     />
                     <btn-delete
                       :delete="() => emitInputList('delete', entryIdx as number)"
-                      :confirm="!isEmptyOrDefault(entryVal, definition.items!)"
+                      :confirm="false"
                       :disabled="props.disabled || props.readonly"
                       button-variant="icon"
                     />
@@ -252,6 +257,7 @@ import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 const props = defineProps<MarkdownProps & {
   modelValue?: any;
   definition: FieldDefinition;
+  collab?: CollabPropType;
   id?: string;
   showFieldIds?: boolean;
   selectableUsers?: UserShortInfo[];
@@ -263,6 +269,7 @@ const props = defineProps<MarkdownProps & {
 }>();
 const emit = defineEmits<{
   'update:modelValue': [value: any];
+  'collab': [value: any];
   'update:spellcheckEnabled': [value: boolean];
   'update:markdownEditorMode': [value: MarkdownEditorMode];
 }>();
@@ -278,29 +285,71 @@ function getInitialValue(fieldDef: FieldDefinition, useDefault = true): any {
     return null;
   }
 }
-function emitUpdate(val: any) {
+function emitUpdate(val: any, options?: { preventCollabEvent?: boolean }) {
+  if (props.collab && !options?.preventCollabEvent) {
+    emit('collab', {
+      type: CollabEventType.UPDATE_KEY,
+      path: props.collab.path,
+      value: val,
+    });
+  }
   emit('update:modelValue', val);
 }
 function emitInputObject(objectFieldId: string, val: any) {
-  emitUpdate({ ...formValue.value, [objectFieldId]: val });
+  emitUpdate({ ...formValue.value, [objectFieldId]: val }, { preventCollabEvent: true });
 }
-function emitInputList(action: string, entryIdx?: number, entryVal: any|number|null = null) {
+async function emitInputList(action: string, entryIdx?: number, entryVal: any|number|null = null) {
   const newVal = [...formValue.value];
   if (action === "update") {
     newVal[entryIdx!] = entryVal;
   } else if (action === "delete") {
     newVal.splice(entryIdx!, 1);
+    if (props.collab) {
+      if (isListEditingLocked.value) {
+        const confirmed = await collabConfirmToast('Other users are editing this list. This operation might result in conflicts.');
+        if (!confirmed) {
+          return;
+        }
+      }
+
+      emit('collab', {
+        type: CollabEventType.DELETE,
+        path: collabSubpath(props.collab, `[${entryIdx}]`).path,
+      });
+    }
   } else if (action === 'add') {
     if (entryVal === null) {
       entryVal = getInitialValue(props.definition.items!);
     }
 
     newVal.push(entryVal);
+    if (props.collab) {
+      emit('collab', {
+        type: CollabEventType.CREATE,
+        path: props.collab.path,
+        value: entryVal,
+      });
+    }
   } else if (action === 'move') {
     const [moved] = newVal.splice(entryIdx!, 1);
     newVal.splice(entryVal!, 0, moved);
+
+    if (props.collab) {
+      if (isListEditingLocked.value) {
+        const confirmed = await collabConfirmToast('Other users are editing this list. This operation might result in conflicts.');
+        if (!confirmed) {
+          return;
+        }
+      }
+      
+      emit('collab', {
+        type: CollabEventType.UPDATE_KEY,
+        path: props.collab.path,
+        value: newVal,
+      });
+    }
   }
-  emitUpdate(newVal);
+  emitUpdate(newVal, { preventCollabEvent: true });
 }
 
 const formValue = computed({
@@ -310,7 +359,14 @@ const formValue = computed({
     }
     return props.modelValue;
   },
-  set: val => emitUpdate(val),
+  set: val => emitUpdate(val, { 
+    preventCollabEvent: [
+      FieldDataType.MARKDOWN, 
+      FieldDataType.STRING, 
+      FieldDataType.OBJECT,
+      FieldDataType.LIST,
+    ].includes(props.definition.type) 
+  }),
 });
 const label = computed(() => {
   let out = props.definition.label || '';
@@ -380,7 +436,7 @@ onUnmounted(async () => {
 const bulkEditList = ref(false);
 function emitInputStringList(valuesListString?: string) {
   const values = (valuesListString || '').split('\n').filter(v => !!v);
-  emitUpdate(values);
+  emitUpdate(values, { preventCollabEvent: false });
 }
 function onListKeyDown(event: KeyboardEvent) {
   // Disable vuetify list keyboard navigation
@@ -388,6 +444,11 @@ function onListKeyDown(event: KeyboardEvent) {
     event.stopPropagation();
   }
 }
+const isListEditingLocked = computed(() => {
+  // Other users are currently editing the list.
+  // Some collaborative list operations are not race-condition safe and should not be locked.
+  return props.definition.type === FieldDataType.LIST && props.collab && props.collab.clients.some(c => !c.isSelf);
+});
 
 const nestedClass = computed(() => {
   if ([FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.type)) {
@@ -401,6 +462,7 @@ const fieldAttrs = computed(() => ({
   ...attrs,
   label: label.value,
   ...pick(props, ['disabled', 'readonly', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink']),
+  onCollab: (v: any) => emit('collab', v),
   'onUpdate:spellcheckEnabled': (v: boolean) => emit('update:spellcheckEnabled', v),
   'onUpdate:markdownEditorMode': (v: MarkdownEditorMode) => emit('update:markdownEditorMode', v),
 }))

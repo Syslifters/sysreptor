@@ -5,6 +5,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.use(Toast, {
     position: 'bottom-right',
     hideProgressBar: true,
+    shareAppContext: true,
   });
   return {
     provide: {

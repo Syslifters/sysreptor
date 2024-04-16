@@ -10,10 +10,6 @@
             :to="`/projects/${$route.params.projectId}/reporting/sections/${section.id}/`"
             density="compact"
           >
-            <template #prepend>
-              <s-lock-info :value="section.lock_info" />
-            </template>
-
             <template #default>
               <v-list-item-title class="text-body-2">{{ section.label }}</v-list-item-title>
               <v-list-item-subtitle>
@@ -23,6 +19,10 @@
               </v-list-item-subtitle>
             </template>
             <template #append>
+              <collab-avatar-group 
+                :collab="collabSubpath(reportingCollab.collabProps.value, `sections.${section.id}`)"
+                :class="{'mr-2': section.status !== ReviewStatus.IN_PROGRESS}"
+              />
               <s-status-info :value="section.status" />
             </template>
           </v-list-item>
@@ -75,7 +75,6 @@
                   <div v-if="sortFindingsManual" class="draggable-handle mr-2">
                     <v-icon :disabled="project.readonly" icon="mdi-drag-horizontal" />
                   </div>
-                  <s-lock-info :value="finding.lock_info" />
                 </template>
                 <template #default>
                   <v-list-item-title class="text-body-2">{{ finding.data.title }}</v-list-item-title>
@@ -86,6 +85,10 @@
                   </v-list-item-subtitle>
                 </template>
                 <template #append>
+                  <collab-avatar-group 
+                    :collab="collabSubpath(reportingCollab.collabProps.value, `findings.${finding.id}`)"
+                    :class="{'mr-2': finding.status !== ReviewStatus.IN_PROGRESS}"
+                  />
                   <s-status-info :value="finding.status" />
                 </template>
               </v-list-item>
@@ -103,7 +106,9 @@
     </template>
 
     <template #default>
-      <nuxt-page />
+      <collab-loader :collab="reportingCollab" class="h-100">
+        <nuxt-page />
+      </collab-loader>
     </template>
   </split-menu>
 </template>
@@ -112,41 +117,45 @@
 import Draggable from "vuedraggable";
 import { scoreFromVector, levelNumberFromScore, levelNumberFromLevelName } from "~/utils/cvss";
 
-definePageMeta({
-  title: 'Reporting'
-});
-
 const route = useRoute();
+const router = useRouter();
 const auth = useAuth();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore()
 const projectTypeStore = useProjectTypeStore();
 
+definePageMeta({
+  title: 'Reporting'
+});
+
 const project = await useAsyncDataE(async () => await projectStore.fetchById(route.params.projectId as string), { key: 'reporting:project' });
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'reporting:projectType' });
 const findings = computed(() => projectStore.findings(project.value.id, { projectType: projectType.value }));
-const sections = computed(() => projectStore.sections(project.value.id));
+const sections = computed(() => projectStore.sections(project.value.id, { projectType: projectType.value }));
 const sortFindingsManual = computed(() => project.value.override_finding_order || projectType.value.finding_ordering.length === 0);
 
-// Periodically refresh lists. Updates project, sections, findings in store
-async function refreshListings() {
-  try {
-    project.value = await projectStore.fetchById(project.value.id);
-    projectType.value = await projectTypeStore.getById(project.value.project_type);
-  } catch (error) {
-    // hide error
+const reportingCollab = projectStore.useReportingCollab({ project: project.value });
+onMounted(async () => {
+  if (reportingCollab.hasEditPermissions.value) {
+    await reportingCollab.connect();
+    collabAwarenessSendNavigate();
+  } else {
+    await projectStore.fetchFindingsAndSections(project.value);
   }
-}
-const refreshListingsInterval = ref();
-onMounted(() => {
-  refreshListingsInterval.value = setInterval(refreshListings, 10_000);
 });
 onBeforeUnmount(() => {
-  if (refreshListingsInterval.value) {
-    clearInterval(refreshListingsInterval.value);
-    refreshListingsInterval.value = undefined;
-  }
+  reportingCollab.disconnect();
 });
+watch(() => router.currentRoute.value, collabAwarenessSendNavigate);
+
+function collabAwarenessSendNavigate() {
+  const findingId = router.currentRoute.value.params.findingId;
+  const sectionId = router.currentRoute.value.params.sectionId;
+  reportingCollab.onCollabEvent({
+    type: CollabEventType.AWARENESS,
+    path: collabSubpath(reportingCollab.collabProps.value, findingId ? `findings.${findingId}` : sectionId ? `sections.${sectionId}` : null).path,
+  });
+}
 
 // Sort findings
 const wasOverrideFindingOrder = ref(false);

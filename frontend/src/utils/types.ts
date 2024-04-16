@@ -255,7 +255,7 @@ export type PentestProject = BaseModel & {
   imported_members: ProjectMember[];
 }
 
-export type ReportSection = BaseModel & Lockable & {
+export type ReportSection = BaseModel & {
   readonly label: string;
   readonly fields: string[];
   readonly project: string;
@@ -269,7 +269,7 @@ export type ReportSection = BaseModel & Lockable & {
   };
 }
 
-export type PentestFinding = BaseModel & Lockable & {
+export type PentestFinding = BaseModel & {
   readonly label: string;
   readonly fields: string[];
   readonly project: string;
@@ -352,7 +352,7 @@ export type FindingTemplateTranslation = BaseModel & {
   },
 }
 
-export type FindingTemplate = BaseModel & {
+export type FindingTemplate = BaseModel & Lockable & {
   readonly usage_count: number;
   readonly source: SourceEnum;
   tags: string[];

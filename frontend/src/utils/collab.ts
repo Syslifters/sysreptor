@@ -45,7 +45,7 @@ export type CollabStoreState<T> = {
   websocketConnectionLostTimeout?: ReturnType<typeof throttle>;
   handleAdditionalWebSocketMessages?: (event: any) => boolean;
   perPathState: Map<string, {
-    sendUpdateTextThrottled: () => void;
+    sendUpdateTextThrottled: ReturnType<typeof throttle>;
     unconfirmedTextUpdates: TextUpdate[];
   }>;
   awareness: {
@@ -146,6 +146,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         // Reset data
         storeState.websocket = null;
         storeState.websocketConnectionLostTimeout?.cancel();
+        storeState.awareness.sendAwarenessThrottled?.cancel();
+        for (const perPathState of storeState.perPathState.values()) {
+          perPathState.sendUpdateTextThrottled.cancel();
+        }
         storeState.perPathState?.clear();
         storeState.version = 0;
         storeState.connectionState = CollabConnectionState.CLOSED;
@@ -161,7 +165,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         if (msgData.version && msgData.version > storeState.version) {
           storeState.version = msgData.version;
         }
-        if (msgData.type === CollabEventType.INIT) {
+
+        if (storeState.handleAdditionalWebSocketMessages?.(msgData)) {
+          // Already handled
+        } else if (msgData.type === CollabEventType.INIT) {
           storeState.connectionState = CollabConnectionState.OPEN;
           storeState.data = msgData.data;
           storeState.clientID = msgData.client_id;
@@ -173,16 +180,30 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           storeState.awareness.sendAwarenessThrottled?.();
           resolve();
         } else if (msgData.type === CollabEventType.UPDATE_KEY) {
+          // Clear pending text events
+          for (const [k, v] of storeState.perPathState.entries()) {
+            if (msgData.path === k || msgData.path.startsWith(k + '.')) {
+              v.unconfirmedTextUpdates = [];
+              v.sendUpdateTextThrottled.cancel();
+            }
+          }
+
           // Update local state
           set(storeState.data as Object, msgData.path, msgData.value);
         } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
           receiveUpdateText(msgData);
-        } else if (msgData.type === CollabEventType.UPDATE_KEY) {
-          set(storeState.data as Object, msgData.path, msgData.value);
         } else if (msgData.type === CollabEventType.CREATE) {
           set(storeState.data as Object, msgData.path, msgData.value);
         } else if (msgData.type === CollabEventType.DELETE) {
-          unset(storeState.data as Object, msgData.path);
+          const pathParts = msgData.path.split('.');
+          const parentList = get(storeState.data as Object, pathParts.slice(0, -1).join('.'));
+          const parentListIndex = Number.parseInt(pathParts.slice(-1)?.[0].startsWith('[') ? pathParts.slice(-1)[0].slice(1, -1) : undefined);
+          
+          if (Array.isArray(parentList) && !Number.isNaN(parentListIndex)) {
+            parentList!.splice(parentListIndex, 1);
+          } else {
+            unset(storeState.data as Object, msgData.path);
+          }
         } else if (msgData.type === CollabEventType.CONNECT) {
           if (msgData.client_id !== storeState.clientID) {
             // Add new client
@@ -209,7 +230,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           }
         } else if (msgData.type === 'ping') {
           // Do nothing
-        } else if (!storeState.handleAdditionalWebSocketMessages?.(msgData)) {
+        } else {
           // eslint-disable-next-line no-console
           console.error('Received unknown websocket message:', msgData);
         }
@@ -292,10 +313,43 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
 
     // Propagate event to other clients
     websocketSend(JSON.stringify({
-      type: CollabEventType.UPDATE_KEY,
+      type: event.type || CollabEventType.UPDATE_KEY,
       path: dataPath,
       version: storeState.version,
       value: event.value,
+    }));
+  }
+
+  function createListItem(event: any) {
+    if (!event.path?.startsWith(storeState.websocketPath)) {
+      // Event is not for us
+      return;
+    }
+
+    // Do not update local state here. Wait for server event.
+    // Propagate event to other clients
+    const dataPath = toDataPath(event.path);
+    websocketSend(JSON.stringify({
+      type: CollabEventType.CREATE,
+      path: dataPath,
+      version: storeState.version,
+      value: event.value,
+    }));
+  }
+
+  function deleteListItem(event: any) {
+    if (!event.path?.startsWith(storeState.websocketPath)) {
+      // Event is not for us
+      return;
+    }
+
+    // Do not update local state here. Wait for server event.
+    // Propagate event to other clients
+    const dataPath = toDataPath(event.path);
+    websocketSend(JSON.stringify({
+      type: CollabEventType.DELETE,
+      path: dataPath,
+      version: storeState.version,
     }));
   }
 
@@ -464,6 +518,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       updateKey(event);
     } else if (event.type === CollabEventType.UPDATE_TEXT) {
       updateText(event);
+    } else if (event.type === CollabEventType.CREATE) {
+      createListItem(event);
+    } else if (event.type === CollabEventType.DELETE) {
+      deleteListItem(event);
     } else if (event.type === CollabEventType.AWARENESS) {
       updateAwareness(event);
     } else {
@@ -475,8 +533,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   return {
     connect,
     disconnect,
-    updateKey,
-    updateText,
     onCollabEvent,
     data: computed(() => storeState.data),
     connectionState: computed(() => storeState.connectionState),

@@ -148,7 +148,8 @@ def create_template_translation(template, **kwargs):
 
 
 def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
-    additional_fields = {
+    additional_fields_simple = {
+        'nested1':  {'type': 'string', 'label': 'Nested Field'},
         'field_string': {'type': 'string', 'label': 'String Field', 'default': 'test'},
         'field_markdown': {'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
         'field_cvss': {'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
@@ -159,9 +160,11 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
         'field_enum': {'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'enum1', 'label': 'Enum Value 1'}, {'value': 'enum2', 'label': 'Enum Value 2'}], 'default': 'enum2'},
         'field_combobox': {'type': 'combobox', 'label': 'Combobox Field', 'suggestions': ['value 1', 'value 2'], 'default': 'value1'},
         'field_user': {'type': 'user', 'label': 'User Field'},
-        'field_object': {'type': 'object', 'label': 'Nested Object', 'properties': {'nested1':  {'type': 'string', 'label': 'Nested Field'}}},
+    }
+    additional_fields = additional_fields_simple | {
+        'field_object': {'type': 'object', 'label': 'Nested Object', 'properties': {'nested1':  {'type': 'string', 'label': 'Nested Field'}} | additional_fields_simple},
         'field_list': {'type': 'list', 'label': 'List Field', 'items': {'type': 'string'}},
-        'field_list_objects': {'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': {'nested1': {'type': 'string', 'label': 'Nested object field', 'default': None}}}},
+        'field_list_objects': {'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': {'nested1': {'type': 'string', 'label': 'Nested object field', 'default': None}} | additional_fields_simple}},
     }
     project_type = ProjectType.objects.create(**{
         'name': f'Project Type #{get_random_string(8)}',

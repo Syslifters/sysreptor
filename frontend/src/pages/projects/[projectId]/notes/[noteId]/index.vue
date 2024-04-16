@@ -8,7 +8,7 @@
               <s-btn-icon
                 @click="updateKey('checked', note.checked === null ? false : !note.checked ? true : null)"
                 :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
-                :disabled="notesCollab.readonly.value"
+                :disabled="readonly"
                 density="comfortable"
               />
             </div>
@@ -17,7 +17,7 @@
               :model-value="note.icon_emoji"
               @update:model-value="updateKey('icon_emoji', $event)"
               :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
-              :readonly="notesCollab.readonly.value"
+              :readonly="readonly"
               density="comfortable"
             />
               
@@ -26,7 +26,7 @@
               :model-value="note.title"
               :collab="collabSubpath(notesCollab.collabProps.value, 'title')"
               @collab="notesCollab.onCollabEvent"
-              :readonly="notesCollab.readonly.value"
+              :readonly="readonly"
               :spellcheck-supported="true"
               v-bind="inputFieldAttrs"
               class="note-title"
@@ -39,7 +39,7 @@
               :model-value="note.assignee"
               @update:model-value="updateKey('assignee', $event)"
               :selectable-users="project.members"
-              :readonly="notesCollab.readonly.value"
+              :readonly="readonly"
               label="Assignee"
               variant="underlined"
               density="compact"
@@ -76,7 +76,7 @@
         :model-value="note.text"
         :collab="collabSubpath(notesCollab.collabProps.value, 'text')"
         @collab="notesCollab.onCollabEvent"
-        :readonly="notesCollab.readonly.value"
+        :readonly="readonly"
         v-bind="inputFieldAttrs"
       />
     </template>
@@ -92,8 +92,9 @@ const projectStore = useProjectStore();
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
 
-const notesCollab = projectStore.useNotesCollab(project.value, route.params.noteId as string);
+const notesCollab = projectStore.useNotesCollab({ project: project.value, noteId: route.params.noteId as string });
 const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
+const readonly = computed(() => notesCollab.readonly.value);
 
 const { inputFieldAttrs, errorMessage } = useProjectEditBase({
   project: computed(() => project.value),
