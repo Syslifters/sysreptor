@@ -1,14 +1,16 @@
 <template>
   <s-text-field
     :model-value="props.modelValue"
-    @update:model-value="emits('update:modelValue', $event)"
+    @update:model-value="emit('update:modelValue', $event)"
     :disabled="props.disabled"
     :readonly="props.readonly"
     :rules="rules"
     prepend-inner-icon="mdi-calendar"
     spellcheck="false"
     :clearable="props.readonly"
-    @click:clear="emits('update:modelValue', null)"
+    @click:clear="emit('update:modelValue', null)"
+    @focus="emit('focus', $event)"
+    @blur="emit('blur', $event)"
     v-bind="$attrs"
   >
     <template #label v-if="$slots.label"><slot name="label" /></template>
@@ -47,8 +49,10 @@ const props = withDefaults(defineProps<{
   locale: 'en',
   minDate: undefined,
 });
-const emits = defineEmits<{
-  (e: 'update:modelValue', modelValue: string|null): void,
+const emit = defineEmits<{
+  'update:modelValue': [value: string|null];
+  'focus': [e: FocusEvent];
+  'blur': [e: FocusEvent];
 }>();
 
 const datePickerVisible = ref(false);
@@ -67,7 +71,7 @@ const dateValue = computed({
   set: (val) => {
     datePickerVisible.value = false;
     const formatted = val ? formatISO(val, { representation: 'date' }) : null;
-    emits('update:modelValue', formatted);
+    emit('update:modelValue', formatted);
   },
 });
 

@@ -222,8 +222,6 @@ onBeforeUnmount(() => {
 });
 
 async function performSave() {
-  // eslint-disable-next-line no-console
-  console.log('performSave', !canSave.value, !hasChanges.value, savingInProgress.value);
   if (!canSave.value || !hasChanges.value || savingInProgress.value) {
     return;
   }
@@ -270,8 +268,6 @@ async function performDelete() {
 
 async function selfLockedEditAnyway() {
   await performLock(true)
-  // eslint-disable-next-line no-console
-  console.log('selfLockedEditAnyway', hasLock.value);
   if (hasLock.value) {
     emit('update:editMode', EditMode.EDIT);
   }
@@ -295,8 +291,6 @@ async function performLock(forceLock = false) {
   if (lockingInProgress.value || !props.lockUrl || (props.editMode === EditMode.READONLY && !forceLock) || isDestroying.value) {
     return;
   }
-  // eslint-disable-next-line no-console
-  console.log('EditToolbar.performLock');
 
   lockingInProgress.value = true;
   if (!refreshLockInterval.value) {
@@ -304,9 +298,9 @@ async function performLock(forceLock = false) {
   }
 
   try {
-    const lockResponse = await performLockRequest(forceLock);
     // eslint-disable-next-line no-console
-    console.log('performLock lockResponse', lockResponse);
+    console.log('EditToolbar.performLock');
+    const lockResponse = await performLockRequest(forceLock);
 
     const lockedData = lockResponse.data as Lockable;
     lockInfo.value = lockedData.lock_info;
@@ -325,8 +319,6 @@ async function performLock(forceLock = false) {
     // hasLock.value = false;
 
     if (error?.status === 403 && error?.data?.lock_info) {
-      // eslint-disable-next-line no-console
-      console.log('Lock error: Another user has the lock. Switching to readonly mode.', props.data?.id, error, error.response.data);
       lockInfo.value = error.data.lock_info;
       lockError.value = true;
       hasLock.value = false;
@@ -334,8 +326,6 @@ async function performLock(forceLock = false) {
       emit('update:lockedData', error.data);
     } else if (error?.message?.includes('User has lock in another tab or browser session')) {
       // Open by current user in another tab or browser session
-      // eslint-disable-next-line no-console
-      console.log(error, props.data?.id);
       lockError.value = true;
       hasLock.value = false;
       emit('update:editMode', EditMode.READONLY);
@@ -366,8 +356,6 @@ function performUnlockRequest(browserUnload: boolean): Promise<T> | null {
 }
 
 function performUnlock(browserUnload = false) {
-  // eslint-disable-next-line no-console
-  console.log('EditToolbar.performUnlock', hasLock.value);
   if (!props.unlockUrl || !hasLock.value) {
     return Promise.resolve();
   }
@@ -382,6 +370,9 @@ function performUnlock(browserUnload = false) {
   lockError.value = false;
 
   try {
+    // eslint-disable-next-line no-console
+    console.log('EditToolbar.performUnlock', hasLock.value);
+
     const res = performUnlockRequest(browserUnload);
     if (!browserUnload) {
       return res!.then((unlockedData) => {
@@ -443,8 +434,6 @@ function onUnloadBrowser() {
   // Note: the unload event is not triggered in certain situations
   //       e.g. on mobile devices or on Chrome when a user navigates to a different origin
   //       https://developer.mozilla.org/en-US/docs/Web/API/Window/unload_event#usage_notes
-  // eslint-disable-next-line no-console
-  console.log('EditToolbar.onUnloadBrowser');
   performUnlock(true);
 }
 

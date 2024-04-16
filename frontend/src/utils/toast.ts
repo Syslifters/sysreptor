@@ -51,14 +51,15 @@ export function warningToast(message: string) {
   toast.warning(message);
 }
 
-export function collabConfirmToast(message: string) {
+export function collabConfirmToast(message?: string) {
   const toast = useToast();
 
   return new Promise<boolean>((resolve) => {
     toast.warning({
       component: ConfirmToast,
       props: {
-        message,
+        message: message || "Other users are editing this list. This operation might result in conflicts.",
+        buttonText: "Force change",
       },
       listeners: {
         confirm: () => resolve(true),

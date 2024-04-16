@@ -34,6 +34,7 @@
       v-else-if="definition.type === 'date'"
       v-model="formValue"
       :locale="props.lang || undefined"
+      @focus="collabFocus"
       v-bind="fieldAttrs"
     />
 
@@ -46,6 +47,7 @@
       item-value="value"
       :clearable="!props.readonly"
       spellcheck="false"
+      @focus="collabFocus"
       v-bind="fieldAttrs"
     />
 
@@ -56,6 +58,7 @@
       :items="definition.suggestions"
       :clearable="!props.readonly"
       spellcheck="false"
+      @focus="collabFocus"
       v-bind="fieldAttrs"
     />
 
@@ -65,6 +68,7 @@
       :model-value="formValue"
       @update:model-value="emitUpdate(parseFloat($event))"
       type="number"
+      @focus="collabFocus"
       v-bind="fieldAttrs"
     />
 
@@ -82,6 +86,7 @@
       v-model="formValue"
       :cvss-version="definition.cvss_version"
       :disable-validation="props.disableValidation"
+      @focus="collabFocus"
       v-bind="fieldAttrs"
     />
 
@@ -89,6 +94,7 @@
     <s-cwe-field
       v-else-if="definition.type === 'cwe'"
       v-model="formValue"
+      @focus="collabFocus"
       v-bind="fieldAttrs"
     />
 
@@ -98,6 +104,7 @@
       :model-value="formValue"
       @update:model-value="emitUpdate(($event as UserShortInfo|null)?.id || null)"
       :selectable-users="selectableUsers"
+      @focus="collabFocus"
       v-bind="fieldAttrs"
     />
 
@@ -291,6 +298,7 @@ function emitUpdate(val: any, options?: { preventCollabEvent?: boolean }) {
       type: CollabEventType.UPDATE_KEY,
       path: props.collab.path,
       value: val,
+      updateAwareness: true,
     });
   }
   emit('update:modelValue', val);
@@ -306,7 +314,7 @@ async function emitInputList(action: string, entryIdx?: number, entryVal: any|nu
     newVal.splice(entryIdx!, 1);
     if (props.collab) {
       if (isListEditingLocked.value) {
-        const confirmed = await collabConfirmToast('Other users are editing this list. This operation might result in conflicts.');
+        const confirmed = await collabConfirmToast();
         if (!confirmed) {
           return;
         }
@@ -336,7 +344,7 @@ async function emitInputList(action: string, entryIdx?: number, entryVal: any|nu
 
     if (props.collab) {
       if (isListEditingLocked.value) {
-        const confirmed = await collabConfirmToast('Other users are editing this list. This operation might result in conflicts.');
+        const confirmed = await collabConfirmToast();
         if (!confirmed) {
           return;
         }
@@ -449,6 +457,15 @@ const isListEditingLocked = computed(() => {
   // Some collaborative list operations are not race-condition safe and should not be locked.
   return props.definition.type === FieldDataType.LIST && props.collab && props.collab.clients.some(c => !c.isSelf);
 });
+
+function collabFocus() {
+  if (props.collab) {
+    emit('collab', {
+      type: CollabEventType.AWARENESS,
+      path: props.collab.path,
+    });
+  }
+}
 
 const nestedClass = computed(() => {
   if ([FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.type)) {
