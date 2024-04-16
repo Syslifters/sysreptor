@@ -187,6 +187,15 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
               v.sendUpdateTextThrottled.cancel();
             }
           }
+          // Filter out invalid selections
+          for (const a of [storeState.awareness.self].concat(Object.values(storeState.awareness.other))) {
+            if (a.path && (msgData.path === a.path || msgData.path.startsWith(a.path + '.')) && a.selection) {
+              const text = get(storeState.data as Object, a.path);
+              if (typeof text !== 'string' || !a.selection.ranges.every(r => r.from >= 0 && r.to <= (text || '').length)) {
+                a.selection = undefined;
+              }
+            }
+          }
 
           // Update local state
           set(storeState.data as Object, msgData.path, msgData.value);
@@ -374,12 +383,20 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       // Apply text changes
       cmText = u.changes.apply(cmText);
       // Update local selection
-      selection = selection?.map(u.changes);
+      try {
+        selection = selection?.map(u.changes);
+      } catch {
+        selection = undefined;
+      }
 
       // Map selections of other clients onto changes
       for (const a of Object.values(storeState.awareness.other)) {
         if (a.path === dataPath) {
-          a.selection = a.selection?.map(u.changes);
+          try {
+            a.selection = a.selection?.map(u.changes);
+          } catch {
+            a.selection = undefined;
+          }
         }
       }
     }

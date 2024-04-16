@@ -460,7 +460,6 @@ const isListEditingLocked = computed(() => {
 
 function collabFocus() {
   if (props.collab) {
-    console.log('collabFocus', props.collab.path);
     emit('collab', {
       type: CollabEventType.AWARENESS,
       path: props.collab.path,

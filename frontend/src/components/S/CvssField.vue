@@ -4,8 +4,8 @@
       <s-text-field
         :model-value="props.modelValue"
         @update:model-value="emit('update:modelValue', $event)"
-        @focus="emit('focus', $event)"
-        @blur="emit('blur', $event)"
+        @focus="emit('focus')"
+        @blur="emit('blur')"
         :rules="rules.validCvssVector"
         :label="props.label"
         :disabled="props.disabled"
@@ -138,8 +138,8 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   'update:modelValue': [value: string|null];
-  'focus': [e: FocusEvent];
-  'blur': [e: FocusEvent];
+  'focus': [];
+  'blur': [];
 }>();
 
 const localSettings = useLocalSettings();
@@ -187,6 +187,8 @@ watch(dialogVisible, (newVal) => {
     } else {
       availableCvssVersions.value = [CvssVersion.CVSS40, CvssVersion.CVSS31];
     }
+
+    emit('focus');
   }
 });
 

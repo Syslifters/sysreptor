@@ -69,10 +69,3 @@ export function collabConfirmToast(message?: string) {
     })
   });
 }
-
-// TODO: Collab findings
-// * [x] collab lock confirm text: "Force change"
-// * [x] update collab confirm text
-// * [x] collab.awareness for collab.update_key
-// * [ ] selection position error on move list element wiht different length
-
