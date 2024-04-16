@@ -80,6 +80,7 @@ nav:
       - Rendering Workflow: insights/rendering-workflow.md
       - Archiving: insights/archiving.md
       - Security Considerations: insights/security-considerations.md
+      - Vulnerabilities: insights/vulnerabilities.md
   - HTB Reporting: htb-reporting-with-sysreptor.md
   - Contact Us: contact-us.md
 
