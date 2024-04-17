@@ -1,7 +1,7 @@
-# HTTP Request Smuggling in non-recommended configurations (CVE-2024-1135)
+## HTTP Request Smuggling in non-recommended configurations (CVE-2024-1135)
 
 **CVSSv3.1:** High (7.8; CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H)  
-**Unpatched** as of 16 April 2024  
+**Fixed in 2024.29** (on 17 April 2024)  
 **Workaround:** Use a reverse proxy (like [Caddy](/setup/webserver/#caddy-recommended) or [nginx](/setup/webserver/#nginx)).
 
 If you don't use a reverse proxy (like Caddy or nginx) for SysReptor and expose the SysReptor port (TCP 8000 by default) directly, you are probably vulnerable to HTTP Request Smuggling attacks.
