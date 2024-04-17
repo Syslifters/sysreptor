@@ -43,7 +43,7 @@ export type CollabStoreState<T> = {
   websocketPath: string;
   connectionError?: { error: any, message?: string };
   websocketConnectionLostTimeout?: ReturnType<typeof throttle>;
-  handleAdditionalWebSocketMessages?: (event: any) => boolean;
+  handleAdditionalWebSocketMessages?: (event: any, collabState: CollabStoreState<T>) => boolean;
   perPathState: Map<string, {
     sendUpdateTextThrottled: ReturnType<typeof throttle>;
     unconfirmedTextUpdates: TextUpdate[];
@@ -74,7 +74,7 @@ export type CollabStoreState<T> = {
 export function makeCollabStoreState<T>(options: {
   websocketPath: string, 
   initialData: T,
-  handleAdditionalWebSocketMessages?: (event: any) => boolean
+  handleAdditionalWebSocketMessages?: (event: any, storeState: CollabStoreState<T>) => boolean
 }): CollabStoreState<T> {
   return {
     data: options.initialData,
@@ -166,7 +166,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           storeState.version = msgData.version;
         }
 
-        if (storeState.handleAdditionalWebSocketMessages?.(msgData)) {
+        if (storeState.handleAdditionalWebSocketMessages?.(msgData, storeState)) {
           // Already handled
         } else if (msgData.type === CollabEventType.INIT) {
           storeState.connectionState = CollabConnectionState.OPEN;

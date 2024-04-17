@@ -39,8 +39,7 @@ export const useUserNotesStore = defineStore('usernotes', {
       notesCollabState: makeCollabStoreState({
         websocketPath: '/ws/pentestusers/self/notes/',
         initialData: { notes: {} as {[key: string]: UserNote} },
-        handleAdditionalWebSocketMessages: (msgData: any) => {
-          const collabState = (this as any).notesCollabState;
+        handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
           if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
             for (const note of Object.values(collabState.data.notes) as UserNote[]) {
               const no = msgData.sort.find((n: UserNote) => n.id === note.id);
