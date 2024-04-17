@@ -4,7 +4,7 @@
 * Collaborative editing in project findings and sections
 
 
-## v2024.029 - 2024-04-17
+## v2024.030 - 2024-04-17
 * Update dependencies to fix request-smuggling vulnerabilities in gunicorn (CVE-2024-1135)
 
 
