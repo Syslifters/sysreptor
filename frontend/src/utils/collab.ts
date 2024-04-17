@@ -43,7 +43,7 @@ export type CollabStoreState<T> = {
   websocketPath: string;
   connectionError?: { error: any, message?: string };
   websocketConnectionLostTimeout?: ReturnType<typeof throttle>;
-  handleAdditionalWebSocketMessages?: (event: any) => boolean;
+  handleAdditionalWebSocketMessages?: (event: any, collabState: CollabStoreState<T>) => boolean;
   perPathState: Map<string, {
     sendUpdateTextThrottled: ReturnType<typeof throttle>;
     unconfirmedTextUpdates: TextUpdate[];
@@ -74,7 +74,7 @@ export type CollabStoreState<T> = {
 export function makeCollabStoreState<T>(options: {
   websocketPath: string, 
   initialData: T,
-  handleAdditionalWebSocketMessages?: (event: any) => boolean
+  handleAdditionalWebSocketMessages?: (event: any, storeState: CollabStoreState<T>) => boolean
 }): CollabStoreState<T> {
   return {
     data: options.initialData,
@@ -166,7 +166,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           storeState.version = msgData.version;
         }
 
-        if (storeState.handleAdditionalWebSocketMessages?.(msgData)) {
+        if (storeState.handleAdditionalWebSocketMessages?.(msgData, storeState)) {
           // Already handled
         } else if (msgData.type === CollabEventType.INIT) {
           storeState.connectionState = CollabConnectionState.OPEN;
@@ -187,25 +187,19 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
               v.sendUpdateTextThrottled.cancel();
             }
           }
-          // Filter out invalid selections
-          for (const a of [storeState.awareness.self].concat(Object.values(storeState.awareness.other))) {
-            if (a.path && (msgData.path === a.path || msgData.path.startsWith(a.path + '.')) && a.selection) {
-              const text = get(storeState.data as Object, a.path);
-              if (typeof text !== 'string' || !a.selection.ranges.every(r => r.from >= 0 && r.to <= (text || '').length)) {
-                a.selection = undefined;
-              }
-            }
-          }
 
           // Update local state
           set(storeState.data as Object, msgData.path, msgData.value);
+
+          removeInvalidSelections(msgData.path);
         } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
           receiveUpdateText(msgData);
         } else if (msgData.type === CollabEventType.CREATE) {
           set(storeState.data as Object, msgData.path, msgData.value);
         } else if (msgData.type === CollabEventType.DELETE) {
           const pathParts = msgData.path.split('.');
-          const parentList = get(storeState.data as Object, pathParts.slice(0, -1).join('.'));
+          const parentPath = pathParts.slice(0, -1).join('.');
+          const parentList = get(storeState.data as Object, parentPath);
           const parentListIndex = Number.parseInt(pathParts.slice(-1)?.[0].startsWith('[') ? pathParts.slice(-1)[0].slice(1, -1) : undefined);
           
           if (Array.isArray(parentList) && !Number.isNaN(parentListIndex)) {
@@ -213,6 +207,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           } else {
             unset(storeState.data as Object, msgData.path);
           }
+          removeInvalidSelections(parentPath);
         } else if (msgData.type === CollabEventType.CONNECT) {
           if (msgData.client_id !== storeState.clientID) {
             // Add new client
@@ -538,6 +533,18 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       return selection;
     } catch (e) {
       return undefined;
+    }
+  }
+
+  function removeInvalidSelections(path?: string) {
+    // Filter out invalid selections
+    for (const a of [storeState.awareness.self].concat(Object.values(storeState.awareness.other))) {
+      if (a.path && (!path || path === a.path || path.startsWith(a.path + '.')) && a.selection) {
+        const text = get(storeState.data as Object, a.path);
+        if (typeof text !== 'string' || !a.selection.ranges.every(r => r.from >= 0 && r.to <= (text || '').length)) {
+          a.selection = undefined;
+        }
+      }
     }
   }
 

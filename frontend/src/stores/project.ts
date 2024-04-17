@@ -51,7 +51,11 @@ export const useProjectStore = defineStore('project', {
         // notes: ProjectNote[],
         getByIdSync: Promise<PentestProject> | null,
         notesCollabState: CollabStoreState<{ notes: {[key: string]: ProjectNote}}>,
-        reportingCollabState: CollabStoreState<{ findings: {[key: string]: PentestFinding }, sections: {[key: string]: ReportSection } }>,
+        reportingCollabState: CollabStoreState<{ 
+          project: {id: string, project_type: string, override_finding_order: boolean}, 
+          findings: {[key: string]: PentestFinding }, 
+          sections: {[key: string]: ReportSection } 
+        }>,
       }
     },
   }),
@@ -102,9 +106,8 @@ export const useProjectStore = defineStore('project', {
           getByIdSync: null,
           notesCollabState: makeCollabStoreState({
             websocketPath: `/ws/pentestprojects/${projectId}/notes/`,
-            initialData: { notes: {} },
-            handleAdditionalWebSocketMessages: (msgData: any) => {
-              const collabState = this.data[projectId].notesCollabState;
+            initialData: { notes: {} as {[key: string]: ProjectNote} },
+            handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
                 for (const note of Object.values(collabState.data.notes)) {
                   const no = msgData.sort.find((n: ProjectNote) => n.id === note.id);
@@ -119,9 +122,8 @@ export const useProjectStore = defineStore('project', {
           }),
           reportingCollabState: makeCollabStoreState({
             websocketPath: `/ws/pentestprojects/${projectId}/reporting/`,
-            initialData: { project: {}, findings: {}, sections: {} },
-            handleAdditionalWebSocketMessages: (msgData: any) => {
-              const collabState = this.data[projectId].reportingCollabState;
+            initialData: { project: {} as any, findings: {} as {[key: string]: PentestFinding}, sections: {} as {[key: string]: ReportSection} },
+            handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'findings') {
                 for (const finding of Object.values(collabState.data.findings)) {
                   const fo = msgData.sort.find((n: PentestFinding) => n.id === finding.id);
