@@ -22,6 +22,7 @@ from reportcreator_api.pentests.models import UploadedImage
 from reportcreator_api.tests.mock import (
     api_client,
     create_archived_project,
+    create_languagetool_ignore_word,
     create_png_file,
     create_project,
     create_project_type,
@@ -53,18 +54,19 @@ class TestBackup:
             self.template = create_template()
             self.archived_project = create_archived_project()
             self.notification = NotificationSpec.objects.create(title='test', text='test')
+            self.languagetool_word = create_languagetool_ignore_word()
 
             yield
 
-    def assert_backup_obj(self, backup, obj):
+    def assert_backup_obj(self, backup, obj, exclude_fields=None):
         data = next(filter(lambda e: e.object.pk == obj.pk, backup))
         assert data.object == obj
-        obj_formatted = model_to_dict(obj)
+        obj_formatted = model_to_dict(obj, exclude=exclude_fields)
         if 'history_date' in obj_formatted:
             # Strip microseconds for comparison (stripped by serializer)
             df = obj_formatted['history_date'].isoformat()
             obj_formatted['history_date'] = datetime.fromisoformat(df[:23] + df[26:])
-        assert model_to_dict(data.object) == obj_formatted
+        assert model_to_dict(data.object, exclude=exclude_fields) == obj_formatted
         return data
 
     def assert_backup_file(self, backup, z, dir, obj, stored_encrypted=False):
@@ -99,6 +101,7 @@ class TestBackup:
                 self.user.notifications.first(),
             ]:
                 self.assert_backup_obj(backup, o)
+            self.assert_backup_obj(backup, self.languagetool_word, exclude_fields=['created_at', 'updated_at'])
 
             self.assert_backup_file(backup, z, 'uploadedimages', self.project.images.all().first())
             self.assert_backup_file(backup, z, 'uploadedimages', self.user.images.all().first())
@@ -166,6 +169,7 @@ class TestBackupRestore:
             self.project_type = create_project_type()
             self.template = create_template()
             self.archived_project = create_archived_project()
+            self.languagetool_word = create_languagetool_ignore_word()
 
             yield
 
@@ -208,6 +212,7 @@ class TestBackupRestore:
         self.template.refresh_from_db()
         self.user.refresh_from_db()
         self.archived_project.refresh_from_db()
+        self.languagetool_word.refresh_from_db()
 
         # Validate restored files
         for f in deleted_files:
