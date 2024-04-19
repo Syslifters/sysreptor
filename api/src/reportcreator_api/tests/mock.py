@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from rest_framework.test import APIClient
 
+from reportcreator_api.api_utils.models import LanguageToolIgnoreWords
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
 from reportcreator_api.pentests.customfields.predefined_fields import (
@@ -349,6 +350,15 @@ def create_archived_project(project=None, **kwargs):
     ArchivedProjectKeyPart.objects.bulk_create(key_parts)
     ArchivedProjectPublicKeyEncryptedKeyPart.objects.bulk_create(encrypted_key_parts)
     return archive
+
+
+def create_languagetool_ignore_word(user=None, ignore_word='test'):
+    return LanguageToolIgnoreWords.objects.create(
+        user_id=user.id.int >> 65 if user else 1,
+        ignore_word=ignore_word,
+        created_at=timezone.now(),
+        updated_at=timezone.now(),
+    )
 
 
 def mock_time(before=None, after=None):
