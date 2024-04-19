@@ -1148,7 +1148,7 @@ export class TableOfContentsComponent extends DesignerComponentBase {
 
     return {
       html: trimLeadingWhitespace(`
-        <table-of-contents id="${id}" v-slot="tocItems" >
+        <table-of-contents id="${id}" v-slot="{ items: tocItems }" >
           <h1>${form.toc.headline}</h1>
           <ul>
               <li v-for="item in tocItems" :class="'toc-level' + item.level">
@@ -1183,7 +1183,7 @@ export class ListOfFiguresComponent extends DesignerComponentBase {
     const id = createUniqueId('lof', context);
     return {
       html: trimLeadingWhitespace(`
-        <list-of-figures id="${id}" v-slot="items" >
+        <list-of-figures id="${id}" v-slot="{ items }" >
           <section v-if="items.length > 0">
               <h1 class="in-toc">List of Figures</h1>
               <ul>

@@ -2,6 +2,7 @@
 
 ## Next
 * Collaborative editing in project findings and sections
+* Fix slot data items `.length` property undefined `<list-of-figures>`, `<list-of-tables>` and `<table-of-contents>` components
 
 
 ## v2024.030 - 2024-04-17

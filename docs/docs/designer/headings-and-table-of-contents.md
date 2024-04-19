@@ -162,7 +162,7 @@ This example renders a table of contents with
 * links entries to the target pages, such that you can click on the TOC entries and jump to the referenced pa
 
 ```html
-<table-of-contents v-slot="tocItems">
+<table-of-contents v-slot="{ items: tocItems }">
   <ul class="toc">
     <template v-for="item in tocItems">
       <li :class="'level-' + item.level"><a :href="item.href">{{ item.title }}</a></li>
@@ -214,7 +214,7 @@ This example renders a table of contents with
 * supports regular chapters and appendix chapters
 
 ```html
-<table-of-contents v-slot="tocItems">
+<table-of-contents v-slot="{ items: tocItems }">
     <ul class="toc">
         <template v-for="item in tocItems">
             <li :class="['toc-level-' + item.level, (item.attrs.class || '').split(' ').includes('numbered') ? 'numbered' : '', (item.attrs.class || '').split(' ').includes('numbered-appendix') ? 'numbered-appendix' : '']">
