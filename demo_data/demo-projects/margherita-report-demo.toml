@@ -504,7 +504,7 @@ report_template = """
 </section>
 
 
-<table-of-contents id="toc" v-slot="tocItems">
+<table-of-contents id="toc" v-slot="{ items: tocItems }">
   <h1>Table of Contents</h1>
   <ul>
     <li v-for="item in tocItems" :class="'toc-level' + item.level">

@@ -1,17 +1,19 @@
 <template>
   <div v-if="shouldRender">
-    <slot name="default" v-bind="items" />
+    <slot name="default" v-bind="slotData" />
   </div>
 </template>
 
 <script setup>
 import { v4 as uuidv4 } from "uuid";
-import { getCurrentInstance, onMounted, ref } from "vue";
-import { callForTicks } from "@/utils";
+import { getCurrentInstance, onMounted, ref, computed } from "vue";
+import { callForTicks, slotDataArray } from "@/utils";
 
 
 const shouldRender = ref(false);
 const items = ref([]);
+// const slotData = computed(() => items.value);
+const slotData = computed(() => slotDataArray(items.value));
 
 const vm = getCurrentInstance();
 

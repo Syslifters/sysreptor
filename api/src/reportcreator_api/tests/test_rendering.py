@@ -218,9 +218,13 @@ class TestHtmlRendering:
         actual = self.extract_html_part(html, '<main>', '</main>')[6:-7]
         assertHTMLEqual(actual, expected)
 
-    def test_toc_rendering(self):
-        html = self.render_html("""
-        <table-of-contents v-slot="tocItems">
+    @pytest.mark.parametrize("slotDataSyntax", [
+        'tocItems',
+        '{ items: tocItems }',
+    ])
+    def test_toc_rendering(self, slotDataSyntax):
+        html = self.render_html(f"""
+        <table-of-contents v-slot="{slotDataSyntax}">
             <section v-if="tocItems">
                 <h1 id="toc" class="in-toc">Table of Contents</h1>
                 <ul>
@@ -258,9 +262,13 @@ class TestHtmlRendering:
         </ul>
         """)
 
-    def test_lof_rendering(self):
-        html = self.render_html("""
-        <list-of-figures v-slot="figures">
+    @pytest.mark.parametrize("slotDataSyntax", [
+        'figures',
+        '{ items: figures }',
+    ])
+    def test_lof_rendering(self, slotDataSyntax):
+        html = self.render_html(f"""
+        <list-of-figures v-slot="{slotDataSyntax}">
             <section v-if="figures">
                 <h1 id="lof" class="in-lof">List of Figures</h1>
                 <ul>
@@ -282,9 +290,13 @@ class TestHtmlRendering:
         </ul>
         """)
 
-    def test_lot_rendering(self):
-        html = self.render_html("""
-        <list-of-tables v-slot="tables">
+    @pytest.mark.parametrize("slotDataSyntax", [
+        'tables',
+        '{ items: tables }',
+    ])
+    def test_lot_rendering(self, slotDataSyntax):
+        html = self.render_html(f"""
+        <list-of-tables v-slot="{slotDataSyntax}">
             <section v-if="tables">
                 <h1 id="lot" class="in-lot">List of Tables</h1>
                 <ul>
