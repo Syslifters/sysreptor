@@ -89,7 +89,7 @@ The component uses multi-pass rendering.
 In the first render-pass it does nothing, in the second pass it collects all previously rendered `<caption>` tags and provides them in the variable `items`.
 
 ```html
-<list-of-tables v-slot="{ items }">
+<list-of-tables v-slot="items">
   <section v-if="items.length > 0">
     <h1 class="in-toc">List of Tables</h1>
     <ul class="lot">

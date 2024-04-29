@@ -37,7 +37,7 @@ report_template = """
 <pagebreak />
 
 
-<table-of-contents id="toc" v-slot="{ items: tocItems }">
+<table-of-contents id="toc" v-slot="tocItems">
     <h1>Table of Contents</h1>
     <ul>
         <li v-for="item in tocItems" :class="'toc-level' + item.level">
