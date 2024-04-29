@@ -19,7 +19,10 @@ from reportcreator_api.archive.import_export.serializers import (
     PentestProjectExportImportSerializer,
     ProjectTypeExportImportSerializer,
 )
+from reportcreator_api.pentests.consumers import send_collab_event_project, send_collab_event_user
 from reportcreator_api.pentests.models import (
+    CollabEvent,
+    CollabEventType,
     FindingTemplate,
     PentestFinding,
     PentestProject,
@@ -27,8 +30,14 @@ from reportcreator_api.pentests.models import (
     ProjectNotebookPage,
     ProjectType,
     ReportSection,
+    UserNotebookPage,
 )
-from reportcreator_api.pentests.models.notes import UserNotebookPage
+from reportcreator_api.pentests.serializers.notes import (
+    ProjectNotebookPageSerializer,
+    ProjectNotebookPageSortListSerializer,
+    UserNotebookPageSerializer,
+    UserNotebookPageSortListSerializer,
+)
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.history import history_context
 
@@ -265,5 +274,41 @@ def import_projects(archive_file):
 def import_notes(archive_file, context):
     if not context.get('project') and not context.get('user'):
         raise ValueError('Either project or user must be provided')
-    return import_archive(archive_file, serializer_classes=[NotesExportImportSerializer], context=context)
+    # Import notes to DB
+    notes = import_archive(archive_file, serializer_classes=[NotesExportImportSerializer], context=context)
+
+    # Send collab events
+    sender_options = {
+        'related_object': context['project'],
+        'serializer': ProjectNotebookPageSerializer,
+        'serializer_sort': ProjectNotebookPageSortListSerializer,
+        'send_collab_event': send_collab_event_project,
+    } if context.get('project') else {
+        'related_object': context['user'],
+        'serializer': UserNotebookPageSerializer,
+        'serializer_sort': UserNotebookPageSortListSerializer,
+        'send_collab_event': send_collab_event_user,
+    }
+
+    # Create events
+    events = CollabEvent.objects.bulk_create(
+        CollabEvent(
+            related_id=sender_options['related_object'].id,
+            path=f'notes.{n.note_id}',
+            type=CollabEventType.CREATE,
+            created=n.created,
+            version=n.created.timestamp(),
+            data={
+                'value': sender_options['serializer'](instance=n).data,
+            },
+        ) for n in notes
+    )
+    for e in events:
+        sender_options['send_collab_event'](e)
+
+    # Sort event
+    notes_sorted = sender_options['related_object'].notes.select_related('parent').all()
+    sender_options['serializer_sort'](instance=notes_sorted, context=context).send_collab_event(notes_sorted)
+
+    return notes
 
