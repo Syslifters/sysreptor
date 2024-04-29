@@ -66,7 +66,7 @@ The component uses multi-pass rendering.
 In the first render-pass it does nothing, in the second pass it collects all previously rendered `<figcaption>` tags and provides them in the variable `items`.
 
 ```html
-<list-of-figures id="lof" v-slot="{ items }" >
+<list-of-figures id="lof" v-slot="items" >
     <section v-if="items.length > 0">
         <h1 class="in-toc">List of Figures</h1>
         <ul>
