@@ -10,10 +10,12 @@ from channels.testing import WebsocketCommunicator
 from django.conf import settings
 from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY
 from django.contrib.auth.models import AnonymousUser
+from django.core.files.base import ContentFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from django.utils.module_loading import import_string
 
+from reportcreator_api.archive.import_export import export_notes
 from reportcreator_api.conf.asgi import application
 from reportcreator_api.pentests.customfields.utils import (
     ensure_defined_structure,
@@ -450,6 +452,20 @@ class TestProjectNotesDbSync:
             path=reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}),
             data=[{'id': self.note.note_id, 'order': 1, 'parent': None}])
         await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
+
+    async def test_import_sync(self):
+        def import_notes():
+            res = self.api_client1.post(
+                path=reverse('projectnotebookpage-import', kwargs={'project_pk': self.project.id}),
+                data={'file': ContentFile(content=b''.join(export_notes(self.project)), name='export.tar.gz')},
+                format='multipart',
+            )
+            return res.data
+        notes_imported = await sync_to_async(import_notes)()
+
+        for n in notes_imported:
+            await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{n["id"]}', 'value': n, 'client_id': None})
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
 
     async def test_member_removed_write(self):
         await ProjectMemberInfo.objects.filter(project=self.project, user=self.user1).adelete()

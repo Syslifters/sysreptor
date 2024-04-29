@@ -2,6 +2,7 @@
 
 ## Next
 * Collaborative editing in project findings and sections
+* Collaborative editing: update notes list when import new notes
 * Fix slot data items `.length` property undefined `<list-of-figures>`, `<list-of-tables>` and `<table-of-contents>` components
 
 
