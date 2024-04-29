@@ -130,7 +130,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       })
       storeState.websocket.addEventListener('close', (event) => {
         // Error handling
-        if (event.code === 4443 || (event.code === 1006 && storeState.connectionState === CollabConnectionState.CONNECTING)) {
+        if (event.code === 4443) {
           storeState.connectionError = { error: event, message: event.reason || 'Permission denied' };
         } else if (storeState.connectionState === CollabConnectionState.CONNECTING) {
           storeState.connectionError = { error: event, message: event.reason || 'Failed to establish connection' };
@@ -232,6 +232,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
               }),
             };
           }
+        } else if (msgData.type === 'error') {
+          // eslint-disable-next-line no-console
+          console.error('Received error from websocket:', msgData);
         } else if (msgData.type === 'ping') {
           // Do nothing
         } else {
