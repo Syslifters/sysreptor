@@ -105,8 +105,9 @@ export const useProjectStore = defineStore('project', {
           project: null as unknown as PentestProject,
           getByIdSync: null,
           notesCollabState: makeCollabStoreState({
-            websocketPath: `/ws/pentestprojects/${projectId}/notes/`,
+            apiPath: `/ws/pentestprojects/${projectId}/notes/`,
             initialData: { notes: {} as {[key: string]: ProjectNote} },
+            initialPath: 'notes',
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
                 for (const note of Object.values(collabState.data.notes)) {
@@ -121,7 +122,7 @@ export const useProjectStore = defineStore('project', {
             }
           }),
           reportingCollabState: makeCollabStoreState({
-            websocketPath: `/ws/pentestprojects/${projectId}/reporting/`,
+            apiPath: `/ws/pentestprojects/${projectId}/reporting/`,
             initialData: { project: {} as any, findings: {} as {[key: string]: PentestFinding}, sections: {} as {[key: string]: ReportSection} },
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'findings') {
@@ -332,7 +333,7 @@ export const useProjectStore = defineStore('project', {
         collabProps,
         hasEditPermissions,
         hasLock,
-        readonly: computed(() => !hasEditPermissions.value || collabState.connectionState !== CollabConnectionState.OPEN),
+        readonly: computed(() => !hasEditPermissions.value || collab.connectionState.value !== CollabConnectionState.OPEN),
       };
     },
     useReportingCollab(options: { project: PentestProject, findingId?: string, sectionId?: string }) {
@@ -361,7 +362,7 @@ export const useProjectStore = defineStore('project', {
         collabProps,
         hasEditPermissions,
         hasLock,
-        readonly: computed(() => !hasEditPermissions.value || collabState.connectionState !== CollabConnectionState.OPEN),
+        readonly: computed(() => !hasEditPermissions.value || collab.connectionState.value !== CollabConnectionState.OPEN),
       };
     },
   },

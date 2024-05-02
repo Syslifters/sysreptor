@@ -37,8 +37,9 @@ export const useUserNotesStore = defineStore('usernotes', {
   state() {
     return {
       notesCollabState: makeCollabStoreState({
-        websocketPath: '/ws/pentestusers/self/notes/',
+        apiPath: '/ws/pentestusers/self/notes/',
         initialData: { notes: {} as {[key: string]: UserNote} },
+        initialPath: 'notes',
         handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
           if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
             for (const note of Object.values(collabState.data.notes) as UserNote[]) {
@@ -111,7 +112,7 @@ export const useUserNotesStore = defineStore('usernotes', {
         ...collab,
         collabProps: computed(() => collabSubpath(collab.collabProps.value, options?.noteId ? `notes.${options.noteId}` : null)),
         hasEditPermissions,
-        readonly: computed(() => !hasEditPermissions.value || collabState.connectionState !== CollabConnectionState.OPEN),
+        readonly: computed(() => !hasEditPermissions.value || collab.connectionState.value !== CollabConnectionState.OPEN),
       }
     }
   }

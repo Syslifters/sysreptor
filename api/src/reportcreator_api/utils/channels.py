@@ -88,7 +88,8 @@ class ConsumerHttpFallbackView(AsyncAPIView):
 #   * [ ] connect to websocket x2
 #   * [ ] on connection error: fallback to HTTP
 #   * [ ] collab.ts refactoring
-#   * [ ] do not send awareness messages ???
+#   * [ ] do not send awareness messages
+#   * [ ] warning toast when using HTTP fallback
 # * [x] tests
 #   * [x] test_api
 #   * [x] test_collab
