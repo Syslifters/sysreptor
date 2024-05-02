@@ -2,7 +2,9 @@ from adrf.views import APIView as AsyncAPIView
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
 from channels_postgres.core import PostgresChannelLayer
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import ValidationError
+from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from reportcreator_api.pentests.models.collab import CollabEvent
@@ -16,11 +18,21 @@ class CustomizedPostgresChannelLayer(PostgresChannelLayer):
         self.db_params = omit_keys(self.db_params, ['context', 'cursor_factory'])
 
 
+class ConsumerHttpFallbackSerializer(serializers.Serializer):
+    version = serializers.FloatField(min_value=1)
+    client_id = serializers.CharField()
+    messages = serializers.ListField(child=serializers.JSONField())
+
+    def validate_client_id(self, value):
+        if not value or not value.startswith(str(self.context['request'].user.id)):
+            raise ValidationError('Invalid client_id')
+
+
 class ConsumerHttpFallbackView(AsyncAPIView):
     consumer_class = None
     permission_classes = []  # Permission check is handled in the consumer
 
-    async def get_consumer(self, action=None):
+    async def get_consumer(self, action=None, client_id=None):
         # Initialize consumer
         consumer = self.consumer_class()
         consumer.scope = {
@@ -28,6 +40,7 @@ class ConsumerHttpFallbackView(AsyncAPIView):
             'session': self.request.session,
             'path': self.request.path,
             'url_route': {'kwargs': self.kwargs, 'args': self.args},
+            'client_id': client_id,
         }
         consumer.channel_layer = get_channel_layer(consumer.channel_layer_alias)
 
@@ -42,18 +55,22 @@ class ConsumerHttpFallbackView(AsyncAPIView):
         return Response(data=data)
 
     async def post(self, request, *args, **kwargs):
-        consumer = await self.get_consumer(action='write')
+        serializer = ConsumerHttpFallbackSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.data
+        version = data['version']
 
-        version = request.data.get('version', None)
-        if not version:
-            raise ValidationError('version is missing')
+        consumer = await self.get_consumer(action='write', client_id=data['client_id'])
 
         # Dispatch incoming messages
         for msg in request.data.get('messages', []):
             msg_type = msg.get('type')
             if msg_type == 'collab.ping':
                 continue  # Ignore pings, they are only relevant for websocket keepalive
-            await consumer.receive_json(msg)
+            try:
+                await consumer.receive_json(msg)
+            except ValidationError:
+                continue
 
         # Get events since version (including responses to incoming messages)
         events = CollabEvent.objects \
@@ -65,7 +82,7 @@ class ConsumerHttpFallbackView(AsyncAPIView):
 
         return Response(data={
             'version': max([version] + [e.version for e in events]),
-            'events': [{
+            'messages': [{
                 'type': e.type,
                 'path': e.path,
                 'client_id': e.client_id,
@@ -92,8 +109,8 @@ class ConsumerHttpFallbackView(AsyncAPIView):
 # * [ ] frontend
 #   * [ ] connect to websocket x2
 #   * [ ] on connection error: fallback to HTTP
-#   * [ ] collab.ts refactoring
-#   * [ ] do not send awareness messages
+#   * [x] collab.ts refactoring
+#   * [x] do not send awareness messages
 #   * [ ] warning toast when using HTTP fallback
 # * [x] tests
 #   * [x] test_api

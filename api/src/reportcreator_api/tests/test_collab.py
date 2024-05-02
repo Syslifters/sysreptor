@@ -380,15 +380,15 @@ class TestCollaborativeTextEditing:
         event3 = {'type': CollabEventType.UPDATE_KEY, 'path': f'findings.{self.finding.finding_id}.data.field_list', 'value': ['N', 'E', 'W']}
         res2 = await sync_to_async(self.client_http.post)(
             path=reverse('projectreporting-fallback', kwargs={'project_pk': self.project.id}),
-            data={'version': version, 'messages': [event2 | {'version': version}, event3 | {'version': version}]},
+            data={'version': version, 'client_id': res1.data['client_id'], 'messages': [event2 | {'version': version}, event3 | {'version': version}]},
         )
         assert res2.status_code == 200, res2.data
         assert res2.data['version'] > version
-        assert len(res2.data['events']) == 3
+        assert len(res2.data['messages']) == 3
         event2['updates'] = [{'changes': [2, [0, '2'], 1]}]
-        self.assert_events_equal(res2.data['events'][0], event1)
-        self.assert_events_equal(res2.data['events'][1], event2)
-        self.assert_events_equal(res2.data['events'][2], event3)
+        self.assert_events_equal(res2.data['messages'][0], event1)
+        self.assert_events_equal(res2.data['messages'][1], event2)
+        self.assert_events_equal(res2.data['messages'][2], event3)
         await self.assert_event_received(event2)
         await self.assert_event_received(event3)
 
@@ -398,10 +398,10 @@ class TestCollaborativeTextEditing:
 
         res2 = await sync_to_async(self.client_http.post)(
             path=reverse('projectreporting-fallback', kwargs={'project_pk': self.project.id}),
-            data={'version': res2.data['version'], 'messages': []},
+            data={'version': res2.data['version'], 'client_id': res1.data['client_id'], 'messages': []},
         )
         assert res2.status_code == 200, res2.data
-        assert len(res2.data['events']) == 0
+        assert len(res2.data['messages']) == 0
 
 
 @pytest.mark.django_db(transaction=True)
@@ -803,12 +803,14 @@ class TestConsumerPermissions:
         client = api_client(user)
         res = await sync_to_async(client.get)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}))
         assert res.status_code == (200 if expected_read else 403)
+        client_id = res.data.get('client_id', f'{user.id}/asdf')
+        res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+        assert res.status_code == (200 if expected_write else 403)
+
         res = await sync_to_async(client.get)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}))
         assert res.status_code == (200 if expected_read else 403)
-
-        res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'messages': []})
-        assert res.status_code == (200 if expected_write else 403)
-        res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'messages': []})
+        client_id = res.data.get('client_id', f'{user.id}/asdf')
+        res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
         assert res.status_code == (200 if expected_write else 403)
 
     @pytest.mark.parametrize(('expected', 'user_name'), [
@@ -834,5 +836,7 @@ class TestConsumerPermissions:
         assert await self.ws_connect(f'/ws/pentestusers/{user_notes.id}/notes/', user) == (expected, expected)
 
         client = api_client(user)
-        assert (await sync_to_async(client.get)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}))).status_code == (200 if expected else 403)
-        assert (await sync_to_async(client.post)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}), data={'version': 1, 'messages': []})).status_code == (200 if expected else 403)
+        res = await sync_to_async(client.get)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}))
+        assert res.status_code == (200 if expected else 403)
+        client_id = res.data.get('client_id', f'{user.id}/asdf')
+        assert (await sync_to_async(client.post)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}), data={'version': 1, 'client_id': client_id, 'messages': []})).status_code == (200 if expected else 403)
