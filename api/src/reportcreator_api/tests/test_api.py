@@ -143,11 +143,6 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('projectnotebookpage import', lambda s, c: c.post(reverse('projectnotebookpage-import', kwargs={'project_pk': get_obj(s).pk}), data={'file': export_notes_archive(get_obj(s))}, format='multipart')),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
-
-            ('projectreporting-fallback get', lambda s, c: c.get(reverse('projectreporting-fallback', kwargs={'project_pk': get_obj(s).pk}))),
-            ('projectreporting-fallback post', lambda s, c: c.post(reverse('projectreporting-fallback', kwargs={'project_pk': get_obj(s).pk}), data={'version': 1, 'messages': []})),
-            ('projectnotebookpage-fallback get', lambda s, c: c.get(reverse('projectnotebookpage-fallback', kwargs={'project_pk': get_obj(s).pk}))),
-            ('projectnotebookpage-fallback post', lambda s, c: c.post(reverse('projectnotebookpage-fallback', kwargs={'project_pk': get_obj(s).pk}), data={'version': 1, 'messages': []})),
         ])
     if update:
         out.extend([
@@ -230,8 +225,6 @@ def guest_urls():
         ('usernotebookoage export-all', lambda s, c: c.post(reverse('usernotebookpage-export-all', kwargs={'pentestuser_pk': 'self'}))),
         ('usernotebookpage export-pdf', lambda s, c: c.post(reverse('usernotebookpage-export-pdf', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
         ('usernotebookpage import', lambda s, c: c.post(reverse('usernotebookpage-import', kwargs={'pentestuser_pk': 'self'}), data={'file': export_notes_archive(s.current_user)}, format='multipart')),
-        ('usernotebookpage-fallback get', lambda s, c: c.get(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': 'self'}))),
-        ('usernotebookpage-fallback post', lambda s, c: c.post(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': 'self'}), data={'version': 1, 'messages': []})),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True, history_timeline=True),

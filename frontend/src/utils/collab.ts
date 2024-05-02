@@ -49,9 +49,13 @@ export type CollabEvent = {
   data?: any;
   client?: CollabClientInfo;
   clients?: CollabClientInfo[];
+  permissions?: {
+    read: boolean;
+    write: boolean;
+  }
 }
 
-export enum WsConnectionType {
+export enum CollabConnectionType {
   WEBSOCKET = 'websocket',
   HTTP_FALLBACK = 'http_fallback',
 };
@@ -64,7 +68,7 @@ export enum CollabConnectionState {
 };
 
 export type CollabConnectionInfo = {
-  type: WsConnectionType;
+  type: CollabConnectionType;
   url: string;
   connectionState: CollabConnectionState;
   connectionError?: { error: any, message?: string };
@@ -77,7 +81,6 @@ export type CollabStoreState<T> = {
   data: T;
   apiPath: string;
   connection?: CollabConnectionInfo;
-  
   handleAdditionalWebSocketMessages?: (event: CollabEvent, collabState: CollabStoreState<T>) => boolean;
   perPathState: Map<string, {
     unconfirmedTextUpdates: TextUpdate[];
@@ -95,6 +98,10 @@ export type CollabStoreState<T> = {
       }
     };
     clients: CollabClientInfo[];
+  },
+  permissions: {
+    read: boolean;
+    write: boolean;
   },
   version: number;
   clientID: string;
@@ -118,6 +125,10 @@ export function makeCollabStoreState<T>(options: {
       other: {},
       clients: [],
     },
+    permissions: {
+      read: true,
+      write: true,
+    },
     version: 0,
     clientID: '',
   }
@@ -133,7 +144,7 @@ export function connectWebsocket<T = any>(storeState: CollabStoreState<T>, onRec
   const sendAwarenessThrottled = throttle(websocketSendAwareness, WS_THROTTLE_INTERVAL_AWARENESS, { leading: false, trailing: true });
 
   const connectionInfo = reactive<CollabConnectionInfo>({
-    type: WsConnectionType.WEBSOCKET,
+    type: CollabConnectionType.WEBSOCKET,
     url: wsUrl,
     connectionState: CollabConnectionState.CLOSED,
     connectionError: undefined,
@@ -269,6 +280,10 @@ export function connectWebsocket<T = any>(storeState: CollabStoreState<T>, onRec
   }
 
   function websocketSendAwareness() {
+    if (!storeState.permissions.write) {
+      return;
+    }
+
     websocketSend({
       type: CollabEventType.AWARENESS,
       path: storeState.awareness.self.path,
@@ -327,10 +342,12 @@ export function connectWebsocket<T = any>(storeState: CollabStoreState<T>, onRec
 export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   const eventBusBeforeApplyRemoteTextChange = useEventBus('collab:beforeApplyRemoteTextChanges');
 
-  async function connect() {
+  async function connect(options?: { connectionType: CollabConnectionType, skipHttpFallbackRefresh?: boolean }) {
     if (storeState.connection && storeState.connection.connectionState !== CollabConnectionState.CLOSED) {
       return;
     }
+
+    // Websocket connection
     storeState.connection = connectWebsocket(storeState, onReceiveMessage);
     return await storeState.connection?.connect();
   }
@@ -349,6 +366,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     } else if (msgData.type === CollabEventType.INIT) {
       storeState.data = msgData.data;
       storeState.clientID = msgData.client_id!;
+      storeState.permissions = msgData.permissions!;
       storeState.awareness.clients = msgData.clients!;
       storeState.awareness.other = Object.fromEntries(msgData.clients!.filter((c: any) => c.client_id !== storeState.clientID).map((c: any) => [c.client_id, { 
         path: c.path, 
@@ -680,6 +698,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function onCollabEvent(event: any) {
+    if (!storeState.permissions.write) {
+      return;
+    }
+
     if (event.type === CollabEventType.UPDATE_KEY) {
       updateKey(event);
     } else if (event.type === CollabEventType.UPDATE_TEXT) {
@@ -701,6 +723,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     disconnect,
     onCollabEvent,
     data: computed(() => storeState.data),
+    readonly: computed(() => storeState.connection?.connectionState !== CollabConnectionState.OPEN || !storeState.permissions.write),
     connectionState: computed(() => storeState.connection?.connectionState || CollabConnectionState.CLOSED),
     connectionError: computed(() => storeState.connection?.connectionError),
     collabProps: computed(() => ({

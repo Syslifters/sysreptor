@@ -1,12 +1,12 @@
 <template>
-  <div v-if="isFirstLoad && props.collab.hasEditPermissions.value" class="centered" v-bind="$attrs">
+  <div v-if="isFirstLoad" class="centered" v-bind="$attrs">
     <v-progress-circular indeterminate size="50" />
   </div>
   <div v-else v-bind="$attrs">
     <slot />
 
     <v-snackbar
-      v-if="!isFirstLoad && props.collab.hasEditPermissions.value"
+      v-if="!isFirstLoad"
       :model-value="props.collab.connectionState.value !== CollabConnectionState.OPEN"
       timeout="-1"
       color="warning"
@@ -38,7 +38,6 @@ defineOptions({
 
 const props = defineProps<{
   collab: {
-    hasEditPermissions: ComputedRef<boolean>;
     connectionState: ComputedRef<CollabConnectionState>;
     connectionError: ComputedRef<{ error: any, message?: string }|undefined>;
     connect: () => void;
@@ -55,10 +54,10 @@ watch(() => props.collab.connectionState.value, async (newState, oldState) => {
     await reconnect();
   }
 
-  if (newState === CollabConnectionState.OPEN || 
-      (newState === CollabConnectionState.CLOSED && (
-        (oldState !== undefined && oldState !== CollabConnectionState.CLOSED) || 
-        !props.collab.hasEditPermissions.value))) {
+  if (
+    newState === CollabConnectionState.OPEN || 
+    (newState === CollabConnectionState.CLOSED && (oldState !== undefined && oldState !== CollabConnectionState.CLOSED))
+  ) {
     isFirstLoad.value = false;
   }
 }, { immediate: true });

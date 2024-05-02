@@ -326,14 +326,11 @@ export const useProjectStore = defineStore('project', {
         }, { immediate: true });
       }
 
-      const hasEditPermissions = computed(() => !options.project.readonly && hasLock.value);
-
       return {
         ...collab,
         collabProps,
-        hasEditPermissions,
         hasLock,
-        readonly: computed(() => !hasEditPermissions.value || collab.connectionState.value !== CollabConnectionState.OPEN),
+        readonly: computed(() => collab.readonly.value || !hasLock.value),
       };
     },
     useReportingCollab(options: { project: PentestProject, findingId?: string, sectionId?: string }) {
@@ -355,14 +352,11 @@ export const useProjectStore = defineStore('project', {
         }, { immediate: true });
       }
 
-      const hasEditPermissions = computed(() => !options.project.readonly && hasLock.value);
-
       return {
         ...collab,
         collabProps,
-        hasEditPermissions,
         hasLock,
-        readonly: computed(() => !hasEditPermissions.value || collab.connectionState.value !== CollabConnectionState.OPEN),
+        readonly: computed(() => collab.readonly.value || !hasLock.value),
       };
     },
   },

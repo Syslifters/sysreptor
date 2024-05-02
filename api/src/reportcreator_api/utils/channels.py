@@ -20,7 +20,7 @@ class ConsumerHttpFallbackView(AsyncAPIView):
     consumer_class = None
     permission_classes = []  # Permission check is handled in the consumer
 
-    async def get_consumer(self):
+    async def get_consumer(self, action=None):
         # Initialize consumer
         consumer = self.consumer_class()
         consumer.scope = {
@@ -32,17 +32,17 @@ class ConsumerHttpFallbackView(AsyncAPIView):
         consumer.channel_layer = get_channel_layer(consumer.channel_layer_alias)
 
         # Check permissions
-        if not (await sync_to_async(consumer.has_permission)()):
+        if not (await sync_to_async(consumer.has_permission)(action=action)):
             raise PermissionDenied()
         return consumer
 
     async def get(self, request, *args, **kwargs):
-        consumer = await self.get_consumer()
+        consumer = await self.get_consumer(action='read')
         data = await consumer.get_initial_message()
         return Response(data=data)
 
     async def post(self, request, *args, **kwargs):
-        consumer = await self.get_consumer()
+        consumer = await self.get_consumer(action='write')
 
         version = request.data.get('version', None)
         if not version:
@@ -84,6 +84,11 @@ class ConsumerHttpFallbackView(AsyncAPIView):
 #       * [x] check permissions
 #       * [x] proxy all messages to consumer.receive_*()
 #       * [x] return all messages since version (+ client infos)
+# * [x] use http fallback for readonly mode
+#   * [x] consumer: has_read_permission(), has_write_permission()
+#   * [x] consumer: get_initial_message() => return has_write_permission field
+#   * [x] frontend: refactor permissions checks
+#   * [x] frontend: remove manual fallback in pages
 # * [ ] frontend
 #   * [ ] connect to websocket x2
 #   * [ ] on connection error: fallback to HTTP

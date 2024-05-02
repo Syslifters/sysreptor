@@ -107,13 +107,10 @@ export const useUserNotesStore = defineStore('usernotes', {
       const collabState = this.notesCollabState;
       const collab = useCollab(collabState as CollabStoreState<{ notes: {[key: string]: UserNote}}>);
 
-      const hasEditPermissions = computed(() => true);
       return {
         ...collab,
         collabProps: computed(() => collabSubpath(collab.collabProps.value, options?.noteId ? `notes.${options.noteId}` : null)),
-        hasEditPermissions,
-        readonly: computed(() => !hasEditPermissions.value || collab.connectionState.value !== CollabConnectionState.OPEN),
       }
-    }
+    },
   }
 })
