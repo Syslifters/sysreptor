@@ -1,23 +1,23 @@
 <template>
-  <div v-if="isFirstLoad && props.collab.hasEditPermissions.value" class="centered" v-bind="$attrs">
+  <div v-if="isFirstLoad" class="centered" v-bind="$attrs">
     <v-progress-circular indeterminate size="50" />
   </div>
   <div v-else v-bind="$attrs">
     <slot />
 
     <v-snackbar
-      v-if="!isFirstLoad && props.collab.hasEditPermissions.value"
-      :model-value="props.collab.connectionState.value !== CollabConnectionState.OPEN"
+      v-if="!isFirstLoad"
+      :model-value="connectionState !== CollabConnectionState.OPEN"
       timeout="-1"
       color="warning"
     >
       <template #text>
-        <span v-if="props.collab.connectionState.value === CollabConnectionState.CLOSED">Server connection lost</span>
+        <span v-if="connectionState === CollabConnectionState.CLOSED">Server connection lost</span>
         <span v-else>Connecting...</span>
       </template>
       <template #actions>
         <v-btn
-          v-if="props.collab.connectionState.value === CollabConnectionState.CLOSED"
+          v-if="connectionState === CollabConnectionState.CLOSED"
           @click="reconnect()"
           variant="text"
           size="small"
@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { CollabConnectionState } from '~/utils/collab';
+import { CollabConnectionState, type CollabConnectionInfo } from '~/utils/collab';
 
 defineOptions({
   inheritAttrs: false
@@ -38,27 +38,33 @@ defineOptions({
 
 const props = defineProps<{
   collab: {
-    hasEditPermissions: ComputedRef<boolean>;
-    connectionState: ComputedRef<CollabConnectionState>;
-    connectionError: ComputedRef<{ error: any, message?: string }|undefined>;
+    connection: ComputedRef<CollabConnectionInfo|undefined>;
     connect: () => void;
   }
 }>();
+const connectionState = computed(() => props.collab.connection.value?.connectionState || CollabConnectionState.CLOSED);
 
 const isFirstLoad = ref(true);
 const reconnectAttempted = ref(0);
-watch(() => props.collab.connectionState.value, async (newState, oldState) => {
+const warningHttpFallbackShown = ref(false);
+watch(connectionState, async (newState, oldState) => {
   if (newState === CollabConnectionState.OPEN) {
     // Reset reconnect attempt counter
     reconnectAttempted.value = 0;
+
+    // Show warning if HTTP fallback was used
+    if (props.collab.connection.value?.type === CollabConnectionType.HTTP_FALLBACK && !warningHttpFallbackShown.value) {
+      warningHttpFallbackShown.value = true;
+      warningToast('Could not establish WebSocket connection, falling back to HTTP. Some features may be limited.');
+    }
   } else if (newState === CollabConnectionState.CLOSED && !isFirstLoad.value && reconnectAttempted.value === 0) {
     await reconnect();
   }
 
-  if (newState === CollabConnectionState.OPEN || 
-      (newState === CollabConnectionState.CLOSED && (
-        (oldState !== undefined && oldState !== CollabConnectionState.CLOSED) || 
-        !props.collab.hasEditPermissions.value))) {
+  if (
+    newState === CollabConnectionState.OPEN || 
+    (newState === CollabConnectionState.CLOSED && (oldState !== undefined && oldState !== CollabConnectionState.CLOSED))
+  ) {
     isFirstLoad.value = false;
   }
 }, { immediate: true });
@@ -68,8 +74,8 @@ async function reconnect() {
   try {
     await props.collab.connect();
   } catch {
-    if (props.collab.connectionError.value) {
-      requestErrorToast(props.collab.connectionError.value);
+    if (props.collab.connection.value?.connectionError) {
+      requestErrorToast(props.collab.connection.value.connectionError);
     }
   }
 }

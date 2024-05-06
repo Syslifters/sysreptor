@@ -45,15 +45,11 @@ const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 
 const notesCollab = projectStore.useNotesCollab({ project: project.value });
 onMounted(async () => {
-  if (notesCollab.hasEditPermissions.value) {
-    await notesCollab.connect();
-    collabAwarenessSendNavigate();
-  } else {
-    await projectStore.fetchNotes(project.value);
-  }
+  await notesCollab.connect();
+  collabAwarenessSendNavigate();
 });
-onBeforeUnmount(() => {
-  notesCollab.disconnect();
+onBeforeUnmount(async () => {
+  await notesCollab.disconnect();
 });
 watch(() => router.currentRoute.value, collabAwarenessSendNavigate);
 

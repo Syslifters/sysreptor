@@ -136,15 +136,11 @@ const sortFindingsManual = computed(() => project.value.override_finding_order |
 
 const reportingCollab = projectStore.useReportingCollab({ project: project.value });
 onMounted(async () => {
-  if (reportingCollab.hasEditPermissions.value) {
-    await reportingCollab.connect();
-    collabAwarenessSendNavigate();
-  } else {
-    await projectStore.fetchFindingsAndSections(project.value);
-  }
+  await reportingCollab.connect();
+  collabAwarenessSendNavigate();
 });
-onBeforeUnmount(() => {
-  reportingCollab.disconnect();
+onBeforeUnmount(async () => {
+  await reportingCollab.disconnect();
 });
 watch(() => router.currentRoute.value, collabAwarenessSendNavigate);
 

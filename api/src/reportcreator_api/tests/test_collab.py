@@ -220,6 +220,16 @@ class TestCollaborativeTextEditing:
             .select_related('project__project_type') \
             .aget(id=self.finding.id)
 
+    async def assert_event_received(self, event):
+        res1 = await self.client1.receive_json_from()
+        res2 = await self.client2.receive_json_from()
+        self.assert_events_equal(res1, event)
+        self.assert_events_equal(res2, event)
+
+    def assert_events_equal(self, actual, expected):
+        for k, v in expected.items():
+            assert actual[k] == v
+
     async def test_concurrent_updates(self):
         # Concurrent updates of same version
         event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'version': self.client1.init['version']}
@@ -353,6 +363,45 @@ class TestCollaborativeTextEditing:
 
         # deleted on disconnect
         assert not await CollabClientInfo.objects.filter(client_id=init['client_id']).aexists()
+
+    async def test_http_fallback(self):
+        self.client_http = api_client(self.user1)
+        res1 = await sync_to_async(self.client_http.get)(reverse('projectreporting-fallback', kwargs={'project_pk': self.project.id}))
+        assert res1.status_code == 200, res1.data
+        assert json.loads(json.dumps(res1.data['data'], cls=DjangoJSONEncoder)) == self.client1.init['data']
+        version = res1.data['version']
+        assert version == self.client1.init['version']
+
+        event1 = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'updates': [{'changes': [1, [0, '1'], 1]}]}
+        await self.client1.send_json_to(event1 | {'version': version})
+        await self.assert_event_received(event1)
+
+        event2 = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'updates': [{'changes': [1, [0, '2'], 1]}]}
+        event3 = {'type': CollabEventType.UPDATE_KEY, 'path': f'findings.{self.finding.finding_id}.data.field_list', 'value': ['N', 'E', 'W']}
+        res2 = await sync_to_async(self.client_http.post)(
+            path=reverse('projectreporting-fallback', kwargs={'project_pk': self.project.id}),
+            data={'version': version, 'client_id': res1.data['client_id'], 'messages': [event2 | {'version': version}, event3 | {'version': version}]},
+        )
+        assert res2.status_code == 200, res2.data
+        assert res2.data['version'] > version
+        assert len(res2.data['messages']) == 3
+        event2['updates'] = [{'changes': [2, [0, '2'], 1]}]
+        self.assert_events_equal(res2.data['messages'][0], event1)
+        self.assert_events_equal(res2.data['messages'][1], event2)
+        self.assert_events_equal(res2.data['messages'][2], event3)
+        await self.assert_event_received(event2)
+        await self.assert_event_received(event3)
+
+        await self.refresh_data()
+        assert self.finding.data['field_markdown'] == 'A12B'
+        assert self.finding.data['field_list'] == event3['value']
+
+        res2 = await sync_to_async(self.client_http.post)(
+            path=reverse('projectreporting-fallback', kwargs={'project_pk': self.project.id}),
+            data={'version': res2.data['version'], 'client_id': res1.data['client_id'], 'messages': []},
+        )
+        assert res2.status_code == 200, res2.data
+        assert len(res2.data['messages']) == 0
 
 
 @pytest.mark.django_db(transaction=True)
@@ -708,19 +757,28 @@ class TestConsumerPermissions:
             path=path,
             headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())] if session else [],
         )
-        connected, _ = await consumer.connect()
-        await consumer.disconnect()
-        return connected
+        can_read, _ = await consumer.connect()
+        can_write = False
+        if can_read:
+            await consumer.receive_json_from()  # collab.init
+            await consumer.receive_json_from()  # collab.connect
 
-    @pytest.mark.parametrize(('expected', 'user_name', 'project_name'), [
-        (True, 'member', 'project'),
-        (True, 'admin', 'project'),
-        (False, 'unauthorized', 'project'),
-        (False, 'anonymous', 'project'),
-        (False, 'member', 'readonly'),
-        (False, 'admin', 'readonly'),
+            await consumer.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': 'test', 'value': 'test'})
+            msg = await consumer.receive_output()
+            can_write = msg['type'] != 'websocket.close'
+
+        await consumer.disconnect()
+        return can_read, can_write
+
+    @pytest.mark.parametrize(('user_name', 'project_name', 'expected_read', 'expected_write'), [
+        ('member', 'project', True, True),
+        ('admin', 'project', True, True),
+        ('unauthorized', 'project', False, False),
+        ('anonymous', 'project', False, False),
+        ('member', 'readonly', True, False),
+        ('admin', 'readonly', True, False),
     ])
-    async def test_project_permissions(self, expected, user_name, project_name):
+    async def test_project_permissions(self, user_name, project_name, expected_read, expected_write):
         def setup_db():
             user_member = create_user()
             users = {
@@ -729,14 +787,31 @@ class TestConsumerPermissions:
                 'unauthorized': create_user(),
                 'anonymous': AnonymousUser(),
             }
+            user = users[user_name]
+            if user.is_superuser:
+                user.admin_permissions_enabled = True
+
             projects = {
                 'project': create_project(members=[user_member]),
                 'readonly': create_project(members=[user_member], readonly=True),
             }
-            return users[user_name], projects[project_name]
+            return user, projects[project_name]
         user, project = await sync_to_async(setup_db)()
-        assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/notes/', user) == expected
-        assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/reporting/', user) == expected
+        assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
+        assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)
+
+        client = api_client(user)
+        res = await sync_to_async(client.get)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}))
+        assert res.status_code == (200 if expected_read else 403)
+        client_id = res.data.get('client_id', f'{user.id}/asdf')
+        res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+        assert res.status_code == (200 if expected_write else 403)
+
+        res = await sync_to_async(client.get)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}))
+        assert res.status_code == (200 if expected_read else 403)
+        client_id = res.data.get('client_id', f'{user.id}/asdf')
+        res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+        assert res.status_code == (200 if expected_write else 403)
 
     @pytest.mark.parametrize(('expected', 'user_name'), [
         (True, 'self'),
@@ -753,6 +828,15 @@ class TestConsumerPermissions:
                 'unauthorized': create_user(),
                 'anonymous': AnonymousUser(),
             }
-            return users[user_name], user_notes
+            user = users[user_name]
+            if user.is_superuser:
+                user.admin_permissions_enabled = True
+            return user, user_notes
         user, user_notes = await sync_to_async(setup_db)()
-        assert await self.ws_connect(f'/ws/pentestusers/{user_notes.id}/notes/', user) == expected
+        assert await self.ws_connect(f'/ws/pentestusers/{user_notes.id}/notes/', user) == (expected, expected)
+
+        client = api_client(user)
+        res = await sync_to_async(client.get)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}))
+        assert res.status_code == (200 if expected else 403)
+        client_id = res.data.get('client_id', f'{user.id}/asdf')
+        assert (await sync_to_async(client.post)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}), data={'version': 1, 'client_id': client_id, 'messages': []})).status_code == (200 if expected else 403)

@@ -40,6 +40,7 @@ from reportcreator_api.users.views import (
     MFAMethodViewSet,
     PentestUserViewSet,
 )
+from reportcreator_api.utils.channels import ConsumerHttpFallbackView
 
 router = DefaultRouter()
 # Make trailing slash in URL optional to support loading images and assets by fielname
@@ -102,6 +103,11 @@ urlpatterns = [
 
     ])),
 
+    # Websocket HTTP fallback
+    path('ws/pentestprojects/<uuid:project_pk>/reporting/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectReportingConsumer), name='projectreporting-fallback'),
+    path('ws/pentestprojects/<uuid:project_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectNotesConsumer), name='projectnotebookpage-fallback'),
+    path('ws/pentestusers/<str:pentestuser_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=UserNotesConsumer), name='usernotebookpage-fallback'),
+
     # Static files
     path('robots.txt', lambda *args, **kwargs: HttpResponse("User-Agent: *\nDisallow: /\n", content_type="text/plain")),
 
@@ -111,8 +117,8 @@ urlpatterns = [
 
 
 websocket_urlpatterns = [
-    path('ws/pentestprojects/<uuid:project_id>/reporting/', ProjectReportingConsumer.as_asgi(), name='projectnotebookpage-ws'),
-    path('ws/pentestprojects/<uuid:project_id>/notes/', ProjectNotesConsumer.as_asgi(), name='projectnotebookpage-ws'),
+    path('ws/pentestprojects/<uuid:project_pk>/reporting/', ProjectReportingConsumer.as_asgi(), name='projectreporting-ws'),
+    path('ws/pentestprojects/<uuid:project_pk>/notes/', ProjectNotesConsumer.as_asgi(), name='projectnotebookpage-ws'),
     path('ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi(), name='usernotebookpage-ws'),
 ]
 
