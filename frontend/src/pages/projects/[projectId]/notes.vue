@@ -48,8 +48,8 @@ onMounted(async () => {
   await notesCollab.connect();
   collabAwarenessSendNavigate();
 });
-onBeforeUnmount(() => {
-  notesCollab.disconnect();
+onBeforeUnmount(async () => {
+  await notesCollab.disconnect();
 });
 watch(() => router.currentRoute.value, collabAwarenessSendNavigate);
 

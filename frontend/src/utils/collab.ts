@@ -59,6 +59,7 @@ export type CollabEvent = {
 export enum CollabConnectionType {
   WEBSOCKET = 'websocket',
   HTTP_FALLBACK = 'http_fallback',
+  HTTP_READONLY = 'http_readonly',
 };
 
 export enum CollabConnectionState {
@@ -412,10 +413,35 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
   return connectionInfo;
 }
 
+export function connectHttpReadonly<T = any>(storeState: CollabStoreState<T>, onReceiveMessage: (msg: CollabEvent) => void) {
+  const httpUrl = urlJoin(storeState.apiPath, '/fallback/');
+  const connectionInfo = reactive<CollabConnectionInfo>({
+    type: CollabConnectionType.HTTP_READONLY,
+    url: httpUrl,
+    connectionState: CollabConnectionState.CLOSED,
+    connectionError: undefined,
+    connect,
+    disconnect: () => Promise.resolve(),
+    send: () => {},
+  });
+
+  async function connect() {
+    try {
+      const res = await $fetch<CollabEvent>(httpUrl, { method: 'GET' });
+      onReceiveMessage(res);
+      connectionInfo.connectionState = CollabConnectionState.OPEN;
+    } catch (e) {
+      connectionInfo.connectionError = { error: e };
+    }
+  }
+
+  return connectionInfo;
+}
+
 export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   const eventBusBeforeApplyRemoteTextChange = useEventBus('collab:beforeApplyRemoteTextChanges');
 
-  async function connect(options?: { connectionType: CollabConnectionType, skipHttpFallbackRefresh?: boolean }) {
+  async function connect(options?: { connectionType?: CollabConnectionType }) {
     if (storeState.connection && storeState.connection.connectionState !== CollabConnectionState.CLOSED) {
       return;
     }
@@ -427,15 +453,23 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       clients: [],
     }
 
-    // TODO: HTTP fallback
-    // TODO: handle options
-    // // Websocket connection
-    // storeState.connection = connectionWebsocket(storeState, onReceiveMessage);
-    // return await storeState.connection?.connect();
+    if (options?.connectionType === CollabConnectionType.HTTP_READONLY) {
+      // HTTP read only connection
+      storeState.connection = connectHttpReadonly(storeState, onReceiveMessage);
+      return await storeState.connection?.connect();
+    } else {
+      // Try websocket connection first
+      for (let i = 0; i < 2; i++) {
+        try {
+          storeState.connection = connectionWebsocket(storeState, onReceiveMessage);
+          return await storeState.connection?.connect();
+        } catch {}
+      }
 
-    // HTTP fallback
-    storeState.connection = connectionHttpFallback(storeState, onReceiveMessage);
-    return await storeState.connection?.connect();
+      // Fallback to HTTP polling
+      storeState.connection = connectionHttpFallback(storeState, onReceiveMessage);
+      return await storeState.connection?.connect();
+    }
   }
 
   async function disconnect() {
@@ -810,8 +844,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     onCollabEvent,
     data: computed(() => storeState.data),
     readonly: computed(() => storeState.connection?.connectionState !== CollabConnectionState.OPEN || !storeState.permissions.write),
-    connectionState: computed(() => storeState.connection?.connectionState || CollabConnectionState.CLOSED),
-    connectionError: computed(() => storeState.connection?.connectionError),
+    connection: computed(() => storeState.connection),
     collabProps: computed(() => ({
       path: storeState.apiPath,
       clients: storeState.awareness.clients.map((c) => {

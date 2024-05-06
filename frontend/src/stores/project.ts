@@ -326,11 +326,19 @@ export const useProjectStore = defineStore('project', {
         }, { immediate: true });
       }
 
+      async function connect() {
+        if (options.project.readonly) {
+          return await collab.connect({ connectionType: CollabConnectionType.HTTP_READONLY });
+        }
+        return await collab.connect();
+      }
+
       return {
         ...collab,
         collabProps,
         hasLock,
         readonly: computed(() => collab.readonly.value || !hasLock.value),
+        connect,
       };
     },
     useReportingCollab(options: { project: PentestProject, findingId?: string, sectionId?: string }) {
@@ -352,11 +360,19 @@ export const useProjectStore = defineStore('project', {
         }, { immediate: true });
       }
 
+      async function connect() {
+        if (options.project.readonly) {
+          return await collab.connect({ connectionType: CollabConnectionType.HTTP_READONLY });
+        }
+        return await collab.connect();
+      }
+
       return {
         ...collab,
         collabProps,
         hasLock,
         readonly: computed(() => collab.readonly.value || !hasLock.value),
+        connect,
       };
     },
   },

@@ -139,8 +139,8 @@ onMounted(async () => {
   await reportingCollab.connect();
   collabAwarenessSendNavigate();
 });
-onBeforeUnmount(() => {
-  reportingCollab.disconnect();
+onBeforeUnmount(async () => {
+  await reportingCollab.disconnect();
 });
 watch(() => router.currentRoute.value, collabAwarenessSendNavigate);
 
