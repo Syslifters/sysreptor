@@ -33,6 +33,7 @@ from reportcreator_api.pentests.models import (
 from reportcreator_api.tests.mock import api_client, create_project, create_project_type, create_user, mock_time
 from reportcreator_api.utils.text_transformations import (
     ChangeSet,
+    CollabStr,
     EditorSelection,
     SelectionRange,
     Update,
@@ -47,6 +48,31 @@ class TestTextTransformations:
         res = change_set.apply(text)
         assert res == expected
         return res
+
+    def test_unicode_handling(self):
+        s_raw = 'before 🤦🏼‍♂️ after'
+        s = CollabStr(s_raw)
+        # Encode/decode
+        assert str(s) == s_raw
+        # Length
+        assert len(s) == 6 + 1 + 7 + 1 + 5
+        # Index
+        assert str(s[0]) == 'b'
+        assert str(s[15]) == 'a'
+        assert str(s[-2]) == 'e'
+        assert str(s[-1]) == 'r'
+        # Slice
+        assert str(s[:6]) == 'before'
+        assert str(s[-5:]) == 'after'
+        assert str(s[15:]) == 'after'
+        assert str(s[7:14]) == '🤦🏼‍♂️'
+        assert str(s[:14]) == 'before 🤦🏼‍♂️'
+        assert str(s[7:]) == '🤦🏼‍♂️ after'
+        assert str(s[0:]) == s_raw
+        assert str(s[:]) == s_raw
+        assert str(s[:0]) == ''
+        assert str(s[-1:]) == s_raw[-1:]
+        assert str(s[:-1]) == s_raw[:-1]
 
     def test_changes(self):
         operations = [
@@ -74,6 +100,9 @@ class TestTextTransformations:
             {'changes': [14, [0, '4']], 'expected': 'Ln0\nLn1\nLn2\nLn4'},
             {'changes': [14, [1]], 'expected': 'Ln0\nLn1\nLn2\nLn'},
             {'changes': [14, [0, '3']], 'expected': 'Ln0\nLn1\nLn2\nLn3'},
+            # Unicode characters
+            {'changes': [15, [0, ' 🤦🏼‍♂️ ']], 'expected': 'Ln0\nLn1\nLn2\nLn3 🤦🏼‍♂️ '},
+            {'changes': [22, [0, 'unicode']], 'expected': 'Ln0\nLn1\nLn2\nLn3 🤦🏼‍♂️ unicode'},
         ]
 
         # Loading and serialization
@@ -97,6 +126,7 @@ class TestTextTransformations:
         ('line1\nline2\n', [5, [7]], [9, [0, 'e'], 3], 'line1e'),
         ('ABCDE', [1, [1], 3], [3, [1], 1], 'ACE'),
         ('AD', [1, [0, 'B'], 1], [1, [0, 'C'], 1], 'ABCD'),
+        ('AD', [1, [0, ' 🤦🏼‍♂️ '], 1], [1, [0, 'C'], 1], 'A 🤦🏼‍♂️ CD'),
     ])
     def test_operational_transform(self, text, change1, change2, expected):
         c1 = ChangeSet.from_dict(change1)
