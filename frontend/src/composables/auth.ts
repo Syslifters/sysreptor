@@ -75,7 +75,7 @@ export function useAuth() {
       redirect = '/';
     }
 
-    const external = ['/api', '/admin', '/static'].some(p => redirect.startsWith(p));
+    const external = ['/api', '/ws', '/admin', '/static'].some(p => redirect.startsWith(p));
     return await navigateTo(redirect, { external });
   }
 
