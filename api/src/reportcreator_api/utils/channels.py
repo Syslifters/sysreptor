@@ -92,26 +92,3 @@ class ConsumerHttpFallbackView(AsyncAPIView):
             'clients': await sync_to_async(consumer.get_client_infos)(),
         })
 
-# TODO: Websocket fallback to HTTP
-# * [x] API
-#   * [x] GET /ws/.../fallback/ => return initial message (full data, version, clients)
-#       * [x] check permissions
-#       * [x] call consumer.get_initial_message()
-#   * [x] POST /ws/.../fallback/?version=123 => send messages, return all messages since version (+ clients)
-#       * [x] check permissions
-#       * [x] proxy all messages to consumer.receive_*()
-#       * [x] return all messages since version (+ client infos)
-# * [x] use http fallback for readonly mode
-#   * [x] consumer: has_read_permission(), has_write_permission()
-#   * [x] consumer: get_initial_message() => return has_write_permission field
-#   * [x] frontend: refactor permissions checks
-#   * [x] frontend: remove manual fallback in pages
-# * [ ] frontend
-#   * [ ] connect to websocket x2
-#   * [ ] on connection error: fallback to HTTP
-#   * [x] collab.ts refactoring
-#   * [x] do not send awareness messages
-#   * [ ] warning toast when using HTTP fallback
-# * [x] tests
-#   * [x] test_api
-#   * [x] test_collab
