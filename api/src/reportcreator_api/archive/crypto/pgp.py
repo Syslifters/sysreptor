@@ -40,7 +40,7 @@ def public_key_info(public_key: str):
             raise CryptoError('Unsupported algorithm')
         if encryption_key_info.get('algo') in ['1', '2', '16'] and int(encryption_key_info.get('length', 0)) < 3072:
             raise CryptoError('Key length too short. The minimum supported RSA key size is 3072 bit')
-        elif encryption_key_info.get('algo') in ['18'] and int(encryption_key_info.get('length', 0)) < 256:
+        elif encryption_key_info.get('algo') in ['18'] and int(encryption_key_info.get('length', 0)) < 255:
             raise CryptoError('Key length too short. The minimum supported Elliptic Curve size is 256 bit')
 
         return key_info

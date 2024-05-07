@@ -30,10 +30,55 @@ from typing import Optional
 from reportcreator_api.utils.utils import get_at
 
 
+class CollabStr:
+    """
+    Wrapper class for strings that handles unicode characters like in JavaScript strings.
+    Python uses UTF-32 code units internally, while JavaScript uses UTF-16 code units.
+    This results in discrepancies for string length and indexing for unicode characters larger than 16 bits (e.g. emojis).
+    See https://hsivonen.fi/string-length/
+    """
+
+    def __init__(self, py_str: str|bytes) -> None:
+        if isinstance(py_str, bytes):
+            self.str_bytes = py_str
+        else:
+            self.str_bytes = py_str \
+                .encode('utf-16-le')
+
+    def __str__(self) -> str:
+        return self.str_bytes.decode('utf-16-le')
+
+    def __repr__(self) -> str:
+        return repr(str(self))
+
+    def __len__(self):
+        return len(self.str_bytes) // 2
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            return CollabStr(self.str_bytes[slice(
+                key.start * 2 if key.start is not None else None,
+                key.stop * 2 if key.stop is not None else None,
+                key.step * 2 if key.step is not None else None,
+            )])
+        elif isinstance(key, int):
+            return CollabStr(self.str_bytes[key * 2:((key * 2) + 2) or None])
+        else:
+            raise TypeError('Invalid argument type')
+
+    def __add__(self, other):
+        if isinstance(other, CollabStr):
+            return CollabStr(self.str_bytes + other.str_bytes)
+        elif isinstance(other, str):
+            return self + CollabStr(other)
+        else:
+            raise TypeError('Invalid argument type')
+
+
 @dataclasses.dataclass
 class ChangeSet:
     sections: list[int]
-    inserted: list[str]
+    inserted: list[CollabStr]
 
     @property
     def empty(self):
@@ -63,8 +108,8 @@ class ChangeSet:
                 raise ValueError('Invalid change')
             else:
                 while len(inserted) <= i:
-                    inserted.append('')  # Text.empty
-                inserted[i] = '\n'.join(part[1:])
+                    inserted.append(CollabStr(''))  # Text.empty
+                inserted[i] = CollabStr('\n'.join(part[1:]))
                 sections.extend([part[0], len(inserted[i])])
         return ChangeSet(sections=sections, inserted=inserted)
 
@@ -81,7 +126,7 @@ class ChangeSet:
             elif ins == 0:
                 parts.append([i_len])
             else:
-                parts.append([i_len] + self.inserted[i >> 1].split('\n'))
+                parts.append([i_len] + str(self.inserted[i >> 1]).split('\n'))
         return parts
 
     def compose(self, other: 'ChangeSet'):
@@ -150,7 +195,7 @@ class ChangeSet:
             else:
                 end_a = pos_a
                 end_b = pos_b
-                text = ''
+                text = CollabStr('')
                 while True:
                     end_a += i_len
                     end_b += ins
@@ -172,13 +217,13 @@ class ChangeSet:
         document.
         """
         # Normalize line breaks to get consistent positions
-        doc = doc.replace('\r\n', '\n')
+        doc = CollabStr(doc.replace('\r\n', '\n'))
 
         if self.length != len(doc):
             raise ValueError('Applying change set to a document with the wrong length')
         for (from_a, to_a, from_b, _to_b, text) in self.iter_changes(False):
             doc = doc[:from_b] + text + doc[from_b + (to_a - from_a):]
-        return doc
+        return str(doc)
 
 
 @dataclasses.dataclass
@@ -278,7 +323,7 @@ class SectionIter:
     @property
     def text(self):
         index = (self.i - 2) >> 1
-        return '' if index >= len(self.set.inserted) else self.set.inserted[index]
+        return CollabStr('') if index >= len(self.set.inserted) else self.set.inserted[index]
 
     @property
     def len2(self):
@@ -313,7 +358,7 @@ class SectionIter:
     def text_bit(self, i_len: Optional[int]=None):
         index = (self.i - 2) >> 1
         if index >= len(self.set.inserted) and not i_len:
-            return ''
+            return CollabStr('')
         elif i_len is not None:
             return self.set.inserted[index][self.off:self.off + i_len]
         else:
@@ -336,7 +381,7 @@ def add_section(sections: list[int], i_len: int, ins: int, force_join=False):
         sections.extend([i_len, ins])
 
 
-def add_insert(values: list[str], sections: list[int], value: str):
+def add_insert(values: list[CollabStr], sections: list[int], value: CollabStr):
     if len(value) == 0:
         return
 

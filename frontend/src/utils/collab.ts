@@ -9,6 +9,7 @@ import { type UserShortInfo } from "@/utils/types"
 
 const WS_RESPONSE_TIMEOUT = 5_000;
 const WS_PING_INTERVAL = 30_000;
+const WS_THROTTLE_INTERVAL_UPDATE_KEY = 1_000;
 const WS_THROTTLE_INTERVAL_UPDATE_TEXT = 1_000;
 const WS_THROTTLE_INTERVAL_AWARENESS = 1_000;
 const HTTP_FALLBACK_INTERVAL = 10_000;
@@ -142,6 +143,7 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
   const websocket = ref<WebSocket|null>(null);
   const perPathState = new Map<string, {
     sendUpdateTextThrottled: ReturnType<typeof throttle>;
+    sendUpdateKeyThrottled: ReturnType<typeof throttle>;
   }>();
   const sendAwarenessThrottled = throttle(websocketSendAwareness, WS_THROTTLE_INTERVAL_AWARENESS, { leading: false, trailing: true });
 
@@ -200,8 +202,6 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
         for (const s of perPathState.values()) {
           s.sendUpdateTextThrottled.cancel();
         }
-        storeState.perPathState?.clear();
-        storeState.version = 0;
         connectionInfo.connectionState = CollabConnectionState.CLOSED;
 
         reject(connectionInfo.connectionError);
@@ -221,10 +221,12 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
           sendAwarenessThrottled();
           resolve();
         } else if (msgData.type === CollabEventType.UPDATE_KEY) {
-          // Clear pending events of sub-fields
-          for (const [k, v] of perPathState.entries()) {
-            if (msgData.path === k || msgData.path?.startsWith(k + '.')) {
-              v.sendUpdateTextThrottled.cancel();
+          if (msgData.client_id !== storeState.clientID) {
+            // Clear pending events of sub-fields
+            for (const [k, v] of perPathState.entries()) {
+              if (msgData.path === k || msgData.path?.startsWith(k + '.')) {
+                v.sendUpdateTextThrottled.cancel();
+              }
             }
           }
         } else if (msgData.type === CollabEventType.CONNECT) {
@@ -248,14 +250,31 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
     }
     await nextTick();
 
-    websocket.value?.close(1000, 'Disconnect'); 
+    if (websocket.value?.readyState === WebSocket.OPEN) {
+      await new Promise<void>((resolve) => {
+        websocket.value?.addEventListener('close', () => resolve());
+        websocket.value?.close(1000, 'Disconnect'); 
+      });
+    }
   }
 
   function send(msg: CollabEvent) {
-    if (msg.type === CollabEventType.UPDATE_KEY && msg.update_awareness) {
-      // Awareness info is included in update_key message
-      sendAwarenessThrottled?.cancel();
-      websocketSend(msg);
+    if (msg.type === CollabEventType.UPDATE_KEY) {
+      if (msg.update_awareness) {
+        // Awareness info is included in update_key message
+        sendAwarenessThrottled?.cancel();
+      }
+
+      // Cancel pending update_key events of child fields
+      for (const [k, v] of perPathState.entries()) {
+        if (k.startsWith(msg.path + '.')) {
+          v.sendUpdateKeyThrottled.cancel();
+        }
+      }
+      
+      // Throttle update_key messages
+      const s = ensurePerPathState(msg.path!);
+      s.sendUpdateKeyThrottled(msg);
     } else if (msg.type === CollabEventType.UPDATE_TEXT) {
       // Cancel pending awareness send: awareness info is included in the next update_text message
       sendAwarenessThrottled.cancel();
@@ -271,6 +290,9 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
   }
 
   function websocketSend(msg: CollabEvent) {
+    if (websocket.value?.readyState !== WebSocket.OPEN) {
+      return;
+    }
     websocket.value?.send(JSON.stringify(msg));
     websocketConnectionLostTimeout();
   }
@@ -311,10 +333,18 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
     });
   }
 
+  function websocketSendUpdateKey(msg: CollabEvent) {
+    websocketSend({
+      ...msg,
+      update_awareness: msg.update_awareness && msg.path === storeState.awareness.self.path,
+    });
+  }
+
   function ensurePerPathState(path: string) {
     if (!perPathState.has(path)) {
       perPathState.set(path, {
         sendUpdateTextThrottled: throttle(() => websocketSendUpdateText(path), WS_THROTTLE_INTERVAL_UPDATE_TEXT, { leading: false, trailing: true }),
+        sendUpdateKeyThrottled: throttle((msg: CollabEvent) => websocketSendUpdateKey(msg), WS_THROTTLE_INTERVAL_UPDATE_KEY, { leading: true, trailing: true }),
       });
     }
     return perPathState.get(path)!;
@@ -446,6 +476,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       return;
     }
 
+    storeState.version = 0;
     storeState.perPathState?.clear();
     storeState.awareness = {
       self: { path: storeState.awareness.self.path },
@@ -473,7 +504,11 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   async function disconnect() {
-    await storeState.connection?.disconnect();
+    const con = storeState.connection;
+    await con?.disconnect();
+    if (storeState.connection === con) {
+      storeState.connection = undefined;
+    }
   }
 
   function onReceiveMessage(msgData: CollabEvent) {  
@@ -493,17 +528,19 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         selection: undefined, 
       }]));
     } else if (msgData.type === CollabEventType.UPDATE_KEY) {
+      if (msgData.client_id !== storeState.clientID) {
       // Clear pending text updates, because they are overwritten by the value of collab.update_key
-      for (const [k, v] of storeState.perPathState.entries()) {
-        if (msgData.path === k || msgData.path!.startsWith(k + '.')) {
-          v.unconfirmedTextUpdates = [];
+        for (const [k, v] of storeState.perPathState.entries()) {
+          if (msgData.path === k || msgData.path!.startsWith(k + '.')) {
+            v.unconfirmedTextUpdates = [];
+          }
         }
+    
+        // Update local state
+        set(storeState.data as Object, msgData.path!, msgData.value);
+    
+        removeInvalidSelections(msgData.path!);
       }
-    
-      // Update local state
-      set(storeState.data as Object, msgData.path!, msgData.value);
-    
-      removeInvalidSelections(msgData.path!);
     } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
       receiveUpdateText(msgData);
     } else if (msgData.type === CollabEventType.CREATE) {
