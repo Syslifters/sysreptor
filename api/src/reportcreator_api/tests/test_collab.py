@@ -102,7 +102,7 @@ class TestTextTransformations:
             {'changes': [14, [0, '3']], 'expected': 'Ln0\nLn1\nLn2\nLn3'},
             # Unicode characters
             {'changes': [15, [0, ' 🤦🏼‍♂️ ']], 'expected': 'Ln0\nLn1\nLn2\nLn3 🤦🏼‍♂️ '},
-            {'changes': [22, [0, 'unicode']], 'expected': 'Ln0\nLn1\nLn2\nLn3 🤦🏼‍♂️ unicode'},
+            {'changes': [24, [0, 'unicode']], 'expected': 'Ln0\nLn1\nLn2\nLn3 🤦🏼‍♂️ unicode'},
         ]
 
         # Loading and serialization
