@@ -202,8 +202,6 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
         for (const s of perPathState.values()) {
           s.sendUpdateTextThrottled.cancel();
         }
-        storeState.perPathState?.clear();
-        storeState.version = 0;
         connectionInfo.connectionState = CollabConnectionState.CLOSED;
 
         reject(connectionInfo.connectionError);
@@ -252,7 +250,12 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
     }
     await nextTick();
 
-    websocket.value?.close(1000, 'Disconnect'); 
+    if (websocket.value?.readyState === WebSocket.OPEN) {
+      await new Promise<void>((resolve) => {
+        websocket.value?.addEventListener('close', () => resolve());
+        websocket.value?.close(1000, 'Disconnect'); 
+      });
+    }
   }
 
   function send(msg: CollabEvent) {
@@ -287,6 +290,9 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
   }
 
   function websocketSend(msg: CollabEvent) {
+    if (websocket.value?.readyState !== WebSocket.OPEN) {
+      return;
+    }
     websocket.value?.send(JSON.stringify(msg));
     websocketConnectionLostTimeout();
   }
@@ -470,6 +476,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       return;
     }
 
+    storeState.version = 0;
     storeState.perPathState?.clear();
     storeState.awareness = {
       self: { path: storeState.awareness.self.path },
@@ -497,7 +504,11 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   async function disconnect() {
-    await storeState.connection?.disconnect();
+    const con = storeState.connection;
+    await con?.disconnect();
+    if (storeState.connection === con) {
+      storeState.connection = undefined;
+    }
   }
 
   function onReceiveMessage(msgData: CollabEvent) {  
