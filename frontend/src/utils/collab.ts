@@ -66,13 +66,11 @@ export enum CollabConnectionType {
 export enum CollabConnectionState {
   CLOSED = 'closed',
   CONNECTING = 'connecting',
-  INITIALIZING = 'initializing',
   OPEN = 'open',
 };
 
 export type CollabConnectionInfo = {
   type: CollabConnectionType;
-  url: string;
   connectionState: CollabConnectionState;
   connectionError?: { error: any, message?: string };
   connect: () => Promise<void>;
@@ -149,7 +147,6 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
 
   const connectionInfo = reactive<CollabConnectionInfo>({
     type: CollabConnectionType.WEBSOCKET,
-    url: wsUrl,
     connectionState: CollabConnectionState.CLOSED,
     connectionError: undefined,
     connect,
@@ -167,8 +164,8 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
     websocket.value?.close(4504);
   }, WS_RESPONSE_TIMEOUT, { leading: false, trailing: true });
 
-  function connect() {
-    return new Promise<void>((resolve, reject) => {
+  async function connect() {
+    return await new Promise<void>((resolve, reject) => {
       if (connectionInfo.connectionState !== CollabConnectionState.CLOSED) {
         resolve();
         return;
@@ -177,7 +174,6 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
       connectionInfo.connectionState = CollabConnectionState.CONNECTING;
       websocket.value = new WebSocket(wsUrl);
       websocket.value.addEventListener('open', () => {
-        connectionInfo.connectionState = CollabConnectionState.INITIALIZING;
         websocketConnectionLossDetection();
       })
       websocket.value.addEventListener('close', (event) => {
@@ -369,7 +365,6 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
   const httpUrl = urlJoin(storeState.apiPath, '/fallback/');
   const connectionInfo = reactive<CollabConnectionInfo>({
     type: CollabConnectionType.HTTP_FALLBACK,
-    url: httpUrl,
     connectionState: CollabConnectionState.CLOSED,
     connectionError: undefined,
     connect,
@@ -380,6 +375,7 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
   const sendInterval = ref();
 
   async function connect() {
+    connectionInfo.connectionState = CollabConnectionState.CONNECTING;
     try {
       const res = await $fetch<CollabEvent>(httpUrl, { method: 'GET' });
       onReceiveMessage(res);
@@ -388,6 +384,8 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
       sendInterval.value = setInterval(sendPendingMessages, HTTP_FALLBACK_INTERVAL);
     } catch (e) {
       connectionInfo.connectionError = { error: e };
+      connectionInfo.connectionState = CollabConnectionState.CLOSED;
+      throw e;
     }
   }
 
@@ -397,8 +395,6 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
 
     await sendPendingMessages();
 
-    storeState.perPathState?.clear();
-    storeState.version = 0;
     connectionInfo.connectionState = CollabConnectionState.CLOSED;
   }
 
@@ -443,11 +439,10 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
   return connectionInfo;
 }
 
-export function connectHttpReadonly<T = any>(storeState: CollabStoreState<T>, onReceiveMessage: (msg: CollabEvent) => void) {
+export function connectionHttpReadonly<T = any>(storeState: CollabStoreState<T>, onReceiveMessage: (msg: CollabEvent) => void) {
   const httpUrl = urlJoin(storeState.apiPath, '/fallback/');
   const connectionInfo = reactive<CollabConnectionInfo>({
     type: CollabConnectionType.HTTP_READONLY,
-    url: httpUrl,
     connectionState: CollabConnectionState.CLOSED,
     connectionError: undefined,
     connect,
@@ -456,12 +451,15 @@ export function connectHttpReadonly<T = any>(storeState: CollabStoreState<T>, on
   });
 
   async function connect() {
+    connectionInfo.connectionState = CollabConnectionState.CONNECTING;
     try {
       const res = await $fetch<CollabEvent>(httpUrl, { method: 'GET' });
       onReceiveMessage(res);
       connectionInfo.connectionState = CollabConnectionState.OPEN;
     } catch (e) {
       connectionInfo.connectionError = { error: e };
+      connectionInfo.connectionState = CollabConnectionState.CLOSED;
+      throw e;
     }
   }
 
@@ -471,17 +469,22 @@ export function connectHttpReadonly<T = any>(storeState: CollabStoreState<T>, on
 export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   const eventBusBeforeApplyRemoteTextChange = useEventBus('collab:beforeApplyRemoteTextChanges');
 
-  async function connect(options?: { connectionType?: CollabConnectionType }) {
-    if (storeState.connection && storeState.connection.connectionState !== CollabConnectionState.CLOSED) {
-      return;
-    }
-
+  async function connectTo(connection: CollabConnectionInfo) {
     storeState.version = 0;
     storeState.perPathState?.clear();
     storeState.awareness = {
       self: { path: storeState.awareness.self.path },
       other: {},
       clients: [],
+    };
+
+    await connection.connect();
+    storeState.connection = connection;
+  }
+
+  async function connect(options?: { connectionType?: CollabConnectionType }) {
+    if (storeState.connection && storeState.connection.connectionState !== CollabConnectionState.CLOSED) {
+      return;
     }
 
     if (options?.connectionType === CollabConnectionType.HTTP_READONLY) {
@@ -489,17 +492,30 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       storeState.connection = connectHttpReadonly(storeState, onReceiveMessage);
       return await storeState.connection?.connect();
     } else {
+      // Dummy connection info with connectionState=CONNECTING
+      storeState.connection = {
+        type: CollabConnectionType.WEBSOCKET,
+        connectionState: CollabConnectionState.CONNECTING,
+        connect: () => Promise.resolve(),
+        disconnect: () => Promise.resolve(),
+        send: () => {},
+      };
+
       // Try websocket connection first
       for (let i = 0; i < 2; i++) {
         try {
-          storeState.connection = connectionWebsocket(storeState, onReceiveMessage);
-          return await storeState.connection?.connect();
+          return await connectTo(connectionWebsocket(storeState, onReceiveMessage));
         } catch {}
       }
 
       // Fallback to HTTP polling
-      storeState.connection = connectionHttpFallback(storeState, onReceiveMessage);
-      return await storeState.connection?.connect();
+      const fallbackConnection = connectionHttpFallback(storeState, onReceiveMessage);
+      try {
+        return await connectTo(fallbackConnection);
+      } catch (e) {
+        storeState.connection = fallbackConnection;
+        throw e;
+      }
     }
   }
 
