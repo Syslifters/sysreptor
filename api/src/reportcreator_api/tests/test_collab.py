@@ -416,9 +416,9 @@ class TestCollaborativeTextEditing:
         assert res2.data['version'] > version
         assert len(res2.data['messages']) == 3
         event2['updates'] = [{'changes': [2, [0, '2'], 1]}]
-        self.assert_events_equal(res2.data['messages'][0], event1)
-        self.assert_events_equal(res2.data['messages'][1], event2)
-        self.assert_events_equal(res2.data['messages'][2], event3)
+        self.assert_events_equal(res2.data['messages'][0], event1 | {'client_id': self.client1.client_id})
+        self.assert_events_equal(res2.data['messages'][1], event2 | {'client_id': res1.data['client_id']})
+        self.assert_events_equal(res2.data['messages'][2], event3 | {'client_id': res1.data['client_id']})
         await self.assert_event_received(event2)
         await self.assert_event_received(event3)
 
