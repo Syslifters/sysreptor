@@ -489,7 +489,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
 
     if (options?.connectionType === CollabConnectionType.HTTP_READONLY) {
       // HTTP read only connection
-      storeState.connection = connectHttpReadonly(storeState, onReceiveMessage);
+      storeState.connection = connectionHttpReadonly(storeState, onReceiveMessage);
       return await storeState.connection?.connect();
     } else {
       // Dummy connection info with connectionState=CONNECTING

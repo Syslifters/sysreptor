@@ -26,6 +26,7 @@ class ConsumerHttpFallbackSerializer(serializers.Serializer):
     def validate_client_id(self, value):
         if not value or not value.startswith(str(self.context['request'].user.id)):
             raise ValidationError('Invalid client_id')
+        return value
 
 
 class ConsumerHttpFallbackView(AsyncAPIView):
