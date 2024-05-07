@@ -305,7 +305,7 @@
                     :disabled="!setupWizard.form.verification"
                     :loading="actionInProgress"
                     text="Activate"
-                  />>
+                  />
                 </v-card-actions>
               </template>
               <template v-else-if="setupWizard.step === SetupWizardStep.SET_NAME">
