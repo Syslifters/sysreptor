@@ -134,7 +134,6 @@ services:
       DATABASE_NAME: reportcreator
       DATABASE_USER: reportcreator
       DATABASE_PASSWORD: reportcreator
-      MFA_FIDO2_RP_ID: localhost
       SPELLCHECK_URL: http://languagetool:8010/
       # REDIS_URL: redis://redis:6379
       # CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
