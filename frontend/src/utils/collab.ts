@@ -400,40 +400,54 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
 
   function send(msg: CollabEvent) {
     if ([CollabEventType.AWARENESS, CollabEventType.PING, CollabEventType.UPDATE_TEXT].includes(msg.type)) {
-      // Do not send.
+      // Do not send awareness and ping event at all.
       // collab.update_text is handled in sendPendingMessages
+    } else if ([CollabEventType.CREATE, CollabEventType.DELETE].includes(msg.type)) {
+      // Send immediately
+      pendingMessages.value.push(msg);
+      sendPendingMessages();
     } else {
       pendingMessages.value.push(msg);
     }
   }
 
   async function sendPendingMessages() {
-    const messages = [...pendingMessages.value];
-    for (const [p, s] of storeState.perPathState.entries()) {
-      if (s.unconfirmedTextUpdates.length > 0) {
-        messages.push({
-          type: CollabEventType.UPDATE_TEXT,
-          path: p,
-          version: storeState.version,
-          updates: s.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
-        });
-      }
-    }
-
-    const res = await $fetch<{ version: number, messages: CollabEvent[], clients: CollabClientInfo[] }>(httpUrl, { 
-      method: 'POST', 
-      body: {
-        version: storeState.version,
-        client_id: storeState.clientID,
-        messages,
-      }
-    });
-    for (const m of res.messages) {
-      onReceiveMessage(m);
-    }
-    storeState.awareness.clients = res.clients;
-    storeState.version = res.version;
+    let messagesRestore = [...pendingMessages.value] as CollabEvent[]|undefined;
     pendingMessages.value = [];
+
+    try {
+      const messages = [...(messagesRestore || [])];
+      for (const [p, s] of storeState.perPathState.entries()) {
+        if (s.unconfirmedTextUpdates.length > 0) {
+          messages.push({
+            type: CollabEventType.UPDATE_TEXT,
+            path: p,
+            version: storeState.version,
+            updates: s.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
+          });
+        }
+      }
+
+      const res = await $fetch<{ version: number, messages: CollabEvent[], clients: CollabClientInfo[] }>(httpUrl, { 
+        method: 'POST', 
+        body: {
+          version: storeState.version,
+          client_id: storeState.clientID,
+          messages,
+        }
+      });
+      messagesRestore = undefined
+
+      storeState.version = res.version;
+      storeState.awareness.clients = res.clients;
+      for (const m of res.messages) {
+        onReceiveMessage(m);
+      }
+    } catch (e) {
+      if (messagesRestore) {
+        pendingMessages.value = messagesRestore;
+      }
+    }
   }
 
   return connectionInfo;
