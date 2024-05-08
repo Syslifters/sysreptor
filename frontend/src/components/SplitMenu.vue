@@ -5,7 +5,7 @@
         <slot name="menu" />
       </div>
     </pane>
-    <pane :size="100 - props.modelValue" class="h-100 overflow-y-auto">
+    <pane ref="contentPaneRef" :size="100 - props.modelValue" class="h-100 overflow-y-auto">
       <v-container fluid class="pt-0 pb-0" v-bind="props.contentProps">
         <slot name="default" />
       </v-container>
@@ -17,6 +17,8 @@
 // @ts-ignore
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
+
+const router = useRouter();
 
 // TODO: menu slides on load; occurs on loading heavyweight components or loading components that use non-vue rendering (code-editor, markdown-editor)
 
@@ -30,6 +32,13 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', modelValue: number): void
 }>();
+
+// Scroll to top on navigate
+const contentPaneRef = ref();
+watch(router.currentRoute, () => {
+  contentPaneRef.value?.$el?.scrollTo({ top: 0, behavior: 'instant' });
+});
+
 </script>
 
 <style lang="scss" scoped>
