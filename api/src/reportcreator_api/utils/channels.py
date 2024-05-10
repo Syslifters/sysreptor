@@ -8,6 +8,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from reportcreator_api.pentests.models.collab import CollabEvent
+from reportcreator_api.utils import logging
 from reportcreator_api.utils.utils import omit_keys
 
 
@@ -64,6 +65,7 @@ class ConsumerHttpFallbackView(AsyncAPIView):
         consumer = await self.get_consumer(action='write', client_id=data['client_id'])
 
         # Dispatch incoming messages
+        error = None
         for msg in request.data.get('messages', []):
             msg_type = msg.get('type')
             if msg_type == 'collab.ping':
@@ -72,6 +74,12 @@ class ConsumerHttpFallbackView(AsyncAPIView):
                 await consumer.receive_json(msg)
             except ValidationError:
                 continue
+            except Exception as ex:
+                logging.exception(ex)
+                # Raise error after processing all events
+                error = ex
+        if error:
+            raise error
 
         # Get events since version (including responses to incoming messages)
         events = CollabEvent.objects \
