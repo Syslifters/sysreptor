@@ -46,7 +46,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@codemirror/autocomplete 6.15.0
+@codemirror/autocomplete 6.16.0
 MIT
 MIT License
 
@@ -121,7 +121,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-html 6.4.8
+@codemirror/lang-html 6.4.9
 MIT
 MIT License
 
@@ -171,7 +171,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-markdown 6.2.4
+@codemirror/lang-markdown 6.2.5
 MIT
 MIT License
 
@@ -321,7 +321,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/view 6.26.2
+@codemirror/view 6.26.3
 MIT
 MIT License
 
@@ -509,7 +509,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/javascript 1.4.14
+@lezer/javascript 1.4.16
 MIT
 MIT License
 
@@ -660,6 +660,30 @@ SOFTWARE.
 
 
 @npmcli/fs 3.1.0
+ISC
+<!-- This file is automatically added by @npmcli/template-oss. Do not edit. -->
+
+ISC License
+
+Copyright npm, Inc.
+
+Permission to use, copy, modify, and/or distribute this
+software for any purpose with or without fee is hereby
+granted, provided that the above copyright notice and this
+permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND NPM DISCLAIMS ALL
+WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO
+EVENT SHALL NPM BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
+USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
+@npmcli/fs 3.1.1
 ISC
 <!-- This file is automatically added by @npmcli/template-oss. Do not edit. -->
 
@@ -2160,9 +2184,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-cytoscape 3.28.1
+cytoscape 3.29.2
 MIT
-Copyright (c) 2016-2023, The Cytoscape Consortium.
+Copyright (c) 2016-2024, The Cytoscape Consortium.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the “Software”), to deal in
@@ -2928,7 +2952,7 @@ const zoom = d3.zoom().on('zoom', (zoomEvent) => {
 ```
 
 
-dayjs 1.11.10
+dayjs 1.11.11
 MIT
 MIT License
 
@@ -3106,7 +3130,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-dompurify 3.1.0
+dompurify 3.1.2
 (MPL-2.0 OR Apache-2.0)
 DOMPurify
 Copyright 2024 Dr.-Ing. Mario Heiderich, Cure53
@@ -3714,7 +3738,7 @@ Original Code is [東アジアの文字幅 (East Asian Width) の判定 - 中途
     console.log(eaw.length('￠￦｡ￜㄅ뀀¢⟭a⊙①بف')) // 19
 
 
-elkjs 0.9.2
+elkjs 0.9.3
 EPL-2.0
 # Eclipse Public License - v 2.0
 
@@ -4422,7 +4446,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-hast-util-raw 9.0.2
+hast-util-raw 9.0.3
 MIT
 (The MIT License)
 
@@ -4773,29 +4797,6 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-heap 0.2.7
-MIT
-The MIT License
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
 
 
 highlight.js 11.9.0
@@ -5281,6 +5282,35 @@ This library is a fork of 'better-json-errors' by Kat Marchán, extended and
 distributed under the terms of the MIT license above.
 
 
+json-parse-even-better-errors 3.0.2
+MIT
+Copyright 2017 Kat Marchán
+Copyright npm, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+---
+
+This library is a fork of 'better-json-errors' by Kat Marchán, extended and
+distributed under the terms of the MIT license above.
+
+
 jsonfile 6.1.0
 MIT
 (The MIT License)
@@ -5633,7 +5663,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-lru-cache 10.2.0
+lru-cache 10.2.2
 ISC
 The ISC License
 
@@ -6315,179 +6345,30 @@ abide by its terms.
 [micromark]: https://github.com/micromark/micromark
 
 
-micromark-core-commonmark 2.0.0
+micromark-core-commonmark 2.0.1
 MIT
-# micromark-core-commonmark
+(The MIT License)
 
-[![Build][build-badge]][build]
-[![Coverage][coverage-badge]][coverage]
-[![Downloads][downloads-badge]][downloads]
-[![Size][bundle-size-badge]][bundle-size]
-[![Sponsors][sponsors-badge]][opencollective]
-[![Backers][backers-badge]][opencollective]
-[![Chat][chat-badge]][chat]
+Copyright (c) Titus Wormer <tituswormer@gmail.com>
 
-[micromark][] constructs that make up the core of CommonMark.
-Some of these can be [turned off][disable], but they are often essential to
-markdown and weird things might happen.
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
 
-## Contents
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
 
-*   [What is this?](#what-is-this)
-*   [When should I use this?](#when-should-i-use-this)
-*   [Install](#install)
-*   [Use](#use)
-*   [API](#api)
-*   [Types](#types)
-*   [Compatibility](#compatibility)
-*   [Security](#security)
-*   [Contribute](#contribute)
-*   [License](#license)
-
-## What is this?
-
-This package exposes the default constructs.
-
-## When should I use this?
-
-This package is useful when you are making your own micromark extensions.
-
-## Install
-
-This package is [ESM only][esm].
-In Node.js (version 16+), install with [npm][]:
-
-```sh
-npm install micromark-core-commonmark
-```
-
-In Deno with [`esm.sh`][esmsh]:
-
-```js
-import * as core from 'https://esm.sh/micromark-core-commonmark@1'
-```
-
-In browsers with [`esm.sh`][esmsh]:
-
-```html
-<script type="module">
-  import * as core from 'https://esm.sh/micromark-core-commonmark@1?bundle'
-</script>
-```
-
-## Use
-
-```js
-import {autolink} from 'micromark-core-commonmark'
-
-console.log(autolink) // Do things with `autolink`.
-```
-
-## API
-
-This module exports the following identifiers: `attention`, `autolink`,
-`blankLine`, `blockQuote`, `characterEscape`, `characterReference`,
-`codeFenced`, `codeIndented`, `codeText`, `content`, `definition`,
-`hardBreakEscape`, `headingAtx`, `htmlFlow`, `htmlText`, `labelEnd`,
-`labelStartImage`, `labelStartLink`, `lineEnding`, `list`, `setextUnderline`,
-`thematicBreak`.
-There is no default export.
-
-Each identifier refers to a [construct][].
-
-See the code for more on the exported constructs.
-
-## Types
-
-This package is fully typed with [TypeScript][].
-It exports no additional types.
-
-## Compatibility
-
-Projects maintained by the unified collective are compatible with maintained
-versions of Node.js.
-
-When we cut a new major release, we drop support for unmaintained versions of
-Node.
-This means we try to keep the current release line,
-`micromark-core-commonmark@^2`, compatible with Node.js 16.
-This package works with `micromark@^3`.
-
-## Security
-
-This package is safe.
-See [`security.md`][securitymd] in [`micromark/.github`][health] for how to
-submit a security report.
-
-## Contribute
-
-See [`contributing.md`][contributing] in [`micromark/.github`][health] for ways
-to get started.
-See [`support.md`][support] for ways to get help.
-
-This project has a [code of conduct][coc].
-By interacting with this repository, organisation, or community you agree to
-abide by its terms.
-
-## License
-
-[MIT][license] © [Titus Wormer][author]
-
-<!-- Definitions -->
-
-[build-badge]: https://github.com/micromark/micromark/workflows/main/badge.svg
-
-[build]: https://github.com/micromark/micromark/actions
-
-[coverage-badge]: https://img.shields.io/codecov/c/github/micromark/micromark.svg
-
-[coverage]: https://codecov.io/github/micromark/micromark
-
-[downloads-badge]: https://img.shields.io/npm/dm/micromark-core-commonmark.svg
-
-[downloads]: https://www.npmjs.com/package/micromark-core-commonmark
-
-[bundle-size-badge]: https://img.shields.io/badge/dynamic/json?label=minzipped%20size&query=$.size.compressedSize&url=https://deno.bundlejs.com/?q=micromark-core-commonmark
-
-[bundle-size]: https://bundlejs.com/?q=micromark-core-commonmark
-
-[sponsors-badge]: https://opencollective.com/unified/sponsors/badge.svg
-
-[backers-badge]: https://opencollective.com/unified/backers/badge.svg
-
-[opencollective]: https://opencollective.com/unified
-
-[npm]: https://docs.npmjs.com/cli/install
-
-[esm]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
-
-[esmsh]: https://esm.sh
-
-[chat-badge]: https://img.shields.io/badge/chat-discussions-success.svg
-
-[chat]: https://github.com/micromark/micromark/discussions
-
-[license]: https://github.com/micromark/micromark/blob/main/license
-
-[author]: https://wooorm.com
-
-[health]: https://github.com/micromark/.github
-
-[securitymd]: https://github.com/micromark/.github/blob/main/security.md
-
-[contributing]: https://github.com/micromark/.github/blob/main/contributing.md
-
-[support]: https://github.com/micromark/.github/blob/main/support.md
-
-[coc]: https://github.com/micromark/.github/blob/main/code-of-conduct.md
-
-[disable]: https://github.com/micromark/micromark#case-turn-off-constructs
-
-[construct]: https://github.com/micromark/micromark#constructs
-
-[typescript]: https://www.typescriptlang.org
-
-[micromark]: https://github.com/micromark/micromark
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 micromark-extension-gfm-autolink-literal 2.0.0
@@ -14061,189 +13942,30 @@ abide by its terms.
 [api-subtokenize]: #subtokenizeevents
 
 
-micromark-util-subtokenize 2.0.0
+micromark-util-subtokenize 2.0.1
 MIT
-# micromark-util-subtokenize
-
-[![Build][build-badge]][build]
-[![Coverage][coverage-badge]][coverage]
-[![Downloads][downloads-badge]][downloads]
-[![Size][bundle-size-badge]][bundle-size]
-[![Sponsors][sponsors-badge]][opencollective]
-[![Backers][backers-badge]][opencollective]
-[![Chat][chat-badge]][chat]
-
-[micromark][] utility to tokenize subtokens.
-
-## Contents
-
-*   [What is this?](#what-is-this)
-*   [When should I use this?](#when-should-i-use-this)
-*   [Install](#install)
-*   [Use](#use)
-*   [API](#api)
-    *   [`subtokenize(events)`](#subtokenizeevents)
-*   [Types](#types)
-*   [Compatibility](#compatibility)
-*   [Security](#security)
-*   [Contribute](#contribute)
-*   [License](#license)
-
-## What is this?
-
-This package exposes a micromark internal that you probably don’t need.
-
-## When should I use this?
-
-This package might be useful when you are making your own micromark extensions.
-
-## Install
-
-This package is [ESM only][esm].
-In Node.js (version 16+), install with [npm][]:
-
-```sh
-npm install micromark-util-subtokenize
-```
-
-In Deno with [`esm.sh`][esmsh]:
-
-```js
-import {subtokenize} from 'https://esm.sh/micromark-util-subtokenize@1'
-```
-
-In browsers with [`esm.sh`][esmsh]:
-
-```html
-<script type="module">
-  import {subtokenize} from 'https://esm.sh/micromark-util-subtokenize@1?bundle'
-</script>
-```
-
-## Use
-
-```js
-import {subtokenize} from 'micromark-util-subtokenize'
-
-/**
- * Content is transparent: it’s parsed right now. That way, definitions are also
- * parsed right now: before text in paragraphs (specifically, media) are parsed.
- *
- * @type {Resolver}
- */
-function resolveContent(events) {
-  subtokenize(events)
-  return events
-}
-```
-
-## API
-
-This module exports the identifiers [`subtokenize`][api-subtokenize].
-There is no default export.
-
-### `subtokenize(events)`
-
-Tokenize subcontent.
-
-###### Parameters
-
-*   `events` (`Array<Event>`)
-    — list of events
-
-###### Returns
-
-Whether subtokens were found (`boolean`).
-
-## Types
-
-This package is fully typed with [TypeScript][].
-It exports no additional types.
-
-## Compatibility
-
-Projects maintained by the unified collective are compatible with maintained
-versions of Node.js.
-
-When we cut a new major release, we drop support for unmaintained versions of
-Node.
-This means we try to keep the current release line,
-`micromark-util-subtokenize@^2`, compatible with Node.js 16.
-This package works with `micromark@^3`.
-
-## Security
-
-This package is safe.
-See [`security.md`][securitymd] in [`micromark/.github`][health] for how to
-submit a security report.
-
-## Contribute
-
-See [`contributing.md`][contributing] in [`micromark/.github`][health] for ways
-to get started.
-See [`support.md`][support] for ways to get help.
-
-This project has a [code of conduct][coc].
-By interacting with this repository, organisation, or community you agree to
-abide by its terms.
-
-## License
-
-[MIT][license] © [Titus Wormer][author]
-
-<!-- Definitions -->
-
-[build-badge]: https://github.com/micromark/micromark/workflows/main/badge.svg
-
-[build]: https://github.com/micromark/micromark/actions
-
-[coverage-badge]: https://img.shields.io/codecov/c/github/micromark/micromark.svg
-
-[coverage]: https://codecov.io/github/micromark/micromark
-
-[downloads-badge]: https://img.shields.io/npm/dm/micromark-util-subtokenize.svg
-
-[downloads]: https://www.npmjs.com/package/micromark-util-subtokenize
-
-[bundle-size-badge]: https://img.shields.io/badge/dynamic/json?label=minzipped%20size&query=$.size.compressedSize&url=https://deno.bundlejs.com/?q=micromark-util-subtokenize
-
-[bundle-size]: https://bundlejs.com/?q=micromark-util-subtokenize
-
-[sponsors-badge]: https://opencollective.com/unified/sponsors/badge.svg
-
-[backers-badge]: https://opencollective.com/unified/backers/badge.svg
-
-[opencollective]: https://opencollective.com/unified
-
-[npm]: https://docs.npmjs.com/cli/install
-
-[esm]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
-
-[esmsh]: https://esm.sh
-
-[chat-badge]: https://img.shields.io/badge/chat-discussions-success.svg
-
-[chat]: https://github.com/micromark/micromark/discussions
-
-[license]: https://github.com/micromark/micromark/blob/main/license
-
-[author]: https://wooorm.com
-
-[health]: https://github.com/micromark/.github
-
-[securitymd]: https://github.com/micromark/.github/blob/main/security.md
-
-[contributing]: https://github.com/micromark/.github/blob/main/contributing.md
-
-[support]: https://github.com/micromark/.github/blob/main/support.md
-
-[coc]: https://github.com/micromark/.github/blob/main/code-of-conduct.md
-
-[typescript]: https://www.typescriptlang.org
-
-[micromark]: https://github.com/micromark/micromark
-
-[api-subtokenize]: #subtokenizeevents
+(The MIT License)
+
+Copyright (c) Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 micromark-util-symbol 1.1.0
@@ -15949,6 +15671,25 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
+minipass 7.1.0
+ISC
+The ISC License
+
+Copyright (c) 2017-2023 npm, Inc., Isaac Z. Schlueter, and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
 mkdirp 1.0.4
 MIT
 Copyright James Halliday (mail@substack.net) and Isaac Z. Schlueter (i@izs.me)
@@ -16073,6 +15814,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 nopt 7.2.0
+ISC
+The ISC License
+
+Copyright (c) Isaac Z. Schlueter and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
+nopt 7.2.1
 ISC
 The ISC License
 
@@ -18481,6 +18241,25 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
+semver 7.6.1
+ISC
+The ISC License
+
+Copyright (c) Isaac Z. Schlueter and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
 shebang-command 2.0.0
 MIT
 MIT License
@@ -19084,7 +18863,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-stylis 4.3.1
+stylis 4.3.2
 MIT
 MIT License
 

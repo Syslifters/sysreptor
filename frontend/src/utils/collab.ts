@@ -389,11 +389,13 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
     }
   }
 
-  async function disconnect() {
+  async function disconnect(opts?: { skipSendPendingMessages?: boolean }) {
     clearInterval(sendInterval.value);
     sendInterval.value = undefined;
 
-    await sendPendingMessages();
+    if (!opts?.skipSendPendingMessages) {
+      await sendPendingMessages();
+    }
 
     connectionInfo.connectionState = CollabConnectionState.CLOSED;
   }
@@ -412,11 +414,10 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
   }
 
   async function sendPendingMessages() {
-    let messagesRestore = [...pendingMessages.value] as CollabEvent[]|undefined;
+    const messages = [...pendingMessages.value]
     pendingMessages.value = [];
 
     try {
-      const messages = [...(messagesRestore || [])];
       for (const [p, s] of storeState.perPathState.entries()) {
         if (s.unconfirmedTextUpdates.length > 0) {
           messages.push({
@@ -436,17 +437,16 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
           messages,
         }
       });
-      messagesRestore = undefined
 
       storeState.version = res.version;
       storeState.awareness.clients = res.clients;
       for (const m of res.messages) {
         onReceiveMessage(m);
       }
-    } catch (e) {
-      if (messagesRestore) {
-        pendingMessages.value = messagesRestore;
-      }
+    } catch (error) {
+      // Disconnect on error
+      connectionInfo.connectionError = { error };
+      disconnect({ skipSendPendingMessages: true });
     }
   }
 

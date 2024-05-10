@@ -24,9 +24,9 @@ server {
 	ssl_stapling on;
 	ssl_stapling_verify on;
 
-  # Large timeouts for long running websocket connections
-	proxy_read_timeout 8h;
-	proxy_send_timeout 8h;
+  # Timeouts for long running websocket connections and long PDF rendering tasks
+	proxy_read_timeout 5m;
+	proxy_send_timeout 5m;
 	client_max_body_size 0;
 
 	location / {
