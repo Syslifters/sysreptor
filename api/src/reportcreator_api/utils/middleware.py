@@ -1,6 +1,7 @@
 from datetime import timedelta
 from urllib.parse import urlparse
 
+from channels.security.websocket import OriginValidator, WebsocketDenier
 from django.conf import settings
 from django.middleware.csrf import CsrfViewMiddleware
 from django.utils import cache, deprecation, timezone
@@ -57,4 +58,37 @@ class PermissionsPolicyMiddleware(deprecation.MiddlewareMixin):
         response.headers['Permissions-Policy'] = ', '.join(map(lambda t: f"{t[0]}={t[1] or '()'}", settings.PERMISSIONS_POLICY.items()))
         return response
 
+
+class WebsocketOriginValidatorMiddleware(OriginValidator):
+    def __init__(self, application):
+        super().__init__(application, allowed_origins=settings.ALLOWED_HOSTS)
+
+    async def __call__(self, scope, receive, send):
+        if '*' in self.allowed_origins:
+            if self.check_origin_is_host(scope):
+                return await self.application(scope, receive, send)
+            else:
+                denier = WebsocketDenier()
+                return await denier(scope, receive, send)
+
+        return await super().__call__(scope, receive, send)
+
+    def check_origin_is_host(self, scope):
+        """
+        Check if the origin header is the same as the host header.
+        If they are equal, this means that the request was sent same-origin.
+
+        Browsers always include the Origin header when establishing websocket connections via the WebSocket API
+        (except from secure contexts, such as file:// URLs where the "Origin: null" is sent).
+        Non-browser clients (e.g. CLI, API clients, etc.) may not send the Origin header.
+        """
+        host = self.get_header(scope, 'host')
+        origin = self.get_header(scope, 'origin')
+        allowed_origin = f"{'https' if scope.get('scheme') == 'wss' else 'http'}://{host}"
+
+        return origin is None or origin == allowed_origin
+
+    @staticmethod
+    def get_header(scope, name):
+        return next((header[1].decode() for header in scope.get('headers', []) if header[0] == name.encode()), None)
 

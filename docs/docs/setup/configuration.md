@@ -57,6 +57,15 @@ Debug mode enables Django's debug toolbar and stack traces. Do not use debug mod
 DEBUG=off
 ```
 
+
+### Allowed Hosts
+Allowed hostnames/domain names for this installation.
+
+``` title="Example:"
+ALLOWED_HOSTS="sysreptor.example.com"
+```
+
+
 ### FIDO2/WebAuthn
 If you want to use FIDO2/WebAuthn for MFA, you have to define the hostname ([WebAuthn Relying Party ID](https://www.w3.org/TR/webauthn-2/#relying-party-identifier)) of your installation.
 

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+import itertools
 import json
 import uuid
 from datetime import timedelta
@@ -34,7 +35,6 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-ygvn9(x==kcv#r%pccf4r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', cast=bool, default=False)
 
-ALLOWED_HOSTS = ['*']
 APPEND_SLASH = True
 
 
@@ -226,7 +226,6 @@ SESSION_COOKIE_AGE = timedelta(hours=14).seconds
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_SAMESITE = 'Strict'
-CSRF_TRUSTED_ORIGINS = ['https://*', 'http://*']
 
 MFA_SERVER_NAME = config('MFA_SERVER_NAME', default='SysReptor')
 # FIDO2 RP ID: the domain name of the instance
@@ -237,7 +236,18 @@ SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT = timedelta(minutes=15)
 fido2.features.webauthn_json_mapping.enabled = True
 
 
+# Allowed Hosts
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default='*')
+if ALLOWED_HOSTS == ['*'] and MFA_FIDO2_RP_ID:
+    ALLOWED_HOSTS = [MFA_FIDO2_RP_ID]
+if not MFA_FIDO2_RP_ID and len(ALLOWED_HOSTS) == 1 and ALLOWED_HOSTS != ['*']:
+    MFA_FIDO2_RP_ID = ALLOWED_HOSTS[0]
+if DEBUG:
+    ALLOWED_HOSTS += ['localhost', '127.0.0.1', '[::1]']
+CSRF_TRUSTED_ORIGINS = list(itertools.chain(*map(lambda h: [f'https://{h}', f'http://{h}'], ALLOWED_HOSTS)))
 
+
+# Authentication and OIDC settings
 AUTHLIB_OAUTH_CLIENTS = {}
 OIDC_AZURE_CLIENT_ID = config('OIDC_AZURE_CLIENT_ID', default=None)
 OIDC_AZURE_CLIENT_SECRET = config('OIDC_AZURE_CLIENT_SECRET', default=None)
