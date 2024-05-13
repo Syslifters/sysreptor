@@ -92,6 +92,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'reportcreator_api.conf.urls'
+WEBSOCKET_URLCONF = 'reportcreator_api.conf.urls_websocket'
 
 TEMPLATES = [
     {
