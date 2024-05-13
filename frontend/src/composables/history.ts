@@ -1,21 +1,21 @@
 import urlJoin from "url-join";
+import pick from "lodash/pick";
 import { formatISO9075 } from "date-fns";
-import { v4 as uuid4 } from 'uuid';
 import {
-  createEditorExtensionToggler,
-  MergeView, EditorView, EditorState,
+  MergeView, EditorView,
 } from "reportcreator-markdown/editor";
 import { MarkdownEditorMode, type FieldDefinitionDict } from '@/utils/types';
 
 export type DiffFieldProps = {
   value?: any;
   definition?: FieldDefinition|null;
+  collab?: CollabPropType;
+  readonly?: boolean;
   selectableUsers?: UserShortInfo[];
-  markdownEditorMode?: MarkdownEditorMode;
   'onUpdate:markdownEditorMode'?: (val: MarkdownEditorMode) => void;
-  rewriteFileUrl?: (fileSrc: string) => string;
-  rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
-};
+  'onUpdate:spellcheckEnabled'?: (val: boolean) => void;
+  'onCollab'?: (val: any) => void;
+} & MarkdownProps;
 
 export type DynamicInputFieldDiffProps = {
   id: string;
@@ -24,116 +24,75 @@ export type DynamicInputFieldDiffProps = {
   current: DiffFieldProps;
 }
 
-export function useMarkdownDiff({ props, extensions }: {
+export function useMarkdownDiff(options: {
   extensions: any[];
   props: ComputedRef<{
     historic: DiffFieldProps,
     current: DiffFieldProps,
   }>;
 }) {
-  const theme = useTheme();
-  const previewCacheBuster = uuid4();
-
-  const valueNotNullHistoric = computed(() => props.value.historic.value || '');
-  const valueNotNullCurrent = computed(() => props.value.current.value || '');
-
   const vm = getCurrentInstance()!;
   const mergeViewRef = computed(() => vm.refs.mergeViewRef as HTMLElement);
   const mergeView = shallowRef<MergeView|null>(null);
-  const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
+
+  const editorViewCurrent = shallowRef<EditorView|null>(null);
+  const editorViewHistoric = shallowRef<EditorView|null>(null);
+  const mdBaseCurrent = useMarkdownEditorBase({
+    editorView: editorViewCurrent,
+    extensions: options.extensions,
+    props: computed(() => ({
+      modelValue: options.props.value.current.value,
+      ...pick(options.props.value.current, ['collab', 'lang', 'readonly', 'disabled', 'markdownEditorMode', 'spellcheckEnabled', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink']),
+    })),
+    emit: (name: string, value: any) => {
+      const emit = (options.props.value.current as any)['on' + name.charAt(0).toUpperCase() + name.slice(1)];
+      if (typeof emit === 'function') {
+        emit(value);
+      }
+    },
+    fileUploadSupported: true,
+  });
+  const mdBaseHistoric = useMarkdownEditorBase({
+    editorView: editorViewHistoric,
+    extensions: options.extensions,
+    props: computed(() => ({
+      modelValue: options.props.value.historic.value,
+      readonly: true,
+      ...pick(options.props.value.historic, ['lang', 'markdownEditorMode', 'rewriteFileUrl', 'rewriteReferenceLink']),
+    })),
+    emit: (name: string, value: any) => {
+      const emit = (options.props.value.historic as any)['on' + name.charAt(0).toUpperCase() + name.slice(1)];
+      if (typeof emit === 'function') {
+        emit(value);
+      }
+    },
+    fileUploadSupported: false,
+  });
+
   function initializeMergeView() {
     mergeView.value = new MergeView({
       parent: mergeViewRef.value,
       root: document,
       orientation: "a-b",
+      revertControls: "a-to-b",
       highlightChanges: true,
       gutter: true,
-      a: {
-        doc: valueNotNullHistoric.value,
-        extensions: [
-          ...extensions,
-          EditorView.editable.of(false),
-          EditorState.readOnly.of(true),
-        ]
-      },
-      b: {
-        doc: valueNotNullCurrent.value,
-        extensions: [
-          ...extensions,
-          EditorView.editable.of(false),
-          EditorState.readOnly.of(true),
-        ]
-      },
+      a: mdBaseHistoric.createEditorStateConfig(),
+      b: mdBaseCurrent.createEditorStateConfig(),
     });
-    editorActions.value = {
-      darkThemeA: createEditorExtensionToggler(mergeView.value.a, [
-        EditorView.theme({}, { dark: true }),
-      ]),
-      darkThemeB: createEditorExtensionToggler(mergeView.value.b, [
-        EditorView.theme({}, { dark: true }),
-      ]),
-    };
-    editorActions.value.darkThemeA(theme.current.value.dark);
-    editorActions.value.darkThemeB(theme.current.value.dark);
+    editorViewHistoric.value = mergeView.value.a;
+    editorViewCurrent.value = mergeView.value.b;
   }
   onMounted(() => initializeMergeView());
   onBeforeUnmount(() => {
-    if (mergeView.value) {
-      mergeView.value.destroy();
-    }
+    mergeView.value?.destroy();
   });
-
-  watch(valueNotNullHistoric, () => {
-    if (mergeView.value && valueNotNullHistoric.value !== mergeView.value.a.state.doc.toString()) {
-      mergeView.value.a.dispatch({
-        changes: {
-          from: 0,
-          to: mergeView.value.a.state.doc.length,
-          insert: valueNotNullHistoric.value,
-        }
-      });
-    }
-  })
-  watch(valueNotNullCurrent, () => {
-    if (mergeView.value && valueNotNullCurrent.value !== mergeView.value.b.state.doc.toString()) {
-      mergeView.value.b.dispatch({
-        changes: {
-          from: 0,
-          to: mergeView.value.b.state.doc.length,
-          insert: valueNotNullCurrent.value,
-        }
-      });
-    }
-  });
-
-  watch(theme.current, (val) => {
-    editorActions.value.darkThemeA?.(val.dark);
-    editorActions.value.darkThemeB?.(val.dark);
-  });
-
-  const markdownToolbarAttrs = computed(() => ({
-    disabled: true,
-    markdownEditorMode: props.value.historic.markdownEditorMode,
-    'onUpdate:markdownEditorMode': props.value.historic['onUpdate:markdownEditorMode'],
-  }));
-  const markdownPreviewAttrsHistoric = computed(() => ({
-    value: valueNotNullHistoric.value,
-    rewriteFileUrl: props.value.historic.rewriteFileUrl,
-    rewriteReferenceLink: props.value.historic.rewriteReferenceLink,
-    cacheBuster: previewCacheBuster,
-  }));
-  const markdownPreviewAttrsCurrent = computed(() => ({
-    value: valueNotNullCurrent.value,
-    rewriteFileUrl: props.value.current.rewriteFileUrl,
-    rewriteReferenceLink: props.value.current.rewriteReferenceLink,
-    cacheBuster: previewCacheBuster,
-  }));
 
   return {
     mergeView,
-    markdownToolbarAttrs,
-    markdownPreviewAttrsHistoric,
-    markdownPreviewAttrsCurrent,
+    markdownToolbarAttrs: mdBaseCurrent.markdownToolbarAttrs,
+    markdownPreviewAttrsHistoric: mdBaseHistoric.markdownPreviewAttrs,
+    markdownPreviewAttrsCurrent: mdBaseCurrent.markdownPreviewAttrs,
   }
 }
 

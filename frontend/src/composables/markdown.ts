@@ -181,8 +181,8 @@ export function useMarkdownEditorBase(options: {
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
   const eventBusBeforeApplyRemoteTextChanges = useEventBus('collab:beforeApplyRemoteTextChanges');
 
-  function createEditorState() {
-    return EditorState.create({
+  function createEditorStateConfig() {
+    return {
       doc: valueNotNull.value,
       extensions: [
         ...options.extensions,
@@ -227,7 +227,7 @@ export function useMarkdownEditorBase(options: {
         }),
         remoteSelection(),
       ]
-    });
+    };
   }
 
   watch(options.editorView, (newValue, oldValue) => {
@@ -375,7 +375,7 @@ export function useMarkdownEditorBase(options: {
   return {
     editorView: options.editorView,
     editorState,
-    createEditorState,
+    createEditorStateConfig,
     editorActions,
     markdownToolbarAttrs,
     markdownStatusbarAttrs,
@@ -409,7 +409,7 @@ export function useMarkdownEditor(options: {
   function initializeEditorView() {
     editorView.value = new EditorView({
       parent: editorRef.value,
-      state: mdBase.createEditorState(),
+      state: EditorState.create(mdBase.createEditorStateConfig()),
     });
   }
   onMounted(() => initializeEditorView());

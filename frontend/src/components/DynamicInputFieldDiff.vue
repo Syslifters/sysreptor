@@ -73,7 +73,11 @@ const props = defineProps<DynamicInputFieldDiffProps>();
 
 const attrs = useAttrs();
 const inheritedDiffAttrs = computed(() => {
-  const copyFields = ['selectableUsers', 'onUpdate:markdownEditorMode', 'lang', 'markdownEditorMode', 'rewriteFileUrl', 'rewriteReferenceLink'];
+  const copyFields = [
+    'disabled', 'readonly', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
+    'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink', 'selectableUsers', 
+    'onUpdate:markdownEditorMode', 'onUpdate:spellcheckEnabled', 'onCollab',
+  ];
   return {
     ...attrs,
     nestingLevel: (props.nestingLevel || 0) + 1,
