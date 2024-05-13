@@ -20,8 +20,9 @@ django_asgi_app = get_asgi_application()
 
 
 from reportcreator_api.conf.urls import websocket_urlpatterns  # noqa: E402
+from reportcreator_api.utils.elasticapm import DjangoASGITracingMiddleware  # noqa: E402
 
 application = ProtocolTypeRouter({
-    'http': django_asgi_app,
+    'http': DjangoASGITracingMiddleware(django_asgi_app),
     'websocket': WebsocketOriginValidatorMiddleware(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))),
 })
