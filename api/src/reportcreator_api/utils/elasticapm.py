@@ -64,7 +64,10 @@ def get_user_from_request(scope):
             'username': user.username,
         }
     else:
-        return None
+        return {
+            'id': None,
+            'username': 'anonymous',
+        }
 
 
 def set_transaction_name_websocket(scope, event):
