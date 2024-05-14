@@ -26,7 +26,7 @@
     </v-card-text>
   </s-card>
   <markdown-diff-field
-    v-else-if="props.historic.definition?.type === 'markdown' && ['markdown', 'string', undefined].includes(props.current.definition?.type)" 
+    v-else-if="props.historic.definition?.type === 'markdown' && props.current.definition?.type === 'markdown'" 
     :label="props.historic.definition.label"
     v-bind="markdownDiffAttrs"
     class="mt-4"
@@ -124,8 +124,6 @@ const listItemFields = computed(() => {
   return items;
 });
 const markdownDiffAttrs = computed(() => merge({
-  disabled: !hasChanged.value,
-  readonly: hasChanged.value,
   historic: {
     value: props.historic.value,
   },

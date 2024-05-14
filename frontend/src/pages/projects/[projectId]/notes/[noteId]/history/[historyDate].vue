@@ -22,7 +22,6 @@
               
             <markdown-text-field-content
               v-model="note.title"
-              :readonly="true"
               :spellcheck-supported="true"
               v-bind="fieldAttrsHistoric"
               class="note-title"
