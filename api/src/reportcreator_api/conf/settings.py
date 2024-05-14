@@ -92,6 +92,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'reportcreator_api.conf.urls'
+WEBSOCKET_URLCONF = 'reportcreator_api.conf.urls_websocket'
 
 TEMPLATES = [
     {
@@ -627,7 +628,6 @@ ELASTIC_APM = {
 }
 if ELASTIC_APM_ENABLED:
     INSTALLED_APPS.append('elasticapm.contrib.django')
-    MIDDLEWARE.insert(1, 'elasticapm.contrib.django.middleware.TracingMiddleware')
 
 ELASTIC_APM_RUM_ENABLED = config('ELASTIC_APM_RUM_ENABLED', cast=bool, default=False)
 ELASTIC_APM_RUM_CONFIG = {
