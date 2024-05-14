@@ -1,8 +1,9 @@
 import io
-import requests
-import zipfile
 import json
+import zipfile
 from pathlib import Path
+
+import requests
 from lxml import etree
 
 
