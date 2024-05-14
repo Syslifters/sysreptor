@@ -69,12 +69,14 @@
               v-model:spellcheckEnabled="localSettings.designSpellcheckEnabled"
               v-model:markdownEditorMode="localSettings.designMarkdownEditorMode"
             />
-            <div v-else class="w-100 text-center">
-              <img src="~/assets/dino/notes.svg" alt="" class="img-raptor" />
-              <div>
+            <v-empty-state v-else>
+              <template #media>
+                <img src="~/assets/dino/project.svg" alt="" class="img-raptor" />
+              </template>
+              <template #text>
                 <strong>Define initial notes applied to new projects</strong>
-              </div>
-            </div>
+              </template>
+            </v-empty-state>
           </template>
         </full-height-page>
       </template>
@@ -186,8 +188,5 @@ async function selectNote(note: NoteBase|null) {
   width: 30em;
   max-width: 50%;
   max-height: 50vh;
-  margin-top: 20vh;
-  margin-left: auto;
-  margin-right: auto;
 }
 </style>
