@@ -17,7 +17,7 @@ nav:
       - Spell Check: reporting/spell-check.md
       - References: reporting/references.md
       - Finding Templates: finding-templates/create-finding.md
-      - Locked Sections: reporting/locking.md
+      - Collaborative Editing: reporting/collaborative-editing.md
   - Designing Reports:
       - Designer: designer/designer.md
       - Field Types: designer/field-types.md
