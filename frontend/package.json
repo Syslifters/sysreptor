@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "nuxt": "~3.11",
-    "vuetify": "~3.5",
-    "vuetify-nuxt-module": "^0.13.2",
+    "vuetify": "~3.6",
+    "vuetify-nuxt-module": "^0.14.0",
     "@mdi/font": "^7.3.67",
     "pinia": "^2.1.7",
     "@pinia/nuxt": "^0.5.1",
@@ -25,7 +25,7 @@
     "splitpanes": "^3.1.5",
     "vuedraggable": "^4.1.0",
     "vue-toastification": "^2.0.0-rc.5",
-    "monaco-editor": "^0.47.0",
+    "monaco-editor": "^0.48.0",
 
     "@iconify/vue": "^4.1.1",
     "@iconify/icons-fluent-emoji": "^1.2.10",
@@ -52,7 +52,7 @@
     "eslint": "^8.51.0",
     "license-checker-rseidelsohn": "^4.2.8",
     "vitest": "^1.2.1",
-    "happy-dom": "^13.1.4",
+    "happy-dom": "^14.10.2",
     "vue-tsc": "^2.0.11"
   }
 }

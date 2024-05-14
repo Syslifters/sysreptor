@@ -1,8 +1,7 @@
 <template>
   <v-navigation-drawer
-    v-if="mobile ? props.modelValue : true"
-    :model-value="props.modelValue"
-    @update:model-value="emit('update:modelValue', $event)"
+    v-if="mobile ? modelValue : true"
+    v-model="modelValue"
     location="right"
     absolute
     temporary
@@ -16,7 +15,7 @@
           <pro-info>Version History</pro-info>
         </v-list-item-title>
         <template #append>
-          <v-btn icon variant="text" @click="emit('update:modelValue', false)">
+          <v-btn icon variant="text" @click="modelValue = false">
             <v-icon size="x-large" icon="mdi-close" />
           </v-btn>
         </template>
@@ -57,13 +56,11 @@
 </template>
 
 <script setup lang="ts">
+const modelValue = defineModel<boolean>();
+
 const props = defineProps<{
-  modelValue?: boolean;
   url: string;
   currentUrl?: string|null;
-}>();
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void;
 }>();
 
 const apiSettings = useApiSettings();
@@ -75,16 +72,14 @@ const historyRecords = useSearchableCursorPaginationFetcher<HistoryTimelineRecor
 function resetHistoryRecords() {
   historyRecords.reset({ baseURL: props.url });
 }
-watch(() => props.modelValue, () => {
-  if (props.modelValue) {
+watch(modelValue, () => {
+  if (modelValue.value) {
     resetHistoryRecords();
   }
 });
 watch(() => props.url, () => {
   resetHistoryRecords();
-  if (props.modelValue) {
-    emit('update:modelValue', false);
-  }
+  modelValue.value = false;
 });
 </script>
 
@@ -92,11 +87,13 @@ watch(() => props.url, () => {
 @use "@/assets/vuetify.scss" as vuetify;
 
 .history-sidebar {
-  width: 25em !important;
   z-index: 5001 !important;
 }
 .history-sidebar + .v-navigation-drawer__scrim {
   z-index: 5000 !important;
+}
+.history-sidebar.v-navigation-drawer--active {
+  width: 25em !important;
 }
 
 .history-timeline-header {
