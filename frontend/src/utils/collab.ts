@@ -154,14 +154,11 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
     send,
   });
 
-  const websocketConnectionLostTimeout = throttle(async () => {
-    await nextTick();
-
-    if (websocket.value && connectionInfo.connectionState !== CollabConnectionState.CLOSED) {
-      // eslint-disable-next-line no-console
-      console.error('Websocket connection timed out', storeState.apiPath);
+  const websocketConnectionLostTimeout = throttle(() => {
+    // Possible reasons: network outage, browser tab becomes inactive, server crashes
+    if (websocket.value && ![WebSocket.CLOSED, WebSocket.CLOSING].includes(websocket.value?.readyState as any)) {
+      websocket.value?.close(4504, 'Connection loss detection timeout');
     }
-    websocket.value?.close(4504);
   }, WS_RESPONSE_TIMEOUT, { leading: false, trailing: true });
 
   async function connect() {
@@ -182,9 +179,6 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
           connectionInfo.connectionError = { error: event, message: event.reason || 'Permission denied' };
         } else if (connectionInfo.connectionState === CollabConnectionState.CONNECTING) {
           connectionInfo.connectionError = { error: event, message: event.reason || 'Failed to establish connection' };
-        } else if (event.code === 4504) {
-          // Possible reasons: network outage, browser tab becomes inactive, server crashes
-          connectionInfo.connectionError = { error: event, message: event.reason || 'Connection timeout: Server connection lost' };
         } else if (event.code !== 1000) {
           connectionInfo.connectionError = { error: event, message: event.reason };
         }
