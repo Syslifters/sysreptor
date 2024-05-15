@@ -239,8 +239,6 @@ fido2.features.webauthn_json_mapping.enabled = True
 
 # Allowed Hosts
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default='*')
-if ALLOWED_HOSTS == ['*'] and MFA_FIDO2_RP_ID:
-    ALLOWED_HOSTS = [MFA_FIDO2_RP_ID]
 if not MFA_FIDO2_RP_ID and len(ALLOWED_HOSTS) == 1 and ALLOWED_HOSTS != ['*']:
     MFA_FIDO2_RP_ID = ALLOWED_HOSTS[0]
 if DEBUG:
