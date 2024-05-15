@@ -1,9 +1,12 @@
 # Changelog
 
-## Next
+## v2024.040 - 2024-05-15
 * Collaborative editing in project findings and sections
 * Collaborative editing: update notes list when import new notes
+* Collaborative editing: HTTP fallback if no WebSocket connection can be established
 * Fix slot data items `.length` property undefined `<list-of-figures>`, `<list-of-tables>` and `<table-of-contents>` components
+* Fix CSRF vulnerability for WebSocket connections
+* Introduce `ALLOWED_HOSTS` setting for request host and origin validation
 
 
 ## v2024.030 - 2024-04-17
