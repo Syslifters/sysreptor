@@ -1,3 +1,5 @@
+import logging
+
 from adrf.views import APIView as AsyncAPIView
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
@@ -8,7 +10,6 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from reportcreator_api.pentests.models.collab import CollabEvent
-from reportcreator_api.utils import logging
 from reportcreator_api.utils.utils import omit_keys
 
 
