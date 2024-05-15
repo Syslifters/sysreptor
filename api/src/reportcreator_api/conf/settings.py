@@ -239,10 +239,11 @@ fido2.features.webauthn_json_mapping.enabled = True
 
 # Allowed Hosts
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default='*')
-if not MFA_FIDO2_RP_ID and len(ALLOWED_HOSTS) == 1 and ALLOWED_HOSTS != ['*']:
+if not MFA_FIDO2_RP_ID and len(ALLOWED_HOSTS) == 1 and '*' not in ALLOWED_HOSTS[0]:
     MFA_FIDO2_RP_ID = ALLOWED_HOSTS[0]
-if DEBUG:
-    ALLOWED_HOSTS += ['localhost', '127.0.0.1', '[::1]']
+
+# Allow localhost. Required for docker healthchecks
+ALLOWED_HOSTS += ['localhost', '127.0.0.1', '[::1]']
 CSRF_TRUSTED_ORIGINS = list(itertools.chain(*map(lambda h: [f'https://{h}', f'http://{h}'], ALLOWED_HOSTS)))
 
 
