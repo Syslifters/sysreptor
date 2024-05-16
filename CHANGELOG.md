@@ -1,5 +1,9 @@
 # Changelog
 
+## Next
+* Add sorting options to projects, templates, designs and users lists
+
+
 ## v2024.040 - 2024-05-15
 * Collaborative editing in project findings and sections
 * Collaborative editing: update notes list when import new notes
