@@ -3,7 +3,8 @@
     url="/api/v1/pentestusers/"
     :ordering-options="[
       {id: 'created', title: 'Created', value: '-created'},
-      {id: 'username', title: 'Username', value: 'username'},
+      {id: 'updated', title: 'Updated', value: '-updated'},
+      {id: 'name', title: 'Name', value: 'username'},
     ]"
   >
     <template #title>Users</template>

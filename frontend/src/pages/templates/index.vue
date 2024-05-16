@@ -7,6 +7,7 @@
       :ordering-options="[
         {id: 'risk', title: 'Severity', value: '-risk'},
         {id: 'created', title: 'Created', value: '-created'},
+        {id: 'updated', title: 'Updated', value: '-updated'},
       ]"
     >
       <template #title>Templates</template>
