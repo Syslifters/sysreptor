@@ -1,5 +1,13 @@
 <template>
-  <list-view url="/api/v1/pentestprojects/?readonly=true">
+  <list-view 
+    url="/api/v1/pentestprojects/?readonly=true"
+    v-model:ordering="localSettings.projectListOrdering"
+    :ordering-options="[
+      {id: 'created', title: 'Created', value: '-created'},
+      {id: 'updated', title: 'Updated', value: '-updated'},
+      {id: 'name', title: 'Name', value: 'name'},
+    ]"
+  >
     <template #title>Projects</template>
     <template #tabs>
       <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active" />
@@ -24,5 +32,6 @@ useHeadExtended({
 });
 
 const route = useRoute();
+const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 </script>

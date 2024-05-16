@@ -544,3 +544,9 @@ export type CWE = {
   description: string;
   parent: number|null;
 };
+
+export type OrderingOption = {
+  id: string;
+  title: string;
+  value: string;
+}

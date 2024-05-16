@@ -1,10 +1,18 @@
 <template>
   <file-drop-area @drop="importBtnRef?.performImport($event)" class="h-100">
-    <list-view ref="listViewRef" url="/api/v1/findingtemplates/">
+    <list-view 
+      ref="listViewRef" 
+      url="/api/v1/findingtemplates/"
+      v-model:ordering="localSettings.templateListOrdering"
+      :ordering-options="[
+        {id: 'risk', title: 'Severity', value: '-risk'},
+        {id: 'created', title: 'Created', value: '-created'},
+      ]"
+    >
       <template #title>Templates</template>
-      <template #searchbar="{items}">
+      <template #searchbar="{ items, ordering, orderingOptions }">
         <v-row dense class="mb-2 w-100">
-          <v-col cols="12" md="10">
+          <v-col cols="12" md="auto" class="flex-grow-1">
             <v-text-field
               :model-value="items.search.value"
               @update:model-value="listViewRef?.updateSearch"
@@ -22,6 +30,13 @@
               :items="languageChoices"
               variant="underlined"
               class="ma-0"
+            />
+          </v-col>
+          <v-col cols="auto">
+            <s-select-ordering
+              :model-value="ordering"
+              @update:model-value="listViewRef?.updateOrdering"
+              :ordering-options="orderingOptions"
             />
           </v-col>
         </v-row>
@@ -60,6 +75,7 @@ useHeadExtended({
 
 const route = useRoute();
 const router = useRouter();
+const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 const auth = useAuth();
 

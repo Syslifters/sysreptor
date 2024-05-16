@@ -1,5 +1,11 @@
 <template>
-  <list-view url="/api/v1/pentestusers/">
+  <list-view 
+    url="/api/v1/pentestusers/"
+    :ordering-options="[
+      {id: 'created', title: 'Created', value: '-created'},
+      {id: 'username', title: 'Username', value: 'username'},
+    ]"
+  >
     <template #title>Users</template>
     <template #actions>
       <btn-create 

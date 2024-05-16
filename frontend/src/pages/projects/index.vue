@@ -1,6 +1,14 @@
 <template>
   <file-drop-area @drop="importBtn.performImport($event)" class="h-100">
-    <list-view url="/api/v1/pentestprojects/?readonly=false">
+    <list-view
+      url="/api/v1/pentestprojects/?readonly=false" 
+      v-model:ordering="localSettings.projectListOrdering"
+      :ordering-options="[
+        {id: 'created', title: 'Created', value: '-created'},
+        {id: 'updated', title: 'Updated', value: '-updated'},
+        {id: 'name', title: 'Name', value: 'name'},
+      ]"
+    >
       <template #title>Projects</template>
       <template #actions>
         <btn-create to="/projects/new/" :disabled="!auth.permissions.value.create_projects" />
@@ -31,6 +39,7 @@ useHeadExtended({
 
 const auth = useAuth();
 const route = useRoute();
+const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 
 const importBtn = ref();
