@@ -1,6 +1,7 @@
 <template>
   <list-view 
     url="/api/v1/pentestusers/"
+    v-model:ordering="localSettings.userListOrdering"
     :ordering-options="[
       {id: 'created', title: 'Created', value: '-created'},
       {id: 'updated', title: 'Updated', value: '-updated'},
@@ -63,4 +64,5 @@ useHeadExtended({
 });
 
 const auth = useAuth();
+const localSettings = useLocalSettings();
 </script>

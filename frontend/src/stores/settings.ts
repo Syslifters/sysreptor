@@ -23,6 +23,7 @@ export const useLocalSettings = defineStore('settings', {
     projectListOrdering: null as string|null,
     designListOrdering: null as string|null,
     templateListOrdering: null as string|null,
+    userListOrdering: null as string|null,
     templateFieldFilterDesign: 'all',
     templateFieldFilterHiddenFields: [] as string[],
     noteExpandStates: {} as {[noteId: string]: boolean},
