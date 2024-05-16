@@ -11,17 +11,24 @@
             </div>
           </h1>
 
-          <slot name="searchbar" :items="items">
-            <v-text-field
-              :model-value="items.search.value"
-              @update:model-value="updateSearch"
-              label="Search"
-              variant="underlined"
-              spellcheck="false"
-              hide-details="auto"
-              autofocus
-              class="mt-0 mb-2"
-            />
+          <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions">
+            <div class="d-flex flex-row">
+              <v-text-field
+                :model-value="items.search.value"
+                @update:model-value="updateSearch"
+                label="Search"
+                variant="underlined"
+                spellcheck="false"
+                hide-details="auto"
+                autofocus
+                class="mt-0 mb-2"
+              />
+              <s-select-ordering
+                :model-value="ordering"
+                @update:model-value="updateOrdering"
+                :ordering-options="props.orderingOptions"
+              />
+            </div>
           </slot>
           <v-tabs v-if="$slots.tabs" height="30" selected-class="text-primary" class="list-header-tabs">
             <slot name="tabs" />
@@ -48,15 +55,28 @@
 <script setup lang="ts" generic="T = any">
 import { useSearchableCursorPaginationFetcher } from "~/composables/api";
 
+const orderingModel = defineModel<string|null>('ordering');
 const props = defineProps<{
   url: string|null;
+  orderingOptions?: OrderingOption[];
 }>();
+
+const ordering = computed(() => {
+  if (route.query.ordering) {
+    return props.orderingOptions?.find(o => o.value === route.query.ordering) || null;
+  } else {
+    return props.orderingOptions?.find(o => o.id === orderingModel.value) || props.orderingOptions?.[0] || null
+  }
+});
 
 const router = useRouter();
 const route = useRoute();
 const items = useSearchableCursorPaginationFetcher<T>({
   baseURL: props.url,
-  query: { ...route.query },
+  query: { 
+    ordering: ordering.value?.value,
+    ...route.query 
+  },
 });
 useLazyAsyncData(async () => {
   await items.fetchNextPage()
@@ -75,9 +95,19 @@ function updateSearch(search: string) {
   router.replace({ query: { ...route.query, search } });
 }
 
+function updateOrdering(ordering?: OrderingOption|null) {
+  orderingModel.value = ordering?.id || null;
+  if (!ordering) {
+    ordering = props.orderingOptions![0];
+  } 
+  router.replace({ query: { ...route.query, ordering: ordering.value } });
+  items.applyFilters({ ...route.query });
+}
+
 defineExpose({
   items,
   updateSearch,
+  updateOrdering,
 });
 </script>
 

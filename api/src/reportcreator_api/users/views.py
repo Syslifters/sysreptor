@@ -89,7 +89,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, DjangoFilterBackend, filters.OrderingFilter]
     search_fields = ['username', 'email', 'first_name', 'last_name']
     filterset_fields = ['username', 'email']
-    ordering_fields = ['created', 'username']
+    ordering_fields = ['created', 'updated', 'username']
     ordering = ['-created']
 
     def get_queryset(self):

@@ -1,6 +1,14 @@
 <template>
   <file-drop-area @drop="importBtnRef.performImport($event)" class="h-100">
-    <list-view url="/api/v1/projecttypes/?scope=global&ordering=name">
+    <list-view 
+      url="/api/v1/projecttypes/?scope=global"
+      v-model:ordering="localSettings.designListOrdering"
+      :ordering-options="[
+        {id: 'name', title: 'Name', value: 'name'},
+        {id: 'created', title: 'Created', value: '-created'},
+        {id: 'updated', title: 'Updated', value: '-updated'},
+      ]"
+    >
       <template #title>Designs</template>
       <template #actions>
         <design-create-design-dialog :project-type-scope="ProjectTypeScope.GLOBAL" />
@@ -27,6 +35,7 @@ useHeadExtended({
 });
 
 const route = useRoute();
+const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 
 const importBtnRef = ref();

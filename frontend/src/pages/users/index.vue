@@ -1,5 +1,13 @@
 <template>
-  <list-view url="/api/v1/pentestusers/">
+  <list-view 
+    url="/api/v1/pentestusers/"
+    v-model:ordering="localSettings.userListOrdering"
+    :ordering-options="[
+      {id: 'created', title: 'Created', value: '-created'},
+      {id: 'updated', title: 'Updated', value: '-updated'},
+      {id: 'name', title: 'Name', value: 'username'},
+    ]"
+  >
     <template #title>Users</template>
     <template #actions>
       <btn-create 
@@ -56,4 +64,5 @@ useHeadExtended({
 });
 
 const auth = useAuth();
+const localSettings = useLocalSettings();
 </script>
