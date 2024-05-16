@@ -245,3 +245,13 @@ Uploaded images are compressed to reduce file size, but to retain quality suitab
 ``` title="Example:"
 COMPRESS_IMAGES=false
 ```
+
+
+### Reverse Proxy
+Interpret `X-Forwared-*` headers when SysReptor is behind a reverse proxy. 
+See also https://docs.djangoproject.com/en/stable/ref/settings/#use-x-forwarded-host
+
+```
+USE_X_FORWARDED_HOST=on
+USE_X_FORWARDED_PORT=on
+```
