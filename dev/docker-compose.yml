@@ -21,7 +21,9 @@ services:
       retries: 30
     stop_grace_period: 120s
   # redis:
-  #   image: redis:7
+  #   image: bitnami/redis:7.2
+  #   environment:
+  #     REDIS_PASSWORD: reportcreator
   #   expose:
   #     - 6379
   # rabbitmq:
@@ -134,7 +136,7 @@ services:
       DATABASE_USER: reportcreator
       DATABASE_PASSWORD: reportcreator
       SPELLCHECK_URL: http://languagetool:8010/
-      # REDIS_URL: redis://redis:6379
+      # REDIS_URL: redis://:reportcreator@redis:6379/0
       # CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
       # CELERY_RESULT_BACKEND: reportcreator_api.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
     env_file: ../deploy/app.env
