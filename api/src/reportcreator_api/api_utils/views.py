@@ -16,6 +16,7 @@ from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.permissions import IsSystemUser, IsUserManagerOrSuperuserOrSystem
 from reportcreator_api.api_utils.serializers import (
     BackupSerializer,
+    CweDefinitionSerializer,
     LanguageToolAddWordSerializer,
     LanguageToolSerializer,
 )
@@ -31,6 +32,8 @@ log = logging.getLogger(__name__)
 
 
 class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
+    pagination_class = None
+
     def get_serializer_class(self):
         if self.action == 'backup':
             return BackupSerializer
@@ -41,7 +44,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         else:
             return Serializer
 
-    @extend_schema(responses=OpenApiTypes.OBJECT)
+    @extend_schema(exclude=True)
     def list(self, *args, **kwargs):
         return routers.APIRootView(api_root_dict={
             'settings': 'utils-settings',
@@ -139,10 +142,12 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         data = await serializer.save()
         return Response(data=data)
 
+    @extend_schema(responses=CweDefinitionSerializer(many=True))
     @action(detail=False, methods=['get'])
     def cwes(self, request, *args, **kwargs):
         return Response(data=CweField.cwe_definitions())
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT, 503: OpenApiTypes.OBJECT})
     @action(detail=False, methods=['get'], authentication_classes=[], permission_classes=[])
     async def healthcheck(self, request, *args, **kwargs):
         # Trigger periodic tasks
