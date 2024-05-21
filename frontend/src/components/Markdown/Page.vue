@@ -22,7 +22,7 @@
         </v-col>
         <v-col 
           v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" 
-          class="h-100"
+          class="h-100 w-0"
         >
           <v-divider vertical class="h-100" />
         </v-col>

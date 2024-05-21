@@ -15,7 +15,7 @@
           class="mde-preview" 
         />
       </v-col>
-      <v-col>
+      <v-col class="w-0">
         <v-divider vertical class="h-100" />
       </v-col>
       <v-col cols="6">

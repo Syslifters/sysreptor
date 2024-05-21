@@ -16,7 +16,7 @@
         <v-col cols="6" class="h-100">
           <markdown-preview v-bind="markdownPreviewAttrsHistoric" />
         </v-col>
-        <v-col>
+        <v-col class="h-100 w-0">
           <v-divider vertical class="h-100" />
         </v-col>
         <v-col cols="6" class="h-100">

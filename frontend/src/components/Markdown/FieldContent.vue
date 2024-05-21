@@ -17,7 +17,10 @@
           :class="{'mde-editor-side': props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW}"
         />
       </v-col>
-      <v-col v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW">
+      <v-col 
+        v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" 
+        class="w-0"
+      >
         <v-divider vertical class="h-100" />
       </v-col>
       <v-col 
