@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView, TemplateView
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerSplitView
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
@@ -99,7 +99,7 @@ urlpatterns = [
 
         # OpenAPI schema
         path('utils/openapi/', SpectacularAPIView.as_view(), name='utils-openapi-schema'),
-        path('utils/swagger-ui/', SpectacularSwaggerView.as_view(url_name='utils-openapi-schema'), name='utils-swagger-ui'),
+        path('utils/swagger-ui/', SpectacularSwaggerSplitView.as_view(url_name='utils-openapi-schema'), name='utils-swagger-ui'),
 
     ])),
 
