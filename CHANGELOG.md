@@ -4,6 +4,7 @@
 * Add sorting options to projects, templates, designs and users lists
 * Collaborative editing in project history diff views
 * Project history diff views: add revert changes button to markdown editor
+* Fix MDE preview layout break on zoom out
 
 
 ## v2024.040 - 2024-05-15
