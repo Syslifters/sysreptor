@@ -14,7 +14,7 @@
           :to="toPrefix ? (props.toPrefix + item.note.id + '/') : undefined"
           @click="emit('update:selected', item.note)"
           link
-          :active="props.selected ? props.selected.id === item.note.id : undefined"
+          :active="props.selected ? props.selected.id === item.note.id : (props.toPrefix ? router.currentRoute.value.path.startsWith(props.toPrefix + item.note.id + '/') : undefined)"
           :ripple="false"
           class="note-list-item"
         >
@@ -71,6 +71,7 @@
 <script setup lang="ts">
 import Draggable from "vuedraggable";
 
+const router = useRouter();
 const auth = useAuth();
 const localSettings = useLocalSettings();
 

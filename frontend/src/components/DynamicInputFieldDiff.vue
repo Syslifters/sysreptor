@@ -26,7 +26,7 @@
     </v-card-text>
   </s-card>
   <markdown-diff-field
-    v-else-if="props.historic.definition?.type === 'markdown' && ['markdown', 'string', undefined].includes(props.current.definition?.type)" 
+    v-else-if="props.historic.definition?.type === 'markdown' && props.current.definition?.type === 'markdown'" 
     :label="props.historic.definition.label"
     v-bind="markdownDiffAttrs"
     class="mt-4"
@@ -40,8 +40,7 @@
         :model-value="props.historic.value"
         :definition="props.historic.definition"
         :nesting-level="props.nestingLevel"
-        :disabled="!hasChanged"
-        :readonly="hasChanged"
+        :disabled="true"
         :class="{'diff-highlight-changed': hasChanged}"
       >
         <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
@@ -51,11 +50,11 @@
       <dynamic-input-field 
         v-if="props.current.definition" 
         v-bind="props.current"
+        :value="undefined"
         :model-value="props.current.value"
         :definition="props.current.definition"
         :nesting-level="props.nestingLevel"
-        :disabled="!hasChanged"
-        :readonly="hasChanged"
+        :readonly="props.current.readonly"
         :class="{'diff-highlight-changed': hasChanged}"
       >
         <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
@@ -73,7 +72,12 @@ const props = defineProps<DynamicInputFieldDiffProps>();
 
 const attrs = useAttrs();
 const inheritedDiffAttrs = computed(() => {
-  const copyFields = ['selectableUsers', 'onUpdate:markdownEditorMode', 'lang', 'markdownEditorMode', 'rewriteFileUrl', 'rewriteReferenceLink'];
+  const copyFields = [
+    'disabled', 'readonly', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
+    'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink', 'selectableUsers', 
+    'onUpdate:markdownEditorMode', 'onUpdate:spellcheckEnabled', 
+    'collab', 'onCollab',
+  ];
   return {
     ...attrs,
     nestingLevel: (props.nestingLevel || 0) + 1,
@@ -120,8 +124,6 @@ const listItemFields = computed(() => {
   return items;
 });
 const markdownDiffAttrs = computed(() => merge({
-  disabled: !hasChanged.value,
-  readonly: hasChanged.value,
   historic: {
     value: props.historic.value,
   },

@@ -1,5 +1,5 @@
 <template>
-  <s-input class="v-text-field" :readonly="true" v-bind="$attrs">
+  <s-input class="v-text-field" v-bind="$attrs">
     <template #default="{id, isDirty, isDisabled, isReadonly, isValid }">
       <s-field
         v-bind="$attrs"

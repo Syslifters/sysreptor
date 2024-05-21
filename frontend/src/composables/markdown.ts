@@ -11,6 +11,7 @@ import {
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
   Transaction,
   remoteSelection, setRemoteClients,
+  type Extension,
 } from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '@/utils/types';
 
@@ -76,48 +77,50 @@ export function makeMarkdownEmits() {
   return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'collab', 'focus', 'blur'];
 }
 
-export function useMarkdownEditor({ props, emit, extensions, fileUploadSupported }: {
-    extensions: any[];
-    props: ComputedRef<MarkdownProps & {
-        modelValue: string|null;
-        disabled?: boolean;
-        readonly?: boolean;
-        spellcheckSupported?: boolean;
-    }>;
-    emit: any;
-    fileUploadSupported: boolean;
+export function useMarkdownEditorBase(options: {
+  editorView: Ref<EditorView|null>;
+  extensions: Extension[];
+  props: ComputedRef<MarkdownProps & {
+    modelValue: string|null;
+    disabled?: boolean;
+    readonly?: boolean;
+    spellcheckSupported?: boolean;
+  }>;
+  emit: any;
+  fileUploadSupported: boolean;
 }) {
   const apiSettings = useApiSettings();
   const theme = useTheme();
   const editorWasInView = ref(false);
-
-  const valueNotNull = computed(() => props.value.modelValue || '');
-  const spellcheckLanguageToolEnabled = computed(() =>
-    !props.value.disabled && !props.value.readonly &&
-    !!props.value.spellcheckSupported &&
-    !!props.value.spellcheckEnabled &&
-    editorWasInView.value &&
-    apiSettings.spellcheckLanguageToolSupportedForLanguage(props.value.lang));
-  const spellcheckBrowserEnabled = computed(() =>
-    !props.value.disabled && !props.value.readonly &&
-    !!props.value.spellcheckSupported &&
-    !!props.value.spellcheckEnabled &&
-    !apiSettings.isProfessionalLicense);
   const previewCacheBuster = uuid4();
 
+  const valueNotNull = computed(() => options.props.value.modelValue || '');
+  const spellcheckLanguageToolEnabled = computed(() =>
+    !options.props.value.disabled && !options.props.value.readonly &&
+    !!options.props.value.spellcheckSupported &&
+    !!options.props.value.spellcheckEnabled &&
+    editorWasInView.value &&
+    apiSettings.spellcheckLanguageToolSupportedForLanguage(options.props.value.lang));
+  const spellcheckBrowserEnabled = computed(() =>
+    !options.props.value.disabled && !options.props.value.readonly &&
+    !!options.props.value.spellcheckSupported &&
+    !!options.props.value.spellcheckEnabled &&
+    !apiSettings.isProfessionalLicense);
+  const fileUploadEnabled = computed(() => options.fileUploadSupported && Boolean(options.props.value.uploadFile));
+
   async function performSpellcheckRequest(data: any): Promise<any> {
-    if (!props.value.lang) {
+    if (!options.props.value.lang) {
       return {
         matches: []
       };
     }
-
+  
     await nextTick();
     return await $fetch('/api/v1/utils/spellcheck/', {
       method: 'POST',
       body: {
         ...data,
-        language: props.value.lang
+        language: options.props.value.lang
       }
     });
   }
@@ -131,29 +134,29 @@ export function useMarkdownEditor({ props, emit, extensions, fileUploadSupported
       requestErrorToast({ error });
     }
   }
-
+  
   const fileUploadInProgress = ref(false);
   async function uploadFiles(files?: FileList, pos?: number|null) {
-    if (!editorView.value || !props.value.uploadFile || !fileUploadSupported || !files || files.length === 0 || fileUploadInProgress.value) {
+    if (!options.editorView.value || !fileUploadEnabled.value || !files || files.length === 0 || fileUploadInProgress.value) {
       return;
     }
-
+  
     try {
       fileUploadInProgress.value = true;
       const results = await Promise.all(Array.from(files).map(async (file: File) => {
         try {
-          return await props.value.uploadFile!(file);
+          return await options.props.value.uploadFile!(file);
         } catch (error) {
           requestErrorToast({ error, message: 'Failed to upload ' + file.name })
           return null;
         }
       }));
-
+  
       const mdFileText = results.filter(u => u).join('\n');
       if (pos === undefined || pos === null) {
-        pos = editorView.value.state.selection.main.to;
+        pos = options.editorView.value.state.selection.main.to;
       }
-      editorView.value.dispatch(editorView.value.state.update({ 
+      options.editorView.value.dispatch(options.editorView.value.state.update({ 
         changes: { from: pos, to: pos, insert: mdFileText },
         selection: { anchor: pos! + mdFileText.length },
       }));
@@ -161,10 +164,10 @@ export function useMarkdownEditor({ props, emit, extensions, fileUploadSupported
       fileUploadInProgress.value = false;
     }
   }
-
+  
   function onBeforeApplyRemoteTextChange(event: any) {
-    if (editorView.value && event.path === props.value.collab?.path) {
-      editorView.value.dispatch(editorView.value.state.update({
+    if (options.editorView.value && event.path === options.props.value.collab?.path) {
+      options.editorView.value.dispatch(options.editorView.value.state.update({
         changes: event.changes,
         annotations: [
           Transaction.addToHistory.of(false),
@@ -174,114 +177,114 @@ export function useMarkdownEditor({ props, emit, extensions, fileUploadSupported
     }
   }
 
-  const vm = getCurrentInstance()!;
-  const editorRef = computed(() => vm.refs.editorRef as HTMLElement);
-  const editorView = shallowRef<EditorView|null>(null);
   const editorState = shallowRef<EditorState|null>(null);
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
   const eventBusBeforeApplyRemoteTextChanges = useEventBus('collab:beforeApplyRemoteTextChanges');
-  function initializeEditorView() {
-    editorView.value = new EditorView({
-      parent: editorRef.value,
-      state: EditorState.create({
-        doc: valueNotNull.value,
-        extensions: [
-          ...extensions,
-          history(),
-          keymap.of([...defaultKeymap, ...historyKeymap]),
-          tooltips({ parent: document.body }),
-          EditorView.domEventHandlers({
-            blur: (event: FocusEvent) => emit('blur', event),
-            focus: (event: FocusEvent) => emit('focus', event),
-          }),
-          EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
-            editorState.value = viewUpdate.state;
-            // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
-            if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
-              // Collab updates
-              if (props.value.collab) {
-                for (const tr of viewUpdate.transactions) {
-                  if (tr.docChanged && !tr.annotation(Transaction.remote)) {
-                    emit('collab', {
-                      type: CollabEventType.UPDATE_TEXT,
-                      path: props.value.collab.path,
-                      updates: [{ changes: tr.changes, selection: tr.selection }],
-                    });
-                  }
+
+  function createEditorStateConfig() {
+    return {
+      doc: valueNotNull.value,
+      extensions: [
+        ...options.extensions,
+        history(),
+        keymap.of([...defaultKeymap, ...historyKeymap]),
+        tooltips({ parent: document.body }),
+        EditorView.domEventHandlers({
+          blur: (event: FocusEvent) => options.emit('blur', event),
+          focus: (event: FocusEvent) => options.emit('focus', event),
+        }),
+        EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
+          editorState.value = viewUpdate.state;
+          // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
+          if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
+            // Collab updates
+            if (options.props.value.collab) {
+              for (const tr of viewUpdate.transactions) {
+                if (tr.docChanged && !tr.annotation(Transaction.remote)) {
+                  options.emit('collab', {
+                    type: CollabEventType.UPDATE_TEXT,
+                    path: options.props.value.collab.path,
+                    updates: [{ changes: tr.changes, selection: tr.selection }],
+                  });
                 }
               }
-
-              // Model-value updates
-              emit('update:modelValue', viewUpdate.state.doc.toString());
-            } 
-            
-            if (props.value.collab && (viewUpdate.selectionSet || viewUpdate.focusChanged)) {
-              // Collab awareness updates
-              const hasFocus = editorView.value?.hasFocus || false;
-              emit('collab', {
-                type: CollabEventType.AWARENESS,
-                path: props.value.collab.path,
-                focus: hasFocus,
-                selection: viewUpdate.state.selection,
-              });
             }
-          }),
-          remoteSelection(),
-        ]
-      }),
-    });
-    eventBusBeforeApplyRemoteTextChanges.on(onBeforeApplyRemoteTextChange);
 
-    editorState.value = editorView.value.state;
-    editorActions.value = {
-      disabled: createEditorExtensionToggler(editorView.value, [
-        EditorView.editable.of(false),
-        EditorState.readOnly.of(true),
-      ]),
-      spellcheckLanguageTool: createEditorExtensionToggler(editorView.value, [
-        spellcheck({
-          performSpellcheckRequest,
-          performSpellcheckAddWordRequest,
+            // Model-value updates
+            options.emit('update:modelValue', viewUpdate.state.doc.toString());
+          } 
+          
+          if (options.props.value.collab && (viewUpdate.selectionSet || viewUpdate.focusChanged)) {
+            // Collab awareness updates
+            const hasFocus = options.editorView.value?.hasFocus || false;
+            options.emit('collab', {
+              type: CollabEventType.AWARENESS,
+              path: options.props.value.collab.path,
+              focus: hasFocus,
+              selection: viewUpdate.state.selection,
+            });
+          }
         }),
-        spellcheckTheme,
-      ]),
-      spellcheckBrowser: createEditorExtensionToggler(editorView.value, [
-        EditorView.contentAttributes.of({ spellcheck: "true" }),
-      ]),
-      uploadFile: createEditorExtensionToggler(editorView.value, [
-        EditorView.domEventHandlers({
-          drop: (event: DragEvent) => {
-            event.stopPropagation();
-            event.preventDefault();
-            const dropPos = editorView.value!.posAtCoords({ x: event.clientX, y: event.clientY });
-            uploadFiles(event.dataTransfer?.files, dropPos);
-          },
-          paste: (event: ClipboardEvent) => {
-            if ((event.clipboardData?.files?.length || 0) > 0) {
+        remoteSelection(),
+      ]
+    };
+  }
+
+  watch(options.editorView, (newValue, oldValue) => {
+    // Post-init EditorView
+    if (options.editorView.value && newValue && !oldValue) {
+      eventBusBeforeApplyRemoteTextChanges.on(onBeforeApplyRemoteTextChange);
+
+      editorState.value = options.editorView.value.state;
+      editorActions.value = {
+        disabled: createEditorExtensionToggler(options.editorView.value, [
+          EditorView.editable.of(false),
+          EditorState.readOnly.of(true),
+        ]),
+        spellcheckLanguageTool: createEditorExtensionToggler(options.editorView.value, [
+          spellcheck({
+            performSpellcheckRequest,
+            performSpellcheckAddWordRequest,
+          }),
+          spellcheckTheme,
+        ]),
+        spellcheckBrowser: createEditorExtensionToggler(options.editorView.value, [
+          EditorView.contentAttributes.of({ spellcheck: "true" }),
+        ]),
+        uploadFile: createEditorExtensionToggler(options.editorView.value, [
+          EditorView.domEventHandlers({
+            drop: (event: DragEvent) => {
               event.stopPropagation();
               event.preventDefault();
-              uploadFiles(event.clipboardData!.files);
+              const dropPos = options.editorView.value!.posAtCoords({ x: event.clientX, y: event.clientY });
+              uploadFiles(event.dataTransfer?.files, dropPos);
+            },
+            paste: (event: ClipboardEvent) => {
+              if ((event.clipboardData?.files?.length || 0) > 0) {
+                event.stopPropagation();
+                event.preventDefault();
+                uploadFiles(event.clipboardData!.files);
+              }
             }
-          }
-        })
-      ]),
-      darkTheme: createEditorExtensionToggler(editorView.value, [
-        EditorView.theme({}, { dark: true }),
-      ]),
-    };
-    editorActions.value.disabled(Boolean(props.value.disabled || props.value.readonly));
-    editorActions.value.spellcheckLanguageTool(spellcheckLanguageToolEnabled.value);
-    editorActions.value.spellcheckBrowser(spellcheckBrowserEnabled.value);
-    editorActions.value.uploadFile(Boolean(props.value.uploadFile) && fileUploadSupported);
-    editorActions.value.darkTheme(theme.current.value.dark);
-  }
-  onMounted(() => initializeEditorView());
+          })
+        ]),
+        darkTheme: createEditorExtensionToggler(options.editorView.value, [
+          EditorView.theme({}, { dark: true }),
+        ]),
+      };
+      editorActions.value.disabled(Boolean(options.props.value.disabled || options.props.value.readonly));
+      editorActions.value.spellcheckLanguageTool(spellcheckLanguageToolEnabled.value);
+      editorActions.value.spellcheckBrowser(spellcheckBrowserEnabled.value);
+      editorActions.value.uploadFile(fileUploadEnabled.value);
+      editorActions.value.darkTheme(theme.current.value.dark);
+    } else if (!newValue) {
+      eventBusBeforeApplyRemoteTextChanges.off(onBeforeApplyRemoteTextChange);
+    }
+  }, { immediate: true });
   onBeforeUnmount(() => {
     eventBusBeforeApplyRemoteTextChanges.off(onBeforeApplyRemoteTextChange);
-    if (editorView.value) {
-      editorView.value.destroy();
-    }
-  });
+  })
+
   function onIntersect(isIntersecting: boolean) {
     if (isIntersecting) {
       editorWasInView.value = true;
@@ -289,44 +292,44 @@ export function useMarkdownEditor({ props, emit, extensions, fileUploadSupported
   }
 
   watch(valueNotNull, () => {
-    if (editorView.value && valueNotNull.value !== editorView.value.state.doc.toString()) {
-      editorView.value.dispatch(editorView.value.state.update({
+    if (options.editorView.value && valueNotNull.value !== options.editorView.value.state.doc.toString()) {
+      options.editorView.value.dispatch(options.editorView.value.state.update({
         changes: {
           from: 0,
-          to: editorView.value.state.doc.length,
+          to: options.editorView.value.state.doc.length,
           insert: valueNotNull.value,
         },
       }));
     }
   });
-  watch([() => props.value.disabled, () => props.value.readonly], () => editorActions.value.disabled?.(Boolean(props.value.disabled || props.value.readonly)));
-  watch(() => props.value.lang, () => {
-    if (spellcheckLanguageToolEnabled.value && editorView.value) {
-      forceLinting(editorView.value);
+  watch([() => options.props.value.disabled, () => options.props.value.readonly], () => editorActions.value.disabled?.(Boolean(options.props.value.disabled || options.props.value.readonly)));
+  watch(() => options.props.value.lang, () => {
+    if (spellcheckLanguageToolEnabled.value && options.editorView.value) {
+      forceLinting(options.editorView.value);
     }
   });
   watch(spellcheckLanguageToolEnabled, (val) => {
     editorActions.value?.spellcheckLanguageTool(val);
-    if (!val && editorView.value) {
+    if (!val && options.editorView.value) {
     // clear existing spellcheck items from editor
-      editorView.value.dispatch(setDiagnostics(editorView.value.state, []));
+      options.editorView.value.dispatch(setDiagnostics(options.editorView.value.state, []));
     }
   });
   watch(spellcheckBrowserEnabled, val => editorActions.value.spellcheckBrowser?.(val));
   watch(theme.current, val => editorActions.value.darkTheme?.(val.dark));
 
-  watch([() => props.value.collab?.clients, () => editorView.value], () => {
-    if (!editorView.value) {
+  watch([() => options.props.value.collab?.clients, () => options.editorView.value], () => {
+    if (!options.editorView.value) {
       return;
     }
-    const remoteClients = (props.value.collab?.clients || []).filter(c => !c.isSelf && c.selection).map(c => ({
+    const remoteClients = (options.props.value.collab?.clients || []).filter(c => !c.isSelf && c.selection).map(c => ({
       client_id: c.client_id,
       color: c.client_color,
       name: c.user.username + (c.user.name ? ` (${c.user.name})` : ''),
       selection: c.selection!,
     }));
 
-    editorView.value.dispatch({
+    options.editorView.value.dispatch({
       effects: [
         setRemoteClients.of(remoteClients)
       ]
@@ -334,44 +337,45 @@ export function useMarkdownEditor({ props, emit, extensions, fileUploadSupported
   }, { deep: true });
 
   function focus() {
-    if (editorView.value) {
-      editorView.value.focus();
-      emit('focus');
+    if (options.editorView.value) {
+      options.editorView.value.focus();
+      options.emit('focus');
     }
   }
   function blur() {
-    if (editorView.value) {
-      editorView.value.dom.blur();
+    if (options.editorView.value) {
+      options.editorView.value.dom.blur();
     }
   }
 
   const markdownToolbarAttrs = computed(() => ({
-    editorView: editorView.value,
+    editorView: options.editorView.value,
     editorState: editorState.value,
-    disabled: props.value.disabled || props.value.readonly,
-    uploadFiles: (props.value.uploadFile && fileUploadSupported) ? uploadFiles : undefined,
+    disabled: options.props.value.disabled || options.props.value.readonly,
+    uploadFiles: fileUploadEnabled.value ? uploadFiles : undefined,
     fileUploadInProgress: fileUploadInProgress.value,
-    lang: props.value.lang,
-    spellcheckEnabled: props.value.spellcheckEnabled,
-    'onUpdate:spellcheckEnabled': (val: boolean) => emit('update:spellcheckEnabled', val),
-    markdownEditorMode: props.value.markdownEditorMode,
-    'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => emit('update:markdownEditorMode', val),
+    lang: options.props.value.lang,
+    spellcheckEnabled: options.props.value.spellcheckEnabled,
+    'onUpdate:spellcheckEnabled': (val: boolean) => options.emit('update:spellcheckEnabled', val),
+    markdownEditorMode: options.props.value.markdownEditorMode,
+    'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => options.emit('update:markdownEditorMode', val),
   }));
   const markdownStatusbarAttrs = computed(() => ({
     editorState: editorState.value!,
-    fileUploadEnabled: Boolean(props.value.uploadFile) && fileUploadSupported,
+    fileUploadEnabled: fileUploadEnabled.value,
     fileUploadInProgress: fileUploadInProgress.value,
   }));
   const markdownPreviewAttrs = computed(() => ({
-    value: props.value.modelValue,
-    rewriteFileUrl: props.value.rewriteFileUrl,
-    rewriteReferenceLink: props.value.rewriteReferenceLink,
+    value: options.props.value.modelValue,
+    rewriteFileUrl: options.props.value.rewriteFileUrl,
+    rewriteReferenceLink: options.props.value.rewriteReferenceLink,
     cacheBuster: previewCacheBuster,
   }));
 
   return {
-    editorView,
+    editorView: options.editorView,
     editorState,
+    createEditorStateConfig,
     editorActions,
     markdownToolbarAttrs,
     markdownStatusbarAttrs,
@@ -380,6 +384,40 @@ export function useMarkdownEditor({ props, emit, extensions, fileUploadSupported
     focus,
     blur,
   }
+}
+
+export function useMarkdownEditor(options: {
+    extensions: Extension[];
+    props: ComputedRef<MarkdownProps & {
+        modelValue: string|null;
+        disabled?: boolean;
+        readonly?: boolean;
+        spellcheckSupported?: boolean;
+    }>;
+    emit: any;
+    fileUploadSupported: boolean;
+}) {
+  const vm = getCurrentInstance()!;
+  const editorRef = computed(() => vm.refs.editorRef as HTMLElement);
+  const editorView = shallowRef<EditorView|null>(null);
+  
+  const mdBase = useMarkdownEditorBase({
+    ...options,
+    editorView,
+  });
+  
+  function initializeEditorView() {
+    editorView.value = new EditorView({
+      parent: editorRef.value,
+      state: EditorState.create(mdBase.createEditorStateConfig()),
+    });
+  }
+  onMounted(() => initializeEditorView());
+  onBeforeUnmount(() => {
+    editorView.value?.destroy();
+  });
+
+  return mdBase;
 }
 
 export function markdownEditorDefaultExtensions() {
@@ -423,12 +461,12 @@ export function markdownEditorTextFieldExtensions() {
         changes: changesWithoutNewlines,
       } : tr;
     }),
-  ]
+  ] as Extension[];
 }
 
 export function markdownEditorPageExtensions() {
   return [
     ...markdownEditorDefaultExtensions(),
     scrollPastEnd(),
-  ]
+  ] as Extension[];
 }

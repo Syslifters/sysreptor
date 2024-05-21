@@ -8,6 +8,7 @@
             v-for="section in sections"
             :key="section.id"
             :to="`/projects/${$route.params.projectId}/reporting/sections/${section.id}/`"
+            :active="router.currentRoute.value.path.startsWith(`/projects/${$route.params.projectId}/reporting/sections/${section.id}/`)"
             density="compact"
           >
             <template #default>
@@ -67,6 +68,7 @@
             <template #item="{element: finding}">
               <v-list-item
                 :to="`/projects/${$route.params.projectId}/reporting/findings/${finding.id}/`"
+                :active="router.currentRoute.value.path.startsWith(`/projects/${$route.params.projectId}/reporting/findings/${finding.id}/`)"
                 :ripple="false"
                 density="compact"
                 :class="'finding-level-' + riskLevel(finding)"

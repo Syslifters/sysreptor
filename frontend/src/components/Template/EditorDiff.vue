@@ -174,6 +174,7 @@ const diffFieldAttrs = computed(() => (translationInfo: TranslationDiffInfo, def
     markdownEditorMode: markdownEditorMode.value,
     'onUpdate:markdownEditorMode': (value: MarkdownEditorMode) => { markdownEditorMode.value = value },
     selectableUsers: [],
+    readonly: true,
   };
   const mainTranslationCurrent = props.current.value.translations.find(tr => tr.is_main);
   return {
