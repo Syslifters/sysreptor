@@ -177,7 +177,7 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
         resources = {}
         resources |= {'/assets/name/' + a.name: b64encode(a.file.read()).decode() for a in project_type.assets.all()}
         if project:
-            resources |= {'/images/name/' + i.name: b64encode(i.file.read()).decode() for i in project.images.all() if project.is_file_referenced(i)}
+            resources |= {'/images/name/' + i.name: b64encode(i.file.read()).decode() for i in project.images.all() if project.is_file_referenced(i, sections=True, findings=True, notes=False)}
         return resources
 
     task = await sync_to_async(tasks.render_pdf_task.delay)(
