@@ -1,38 +1,31 @@
 <template>
   <v-app>
-    <v-container fluid class="fill-height">
-      <v-layout class="align-center justify-center">
-        <div class="text-center">
-          <h1>{{ errorHeading }}</h1>
+    <v-layout full-height class="align-center justify-center">
+      <v-empty-state
+        :title="errorHeading"
+        color="primary"
+        action-text="Go back home"
+        @click:action="handleError"
+      >
+        <template #media>
+          <img v-if="props.error.statusCode === 404" src="~/assets/dino/notfound.svg" alt="" class="img-raptor" />
+          <icon v-else class="emoji-heading" icon="fluent-emoji:face-with-peeking-eye" />
+        </template>
+        <template #text>
           <div v-if="props.error.statusCode === 404">
-            <img src="~/assets/dino/notfound.svg" alt="" class="img-raptor" />
-            <p class="text-center">
-              This site has gone.<br />
-              {{ errorMessage }}
-            </p>
-          </div>
-          <div v-else-if="[401, 403].includes(props.error.statusCode)">
-            <icon class="emoji-heading" icon="fluent-emoji:face-with-peeking-eye" />
-            <div class="mx-12">
-              <p class="text-center">
-                {{ errorMessage }}
-              </p>
-            </div>
+            This site has gone.<br />
+            {{ errorMessage }}
           </div>
           <div v-else>
-            <icon class="emoji-heading" icon="fluent-emoji:face-with-peeking-eye" />
-            <div class="mx-12">
-              <p class="text-center">
-                {{ errorMessage }}<br />
-                This should not have happened.<br />
-                If you think this is a vulnerability, please <a href="https://docs.syslifters.com/vulnerability-disclosure/" target="_blank">disclose responsibly</a>.<br />
-              </p>
+            {{ errorMessage }}<br />
+            <div v-if="![401, 403].includes(props.error.statusCode)">
+              This should not have happened.<br />
+              If you think this is a vulnerability, please <a href="https://docs.syslifters.com/vulnerability-disclosure/" target="_blank">disclose responsibly</a>.<br />
             </div>
           </div>
-          <s-btn-primary @click="handleError" text="Go back home" class="mt-4" />
-        </div>
-      </v-layout>
-    </v-container>
+        </template>
+      </v-empty-state>
+    </v-layout>
   </v-app>
 </template>
 
