@@ -667,7 +667,7 @@ LOGGING = {
             'class': 'logging.StreamHandler',
         },
         'elasticapm': {
-            'level': 'INFO',
+            'level': 'WARNING',
             'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
         },
     },
