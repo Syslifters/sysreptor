@@ -128,3 +128,9 @@ class BackupSerializer(serializers.Serializer):
         except ValueError as ex:
             raise serializers.ValidationError('Invalid base64 encoding') from ex
 
+
+class CweDefinitionSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+    parent = serializers.UUIDField(allow_null=True)

@@ -32,6 +32,7 @@ class ConsumerHttpFallbackSerializer(serializers.Serializer):
 
 
 class ConsumerHttpFallbackView(AsyncAPIView):
+    schema = None
     consumer_class = None
     permission_classes = []  # Permission check is handled in the consumer
 

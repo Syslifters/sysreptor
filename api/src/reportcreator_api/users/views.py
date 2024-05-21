@@ -275,8 +275,8 @@ class AuthViewSet(viewsets.ViewSet):
         else:
             return serializers.Serializer
 
-    def get_serializer(self, *args, **kwargs):
-        return self.get_serializer_class()(*args, context={'request': self.request}, **kwargs)
+    def get_serializer(self, *args, context=None, **kwargs):
+        return self.get_serializer_class()(*args, context=context or {'request': self.request}, **kwargs)
 
     @action(detail=False, methods=['post'], authentication_classes=[], permission_classes=[LocalUserAuthPermissions])
     def login(self, request, *args, **kwargs):
