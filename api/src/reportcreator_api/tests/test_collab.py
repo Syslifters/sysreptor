@@ -17,6 +17,14 @@ from django.utils.module_loading import import_string
 
 from reportcreator_api.archive.import_export import export_notes
 from reportcreator_api.conf.asgi import application
+from reportcreator_api.pentests.collab.text_transformations import (
+    ChangeSet,
+    CollabStr,
+    EditorSelection,
+    SelectionRange,
+    Update,
+    rebase_updates,
+)
 from reportcreator_api.pentests.customfields.utils import (
     ensure_defined_structure,
     get_value_at_path,
@@ -31,14 +39,6 @@ from reportcreator_api.pentests.models import (
     ReviewStatus,
 )
 from reportcreator_api.tests.mock import api_client, create_project, create_project_type, create_user, mock_time
-from reportcreator_api.utils.text_transformations import (
-    ChangeSet,
-    CollabStr,
-    EditorSelection,
-    SelectionRange,
-    Update,
-    rebase_updates,
-)
 from reportcreator_api.utils.utils import copy_keys
 
 
