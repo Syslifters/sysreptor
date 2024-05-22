@@ -59,10 +59,10 @@ DEBUG=off
 
 
 ### Allowed Hosts
-Allowed hostnames/domain names for this installation.
+Comma-separated allowed hostnames/domain names for this installation.
 
 ``` title="Example:"
-ALLOWED_HOSTS="sysreptor.example.com"
+ALLOWED_HOSTS="sysreptor.example.com,sysreptor.example.local"
 ```
 
 

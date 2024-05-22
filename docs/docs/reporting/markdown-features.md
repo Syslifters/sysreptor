@@ -113,7 +113,7 @@ Content-Length: 33
 
 ![Manual Code Block Highlighting](/images/md_code_manual_highlight.png)
 
-If you need more advanced highlighting, you can place cutom HTML code inside the `§§` placeholders e.g. `§<mark><em><span class="custom-highlight">§`.
+If you need more advanced highlighting, you can place custom HTML code inside the `§§` placeholders e.g. `§<mark><strong><span class="custom-highlight">§Highlight this text.§§`.
 If your code snippet includes `§`-characters, you cannot use them as escape characters for manual highlighting. 
 It is possible to specify a different escaple character via the `highlight-manual="<escape-character>"` attribute.
 Make sure that the escape character is not present in the code block.
