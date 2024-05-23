@@ -185,7 +185,7 @@ if REDIS_URL:
 else:
     CHANNEL_LAYERS = {
         'default': {
-            'BACKEND': 'reportcreator_api.utils.channels.CustomizedPostgresChannelLayer',
+            'BACKEND': 'reportcreator_api.pentests.collab.channels.CustomizedPostgresChannelLayer',
             'CONFIG': DATABASES['default'] | {
                 'TIME_ZONE': TIME_ZONE,
                 'group_expiry': 60,
