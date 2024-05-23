@@ -173,6 +173,43 @@ class TestTextTransformations:
         actual = selection.map(change)
         assert actual == expected
 
+    @pytest.mark.parametrize(('text_before', 'text_after'), [
+        ('line1\nline2\n', 'line1\nline2\n'),  # same text
+        ('', 'new text'),
+        ('old text', ''),
+        ('old text\nline2', 'completely replaced\nwith new content'),
+        ('line1\nline2\n', 'line1\ninserted\nline2\n'),
+        ('line1\ndeleted\nline2', 'line1\nline2\n'),
+        ('line1\nsome characters changed\nline2\n', 'line1\nsome char___ers changed\nline2\n'),
+        # newline handling
+        ('line1\nline2\n', 'line1\nchanged\n'),
+        ('line1\nline2', 'line1\nchanged'),
+        ('line1\nline2', 'line1\nchanged\n'),
+        ('line1\nline2\n', 'line1\nchanged'),
+        ('line1\nline2\n', 'line1\n\n\nchanged\n'),
+        # unicode handling
+        ('line1\nline2\n', 'line1 🤦🏼‍♂️ text\nline2\n'),
+        ('line1 🤦🏼‍♂️ text\nline2\n', 'line1 🤦🏼‍♂️ text\nline2\nline 3 🤦🏼‍♂️'),
+        ('line1 🤦🏼‍♂️ text\nline2\n', 'line1 text\nline2\n'),
+        ('line1 text\nline2\n', 'line1 🤦🏼‍♂️\nline2\n'),
+        ('line1 🤦🏼‍♂️\nline2\n', 'line1 🤷\nline2\n'),
+        ('line1 🤦🏼‍♂️\nline2\n', 'line1 🤦🏿‍♀️\nline2\n'),
+        # multiple changes
+        ('some example text', 's__e ex__ple t__t'),
+        ('some example text', 's_e new example'),
+        ('some example text', 's_e text new'),
+    ])
+    def test_diff_to_changeset(self, text_before, text_after):
+        # Forward change
+        c1 = ChangeSet.from_diff(text_before, text_after)
+        assert c1.apply(text_before) == text_after
+        c1.to_dict()
+
+        # Reverse change
+        c2 = ChangeSet.from_diff(text_after, text_before)
+        assert c2.apply(text_after) == text_before
+        c2.to_dict()
+
 
 @sync_to_async
 def create_session(user):
