@@ -8,14 +8,14 @@ from lxml import etree
 
 
 def download_cwe_xml():
-    res = requests.get('https://cwe.mitre.org/data/xml/cwec_latest.xml.zip').content
+    res = requests.get('https://cwe.mitre.org/data/xml/cwec_latest.xml.zip', timeout=10).content
     with zipfile.ZipFile(file=io.BytesIO(res)) as zip:
         return zip.read(zip.namelist()[0])
 
 
 def main():
     cwes = []
-    cwe_xml = etree.fromstring(download_cwe_xml())
+    cwe_xml = etree.fromstring(download_cwe_xml(), etree.XMLParser(resolve_entities=False))  # noqa: S320
     weaknesses_xml = cwe_xml.findall('./Weaknesses/Weakness', namespaces=cwe_xml.nsmap)
     for w in weaknesses_xml:
         if w.attrib['Status'] == 'Deprecated':
