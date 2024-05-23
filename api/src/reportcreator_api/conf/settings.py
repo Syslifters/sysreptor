@@ -666,10 +666,12 @@ LOGGING = {
             'formatter': 'default',
             'class': 'logging.StreamHandler',
         },
-        'elasticapm': {
-            'level': 'WARNING',
-            'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
-        },
+        **({
+            'elasticapm': {
+                'level': 'WARNING',
+                'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
+            },
+        } if ELASTIC_APM_ENABLED else {}),
     },
     'root': {
         'level': 'INFO',

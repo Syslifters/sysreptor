@@ -10,6 +10,7 @@ from rest_framework_nested.routers import NestedSimpleRouter
 
 from reportcreator_api.api_utils.views import UtilsViewSet
 from reportcreator_api.notifications.views import NotificationViewSet
+from reportcreator_api.pentests.collab.channels import ConsumerHttpFallbackView
 from reportcreator_api.pentests.consumers import ProjectNotesConsumer, ProjectReportingConsumer, UserNotesConsumer
 from reportcreator_api.pentests.views import (
     ArchivedProjectKeyPartViewSet,
@@ -40,7 +41,6 @@ from reportcreator_api.users.views import (
     MFAMethodViewSet,
     PentestUserViewSet,
 )
-from reportcreator_api.utils.channels import ConsumerHttpFallbackView
 
 router = DefaultRouter()
 # Make trailing slash in URL optional to support loading images and assets by fielname
