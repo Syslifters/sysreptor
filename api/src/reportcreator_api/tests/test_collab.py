@@ -479,7 +479,7 @@ class TestProjectNotesDbSync:
         def setup_db():
             self.user1 = create_user()
             self.user2 = create_user()
-            self.project = create_project(members=[self.user1, self.user2], notes_kwargs=[{'checked': None, 'icon_emoji': None, 'text': 'ABC'}])
+            self.project = create_project(members=[self.user1, self.user2], notes_kwargs=[{'checked': None, 'icon_emoji': None, 'title': 'ABC', 'text': 'ABC'}])
             self.note = self.project.notes.all()[0]
             self.note_path_prefix = f'notes.{self.note.note_id}'
             self.api_client1 = api_client(self.user1)
@@ -548,20 +548,24 @@ class TestProjectNotesDbSync:
     async def test_update_key_sync(self):
         await sync_to_async(self.api_client1.patch)(
             path=reverse('projectnotebookpage-detail', kwargs={'project_pk': self.project.id, 'id': self.note.note_id}),
-            data={'checked': True, 'title': 'updated'})
+            data={'checked': True, 'title': 'updated', 'text': 'ABCDEF'})
 
         r1_1 = await self.client1.receive_json_from()
         r1_2 = await self.client1.receive_json_from()
-        res1 = {r1_1['path']: r1_1, r1_2['path']: r1_2}
+        r1_3 = await self.client1.receive_json_from()
+        res1 = {r1_1['path']: r1_1, r1_2['path']: r1_2, r1_3['path']: r1_3}
 
         r2_1 = await self.client2.receive_json_from()
         r2_2 = await self.client2.receive_json_from()
-        res2 = {r2_1['path']: r2_1, r2_2['path']: r2_2}
+        r2_3 = await self.client2.receive_json_from()
+        res2 = {r2_1['path']: r2_1, r2_2['path']: r2_2, r2_3['path']: r2_3}
 
-        for k, v in ({'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.title', 'value': 'updated', 'client_id': None}).items():
-            assert res1[self.note_path_prefix + '.title'][k] == res2[self.note_path_prefix + '.title'][k] == v
         for k, v in ({'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.checked', 'value': True, 'client_id': None}).items():
             assert res1[self.note_path_prefix + '.checked'][k] == res2[self.note_path_prefix + '.checked'][k] == v
+        for k, v in ({'type': CollabEventType.UPDATE_TEXT, 'path': self.note_path_prefix + '.title', 'updates': [{'changes': [[3, 'updated']]}], 'client_id': None}).items():
+            assert res1[self.note_path_prefix + '.title'][k] == res2[self.note_path_prefix + '.title'][k] == v
+        for k, v in ({'type': CollabEventType.UPDATE_TEXT, 'path': self.note_path_prefix + '.text', 'updates': [{'changes': [3, [0, 'DEF']]}], 'client_id': None}).items():
+            assert res1[self.note_path_prefix + '.text'][k] == res2[self.note_path_prefix + '.text'][k] == v
 
     async def test_sort_sync(self):
         res = await sync_to_async(self.api_client1.post)(
@@ -716,12 +720,12 @@ class TestProjectReportingDbSync:
         value_h = getattr(obj_h, path_parts[0]) if len(path_parts) == 1 else get_value_at_path(obj_h.custom_fields, path_parts[1:])
         assert value_h == value_db
 
-    @pytest.mark.parametrize(('obj_type', 'path'), [(a,) + b for a, b in itertools.product(['finding', 'section'], [
-        ('data.field_string',),
-        ('data.field_markdown',),
-        ('data.field_list.[0]',),
-        ('data.field_list_objects.[0].field_string',),
-    ])])
+    @pytest.mark.parametrize(('obj_type', 'path'), list(itertools.product(['finding', 'section'], [
+        'data.field_string',
+        'data.field_markdown',
+        'data.field_list.[0]',
+        'data.field_list_objects.[0].field_string',
+    ])))
     async def test_update_text(self, obj_type, path):
         if obj_type == 'section':
             obj = self.section
@@ -786,6 +790,29 @@ class TestProjectReportingDbSync:
 
         # Websocket messages sent to clients
         await self.assert_event({'type': CollabEventType.UPDATE_KEY, 'path': f'{path_prefix}.{path}', 'value': value, 'client_id': None})
+        assert await self.client1.receive_nothing()
+
+    @pytest.mark.parametrize(('obj_type', 'path'), list(itertools.product(['finding', 'section'], [
+        'data.field_string',
+        'data.field_markdown',
+        'data.field_list.[0]',
+        'data.field_list_objects.[0].field_string',
+    ])))
+    async def test_update_text_sync(self, obj_type, path):
+        if obj_type == 'section':
+            obj = self.section
+            path_prefix = self.section_path_prefix
+        elif obj_type == 'finding':
+            obj = self.finding
+            path_prefix = self.finding_path_prefix
+
+        updated_data = obj.data
+        set_value_at_path(updated_data, path.split('.')[1:], 'ABCDEF')
+        obj.update_data(updated_data)
+        await obj.asave()
+
+        # Websocket messages sent to clients
+        await self.assert_event({'type': CollabEventType.UPDATE_TEXT, 'path': f'{path_prefix}.{path}', 'updates': [{'changes': [3, [0, 'DEF']]}], 'client_id': None})
         assert await self.client1.receive_nothing()
 
     async def test_sort_findings_sync(self):
