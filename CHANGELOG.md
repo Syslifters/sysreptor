@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## v2024.043 - 2024-05-27
 * Add sorting options to projects, templates, designs and users lists
 * Collaborative editing in project history diff views
 * Project history diff views: add revert changes button to markdown editor
