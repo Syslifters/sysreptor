@@ -82,6 +82,10 @@ def set_transaction_name_websocket(scope, event):
 
 @contextlib.asynccontextmanager
 async def elasticapm_capture_websocket_transaction(scope, event=None):
+    if not settings.ELASTIC_APM_ENABLED:
+        yield
+        return
+
     client = get_elasticapm_django_client()
     client.begin_transaction(
         transaction_type="websocket",
