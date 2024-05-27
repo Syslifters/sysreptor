@@ -82,7 +82,7 @@ export function spellcheck({ performSpellcheckRequest, performSpellcheckAddWordR
         }] : []),
       };
     });
-  }, {delay: 750});
+  }, {delay: 1000});
 }
 
 
