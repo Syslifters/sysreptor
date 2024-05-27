@@ -11,6 +11,7 @@ import os
 
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
+from django.conf import settings
 from django.core.asgi import get_asgi_application
 
 from reportcreator_api.utils.middleware import WebsocketOriginValidatorMiddleware
@@ -22,7 +23,10 @@ django_asgi_app = get_asgi_application()
 from reportcreator_api.conf.urls import websocket_urlpatterns  # noqa: E402
 from reportcreator_api.utils.elasticapm import DjangoASGITracingMiddleware  # noqa: E402
 
+if settings.ELASTIC_APM_ENABLED:
+    django_asgi_app = DjangoASGITracingMiddleware(django_asgi_app)
+
 application = ProtocolTypeRouter({
-    'http': DjangoASGITracingMiddleware(django_asgi_app),
+    'http': django_asgi_app,
     'websocket': WebsocketOriginValidatorMiddleware(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))),
 })
