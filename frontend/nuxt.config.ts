@@ -83,10 +83,17 @@ export default defineNuxtConfig({
           changeOrigin: false,
           ws: true,
         },
-
-        '/admin': 'http://api:8000',
+        '/admin': {
+          target: 'http://api:8000',
+          changeOrigin: false,
+        },
+        '/__debug__': {
+          target: 'http://api:8000',
+          changeOrigin: false,
+        },
         '/static': {
           target: 'http://api:8000',
+          changeOrigin: false,
           bypass(req) {
             if (['/static/logo.svg', '/static/logo-text.svg', '/static/favicon.ico'].includes(req.url!) || req.url!.startsWith('/static/pdfviewer/')) {
               return req.url;
