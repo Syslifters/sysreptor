@@ -22,6 +22,7 @@ from reportcreator_api.pentests.models import (
     ArchivedProject,
     ArchivedProjectKeyPart,
     ArchivedProjectPublicKeyEncryptedKeyPart,
+    Comment,
     FindingTemplate,
     FindingTemplateTranslation,
     Language,
@@ -195,6 +196,17 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     UploadedAsset.objects.create(linked_object=project_type, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=b'file1'))
     UploadedAsset.objects.create(linked_object=project_type, name='file2.png', file=SimpleUploadedFile(name='file2.png', content=b'file2'))
     return project_type
+
+
+def create_comment(user=None, **kwargs) -> Comment:
+    if not user:
+        user = create_user()
+
+    return Comment.objects.create(**{
+        'text': 'Comment text',
+        'path': 'title',
+        'user': user,
+    } | kwargs)
 
 
 def create_finding(project, template=None, **kwargs) -> PentestFinding:

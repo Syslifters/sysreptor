@@ -22,6 +22,7 @@ from reportcreator_api.pentests.models import UploadedImage
 from reportcreator_api.tests.mock import (
     api_client,
     create_archived_project,
+    create_comment,
     create_languagetool_ignore_word,
     create_png_file,
     create_project,
@@ -55,6 +56,7 @@ class TestBackup:
             self.archived_project = create_archived_project()
             self.notification = NotificationSpec.objects.create(title='test', text='test')
             self.languagetool_word = create_languagetool_ignore_word()
+            self.comment = create_comment(finding=self.project.findings.first(), user=self.user)
 
             yield
 
@@ -99,6 +101,7 @@ class TestBackup:
                 self.archived_project,
                 self.notification,
                 self.user.notifications.first(),
+                self.comment,
             ]:
                 self.assert_backup_obj(backup, o)
             self.assert_backup_obj(backup, self.languagetool_word, exclude_fields=['created_at', 'updated_at'])
@@ -170,6 +173,7 @@ class TestBackupRestore:
             self.template = create_template()
             self.archived_project = create_archived_project()
             self.languagetool_word = create_languagetool_ignore_word()
+            self.comment = create_comment(finding=self.project.findings.first(), user=self.user)
 
             yield
 
@@ -213,6 +217,7 @@ class TestBackupRestore:
         self.user.refresh_from_db()
         self.archived_project.refresh_from_db()
         self.languagetool_word.refresh_from_db()
+        self.comment.refresh_from_db()
 
         # Validate restored files
         for f in deleted_files:

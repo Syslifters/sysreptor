@@ -4,8 +4,8 @@ import pytest
 from django.test import override_settings
 
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
-from reportcreator_api.pentests.models import ReviewStatus
-from reportcreator_api.tests.mock import create_finding, create_project, create_project_type
+from reportcreator_api.pentests.models import CommentStatus, ReviewStatus
+from reportcreator_api.tests.mock import create_comment, create_finding, create_project, create_project_type, create_user
 from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
 
 pytestmark = pytest.mark.django_db
@@ -270,4 +270,28 @@ def test_regex_timeout():
     assertContainsCheckResults(p.perform_checks(), [
         ErrorMessage(level=MessageLevel.ERROR, message='Regex timeout', location=MessageLocationInfo(
             type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex')),
+    ])
+
+
+def test_comments():
+    user = create_user()
+    project = create_project(members=[user], findings_kwargs=[])
+    finding = create_finding(project=project)
+    section = project.sections.get(section_id='other')
+    comment_open1 = create_comment(finding=finding, path='field_markdown', status=CommentStatus.OPEN, user=user)
+    comment_open2 = create_comment(section=section, path='field_enum', status=CommentStatus.OPEN, user=user)
+    comment_resolved1 = create_comment(finding=finding, path='field_cvss', status=CommentStatus.RESOLVED, user=user)
+    comment_resolved2 = create_comment(section=section, path='field_string', status=CommentStatus.RESOLVED, user=user)
+
+    assertContainsCheckResults(project.perform_checks(), [
+        ErrorMessage(level=MessageLevel.WARNING, message='Unresolved comment', location=MessageLocationInfo(
+            type=MessageLocationType.FINDING, id=finding.finding_id, path=comment_open1.path)),
+        ErrorMessage(level=MessageLevel.WARNING, message='Unresolved comment', location=MessageLocationInfo(
+            type=MessageLocationType.SECTION, id=section.section_id, path=comment_open2.path)),
+    ])
+    assertNotContainsCheckResults(project.perform_checks(), [
+        ErrorMessage(level=MessageLevel.WARNING, message='Unresolved comment', location=MessageLocationInfo(
+            type=MessageLocationType.FINDING, id=finding.finding_id, path=comment_resolved1.path)),
+        ErrorMessage(level=MessageLevel.WARNING, message='Unresolved comment', location=MessageLocationInfo(
+            type=MessageLocationType.SECTION, id=section.section_id, path=comment_resolved2.path)),
     ])
