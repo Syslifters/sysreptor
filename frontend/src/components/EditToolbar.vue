@@ -164,7 +164,7 @@ const savingInProgress = ref(false);
 const deletingInProgress = ref(false);
 const actionInProgress = computed(() => savingInProgress.value || deletingInProgress.value);
 
-const previousData = ref<T | null>(null);
+const previousData = shallowRef<T | null>(null);
 const isDestroying = ref(false);
 const lockingInProgress = ref(false);
 const lockInfo = ref<LockInfo | null>(null);

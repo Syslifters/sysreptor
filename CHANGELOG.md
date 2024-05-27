@@ -6,6 +6,7 @@
 * Project history diff views: add revert changes button to markdown editor
 * Send update_text events with text diff when updating text fields via API instead of overwriting the whole text
 * Fix MDE preview layout break on zoom out
+* Throttle MDE update events to prevent browser from hanging
 * Fix elastic APM tracing middleware always enabled
 
 
