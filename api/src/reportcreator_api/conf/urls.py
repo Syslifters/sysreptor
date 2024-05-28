@@ -18,12 +18,16 @@ from reportcreator_api.pentests.views import (
     FindingTemplateHistoryViewSet,
     FindingTemplateTranslationViewSet,
     FindingTemplateViewSet,
+    PentestFindingCommentAnswerViewSet,
+    PentestFindingCommentViewSet,
     PentestFindingViewSet,
     PentestProjectHistoryViewSet,
     PentestProjectViewSet,
     ProjectNotebookPageViewSet,
     ProjectTypeHistoryViewSet,
     ProjectTypeViewSet,
+    ReportSectionCommentAnswerViewSet,
+    ReportSectionCommentViewSet,
     ReportSectionViewSet,
     UploadedAssetViewSet,
     UploadedImageViewSet,
@@ -72,6 +76,15 @@ project_router.register('images', UploadedImageViewSet, basename='uploadedimage'
 project_router.register('files', UploadedProjectFileViewSet, basename='uploadedprojectfile')
 project_router.register('history', PentestProjectHistoryViewSet, basename='pentestprojecthistory')
 
+finding_router = NestedSimpleRouter(project_router, 'findings', lookup='finding')
+finding_router.register('comments', PentestFindingCommentViewSet, basename='findingcomment')
+findingcomment_router = NestedSimpleRouter(finding_router, 'comments', lookup='comment')
+findingcomment_router.register('answers', PentestFindingCommentAnswerViewSet, basename='findingcommentanswer')
+section_router = NestedSimpleRouter(project_router, 'sections', lookup='section')
+section_router.register('comments', ReportSectionCommentViewSet, basename='sectioncomment')
+sectioncomment_router = NestedSimpleRouter(section_router, 'comments', lookup='comment')
+sectioncomment_router.register('answers', ReportSectionCommentAnswerViewSet, basename='sectioncommentanswer')
+
 projecttype_router = NestedSimpleRouter(router, 'projecttypes', lookup='projecttype')
 projecttype_router.register('assets', UploadedAssetViewSet, basename='uploadedasset')
 projecttype_router.register('history', ProjectTypeHistoryViewSet, basename='projecttypehistory')
@@ -90,12 +103,18 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     re_path(r'^api/?$', RedirectView.as_view(url='/api/v1/')),
     path('api/v1/', include([
-        path('', include(router.urls)),
-        path('', include(user_router.urls)),
-        path('', include(project_router.urls)),
-        path('', include(projecttype_router.urls)),
-        path('', include(archivedproject_router.urls)),
-        path('', include(template_router.urls)),
+        path('', include(
+            router.urls +
+            user_router.urls +
+            project_router.urls +
+            finding_router.urls +
+            findingcomment_router.urls +
+            section_router.urls +
+            sectioncomment_router.urls +
+            projecttype_router.urls +
+            archivedproject_router.urls +
+            template_router.urls,
+        )),
 
         # OpenAPI schema
         path('utils/openapi/', SpectacularAPIView.as_view(), name='utils-openapi-schema'),
