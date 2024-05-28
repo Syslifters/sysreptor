@@ -155,7 +155,6 @@ def create_template_translation(template, **kwargs):
 
 def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     additional_fields_simple = {
-        'nested1':  {'type': 'string', 'label': 'Nested Field'},
         'field_string': {'type': 'string', 'label': 'String Field', 'default': 'test'},
         'field_markdown': {'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
         'field_cvss': {'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},

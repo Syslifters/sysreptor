@@ -12,6 +12,8 @@ from reportcreator_api.pentests.customfields.predefined_fields import (
     FINDING_FIELDS_CORE,
     FINDING_FIELDS_PREDEFINED,
     REPORT_FIELDS_CORE,
+    finding_fields_default,
+    report_fields_default,
 )
 from reportcreator_api.pentests.customfields.sort import sort_findings
 from reportcreator_api.pentests.customfields.types import (
@@ -19,11 +21,17 @@ from reportcreator_api.pentests.customfields.types import (
     field_definition_to_dict,
     parse_field_definition,
 )
-from reportcreator_api.pentests.customfields.utils import check_definitions_compatible
+from reportcreator_api.pentests.customfields.utils import (
+    HandleUndefinedFieldsOptions,
+    check_definitions_compatible,
+    ensure_defined_structure,
+)
 from reportcreator_api.pentests.customfields.validators import FieldDefinitionValidator, FieldValuesValidator
 from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, Language
+from reportcreator_api.pentests.models.project import Comment
 from reportcreator_api.tasks.rendering.entry import format_template_field_object
 from reportcreator_api.tests.mock import (
+    create_comment,
     create_finding,
     create_project,
     create_project_type,
@@ -31,7 +39,7 @@ from reportcreator_api.tests.mock import (
     create_user,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
-from reportcreator_api.utils.utils import copy_keys, omit_keys
+from reportcreator_api.utils.utils import copy_keys, omit_items, omit_keys
 
 
 @pytest.mark.parametrize(('valid', 'definition'), [
@@ -192,11 +200,11 @@ class TestUpdateFieldDefinition:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
         self.project_type = create_project_type()
-        self.project = create_project(project_type=self.project_type)
-        self.finding = create_finding(project=self.project)
+        self.project = create_project(project_type=self.project_type, findings_kwargs=[{}])
+        self.finding = self.project.findings.first()
 
-        self.project_other = create_project()
-        self.finding_other = create_finding(project=self.project_other)
+        self.project_other = create_project(findings_kwargs=[{}])
+        self.finding_other = self.project_other.findings.first()
 
     def refresh_data(self):
         self.project_type.refresh_from_db()
@@ -401,6 +409,94 @@ class TestUpdateFieldDefinition:
         self.project_type.report_fields = report_fields
         self.project_type.save()
         assert self.project_type.report_preview_data['report']['field_string'] == preview_data_value
+
+
+@pytest.mark.django_db()
+class TestUpdateFieldDefinitionSyncComments:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.project_type = create_project_type()
+        initial_data = ensure_defined_structure({
+            'field_markdown': 'Example text',
+            'field_cvss': 'n/a',
+            'field_list': ['item'],
+            'field_object': {'field_string': 'Example text'},
+            'field_list_objects': [{'field_markdown': 'Example text'}],
+        }, definition=self.project_type.finding_fields_obj, handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT)
+        self.project = create_project(project_type=self.project_type, report_data=initial_data, findings_kwargs=[{'data': initial_data}], comments=False)
+        self.finding = self.project.findings.first()
+        self.section = self.project.sections.get(section_id='other')
+
+        self.comment_paths = ['field_markdown', 'field_cvss', 'field_list.[0]', 'field_object.field_string', 'field_list_objects.[0].field_markdown']
+        for p in self.comment_paths:
+            create_comment(finding=self.finding, path=p, text_position={'from': 0, 'to': 10} if 'field_markdown' in p else None)
+            create_comment(section=self.section, path=p, text_position={'from': 0, 'to': 10} if 'field_markdown' in p else None)
+
+    def test_update_projecttype_delete_fields(self):
+        self.project_type.finding_fields = finding_fields_default()
+        self.project_type.report_fields = report_fields_default()
+        self.project_type.save()
+
+        assert Comment.objects.filter_project(self.project).count() == 0
+
+    def test_change_projecttype_delete_fields(self):
+        pt2 = create_project_type()
+        pt2.finding_fields = finding_fields_default()
+        pt2.report_fields = report_fields_default()
+        pt2.save()
+        self.project.project_type = pt2
+        self.project.save()
+
+        assert Comment.objects.filter_project(self.project).count() == 0
+
+    def test_fields_deleted(self):
+        self.project_type.finding_fields = copy.deepcopy(self.project_type.finding_fields)
+        self.project_type.report_fields = copy.deepcopy(self.project_type.report_fields)
+        for d in [self.project_type.finding_fields, self.project_type.report_fields]:
+            d['field_markdown_renamed'] = d.pop('field_markdown')
+            del d['field_cvss']
+            del d['field_object']['properties']['field_string']
+            del d['field_list_objects']['items']['properties']['field_markdown']
+            d['field_list']['type'] = 'string'
+        self.project_type.save()
+
+        assert Comment.objects.filter_project(self.project).count() == 0
+
+    def test_field_added(self):
+        self.project_type.finding_fields = self.project_type.finding_fields | {'field_new': {'type': 'string'}}
+        self.project_type.report_fields = self.project_type.report_fields | {'field_new': {'type': 'string'}}
+        self.project_type.save()
+
+        # No comment deleted or created
+        assert Comment.objects.filter_project(self.project).count() == len(self.comment_paths) * 2
+
+    def test_field_moved_to_other_section(self):
+        fields_moved = ['field_markdown', 'field_list', 'field_list_objects']
+        rs = copy.deepcopy(self.project_type.report_sections)
+        rs_other = next(s for s in rs if s['id'] == 'other')
+        rs_other['fields'] = omit_items(rs_other['fields'], fields_moved)
+        rs.append({'id': 'new', 'fields': fields_moved})
+        self.project_type.report_sections = rs
+        self.project_type.save()
+
+        for cp in self.comment_paths:
+            c = Comment.objects.filter_project(self.project).filter(path=cp).first()
+            assert c.section.section_id == 'new' if cp.split('.')[0] in fields_moved else 'other'
+
+    def test_type_changed_text_position_cleared(self):
+        comments = list(Comment.objects.filter_project(self.project).filter(path='field_markdown'))
+
+        self.project_type.finding_fields = copy.deepcopy(self.project_type.finding_fields)
+        self.project_type.finding_fields['field_markdown']['type'] = 'cvss'
+        self.project_type.report_fields = copy.deepcopy(self.project_type.report_fields)
+        self.project_type.report_fields['field_markdown']['type'] = 'cvss'
+        self.project_type.save()
+
+        for c in comments:
+            text_original = c.text_original
+            c.refresh_from_db()
+            assert c.text_position is None
+            assert c.text_original == text_original
 
 
 @pytest.mark.django_db()
@@ -697,4 +793,5 @@ class TestDefaultNotes:
                 n = p.notes.get(note_id=dn['id'])
                 assert (str(n.parent.note_id) if n.parent else None) == dn['parent']
                 assertKeysEqual(dn, n, ['order', 'checked', 'icon_emoji', 'title', 'text'])
+
 
