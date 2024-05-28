@@ -136,7 +136,7 @@ def bulk_update_with_history(model, objs, fields, history_date=None, history_cha
     objs = list(objs)
 
     out = model.objects.bulk_update(objs=objs, fields=fields)
-    if settings.SIMPLE_HISTORY_ENABLED:
+    if settings.SIMPLE_HISTORY_ENABLED and hasattr(model, 'history'):
         bulk_create_history(
             model,
             objs=filter(lambda obj: set(obj.changed_fields).intersection(fields), objs),
@@ -149,7 +149,7 @@ def bulk_update_with_history(model, objs, fields, history_date=None, history_cha
 
 
 def bulk_create_history(model, objs, history_type=None, history_date=None, history_change_reason=None, history_prevent_cleanup=None):
-    if not settings.SIMPLE_HISTORY_ENABLED:
+    if not settings.SIMPLE_HISTORY_ENABLED or not hasattr(model, 'history'):
         return
 
     historical_records = []

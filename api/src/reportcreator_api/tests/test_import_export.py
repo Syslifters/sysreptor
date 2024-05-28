@@ -497,9 +497,18 @@ class TestCopyModel:
         assert set(pt.assets.values_list('id', flat=True)).intersection(cp.assets.values_list('id', flat=True)) == set()
         assert {(a.name, a.file.read()) for a in pt.assets.all()} == {(a.name, a.file.read()) for a in cp.assets.all()}
 
+    def assert_comments_copy_equal(self, p, cp):
+        for p_c, cp_c in zip(p.comments.order_by('created'), cp.comments.order_by('created')):
+            assert p_c != cp_c
+            assertKeysEqual(p_c, cp_c, ['user', 'text', 'path', 'text_position', 'text_original'])
+
+            for p_ca, cp_ca in zip(p_c.answers.order_by('created'), cp_c.answers.order_by('created')):
+                assert p_ca != cp_ca
+                assertKeysEqual(p_ca, cp_ca, ['user', 'text'])
+
     def test_copy_project(self):
         user = create_user()
-        p = create_project(members=[user], readonly=True, source=SourceEnum.IMPORTED)
+        p = create_project(members=[user], comments=True, readonly=True, source=SourceEnum.IMPORTED)
         create_projectnotebookpage(project=p, parent=p.notes.first())
         create_finding(project=p, template=create_template())
         cp = p.copy()
@@ -524,10 +533,12 @@ class TestCopyModel:
         for p_s, cp_s in zip(p.sections.order_by('section_id'), cp.sections.order_by('section_id')):
             assert p_s != cp_s
             assertKeysEqual(p_s, cp_s, ['section_id', 'assignee', 'status', 'data'])
+            self.assert_comments_copy_equal(p_s, cp_s)
 
         for p_f, cp_f in zip(p.findings.order_by('finding_id'), cp.findings.order_by('finding_id')):
             assert p_f != cp_f
             assertKeysEqual(p_f, cp_f, ['finding_id', 'assignee', 'status', 'order', 'data', 'template'])
+            self.assert_comments_copy_equal(p_f, cp_f)
 
         for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id')):
             assert p_n != cp_n
