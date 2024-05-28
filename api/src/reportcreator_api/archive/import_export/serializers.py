@@ -28,7 +28,8 @@ from reportcreator_api.pentests.models import (
     UploadedUserNotebookImage,
     UserNotebookPage,
 )
-from reportcreator_api.pentests.serializers.project import ProjectMemberInfoSerializer
+from reportcreator_api.pentests.models.project import Comment, CommentAnswer
+from reportcreator_api.pentests.serializers.project import ProjectMemberInfoSerializer, TextRangeSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
 from reportcreator_api.utils.history import bulk_create_with_history, merge_with_previous_history
@@ -381,16 +382,49 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
         return project_type
 
 
+class CommentAnswerExportImportSerializer(ExportImportSerializer):
+    user = RelatedUserIdExportImportSerializer()
+
+    class Meta:
+        model = CommentAnswer
+        fields = ['id', 'created', 'updated', 'user', 'text']
+        extra_kwargs = {'created': {'read_only': False, 'required': False}}
+
+
+class CommentExportImportSerializer(ExportImportSerializer):
+    user = RelatedUserIdExportImportSerializer()
+    answers = CommentAnswerExportImportSerializer(many=True)
+    text_position = TextRangeSerializer(allow_null=True)
+
+    class Meta:
+        model = Comment
+        fields = [
+            'id', 'created', 'updated', 'user', 'path',
+            'text_position', 'text_original', 'text', 'answers',
+        ]
+        extra_kwargs = {'created': {'read_only': False, 'required': False}}
+
+    def create(self, validated_data):
+        answers = validated_data.pop('answers', [])
+        comment = super().create(validated_data | {
+            'finding': self.context.get('finding'),
+            'section': self.context.get('section'),
+        })
+        CommentAnswer.objects.bulk_create([CommentAnswer(comment=comment, **a) for a in answers])
+        return comment
+
+
 class PentestFindingExportImportSerializer(ExportImportSerializer):
     id = serializers.UUIDField(source='finding_id')
     assignee = RelatedUserIdExportImportSerializer()
     template = OptionalPrimaryKeyRelatedField(queryset=FindingTemplate.objects.all(), source='template_id')
     data = serializers.DictField(source='data_all')
+    comments = CommentExportImportSerializer(many=True, required=False)
 
     class Meta:
         model = PentestFinding
         fields = [
-            'id', 'created', 'updated', 'assignee', 'status', 'template', 'order', 'data',
+            'id', 'created', 'updated', 'assignee', 'status', 'template', 'order', 'data', 'comments',
         ]
         extra_kwargs = {'created': {'read_only': False, 'required': False}}
 
@@ -398,7 +432,9 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
         project = self.context['project']
         data = validated_data.pop('data_all', {})
         template = validated_data.pop('template_id', None)
-        return PentestFinding.objects.create(**{
+        comments = validated_data.pop('comments', [])
+
+        finding = PentestFinding.objects.create(**{
             'project': project,
             'template_id': template.id if template else None,
             'data': ensure_defined_structure(
@@ -408,25 +444,40 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
                 include_unknown=True),
         } | validated_data)
 
+        # Create comments
+        self.context.update({'finding': finding})
+        self.fields['comments'].create(comments)
+        self.context.pop('finding')
+
+        return finding
+
 
 class ReportSectionExportImportSerializer(ExportImportSerializer):
     id = serializers.CharField(source='section_id')
     assignee = RelatedUserIdExportImportSerializer()
+    comments = CommentExportImportSerializer(many=True, required=False)
 
     class Meta:
         model = ReportSection
         fields = [
-            'id', 'created', 'updated', 'assignee', 'status',
+            'id', 'created', 'updated', 'assignee', 'status', 'comments',
         ]
         extra_kwargs = {'created': {'read_only': False, 'required': False}}
 
     def update(self, instance, validated_data):
+        comments = validated_data.pop('comments', [])
+
         instance.skip_history_when_saving = True
         out = super().update(instance, validated_data)
         del instance.skip_history_when_saving
 
         # Add changes to previous history record to have a clean history timeline (just one entry for import)
         merge_with_previous_history(instance)
+
+        # Create comments
+        self.context.update({'section': out})
+        self.fields['comments'].create(comments)
+        self.context.pop('section')
 
         return out
 

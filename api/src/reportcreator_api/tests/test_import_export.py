@@ -25,6 +25,7 @@ from reportcreator_api.pentests.models import (
     UploadedImage,
 )
 from reportcreator_api.tests.mock import (
+    create_comment,
     create_finding,
     create_png_file,
     create_project,
@@ -91,7 +92,17 @@ class TestImportExport:
                 {'name': 'image.png', 'content': create_png_file() + b'image1'},
                 {'name': 'image-note.png', 'content': create_png_file() + b'image2'}],
             files_kwargs=[{'name': 'file.txt', 'content': b'file1'}],
+            comments=True,
         )
+        create_comment(
+            finding=self.project.findings.first(),
+            text='Comment text',
+            path='field_markdown',
+            text_position={'from': 0, 'to': 10},
+            user=self.user,
+            answers_kwargs=[{'text': 'Answer text', 'user': self.user}, {'text': 'Answer 2', 'user': None}],
+        )
+
         self.p_note1 = create_projectnotebookpage(project=self.project, order=1, title='Note 1', text='Note text 1 ![](/images/name/image-note.png)')
         self.p_note1_1 = create_projectnotebookpage(project=self.project, parent=self.p_note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
         self.p_note2 = create_projectnotebookpage(project=self.project, order=2, title='Note 2', text='Note text 2')
@@ -172,6 +183,13 @@ class TestImportExport:
 
         assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
 
+    def assert_export_import_comments(self, obj_original, obj_imported):
+        for i_c, o_c in zip(obj_imported.comments.order_by('created'), obj_original.comments.order_by('created')):
+            assertKeysEqual(i_c, o_c, ['created', 'user', 'text', 'path', 'text_position', 'text_original'])
+
+            for i_ca, o_ca in zip(i_c.answers.order_by('created'), o_c.answers.order_by('created')):
+                assertKeysEqual(i_ca, o_ca, ['created', 'user', 'text'])
+
     def assert_export_import_project(self, project, p):
         assertKeysEqual(p, project, ['name', 'language', 'tags', 'data', 'override_finding_ordering', 'data_all', 'unknown_custom_fields'])
         assert members_equal(p.members, project.members)
@@ -180,10 +198,12 @@ class TestImportExport:
         assert p.sections.count() == project.sections.count()
         for i, s in zip(p.sections.order_by('section_id'), project.sections.order_by('section_id')):
             assertKeysEqual(i, s, ['section_id', 'created', 'assignee', 'status', 'data'])
+            self.assert_export_import_comments(i, s)
 
         assert p.findings.count() == project.findings.count()
-        for i, s in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id')):
-            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
+        for i, f in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id')):
+            assertKeysEqual(i, f, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
+            self.assert_export_import_comments(i, f)
 
         assertKeysEqual(p.project_type, project.project_type, [
             'created', 'name', 'language',

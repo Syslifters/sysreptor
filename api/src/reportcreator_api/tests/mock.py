@@ -17,7 +17,11 @@ from reportcreator_api.pentests.customfields.predefined_fields import (
     report_fields_default,
     report_sections_default,
 )
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from reportcreator_api.pentests.customfields.utils import (
+    HandleUndefinedFieldsOptions,
+    ensure_defined_structure,
+    get_field_value_and_definition,
+)
 from reportcreator_api.pentests.models import (
     ArchivedProject,
     ArchivedProjectKeyPart,
@@ -198,14 +202,21 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     return project_type
 
 
-def create_comment(user=None, answers_kwargs=None, **kwargs) -> Comment:
-    if not user:
-        user = create_user()
+def create_comment(finding=None, section=None, user=None, path=None, text_position=None, text_original=None, answers_kwargs=None, **kwargs) -> Comment:
+    if path and text_position and text_original is None:
+        obj = finding or section
+        _, value, _ = get_field_value_and_definition(data=obj.data, definition=obj.field_definition, path=path)
+        text_original = value[text_position['from']:text_position['to']]
 
     comment = Comment.objects.create(**{
         'text': 'Comment text',
-        'path': 'title',
+        'finding': finding,
+        'section': section,
         'user': user,
+        'path': path or 'title',
+        'text_position_from': text_position['from'] if text_position else None,
+        'text_position_to': text_position['to'] if text_position else None,
+        'text_original': text_original,
     } | kwargs)
 
     for answer_kwargs in (answers_kwargs if answers_kwargs is not None else [{}] * 1):
