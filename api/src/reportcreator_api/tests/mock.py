@@ -205,7 +205,7 @@ def create_comment(finding=None, section=None, user=None, path=None, text_positi
     if path and text_position and text_original is None:
         obj = finding or section
         _, value, _ = get_field_value_and_definition(data=obj.data, definition=obj.field_definition, path=path)
-        text_original = value[text_position['from']:text_position['to']]
+        text_original = value[text_position.anchor:text_position.head]
 
     comment = Comment.objects.create(**{
         'text': 'Comment text',
@@ -213,8 +213,7 @@ def create_comment(finding=None, section=None, user=None, path=None, text_positi
         'section': section,
         'user': user,
         'path': path or 'title',
-        'text_position_from': text_position['from'] if text_position else None,
-        'text_position_to': text_position['to'] if text_position else None,
+        'text_position': text_position,
         'text_original': text_original,
     } | kwargs)
 

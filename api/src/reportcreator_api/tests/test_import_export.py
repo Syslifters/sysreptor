@@ -16,6 +16,7 @@ from reportcreator_api.archive.import_export import (
     import_templates,
 )
 from reportcreator_api.archive.import_export.import_export import build_tarinfo, export_notes, import_notes
+from reportcreator_api.pentests.collab.text_transformations import SelectionRange
 from reportcreator_api.pentests.models import (
     Language,
     PentestProject,
@@ -98,7 +99,7 @@ class TestImportExport:
             finding=self.project.findings.first(),
             text='Comment text',
             path='field_markdown',
-            text_position={'from': 0, 'to': 10},
+            text_position=SelectionRange(anchor=0, head=10),
             user=self.user,
             answers_kwargs=[{'text': 'Answer text', 'user': self.user}, {'text': 'Answer 2', 'user': None}],
         )

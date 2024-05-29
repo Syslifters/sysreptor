@@ -7,6 +7,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
+from reportcreator_api.pentests.collab.text_transformations import SelectionRange
 from reportcreator_api.pentests.customfields.mixins import CustomFieldsMixin
 from reportcreator_api.pentests.customfields.predefined_fields import (
     FINDING_FIELDS_CORE,
@@ -429,8 +430,8 @@ class TestUpdateFieldDefinitionSyncComments:
 
         self.comment_paths = ['field_markdown', 'field_cvss', 'field_list.[0]', 'field_object.field_string', 'field_list_objects.[0].field_markdown']
         for p in self.comment_paths:
-            create_comment(finding=self.finding, path=p, text_position={'from': 0, 'to': 10} if 'field_markdown' in p else None)
-            create_comment(section=self.section, path=p, text_position={'from': 0, 'to': 10} if 'field_markdown' in p else None)
+            create_comment(finding=self.finding, path=p, text_position=SelectionRange(anchor=0, head=10) if 'field_markdown' in p else None)
+            create_comment(section=self.section, path=p, text_position=SelectionRange(anchor=0, head=10) if 'field_markdown' in p else None)
 
     def test_update_projecttype_delete_fields(self):
         self.project_type.finding_fields = finding_fields_default()
