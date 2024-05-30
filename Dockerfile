@@ -140,6 +140,10 @@ WORKDIR /app/api/
 COPY api/requirements.txt /app/api/requirements.txt
 RUN pip install -r /app/api/requirements.txt
 
+# Unprivileged user
+RUN useradd --create-home --shell=/bin/bash user
+USER user
+
 # Configure application
 ARG VERSION=dev
 ENV VERSION=${VERSION} \
@@ -169,9 +173,8 @@ COPY api/src /app/api
 COPY rendering/dist /app/rendering/dist/
 
 # Create data directory
-RUN mkdir /data && chown 1000:1000 /data && chmod 777 /data
+RUN mkdir /data && chown user:user /data && chmod 777 /data
 VOLUME [ "/data" ]
-USER 1000
 
 
 
