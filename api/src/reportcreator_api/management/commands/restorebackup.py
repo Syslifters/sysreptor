@@ -1,4 +1,5 @@
 import argparse
+import logging
 import shutil
 import tempfile
 from zipfile import ZipFile
@@ -17,7 +18,10 @@ class Command(BaseCommand):
         parser.add_argument('--key', type=aes_key, help='AES key to decrypt the backup')
         parser.add_argument('--keepfiles', action='store_true', default=False, help='Keep existing files in storages. Do not delete them.')
 
-    def handle(self, file, key, keepfiles, **kwargs) -> str | None:
+    def handle(self, file, key, keepfiles, verbosity=1, **kwargs) -> str | None:
+        if verbosity <= 0:
+            logging.getLogger().disabled = True
+
         if not license.is_professional(skip_db_checks=True):
             raise CommandError('Professional license required')
 

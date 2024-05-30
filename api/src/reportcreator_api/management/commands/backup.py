@@ -1,4 +1,5 @@
 import argparse
+import logging
 
 from django.core.management.base import BaseCommand, CommandError, CommandParser
 
@@ -19,7 +20,10 @@ class Command(BaseCommand):
         parser.add_argument('file', nargs='?', type=argparse.FileType('wb'), default='-')
         parser.add_argument('--key', type=aes_key, help='AES key to encrypt the backup (optional)')
 
-    def handle(self, file, key, **kwargs) -> str | None:
+    def handle(self, file, key, verbosity=1, **kwargs) -> str | None:
+        if verbosity <= 0:
+            logging.getLogger().disabled = True
+
         if not license.is_professional(skip_db_checks=True):
             raise CommandError('Professional license required')
 
