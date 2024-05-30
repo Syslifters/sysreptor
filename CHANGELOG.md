@@ -1,5 +1,10 @@
 # Changelog
 
+## Next
+* Enable fontconfig cache in docker container
+* Respect verbosity option in `backup` and `restorebackup` commands
+
+
 ## v2024.043 - 2024-05-27
 * Add sorting options to projects, templates, designs and users lists
 * Collaborative editing in project history diff views
@@ -8,7 +13,6 @@
 * Fix MDE preview layout break on zoom out
 * Throttle MDE update events to prevent browser from hanging
 * Fix elastic APM tracing middleware always enabled
-
 
 
 ## v2024.040 - 2024-05-15
