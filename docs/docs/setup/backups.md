@@ -10,13 +10,13 @@ The backup archive contains a database export and all uploaded files.
 
 Execute following command to create a backup:
 ```bash title="Create backup via CLI"
-docker compose run app python3 manage.py backup > backup.zip
+docker compose run --rm app python3 manage.py backup > backup.zip
 ```
 
 Backups can be encrypted using a 256-bit AES key. 
 Specify the key as hex string via the `--key` CLI argument.
 ```bash title="Create encrypted backup via CLI"
-docker compose run app python3 manage.py backup --key "<aes-key-as-hex>" > backup.zip.crypt
+docker compose run --rm app python3 manage.py backup --key "<aes-key-as-hex>" > backup.zip.crypt
 ```
 
 
@@ -55,10 +55,10 @@ It is recommended to import the backup into the same SysReptor version like the 
 If a different version is used the database schema might not be compatible.
 
 ```bash title="Restore backup via CLI"
-cat backup.zip | docker compose run --no-TTY app python3 manage.py restorebackup
+cat backup.zip | docker compose run --rm --no-TTY app python3 manage.py restorebackup
 ```
 
 Encrypted backups can be restored as well. Specify the AES key as hex string via the `--key` CLI argument.
 ```bash title="Restore encrypted backup via CLI"
-cat backup.zip.crypt | docker compose run --no-TTY app python3 manage.py restorebackup --key "<aes-key-as-hex>"
+cat backup.zip.crypt | docker compose run --rm --no-TTY app python3 manage.py restorebackup --key "<aes-key-as-hex>"
 ```

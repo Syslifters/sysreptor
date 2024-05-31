@@ -140,6 +140,12 @@ WORKDIR /app/api/
 COPY api/requirements.txt /app/api/requirements.txt
 RUN pip install -r /app/api/requirements.txt
 
+# Unprivileged user
+RUN useradd --create-home --shell=/bin/bash user \
+    && mkdir -p /data /app/api && chown user:user /data /app/api
+USER user
+VOLUME [ "/data" ]
+
 # Configure application
 ARG VERSION=dev
 ENV VERSION=${VERSION} \
@@ -168,11 +174,6 @@ FROM api-dev as api-prebuilt
 COPY api/src /app/api
 COPY rendering/dist /app/rendering/dist/
 
-# Create data directory
-RUN mkdir /data && chown 1000:1000 /data && chmod 777 /data
-VOLUME [ "/data" ]
-USER 1000
-
 
 
 FROM api-dev AS api-test
@@ -187,10 +188,8 @@ FROM api-test as api
 # Generate static frontend files
 # Post-process django files (for admin, API browser) and post-process them (e.g. add unique file hash)
 # Do not post-process nuxt files, because they already have hash names (and django failes to post-process them)
-USER root
 RUN python3 manage.py collectstatic --no-input --clear
 COPY --from=frontend /app/frontend/dist/index.html /app/frontend/dist/static/ /app/api/frontend/static/
 RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
     && python3 manage.py collectstatic --no-input --no-post-process \
     && python3 -m whitenoise.compress /app/api/static/ map
-USER 1000
