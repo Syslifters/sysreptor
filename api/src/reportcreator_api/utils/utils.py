@@ -87,6 +87,11 @@ def is_date_string(val):
         return False
 
 
+def is_unique(lst):
+    lst = list(lst)
+    return len(lst) == len(set(lst))
+
+
 def parse_date_string(val):
     out = dateparse.parse_datetime(val)
     if out is None:

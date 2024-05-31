@@ -286,6 +286,7 @@ class TestCollaborativeTextEditing:
             )
             self.finding = self.project.findings.all()[0]
             self.comment = create_comment(finding=self.finding, path='field_markdown', text_position=SelectionRange(anchor=1, head=2))
+            self.comment_list = create_comment(finding=self.finding, path='field_list.[0]')
         await sync_to_async(setup_db)()
 
         async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
@@ -297,12 +298,14 @@ class TestCollaborativeTextEditing:
             .select_related('project__project_type') \
             .aget(id=self.finding.id)
         await self.comment.arefresh_from_db()
+        await self.comment_list.arefresh_from_db()
 
     async def assert_event_received(self, event):
         res1 = await self.client1.receive_json_from()
         res2 = await self.client2.receive_json_from()
         self.assert_events_equal(res1, event)
         self.assert_events_equal(res2, event)
+        return res1
 
     def assert_events_equal(self, actual, expected):
         for k, v in expected.items():
@@ -382,41 +385,28 @@ class TestCollaborativeTextEditing:
         await self.client1.send_json_to(event_base_create | {'value': 'C'})
         await self.client2.send_json_to(event_base_create | {'value': 'D'})
 
-        res1_c1 = await self.client1.receive_json_from()
-        res1_c2 = await self.client2.receive_json_from()
-        assert res1_c1 == res1_c2
-        assert res1_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list.[2]'
-        assert res1_c1['value'] == 'C'
-
-        res2_c1 = await self.client1.receive_json_from()
-        res2_c2 = await self.client2.receive_json_from()
-        assert res2_c1 == res2_c2
-        assert res2_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list.[3]'
-        assert res2_c1['value'] == 'D'
+        await self.assert_event_received({'type': CollabEventType.CREATE, 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]', 'value': 'C'})
+        res2 = await self.assert_event_received({'type': CollabEventType.CREATE, 'path': f'findings.{self.finding.finding_id}.data.field_list.[3]', 'value': 'D'})
 
         await self.refresh_data()
         assert self.finding.data['field_list'] == ['A', 'B', 'C', 'D']
 
         # Delete list item
-        await self.client1.send_json_to({'type': CollabEventType.DELETE, 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]', 'version': res2_c1['version']})
-        res3_c1 = await self.client1.receive_json_from()
-        res3_c2 = await self.client2.receive_json_from()
-        assert res3_c1 == res3_c2
-        assert res3_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list.[2]'
+        event_delete = {'type': CollabEventType.DELETE, 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]'}
+        await self.client1.send_json_to(event_delete | {'version': res2['version']})
+        res3 = await self.assert_event_received(event_delete)
 
         await self.refresh_data()
         assert self.finding.data['field_list'] == ['A', 'B', 'D']
 
         # Sort list
-        await self.client1.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': f'findings.{self.finding.finding_id}.data.field_list', 'version': res3_c1['version'], 'value': ['B', 'D', 'A']})
-        res4_c1 = await self.client1.receive_json_from()
-        res4_c2 = await self.client2.receive_json_from()
-        assert res4_c1 == res4_c2
-        assert res4_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list'
-        assert res4_c1['value'] == ['B', 'D', 'A']
+        event_update_key = {'type': CollabEventType.UPDATE_KEY, 'path': f'findings.{self.finding.finding_id}.data.field_list', 'value': ['B', 'D', 'A']}
+        await self.client1.send_json_to(event_update_key | {'version': res3['version'], 'sort': [{'id': 0, 'order': 2}, {'id': 1, 'order': 0}, {'id': 2, 'order': 1}]})
+        await self.assert_event_received(event_update_key | {'comments': [{'id': str(self.comment_list.id), 'path': 'field_list.[2]', 'text_position': None}]})
 
         await self.refresh_data()
         assert self.finding.data['field_list'] == ['B', 'D', 'A']
+        assert self.comment_list.path == 'field_list.[2]'
 
     async def test_client_collab_info_lifecycle(self):
         async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1, consume_init=False) as client:
