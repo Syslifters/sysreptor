@@ -54,6 +54,7 @@ test-api:
     POSTGRES_HOST_AUTH_METHOD: trust
   script:
     - mkdir api/test-reports
+    - chmod 777 api/test-reports
     - docker run  -e DATABASE_HOST=${POSTGRES_PORT_5432_TCP_ADDR} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n auto --junitxml=test-reports/junit.xml --cov=reportcreator_api --cov-report=term --cov-report=xml:test-reports/coverage.xml
 
 build-test-frontend:
