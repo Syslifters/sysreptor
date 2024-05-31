@@ -313,24 +313,21 @@ class TestCollaborativeTextEditing:
 
     async def test_concurrent_updates(self):
         # Concurrent updates of same version
-        event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'version': self.client1.init['version']}
-        await self.client1.send_json_to(event_base | {'updates': [{'changes': [1, [0, '1'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}})
-        await self.client2.send_json_to(event_base | {'updates': [{'changes': [1, [0, '2'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}})
+        event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown'}
+        await self.client1.send_json_to(event_base | {'updates': [{'changes': [1, [0, '1'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}, 'version': self.client1.init['version']})
+        await self.client2.send_json_to(event_base | {'updates': [{'changes': [1, [0, '2'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}, 'version': self.client1.init['version']})
 
-        res1_c1 = await self.client1.receive_json_from()
-        res1_c2 = await self.client2.receive_json_from()
-        assert res1_c1 == res1_c2
-        assert res1_c1['updates'] == [{'changes': [1, [0, '1'], 1]}]
-        assert res1_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}
-        assert res1_c1['comments'] == [{'id': str(self.comment.id), 'text_position': {'anchor': 2, 'head': 3}}]
-
-        res2_c2 = await self.client2.receive_json_from()
-        res2_c1 = await self.client1.receive_json_from()
-        assert res2_c1 == res2_c2
-        assert res2_c1['updates'] == [{'changes': [2, [0, '2'], 1]}]
-        assert res2_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 3, 'head': 3}]}
-        assert res2_c1['comments'] == [{'id': str(self.comment.id), 'text_position': {'anchor': 3, 'head': 4}}]
-        version = res2_c1['version']
+        await self.assert_event_received(event_base | {
+            'updates': [{'changes': [1, [0, '1'], 1]}],
+            'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]},
+            'comments': [{'id': str(self.comment.id), 'path': 'field_markdown', 'text_position': {'anchor': 2, 'head': 3}}],
+        })
+        res2 = await self.assert_event_received(event_base | {
+            'updates': [{'changes': [2, [0, '2'], 1]}],
+            'selection': {'main': 0, 'ranges': [{'anchor': 3, 'head': 3}]},
+            'comments': [{'id': str(self.comment.id), 'path': 'field_markdown', 'text_position': {'anchor': 3, 'head': 4}}],
+        })
+        version = res2['version']
         assert version > self.client1.init['version']
 
         await self.refresh_data()
@@ -338,13 +335,11 @@ class TestCollaborativeTextEditing:
         assert self.comment.text_position == SelectionRange(anchor=3, head=4)
 
         # Third update after both previous changes (using updated version)
-        await self.client1.send_json_to(event_base | {'version': version, 'updates': [{'changes': [4, [0, '3']]}], 'selection': {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}})
-        res3_c1 = await self.client1.receive_json_from()
-        res3_c2 = await self.client2.receive_json_from()
-        assert res3_c1 == res3_c2
-        assert res3_c1['updates'] == [{'changes': [4, [0, '3']]}]
-        assert res3_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}
-        assert res2_c1['comments'] == [{'id': str(self.comment.id), 'text_position': {'anchor': 3, 'head': 4}}]
+        event3 = event_base | {'updates': [{'changes': [4, [0, '3']]}], 'selection': {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}}
+        await self.client1.send_json_to(event3 | {'version': version})
+        await self.assert_event_received(event3 | {
+            'comments': [{'id': str(self.comment.id), 'path': 'field_markdown', 'text_position': {'anchor': 3, 'head': 4}}],
+        })
 
         await self.refresh_data()
         assert self.finding.data['field_markdown'] == 'A12B3'
@@ -355,13 +350,8 @@ class TestCollaborativeTextEditing:
         await self.client1.send_json_to(event_base | {'type': CollabEventType.UPDATE_TEXT, 'updates': [{'changes': [1, [0, '1'], 1]}]})
         await self.client2.send_json_to(event_base | {'type': CollabEventType.AWARENESS, 'selection': {'main': 0, 'ranges': [{'anchor': 0, 'head': 2}]}})
 
-        await self.client1.receive_json_from()
-        await self.client2.receive_json_from()
-
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        assert res1 == res2
-        assert res1['selection'] == {'main': 0, 'ranges': [{'anchor': 0, 'head': 3}]}
+        await self.assert_event_received({'type': CollabEventType.UPDATE_TEXT})
+        await self.assert_event_received({'type': CollabEventType.AWARENESS, 'selection': {'main': 0, 'ranges': [{'anchor': 0, 'head': 3}]}})
 
     async def test_rebase_updates(self):
         event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'version': self.client1.init['version']}
@@ -782,7 +772,10 @@ class TestProjectReportingDbSync:
 
         # Websocket messages sent to clients
         comment = await obj.comments.afirst()
-        await self.assert_event(event | {'client_id': self.client1.client_id, 'comments': [{'id': str(comment.id), 'text_position': expected_text_position.to_dict() if expected_text_position else None}]})
+        await self.assert_event(event | {
+            'client_id': self.client1.client_id,
+            'comments': [{'id': str(comment.id), 'path': 'field_markdown', 'text_position': expected_text_position.to_dict() if expected_text_position else None}],
+        })
 
         # Changes synced to DB
         await comment.arefresh_from_db()
