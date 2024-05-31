@@ -142,7 +142,7 @@ RUN pip install -r /app/api/requirements.txt
 
 # Unprivileged user
 RUN useradd --create-home --shell=/bin/bash user \
-    && mkdir /data && chown user:user /data && chmod 777 /data
+    && mkdir -p /data /app/api && chown user:user /data /app/api
 USER user
 VOLUME [ "/data" ]
 
