@@ -44,8 +44,9 @@
       </template>
       <template #actions>
         <btn-create 
-          to="/templates/new/" 
+          @click="performCreate"
           :disabled="!auth.permissions.value.template_editor"
+          :loading="performCreateInProgress"
         />
         <btn-import 
           ref="importBtnRef"
@@ -79,6 +80,7 @@ const router = useRouter();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 const auth = useAuth();
+const templateStore = useTemplateStore();
 
 const listViewRef = ref();
 
@@ -94,5 +96,28 @@ const importBtnRef = ref();
 async function performImport(file: File) {
   const templates = await uploadFileHelper<FindingTemplate[]>('/api/v1/findingtemplates/import/', file);
   await navigateTo(`/templates/${templates[0].id}/`)
+}
+
+const performCreateInProgress = ref(false);
+async function performCreate() {
+  try {
+    performCreateInProgress.value = true;
+    const obj = await templateStore.create({
+      tags: [],
+      translations: [{
+        is_main: true,
+        language: apiSettings.settings!.languages[0]?.code || 'en-US',
+        status: ReviewStatus.IN_PROGRESS,
+        data: {
+          title: 'TODO: New Template Title',
+        },
+      }],
+    } as unknown as FindingTemplate);
+    await navigateTo(`/templates/${obj.id}/`);
+  } catch (error) {
+    requestErrorToast({ error });
+  } finally {
+    performCreateInProgress.value = false;
+  }
 }
 </script>
