@@ -204,7 +204,7 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
 def create_comment(finding=None, section=None, user=None, path=None, text_position=None, text_original=None, answers_kwargs=None, **kwargs) -> Comment:
     if path and text_position and text_original is None:
         obj = finding or section
-        _, value, _ = get_field_value_and_definition(data=obj.data, definition=obj.field_definition, path=path)
+        _, value, _ = get_field_value_and_definition(data=obj.data, definition=obj.field_definition, path=path.split('.')[1:])
         text_original = value[text_position.anchor:text_position.head]
 
     comment = Comment.objects.create(**{
@@ -212,7 +212,7 @@ def create_comment(finding=None, section=None, user=None, path=None, text_positi
         'finding': finding,
         'section': section,
         'user': user,
-        'path': path or 'title',
+        'path': path or 'data.title',
         'text_position': text_position,
         'text_original': text_original,
     } | kwargs)
@@ -302,12 +302,12 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
     comment_user = member_infos[0].user if member_infos else None
     if comments:
         for section in project.sections.all():
-            create_comment(section=section, user=comment_user, path=list(section.field_definition.keys())[0])
+            create_comment(section=section, user=comment_user, path='data.' + list(section.field_definition.keys())[0])
 
     for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 1:
         finding = create_finding(project=project, **finding_kwargs)
         if comments:
-            create_comment(finding=finding, user=comment_user, path='title')
+            create_comment(finding=finding, user=comment_user, path='data.title')
 
     if notes_kwargs is not None:
         # Delete default notes

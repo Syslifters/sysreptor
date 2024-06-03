@@ -428,7 +428,7 @@ class TestUpdateFieldDefinitionSyncComments:
         self.finding = self.project.findings.first()
         self.section = self.project.sections.get(section_id='other')
 
-        self.comment_paths = ['field_markdown', 'field_cvss', 'field_list.[0]', 'field_object.field_string', 'field_list_objects.[0].field_markdown']
+        self.comment_paths = ['data.field_markdown', 'data.field_cvss', 'data.field_list.[0]', 'data.field_object.field_string', 'data.field_list_objects.[0].field_markdown']
         for p in self.comment_paths:
             create_comment(finding=self.finding, path=p, text_position=SelectionRange(anchor=0, head=10) if 'field_markdown' in p else None)
             create_comment(section=self.section, path=p, text_position=SelectionRange(anchor=0, head=10) if 'field_markdown' in p else None)

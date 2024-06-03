@@ -1,7 +1,7 @@
 import { get, set, unset, throttle, trimStart } from "lodash-es";
 import urlJoin from "url-join";
-import { ChangeSet, EditorSelection, Text } from "reportcreator-markdown/editor"
-import { type UserShortInfo } from "@/utils/types"
+import { ChangeSet, EditorSelection, SelectionRange, Text } from "reportcreator-markdown/editor"
+import { type Comment, type UserShortInfo } from "@/utils/types"
 
 const WS_RESPONSE_TIMEOUT = 7_000;
 const WS_PING_INTERVAL = 30_000;
@@ -41,10 +41,11 @@ export type CollabEvent = {
   version: number;
   client_id?: string;
   value?: any;
-  updates?: (TextUpdate|{ changes: any, seletion?: any })[];
+  updates?: (TextUpdate|{ changes: any; seletion?: any; })[];
   selection?: any;
   update_awareness?: boolean;
   data?: any;
+  comments?: Partial<Comment>[];
   client?: CollabClientInfo;
   clients?: CollabClientInfo[];
   permissions?: {
@@ -572,8 +573,8 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     
         // Update local state
         set(storeState.data as Object, msgData.path!, msgData.value);
-    
         removeInvalidSelections(msgData.path!);
+        updateComments({ comments: msgData.comments });
       }
     } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
       receiveUpdateText(msgData);
@@ -813,6 +814,13 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       if (storeState.awareness.self.path === event.path) {
         storeState.awareness.self.selection = storeState.awareness.self.selection?.map(changes);
       }
+
+      // Update comments
+      updateComments({ 
+        comments: event.comments, 
+        unconfirmed,
+        text,
+      });
       
       // Update remote selections
       for (const a of Object.values(storeState.awareness.other)) {
@@ -866,6 +874,34 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     }
   }
 
+  function updateComments(options: { comments?: Partial<Comment>[], unconfirmed?: TextUpdate[], text?: Text|string }) {
+    const commentsStoreState = (storeState.data as any).comments as Record<string, Comment>|undefined;
+    if (!options.comments || !commentsStoreState) {
+      return;
+    }
+
+    for (const c of options.comments) {
+      if (c.id! in commentsStoreState) {
+        if (c.text_position && options.unconfirmed) {
+          try {
+            let pos: SelectionRange|null = SelectionRange.fromJSON(c.text_position);
+            for (const u of options.unconfirmed) {
+              pos = pos.map(u.changes);
+            }
+            if ((options.text !== undefined && !(pos.from >= 0 && pos.to <= options.text.length)) || pos.empty) {
+              pos = null;
+            }
+
+            c.text_position = pos;
+          } catch {
+            c.text_position = null;
+          }
+        }
+        Object.assign(commentsStoreState[c.id!], c);
+      }
+    }
+  }
+
   function onCollabEvent(event: any) {
     if (!event.path?.startsWith(storeState.apiPath)) {
       // Event is not for us
@@ -910,6 +946,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           isSelf: c.client_id === storeState.clientID,
         };
       }),
+      comments: Object.values(((storeState.data as any).comments as Record<string, Comment> || {})).map(c => ({
+        ...c,
+        path: storeState.apiPath + (c.path || ''),
+      })),
     }), { throttle: 1000 }),
   }
 }
@@ -924,14 +964,21 @@ export type CollabPropType = {
     selection?: EditorSelection;
     isSelf: boolean;
   }[];
+  comments: Comment[];
 };
 
 export function collabSubpath(collab: CollabPropType, subPath: string|null) {
   const addDot = !collab.path.endsWith('.') && !collab.path.endsWith('/') && subPath;
   const path = collab.path + (addDot ? '.' : '') + (subPath || '');
+
+  function isSubpath(subpath: string, parent: string) {
+    return subpath === parent || subpath.startsWith(parent + '.');
+  }
+
   return {
     ...collab,
     path,
-    clients: collab.clients.filter(a => a.path.startsWith(path))
+    clients: collab.clients.filter(a => isSubpath(a.path, path)),
+    comments: collab.comments.filter(c => isSubpath(c.path, path)),
   };
 }

@@ -98,7 +98,7 @@ class TestImportExport:
         create_comment(
             finding=self.project.findings.first(),
             text='Comment text',
-            path='field_markdown',
+            path='data.field_markdown',
             text_position=SelectionRange(anchor=0, head=10),
             user=self.user,
             answers_kwargs=[{'text': 'Answer text', 'user': self.user}, {'text': 'Answer 2', 'user': None}],

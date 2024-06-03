@@ -278,10 +278,10 @@ def test_comments():
     project = create_project(members=[user], findings_kwargs=[])
     finding = create_finding(project=project)
     section = project.sections.get(section_id='other')
-    comment_open1 = create_comment(finding=finding, path='field_markdown', status=CommentStatus.OPEN, user=user)
-    comment_open2 = create_comment(section=section, path='field_enum', status=CommentStatus.OPEN, user=user)
-    comment_resolved1 = create_comment(finding=finding, path='field_cvss', status=CommentStatus.RESOLVED, user=user)
-    comment_resolved2 = create_comment(section=section, path='field_string', status=CommentStatus.RESOLVED, user=user)
+    comment_open1 = create_comment(finding=finding, path='data.field_markdown', status=CommentStatus.OPEN, user=user)
+    comment_open2 = create_comment(section=section, path='data.field_enum', status=CommentStatus.OPEN, user=user)
+    comment_resolved1 = create_comment(finding=finding, path='data.field_cvss', status=CommentStatus.RESOLVED, user=user)
+    comment_resolved2 = create_comment(section=section, path='data.field_string', status=CommentStatus.RESOLVED, user=user)
 
     assertContainsCheckResults(project.perform_checks(), [
         ErrorMessage(level=MessageLevel.WARNING, message='Unresolved comment', location=MessageLocationInfo(

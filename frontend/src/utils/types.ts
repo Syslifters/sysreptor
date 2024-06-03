@@ -257,10 +257,6 @@ export type Comment = BaseModel & {
   answers: CommentAnswer[];
 }
 
-export type CommentBase = {
-  comments?: Record<string, Comment>;
-}
-
 export type ProjectMember = UserShortInfo & {
   roles: string[];
 }
@@ -279,7 +275,7 @@ export type PentestProject = BaseModel & {
   imported_members: ProjectMember[];
 }
 
-export type ReportSection = BaseModel & CommentBase & {
+export type ReportSection = BaseModel & {
   readonly label: string;
   readonly fields: string[];
   readonly project: string;
@@ -291,7 +287,7 @@ export type ReportSection = BaseModel & CommentBase & {
   data: Record<string, any>;
 }
 
-export type PentestFinding = BaseModel & CommentBase & {
+export type PentestFinding = BaseModel & {
   readonly label: string;
   readonly fields: string[];
   readonly project: string;

@@ -56,7 +56,7 @@ class TestBackup:
             self.archived_project = create_archived_project()
             self.notification = NotificationSpec.objects.create(title='test', text='test')
             self.languagetool_word = create_languagetool_ignore_word()
-            self.comment = create_comment(finding=self.project.findings.first(), user=self.user)
+            self.comment = create_comment(finding=self.project.findings.first(), path='data.title', user=self.user)
 
             yield
 
@@ -173,7 +173,7 @@ class TestBackupRestore:
             self.template = create_template()
             self.archived_project = create_archived_project()
             self.languagetool_word = create_languagetool_ignore_word()
-            self.comment = create_comment(finding=self.project.findings.first(), user=self.user)
+            self.comment = create_comment(finding=self.project.findings.first(), path='data.title', user=self.user)
 
             yield
 

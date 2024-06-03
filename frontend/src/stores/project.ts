@@ -1,6 +1,6 @@
 import { orderBy, pick, set } from "lodash-es";
 import { groupNotes } from "@/stores/usernotes";
-import type { PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
+import type { Comment, PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
 import { scoreFromVector } from "~/utils/cvss";
 
 export function sortFindings<T extends PentestFinding>({ findings, projectType, overrideFindingOrder = false, topLevelFields = false }: {findings: T[], projectType: ProjectType, overrideFindingOrder?: boolean, topLevelFields?: boolean}): T[] {
@@ -49,6 +49,7 @@ export const useProjectStore = defineStore('project', {
         project: {id: string, project_type: string, override_finding_order: boolean}, 
         findings: Record<string, PentestFinding>, 
         sections: Record<string, ReportSection>, 
+        comments: Record<string, Comment>,
       }>,
     }>,
   }),
@@ -99,7 +100,7 @@ export const useProjectStore = defineStore('project', {
           getByIdSync: null,
           notesCollabState: makeCollabStoreState({
             apiPath: `/ws/pentestprojects/${projectId}/notes/`,
-            initialData: { notes: {} as Record<string, ProjectNote>},
+            initialData: { notes: {} as Record<string, ProjectNote> },
             initialPath: 'notes',
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
@@ -116,7 +117,12 @@ export const useProjectStore = defineStore('project', {
           }),
           reportingCollabState: makeCollabStoreState({
             apiPath: `/ws/pentestprojects/${projectId}/reporting/`,
-            initialData: { project: {} as any, findings: {} as Record<string, PentestFinding>, sections: {} as Record<string, ReportSection> },
+            initialData: { 
+              project: {} as any, 
+              findings: {} as Record<string, PentestFinding>, 
+              sections: {} as Record<string, ReportSection>, 
+              comments: {} as Record<string, Comment>,
+            },
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'findings') {
                 for (const finding of Object.values(collabState.data.findings)) {
