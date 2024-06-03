@@ -36,7 +36,7 @@ export const useUserNotesStore = defineStore('usernotes', {
     return {
       notesCollabState: makeCollabStoreState({
         apiPath: '/ws/pentestusers/self/notes/',
-        initialData: { notes: {} as {[key: string]: UserNote} },
+        initialData: { notes: {} as Record<string, UserNote> },
         initialPath: 'notes',
         handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
           if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
@@ -98,7 +98,7 @@ export const useUserNotesStore = defineStore('usernotes', {
     },
     useNotesCollab(options?: { noteId?: string }) {
       const collabState = this.notesCollabState;
-      const collab = useCollab(collabState as CollabStoreState<{ notes: {[key: string]: UserNote}}>);
+      const collab = useCollab(collabState as CollabStoreState<{ notes: Record<string, UserNote> }>);
 
       return {
         ...collab,

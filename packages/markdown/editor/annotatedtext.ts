@@ -90,7 +90,7 @@ function micromarkToAnnotatedText(text: string, events: Event[]) {
     'templateVariable': '`code`',
     'labelText': '`code`',
     'htmlTextData': '`code`',
-  } as {[key: string]: string};
+  } as Record<string, string>;
   const annotatedText = [] as AnnotatedText[];
   for (const n of leafNodes) {
     if (n.type === 'lineEnding') {

@@ -237,6 +237,30 @@ export const ProjectTypeStatusItems = Object.freeze((ReviewStatusItems as unknow
   { value: ProjectTypeStatus.DEPRECATED, title: 'Deprecated', icon: 'mdi-close-octagon-outline' },
 ]))
 
+export type CommentAnswer = BaseModel & {
+  text: string;
+  user: UserShortInfo;
+};
+
+export enum CommentStatus {
+  OPEN = 'open',
+  RESOLVED = 'resolved',
+};
+
+export type Comment = BaseModel & {
+  text: string;
+  user: UserShortInfo;
+  status: CommentStatus;
+  path: string;
+  text_position: {anchor: number, head: number}|null;
+  text_original: string|null;
+  answers: CommentAnswer[];
+}
+
+export type CommentBase = {
+  comments?: Record<string, Comment>;
+}
+
 export type ProjectMember = UserShortInfo & {
   roles: string[];
 }
@@ -255,7 +279,7 @@ export type PentestProject = BaseModel & {
   imported_members: ProjectMember[];
 }
 
-export type ReportSection = BaseModel & {
+export type ReportSection = BaseModel & CommentBase & {
   readonly label: string;
   readonly fields: string[];
   readonly project: string;
@@ -264,12 +288,10 @@ export type ReportSection = BaseModel & {
 
   assignee: UserShortInfo|null;
   status: ReviewStatus|null;
-  data: {
-    [key: string]: any
-  };
+  data: Record<string, any>;
 }
 
-export type PentestFinding = BaseModel & {
+export type PentestFinding = BaseModel & CommentBase & {
   readonly label: string;
   readonly fields: string[];
   readonly project: string;
@@ -280,9 +302,7 @@ export type PentestFinding = BaseModel & {
   order: number;
   assignee: UserShortInfo|null;
   status: ReviewStatus|null;
-  data: {
-    [key: string]: any
-  };
+  data: Record<string, any>;
 };
 
 export type NoteBase = {
@@ -402,9 +422,7 @@ export type FieldDefinition = {
   cvss_version?: CvssVersion;
   suggestions?: string[];
   choices?: EnumFieldChoiceDefinition[];
-  properties?: {
-    [key: string]: FieldDefinition
-  };
+  properties?: Record<string, FieldDefinition>;
   items?: FieldDefinition;
 }
 
@@ -418,9 +436,7 @@ export type FieldDefinitionWithId = FieldDefinition & {
   id: string;
 };
 
-export type FieldDefinitionDict = {
-  [key: string]: FieldDefinition,
-}
+export type FieldDefinitionDict = Record<string, FieldDefinition>;
 
 export enum SortOrder {
   ASC = 'asc',
@@ -454,9 +470,7 @@ export type ProjectType = BaseModel & Lockable & {
   report_template: string;
   report_styles: string;
   report_preview_data: {
-    report: {
-      [key: string]: any;
-    },
+    report: Record<string, any>;
     findings: {
       title: string;
       [key: string]: any;

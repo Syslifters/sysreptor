@@ -3,13 +3,13 @@ import { groupNotes } from "@/stores/usernotes";
 import type { PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
 import { scoreFromVector } from "~/utils/cvss";
 
-export function sortFindings({ findings, projectType, overrideFindingOrder = false, topLevelFields = false }: {findings: PentestFinding[], projectType: ProjectType, overrideFindingOrder?: boolean, topLevelFields?: boolean}): PentestFinding[] {
+export function sortFindings<T extends PentestFinding>({ findings, projectType, overrideFindingOrder = false, topLevelFields = false }: {findings: T[], projectType: ProjectType, overrideFindingOrder?: boolean, topLevelFields?: boolean}): T[] {
   if (overrideFindingOrder || projectType.finding_ordering.length === 0) {
     return orderBy(findings, ['order', 'created']);
   } else {
     return orderBy(
       findings,
-      projectType.finding_ordering.map(o => (finding: PentestFinding) => {
+      projectType.finding_ordering.map(o => (finding: T) => {
         const v = topLevelFields ? (finding as any)[o.field] : finding.data[o.field];
         const d = projectType.finding_fields[o.field];
         if (!d || d.type in [FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER] || Array.isArray(v) || typeof v === 'object') {
@@ -41,21 +41,16 @@ export function sortFindings({ findings, projectType, overrideFindingOrder = fal
 
 export const useProjectStore = defineStore('project', {
   state: () => ({
-    data: {} as {
-      [key: string]: {
-        project: PentestProject|null,
-        // findings: PentestFinding[],
-        // sections: ReportSection[],
-        // notes: ProjectNote[],
-        getByIdSync: Promise<PentestProject> | null,
-        notesCollabState: CollabStoreState<{ notes: {[key: string]: ProjectNote}}>,
-        reportingCollabState: CollabStoreState<{ 
-          project: {id: string, project_type: string, override_finding_order: boolean}, 
-          findings: {[key: string]: PentestFinding }, 
-          sections: {[key: string]: ReportSection } 
-        }>,
-      }
-    },
+    data: {} as Record<string, {
+      project: PentestProject|null,
+      getByIdSync: Promise<PentestProject> | null,
+      notesCollabState: CollabStoreState<{ notes: Record<string, ProjectNote>}>,
+      reportingCollabState: CollabStoreState<{ 
+        project: {id: string, project_type: string, override_finding_order: boolean}, 
+        findings: Record<string, PentestFinding>, 
+        sections: Record<string, ReportSection>, 
+      }>,
+    }>,
   }),
   getters: {
     project() {
@@ -81,7 +76,7 @@ export const useProjectStore = defineStore('project', {
         let sections = Object.values(this.data[projectId]?.reportingCollabState.data.sections || {});
         // Sort sections
         if (projectType) {
-          sections = orderBy(sections, [(s: ReportSection) => projectType.report_sections.findIndex(rs => rs.id === s.id)]);
+          sections = orderBy(sections, [s => projectType.report_sections.findIndex(rs => rs.id === s.id)]);
         }
         return sections;
       };
@@ -104,7 +99,7 @@ export const useProjectStore = defineStore('project', {
           getByIdSync: null,
           notesCollabState: makeCollabStoreState({
             apiPath: `/ws/pentestprojects/${projectId}/notes/`,
-            initialData: { notes: {} as {[key: string]: ProjectNote} },
+            initialData: { notes: {} as Record<string, ProjectNote>},
             initialPath: 'notes',
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
@@ -121,7 +116,7 @@ export const useProjectStore = defineStore('project', {
           }),
           reportingCollabState: makeCollabStoreState({
             apiPath: `/ws/pentestprojects/${projectId}/reporting/`,
-            initialData: { project: {} as any, findings: {} as {[key: string]: PentestFinding}, sections: {} as {[key: string]: ReportSection} },
+            initialData: { project: {} as any, findings: {} as Record<string, PentestFinding>, sections: {} as Record<string, ReportSection> },
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'findings') {
                 for (const finding of Object.values(collabState.data.findings)) {
@@ -260,15 +255,6 @@ export const useProjectStore = defineStore('project', {
         method: 'POST',
         body: orderedFindings.map(f => ({ id: f.id, order: f.order })),
       });
-    },
-    async fetchFindingsAndSections(project: PentestProject) {
-      this.ensureExists(project.id);
-      let projectData = this.data[project.id].project! as PentestProject & { sections?: ReportSection[], findings?: PentestFinding[] };
-      if (!projectData.findings || !projectData.sections) {
-        projectData = await this.fetchById(project.id) as PentestProject & { sections: ReportSection[], findings: PentestFinding[] }; ;
-      }
-      this.data[project.id].reportingCollabState.data.findings = Object.fromEntries(projectData.findings!.map(f => [f.id, f]));
-      this.data[project.id].reportingCollabState.data.sections = Object.fromEntries(projectData.sections!.map(s => [s.id, s]));
     },
     async createNote(project: PentestProject, note: ProjectNote) {
       note = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/`, {

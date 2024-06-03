@@ -179,7 +179,7 @@ export function useMarkdownEditorBase(options: {
   }
 
   const editorState = shallowRef<EditorState|null>(null);
-  const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
+  const editorActions = ref<Record<string, (enabled: boolean) => void>>({});
   const eventBusBeforeApplyRemoteTextChanges = useEventBus('collab:beforeApplyRemoteTextChanges');
 
   function createEditorStateConfig() {

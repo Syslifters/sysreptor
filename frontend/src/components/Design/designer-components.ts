@@ -5,14 +5,12 @@ import { FieldDataType } from "~/utils/types";
 
 export type Node = any;
 
-export type TagInfoAttributes = {
-  [key: string]: {
-      value: string;
-      node: Node;
-      nodeName: Node;
-      nodeValue: Node;
-    }
-}
+export type TagInfoAttributes = Record<string, {
+  value: string;
+  node: Node;
+  nodeName: Node;
+  nodeValue: Node;
+}>;
 
 export type TagInfo = {
   node: Node;
@@ -236,7 +234,7 @@ export class HeadlineComponent extends DesignerComponentBase {
     };
   }
 
-  htmlFromForm(form: any, attrs?: {[key: string]: string}) {
+  htmlFromForm(form: any, attrs?: Record<string, string>) {
     attrs = attrs || {};
     const classes = new Set((attrs?.class || '').split(' '));
     if (form.headline.intoc) { classes.add('in-toc'); } else { classes.delete('in-toc'); }
@@ -1347,7 +1345,7 @@ export class PageFooterComponent extends DesignerComponentBase {
       cssPage += `    @bottom-center { content: element(footer-center); }\n`;
     }
     if (['page', 'page-of'].includes(form.footer.pageNumberStyle)) {
-      const counterContents: {[key: string]: string} = {
+      const counterContents: Record<string, string> = {
         page: 'counter(page)',
         'page-of': 'counter(page) " / " counter(pages)',
       };

@@ -79,13 +79,11 @@ export type AwarenessInfos = {
     path: string|null;
     selection?: EditorSelection;
   };
-  other: {
-    [key: string]: {
-      client_id: string;
-      path: string|null;
-      selection?: EditorSelection;
-    }
-  };
+  other: Record<string, {
+    client_id: string;
+    path: string|null;
+    selection?: EditorSelection;
+  }>;
   clients: CollabClientInfo[];
 }
 

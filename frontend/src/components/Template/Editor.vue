@@ -168,7 +168,7 @@ watch(template, () => {
       mainTranslation.value;
 }, { deep: true });
 
-const restoreTranslationDataCache = ref<{ [key: string]: { [key: string]: any } }>({});
+const restoreTranslationDataCache = ref<Record<string, Record<string, any>>>({});
 const initialLanguages = ref(template.value.translations.map(tr => tr.language));
 const historyVisible = ref(false);
 const templateTagSuggestions = [
