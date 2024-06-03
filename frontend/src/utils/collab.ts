@@ -592,6 +592,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         unset(storeState.data as Object, msgData.path!);
       }
       removeInvalidSelections(parentPath);
+      updateComments({ comments: msgData.comments });
     } else if (msgData.type === CollabEventType.CONNECT) {
       if (msgData.client_id !== storeState.clientID) {
         // Add new client
@@ -882,6 +883,12 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
 
     for (const c of options.comments) {
       if (c.id! in commentsStoreState) {
+        if (c.path === null) {
+          // Delete comment
+          delete commentsStoreState[c.id!];
+          continue;
+        }
+        
         if (c.text_position && options.unconfirmed) {
           try {
             let pos: SelectionRange|null = SelectionRange.fromJSON(c.text_position);

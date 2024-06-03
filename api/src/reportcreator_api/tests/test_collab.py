@@ -396,7 +396,7 @@ class TestCollaborativeTextEditing:
 
         await self.refresh_data()
         assert self.finding.data['field_list'] == ['B', 'D', 'A']
-        assert self.comment_list.path == f'findings.{self.finding.finding_id}.data.field_list.[2]'
+        assert self.comment_list.path == 'data.field_list.[2]'
 
     async def test_client_collab_info_lifecycle(self):
         async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1, consume_init=False) as client:
@@ -774,7 +774,7 @@ class TestProjectReportingDbSync:
         comment = await obj.comments.afirst()
         await self.assert_event(event | {
             'client_id': self.client1.client_id,
-            'comments': [{'id': str(comment.id), 'path': 'data.field_markdown', 'text_position': expected_text_position.to_dict() if expected_text_position else None}],
+            'comments': [{'id': str(comment.id), 'path': path_prefix + '.data.field_markdown', 'text_position': expected_text_position.to_dict() if expected_text_position else None}],
         })
 
         # Changes synced to DB
