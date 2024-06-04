@@ -4,6 +4,7 @@
 * Enable fontconfig cache in docker container
 * Respect verbosity option in `backup` and `restorebackup` commands
 * Immediately create new templates in API to allow image uploads on first editing
+* Fix importing of non-empty note assignees
 
 
 ## v2024.043 - 2024-05-27
