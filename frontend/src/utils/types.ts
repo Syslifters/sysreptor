@@ -239,7 +239,7 @@ export const ProjectTypeStatusItems = Object.freeze((ReviewStatusItems as unknow
 
 export type CommentAnswer = BaseModel & {
   text: string;
-  user: UserShortInfo;
+  user: UserShortInfo|null;
 };
 
 export enum CommentStatus {
@@ -249,12 +249,15 @@ export enum CommentStatus {
 
 export type Comment = BaseModel & {
   text: string;
-  user: UserShortInfo;
+  user: UserShortInfo|null;
   status: CommentStatus;
   path: string;
   text_position: {anchor: number, head: number}|null;
   text_original: string|null;
   answers: CommentAnswer[];
+
+  dataPath?: string;
+  collabPath?: string;
 }
 
 export type ProjectMember = UserShortInfo & {

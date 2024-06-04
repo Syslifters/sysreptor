@@ -937,6 +937,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     connect,
     disconnect,
     onCollabEvent,
+    storeState,
     data: computed(() => storeState.data),
     readonly: computed(() => storeState.connection?.connectionState !== CollabConnectionState.OPEN || !storeState.permissions.write),
     connection: computed(() => storeState.connection),
@@ -953,10 +954,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           isSelf: c.client_id === storeState.clientID,
         };
       }),
-      comments: Object.values(((storeState.data as any).comments as Record<string, Comment> || {})).map(c => ({
-        ...c,
-        path: storeState.apiPath + (c.path || ''),
-      })),
     }), { throttle: 1000 }),
   }
 }
@@ -971,7 +968,6 @@ export type CollabPropType = {
     selection?: EditorSelection;
     isSelf: boolean;
   }[];
-  comments: Comment[];
 };
 
 export function collabSubpath(collab: CollabPropType, subPath: string|null) {
@@ -986,6 +982,5 @@ export function collabSubpath(collab: CollabPropType, subPath: string|null) {
     ...collab,
     path,
     clients: collab.clients.filter(a => isSubpath(a.path, path)),
-    comments: collab.comments.filter(c => isSubpath(c.path, path)),
   };
 }

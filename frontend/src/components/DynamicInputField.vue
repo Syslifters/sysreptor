@@ -1,257 +1,280 @@
 <template>
-  <div :id="props.id" class="mt-4" :class="nestedClass">
-    <!-- String -->
-    <markdown-text-field
-      v-if="definition.type === 'string'"
-      v-model="formValue"
-      :collab="props.collab"
-      validate-on="input lazy"
-      :spellcheck-supported="definition.spellcheck"
-      :rules="[(v: string) => validateRegexPattern(v)]"
-      v-bind="fieldAttrs"
-    />
+  <v-hover>
+    <template #default="{ isHovering, props: hoverProps }">
+      <div :id="props.id" class="mt-4" :class="['d-flex', 'flex-row', nestedClass]" v-bind="hoverProps">
+        <div class="flex-grow-width">
+          <!-- String -->
+          <markdown-text-field
+            v-if="definition.type === 'string'"
+            v-model="formValue"
+            :collab="props.collab"
+            validate-on="input lazy"
+            :spellcheck-supported="definition.spellcheck"
+            :rules="[(v: string) => validateRegexPattern(v)]"
+            v-bind="fieldAttrs"
+          />
 
-    <!-- Markdown -->
-    <markdown-field
-      v-else-if="definition.type === 'markdown'"
-      v-model="formValue"
-      :collab="props.collab"
-      v-bind="fieldAttrs"
-    >
-      <template v-if="$slots['markdown-context-menu']" #context-menu="slotData">
-        <slot 
-          name="markdown-context-menu"
-          :id="props.id"
-          :value="formValue"
-          :definition="definition"
-          v-bind="slotData"
-        />
-      </template>
-    </markdown-field>
-
-    <!-- Date -->
-    <s-date-picker
-      v-else-if="definition.type === 'date'"
-      v-model="formValue"
-      :locale="props.lang || undefined"
-      @focus="collabFocus"
-      v-bind="fieldAttrs"
-    />
-
-    <!-- Enum -->
-    <s-autocomplete
-      v-else-if="definition.type === 'enum'"
-      v-model="formValue"
-      :items="[{value: null as string|null, label: '---'}].concat(definition.choices!)"
-      item-title="label"
-      item-value="value"
-      :clearable="!props.readonly"
-      spellcheck="false"
-      @focus="collabFocus"
-      v-bind="fieldAttrs"
-    />
-
-    <!-- Combobox -->
-    <s-combobox
-      v-else-if="definition.type === 'combobox'"
-      v-model="formValue"
-      :items="definition.suggestions"
-      :clearable="!props.readonly"
-      spellcheck="false"
-      @focus="collabFocus"
-      v-bind="fieldAttrs"
-    />
-
-    <!-- Number -->
-    <s-text-field
-      v-else-if="definition.type === 'number'"
-      :model-value="formValue"
-      @update:model-value="emitUpdate(parseFloat($event))"
-      type="number"
-      @focus="collabFocus"
-      v-bind="fieldAttrs"
-    />
-
-    <!-- Boolean -->
-    <s-checkbox
-      v-else-if="definition.type === 'boolean'"
-      :model-value="formValue || false"
-      @update:model-value="emitUpdate($event)"
-      v-bind="fieldAttrs"
-    />
-
-    <!-- CVSS -->
-    <s-cvss-field
-      v-else-if="definition.type === 'cvss'"
-      v-model="formValue"
-      :cvss-version="definition.cvss_version"
-      :disable-validation="props.disableValidation"
-      @focus="collabFocus"
-      v-bind="fieldAttrs"
-    />
-
-    <!-- CWE -->
-    <s-cwe-field
-      v-else-if="definition.type === 'cwe'"
-      v-model="formValue"
-      @focus="collabFocus"
-      v-bind="fieldAttrs"
-    />
-
-    <!-- User -->
-    <s-user-selection
-      v-else-if="definition.type === 'user'"
-      :model-value="formValue"
-      @update:model-value="emitUpdate(($event as UserShortInfo|null)?.id || null)"
-      :selectable-users="selectableUsers"
-      @focus="collabFocus"
-      v-bind="fieldAttrs"
-    />
-
-    <!-- Object -->
-    <s-card v-else-if="definition.type === 'object'">
-      <v-card-title class="text-body-1">{{ label }}</v-card-title>
-
-      <v-card-text>
-        <dynamic-input-field
-          v-for="objectFieldId in Object.keys(props.definition.properties || {}).sort()"
-          :key="objectFieldId"
-          :model-value="formValue[objectFieldId]"
-          @update:model-value="emitInputObject(objectFieldId as string, $event)"
-          :collab="props.collab ? collabSubpath(props.collab, objectFieldId) : undefined"
-          :id="props.id ? (props.id + '.' + objectFieldId) : undefined"
-          v-bind="inheritedAttrs(props.definition.properties![objectFieldId])"
-        >
-          <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
-        </dynamic-input-field>
-      </v-card-text>
-    </s-card>
-
-    <!-- List -->
-    <s-card v-else-if="definition.type === 'list'">
-      <v-card-title class="text-body-1">
-        <div class="d-flex flex-row">
-          <span>{{ label }}</span>
-
-          <template v-if="definition.items!.type === 'string'">
-            <v-spacer />
-            <s-btn-icon
-              @click="bulkEditList = !bulkEditList"
-              density="comfortable"
-            >
-              <v-icon v-if="bulkEditList" icon="mdi-format-list-bulleted" />
-              <v-icon v-else icon="mdi-playlist-edit" />
-              <s-tooltip activator="parent">
-                <span v-if="bulkEditList">Edit as list</span>
-                <span v-else>Bulk edit list items</span>
-              </s-tooltip>
-            </s-btn-icon>
-          </template>
-        </div>
-      </v-card-title>
-
-      <v-card-text>
-        <!-- Bulk edit list items of list[string] -->
-        <v-textarea
-          v-if="definition.items!.type === 'string' && bulkEditList"
-          :model-value="(formValue || []).join('\n')"
-          @update:model-value="emitInputStringList"
-          auto-grow
-          hide-details="auto"
-          spellcheck="false"
-          variant="outlined"
-          v-bind="fieldAttrs"
-          label="Enter one item per line"
-          class="mt-4"
-        />
-        <v-list v-else class="pa-0 bg-inherit">
-          <draggable
-            :model-value="formValue"
-            @change="e => e.moved ? emitInputList('move', e.moved.oldIndex, e.moved.newIndex) : undefined"
-            :item-key="(item: any) => formValue.indexOf(item)"
-            :disabled="props.disabled || props.readonly"
-            handle=".draggable-handle"
+          <!-- Markdown -->
+          <markdown-field
+            v-else-if="definition.type === 'markdown'"
+            v-model="formValue"
+            :collab="props.collab"
+            v-bind="fieldAttrs"
           >
-            <template #item="{element: entryVal, index: entryIdx}">
-              <v-list-item class="pa-0">
-                <template #default>
-                  <dynamic-input-field
-                    :model-value="entryVal"
-                    @update:model-value="emitInputList('update', entryIdx as number, $event)"
-                    :collab="props.collab ? collabSubpath(props.collab, `[${entryIdx}]`) : undefined"
-                    @keydown="onListKeyDown"
-                    :id="id ? `${id}[${entryIdx}]` : undefined"
-                    v-bind="inheritedAttrs(props.definition.items!)"
-                  >
-                    <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
-                  </dynamic-input-field>
-                </template>
-                <template #append>
-                  <div 
-                    v-if="[FieldDataType.MARKDOWN, FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.items!.type)"
-                    class="d-flex flex-column"
-                  >
-                    <btn-delete
-                      :delete="() => emitInputList('delete', entryIdx as number)"
-                      :confirm="!isEmptyOrDefault(entryVal, definition.items!)"
-                      :disabled="props.disabled || props.readonly"
-                      density="compact"
-                      button-variant="icon"
-                      class="mb-4"
-                    />
-
-                    <s-btn-icon 
-                      @click="emitInputList('move', entryIdx, entryIdx - 1)"
-                      :disabled="props.disabled || props.readonly || entryIdx === 0"
-                      density="compact"
-                    >
-                      <v-icon icon="mdi-arrow-up-drop-circle-outline" />
-                      <s-tooltip activator="parent" text="Move up in list" />
-                    </s-btn-icon>
-                    <s-btn-icon
-                      @click="emitInputList('move', entryIdx, entryIdx + 1)"
-                      :disabled="props.disabled || props.readonly || entryIdx === formValue.length - 1"
-                      density="compact"
-                    >
-                      <v-icon icon="mdi-arrow-down-drop-circle-outline" />
-                      <s-tooltip activator="parent" text="Move down in list" />
-                    </s-btn-icon>
-                  </div>
-                  <div v-else>
-                    <v-icon
-                      size="x-large"
-                      class="draggable-handle" 
-                      :disabled="props.disabled || props.readonly"
-                      icon="mdi-drag-horizontal" 
-                    />
-                    <btn-delete
-                      :delete="() => emitInputList('delete', entryIdx as number)"
-                      :confirm="false"
-                      :disabled="props.disabled || props.readonly"
-                      button-variant="icon"
-                    />
-                  </div>
-                </template>
-              </v-list-item>
+            <template v-if="$slots['markdown-context-menu']" #context-menu="slotData">
+              <slot 
+                name="markdown-context-menu"
+                :id="props.id"
+                :value="formValue"
+                :definition="definition"
+                v-bind="slotData"
+              />
             </template>
-          </draggable>
+          </markdown-field>
 
-          <v-list-item class="pa-0">
-            <s-btn-secondary
-              @click="emitInputList('add')"
-              :disabled="props.disabled || props.readonly"
-              prepend-icon="mdi-plus"
-              text="Add"
-            />
-          </v-list-item>
-        </v-list>
-      </v-card-text>
-    </s-card>
+          <!-- Date -->
+          <s-date-picker
+            v-else-if="definition.type === 'date'"
+            v-model="formValue"
+            :locale="props.lang || undefined"
+            @focus="collabFocus"
+            v-bind="fieldAttrs"
+          />
 
-    <div v-else>
-      {{ definition }}
-    </div>
-  </div>
+          <!-- Enum -->
+          <s-autocomplete
+            v-else-if="definition.type === 'enum'"
+            v-model="formValue"
+            :items="[{value: null as string|null, label: '---'}].concat(definition.choices!)"
+            item-title="label"
+            item-value="value"
+            :clearable="!props.readonly"
+            spellcheck="false"
+            @focus="collabFocus"
+            v-bind="fieldAttrs"
+          />
+
+          <!-- Combobox -->
+          <s-combobox
+            v-else-if="definition.type === 'combobox'"
+            v-model="formValue"
+            :items="definition.suggestions"
+            :clearable="!props.readonly"
+            spellcheck="false"
+            @focus="collabFocus"
+            v-bind="fieldAttrs"
+          />
+
+          <!-- Number -->
+          <s-text-field
+            v-else-if="definition.type === 'number'"
+            :model-value="formValue"
+            @update:model-value="emitUpdate(parseFloat($event))"
+            type="number"
+            @focus="collabFocus"
+            v-bind="fieldAttrs"
+          />
+
+          <!-- Boolean -->
+          <s-checkbox
+            v-else-if="definition.type === 'boolean'"
+            :model-value="formValue || false"
+            @update:model-value="emitUpdate($event)"
+            v-bind="fieldAttrs"
+          />
+
+          <!-- CVSS -->
+          <s-cvss-field
+            v-else-if="definition.type === 'cvss'"
+            v-model="formValue"
+            :cvss-version="definition.cvss_version"
+            :disable-validation="props.disableValidation"
+            @focus="collabFocus"
+            v-bind="fieldAttrs"
+          />
+
+          <!-- CWE -->
+          <s-cwe-field
+            v-else-if="definition.type === 'cwe'"
+            v-model="formValue"
+            @focus="collabFocus"
+            v-bind="fieldAttrs"
+          />
+
+          <!-- User -->
+          <s-user-selection
+            v-else-if="definition.type === 'user'"
+            :model-value="formValue"
+            @update:model-value="emitUpdate(($event as UserShortInfo|null)?.id || null)"
+            :selectable-users="selectableUsers"
+            @focus="collabFocus"
+            v-bind="fieldAttrs"
+          />
+
+          <!-- Object -->
+          <s-card v-else-if="definition.type === 'object'">
+            <v-card-title class="text-body-1">{{ label }}</v-card-title>
+
+            <v-card-text>
+              <dynamic-input-field
+                v-for="objectFieldId in Object.keys(props.definition.properties || {}).sort()"
+                :key="objectFieldId"
+                :model-value="formValue[objectFieldId]"
+                @update:model-value="emitInputObject(objectFieldId as string, $event)"
+                :collab="props.collab ? collabSubpath(props.collab, objectFieldId) : undefined"
+                :id="props.id ? (props.id + '.' + objectFieldId) : undefined"
+                v-bind="inheritedAttrs(props.definition.properties![objectFieldId])"
+              >
+                <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+              </dynamic-input-field>
+            </v-card-text>
+          </s-card>
+
+          <!-- List -->
+          <s-card v-else-if="definition.type === 'list'">
+            <v-card-title class="text-body-1">
+              <div class="d-flex flex-row">
+                <span>{{ label }}</span>
+
+                <template v-if="definition.items!.type === 'string'">
+                  <v-spacer />
+                  <s-btn-icon
+                    @click="bulkEditList = !bulkEditList"
+                    density="comfortable"
+                  >
+                    <v-icon v-if="bulkEditList" icon="mdi-format-list-bulleted" />
+                    <v-icon v-else icon="mdi-playlist-edit" />
+                    <s-tooltip activator="parent">
+                      <span v-if="bulkEditList">Edit as list</span>
+                      <span v-else>Bulk edit list items</span>
+                    </s-tooltip>
+                  </s-btn-icon>
+                </template>
+              </div>
+            </v-card-title>
+
+            <v-card-text>
+              <!-- Bulk edit list items of list[string] -->
+              <v-textarea
+                v-if="definition.items!.type === 'string' && bulkEditList"
+                :model-value="(formValue || []).join('\n')"
+                @update:model-value="emitInputStringList"
+                auto-grow
+                hide-details="auto"
+                spellcheck="false"
+                variant="outlined"
+                v-bind="fieldAttrs"
+                label="Enter one item per line"
+                class="mt-4"
+              />
+              <v-list v-else class="pa-0 bg-inherit">
+                <draggable
+                  :model-value="formValue"
+                  @change="e => e.moved ? emitInputList('move', e.moved.oldIndex, e.moved.newIndex) : undefined"
+                  :item-key="(item: any) => formValue.indexOf(item)"
+                  :disabled="props.disabled || props.readonly"
+                  handle=".draggable-handle"
+                >
+                  <template #item="{element: entryVal, index: entryIdx}">
+                    <v-list-item class="pa-0">
+                      <template #default>
+                        <dynamic-input-field
+                          :model-value="entryVal"
+                          @update:model-value="emitInputList('update', entryIdx as number, $event)"
+                          :collab="props.collab ? collabSubpath(props.collab, `[${entryIdx}]`) : undefined"
+                          @keydown="onListKeyDown"
+                          :id="id ? `${id}[${entryIdx}]` : undefined"
+                          v-bind="inheritedAttrs(props.definition.items!)"
+                        >
+                          <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+                        </dynamic-input-field>
+                      </template>
+                      <template #append>
+                        <div 
+                          v-if="[FieldDataType.MARKDOWN, FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.items!.type)"
+                          class="d-flex flex-column"
+                        >
+                          <btn-delete
+                            :delete="() => emitInputList('delete', entryIdx as number)"
+                            :confirm="!isEmptyOrDefault(entryVal, definition.items!)"
+                            :disabled="props.disabled || props.readonly"
+                            density="compact"
+                            button-variant="icon"
+                            class="mb-4"
+                          />
+
+                          <s-btn-icon 
+                            @click="emitInputList('move', entryIdx, entryIdx - 1)"
+                            :disabled="props.disabled || props.readonly || entryIdx === 0"
+                            density="compact"
+                          >
+                            <v-icon icon="mdi-arrow-up-drop-circle-outline" />
+                            <s-tooltip activator="parent" text="Move up in list" />
+                          </s-btn-icon>
+                          <s-btn-icon
+                            @click="emitInputList('move', entryIdx, entryIdx + 1)"
+                            :disabled="props.disabled || props.readonly || entryIdx === formValue.length - 1"
+                            density="compact"
+                          >
+                            <v-icon icon="mdi-arrow-down-drop-circle-outline" />
+                            <s-tooltip activator="parent" text="Move down in list" />
+                          </s-btn-icon>
+                        </div>
+                        <div v-else>
+                          <v-icon
+                            size="x-large"
+                            class="draggable-handle" 
+                            :disabled="props.disabled || props.readonly"
+                            icon="mdi-drag-horizontal" 
+                          />
+                          <btn-delete
+                            :delete="() => emitInputList('delete', entryIdx as number)"
+                            :confirm="false"
+                            :disabled="props.disabled || props.readonly"
+                            button-variant="icon"
+                          />
+                        </div>
+                      </template>
+                    </v-list-item>
+                  </template>
+                </draggable>
+
+                <v-list-item class="pa-0">
+                  <s-btn-secondary
+                    @click="emitInputList('add')"
+                    :disabled="props.disabled || props.readonly"
+                    prepend-icon="mdi-plus"
+                    text="Add"
+                  />
+                </v-list-item>
+              </v-list>
+            </v-card-text>
+          </s-card>
+
+          <div v-else>
+            {{ definition }}
+          </div>
+        </div>
+        <div v-if="props.comment && props.collab && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type)">
+          <s-btn-icon
+            v-if="commentsOnField.length > 0"
+            @click="emit('comment', {type: 'select', comment: commentsOnField[0]})"
+          >
+            <v-badge :content="commentsOnField.length" floating :max="9">
+              <v-icon icon="mdi-comment-text-outline" />
+            </v-badge>
+          </s-btn-icon>
+          <s-btn-icon
+            v-else
+            @click="emit('comment', {type: 'create', comment: { collabPath: props.collab.path }})"
+            :disabled="props.disabled || props.readonly"
+            icon="mdi-comment-plus-outline"
+            :style="{ opacity: isHovering ? 1 : 0 }"
+          />
+        </div>
+      </div>
+    </template>
+  </v-hover>
 </template>
 
 <script setup lang="ts">
@@ -265,6 +288,7 @@ const props = defineProps<MarkdownProps & {
   modelValue?: any;
   definition: FieldDefinition;
   collab?: CollabPropType;
+  comment?: CommentPropType;
   id?: string;
   showFieldIds?: boolean;
   selectableUsers?: UserShortInfo[];
@@ -277,6 +301,7 @@ const props = defineProps<MarkdownProps & {
 const emit = defineEmits<{
   'update:modelValue': [value: any];
   'collab': [value: any];
+  'comment': [value: any];
   'update:spellcheckEnabled': [value: boolean];
   'update:markdownEditorMode': [value: MarkdownEditorMode];
 }>();
@@ -468,6 +493,8 @@ function collabFocus() {
   }
 }
 
+const commentsOnField = computed(() => props.comment?.comments.filter(c => c.collabPath === props.collab?.path) || []);
+
 const nestedClass = computed(() => {
   if ([FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.type)) {
     return (props.nestingLevel || 0) % 2 === 0 ? 'field-highlight-nested1' : 'field-highlight-nested2';
@@ -479,8 +506,9 @@ const attrs = useAttrs();
 const fieldAttrs = computed(() => ({
   ...attrs,
   label: label.value,
-  ...pick(props, ['disabled', 'readonly', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink']),
+  ...pick(props, ['disabled', 'readonly', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink', 'comment']),
   onCollab: (v: any) => emit('collab', v),
+  onComment: (v: any) => emit('comment', v),
   'onUpdate:spellcheckEnabled': (v: boolean) => emit('update:spellcheckEnabled', v),
   'onUpdate:markdownEditorMode': (v: MarkdownEditorMode) => emit('update:markdownEditorMode', v),
 }))
@@ -503,5 +531,12 @@ const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
 }
 .v-list-item:deep(.v-list-item__append .v-list-item__spacer) {
   width: 0.5em;
+}
+
+.visible-on-hover {
+  opacity: 0;
+}
+.dynamic-input-field-wrapper:hover .visible-on-hover {
+  opacity: 1;
 }
 </style>

@@ -1,6 +1,6 @@
 import { orderBy, pick, set } from "lodash-es";
 import { groupNotes } from "@/stores/usernotes";
-import type { Comment, PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
+import type { Comment, PentestFinding, PentestProject, ProjectNote, ProjectType, ReportSection } from "~/utils/types";
 import { scoreFromVector } from "~/utils/cvss";
 
 export function sortFindings<T extends PentestFinding>({ findings, projectType, overrideFindingOrder = false, topLevelFields = false }: {findings: T[], projectType: ProjectType, overrideFindingOrder?: boolean, topLevelFields?: boolean}): T[] {

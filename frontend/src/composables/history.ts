@@ -3,7 +3,7 @@ import { pick, get, trim } from "lodash-es";
 import {
   MergeView, EditorView,
 } from "reportcreator-markdown/editor";
-import { MarkdownEditorMode, type FieldDefinitionDict, type PentestProject } from '@/utils/types';
+import { MarkdownEditorMode, type FieldDefinitionDict, type PentestProject, type ProjectType } from '@/utils/types';
 
 export type DiffFieldProps = {
   value?: any;

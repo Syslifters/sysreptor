@@ -20,6 +20,7 @@ export const useLocalSettings = defineStore('settings', {
     reportFieldDefinitionMenuSize: 15,
     findingFieldDefinitionMenuSize: 15,
     defaultNotesDefinitionMenuSize: 15,
+    reportingCommentSidebarVisible: false,
     projectListOrdering: null as string|null,
     designListOrdering: null as string|null,
     templateListOrdering: null as string|null,

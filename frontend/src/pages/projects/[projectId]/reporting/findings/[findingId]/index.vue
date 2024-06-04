@@ -37,7 +37,8 @@
           density="compact"
         />
       </div>
-
+      
+      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
 
@@ -53,6 +54,8 @@
         :model-value="finding.data[fieldId]"
         :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldId}`)"
         @collab="reportingCollab.onCollabEvent"
+        :comment="commentProps"
+        @comment="onCommentEvent"
         :readonly="readonly"
         :id="fieldId"
         :definition="projectType.finding_fields[fieldId]"
@@ -60,6 +63,12 @@
         v-bind="inputFieldAttrs"
       />
     </div>
+
+    <comment-sidebar
+      v-model="localSettings.reportingCommentSidebarVisible"
+      :comment-props="commentProps" 
+      @comment="onCommentEvent"
+    />
   </div>
 </template>
 
@@ -76,6 +85,7 @@ const projectType = await useAsyncDataE(async () => await projectTypeStore.getBy
 const reportingCollab = projectStore.useReportingCollab({ project: project.value, findingId: route.params.findingId as string });
 const finding = computedThrottled(() => reportingCollab.data.value.findings[route.params.findingId as string], { throttle: 500 });
 const readonly = computed(() => reportingCollab.readonly.value);
+const { commentProps, onCommentEvent } = useComments({ collabState: reportingCollab.storeState, project: project.value, projectType: projectType.value, findingId: route.params.findingId as string });
 
 const { inputFieldAttrs, errorMessage } = useProjectEditBase({
   project: computed(() => project.value),
