@@ -116,10 +116,8 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
         *viewset_urls('projectnotebookpage', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).notes.first().note_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, history_timeline=read),
         *file_viewset_urls('uploadedimage', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).images.first(), read=read, write=write),
         *file_viewset_urls('uploadedprojectfile', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).files.first(), read=read, write=write),
-        *viewset_urls('sectioncomment', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'section_id': get_obj(s).sections.first().section_id} | ({'pk': get_obj(s).sections.first().comments.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
-        *viewset_urls('findingcomment', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'finding_id': get_obj(s).findings.first().finding_id} | ({'pk': get_obj(s).findings.first().comments.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
-        *viewset_urls('sectioncommentanswer', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'section_id': get_obj(s).sections.first().section_id, 'comment_pk': get_obj(s).sections.first().comments.first().id} | ({'pk': get_obj(s).sections.first().comments.first().answers.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
-        *viewset_urls('findingcommentanswer', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'finding_id': get_obj(s).findings.first().finding_id, 'comment_pk': get_obj(s).findings.first().comments.first().id} | ({'pk': get_obj(s).findings.first().comments.first().answers.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
+        *viewset_urls('comment', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'pk': get_obj(s).findings.first().comments.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
+        *viewset_urls('commentanswer', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'comment_pk': get_obj(s).findings.first().comments.first().id} | ({'pk': get_obj(s).findings.first().comments.first().answers.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
     ]
     if read:
       out.extend([
@@ -148,8 +146,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('projectnotebookpage import', lambda s, c: c.post(reverse('projectnotebookpage-import', kwargs={'project_pk': get_obj(s).pk}), data={'file': export_notes_archive(get_obj(s))}, format='multipart')),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
-            ('sectioncomment resolve', lambda s, c: c.post(reverse('sectioncomment-resolve', kwargs={'project_pk': get_obj(s).pk, 'section_id': get_obj(s).sections.first().section_id, 'pk': get_obj(s).sections.first().comments.first().id}), data={'status': CommentStatus.RESOLVED})),
-            ('findingcomment resolve', lambda s, c: c.post(reverse('findingcomment-resolve', kwargs={'project_pk': get_obj(s).pk, 'finding_id': get_obj(s).findings.first().finding_id, 'pk': get_obj(s).findings.first().comments.first().id}), data={'status': CommentStatus.RESOLVED})),
+            ('comment resolve', lambda s, c: c.post(reverse('comment-resolve', kwargs={'project_pk': get_obj(s).pk, 'pk': get_obj(s).findings.first().comments.first().id}), data={'status': CommentStatus.RESOLVED})),
         ])
     if update:
         out.extend([

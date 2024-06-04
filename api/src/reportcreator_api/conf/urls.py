@@ -15,19 +15,17 @@ from reportcreator_api.pentests.consumers import ProjectNotesConsumer, ProjectRe
 from reportcreator_api.pentests.views import (
     ArchivedProjectKeyPartViewSet,
     ArchivedProjectViewSet,
+    CommentAnswerViewSet,
+    CommentViewSet,
     FindingTemplateHistoryViewSet,
     FindingTemplateTranslationViewSet,
     FindingTemplateViewSet,
-    PentestFindingCommentAnswerViewSet,
-    PentestFindingCommentViewSet,
     PentestFindingViewSet,
     PentestProjectHistoryViewSet,
     PentestProjectViewSet,
     ProjectNotebookPageViewSet,
     ProjectTypeHistoryViewSet,
     ProjectTypeViewSet,
-    ReportSectionCommentAnswerViewSet,
-    ReportSectionCommentViewSet,
     ReportSectionViewSet,
     UploadedAssetViewSet,
     UploadedImageViewSet,
@@ -72,18 +70,13 @@ project_router = NestedSimpleRouter(router, 'pentestprojects', lookup='project')
 project_router.register('sections', ReportSectionViewSet, basename='section')
 project_router.register('findings', PentestFindingViewSet, basename='finding')
 project_router.register('notes', ProjectNotebookPageViewSet, basename='projectnotebookpage')
+project_router.register('comments', CommentViewSet, basename='comment')
 project_router.register('images', UploadedImageViewSet, basename='uploadedimage')
 project_router.register('files', UploadedProjectFileViewSet, basename='uploadedprojectfile')
 project_router.register('history', PentestProjectHistoryViewSet, basename='pentestprojecthistory')
 
-finding_router = NestedSimpleRouter(project_router, 'findings', lookup='finding')
-finding_router.register('comments', PentestFindingCommentViewSet, basename='findingcomment')
-findingcomment_router = NestedSimpleRouter(finding_router, 'comments', lookup='comment')
-findingcomment_router.register('answers', PentestFindingCommentAnswerViewSet, basename='findingcommentanswer')
-section_router = NestedSimpleRouter(project_router, 'sections', lookup='section')
-section_router.register('comments', ReportSectionCommentViewSet, basename='sectioncomment')
-sectioncomment_router = NestedSimpleRouter(section_router, 'comments', lookup='comment')
-sectioncomment_router.register('answers', ReportSectionCommentAnswerViewSet, basename='sectioncommentanswer')
+comment_router = NestedSimpleRouter(project_router, 'comments', lookup='comment')
+comment_router.register('answers', CommentAnswerViewSet, basename='commentanswer')
 
 projecttype_router = NestedSimpleRouter(router, 'projecttypes', lookup='projecttype')
 projecttype_router.register('assets', UploadedAssetViewSet, basename='uploadedasset')
@@ -107,10 +100,7 @@ urlpatterns = [
             router.urls +
             user_router.urls +
             project_router.urls +
-            finding_router.urls +
-            findingcomment_router.urls +
-            section_router.urls +
-            sectioncomment_router.urls +
+            comment_router.urls +
             projecttype_router.urls +
             archivedproject_router.urls +
             template_router.urls,
