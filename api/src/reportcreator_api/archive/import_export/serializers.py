@@ -449,6 +449,8 @@ class NotebookPageExportImportSerializer(ExportImportSerializer):
 
 
 class ProjectNotebookPageExportImportSerializer(NotebookPageExportImportSerializer):
+    assignee = RelatedUserIdExportImportSerializer()
+
     class Meta(NotebookPageExportImportSerializer.Meta):
         fields = NotebookPageExportImportSerializer.Meta.fields + ['assignee']
         extra_kwargs = NotebookPageExportImportSerializer.Meta.extra_kwargs | {
