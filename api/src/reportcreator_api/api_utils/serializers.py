@@ -53,7 +53,7 @@ class LanguageToolSerializerBase(serializers.Serializer):
                     raise exceptions.APIException(detail='Spellcheck error', code='spellcheck')
                 return res.json()
         except httpx.ReadTimeout as ex:
-            logging.exception('LanguageTool timeout')
+            logging.warning('LanguageTool timeout. Spellcheck request took too long to complete.')
             raise exceptions.APIException(detail='Spellcheck timeout', code='spellcheck') from ex
 
 
