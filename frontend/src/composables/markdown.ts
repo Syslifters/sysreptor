@@ -331,7 +331,13 @@ export function useMarkdownEditorBase(options: {
       }));
     }
   });
-  watch([() => options.props.value.disabled, () => options.props.value.readonly], () => editorActions.value.disabled?.(Boolean(options.props.value.disabled || options.props.value.readonly)));
+  watch([() => options.props.value.disabled, () => options.props.value.readonly], () => {
+    const readonly = Boolean(options.props.value.disabled || options.props.value.readonly)
+    editorActions.value.disabled?.(readonly);
+    if (readonly) {
+      sendUpdateEventsThrottled.flush();
+    }
+  });
   watch(() => options.props.value.lang, () => {
     if (spellcheckLanguageToolEnabled.value && options.editorView.value) {
       forceLinting(options.editorView.value);
