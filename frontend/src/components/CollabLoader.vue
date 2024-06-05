@@ -72,6 +72,7 @@ watch(connectionState, async (newState, oldState) => {
 async function reconnect() {
   reconnectAttempted.value += 1;
   try {
+    await nextTick();
     await props.collab.connect();
   } catch {
     if (props.collab.connection.value?.connectionError) {

@@ -7,7 +7,7 @@ import urlJoin from "url-join";
 import { ChangeSet, EditorSelection, Text } from "reportcreator-markdown/editor"
 import { type UserShortInfo } from "@/utils/types"
 
-const WS_RESPONSE_TIMEOUT = 5_000;
+const WS_RESPONSE_TIMEOUT = 7_000;
 const WS_PING_INTERVAL = 30_000;
 const WS_THROTTLE_INTERVAL_UPDATE_KEY = 1_000;
 const WS_THROTTLE_INTERVAL_UPDATE_TEXT = 1_000;
@@ -133,6 +133,30 @@ export function makeCollabStoreState<T>(options: {
     version: 0,
     clientID: '',
   }
+}
+
+async function sendPendingMessagesHttp<T>(storeState: CollabStoreState<T>, messages?: CollabEvent[]) {
+  messages = Array.from(messages || []);
+
+  for (const [p, s] of storeState.perPathState.entries()) {
+    if (s.unconfirmedTextUpdates.length > 0) {
+      messages.push({
+        type: CollabEventType.UPDATE_TEXT,
+        path: p,
+        version: storeState.version,
+        updates: s.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
+      });
+    }
+  }
+
+  return await $fetch<{ version: number, messages: CollabEvent[], clients: CollabClientInfo[] }>(urlJoin(storeState.apiPath, '/fallback/'), { 
+    method: 'POST', 
+    body: {
+      version: storeState.version,
+      client_id: storeState.clientID,
+      messages,
+    }
+  });
 }
 
 export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, onReceiveMessage: (msg: CollabEvent) => void) {
@@ -412,26 +436,8 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
     pendingMessages.value = [];
 
     try {
-      for (const [p, s] of storeState.perPathState.entries()) {
-        if (s.unconfirmedTextUpdates.length > 0) {
-          messages.push({
-            type: CollabEventType.UPDATE_TEXT,
-            path: p,
-            version: storeState.version,
-            updates: s.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
-          });
-        }
-      }
-
-      const res = await $fetch<{ version: number, messages: CollabEvent[], clients: CollabClientInfo[] }>(httpUrl, { 
-        method: 'POST', 
-        body: {
-          version: storeState.version,
-          client_id: storeState.clientID,
-          messages,
-        }
-      });
-
+      const res = await sendPendingMessagesHttp(storeState, messages);
+      
       storeState.version = res.version;
       storeState.awareness.clients = res.clients;
       for (const m of res.messages) {
@@ -500,6 +506,14 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       storeState.connection = connectionHttpReadonly(storeState, onReceiveMessage);
       return await storeState.connection?.connect();
     } else {
+      // If there are pending events from the previous connection, send them now to prevent losing events.
+      // Try to sync as many changes as possible. When some events cannot be processed, we don't care since we cannot handle them anyway.
+      if (storeState.version > 0 && Array.from(storeState.perPathState.values()).some(s => s.unconfirmedTextUpdates.length > 0)) {
+        try {
+          await sendPendingMessagesHttp(storeState);
+        } catch {}
+      }
+
       // Dummy connection info with connectionState=CONNECTING
       storeState.connection = {
         type: CollabConnectionType.WEBSOCKET,
@@ -553,7 +567,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       }]));
     } else if (msgData.type === CollabEventType.UPDATE_KEY) {
       if (msgData.client_id !== storeState.clientID) {
-      // Clear pending text updates, because they are overwritten by the value of collab.update_key
+        // Clear pending text updates, because they are overwritten by the value of collab.update_key
         for (const [k, v] of storeState.perPathState.entries()) {
           if (msgData.path === k || msgData.path!.startsWith(k + '.')) {
             v.unconfirmedTextUpdates = [];
