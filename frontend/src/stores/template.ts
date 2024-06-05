@@ -1,5 +1,5 @@
 import { sortBy } from "lodash-es";
-import type { TemplateFieldDefinition, FieldDefinitionDict, FindingTemplate, ProjectType } from "~/utils/types";
+import type { TemplateFieldDefinition, FieldDefinitionDict, FindingTemplate, ProjectType, FindingTemplateTranslation } from "~/utils/types";
 
 export const useTemplateStore = defineStore('templates', {
   state: () => ({
@@ -35,7 +35,7 @@ export const useTemplateStore = defineStore('templates', {
     clear() {
       // Nothing to clear
     },
-    async create(template: FindingTemplate) {
+    async create(template: Partial<Omit<FindingTemplate, 'translations'> & { translations: Partial<FindingTemplateTranslation>[] }>) {
       return await $fetch<FindingTemplate>(`/api/v1/findingtemplates/`, {
         method: 'POST',
         body: template,

@@ -399,6 +399,7 @@ class CommentExportImportSerializer(ExportImportSerializer):
     user = RelatedUserIdExportImportSerializer()
     answers = CommentAnswerExportImportSerializer(many=True)
     text_position = TextRangeSerializer(allow_null=True)
+    path = serializers.CharField(source='path_absolute')
 
     class Meta:
         model = Comment
@@ -410,14 +411,14 @@ class CommentExportImportSerializer(ExportImportSerializer):
 
     def get_obj_and_path(self, path_absolute):
         path_parts = path_absolute.split('.')
-        if len(path_parts) < 4 or path_parts[0] not in ['findings', 'sections']:
+        if len(path_parts) < 4 or path_parts[0] not in ['findings', 'sections'] or path_parts[2] != 'data':
             raise serializers.ValidationError('Invalid path')
 
         obj = None
         if path_parts[0] == 'findings':
-            obj = next(filter(lambda f: str(f.finding_id) == path_parts[2], self.context['project'].findings.all()), None)
+            obj = next(filter(lambda f: str(f.finding_id) == path_parts[1], self.context['project'].findings.all()), None)
         elif path_parts[0] == 'sections':
-            obj = next(filter(lambda s: str(s.section_id) == path_parts[2], self.context['project'].sections.all()), None)
+            obj = next(filter(lambda s: str(s.section_id) == path_parts[1], self.context['project'].sections.all()), None)
         if not obj:
             raise serializers.ValidationError('Invalid path')
 
@@ -429,7 +430,7 @@ class CommentExportImportSerializer(ExportImportSerializer):
         return obj, '.'.join(path_parts[2:])
 
     def create(self, validated_data):
-        obj, path = self.get_obj_and_path(validated_data.pop('path'))
+        obj, path = self.get_obj_and_path(validated_data.pop('path_absolute'))
 
         answers = validated_data.pop('answers', [])
         comment = super().create(validated_data | {

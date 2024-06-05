@@ -38,6 +38,7 @@ from reportcreator_api.pentests.models import (
     ReportSection,
     ReviewStatus,
 )
+from reportcreator_api.pentests.models.project import CommentStatus
 from reportcreator_api.tests.mock import (
     api_client,
     create_comment,
@@ -868,6 +869,36 @@ class TestProjectReportingDbSync:
         project_type.finding_fields = project_type.finding_fields | {'new_field': {'type': 'string'}}
         await project_type.asave()
         await self.assert_event(event_project_type_changed)
+
+    async def test_comment_sync(self):
+        # Create comment
+        res1 = await sync_to_async(self.api_client1.post)(
+            path=reverse('comment-list', kwargs={'project_pk': self.project.id}),
+            data={'path': f'{self.finding_path_prefix}.data.field_markdown', 'text_position': {'anchor': 1, 'head': 2}, 'text': 'comment text'},
+        )
+        await self.assert_event({ 'type': CollabEventType.CREATE, 'path': f'comments.{res1.data["id"]}', 'value': res1.data, 'client_id': None })
+
+        # # Update comment
+        comment_url = reverse('comment-detail', kwargs={'project_pk': self.project.id, 'pk': res1.data['id']})
+        comment_path_prefix = f'comments.{res1.data["id"]}'
+        res2 = await sync_to_async(self.api_client1.patch)(comment_url, data={'text': 'updated'})
+        await self.assert_event({ 'type': CollabEventType.UPDATE_KEY, 'path': comment_path_prefix + '.text', 'value': res2.data['text'], 'client_id': None })
+
+        # Create answer
+        res3 = await sync_to_async(self.api_client1.post)(
+            path=reverse('commentanswer-list', kwargs={'project_pk': self.project.id, 'comment_pk': res1.data['id']}),
+            data={'text': 'answer text'},
+        )
+        await self.assert_event({ 'type': CollabEventType.UPDATE_KEY, 'path': comment_path_prefix + '.answers', 'value': [res3.data], 'client_id': None })
+
+        # Update answer
+        answer_url = reverse('commentanswer-detail', kwargs={'project_pk': self.project.id, 'comment_pk': res1.data['id'], 'pk': res3.data['id']})
+        res4 = await sync_to_async(self.api_client1.patch)(answer_url, data={'text': 'updated'})
+        await self.assert_event({ 'type': CollabEventType.UPDATE_KEY, 'path': comment_path_prefix + '.answers', 'value': [res4.data], 'client_id': None})
+
+        # Delete comment
+        await sync_to_async(self.api_client1.delete)(comment_url)
+        await self.assert_event({ 'type': CollabEventType.DELETE, 'path': comment_path_prefix, 'client_id': None })
 
 
 @pytest.mark.django_db(transaction=True)

@@ -284,6 +284,10 @@ import { MarkdownEditorMode, type FieldDefinition, type UserShortInfo } from '~/
 import type { MarkdownProps } from "~/composables/markdown";
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const props = defineProps<MarkdownProps & {
   modelValue?: any;
   definition: FieldDefinition;

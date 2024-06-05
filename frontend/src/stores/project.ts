@@ -1,6 +1,6 @@
 import { orderBy, pick, set } from "lodash-es";
 import { groupNotes } from "@/stores/usernotes";
-import type { Comment, PentestFinding, PentestProject, ProjectNote, ProjectType, ReportSection } from "~/utils/types";
+import type { Comment, CommentAnswer, CommentStatus, PentestFinding, PentestProject, ProjectNote, ProjectType, ReportSection } from "~/utils/types";
 import { scoreFromVector } from "~/utils/cvss";
 
 export function sortFindings<T extends PentestFinding>({ findings, projectType, overrideFindingOrder = false, topLevelFields = false }: {findings: T[], projectType: ProjectType, overrideFindingOrder?: boolean, topLevelFields?: boolean}): T[] {
@@ -87,6 +87,40 @@ export const useProjectStore = defineStore('project', {
     },
     noteGroups() {
       return (projectId: string) => groupNotes(this.notes(projectId));
+    },
+    comments() {
+      return (projectId: string, options: {projectType: ProjectType, findingId?: string, sectionId?: string}) => {
+        // Filter and sort comments
+        const collabState = this.data[projectId]?.reportingCollabState;
+        let commentData = Object.values(collabState.data.comments).map(c => ({ 
+          ...c, 
+          dataPath: c.path.split('.').slice(3).join('.').replaceAll('.[', '['),
+          collabPath: collabState.apiPath + c.path,
+        } as Comment));
+        if (options.findingId) {
+          const basePath = `findings.${options.findingId}.data.`;
+          commentData = orderBy(
+            commentData.filter(c => c.path.startsWith(basePath)), 
+            [(c) => {
+              const fieldId = c.path.slice(basePath.length).split('.')?.[0];
+              return options.projectType?.finding_field_order.indexOf(fieldId)
+            }, 'path', 'created']
+          );
+        } else if (options.sectionId) {
+          const basePath = `sections.${options.sectionId}.data.`;
+          commentData = orderBy(
+            commentData.filter(c => c.path.startsWith(basePath)),
+            [(c) => {
+              const fieldId = c.path.slice(basePath.length).split('.')?.[0];
+              const sectionFields = options.projectType?.report_sections.find(s => s.id === options.sectionId)?.fields || [];
+              return sectionFields.indexOf(fieldId)
+            }, 'path', 'created']
+          );
+        } else {
+          commentData = [];
+        }
+        return commentData;
+      };
     },
   },
   actions: {
@@ -262,13 +296,74 @@ export const useProjectStore = defineStore('project', {
         body: orderedFindings.map(f => ({ id: f.id, order: f.order })),
       });
     },
-    async createNote(project: PentestProject, note: ProjectNote) {
-      note = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/`, {
+    async createComment(project: PentestProject, comment: Partial<Comment>) {
+      let path = comment.path;
+      if (!path) {
+        path = comment.collabPath?.split('/').at(-1);
+      }
+
+      const newComment = await $fetch<Comment>(`/api/v1/pentestprojects/${project.id}/comments/`, {
+        method: 'POST',
+        body: {
+          text: '',
+          text_position: null,
+          ...comment,
+          path,
+        },
+      });
+      newComment.editEnabled = true;
+
+      this.ensureExists(project.id);
+      this.data[project.id].reportingCollabState.data.comments[newComment.id] = newComment;
+      return newComment;
+    },
+    async deleteComment(project: PentestProject, comment: Comment) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/`, {
+        method: 'DELETE'
+      });
+      if (project.id in this.data) {
+        delete this.data[project.id].reportingCollabState.data.comments[comment.id];
+      }
+    },
+    async updateComment(project: PentestProject, comment: Comment) {
+      const obj = await $fetch<Comment>(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/`, {
+        method: 'PATCH',
+        body: comment,
+      });
+      if (project.id in this.data) {
+        this.data[project.id].reportingCollabState.data.comments[obj.id] = obj;
+      }
+    },
+    async resolveComment(project: PentestProject, comment: Comment, data: { status: CommentStatus }) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/resolve/`, {
+        method: 'POST',
+        body: data,
+      });
+    },
+    async createCommentAnswer(project: PentestProject, comment: Comment, answer: CommentAnswer) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answer/`, {
+        method: 'POST',
+        body: answer
+      });
+    },
+    async updateCommentAnswer(project: PentestProject, comment: Comment, answer: CommentAnswer) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answer/${answer.id}/`, {
+        method: 'PATCH',
+        body: answer
+      });
+    },
+    async deleteCommentAnswer(project: PentestProject, comment: Comment, answer: CommentAnswer) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answer/${answer.id}/`, {
+        method: 'DELETE'
+      });
+    },
+    async createNote(project: PentestProject, note: Partial<ProjectNote>) {
+      const newNote = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/`, {
         method: 'POST',
         body: note
       });
       this.ensureExists(project.id);
-      this.data[project.id].notesCollabState.data.notes[note.id] = note;
+      this.data[project.id].notesCollabState.data.notes[newNote.id] = newNote;
       return note;
     },
     async deleteNote(project: PentestProject, note: ProjectNote) {

@@ -21,17 +21,15 @@
           class="context-menu"
         >
           <v-list density="compact">
-            <btn-confirm
-              :disabled="modelValue.user?.id !== auth.user.value!.id"
-              :action="editAnswer"
-              :confirm="false"
-              button-variant="list-item"
-              button-icon="mdi-pencil"
-              button-text="Edit"
+            <v-list-item 
+              @click="editEnabled = true"
+              :disabled="props.readonly || modelValue.user?.id !== auth.user.value!.id"
+              prepend-icon="mdi-pencil"
+              title="Edit"
             />
             <btn-delete
               :delete="props.delete"
-              :disabled="modelValue.user?.id !== auth.user.value!.id"
+              :disabled="props.readonly || modelValue.user?.id !== auth.user.value!.id"
               button-variant="list-item"
             />
           </v-list>
@@ -43,12 +41,13 @@
   <v-card-text>
     <div v-if="editEnabled" @click.stop.prevent>
       <s-text-field
+        ref="textFieldRef"
         v-model="editText"
         density="compact"
       />
       <div class="mt-1">
         <s-btn-other @click="editEnabled = false" size="small" text="Cancel" />
-        <s-btn-other @click="performUpdate" size="small" text="Save" />
+        <s-btn-other @click="performUpdate" :loading="updateInProgress" size="small" text="Save" />
       </div>
     </div>
     <span v-else>{{ modelValue.text }}</span>
@@ -56,28 +55,47 @@
 </template>
 
 <script setup lang="ts">
-import { parseISO, formatISO9075 } from 'date-fns';
 import { type Comment } from '@/utils/types';
 
 const auth = useAuth();
 
 const modelValue = defineModel<Comment|CommentAnswer>({ required: true });
 const props = defineProps<{
+  readonly?: boolean;
   delete: () => Promise<void>;
+  update: (value: any) => Promise<void>;
 }>();
-
-const formattedDate = computed(() => formatISO9075(parseISO(modelValue.value.created)));
 
 const editEnabled = ref(false);
 const editText = ref('');
-function editAnswer() {
-  editEnabled.value = true;
-  editText.value = modelValue.value.text;
-}
+const textFieldRef = ref<HTMLInputElement|null>(null);
+watch(modelValue, () => {
+  const comment = modelValue.value as Comment;
+  if (comment.editEnabled) {
+    editEnabled.value = true;
+    comment.editEnabled = false;
+  }
+}, { immediate: true });
+watch(editEnabled, async (value) => {
+  if (value) {
+    editText.value = modelValue.value.text;
+    await nextTick();
+    textFieldRef.value?.focus();
+  }
+}, { immediate: true });
 
-function performUpdate() {
-  modelValue.value = { ...modelValue.value, text: editText.value };
-  editEnabled.value = false;
+const updateInProgress = ref(false);
+async function performUpdate() {
+  try {
+    updateInProgress.value = true;
+    const value = { ...modelValue.value, text: editText.value, editEnabled: false };
+    await props.update(value)
+    editEnabled.value = false;
+  } catch (error) {
+    requestErrorToast({ error })
+  } finally {
+    updateInProgress.value = false;
+  }
 }
 
 </script>

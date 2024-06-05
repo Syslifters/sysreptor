@@ -256,6 +256,8 @@ export type Comment = BaseModel & {
   text_original: string|null;
   answers: CommentAnswer[];
 
+  // Internal properties used by frontend
+  editEnabled?: boolean;
   dataPath?: string;
   collabPath?: string;
 }
