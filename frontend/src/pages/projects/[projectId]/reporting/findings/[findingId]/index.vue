@@ -69,6 +69,7 @@
       :project="project"
       :project-type="projectType"
       :finding-id="route.params.findingId as string"
+      :readonly="readonly"
     />
   </div>
 </template>

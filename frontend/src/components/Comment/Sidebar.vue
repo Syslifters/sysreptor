@@ -21,14 +21,28 @@
       <v-divider />
     </div>
 
-    <!-- TODO: community edition: comments disabled, readonly project -->
-
-    <div v-if="comments.length === 0">
-      <v-list-item title="No comments yet" />
-    </div>
-    
-    <v-list-item v-for="commentGroup, path in commentGroups" :key="path" class="pl-0 pr-0 pt-0">
-      <v-list-subheader :title="prettyFieldLabel(path as string)" class="mt-0 mb-1" />
+    <v-list-item v-if="!apiSettings.isProfessionalLicense">
+      Comments are available<br>
+      in SysReptor Professional.<br><br>
+      See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank" class="text-primary">https://docs.sysreptor.com/features-and-pricing/</a>
+    </v-list-item>
+    <v-list-item v-else-if="comments.length === 0" title="No comments yet" />
+    <v-list-item v-else v-for="commentGroup, path in commentGroups" :key="path" class="pl-0 pr-0 pt-0">
+      <v-list-subheader class="mt-0 mb-1">
+        <span>{{ prettyFieldLabel(path as string) }}</span>
+        <s-btn-icon
+          @click="onCommentEvent({ type: 'create', comment: { path } })"
+          :disabled="readonly"
+          size="small"
+          variant="flat"
+          color="secondary"
+          density="compact"
+          class="ml-2"
+        >
+          <v-icon icon="mdi-plus" />
+          <s-tooltip activator="parent" location="top">Add Comment</s-tooltip>
+        </s-btn-icon>
+      </v-list-subheader>
       
       <v-card 
         v-for="comment in commentGroup" :key="comment.id"
@@ -37,19 +51,20 @@
         :ripple="false"
         density="compact"
         class="ma-1"
-        :class="{'comment-selected': selectedComment?.id === comment?.id}"
+        :class="{'comment-selected': comment?.id === selectedComment?.id}"
       >
-        <!-- TODO: styles for resolved comments -->
+        <!-- TODO: styles for resolved comments; or collapse; or move to end -->
         <comment-content 
           :model-value="comment"
           :update="(c) => projectStore.updateComment(props.project, c)"
           :delete="() => projectStore.deleteComment(props.project, comment)"
-          :readonly="props.readonly"
+          :readonly="readonly"
+          placeholder="Comment text..."
         >
           <template #menu>
             <btn-confirm
               :action="() => projectStore.resolveComment(props.project, comment, { status: comment.status === CommentStatus.OPEN ? CommentStatus.RESOLVED : CommentStatus.OPEN })"
-              :disabled="props.readonly"
+              :disabled="readonly"
               :confirm="false"
               button-variant="icon"
               button-icon="mdi-check"
@@ -66,9 +81,18 @@
             :model-value="answer"
             :update="a => projectStore.updateCommentAnswer(props.project, comment, a)"
             :delete="() => projectStore.deleteCommentAnswer(props.project, comment, answer)"
-            :readonly="props.readonly"
+            :readonly="readonly"
+            placeholder="Answer..."
           />
-          <!-- TODO: create answer -->
+        </div>
+        <div v-if="comment.id === selectedComment?.id && comment.text && !readonly" class="ml-4">
+          <v-divider />
+          <comment-content
+            :model-value="{ text: '' } as unknown as CommentAnswer"
+            :update="a => projectStore.createCommentAnswer(props.project, comment, a)"
+            :initial-edit="true"
+            placeholder="Answer..."
+          />
         </div>
       </v-card>
       <v-divider class="mt-2" />
@@ -86,27 +110,29 @@ export type CommentPropType = {
 };
 
 const localSettings = useLocalSettings();
+const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 
 const props = defineProps<{
-  readonly: boolean;
   project: PentestProject;
   projectType: ProjectType;
   findingId?: string;
   sectionId?: string;
+  readonly?: boolean;
 }>();
 
 const comments = computed(() => projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId }));
-const commentGroups = computed(() => groupBy(comments.value, 'dataPath'));
+const commentGroups = computed(() => groupBy(comments.value, 'path'));
 const selectedComment = ref<Comment|null>(null);
 const commentProps = computed(() => ({
   comments: comments.value,
   selected: selectedComment.value,
 }));
+const readonly = computed(() => props.readonly || !apiSettings.isProfessionalLicense);
 
-function prettyFieldLabel(dataPath: string) {
+function prettyFieldLabel(path: string) {
   let definition: any|FieldDefinition = props.findingId ? props.projectType.finding_fields : props.sectionId ? props.projectType.report_fields : undefined;
-  const pathParts = dataPath.replaceAll('[', '.[').split('.');
+  const pathParts = path.split('.').slice(3);
   const pathLabels = [];
   for (const pp of pathParts) {
     let label = null;
@@ -192,6 +218,5 @@ defineExpose({
     opacity: var(--v-activated-opacity);
   }
 }
-
 
 </style>

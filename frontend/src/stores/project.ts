@@ -297,11 +297,12 @@ export const useProjectStore = defineStore('project', {
       });
     },
     async createComment(project: PentestProject, comment: Partial<Comment>) {
+      this.ensureExists(project.id);
+
       let path = comment.path;
       if (!path) {
         path = comment.collabPath?.split('/').at(-1);
       }
-
       const newComment = await $fetch<Comment>(`/api/v1/pentestprojects/${project.id}/comments/`, {
         method: 'POST',
         body: {
@@ -310,10 +311,12 @@ export const useProjectStore = defineStore('project', {
           ...comment,
           path,
         },
+        query: {
+          version: this.data[project.id].reportingCollabState.version,
+        },
       });
       newComment.editEnabled = true;
 
-      this.ensureExists(project.id);
       this.data[project.id].reportingCollabState.data.comments[newComment.id] = newComment;
       return newComment;
     },
@@ -341,21 +344,25 @@ export const useProjectStore = defineStore('project', {
       });
     },
     async createCommentAnswer(project: PentestProject, comment: Comment, answer: CommentAnswer) {
-      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answer/`, {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answers/`, {
         method: 'POST',
         body: answer
       });
     },
     async updateCommentAnswer(project: PentestProject, comment: Comment, answer: CommentAnswer) {
-      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answer/${answer.id}/`, {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answers/${answer.id}/`, {
         method: 'PATCH',
         body: answer
       });
     },
     async deleteCommentAnswer(project: PentestProject, comment: Comment, answer: CommentAnswer) {
-      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answer/${answer.id}/`, {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answers/${answer.id}/`, {
         method: 'DELETE'
       });
+      const commentData = this.data[project.id]?.reportingCollabState.data.comments[comment.id];
+      if (commentData) {
+        commentData.answers = commentData.answers.filter(a => a.id !== answer.id);
+      }
     },
     async createNote(project: PentestProject, note: Partial<ProjectNote>) {
       const newNote = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/`, {

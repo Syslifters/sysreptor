@@ -108,6 +108,7 @@ export type ApiSettings = {
         readonly spellcheck: boolean;
         readonly archiving: boolean;
         readonly permissions: boolean;
+        readonly comments: boolean;
     };
     readonly guest_permissions: {
       readonly import_projects: boolean;
@@ -237,14 +238,17 @@ export const ProjectTypeStatusItems = Object.freeze((ReviewStatusItems as unknow
   { value: ProjectTypeStatus.DEPRECATED, title: 'Deprecated', icon: 'mdi-close-octagon-outline' },
 ]))
 
-export type CommentAnswer = BaseModel & {
-  text: string;
-  user: UserShortInfo|null;
-};
-
 export enum CommentStatus {
   OPEN = 'open',
   RESOLVED = 'resolved',
+};
+
+export type CommentAnswer = BaseModel & {
+  text: string;
+  user: UserShortInfo|null;
+
+  // Internal properties used by frontend
+  editEnabled?: boolean;
 };
 
 export type Comment = BaseModel & {
