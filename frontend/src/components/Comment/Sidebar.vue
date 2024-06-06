@@ -28,7 +28,7 @@
     </v-list-item>
     <v-list-item v-else-if="comments.length === 0" title="No comments yet" />
     <v-list-item v-else v-for="commentGroup, path in commentGroups" :key="path" class="pl-0 pr-0 pt-0">
-      <v-list-subheader class="mt-0 mb-1">
+      <v-list-subheader class="mt-1 mb-1">
         <span>{{ prettyFieldLabel(path as string) }}</span>
         <s-btn-icon
           @click="onCommentEvent({ type: 'create', comment: { path } })"
@@ -182,7 +182,6 @@ async function selectComment(comment: Comment, options?: { focus?: string }) {
 
 async function onCommentEvent(event: any) {
   if (event.type === 'create' && !props.readonly) {
-    // TODO: rebase with collabState.version (in API)
     const comment = await projectStore.createComment(props.project, event.comment);
     await selectComment(comment, { focus: 'comment' });
     comment.editEnabled = false;

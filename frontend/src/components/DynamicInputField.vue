@@ -1,6 +1,6 @@
 <template>
-  <v-hover>
-    <template #default="{ isHovering, props: hoverProps }">
+  <v-hover v-model="isHovering">
+    <template #default="{ props: hoverProps }">
       <div :id="props.id" class="mt-4" :class="['d-flex', 'flex-row', nestedClass]" v-bind="hoverProps">
         <div class="flex-grow-width">
           <!-- String -->
@@ -113,7 +113,16 @@
 
           <!-- Object -->
           <s-card v-else-if="definition.type === 'object'">
-            <v-card-title class="text-body-1">{{ label }}</v-card-title>
+            <v-card-item class="pb-0">
+              <v-card-title class="text-body-1">{{ label }}</v-card-title>
+              <template #append>
+                <comment-btn
+                  v-if="props.comment && props.collab"
+                  density="comfortable"
+                  v-bind="commentBtnAttrs"
+                />
+              </template>
+            </v-card-item>
 
             <v-card-text>
               <dynamic-input-field
@@ -135,9 +144,14 @@
             <v-card-title class="text-body-1">
               <div class="d-flex flex-row">
                 <span>{{ label }}</span>
-
+                <v-spacer />
+                
+                <comment-btn
+                  v-if="props.comment && props.collab"
+                  density="comfortable"
+                  v-bind="commentBtnAttrs"
+                />
                 <template v-if="definition.items!.type === 'string'">
-                  <v-spacer />
                   <s-btn-icon
                     @click="bulkEditList = !bulkEditList"
                     density="comfortable"
@@ -255,23 +269,10 @@
             {{ definition }}
           </div>
         </div>
-        <div v-if="props.comment && props.collab && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type)">
-          <s-btn-icon
-            v-if="commentsOnField.length > 0"
-            @click="emit('comment', {type: 'select', comment: commentsOnField[0]})"
-          >
-            <v-badge :content="commentsOnField.length" floating :max="9">
-              <v-icon icon="mdi-comment-text-outline" />
-            </v-badge>
-          </s-btn-icon>
-          <s-btn-icon
-            v-else
-            @click="emit('comment', {type: 'create', comment: { collabPath: props.collab.path }})"
-            :disabled="props.disabled || props.readonly"
-            icon="mdi-comment-plus-outline"
-            :style="{ opacity: isHovering ? 1 : 0 }"
-          />
-        </div>
+        <comment-btn
+          v-if="props.comment && props.collab && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type)"
+          v-bind="commentBtnAttrs"
+        />
       </div>
     </template>
   </v-hover>
@@ -527,6 +528,15 @@ const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
     ...fieldAttrs.value,
   };
 });
+
+const isHovering = ref(false);
+const commentBtnAttrs = computed(() => ({
+  comments: commentsOnField.value,
+  onComment: (v: any) => emit('comment', v),
+  collabPath: props.collab?.path,
+  isHovering: isHovering.value,
+  disabled: props.disabled || props.readonly,
+}));
 </script>
 
 <style lang="scss" scoped>

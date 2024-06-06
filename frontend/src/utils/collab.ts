@@ -975,7 +975,7 @@ export function collabSubpath(collab: CollabPropType, subPath: string|null) {
   const path = collab.path + (addDot ? '.' : '') + (subPath || '');
 
   function isSubpath(subpath: string, parent: string) {
-    return subpath === parent || subpath.startsWith(parent + '.');
+    return subpath === parent || subpath.startsWith(parent + (!parent.endsWith('/') ? '.' : ''));
   }
 
   return {

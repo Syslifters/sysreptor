@@ -105,7 +105,6 @@ const toolbarAttrs = computed(() => ({
   },
 }));
 const historyVisible = ref(false);
-
 const commentSidebarRef = ref<InstanceType<typeof CommentSidebar>>();
 
 function updateKey(key: string, value: any) {
