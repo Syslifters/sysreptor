@@ -41,6 +41,8 @@
     </v-card-item>
 
     <v-card-text>
+      <slot name="prepend-text" />
+
       <div v-if="editEnabled" @click.stop.prevent>
         <v-textarea
           ref="textFieldRef"

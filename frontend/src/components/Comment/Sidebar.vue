@@ -13,6 +13,26 @@
           <pro-info>Comments</pro-info>
         </v-list-item-title>
         <template #append>
+          <s-btn-icon>
+            <v-icon icon="mdi-filter-variant" />
+            <v-menu activator="parent">
+              <v-list 
+                :selected="[localSettings.reportingCommentStatusFilter]" 
+                @update:selected="localSettings.reportingCommentStatusFilter = $event?.[0] || 'all'"
+                mandatory
+              >
+                <v-list-item 
+                  title="All"
+                  :value="'all'"
+                />
+                <v-list-item
+                  title="Open"
+                  :value="CommentStatus.OPEN"
+                />
+              </v-list>
+            </v-menu>
+          </s-btn-icon>
+
           <v-btn icon variant="text" @click="localSettings.reportingCommentSidebarVisible = false">
             <v-icon size="x-large" icon="mdi-close" />
           </v-btn>
@@ -26,7 +46,7 @@
       in SysReptor Professional.<br><br>
       See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank" class="text-primary">https://docs.sysreptor.com/features-and-pricing/</a>
     </v-list-item>
-    <v-list-item v-else-if="comments.length === 0" title="No comments yet" />
+    <v-list-item v-else-if="commentsVisible.length === 0" title="No comments found" />
     <v-list-item v-else v-for="commentGroup, path in commentGroups" :key="path" class="pl-0 pr-0 pt-0">
       <v-list-subheader class="mt-1 mb-1">
         <span>{{ prettyFieldLabel(path as string) }}</span>
@@ -51,9 +71,12 @@
         :ripple="false"
         density="compact"
         class="ma-1"
-        :class="{'comment-selected': comment?.id === selectedComment?.id}"
+        :variant="comment?.id === selectedComment?.id ? 'outlined' : undefined"
+        :class="{
+          'comment-selected': comment?.id === selectedComment?.id,
+          'comment-resolved': comment.status !== CommentStatus.OPEN,
+        }"
       >
-        <!-- TODO: styles for resolved comments; or collapse; or move to end -->
         <comment-content 
           :model-value="comment"
           :update="(c) => projectStore.updateComment(props.project, c)"
@@ -64,6 +87,7 @@
         >
           <template #menu>
             <btn-confirm
+              v-if="comment.status === CommentStatus.OPEN"
               :action="() => projectStore.resolveComment(props.project, comment, { status: comment.status === CommentStatus.OPEN ? CommentStatus.RESOLVED : CommentStatus.OPEN })"
               :disabled="readonly"
               :confirm="false"
@@ -74,6 +98,9 @@
               :button-color="'success'"
               density="compact"
             />
+          </template>
+          <template #prepend-text>
+            <blockquote v-if="comment.text_original" class="comment-textoriginal">{{ truncate(comment.text_original, { length: 100 }) }}</blockquote>
           </template>
         </comment-content>
         <div v-for="answer in comment.answers" :key="answer.id" class="ml-4">
@@ -87,7 +114,7 @@
             class="answer-content"
           />
         </div>
-        <div v-if="comment.id === selectedComment?.id && comment.text && !readonly" class="ml-4">
+        <div v-if="comment.id === selectedComment?.id && comment.status === CommentStatus.OPEN && comment.text && !readonly" class="ml-4">
           <v-divider />
           <comment-content
             :model-value="{ text: '' } as unknown as CommentAnswer"
@@ -106,7 +133,8 @@
 <script setup lang="ts">
 import omit from 'lodash/omit';
 import groupBy from 'lodash/groupBy';
-import { type Comment, type FieldDefinition } from '@/utils/types';
+import truncate from 'lodash/truncate';
+import { CommentStatus, type Comment, type FieldDefinition } from '@/utils/types';
 
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
@@ -120,11 +148,13 @@ const props = defineProps<{
   readonly?: boolean;
 }>();
 
-const comments = computed(() => projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId }));
-const commentGroups = computed(() => groupBy(comments.value, 'path'));
+const commentsAll = computed(() => projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId }));
+const commentsVisible = computed(() => commentsAll.value.filter(c => localSettings.reportingCommentStatusFilter === 'all' ? true : c.status === localSettings.reportingCommentStatusFilter));
+
+const commentGroups = computed(() => groupBy(commentsVisible.value, 'path'));
 const selectedComment = ref<Comment|null>(null);
 const commentProps = computed(() => ({
-  comments: comments.value,
+  comments: commentsVisible.value,
   selected: selectedComment.value,
 }));
 const readonly = computed(() => props.readonly || !apiSettings.isProfessionalLicense);
@@ -240,6 +270,17 @@ defineExpose({
     background-color: currentColor;
     opacity: var(--v-activated-opacity);
   }
+}
+
+.comment-resolved {
+  opacity: vuetify.$card-disabled-opacity;
+}
+
+.comment-textoriginal {
+  background-color: rgba(var(--v-theme-on-surface), 0.05);
+  border-left: 5px solid rgba(var(--v-theme-on-surface), 0.3);
+  padding-left: 0.2em;
+  margin-bottom: 0.4em;
 }
 
 </style>

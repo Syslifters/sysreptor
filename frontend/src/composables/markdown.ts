@@ -1,6 +1,7 @@
 import { v4 as uuid4 } from 'uuid';
 import { isEqual } from 'lodash-es';
 import type { PropType } from "vue";
+import { sortBy } from "lodash-es";
 import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,
@@ -238,12 +239,11 @@ export function useMarkdownEditorBase(options: {
 
           // Select current comment if the cursor is within a comment
           if (options.props.value.comment && options.props.value.collab && editorState.value?.selection.main.empty && viewUpdate.selectionSet) {
-            const selectedComment = options.props.value.comment.comments
+            const commentsAroundCursor = options.props.value.comment.comments
               .filter(c => c.collabPath === options.props.value.collab?.path && c.text_range)
-              .find((c) => {
-                const range = SelectionRange.fromJSON({ anchor: c.text_range!.from, head: c.text_range!.to });
-                return range.from < editorState.value!.selection.main.from && range.to > editorState.value!.selection.main.to;
-              });
+              .filter(c => c.text_range!.from < editorState.value!.selection.main.from && c.text_range!.to > editorState.value!.selection.main.to);
+            const selectedComment = sortBy(commentsAroundCursor, [c => c.text_range!.to - c.text_range!.from])[0];
+
             if (selectedComment) {
               options.emit('comment', { 
                 type: 'select', 

@@ -1,5 +1,8 @@
+// @ts-ignore
+import sortBy from 'lodash/sortBy';
 import { EditorSelection, RangeSet, RangeValue, SelectionRange, StateEffect, StateField } from "@codemirror/state"
 import { Decoration, type DecorationSet, EditorView, hoverTooltip, layer, RectangleMarker, type Tooltip } from "@codemirror/view"
+
 
 export type CommentInfo = {
   id: string;
@@ -16,7 +19,7 @@ const commentField = StateField.define<DecorationSet>({
     if (newComments) {
       return comments.update({
         filter: () => false,
-        add: newComments.map(c => Decoration.mark({
+        add: sortBy(newComments, ['text_range.from']).map((c: CommentInfo) => Decoration.mark({
           class: 'cm-comment',
           attributes: { id: `comment-textrange-${c.id}` },
         }).range(c.text_range.from, c.text_range.to)),

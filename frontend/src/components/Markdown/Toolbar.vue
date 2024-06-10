@@ -37,7 +37,7 @@
     <markdown-toolbar-button
       v-if="props.comment"
       @click="emitCreateComment"
-      title="Comment"
+      title="Add comment"
       icon="mdi-comment-plus-outline"
       :disabled="props.disabled || !props.editorState || props.editorState?.selection.main.empty"
     />
