@@ -95,7 +95,6 @@ import {
   isTaskListInSelection,
 } from 'reportcreator-markdown/editor';
 import type { VToolbar } from 'vuetify/lib/components/index.mjs';
-import type { CommentPropType } from '../Comment/Sidebar.vue';
 import { MarkdownEditorMode } from '@/utils/types';
 
 const props = defineProps<{

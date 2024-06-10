@@ -3,7 +3,13 @@
     v-if="props.comments.length > 0"
     @click="emit('comment', {type: 'select', comment: props.comments[0], openSidebar: true})"
   >
-    <v-badge :content="props.comments.length" floating :max="9">
+    <v-badge 
+      :content="props.comments.length" 
+      floating 
+      :max="9"
+      :offset-x="6"
+      :offset-y="6"
+    >
       <v-icon icon="mdi-comment-text-outline" />
     </v-badge>
   </s-btn-icon>
@@ -17,6 +23,8 @@
 </template>
 
 <script setup lang="ts">
+import { type Comment } from '@/utils/types';
+
 const props = defineProps<{
   comments: Comment[];
   collabPath: string,

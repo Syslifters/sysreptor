@@ -533,7 +533,7 @@ const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({
   comments: commentsOnField.value,
   onComment: (v: any) => emit('comment', v),
-  collabPath: props.collab?.path,
+  collabPath: props.collab?.path || '',
   isHovering: isHovering.value,
   disabled: props.disabled || props.readonly,
 }));

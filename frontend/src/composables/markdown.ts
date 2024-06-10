@@ -17,7 +17,6 @@ import {
   SelectionRange,
 } from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '@/utils/types';
-import type { CommentPropType } from '~/components/Comment/Sidebar.vue';
 
 export type MarkdownProps = {
   lang?: string|null;

@@ -108,11 +108,6 @@ import omit from 'lodash/omit';
 import groupBy from 'lodash/groupBy';
 import { type Comment, type FieldDefinition } from '@/utils/types';
 
-export type CommentPropType = {
-  comments: Comment[];
-  selected: Comment|null;
-};
-
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
