@@ -262,7 +262,6 @@ export type Comment = BaseModel & {
 
   // Internal properties used by frontend
   editEnabled?: boolean;
-  dataPath?: string;
   collabPath?: string;
 }
 

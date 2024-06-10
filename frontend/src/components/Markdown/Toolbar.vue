@@ -34,6 +34,13 @@
       :disabled="props.disabled || !spellcheckSupported"
       :active="spellcheckEnabled"
     />
+    <markdown-toolbar-button
+      v-if="props.comment"
+      @click="$emit('comment', {type: 'create', comment: { text: '', collabPath: props.collab?.path, text_position: props.editorState?.selection.main.toJSON() }})"
+      title="Comment"
+      icon="mdi-comment-plus-outline"
+      :disabled="props.disabled || !props.editorState || props.editorState?.selection.main.empty"
+    />
     <span class="separator" />
     <markdown-toolbar-button @click="codemirrorAction(undo)" title="Undo" icon="mdi-undo" :disabled="props.disabled || !canUndo" />
     <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
@@ -88,6 +95,7 @@ import {
   isTaskListInSelection,
 } from 'reportcreator-markdown/editor';
 import type { VToolbar } from 'vuetify/lib/components/index.mjs';
+import type { CommentPropType } from '../Comment/Sidebar.vue';
 import { MarkdownEditorMode } from '@/utils/types';
 
 const props = defineProps<{
@@ -97,12 +105,15 @@ const props = defineProps<{
   markdownEditorMode?: MarkdownEditorMode;
   disabled?: boolean;
   lang?: string|null;
+  collab?: CollabPropType;
+  comment?: CommentPropType;
   uploadFiles?: (files: FileList) => Promise<void>;
   fileUploadInProgress?: boolean;
 }>();
 const emit = defineEmits<{
   'update:spellcheckEnabled': [value: boolean];
   'update:markdownEditorMode': [value: MarkdownEditorMode];
+  'comment': [value: any];
 }>();
 
 const apiSettings = useApiSettings();

@@ -94,7 +94,6 @@ export const useProjectStore = defineStore('project', {
         const collabState = this.data[projectId]?.reportingCollabState;
         let commentData = Object.values(collabState.data.comments).map(c => ({ 
           ...c, 
-          dataPath: c.path.split('.').slice(3).join('.').replaceAll('.[', '['),
           collabPath: collabState.apiPath + c.path,
         } as Comment));
         if (options.findingId) {

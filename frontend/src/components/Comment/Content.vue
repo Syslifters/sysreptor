@@ -1,65 +1,67 @@
 <template>
-  <v-card-item class="comment-header">
-    <div v-if="!props.initialEdit">
-      <span v-if="modelValue.user" class="text-subtitle-2 text-medium-emphasis">
-        @{{ modelValue.user.username }}
-        <s-tooltip activator="parent" :text="modelValue.user.name" />
-      </span>
-      <chip-date :value="modelValue.created" size="small" />
-    </div>
-
-    <template #append v-if="!props.initialEdit">
-      <slot name="menu" />
-
-      <s-btn-icon density="compact">
-        <v-icon icon="mdi-dots-vertical" />
-
-        <v-menu 
-          activator="parent" 
-          location="bottom left" 
-          :close-on-content-click="true"
-          class="context-menu"
-        >
-          <v-list density="compact">
-            <v-list-item 
-              @click="editEnabled = true"
-              :disabled="props.readonly || modelValue.user?.id !== auth.user.value!.id"
-              prepend-icon="mdi-pencil"
-              title="Edit"
-            />
-            <btn-delete
-              v-if="props.delete"
-              :delete="props.delete"
-              :disabled="props.readonly || modelValue.user?.id !== auth.user.value!.id"
-              button-variant="list-item"
-            />
-          </v-list>
-        </v-menu>
-      </s-btn-icon>
-    </template>
-  </v-card-item>
-
-  <v-card-text>
-    <div v-if="editEnabled" @click.stop.prevent>
-      <v-textarea
-        ref="textFieldRef"
-        v-model="editText"
-        :placeholder="props.placeholder"
-        density="compact"
-        variant="outlined"
-        rows="1"
-        auto-grow
-        hide-details="auto"
-        spellcheck="false"
-        class="comment-textfield"
-      />
-      <div class="mt-1">
-        <s-btn-other v-if="!props.initialEdit" @click="editEnabled = false" size="small" text="Cancel" />
-        <s-btn-other @click="performUpdate" :loading="updateInProgress" size="small" text="Save" />
+  <div>
+    <v-card-item class="comment-header">
+      <div v-if="!props.initialEdit">
+        <span v-if="modelValue.user" class="text-subtitle-2 text-medium-emphasis">
+          @{{ modelValue.user.username }}
+          <s-tooltip activator="parent" :text="modelValue.user.name" />
+        </span>
+        <chip-date :value="modelValue.created" size="small" />
       </div>
-    </div>
-    <span v-else class="comment-text">{{ modelValue.text }}</span>
-  </v-card-text>
+
+      <template #append v-if="!props.initialEdit">
+        <slot name="menu" />
+
+        <s-btn-icon density="compact">
+          <v-icon icon="mdi-dots-vertical" />
+
+          <v-menu 
+            activator="parent" 
+            location="bottom left" 
+            :close-on-content-click="true"
+            class="context-menu"
+          >
+            <v-list density="compact">
+              <v-list-item 
+                @click="editEnabled = true"
+                :disabled="props.readonly || modelValue.user?.id !== auth.user.value!.id"
+                prepend-icon="mdi-pencil"
+                title="Edit"
+              />
+              <btn-delete
+                v-if="props.delete"
+                :delete="props.delete"
+                :disabled="props.readonly || modelValue.user?.id !== auth.user.value!.id"
+                button-variant="list-item"
+              />
+            </v-list>
+          </v-menu>
+        </s-btn-icon>
+      </template>
+    </v-card-item>
+
+    <v-card-text>
+      <div v-if="editEnabled" @click.stop.prevent>
+        <v-textarea
+          ref="textFieldRef"
+          v-model="editText"
+          :placeholder="props.placeholder"
+          density="compact"
+          variant="outlined"
+          rows="1"
+          auto-grow
+          hide-details="auto"
+          spellcheck="false"
+          class="comment-textfield"
+        />
+        <div class="mt-1">
+          <s-btn-other v-if="!props.initialEdit" @click="editEnabled = false" size="small" text="Cancel" />
+          <s-btn-other @click="performUpdate" :loading="updateInProgress" size="small" text="Save" />
+        </div>
+      </div>
+      <span v-else class="comment-text">{{ modelValue.text }}</span>
+    </v-card-text>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -85,11 +87,9 @@ watch(modelValue, () => {
     modelValue.value.editEnabled = false;
   }
 }, { immediate: true });
-watch(editEnabled, async (value) => {
+watch(editEnabled, (value) => {
   if (value) {
     editText.value = modelValue.value.text;
-    await nextTick();
-    textFieldRef.value?.focus();
   }
 }, { immediate: true });
 

@@ -12,15 +12,19 @@ import {
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
   Transaction,
   remoteSelection, setRemoteClients,
+  commentsExtension, setComments,
   type Extension,
+  SelectionRange,
 } from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '@/utils/types';
+import type { CommentPropType } from '~/components/Comment/Sidebar.vue';
 
 export type MarkdownProps = {
   lang?: string|null;
   spellcheckEnabled?: boolean;
   markdownEditorMode?: MarkdownEditorMode;
   collab?: CollabPropType;
+  comment?: CommentPropType;
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrl?: (fileSrc: string) => string;
   rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
@@ -60,6 +64,10 @@ export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean
       type: Object as PropType<CollabPropType>,
       default: undefined,
     },
+    comment: {
+      type: Object as PropType<CommentPropType>,
+      default: undefined,
+    },
     uploadFile: {
       type: Function as PropType<MarkdownProps['uploadFile']>,
       default: undefined,
@@ -75,7 +83,7 @@ export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean
   }
 }
 export function makeMarkdownEmits() {
-  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'collab', 'focus', 'blur'];
+  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'collab', 'comment', 'focus', 'blur'];
 }
 
 export function useMarkdownEditorBase(options: {
@@ -196,7 +204,7 @@ export function useMarkdownEditorBase(options: {
         }),
         EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
           editorState.value = viewUpdate.state;
-          
+
           // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
           if (viewUpdate.docChanged) {
             // Collab updates
@@ -227,6 +235,24 @@ export function useMarkdownEditorBase(options: {
               focus: hasFocus,
               selection: viewUpdate.state.selection,
             });
+          }
+
+          // Select current comment if the cursor is within a comment
+          if (options.props.value.comment && options.props.value.collab && editorState.value?.selection.main.empty && viewUpdate.selectionSet) {
+            const selectedComment = options.props.value.comment.comments
+              .filter(c => c.collabPath === options.props.value.collab?.path && c.text_position)
+              .find((c) => {
+                const range = SelectionRange.fromJSON(c.text_position);
+                return range.from < editorState.value!.selection.main.from && range.to > editorState.value!.selection.main.to;
+              });
+            if (selectedComment) {
+              options.emit('comment', { 
+                type: 'select', 
+                comment: selectedComment, 
+                // Open comment sidebar only on click on comment range, not when moving cursor
+                openSidebar: viewUpdate.transactions.some(tr => tr.isUserEvent('select.pointer')), 
+              });
+            }
           }
         }),
         remoteSelection(),
@@ -338,7 +364,22 @@ export function useMarkdownEditorBase(options: {
 
     options.editorView.value.dispatch({
       effects: [
-        setRemoteClients.of(remoteClients)
+        setRemoteClients.of(remoteClients),
+      ]
+    })
+  });
+  watch([() => options.props.value.comment, () => options.editorView.value], () => {
+    if (!options.editorView.value || !options.props.value.comment || !options.props.value.collab) {
+      return;
+    }
+
+    const comments = options.props.value.comment.comments
+      .filter(c => c.collabPath === options.props.value.collab!.path && c.text_position)
+      .map(c => ({ id: c.id, text_position: SelectionRange.fromJSON(c.text_position) }));
+
+    options.editorView.value.dispatch({
+      effects: [
+        setComments.of(comments),
       ]
     })
   });
@@ -362,6 +403,9 @@ export function useMarkdownEditorBase(options: {
     uploadFiles: fileUploadEnabled.value ? uploadFiles : undefined,
     fileUploadInProgress: fileUploadInProgress.value,
     lang: options.props.value.lang,
+    collab: options.props.value.collab,
+    comment: options.props.value.comment,
+    onComment: (value: any) => options.emit('comment', value),
     spellcheckEnabled: options.props.value.spellcheckEnabled,
     'onUpdate:spellcheckEnabled': (val: boolean) => options.emit('update:spellcheckEnabled', val),
     markdownEditorMode: options.props.value.markdownEditorMode,
@@ -443,6 +487,7 @@ export function markdownEditorDefaultExtensions() {
     markdown(),
     syntaxHighlighting(markdownHighlightStyle),
     markdownHighlightCodeBlocks,
+    commentsExtension(),
   ];
 }
 

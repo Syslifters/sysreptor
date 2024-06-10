@@ -60,6 +60,7 @@
           :delete="() => projectStore.deleteComment(props.project, comment)"
           :readonly="readonly"
           placeholder="Comment text..."
+          class="comment-content"
         >
           <template #menu>
             <btn-confirm
@@ -83,6 +84,7 @@
             :delete="() => projectStore.deleteCommentAnswer(props.project, comment, answer)"
             :readonly="readonly"
             placeholder="Answer..."
+            class="answer-content"
           />
         </div>
         <div v-if="comment.id === selectedComment?.id && comment.text && !readonly" class="ml-4">
@@ -92,6 +94,7 @@
             :update="a => projectStore.createCommentAnswer(props.project, comment, a)"
             :initial-edit="true"
             placeholder="Answer..."
+            class="answer-content answer-new"
           />
         </div>
       </v-card>
@@ -101,6 +104,7 @@
 </template>
 
 <script setup lang="ts">
+import omit from 'lodash/omit';
 import groupBy from 'lodash/groupBy';
 import { type Comment, type FieldDefinition } from '@/utils/types';
 
@@ -161,21 +165,46 @@ watch(() => localSettings.reportingCommentSidebarVisible, (value) => {
   }
 });
 
-async function selectComment(comment: Comment, options?: { focus?: string }) {
+async function selectComment(comment: Comment|null, options?: { focus?: string, openSidebar?: boolean }) {
+  if (selectedComment.value?.id === comment?.id) {
+    return;
+  }
+
   selectedComment.value = comment;
 
   if (comment) {
     // Open comment sidebar
-    localSettings.reportingCommentSidebarVisible = true;
+    if (options?.openSidebar) {
+      localSettings.reportingCommentSidebarVisible = true;
+    }
     await nextTick();
 
     // Scroll to focussed element
-    if (options?.focus === 'field') {
-      const el = document.getElementById(`comment-ref-${comment.id}`) || document.getElementById(comment.dataPath || '');
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else if (options?.focus === 'comment') {
-      const el = document.getElementById(`comment-${comment.id}`);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (options?.focus === 'comment') {
+      const elComment = document.getElementById(`comment-${comment.id}`);
+      elComment?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      const commentInput = elComment?.querySelector('.comment-content textarea') as HTMLTextAreaElement|undefined;
+      commentInput?.focus({ preventScroll: true });
+    } else if (options?.focus === 'field') {
+      const filedId = comment.path.split('.').slice(3).join('.').replaceAll('.[', '[');
+      const elField = document.getElementById(filedId);
+      elField?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      const elFieldInput = (elField?.querySelector('*[contenteditable]') || elField?.querySelector('input')) as HTMLInputElement|undefined;
+      elFieldInput?.focus({ preventScroll: true });
+
+      const elCommentTextRange = document.getElementById(`comment-textrange-${comment.id}`);
+      if (elFieldInput && elCommentTextRange && comment.text_position) {
+        const range = document.createRange();
+        range.selectNode(elCommentTextRange);
+        range.setStart(elCommentTextRange, 0);
+        range.setEnd(elCommentTextRange, 0);
+
+        const selection = document.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range)
+      }
     }
   }
 }
@@ -183,10 +212,10 @@ async function selectComment(comment: Comment, options?: { focus?: string }) {
 async function onCommentEvent(event: any) {
   if (event.type === 'create' && !props.readonly) {
     const comment = await projectStore.createComment(props.project, event.comment);
-    await selectComment(comment, { focus: 'comment' });
+    await selectComment(comment, { focus: 'comment', openSidebar: true });
     comment.editEnabled = false;
   } else if (event.type === 'select') {
-    await selectComment(event.comment, { focus: 'comment' });
+    await selectComment(event.comment, { focus: 'comment', ...omit(event, ['type', 'comment']) });
   }
 }
 
