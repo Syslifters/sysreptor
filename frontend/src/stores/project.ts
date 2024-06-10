@@ -314,7 +314,7 @@ export const useProjectStore = defineStore('project', {
           version: this.data[project.id].reportingCollabState.version,
         },
       });
-      newComment.editEnabled = true;
+      newComment.isNew = true;
 
       this.data[project.id].reportingCollabState.data.comments[newComment.id] = newComment;
       return newComment;

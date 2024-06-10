@@ -64,67 +64,14 @@
         </s-btn-icon>
       </v-list-subheader>
       
-      <v-card 
+      <comment-detail
         v-for="comment in commentGroup" :key="comment.id"
-        :id="`comment-${comment.id}`"
+        :comment="comment"
+        :project="props.project"
         @click="selectComment(comment, { focus: 'field' })"
-        :ripple="false"
-        density="compact"
-        class="ma-1"
-        :variant="comment?.id === selectedComment?.id ? 'outlined' : undefined"
-        :class="{
-          'comment-selected': comment?.id === selectedComment?.id,
-          'comment-resolved': comment.status !== CommentStatus.OPEN,
-        }"
-      >
-        <comment-content 
-          :model-value="comment"
-          :update="(c) => projectStore.updateComment(props.project, c)"
-          :delete="() => projectStore.deleteComment(props.project, comment)"
-          :readonly="readonly"
-          placeholder="Comment text..."
-          class="comment-content"
-        >
-          <template #menu>
-            <btn-confirm
-              v-if="comment.status === CommentStatus.OPEN"
-              :action="() => projectStore.resolveComment(props.project, comment, { status: comment.status === CommentStatus.OPEN ? CommentStatus.RESOLVED : CommentStatus.OPEN })"
-              :disabled="readonly"
-              :confirm="false"
-              button-variant="icon"
-              button-icon="mdi-check"
-              button-text="Resolve"
-              tooltip-text="Resolve comment"
-              :button-color="'success'"
-              density="compact"
-            />
-          </template>
-          <template #prepend-text>
-            <blockquote v-if="comment.text_original" class="comment-textoriginal">{{ truncate(comment.text_original, { length: 100 }) }}</blockquote>
-          </template>
-        </comment-content>
-        <div v-for="answer in comment.answers" :key="answer.id" class="ml-4">
-          <v-divider />
-          <comment-content 
-            :model-value="answer"
-            :update="a => projectStore.updateCommentAnswer(props.project, comment, a)"
-            :delete="() => projectStore.deleteCommentAnswer(props.project, comment, answer)"
-            :readonly="readonly"
-            placeholder="Answer..."
-            class="answer-content"
-          />
-        </div>
-        <div v-if="comment.id === selectedComment?.id && comment.status === CommentStatus.OPEN && comment.text && !readonly" class="ml-4">
-          <v-divider />
-          <comment-content
-            :model-value="{ text: '' } as unknown as CommentAnswer"
-            :update="a => projectStore.createCommentAnswer(props.project, comment, a)"
-            :initial-edit="true"
-            placeholder="Answer..."
-            class="answer-content answer-new"
-          />
-        </div>
-      </v-card>
+        :is-active="comment?.id === selectedComment?.id"
+      />
+
       <v-divider class="mt-2" />
     </v-list-item>
   </v-navigation-drawer>
@@ -133,7 +80,6 @@
 <script setup lang="ts">
 import omit from 'lodash/omit';
 import groupBy from 'lodash/groupBy';
-import truncate from 'lodash/truncate';
 import { CommentStatus, type Comment, type FieldDefinition } from '@/utils/types';
 
 const localSettings = useLocalSettings();
@@ -149,7 +95,10 @@ const props = defineProps<{
 }>();
 
 const commentsAll = computed(() => projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId }));
-const commentsVisible = computed(() => commentsAll.value.filter(c => localSettings.reportingCommentStatusFilter === 'all' ? true : c.status === localSettings.reportingCommentStatusFilter));
+const commentsVisible = computed(() => localSettings.reportingCommentSidebarVisible ?
+  commentsAll.value.filter(c => localSettings.reportingCommentStatusFilter === 'all' ? true : c.status === localSettings.reportingCommentStatusFilter) :
+  commentsAll.value.filter(c => c.status === CommentStatus.OPEN)
+);
 
 const commentGroups = computed(() => groupBy(commentsVisible.value, 'path'));
 const selectedComment = ref<Comment|null>(null);
@@ -187,6 +136,9 @@ watch(() => localSettings.reportingCommentSidebarVisible, (value) => {
   if (!value) {
     // Reset selected comment on sidebar close
     selectedComment.value = null;
+  } else {
+    // Reset show-all comments (incl. resolved)
+    localSettings.reportingCommentStatusFilter = CommentStatus.OPEN;
   }
 });
 
@@ -238,7 +190,7 @@ async function onCommentEvent(event: any) {
   if (event.type === 'create' && !props.readonly) {
     const comment = await projectStore.createComment(props.project, event.comment);
     await selectComment(comment, { focus: 'comment', openSidebar: true });
-    comment.editEnabled = false;
+    comment.isNew = false;
   } else if (event.type === 'select') {
     await selectComment(event.comment, { focus: 'comment', ...omit(event, ['type', 'comment']) });
   }
@@ -264,23 +216,4 @@ defineExpose({
 .v-list-subheader {
   min-height: 0;
 }
-
-.comment-selected {
-  :deep(.v-card__overlay) {
-    background-color: currentColor;
-    opacity: var(--v-activated-opacity);
-  }
-}
-
-.comment-resolved {
-  opacity: vuetify.$card-disabled-opacity;
-}
-
-.comment-textoriginal {
-  background-color: rgba(var(--v-theme-on-surface), 0.05);
-  border-left: 5px solid rgba(var(--v-theme-on-surface), 0.3);
-  padding-left: 0.2em;
-  margin-bottom: 0.4em;
-}
-
 </style>

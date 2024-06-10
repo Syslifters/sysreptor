@@ -248,7 +248,7 @@ export type CommentAnswer = BaseModel & {
   user: UserShortInfo|null;
 
   // Internal properties used by frontend
-  editEnabled?: boolean;
+  isNew?: boolean;
 };
 
 export type Comment = BaseModel & {
@@ -261,7 +261,7 @@ export type Comment = BaseModel & {
   answers: CommentAnswer[];
 
   // Internal properties used by frontend
-  editEnabled?: boolean;
+  isNew?: boolean;
   collabPath?: string;
 }
 

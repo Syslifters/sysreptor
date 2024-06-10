@@ -47,6 +47,7 @@
         <v-textarea
           ref="textFieldRef"
           v-model="editText"
+          v-model:focused="editTextFocused"
           :placeholder="props.placeholder"
           density="compact"
           variant="outlined"
@@ -57,8 +58,19 @@
           class="comment-textfield"
         />
         <div class="mt-1">
-          <s-btn-other v-if="!props.initialEdit" @click="editEnabled = false" size="small" text="Cancel" />
-          <s-btn-other @click="performUpdate" :loading="updateInProgress" size="small" text="Save" />
+          <s-btn-other 
+            v-if="!props.initialEdit" 
+            @click="editEnabled = false" 
+            size="small" 
+            text="Cancel" 
+          />
+          <s-btn-other 
+            v-if="!props.initialEdit || editTextFocused" 
+            @click="performUpdate" 
+            :loading="updateInProgress" 
+            size="small" 
+            text="Save" 
+          />
         </div>
       </div>
       <span v-else class="comment-text">{{ modelValue.text }}</span>
@@ -81,12 +93,13 @@ const props = defineProps<{
 }>();
 
 const editEnabled = ref(props.initialEdit || false);
+const editTextFocused = ref(false);
 const editText = ref('');
 const textFieldRef = ref<HTMLInputElement|null>(null);
 watch(modelValue, () => {
-  if (modelValue.value.editEnabled) {
+  if (modelValue.value.isNew) {
     editEnabled.value = true;
-    modelValue.value.editEnabled = false;
+    modelValue.value.isNew = false;
   }
 }, { immediate: true });
 watch(editEnabled, (value) => {
