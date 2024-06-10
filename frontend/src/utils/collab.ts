@@ -889,9 +889,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           continue;
         }
         
-        if (c.text_position && options.unconfirmed) {
+        if (c.text_range && options.unconfirmed) {
           try {
-            let pos: SelectionRange|null = SelectionRange.fromJSON(c.text_position);
+            let pos: SelectionRange|null = SelectionRange.fromJSON({ from: c.text_range.from, to: c.text_range.to });
             for (const u of options.unconfirmed) {
               pos = pos.map(u.changes);
             }
@@ -899,9 +899,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
               pos = null;
             }
 
-            c.text_position = pos;
+            c.text_range = pos;
           } catch {
-            c.text_position = null;
+            c.text_range = null;
           }
         }
         Object.assign(commentsStoreState[c.id!], c);

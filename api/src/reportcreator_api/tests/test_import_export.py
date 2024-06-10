@@ -99,7 +99,7 @@ class TestImportExport:
             finding=self.project.findings.first(),
             text='Comment text',
             path='data.field_markdown',
-            text_position=SelectionRange(anchor=0, head=10),
+            text_range=SelectionRange(anchor=0, head=10),
             user=self.user,
             answers_kwargs=[{'text': 'Answer text', 'user': self.user}, {'text': 'Answer 2', 'user': None}],
         )
@@ -186,7 +186,7 @@ class TestImportExport:
 
     def assert_export_import_comments(self, obj_original, obj_imported):
         for i_c, o_c in zip(obj_imported.comments.order_by('created'), obj_original.comments.order_by('created')):
-            assertKeysEqual(i_c, o_c, ['created', 'user', 'text', 'path', 'text_position', 'text_original'])
+            assertKeysEqual(i_c, o_c, ['created', 'user', 'text', 'path', 'text_range', 'text_original'])
 
             for i_ca, o_ca in zip(i_c.answers.order_by('created'), o_c.answers.order_by('created')):
                 assertKeysEqual(i_ca, o_ca, ['created', 'user', 'text'])
@@ -501,7 +501,7 @@ class TestCopyModel:
     def assert_comments_copy_equal(self, p, cp):
         for p_c, cp_c in zip(p.comments.order_by('created'), cp.comments.order_by('created')):
             assert p_c != cp_c
-            assertKeysEqual(p_c, cp_c, ['user', 'text', 'path', 'text_position', 'text_original'])
+            assertKeysEqual(p_c, cp_c, ['user', 'text', 'path', 'text_range', 'text_original'])
 
             for p_ca, cp_ca in zip(p_c.answers.order_by('created'), cp_c.answers.order_by('created')):
                 assert p_ca != cp_ca

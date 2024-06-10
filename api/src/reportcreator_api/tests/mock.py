@@ -201,11 +201,11 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     return project_type
 
 
-def create_comment(finding=None, section=None, user=None, path=None, text_position=None, text_original=None, answers_kwargs=None, **kwargs) -> Comment:
-    if path and text_position and text_original is None:
+def create_comment(finding=None, section=None, user=None, path=None, text_range=None, text_original=None, answers_kwargs=None, **kwargs) -> Comment:
+    if path and text_range and text_original is None:
         obj = finding or section
         _, value, _ = get_field_value_and_definition(data=obj.data, definition=obj.field_definition, path=path.split('.')[1:])
-        text_original = value[text_position.anchor:text_position.head]
+        text_original = value[text_range.from_:text_range.to]
 
     comment = Comment.objects.create(**{
         'text': 'Comment text',
@@ -213,7 +213,7 @@ def create_comment(finding=None, section=None, user=None, path=None, text_positi
         'section': section,
         'user': user,
         'path': path or 'data.title',
-        'text_position': text_position,
+        'text_range': text_range,
         'text_original': text_original,
     } | kwargs)
 

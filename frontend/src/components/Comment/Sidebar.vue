@@ -195,7 +195,7 @@ async function selectComment(comment: Comment|null, options?: { focus?: string, 
       elFieldInput?.focus({ preventScroll: true });
 
       const elCommentTextRange = document.getElementById(`comment-textrange-${comment.id}`);
-      if (elFieldInput && elCommentTextRange && comment.text_position) {
+      if (elFieldInput && elCommentTextRange && comment.text_range) {
         const range = document.createRange();
         range.selectNode(elCommentTextRange);
         range.setStart(elCommentTextRange, 0);

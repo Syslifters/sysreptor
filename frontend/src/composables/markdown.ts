@@ -240,9 +240,9 @@ export function useMarkdownEditorBase(options: {
           // Select current comment if the cursor is within a comment
           if (options.props.value.comment && options.props.value.collab && editorState.value?.selection.main.empty && viewUpdate.selectionSet) {
             const selectedComment = options.props.value.comment.comments
-              .filter(c => c.collabPath === options.props.value.collab?.path && c.text_position)
+              .filter(c => c.collabPath === options.props.value.collab?.path && c.text_range)
               .find((c) => {
-                const range = SelectionRange.fromJSON(c.text_position);
+                const range = SelectionRange.fromJSON({ anchor: c.text_range!.from, head: c.text_range!.to });
                 return range.from < editorState.value!.selection.main.from && range.to > editorState.value!.selection.main.to;
               });
             if (selectedComment) {
@@ -374,8 +374,8 @@ export function useMarkdownEditorBase(options: {
     }
 
     const comments = options.props.value.comment.comments
-      .filter(c => c.collabPath === options.props.value.collab!.path && c.text_position)
-      .map(c => ({ id: c.id, text_position: SelectionRange.fromJSON(c.text_position) }));
+      .filter(c => c.collabPath === options.props.value.collab!.path && c.text_range)
+      .map(c => ({ id: c.id, text_range: SelectionRange.fromJSON({ anchor: c.text_range!.from, head: c.text_range!.to }) }));
 
     options.editorView.value.dispatch({
       effects: [

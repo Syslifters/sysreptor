@@ -430,8 +430,8 @@ class TestUpdateFieldDefinitionSyncComments:
 
         self.comment_paths = ['data.field_markdown', 'data.field_cvss', 'data.field_list.[0]', 'data.field_object.field_string', 'data.field_list_objects.[0].field_markdown']
         for p in self.comment_paths:
-            create_comment(finding=self.finding, path=p, text_position=SelectionRange(anchor=0, head=10) if 'field_markdown' in p else None)
-            create_comment(section=self.section, path=p, text_position=SelectionRange(anchor=0, head=10) if 'field_markdown' in p else None)
+            create_comment(finding=self.finding, path=p, text_range=SelectionRange(anchor=0, head=10) if 'field_markdown' in p else None)
+            create_comment(section=self.section, path=p, text_range=SelectionRange(anchor=0, head=10) if 'field_markdown' in p else None)
 
     def test_update_projecttype_delete_fields(self):
         self.project_type.finding_fields = finding_fields_default()
@@ -484,7 +484,7 @@ class TestUpdateFieldDefinitionSyncComments:
             c = Comment.objects.filter_project(self.project).filter(path=cp).first()
             assert c.section.section_id == 'new' if cp.split('.')[0] in fields_moved else 'other'
 
-    def test_type_changed_text_position_cleared(self):
+    def test_type_changed_text_range_cleared(self):
         comments = list(Comment.objects.filter_project(self.project).filter(path='field_markdown'))
 
         self.project_type.finding_fields = copy.deepcopy(self.project_type.finding_fields)
@@ -496,7 +496,7 @@ class TestUpdateFieldDefinitionSyncComments:
         for c in comments:
             text_original = c.text_original
             c.refresh_from_db()
-            assert c.text_position is None
+            assert c.text_range is None
             assert c.text_original == text_original
 
 

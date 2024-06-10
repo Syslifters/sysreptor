@@ -3,7 +3,7 @@ import { Decoration, type DecorationSet, EditorView, hoverTooltip, layer, Rectan
 
 export type CommentInfo = {
   id: string;
-  text_position: SelectionRange;
+  text_range: SelectionRange;
 };
 export const setComments = StateEffect.define<CommentInfo[]>();
 
@@ -19,7 +19,7 @@ const commentField = StateField.define<DecorationSet>({
         add: newComments.map(c => Decoration.mark({
           class: 'cm-comment',
           attributes: { id: `comment-textrange-${c.id}` },
-        }).range(c.text_position.from, c.text_position.to)),
+        }).range(c.text_range.from, c.text_range.to)),
       })
     } else {
       return comments.map(tr.changes).update({

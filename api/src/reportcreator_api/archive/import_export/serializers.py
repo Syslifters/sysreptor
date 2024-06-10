@@ -398,14 +398,14 @@ class CommentAnswerExportImportSerializer(ExportImportSerializer):
 class CommentExportImportSerializer(ExportImportSerializer):
     user = RelatedUserIdExportImportSerializer()
     answers = CommentAnswerExportImportSerializer(many=True)
-    text_position = TextRangeSerializer(allow_null=True)
+    text_range = TextRangeSerializer(allow_null=True)
     path = serializers.CharField(source='path_absolute')
 
     class Meta:
         model = Comment
         fields = [
             'id', 'created', 'updated', 'user', 'path',
-            'text_position', 'text_original', 'text', 'answers',
+            'text_range', 'text_original', 'text', 'answers',
         ]
         extra_kwargs = {'created': {'read_only': False, 'required': False}}
 

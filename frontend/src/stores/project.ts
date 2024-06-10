@@ -306,7 +306,7 @@ export const useProjectStore = defineStore('project', {
         method: 'POST',
         body: {
           text: '',
-          text_position: null,
+          text_range: null,
           ...comment,
           path,
         },

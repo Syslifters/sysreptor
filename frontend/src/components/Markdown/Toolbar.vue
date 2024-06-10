@@ -36,7 +36,7 @@
     />
     <markdown-toolbar-button
       v-if="props.comment"
-      @click="$emit('comment', {type: 'create', comment: { text: '', collabPath: props.collab?.path, text_position: props.editorState?.selection.main.toJSON() }})"
+      @click="emitCreateComment"
       title="Comment"
       icon="mdi-comment-plus-outline"
       :disabled="props.disabled || !props.editorState || props.editorState?.selection.main.empty"
@@ -183,6 +183,22 @@ async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
   if (scrollParent) {
     scrollParent.scrollTop += newTop - prevTop;
   }
+}
+
+function emitCreateComment() {
+  if (!props.comment || !props.collab || !props.editorState || props.disabled) {
+    return;
+  }
+  
+  const selectionRange = props.editorState.selection.main
+  emit('comment', {
+    type: 'create', 
+    comment: { 
+      text: '', 
+      collabPath: props.collab.path, 
+      text_range: { from: selectionRange.from, to: selectionRange.to }
+    }
+  })
 }
 
 </script>

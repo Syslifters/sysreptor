@@ -256,7 +256,7 @@ export type Comment = BaseModel & {
   user: UserShortInfo|null;
   status: CommentStatus;
   path: string;
-  text_position: {anchor: number, head: number}|null;
+  text_range: {from: number, to: number}|null;
   text_original: string|null;
   answers: CommentAnswer[];
 
