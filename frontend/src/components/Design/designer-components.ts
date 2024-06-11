@@ -1,8 +1,5 @@
 import { v4 as uuid4 } from 'uuid';
-import escape from 'lodash/escape';
-import unescape from 'lodash/unescape';
-import escapeRegExp from 'lodash/escapeRegExp';
-import kebabCase from 'lodash/kebabCase';
+import { escape, unescape, escapeRegExp, kebabCase } from 'lodash-es';
 import { cssLanguage, vueLanguage } from 'reportcreator-markdown/editor';
 import { FieldDataType } from "~/utils/types";
 

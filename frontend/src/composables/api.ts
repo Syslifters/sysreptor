@@ -1,5 +1,4 @@
-import debounce from "lodash/debounce";
-import isEqual from "lodash/isEqual";
+import { debounce, isEqual } from "lodash-es";
 import { useFetch, useAsyncData } from "nuxt/app";
 import type { NuxtApp, AsyncDataOptions } from "nuxt/app";
 import type { PaginatedResponse } from "@/utils/types";

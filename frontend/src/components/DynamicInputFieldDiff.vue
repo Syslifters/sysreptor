@@ -64,8 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import pick from 'lodash/pick';
-import merge from 'lodash/merge';
+import { pick, merge } from 'lodash-es';
 import type { DynamicInputFieldDiffProps } from '~/composables/history';
 
 const props = defineProps<DynamicInputFieldDiffProps>();

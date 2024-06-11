@@ -92,9 +92,7 @@
 </template>
 
 <script setup lang="ts" generic="T extends { id: string, lock_info?: LockInfo|null }">
-import debounce from 'lodash/debounce';
-import cloneDeep from 'lodash/cloneDeep';
-import isEqual from 'lodash/isEqual';
+import { debounce, cloneDeep, isEqual } from 'lodash-es';
 import type { VForm } from "vuetify/lib/components/index.mjs";
 import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
 import type { LockInfo } from '@/utils/types';

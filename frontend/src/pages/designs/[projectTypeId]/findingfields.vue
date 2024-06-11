@@ -120,8 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import omit from 'lodash/omit';
-import sortBy from "lodash/sortBy";
+import { omit, sortBy } from 'lodash-es';
 import Draggable from "vuedraggable";
 import type { VForm } from 'vuetify/components';
 import { uniqueName } from '@/utils/urls';

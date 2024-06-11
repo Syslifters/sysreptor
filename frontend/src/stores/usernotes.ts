@@ -1,6 +1,4 @@
-import groupBy from "lodash/groupBy";
-import sortBy from "lodash/sortBy";
-import pick from "lodash/pick";
+import { groupBy, sortBy, pick } from "lodash-es";
 import type { UserNote, NoteBase } from "~/utils/types";
 
 export type NoteGroup<T extends NoteBase> = {

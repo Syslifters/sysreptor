@@ -8,7 +8,7 @@
 
 <script lang="ts">
 import { v4 as uuidv4 } from 'uuid';
-import throttle from 'lodash/throttle';
+import { throttle } from 'lodash-es';
 // @ts-ignore
 import { renderMarkdownToHtml, mermaid } from 'reportcreator-markdown';
 import { absoluteApiUrl } from '~/utils/urls';

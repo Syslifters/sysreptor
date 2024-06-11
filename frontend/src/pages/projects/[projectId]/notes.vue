@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import debounce from "lodash/debounce";
+import { debounce } from "lodash-es";
 
 const route = useRoute();
 const router = useRouter();

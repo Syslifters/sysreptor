@@ -338,7 +338,7 @@
 </template>
 
 <script setup lang="ts">
-import pick from 'lodash/pick';
+import { pick } from 'lodash-es';
 
 const auth = useAuth();
 

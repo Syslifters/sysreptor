@@ -1,8 +1,4 @@
-import get from "lodash/get";
-import set from "lodash/set";
-import unset from "lodash/unset";
-import throttle from "lodash/throttle";
-import trimStart from "lodash/trimStart";
+import { get, set, unset, throttle, trimStart } from "lodash-es";
 import urlJoin from "url-join";
 import { ChangeSet, EditorSelection, Text } from "reportcreator-markdown/editor"
 import { type UserShortInfo } from "@/utils/types"

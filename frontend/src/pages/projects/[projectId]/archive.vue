@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import sortBy from "lodash/sortBy";
+import { sortBy } from "lodash-es";
 
 const route = useRoute();
 const apiSettings = useApiSettings();

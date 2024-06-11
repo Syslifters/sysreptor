@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import pick from "lodash/pick";
+import { pick } from "lodash-es";
 import { PdfDesignerTab } from "~/utils/types";
 
 const route = useRoute();

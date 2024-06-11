@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import isEqual from "lodash/isEqual";
+import { isEqual } from "lodash-es";
 import urlJoin from "url-join";
 import { uploadFileHelper } from "~/utils/upload";
 

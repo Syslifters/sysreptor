@@ -1,6 +1,6 @@
 import { visit } from 'unist-util-visit';
 import { toString } from 'hast-util-to-string';
-import { camelCase, omit } from 'lodash';
+import { camelCase, omit } from 'lodash-es';
 import { createLowlight, all as lowlightGrammers } from 'lowlight';
 import { unified } from 'unified';
 import rehypeParse from 'rehype-parse';

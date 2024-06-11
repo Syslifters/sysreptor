@@ -1,7 +1,5 @@
 import urlJoin from "url-join";
-import pick from "lodash/pick";
-import get from "lodash/get";
-import trim from "lodash/trim";
+import { pick, get, trim } from "lodash-es";
 import {
   MergeView, EditorView,
 } from "reportcreator-markdown/editor";

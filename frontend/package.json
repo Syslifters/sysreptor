@@ -32,7 +32,7 @@
 
     "reportcreator-markdown": "../packages/markdown",
     "js-file-download": "^0.4.12",
-    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
     "url-join": "^5.0.0",
     "uuid": "^10.0.0",
     "zxcvbn": "^4.4.2",
@@ -46,7 +46,7 @@
     "@nuxt/test-utils": "^3.10.0",
     "@types/node": "^20",
     "@types/zxcvbn": "^4.4.2",
-    "@types/lodash": "^4.17.0",
+    "@types/lodash-es": "^4.17.0",
     "@types/uuid": "^9.0.0",
     "sass": "^1.69.3",
     "eslint": "^8.51.0",

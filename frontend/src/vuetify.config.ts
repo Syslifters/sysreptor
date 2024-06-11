@@ -1,5 +1,5 @@
 import { defineVuetifyConfiguration } from "vuetify-nuxt-module/custom-configuration";
-import merge from "lodash/merge";
+import { merge } from "lodash-es";
 
 const sysreptorGreen = '#aabb11'
 const sysreptorGreenDark = '#818b06'

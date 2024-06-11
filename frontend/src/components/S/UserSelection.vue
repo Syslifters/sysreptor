@@ -16,9 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import isObject from "lodash/isObject";
-import sortBy from "lodash/sortBy"
-import uniqBy from "lodash/uniqBy"
+import { isObject, sortBy, uniqBy } from "lodash-es";
 
 const props = withDefaults(defineProps<{
   modelValue: UserShortInfo|UserShortInfo[]|string|null;

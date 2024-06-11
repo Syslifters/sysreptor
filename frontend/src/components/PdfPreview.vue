@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import debounce from "lodash/debounce"
+import { debounce } from "lodash-es"
 
 const props = withDefaults(defineProps<{
   fetchPdf: () => Promise<PdfResponse>;

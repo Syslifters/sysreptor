@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import capitalize from "lodash/capitalize";
+import { capitalize } from "lodash-es";
 import { RiskLevel } from "@/utils/types";
 import { levelNameFromScore, levelNumberFromLevelName, scoreFromVector } from "~/utils/cvss";
 

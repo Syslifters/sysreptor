@@ -895,6 +895,13 @@ MIT
 This is the **x86_64-unknown-linux-gnu** binary for `rollup`
 
 
+@rollup/rollup-linux-x64-musl 4.18.0
+MIT
+# `@rollup/rollup-linux-x64-musl`
+
+This is the **x86_64-unknown-linux-musl** binary for `rollup`
+
+
 @types/d3-scale-chromatic 3.0.3
 MIT
     MIT License
