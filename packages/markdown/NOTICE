@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@codemirror/autocomplete 6.16.0
+@codemirror/autocomplete 6.16.2
 MIT
 MIT License
 
@@ -48,7 +48,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/commands 6.5.0
+@codemirror/commands 6.6.0
 MIT
 MIT License
 
@@ -198,7 +198,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/language 6.10.1
+@codemirror/language 6.10.2
 MIT
 MIT License
 
@@ -223,7 +223,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lint 6.7.0
+@codemirror/lint 6.8.0
 MIT
 MIT License
 
@@ -248,7 +248,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/merge 6.6.1
+@codemirror/merge 6.6.3
 MIT
 MIT License
 
@@ -298,7 +298,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/view 6.26.3
+@codemirror/view 6.28.0
 MIT
 MIT License
 
@@ -416,7 +416,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/html 1.3.9
+@lezer/html 1.3.10
 MIT
 MIT License
 
@@ -466,7 +466,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/lr 1.4.0
+@lezer/lr 1.4.1
 MIT
 MIT License
 
@@ -2364,7 +2364,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-debug 4.3.4
+debug 4.3.5
 MIT
 (The MIT License)
 
@@ -2517,7 +2517,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-dompurify 3.1.3
+dompurify 3.1.5
 (MPL-2.0 OR Apache-2.0)
 DOMPurify
 Copyright 2024 Dr.-Ing. Mario Heiderich, Cure53
@@ -3539,7 +3539,7 @@ THE SOFTWARE.
 
 
 
-glob 10.3.15
+glob 10.4.1
 ISC
 The ISC License
 
@@ -4353,7 +4353,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-jackspeak 2.3.6
+jackspeak 3.4.0
 BlueOak-1.0.0
 # Blue Oak Model License
 
@@ -4368,7 +4368,7 @@ from liability.
 ## Acceptance
 
 In order to receive this license, you must agree to its
-rules.  The rules of this license are both obligations
+rules. The rules of this license are both obligations
 under that agreement and conditions to your license.
 You must not do anything with this software that triggers
 a rule that you cannot or will not follow.
@@ -4391,7 +4391,7 @@ changes, also gets the text of this license or a link to
 If anyone notifies you in writing that you have not
 complied with [Notices](#notices), you can keep your
 license by taking all practical steps to comply within 30
-days after the notice.  If you do not do so, your license
+days after the notice. If you do not do so, your license
 ends immediately.
 
 ## Patent
@@ -4406,10 +4406,10 @@ No contributor can revoke this license.
 
 ## No Liability
 
-***As far as the law allows, this software comes as is,
+**_As far as the law allows, this software comes as is,
 without any warranty or condition, and no contributor
 will be liable to anyone for any damages related to this
-software or this license, under any kind of legal claim.***
+software or this license, under any kind of legal claim._**
 
 
 json-parse-even-better-errors 3.0.2
@@ -4890,7 +4890,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-mdast-util-from-markdown 2.0.0
+mdast-util-from-markdown 2.0.1
 MIT
 (The MIT License)
 
@@ -5099,7 +5099,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-mdast-util-to-hast 13.1.0
+mdast-util-to-hast 13.2.0
 MIT
 (The MIT License)
 
@@ -5203,7 +5203,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-mermaid 10.9.0
+mermaid 10.9.1
 MIT
 The MIT License (MIT)
 
@@ -14683,7 +14683,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-minipass 7.1.1
+minipass 7.1.2
 ISC
 The ISC License
 
@@ -16737,7 +16737,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-spdx-license-ids 3.0.17
+spdx-license-ids 3.0.18
 CC0-1.0
 # spdx-license-ids
 
