@@ -708,5 +708,10 @@ LOGGING = {
             'handlers': logging_handlers,
             'propagate': False,
         },
+        'channels_postgres.core': {
+            'level': 'ERROR',
+            'handlers': logging_handlers,
+            'propagate': False,
+        },
     },
 }
