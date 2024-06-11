@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import truncate from 'lodash/truncate';
+import { truncate } from 'lodash-es';
 import { type Comment } from '@/utils/types';
 
 const props = defineProps<{

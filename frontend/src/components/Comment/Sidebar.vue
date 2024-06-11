@@ -78,8 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import omit from 'lodash/omit';
-import groupBy from 'lodash/groupBy';
+import { omit, groupBy } from 'lodash-es';
 import { CommentStatus, type Comment, type FieldDefinition } from '@/utils/types';
 
 const localSettings = useLocalSettings();

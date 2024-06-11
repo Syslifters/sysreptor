@@ -713,6 +713,23 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           }
         }
       }
+
+      // Map comment positions
+      const comments = Object.values((storeState.data as any).comments) as Comment[];
+      for (const c of comments) {
+        if (c.path === dataPath && c.text_range) {
+          let pos: SelectionRange|null = SelectionRange.fromJSON({ anchor: c.text_range.from, head: c.text_range.to });
+          try {
+            pos = pos.map(u.changes);
+            if (pos.empty) {
+              pos = null;
+            }
+          } catch {
+            pos = null;
+          }
+          c.text_range = pos;
+        }
+      }
     }
     // Update text
     set(storeState.data as Object, dataPath, cmText.toString());
@@ -891,7 +908,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         
         if (c.text_range && options.unconfirmed) {
           try {
-            let pos: SelectionRange|null = SelectionRange.fromJSON({ from: c.text_range.from, to: c.text_range.to });
+            let pos: SelectionRange|null = SelectionRange.fromJSON({ anchor: c.text_range.from, head: c.text_range.to });
             for (const u of options.unconfirmed) {
               pos = pos.map(u.changes);
             }
