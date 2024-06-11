@@ -24,6 +24,8 @@ class HistoricalRecords(history_models.HistoricalRecords):
             bases=[HistoricalRecordBase],
             history_change_reason_field=EncryptedField(base_field=models.TextField(blank=True, null=True), null=True),
             excluded_fields=('updated', 'lock_info_data') + tuple(excluded_fields),
+            history_manager=HistoryManager,
+            historical_queryset=HistoricalQuerySet,
             **kwargs,
         )
 
