@@ -1,4 +1,4 @@
-import isObject from "lodash/isObject";
+import { isObject } from "lodash-es";
 import { useToast } from "vue-toastification";
 import { ConfirmToast } from "#components";
 

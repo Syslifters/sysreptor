@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import sortBy from "lodash/sortBy";
+import { sortBy } from "lodash-es";
 import Draggable from "vuedraggable";
 import type { MarkdownProps } from "~/composables/markdown";
 import {

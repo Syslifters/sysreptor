@@ -263,7 +263,7 @@
 
 <script setup lang="ts">
 import { create as navigatorCredentialsCreate, parseCreationOptionsFromJSON } from "@github/webauthn-json/browser-ponyfill";
-import cloneDeep from 'lodash/cloneDeep';
+import { cloneDeep } from 'lodash-es';
 import type { VForm } from "vuetify/lib/components/index.mjs";
 import { mfaMethodChoices, MfaMethodType } from '@/utils/types';
 

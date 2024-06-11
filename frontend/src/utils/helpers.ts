@@ -1,5 +1,4 @@
-import setWith from "lodash/setWith";
-import clone from "lodash/clone";
+import { setWith, clone } from "lodash-es";
 
 /**
  * Immutable version of lodash.set

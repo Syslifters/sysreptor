@@ -1,4 +1,4 @@
-import pick from 'lodash/pick';
+import { pick } from 'lodash-es';
 import { parseISO, formatISO9075 } from 'date-fns';
 import { ProjectTypeScope } from '~/utils/types';
 import type { FieldDefinitionDict, ProjectType } from "~/utils/types";

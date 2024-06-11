@@ -1,4 +1,4 @@
-import sortBy from "lodash/sortBy";
+import { sortBy } from "lodash-es";
 import type { TemplateFieldDefinition, FieldDefinitionDict, FindingTemplate, ProjectType } from "~/utils/types";
 
 export const useTemplateStore = defineStore('templates', {

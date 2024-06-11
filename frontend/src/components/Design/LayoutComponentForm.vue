@@ -185,7 +185,7 @@
 </template>
 
 <script setup lang="ts">
-import pick from "lodash/pick";
+import { pick } from "lodash-es";
 import { MarkdownEditorMode } from "~/utils/types";
 import type { MarkdownProps } from "~/composables/markdown";
 

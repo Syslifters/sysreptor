@@ -1,5 +1,5 @@
 import urlJoin from "url-join";
-import cloneDeep from "lodash/cloneDeep";
+import { cloneDeep } from "lodash-es";
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";
 import type { VForm } from "vuetify/lib/components/index.mjs";
 import { formatISO9075 } from "date-fns";

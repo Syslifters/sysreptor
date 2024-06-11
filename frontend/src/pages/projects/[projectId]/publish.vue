@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import sampleSize from "lodash/sampleSize"
+import { sampleSize } from "lodash-es"
 import fileDownload from "js-file-download";
 
 definePageMeta({

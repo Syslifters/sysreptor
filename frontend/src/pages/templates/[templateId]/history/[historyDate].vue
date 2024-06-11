@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import urlJoin from "url-join";
-import sortBy from "lodash/sortBy";
+import { sortBy } from "lodash-es";
 import { formatISO9075 } from "date-fns";
 
 const route = useRoute();

@@ -1,6 +1,6 @@
 import { v4 as uuid4 } from 'uuid';
 import type { PropType } from "vue";
-import throttle from "lodash/throttle";
+import { throttle } from "lodash-es";
 import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { addDays } from "date-fns";
-import reverse from 'lodash/reverse';
+import { reverse } from 'lodash-es';
 import { sortFindings } from '@/stores/project';
 import { SortOrder } from "~/utils/types";
 import type { FindingOrderingDefinition, PentestFinding, ProjectType } from "~/utils/types";

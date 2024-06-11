@@ -141,9 +141,9 @@ COPY api/requirements.txt /app/api/requirements.txt
 RUN pip install -r /app/api/requirements.txt
 
 # Unprivileged user
-RUN useradd --create-home --shell=/bin/bash user \
+RUN useradd --uid=1000 --create-home --shell=/bin/bash user \
     && mkdir -p /data /app/api && chown user:user /data /app/api
-USER user
+USER 1000
 VOLUME [ "/data" ]
 
 # Configure application

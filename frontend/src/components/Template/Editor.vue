@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import cloneDeep from "lodash/cloneDeep";
+import { cloneDeep } from "lodash-es";
 import { v4 as uuidv4 } from "uuid";
 import { MarkdownEditorMode } from "~/utils/types";
 

@@ -169,8 +169,7 @@
 
 <script setup lang="ts">
 import Draggable from "vuedraggable";
-import omit from 'lodash/omit';
-import isEqual from 'lodash/isEqual';
+import { omit, isEqual } from 'lodash-es';
 import { VForm } from "vuetify/components";
 import { uniqueName } from '@/utils/urls';
 import { FieldOrigin } from "~/utils/types";

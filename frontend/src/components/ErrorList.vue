@@ -68,8 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import sortBy from "lodash/sortBy";
-import groupBy from "lodash/groupBy";
+import { sortBy, groupBy } from "lodash-es";
 import type { MessageLevel as MessageLevelType } from '~/utils/types';
 
 const props = defineProps<{

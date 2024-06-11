@@ -5,7 +5,7 @@ import remarkRehype from 'remark-rehype';
 import remarkStringify from 'remark-stringify';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
-import { merge } from 'lodash';
+import { merge } from 'lodash-es';
 import mermaid from 'mermaid';
 import 'highlight.js/styles/default.css';
 

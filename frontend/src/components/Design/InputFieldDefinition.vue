@@ -281,7 +281,7 @@
 </template>
 
 <script setup lang="ts">
-import omit from "lodash/omit";
+import { omit } from "lodash-es";
 import Draggable from "vuedraggable";
 import { CvssVersion } from "@/utils/cvss/base";
 import { FieldDataType, FieldOrigin } from "@/utils/types";

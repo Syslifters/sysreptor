@@ -14,7 +14,7 @@
     "vue": "~3.3",
     "chart.js": "^4",
     "chartjs-plugin-datalabels": "^2",
-    "uuid": "^9",
+    "uuid": "^10",
     "lodash": "^4.17.21",
     "reportcreator-markdown": "../packages/markdown"
   },

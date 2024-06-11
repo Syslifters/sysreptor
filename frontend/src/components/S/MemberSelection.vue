@@ -47,8 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import cloneDeep from "lodash/cloneDeep";
-import uniq from "lodash/uniq";
+import { cloneDeep, uniq } from "lodash-es";
 
 const props = withDefaults(defineProps<{
   modelValue: ProjectMember[],
