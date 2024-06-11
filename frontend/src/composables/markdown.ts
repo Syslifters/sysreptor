@@ -1,6 +1,5 @@
 import { v4 as uuid4 } from 'uuid';
 import type { PropType } from "vue";
-import { throttle } from "lodash-es";
 import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,
@@ -182,57 +181,6 @@ export function useMarkdownEditorBase(options: {
   const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
   const eventBusBeforeApplyRemoteTextChanges = useEventBus('collab:beforeApplyRemoteTextChanges');
 
-  const pendingViewUpdateEvents = shallowRef<ViewUpdate[]>([]);
-  const sendUpdateEventsThrottled = throttle(() => {
-    // Throttle and batch update events to prevent the UI from hanging.
-    // Updating reactive data in stores is costly and slow.
-
-    const pendingUpdates = [...pendingViewUpdateEvents.value];
-    pendingViewUpdateEvents.value = [];
-    if (pendingUpdates.length === 0) {
-      return;
-    }
-
-    let newModelValue = valueNotNull.value;
-    let newSelection = null;
-    const newTextUpdates = [];
-    for (const viewUpdate of pendingUpdates) {
-      for (const tr of viewUpdate.transactions) {
-        if (tr.docChanged && !tr.annotation(Transaction.remote)) {
-          newTextUpdates.push({ changes: tr.changes, selection: tr.selection });
-        }
-      }
-      if (viewUpdate.docChanged) {
-        newModelValue = viewUpdate.state.doc.toString();
-      }
-
-      if (viewUpdate.selectionSet || viewUpdate.focusChanged) {
-        newSelection = { changed: true, selection: viewUpdate.state.selection };
-      }
-    }
-
-    if (options.props.value.collab && newTextUpdates.length > 0) {
-      options.emit('collab', {
-        type: CollabEventType.UPDATE_TEXT,
-        path: options.props.value.collab.path,
-        updates: newTextUpdates,
-      });
-    }
-    if (newModelValue !== valueNotNull.value) {
-      options.emit('update:modelValue', newModelValue);
-    }
-    if (options.props.value.collab && newSelection?.changed) {
-      // Collab awareness updates
-      const hasFocus = options.editorView.value?.hasFocus || false;
-      options.emit('collab', {
-        type: CollabEventType.AWARENESS,
-        path: options.props.value.collab.path,
-        focus: hasFocus,
-        selection: newSelection.selection,
-      });
-    }
-  }, 500, { leading: true })
-
   function createEditorStateConfig() {
     return {
       doc: valueNotNull.value,
@@ -246,12 +194,37 @@ export function useMarkdownEditorBase(options: {
           focus: (event: FocusEvent) => options.emit('focus', event),
         }),
         EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
-          // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
           editorState.value = viewUpdate.state;
           
-          // Throttle update events
-          pendingViewUpdateEvents.value.push(viewUpdate);
-          sendUpdateEventsThrottled();
+          // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
+          if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
+            // Collab updates
+            if (options.props.value.collab) {
+              for (const tr of viewUpdate.transactions) {
+                if (tr.docChanged && !tr.annotation(Transaction.remote)) {
+                  options.emit('collab', {
+                    type: CollabEventType.UPDATE_TEXT,
+                    path: options.props.value.collab.path,
+                    updates: [{ changes: tr.changes, selection: tr.selection }],
+                  });
+                }
+              }
+            }
+
+            // Model-value updates
+            options.emit('update:modelValue', viewUpdate.state.doc.toString());
+          }
+
+          if (options.props.value.collab && (viewUpdate.selectionSet || viewUpdate.focusChanged)) {
+            // Collab awareness updates
+            const hasFocus = options.editorView.value?.hasFocus || false;
+            options.emit('collab', {
+              type: CollabEventType.AWARENESS,
+              path: options.props.value.collab.path,
+              focus: hasFocus,
+              selection: viewUpdate.state.selection,
+            });
+          }
         }),
         remoteSelection(),
       ]
@@ -307,7 +280,6 @@ export function useMarkdownEditorBase(options: {
       editorActions.value.darkTheme(theme.current.value.dark);
     } else if (!newValue) {
       eventBusBeforeApplyRemoteTextChanges.off(onBeforeApplyRemoteTextChange);
-      sendUpdateEventsThrottled.flush();
     }
   }, { immediate: true });
   onBeforeUnmount(() => {
@@ -334,9 +306,6 @@ export function useMarkdownEditorBase(options: {
   watch([() => options.props.value.disabled, () => options.props.value.readonly], () => {
     const readonly = Boolean(options.props.value.disabled || options.props.value.readonly)
     editorActions.value.disabled?.(readonly);
-    if (readonly) {
-      sendUpdateEventsThrottled.flush();
-    }
   });
   watch(() => options.props.value.lang, () => {
     if (spellcheckLanguageToolEnabled.value && options.editorView.value) {

@@ -6,6 +6,7 @@
 * Immediately create new templates in API to allow image uploads on first editing
 * Fix importing of non-empty note assignees
 * Collaborative editing: Sync pending changes on reconnect
+* Revert: Throttle MDE update events to prevent browser from hanging
 
 
 ## v2024.043 - 2024-05-27
