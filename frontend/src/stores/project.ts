@@ -299,12 +299,6 @@ export const useProjectStore = defineStore('project', {
         body: notes.map(n => pick(n, ['id', 'parent', 'order']))
       });
     },
-    async fetchNotes(project: PentestProject) {
-      const notes = await $fetch<ProjectNote[]>(`/api/v1/pentestprojects/${project.id}/notes/`, { method: 'GET' });
-      this.ensureExists(project.id);
-      this.data[project.id].notesCollabState.data.notes = Object.fromEntries(notes.map(n => [n.id, n]));
-      return notes;
-    },
     useNotesCollab(options: { project: PentestProject, noteId?: string }) {
       this.ensureExists(options.project.id);
 

@@ -74,28 +74,33 @@ export type CollabConnectionInfo = {
   send: (msg: CollabEvent) => void;
 };
 
+export type AwarenessInfos = {
+  self: {
+    path: string|null;
+    selection?: EditorSelection;
+  };
+  other: {
+    [key: string]: {
+      client_id: string;
+      path: string|null;
+      selection?: EditorSelection;
+    }
+  };
+  clients: CollabClientInfo[];
+}
+
 export type CollabStoreState<T> = {
   data: T;
   apiPath: string;
   connection?: CollabConnectionInfo;
+  connectionData: {
+    awarnessInternal: AwarenessInfos;
+  };
   handleAdditionalWebSocketMessages?: (event: CollabEvent, collabState: CollabStoreState<T>) => boolean;
   perPathState: Map<string, {
     unconfirmedTextUpdates: TextUpdate[];
   }>;
-  awareness: {
-    self: {
-      path: string|null;
-      selection?: EditorSelection;
-    };
-    other: {
-      [key: string]: {
-        client_id: string;
-        path: string|null;
-        selection?: EditorSelection;
-      }
-    };
-    clients: CollabClientInfo[];
-  },
+  awareness: AwarenessInfos,
   permissions: {
     read: boolean;
     write: boolean;
@@ -638,11 +643,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function updateKey(event: any) {
-    if (!event.path?.startsWith(storeState.apiPath)) {
-      // Event is not for us
-      return;
-    }
-
     // Update local state
     const dataPath = toDataPath(event.path);
     set(storeState.data as Object, dataPath, event.value);
@@ -666,11 +666,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function createListItem(event: any) {
-    if (!event.path?.startsWith(storeState.apiPath)) {
-      // Event is not for us
-      return;
-    }
-
     // Do not update local state here. Wait for server event.
     // Propagate event to other clients
     const dataPath = toDataPath(event.path);
@@ -683,11 +678,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function deleteListItem(event: any) {
-    if (!event.path?.startsWith(storeState.apiPath)) {
-      // Event is not for us
-      return;
-    }
-
     // Do not update local state here. Wait for server event.
     // Propagate event to other clients
     const dataPath = toDataPath(event.path);
@@ -699,10 +689,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function updateText(event: any) {
-    if (!event.path?.startsWith(storeState.apiPath)) {
-      // Event is not for us
-      return;
-    }
     const dataPath = toDataPath(event.path);
     const perPathState = ensurePerPathState(dataPath);
 
@@ -756,10 +742,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function updateAwareness(event: any) {
-    if (!event.path?.startsWith(storeState.apiPath)) {
-      // Event is not for us
-      return;
-    } else if (event.focus === false && event.path !== storeState.awareness.self.path) {
+    if (event.focus === false && event.path !== storeState.awareness.self.path) {
       // On focus other field: do not propagate unfocus event
       return;
     }
@@ -889,7 +872,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function onCollabEvent(event: any) {
-    if (!storeState.permissions.write) {
+    if (!event.path?.startsWith(storeState.apiPath)) {
+      // Event is not for us
+      return;
+    } else if (!storeState.permissions.write) {
       return;
     }
 
