@@ -962,7 +962,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     data: computed(() => storeState.data),
     readonly: computed(() => storeState.connection?.connectionState !== CollabConnectionState.OPEN || !storeState.permissions.write),
     connection: computed(() => storeState.connection),
-    // TODO: selection ranges and comment positions out of sync with text changes, while updates are throttled
     collabProps: computedThrottled(() => ({
       path: storeState.apiPath,
       clients: storeState.awareness.clients.map((c) => {

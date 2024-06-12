@@ -1,7 +1,7 @@
 import { v4 as uuid4 } from 'uuid';
 import { isEqual } from 'lodash-es';
 import type { PropType } from "vue";
-import { sortBy } from "lodash-es";
+import { sortBy, isEqual } from "lodash-es";
 import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,
@@ -61,10 +61,6 @@ export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean
     },
     collab: {
       type: Object as PropType<CollabPropType>,
-      default: undefined,
-    },
-    comment: {
-      type: Object as PropType<CommentPropType>,
       default: undefined,
     },
     uploadFile: {
