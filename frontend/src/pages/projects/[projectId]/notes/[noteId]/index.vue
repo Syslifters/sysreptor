@@ -93,7 +93,7 @@ const projectStore = useProjectStore();
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
 
 const notesCollab = projectStore.useNotesCollab({ project: project.value, noteId: route.params.noteId as string });
-const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
+const note = computedThrottled(() => notesCollab.data.value.notes[route.params.noteId as string], { throttle: 500 });
 const readonly = computed(() => notesCollab.readonly.value);
 
 const { inputFieldAttrs, errorMessage } = useProjectEditBase({

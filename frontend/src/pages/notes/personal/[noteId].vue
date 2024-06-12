@@ -67,7 +67,7 @@ const localSettings = useLocalSettings();
 const userNotesStore = useUserNotesStore();
 
 const notesCollab = userNotesStore.useNotesCollab({ noteId: route.params.noteId as string });
-const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
+const note = computedThrottled(() => notesCollab.data.value.notes[route.params.noteId as string], { throttle: 500 });
 
 const toolbarAttrs = computed(() => ({
   data: note.value,

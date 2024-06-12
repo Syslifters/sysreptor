@@ -8,7 +8,6 @@
 
 <script lang="ts">
 import { v4 as uuidv4 } from 'uuid';
-import { throttle } from 'lodash-es';
 // @ts-ignore
 import { renderMarkdownToHtml, mermaid } from 'reportcreator-markdown';
 import { absoluteApiUrl } from '~/utils/urls';
@@ -28,9 +27,15 @@ const props = defineProps<{
   cacheBuster?: string;
 }>();
 
-const renderedMarkdown = ref('');
 const cacheBusterFallback = uuidv4();
 const cacheBuster = computed(() => props.cacheBuster || cacheBusterFallback);
+const renderedMarkdown = computedThrottled(() => {
+  return renderMarkdownToHtml(props.value || '', {
+    preview: true,
+    rewriteFileSource,
+    rewriteReferenceLink: props.rewriteReferenceLink,
+  });
+}, { throttle: 250 })
 
 function rewriteFileSource(imgSrc: string) {
   // Rewrite image source to handle image fetching from markdown.
@@ -41,15 +46,6 @@ function rewriteFileSource(imgSrc: string) {
 
   return absoluteApiUrl(props.rewriteFileUrl(`${imgSrc}?c=${cacheBuster.value}`));
 }
-const updatePreviewThrottled = throttle(() => {
-  // Render markdown to HTML
-  renderedMarkdown.value = renderMarkdownToHtml(props.value || '', {
-    preview: true,
-    rewriteFileSource,
-    rewriteReferenceLink: props.rewriteReferenceLink,
-  });
-});
-watch(() => props.value, () => updatePreviewThrottled(), { immediate: true });
 
 const previewRef = ref<HTMLDivElement>();
 async function postProcessRenderedHtml() {
