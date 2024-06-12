@@ -122,16 +122,14 @@ const inputFieldAttrs = computed(() => ({
 // Autofocus input
 const titleRef = ref();
 const textRef = ref();
-watch(note, async (note) => {
-  if (note) {
-    await nextTick();
-    if (route.query?.focus === 'title') {
-      titleRef.value?.focus();
-    } else {
-      textRef.value?.focus();
-    }
+whenever(note, async () => {
+  await nextTick();
+  if (route.query?.focus === 'title') {
+    titleRef.value?.focus();
+  } else {
+    textRef.value?.focus();
   }
-}, { immediate: true });
+}, { immediate: true, once: true });
 </script>
 
 <style lang="scss" scoped>

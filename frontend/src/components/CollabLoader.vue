@@ -2,7 +2,7 @@
   <div v-if="isFirstLoad" class="centered" v-bind="$attrs">
     <v-progress-circular indeterminate size="50" />
   </div>
-  <div v-else v-bind="$attrs">
+  <div v-else v-bind="$attrs" class="h-100">
     <slot />
 
     <v-snackbar

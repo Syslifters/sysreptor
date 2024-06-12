@@ -108,7 +108,7 @@
     </template>
 
     <template #default>
-      <collab-loader :collab="reportingCollab" class="h-100">
+      <collab-loader :collab="reportingCollab">
         <nuxt-page />
       </collab-loader>
     </template>
