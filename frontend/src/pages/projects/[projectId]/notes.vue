@@ -21,7 +21,7 @@
     </template>
 
     <template #default>
-      <collab-loader :collab="notesCollab" class="h-100">
+      <collab-loader :collab="notesCollab">
         <nuxt-page />
       </collab-loader>
     </template>
