@@ -93,9 +93,6 @@ export type CollabStoreState<T> = {
   data: T;
   apiPath: string;
   connection?: CollabConnectionInfo;
-  connectionData: {
-    awarnessInternal: AwarenessInfos;
-  };
   handleAdditionalWebSocketMessages?: (event: CollabEvent, collabState: CollabStoreState<T>) => boolean;
   perPathState: Map<string, {
     unconfirmedTextUpdates: TextUpdate[];
@@ -895,6 +892,25 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     }
   }
 
+  const collabProps = computed(() => ({
+    path: storeState.apiPath,
+    clients: storeState.awareness.clients.map((c) => {
+      const a = c.client_id === storeState.clientID ? 
+        storeState.awareness.self : 
+        storeState.awareness.other[c.client_id];
+      return {
+        ...c,
+        path: storeState.apiPath + (a?.path || ''),
+        selection: a?.selection,
+        isSelf: c.client_id === storeState.clientID,
+      };
+    }),
+  }));
+  const collabPropsThrottled = shallowRef(collabProps.value);
+  watchThrottled(collabProps, () => {
+    collabPropsThrottled.value = collabProps.value;
+  }, { throttle: 1000 });
+
   return {
     connect,
     disconnect,
@@ -902,20 +918,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     data: computed(() => storeState.data),
     readonly: computed(() => storeState.connection?.connectionState !== CollabConnectionState.OPEN || !storeState.permissions.write),
     connection: computed(() => storeState.connection),
-    collabProps: computed(() => ({
-      path: storeState.apiPath,
-      clients: storeState.awareness.clients.map((c) => {
-        const a = c.client_id === storeState.clientID ? 
-          storeState.awareness.self : 
-          storeState.awareness.other[c.client_id];
-        return {
-          ...c,
-          path: storeState.apiPath + (a?.path || ''),
-          selection: a?.selection,
-          isSelf: c.client_id === storeState.clientID,
-        };
-      }),
-    })),
+    collabProps: collabPropsThrottled,
   }
 }
 
@@ -940,3 +943,24 @@ export function collabSubpath(collab: CollabPropType, subPath: string|null) {
     clients: collab.clients.filter(a => a.path.startsWith(path))
   };
 }
+
+// TODO: throttle store data updates (awareness, data)
+// * handling event types:
+//   * collab.create/collab.delete: no data event, send immediately
+//   * collab.update_key: no data throttling, throttle send
+//   * collab.update_text: throttle data updates, throttle send
+//   * collab.awareness: throttle data updates if path === awareness.path else no throttle data, throttle send
+// * on local event:
+//   * pendingDataUpdates.push(event); pendingEvents.push(event)
+//   * updateDataThrottled(); sendThrottled();
+//   * if no data throttling: updateDataThrottled.flush()
+//   * if no send throttling: sendThrottled.flush()
+// * disconnect:
+//   * updateDataThrottled.flush()
+//   * sendThrottled.flush()
+
+// * refactoring:
+//   * VueUse useWebsocket
+//   * useIntervalFn
+//   * syncRef
+//   * watchThrottled, refThrottled
