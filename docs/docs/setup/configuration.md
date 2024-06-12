@@ -255,3 +255,9 @@ See also https://docs.djangoproject.com/en/stable/ref/settings/#use-x-forwarded-
 USE_X_FORWARDED_HOST=on
 USE_X_FORWARDED_PORT=on
 ```
+
+When SysReptor is accessible via HTTPS (recommended), use following setting to redirect all HTTP requests to HTTPS.
+This flag also enables setting the `Secure` flag for cookies.
+```
+SECURE_SSL_REDIRECT=on
+```

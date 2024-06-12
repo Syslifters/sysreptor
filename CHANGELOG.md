@@ -7,6 +7,7 @@
 * Fix importing of non-empty note assignees
 * Collaborative editing: Sync pending changes on reconnect
 * Fix collaborative editing updates applied out-of-order because of MDE update throttling
+* Set `Secure` flag for cookies when setting `SECURE_SSL_REDIRECT=on`
 
 
 ## v2024.043 - 2024-05-27
