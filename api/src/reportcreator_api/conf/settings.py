@@ -428,6 +428,11 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = config('USE_X_FORWARDED_HOST', cast=bool, default=False)
 USE_X_FORWARDED_PORT = config('USE_X_FORWARDED_PORT', cast=bool, default=False)
 
+# SSL required
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', cast=bool, default=False)
+SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
+CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
+
 
 # Monkey-Patch django to disable CSRF everywhere
 # CSRF middlware class is used as middleware and internally by DjangoRestFramework
