@@ -568,7 +568,3 @@ export type OrderingOption = {
   title: string;
   value: string;
 }
-
-export type CommentPropType = {
-  comments: Comment[];
-};

@@ -54,7 +54,6 @@
         :model-value="finding.data[fieldId]"
         :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldId}`)"
         @collab="reportingCollab.onCollabEvent"
-        :comment="commentSidebarRef?.commentProps"
         @comment="commentSidebarRef?.onCommentEvent"
         :readonly="readonly"
         :id="fieldId"

@@ -93,7 +93,9 @@ const props = defineProps<{
   readonly?: boolean;
 }>();
 
-const commentsAll = computed(() => projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId }));
+const commentsAll = computedThrottled(() => {
+  return projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId });
+}, { throttle: 1000 });
 const commentsVisible = computed(() => localSettings.reportingCommentSidebarVisible ?
   commentsAll.value.filter(c => localSettings.reportingCommentStatusFilter === 'all' ? true : c.status === localSettings.reportingCommentStatusFilter) :
   commentsAll.value.filter(c => c.status === CommentStatus.OPEN)
@@ -101,10 +103,6 @@ const commentsVisible = computed(() => localSettings.reportingCommentSidebarVisi
 
 const commentGroups = computed(() => groupBy(commentsVisible.value, 'path'));
 const selectedComment = ref<Comment|null>(null);
-const commentProps = computed(() => ({
-  comments: commentsVisible.value,
-  selected: selectedComment.value,
-}));
 const readonly = computed(() => props.readonly || !apiSettings.isProfessionalLicense);
 
 function prettyFieldLabel(path: string) {
@@ -196,7 +194,6 @@ async function onCommentEvent(event: any) {
 }
 
 defineExpose({
-  commentProps,
   onCommentEvent,
 });
 

@@ -35,7 +35,7 @@
       :active="spellcheckEnabled"
     />
     <markdown-toolbar-button
-      v-if="props.comment"
+      v-if="props.collab"
       @click="emitCreateComment"
       title="Add comment"
       icon="mdi-comment-plus-outline"
@@ -105,7 +105,6 @@ const props = defineProps<{
   disabled?: boolean;
   lang?: string|null;
   collab?: CollabPropType;
-  comment?: CommentPropType;
   uploadFiles?: (files: FileList) => Promise<void>;
   fileUploadInProgress?: boolean;
 }>();
@@ -185,7 +184,7 @@ async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
 }
 
 function emitCreateComment() {
-  if (!props.comment || !props.collab || !props.editorState || props.disabled) {
+  if (!props.collab || !props.editorState || props.disabled) {
     return;
   }
   

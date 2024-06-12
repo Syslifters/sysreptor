@@ -24,7 +24,6 @@ export type MarkdownProps = {
   spellcheckEnabled?: boolean;
   markdownEditorMode?: MarkdownEditorMode;
   collab?: CollabPropType;
-  comment?: CommentPropType;
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrl?: (fileSrc: string) => string;
   rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
@@ -238,8 +237,8 @@ export function useMarkdownEditorBase(options: {
           }
 
           // Select current comment if the cursor is within a comment
-          if (options.props.value.comment && options.props.value.collab && editorState.value?.selection.main.empty && viewUpdate.selectionSet) {
-            const commentsAroundCursor = options.props.value.comment.comments
+          if (options.props.value.collab && editorState.value?.selection.main.empty && viewUpdate.selectionSet) {
+            const commentsAroundCursor = options.props.value.collab.comments
               .filter(c => c.collabPath === options.props.value.collab?.path && c.text_range)
               .filter(c => c.text_range!.from < editorState.value!.selection.main.from && c.text_range!.to > editorState.value!.selection.main.to);
             const selectedComment = sortBy(commentsAroundCursor, [c => c.text_range!.to - c.text_range!.from])[0];
@@ -354,30 +353,21 @@ export function useMarkdownEditorBase(options: {
     if (!options.editorView.value || !options.props.value.collab || isEqual(valueNew, valueOld)) {
       return;
     }
-    const remoteClients = (options.props.value.collab?.clients || []).filter(c => !c.isSelf && c.selection).map(c => ({
-      client_id: c.client_id,
-      color: c.client_color,
-      name: c.user.username + (c.user.name ? ` (${c.user.name})` : ''),
-      selection: c.selection!,
-    }));
-
-    options.editorView.value.dispatch({
-      effects: [
-        setRemoteClients.of(remoteClients),
-      ]
-    })
-  });
-  watch([() => options.props.value.comment, () => options.editorView.value], () => {
-    if (!options.editorView.value || !options.props.value.comment || !options.props.value.collab) {
-      return;
-    }
-
-    const comments = options.props.value.comment.comments
+    const remoteClients = options.props.value.collab.clients
+      .filter(c => !c.isSelf && c.selection)
+      .map(c => ({
+        client_id: c.client_id,
+        color: c.client_color,
+        name: c.user.username + (c.user.name ? ` (${c.user.name})` : ''),
+        selection: c.selection!,
+      }));
+    const comments = options.props.value.collab.comments
       .filter(c => c.collabPath === options.props.value.collab!.path && c.text_range)
       .map(c => ({ id: c.id, text_range: SelectionRange.fromJSON({ anchor: c.text_range!.from, head: c.text_range!.to }) }));
 
     options.editorView.value.dispatch({
       effects: [
+        setRemoteClients.of(remoteClients),
         setComments.of(comments),
       ]
     })
@@ -403,7 +393,6 @@ export function useMarkdownEditorBase(options: {
     fileUploadInProgress: fileUploadInProgress.value,
     lang: options.props.value.lang,
     collab: options.props.value.collab,
-    comment: options.props.value.comment,
     onComment: (value: any) => options.emit('comment', value),
     spellcheckEnabled: options.props.value.spellcheckEnabled,
     'onUpdate:spellcheckEnabled': (val: boolean) => options.emit('update:spellcheckEnabled', val),

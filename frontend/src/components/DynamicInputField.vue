@@ -117,7 +117,7 @@
               <v-card-title class="text-body-1">{{ label }}</v-card-title>
               <template #append>
                 <comment-btn
-                  v-if="props.comment && props.collab"
+                  v-if="props.collab"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
                 />
@@ -147,7 +147,7 @@
                 <v-spacer />
                 
                 <comment-btn
-                  v-if="props.comment && props.collab"
+                  v-if="props.collab"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
                 />
@@ -270,7 +270,7 @@
           </div>
         </div>
         <comment-btn
-          v-if="props.comment && props.collab && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type)"
+          v-if="props.collab && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type)"
           v-bind="commentBtnAttrs"
         />
       </div>
@@ -293,7 +293,6 @@ const props = defineProps<MarkdownProps & {
   modelValue?: any;
   definition: FieldDefinition;
   collab?: CollabPropType;
-  comment?: CommentPropType;
   id?: string;
   showFieldIds?: boolean;
   selectableUsers?: UserShortInfo[];
@@ -498,8 +497,6 @@ function collabFocus() {
   }
 }
 
-const commentsOnField = computed(() => props.comment?.comments.filter(c => c.collabPath === props.collab?.path) || []);
-
 const nestedClass = computed(() => {
   if ([FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.type)) {
     return (props.nestingLevel || 0) % 2 === 0 ? 'field-highlight-nested1' : 'field-highlight-nested2';
@@ -511,7 +508,7 @@ const attrs = useAttrs();
 const fieldAttrs = computed(() => ({
   ...attrs,
   label: label.value,
-  ...pick(props, ['disabled', 'readonly', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink', 'comment']),
+  ...pick(props, ['disabled', 'readonly', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink']),
   onCollab: (v: any) => emit('collab', v),
   onComment: (v: any) => emit('comment', v),
   'onUpdate:spellcheckEnabled': (v: boolean) => emit('update:spellcheckEnabled', v),
@@ -531,7 +528,7 @@ const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({
-  comments: commentsOnField.value,
+  comments: props.collab?.comments.filter(c => c.collabPath === props.collab?.path) || [],
   onComment: (v: any) => emit('comment', v),
   collabPath: props.collab?.path || '',
   isHovering: isHovering.value,

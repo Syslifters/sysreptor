@@ -1,7 +1,7 @@
-import { get, set, unset, throttle, trimStart } from "lodash-es";
+import { get, set, unset, throttle, trimStart, sortBy } from "lodash-es";
 import urlJoin from "url-join";
 import { ChangeSet, EditorSelection, SelectionRange, Text } from "reportcreator-markdown/editor"
-import { type Comment, type UserShortInfo } from "@/utils/types"
+import { CommentStatus, type Comment, type UserShortInfo } from "@/utils/types"
 
 const WS_RESPONSE_TIMEOUT = 7_000;
 const WS_PING_INTERVAL = 30_000;
@@ -89,7 +89,9 @@ export type AwarenessInfos = {
 }
 
 export type CollabStoreState<T> = {
-  data: T;
+  data: T & { 
+    comments?: Record<string, Comment> 
+  };
   apiPath: string;
   connection?: CollabConnectionInfo;
   handleAdditionalWebSocketMessages?: (event: CollabEvent, collabState: CollabStoreState<T>) => boolean;
@@ -107,7 +109,9 @@ export type CollabStoreState<T> = {
 
 export function makeCollabStoreState<T>(options: {
   apiPath: string, 
-  initialData: T,
+  initialData: T & {
+    comments?: Record<string, Comment>
+  },
   initialPath?: string,
   handleAdditionalWebSocketMessages?: (event: CollabEvent, storeState: CollabStoreState<T>) => boolean
 }): CollabStoreState<T> {
@@ -715,7 +719,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       }
 
       // Map comment positions
-      const comments = Object.values((storeState.data as any).comments) as Comment[];
+      const comments = Object.values(storeState.data.comments || {});
       for (const c of comments) {
         if (c.path === dataPath && c.text_range) {
           let pos: SelectionRange|null = SelectionRange.fromJSON({ anchor: c.text_range.from, head: c.text_range.to });
@@ -893,7 +897,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function updateComments(options: { comments?: Partial<Comment>[], unconfirmed?: TextUpdate[], text?: Text|string }) {
-    const commentsStoreState = (storeState.data as any).comments as Record<string, Comment>|undefined;
+    const commentsStoreState = storeState.data.comments;
     if (!options.comments || !commentsStoreState) {
       return;
     }
@@ -958,6 +962,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     data: computed(() => storeState.data),
     readonly: computed(() => storeState.connection?.connectionState !== CollabConnectionState.OPEN || !storeState.permissions.write),
     connection: computed(() => storeState.connection),
+    // TODO: selection ranges and comment positions out of sync with text changes, while updates are throttled
     collabProps: computedThrottled(() => ({
       path: storeState.apiPath,
       clients: storeState.awareness.clients.map((c) => {
@@ -971,6 +976,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           isSelf: c.client_id === storeState.clientID,
         };
       }),
+      comments: sortBy(Object.values(storeState.data.comments || {}), ['created'])
+        .filter(c => c.status === CommentStatus.OPEN)
+        .map(c => ({ ...c, collabPath: storeState.apiPath + c.path })),
     }), { throttle: 1000 }),
   }
 }
@@ -985,6 +993,7 @@ export type CollabPropType = {
     selection?: EditorSelection;
     isSelf: boolean;
   }[];
+  comments: Comment[];
 };
 
 export function collabSubpath(collab: CollabPropType, subPath: string|null) {
@@ -999,5 +1008,6 @@ export function collabSubpath(collab: CollabPropType, subPath: string|null) {
     ...collab,
     path,
     clients: collab.clients.filter(a => isSubpath(a.path, path)),
+    comments: collab.comments.filter(c => isSubpath(c.collabPath || '', path)),
   };
 }
