@@ -168,7 +168,7 @@ export async function useProjectHistory<T>(options: {
     };
   });
   const collab = options.useCollab(fetchState.value.projectCurrent);
-  const dataCurrent = computed<T|null>(() => get(collab.data.value, trim(options.subresourceUrlPart.replaceAll('/', '.'), '.')) || null);
+  const dataCurrent = computedThrottled<T|null>(() => get(collab.data.value, trim(options.subresourceUrlPart.replaceAll('/', '.'), '.')) || null, { throttle: 500 });
 
   const markdownEditorMode = ref(MarkdownEditorMode.MARKDOWN);
   watch(markdownEditorMode, (val) => {

@@ -74,7 +74,7 @@ const project = await useAsyncDataE(async () => await projectStore.getById(route
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'findings:projectType' });
 
 const reportingCollab = projectStore.useReportingCollab({ project: project.value, findingId: route.params.findingId as string });
-const finding = computed(() => reportingCollab.data.value.findings[route.params.findingId as string]);
+const finding = computedThrottled(() => reportingCollab.data.value.findings[route.params.findingId as string], { throttle: 500 });
 const readonly = computed(() => reportingCollab.readonly.value);
 
 const { inputFieldAttrs, errorMessage } = useProjectEditBase({
