@@ -105,7 +105,7 @@ def merge(*args):
     """
     Recursively merge dicts
     """
-    out = None
+    out = {}
     for d in args:
         if isinstance(d, (dict, OrderedDict)) and isinstance(out, (dict, OrderedDict)):
             for k, v in d.items():

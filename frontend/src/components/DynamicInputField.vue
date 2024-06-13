@@ -1,7 +1,7 @@
 <template>
   <v-hover v-model="isHovering">
     <template #default="{ props: hoverProps }">
-      <div :id="props.id" class="mt-4" :class="['d-flex', 'flex-row', nestedClass]" v-bind="hoverProps">
+      <div :id="props.id" class="mt-4 d-flex flex-row" :class="nestedClass" v-bind="hoverProps">
         <div class="flex-grow-width">
           <!-- String -->
           <markdown-text-field
@@ -141,31 +141,28 @@
 
           <!-- List -->
           <s-card v-else-if="definition.type === 'list'">
-            <v-card-title class="text-body-1">
-              <div class="d-flex flex-row">
-                <span>{{ label }}</span>
-                <v-spacer />
-                
+            <v-card-item class="pb-0">
+              <v-card-title class="text-body-1">{{ label }}</v-card-title>
+              <template #append>
                 <comment-btn
                   v-if="props.collab"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
                 />
-                <template v-if="definition.items!.type === 'string'">
-                  <s-btn-icon
-                    @click="bulkEditList = !bulkEditList"
-                    density="comfortable"
-                  >
-                    <v-icon v-if="bulkEditList" icon="mdi-format-list-bulleted" />
-                    <v-icon v-else icon="mdi-playlist-edit" />
-                    <s-tooltip activator="parent">
-                      <span v-if="bulkEditList">Edit as list</span>
-                      <span v-else>Bulk edit list items</span>
-                    </s-tooltip>
-                  </s-btn-icon>
-                </template>
-              </div>
-            </v-card-title>
+                <s-btn-icon
+                  v-if="definition.items!.type === 'string'"
+                  @click="bulkEditList = !bulkEditList"
+                  density="comfortable"
+                >
+                  <v-icon v-if="bulkEditList" icon="mdi-format-list-bulleted" />
+                  <v-icon v-else icon="mdi-playlist-edit" />
+                  <s-tooltip activator="parent">
+                    <span v-if="bulkEditList">Edit as list</span>
+                    <span v-else>Bulk edit list items</span>
+                  </s-tooltip>
+                </s-btn-icon>
+              </template>
+            </v-card-item>
 
             <v-card-text>
               <!-- Bulk edit list items of list[string] -->

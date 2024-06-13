@@ -14,6 +14,7 @@ export type DiffFieldProps = {
   'onUpdate:markdownEditorMode'?: (val: MarkdownEditorMode) => void;
   'onUpdate:spellcheckEnabled'?: (val: boolean) => void;
   'onCollab'?: (val: any) => void;
+  'onComment'?: (val: any) => void;
 } & MarkdownProps;
 
 export type DynamicInputFieldDiffProps = {
@@ -100,6 +101,7 @@ export function useMarkdownDiff(options: {
 }
 
 export function formatHistoryObjectFieldProps(options: {
+  id?: string;
   historic: {
     value?: any;
     definition?: FieldDefinitionDict;
@@ -118,7 +120,8 @@ export function formatHistoryObjectFieldProps(options: {
   for (const fieldId of options.historic.fieldIds.concat(options.current.fieldIds)) {
     if (!out.some(f => f.id === fieldId)) {
       out.push({
-        id: fieldId,
+        ...options.attrs,
+        id: options.id ? `${options.id}.${fieldId}` : fieldId,
         historic: {
           ...options.historic.attrs,
           value: options.historic.value?.[fieldId],
@@ -130,7 +133,6 @@ export function formatHistoryObjectFieldProps(options: {
           definition: options.current.definition?.[fieldId],
           collab: options.current.attrs?.collab ? collabSubpath(options.current.attrs.collab, fieldId) : undefined,
         },
-        ...options.attrs,
       });
     }
   }

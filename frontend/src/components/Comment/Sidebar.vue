@@ -184,10 +184,19 @@ async function selectComment(comment: Comment|null, options?: { focus?: string, 
 }
 
 async function onCommentEvent(event: any) {
+  if (!apiSettings.isProfessionalLicense) {
+    localSettings.reportingCommentSidebarVisible = true;
+    return;
+  }
+
   if (event.type === 'create' && !props.readonly) {
-    const comment = await projectStore.createComment(props.project, event.comment);
-    await selectComment(comment, { focus: 'comment', openSidebar: true });
-    comment.isNew = false;
+    try {
+      const comment = await projectStore.createComment(props.project, event.comment);
+      await selectComment(comment, { focus: 'comment', openSidebar: true });
+      comment.isNew = false;
+    } catch (error) {
+      requestErrorToast({ error })
+    }
   } else if (event.type === 'select') {
     await selectComment(event.comment, { focus: 'comment', ...omit(event, ['type', 'comment']) });
   }
