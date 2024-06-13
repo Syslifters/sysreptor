@@ -58,7 +58,6 @@
         :readonly="readonly"
         :id="fieldId"
         :definition="projectType.finding_fields[fieldId]"
-        :autofocus="fieldId === 'title'"
         v-bind="inputFieldAttrs"
       />
     </div>
@@ -113,6 +112,8 @@ function updateKey(key: string, value: any) {
     value,
   })
 }
+
+useAutofocus(finding, 'title');
 </script>
 
 <style lang="scss" scoped>

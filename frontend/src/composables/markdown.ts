@@ -1,7 +1,6 @@
 import { v4 as uuid4 } from 'uuid';
-import { isEqual } from 'lodash-es';
-import type { PropType } from "vue";
 import { sortBy, isEqual } from "lodash-es";
+import type { PropType } from "vue";
 import {
   createEditorExtensionToggler,
   EditorState, EditorView, ViewUpdate,

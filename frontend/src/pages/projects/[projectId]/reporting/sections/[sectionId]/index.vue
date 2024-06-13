@@ -89,6 +89,8 @@ function updateKey(key: string, value: any) {
     value,
   })
 }
+
+useAutofocus(section);
 </script>
 
 <style lang="scss" scoped>

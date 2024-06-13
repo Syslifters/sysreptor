@@ -47,7 +47,6 @@
         <v-textarea
           ref="textFieldRef"
           v-model="editText"
-          v-model:focused="editTextFocused"
           :placeholder="props.placeholder"
           density="compact"
           variant="outlined"
@@ -65,8 +64,8 @@
             text="Cancel" 
           />
           <s-btn-other 
-            v-if="!props.initialEdit || editTextFocused" 
-            @click="performUpdate" 
+            @click="performUpdate"
+            :disabled="!editText.trim()"
             :loading="updateInProgress" 
             size="small" 
             text="Save" 
@@ -93,7 +92,6 @@ const props = defineProps<{
 }>();
 
 const editEnabled = ref(props.initialEdit || false);
-const editTextFocused = ref(false);
 const editText = ref('');
 const textFieldRef = ref<HTMLInputElement|null>(null);
 watch(modelValue, () => {

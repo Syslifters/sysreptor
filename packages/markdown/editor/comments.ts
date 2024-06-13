@@ -36,8 +36,7 @@ const commentField = StateField.define<DecorationSet>({
 
 const commentTheme = EditorView.theme({
   '.cm-comment': {
-    // TODO: comment color (needs transparency)
-    backgroundColor: 'rgba(255, 255, 0, 0.4)',
+    backgroundColor: 'rgba(255, 193, 7, 0.4)',
     cursor: 'pointer',
   },
 });
