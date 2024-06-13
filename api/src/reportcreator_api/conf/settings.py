@@ -430,6 +430,7 @@ USE_X_FORWARDED_PORT = config('USE_X_FORWARDED_PORT', cast=bool, default=False)
 
 # SSL required
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', cast=bool, default=False)
+SECURE_REDIRECT_EXEMPT = [r'^api/v1/utils/healthcheck/?$']
 SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
 CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
 

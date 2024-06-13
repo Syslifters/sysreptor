@@ -171,17 +171,17 @@ CMD python3 manage.py migrate && \
 FROM api-dev as api-prebuilt
 
 # Copy source code (including pre-build static files)
-COPY api/src /app/api
-COPY rendering/dist /app/rendering/dist/
+COPY --chown=user:user api/src /app/api
+COPY --chown=user:user rendering/dist /app/rendering/dist/
 
 
 
 FROM api-dev AS api-test
 # Copy source code
-COPY api/src /app/api
+COPY --chown=user:user api/src /app/api
 
 # Copy generated template rendering script
-COPY --from=rendering /app/rendering/dist /app/rendering/dist/
+COPY --from=rendering --chown=user:user /app/rendering/dist /app/rendering/dist/
 
 
 FROM api-test as api
