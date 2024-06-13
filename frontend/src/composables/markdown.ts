@@ -1,4 +1,5 @@
 import { v4 as uuid4 } from 'uuid';
+import { isEqual } from 'lodash-es';
 import type { PropType } from "vue";
 import {
   createEditorExtensionToggler,
@@ -197,7 +198,7 @@ export function useMarkdownEditorBase(options: {
           editorState.value = viewUpdate.state;
           
           // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
-          if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
+          if (viewUpdate.docChanged) {
             // Collab updates
             if (options.props.value.collab) {
               for (const tr of viewUpdate.transactions) {
@@ -212,7 +213,9 @@ export function useMarkdownEditorBase(options: {
             }
 
             // Model-value updates
-            options.emit('update:modelValue', viewUpdate.state.doc.toString());
+            if (viewUpdate.state.doc.toString() !== valueNotNull.value) {
+              options.emit('update:modelValue', viewUpdate.state.doc.toString());
+            }
           }
 
           if (options.props.value.collab && (viewUpdate.selectionSet || viewUpdate.focusChanged)) {
@@ -322,8 +325,8 @@ export function useMarkdownEditorBase(options: {
   watch(spellcheckBrowserEnabled, val => editorActions.value.spellcheckBrowser?.(val));
   watch(theme.current, val => editorActions.value.darkTheme?.(val.dark));
 
-  watch([() => options.props.value.collab?.clients, () => options.editorView.value], () => {
-    if (!options.editorView.value) {
+  watch([() => options.props.value.collab, () => options.editorView.value], (valueNew, valueOld) => {
+    if (!options.editorView.value || !options.props.value.collab || isEqual(valueNew, valueOld)) {
       return;
     }
     const remoteClients = (options.props.value.collab?.clients || []).filter(c => !c.isSelf && c.selection).map(c => ({
