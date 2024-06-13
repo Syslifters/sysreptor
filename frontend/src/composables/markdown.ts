@@ -198,7 +198,7 @@ export function useMarkdownEditorBase(options: {
           editorState.value = viewUpdate.state;
           
           // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
-          if (viewUpdate.docChanged && viewUpdate.state.doc.toString() !== valueNotNull.value) {
+          if (viewUpdate.docChanged) {
             // Collab updates
             if (options.props.value.collab) {
               for (const tr of viewUpdate.transactions) {
@@ -213,7 +213,9 @@ export function useMarkdownEditorBase(options: {
             }
 
             // Model-value updates
-            options.emit('update:modelValue', viewUpdate.state.doc.toString());
+            if (viewUpdate.state.doc.toString() !== valueNotNull.value) {
+              options.emit('update:modelValue', viewUpdate.state.doc.toString());
+            }
           }
 
           if (options.props.value.collab && (viewUpdate.selectionSet || viewUpdate.focusChanged)) {
