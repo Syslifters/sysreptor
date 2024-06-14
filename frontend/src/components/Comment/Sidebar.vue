@@ -69,7 +69,8 @@
         :comment="comment"
         :project="props.project"
         @click="selectComment(comment, { focus: 'field' })"
-        :is-active="comment?.id === selectedComment?.id"
+        :is-active="comment.id === selectedComment?.id"
+        :is-new="comment.id === commentNew?.id"
       />
 
       <v-divider class="mt-2" />
@@ -93,13 +94,19 @@ const props = defineProps<{
   readonly?: boolean;
 }>();
 
+const commentNew = ref<Comment|null>(null);
 const commentsAll = computedThrottled(() => {
   return projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId });
 }, { throttle: 1000 });
-const commentsVisible = computed(() => localSettings.reportingCommentSidebarVisible ?
-  commentsAll.value.filter(c => localSettings.reportingCommentStatusFilter === 'all' ? true : c.status === localSettings.reportingCommentStatusFilter) :
-  commentsAll.value.filter(c => c.status === CommentStatus.OPEN)
-);
+const commentsVisible = computed(() => {
+  const out = localSettings.reportingCommentSidebarVisible ?
+    commentsAll.value.filter(c => localSettings.reportingCommentStatusFilter === 'all' ? true : c.status === localSettings.reportingCommentStatusFilter) :
+    commentsAll.value.filter(c => c.status === CommentStatus.OPEN);
+  if (commentNew.value && !out.some(c => c.id === commentNew.value?.id)) {
+    out.push(commentNew.value);
+  }
+  return out;
+});
 
 const commentGroups = computed(() => groupBy(commentsVisible.value, 'path'));
 const selectedComment = ref<Comment|null>(null);
@@ -158,8 +165,8 @@ async function selectComment(comment: Comment|null, options?: { focus?: string, 
       const elComment = document.getElementById(`comment-${comment.id}`);
       elComment?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-      const commentInput = elComment?.querySelector('.comment-content textarea') as HTMLTextAreaElement|undefined;
-      commentInput?.focus({ preventScroll: true });
+      const elCommentInput = elComment?.querySelector('.comment-content textarea') as HTMLTextAreaElement|undefined;
+      elCommentInput?.focus({ preventScroll: true });
     } else if (options?.focus === 'field') {
       const filedId = comment.path.split('.').slice(3).join('.').replaceAll('.[', '[');
       const elField = document.getElementById(filedId);
@@ -185,15 +192,18 @@ async function selectComment(comment: Comment|null, options?: { focus?: string, 
 
 async function onCommentEvent(event: any) {
   if (!apiSettings.isProfessionalLicense) {
-    localSettings.reportingCommentSidebarVisible = true;
+    if (event.openSidebar || event.type === 'create') {
+      localSettings.reportingCommentSidebarVisible = true;
+    }
     return;
   }
 
   if (event.type === 'create' && !props.readonly) {
     try {
       const comment = await projectStore.createComment(props.project, event.comment);
+      commentNew.value = comment;
       await selectComment(comment, { focus: 'comment', openSidebar: true });
-      comment.isNew = false;
+      commentNew.value = null;
     } catch (error) {
       requestErrorToast({ error })
     }

@@ -246,9 +246,6 @@ export enum CommentStatus {
 export type CommentAnswer = BaseModel & {
   text: string;
   user: UserShortInfo|null;
-
-  // Internal properties used by frontend
-  isNew?: boolean;
 };
 
 export type Comment = BaseModel & {
@@ -261,7 +258,6 @@ export type Comment = BaseModel & {
   answers: CommentAnswer[];
 
   // Internal properties used by frontend
-  isNew?: boolean;
   collabPath?: string;
 }
 

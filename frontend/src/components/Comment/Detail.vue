@@ -14,6 +14,7 @@
       :model-value="comment"
       :update="(c) => projectStore.updateComment(props.project, c)"
       :delete="() => projectStore.deleteComment(props.project, comment)"
+      :is-new="props.isNew"
       :readonly="readonly"
       placeholder="Comment text..."
       class="comment-content"
@@ -76,6 +77,7 @@ const props = defineProps<{
   project: PentestProject;
   comment: Comment;
   isActive?: boolean;
+  isNew?: boolean;
   readonly?: boolean;
 }>();
 

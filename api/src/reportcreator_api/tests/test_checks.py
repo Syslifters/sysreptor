@@ -5,7 +5,13 @@ from django.test import override_settings
 
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.pentests.models import CommentStatus, ReviewStatus
-from reportcreator_api.tests.mock import create_comment, create_finding, create_project, create_project_type, create_user
+from reportcreator_api.tests.mock import (
+    create_comment,
+    create_finding,
+    create_project,
+    create_project_type,
+    create_user,
+)
 from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
 
 pytestmark = pytest.mark.django_db
@@ -285,13 +291,13 @@ def test_comments():
 
     assertContainsCheckResults(project.perform_checks(), [
         ErrorMessage(level=MessageLevel.WARNING, message='Unresolved comment', location=MessageLocationInfo(
-            type=MessageLocationType.FINDING, id=finding.finding_id, path=comment_open1.path)),
+            type=MessageLocationType.FINDING, id=finding.finding_id, path=comment_open1.path.removeprefix('data.'))),
         ErrorMessage(level=MessageLevel.WARNING, message='Unresolved comment', location=MessageLocationInfo(
-            type=MessageLocationType.SECTION, id=section.section_id, path=comment_open2.path)),
+            type=MessageLocationType.SECTION, id=section.section_id, path=comment_open2.path.removeprefix('data.'))),
     ])
     assertNotContainsCheckResults(project.perform_checks(), [
         ErrorMessage(level=MessageLevel.WARNING, message='Unresolved comment', location=MessageLocationInfo(
-            type=MessageLocationType.FINDING, id=finding.finding_id, path=comment_resolved1.path)),
+            type=MessageLocationType.FINDING, id=finding.finding_id, path=comment_resolved1.path.removeprefix('data.'))),
         ErrorMessage(level=MessageLevel.WARNING, message='Unresolved comment', location=MessageLocationInfo(
-            type=MessageLocationType.SECTION, id=section.section_id, path=comment_resolved2.path)),
+            type=MessageLocationType.SECTION, id=section.section_id, path=comment_resolved2.path.removeprefix('data.'))),
     ])

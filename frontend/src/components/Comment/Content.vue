@@ -87,6 +87,7 @@ const props = defineProps<{
   delete?: () => Promise<void>;
   update: (value: any) => Promise<void>;
   readonly?: boolean;
+  isNew?: boolean;
   initialEdit?: boolean;
   placeholder?: string;
 }>();
@@ -94,16 +95,11 @@ const props = defineProps<{
 const editEnabled = ref(props.initialEdit || false);
 const editText = ref('');
 const textFieldRef = ref<HTMLInputElement|null>(null);
-watch(modelValue, () => {
-  if (modelValue.value.isNew) {
-    editEnabled.value = true;
-    modelValue.value.isNew = false;
-  }
+whenever(() => props.isNew, () => {
+  editEnabled.value = true;
 }, { immediate: true });
-watch(editEnabled, (value) => {
-  if (value) {
-    editText.value = modelValue.value.text;
-  }
+whenever(editEnabled, () => {
+  editText.value = modelValue.value.text;
 }, { immediate: true });
 
 const updateInProgress = ref(false);

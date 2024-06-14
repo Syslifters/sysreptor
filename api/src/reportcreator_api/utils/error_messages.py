@@ -23,7 +23,7 @@ def format_path(path: Union[None, str, tuple[str], list[str]]):
     if isinstance(path, (tuple, list)):
         path_str = '.'.join(path)
     if path_str:
-        path_str = path_str.replace('.[', ' [')
+        path_str = path_str.replace('.[', '[')
     return path_str
 
 
