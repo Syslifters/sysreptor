@@ -24,32 +24,64 @@
     <btn-confirm
       :action="createBackup"
       :confirm="false"
-      button-text="Create Backup"
+      button-text="Download Backup"
       button-icon="mdi-download"
       button-color="primary"
       :disabled="!apiSettings.settings!.features.backup"
-      class="mt-4"
+      class="mt-2"
     />
+
+    <s-card title="Backup History" class="mt-8">
+      <template #text>
+        <v-table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>User</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="log in backupLogs.data.value" :key="log.id">
+              <td><chip-date :value="log.created" /></td>
+              <td>{{ log.user || '-' }}</td>
+              <td>
+                <template v-if="log.type === BackupLogType.SETUP">Set up SysReptor instance</template>
+                <template v-else-if="log.type === BackupLogType.BACKUP">Backup created</template>
+                <template v-else-if="log.type === BackupLogType.RESTORE">Restored backup</template>
+                <template v-else>{{ log.type }}</template>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+        <page-loader :items="backupLogs" />
+      </template>
+    </s-card>
   </v-container>
 </template>
 
 <script setup lang="ts">
 import fileDownload from "js-file-download";
 import { formatISO } from 'date-fns';
+import { BackupLogType } from '@/utils/types';
 
 definePageMeta({
   title: 'Backup',
   toplevel: true,
 });
 useHeadExtended({
-  breadcrumbs: () => [{ title: 'Backup', to: '/backup/' }],
+  breadcrumbs: () => [{ title: 'Backup', to: '/backups/' }],
 });
 
 const route = useRoute();
 const auth = useAuth();
 const apiSettings = useApiSettings();
 
-onBeforeMount(async () => {
+const backupLogs = useSearchableCursorPaginationFetcher<BackupLog>({
+  baseURL: '/api/v1/utils/backuplogs/',
+});
+
+await useAsyncDataE(async () => {
   // Enable admin permissions
   if (apiSettings.isProfessionalLicense && auth.user.value?.is_superuser && !auth.permissions.value.admin) {
     await navigateTo({ path: '/users/self/admin/enable/', query: { next: route.fullPath } }, { replace: true });
@@ -76,6 +108,7 @@ async function createBackup() {
       responseType: "blob",
     });
     fileDownload(backupBlob, `backup-${formatISO(new Date())}.zip`);
+    backupLogs.reset();
     successToast('Backup successful');
   } catch (error: any) {
     const errorData = await new Promise<any>((resolve) => {

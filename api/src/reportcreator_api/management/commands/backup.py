@@ -28,7 +28,7 @@ class Command(BaseCommand):
             raise CommandError('Professional license required')
 
         # Create backup iterator
-        z = create_backup()
+        z = create_backup(user=None)
         if key:
             z = encrypt_backup(z, key.key)
 

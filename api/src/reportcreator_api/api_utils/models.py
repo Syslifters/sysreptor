@@ -1,5 +1,8 @@
 from django.db import models
 
+from reportcreator_api.users.models import PentestUser
+from reportcreator_api.utils.models import BaseModel
+
 
 class LanguageToolIgnoreWords(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -13,3 +16,15 @@ class LanguageToolIgnoreWords(models.Model):
 
     def __str__(self):
         return self.ignore_word
+
+
+class BackupLogType(models.TextChoices):
+    SETUP = 'setup', 'Setup'
+    BACKUP = 'backup', 'Backup'
+    RESTORE = 'restore', 'Restore'
+
+
+class BackupLog(BaseModel):
+    type = models.CharField(choices=BackupLogType.choices, max_length=20)
+    user = models.ForeignKey(PentestUser, on_delete=models.SET_NULL, null=True, blank=True)
+

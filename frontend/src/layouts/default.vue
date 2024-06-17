@@ -82,7 +82,7 @@
             :disabled="!auth.permissions.value.user_manager" 
           />
           <v-list-item
-            to="/backup/"
+            to="/backups/"
             prepend-icon="mdi-tools"
             :disabled="!auth.permissions.value.view_backup"
           >

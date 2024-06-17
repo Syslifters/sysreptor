@@ -13,8 +13,10 @@ from rest_framework.settings import api_settings
 
 from reportcreator_api.api_utils import backup_utils
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
+from reportcreator_api.api_utils.models import BackupLog
 from reportcreator_api.api_utils.permissions import IsAdminOrSystem, IsUserManagerOrSuperuserOrSystem
 from reportcreator_api.api_utils.serializers import (
+    BackupLogSerializer,
     BackupSerializer,
     CweDefinitionSerializer,
     LanguageToolAddWordSerializer,
@@ -37,12 +39,17 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
     def get_serializer_class(self):
         if self.action == 'backup':
             return BackupSerializer
+        elif self.action == 'backuplogs':
+            return BackupLogSerializer
         elif self.action == 'spellcheck':
             return LanguageToolSerializer
         elif self.action == 'spellcheck_add_word':
             return LanguageToolAddWordSerializer
         else:
             return Serializer
+
+    def get_queryset(self):
+        return None
 
     @extend_schema(exclude=True)
     def list(self, *args, **kwargs):
@@ -52,6 +59,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
             'cwes': 'utils-cwes',
             'spellcheck': 'utils-spellcheck',
             'backup': 'utils-backup',
+            'backuplogs': 'utils-backuplogs',
             'healthcheck': 'utils-healthcheck',
             'openapi': 'utils-openapi-schema',
             'swagger-ui': 'utils-swagger-ui',
@@ -106,7 +114,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         if aes_key:
             aes_key = b64decode(aes_key)
 
-        z = backup_utils.create_backup()
+        z = backup_utils.create_backup(user=request.user)
         if aes_key:
             z = backup_utils.encrypt_backup(z, aes_key=aes_key)
 
@@ -124,6 +132,12 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
             response['Content-Disposition'] = f"attachment; filename={filename}"
             log.info('Sending Backup')
             return response
+
+    @action(detail=False, methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsAdminOrSystem], pagination_class=api_settings.DEFAULT_PAGINATION_CLASS)
+    def backuplogs(self, request, *args, **kwargs):
+        qs = self.paginate_queryset(BackupLog.objects.all())
+        serializer = self.get_serializer(instance=qs, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_name='license', url_path='license', methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsUserManagerOrSuperuserOrSystem])

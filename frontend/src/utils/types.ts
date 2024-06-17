@@ -560,6 +560,17 @@ export type CWE = {
   parent: number|null;
 };
 
+export enum BackupLogType {
+  SETUP = 'setup',
+  BACKUP = 'backup',
+  RESTORE = 'restore',
+}
+
+export type BackupLog = BaseModel & {
+  type: BackupLogType;
+  user: string|null;
+}
+
 export type OrderingOption = {
   id: string;
   title: string;

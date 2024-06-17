@@ -294,6 +294,7 @@ def user_manager_urls():
         *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.api_tokens.first().pk} if detail else {}), list=True, retrieve=True, destroy=True),
         *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), list=True, retrieve=True),
         ('utils-license', lambda s, c: c.get(reverse('utils-license'))),
+        ('utils-backuplogs', lambda s, c: c.get(reverse('utils-backuplogs'))),
     ]
 
 

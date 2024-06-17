@@ -8,6 +8,7 @@ import httpx
 from django.conf import settings
 from rest_framework import exceptions, serializers
 
+from reportcreator_api.api_utils.models import BackupLog
 from reportcreator_api.pentests.models import Language
 
 log = logging.getLogger(__name__)
@@ -127,6 +128,14 @@ class BackupSerializer(serializers.Serializer):
             return value
         except ValueError as ex:
             raise serializers.ValidationError('Invalid base64 encoding') from ex
+
+
+class BackupLogSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(slug_field='username', read_only=True)
+
+    class Meta:
+        model = BackupLog
+        fields = ['id', 'created', 'type', 'user']
 
 
 class CweDefinitionSerializer(serializers.Serializer):
