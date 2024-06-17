@@ -109,6 +109,7 @@ export type ApiSettings = {
         readonly archiving: boolean;
         readonly permissions: boolean;
         readonly comments: boolean;
+        readonly backup: boolean;
     };
     readonly guest_permissions: {
       readonly import_projects: boolean;

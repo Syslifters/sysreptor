@@ -110,10 +110,10 @@ class BackupSerializer(serializers.Serializer):
     def validate_key(self, key):
         if not settings.BACKUP_KEY or len(settings.BACKUP_KEY) < 20:
             log.error('Backup key not set or too short (min 20 chars)')
-            raise serializers.ValidationError()
-        if key != settings.BACKUP_KEY:
+            raise serializers.ValidationError('Backup key not set or too short (min 20 chars)')
+        elif key != settings.BACKUP_KEY:
             log.error('Invalid backup key')
-            raise serializers.ValidationError()
+            raise serializers.ValidationError('Invalid backup key')
         return key
 
     def validate_aes_key(self, value):

@@ -13,7 +13,7 @@ from rest_framework.settings import api_settings
 
 from reportcreator_api.api_utils import backup_utils
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
-from reportcreator_api.api_utils.permissions import IsSystemUser, IsUserManagerOrSuperuserOrSystem
+from reportcreator_api.api_utils.permissions import IsAdminOrSystem, IsUserManagerOrSuperuserOrSystem
 from reportcreator_api.api_utils.serializers import (
     BackupSerializer,
     CweDefinitionSerializer,
@@ -86,6 +86,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
                 'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
                 'archiving': license.is_professional(),
                 'permissions': license.is_professional(),
+                'backup': bool(settings.BACKUP_KEY and license.is_professional()),
             },
             'guest_permissions': {
                 'import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,
@@ -96,7 +97,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         })
 
     @extend_schema(responses={(200, 'application/octet-stream'): OpenApiTypes.BINARY})
-    @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsSystemUser, license.ProfessionalLicenseRequired])
+    @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsAdminOrSystem, license.ProfessionalLicenseRequired])
     def backup(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

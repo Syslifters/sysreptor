@@ -27,8 +27,8 @@ docker compose run --rm app python3 manage.py backup --key "<aes-key-as-hex>" > 
 
 ### Prerequisites
 Creating backups is a high-privilege operation. Therefore, access to the backup API endpoint is restricted.
-Only [`system`-users](/setup/user-permissions/#system) can access this endpoint in combination with a `BACKUP_KEY`.
-Neither regular users nor superusers have access to the backup API endpoint.
+Only [`superusers`](/setup/user-permissions/#superuser) [`system`-users](/setup/user-permissions/#system) can access this endpoint in combination with a `BACKUP_KEY`.
+Regular users do not have access to the backup API endpoint.
 
 Additionally, you need to configure a `BACKUP_KEY` as environment variable.
 This backup key has to be at least 20 characters long.
@@ -39,10 +39,10 @@ Optionally, the backup can be encrypted via a 256-bit AES key provided in the HT
 ### API Requests
 ```
 # Create backup
-curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>"}' -H 'Cookie: sessionid=<session-id>' -H "Content-Type: application/json" -o backup.zip
+curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>"}' -H 'Authorization: Bearer <api-token>' -H "Content-Type: application/json" -o backup.zip
 
 # Create encrypted backup
-curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>", "aes_key": "<aes-key-as-hex>"}' -H 'Cookie: sessionid=<session-id>' -H "Content-Type: application/json" -o backup.zip.crypt
+curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>", "aes_key": "<aes-key-as-hex>"}' -H 'Authorization: Bearer <api-token>' -H "Content-Type: application/json" -o backup.zip.crypt
 ```
 
 ## Restore backups

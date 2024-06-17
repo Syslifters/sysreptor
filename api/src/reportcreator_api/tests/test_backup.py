@@ -134,7 +134,7 @@ class TestBackup:
         user_regular = create_user()
         assert self.backup_request(user=user_regular).status_code == 403
         superuser = create_user(is_superuser=True)
-        assert self.backup_request(user=superuser).status_code == 403
+        assert self.backup_request(user=superuser).status_code == 200
 
     def test_invalid_backup_key(self):
         assert self.backup_request(backup_key=b'invalid' * 10).status_code == 400
