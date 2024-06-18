@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## v2024.049 - 2024-06-18
 * Enable fontconfig cache in docker container
 * Respect verbosity option in `backup` and `restorebackup` commands
 * Immediately create new templates in API to allow image uploads on first editing
