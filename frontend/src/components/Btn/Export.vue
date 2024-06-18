@@ -23,10 +23,10 @@ const props = withDefaults(defineProps<{
 const filename = computed(() => (props.name || 'export').replaceAll(/[ @#/\\]/g, '-').replaceAll(/-+/g, '-') + props.extension);
 
 async function performExport() {
-  const res = await $fetch<ArrayBuffer>(props.exportUrl, {
+  const res = await $fetch<Blob>(props.exportUrl, {
     method: 'POST',
     body: {},
-    responseType: "arrayBuffer"
+    responseType: "blob"
   });
   fileDownload(res, filename.value);
 }

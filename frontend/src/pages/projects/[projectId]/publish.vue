@@ -164,12 +164,12 @@ async function fetchPreviewPdf() {
   });
 }
 async function generateFinalReport() {
-  const res = await $fetch<ArrayBuffer>(`/api/v1/pentestprojects/${project.value.id}/generate/`, {
+  const res = await $fetch<Blob>(`/api/v1/pentestprojects/${project.value.id}/generate/`, {
     method: 'POST',
     body: {
       password: localSettings.encryptPdfEnabled ? form.value.password : null,
     },
-    responseType: "arrayBuffer"
+    responseType: "blob"
   })
   fileDownload(res, form.value.filename + (form.value.filename.endsWith('.pdf') ? '' : '.pdf'));
 }

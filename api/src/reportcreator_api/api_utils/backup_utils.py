@@ -20,6 +20,7 @@ from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.recorder import MigrationRecorder
 
+from reportcreator_api.api_utils.models import BackupLog, BackupLogType
 from reportcreator_api.archive import crypto
 from reportcreator_api.pentests import storages
 from reportcreator_api.pentests.models import (
@@ -106,7 +107,7 @@ def backup_files(z, path, storage, models):
         z.add(arcname=str(Path(path) / f), data=file_chunks(f))
 
 
-def create_backup():
+def create_backup(user=None):
     logging.info('Backup requested')
     z = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
     z.add(arcname='VERSION', data=settings.VERSION.encode())
@@ -117,6 +118,8 @@ def create_backup():
     backup_files(z, 'uploadedassets', storages.get_uploaded_asset_storage(), [UploadedAsset])
     backup_files(z, 'uploadedfiles', storages.get_uploaded_file_storage(), [UploadedProjectFile, UploadedUserNotebookFile])
     backup_files(z, 'archivedfiles', storages.get_archive_file_storage(), [ArchivedProject])
+
+    BackupLog.objects.create(type=BackupLogType.BACKUP, user=user)
 
     return z
 
@@ -320,6 +323,7 @@ def restore_backup(z, keepfiles=True):
 
     # Delete data created in migrations
     ProjectMemberRole.objects.all().delete()
+    BackupLog.objects.all().delete()
 
     # Restore DB data
     logging.info('Begin restoring DB data')
@@ -341,5 +345,5 @@ def restore_backup(z, keepfiles=True):
     logging.info('Finished running new migrations')
 
     logging.info('Finished backup restore')
-
+    BackupLog.objects.create(type=BackupLogType.RESTORE, user=None)
 

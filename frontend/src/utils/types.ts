@@ -108,7 +108,7 @@ export type ApiSettings = {
         readonly spellcheck: boolean;
         readonly archiving: boolean;
         readonly permissions: boolean;
-        readonly comments: boolean;
+        readonly backup: boolean;
     };
     readonly guest_permissions: {
       readonly import_projects: boolean;
@@ -558,6 +558,17 @@ export type CWE = {
   description: string;
   parent: number|null;
 };
+
+export enum BackupLogType {
+  SETUP = 'setup',
+  BACKUP = 'backup',
+  RESTORE = 'restore',
+}
+
+export type BackupLog = BaseModel & {
+  type: BackupLogType;
+  user: string|null;
+}
 
 export type OrderingOption = {
   id: string;

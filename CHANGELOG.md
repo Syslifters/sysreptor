@@ -1,5 +1,11 @@
 # Changelog
 
+## Next
+* Allow commenting finding and section fields and markdown text
+* Create backups via web interface
+* Show backup history in web interface
+
+
 ## v2024.049 - 2024-06-18
 * Enable fontconfig cache in docker container
 * Respect verbosity option in `backup` and `restorebackup` commands

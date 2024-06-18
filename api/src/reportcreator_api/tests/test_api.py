@@ -314,6 +314,8 @@ def superuser_urls():
         *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project_unauthorized.pk} if detail else {}, retrieve=True),
         *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project_unauthorized.pk} | ({'pk': s.archived_project_unauthorized.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
         ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project_unauthorized.pk, 'pk': s.archived_project_unauthorized.key_parts.first().pk}))),
+
+        ('utils-backuplogs', lambda s, c: c.get(reverse('utils-backuplogs'))),
     ]
 
 

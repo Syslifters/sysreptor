@@ -8,6 +8,7 @@ import httpx
 from django.conf import settings
 from rest_framework import exceptions, serializers
 
+from reportcreator_api.api_utils.models import BackupLog
 from reportcreator_api.pentests.models import Language
 
 log = logging.getLogger(__name__)
@@ -110,10 +111,10 @@ class BackupSerializer(serializers.Serializer):
     def validate_key(self, key):
         if not settings.BACKUP_KEY or len(settings.BACKUP_KEY) < 20:
             log.error('Backup key not set or too short (min 20 chars)')
-            raise serializers.ValidationError()
-        if key != settings.BACKUP_KEY:
+            raise serializers.ValidationError('Backup key not set or too short (min 20 chars)')
+        elif key != settings.BACKUP_KEY:
             log.error('Invalid backup key')
-            raise serializers.ValidationError()
+            raise serializers.ValidationError('Invalid backup key')
         return key
 
     def validate_aes_key(self, value):
@@ -127,6 +128,14 @@ class BackupSerializer(serializers.Serializer):
             return value
         except ValueError as ex:
             raise serializers.ValidationError('Invalid base64 encoding') from ex
+
+
+class BackupLogSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(slug_field='username', read_only=True)
+
+    class Meta:
+        model = BackupLog
+        fields = ['id', 'created', 'type', 'user']
 
 
 class CweDefinitionSerializer(serializers.Serializer):

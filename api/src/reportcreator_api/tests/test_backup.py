@@ -14,6 +14,7 @@ from django.test import override_settings
 from django.urls import reverse
 
 from reportcreator_api.api_utils.backup_utils import destroy_database
+from reportcreator_api.api_utils.models import BackupLog, BackupLogType
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.crypto.base import EncryptionKey
 from reportcreator_api.management.commands import restorebackup
@@ -129,12 +130,15 @@ class TestBackup:
         assert isinstance(res, StreamingHttpResponse)
         z = b''.join(res.streaming_content)
         self.assert_backup(z)
+        assert list(BackupLog.objects.values_list('type', flat=True)) == [BackupLogType.BACKUP, BackupLogType.SETUP]
 
     def test_backup_permissions(self):
         user_regular = create_user()
         assert self.backup_request(user=user_regular).status_code == 403
         superuser = create_user(is_superuser=True)
         assert self.backup_request(user=superuser).status_code == 403
+        superuser.admin_permissions_enabled = True
+        assert self.backup_request(user=superuser).status_code == 200
 
     def test_invalid_backup_key(self):
         assert self.backup_request(backup_key=b'invalid' * 10).status_code == 400
@@ -225,6 +229,9 @@ class TestBackupRestore:
             fo.refresh_from_db()
             assert fo.file.name == f['name']
             assert fo.file.read() == f['content']
+
+        # BackupLog entry created
+        assert list(BackupLog.objects.values_list('type', flat=True)) == [BackupLogType.RESTORE, BackupLogType.BACKUP, BackupLogType.SETUP]
 
     def test_backup_restore_damaged(self):
         backup = b''.join(self.backup_request(aes_key=self.backup_encryption_key).streaming_content)

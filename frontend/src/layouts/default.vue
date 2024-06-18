@@ -81,6 +81,13 @@
             :active="route.path.startsWith('/users') && !route.path.startsWith('/users/self')"
             :disabled="!auth.permissions.value.user_manager" 
           />
+          <v-list-item
+            to="/backups/"
+            prepend-icon="mdi-tools"
+            :disabled="!auth.permissions.value.view_backup"
+          >
+            <template #title><pro-info>Backups</pro-info></template>
+          </v-list-item>
           <license-info-menu-item />
         </template>
       </v-list>
