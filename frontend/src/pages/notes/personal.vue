@@ -69,7 +69,7 @@ async function createNote() {
     order: (currentNote ? currentNote.order + 1 : null),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
   } as UserNote);
-  await navigateTo({ path: `/notes/personal/${obj.id}/`, query: { focus: 'title' } });
+  await navigateTo({ path: `/notes/personal/${obj.id}/`, hash: 'title' });
 }
 async function performImport(file: File) {
   const res = await uploadFileHelper<UserNote[]>(`/api/v1/pentestusers/self/notes/import/`, file);

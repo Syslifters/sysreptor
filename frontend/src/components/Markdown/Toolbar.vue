@@ -34,6 +34,13 @@
       :disabled="props.disabled || !spellcheckSupported"
       :active="spellcheckEnabled"
     />
+    <markdown-toolbar-button
+      v-if="props.collab"
+      @click="emitCreateComment"
+      title="Comment"
+      icon="mdi-comment-plus-outline"
+      :disabled="props.disabled || !props.editorState || props.editorState?.selection.main.empty"
+    />
     <span class="separator" />
     <markdown-toolbar-button @click="codemirrorAction(undo)" title="Undo" icon="mdi-undo" :disabled="props.disabled || !canUndo" />
     <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
@@ -97,12 +104,14 @@ const props = defineProps<{
   markdownEditorMode?: MarkdownEditorMode;
   disabled?: boolean;
   lang?: string|null;
+  collab?: CollabPropType;
   uploadFiles?: (files: FileList) => Promise<void>;
   fileUploadInProgress?: boolean;
 }>();
 const emit = defineEmits<{
   'update:spellcheckEnabled': [value: boolean];
   'update:markdownEditorMode': [value: MarkdownEditorMode];
+  'comment': [value: any];
 }>();
 
 const apiSettings = useApiSettings();
@@ -172,6 +181,22 @@ async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
   if (scrollParent) {
     scrollParent.scrollTop += newTop - prevTop;
   }
+}
+
+function emitCreateComment() {
+  if (!props.collab || !props.editorState || props.disabled) {
+    return;
+  }
+  
+  const selectionRange = props.editorState.selection.main
+  emit('comment', {
+    type: 'create', 
+    comment: { 
+      text: '', 
+      collabPath: props.collab.path, 
+      text_range: { from: selectionRange.from, to: selectionRange.to }
+    }
+  })
 }
 
 </script>

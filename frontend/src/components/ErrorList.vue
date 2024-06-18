@@ -12,7 +12,7 @@
 
       <v-expansion-panel v-for="(msgGroup, groupIdx) in messageGroups" :key="'group-' + groupIdx" class="error-group">
         <v-expansion-panel-title>
-          <div class="error-header text-body-1">
+          <div class="error-header text-body-1 flex-grow-1">
             <v-chip class="mr-2 flex-shrink-0" :class="'bg-' + msgGroup.level" size="small" label>{{ msgGroup.level.toUpperCase() }}</v-chip>
             {{ msgGroup.message }}
             <v-spacer />

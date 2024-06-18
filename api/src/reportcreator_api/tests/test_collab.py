@@ -37,8 +37,16 @@ from reportcreator_api.pentests.models import (
     ProjectMemberInfo,
     ReportSection,
     ReviewStatus,
+    collab_context,
 )
-from reportcreator_api.tests.mock import api_client, create_project, create_project_type, create_user, mock_time
+from reportcreator_api.tests.mock import (
+    api_client,
+    create_comment,
+    create_project,
+    create_project_type,
+    create_user,
+    mock_time,
+)
 from reportcreator_api.utils.utils import copy_keys
 
 
@@ -161,6 +169,7 @@ class TestTextTransformations:
         ([{'anchor': 10, 'head': 20}], [5, [10, ''], 20], [{'anchor': 5, 'head': 10}]), # delete overlapping start
         ([{'anchor': 10, 'head': 20}], [15, [10, ''], 20], [{'anchor': 10, 'head': 15}]), # delete overlapping end
         ([{'anchor': 10, 'head': 20}], [5, [20, ''], 20], [{'anchor': 5, 'head': 5}]), # delete whole range
+        ([{'anchor': 10, 'head': 20}], [5, [20], [0, 'replaced whole range'], 20], [{'anchor': 5, 'head': 5}]),
         # Multiple ranges
         ([{'anchor': 10, 'head': 15}, {'anchor': 20, 'head': 25}], [5, [0, 'inserted before'], 20], [{'anchor': 25, 'head': 30}, {'anchor': 35, 'head': 40}]),
         ([{'anchor': 10, 'head': 15}, {'anchor': 20, 'head': 25}], [5, [5, ''], 20], [{'anchor': 5, 'head': 10}, {'anchor': 15, 'head': 20}]),  # deleted before
@@ -274,8 +283,11 @@ class TestCollaborativeTextEditing:
             self.project = create_project(
                 members=[self.user1, self.user2],
                 findings_kwargs=[{'data': {'field_markdown': 'AB', 'field_list': ['A', 'B']}}],
+                comments=False,
             )
             self.finding = self.project.findings.all()[0]
+            with collab_context(prevent_events=True):
+                self.comment = create_comment(finding=self.finding, path='data.field_markdown', text_range=SelectionRange(anchor=1, head=2))
         await sync_to_async(setup_db)()
 
         async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
@@ -286,12 +298,14 @@ class TestCollaborativeTextEditing:
         self.finding = await PentestFinding.objects \
             .select_related('project__project_type') \
             .aget(id=self.finding.id)
+        await self.comment.arefresh_from_db()
 
     async def assert_event_received(self, event):
         res1 = await self.client1.receive_json_from()
         res2 = await self.client2.receive_json_from()
         self.assert_events_equal(res1, event)
         self.assert_events_equal(res2, event)
+        return res1
 
     def assert_events_equal(self, actual, expected):
         for k, v in expected.items():
@@ -299,50 +313,45 @@ class TestCollaborativeTextEditing:
 
     async def test_concurrent_updates(self):
         # Concurrent updates of same version
-        event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'version': self.client1.init['version']}
-        await self.client1.send_json_to(event_base | {'updates': [{'changes': [1, [0, '1'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}})
-        await self.client2.send_json_to(event_base | {'updates': [{'changes': [1, [0, '2'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}})
+        event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown'}
+        await self.client1.send_json_to(event_base | {'updates': [{'changes': [1, [0, '1'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}, 'version': self.client1.init['version']})
+        await self.client2.send_json_to(event_base | {'updates': [{'changes': [1, [0, '2'], 1]}], 'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}, 'version': self.client1.init['version']})
 
-        res1_c1 = await self.client1.receive_json_from()
-        res1_c2 = await self.client2.receive_json_from()
-        assert res1_c1 == res1_c2
-        assert res1_c1['updates'] == [{'changes': [1, [0, '1'], 1]}]
-        assert res1_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]}
-
-        res2_c2 = await self.client2.receive_json_from()
-        res2_c1 = await self.client1.receive_json_from()
-        assert res2_c1 == res2_c2
-        assert res2_c1['updates'] == [{'changes': [2, [0, '2'], 1]}]
-        assert res2_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 3, 'head': 3}]}
-        version = res2_c1['version']
+        await self.assert_event_received(event_base | {
+            'updates': [{'changes': [1, [0, '1'], 1]}],
+            'selection': {'main': 0, 'ranges': [{'anchor': 2, 'head': 2}]},
+            'comments': [{'id': str(self.comment.id), 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'text_range': {'from': 2, 'to': 3}}],
+        })
+        res2 = await self.assert_event_received(event_base | {
+            'updates': [{'changes': [2, [0, '2'], 1]}],
+            'selection': {'main': 0, 'ranges': [{'anchor': 3, 'head': 3}]},
+            'comments': [{'id': str(self.comment.id), 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'text_range': {'from': 3, 'to': 4}}],
+        })
+        version = res2['version']
         assert version > self.client1.init['version']
 
         await self.refresh_data()
         assert self.finding.data['field_markdown'] == 'A12B'
+        assert self.comment.text_range == SelectionRange(anchor=3, head=4)
 
         # Third update after both previous changes (using updated version)
-        await self.client1.send_json_to(event_base | {'version': version, 'updates': [{'changes': [4, [0, '3']]}], 'selection': {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}})
-        res3_c1 = await self.client1.receive_json_from()
-        res3_c2 = await self.client2.receive_json_from()
-        assert res3_c1 == res3_c2
-        assert res3_c1['updates'] == [{'changes': [4, [0, '3']]}]
-        assert res3_c1['selection'] == {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}
+        event3 = event_base | {'updates': [{'changes': [4, [0, '3']]}], 'selection': {'main': 0, 'ranges': [{'anchor': 5, 'head': 5}]}}
+        await self.client1.send_json_to(event3 | {'version': version})
+        await self.assert_event_received(event3 | {
+            'comments': [{'id': str(self.comment.id), 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'text_range': {'from': 3, 'to': 4}}],
+        })
 
         await self.refresh_data()
         assert self.finding.data['field_markdown'] == 'A12B3'
+        assert self.comment.text_range == SelectionRange(anchor=3, head=4)
 
     async def test_concurrent_updates_awareness(self):
         event_base = {'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'version': self.client1.init['version']}
         await self.client1.send_json_to(event_base | {'type': CollabEventType.UPDATE_TEXT, 'updates': [{'changes': [1, [0, '1'], 1]}]})
         await self.client2.send_json_to(event_base | {'type': CollabEventType.AWARENESS, 'selection': {'main': 0, 'ranges': [{'anchor': 0, 'head': 2}]}})
 
-        await self.client1.receive_json_from()
-        await self.client2.receive_json_from()
-
-        res1 = await self.client1.receive_json_from()
-        res2 = await self.client2.receive_json_from()
-        assert res1 == res2
-        assert res1['selection'] == {'main': 0, 'ranges': [{'anchor': 0, 'head': 3}]}
+        await self.assert_event_received({'type': CollabEventType.UPDATE_TEXT})
+        await self.assert_event_received({'type': CollabEventType.AWARENESS, 'selection': {'main': 0, 'ranges': [{'anchor': 0, 'head': 3}]}})
 
     async def test_rebase_updates(self):
         event_base = {'type': CollabEventType.UPDATE_TEXT, 'path': f'findings.{self.finding.finding_id}.data.field_markdown', 'version': self.client1.init['version']}
@@ -366,41 +375,34 @@ class TestCollaborativeTextEditing:
         await self.client1.send_json_to(event_base_create | {'value': 'C'})
         await self.client2.send_json_to(event_base_create | {'value': 'D'})
 
-        res1_c1 = await self.client1.receive_json_from()
-        res1_c2 = await self.client2.receive_json_from()
-        assert res1_c1 == res1_c2
-        assert res1_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list.[2]'
-        assert res1_c1['value'] == 'C'
-
-        res2_c1 = await self.client1.receive_json_from()
-        res2_c2 = await self.client2.receive_json_from()
-        assert res2_c1 == res2_c2
-        assert res2_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list.[3]'
-        assert res2_c1['value'] == 'D'
+        await self.assert_event_received({'type': CollabEventType.CREATE, 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]', 'value': 'C'})
+        res2 = await self.assert_event_received({'type': CollabEventType.CREATE, 'path': f'findings.{self.finding.finding_id}.data.field_list.[3]', 'value': 'D'})
 
         await self.refresh_data()
         assert self.finding.data['field_list'] == ['A', 'B', 'C', 'D']
 
+        # Add comments
+        with collab_context(prevent_events=True):
+            comment_list_a = await sync_to_async(create_comment)(finding=self.finding, path='data.field_list.[0]')
+            comment_list_c = await sync_to_async(create_comment)(finding=self.finding, path='data.field_list.[2]')
+
         # Delete list item
-        await self.client1.send_json_to({'type': CollabEventType.DELETE, 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]', 'version': res2_c1['version']})
-        res3_c1 = await self.client1.receive_json_from()
-        res3_c2 = await self.client2.receive_json_from()
-        assert res3_c1 == res3_c2
-        assert res3_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list.[2]'
+        event_delete = {'type': CollabEventType.DELETE, 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]'}
+        await self.client1.send_json_to(event_delete | {'version': res2['version']})
+        res3 = await self.assert_event_received(event_delete | {'comments': [{'id': str(comment_list_c.id), 'path': None}]})
 
         await self.refresh_data()
         assert self.finding.data['field_list'] == ['A', 'B', 'D']
 
         # Sort list
-        await self.client1.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': f'findings.{self.finding.finding_id}.data.field_list', 'version': res3_c1['version'], 'value': ['B', 'D', 'A']})
-        res4_c1 = await self.client1.receive_json_from()
-        res4_c2 = await self.client2.receive_json_from()
-        assert res4_c1 == res4_c2
-        assert res4_c1['path'] == f'findings.{self.finding.finding_id}.data.field_list'
-        assert res4_c1['value'] == ['B', 'D', 'A']
+        event_update_key = {'type': CollabEventType.UPDATE_KEY, 'path': f'findings.{self.finding.finding_id}.data.field_list', 'value': ['B', 'D', 'A']}
+        await self.client1.send_json_to(event_update_key | {'version': res3['version'], 'sort': [{'id': 0, 'order': 2}, {'id': 1, 'order': 0}, {'id': 2, 'order': 1}]})
+        await self.assert_event_received(event_update_key | {'comments': [{'id': str(comment_list_a.id), 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]', 'text_range': None}]})
 
         await self.refresh_data()
+        await comment_list_a.arefresh_from_db()
         assert self.finding.data['field_list'] == ['B', 'D', 'A']
+        assert comment_list_a.path == 'data.field_list.[2]'
 
     async def test_client_collab_info_lifecycle(self):
         async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1, consume_init=False) as client:
@@ -657,6 +659,10 @@ class TestProjectReportingDbSync:
             self.section_path_prefix = f'sections.{self.section.section_id}'
             self.finding = self.project.findings.all()[0]
             self.finding_path_prefix = f'findings.{self.finding.finding_id}'
+
+            create_comment(section=self.section, path='data.field_markdown', text_range=SelectionRange(anchor=1, head=2))
+            create_comment(finding=self.finding, path='data.field_markdown', text_range=SelectionRange(anchor=1, head=2))
+
             self.api_client1 = api_client(self.user1)
         await sync_to_async(setup_db)()
 
@@ -752,6 +758,35 @@ class TestProjectReportingDbSync:
         value_h = get_value_at_path(obj_h.custom_fields, path.split('.')[1:])
         assert value_h == value_db
 
+    @pytest.mark.parametrize(('obj_type', 'changes', 'expected_text_range'), [(a,) + b for a, b in itertools.product(['finding', 'section'], [
+        ([0, [0, 'before'], 3], SelectionRange(anchor=7, head=8)),
+        ([3, [0, 'after']], SelectionRange(anchor=1, head=2)),
+        ([1, [1, 'inside'], 1], SelectionRange(anchor=1, head=7)),
+        ([0, [3]], None),
+        ([0, [3], [0, 'replaced']], None),
+    ])])
+    async def test_update_text_comment_text_range(self, obj_type, changes, expected_text_range):
+        if obj_type == 'section':
+            obj = self.section
+            path_prefix = self.section_path_prefix
+        elif obj_type == 'finding':
+            obj = self.finding
+            path_prefix = self.finding_path_prefix
+
+        event = {'type': CollabEventType.UPDATE_TEXT, 'path': path_prefix + '.data.field_markdown', 'updates': [{'changes': changes}]}
+        await self.client1.send_json_to(event | {'version': self.client1.init['version']})
+
+        # Websocket messages sent to clients
+        comment = await obj.comments.afirst()
+        await self.assert_event(event | {
+            'client_id': self.client1.client_id,
+            'comments': [{'id': str(comment.id), 'path': path_prefix + '.data.field_markdown', 'text_range': {'from': expected_text_range.from_, 'to': expected_text_range.to} if expected_text_range else None}],
+        })
+
+        # Changes synced to DB
+        await comment.arefresh_from_db()
+        assert comment.text_range == expected_text_range
+
     async def test_create_finding_sync(self):
         res_api = await sync_to_async(self.api_client1.post)(
             path=reverse('finding-list', kwargs={'project_pk': self.project.id}),
@@ -839,6 +874,50 @@ class TestProjectReportingDbSync:
         project_type.finding_fields = project_type.finding_fields | {'new_field': {'type': 'string'}}
         await project_type.asave()
         await self.assert_event(event_project_type_changed)
+
+    async def test_comment_sync(self):
+        # Create comment
+        res1 = await sync_to_async(self.api_client1.post)(
+            path=reverse('comment-list', kwargs={'project_pk': self.project.id}),
+            data={'path': f'{self.finding_path_prefix}.data.field_markdown', 'text_range': {'from': 1, 'to': 2}, 'text': 'comment text'},
+        )
+        await self.assert_event({ 'type': CollabEventType.CREATE, 'path': f'comments.{res1.data["id"]}', 'value': res1.data, 'client_id': None })
+
+        # # Update comment
+        comment_url = reverse('comment-detail', kwargs={'project_pk': self.project.id, 'pk': res1.data['id']})
+        comment_path_prefix = f'comments.{res1.data["id"]}'
+        res2 = await sync_to_async(self.api_client1.patch)(comment_url, data={'text': 'updated'})
+        await self.assert_event({ 'type': CollabEventType.UPDATE_KEY, 'path': comment_path_prefix + '.text', 'value': res2.data['text'], 'client_id': None })
+
+        # Create answer
+        res3 = await sync_to_async(self.api_client1.post)(
+            path=reverse('commentanswer-list', kwargs={'project_pk': self.project.id, 'comment_pk': res1.data['id']}),
+            data={'text': 'answer text'},
+        )
+        await self.assert_event({ 'type': CollabEventType.UPDATE_KEY, 'path': comment_path_prefix + '.answers', 'value': [res3.data], 'client_id': None })
+
+        # Update answer
+        answer_url = reverse('commentanswer-detail', kwargs={'project_pk': self.project.id, 'comment_pk': res1.data['id'], 'pk': res3.data['id']})
+        res4 = await sync_to_async(self.api_client1.patch)(answer_url, data={'text': 'updated'})
+        await self.assert_event({ 'type': CollabEventType.UPDATE_KEY, 'path': comment_path_prefix + '.answers', 'value': [res4.data], 'client_id': None})
+
+        # Delete comment
+        await sync_to_async(self.api_client1.delete)(comment_url)
+        await self.assert_event({ 'type': CollabEventType.DELETE, 'path': comment_path_prefix, 'client_id': None })
+
+    async def test_comment_create_text_range_rebase(self):
+        version = self.client1.init['version']
+        event_update = {'type': CollabEventType.UPDATE_TEXT, 'path': f'{self.finding_path_prefix}.data.field_markdown', 'updates': [{'changes': [0, [0, 'before'], 2, [0, 'inside'], 1, [0, 'after']]}]}
+        await self.client1.send_json_to(event_update | {'version': version})
+        await self.assert_event(event_update)
+
+        res = await sync_to_async(self.api_client1.post)(
+            path=reverse('comment-list', kwargs={'project_pk': self.project.id}) + f'?version={version}',
+            data={'path': f'{self.finding_path_prefix}.data.field_markdown', 'text_range': {'from': 1, 'to': 3}, 'text': 'comment text'},
+        )
+        assert res.data['text_range'] == {'from': 7, 'to': 15}
+        assert res.data['text_original'] == 'BinsideC'
+        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'comments.{res.data["id"]}', 'value': res.data, 'client_id': None})
 
 
 @pytest.mark.django_db(transaction=True)

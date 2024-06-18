@@ -1,33 +1,58 @@
 <template>
-  <s-card v-if="props.historic.definition?.type === 'object' && props.current.definition?.type === 'object'" class="mt-4" :class="nestedClass">
-    <v-card-title class="text-body-1 pb-0">{{ props.historic.definition.label }}</v-card-title>
-    <v-card-text>
-      <dynamic-input-field-diff 
-        v-for="fieldProps in objectFields" 
-        :key="fieldProps.id"
-        v-bind="fieldProps"
-      >
-        <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
-      </dynamic-input-field-diff>
-    </v-card-text>
-  </s-card>
-  <s-card v-else-if="props.historic.definition?.type === 'list' && props.current.definition?.type === 'list'" class="mt-4" :class="nestedClass">
-    <v-card-title class="text-body-1 pb-0">{{ props.historic.definition.label }}</v-card-title>
-    <v-card-text>
-      <v-list class="pa-0 bg-inherit">
-        <v-list-item v-for="fieldProps in listItemFields" :key="fieldProps.id">
-          <dynamic-input-field-diff 
-            v-bind="fieldProps" 
-          >
-            <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
-          </dynamic-input-field-diff>
-        </v-list-item>
-      </v-list>
-    </v-card-text>
-  </s-card>
+  <v-hover 
+    v-if="[FieldDataType.OBJECT, FieldDataType.LIST].includes(props.current.definition?.type as any) && props.current.definition?.type === props.historic.definition?.type"
+    v-model="isHovering"
+  >
+    <template #default="{ props: hoverProps }">
+      <div :id="props.id" class="mt-4" :class="nestedClass" v-bind="hoverProps">
+        <s-card v-if="props.current.definition?.type === 'object'">
+          <v-card-item class="pb-0">
+            <v-card-title class="text-body-1">{{ props.current.definition.label }}</v-card-title>
+            <template #append>
+              <comment-btn
+                v-if="props.current.collab"
+                v-bind="commentBtnAttrs"
+              />
+            </template>
+          </v-card-item>
+          <v-card-text>
+            <dynamic-input-field-diff 
+              v-for="fieldProps in objectFields" 
+              :key="fieldProps.id"
+              v-bind="fieldProps"
+            >
+              <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+            </dynamic-input-field-diff>
+          </v-card-text>
+        </s-card>
+        <s-card v-else-if="props.current.definition?.type === 'list'">
+          <v-card-item class="pb-0">
+            <v-card-title class="text-body-1">{{ props.current.definition.label }}</v-card-title>
+            <template #append>
+              <comment-btn
+                v-if="props.current.collab"
+                v-bind="commentBtnAttrs"
+              />
+            </template>
+          </v-card-item>
+          <v-card-text>
+            <v-list class="pa-0 bg-inherit">
+              <v-list-item v-for="fieldProps in listItemFields" :key="fieldProps.id">
+                <dynamic-input-field-diff 
+                  v-bind="fieldProps" 
+                >
+                  <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+                </dynamic-input-field-diff>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+        </s-card>
+      </div>
+    </template>
+  </v-hover>
   <markdown-diff-field
-    v-else-if="props.historic.definition?.type === 'markdown' && props.current.definition?.type === 'markdown'" 
-    :label="props.historic.definition.label"
+    v-else-if="props.historic.definition?.type === FieldDataType.MARKDOWN && props.current.definition?.type === FieldDataType.MARKDOWN" 
+    :label="props.current.definition.label"
     v-bind="markdownDiffAttrs"
     class="mt-4"
     :class="{'diff-highlight-changed': hasChanged}"
@@ -55,6 +80,7 @@
         :definition="props.current.definition"
         :nesting-level="props.nestingLevel"
         :readonly="props.current.readonly"
+        :id="props.id"
         :class="{'diff-highlight-changed': hasChanged}"
       >
         <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
@@ -75,7 +101,7 @@ const inheritedDiffAttrs = computed(() => {
     'disabled', 'readonly', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
     'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink', 'selectableUsers', 
     'onUpdate:markdownEditorMode', 'onUpdate:spellcheckEnabled', 
-    'collab', 'onCollab',
+    'collab', 'onCollab', 'onComment',
   ];
   return {
     ...attrs,
@@ -86,6 +112,7 @@ const inheritedDiffAttrs = computed(() => {
 });
 
 const objectFields = computed(() => formatHistoryObjectFieldProps({
+  id: props.id,
   historic: {
     value: props.historic.value,
     definition: props.historic.definition?.properties,
@@ -108,8 +135,8 @@ const listItemFields = computed(() => {
   }
   const items = [] as DynamicInputFieldDiffProps[];
   for (let i = 0; i < Math.max((props.historic.value || []).length, props.current.definition?.type === 'list' ? (props.current.value || []).length : 0); i++) {
-    items.push(merge({
-      id: String(i),
+    items.push(merge({}, inheritedDiffAttrs.value, {
+      id: `${props.id}[${i}]`,
       historic: {
         value: props.historic.value?.[i],
         definition: props.historic.definition.items,
@@ -117,19 +144,21 @@ const listItemFields = computed(() => {
       current: {
         value: props.current.value?.[i],
         definition: props.current.definition?.items,
+        collab: props.current.collab ? collabSubpath(props.current.collab, `[${i}]`) : undefined,
       },
-    }, inheritedDiffAttrs.value));
+    }));
   }
   return items;
 });
-const markdownDiffAttrs = computed(() => merge({
+const markdownDiffAttrs = computed(() => merge({}, inheritedDiffAttrs.value, {
+  id: props.id,
   historic: {
     value: props.historic.value,
   },
   current: {
     value: props.current.value,
   },
-}, inheritedDiffAttrs.value));
+}));
 
 const hasChanged = computed(() => {
   return props.historic.definition?.type !== props.current.definition?.type || 
@@ -142,4 +171,14 @@ const nestedClass = computed(() => {
   }
   return undefined;
 })
+
+const isHovering = ref(false);
+const commentBtnAttrs = computed(() => ({
+  comments: props.current.collab?.comments.filter(c => c.collabPath === props.current.collab?.path) || [],
+  onComment: (v: any) => props.current?.onComment?.(v),
+  collabPath: props.current.collab?.path || '',
+  isHovering: isHovering.value,
+  disabled: (props.current as any).disabled || props.current.readonly,
+  density: 'comfortable',
+}));
 </script>

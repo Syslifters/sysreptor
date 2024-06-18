@@ -9,11 +9,11 @@
             :disabled="props.disabled"
             @click="onClick"
             link
-            v-bind="{...$attrs, ...tooltipProps, ...dialogProps}"
+            v-bind="{...attrs, ...tooltipProps, ...dialogProps}"
           >
             <template #prepend v-if="buttonIcon">
               <v-progress-circular v-if="actionInProgress" indeterminate size="24" />
-              <v-icon v-else :icon="buttonIcon" :color="($attrs.color as string|undefined) || buttonColor" />
+              <v-icon v-else :icon="buttonIcon" :color="(attrs.color as string|undefined) || buttonColor" />
             </template>
           </v-list-item>
           <s-btn-icon
@@ -21,9 +21,9 @@
             :icon="buttonIcon"
             :loading="actionInProgress"
             :disabled="disabled"
-            :color="($attrs.color as string|undefined) || buttonColor || 'secondary'"
+            :color="(attrs.color as string|undefined) || buttonColor || 'secondary'"
             @click="onClick"
-            v-bind="{...$attrs, ...tooltipProps, ...dialogProps}"
+            v-bind="{...attrs, ...tooltipProps, ...dialogProps}"
           />
           <s-btn
             v-else
@@ -31,9 +31,9 @@
             :text="buttonText"
             :loading="actionInProgress"
             :disabled="disabled"
-            :color="($attrs.color as string|undefined) || buttonColor || 'secondary'"
+            :color="(attrs.color as string|undefined) || buttonColor || 'secondary'"
             @click="onClick"
-            v-bind="{...$attrs, ...tooltipProps, ...dialogProps}"
+            v-bind="{...attrs, ...tooltipProps, ...dialogProps}"
           />
         </template>
       </s-tooltip>
@@ -79,6 +79,10 @@
 <script setup lang="ts">
 export type BtnConfirmVariant = 'default' | 'icon' | 'list-item';
 
+defineOptions({
+  inheritAttrs: false
+});
+
 const props = withDefaults(defineProps<{
   buttonText: string;
   action: (() => Promise<void>)|(() => void);
@@ -104,6 +108,7 @@ const props = withDefaults(defineProps<{
   confirmInput: undefined,
   keyboardShortcut: undefined,
 });
+const attrs = useAttrs();
 
 const confirmDialogVisible = ref(false);
 const confirmUserInput = ref('');

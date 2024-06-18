@@ -17,11 +17,16 @@ from reportcreator_api.pentests.customfields.predefined_fields import (
     report_fields_default,
     report_sections_default,
 )
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from reportcreator_api.pentests.customfields.utils import (
+    HandleUndefinedFieldsOptions,
+    ensure_defined_structure,
+    get_field_value_and_definition,
+)
 from reportcreator_api.pentests.models import (
     ArchivedProject,
     ArchivedProjectKeyPart,
     ArchivedProjectPublicKeyEncryptedKeyPart,
+    Comment,
     FindingTemplate,
     FindingTemplateTranslation,
     Language,
@@ -42,7 +47,7 @@ from reportcreator_api.pentests.models import (
     UserNotebookPage,
     UserPublicKey,
 )
-from reportcreator_api.pentests.models.project import ReportSection
+from reportcreator_api.pentests.models.project import CommentAnswer, ReportSection
 from reportcreator_api.users.models import APIToken, MFAMethod, PentestUser
 from reportcreator_api.utils.history import bulk_create_with_history, history_context
 
@@ -150,7 +155,6 @@ def create_template_translation(template, **kwargs):
 
 def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     additional_fields_simple = {
-        'nested1':  {'type': 'string', 'label': 'Nested Field'},
         'field_string': {'type': 'string', 'label': 'String Field', 'default': 'test'},
         'field_markdown': {'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
         'field_cvss': {'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
@@ -186,7 +190,7 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
             'findings': [{'title': 'Demo finding', 'unknown_field': 'test'}],
         },
     } | kwargs)
-    for idx, asset_kwargs in enumerate(assets_kwargs if assets_kwargs is not None else [{}] * 2):
+    for idx, asset_kwargs in enumerate(assets_kwargs if assets_kwargs is not None else [{}] * 1):
         UploadedAsset.objects.create(linked_object=project_type, **{
             'name': f'file{idx}.png',
             'file': SimpleUploadedFile(name=f'file{idx}.png', content=asset_kwargs.pop('content', create_png_file())),
@@ -195,6 +199,31 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     UploadedAsset.objects.create(linked_object=project_type, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=b'file1'))
     UploadedAsset.objects.create(linked_object=project_type, name='file2.png', file=SimpleUploadedFile(name='file2.png', content=b'file2'))
     return project_type
+
+
+def create_comment(finding=None, section=None, user=None, path=None, text_range=None, text_original=None, answers_kwargs=None, **kwargs) -> Comment:
+    if path and text_range and text_original is None:
+        obj = finding or section
+        _, value, _ = get_field_value_and_definition(data=obj.data, definition=obj.field_definition, path=path.split('.')[1:])
+        text_original = value[text_range.from_:text_range.to]
+
+    comment = Comment.objects.create(**{
+        'text': 'Comment text',
+        'finding': finding,
+        'section': section,
+        'user': user,
+        'path': path or 'data.title',
+        'text_range': text_range,
+        'text_original': text_original,
+    } | kwargs)
+
+    for answer_kwargs in (answers_kwargs if answers_kwargs is not None else [{}] * 1):
+        CommentAnswer.objects.create(comment=comment, **{
+            'text': 'Answer text',
+            'user': user,
+        } | answer_kwargs)
+
+    return comment
 
 
 def create_finding(project, template=None, **kwargs) -> PentestFinding:
@@ -236,7 +265,7 @@ def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
     } | kwargs)
 
 
-def create_project(project_type=None, members=None, report_data=None, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, **kwargs) -> PentestProject:
+def create_project(project_type=None, members=None, report_data=None, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, comments=False, **kwargs) -> PentestProject:
     project_type = project_type or create_project_type()
     report_data = {
         'title': 'Report title',
@@ -270,21 +299,28 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
             raise ValueError('Unsupported member type')
     bulk_create_with_history(ProjectMemberInfo, member_infos)
 
-    for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 3:
-        create_finding(project=project, **finding_kwargs)
+    comment_user = member_infos[0].user if member_infos else None
+    if comments:
+        for section in project.sections.all():
+            create_comment(section=section, user=comment_user, path='data.' + list(section.field_definition.keys())[0])
+
+    for finding_kwargs in findings_kwargs if findings_kwargs is not None else [{}] * 1:
+        finding = create_finding(project=project, **finding_kwargs)
+        if comments:
+            create_comment(finding=finding, user=comment_user, path='data.title')
 
     if notes_kwargs is not None:
         # Delete default notes
         project.notes.all().delete()
-    for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}] * 3:
+    for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}] * 1:
         create_projectnotebookpage(project=project, **note_kwargs)
 
-    for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}] * 2):
+    for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}] * 1):
         UploadedImage.objects.create(linked_object=project, **{
             'name': f'file{idx}.png',
             'file': SimpleUploadedFile(name=f'file{idx}.png', content=image_kwargs.pop('content', create_png_file())),
         } | image_kwargs)
-    for idx, file_kwargs in enumerate(files_kwargs if files_kwargs is not None else [{}] * 2):
+    for idx, file_kwargs in enumerate(files_kwargs if files_kwargs is not None else [{}] * 1):
         UploadedProjectFile.objects.create(linked_object=project, **{
             'name': f'file{idx}.pdf',
             'file': SimpleUploadedFile(name=f'file{idx}.pdf', content=file_kwargs.pop('content', f'%PDF-1.3{idx}'.encode())),

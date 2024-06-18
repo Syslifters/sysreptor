@@ -86,7 +86,7 @@
 
       <error-list v-if="!pendingCheckMessages" :value="allMessages" :group="true" :show-no-message-info="true">
         <template #location="{msg}">
-          <NuxtLink v-if="messageLocationUrl(msg) && msg.location" :to="messageLocationUrl(msg)" target="_blank" class="text-primary">
+          <NuxtLink v-if="messageLocationUrl(msg) && msg.location" :to="messageLocationUrl(msg)" @click="onBeforeOpenMessageLocationUrl(msg)" target="_blank" class="text-primary">
             in {{ msg.location.type }}
             <span v-if="msg.location.name"> "{{ msg.location.name }}"</span>
             <span v-if="msg.location.path"> field "{{ msg.location.path }}"</span>
@@ -194,4 +194,14 @@ function messageLocationUrl(msg: ErrorMessage) {
 
   return undefined;
 }
+
+function onBeforeOpenMessageLocationUrl(msg: ErrorMessage) {
+  if (msg.message.includes('comment')) {
+    // Open comment sidebar
+    localSettings.reportingCommentSidebarVisible = true;
+    localSettings.reportingCommentStatusFilter = CommentStatus.OPEN;
+    localSettings.$persist();
+  }
+}
+
 </script>

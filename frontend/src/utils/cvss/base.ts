@@ -9,17 +9,9 @@ export type CvssMetricDefinition = {
   }[];
 };
 
-export type CvssDefinition = {
-  [key: string]: CvssMetricDefinition;
-}
-
-export type CvssMetricsValue = {
-  [key: string]: number|null|any;
-}
-
-export type CvssMetricsValueCollection = {
-  [key: string]: CvssMetricsValue;
-}
+export type CvssDefinition = Record<string, CvssMetricDefinition>;
+export type CvssMetricsValue = Record<string, number|null|any>;
+export type CvssMetricsValueCollection = Record<string, CvssMetricsValue>;
 
 export enum CvssVersion {
   CVSS30 = 'CVSS:3.0',

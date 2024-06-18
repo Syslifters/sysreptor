@@ -716,7 +716,7 @@ const CVSS4_METRICS = Object.freeze({
   ...CVSS4_METRICS_SUPPLEMENTAL
 })
 
-const CVSS4_LOOKUP_MACROVECTOR: { [key: string]: number } = Object.freeze({
+const CVSS4_LOOKUP_MACROVECTOR: Record<string, number> = Object.freeze({
   "000000": 10,
   "000001": 9.9,
   "000010": 9.8,
@@ -988,7 +988,7 @@ const CVSS4_LOOKUP_MACROVECTOR: { [key: string]: number } = Object.freeze({
   212211: 0.3,
   212221: 0.1,
 })
-const CVSS4_MAX_SEVERITY: { [key: string]: { [key: string]: number|any}} = Object.freeze({
+const CVSS4_MAX_SEVERITY: Record<string, Record<string, number|any>> = Object.freeze({
   eq1: {
     0: 1,
     1: 4,
@@ -1014,7 +1014,7 @@ const CVSS4_MAX_SEVERITY: { [key: string]: { [key: string]: number|any}} = Objec
     2: 1
   },
 });
-const CVSS4_MAX_COMPOSED = Object.freeze({
+const CVSS4_MAX_COMPOSED: Record<string, Record<string, string[]|any>> = Object.freeze({
   eq1: {
     0: ["AV:N/PR:N/UI:N/"],
     1: ["AV:A/PR:N/UI:N/", "AV:N/PR:L/UI:N/", "AV:N/PR:N/UI:P/"],
@@ -1040,7 +1040,7 @@ const CVSS4_MAX_COMPOSED = Object.freeze({
     1: ["E:P/"],
     2: ["E:U/"],
   },
-}) as { [key: string]: { [key: number]: string[]|any } };
+});
 
 export function parseVectorCvss4(vector?: string|null): CvssMetricsValue {
   // Vector to string
@@ -1127,7 +1127,7 @@ export function calculateScoreCvss40(vector?: string|null): number|null {
       CR: 'H',
       IR: 'H',
       AR: 'H',
-    } as { [key: string]: string };
+    } as Record<string, string>;
     if (name in modifiedFallback && m === 'X') {
       return modifiedFallback[name];
     } else if (values['M' + name] && values['M' + name] !== 'X') {
@@ -1248,7 +1248,7 @@ export function calculateScoreCvss40(vector?: string|null): number|null {
 
   // Find the max vector to use i.e. one in the combination of all the highests
   // that is greater or equal (severity distance) than the to-be scored vector.
-  const severity_distances = {} as { [key: string]: number };
+  const severity_distances = {} as Record<string, number>;
   for (const max_vector of max_vectors) {
     for (const m of [...Object.keys(CVSS4_METRICS_BASE), ...Object.keys(CVSS4_METRICS_THREAT), ...Object.keys(CVSS4_METRICS_ENVIRONMENTAL_REQUIREMENTS)]) {
       severity_distances[m] = CVSS4_METRICS[m][metric(m)] - CVSS4_METRICS[m][extractValueMetric(m, max_vector)]

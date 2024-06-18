@@ -1,15 +1,15 @@
 import { orderBy, pick, set } from "lodash-es";
 import { groupNotes } from "@/stores/usernotes";
-import type { PentestFinding, PentestProject, ProjectNote, ReportSection } from "~/utils/types";
+import type { Comment, CommentAnswer, CommentStatus, PentestFinding, PentestProject, ProjectNote, ProjectType, ReportSection } from "~/utils/types";
 import { scoreFromVector } from "~/utils/cvss";
 
-export function sortFindings({ findings, projectType, overrideFindingOrder = false, topLevelFields = false }: {findings: PentestFinding[], projectType: ProjectType, overrideFindingOrder?: boolean, topLevelFields?: boolean}): PentestFinding[] {
+export function sortFindings<T extends PentestFinding>({ findings, projectType, overrideFindingOrder = false, topLevelFields = false }: {findings: T[], projectType: ProjectType, overrideFindingOrder?: boolean, topLevelFields?: boolean}): T[] {
   if (overrideFindingOrder || projectType.finding_ordering.length === 0) {
     return orderBy(findings, ['order', 'created']);
   } else {
     return orderBy(
       findings,
-      projectType.finding_ordering.map(o => (finding: PentestFinding) => {
+      projectType.finding_ordering.map(o => (finding: T) => {
         const v = topLevelFields ? (finding as any)[o.field] : finding.data[o.field];
         const d = projectType.finding_fields[o.field];
         if (!d || d.type in [FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER] || Array.isArray(v) || typeof v === 'object') {
@@ -41,21 +41,17 @@ export function sortFindings({ findings, projectType, overrideFindingOrder = fal
 
 export const useProjectStore = defineStore('project', {
   state: () => ({
-    data: {} as {
-      [key: string]: {
-        project: PentestProject|null,
-        // findings: PentestFinding[],
-        // sections: ReportSection[],
-        // notes: ProjectNote[],
-        getByIdSync: Promise<PentestProject> | null,
-        notesCollabState: CollabStoreState<{ notes: {[key: string]: ProjectNote}}>,
-        reportingCollabState: CollabStoreState<{ 
-          project: {id: string, project_type: string, override_finding_order: boolean}, 
-          findings: {[key: string]: PentestFinding }, 
-          sections: {[key: string]: ReportSection } 
-        }>,
-      }
-    },
+    data: {} as Record<string, {
+      project: PentestProject|null,
+      getByIdSync: Promise<PentestProject> | null,
+      notesCollabState: CollabStoreState<{ notes: Record<string, ProjectNote>}>,
+      reportingCollabState: CollabStoreState<{ 
+        project: {id: string, project_type: string, override_finding_order: boolean}, 
+        findings: Record<string, PentestFinding>, 
+        sections: Record<string, ReportSection>, 
+        comments: Record<string, Comment>,
+      }>,
+    }>,
   }),
   getters: {
     project() {
@@ -81,7 +77,7 @@ export const useProjectStore = defineStore('project', {
         let sections = Object.values(this.data[projectId]?.reportingCollabState.data.sections || {});
         // Sort sections
         if (projectType) {
-          sections = orderBy(sections, [(s: ReportSection) => projectType.report_sections.findIndex(rs => rs.id === s.id)]);
+          sections = orderBy(sections, [s => projectType.report_sections.findIndex(rs => rs.id === s.id)]);
         }
         return sections;
       };
@@ -91,6 +87,39 @@ export const useProjectStore = defineStore('project', {
     },
     noteGroups() {
       return (projectId: string) => groupNotes(this.notes(projectId));
+    },
+    comments() {
+      return (projectId: string, options: {projectType: ProjectType, findingId?: string, sectionId?: string}) => {
+        // Filter and sort comments
+        const collabState = this.data[projectId]?.reportingCollabState;
+        let commentData = Object.values(collabState.data.comments).map(c => ({ 
+          ...c, 
+          collabPath: collabState.apiPath + c.path,
+        } as Comment));
+        if (options.findingId) {
+          const basePath = `findings.${options.findingId}.data.`;
+          commentData = orderBy(
+            commentData.filter(c => c.path.startsWith(basePath)), 
+            [(c) => {
+              const fieldId = c.path.slice(basePath.length).split('.')?.[0];
+              return options.projectType?.finding_field_order.indexOf(fieldId)
+            }, 'path', 'created']
+          );
+        } else if (options.sectionId) {
+          const basePath = `sections.${options.sectionId}.data.`;
+          commentData = orderBy(
+            commentData.filter(c => c.path.startsWith(basePath)),
+            [(c) => {
+              const fieldId = c.path.slice(basePath.length).split('.')?.[0];
+              const sectionFields = options.projectType?.report_sections.find(s => s.id === options.sectionId)?.fields || [];
+              return sectionFields.indexOf(fieldId)
+            }, 'path', 'created']
+          );
+        } else {
+          commentData = [];
+        }
+        return commentData;
+      };
     },
   },
   actions: {
@@ -104,7 +133,7 @@ export const useProjectStore = defineStore('project', {
           getByIdSync: null,
           notesCollabState: makeCollabStoreState({
             apiPath: `/ws/pentestprojects/${projectId}/notes/`,
-            initialData: { notes: {} as {[key: string]: ProjectNote} },
+            initialData: { notes: {} as Record<string, ProjectNote> },
             initialPath: 'notes',
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
@@ -121,7 +150,12 @@ export const useProjectStore = defineStore('project', {
           }),
           reportingCollabState: makeCollabStoreState({
             apiPath: `/ws/pentestprojects/${projectId}/reporting/`,
-            initialData: { project: {} as any, findings: {} as {[key: string]: PentestFinding}, sections: {} as {[key: string]: ReportSection} },
+            initialData: { 
+              project: {} as any, 
+              findings: {} as Record<string, PentestFinding>, 
+              sections: {} as Record<string, ReportSection>, 
+              comments: {} as Record<string, Comment>,
+            },
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'findings') {
                 for (const finding of Object.values(collabState.data.findings)) {
@@ -261,22 +295,80 @@ export const useProjectStore = defineStore('project', {
         body: orderedFindings.map(f => ({ id: f.id, order: f.order })),
       });
     },
-    async fetchFindingsAndSections(project: PentestProject) {
+    async createComment(project: PentestProject, comment: Partial<Comment>) {
       this.ensureExists(project.id);
-      let projectData = this.data[project.id].project! as PentestProject & { sections?: ReportSection[], findings?: PentestFinding[] };
-      if (!projectData.findings || !projectData.sections) {
-        projectData = await this.fetchById(project.id) as PentestProject & { sections: ReportSection[], findings: PentestFinding[] }; ;
+
+      let path = comment.path;
+      if (!path) {
+        path = comment.collabPath?.split('/').at(-1);
       }
-      this.data[project.id].reportingCollabState.data.findings = Object.fromEntries(projectData.findings!.map(f => [f.id, f]));
-      this.data[project.id].reportingCollabState.data.sections = Object.fromEntries(projectData.sections!.map(s => [s.id, s]));
+      const newComment = await $fetch<Comment>(`/api/v1/pentestprojects/${project.id}/comments/`, {
+        method: 'POST',
+        body: {
+          text: '',
+          text_range: null,
+          ...comment,
+          path,
+        },
+        query: {
+          version: this.data[project.id].reportingCollabState.version,
+        },
+      });
+
+      this.data[project.id].reportingCollabState.data.comments[newComment.id] = newComment;
+      return newComment;
     },
-    async createNote(project: PentestProject, note: ProjectNote) {
-      note = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/`, {
+    async deleteComment(project: PentestProject, comment: Comment) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/`, {
+        method: 'DELETE'
+      });
+      if (project.id in this.data) {
+        delete this.data[project.id].reportingCollabState.data.comments[comment.id];
+      }
+    },
+    async updateComment(project: PentestProject, comment: Comment) {
+      const obj = await $fetch<Comment>(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/`, {
+        method: 'PATCH',
+        body: comment,
+      });
+      if (project.id in this.data) {
+        this.data[project.id].reportingCollabState.data.comments[obj.id] = obj;
+      }
+    },
+    async resolveComment(project: PentestProject, comment: Comment, data: { status: CommentStatus }) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/resolve/`, {
+        method: 'POST',
+        body: data,
+      });
+    },
+    async createCommentAnswer(project: PentestProject, comment: Comment, answer: CommentAnswer) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answers/`, {
+        method: 'POST',
+        body: answer
+      });
+    },
+    async updateCommentAnswer(project: PentestProject, comment: Comment, answer: CommentAnswer) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answers/${answer.id}/`, {
+        method: 'PATCH',
+        body: answer
+      });
+    },
+    async deleteCommentAnswer(project: PentestProject, comment: Comment, answer: CommentAnswer) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/answers/${answer.id}/`, {
+        method: 'DELETE'
+      });
+      const commentData = this.data[project.id]?.reportingCollabState.data.comments[comment.id];
+      if (commentData) {
+        commentData.answers = commentData.answers.filter(a => a.id !== answer.id);
+      }
+    },
+    async createNote(project: PentestProject, note: Partial<ProjectNote>) {
+      const newNote = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/`, {
         method: 'POST',
         body: note
       });
       this.ensureExists(project.id);
-      this.data[project.id].notesCollabState.data.notes[note.id] = note;
+      this.data[project.id].notesCollabState.data.notes[newNote.id] = newNote;
       return note;
     },
     async deleteNote(project: PentestProject, note: ProjectNote) {

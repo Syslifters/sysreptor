@@ -22,7 +22,7 @@
             />
               
             <markdown-text-field-content
-              ref="titleRef"
+              id="title"
               :model-value="note.title"
               :collab="collabSubpath(notesCollab.collabProps.value, 'title')"
               @collab="notesCollab.onCollabEvent"
@@ -72,7 +72,7 @@
       />
 
       <markdown-page
-        ref="textRef"
+        id="text"
         :model-value="note.text"
         :collab="collabSubpath(notesCollab.collabProps.value, 'text')"
         @collab="notesCollab.onCollabEvent"
@@ -132,17 +132,7 @@ const hasChildNotes = computed(() => {
     .some(n => n.parent === note.value!.id && n.id !== note.value!.id);
 });
 
-// Autofocus input
-const titleRef = ref();
-const textRef = ref();
-whenever(note, async () => {
-  await nextTick();
-  if (route.query?.focus === 'title') {
-    titleRef.value?.focus();
-  } else {
-    textRef.value?.focus();
-  }
-}, { immediate: true, once: true });
+useAutofocus(note, 'text');
 </script>
 
 <style lang="scss" scoped>

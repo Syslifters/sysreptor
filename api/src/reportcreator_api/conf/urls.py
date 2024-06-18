@@ -15,6 +15,8 @@ from reportcreator_api.pentests.consumers import ProjectNotesConsumer, ProjectRe
 from reportcreator_api.pentests.views import (
     ArchivedProjectKeyPartViewSet,
     ArchivedProjectViewSet,
+    CommentAnswerViewSet,
+    CommentViewSet,
     FindingTemplateHistoryViewSet,
     FindingTemplateTranslationViewSet,
     FindingTemplateViewSet,
@@ -68,9 +70,13 @@ project_router = NestedSimpleRouter(router, 'pentestprojects', lookup='project')
 project_router.register('sections', ReportSectionViewSet, basename='section')
 project_router.register('findings', PentestFindingViewSet, basename='finding')
 project_router.register('notes', ProjectNotebookPageViewSet, basename='projectnotebookpage')
+project_router.register('comments', CommentViewSet, basename='comment')
 project_router.register('images', UploadedImageViewSet, basename='uploadedimage')
 project_router.register('files', UploadedProjectFileViewSet, basename='uploadedprojectfile')
 project_router.register('history', PentestProjectHistoryViewSet, basename='pentestprojecthistory')
+
+comment_router = NestedSimpleRouter(project_router, 'comments', lookup='comment')
+comment_router.register('answers', CommentAnswerViewSet, basename='commentanswer')
 
 projecttype_router = NestedSimpleRouter(router, 'projecttypes', lookup='projecttype')
 projecttype_router.register('assets', UploadedAssetViewSet, basename='uploadedasset')
@@ -90,12 +96,15 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     re_path(r'^api/?$', RedirectView.as_view(url='/api/v1/')),
     path('api/v1/', include([
-        path('', include(router.urls)),
-        path('', include(user_router.urls)),
-        path('', include(project_router.urls)),
-        path('', include(projecttype_router.urls)),
-        path('', include(archivedproject_router.urls)),
-        path('', include(template_router.urls)),
+        path('', include(
+            router.urls +
+            user_router.urls +
+            project_router.urls +
+            comment_router.urls +
+            projecttype_router.urls +
+            archivedproject_router.urls +
+            template_router.urls,
+        )),
 
         # OpenAPI schema
         path('utils/openapi/', SpectacularAPIView.as_view(), name='utils-openapi-schema'),

@@ -1,5 +1,5 @@
 import { v4 as uuid4 } from 'uuid';
-import { isEqual } from 'lodash-es';
+import { sortBy, isEqual } from "lodash-es";
 import type { PropType } from "vue";
 import {
   createEditorExtensionToggler,
@@ -12,7 +12,9 @@ import {
   markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
   Transaction,
   remoteSelection, setRemoteClients,
+  commentsExtension, setComments,
   type Extension,
+  SelectionRange,
 } from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '@/utils/types';
 
@@ -75,7 +77,7 @@ export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean
   }
 }
 export function makeMarkdownEmits() {
-  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'collab', 'focus', 'blur'];
+  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'collab', 'comment', 'focus', 'blur'];
 }
 
 export function useMarkdownEditorBase(options: {
@@ -179,7 +181,7 @@ export function useMarkdownEditorBase(options: {
   }
 
   const editorState = shallowRef<EditorState|null>(null);
-  const editorActions = ref<{[key: string]: (enabled: boolean) => void}>({});
+  const editorActions = ref<Record<string, (enabled: boolean) => void>>({});
   const eventBusBeforeApplyRemoteTextChanges = useEventBus('collab:beforeApplyRemoteTextChanges');
 
   function createEditorStateConfig() {
@@ -196,7 +198,7 @@ export function useMarkdownEditorBase(options: {
         }),
         EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
           editorState.value = viewUpdate.state;
-          
+
           // https://discuss.codemirror.net/t/codemirror-6-proper-way-to-listen-for-changes/2395/11
           if (viewUpdate.docChanged) {
             // Collab updates
@@ -227,6 +229,23 @@ export function useMarkdownEditorBase(options: {
               focus: hasFocus,
               selection: viewUpdate.state.selection,
             });
+          }
+
+          // Select current comment if the cursor is within a comment
+          if (options.props.value.collab && editorState.value?.selection.main.empty && viewUpdate.selectionSet) {
+            const commentsAroundCursor = options.props.value.collab.comments
+              .filter(c => c.collabPath === options.props.value.collab?.path && c.text_range)
+              .filter(c => c.text_range!.from < editorState.value!.selection.main.from && c.text_range!.to > editorState.value!.selection.main.to);
+            const selectedComment = sortBy(commentsAroundCursor, [c => c.text_range!.to - c.text_range!.from])[0];
+
+            if (selectedComment) {
+              options.emit('comment', { 
+                type: 'select', 
+                comment: selectedComment, 
+                // Open comment sidebar only on click on comment range, not when moving cursor
+                openSidebar: viewUpdate.transactions.some(tr => tr.isUserEvent('select.pointer')), 
+              });
+            }
           }
         }),
         remoteSelection(),
@@ -329,16 +348,22 @@ export function useMarkdownEditorBase(options: {
     if (!options.editorView.value || !options.props.value.collab || isEqual(valueNew, valueOld)) {
       return;
     }
-    const remoteClients = (options.props.value.collab?.clients || []).filter(c => !c.isSelf && c.selection).map(c => ({
-      client_id: c.client_id,
-      color: c.client_color,
-      name: c.user.username + (c.user.name ? ` (${c.user.name})` : ''),
-      selection: c.selection!,
-    }));
+    const remoteClients = options.props.value.collab.clients
+      .filter(c => !c.isSelf && c.selection)
+      .map(c => ({
+        client_id: c.client_id,
+        color: c.client_color,
+        name: c.user.username + (c.user.name ? ` (${c.user.name})` : ''),
+        selection: c.selection!,
+      }));
+    const comments = options.props.value.collab.comments
+      .filter(c => c.collabPath === options.props.value.collab!.path && c.text_range)
+      .map(c => ({ id: c.id, text_range: SelectionRange.fromJSON({ anchor: c.text_range!.from, head: c.text_range!.to }) }));
 
     options.editorView.value.dispatch({
       effects: [
-        setRemoteClients.of(remoteClients)
+        setRemoteClients.of(remoteClients),
+        setComments.of(comments),
       ]
     })
   });
@@ -362,6 +387,8 @@ export function useMarkdownEditorBase(options: {
     uploadFiles: fileUploadEnabled.value ? uploadFiles : undefined,
     fileUploadInProgress: fileUploadInProgress.value,
     lang: options.props.value.lang,
+    collab: options.props.value.collab,
+    onComment: (value: any) => options.emit('comment', value),
     spellcheckEnabled: options.props.value.spellcheckEnabled,
     'onUpdate:spellcheckEnabled': (val: boolean) => options.emit('update:spellcheckEnabled', val),
     markdownEditorMode: options.props.value.markdownEditorMode,
@@ -443,6 +470,7 @@ export function markdownEditorDefaultExtensions() {
     markdown(),
     syntaxHighlighting(markdownHighlightStyle),
     markdownHighlightCodeBlocks,
+    commentsExtension(),
   ];
 }
 

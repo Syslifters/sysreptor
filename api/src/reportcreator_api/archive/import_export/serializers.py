@@ -5,7 +5,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from rest_framework import serializers
 
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from reportcreator_api.pentests.customfields.utils import (
+    HandleUndefinedFieldsOptions,
+    ensure_defined_structure,
+    get_field_value_and_definition,
+)
 from reportcreator_api.pentests.models import (
     FindingTemplate,
     FindingTemplateTranslation,
@@ -28,7 +32,8 @@ from reportcreator_api.pentests.models import (
     UploadedUserNotebookImage,
     UserNotebookPage,
 )
-from reportcreator_api.pentests.serializers.project import ProjectMemberInfoSerializer
+from reportcreator_api.pentests.models.project import Comment, CommentAnswer
+from reportcreator_api.pentests.serializers.project import ProjectMemberInfoSerializer, TextRangeSerializer
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.users.serializers import RelatedUserSerializer
 from reportcreator_api.utils.history import bulk_create_with_history, merge_with_previous_history
@@ -381,6 +386,62 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
         return project_type
 
 
+class CommentAnswerExportImportSerializer(ExportImportSerializer):
+    user = RelatedUserIdExportImportSerializer()
+
+    class Meta:
+        model = CommentAnswer
+        fields = ['id', 'created', 'updated', 'user', 'text']
+        extra_kwargs = {'created': {'read_only': False, 'required': False}}
+
+
+class CommentExportImportSerializer(ExportImportSerializer):
+    user = RelatedUserIdExportImportSerializer()
+    answers = CommentAnswerExportImportSerializer(many=True)
+    text_range = TextRangeSerializer(allow_null=True)
+    path = serializers.CharField(source='path_absolute')
+
+    class Meta:
+        model = Comment
+        fields = [
+            'id', 'created', 'updated', 'user', 'path',
+            'text_range', 'text_original', 'text', 'answers',
+        ]
+        extra_kwargs = {'created': {'read_only': False, 'required': False}}
+
+    def get_obj_and_path(self, path_absolute):
+        path_parts = path_absolute.split('.')
+        if len(path_parts) < 4 or path_parts[0] not in ['findings', 'sections'] or path_parts[2] != 'data':
+            raise serializers.ValidationError('Invalid path')
+
+        obj = None
+        if path_parts[0] == 'findings':
+            obj = next(filter(lambda f: str(f.finding_id) == path_parts[1], self.context['project'].findings.all()), None)
+        elif path_parts[0] == 'sections':
+            obj = next(filter(lambda s: str(s.section_id) == path_parts[1], self.context['project'].sections.all()), None)
+        if not obj:
+            raise serializers.ValidationError('Invalid path')
+
+        try:
+            get_field_value_and_definition(data=obj.data, definition=obj.field_definition, path=path_parts[3:])
+        except KeyError as ex:
+            raise serializers.ValidationError('Invalid path') from ex
+
+        return obj, '.'.join(path_parts[2:])
+
+    def create(self, validated_data):
+        obj, path = self.get_obj_and_path(validated_data.pop('path_absolute'))
+
+        answers = validated_data.pop('answers', [])
+        comment = super().create(validated_data | {
+            'path': path,
+            'finding': obj if isinstance(obj, PentestFinding) else None,
+            'section': obj if isinstance(obj, ReportSection) else None,
+        })
+        CommentAnswer.objects.bulk_create([CommentAnswer(comment=comment, **a) for a in answers])
+        return comment
+
+
 class PentestFindingExportImportSerializer(ExportImportSerializer):
     id = serializers.UUIDField(source='finding_id')
     assignee = RelatedUserIdExportImportSerializer()
@@ -398,6 +459,7 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
         project = self.context['project']
         data = validated_data.pop('data_all', {})
         template = validated_data.pop('template_id', None)
+
         return PentestFinding.objects.create(**{
             'project': project,
             'template_id': template.id if template else None,
@@ -516,13 +578,15 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
     notes = NotebookPageListExportImportSerializer(child=ProjectNotebookPageExportImportSerializer(), required=False)
     images = UploadedImageExportImportSerializer(many=True)
     files = UploadedProjectFileExportImportSerializer(many=True, required=False)
+    comments = CommentExportImportSerializer(many=True, required=False)
 
     class Meta:
         model = PentestProject
         fields = [
-            'format', 'id', 'created', 'updated', 'name', 'language', 'tags',
-            'members', 'pentesters', 'project_type', 'override_finding_order',
-            'report_data', 'sections', 'findings', 'notes', 'images', 'files',
+            'format', 'id', 'created', 'updated',
+            'name', 'language', 'tags', 'override_finding_order', 'report_data',
+            'members', 'pentesters', 'project_type',
+            'sections', 'findings', 'notes', 'images', 'files', 'comments',
         ]
         extra_kwargs = {
             'id': {'read_only': False},
@@ -565,6 +629,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         report_data = validated_data.pop('data_all', {})
         images_data = validated_data.pop('images', [])
         files_data = validated_data.pop('files', [])
+        comments_data = validated_data.pop('comments', [])
 
         project_type = self.fields['project_type'].create(project_type_data | {
             'source': SourceEnum.IMPORTED_DEPENDENCY,
@@ -598,6 +663,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         self.fields['notes'].create(notes)
         self.fields['images'].create(images_data)
         self.fields['files'].create(files_data)
+        self.fields['comments'].create(comments_data)
 
         return project
 

@@ -28,6 +28,7 @@ from reportcreator_api.pentests.models import (
     UploadedUserNotebookFile,
     UploadedUserNotebookImage,
 )
+from reportcreator_api.pentests.models.project import CommentStatus
 from reportcreator_api.tests.mock import (
     create_archived_project,
     create_png_file,
@@ -115,6 +116,8 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
         *viewset_urls('projectnotebookpage', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).notes.first().note_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, history_timeline=read),
         *file_viewset_urls('uploadedimage', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).images.first(), read=read, write=write),
         *file_viewset_urls('uploadedprojectfile', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).files.first(), read=read, write=write),
+        *viewset_urls('comment', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'pk': get_obj(s).findings.first().comments.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
+        *viewset_urls('commentanswer', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'comment_pk': get_obj(s).findings.first().comments.first().id} | ({'pk': get_obj(s).findings.first().comments.first().answers.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
     ]
     if read:
       out.extend([
@@ -143,6 +146,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('projectnotebookpage import', lambda s, c: c.post(reverse('projectnotebookpage-import', kwargs={'project_pk': get_obj(s).pk}), data={'file': export_notes_archive(get_obj(s))}, format='multipart')),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
+            ('comment resolve', lambda s, c: c.post(reverse('comment-resolve', kwargs={'project_pk': get_obj(s).pk, 'pk': get_obj(s).findings.first().comments.first().id}), data={'status': CommentStatus.RESOLVED})),
         ])
     if update:
         out.extend([
@@ -382,19 +386,19 @@ class ApiRequestsAndPermissionsTestData:
 
     @cached_property
     def project(self):
-        return create_project(members=[self.current_user] if self.current_user else [self.user_other])
+        return create_project(members=[self.current_user] if self.current_user else [self.user_other], comments=True)
 
     @cached_property
     def project_readonly(self):
-        return create_project(members=[self.current_user] if self.current_user else [self.user_other], readonly=True)
+        return create_project(members=[self.current_user] if self.current_user else [self.user_other], comments=True, readonly=True)
 
     @cached_property
     def project_unauthorized(self):
-        return create_project(members=[self.user_other])
+        return create_project(members=[self.user_other], comments=True)
 
     @cached_property
     def project_readonly_unauthorized(self):
-        return create_project(members=[self.user_other], readonly=True)
+        return create_project(members=[self.user_other], comments=True, readonly=True)
 
     @cached_property
     def archived_project(self):

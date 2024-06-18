@@ -21,11 +21,9 @@ class MessageLocationType(enum.Enum):
 def format_path(path: Union[None, str, tuple[str], list[str]]):
     path_str = path
     if isinstance(path, (tuple, list)):
-        path_str = ''
-        for p in path:
-            if path_str and p and p[0] != '[':
-                path_str += '.'
-            path_str += p
+        path_str = '.'.join(path)
+    if path_str:
+        path_str = path_str.replace('.[', '[')
     return path_str
 
 

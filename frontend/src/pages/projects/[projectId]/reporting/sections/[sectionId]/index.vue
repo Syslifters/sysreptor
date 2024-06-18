@@ -20,6 +20,7 @@
         />
       </div>
 
+      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
 
@@ -35,16 +36,27 @@
         :model-value="section.data[fieldId]"
         :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldId}`)"
         @collab="reportingCollab.onCollabEvent"
+        @comment="commentSidebarRef?.onCommentEvent"
         :readonly="readonly"
         :id="fieldId"
         :definition="projectType.report_fields[fieldId]"
         v-bind="inputFieldAttrs"
       />
     </div>
+
+    <comment-sidebar
+      ref="commentSidebarRef"
+      :project="project"
+      :project-type="projectType"
+      :section-id="route.params.sectionId as string"
+      :readonly="readonly"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { type CommentSidebar } from '#components';
+
 const route = useRoute();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
@@ -68,6 +80,7 @@ const toolbarAttrs = computed(() => ({
     (!reportingCollab.hasLock.value ? 'This section is locked by another user. Upgrade to SysReptor Professional for lock-free collaborative editing.' : null),
 }));
 const historyVisible = ref(false);
+const commentSidebarRef = ref<InstanceType<typeof CommentSidebar>>();
 
 function updateKey(key: string, value: any) {
   reportingCollab.onCollabEvent({
@@ -76,6 +89,8 @@ function updateKey(key: string, value: any) {
     value,
   })
 }
+
+useAutofocus(section);
 </script>
 
 <style lang="scss" scoped>

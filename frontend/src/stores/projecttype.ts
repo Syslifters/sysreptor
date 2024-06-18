@@ -5,9 +5,7 @@ import type { FieldDefinitionDict, ProjectType } from "~/utils/types";
 
 export const useProjectTypeStore = defineStore('projecttype', {
   state: () => ({
-    data: {} as {
-      [key: string]: ProjectType
-    },
+    data: {} as Record<string, ProjectType>,
     predefinedFindingFields: null as FieldDefinitionDict|null,
   }),
   getters: {

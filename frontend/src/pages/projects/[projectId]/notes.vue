@@ -67,10 +67,10 @@ async function createNote() {
     title: 'New Note',
     // Insert new note after the currently selected note, or at the end of the list
     parent: currentNote?.parent || null,
-    order: (currentNote ? currentNote.order + 1 : null),
+    order: (currentNote ? currentNote.order + 1 : undefined),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
-  } as unknown as ProjectNote)
-  await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, query: { focus: 'title' } })
+  })
+  await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, hash: 'title' })
 }
 async function performImport(file: File) {
   const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);

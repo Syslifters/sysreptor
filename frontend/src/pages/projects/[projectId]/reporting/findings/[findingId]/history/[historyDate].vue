@@ -22,6 +22,7 @@
         prepend-icon="mdi-undo"
         text="Back to current version"
       />
+      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
 
@@ -43,10 +44,21 @@
     <div v-for="f in diffFieldProps" :key="f.id">
       <dynamic-input-field-diff v-bind="f" />
     </div>
+
+    <comment-sidebar
+      ref="commentSidebarRef"
+      :project="fetchState.projectCurrent"
+      :project-type="fetchState.projectTypeCurrent"
+      :finding-id="route.params.findingId as string"
+      :readonly="fieldAttrsCurrent.readonly"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { type CommentSidebar } from '#components';
+
+const localSettings = useLocalSettings();
 const route = useRoute();
 const projectStore = useProjectStore();
 
@@ -69,10 +81,12 @@ const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
     attrs: {
       ...fieldAttrsCurrent.value,
       collab: collabSubpath(fieldAttrsCurrent.value.collab, 'data'),
+      onComment: commentSidebarRef.value?.onCommentEvent,
     },
   },
 }));
 
+const commentSidebarRef = ref<InstanceType<typeof CommentSidebar>>();
 const historyVisible = ref(false);
 const currentUrl = computed(() => {
   if (finding.value && projectStore.findings(finding.value.project).map(f => f.id).includes(finding.value.id)) {

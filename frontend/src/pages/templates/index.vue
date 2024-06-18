@@ -112,7 +112,7 @@ async function performCreate() {
           title: 'TODO: New Template Title',
         },
       }],
-    } as unknown as FindingTemplate);
+    });
     await navigateTo(`/templates/${obj.id}/`);
   } catch (error) {
     requestErrorToast({ error });

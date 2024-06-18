@@ -37,7 +37,8 @@
           density="compact"
         />
       </div>
-
+      
+      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
 
@@ -53,17 +54,27 @@
         :model-value="finding.data[fieldId]"
         :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldId}`)"
         @collab="reportingCollab.onCollabEvent"
+        @comment="commentSidebarRef?.onCommentEvent"
         :readonly="readonly"
         :id="fieldId"
         :definition="projectType.finding_fields[fieldId]"
-        :autofocus="fieldId === 'title'"
         v-bind="inputFieldAttrs"
       />
     </div>
+
+    <comment-sidebar
+      ref="commentSidebarRef"
+      :project="project"
+      :project-type="projectType"
+      :finding-id="route.params.findingId as string"
+      :readonly="readonly"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { type CommentSidebar } from '#components';
+
 const auth = useAuth();
 const route = useRoute();
 const localSettings = useLocalSettings();
@@ -92,6 +103,7 @@ const toolbarAttrs = computed(() => ({
   },
 }));
 const historyVisible = ref(false);
+const commentSidebarRef = ref<InstanceType<typeof CommentSidebar>>();
 
 function updateKey(key: string, value: any) {
   reportingCollab.onCollabEvent({
@@ -100,6 +112,8 @@ function updateKey(key: string, value: any) {
     value,
   })
 }
+
+useAutofocus(finding, 'title');
 </script>
 
 <style lang="scss" scoped>

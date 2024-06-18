@@ -1,7 +1,7 @@
-import { get, set, unset, throttle, trimStart } from "lodash-es";
+import { get, set, unset, throttle, trimStart, sortBy } from "lodash-es";
 import urlJoin from "url-join";
-import { ChangeSet, EditorSelection, Text } from "reportcreator-markdown/editor"
-import { type UserShortInfo } from "@/utils/types"
+import { ChangeSet, EditorSelection, SelectionRange, Text } from "reportcreator-markdown/editor"
+import { CommentStatus, type Comment, type UserShortInfo } from "@/utils/types"
 
 const WS_RESPONSE_TIMEOUT = 7_000;
 const WS_PING_INTERVAL = 30_000;
@@ -41,10 +41,11 @@ export type CollabEvent = {
   version: number;
   client_id?: string;
   value?: any;
-  updates?: (TextUpdate|{ changes: any, seletion?: any })[];
+  updates?: (TextUpdate|{ changes: any; seletion?: any; })[];
   selection?: any;
   update_awareness?: boolean;
   data?: any;
+  comments?: Partial<Comment>[];
   client?: CollabClientInfo;
   clients?: CollabClientInfo[];
   permissions?: {
@@ -79,18 +80,18 @@ export type AwarenessInfos = {
     path: string|null;
     selection?: EditorSelection;
   };
-  other: {
-    [key: string]: {
-      client_id: string;
-      path: string|null;
-      selection?: EditorSelection;
-    }
-  };
+  other: Record<string, {
+    client_id: string;
+    path: string|null;
+    selection?: EditorSelection;
+  }>;
   clients: CollabClientInfo[];
 }
 
 export type CollabStoreState<T> = {
-  data: T;
+  data: T & { 
+    comments?: Record<string, Comment> 
+  };
   apiPath: string;
   connection?: CollabConnectionInfo;
   handleAdditionalWebSocketMessages?: (event: CollabEvent, collabState: CollabStoreState<T>) => boolean;
@@ -108,7 +109,9 @@ export type CollabStoreState<T> = {
 
 export function makeCollabStoreState<T>(options: {
   apiPath: string, 
-  initialData: T,
+  initialData: T & {
+    comments?: Record<string, Comment>
+  },
   initialPath?: string,
   handleAdditionalWebSocketMessages?: (event: CollabEvent, storeState: CollabStoreState<T>) => boolean
 }): CollabStoreState<T> {
@@ -574,8 +577,8 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     
         // Update local state
         set(storeState.data as Object, msgData.path!, msgData.value);
-    
         removeInvalidSelections(msgData.path!);
+        updateComments({ comments: msgData.comments });
       }
     } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
       receiveUpdateText(msgData);
@@ -593,6 +596,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         unset(storeState.data as Object, msgData.path!);
       }
       removeInvalidSelections(parentPath);
+      updateComments({ comments: msgData.comments });
     } else if (msgData.type === CollabEventType.CONNECT) {
       if (msgData.client_id !== storeState.clientID) {
         // Add new client
@@ -713,6 +717,23 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           }
         }
       }
+
+      // Map comment positions
+      const comments = Object.values(storeState.data.comments || {});
+      for (const c of comments) {
+        if (c.path === dataPath && c.text_range) {
+          let pos: SelectionRange|null = SelectionRange.fromJSON({ anchor: c.text_range.from, head: c.text_range.to });
+          try {
+            pos = pos.map(u.changes);
+            if (pos.empty) {
+              pos = null;
+            }
+          } catch {
+            pos = null;
+          }
+          c.text_range = pos;
+        }
+      }
     }
     // Update text
     set(storeState.data as Object, dataPath, cmText.toString());
@@ -815,6 +836,13 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       if (storeState.awareness.self.path === event.path) {
         storeState.awareness.self.selection = storeState.awareness.self.selection?.map(changes);
       }
+
+      // Update comments
+      updateComments({ 
+        comments: event.comments, 
+        unconfirmed,
+        text,
+      });
       
       // Update remote selections
       for (const a of Object.values(storeState.awareness.other)) {
@@ -868,6 +896,40 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     }
   }
 
+  function updateComments(options: { comments?: Partial<Comment>[], unconfirmed?: TextUpdate[], text?: Text|string }) {
+    const commentsStoreState = storeState.data.comments;
+    if (!options.comments || !commentsStoreState) {
+      return;
+    }
+
+    for (const c of options.comments) {
+      if (c.id! in commentsStoreState) {
+        if (c.path === null) {
+          // Delete comment
+          delete commentsStoreState[c.id!];
+          continue;
+        }
+        
+        if (c.text_range && options.unconfirmed) {
+          try {
+            let pos: SelectionRange|null = SelectionRange.fromJSON({ anchor: c.text_range.from, head: c.text_range.to });
+            for (const u of options.unconfirmed) {
+              pos = pos.map(u.changes);
+            }
+            if ((options.text !== undefined && !(pos.from >= 0 && pos.to <= options.text.length)) || pos.empty) {
+              pos = null;
+            }
+
+            c.text_range = pos;
+          } catch {
+            c.text_range = null;
+          }
+        }
+        Object.assign(commentsStoreState[c.id!], c);
+      }
+    }
+  }
+
   function onCollabEvent(event: any) {
     if (!event.path?.startsWith(storeState.apiPath)) {
       // Event is not for us
@@ -896,6 +958,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     connect,
     disconnect,
     onCollabEvent,
+    storeState,
     data: computed(() => storeState.data),
     readonly: computed(() => storeState.connection?.connectionState !== CollabConnectionState.OPEN || !storeState.permissions.write),
     connection: computed(() => storeState.connection),
@@ -912,6 +975,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           isSelf: c.client_id === storeState.clientID,
         };
       }),
+      comments: sortBy(Object.values(storeState.data.comments || {}), ['created'])
+        .filter(c => c.status === CommentStatus.OPEN)
+        .map(c => ({ ...c, collabPath: storeState.apiPath + c.path })),
     }), { throttle: 1000 }),
   }
 }
@@ -926,14 +992,21 @@ export type CollabPropType = {
     selection?: EditorSelection;
     isSelf: boolean;
   }[];
+  comments: Comment[];
 };
 
 export function collabSubpath(collab: CollabPropType, subPath: string|null) {
   const addDot = !collab.path.endsWith('.') && !collab.path.endsWith('/') && subPath;
   const path = collab.path + (addDot ? '.' : '') + (subPath || '');
+
+  function isSubpath(subpath: string, parent: string) {
+    return subpath === parent || subpath.startsWith(parent + (!parent.endsWith('/') ? '.' : ''));
+  }
+
   return {
     ...collab,
     path,
-    clients: collab.clients.filter(a => a.path.startsWith(path))
+    clients: collab.clients.filter(a => isSubpath(a.path, path)),
+    comments: collab.comments.filter(c => isSubpath(c.collabPath || '', path)),
   };
 }

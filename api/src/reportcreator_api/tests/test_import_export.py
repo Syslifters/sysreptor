@@ -16,6 +16,7 @@ from reportcreator_api.archive.import_export import (
     import_templates,
 )
 from reportcreator_api.archive.import_export.import_export import build_tarinfo, export_notes, import_notes
+from reportcreator_api.pentests.collab.text_transformations import SelectionRange
 from reportcreator_api.pentests.models import (
     Language,
     PentestProject,
@@ -25,6 +26,7 @@ from reportcreator_api.pentests.models import (
     UploadedImage,
 )
 from reportcreator_api.tests.mock import (
+    create_comment,
     create_finding,
     create_png_file,
     create_project,
@@ -91,7 +93,17 @@ class TestImportExport:
                 {'name': 'image.png', 'content': create_png_file() + b'image1'},
                 {'name': 'image-note.png', 'content': create_png_file() + b'image2'}],
             files_kwargs=[{'name': 'file.txt', 'content': b'file1'}],
+            comments=True,
         )
+        create_comment(
+            finding=self.project.findings.first(),
+            text='Comment text',
+            path='data.field_markdown',
+            text_range=SelectionRange(anchor=0, head=10),
+            user=self.user,
+            answers_kwargs=[{'text': 'Answer text', 'user': self.user}, {'text': 'Answer 2', 'user': None}],
+        )
+
         self.p_note1 = create_projectnotebookpage(project=self.project, order=1, title='Note 1', text='Note text 1 ![](/images/name/image-note.png)')
         self.p_note1_1 = create_projectnotebookpage(project=self.project, parent=self.p_note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
         self.p_note2 = create_projectnotebookpage(project=self.project, order=2, title='Note 2', text='Note text 2')
@@ -172,6 +184,13 @@ class TestImportExport:
 
         assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
 
+    def assert_export_import_comments(self, obj_original, obj_imported):
+        for i_c, o_c in zip(obj_imported.comments.order_by('created'), obj_original.comments.order_by('created')):
+            assertKeysEqual(i_c, o_c, ['created', 'user', 'text', 'path', 'text_range', 'text_original'])
+
+            for i_ca, o_ca in zip(i_c.answers.order_by('created'), o_c.answers.order_by('created')):
+                assertKeysEqual(i_ca, o_ca, ['created', 'user', 'text'])
+
     def assert_export_import_project(self, project, p):
         assertKeysEqual(p, project, ['name', 'language', 'tags', 'data', 'override_finding_ordering', 'data_all', 'unknown_custom_fields'])
         assert members_equal(p.members, project.members)
@@ -180,10 +199,12 @@ class TestImportExport:
         assert p.sections.count() == project.sections.count()
         for i, s in zip(p.sections.order_by('section_id'), project.sections.order_by('section_id')):
             assertKeysEqual(i, s, ['section_id', 'created', 'assignee', 'status', 'data'])
+            self.assert_export_import_comments(i, s)
 
         assert p.findings.count() == project.findings.count()
-        for i, s in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id')):
-            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
+        for i, f in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id')):
+            assertKeysEqual(i, f, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
+            self.assert_export_import_comments(i, f)
 
         assertKeysEqual(p.project_type, project.project_type, [
             'created', 'name', 'language',
@@ -477,9 +498,18 @@ class TestCopyModel:
         assert set(pt.assets.values_list('id', flat=True)).intersection(cp.assets.values_list('id', flat=True)) == set()
         assert {(a.name, a.file.read()) for a in pt.assets.all()} == {(a.name, a.file.read()) for a in cp.assets.all()}
 
+    def assert_comments_copy_equal(self, p, cp):
+        for p_c, cp_c in zip(p.comments.order_by('created'), cp.comments.order_by('created')):
+            assert p_c != cp_c
+            assertKeysEqual(p_c, cp_c, ['user', 'text', 'path', 'text_range', 'text_original'])
+
+            for p_ca, cp_ca in zip(p_c.answers.order_by('created'), cp_c.answers.order_by('created')):
+                assert p_ca != cp_ca
+                assertKeysEqual(p_ca, cp_ca, ['user', 'text'])
+
     def test_copy_project(self):
         user = create_user()
-        p = create_project(members=[user], readonly=True, source=SourceEnum.IMPORTED)
+        p = create_project(members=[user], comments=True, readonly=True, source=SourceEnum.IMPORTED)
         create_projectnotebookpage(project=p, parent=p.notes.first())
         create_finding(project=p, template=create_template())
         cp = p.copy()
@@ -504,10 +534,12 @@ class TestCopyModel:
         for p_s, cp_s in zip(p.sections.order_by('section_id'), cp.sections.order_by('section_id')):
             assert p_s != cp_s
             assertKeysEqual(p_s, cp_s, ['section_id', 'assignee', 'status', 'data'])
+            self.assert_comments_copy_equal(p_s, cp_s)
 
         for p_f, cp_f in zip(p.findings.order_by('finding_id'), cp.findings.order_by('finding_id')):
             assert p_f != cp_f
             assertKeysEqual(p_f, cp_f, ['finding_id', 'assignee', 'status', 'order', 'data', 'template'])
+            self.assert_comments_copy_equal(p_f, cp_f)
 
         for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id')):
             assert p_n != cp_n

@@ -106,12 +106,9 @@ export function useLockEdit<T>(options: LockEditOptions<T>) {
       }
 
       // Scroll to element
-      await nextTick();
       if (route.hash) {
-        const el = document.getElementById(route.hash.substring(1));
-        if (el) {
-          el.scrollIntoView();
-        }
+        await nextTick();
+        focusElement(route.hash);
       }
     }
   });
