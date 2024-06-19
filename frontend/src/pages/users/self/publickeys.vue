@@ -342,7 +342,7 @@ import { pick } from 'lodash-es';
 
 const auth = useAuth();
 
-const publicKeys = await useFetchE<UserPublicKey[]>('/api/v1/pentestusers/self/publickeys/', { method: 'GET', deep: true });
+const publicKeys = await useFetchE<UserPublicKey[]>('/api/v1/pentestusers/self/publickeys/', { method: 'GET' });
 
 enum SetupWizardStep {
   CREATE = 'create',
@@ -436,7 +436,7 @@ async function setupWizardSetName() {
       method: 'PATCH',
       body: setupWizard.value.form
     });
-    publicKeys.value.push(obj);
+    publicKeys.value = [obj].concat(publicKeys.value);
     setupWizard.value.visible = false;
     successToast('Archiving Public Key setup completed');
   });
