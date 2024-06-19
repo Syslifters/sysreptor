@@ -11,6 +11,8 @@
           <v-list-item-title>
             {{ apiToken.name }}
             <chip-expires class="ml-3" :value="apiToken.expire_date" />
+            <chip-date :value="apiToken.last_used" label="Last Used" />
+            <chip-created :value="apiToken.created" />
           </v-list-item-title>
           <template #append>
             <btn-delete button-variant="icon" :delete="() => deleteApiToken(apiToken)" />
@@ -27,14 +29,10 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const apiTokens = await useFetchE<ApiToken[]>(`/api/v1/pentestusers/${route.params.userId}/apitokens/`, { method: 'GET', deep: true });
+const apiTokens = await useFetchE<ApiToken[]>(`/api/v1/pentestusers/${route.params.userId}/apitokens/`, { method: 'GET' });
 
 async function deleteApiToken(apiToken: ApiToken) {
-  try {
-    await $fetch(`/api/v1/pentestusers/self/apitokens/${apiToken.id}/`, { method: 'GET' });
-    apiTokens.value = apiTokens.value.filter(t => t.id !== apiToken.id);
-  } catch (error) {
-    requestErrorToast({ error });
-  }
+  await $fetch(`/api/v1/pentestusers/self/apitokens/${apiToken.id}/`, { method: 'GET' });
+  apiTokens.value = apiTokens.value.filter(t => t.id !== apiToken.id);
 }
 </script>

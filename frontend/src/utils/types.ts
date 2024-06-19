@@ -151,6 +151,7 @@ export const mfaMethodChoices = Object.freeze([
 export type ApiToken = BaseModel & {
   name: string;
   expire_date: string|null;
+  last_used: string|null;
   token?: string;
 }
 
