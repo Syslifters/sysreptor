@@ -40,7 +40,7 @@
           <v-card-text class="text--small pb-0">
             {{ assetUrl(asset) }}
             <s-btn-icon @click="copyAssetUrl(asset)" size="small" density="compact">
-              <v-icon size="small" icon="mdi-clipboard-outline" />
+              <v-icon size="small" icon="mdi-content-copy" />
               <s-tooltip activator="parent" text="Copy path to clipboard" />
             </s-btn-icon>
           </v-card-text>

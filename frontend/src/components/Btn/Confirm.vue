@@ -47,6 +47,17 @@
           <br><br>
           Enter the following text to confirm: <br>
           <strong>{{ props.confirmInput }}</strong>
+          <s-btn-icon 
+            v-if="clipboard"
+            @click="clipboard.writeText(props.confirmInput)" 
+            size="small" 
+            density="compact"
+            class="ml-1"
+          >
+            <v-icon icon="mdi-content-copy" />
+            <s-tooltip activator="parent" text="Copy to clipboard" />
+          </s-btn-icon>
+
           <s-text-field
             v-model="confirmUserInput"
             :rules="rules.confirm"
@@ -109,6 +120,8 @@ const props = withDefaults(defineProps<{
   keyboardShortcut: undefined,
 });
 const attrs = useAttrs();
+
+const clipboard = window.navigator.clipboard;
 
 const confirmDialogVisible = ref(false);
 const confirmUserInput = ref('');
