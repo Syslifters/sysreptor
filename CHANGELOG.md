@@ -4,6 +4,7 @@
 * Allow commenting finding and section fields and markdown text
 * Create backups via web interface
 * Show backup history in web interface
+* UI: Add button to copy confirm text in delete confirm dialogs
 
 
 ## v2024.049 - 2024-06-18

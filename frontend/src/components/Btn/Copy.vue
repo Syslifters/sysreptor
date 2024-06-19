@@ -1,7 +1,7 @@
 <template>
   <btn-confirm
     button-text="Duplicate"
-    button-icon="mdi-clipboard-multiple-outline"
+    button-icon="mdi-content-copy"
     dialog-title="Confirm Duplication"
     :button-variant="props.buttonVariant"
     :dialog-text="props.confirmText"
