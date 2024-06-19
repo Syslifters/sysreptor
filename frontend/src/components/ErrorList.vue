@@ -90,8 +90,8 @@ const messageGroups = computed(() => {
   const grouped = groupBy(messageList.value, m => [m.level, m.message]);
   const formattedGroups = Object.values(grouped)
     .map(msgs => ({
-      level: msgs[0].level,
-      message: msgs[0].message,
+      level: msgs[0]!.level,
+      message: msgs[0]!.message,
       entries: msgs
     }));
   return sortBy(formattedGroups, [g => levelToNumber(g.level), 'message']);

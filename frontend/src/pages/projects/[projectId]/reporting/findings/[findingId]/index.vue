@@ -57,7 +57,7 @@
         @comment="commentSidebarRef?.onCommentEvent"
         :readonly="readonly"
         :id="fieldId"
-        :definition="projectType.finding_fields[fieldId]"
+        :definition="projectType.finding_fields[fieldId]!"
         v-bind="inputFieldAttrs"
       />
     </div>

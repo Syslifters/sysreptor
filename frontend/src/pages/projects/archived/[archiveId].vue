@@ -34,12 +34,12 @@
             <template #default>
               <v-container v-if="restoreWizard.selectedParts.length > 0" fluid>
                 <p>
-                  Decrypt the following message with your private key <strong>{{ restoreWizard.selectedParts[0].public_key.name }}</strong>
+                  Decrypt the following message with your private key <strong>{{ restoreWizard.selectedParts[0]!.public_key.name }}</strong>
                   and copy the decrypted data into the text field below.
                 </p>
                 <p><s-code>gpg --decrypt message.txt</s-code></p>
                 <v-textarea
-                  v-model="restoreWizard.selectedParts[0].encrypted_data"
+                  v-model="restoreWizard.selectedParts[0]!.encrypted_data"
                   auto-grow
                   readonly
                   spellcheck="false"

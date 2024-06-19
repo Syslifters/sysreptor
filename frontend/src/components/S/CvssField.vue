@@ -81,7 +81,7 @@
                 :key="m"
                 :model-value="parsedEditorVector.metrics[m]"
                 @update:model-value="updateMetric(m, $event)"
-                :metric="CVSS40_DEFINITION[m]"
+                :metric="CVSS40_DEFINITION[m]!"
                 :single-line="true"
                 :disabled="props.disabled || props.readonly"
               />
@@ -109,7 +109,7 @@
                     :key="m"
                     :model-value="parsedEditorVector.metrics[m]"
                     @update:model-value="updateMetric(m, $event)"
-                    :metric="CVSS31_DEFINITION[m]"
+                    :metric="CVSS31_DEFINITION[m]!"
                     :disabled="props.disabled || props.readonly"
                   />
                 </v-col>

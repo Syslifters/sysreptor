@@ -65,7 +65,7 @@ function micromarkToAnnotatedText(text: string, events: Event[]) {
 
   // Add separators between blocks, such that blocks are always interpreted as separate
   for (let i = tree.length - 1; i >= 0; i--) {
-    tree.splice(i, 0, createBlockSeparator(tree[i].enter.start));
+    tree.splice(i, 0, createBlockSeparator(tree[i]!.enter.start));
   }
 
   // extract leaf nodes of tree => this is a sequence of all the text tokens

@@ -10,7 +10,7 @@
 import { VForm } from 'vuetify/components';
 
 const auth = useAuth();
-const user = await useFetchE<User>('/api/v1/pentestusers/self/', { method: 'GET' });
+const user = await useFetchE<User>('/api/v1/pentestusers/self/', { method: 'GET', deep: true });
 
 const serverErrors = ref<any|null>(null);
 async function performSave(data: User) {

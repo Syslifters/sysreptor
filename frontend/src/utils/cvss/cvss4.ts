@@ -1047,7 +1047,7 @@ export function parseVectorCvss4(vector?: string|null): CvssMetricsValue {
   const out = {} as CvssMetricsValue;
   for (const part of (vector || '').slice(9).split('/')) {
     const kv = part.split(':');
-    out[kv[0]] = kv.length > 1 ? kv[1] : null;
+    out[kv[0]!] = kv.length > 1 ? kv[1] : null;
   }
 
   // Set undefined metrics
@@ -1070,7 +1070,7 @@ export function isValidVectorCvss4(vector?: string|null) {
 
   // Only allowed values defined
   for (const [k, v] of Object.entries(parsedVector)) {
-    if (!(k in CVSS4_METRICS && v in CVSS4_METRICS[k])) {
+    if (!(k in CVSS4_METRICS && v in CVSS4_METRICS[k]!)) {
       return false;
     }
   }
@@ -1111,7 +1111,7 @@ function extractValueMetric(name: string, maxVector: string) {
 }
 
 function getEqMaxes(lookup: string, eq: number) {
-  return CVSS4_MAX_COMPOSED[`eq${eq}`][Number.parseInt(lookup[eq - 1])];
+  return CVSS4_MAX_COMPOSED[`eq${eq}`]![Number.parseInt(lookup[eq - 1]!)];
 }
 
 export function calculateScoreCvss40(vector?: string|null): number|null {
@@ -1129,7 +1129,7 @@ export function calculateScoreCvss40(vector?: string|null): number|null {
       AR: 'H',
     } as Record<string, string>;
     if (name in modifiedFallback && m === 'X') {
-      return modifiedFallback[name];
+      return modifiedFallback[name]!;
     } else if (values['M' + name] && values['M' + name] !== 'X') {
       return values['M' + name];
     }
@@ -1169,7 +1169,7 @@ export function calculateScoreCvss40(vector?: string|null): number|null {
 
   const { eq1, eq2, eq3, eq4, eq5, eq6 } = calculateMacroVector();
   const macroVector = eqsToMacroVector(eq1, eq2, eq3, eq4, eq5, eq6);
-  const value = CVSS4_LOOKUP_MACROVECTOR[macroVector];
+  const value = CVSS4_LOOKUP_MACROVECTOR[macroVector]!;
 
   // 1. For each of the EQs:
   //   a. The maximal scoring difference is determined as the difference
@@ -1205,31 +1205,31 @@ export function calculateScoreCvss40(vector?: string|null): number|null {
   const eq5_next_lower_macro = eqsToMacroVector(eq1, eq2, eq3, eq4, eq5 + 1, eq6)
 
   // get their score, if the next lower macro score do not exist the result is NaN
-  const score_eq1_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq1_next_lower_macro];
-  const score_eq2_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq2_next_lower_macro];
+  const score_eq1_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq1_next_lower_macro]!;
+  const score_eq2_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq2_next_lower_macro]!;
 
   let score_eq3eq6_next_lower_macro = 0;
   if (eq3 === 0 && eq6 === 0) {
     // multiple path take the one with higher score
-    const score_eq3eq6_next_lower_macro_left = CVSS4_LOOKUP_MACROVECTOR[eq3eq6_next_lower_macro_left];
-    const score_eq3eq6_next_lower_macro_right = CVSS4_LOOKUP_MACROVECTOR[eq3eq6_next_lower_macro_right];
+    const score_eq3eq6_next_lower_macro_left = CVSS4_LOOKUP_MACROVECTOR[eq3eq6_next_lower_macro_left]!;
+    const score_eq3eq6_next_lower_macro_right = CVSS4_LOOKUP_MACROVECTOR[eq3eq6_next_lower_macro_right]!;
     if (score_eq3eq6_next_lower_macro_left > score_eq3eq6_next_lower_macro_right) {
       score_eq3eq6_next_lower_macro = score_eq3eq6_next_lower_macro_left
     } else {
       score_eq3eq6_next_lower_macro = score_eq3eq6_next_lower_macro_right
     } 
   } else {
-    score_eq3eq6_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq3eq6_next_lower_macro]
+    score_eq3eq6_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq3eq6_next_lower_macro]!
   }
 
-  const score_eq4_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq4_next_lower_macro]
-  const score_eq5_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq5_next_lower_macro]
+  const score_eq4_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq4_next_lower_macro]!
+  const score_eq5_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq5_next_lower_macro]!
 
   //   b. The severity distance of the to-be scored vector from a
   //      highest severity vector in the same MacroVector is determined.
   const eq1_maxes = getEqMaxes(macroVector, 1)
   const eq2_maxes = getEqMaxes(macroVector, 2)
-  const eq3_eq6_maxes = getEqMaxes(macroVector, 3)[macroVector[5]]
+  const eq3_eq6_maxes = getEqMaxes(macroVector, 3)[macroVector[5]!]
   const eq4_maxes = getEqMaxes(macroVector, 4)
   const eq5_maxes = getEqMaxes(macroVector, 5)
 
@@ -1251,7 +1251,7 @@ export function calculateScoreCvss40(vector?: string|null): number|null {
   const severity_distances = {} as Record<string, number>;
   for (const max_vector of max_vectors) {
     for (const m of [...Object.keys(CVSS4_METRICS_BASE), ...Object.keys(CVSS4_METRICS_THREAT), ...Object.keys(CVSS4_METRICS_ENVIRONMENTAL_REQUIREMENTS)]) {
-      severity_distances[m] = CVSS4_METRICS[m][metric(m)] - CVSS4_METRICS[m][extractValueMetric(m, max_vector)]
+      severity_distances[m] = CVSS4_METRICS[m]![metric(m)] - CVSS4_METRICS[m]![extractValueMetric(m, max_vector)]
     }
     // if any is less than zero this is not the right max
     if (Object.values(severity_distances).some(m => m < 0)) {
@@ -1261,10 +1261,10 @@ export function calculateScoreCvss40(vector?: string|null): number|null {
     break
   }
 
-  const current_severity_distance_eq1 = severity_distances.AV + severity_distances.PR + severity_distances.UI
-  const current_severity_distance_eq2 = severity_distances.AC + severity_distances.AT
-  const current_severity_distance_eq3eq6 = severity_distances.VC + severity_distances.VI + severity_distances.VA + severity_distances.CR + severity_distances.IR + severity_distances.AR
-  const current_severity_distance_eq4 = severity_distances.SC + severity_distances.SI + severity_distances.SA
+  const current_severity_distance_eq1 = severity_distances.AV! + severity_distances.PR! + severity_distances.UI!
+  const current_severity_distance_eq2 = severity_distances.AC! + severity_distances.AT!
+  const current_severity_distance_eq3eq6 = severity_distances.VC! + severity_distances.VI! + severity_distances.VA! + severity_distances.CR! + severity_distances.IR! + severity_distances.AR!
+  const current_severity_distance_eq4 = severity_distances.SC! + severity_distances.SI! + severity_distances.SA!
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const current_severity_distance_eq5 = 0
 
@@ -1294,12 +1294,12 @@ export function calculateScoreCvss40(vector?: string|null): number|null {
   let normalized_severity_eq5 = 0
 
   // multiply by step because distance is pure
-  const max_severity_eq1 = CVSS4_MAX_SEVERITY.eq1[eq1] * step
-  const max_severity_eq2 = CVSS4_MAX_SEVERITY.eq2[eq2] * step
-  const max_severity_eq3eq6 = CVSS4_MAX_SEVERITY.eq3eq6[eq3][eq6] * step
-  const max_severity_eq4 = CVSS4_MAX_SEVERITY.eq4[eq4] * step
+  const max_severity_eq1 = CVSS4_MAX_SEVERITY.eq1![eq1] * step
+  const max_severity_eq2 = CVSS4_MAX_SEVERITY.eq2![eq2] * step
+  const max_severity_eq3eq6 = CVSS4_MAX_SEVERITY.eq3eq6![eq3][eq6] * step
+  const max_severity_eq4 = CVSS4_MAX_SEVERITY.eq4![eq4] * step
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const max_severity_eq5 = CVSS4_MAX_SEVERITY.eq5[eq5] * step
+  const max_severity_eq5 = CVSS4_MAX_SEVERITY.eq5![eq5] * step
 
   //   c. The proportion of the distance is determined by dividing
   //      the severity distance of the to-be-scored vector by the depth

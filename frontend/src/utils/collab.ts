@@ -588,7 +588,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       const pathParts = msgData.path!.split('.');
       const parentPath = pathParts.slice(0, -1).join('.');
       const parentList = get(storeState.data as Object, parentPath);
-      const parentListIndex = Number.parseInt(pathParts.slice(-1)?.[0].startsWith('[') ? pathParts.slice(-1)[0].slice(1, -1) : '');
+      const parentListIndex = Number.parseInt(pathParts.slice(-1)?.[0]?.startsWith('[') ? pathParts.slice(-1)[0]!.slice(1, -1) : '');
               
       if (Array.isArray(parentList) && !Number.isNaN(parentListIndex)) {
         parentList!.splice(parentListIndex, 1);
@@ -925,7 +925,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
             c.text_range = null;
           }
         }
-        Object.assign(commentsStoreState[c.id!], c);
+        Object.assign(commentsStoreState[c.id!]!, c);
       }
     }
   }

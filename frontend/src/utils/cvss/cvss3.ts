@@ -583,7 +583,7 @@ export function parseVectorCvss3(vector?: string|null): CvssMetricsValue {
   const out = {} as CvssMetricsValue;
   for (const part of (vector || '').slice(9).split('/')) {
     const kv = part.split(':');
-    out[kv[0]] = kv.length > 1 ? kv[1] : null;
+    out[kv[0]!] = kv.length > 1 ? kv[1] : null;
   }
 
   // Set undefined metrics
@@ -606,7 +606,7 @@ export function isValidVectorCvss3(vector?: string|null) {
 
   // Only allowed values defined
   for (const [k, v] of Object.entries(parsedVector)) {
-    if (!(k in CVSS3_METRICS && v in CVSS3_METRICS[k])) {
+    if (!(k in CVSS3_METRICS && v in CVSS3_METRICS[k]!)) {
       return false;
     }
   }

@@ -88,7 +88,7 @@ const emit = defineEmits<{
 
 const findingFields = computed(() => {
   return props.projectType.finding_field_order
-    .map(f => ({ id: f, ...props.projectType.finding_fields[f] }))
+    .map(f => ({ id: f, ...props.projectType.finding_fields[f]! }))
     .filter(f => ![FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER].includes(f.type));
 });
 const availableFindingFields = computed(() => {
@@ -96,7 +96,7 @@ const availableFindingFields = computed(() => {
 });
 
 function addField() {
-  emit('update:modelValue', [...props.modelValue, { field: availableFindingFields.value[0].id, order: SortOrder.ASC }]);
+  emit('update:modelValue', [...props.modelValue, { field: availableFindingFields.value[0]!.id, order: SortOrder.ASC }]);
 }
 function deleteOrderConfig(orderConfig: FindingOrderingDefinition) {
   emit('update:modelValue', props.modelValue.filter(o => o !== orderConfig));

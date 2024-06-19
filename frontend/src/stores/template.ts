@@ -19,7 +19,7 @@ export const useTemplateStore = defineStore('templates', {
           id, 
           visible: !fieldFilterHiddenFields.includes(id), 
           used_in_designs: (this.fieldDefinition![id] as any).used_in_designs,
-          ...this.fieldDefinition![id],
+          ...this.fieldDefinition![id]!,
         })),
         [
           d => ((this.designFilter?.finding_field_order || []).indexOf(d.id) + 1) || 100000,

@@ -32,8 +32,8 @@ const wordCount = computed(() => {
   let count = 0;
   if (!m) { return count; }
   for (let i = 0; i < m.length; i++) {
-    if (m[i].charCodeAt(0) >= 0x4E00) {
-      count += m[i].length;
+    if (m[i]!.charCodeAt(0) >= 0x4E00) {
+      count += m[i]!.length;
     } else {
       count += 1;
     }

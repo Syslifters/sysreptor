@@ -45,6 +45,6 @@ const apiSettings = useApiSettings();
 const importBtn = ref();
 async function performImport(file: File) {
   const projects = await uploadFileHelper<PentestProject[]>('/api/v1/pentestprojects/import/', file);
-  await navigateTo(`/projects/${projects[0].id}/`);
+  await navigateTo(`/projects/${projects[0]!.id}/`);
 }
 </script>

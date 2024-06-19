@@ -119,8 +119,8 @@ function micromarkToLezerSyntaxTree(text: string, events: Event[]) {
       buffer.push(...toBuffer(c));
     }
     let nodeId = nodeSet.types.find(t => t.name === node.enter.type);
-    if (node.type === 'atxHeading' && node.children.length >= 1 && node.children[0].type === 'atxHeadingSequence') {
-      nodeId = nodeSet.types.find(t => t.name === 'heading' + node.children[0].text?.length || 0);
+    if (node.type === 'atxHeading' && node.children.length >= 1 && node.children[0]!.type === 'atxHeadingSequence') {
+      nodeId = nodeSet.types.find(t => t.name === 'heading' + (node.children[0]!.text?.length || 0));
     }
     
     buffer.push((nodeId || NodeType.none).id, node.enter.start.offset, node.enter.end.offset, 4 + buffer.length);
@@ -128,7 +128,7 @@ function micromarkToLezerSyntaxTree(text: string, events: Event[]) {
   }
 
   return Tree.build({
-    buffer: tree.length > 0 ? toBuffer({children: tree, enter: {type: 'document', start: tree[0].enter.start, end: tree.slice(-1)[0].enter.end}} as unknown as MicromarkTreeNode) : [],
+    buffer: tree.length > 0 ? toBuffer({children: tree, enter: {type: 'document', start: tree[0]!.enter.start, end: tree.slice(-1)[0]!.enter.end}} as unknown as MicromarkTreeNode) : [],
     nodeSet: nodeSet,
     topID: nodeSet.types.find(t => t.name === 'document')!.id,
   });

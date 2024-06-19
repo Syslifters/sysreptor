@@ -19,11 +19,11 @@ export const useProjectTypeStore = defineStore('projecttype', {
     },
     async fetchById(id: string) {
       this.data[id] = await $fetch<ProjectType>(`/api/v1/projecttypes/${id}/`, { method: 'GET' });
-      return this.data[id];
+      return this.data[id]!;
     },
     async getById(id: string) {
       if (id in this.data) {
-        return this.data[id];
+        return this.data[id]!;
       }
       return await this.fetchById(id);
     },
@@ -33,7 +33,7 @@ export const useProjectTypeStore = defineStore('projecttype', {
         body: projectType
       });
       this.data[obj.id] = obj;
-      return this.data[obj.id];
+      return this.data[obj.id]!;
     },
     async partialUpdate(projectType: ProjectType, fields?: string[]) {
       const updatedData = fields ? pick(projectType, fields.concat(['id'])) : projectType;
@@ -41,7 +41,7 @@ export const useProjectTypeStore = defineStore('projecttype', {
         method: 'PATCH',
         body: updatedData
       });
-      return this.data[projectType.id];
+      return this.data[projectType.id]!;
     },
     async delete(projectType: ProjectType) {
       await $fetch(`/api/v1/projecttypes/${projectType.id}/`, {
@@ -55,7 +55,7 @@ export const useProjectTypeStore = defineStore('projecttype', {
         body: projectType
       });
       this.data[obj.id] = obj;
-      return this.data[obj.id];
+      return this.data[obj.id]!;
     },
     async getPredefinedFindingFields() {
       if (!this.predefinedFindingFields) {

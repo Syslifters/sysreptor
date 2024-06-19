@@ -100,7 +100,7 @@ function updateOrdering(ordering?: OrderingOption|null) {
   if (!ordering) {
     ordering = props.orderingOptions![0];
   } 
-  router.replace({ query: { ...route.query, ordering: ordering.value } });
+  router.replace({ query: { ...route.query, ordering: ordering?.value || '' } });
   items.applyFilters({ ...route.query });
 }
 

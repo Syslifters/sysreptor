@@ -178,13 +178,13 @@ export class TextSectionComponent extends DesignerComponentBase {
     super({ type: 'content', name: 'Content', allowAsChild: true, supportsChildren: true });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return ['div', 'section'].includes(tagInfo.tagName) &&
       tagInfo.children.some(c => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(c.tagName) ||
                                  new FindingListComponent().matches(c));
   }
 
-  getCreateForm() {
+  override getCreateForm() {
     return {
       form: 'section-create',
       headline: new HeadlineComponent().getCreateForm().headline,
@@ -192,7 +192,7 @@ export class TextSectionComponent extends DesignerComponentBase {
     };
   }
 
-  createCode(form: any, context: DesignerContext) {
+  override createCode(form: any, context: DesignerContext) {
     return {
       html: `
         <div>
@@ -209,19 +209,19 @@ export class HeadlineComponent extends DesignerComponentBase {
     super({ type: 'headline', name: 'Headline', allowAsChild: true });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagInfo.tagName);
   }
 
-  getTitle(block: DesignerComponentBlock) {
+  override getTitle(block: DesignerComponentBlock) {
     return getTagContent(block.context.htmlCode, { childrenArea: block.childrenArea })
   }
 
-  get canCreate() {
+  override get canCreate() {
     return false;
   }
 
-  getUpdateForm(block: DesignerComponentBlock) {
+  override getUpdateForm(block: DesignerComponentBlock) {
     const classes = (block.tagInfo.attributes.class?.value || '').split(' ');
     return {
       form: 'headline',
@@ -248,7 +248,7 @@ export class HeadlineComponent extends DesignerComponentBase {
     return `<${form.headline.tag} ${attrsStr}>${escape(form.headline.text)}</${form.headline.tag}>`;
   }
 
-  update(block: DesignerComponentBlock, form: any) {
+  override update(block: DesignerComponentBlock, form: any) {
     const attrs = Object.fromEntries(Object.entries(block.tagInfo.attributes).map(([n, v]) => [n, v.value]));
     return [{
       type: 'html',
@@ -258,7 +258,7 @@ export class HeadlineComponent extends DesignerComponentBase {
     }];
   }
 
-  getCreateForm() {
+  override getCreateForm() {
     return {
       form: 'headline',
       headline: {
@@ -270,7 +270,7 @@ export class HeadlineComponent extends DesignerComponentBase {
     };
   }
 
-  createCode(form: any, context: DesignerContext) {
+  override createCode(form: any, context: DesignerContext) {
     return { html: this.htmlFromForm(form, { id: createUniqueId(kebabCase(form.headline.text || 'heading'), context) }) };
   }
 }
@@ -280,15 +280,15 @@ export class MarkdownComponent extends DesignerComponentBase {
     super({ type: 'markdown', name: 'Markdown', allowAsChild: true });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return tagInfo.tagName === 'markdown';
   }
 
-  getTitle(block: DesignerComponentBlock) {
+  override getTitle(block: DesignerComponentBlock) {
     if (block.tagInfo.attributes[':text']) {
       return block.tagInfo.attributes[':text'].value;
     }
-    const mdFirstLine = trimLeadingWhitespace(getTagContent(block.context.htmlCode, { childrenArea: block.childrenArea })).split('\n')[0];
+    const mdFirstLine = trimLeadingWhitespace(getTagContent(block.context.htmlCode, { childrenArea: block.childrenArea })).split('\n')[0]!;
     const headline = mdFirstLine.match(/^#+\s+(?<headline>.*)/)?.groups?.headline;
     if (headline) {
       return headline;
@@ -296,7 +296,7 @@ export class MarkdownComponent extends DesignerComponentBase {
     return null;
   }
 
-  getUpdateForm(block: DesignerComponentBlock) {
+  override getUpdateForm(block: DesignerComponentBlock) {
     if (block.childrenArea && !block.tagInfo.attributes[':text']) {
       return {
         form: 'markdown-text',
@@ -314,7 +314,7 @@ export class MarkdownComponent extends DesignerComponentBase {
     }
   }
 
-  update(block: DesignerComponentBlock, form: any) {
+  override update(block: DesignerComponentBlock, form: any) {
     if (form.form === 'markdown-text') {
       let text = form.markdown.text;
       text = '\n' + text + '\n';
@@ -332,7 +332,7 @@ export class MarkdownComponent extends DesignerComponentBase {
     return [];
   }
 
-  getCreateForm() {
+  override getCreateForm() {
     return {
       form: 'markdown-create',
       markdown: {
@@ -343,7 +343,7 @@ export class MarkdownComponent extends DesignerComponentBase {
     };
   }
 
-  createCode(form: any, _context: DesignerContext) {
+  override createCode(form: any, _context: DesignerContext) {
     if (form.markdown.form === 'text') {
       return { html: `<markdown>\n${form.markdown.text}\n</markdown>` };
     } else if (form.markdown.form === 'variable') {
@@ -359,7 +359,7 @@ export class ParagraphComponent extends DesignerComponentBase {
     super({ type: 'paragraph', name: 'Paragraph', allowAsChild: true });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return tagInfo.tagName === 'p';
   }
 }
@@ -369,17 +369,17 @@ export class AppendixComponent extends DesignerComponentBase {
     super({ type: 'appendix', name: 'Appendix', supportsChildren: true });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return ['div', 'section'].includes(tagInfo.tagName) && (tagInfo.attributes.class?.value || '').split(' ').includes('appendix');
   }
 
-  getCreateForm() {
+  override getCreateForm() {
     const form = new HeadlineComponent().getCreateForm();
     form.headline.text = 'Appendix';
     return form;
   }
 
-  createCode(form: any, context: DesignerContext) {
+  override createCode(form: any, context: DesignerContext) {
     let dynamicAppendixSection = `
     <div v-for="appendix_section in report.appendix_sections">
       <h2 class="in-toc numbered">{{ appendix_section.title }}</h2>
@@ -414,17 +414,17 @@ export class ChartComponent extends DesignerComponentBase {
     super({ type: 'chart', name: 'Findings Chart' });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return tagInfo.tagName === 'chart' || (tagInfo.tagName === 'figure' && tagInfo.children.some(c => c.tagName === 'chart'));
   }
 
-  getTitle(block: DesignerComponentBlock) {
+  override getTitle(block: DesignerComponentBlock) {
     const caption = block.tagInfo.children.find(c => c.tagName === 'figcaption');
     if (!caption) { return null; }
     return getTagContent(block.context.htmlCode, { node: caption.node });
   }
 
-  getCreateForm() {
+  override getCreateForm() {
     return {
       form: 'chart-create',
       chart: {
@@ -434,7 +434,7 @@ export class ChartComponent extends DesignerComponentBase {
     };
   }
 
-  createCode(form: any, context: DesignerContext) {
+  override createCode(form: any, context: DesignerContext) {
     const id = createUniqueId(kebabCase(form.chart.caption || 'chart'), context);
     if (form.chart.chartType === "bar (vertical)") {
       return {
@@ -919,7 +919,7 @@ export class FindingListComponent extends DesignerComponentBase {
     super({ type: 'finding-list', name: 'Finding List', supportsChildren: true });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return ['div', 'section', 'template'].includes(tagInfo.tagName) &&
       [' in findings', 'in report.findings'].some(m => (tagInfo.attributes['v-for']?.value || '').includes(m));
   }
@@ -930,11 +930,11 @@ export class FindingsChapterComponent extends DesignerComponentBase {
     super({ type: 'findings-chapter', name: 'Findings', supportsChildren: true });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return new TextSectionComponent().matches(tagInfo) && tagInfo.children.some(new FindingListComponent().matches);
   }
 
-  getCreateForm() {
+  override getCreateForm() {
     return {
       form: 'finding-list-create',
       findingList: {
@@ -944,7 +944,7 @@ export class FindingsChapterComponent extends DesignerComponentBase {
     };
   }
 
-  createCode(form: any, context: DesignerContext) {
+  override createCode(form: any, context: DesignerContext) {
     const id = createUniqueId('findings', context);
     let htmlHeader = '';
     let htmlFields = '';
@@ -1047,15 +1047,15 @@ export class PagebreakComponent extends DesignerComponentBase {
     super({ type: 'pagebreak', name: 'Page Break' });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return tagInfo.tagName === 'pagebreak';
   }
 
-  get canCreate() {
+  override get canCreate() {
     return true;
   }
 
-  createCode() {
+  override createCode() {
     return { html: '<pagebreak />' };
   }
 }
@@ -1065,11 +1065,11 @@ export class TableOfContentsComponent extends DesignerComponentBase {
     super({ type: 'table-of-contents', name: 'Table of Contents' });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return tagInfo.tagName === 'table-of-contents';
   }
 
-  getCreateForm() {
+  override getCreateForm() {
     return {
       form: 'toc-create',
       toc: {
@@ -1080,7 +1080,7 @@ export class TableOfContentsComponent extends DesignerComponentBase {
     };
   }
 
-  createCode(form: any, context: DesignerContext) {
+  override createCode(form: any, context: DesignerContext) {
     const id = createUniqueId('toc', context);
     const cssCommon = trimLeadingWhitespace(`
       #${id} li {
@@ -1166,15 +1166,15 @@ export class ListOfFiguresComponent extends DesignerComponentBase {
     super({ type: 'list-of-figures', name: 'List of Figures' });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return tagInfo.tagName === 'list-of-figures';
   }
 
-  get canCreate() {
+  override get canCreate() {
     return true;
   }
 
-  createCode(_form: any, context: DesignerContext) {
+  override createCode(_form: any, context: DesignerContext) {
     const id = createUniqueId('lof', context);
     return {
       html: trimLeadingWhitespace(`
@@ -1216,11 +1216,11 @@ export class PageHeaderComponent extends DesignerComponentBase {
     super({ type: 'page-header', name: 'Page Header' });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return tagInfo.attributes['data-sysreptor-generated']?.value === 'page-header';
   }
 
-  getCreateForm() {
+  override getCreateForm() {
     return {
       form: 'header-create',
       header: {
@@ -1231,7 +1231,7 @@ export class PageHeaderComponent extends DesignerComponentBase {
     }
   }
 
-  createCode(form: any, context: DesignerContext) {
+  override createCode(form: any, context: DesignerContext) {
     function getHeaderTypeContent(headerType: string) {
       if (headerType === 'logo') {
         return `<img src="/assets/name/logo.png" alt="logo" />`;
@@ -1314,11 +1314,11 @@ export class PageFooterComponent extends DesignerComponentBase {
     super({ type: 'page-footer', name: 'Page Footer' });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return tagInfo.attributes['data-sysreptor-generated']?.value === 'page-footer';
   }
 
-  getCreateForm() {
+  override getCreateForm() {
     return {
       form: 'footer-create',
       footer: {
@@ -1329,7 +1329,7 @@ export class PageFooterComponent extends DesignerComponentBase {
     };
   }
 
-  createCode(form: any, context: DesignerContext) {
+  override createCode(form: any, context: DesignerContext) {
     const id = createUniqueId('footer', context);
     let html = `<div id="${id}" data-sysreptor-generated="page-footer">\n`;
     let css = `#${id} { position: absolute; width: 0; }\n`;
@@ -1365,11 +1365,11 @@ export class CoverPageComponent extends DesignerComponentBase {
     super({ type: 'cover-page', name: 'Cover Page' });
   }
 
-  matches(tagInfo: TagInfo) {
+  override matches(tagInfo: TagInfo) {
     return tagInfo.attributes['data-sysreptor-generated']?.value === 'page-cover';
   }
 
-  getCreateForm() {
+  override getCreateForm() {
     return {
       form: 'page-cover-create',
       coverPage: {
@@ -1380,7 +1380,7 @@ export class CoverPageComponent extends DesignerComponentBase {
     };
   }
 
-  createCode(form: any, context: DesignerContext) {
+  override createCode(form: any, context: DesignerContext) {
     const id = createUniqueId('page-cover', context);
     const html = trimLeadingWhitespace(`
       <section id="${id}" data-sysreptor-generated="page-cover">
@@ -1655,9 +1655,9 @@ export function parseToComponentTree(htmlCode: string, cssCode: string, projectT
   context.cssTree = cssLanguage.parser.parse(context.cssCode).topNode;
 
   let root = null;
-  if (htmlTree.length === 1 && htmlTree[0].tagName === 'div' && Object.entries(htmlTree[0].attributes).length === 0) {
+  if (htmlTree.length === 1 && htmlTree[0]!.tagName === 'div' && Object.entries(htmlTree[0]!.attributes).length === 0) {
     root = new DesignerComponentBlockImpl({
-      tagInfo: htmlTree[0],
+      tagInfo: htmlTree[0]!,
       component: rootWrapperComponent,
       parent: null,
       context,

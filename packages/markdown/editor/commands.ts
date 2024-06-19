@@ -39,7 +39,7 @@ class Context {
   }
 
   marker(doc: Text, add: number) {
-    let number = this.node.name == "listOrdered" ? String((+itemNumber(this.item!, doc)![2] + add)) : ""
+    let number = this.node.name == "listOrdered" ? String((+itemNumber(this.item!, doc)![2]! + add)) : ""
     return this.spaceBefore + number + this.type + this.spaceAfter
   }
 }
@@ -52,22 +52,22 @@ function getContext(selectedNode: SyntaxNode, doc: Text) {
   }
   let context = [] as Context[];
   for (let i = nodes.length - 1; i >= 0; i--) {
-    let node = nodes[i], match;
+    let node = nodes[i]!, match;
     let line = doc.lineAt(node.from), startPos = node.from - line.from;
     if (node.name == "blockQuote" && (match = /^ *>( ?)/.exec(line.text.slice(startPos)))) {
-      context.push(new Context(node, startPos, startPos + match[0].length, "", match[1], ">", null));
+      context.push(new Context(node, startPos, startPos + match[0].length, "", match[1]!, ">", null));
     } else if (node.name == "listItem" && node.parent!.name == "listOrdered" &&
                (match = /^( *)\d+([.)])( *)/.exec(line.text.slice(startPos)))) {
-      let after = match[3], len = match[0].length
+      let after = match[3]!, len = match[0].length
       if (after.length >= 4) { after = after.slice(0, after.length - 4); len -= 4 }
-      context.push(new Context(node.parent!, startPos, startPos + len, match[1], after, match[2], node));
+      context.push(new Context(node.parent!, startPos, startPos + len, match[1]!, after, match[2]!, node));
     } else if (node.name == "listItem" && node.parent!.name == "listUnordered" &&
                (match = /^( *)([-+*])( {1,4}\[[ xX]\])?( +)/.exec(line.text.slice(startPos)))) {
-      let after = match[4], len = match[0].length
+      let after = match[4]!, len = match[0].length
       if (after.length > 4) { after = after.slice(0, after.length - 4); len -= 4 }
-      let type = match[2]
+      let type = match[2]!
       if (match[3]) type += match[3].replace(/[xX]/, ' ')
-      context.push(new Context(node.parent!, startPos, startPos + len, match[1], after, type, node));
+      context.push(new Context(node.parent!, startPos, startPos + len, match[1]!, after, type, node));
     }
   }
   return context
@@ -81,10 +81,10 @@ function renumberList(after: SyntaxNode, doc: Text, changes: ChangeSpec[], offse
   for (let prev = -1, node = after;;) {
     if (node.name == "listItem") {
       let m = itemNumber(node, doc)!
-      let number = +m[2]
+      let number = +m[2]!
       if (prev >= 0) {
         if (number != prev + 1) return
-        changes.push({from: node.from + m[1].length, to: node.from + m[0].length, insert: String(prev + 2 + offset)})
+        changes.push({from: node.from + m[1]!.length, to: node.from + m[0].length, insert: String(prev + 2 + offset)})
       }
       prev = number
     }
@@ -121,9 +121,9 @@ export const insertNewlineContinueMarkup: StateCommand = ({state, dispatch}) => 
     if (!range.empty || !markdownLanguage.isActiveAt(state, range.from)) return dont = {range}
     let pos = range.from, line = doc.lineAt(pos)
     let context = getContext(tree.resolveInner(pos, -1), doc)
-    while (context.length && context[context.length - 1].from > pos - line.from) context.pop()
+    while (context.length && context[context.length - 1]!.from > pos - line.from) context.pop()
     if (!context.length) return dont = {range}
-    let inner = context[context.length - 1]
+    let inner = context[context.length - 1]!
     if (inner.to - inner.spaceAfter.length > pos - line.from) return dont = {range}
 
     let emptyLine = pos >= (inner.to - inner.spaceAfter.length) && !/\S/.test(line.text.slice(inner.to))
@@ -175,8 +175,8 @@ export const insertNewlineContinueMarkup: StateCommand = ({state, dispatch}) => 
     // If not dedented
     if (!continued || /^[\s\d.)\-+*>]*/.exec(line.text)![0].length >= inner.to) {
       for (let i = 0, e = context.length - 1; i <= e; i++) {
-        insert += i == e && !continued ? context[i].marker(doc, 1)
-          : context[i].blank(i < e ? countColumn(line.text, 4, context[i + 1].from) - insert.length : null)
+        insert += i == e && !continued ? context[i]!.marker(doc, 1)
+          : context[i]!.blank(i < e ? countColumn(line.text, 4, context[i + 1]!.from) - insert.length : null)
       }
     }
     let from = pos;
@@ -208,7 +208,7 @@ function nonTightList(node: SyntaxNode, doc: Text) {
 function blankLine(context: Context[], state: EditorState, line: Line) {
   let insert = ""
   for (let i = 0, e = context.length - 2; i <= e; i++) {
-    insert += context[i].blank(i < e ? countColumn(line.text, 4, context[i + 1].from) - insert.length : null, i < e)
+    insert += context[i]!.blank(i < e ? countColumn(line.text, 4, context[i + 1]!.from) - insert.length : null, i < e)
   }
   return normalizeIndent(insert, state)
 }
@@ -254,7 +254,7 @@ export const deleteMarkupBackward: StateCommand = ({state, dispatch}) => {
       let line = doc.lineAt(pos)
       let context = getContext(contextNodeForDelete(tree, pos), doc)
       if (context.length) {
-        let inner = context[context.length - 1]
+        let inner = context[context.length - 1]!
         let spaceEnd = inner.to - inner.spaceAfter.length + (inner.spaceAfter ? 1 : 0)
         // Delete extra trailing space after markup
         if (pos - line.from > spaceEnd && !/\S/.test(line.text.slice(spaceEnd, pos - line.from)))

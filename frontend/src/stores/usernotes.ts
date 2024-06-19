@@ -20,12 +20,12 @@ export function sortNotes<T extends NoteBase>(noteGroups: NoteGroup<T>, commitNo
   function setParentAndOrder(children: NoteGroup<T>, parentId: string|null) {
     for (let i = 0; i < children.length; i++) {
       const note = {
-        ...children[i].note,
+        ...children[i]!.note,
         parent: parentId,
         order: i + 1
       };
       commitNote(note);
-      setParentAndOrder(children[i].children, note.id);
+      setParentAndOrder(children[i]!.children, note.id);
     }
   }
   setParentAndOrder(noteGroups, null);

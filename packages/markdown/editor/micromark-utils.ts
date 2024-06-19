@@ -34,13 +34,13 @@ export function micromarkEventsToTree(text: string, events: Event[]) {
         text: null,
       } as MicromarkTreeNode;
       if (stack.length > 0) {
-        stack[stack.length - 1].children.push(treeNode);
+        stack[stack.length - 1]!.children.push(treeNode);
       } else {
         tree.push(treeNode);
       }
       stack.push(treeNode);
     } else if (action === 'exit') {
-      const treeNode = stack[stack.length - 1];
+      const treeNode = stack[stack.length - 1]!;
 
       treeNode.exit = node;
       treeNode.text = text.slice(treeNode.enter.start.offset, treeNode.exit.end.offset);

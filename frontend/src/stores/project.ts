@@ -92,9 +92,9 @@ export const useProjectStore = defineStore('project', {
       return (projectId: string, options: {projectType: ProjectType, findingId?: string, sectionId?: string}) => {
         // Filter and sort comments
         const collabState = this.data[projectId]?.reportingCollabState;
-        let commentData = Object.values(collabState.data.comments).map(c => ({ 
+        let commentData = Object.values(collabState?.data.comments || {}).map(c => ({ 
           ...c, 
-          collabPath: collabState.apiPath + c.path,
+          collabPath: collabState!.apiPath + c.path,
         } as Comment));
         if (options.findingId) {
           const basePath = `findings.${options.findingId}.data.`;
@@ -102,7 +102,7 @@ export const useProjectStore = defineStore('project', {
             commentData.filter(c => c.path.startsWith(basePath)), 
             [(c) => {
               const fieldId = c.path.slice(basePath.length).split('.')?.[0];
-              return options.projectType?.finding_field_order.indexOf(fieldId)
+              return options.projectType?.finding_field_order.indexOf(fieldId!)
             }, 'path', 'created']
           );
         } else if (options.sectionId) {
@@ -112,7 +112,7 @@ export const useProjectStore = defineStore('project', {
             [(c) => {
               const fieldId = c.path.slice(basePath.length).split('.')?.[0];
               const sectionFields = options.projectType?.report_sections.find(s => s.id === options.sectionId)?.fields || [];
-              return sectionFields.indexOf(fieldId)
+              return sectionFields.indexOf(fieldId!)
             }, 'path', 'created']
           );
         } else {
@@ -164,10 +164,10 @@ export const useProjectStore = defineStore('project', {
                 }
                 return true;
               } else if (msgData.type === CollabEventType.UPDATE_KEY && msgData.path?.startsWith('project.')) {
-                set(this.data[projectId].project || {} as Object, msgData.path.slice('project.'.length), msgData.value);
+                set(this.data[projectId]!.project || {} as Object, msgData.path.slice('project.'.length), msgData.value);
                 if (msgData.path === 'project.project_type') {
                   // Reload page on project_type changed to apply the new field definition
-                  this.useReportingCollab({ project: this.data[projectId].project! }).disconnect();
+                  this.useReportingCollab({ project: this.data[projectId]!.project! }).disconnect();
                   reloadNuxtApp({ force: true });
                 }
 
@@ -181,12 +181,12 @@ export const useProjectStore = defineStore('project', {
           ...(initialStoreData || {})
         }
       }
-      return this.data[projectId];
+      return this.data[projectId]!;
     },
     setProject(project: PentestProject) {
       this.ensureExists(project.id);
-      this.data[project.id].project = project;
-      return this.data[project.id].project!;
+      this.data[project.id]!.project = project;
+      return this.data[project.id]!.project!;
     },
     async fetchById(projectId: string): Promise<PentestProject> {
       const obj = await $fetch<PentestProject>(`/api/v1/pentestprojects/${projectId}/`, { method: 'GET' });
@@ -197,10 +197,10 @@ export const useProjectStore = defineStore('project', {
         projectId = projectId[0];
       }
 
-      if (projectId in this.data && this.data[projectId].project) {
-        return this.data[projectId].project!;
-      } else if (projectId in this.data && this.data[projectId].getByIdSync) {
-        return await this.data[projectId].getByIdSync!;
+      if (projectId in this.data && this.data[projectId]!.project) {
+        return this.data[projectId]!.project!;
+      } else if (projectId in this.data && this.data[projectId]!.getByIdSync) {
+        return await this.data[projectId]!.getByIdSync!;
       } else {
         try {
           const getByIdSync = this.fetchById(projectId);
@@ -208,7 +208,7 @@ export const useProjectStore = defineStore('project', {
           return await getByIdSync;
         } finally {
           if (this.data[projectId]?.getByIdSync) {
-            this.data[projectId].getByIdSync = null;
+            this.data[projectId]!.getByIdSync = null;
           }
         }
       }
@@ -250,7 +250,7 @@ export const useProjectStore = defineStore('project', {
         }
       });
       this.ensureExists(project.id);
-      this.data[project.id].project!.readonly = readonly;
+      this.data[project.id]!.project!.readonly = readonly;
     },
     async customizeDesign(project: PentestProject) {
       const res = await $fetch<{ project_type: string }>(`/api/v1/pentestprojects/${project.id}/customize-projecttype/`, {
@@ -258,7 +258,7 @@ export const useProjectStore = defineStore('project', {
         body: {}
       });
       this.ensureExists(project.id);
-      this.setProject({ ...this.data[project.id].project!, project_type: res.project_type });
+      this.setProject({ ...this.data[project.id]!.project!, project_type: res.project_type });
     },
     async createFinding(project: PentestProject, findingData: Object) {
       const finding = await $fetch<PentestFinding>(`/api/v1/pentestprojects/${project.id}/findings/`, {
@@ -266,7 +266,7 @@ export const useProjectStore = defineStore('project', {
         body: findingData,
       });
       this.ensureExists(project.id)
-      this.data[project.id].reportingCollabState.data.findings[finding.id] = finding;
+      this.data[project.id]!.reportingCollabState.data.findings[finding.id] = finding;
       return finding;
     },
     async createFindingFromTemplate(project: PentestProject, findingFromTemplateData: { template: string, template_language: string }) {
@@ -275,7 +275,7 @@ export const useProjectStore = defineStore('project', {
         body: findingFromTemplateData,
       });
       this.ensureExists(project.id)
-      this.data[project.id].reportingCollabState.data.findings[finding.id] = finding;
+      this.data[project.id]!.reportingCollabState.data.findings[finding.id] = finding;
       return finding;
     },
     async deleteFinding(project: PentestProject, finding: PentestFinding) {
@@ -283,13 +283,13 @@ export const useProjectStore = defineStore('project', {
         method: 'DELETE'
       });
       if (project.id in this.data) {
-        delete this.data[project.id].reportingCollabState.data.findings[finding.id];
+        delete this.data[project.id]!.reportingCollabState.data.findings[finding.id];
       }
     },
     async sortFindings(project: PentestProject, findings: PentestFinding[]) {
       this.ensureExists(project.id);
       const orderedFindings = findings.map((f, idx) => ({ ...(this.findings(project.id).find(fs => fs.id === f.id) || f), order: idx + 1 }));
-      this.data[project.id].reportingCollabState.data.findings = Object.fromEntries(orderedFindings.map(f => [f.id, f]));
+      this.data[project.id]!.reportingCollabState.data.findings = Object.fromEntries(orderedFindings.map(f => [f.id, f]));
       await $fetch<{ id: string; order: number }[]>(`/api/v1/pentestprojects/${project.id}/findings/sort/`, {
         method: 'POST',
         body: orderedFindings.map(f => ({ id: f.id, order: f.order })),
@@ -311,11 +311,11 @@ export const useProjectStore = defineStore('project', {
           path,
         },
         query: {
-          version: this.data[project.id].reportingCollabState.version,
+          version: this.data[project.id]!.reportingCollabState.version,
         },
       });
 
-      this.data[project.id].reportingCollabState.data.comments[newComment.id] = newComment;
+      this.data[project.id]!.reportingCollabState.data.comments[newComment.id] = newComment;
       return newComment;
     },
     async deleteComment(project: PentestProject, comment: Comment) {
@@ -323,7 +323,7 @@ export const useProjectStore = defineStore('project', {
         method: 'DELETE'
       });
       if (project.id in this.data) {
-        delete this.data[project.id].reportingCollabState.data.comments[comment.id];
+        delete this.data[project.id]!.reportingCollabState.data.comments[comment.id];
       }
     },
     async updateComment(project: PentestProject, comment: Comment) {
@@ -332,7 +332,7 @@ export const useProjectStore = defineStore('project', {
         body: comment,
       });
       if (project.id in this.data) {
-        this.data[project.id].reportingCollabState.data.comments[obj.id] = obj;
+        this.data[project.id]!.reportingCollabState.data.comments[obj.id] = obj;
       }
     },
     async resolveComment(project: PentestProject, comment: Comment, data: { status: CommentStatus }) {
@@ -368,7 +368,7 @@ export const useProjectStore = defineStore('project', {
         body: note
       });
       this.ensureExists(project.id);
-      this.data[project.id].notesCollabState.data.notes[newNote.id] = newNote;
+      this.data[project.id]!.notesCollabState.data.notes[newNote.id] = newNote;
       return note;
     },
     async deleteNote(project: PentestProject, note: ProjectNote) {
@@ -376,7 +376,7 @@ export const useProjectStore = defineStore('project', {
         method: 'DELETE'
       });
       if (project.id in this.data) {
-        delete this.data[project.id].notesCollabState.data.notes[note.id];
+        delete this.data[project.id]!.notesCollabState.data.notes[note.id];
       }
     },
     async sortNotes(project: PentestProject, noteGroups: NoteGroup<ProjectNote>) {
@@ -385,7 +385,7 @@ export const useProjectStore = defineStore('project', {
       sortNotes(noteGroups, (n) => {
         notes.push(n);
       });
-      this.data[project.id].notesCollabState.data.notes = Object.fromEntries(notes.map(n => [n.id, n]));
+      this.data[project.id]!.notesCollabState.data.notes = Object.fromEntries(notes.map(n => [n.id, n]));
       await $fetch<{id: string; parent: string|null; order: number}[]>(`/api/v1/pentestprojects/${project.id}/notes/sort/`, {
         method: 'POST',
         body: notes.map(n => pick(n, ['id', 'parent', 'order']))
@@ -394,7 +394,7 @@ export const useProjectStore = defineStore('project', {
     useNotesCollab(options: { project: PentestProject, noteId?: string }) {
       this.ensureExists(options.project.id);
 
-      const collabState = this.data[options.project.id].notesCollabState;
+      const collabState = this.data[options.project.id]!.notesCollabState;
       const collab = useCollab(collabState);
       const collabProps = computed(() => collabSubpath(collab.collabProps.value, options.noteId ? `notes.${options.noteId}` : null))
 
@@ -428,7 +428,7 @@ export const useProjectStore = defineStore('project', {
     useReportingCollab(options: { project: PentestProject, findingId?: string, sectionId?: string }) {
       this.ensureExists(options.project.id);
 
-      const collabState = this.data[options.project.id].reportingCollabState;
+      const collabState = this.data[options.project.id]!.reportingCollabState;
       const collab = useCollab(collabState);
       const collabProps = computed(() => collabSubpath(collab.collabProps.value, options.findingId ? `findings.${options.findingId}` : options.sectionId ? `sections.${options.sectionId}` : null));
 

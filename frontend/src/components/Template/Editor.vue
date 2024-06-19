@@ -214,7 +214,7 @@ function translateFieldReset(translation: FindingTemplateTranslation, fieldId: s
   if (!restoreTranslationDataCache.value[translation.id]) {
     restoreTranslationDataCache.value[translation.id] = {};
   }
-  restoreTranslationDataCache.value[translation.id][fieldId] = translation.data[fieldId]
+  restoreTranslationDataCache.value[translation.id]![fieldId] = translation.data[fieldId]
   // Remove field from translation (uses value from main translation)
   updateTranslationData(translation, fieldId, undefined);
 }

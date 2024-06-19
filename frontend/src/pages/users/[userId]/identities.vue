@@ -69,7 +69,7 @@ const auth = useAuth();
 const apiSettings = useApiSettings();
 
 const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/`, { method: 'GET' });
-const identities = await useFetchE<AuthIdentity[]>(`/api/v1/pentestusers/${route.params.userId}/identities/`, { method: 'GET' });
+const identities = await useFetchE<AuthIdentity[]>(`/api/v1/pentestusers/${route.params.userId}/identities/`, { method: 'GET', deep: true });
 
 const createWizard = ref({
   visible: false,

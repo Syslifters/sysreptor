@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const apiTokens = await useFetchE<ApiToken[]>(`/api/v1/pentestusers/${route.params.userId}/apitokens/`, { method: 'GET' });
+const apiTokens = await useFetchE<ApiToken[]>(`/api/v1/pentestusers/${route.params.userId}/apitokens/`, { method: 'GET', deep: true });
 
 async function deleteApiToken(apiToken: ApiToken) {
   try {
