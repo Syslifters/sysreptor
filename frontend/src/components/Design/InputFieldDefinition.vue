@@ -339,7 +339,7 @@ const objectFields = computed(() => {
     }
     return objectFieldOrder.value
       .filter(f => Object.hasOwn(props.modelValue.properties as object, f))
-      .map(f => ({ id: f, ...props.modelValue.properties![f] }));
+      .map(f => ({ id: f, ...props.modelValue.properties![f]! }));
   } else {
     return [];
   }
@@ -377,9 +377,9 @@ function updateType(type: FieldDataType) {
 function updateEnumChoice(action: string, choiceIdx: number, val?: any) {
   const newObj = { ...props.modelValue, choices: [...props.modelValue.choices!] };
   if (action === 'updateValue') {
-    newObj.choices[choiceIdx].value = val;
+    newObj.choices[choiceIdx]!.value = val;
   } else if (action === 'updateLabel') {
-    newObj.choices[choiceIdx].label = val || '';
+    newObj.choices[choiceIdx]!.label = val || '';
   } else if (action === 'delete') {
     newObj.choices = newObj.choices.filter((_, idx) => idx !== choiceIdx);
   } else if (action === 'add') {

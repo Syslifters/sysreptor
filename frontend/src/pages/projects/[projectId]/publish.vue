@@ -84,7 +84,7 @@
         </div>
       </v-form>
 
-      <error-list v-if="!pendingCheckMessages" :value="allMessages" :group="true" :show-no-message-info="true">
+      <error-list v-if="checkMessagesStatus === 'success'" :value="allMessages" :group="true" :show-no-message-info="true">
         <template #location="{msg}">
           <NuxtLink v-if="messageLocationUrl(msg) && msg.location" :to="messageLocationUrl(msg)" @click="onBeforeOpenMessageLocationUrl(msg)" target="_blank" class="text-primary">
             in {{ msg.location.type }}
@@ -122,7 +122,7 @@ const projectTypeStore = useProjectTypeStore()
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'publish:project' });
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'publish:projecttype' });
 
-const { data: checkMessages, pending: pendingCheckMessages, refresh: refreshCheckMessages } = useLazyFetch<{ messages: ErrorMessage[] }>(`/api/v1/pentestprojects/${project.value.id}/check/`, { method: 'GET' });
+const { data: checkMessages, status: checkMessagesStatus, refresh: refreshCheckMessages } = useLazyFetch<{ messages: ErrorMessage[] }>(`/api/v1/pentestprojects/${project.value.id}/check/`, { method: 'GET' });
 const pdfPreviewRef = ref();
 const allMessages = computed(() => [...(checkMessages.value?.messages || []), ...(pdfPreviewRef.value?.messages || [])]);
 const hasErrors = computed(() => allMessages.value.some(m => m.level === MessageLevel.ERROR));
@@ -141,7 +141,7 @@ const rules = {
 }
 
 const menuSize = ref(50);
-const checksOrPreviewInProgress = computed(() => pendingCheckMessages.value || pdfPreviewRef.value?.renderingInProgress);
+const checksOrPreviewInProgress = computed(() => checkMessagesStatus.value === 'pending' || pdfPreviewRef.value?.renderingInProgress);
 const canGenerateFinalReport = computed(() => {
   return !hasErrors.value &&
         !checksOrPreviewInProgress.value &&

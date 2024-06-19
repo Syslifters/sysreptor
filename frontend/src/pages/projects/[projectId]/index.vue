@@ -146,7 +146,7 @@ const route = useRoute();
 const auth = useAuth();
 const projectStore = useProjectStore();
 
-const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${route.params.projectId}/`, { method: 'GET', key: 'projectSettings:project' });
+const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${route.params.projectId}/`, { method: 'GET', key: 'projectSettings:project', deep: true });
 const serverErrors = ref<any|null>(null);
 const projectType = ref<ProjectType|null>(null);
 const historyVisible = ref(false);

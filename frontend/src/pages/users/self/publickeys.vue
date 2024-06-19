@@ -342,7 +342,7 @@ import { pick } from 'lodash-es';
 
 const auth = useAuth();
 
-const publicKeys = await useFetchE<UserPublicKey[]>('/api/v1/pentestusers/self/publickeys/', { method: 'GET' });
+const publicKeys = await useFetchE<UserPublicKey[]>('/api/v1/pentestusers/self/publickeys/', { method: 'GET', deep: true });
 
 enum SetupWizardStep {
   CREATE = 'create',

@@ -202,7 +202,7 @@ const currentItemIsSection = computed(() => currentItem.value && !currentItemIsF
 const currentItemSelection = computed({
   get: () => currentItem.value ? [currentItem.value] : [],
   set: (val) => {
-    currentItem.value = (val.length > 0) ? val[0] : null;
+    currentItem.value = (val.length > 0) ? val[0]! : null;
   }
 });
 const currentItemSection = computed(() => currentItemIsSection ? currentItem.value as ReportSectionDefinitionWithFieldDefinition : null);

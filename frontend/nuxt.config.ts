@@ -8,6 +8,9 @@ export default defineNuxtConfig({
   ssr: false,
   // Source code directory
   srcDir: 'src/',
+  dir: {
+    public: 'src/public/'
+  },
   sourcemap: {
     client: true,
   },
@@ -62,6 +65,9 @@ export default defineNuxtConfig({
 
   experimental: {
     payloadExtraction: false,
+  },
+  future: {
+    compatibilityVersion: 4,
   },
 
   // Dev settings

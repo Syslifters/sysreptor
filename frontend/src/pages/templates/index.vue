@@ -95,7 +95,7 @@ const currentLanguage = computed({
 const importBtnRef = ref();
 async function performImport(file: File) {
   const templates = await uploadFileHelper<FindingTemplate[]>('/api/v1/findingtemplates/import/', file);
-  await navigateTo(`/templates/${templates[0].id}/`)
+  await navigateTo(`/templates/${templates[0]!.id}/`)
 }
 
 const performCreateInProgress = ref(false);

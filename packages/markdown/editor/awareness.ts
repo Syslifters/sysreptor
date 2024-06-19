@@ -54,13 +54,13 @@ class ColoredRectangleMarker extends RectangleMarker {
     this.color = color;
   }
 
-  draw(): HTMLDivElement {
+  override draw(): HTMLDivElement {
     const elt = super.draw();
     elt.style.setProperty('--marker-color', this.color);
     return elt;
   }
 
-  update(elt: HTMLElement, prev: ColoredRectangleMarker): boolean {
+  override update(elt: HTMLElement, prev: ColoredRectangleMarker): boolean {
       if (prev.color !== this.color) {
         return false;
       }
@@ -71,7 +71,7 @@ class ColoredRectangleMarker extends RectangleMarker {
       return res;
   }
 
-  eq(p: ColoredRectangleMarker): boolean {
+  override eq(p: ColoredRectangleMarker): boolean {
     return super.eq(p) && this.color === p.color;
   }
   

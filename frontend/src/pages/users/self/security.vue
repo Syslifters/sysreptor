@@ -280,7 +280,7 @@ const mfaMethods = await useAsyncDataE(async () => {
       throw error;
     }
   }
-});
+}, { deep: true });
 
 const reauthDialogVisible = ref(false);
 

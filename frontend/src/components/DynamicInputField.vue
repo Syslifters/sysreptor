@@ -132,7 +132,7 @@
                 @update:model-value="emitInputObject(objectFieldId as string, $event)"
                 :collab="props.collab ? collabSubpath(props.collab, objectFieldId) : undefined"
                 :id="props.id ? (props.id + '.' + objectFieldId) : undefined"
-                v-bind="inheritedAttrs(props.definition.properties![objectFieldId])"
+                v-bind="inheritedAttrs(props.definition.properties![objectFieldId]!)"
               >
                 <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
               </dynamic-input-field>

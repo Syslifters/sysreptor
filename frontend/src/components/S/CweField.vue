@@ -91,7 +91,7 @@ function filterCweItem(_value: string, query: string, item: { raw: CWEItem }) {
         const resultIdx = searchValue.indexOf(q);
         return [resultIdx, resultIdx + q.length];
       })
-      .filter(r => r[0] >= 0);
+      .filter(r => r[0]! >= 0);
     if (searchResults.length === queryWords.length) {
       return searchResults;
     } else {

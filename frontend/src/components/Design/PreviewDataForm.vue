@@ -84,7 +84,7 @@
             :model-value="props.modelValue.report[fieldId]"
             @update:model-value="updateSectionField(fieldId, $event)"
             :id="fieldId"
-            :definition="props.projectType.report_fields[fieldId]"
+            :definition="props.projectType.report_fields[fieldId]!"
             v-bind="fieldAttrs"
           >
             <template #markdown-context-menu="{value, definition, disabled}">
@@ -114,7 +114,7 @@
             :model-value="currentItem[fieldId]"
             @update:model-value="updateFindingField(fieldId, $event)"
             :id="fieldId"
-            :definition="props.projectType.finding_fields[fieldId]"
+            :definition="props.projectType.finding_fields[fieldId]!"
             v-bind="fieldAttrs"
           >
             <template #markdown-context-menu="{value, definition, disabled}">

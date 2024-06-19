@@ -138,7 +138,7 @@ const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await use
 
 const findingFields = computed({
   get: () => {
-    return projectType.value.finding_field_order.map(f => ({ id: f, ...projectType.value.finding_fields[f] }));
+    return projectType.value.finding_field_order.map(f => ({ id: f, ...projectType.value.finding_fields[f]! }));
   },
   set: (val) => {
     // Field order
@@ -158,7 +158,7 @@ const allFieldsPlaceholder = { id: null } as unknown as FieldDefinitionWithId;
 const currentFieldSelection = computed({
   get: () => currentField.value ? [currentField.value] : [allFieldsPlaceholder],
   set: (val) => {
-    currentField.value = (val.length > 0 && val[0] !== allFieldsPlaceholder) ? val[0] : null;
+    currentField.value = (val.length > 0 && val[0] !== allFieldsPlaceholder) ? val[0]! : null;
   }
 });
 
@@ -196,7 +196,7 @@ function addField() {
 function addPredefinedField(event: { newIndex: number }) {
   // Predefined field is added to projectType in findingFields setter
   // Select new field as currentField
-  currentField.value = findingFields.value[event.newIndex];
+  currentField.value = findingFields.value[event.newIndex]!;
 }
 function deleteField(fieldId: string) {
   delete projectType.value.finding_fields[fieldId];

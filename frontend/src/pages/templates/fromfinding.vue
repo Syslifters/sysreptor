@@ -103,7 +103,7 @@ const _fetchState = useLazyAsyncData(async () => {
   };
 });
 const fetchState = computed(() => ({
-  pending: _fetchState.pending.value,
+  status: _fetchState.status.value,
   data: _fetchState.data.value,
   error: _fetchState.error.value,
 }));

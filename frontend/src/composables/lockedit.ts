@@ -54,7 +54,7 @@ export function useLockEdit<T>(options: LockEditOptions<T>) {
     }
   });
   const data = computed(() => {
-    if (options.fetchState && options.fetchState.pending.value) {
+    if (options.fetchState && options.fetchState.status.value !== 'success') {
       return null;
     }
     return options.data.value;
@@ -89,7 +89,7 @@ export function useLockEdit<T>(options: LockEditOptions<T>) {
       fetchState: {
         data: options.fetchState?.data.value,
         error: options.fetchState?.error.value,
-        pending: options.fetchState?.pending.value || navigationInProgress.value,
+        status: navigationInProgress.value ? 'pending' : options.fetchState ? options.fetchState.status.value : 'success',
       }
     };
   });
@@ -99,8 +99,8 @@ export function useLockEdit<T>(options: LockEditOptions<T>) {
       options.updateInStore(cloneDeep(data.value));
     }
   })
-  watch(() => options.fetchState?.pending.value, async (val) => {
-    if (!val && data.value) {
+  watch(() => options.fetchState?.status.value, async (val) => {
+    if (val === 'success' && data.value) {
       if (options.updateInStore) {
         options.updateInStore(cloneDeep(data.value));
       }
@@ -224,7 +224,7 @@ export function useProjectTypeLockEdit(options: {
 export async function useProjectTypeLockEditOptions(options: {save?: boolean, delete?: boolean, saveFields?: string[], id?: string}) {
   const route = useRoute();
   const projectTypeId = options.id || route.params.projectTypeId;
-  const projectType = await useFetchE<ProjectType>(`/api/v1/projecttypes/${projectTypeId}/`, { method: 'GET' });
+  const projectType = await useFetchE<ProjectType>(`/api/v1/projecttypes/${projectTypeId}/`, { method: 'GET', deep: true });
   const projectTypeStore = useProjectTypeStore();
 
   async function performSave(data: ProjectType) {

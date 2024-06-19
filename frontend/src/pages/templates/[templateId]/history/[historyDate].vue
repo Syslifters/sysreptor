@@ -67,7 +67,7 @@ const fetchLoaderAttrs = computed(() => ({
   fetchState: {
     data: fetchState.data.value,
     error: fetchState.error.value,
-    pending: fetchState.pending.value,
+    status: fetchState.status.value,
   },
 }));
 const editorDiffAttrs = computed(() => ({

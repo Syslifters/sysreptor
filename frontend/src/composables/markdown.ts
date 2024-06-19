@@ -295,11 +295,11 @@ export function useMarkdownEditorBase(options: {
           EditorView.theme({}, { dark: true }),
         ]),
       };
-      editorActions.value.disabled(Boolean(options.props.value.disabled || options.props.value.readonly));
-      editorActions.value.spellcheckLanguageTool(spellcheckLanguageToolEnabled.value);
-      editorActions.value.spellcheckBrowser(spellcheckBrowserEnabled.value);
-      editorActions.value.uploadFile(fileUploadEnabled.value);
-      editorActions.value.darkTheme(theme.current.value.dark);
+      editorActions.value.disabled!(Boolean(options.props.value.disabled || options.props.value.readonly));
+      editorActions.value.spellcheckLanguageTool!(spellcheckLanguageToolEnabled.value);
+      editorActions.value.spellcheckBrowser!(spellcheckBrowserEnabled.value);
+      editorActions.value.uploadFile!(fileUploadEnabled.value);
+      editorActions.value.darkTheme!(theme.current.value.dark);
     } else if (!newValue) {
       eventBusBeforeApplyRemoteTextChanges.off(onBeforeApplyRemoteTextChange);
     }
@@ -335,7 +335,7 @@ export function useMarkdownEditorBase(options: {
     }
   });
   watch(spellcheckLanguageToolEnabled, (val) => {
-    editorActions.value?.spellcheckLanguageTool(val);
+    editorActions.value?.spellcheckLanguageTool!(val);
     if (!val && options.editorView.value) {
     // clear existing spellcheck items from editor
       options.editorView.value.dispatch(setDiagnostics(options.editorView.value.state, []));

@@ -178,7 +178,7 @@ async function loginStep(fn: () => Promise<LoginResponse|null>) {
       emit('login', res);
     } else if (res.status === LoginResponseStatus.MFA_REQUIRED) {
       mfaMethods.value = res.mfa!;
-      beginMfaLogin(mfaMethods.value!.find(m => m.is_primary) || mfaMethods.value![0])
+      beginMfaLogin(mfaMethods.value!.find(m => m.is_primary) || mfaMethods.value![0]!)
     }
   } catch (error: any) {
     if (error?.data?.detail) {
