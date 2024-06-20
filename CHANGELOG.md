@@ -7,7 +7,7 @@
 * UI: Add button to copy confirm text in delete confirm dialogs
 
 
-## v2024.049 - 2024-06-18
+## v2024.49 - 2024-06-18
 * Enable fontconfig cache in docker container
 * Respect verbosity option in `backup` and `restorebackup` commands
 * Immediately create new templates in API to allow image uploads on first editing
@@ -17,7 +17,7 @@
 * Set `Secure` flag for cookies when setting `SECURE_SSL_REDIRECT=on`
 
 
-## v2024.043 - 2024-05-27
+## v2024.43 - 2024-05-27
 * Add sorting options to projects, templates, designs and users lists
 * Collaborative editing in project history diff views
 * Project history diff views: add revert changes button to markdown editor
@@ -27,7 +27,7 @@
 * Fix elastic APM tracing middleware always enabled
 
 
-## v2024.040 - 2024-05-15
+## v2024.40 - 2024-05-15
 * Collaborative editing in project findings and sections
 * Collaborative editing: update notes list when import new notes
 * Collaborative editing: HTTP fallback if no WebSocket connection can be established
@@ -36,11 +36,11 @@
 * Introduce `ALLOWED_HOSTS` setting for request host and origin validation
 
 
-## v2024.030 - 2024-04-17
+## v2024.30 - 2024-04-17
 * Update dependencies to fix request-smuggling vulnerabilities in gunicorn (CVE-2024-1135)
 
 
-## v2024.028 - 2024-04-10
+## v2024.28 - 2024-04-10
 * Collaborative editing in notes
 * Show cursor position and selection of other users for collaborative editing in notes
 * Remember "Encrypt PDF" setting in browser's local storage

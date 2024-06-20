@@ -385,7 +385,7 @@ CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
 
 CSP_SCRIPT_SRC = [
     "'self'",
-    "'sha256-liYzJIUIz0xQN3/5nhzjNXcXcZEOFfPRL14CdEd6z1I='",  # hash of nuxt inline script injected in index.html
+    "'sha256-vfPLwqW0BNyGGLG6upxgxsXF+K7Jp/V2hJGlbPt7NJY='",  # hash of nuxt inline script injected in index.html
 ]
 
 PERMISSIONS_POLICY = {
