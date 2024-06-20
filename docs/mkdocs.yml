@@ -49,6 +49,7 @@ nav:
       - Setup: cli/setup.md
       - Configuration: cli/configuration.md
       - Tools:
+          - Burp: cli/tools/burp.md
           - Nessus: cli/tools/nessus.md
           - OpenVAS: cli/tools/openvas.md
           - Nmap: cli/tools/nmap.md
