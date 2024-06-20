@@ -17,6 +17,9 @@
       <input ref="fileInput" type="file" multiple @change="e => onUploadFiles(e as InputEvent)" @click.stop :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
     </template>
     <span class="separator" />
+    <markdown-toolbar-button @click="codemirrorAction(undo)" title="Undo" icon="mdi-undo" :disabled="props.disabled || !canUndo" />
+    <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
+    <span class="separator" />
     <markdown-toolbar-button
       v-if="apiSettings.isProfessionalLicense"
       @click="toggleSpellcheck"
@@ -39,11 +42,8 @@
       @click="emitCreateComment"
       title="Comment"
       icon="mdi-comment-plus-outline"
-      :disabled="props.disabled || !props.editorState || props.editorState?.selection.main.empty"
+      :disabled="props.disabled || !props.editorState"
     />
-    <span class="separator" />
-    <markdown-toolbar-button @click="codemirrorAction(undo)" title="Undo" icon="mdi-undo" :disabled="props.disabled || !canUndo" />
-    <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
     <span class="separator" />
     <s-btn-icon 
       v-if="slots['context-menu']"
@@ -194,7 +194,7 @@ function emitCreateComment() {
     comment: { 
       text: '', 
       collabPath: props.collab.path, 
-      text_range: { from: selectionRange.from, to: selectionRange.to }
+      text_range: selectionRange.empty ? null : { from: selectionRange.from, to: selectionRange.to },
     }
   })
 }
