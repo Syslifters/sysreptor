@@ -30,6 +30,13 @@ def get_at(lst: list, idx: int, default=None):
         return default
 
 
+def find_index(lst: list, idx: int, default=-1):
+    try:
+        return lst.index(idx)
+    except ValueError:
+        return default
+
+
 def get_key_or_attr(d: Union[dict, object], k: str, default=None):
     return d.get(k, default) if isinstance(d, (dict, OrderedDict)) else getattr(d, k, default)
 

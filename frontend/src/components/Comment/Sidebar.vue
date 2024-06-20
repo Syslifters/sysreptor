@@ -46,7 +46,10 @@
       in SysReptor Professional.<br><br>
       See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank" class="text-primary">https://docs.sysreptor.com/features-and-pricing/</a>
     </v-list-item>
-    <v-list-item v-else-if="commentsVisible.length === 0" title="No comments found" />
+    <v-list-item v-else-if="commentsVisible.length === 0">
+      <v-list-item-title v-if="localSettings.reportingCommentStatusFilter === 'open'">No open comments</v-list-item-title>
+      <v-list-item-title v-else>No comments found</v-list-item-title>
+    </v-list-item>
     <v-list-item v-else v-for="commentGroup, path in commentGroups" :key="path" class="pl-0 pr-0 pt-0">
       <v-list-subheader class="mt-1 mb-1">
         <span>{{ prettyFieldLabel(path as string) }}</span>
@@ -79,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { omit, groupBy } from 'lodash-es';
+import { groupBy } from 'lodash-es';
 import { CommentStatus, type Comment, type FieldDefinition } from '@/utils/types';
 
 const localSettings = useLocalSettings();
@@ -146,18 +149,14 @@ watch(() => localSettings.reportingCommentSidebarVisible, (value) => {
   }
 });
 
-async function selectComment(comment: Comment|null, options?: { focus?: string, openSidebar?: boolean }) {
+async function selectComment(comment: Comment|null, options?: { focus?: string }) {
   if (selectedComment.value?.id === comment?.id) {
     return;
   }
-
   selectedComment.value = comment;
 
   if (comment) {
-    // Open comment sidebar
-    if (options?.openSidebar) {
-      localSettings.reportingCommentSidebarVisible = true;
-    }
+    // Update DOM
     await nextTick();
 
     // Scroll to focussed element
@@ -191,24 +190,22 @@ async function selectComment(comment: Comment|null, options?: { focus?: string, 
 }
 
 async function onCommentEvent(event: any) {
-  if (!apiSettings.isProfessionalLicense) {
-    if (event.openSidebar || event.type === 'create') {
-      localSettings.reportingCommentSidebarVisible = true;
-    }
-    return;
+  if (event.openSidebar || event.type === 'create') {
+    localSettings.reportingCommentSidebarVisible = true;
+    await nextTick();
   }
 
   if (event.type === 'create' && !props.readonly) {
     try {
       const comment = await projectStore.createComment(props.project, event.comment);
       commentNew.value = comment;
-      await selectComment(comment, { focus: 'comment', openSidebar: true });
+      await selectComment(comment, { focus: 'comment' });
       commentNew.value = null;
     } catch (error) {
       requestErrorToast({ error })
     }
   } else if (event.type === 'select') {
-    await selectComment(event.comment, { focus: 'comment', ...omit(event, ['type', 'comment']) });
+    await selectComment(event.comment, { focus: 'comment' });
   }
 }
 

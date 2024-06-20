@@ -324,7 +324,7 @@ export function useMarkdownEditorBase(options: {
         },
       }));
     }
-  });
+  }, { flush: 'sync' });
   watch([() => options.props.value.disabled, () => options.props.value.readonly], () => {
     const readonly = Boolean(options.props.value.disabled || options.props.value.readonly)
     editorActions.value.disabled?.(readonly);
