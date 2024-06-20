@@ -84,7 +84,7 @@
         </div>
       </v-form>
 
-      <error-list v-if="checkMessagesStatus === 'success'" :value="allMessages" :group="true" :show-no-message-info="true">
+      <error-list v-if="checkMessagesStatus !== 'pending'" :value="allMessages" :group="true" :show-no-message-info="true">
         <template #location="{msg}">
           <NuxtLink v-if="messageLocationUrl(msg) && msg.location" :to="messageLocationUrl(msg)" @click="onBeforeOpenMessageLocationUrl(msg)" target="_blank" class="text-primary">
             in {{ msg.location.type }}
@@ -124,7 +124,22 @@ const projectType = await useAsyncDataE(async () => await projectTypeStore.getBy
 
 const { data: checkMessages, status: checkMessagesStatus, refresh: refreshCheckMessages } = useLazyFetch<{ messages: ErrorMessage[] }>(`/api/v1/pentestprojects/${project.value.id}/check/`, { method: 'GET' });
 const pdfPreviewRef = ref();
-const allMessages = computed(() => [...(checkMessages.value?.messages || []), ...(pdfPreviewRef.value?.messages || [])]);
+const allMessages = computed(() => {
+  const out = [] as ErrorMessage[];
+  if (checkMessages.value?.messages) {
+    out.push(...checkMessages.value.messages);
+  }
+  if (pdfPreviewRef.value?.messages) {
+    out.push(...pdfPreviewRef.value.messages);
+  }
+  if (checkMessagesStatus.value === 'error') {
+    out.push({
+      level: MessageLevel.ERROR,
+      message: 'Error while checking project',
+    });
+  }
+  return out;
+});
 const hasErrors = computed(() => allMessages.value.some(m => m.level === MessageLevel.ERROR));
 
 function generateNewPassword() {

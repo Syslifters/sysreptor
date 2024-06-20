@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { omit, groupBy } from 'lodash-es';
+import { groupBy } from 'lodash-es';
 import { CommentStatus, type Comment, type FieldDefinition } from '@/utils/types';
 
 const localSettings = useLocalSettings();
