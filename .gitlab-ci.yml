@@ -222,8 +222,7 @@ build-docs:
     - git init && git remote add -f origin https://github.com/Syslifters/reptor.git
     - git config core.sparseCheckout true
     - echo "docs" >> .git/info/sparse-checkout
-    - LATEST_RELEASE_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-    - git pull origin $LATEST_RELEASE_TAG
+    - git pull origin main
     - mv docs/* .
     - rm -rf docs .git
     - cd ../..
