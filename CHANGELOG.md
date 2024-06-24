@@ -6,6 +6,7 @@
 * Show backup history in web interface
 * Store last usage date for API tokens
 * Fix template pagination error for templates without CVSS score
+* Compress PDFs to reduce file sizes
 * UI: Add button to copy confirm text in delete confirm dialogs
 
 
