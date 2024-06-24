@@ -400,7 +400,7 @@ export function useMarkdownEditorBase(options: {
     fileUploadInProgress: fileUploadInProgress.value,
   }));
   const markdownPreviewAttrs = computed(() => ({
-    value: editorState.value?.doc.toString() || options.props.value.modelValue,
+    value: editorState.value?.doc.toString() ?? options.props.value.modelValue,
     rewriteFileUrl: options.props.value.rewriteFileUrl,
     rewriteReferenceLink: options.props.value.rewriteReferenceLink,
     cacheBuster: previewCacheBuster,

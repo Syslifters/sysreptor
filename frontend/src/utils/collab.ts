@@ -38,7 +38,7 @@ export type CollabClientInfo = {
 export type CollabEvent = {
   type: CollabEventType;
   path: string|null;
-  version: number;
+  version?: number;
   client_id?: string;
   value?: any;
   updates?: (TextUpdate|{ changes: any; seletion?: any; })[];
@@ -528,7 +528,12 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       for (let i = 0; i < 2; i++) {
         try {
           return await connectTo(connectionWebsocket(storeState, onReceiveMessage));
-        } catch {}
+        } catch {
+          // Backoff time for reconnecting
+          if (i === 0) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
       }
 
       // Fallback to HTTP polling
@@ -783,7 +788,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   function receiveUpdateText(event: any) {
     const perPathState = ensurePerPathState(event.path);
     let changes: ChangeSet|null = null;
-    let version = storeState.version;
     let own = 0;
     for (const update of event.updates.map((u: any) => ({ changes: ChangeSet.fromJSON(u.changes) }))) {
       const ours = own < perPathState.unconfirmedTextUpdates.length ? perPathState.unconfirmedTextUpdates[own] : null;
@@ -794,9 +798,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         own++;
       } else {
         changes = changes ? changes.compose(update.changes) : update.changes;
-      }
-      if (update.version > version) {
-        version = update.version;
       }
     }
 
@@ -814,7 +815,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     }
 
     // Update store
-    storeState.version = version;
     perPathState.unconfirmedTextUpdates = unconfirmed;
 
     if (changes) {
