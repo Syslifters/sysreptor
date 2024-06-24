@@ -60,13 +60,15 @@ def get_user_from_request(scope):
     user = scope.get('user')
     if user and not user.is_anonymous:
         return {
-            'id': user.pk,
+            'id': user.id,
             'username': user.username,
+            'email': user.email,
         }
     else:
         return {
             'id': None,
             'username': 'anonymous',
+            'email': None,
         }
 
 

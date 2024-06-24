@@ -29,13 +29,14 @@ const props = defineProps<{
 
 const cacheBusterFallback = uuidv4();
 const cacheBuster = computed(() => props.cacheBuster || cacheBusterFallback);
-const renderedMarkdown = computedThrottled(() => {
-  return renderMarkdownToHtml(props.value || '', {
+const renderedMarkdown = ref('');
+watchThrottled(() => props.value, () => {
+  renderedMarkdown.value = renderMarkdownToHtml(props.value || '', {
     preview: true,
     rewriteFileSource,
     rewriteReferenceLink: props.rewriteReferenceLink,
   });
-}, { throttle: 250 })
+}, { throttle: 500, leading: true });
 
 function rewriteFileSource(imgSrc: string) {
   // Rewrite image source to handle image fetching from markdown.
