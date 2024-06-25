@@ -70,7 +70,7 @@ async function createNote() {
     order: (currentNote ? currentNote.order + 1 : undefined),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
   })
-  await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, hash: 'title' })
+  await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, hash: '#title' })
 }
 async function performImport(file: File) {
   const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);
