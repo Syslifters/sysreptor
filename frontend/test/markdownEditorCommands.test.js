@@ -77,6 +77,8 @@ describe('toggleListUnordered', () => {
     "* a|\n* b": "a|\n* b",
     "|1. a\n2. b|": "|* a\n* b|",
     "1. |a\n2. b": "* |a\n2. b",
+    "|": "* |",
+    "|a": "* |a"
   })) {
     testCommand(toggleListUnordered, before, after);
   }
@@ -90,6 +92,8 @@ describe('toggleListOrdered', () => {
     "1. a|\n2. b": "a|\n2. b",
     "|* a\n* b|": "|1. a\n2. b|",
     "* |a\n* b": "1. |a\n* b",
+    "|": "1. |",
+    "|a": "1. |a"
   })) {
     testCommand(toggleListOrdered, before, after);
   }
@@ -103,7 +107,7 @@ describe('toggleTaskList', () => {
     "* [ ] a|\n* [ ] b": "a|\n* [ ] b",
     "|1. a\n2. b|": "|* [ ] a\n* [ ] b|",
     "1. |a\n2. b": "* [ ] |a\n2. b",
-    "|": "|* [ ] ",
+    "|": "* [ ] |",
     "* [ ] |": "|",
   })) {
     testCommand(toggleTaskList, before, after);

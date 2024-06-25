@@ -3,7 +3,6 @@
     v-if="mobile ? modelValue : true"
     v-model="modelValue"
     location="right"
-    absolute
     temporary
     touchless
     :mobile-breakpoint="0" 

@@ -369,7 +369,7 @@ export const useProjectStore = defineStore('project', {
       });
       this.ensureExists(project.id);
       this.data[project.id]!.notesCollabState.data.notes[newNote.id] = newNote;
-      return note;
+      return newNote;
     },
     async deleteNote(project: PentestProject, note: ProjectNote) {
       await $fetch(`/api/v1/pentestprojects/${project.id}/notes/${note.id}/`, {
