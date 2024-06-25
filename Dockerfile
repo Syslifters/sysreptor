@@ -123,6 +123,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         unzip \
         wget \
         postgresql-client \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install fonts
@@ -135,10 +136,13 @@ RUN mv /usr/share/fonts/truetype/fontconfig.conf /etc/fonts/conf.d/00-sysreptor-
 # Install python packages
 ENV PYTHONUNBUFFERED=on \
     PYTHONDONTWRITEBYTECODE=on \
-    CHROMIUM_EXECUTABLE=/usr/lib/chromium/chromium
+    CHROMIUM_EXECUTABLE=/usr/lib/chromium/chromium \
+    PATH=$PATH:/root/.local/bin
 WORKDIR /app/api/
-COPY api/requirements.txt /app/api/requirements.txt
-RUN pip install -r /app/api/requirements.txt
+COPY api/pyproject.toml api/poetry.lock /app/api/
+RUN pip install --no-cache poetry==1.8.3 && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-cache --no-interaction --no-root
 
 # Unprivileged user
 RUN useradd --uid=1000 --create-home --shell=/bin/bash user \
