@@ -70,8 +70,14 @@ export function moveRangeDelete(moveRange: Range, range: Range, change: {from: n
 
 
 export function moveRangeInsert(moveRange: SelectionRange, range: SelectionRange, change: {from: number, insert: string}) {
-  return EditorSelection.range(
-    moveRange.from + ((range.from > change.from) ? change.insert.length : 0),
-    moveRange.to + ((range.to > change.from) ? change.insert.length : 0),
-  );
+  if (moveRange.empty) {
+    // Insert before cursor
+    const pos = moveRange.from + ((range.from >= change.from) ? change.insert.length : 0);
+    return EditorSelection.range(pos, pos);
+  } else {
+    return EditorSelection.range(
+      moveRange.from + ((range.from > change.from) ? change.insert.length : 0),
+      moveRange.to + ((range.to > change.from) ? change.insert.length : 0),
+    );
+  }
 }
