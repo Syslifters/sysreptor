@@ -172,7 +172,10 @@ async def get_celery_result_async(task, timeout=timedelta(seconds=settings.PDF_R
 
 
 @elasticapm.async_capture_span()
-async def render_pdf_task(project_type: ProjectType, report_template: str, report_styles: str, data: dict, password: Optional[str] = None, project: Optional[PentestProject] = None, output=None) -> dict:
+async def render_pdf_task(
+    project_type: ProjectType, report_template: str, report_styles: str, data: dict,
+    password: Optional[str] = None, can_compress_pdf: bool = False, project: Optional[PentestProject] = None, output=None,
+) -> dict:
     def format_resources():
         resources = {}
         resources |= {'/assets/name/' + a.name: b64encode(a.file.read()).decode() for a in project_type.assets.all()}
@@ -186,6 +189,7 @@ async def render_pdf_task(project_type: ProjectType, report_template: str, repor
         data=data,
         language=project.language if project else project_type.language,
         password=password,
+        compress_pdf=can_compress_pdf and settings.COMPRESS_PDFS,
         output=output,
         resources=await sync_to_async(format_resources)(),
     )
@@ -305,7 +309,11 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
     return res
 
 
-async def render_pdf(project: PentestProject, project_type: Optional[ProjectType] = None, report_template: Optional[str] = None, report_styles: Optional[str] = None, password: Optional[str] = None) -> dict:
+async def render_pdf(
+    project: PentestProject, project_type: Optional[ProjectType] = None,
+    report_template: Optional[str] = None, report_styles: Optional[str] = None,
+    password: Optional[str] = None, can_compress_pdf: bool = False,
+) -> dict:
     if not project_type:
         project_type = project.project_type
     if not report_template:
@@ -321,6 +329,7 @@ async def render_pdf(project: PentestProject, project_type: Optional[ProjectType
         report_styles=report_styles,
         data=data,
         password=password,
+        can_compress_pdf=can_compress_pdf,
     )
 
 

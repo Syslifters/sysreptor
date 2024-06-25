@@ -1,6 +1,8 @@
 import json
 import logging
 import re
+import subprocess
+import tempfile
 from base64 import b64decode
 from contextlib import contextmanager
 from html import escape as html_escape
@@ -288,6 +290,36 @@ def render_to_pdf(html_content: str, resources: dict[str, str], data: dict) -> t
 
 
 @log_timing
+def compress_pdf(pdf_data: bytes) -> bytes:
+    messages = set()
+    try:
+        with tempfile.NamedTemporaryFile() as pdfin, \
+             tempfile.NamedTemporaryFile() as pdfout:
+            pdfin.write(pdf_data)
+            res = subprocess.run(
+                args=[
+                    settings.GHOSTSCRIPT_EXECUTABLE,
+                    '-sDEVICE=pdfwrite',
+                    '-dPDFSETTIGS=/printer',
+                    '-dNOPAUSE', '-dQUIET', '-dBATCH',
+                    f'-sOutputFile={pdfout.name}',
+                    pdfin.name,
+                ],
+                timeout=60,
+            )
+            res.check_returncode()
+            pdfout.seek(0)
+            pdf_data = pdfout.read()
+    except Exception:
+        logging.exception('Error while optimizing PDF')
+        messages.add(ErrorMessage(
+            level=MessageLevel.WARNING,
+            message='Could not compress PDF',
+        ))
+    return pdf_data, messages
+
+
+@log_timing
 def encrypt_pdf(pdf_data: bytes, password: Optional[str]) -> bytes:
     if not password:
         return pdf_data
@@ -303,7 +335,10 @@ def encrypt_pdf(pdf_data: bytes, password: Optional[str]) -> bytes:
         return out.getvalue()
 
 
-def render_pdf(template: str, styles: str, data: dict, resources: dict, language: str, password: Optional[str] = None, output=None) -> tuple[Optional[bytes], set[ErrorMessage]]:
+def render_pdf(
+    template: str, styles: str, data: dict, resources: dict, language: str,
+    password: Optional[str] = None, should_compress_pdf: bool = False, output=None,
+) -> tuple[Optional[bytes], set[ErrorMessage]]:
     msgs = set()
     html, html_msgs = render_to_html(
         template=template,
@@ -327,9 +362,14 @@ def render_pdf(template: str, styles: str, data: dict, resources: dict, language
     if pdf is None:
         return pdf, msgs
 
-    pdf_enc = encrypt_pdf(
-        pdf_data=pdf,
-        password=password,
-    )
-    return pdf_enc, msgs
+    if should_compress_pdf:
+        pdf, pdf_msgs = compress_pdf(pdf_data=pdf)
+        msgs |= pdf_msgs
+
+    if password:
+        pdf = encrypt_pdf(
+            pdf_data=pdf,
+            password=password,
+        )
+    return pdf, msgs
 

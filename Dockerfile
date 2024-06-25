@@ -116,8 +116,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         fonts-noto-color-emoji \
         fonts-noto-cjk \
         fonts-noto-cjk-extra \
+        ghostscript \
         gpg \
         gpg-agent \
+        libharfbuzz-subset0 \
         libpango-1.0-0 \
         libpangoft2-1.0-0 \
         unzip \
@@ -137,6 +139,7 @@ RUN mv /usr/share/fonts/truetype/fontconfig.conf /etc/fonts/conf.d/00-sysreptor-
 ENV PYTHONUNBUFFERED=on \
     PYTHONDONTWRITEBYTECODE=on \
     CHROMIUM_EXECUTABLE=/usr/lib/chromium/chromium \
+    GHOSTSCRIPT_EXECUTABLE=/usr/bin/gs \
     PATH=$PATH:/root/.local/bin
 WORKDIR /app/api/
 COPY api/pyproject.toml api/poetry.lock /app/api/

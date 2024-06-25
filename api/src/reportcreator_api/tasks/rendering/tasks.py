@@ -15,7 +15,11 @@ from reportcreator_api.utils.logging import log_timing
 )
 @log_timing
 def render_pdf_task(*args, **kwargs) -> dict:
-    pdf, msgs = render.render_pdf(*args, **kwargs)
+    pdf, msgs = render.render_pdf(
+        *args,
+        should_compress_pdf=kwargs.pop('compress_pdf', False),
+        **kwargs,
+    )
     return {
         'pdf': b64encode(pdf).decode() if pdf else None,
         'messages': [m.to_dict() for m in msgs],

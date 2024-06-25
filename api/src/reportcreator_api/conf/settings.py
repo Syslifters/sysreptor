@@ -445,7 +445,8 @@ csrf.CsrfViewMiddleware = CustomCsrfMiddleware
 
 
 PDF_RENDER_SCRIPT_PATH = config('PDF_RENDER_SCRIPT_PATH', cast=Path, default=BASE_DIR / '..' / 'rendering' / 'dist' / 'bundle.js')
-CHROMIUM_EXECUTABLE = config('CHROMIUM_EXECUTABLE', default=None)
+CHROMIUM_EXECUTABLE = config('CHROMIUM_EXECUTABLE', default='/usr/lib/chromium/chromium')
+GHOSTSCRIPT_EXECUTABLE = config('GHOSTSCRIPT_EXECUTABLE', default='/usr/bin/gs')
 
 
 # Celery client settings
@@ -563,6 +564,7 @@ SPELLCHECK_LANGUAGETOOL_CONFIG = config('SPELLCHECK_LANGUAGETOOL_CONFIG', cast=j
 BACKUP_KEY = config('BACKUP_KEY', default=None)
 
 COMPRESS_IMAGES = config('COMPRESS_IMAGES', cast=bool, default=True)
+COMPRESS_PDFS = config('COMPRESS_PDFS', cast=bool, default=True)
 
 REGEX_VALIDATION_TIMEOUT = timedelta(milliseconds=500)
 
