@@ -4,6 +4,7 @@
 * Allow commenting finding and section fields and markdown text
 * Create backups via web interface
 * Show backup history in web interface
+* Store last usage date for API tokens
 * UI: Add button to copy confirm text in delete confirm dialogs
 
 

@@ -250,7 +250,7 @@ class AuthIdentitySerializer(serializers.ModelSerializer):
 class APITokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = APIToken
-        fields = ['id', 'created', 'updated', 'name', 'expire_date']
+        fields = ['id', 'created', 'updated', 'name', 'expire_date', 'last_used']
 
     def validate_expire_date(self, value):
         if value and value < timezone.now().date():

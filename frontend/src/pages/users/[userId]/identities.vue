@@ -69,7 +69,7 @@ const auth = useAuth();
 const apiSettings = useApiSettings();
 
 const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/`, { method: 'GET' });
-const identities = await useFetchE<AuthIdentity[]>(`/api/v1/pentestusers/${route.params.userId}/identities/`, { method: 'GET', deep: true });
+const identities = await useFetchE<AuthIdentity[]>(`/api/v1/pentestusers/${route.params.userId}/identities/`, { method: 'GET' });
 
 const createWizard = ref({
   visible: false,
@@ -89,7 +89,7 @@ async function createIdentity() {
       method: 'POST',
       body: createWizard.value.form
     });
-    identities.value.push(obj);
+    identities.value = [obj].concat(identities.value);
     createWizard.value.visible = false;
   } catch (error: any) {
     if (error?.data) {

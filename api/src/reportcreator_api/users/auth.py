@@ -88,6 +88,11 @@ class APITokenAuthentication(authentication.BaseAuthentication):
         if token.user.is_superuser:
             token.user.admin_permissions_enabled = True
 
+        # Update API token last used date. Throttle updates on frequent requests.
+        if not token.last_used or token.last_used < timezone.now() - timezone.timedelta(minutes=5):
+            token.last_used = timezone.now()
+            token.save(update_fields=['last_used'])
+
         return token.user, token
 
     def authenticate_header(self, request):

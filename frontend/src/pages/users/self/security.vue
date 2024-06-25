@@ -280,7 +280,7 @@ const mfaMethods = await useAsyncDataE(async () => {
       throw error;
     }
   }
-}, { deep: true });
+});
 
 const reauthDialogVisible = ref(false);
 
@@ -442,7 +442,7 @@ async function setupWizardSetName() {
         name: setupWizard.value.newMfaMethod!.name,
       },
     });
-    mfaMethods.value.push(obj);
+    mfaMethods.value = [obj].concat(mfaMethods.value);
     setupWizard.value.visible = false;
     successToast('MFA setup completed');
   });

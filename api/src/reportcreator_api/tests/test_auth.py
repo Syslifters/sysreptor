@@ -267,6 +267,12 @@ class TestAPITokenAuth:
         res = self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), True)
         assert res.data['id'] == str(self.user.id)
 
+    def test_update_last_used_date(self):
+        assert self.api_token.last_used is None
+        self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), True)
+        self.api_token.refresh_from_db()
+        assert self.api_token.last_used.date() == timezone.now().date()
+
     def test_full_admin_permissions_without_reauth(self):
         project_not_member = create_project()
         self.assert_api_access(reverse('pentestproject-detail', kwargs={'pk': project_not_member.pk}), True)

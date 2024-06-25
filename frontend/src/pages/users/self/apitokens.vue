@@ -31,6 +31,8 @@
             <v-list-item-title>
               {{ apiToken.name }}
               <chip-expires class="ml-3" :value="apiToken.expire_date" />
+              <chip-date :value="apiToken.last_used" label="Last Used" />
+              <chip-created :value="apiToken.created" />
             </v-list-item-title>
             <template #append>
               <btn-delete button-variant="icon" :delete="() => deleteApiToken(apiToken)" />
@@ -169,7 +171,7 @@ async function createApiToken() {
       body: setupWizard.value.form,
     });
     setupWizard.value.step = SetupWizardStep.TOKEN;
-    apiTokens.value.push(setupWizard.value.newApiToken);
+    apiTokens.value = [setupWizard.value.newApiToken].concat(apiTokens.value);
   } catch (error: any) {
     if (error?.data?.code === 'reauth-required') {
       setupWizard.value.visible = false;

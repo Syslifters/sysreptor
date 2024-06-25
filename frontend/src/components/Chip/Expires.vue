@@ -1,5 +1,5 @@
 <template>
-  <v-chip :color="isExpired ? 'error' : undefined">
+  <v-chip :color="isExpired ? 'error' : undefined" size="small">
     <span v-if="!isExpired">Expires: {{ formattedDate }}</span>
     <span v-else>expired</span>
 
