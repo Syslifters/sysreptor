@@ -267,7 +267,7 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
 
     if (websocket.value?.readyState === WebSocket.OPEN) {
       await new Promise<void>((resolve) => {
-        websocket.value?.addEventListener('close', () => resolve());
+        websocket.value?.addEventListener('close', () => resolve(), { once: true });
         websocket.value?.close(1000, 'Disconnect'); 
       });
     }
@@ -401,10 +401,10 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
       connectionInfo.connectionState = CollabConnectionState.OPEN;
 
       sendInterval.value = setInterval(sendPendingMessages, HTTP_FALLBACK_INTERVAL);
-    } catch (e) {
-      connectionInfo.connectionError = { error: e };
+    } catch (error) {
+      connectionInfo.connectionError = { error };
       connectionInfo.connectionState = CollabConnectionState.CLOSED;
-      throw e;
+      throw error;
     }
   }
 
@@ -556,82 +556,96 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function onReceiveMessage(msgData: CollabEvent) {  
-    if (msgData.version && msgData.version > storeState.version) {
-      storeState.version = msgData.version;
-    }
-    
-    if (storeState.handleAdditionalWebSocketMessages?.(msgData, storeState)) {
-      // Already handled
-    } else if (msgData.type === CollabEventType.INIT) {
-      storeState.data = msgData.data;
-      storeState.clientID = msgData.client_id!;
-      storeState.permissions = msgData.permissions!;
-      storeState.awareness.clients = msgData.clients!;
-      storeState.awareness.other = Object.fromEntries(msgData.clients!.filter((c: any) => c.client_id !== storeState.clientID).map((c: any) => [c.client_id, { 
-        path: c.path, 
-        selection: undefined, 
-      }]));
-    } else if (msgData.type === CollabEventType.UPDATE_KEY) {
-      if (msgData.client_id !== storeState.clientID) {
-        // Clear pending text updates, because they are overwritten by the value of collab.update_key
-        for (const [k, v] of storeState.perPathState.entries()) {
-          if (msgData.path === k || msgData.path!.startsWith(k + '.')) {
-            v.unconfirmedTextUpdates = [];
+    try {
+      if (msgData.version && msgData.version > storeState.version) {
+        storeState.version = msgData.version;
+      }
+      
+      if (storeState.handleAdditionalWebSocketMessages?.(msgData, storeState)) {
+        // Already handled
+      } else if (msgData.type === CollabEventType.INIT) {
+        storeState.data = msgData.data;
+        storeState.clientID = msgData.client_id!;
+        storeState.permissions = msgData.permissions!;
+        storeState.awareness.clients = msgData.clients!;
+        storeState.awareness.other = Object.fromEntries(msgData.clients!.filter((c: any) => c.client_id !== storeState.clientID).map((c: any) => [c.client_id, { 
+          path: c.path, 
+          selection: undefined, 
+        }]));
+      } else if (msgData.type === CollabEventType.UPDATE_KEY) {
+        if (msgData.client_id !== storeState.clientID) {
+          // Clear pending text updates, because they are overwritten by the value of collab.update_key
+          for (const [k, v] of storeState.perPathState.entries()) {
+            if (msgData.path === k || msgData.path!.startsWith(k + '.')) {
+              v.unconfirmedTextUpdates = [];
+            }
           }
+      
+          // Update local state
+          set(storeState.data as Object, msgData.path!, msgData.value);
+          removeInvalidSelections(msgData.path!);
+          updateComments({ comments: msgData.comments });
         }
-    
-        // Update local state
+      } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
+        receiveUpdateText(msgData);
+      } else if (msgData.type === CollabEventType.CREATE) {
         set(storeState.data as Object, msgData.path!, msgData.value);
-        removeInvalidSelections(msgData.path!);
+      } else if (msgData.type === CollabEventType.DELETE) {
+        const pathParts = msgData.path!.split('.');
+        const parentPath = pathParts.slice(0, -1).join('.');
+        const parentList = get(storeState.data as Object, parentPath);
+        const parentListIndex = Number.parseInt(pathParts.slice(-1)?.[0]?.startsWith('[') ? pathParts.slice(-1)[0]!.slice(1, -1) : '');
+                
+        if (Array.isArray(parentList) && !Number.isNaN(parentListIndex)) {
+          parentList!.splice(parentListIndex, 1);
+        } else {
+          unset(storeState.data as Object, msgData.path!);
+        }
+        removeInvalidSelections(parentPath);
         updateComments({ comments: msgData.comments });
-      }
-    } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
-      receiveUpdateText(msgData);
-    } else if (msgData.type === CollabEventType.CREATE) {
-      set(storeState.data as Object, msgData.path!, msgData.value);
-    } else if (msgData.type === CollabEventType.DELETE) {
-      const pathParts = msgData.path!.split('.');
-      const parentPath = pathParts.slice(0, -1).join('.');
-      const parentList = get(storeState.data as Object, parentPath);
-      const parentListIndex = Number.parseInt(pathParts.slice(-1)?.[0]?.startsWith('[') ? pathParts.slice(-1)[0]!.slice(1, -1) : '');
-              
-      if (Array.isArray(parentList) && !Number.isNaN(parentListIndex)) {
-        parentList!.splice(parentListIndex, 1);
+      } else if (msgData.type === CollabEventType.CONNECT) {
+        if (msgData.client_id !== storeState.clientID) {
+          // Add new client
+          storeState.awareness.clients.push(msgData.client!);
+        }
+      } else if (msgData.type === CollabEventType.DISCONNECT) {
+        // Remove client
+        storeState.awareness.clients = storeState.awareness.clients
+          .filter(c => c.client_id !== msgData.client_id);
+        delete storeState.awareness.other[msgData.client_id!];
+      } else if (msgData.type === CollabEventType.AWARENESS) {
+        if (msgData.client_id !== storeState.clientID) {
+          storeState.awareness.other[msgData.client_id!] = {
+            client_id: msgData.client_id!,
+            path: msgData.path,
+            selection: msgData.path ? parseSelection({
+              selectionJson: msgData.selection, 
+              unconfirmed: storeState.perPathState.get(msgData.path)?.unconfirmedTextUpdates || [], 
+              text: get(storeState.data as Object, msgData.path) || ''
+            }) : undefined,
+          };
+        }
+      } else if (msgData.type === CollabEventType.ERROR) {
+        // eslint-disable-next-line no-console
+        console.error('Received error from websocket:', msgData);
+      } else if (msgData.type === CollabEventType.PING) {
+        // Do nothing
       } else {
-        unset(storeState.data as Object, msgData.path!);
+        throw new Error('Unknown collab event type: ' + msgData?.type);
       }
-      removeInvalidSelections(parentPath);
-      updateComments({ comments: msgData.comments });
-    } else if (msgData.type === CollabEventType.CONNECT) {
-      if (msgData.client_id !== storeState.clientID) {
-        // Add new client
-        storeState.awareness.clients.push(msgData.client!);
-      }
-    } else if (msgData.type === CollabEventType.DISCONNECT) {
-      // Remove client
-      storeState.awareness.clients = storeState.awareness.clients
-        .filter(c => c.client_id !== msgData.client_id);
-      delete storeState.awareness.other[msgData.client_id!];
-    } else if (msgData.type === CollabEventType.AWARENESS) {
-      if (msgData.client_id !== storeState.clientID) {
-        storeState.awareness.other[msgData.client_id!] = {
-          client_id: msgData.client_id!,
-          path: msgData.path,
-          selection: msgData.path ? parseSelection({
-            selectionJson: msgData.selection, 
-            unconfirmed: storeState.perPathState.get(msgData.path)?.unconfirmedTextUpdates || [], 
-            text: get(storeState.data as Object, msgData.path) || ''
-          }) : undefined,
-        };
-      }
-    } else if (msgData.type === CollabEventType.ERROR) {
+    } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Received error from websocket:', msgData);
-    } else if (msgData.type === CollabEventType.PING) {
-      // Do nothing
-    } else {
-      // eslint-disable-next-line no-console
-      console.error('Received unknown websocket message:', msgData);
+      console.error('Error while receiving collab event', {
+        error,
+        event: msgData,
+        version: storeState.version,
+        fieldData: get(storeState.data as Object, msgData?.path || ''),
+        perPathState: storeState.perPathState.get(msgData?.path || ''),
+      });
+      if (storeState.connection) {
+        storeState.connection.connectionError = { error };
+        disconnect();
+      }
     }
   }
 
@@ -702,6 +716,12 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     const text = get(storeState.data as Object, dataPath) || '';
     let cmText = Text.of(text.split(/\r?\n/));
     let selection = storeState.awareness.self.path === dataPath ? storeState.awareness.self.selection : undefined;
+
+    let composedChanges = null as ChangeSet|null;
+    for (const u of perPathState.unconfirmedTextUpdates) {
+      composedChanges = composedChanges ? composedChanges.compose(u.changes) : u.changes;
+    }
+
     for (const u of event.updates) {
       // Apply text changes
       cmText = u.changes.apply(cmText);
@@ -739,6 +759,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           c.text_range = pos;
         }
       }
+      
+      // Check if changes can be composed with previous unconfirmed updates
+      composedChanges = composedChanges ? composedChanges.compose(u.changes) : u.changes;
     }
     // Update text
     set(storeState.data as Object, dataPath, cmText.toString());
@@ -938,19 +961,33 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       return;
     }
 
-    if (event.type === CollabEventType.UPDATE_KEY) {
-      updateKey(event);
-    } else if (event.type === CollabEventType.UPDATE_TEXT) {
-      updateText(event);
-    } else if (event.type === CollabEventType.CREATE) {
-      createListItem(event);
-    } else if (event.type === CollabEventType.DELETE) {
-      deleteListItem(event);
-    } else if (event.type === CollabEventType.AWARENESS) {
-      updateAwareness(event);
-    } else {
+    try {
+      if (event.type === CollabEventType.UPDATE_KEY) {
+        updateKey(event);
+      } else if (event.type === CollabEventType.UPDATE_TEXT) {
+        updateText(event);
+      } else if (event.type === CollabEventType.CREATE) {
+        createListItem(event);
+      } else if (event.type === CollabEventType.DELETE) {
+        deleteListItem(event);
+      } else if (event.type === CollabEventType.AWARENESS) {
+        updateAwareness(event);
+      } else {
+        throw new Error('Unknown collab event type');
+      }
+    } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Trying to send unknown collab event:', event);
+      console.error('Error while processing collab event:', { 
+        error, 
+        event, 
+        version: storeState.version,
+        fieldValue: get(storeState.data as Object, event.path),
+        perPathState: storeState.perPathState.get(event.path),
+      });
+      if (storeState.connection) {
+        storeState.connection.connectionError = { error };
+        disconnect();
+      }
     }
   }
 
