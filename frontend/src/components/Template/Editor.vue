@@ -83,7 +83,6 @@
           <dynamic-input-field
             :readonly="props.readonly"
             :disabled="!translation.is_main && !(d.id in translation.data)"
-            class="flex-grow-width"
             v-bind="fieldAttrs(translation, d)"
           />
           <div v-if="!translation.is_main" class="mt-4 ml-1">

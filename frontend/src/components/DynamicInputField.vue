@@ -1,7 +1,7 @@
 <template>
   <v-hover v-model="isHovering">
     <template #default="{ props: hoverProps }">
-      <div :id="props.id" class="mt-4 d-flex flex-row" :class="nestedClass" v-bind="hoverProps">
+      <div :id="props.id" class="mt-4 d-flex flex-row flex-grow-width" :class="nestedClass" v-bind="hoverProps">
         <div class="flex-grow-width">
           <!-- String -->
           <markdown-text-field
