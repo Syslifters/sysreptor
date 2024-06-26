@@ -8,6 +8,10 @@
           title="Save as template"
           :disabled="!auth.permissions.value.template_editor"
         />
+        <btn-copy 
+          :copy="performCopy"
+          :disabled="project.readonly"
+        />
       </template>
 
       <s-btn-icon
@@ -101,6 +105,7 @@ const toolbarAttrs = computed(() => ({
     await projectStore.deleteFinding(project.value, finding);
     await navigateTo(`/projects/${project.value.id}/reporting/`);
   },
+  canDelete: !project.value.readonly,
 }));
 const historyVisible = ref(false);
 const commentSidebarRef = ref<InstanceType<typeof CommentSidebar>>();
@@ -111,6 +116,11 @@ function updateKey(key: string, value: any) {
     path: collabSubpath(reportingCollab.collabProps.value, key).path,
     value,
   })
+}
+
+async function performCopy() {
+  const obj = await projectStore.copyFinding(project.value, finding.value!);
+  await navigateTo(`/projects/${project.value.id}/reporting/findings/${obj.id}/`);
 }
 
 useAutofocus(finding, 'title');

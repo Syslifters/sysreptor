@@ -260,7 +260,7 @@ export const useProjectStore = defineStore('project', {
       this.ensureExists(project.id);
       this.setProject({ ...this.data[project.id]!.project!, project_type: res.project_type });
     },
-    async createFinding(project: PentestProject, findingData: Object) {
+    async createFinding(project: PentestProject, findingData: Partial<PentestFinding>) {
       const finding = await $fetch<PentestFinding>(`/api/v1/pentestprojects/${project.id}/findings/`, {
         method: 'POST',
         body: findingData,
@@ -277,6 +277,12 @@ export const useProjectStore = defineStore('project', {
       this.ensureExists(project.id)
       this.data[project.id]!.reportingCollabState.data.findings[finding.id] = finding;
       return finding;
+    },
+    async copyFinding(project: PentestProject, finding: PentestFinding) {
+      // Copy only finding data, reset metadata fields
+      return await this.createFinding(project, {
+        data: finding.data,
+      })
     },
     async deleteFinding(project: PentestProject, finding: PentestFinding) {
       await $fetch(`/api/v1/pentestprojects/${project.id}/findings/${finding.id}/`, {
