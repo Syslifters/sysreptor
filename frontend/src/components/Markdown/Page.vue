@@ -2,7 +2,6 @@
   <full-height-page class="mde">
     <template #header>
       <markdown-toolbar v-if="editorView" v-bind="markdownToolbarAttrs" />
-      <v-divider />
     </template>
 
     <template #default>

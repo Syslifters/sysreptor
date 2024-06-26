@@ -1,14 +1,17 @@
 <template>
   <div class="mde">
     <markdown-toolbar v-bind="markdownToolbarAttrs" />
-    <v-divider />
     <div 
       v-show="props.historic.markdownEditorMode !== MarkdownEditorMode.PREVIEW"
       ref="mergeViewRef" 
       class="mde-mergeview" 
     />
     
-    <v-row v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW" no-gutters>
+    <v-row 
+      v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW" 
+      no-gutters 
+      class="w-100"
+    >
       <v-col cols="6">
         <markdown-preview
           v-bind="markdownPreviewAttrsHistoric" 

@@ -1,5 +1,5 @@
 <template>
-  <split-menu v-model="localSettings.reportInputMenuSize" :content-props="{ class: 'h-100' }">
+  <split-menu v-model="localSettings.reportInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
       <v-list density="compact" class="pb-0 pt-0 h-100 d-flex flex-column">
         <div class="flex-grow-1 overflow-y-auto">

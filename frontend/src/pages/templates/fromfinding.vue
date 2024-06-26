@@ -1,5 +1,5 @@
 <template>
-  <split-menu v-model="localSettings.templateInputMenuSize">
+  <split-menu v-model="localSettings.templateInputMenuSize" :content-props="{ class: 'h-100 pa-0'}">
     <template #menu>
       <template-field-selector />
     </template>

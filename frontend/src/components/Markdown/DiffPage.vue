@@ -2,7 +2,6 @@
   <full-height-page class="mde">
     <template #header>
       <markdown-toolbar v-bind="markdownToolbarAttrs" />
-      <v-divider />
     </template>
 
     <template #default>
@@ -12,7 +11,11 @@
         class="mde-mergeview w-100 h-100 overflow-y-auto"
       />
 
-      <v-row v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW" no-gutters class="w-100 h-100">
+      <v-row 
+        v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW" 
+        no-gutters 
+        class="w-100 h-100"
+      >
         <v-col cols="6" class="h-100">
           <markdown-preview v-bind="markdownPreviewAttrsHistoric" />
         </v-col>

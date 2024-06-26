@@ -50,14 +50,14 @@
       </div>
     </template>
   </v-hover>
-  <markdown-diff-field
-    v-else-if="props.historic.definition?.type === FieldDataType.MARKDOWN && props.current.definition?.type === FieldDataType.MARKDOWN" 
-    :label="props.current.definition.label"
-    v-bind="markdownDiffAttrs"
-    class="mt-4"
-    :class="{'diff-highlight-changed': hasChanged}"
-  />
-  <v-row v-else>
+  <div v-else-if="props.historic.definition?.type === FieldDataType.MARKDOWN && props.current.definition?.type === FieldDataType.MARKDOWN" class="mt-4">
+    <markdown-diff-field
+      :label="props.current.definition.label"
+      v-bind="markdownDiffAttrs"
+      :class="{'diff-highlight-changed': hasChanged}"
+    />
+  </div>
+  <v-row v-else dense class="mt-0">
     <v-col cols="6">
       <dynamic-input-field
         v-if="props.historic.definition"

@@ -203,7 +203,11 @@ function emitCreateComment() {
 
 <style lang="scss" scoped>
 .toolbar {
-  background-color: inherit !important;
+  background-color: rgba(var(--v-theme-surface), 1) !important;
+  border-bottom: thin solid rgba(var(--v-theme-on-surface), var(--v-border-opacity));
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .separator {

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="fieldDefinitionTitle" :key="template.id" class="mb-4">
+  <div v-if="fieldDefinitionTitle" :key="template.id" class="h-100 d-flex flex-column">
     <edit-toolbar v-bind="toolbarAttrs" ref="toolbarRef">
       <template #title>
         <v-tabs v-model="currentTab" center-active>
@@ -48,73 +48,74 @@
       :translation="currentTranslation"
       :current-url="`/templates/${template.id}/?language=${currentTranslation.language}`"
     />
-
-    <v-window v-model="currentTab">
-      <v-window-item v-for="(translation, idx) in template.translations" :key="idx">
-        <dynamic-input-field
-          :readonly="props.readonly"
-          v-bind="fieldAttrs(translation, fieldDefinitionTitle)"
-        />
-
-        <s-status-selection
-          :model-value="translation.status"
-          @update:model-value="(v: any) => updateTranslationField(translation, 'status', v)"
-          :readonly="props.readonly"
-          variant="outlined"
-          density="default"
-          class="mt-4"
-        />
-        <s-tags
-          :model-value="template.tags"
-          @update:model-value="(v: string[]) => updateTemplateField('tags', v)"
-          :items="templateTagSuggestions"
-          :readonly="props.readonly"
-          class="mt-4"
-        />
-        <s-language-selection
-          :model-value="translation.language"
-          @update:model-value="(v: string|null) => updateTranslationField(translation, 'language', v)"
-          :items="[currentLanguageInfo].concat(unusedLanguageInfos)"
-          :readonly="props.readonly"
-          class="mt-4"
-        />
-
-        <div v-for="d in visibleFieldDefinitionsExceptTitle" :key="d.id" class="d-flex flex-row">
+    
+    <v-window v-model="currentTab" class="flex-grow-height">
+      <v-window-item v-for="(translation, idx) in template.translations" :key="idx" class="h-100">
+        <v-container fluid class="pt-0 h-100 overflow-y-auto">
           <dynamic-input-field
             :readonly="props.readonly"
-            :disabled="!translation.is_main && !(d.id in translation.data)"
-            class="flex-grow-width"
-            v-bind="fieldAttrs(translation, d)"
+            v-bind="fieldAttrs(translation, fieldDefinitionTitle)"
           />
-          <div v-if="!translation.is_main" class="mt-4 ml-1">
-            <s-btn-secondary
-              v-if="d.id in translation.data"
-              @click="translateFieldReset(translation, d.id)"
-              :disabled="props.readonly"
-              class="h-100"
-              size="small"
-            >
-              <v-icon size="small" icon="mdi-pencil-off" />
-              <s-tooltip activator="parent">
-                Reset field to inherit text from the main language {{ mainLanguageInfo.name }}.
-                Currently it is overridden for the {{ currentLanguageInfo.name }} translation.<br>
-              </s-tooltip>
-            </s-btn-secondary>
-            <s-btn-secondary
-              v-else
-              @click="translateFieldCopy(translation, d.id)"
-              :disabled="props.readonly"
-              class="h-100"
-              size="small"
-            >
-              <v-icon size="small" icon="mdi-pencil" />
-              <s-tooltip activator="parent">
-                Override field in {{ currentLanguageInfo.name }} translation.<br>
-                Currently it is inherited from the main language {{ mainLanguageInfo.name }}.
-              </s-tooltip>
-            </s-btn-secondary>
+
+          <s-status-selection
+            :model-value="translation.status"
+            @update:model-value="(v: any) => updateTranslationField(translation, 'status', v)"
+            :readonly="props.readonly"
+            variant="outlined"
+            density="default"
+            class="mt-4"
+          />
+          <s-tags
+            :model-value="template.tags"
+            @update:model-value="(v: string[]) => updateTemplateField('tags', v)"
+            :items="templateTagSuggestions"
+            :readonly="props.readonly"
+            class="mt-4"
+          />
+          <s-language-selection
+            :model-value="translation.language"
+            @update:model-value="(v: string|null) => updateTranslationField(translation, 'language', v)"
+            :items="[currentLanguageInfo].concat(unusedLanguageInfos)"
+            :readonly="props.readonly"
+            class="mt-4"
+          />
+
+          <div v-for="d in visibleFieldDefinitionsExceptTitle" :key="d.id" class="d-flex flex-row">
+            <dynamic-input-field
+              :readonly="props.readonly"
+              :disabled="!translation.is_main && !(d.id in translation.data)"
+              v-bind="fieldAttrs(translation, d)"
+            />
+            <div v-if="!translation.is_main" class="mt-4 ml-1">
+              <s-btn-secondary
+                v-if="d.id in translation.data"
+                @click="translateFieldReset(translation, d.id)"
+                :disabled="props.readonly"
+                class="h-100"
+                size="small"
+              >
+                <v-icon size="small" icon="mdi-pencil-off" />
+                <s-tooltip activator="parent">
+                  Reset field to inherit text from the main language {{ mainLanguageInfo.name }}.
+                  Currently it is overridden for the {{ currentLanguageInfo.name }} translation.<br>
+                </s-tooltip>
+              </s-btn-secondary>
+              <s-btn-secondary
+                v-else
+                @click="translateFieldCopy(translation, d.id)"
+                :disabled="props.readonly"
+                class="h-100"
+                size="small"
+              >
+                <v-icon size="small" icon="mdi-pencil" />
+                <s-tooltip activator="parent">
+                  Override field in {{ currentLanguageInfo.name }} translation.<br>
+                  Currently it is inherited from the main language {{ mainLanguageInfo.name }}.
+                </s-tooltip>
+              </s-btn-secondary>
+            </div>
           </div>
-        </div>
+        </v-container>
       </v-window-item>
     </v-window>
   </div>
@@ -261,5 +262,9 @@ defineExpose({
 <style lang="scss" scoped>
 .menu-max-height {
   max-height: 40vh;
+}
+
+:deep(.v-window__container) {
+  height: 100%;
 }
 </style>
