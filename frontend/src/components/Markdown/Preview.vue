@@ -36,7 +36,7 @@ watchThrottled(() => props.value, () => {
     rewriteFileSource,
     rewriteReferenceLink: props.rewriteReferenceLink,
   });
-}, { throttle: 500, leading: true });
+}, { throttle: 500, leading: true, immediate: true });
 
 function rewriteFileSource(imgSrc: string) {
   // Rewrite image source to handle image fetching from markdown.
