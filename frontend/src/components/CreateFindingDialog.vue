@@ -40,6 +40,7 @@
             >
               <template #selection="{ item: { raw: template }}">
                 <template-select-item v-if="template?.id" :template="template" :language="displayLanguage" />
+                <template v-else>{{ searchInput }}</template>
               </template>
               <template #item="{item: { raw: template}, props: itemProps}">
                 <v-list-item v-bind="itemProps" title="">
