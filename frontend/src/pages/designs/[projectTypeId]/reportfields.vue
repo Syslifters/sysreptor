@@ -1,10 +1,10 @@
 <template>
   <v-form ref="form" class="h-100">
-    <split-menu v-model="localSettings.reportFieldDefinitionMenuSize">
+    <split-menu v-model="localSettings.reportFieldDefinitionMenuSize" :content-props="{ class: 'h-100 pa-0' }">
       <template #menu>
         <v-list
           v-model:selected="currentItemSelection"
-          class="pb-0 h-100 d-flex flex-column"
+          class="pt-0 pb-0 h-100 d-flex flex-column"
         >
           <div class="flex-grow-height overflow-y-auto">
             <draggable
@@ -105,63 +105,67 @@
       </template>
 
       <template #default>
-        <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm" />
+        <div class="h-100 d-flex flex-column">
+          <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm" />
 
-        <template v-if="currentItemIsSection">
-          <s-card>
-            <v-card-title>Section: {{ currentItemSection!.label }}</v-card-title>
-            <v-card-text>
-              <v-row>
-                <v-col>
-                  <s-text-field
-                    :model-value="currentItemSection!.id"
-                    @update:model-value="updateCurrentSection('id', $event)"
-                    label="Section ID"
-                    :rules="rules.sectionId"
-                    required
-                    spellcheck="false"
-                    :readonly="readonly"
-                  />
-                </v-col>
-                <v-col>
-                  <s-text-field
-                    :model-value="currentItemSection!.label"
-                    @update:model-value="updateCurrentSection('label', $event)"
-                    label="Label"
-                    required
-                    spellcheck="false"
-                    :readonly="readonly"
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </s-card>
-          <design-input-field-definition
-            v-for="f in currentItemSection!.fields" :key="f.id"
-            :model-value="f"
-            @update:model-value="updateCurrentSectionField(f, $event)"
-            :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
-            :lang="projectType.language"
-            :readonly="readonly"
-            :is-object-property="true"
-          />
-          <s-btn-secondary
-            @click.stop="addField(currentItemSection!)"
-            :disabled="readonly"
-            class="mt-4"
-            prepend-icon="mdi-plus"
-            text="Add Field"
-          />
-        </template>
-        <template v-else-if="currentItemIsField">
-          <design-input-field-definition
-            :model-value="currentItemField!"
-            @update:model-value="updateCurrentField"
-            :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentItemField!.origin as any)"
-            :lang="projectType.language"
-            :readonly="readonly"
-          />
-        </template>
+          <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
+            <template v-if="currentItemIsSection">
+              <s-card>
+                <v-card-title>Section: {{ currentItemSection!.label }}</v-card-title>
+                <v-card-text>
+                  <v-row>
+                    <v-col>
+                      <s-text-field
+                        :model-value="currentItemSection!.id"
+                        @update:model-value="updateCurrentSection('id', $event)"
+                        label="Section ID"
+                        :rules="rules.sectionId"
+                        required
+                        spellcheck="false"
+                        :readonly="readonly"
+                      />
+                    </v-col>
+                    <v-col>
+                      <s-text-field
+                        :model-value="currentItemSection!.label"
+                        @update:model-value="updateCurrentSection('label', $event)"
+                        label="Label"
+                        required
+                        spellcheck="false"
+                        :readonly="readonly"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </s-card>
+              <design-input-field-definition
+                v-for="f in currentItemSection!.fields" :key="f.id"
+                :model-value="f"
+                @update:model-value="updateCurrentSectionField(f, $event)"
+                :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
+                :lang="projectType.language"
+                :readonly="readonly"
+                :is-object-property="true"
+              />
+              <s-btn-secondary
+                @click.stop="addField(currentItemSection!)"
+                :disabled="readonly"
+                class="mt-4"
+                prepend-icon="mdi-plus"
+                text="Add Field"
+              />
+            </template>
+            <template v-else-if="currentItemIsField">
+              <design-input-field-definition
+                :model-value="currentItemField!"
+                @update:model-value="updateCurrentField"
+                :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentItemField!.origin as any)"
+                :lang="projectType.language"
+                :readonly="readonly"
+              />
+            </template>
+          </v-container>
+        </div>
       </template>
     </split-menu>
   </v-form>

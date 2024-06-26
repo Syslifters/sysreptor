@@ -1,5 +1,5 @@
 <template>
-  <div v-if="fieldDefinitionTitle" :key="template.id" class="mb-4">
+  <div v-if="fieldDefinitionTitle" :key="template.id" class="h-100 d-flex flex-column">
     <edit-toolbar v-bind="toolbarAttrs" ref="toolbarRef">
       <template #title>
         <v-tabs v-model="currentTab" center-active>
@@ -26,73 +26,75 @@
       :current-url="`/templates/${template.id}/?language=${currentTranslation.language}`"
     />
 
-    <v-window v-model="currentTab">
-      <v-window-item v-for="(tr, idx) in translationInfos" :key="idx">
-        <v-row class="mt-0">
-          <v-col cols="6" class="pb-0">
-            <h2 class="text-h5 text-center">Historic Version <chip-date :value="props.historyDate" /></h2>
-          </v-col>
-          <v-col cols="6" class="pb-0">
-            <h2 class="text-h5 text-center">Current Version</h2>
-          </v-col>
-        </v-row>
+    <v-window v-model="currentTab" class="flex-grow-height">
+      <v-window-item v-for="(tr, idx) in translationInfos" :key="idx" class="h-100">
+        <v-container fluid class="pt-0 h-100 overflow-y-auto">
+          <v-row class="mt-0">
+            <v-col cols="6" class="pb-0">
+              <h2 class="text-h5 text-center">Historic Version <chip-date :value="props.historyDate" /></h2>
+            </v-col>
+            <v-col cols="6" class="pb-0">
+              <h2 class="text-h5 text-center">Current Version</h2>
+            </v-col>
+          </v-row>
 
-        <dynamic-input-field-diff
-          v-bind="diffFieldAttrs(tr, fieldDefinitionTitle)"
-        />
-        
-        <v-row class="mt-4" :class="{'diff-highlight-changed': tr.historic?.status !== tr.current?.status}">
-          <v-col cols="6">
-            <s-status-selection
-              :model-value="tr.historic?.status"
-              :disabled="true"
-              variant="outlined"
-              density="default"
-            />
-          </v-col>
-          <v-col cols="6">
-            <s-status-selection
-              :model-value="tr.current?.status"
-              :disabled="true"
-              variant="outlined"
-              density="default"
-            />
-          </v-col>
-        </v-row>
-        <v-row class="mt-4" :class="{'diff-highlight-changed': String(props.historic.value.tags) !== String(props.current.value.tags)}">
-          <v-col cols="6">
-            <s-tags
-              :model-value="props.historic.value.tags"
-              :disabled="true"
-            />
-          </v-col>
-          <v-col cols="6">
-            <s-tags
-              :model-value="props.current.value.tags"
-              :disabled="true"
-            />
-          </v-col>
-        </v-row>
-        <v-row class="mt-4" :class="{'diff-highlight-changed': tr.historic?.language !== tr.current?.language}">
-          <v-col cols="6">
-            <s-language-selection
-              :model-value="tr.historic?.language"
-              :disabled="true"
-            />
-          </v-col>
-          <v-col cols="6">
-            <s-language-selection
-              :model-value="tr.current?.language"
-              :disabled="true"
-            />
-          </v-col>
-        </v-row>
-        
-        <div v-for="d in visibleFieldDefinitionsExceptTitle" :key="d.id">
           <dynamic-input-field-diff
-            v-bind="diffFieldAttrs(tr, d)"
+            v-bind="diffFieldAttrs(tr, fieldDefinitionTitle)"
           />
-        </div>
+        
+          <v-row class="mt-4" :class="{'diff-highlight-changed': tr.historic?.status !== tr.current?.status}">
+            <v-col cols="6">
+              <s-status-selection
+                :model-value="tr.historic?.status"
+                :disabled="true"
+                variant="outlined"
+                density="default"
+              />
+            </v-col>
+            <v-col cols="6">
+              <s-status-selection
+                :model-value="tr.current?.status"
+                :disabled="true"
+                variant="outlined"
+                density="default"
+              />
+            </v-col>
+          </v-row>
+          <v-row class="mt-4" :class="{'diff-highlight-changed': String(props.historic.value.tags) !== String(props.current.value.tags)}">
+            <v-col cols="6">
+              <s-tags
+                :model-value="props.historic.value.tags"
+                :disabled="true"
+              />
+            </v-col>
+            <v-col cols="6">
+              <s-tags
+                :model-value="props.current.value.tags"
+                :disabled="true"
+              />
+            </v-col>
+          </v-row>
+          <v-row class="mt-4" :class="{'diff-highlight-changed': tr.historic?.language !== tr.current?.language}">
+            <v-col cols="6">
+              <s-language-selection
+                :model-value="tr.historic?.language"
+                :disabled="true"
+              />
+            </v-col>
+            <v-col cols="6">
+              <s-language-selection
+                :model-value="tr.current?.language"
+                :disabled="true"
+              />
+            </v-col>
+          </v-row>
+        
+          <div v-for="d in visibleFieldDefinitionsExceptTitle" :key="d.id">
+            <dynamic-input-field-diff
+              v-bind="diffFieldAttrs(tr, d)"
+            />
+          </div>
+        </v-container>
       </v-window-item>
     </v-window>
   </div>
@@ -202,3 +204,9 @@ const diffFieldAttrs = computed(() => (translationInfo: TranslationDiffInfo, def
   };
 });
 </script>
+
+<style scoped lang="scss">
+:deep(.v-window__container) {
+  height: 100%;
+}
+</style>

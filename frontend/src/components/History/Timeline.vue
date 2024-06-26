@@ -9,7 +9,7 @@
     class="history-sidebar"
   >
     <div class="history-timeline-header">
-      <v-list-item>
+      <v-list-item class="pt-0 pb-0">
         <v-list-item-title class="text-h6">
           <pro-info>Version History</pro-info>
         </v-list-item-title>

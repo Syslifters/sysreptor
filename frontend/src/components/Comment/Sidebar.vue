@@ -8,7 +8,7 @@
     class="comment-sidebar"
   >
     <div class="sidebar-header">
-      <v-list-item>
+      <v-list-item class="pt-0 pb-0">
         <v-list-item-title class="text-h6">
           <pro-info>Comments</pro-info>
         </v-list-item-title>

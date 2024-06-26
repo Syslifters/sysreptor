@@ -1,5 +1,5 @@
 <template>
-  <div v-if="finding && project && projectType" :key="project.id + finding.id">
+  <div v-if="finding && project && projectType" :key="project.id + finding.id" class="h-100 d-flex flex-column">
     <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
       <template #context-menu>
         <v-list-item
@@ -49,8 +49,17 @@
       :current-url="route.fullPath"
     />
 
-    <div v-for="fieldId in projectType.finding_field_order" :key="fieldId">
+    <comment-sidebar
+      ref="commentSidebarRef"
+      :project="project"
+      :project-type="projectType"
+      :finding-id="route.params.findingId as string"
+      :readonly="readonly"
+    />
+
+    <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
       <dynamic-input-field
+        v-for="fieldId in projectType.finding_field_order" :key="fieldId"
         :model-value="finding.data[fieldId]"
         :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldId}`)"
         @collab="reportingCollab.onCollabEvent"
@@ -60,15 +69,7 @@
         :definition="projectType.finding_fields[fieldId]!"
         v-bind="inputFieldAttrs"
       />
-    </div>
-
-    <comment-sidebar
-      ref="commentSidebarRef"
-      :project="project"
-      :project-type="projectType"
-      :finding-id="route.params.findingId as string"
-      :readonly="readonly"
-    />
+    </v-container>
   </div>
 </template>
 

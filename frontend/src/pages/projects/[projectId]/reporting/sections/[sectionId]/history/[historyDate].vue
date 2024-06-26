@@ -1,5 +1,5 @@
 <template>
-  <div v-if="section && fetchState">
+  <div v-if="section && fetchState" class="h-100 d-flex flex-column">
     <edit-toolbar v-bind="toolbarAttrs">
       <div class="status-container ml-1 mr-1">
         <s-status-selection v-model="section.status" :readonly="true" />
@@ -33,18 +33,6 @@
       :current-url="currentUrl"
     />
 
-    <v-row class="mt-0">
-      <v-col cols="6" class="pb-0">
-        <h2 class="text-h5 text-center">Historic Version <chip-date :value="(route.params.historyDate as string)" /></h2>
-      </v-col>
-      <v-col cols="6" class="pb-0">
-        <h2 class="text-h5 text-center">Current Version</h2>
-      </v-col>
-    </v-row>
-    <div v-for="f in diffFieldProps" :key="f.id">
-      <dynamic-input-field-diff v-bind="f" />
-    </div>
-
     <comment-sidebar
       ref="commentSidebarRef"
       :project="fetchState.projectCurrent"
@@ -52,6 +40,21 @@
       :section-id="route.params.sectionId as string"
       :readonly="fieldAttrsCurrent.readonly"
     />
+
+    <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
+      <v-row class="mt-0">
+        <v-col cols="6" class="pb-0">
+          <h2 class="text-h5 text-center">Historic Version <chip-date :value="(route.params.historyDate as string)" /></h2>
+        </v-col>
+        <v-col cols="6" class="pb-0">
+          <h2 class="text-h5 text-center">Current Version</h2>
+        </v-col>
+      </v-row>
+      <dynamic-input-field-diff 
+        v-for="f in diffFieldProps" :key="f.id"
+        v-bind="f"
+      />
+    </v-container>
   </div>
 </template>
 

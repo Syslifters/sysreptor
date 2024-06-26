@@ -1,5 +1,5 @@
 <template>
-  <div v-if="section && project && projectType" :key="project.id + section.id">
+  <div v-if="section && project && projectType" :key="project.id + section.id" class="h-100 d-flex flex-column">
     <edit-toolbar v-bind="toolbarAttrs" :can-auto-save="true">
       <div class="status-container ml-1 mr-1">
         <s-status-selection 
@@ -31,8 +31,17 @@
       :current-url="route.fullPath"
     />
 
-    <div v-for="fieldId in section.fields" :key="fieldId">
+    <comment-sidebar
+      ref="commentSidebarRef"
+      :project="project"
+      :project-type="projectType"
+      :section-id="route.params.sectionId as string"
+      :readonly="readonly"
+    />
+
+    <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
       <dynamic-input-field
+        v-for="fieldId in section.fields" :key="fieldId"
         :model-value="section.data[fieldId]"
         :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldId}`)"
         @collab="reportingCollab.onCollabEvent"
@@ -42,15 +51,7 @@
         :definition="projectType.report_fields[fieldId]!"
         v-bind="inputFieldAttrs"
       />
-    </div>
-
-    <comment-sidebar
-      ref="commentSidebarRef"
-      :project="project"
-      :project-type="projectType"
-      :section-id="route.params.sectionId as string"
-      :readonly="readonly"
-    />
+    </v-container>
   </div>
 </template>
 

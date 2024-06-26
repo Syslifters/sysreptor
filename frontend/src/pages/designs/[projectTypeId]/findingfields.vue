@@ -1,12 +1,12 @@
 <template>
   <v-form ref="form" class="h-100">
-    <split-menu v-model="localSettings.findingFieldDefinitionMenuSize">
+    <split-menu v-model="localSettings.findingFieldDefinitionMenuSize" :content-props="{ class: 'h-100 pa-0' }">
       <template #menu>
         <v-list
           v-model:selected="currentFieldSelection"
           :opened="['predefinedFields']"
           density="compact"
-          class="pb-0 h-100 d-flex flex-column"
+          class="pt-0 pb-0 h-100 d-flex flex-column"
         >
           <div class="flex-grow-height overflow-y-auto">
             <v-list-item :value="allFieldsPlaceholder" :ripple="false" link>
@@ -89,30 +89,33 @@
       </template>
 
       <template #default>
-        <div class="h-100">
+        <div class="h-100 d-flex flex-column">
           <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm" />
-          <template v-if="currentField === null">
-            <design-finding-ordering-definition
-              v-model="projectType.finding_ordering"
-              :project-type="projectType"
-              :readonly="readonly"
-            />
 
+          <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
+            <template v-if="currentField === null">
+              <design-finding-ordering-definition
+                v-model="projectType.finding_ordering"
+                :project-type="projectType"
+                :readonly="readonly"
+              />
+
+              <design-input-field-definition
+                v-for="f in findingFields" :key="f.id"
+                :model-value="f" @update:model-value="updateField(f, $event)"
+                :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
+                :lang="projectType.language"
+                :readonly="readonly"
+              />
+            </template>
             <design-input-field-definition
-              v-for="f in findingFields" :key="f.id"
-              :model-value="f" @update:model-value="updateField(f, $event)"
-              :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
+              v-else-if="currentField.type"
+              :model-value="currentField" @update:model-value="updateCurrentField"
+              :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentField.origin as any)"
               :lang="projectType.language"
               :readonly="readonly"
             />
-          </template>
-          <design-input-field-definition
-            v-else-if="currentField.type"
-            :model-value="currentField" @update:model-value="updateCurrentField"
-            :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentField.origin as any)"
-            :lang="projectType.language"
-            :readonly="readonly"
-          />
+          </v-container>
         </div>
       </template>
     </split-menu>
