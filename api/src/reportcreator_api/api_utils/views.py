@@ -110,6 +110,10 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.data
+
+        if data.get('check'):
+            return Response(status=200)
+
         aes_key = data.get('aes_key')
         if aes_key:
             aes_key = b64decode(aes_key)

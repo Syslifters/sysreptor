@@ -30,6 +30,16 @@
       :disabled="!apiSettings.settings!.features.backup"
       class="mt-2"
     />
+    <form 
+      v-if="renderDownloadForm" 
+      ref="downloadForm"
+      action="/api/v1/utils/backup/"
+      method="POST"
+      target="_blank"
+    >
+      <input type="hidden" name="key" :value="backupKey" />
+      <input type="hidden" name="csrfmiddlewaretoken" :value="csrftoken" />
+    </form>
 
     <s-card title="Backup History" class="mt-8">
       <template #text>
@@ -74,6 +84,7 @@ useHeadExtended({
 });
 
 const auth = useAuth();
+const csrftoken = useCookie('csrftoken');
 const apiSettings = useApiSettings();
 
 await useAsyncDataE(async () => {
@@ -95,38 +106,31 @@ const rules = {
   ],
 }
 
+const renderDownloadForm = ref(false);
+const downloadForm = ref<HTMLFormElement>();
 async function createBackup() {
   try {
+    // Check permissions and backup key
+    // for error handling in frontend
     backupKeyError.value = null;
-    const backupBlob = await $fetch<Blob>('/api/v1/utils/backup/', {
+    await $fetch.raw('/api/v1/utils/backup/', {
       method: 'POST',
       body: { 
-        key: backupKey.value 
+        key: backupKey.value,
+        check: true,
       },
-      responseType: "blob",
     });
-    fileDownload(backupBlob, `backup-${formatISO(new Date())}.zip`);
-    backupLogs.reset();
-    successToast('Backup successful');
+    
+    // Download backup via native browser mechanisms
+    renderDownloadForm.value = true;
+    await nextTick();
+    downloadForm.value?.submit();
+    await nextTick()
+    renderDownloadForm.value = false;
   } catch (error: any) {
-    const errorData = await new Promise<any>((resolve) => {
-      if (error.data instanceof Blob && error.data.type === 'application/json') {
-        const fr = new FileReader();
-        fr.onload = () => {
-          resolve(JSON.parse(fr.result as string) as any);
-        };
-        fr.onerror = () => {
-          resolve(null);
-        };
-        fr.readAsText(error.data);
-      } else {
-        resolve(null);
-      }
-    });
-
-    if (errorData?.detail || errorData?.key) {
-      backupKeyError.value = errorData.detail || errorData.key;
-    } else {
+    console.log({ error });
+    backupKeyError.value = error.data?.detail || error.data?.key;
+    if (!backupKeyError.value) {
       throw error;
     }
   }

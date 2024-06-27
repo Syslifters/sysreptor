@@ -107,6 +107,7 @@ class BackupSerializer(serializers.Serializer):
     key = serializers.CharField()
     aes_key = serializers.CharField(required=False, allow_null=True)
     s3_params = S3ParamsSerializer(required=False, allow_null=True)
+    check = serializers.BooleanField(default=False, required=False)
 
     def validate_key(self, key):
         if not settings.BACKUP_KEY or len(settings.BACKUP_KEY) < 20:
