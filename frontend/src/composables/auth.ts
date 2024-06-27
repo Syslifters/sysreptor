@@ -24,7 +24,7 @@ export const useAuthStore = defineStore('auth', {
         update_project_settings: (state.user && (!state.user.is_guest || (state.user.is_guest && apiSettings.settings?.guest_permissions.update_project_settings))) || false,
         archive_projects: (apiSettings.settings?.features.archiving && state.user && (!state.user.is_guest || (state.user.is_guest && apiSettings.settings?.guest_permissions.update_project_settings))) || false,
         view_license: state.user?.is_superuser || state.user?.is_user_manager || state.user?.is_system_user || false,
-        view_backup: apiSettings.isProfessionalLicense && (state.user?.is_superuser || state.user?.is_system_user || false),
+        view_backup: (apiSettings.isProfessionalLicense && state.user?.scope.includes('admin')) || false,
       };
     },
   },
