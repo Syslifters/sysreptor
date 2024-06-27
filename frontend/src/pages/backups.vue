@@ -73,19 +73,17 @@ useHeadExtended({
   breadcrumbs: () => [{ title: 'Backup', to: '/backups/' }],
 });
 
-const route = useRoute();
 const auth = useAuth();
 const apiSettings = useApiSettings();
 
-const backupLogs = useSearchableCursorPaginationFetcher<BackupLog>({
-  baseURL: '/api/v1/utils/backuplogs/',
+await useAsyncDataE(async () => {
+  if (!auth.permissions.value.view_backup) {
+    await navigateTo('/');
+  }
 });
 
-await useAsyncDataE(async () => {
-  // Enable admin permissions
-  if (apiSettings.isProfessionalLicense && auth.user.value?.is_superuser && !auth.permissions.value.admin) {
-    await navigateTo({ path: '/users/self/admin/enable/', query: { next: route.fullPath } }, { replace: true });
-  }
+const backupLogs = useSearchableCursorPaginationFetcher<BackupLog>({
+  baseURL: '/api/v1/utils/backuplogs/',
 });
 
 const backupKey = ref('');
