@@ -1,4 +1,4 @@
-import { get, set, unset, throttle, trimStart, sortBy } from "lodash-es";
+import { get, set, unset, throttle, trimStart, sortBy, cloneDeep } from "lodash-es";
 import urlJoin from "url-join";
 import { ChangeSet, EditorSelection, SelectionRange, Text } from "reportcreator-markdown/editor"
 import { CommentStatus, type Comment, type UserShortInfo } from "@/utils/types"
@@ -136,6 +136,13 @@ export function makeCollabStoreState<T>(options: {
   }
 }
 
+function isSubpath(subpath?: string|null, parent?: string|null) {
+  if (!subpath || !parent) {
+    return false;
+  }
+  return subpath === parent || subpath.startsWith(parent + (!parent.endsWith('/') ? '.' : ''));
+}
+
 async function sendPendingMessagesHttp<T>(storeState: CollabStoreState<T>, messages?: CollabEvent[]) {
   messages = Array.from(messages || []);
 
@@ -204,6 +211,8 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
           connectionInfo.connectionError = { error: event, message: event.reason || 'Permission denied' };
         } else if (connectionInfo.connectionState === CollabConnectionState.CONNECTING) {
           connectionInfo.connectionError = { error: event, message: event.reason || 'Failed to establish connection' };
+        } else if (event.code === 1012) {
+          connectionInfo.connectionError = { error: event, message: event.reason || 'Server worker process is restarting' };
         } else if (event.code !== 1000) {
           connectionInfo.connectionError = { error: event, message: event.reason };
         }
@@ -239,7 +248,7 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
           if (msgData.client_id !== storeState.clientID) {
             // Clear pending events of sub-fields
             for (const [k, v] of perPathState.entries()) {
-              if (msgData.path === k || msgData.path?.startsWith(k + '.')) {
+              if (isSubpath(k, msgData.path)) {
                 v.sendUpdateTextThrottled.cancel();
               }
             }
@@ -282,7 +291,7 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
 
       // Cancel pending update_key events of child fields
       for (const [k, v] of perPathState.entries()) {
-        if (k.startsWith(msg.path + '.')) {
+        if (isSubpath(k, msg.path) && k !== msg.path) {
           v.sendUpdateKeyThrottled.cancel();
         }
       }
@@ -576,7 +585,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         if (msgData.client_id !== storeState.clientID) {
           // Clear pending text updates, because they are overwritten by the value of collab.update_key
           for (const [k, v] of storeState.perPathState.entries()) {
-            if (msgData.path === k || msgData.path!.startsWith(k + '.')) {
+            if (isSubpath(k, msgData.path)) {
               v.unconfirmedTextUpdates = [];
             }
           }
@@ -897,9 +906,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function removeInvalidSelections(path?: string) {
-    // Filter out invalid selections
+    // Filter out invalid selections of current field and child fields
     for (const a of [storeState.awareness.self].concat(Object.values(storeState.awareness.other))) {
-      if (a.path && (!path || path === a.path || path.startsWith(a.path + '.')) && a.selection) {
+      if (a.path && (!path || isSubpath(a.path, path)) && a.selection) {
         const text = get(storeState.data as Object, a.path);
         if (typeof text !== 'string' || !a.selection.ranges.every(r => r.from >= 0 && r.to <= (text || '').length)) {
           a.selection = undefined;
@@ -1029,10 +1038,6 @@ export type CollabPropType = {
 export function collabSubpath(collab: CollabPropType, subPath: string|null) {
   const addDot = !collab.path.endsWith('.') && !collab.path.endsWith('/') && subPath;
   const path = collab.path + (addDot ? '.' : '') + (subPath || '');
-
-  function isSubpath(subpath: string, parent: string) {
-    return subpath === parent || subpath.startsWith(parent + (!parent.endsWith('/') ? '.' : ''));
-  }
 
   return {
     ...collab,
