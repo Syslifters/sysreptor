@@ -634,18 +634,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         throw new Error('Unknown collab event type: ' + msgData?.type);
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error while receiving collab event', {
-        error,
-        event: msgData,
-        version: storeState.version,
-        fieldData: get(storeState.data as Object, msgData?.path || ''),
-        perPathState: storeState.perPathState.get(msgData?.path || ''),
-      });
-      if (storeState.connection) {
-        storeState.connection.connectionError = { error };
-        disconnect();
-      }
+      handleCollabError(msgData, error);
     }
   }
 
@@ -953,6 +942,22 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     }
   }
 
+  function handleCollabError(event: any, error: any) {
+    const dataPath = toDataPath(event.path);
+    // eslint-disable-next-line no-console
+    console.error('Error while processing collab event:', { 
+      error, 
+      event, 
+      version: storeState.version,
+      fieldValue: cloneDeep(get(storeState.data as Object, dataPath)),
+      perPathState: cloneDeep(storeState.perPathState.get(dataPath)),
+    });
+    if (storeState.connection) {
+      storeState.connection.connectionError = { error };
+      disconnect();
+    }
+  }
+
   function onCollabEvent(event: any) {
     if (!event.path?.startsWith(storeState.apiPath)) {
       // Event is not for us
@@ -976,18 +981,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         throw new Error('Unknown collab event type');
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error while processing collab event:', { 
-        error, 
-        event, 
-        version: storeState.version,
-        fieldValue: get(storeState.data as Object, event.path),
-        perPathState: storeState.perPathState.get(event.path),
-      });
-      if (storeState.connection) {
-        storeState.connection.connectionError = { error };
-        disconnect();
-      }
+      handleCollabError(event, error);
     }
   }
 
