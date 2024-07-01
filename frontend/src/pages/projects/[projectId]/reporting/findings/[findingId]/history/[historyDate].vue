@@ -22,7 +22,7 @@
         prepend-icon="mdi-undo"
         text="Back to current version"
       />
-      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" />
+      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="fieldAttrsCurrent.collab.comments" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
 
