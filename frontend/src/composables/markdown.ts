@@ -180,9 +180,26 @@ export function useMarkdownEditorBase(options: {
     }
   }
 
+  function onBeforeApplySetValue(event: any) {
+    if (options.editorView.value && event.path === options.props.value.collab?.path) {
+      options.editorView.value.dispatch(options.editorView.value.state.update({
+        changes: {
+          from: 0,
+          to: options.editorView.value.state.doc.length,
+          insert: event.value || '',
+        },
+        annotations: [
+          Transaction.addToHistory.of(false),
+          Transaction.remote.of(true),
+        ]
+      }));
+    }
+  }
+
   const editorState = shallowRef<EditorState|null>(null);
   const editorActions = ref<Record<string, (enabled: boolean) => void>>({});
   const eventBusBeforeApplyRemoteTextChanges = useEventBus('collab:beforeApplyRemoteTextChanges');
+  const eventBusBeforeApplySetValue = useEventBus('collab:beforeApplySetValue');
 
   function createEditorStateConfig() {
     return {
@@ -257,6 +274,7 @@ export function useMarkdownEditorBase(options: {
     // Post-init EditorView
     if (options.editorView.value && newValue && !oldValue) {
       eventBusBeforeApplyRemoteTextChanges.on(onBeforeApplyRemoteTextChange);
+      eventBusBeforeApplySetValue.on(onBeforeApplySetValue);
 
       editorState.value = options.editorView.value.state;
       editorActions.value = {
@@ -302,10 +320,12 @@ export function useMarkdownEditorBase(options: {
       editorActions.value.darkTheme!(theme.current.value.dark);
     } else if (!newValue) {
       eventBusBeforeApplyRemoteTextChanges.off(onBeforeApplyRemoteTextChange);
+      eventBusBeforeApplySetValue.off(onBeforeApplySetValue);
     }
   }, { immediate: true });
   onBeforeUnmount(() => {
     eventBusBeforeApplyRemoteTextChanges.off(onBeforeApplyRemoteTextChange);
+    eventBusBeforeApplySetValue.off(onBeforeApplySetValue);
   })
 
   function onIntersect(isIntersecting: boolean) {
