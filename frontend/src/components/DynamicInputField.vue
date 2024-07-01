@@ -380,7 +380,7 @@ async function emitInputList(action: string, entryIdx?: number, entryVal: any|nu
         type: CollabEventType.UPDATE_KEY,
         path: props.collab.path,
         value: newVal,
-        sort: [{ id: entryIdx!, newIndex: entryVal! }],
+        sort: [{ id: entryIdx!, order: entryVal! }],
       });
     }
   }

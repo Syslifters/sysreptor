@@ -44,6 +44,7 @@ export type CollabEvent = {
   updates?: (TextUpdate|{ changes: any; seletion?: any; })[];
   selection?: any;
   update_awareness?: boolean;
+  sort?: { id: string, order: number }[];
   data?: any;
   comments?: Partial<Comment>[];
   client?: CollabClientInfo;
@@ -492,6 +493,7 @@ export function connectionHttpReadonly<T = any>(storeState: CollabStoreState<T>,
 
 export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   const eventBusBeforeApplyRemoteTextChange = useEventBus('collab:beforeApplyRemoteTextChanges');
+  const eventBusBeforeApplySetValue = useEventBus('collab:beforeApplySetValue');
 
   async function connectTo(connection: CollabConnectionInfo) {
     storeState.version = 0;
@@ -583,18 +585,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         }]));
       } else if (msgData.type === CollabEventType.UPDATE_KEY) {
         if (msgData.client_id !== storeState.clientID) {
-          // Clear pending text updates, because they are overwritten by the value of collab.update_key
-          for (const [k, v] of storeState.perPathState.entries()) {
-            if (isSubpath(k, msgData.path)) {
-              v.unconfirmedTextUpdates = [];
-            }
-          }
-      
-          // Update local state
-          set(storeState.data as Object, msgData.path!, msgData.value);
-          removeInvalidSelections(msgData.path!);
-          updateComments({ comments: msgData.comments });
+          setValue(msgData.path!, msgData.value);
         }
+        updateComments({ comments: msgData.comments });
       } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
         receiveUpdateText(msgData);
       } else if (msgData.type === CollabEventType.CREATE) {
@@ -606,7 +599,8 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         const parentListIndex = Number.parseInt(pathParts.slice(-1)?.[0]?.startsWith('[') ? pathParts.slice(-1)[0]!.slice(1, -1) : '');
                 
         if (Array.isArray(parentList) && !Number.isNaN(parentListIndex)) {
-          parentList!.splice(parentListIndex, 1);
+          const parentListNew = parentList.filter((_, idx) => idx !== parentListIndex);
+          setValue(parentPath, parentListNew);
         } else {
           unset(storeState.data as Object, msgData.path!);
         }
@@ -663,7 +657,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   function updateKey(event: any) {
     // Update local state
     const dataPath = toDataPath(event.path);
-    set(storeState.data as Object, dataPath, event.value);
+    setValue(dataPath, event.value);
 
     // Update awareness
     if (event.updateAwareness) {
@@ -680,6 +674,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       version: storeState.version,
       value: event.value,
       update_awareness: event.updateAwareness,
+      sort: event.sort,
     });
   }
 
@@ -783,6 +778,37 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       updates: perPathState.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
       selection: storeState.awareness.self.selection?.toJSON(),
     })
+  }
+
+  function setValue(path: string, value: any) {
+    // Clear pending text updates, because they are overwritten by the value of collab.update_key
+    for (const [k, v] of storeState.perPathState.entries()) {
+      if (isSubpath(k, path)) {
+        v.unconfirmedTextUpdates = [];
+      }
+    }
+
+    function emitBeforeApplySetValue(subpath: string, subvalue: any) {
+      eventBusBeforeApplySetValue.emit({
+        path: storeState.apiPath + subpath,
+        value: subvalue,
+      });
+
+      if (Array.isArray(subvalue)) {
+        for (let i = 0; i < subvalue.length; i++) {
+          emitBeforeApplySetValue(`${subpath}.[${i}]`, subvalue[i]);
+        }
+      } else if (typeof subvalue === 'object') {
+        for (const [k, v] of Object.entries(subvalue)) {
+          emitBeforeApplySetValue(`${subpath}.${k}`, v);
+        }
+      }
+    }
+    emitBeforeApplySetValue(path, value);
+
+    // Update local state
+    set(storeState.data as Object, path!, value);
+    removeInvalidSelections(path!);
   }
 
   function updateAwareness(event: any) {
