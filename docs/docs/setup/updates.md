@@ -60,4 +60,10 @@ Schedule your update, e.g. every day at midnight:
 0 0 * * * /bin/bash /home/yourpath/sysreptor/update.sh
 ```
 
+If you bound SysReptor to a different port, make sure to include the `BIND_PORT` variable:
+
+```shell
+0 0 * * * BIND_PORT=443 /bin/bash /home/yourpath/sysreptor/update.sh
+```
+
 Make sure your user has write permissions to the parent directory of your SysReptor directory. In this example, you need write permissions to `/home/yourpath/`.
