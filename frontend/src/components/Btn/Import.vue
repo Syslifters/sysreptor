@@ -11,7 +11,7 @@
     <input
       ref="fileInput"
       type="file"
-      accept=".tar.gz"
+      accept=".tar.gz,application/gzip"
       @change="performImport(($event.target as HTMLInputElement)?.files)"
       class="d-none"
       :disabled="disabled || props.loading || importInProgress"
@@ -34,7 +34,7 @@
       <input
         ref="fileInput"
         type="file"
-        accept=".tar.gz"
+        accept=".tar.gz,application/gzip"
         @change="performImport(($event.target as HTMLInputElement)?.files)"
         class="d-none"
         :disabled="disabled || props.loading || importInProgress"
