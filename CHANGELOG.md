@@ -6,8 +6,10 @@
 * Show backup history in web interface
 * Store last usage date for API tokens
 * Allow duplicating findings
-* Fix template pagination error for templates without CVSS score
 * Compress PDFs to reduce file sizes
+* Use redis as channels layer instead of postgres for collaborative editing
+* Fix template pagination error for templates without CVSS score
+* Fix multiple bugs in collaborative editing over websockets
 * UI: Add button to copy confirm text in delete confirm dialogs
 * UI: Fix create finding dialog searchbar cleared on click outside
 * UI: Sticky toolbar in markdown editor

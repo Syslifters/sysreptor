@@ -16,6 +16,8 @@ allow_only="$allow_only;Mozilla Public License 2.0 (MPL 2.0)"
 allow_only="$allow_only;Historical Permission Notice and Disclaimer (HPND)"
 allow_only="$allow_only;Python Software Foundation License"
 allow_only="$allow_only;Zope Public License"
+allow_only="$allow_only;ISC License (ISCL)"
+allow_only="$allow_only;The Unlicense (Unlicense)"
 
 ignore="webencodings"
 ignore="$ignore pyphen"
