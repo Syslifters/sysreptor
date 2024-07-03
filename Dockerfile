@@ -175,7 +175,7 @@ CMD python3 manage.py migrate && \
 
 
 
-FROM api-dev as api-prebuilt
+FROM api-dev AS api-prebuilt
 
 # Copy source code (including pre-build static files)
 COPY --chown=user:user api/src /app/api
@@ -191,7 +191,7 @@ COPY --chown=user:user api/src /app/api
 COPY --from=rendering --chown=user:user /app/rendering/dist /app/rendering/dist/
 
 
-FROM api-test as api
+FROM api-test AS api
 # Generate static frontend files
 # Post-process django files (for admin, API browser) and post-process them (e.g. add unique file hash)
 # Do not post-process nuxt files, because they already have hash names (and django failes to post-process them)
