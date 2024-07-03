@@ -24,6 +24,12 @@ services:
       retries: 30
     restart: unless-stopped
     stop_grace_period: 120s
+  redis:
+    image: bitnami/redis:7.2
+    environment:
+      REDIS_PASSWORD: reportcreator
+    expose:
+      - 6379
   app:
     build: 
       context: ../
@@ -46,6 +52,7 @@ services:
       DATABASE_NAME: reportcreator
       DATABASE_USER: reportcreator
       DATABASE_PASSWORD: reportcreator
+      REDIS_URL: redis://:reportcreator@redis:6379/0
       HTTP_PROXY: ${HTTP_PROXY-}
       HTTPS_PROXY: ${HTTPS_PROXY-}
     env_file: app.env
