@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## v2024.55 - 2024-07-04
 * Allow commenting finding and section fields and markdown text
 * Create backups via web interface
 * Show backup history in web interface
