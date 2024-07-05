@@ -145,8 +145,8 @@ services:
         condition: service_healthy
       languagetool:
         condition: service_started
-      # redis:
-      #   condition: service_started
+      redis:
+        condition: service_started
       # rendering-worker:
       #   condition: service_started
   frontend:
