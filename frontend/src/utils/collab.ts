@@ -798,7 +798,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         for (let i = 0; i < subvalue.length; i++) {
           emitBeforeApplySetValue(`${subpath}.[${i}]`, subvalue[i]);
         }
-      } else if (typeof subvalue === 'object') {
+      } else if (subvalue && typeof subvalue === 'object') {
         for (const [k, v] of Object.entries(subvalue)) {
           emitBeforeApplySetValue(`${subpath}.${k}`, v);
         }
