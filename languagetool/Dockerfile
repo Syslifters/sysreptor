@@ -18,7 +18,7 @@ RUN apk add postgresql-client zip unzip wget \
     && zip -u languagetool-server.jar org/languagetool/server/mybatis-config.xml
 
 # Add custom wordlists
-COPY scripts/* .
+COPY scripts/* ./
 COPY wordlists /custom-wordlists/
 RUN bash add_wordlists.sh
 
