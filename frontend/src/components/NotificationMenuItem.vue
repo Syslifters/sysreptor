@@ -1,6 +1,6 @@
 <template>
   <s-btn-icon>
-    <v-badge v-if="notificationStore.unreadNotificationCount > 0" :content="notificationStore.unreadNotificationCount" color="info">
+    <v-badge v-if="notificationStore.unreadNotificationCount > 0" :content="notificationStore.unreadNotificationCount" color="primary-bg">
       <v-icon icon="mdi-bell" />
     </v-badge>
     <v-icon v-else icon="mdi-bell" />
