@@ -2,7 +2,7 @@
   <div>
     <!-- eslint-disable-next-line vue/no-v-html -->
     <div ref="previewRef" v-html="renderedMarkdown" @click.stop class="preview" />
-    <markdown-image-preview-dialog v-model="previewImageSrc" />
+    <markdown-image-preview-dialog v-model="previewImageSrc" :images="previewImagesAll" />
   </div>
 </template>
 
@@ -72,14 +72,21 @@ async function postProcessRenderedHtml() {
 }
 
 const previewImageSrc = ref<PreviewImage|null>(null);
+const previewImagesAll = ref<PreviewImage[]>([]);
 function showPreviewImage(event: MouseEvent) {
   const imgElement = event.target as HTMLImageElement;
   if (imgElement && imgElement.tagName === 'IMG' && imgElement.src) {
-    const captionEl = imgElement.parentElement?.querySelector('figcaption');
-    previewImageSrc.value = {
-      src: imgElement.src,
-      caption: captionEl?.innerText,
-    }
+    // Collect all images in the preview
+    previewImagesAll.value = Array.from(previewRef.value!.querySelectorAll('img')).map((img: HTMLImageElement) => {
+      const captionEl = img.parentElement?.querySelector('figcaption');
+      return {
+        src: img.src,
+        caption: captionEl?.innerText,
+      };
+    });
+    // Select the clicked image
+    previewImageSrc.value = previewImagesAll.value.find(img => img.src === imgElement.src) || null;
+
     event.stopPropagation();
   }
 }

@@ -7,9 +7,9 @@
   >
     <template v-if="slots.activator" #activator="{props: dialogProps}"><slot name="activator" v-bind="{props: dialogProps}" /></template>
     <template #default>
-      <v-card variant="elevated">
+      <v-card variant="elevated" :density="props.density" v-bind="props.cardProps">
         <v-card-title>
-          <v-toolbar color="inherit" flat>
+          <v-toolbar color="inherit" flat :density="props.density">
             <v-toolbar-title><slot name="title" /></v-toolbar-title>
             <v-spacer />
             <slot name="toolbar" />
@@ -28,12 +28,18 @@
 </template>
 
 <script setup lang="ts">
+import { VCard } from "vuetify/lib/components/index.mjs";
+
 const props = withDefaults(defineProps<{
   modelValue?: boolean,
   maxWidth?: string
+  density?: VCard['density'],
+  cardProps?: any,
 }>(), {
   modelValue: undefined,
   maxWidth: '50%',
+  density: 'default',
+  cardProps: undefined,
 });
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void,
