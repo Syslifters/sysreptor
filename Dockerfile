@@ -129,7 +129,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install fonts
-COPY api/fonts /usr/share/fonts/truetype
+COPY api/fonts /usr/share/fonts/truetype/
 RUN mv /usr/share/fonts/truetype/fontconfig.conf /etc/fonts/conf.d/00-sysreptor-fonts.conf && \
     rm -rf /usr/share/fonts/truetype/dejavu/ && \
     rm -f /etc/fonts/conf.d/*dejavu* && \
@@ -178,14 +178,14 @@ CMD python3 manage.py migrate && \
 FROM api-dev AS api-prebuilt
 
 # Copy source code (including pre-build static files)
-COPY --chown=user:user api/src /app/api
+COPY --chown=user:user api/src /app/api/
 COPY --chown=user:user rendering/dist /app/rendering/dist/
 
 
 
 FROM api-dev AS api-test
 # Copy source code
-COPY --chown=user:user api/src /app/api
+COPY --chown=user:user api/src /app/api/
 
 # Copy generated template rendering script
 COPY --from=rendering --chown=user:user /app/rendering/dist /app/rendering/dist/
