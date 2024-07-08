@@ -61,7 +61,7 @@
     <v-col cols="6">
       <dynamic-input-field
         v-if="props.historic.definition"
-        v-bind="props.historic"
+        v-bind="omit(props.historic, ['value', 'definition'])"
         :model-value="props.historic.value"
         :definition="props.historic.definition"
         :nesting-level="props.nestingLevel"
@@ -74,8 +74,7 @@
     <v-col cols="6">
       <dynamic-input-field 
         v-if="props.current.definition" 
-        v-bind="props.current"
-        :value="undefined"
+        v-bind="omit(props.current, ['value', 'definition'])"
         :model-value="props.current.value"
         :definition="props.current.definition"
         :nesting-level="props.nestingLevel"
@@ -90,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { pick, merge } from 'lodash-es';
+import { pick, merge, omit } from 'lodash-es';
 import type { DynamicInputFieldDiffProps } from '~/composables/history';
 
 const props = defineProps<DynamicInputFieldDiffProps>();
@@ -100,6 +99,7 @@ const inheritedDiffAttrs = computed(() => {
   const copyFields = [
     'disabled', 'readonly', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
     'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink', 'selectableUsers', 
+    'fieldValueSuggestions',
     'onUpdate:markdownEditorMode', 'onUpdate:spellcheckEnabled', 
     'collab', 'onCollab', 'onComment',
   ];

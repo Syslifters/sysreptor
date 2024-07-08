@@ -68,6 +68,7 @@
         :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldId}`)"
         @collab="reportingCollab.onCollabEvent"
         @comment="commentSidebarRef?.onCommentEvent"
+        :field-value-suggestions="findingFieldValueSuggestions"
         :readonly="readonly"
         :id="fieldId"
         :definition="projectType.finding_fields[fieldId]!"
@@ -91,6 +92,7 @@ const projectType = await useAsyncDataE(async () => await projectTypeStore.getBy
 
 const reportingCollab = projectStore.useReportingCollab({ project: project.value, findingId: route.params.findingId as string });
 const finding = computedThrottled(() => reportingCollab.data.value.findings[route.params.findingId as string], { throttle: 500 });
+const findingFieldValueSuggestions = computedThrottled(() => getFindingFieldValueSuggestions({ findings: Object.values(reportingCollab.data.value.findings), projectType: projectType.value }), { throttle: 1000 });
 const readonly = computed(() => reportingCollab.readonly.value);
 
 const { inputFieldAttrs, errorMessage } = useProjectEditBase({

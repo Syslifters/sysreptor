@@ -1,5 +1,11 @@
 # Changelog
 
+## Next
+* Fix set assignee in notes, findings and sections
+* Fix error when setting note checkboxes
+* Suggest values used in other findings in combobx fields
+
+
 ## v2024.55 - 2024-07-04
 * Allow commenting finding and section fields and markdown text
 * Create backups via web interface
