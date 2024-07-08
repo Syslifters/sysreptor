@@ -50,8 +50,7 @@ playwright = "^1.32.1"
 pikepdf = "^9.0.0"
 celery = "^5.3.6"
 
-# Pinning to 4.3 until https://github.com/jazzband/django-debug-toolbar/issues/1928 is released
-django-debug-toolbar = "~4.3.0"
+django-debug-toolbar = "^4.4.5"
 debugpy = "^1.6.7"
 watchdog = "^4.0.0"
 pytest-django = "^4.5.2"
