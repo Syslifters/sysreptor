@@ -70,6 +70,7 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
+  compatibilityDate: '2024-07-08',
 
   // Dev settings
   devtools: {

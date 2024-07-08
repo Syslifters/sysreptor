@@ -71,8 +71,6 @@
 </template>
 
 <script setup lang="ts">
-import fileDownload from "js-file-download";
-import { formatISO } from 'date-fns';
 import { BackupLogType } from '@/utils/types';
 
 definePageMeta({
@@ -128,7 +126,6 @@ async function createBackup() {
     await nextTick()
     renderDownloadForm.value = false;
   } catch (error: any) {
-    console.log({ error });
     backupKeyError.value = error.data?.detail || error.data?.key;
     if (!backupKeyError.value) {
       throw error;
