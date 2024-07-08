@@ -20,6 +20,8 @@ from reportcreator_api.archive.crypto.base import EncryptionKey
 from reportcreator_api.management.commands import restorebackup
 from reportcreator_api.notifications.models import NotificationSpec
 from reportcreator_api.pentests.models import UploadedImage
+from reportcreator_api.pentests.models.collab import CollabClientInfo, CollabEvent
+from reportcreator_api.pentests.models.common import LockInfo
 from reportcreator_api.tests.mock import (
     api_client,
     create_archived_project,
@@ -229,6 +231,11 @@ class TestBackupRestore:
             fo.refresh_from_db()
             assert fo.file.name == f['name']
             assert fo.file.read() == f['content']
+
+        # No temporary DB data created
+        assert CollabEvent.objects.count() == 0
+        assert CollabClientInfo.objects.count() == 0
+        assert LockInfo.objects.count() == 0
 
         # BackupLog entry created
         assert list(BackupLog.objects.values_list('type', flat=True)) == [BackupLogType.RESTORE, BackupLogType.BACKUP, BackupLogType.SETUP]
