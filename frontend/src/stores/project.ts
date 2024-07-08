@@ -1,4 +1,4 @@
-import { orderBy, pick, set } from "lodash-es";
+import { orderBy, pick, set, isObject } from "lodash-es";
 import { groupNotes } from "@/stores/usernotes";
 import type { Comment, CommentAnswer, CommentStatus, PentestFinding, PentestProject, ProjectNote, ProjectType, ReportSection } from "~/utils/types";
 import { scoreFromVector } from "~/utils/cvss";
@@ -37,6 +37,35 @@ export function sortFindings<T extends PentestFinding>({ findings, projectType, 
       projectType.finding_ordering.map(o => o.order).concat([SortOrder.ASC])
     );
   }
+}
+
+export function getFindingFieldValueSuggestions(options: { findings: PentestFinding[], projectType: ProjectType }) {
+  function getValue(path: string, definition: FieldDefinition, value: any): { path: string, value: any }[] {
+    if (definition.type === FieldDataType.LIST && Array.isArray(value)) {
+      return value.flatMap(v => getValue(`${path}[]`, definition.items!, v));
+    } else if (definition.type === FieldDataType.OBJECT && isObject(value)) {
+      return Object.entries(definition.properties || {}).flatMap(([key, def]) => getValue(`${path}.${key}`, def, (value as any)[key]));
+    } else if (definition.type === FieldDataType.COMBOBOX && value) {
+      return [{ path, value }];
+    }
+    return [];
+  }
+
+  const out = new Map<string, string[]>();
+  for (const finding of options.findings) {
+    for (const [fieldId, fieldDefinition] of Object.entries(options.projectType.finding_fields)) {
+      for (const { path, value } of getValue(fieldId, fieldDefinition, finding.data[fieldId])) {
+        if (!out.has(path)) {
+          out.set(path, []);
+        }
+        const values = out.get(path)!;
+        if (!values.includes(value)) {
+          values.push(value);
+        }
+      }
+    }
+  }
+  return out;
 }
 
 export const useProjectStore = defineStore('project', {

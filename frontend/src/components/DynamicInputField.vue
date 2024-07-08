@@ -58,7 +58,7 @@
           <s-combobox
             v-else-if="definition.type === 'combobox'"
             v-model="formValue"
-            :items="definition.suggestions"
+            :items="comboboxSuggestions"
             :clearable="!props.readonly"
             spellcheck="false"
             @focus="collabFocus"
@@ -277,7 +277,7 @@
 
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
-import { pick } from 'lodash-es';
+import { pick, uniq } from 'lodash-es';
 import { MarkdownEditorMode, type FieldDefinition, type UserShortInfo } from '~/utils/types';
 import type { MarkdownProps } from "~/composables/markdown";
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
@@ -293,6 +293,7 @@ const props = defineProps<MarkdownProps & {
   id?: string;
   showFieldIds?: boolean;
   selectableUsers?: UserShortInfo[];
+  fieldValueSuggestions?: Map<string, string[]>;
   disabled?: boolean;
   readonly?: boolean;
   autofocus?: boolean;
@@ -485,6 +486,17 @@ const isListEditingLocked = computed(() => {
   return props.definition.type === FieldDataType.LIST && props.collab && props.collab.clients.some(c => !c.isSelf);
 });
 
+const comboboxSuggestions = computed(() => {
+  const suggestions = [] as string[];
+  if (props.definition.suggestions) {
+    suggestions.push(...props.definition.suggestions);
+  }
+  if (props.fieldValueSuggestions && props.id) {
+    suggestions.push(...props.fieldValueSuggestions.get(props.id.replaceAll(/\[\d+\]/g, '[]')) || []);
+  }
+  return uniq(suggestions);
+});
+
 function collabFocus() {
   if (props.collab) {
     emit('collab', {
@@ -514,12 +526,10 @@ const fieldAttrs = computed(() => ({
 const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
   const nextNestingLevel = (props.nestingLevel || 0) + 1;
   return {
-    definition: nestedDefinition,
-    selectableUsers: props.selectableUsers,
-    disableValidation: props.disableValidation,
-    showFieldIds: props.showFieldIds,
-    nestingLevel: nextNestingLevel,
     ...fieldAttrs.value,
+    ...pick(props, ['selectableUsers', 'disableValidation', 'showFieldIds', 'fieldValueSuggestions']),
+    definition: nestedDefinition,
+    nestingLevel: nextNestingLevel,
   };
 });
 
