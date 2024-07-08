@@ -4,6 +4,7 @@
 * Fix set assignee in notes, findings and sections
 * Fix error when setting note checkboxes
 * Suggest values used in other findings in combobx fields
+* Navigate through images in enlarged markdown image preview dialog
 
 
 ## v2024.55 - 2024-07-04
