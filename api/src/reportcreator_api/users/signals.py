@@ -46,7 +46,7 @@ def user_count_license_check(sender, instance, *args, **kwargs):
 
 @receiver(signals.pre_save, sender=APIToken)
 def api_token_license_limit(sender, instance, *args, **kwargs):
-    if license.is_professional():
+    if license.is_professional() or not instance._state.adding:
         return
 
     current_apitoken_count = APIToken.objects \

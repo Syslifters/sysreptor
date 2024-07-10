@@ -1,5 +1,9 @@
 # Changelog
 
+## v2024.58 - 2024-07-10
+* Fix API token authentication in community edition
+
+
 ## v2024.57 - 2024-07-10
 * Fix set assignee in notes, findings and sections
 * Fix error when setting note checkboxes

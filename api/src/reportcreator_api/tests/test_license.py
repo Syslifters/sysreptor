@@ -41,7 +41,11 @@ class TestCommunityLicenseRestrictions:
         self.user = create_user(is_superuser=True, password=self.password)
         self.user_regular = create_user(password=self.password)
         self.user_system = create_user(is_system_user=True, password=self.password)
+
         self.client = api_client(self.user)
+        session = self.client.session
+        session.setdefault('authentication_info', {})['reauth_time'] = timezone.now().isoformat()
+        session.save()
 
         with mock.patch('reportcreator_api.utils.license.check_license', return_value={'type': license.LicenseType.COMMUNITY, 'users': 2, 'error': None}):
             yield
@@ -178,15 +182,15 @@ class TestCommunityLicenseRestrictions:
             self.user_regular.save()
 
     def test_apitoken_limit(self):
-        APIToken.objects.create(user=self.user_regular)
+        res1 = self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test'})
+        assert res1.status_code == 201
+        res_token = api_client().get(reverse('pentestuser-detail', kwargs={'pk': 'self'}), HTTP_AUTHORIZATION='Bearer ' + res1.data['token'])
+        assert res_token.status_code == 200
 
         with pytest.raises(license.LicenseLimitExceededError):
-            APIToken.objects.create(user=self.user_regular)
+            APIToken.objects.create(user=self.user)
 
     def test_apitoken_no_expiry(self):
-        session = self.client.session
-        session.setdefault('authentication_info', {})['reauth_time'] = timezone.now().isoformat()
-        session.save()
         assert_api_license_error(self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test', 'expire_date': timezone.now().date().isoformat()}))
 
 
