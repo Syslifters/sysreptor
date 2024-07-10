@@ -192,10 +192,10 @@ release_job_github:
     
     # Send notification for new release
     - >
-      curl https://cloud.sysreptor.com/api/v1/notifications/new/ 
-        -X POST 
-        -H "Authorization: Bearer ${SAASPANEL_API_TOKEN}" 
-        -H "Content-Type: application/json" 
+      curl https://cloud.sysreptor.com/api/v1/notifications/new/ \
+        -X POST \
+        -H "Authorization: Bearer ${SAASPANEL_API_TOKEN}" \
+        -H "Content-Type: application/json" \
         -d "{\"title\": \"🎊 Update available\", \"text\": \"There's a new SysReptor version (v${VERSION_NUMBER}) waiting for you.\", \"link_url\": \"https://github.com/Syslifters/sysreptor/releases/tag/${VERSION_NUMBER}\", \"instance_conditions\": {\"version\": \"<${VERSION_NUMBER}\"} }"
 
 build-docs:
