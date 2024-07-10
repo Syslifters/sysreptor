@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## v2024.57 - 2024-07-10
 * Fix set assignee in notes, findings and sections
 * Fix error when setting note checkboxes
 * Suggest values used in other findings in combobx fields
