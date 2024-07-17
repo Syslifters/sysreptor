@@ -71,7 +71,7 @@ fi
 echo "Unpacking sysreptor.tar.gz..."
 tar xzf sysreptor.tar.gz
 
-cd sysreptor/deploy
+cd reportcreator/deploy
 if
         test -f app.env
 then
