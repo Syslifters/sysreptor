@@ -27,7 +27,6 @@
 * UI: Add button to copy confirm text in delete confirm dialogs
 * UI: Fix create finding dialog searchbar cleared on click outside
 * UI: Sticky toolbar in markdown editor
-* Rework install.sh
 
 
 ## v2024.49 - 2024-06-18
