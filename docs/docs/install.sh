@@ -21,7 +21,7 @@ do
         error=0
     fi
 done
-if 
+if
     ! docker compose version >/dev/null 2>&1
 then
     echo "docker compose v2 is not installed."
@@ -32,11 +32,12 @@ if
     test 0 -eq "$docker"
 then
     echo "Follow the installation instructions at https://docs.docker.com/engine/install/ubuntu/"
+    exit -1
 fi
 if
     test 0 -eq "$error"
 then
-    echo "See prerequisites at https://docs.sysreptor.com/setup/installation/#installation-via-script"
+    echo 'Install dependencies using "apt install -y sed curl openssl uuid-runtime coreutils"'
     exit -1
 fi
 if
@@ -66,35 +67,74 @@ then
     echo "Download did not succeed..."
     exit -5
 fi
+
 echo "Unpacking sysreptor.tar.gz..."
 tar xzf sysreptor.tar.gz
 
-cd sysreptor/deploy
+cd reportcreator/deploy
 if
         test -f app.env
 then
-        echo "deploy/app.env exists. Will not create new secrets."
+        echo "deploy/app.env exists. Won't update configuration."
+        echo "Find configuration options at https://docs.sysreptor.com/setup/configuration/ for manual editing."
 else
+    if [ ! -n "$SYSREPTOR_LICENSE" ]
+    then
+        read -p "License key (leave blank for Community Edition): " SYSREPTOR_LICENSE
+    fi
+
+    while [[ $SYSREPTOR_ENCRYPT != [yY] && $SYSREPTOR_ENCRYPT != [nN] ]]
+    do
+        read -p "Encrypt files and database? [y/n]: " SYSREPTOR_ENCRYPT
+        if [[ $SYSREPTOR_ENCRYPT == [yY] ]]
+        then
+            echo "We will generate secret keys using OpenSSL and store them in deploy/app.env."
+            echo "If you lose this file, your data won't be recoverable."
+            read -p "Did you understand that you will lose all data if your app.env is gone? [y/n]: " SYSREPTOR_ENCRYPT
+            if [[ $SYSREPTOR_ENCRYPT == [nN] ]]
+            then
+                echo "All clear, we won't encrypt your stored data."
+            fi
+        fi
+    done
+
     echo "Creating app.env..."
     cp app.env.example app.env
 
-    echo "Generating secret key..."
+    echo "Generating Django secret key..."
     secret_key="SECRET_KEY=\"$(openssl rand -base64 64 | tr -d '\n=')\""
     sed -i'' -e "s#.*SECRET_KEY=.*#$secret_key#" app.env
 
-    echo "Generating data at rest encryption keys..."
-    KEY_ID=$(uuidgen)
-    encryption_keys="ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32)\", \"cipher\": \"AES-GCM\", \"revoked\": false}]"
-    default_encryption_key_id="DEFAULT_ENCRYPTION_KEY_ID=\"${KEY_ID}\""
-    sed -i'' -e "s#.*ENCRYPTION_KEYS=.*#$encryption_keys#" app.env
-    sed -i'' -e "s#.*DEFAULT_ENCRYPTION_KEY_ID=.*#$default_encryption_key_id#" app.env
+    if [[ $SYSREPTOR_ENCRYPT == [yY] ]]
+    then
+        echo "Generating data at rest encryption keys..."
+        KEY_ID=$(uuidgen)
+        encryption_keys="ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32)\", \"cipher\": \"AES-GCM\", \"revoked\": false}]"
+        default_encryption_key_id="DEFAULT_ENCRYPTION_KEY_ID=\"${KEY_ID}\""
+        sed -i'' -e "s#.*ENCRYPTION_KEYS=.*#$encryption_keys#" app.env
+        sed -i'' -e "s#.*DEFAULT_ENCRYPTION_KEY_ID=.*#$default_encryption_key_id#" app.env
+    fi
+
+    if [ -n "$SYSREPTOR_LICENSE" ]
+    then
+        echo "Adding your license key..."
+        sed -i'' -e "s#.*LICENSE=.*#LICENSE='$SYSREPTOR_LICENSE'#" app.env
+        
+        docker_compose_file="docker-compose.yml"
+        include_languagetool="  - languagetool/docker.yml"
+        if ! grep -q "^$include_languagetool" "$docker_compose_file"
+        then
+            echo "Enable languagetool..."
+            sed -i "s#include:#include:\n$include_languagetool#" "$docker_compose_file"
+        fi
+    fi
 fi
-if [ -n "$SYSREPTOR_LICENSE" ]
+
+# Webserver setup (Caddy)
+if
+    test -f ./caddy/setup.sh
 then
-    echo "Adding your license key..."
-    sed -i'' -e "s#.*LICENSE=.*#LICENSE='$SYSREPTOR_LICENSE'#" app.env
-else
-    echo "No license key found. Going with Community edition."
+    source caddy/setup.sh || true  # do not exit on error
 fi
 
 echo "Creating docker volumes..."
@@ -107,15 +147,8 @@ echo "Build and launch SysReptor via docker compose..."
 echo "We are downloading and installing all dependencies."
 echo "This may take a few minutes."
 
-if [ -n "$SYSREPTOR_LICENSE" ]
-then
-    compose_args=""
-else
-    compose_args="-f docker-compose.yml"
-fi
-
 if
-    ! docker compose $compose_args up -d
+    ! docker compose -f docker-compose.yml up -d
 then
     echo "Ups. Something did not work while bringing up your containers."
     exit -2
@@ -149,10 +182,23 @@ echo "All imported."
 
 echo ""
 echo "Very nice."
-echo "You can now login at http://127.0.0.1:8000"
+if [ -z "$SYSREPTOR_CADDY_FQDN" ]
+then
+    echo "You can now login at http://127.0.0.1:8000"
+else
+    echo "You can now login at https://$SYSREPTOR_CADDY_FQDN:$SYSREPTOR_CADDY_PORT"
+fi
 echo "Username: reptor"
 echo "Password: $password"
+
+while [[ $PASSWORD_COPIED != [yY] ]]
+do
+    read -p "Copy your password now. Copied? [y/n]: " PASSWORD_COPIED
+    if [[ $PASSWORD_COPIED == [nN] ]]
+    then
+        echo "C'mon. Copy it. It's a good password."
+    fi
+done
+
 echo ""
 echo "This was easy, wasn't it?"
-echo "We recommend to setup a web server with HTTPS."
-echo "Find instructions at: https://docs.sysreptor.com/setup/webserver/"
