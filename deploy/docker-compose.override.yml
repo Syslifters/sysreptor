@@ -1,5 +1,5 @@
 # This file is included due to legacy reasons
 # It makes sure that Docker starts the languagetool container for Pro customers
-# We will delete this file as soon as we migrate to prebuilt Docker images, or in July 2026, at latest
+# We will delete this file in July 2025
 include:
   - languagetool/docker.yml

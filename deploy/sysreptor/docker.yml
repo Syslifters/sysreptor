@@ -26,6 +26,7 @@ services:
     stop_grace_period: 120s
   redis:
     image: bitnami/redis:7.2
+    container_name: 'sysreptor-redis'
     environment:
       REDIS_PASSWORD: reportcreator
     expose:
@@ -37,6 +38,7 @@ services:
       args: 
         VERSION: ${SYSREPTOR_VERSION}
         CA_CERTIFICATES: ${SYSREPTOR_CA_CERTIFICATES-}
+        SPELLCHECK_URL: ${SYSREPTOR_SPELLCHECK_URL:-http://languagetool:8010/}
     container_name: 'sysreptor-app'
     init: true
     volumes:
