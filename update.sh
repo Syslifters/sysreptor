@@ -103,18 +103,31 @@ mkdir "$sysreptor_directory"
 tar xzf sysreptor.tar.gz -C "$sysreptor_directory" --strip-components=1
 echo "Copy your app.env..."
 cp "${backup_copy}/deploy/app.env" "${sysreptor_directory}/deploy/app.env"
+if grep "sysreptor/docker.yml" "${backup_copy}/deploy/docker-compose.yml"
+then
+    # Copy docker-compose.yml if it is not the old version (2024.58 and earlier)
+    echo "Copy your docker-compose.yml..."
+    cp "${backup_copy}/deploy/docker-compose.yml" "${sysreptor_directory}/deploy/docker-compose.yml"
+fi
 echo "Build and launch SysReptor via docker compose..."
 echo "We are downloading and installing all dependencies."
 echo "This may take a few minutes."
+
+# Remove deprecated docker-compose.override.yml which is there for legacy reasons
+rm "${sysreptor_directory}/deploy/docker-compose.override.yml" 2>/dev/null || true
 if grep "^LICENSE=" "${sysreptor_directory}/deploy/app.env"
 then
-    compose_args=""
-else
-    compose_args="-f docker-compose.yml"
+    # This if-statement will be removed July 2025
+    include_languagetool="  - languagetool/docker.yml"
+    if ! grep -q "^$include_languagetool" "${sysreptor_directory}/deploy/docker-compose.yml"
+    then
+        # Include languagetool in docker-compose.yml
+        sed -i "s#include:#include:\n$include_languagetool#" "${sysreptor_directory}/deploy/docker-compose.yml"
+    fi
 fi
 if
     cd "$sysreptor_directory"/deploy
-    ! docker compose $compose_args build --no-cache --pull || ! docker compose $compose_args up -d
+    ! docker compose build --no-cache --pull || ! docker compose up -d
 then
     echo "Ups. Something did not work while building and launching your containers."
     error_cleanup
