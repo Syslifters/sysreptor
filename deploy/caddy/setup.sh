@@ -4,6 +4,7 @@ if
     test -f Caddyfile
 then
     echo "Caddyfile exists. Skipping web server setup."
+    read -p "Press any key to continue installation..."
     cd -
     return 2>/dev/null || exit -1  # return if script is source, exit if in process
 fi
