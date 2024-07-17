@@ -5,13 +5,14 @@ if
 then
     echo "Caddyfile exists. Skipping web server setup."
     read -p "Press any key to continue installation..."
-    cd -
+    echo ""
+    cd - >/dev/null
     return 2>/dev/null || exit -1  # return if script is source, exit if in process
 fi
 while [[ "$SYSREPTOR_WEBSERVER" != [yY] && "$SYSREPTOR_WEBSERVER" != [nN] ]]
 do
     echo ""
-    echo "SysReptor will run on localhost (127.0.0.1) by default."
+    echo "SysReptor runs on localhost (127.0.0.1) by default."
     read -p "Should we setup a webserver (Caddy in Docker) for you to expose it to your local network or the Internet? [y/n]: " SYSREPTOR_WEBSERVER
     if [[ "$SYSREPTOR_WEBSERVER" == [yY] ]]
     then
@@ -22,7 +23,7 @@ do
             echo "For this, you must set up:"
             echo " 1. a valid domain name resolving to your public IP address"
             echo " 2. port 80 of your must be publicly reachable"
-            read -p "Want a webserver certificate? [y/n]: " SYSREPTOR_LETSENCRYPT
+            read -p "Want a LetsEncrypt webserver certificate? [y/n]: " SYSREPTOR_LETSENCRYPT
         done
         while ! case "$SYSREPTOR_CADDY_PORT" in ''|*[!0-9]*) false;;esac;
         do
@@ -34,6 +35,15 @@ do
             fi
             read -p "What port should the webserver use? [$default_port] " SYSREPTOR_CADDY_PORT
             SYSREPTOR_CADDY_PORT=${SYSREPTOR_CADDY_PORT:-$default_port}
+            if [[ "$SYSREPTOR_CADDY_PORT" -lt 1 || "$SYSREPTOR_CADDY_PORT" -gt 65535 ]]
+            then
+                echo "Invalid port number. Please enter a valid port number between 1 and 65535."
+                SYSREPTOR_CADDY_PORT=""
+            elif [[ "$SYSREPTOR_CADDY_PORT" -eq 8000 ]]
+            then
+                echo "The Django app uses port 8000 on 127.0.0.1. Please use a different port."
+                SYSREPTOR_CADDY_PORT=""
+            fi
         done
         if [[ "$SYSREPTOR_LETSENCRYPT" == [yY] ]]
         then
@@ -64,5 +74,12 @@ reverse_proxy http://127.0.0.1:8000""" > Caddyfile
         sed -i "s#include:#include:\n$include_caddy#" "$docker_compose_file"
     fi
 fi
+docker container stop sysreptor-caddy 1>/dev/null 2>&1 && docker container rm sysreptor-caddy 1>/dev/null 2>&1 || true
 echo ""
-cd -
+cd - >/dev/null
+return 2>/dev/null || true  # return if script is source
+
+cd `dirname "$BASH_SOURCE"`
+cd ..
+docker compose up -d
+cd - >/dev/null

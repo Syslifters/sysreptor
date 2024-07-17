@@ -78,10 +78,11 @@ then
         echo "deploy/app.env exists. Won't update configuration."
         echo "Find configuration options at https://docs.sysreptor.com/setup/configuration/ for manual editing."
         read -p "Press any key to continue installation..."
+        echo ""
 else
     if [ ! -n "$SYSREPTOR_LICENSE" ]
     then
-        read -p "License key (leave blank for Community Edition): " SYSREPTOR_LICENSE
+        read -p "License key (leave blank for Community Edition; you can upgrade anytime later): " SYSREPTOR_LICENSE
     fi
 
     while [[ $SYSREPTOR_ENCRYPT != [yY] && $SYSREPTOR_ENCRYPT != [nN] ]]
@@ -101,7 +102,7 @@ else
 
     # Delete docker-compose.override.yml because that's needed for existing PRO installations only due to legacy reasons
     # ...not for new installations
-    rm docker-compose.override.yml
+    rm docker-compose.override.yml 2>/dev/null || true
 
     echo "Creating app.env..."
     cp app.env.example app.env
@@ -187,23 +188,44 @@ echo "All imported."
 
 echo ""
 echo "Very nice."
+if [ -z "$SYSREPTOR_CADDY_PORT" ]
+then
+    SYSREPTOR_CADDY_PORT=8000
+fi
 if [ -z "$SYSREPTOR_CADDY_FQDN" ]
 then
-    echo "You can now login at http://127.0.0.1:8000"
+    echo "You can now login at http://127.0.0.1:$SYSREPTOR_CADDY_PORT"
 else
     echo "You can now login at https://$SYSREPTOR_CADDY_FQDN:$SYSREPTOR_CADDY_PORT"
 fi
 echo "Username: reptor"
 echo "Password: $password"
 
-while [[ $PASSWORD_COPIED != [yY] ]]
+while [[ $CONFIRM != [yY] ]]
 do
-    read -p "Copy your password now. Copied? [y/n]: " PASSWORD_COPIED
-    if [[ $PASSWORD_COPIED == [nN] ]]
+    read -p "Copy your password now. Copied? [y/n]: " CONFIRM
+    if [[ $CONFIRM == [nN] ]]
     then
         echo "C'mon. Copy it. It's a good password."
     fi
 done
+
+if [[ -n "$encryption_keys" && -n "$default_encryption_key_id" ]]
+then
+    CONFIRM=""
+    echo ""
+    echo "Those are your encryption keys:"
+    echo "$encryption_keys"
+    echo "$default_encryption_key_id"
+    while [[ $CONFIRM != [yY] ]]
+    do
+        read -p "Backup your encryption keys now. Done? [y/n]: " CONFIRM
+        if [[ $CONFIRM == [nN] ]]
+        then
+            echo "Not your keys, not your data. Backup them!"
+        fi
+    done
+fi
 
 echo ""
 echo "This was easy, wasn't it?"
