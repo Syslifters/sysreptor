@@ -71,12 +71,13 @@ fi
 echo "Unpacking sysreptor.tar.gz..."
 tar xzf sysreptor.tar.gz
 
-cd reportcreator/deploy
+cd sysreptor/deploy
 if
         test -f app.env
 then
         echo "deploy/app.env exists. Won't update configuration."
         echo "Find configuration options at https://docs.sysreptor.com/setup/configuration/ for manual editing."
+        read -p "Press any key to continue..."
 else
     if [ ! -n "$SYSREPTOR_LICENSE" ]
     then
@@ -97,6 +98,10 @@ else
             fi
         fi
     done
+
+    # Delete docker-compose.override.yml because that's needed for existing PRO installations only due to legacy reasons
+    # ...not for new installations
+    rm docker-compose.override.yml
 
     echo "Creating app.env..."
     cp app.env.example app.env
@@ -148,7 +153,7 @@ echo "We are downloading and installing all dependencies."
 echo "This may take a few minutes."
 
 if
-    ! docker compose -f docker-compose.yml up -d
+    ! docker compose up -d
 then
     echo "Ups. Something did not work while bringing up your containers."
     exit -2
