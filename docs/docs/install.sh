@@ -77,7 +77,7 @@ if
 then
         echo "deploy/app.env exists. Won't update configuration."
         echo "Find configuration options at https://docs.sysreptor.com/setup/configuration/ for manual editing."
-        read -p "Press any key to continue..."
+        read -p "Press any key to continue installation..."
 else
     if [ ! -n "$SYSREPTOR_LICENSE" ]
     then
