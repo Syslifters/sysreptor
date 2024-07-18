@@ -114,6 +114,14 @@ plugins:
       archive: false
       categories: false
       post_readtime: false
+  - social:
+      enabled: !ENV [CI, true]
+      cards: !ENV [CI, true]
+      cards_font: "Noto Sans"
+      cards_layout_options:
+        background_color: "#818b06"
+        color: "#FFFFFF"
+        font_family: "Noto Sans"
   - tooltips
   - search
   - privacy:
