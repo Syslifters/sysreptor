@@ -5,66 +5,48 @@
 The Django webserver is not recommended due to missing transport encryption, missing performance and security tests.  
 We recommend a webserver like Caddy, nginx or Apache and to enable https.
 
-=== "Caddy (recommended)"
-    [Caddy](https://caddyserver.com/){ target=_blank } is an open-source webserver with automatic HTTPS written in Go.
+## Easy setup with Caddy (recommended)
 
-    Setup your DNS A-record pointing to your server. Make sure that ports 443 and 80 are publicly available. (You need port 80 for getting your LetEncrypt certificate.)
+You can run `setup.sh` in `deploy/caddy` to set up an additional Docker container with Caddy as a webserver.  
 
-    Create a `docker-compose.yml` (e.g. in a `caddy` directory outside your SysReptor files):
+```
+bash deploy/caddy/setup.sh
+```
 
-    ```yml
-    version: '3.9'
-    name: caddy
+### Optional: LetsEncrypt HTTPS certificate
+If you want Caddy to take care of your LetsEncrypt certificate, you must set up:
 
-    services:
-      caddy:
-        image: caddy:latest
-        container_name: 'sysreptor-caddy'
-        restart: unless-stopped
-        command: caddy reverse-proxy --from https://<your-domain>:443 --to http://127.0.0.1:8000
-        volumes:
-        - type: volume
-          source: sysreptor-caddy-data
-          target: /data
-        network_mode: "host"
+ 1. a valid domain name resolving to your public IP address
+ 2. port 80 of your must be publicly reachable
 
-    volumes:
-      sysreptor-caddy-data:
-        name: sysreptor-caddy-data
-    ```
+## nginx
 
-    Don't forget to replace `<your-domain>` by your domain.
-    
-    `docker compose up -d` and enjoy.
+Install nginx on your host system:
 
-=== "nginx"
+```shell
+sudo apt-get update
+sudo apt-get install -y nginx
+```
 
-    You can install nginx on your host system:
+Copy our nginx boilerplate configuration from the `deploy/nginx` directory to your nginx directory:
 
-    ```shell
-    sudo apt-get update
-    sudo apt-get install nginx
-    ```
+```shell
+sudo cp deploy/nginx/sysreptor.nginx /etc/nginx/sites-available/
+sudo ln -s /etc/nginx/sites-available/sysreptor.nginx /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/default
+```
 
-    Copy our nginx boilerplate configuration from the `deploy` directory to your nginx directory:
+You can optionally generate self-signed certificates:
+```shell
+sudo apt-get update
+sudo apt-get install -y ssl-cert
+sudo make-ssl-cert generate-default-snakeoil
+```
 
-    ```shell
-    sudo cp deploy/sysreptor.nginx /etc/nginx/sites-available/
-    sudo ln -s /etc/nginx/sites-available/sysreptor.nginx /etc/nginx/sites-enabled/
-    sudo rm /etc/nginx/sites-enabled/default
-    ```
+Modify `sysreptor.nginx` and update the certificate paths in case you have trusted certificates (recommended).
 
-    You can optionally generate self-signed certificates:
-    ```shell
-    sudo apt-get update
-    sudo apt-get install ssl-cert
-    sudo make-ssl-cert generate-default-snakeoil
-    ```
-
-    Modify `sysreptor.nginx` and update the certificate paths in case you have trusted certificates (recommended).
-
-    (Re)Start nginx:
-    ```shell
-    sudo systemctl restart nginx
-    # sudo /etc/init.d/nginx restart
-    ```
+(Re)Start nginx:
+```shell
+sudo systemctl restart nginx
+# sudo /etc/init.d/nginx restart
+```
