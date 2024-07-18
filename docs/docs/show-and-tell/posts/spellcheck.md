@@ -5,4 +5,4 @@ pro: true
 
 # Spellcheck in SysReptor Professional
 
-![Spellcheck](/images/show/spellcheck.gif)
+![Spellcheck](../../images/show/spellcheck.gif)

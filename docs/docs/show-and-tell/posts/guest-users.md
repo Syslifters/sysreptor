@@ -14,4 +14,4 @@ Permissions can be further restricted to:
 
 See also: https://docs.sysreptor.com/setup/user-permissions/#guest
 
-![Guest permissions for subcontractors](/images/show/subcontractors.png)
+![Guest permissions for subcontractors](../../images/show/subcontractors.png)

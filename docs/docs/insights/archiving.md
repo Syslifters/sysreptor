@@ -80,7 +80,7 @@ For example if you use two public keys stored on hardware tokens and if you lose
 
 
 Following diagram outlines the process of archiving and encrypting a pentest project:
-![Archive and encrypt pentest project](/images/archiving-crypto.drawio.png)
+![Archive and encrypt pentest project](../../images/archiving-crypto.drawio.png)
 
 
 1. Export all project data to a tar.gz archive.
@@ -88,7 +88,7 @@ Following diagram outlines the process of archiving and encrypting a pentest pro
    All project data, sections, findings, notes, images, files including the design are exported.
 2. The tar.gz archive is encrypted with 256-bit AES-GCM. A random key is generated for each archive.
    AES-GCM is an authenticated cipher mode (AEAD). Besides encrypting the data, a authentication tag is calculated which is able to detect modifications and corruptions of encrypted data, adding integrity-protection of the ciphertext.
-   The encrypted archive is stored in a file storage ([ARCHIVED_FILE_STORAGE](/setup/configuration#archiving)).
+   The encrypted archive is stored in a file storage ([ARCHIVED_FILE_STORAGE](../../setup/configuration#archiving)).
 3. The AES-key is distributed to multiple users with Shamir Secret Sharing.
 4. The Key Shares are encrypted with randomly generated 256-bit AES-GCM keys. Each Key Share is encrypted with a different key.
    Plain Shamir Secret Sharing does not offer integrity-protection of Key Shares and does not detect if a Key Share used for decryption is valid or not. 
@@ -289,7 +289,7 @@ Users can be marked as global archivers in the user permission settings.
 
 If too few users (below threshold) are project members or global archivers or do not have any public keys, archiving is not possible.
 
-![Archive project](/images/archive-create.png)
+![Archive project](../../images/archive-create.png)
 
 
 ### Restore Archived Projects
@@ -297,8 +297,8 @@ Archived projects are restored when the required number of users decrypt their k
 Users decrypt their key shares separately, independently of each other. 
 When the user threshold is reached, the archived project is restored.
 
-![Restore archived project](/images/archive-restore.png)
-![Restore archived project](/images/archive-restore2.png)
+![Restore archived project](../../images/archive-restore.png)
+![Restore archived project](../../images/archive-restore2.png)
 
 All users should restore their key parts within 3 days.
 When some users decrypted their key shares, but others did not, the archive is reset. 
@@ -327,4 +327,4 @@ Our recommendations:
 * _n = 5_ users: _k = 2_ recommended
 * _n = 10_ users: _k = 3_ or _k = 4_ recommended 
 
-The threshold value is configured globally per instance by the settings [ARCHIVING_THRESHOLD](/setup/configuration#archiving).
+The threshold value is configured globally per instance by the settings [ARCHIVING_THRESHOLD](../../setup/configuration#archiving).

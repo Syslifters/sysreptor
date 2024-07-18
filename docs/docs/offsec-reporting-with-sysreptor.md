@@ -14,7 +14,7 @@ Our free cloud service to write your OffSec OSCP, OSWP, OSEP, OSWA, OSWE, OSED, 
 <br>
 
 ## Prefer self-hosting?
-1. [Install](/setup/installation/){ target="_blank" } SysReptor
+1. [Install](../../setup/installation.md){ target="_blank" } SysReptor
 2. Import all OffSec Designs:
 
 ```shell
@@ -110,10 +110,10 @@ curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemoda
 
 ## Creating an OSCP Exam Report
 <figure markdown>
-  ![OSCP Reporting Procedure](/images/oscp-reporting.gif)
+  ![OSCP Reporting Procedure](../../images/oscp-reporting.gif)
 </figure>
 
 <br><div style="text-align:center">
     Not happy with our solution?<br><br>
-    [:material-tools: Check out alternatives](/oscp-reporting-tools/){ .md-button target="_blank" }
+    [:material-tools: Check out alternatives](oscp-reporting-tools.md){ .md-button target="_blank" }
 </div>

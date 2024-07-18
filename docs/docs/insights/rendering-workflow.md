@@ -7,7 +7,7 @@ PDF rendering is a two-step process.
 First, the VueJS template is rendered to plain HTML with Headless Chromium. In this step report variables (section fields, findings) are embedded in the final HTML.
 Second, the HTML and CSS styles are rendered to a PDF using WeasyPrint.
 
-![Rendering Workflow](/images/render-workflow.drawio.png)
+![Rendering Workflow](../../images/render-workflow.drawio.png)
 
 
 ## Two rendering engines: Chromium and Weasyprint

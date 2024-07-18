@@ -5,7 +5,7 @@ The contents of template fields are copied to a new finding.
 The template searchbar searches in template tags and the titles of all template translations.
 For example you can search for `xss` to find all templates containing the tag `xss` or the word `xss` in the title of any translation (English, German, etc.).
 
-![Create finding from template](/images/create_finding_from_template.png)
+![Create finding from template](../../images/create_finding_from_template.png)
 
 When selecting a template, you can select the language of the template to use.
 By default the language of the pentest project is selected.

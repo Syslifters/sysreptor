@@ -121,9 +121,9 @@
 
 Access your application at http://127.0.0.1:8000/.
 
-We recommend [using a webserver](/setup/webserver) like nginx or Apache to prevent [potential vulnerabilities](/insights/vulnerabilities/) and to enable https.
+We recommend [using a webserver](../../setup/webserver) like Caddy (recommended), nginx or Apache to prevent [potential vulnerabilities](../../insights/vulnerabilities.md) and to enable HTTPS.
 
-Further [configurations](/setup/configuration/) can be edited in `sysreptor/deploy/app.env`.
+Further [configurations](../../setup/configuration.md) can be edited in `sysreptor/deploy/app.env`.
 
 # Upgrade to Professional
 1. Add your license key to `deploy/app.env` (`LICENSE='your_license_key'`)

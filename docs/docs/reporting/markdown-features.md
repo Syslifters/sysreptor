@@ -89,7 +89,7 @@ username='or'1'='1&password=dummy
 ```
 ````
 
-![Code Block Highlighting](/images/md_code_highlight.png)
+![Code Block Highlighting](../../images/md_code_highlight.png)
 
 Syntax highlighting is great for readability, but it only highlights predefined keywords of the specified language.
 However, it does not allow to manually highlight certain text parts to draw the readers attention to it.
@@ -111,7 +111,7 @@ Content-Length: 33
 ```
 ````
 
-![Manual Code Block Highlighting](/images/md_code_manual_highlight.png)
+![Manual Code Block Highlighting](../../images/md_code_manual_highlight.png)
 
 If you need more advanced highlighting, you can place custom HTML code inside the `§§` placeholders e.g. `§<mark><strong><span class="custom-highlight">§Highlight this text.§§`.
 If your code snippet includes `§`-characters, you cannot use them as escape characters for manual highlighting. 
@@ -150,7 +150,7 @@ flowchart TD
 ```
 ````
 
-![Mermaid Diagram Example: Organizational Structure](/images/md_mermaid_diagram_organization.png){width="50%"}
+![Mermaid Diagram Example: Organizational Structure](../../images/md_mermaid_diagram_organization.png){width="50%"}
 
 
 ````md
@@ -169,7 +169,7 @@ sequenceDiagram
 ```
 ````
 
-![Mermaid Diagram Example: Man in the Middle Attack](/images/md_mermaid_diagram_mitm.png)
+![Mermaid Diagram Example: Man in the Middle Attack](../../images/md_mermaid_diagram_mitm.png)
 
 
 ## HTML Attributes

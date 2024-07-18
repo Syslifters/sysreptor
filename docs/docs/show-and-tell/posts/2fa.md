@@ -9,4 +9,4 @@ date: 2023-06-12
 * TOTP (e.g. Google Authenticator)
 * Backup Codes
 
-![Two factor authentication options](/images/show/2fa.png)
+![Two factor authentication options](../../images/show/2fa.png)
