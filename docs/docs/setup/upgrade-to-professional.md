@@ -1,4 +1,4 @@
-## Upgrade to Professional
+# Upgrade to PRO
 
 :octicons-server-24: Self-Hosted
 
