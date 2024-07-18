@@ -5,7 +5,7 @@ Collaborative editing allows multiple pentesters to simultaneously work on the s
 Changes are synchronized in real-time, so you can see what others are typing.
 
 <figure markdown>
-  ![Collaborative Editing](/images/collaborative-editing.png)
+  ![Collaborative Editing](../images/collaborative-editing.png)
   <figcaption>Collaborative Editing</figcaption>
 </figure>
 

@@ -26,7 +26,7 @@ export BIND_PORT="1.1.1.1:8000:8000"  # Bind to dedicated interface
     docker compose -f docker-compose.yml up -d
     ```
 
-Binding SysReptor to a publicly reachable network port exposes the application to untrusted networks without encryption. We recommend setting up a [web server](webserver/).
+Binding SysReptor to a publicly reachable network port exposes the application to untrusted networks without encryption. We recommend setting up a [web server](webserver.md).
 
 Make sure that environment variables are set persistently, e.g. by adding the `export` command to your `~/.profile`.
 

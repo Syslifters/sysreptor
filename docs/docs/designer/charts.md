@@ -18,7 +18,7 @@ Other options:
 The following chart shows the number of vulnerabilities for each risk level (none, low, medium, high, critical) in a bar chart.
 Each risk level bar has a different color.
 
-![](/images/chart_finding_distribution.png)
+![](../images/chart_finding_distribution.png)
 
 ```html
 <figure>
@@ -57,7 +57,7 @@ Each risk level bar has a different color.
 The following chart shows the CVSS score criticality as a doughnut chart with the score inside as number.
 The higher the score, the more of the chart area is filled.
 
-![](/images/chart_cvss.png)
+![](../images/chart_cvss.png)
 
 ```html
 <div class="cvss-chart">

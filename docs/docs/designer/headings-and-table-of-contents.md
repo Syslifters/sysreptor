@@ -305,4 +305,4 @@ You either have to manually specify the nesting level of the referenced heading 
 }
 ```
 
-See [References](/reporting/references) for examples how to reference items.
+See [References](../reporting/references.md) for examples how to reference items.
