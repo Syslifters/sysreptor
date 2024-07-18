@@ -14,7 +14,7 @@ After making changes, go to `sysreptor/deploy` and restart the containers:
     ```
 
 
-:octicons-cloud-24: Cloud · We take care of all configurations. If you want to change anything, please [contact us](../../contact-us.md){ target=_blank }.
+:octicons-cloud-24: Cloud · We take care of all configurations. If you want to change anything, please [contact us](../contact-us.md){ target=_blank }.
 
 ## Avaliable Options
 :octicons-server-24: Self-Hosted

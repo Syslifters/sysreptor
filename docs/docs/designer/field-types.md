@@ -19,9 +19,9 @@ All fields have the following common options:
 
 ## Markdown
 Markdown fields are used to write text blocks with markdown formatting.
-See [Markdown Syntax](/reporting/markdown-features.md) for more information on markdown formatting.
+See [Markdown Syntax](../reporting/markdown-features.md) for more information on markdown formatting.
 
-![Markdown field](../../images/fields_markdown.png)
+![Markdown field](../images/fields_markdown.png)
 
 ```html title="Usage in Vue templates"
 <markdown :text="report.field_markdown" />
@@ -36,7 +36,7 @@ Options:
 * Spellcheck Supported: Enable or disable spellcheck for the field. Spellchecking is only useful for fields containing natural language text (e.g. a sentance, like for `short_description`). It is not useful for fields containing URLs, IDs, codes or other non-natural language text.
 * Pattern: Regex pattern to validate the input. If the input does not match the pattern, a warning message is generated before publishing the report.
 
-![String field](../../images/fields_string.png)
+![String field](../images/fields_string.png)
 
 ```html title="Usage in Vue templates"
 Text: {{ report.field_string }}
@@ -50,7 +50,7 @@ Options:
 
 * CVSS Version: Require a specific CVSS version (CVSS:3.1 or CVSS:4.0) or allow both versions.
 
-![CVSS field](../../images/fields_cvss.png)
+![CVSS field](../images/fields_cvss.png)
 
 
 The field content is a CVSS vector string or "n/a" to indicate that no CVSS vector is applicable.
@@ -72,7 +72,7 @@ Options:
 
 * Choices: A list of options to choose from. Each option has a value and a label. The value is used as the field value and the label is shown in the input form.
 
-![Enum field](../../images/fields_enum.png)
+![Enum field](../images/fields_enum.png)
 
 ```html title="Usage in Vue templates"
 Value: {{ report.field_enum.value }}
@@ -87,7 +87,7 @@ Options:
 
 * Suggestions: A list of predefined texts to choose from.
 
-![Combobox field](../../images/fields_combobox.png)
+![Combobox field](../images/fields_combobox.png)
 
 ```html title="Usage in Vue templates"
 Text: {{ report.field_combobox }}
@@ -98,7 +98,7 @@ Text: {{ report.field_combobox }}
 CWE fields are used to select a CWE (Common Weakness Enumeration).
 This field is similar to an enum field, but provides more information about CWEs and enhanced search capabilities.
 
-![CWE field](../../images/fields_cwe.png)
+![CWE field](../images/fields_cwe.png)
 
 ```html title="Usage in Vue templates"
 ID: {{ report.field_cwe.id }} <!-- 284 -->
@@ -110,9 +110,9 @@ Description: {{ report.field_cwe.description }} <!-- "The software does not rest
 ## Date
 Date fields are used to select a date. A date picker is available in the input form.
 
-![Date field](../../images/fields_date.png)
+![Date field](../images/fields_date.png)
 
-Dates are stored in ISO 8601 format (YYYY-MM-DD). In Vue templates, the date can be formatted using the [`formatDate()` function](../../designer/formatting-utils.md#date-formatting).
+Dates are stored in ISO 8601 format (YYYY-MM-DD). In Vue templates, the date can be formatted using the [`formatDate()` function](../designer/formatting-utils.md#date-formatting).
 
 ```html title="Usage in Vue templates"
 ISO Date: {{ report.field_date }} <!-- 2024-02-13 -->
@@ -123,7 +123,7 @@ Formatted Date: {{ formatDate(report.field_date, 'long', 'en-US') }} <!-- Februa
 ## Number
 Number fields are used to enter a numeric value.
 
-![Number field](../../images/fields_number.png)
+![Number field](../images/fields_number.png)
 
 ```html title="Usage in Vue templates"
 Value: {{ report.field_number }}
@@ -133,7 +133,7 @@ Value: {{ report.field_number }}
 ## Boolean
 Boolean fields are used to select a true or false value. This field is represented as a checkbox in the input form.
 
-![Boolean field](../../images/fields_boolean.png)
+![Boolean field](../images/fields_boolean.png)
 
 This field is useful enable/disable parts of the report rendering or change the behavior of the report template.
 Booleans values are often combined with `v-if` and `v-else` directives in Vue templates to conditionally render parts of the report.
@@ -148,8 +148,8 @@ If: <div v-if="report.field_boolean">...</div><div v-else>...</div>
 User fields are used to select a user from the list of project members.
 In the Vue template the whole user object is available with the user's ID, name, email, phone number, etc.
 
-![User field definition](../../images/fields_user.png)
-![User field form](../../images/fields_user2.png)
+![User field definition](../images/fields_user.png)
+![User field form](../images/fields_user2.png)
 
 ```html title="Usage in Vue templates"
 ID: {{ report.field_user.id }}
@@ -180,7 +180,7 @@ Options:
 
 * Properties: A list of nested fields that are part of the object. Properties can have any data type. Note: Properties are ordered by their ID in the input form.
 
-![Object field](../../images/fields_object.png)
+![Object field](../images/fields_object.png)
 
 ```html title="Usage in Vue templates"
 Property value: {{ report.field_object.property1 }}
@@ -195,7 +195,7 @@ Options:
 
 * Item Type: The data type of the list items. The item type can be any data type, including other lists or objects.
 
-![List field](../../images/fields_list.png)
+![List field](../images/fields_list.png)
 
 ```html title="Usage in Vue templates"
 List length: {{ report.field_list.length }}

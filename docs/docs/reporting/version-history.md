@@ -5,7 +5,7 @@ The Version History allows you to view previous versions of objects (such as Pro
 
 
 <figure markdown>
-  ![Version History of Finding](../../images/finding_history.png){ width="449" }
+  ![Version History of Finding](../images/finding_history.png){ width="449" }
   <figcaption>Version History of Finding</figcaption>
 </figure>
 
@@ -25,7 +25,7 @@ Time-based versions are created with every save operation. A scheduled task then
 If you delete a finding or a note in a project, the version history is preserved. You can access deleted items in the project overview.
 
 <figure markdown>
-  ![Access deleted note](../../images/deleted_note.png){ width="688" }
+  ![Access deleted note](../images/deleted_note.png){ width="688" }
   <figcaption>Access deleted note</figcaption>
 </figure>
 
@@ -39,7 +39,7 @@ If you export an object (e.g. a project) it does not include the version history
 This means that if you export and re-import a project, it will no longer have a version history (but the original project will).
 
 ## Encrypted Archiving
-If projects are [archived](/insights/archiving/){ target=_blank }, the version history is deleted.  
+If projects are [archived](../insights/archiving.md){ target=_blank }, the version history is deleted.  
 
 ## Backups
-[Backups](../../setup/backups.md){ target=_blank } include the version history. If a backup is restored, the version history is either.
+[Backups](../setup/backups.md){ target=_blank } include the version history. If a backup is restored, the version history is either.

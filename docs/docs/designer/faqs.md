@@ -45,9 +45,9 @@
 
 ??? note "Why are my font styles (e.g. italic or bold) not working?"
 
-    We provide some [preinstalled fonts](../../designer/design-guides.md#fonts) that should work out of the box.
+    We provide some [preinstalled fonts](../designer/design-guides.md#fonts) that should work out of the box.
 
-    If you want to use custom font, make sure to [upload and include](../../designer/design-guides.md#custom-fonts) them in your CSS.
+    If you want to use custom font, make sure to [upload and include](../designer/design-guides.md#custom-fonts) them in your CSS.
 
 
 ??? note "Why are my images or markdown not rendered in the report?"
@@ -98,7 +98,7 @@
 
 ??? note "How to highlight parts of code blocks with custom style?"
 
-    Highlighting within code-blocks works with the attribute `highlight-manual` and the marker `§§` ([see also](../../reporting/markdown-features.md#code-blocks)):
+    Highlighting within code-blocks works with the attribute `highlight-manual` and the marker `§§` ([see also](../reporting/markdown-features.md#code-blocks)):
 
     ````
     ```http highlight-manual

@@ -91,7 +91,7 @@ title: SysReptor Pentest Report Creator
 
 </div>
 
-<br><div style="text-align:center">[:fire: Get Started](../../setup/installation.md){ .md-button target="_blank" }</div>
+<br><div style="text-align:center">[:fire: Get Started](setup/installation.md){ .md-button target="_blank" }</div>
 
 <br>
 <div style="text-align:center;font-weight:bold">
@@ -114,11 +114,11 @@ title: SysReptor Pentest Report Creator
 
 <br>
 <figure markdown>
-  ![Create finding from template](../../images/create_finding_from_template.gif)
+  ![Create finding from template](images/create_finding_from_template.gif)
   <figcaption>Create finding from template</figcaption>
 </figure>
 
 <figure markdown>
-  ![Export report as PDF](../../images/export_project.gif)
+  ![Export report as PDF](images/export_project.gif)
   <figcaption>Export report as PDF</figcaption>
 </figure>

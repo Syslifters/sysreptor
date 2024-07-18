@@ -13,7 +13,7 @@ hide:
 
     __Pro tip:__ 🔥 Lowest reporting efforts online!
 
-    [:octicons-arrow-right-24: Sign up and start off](oscp-reporting-with-sysreptor.md)
+    [:octicons-arrow-right-24: Sign up and start off](offsec-reporting-with-sysreptor.md)
 
 -   :material-laptop:{ .lg .middle } __SysReptor Self-Hosted__
 
@@ -22,7 +22,7 @@ hide:
 
     __Pro tip:__ 🔥 Run everything local.
 
-    [:octicons-arrow-right-24: Easy Peasy Lemon Squeezy.](oscp-reporting-with-sysreptor.md#prefer-self-hosting)
+    [:octicons-arrow-right-24: Easy Peasy Lemon Squeezy.](offsec-reporting-with-sysreptor.md#prefer-self-hosting)
 
 -   :material-file-word-box:{ .lg .middle } __Microsoft Word__
 
@@ -61,7 +61,7 @@ hide:
 <br><br>
 ## Creating an OSCP Exam Report with SysReptor
 <figure markdown>
-  ![OSCP Reporting Procedure](../../images/oscp-reporting.gif)
+  ![OSCP Reporting Procedure](images/oscp-reporting.gif)
 </figure>
 
 

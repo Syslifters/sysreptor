@@ -2,7 +2,7 @@
 Templates can contain texts for multiple languages.
 This enabled you to manage all data of a template in one place even when it is translated in multiple languages. 
 
-![Multilingual finding templates](../../images/show/templates_multilanguage.gif)
+![Multilingual finding templates](../images/show/templates_multilanguage.gif)
 
 Each template has a (required) main language and (optionally) multiple translations.
 The main language defines all fields that are required in the template (e.g. title, cvss, description, recommendation, references, etc.).

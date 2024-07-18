@@ -34,15 +34,15 @@ search:
     <span style="color:red">❤</span>
 </div>
 
-<br><div style="text-align:center">[:rocket: Get it for Free](/features-and-pricing){ .md-button }</div>
+<br><div style="text-align:center">[:rocket: Get it for Free](../features-and-pricing.md){ .md-button }</div>
 
 <figure markdown>
-  ![Create finding from template](../../images/create_finding_from_template.gif)
+  ![Create finding from template](../images/create_finding_from_template.gif)
   <figcaption>Create finding from template</figcaption>
 </figure>
 
 <figure markdown>
-  ![Export report as PDF](../../images/export_project.gif)
+  ![Export report as PDF](../images/export_project.gif)
   <figcaption>Export report as PDF</figcaption>
 </figure>
 

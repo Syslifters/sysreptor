@@ -7,7 +7,7 @@ We provide spell checking via the Open Source version of [LanguageTool](https://
 Users can add words to the LanguageTool dictionary.
 
 <figure markdown>
-  ![Add to dictionary](../../images/add_to_dictionary.png){ width="250" }
+  ![Add to dictionary](../images/add_to_dictionary.png){ width="250" }
   <figcaption>Add to dictionary</figcaption>
 </figure>
 
@@ -16,8 +16,8 @@ Per-user dictionaries are not shared between users. When one user adds an unknow
 
 This is an installation-wide setting. It cannot be configured per user or project.
 
-PS: You can also configure the [spell check rules](../../setup/configuration.md#spell-check).
+PS: You can also configure the [spell check rules](../setup/configuration.md#spell-check).
 
-:octicons-cloud-24: Cloud · Please [contact us](../../contact-us.md){ target=_blank } and we will reconfigure your installation.
+:octicons-cloud-24: Cloud · Please [contact us](../contact-us.md){ target=_blank } and we will reconfigure your installation.
 
 :octicons-server-24: Self-Hosted · Set the `SPELLCHECK_DICTIONARY_PER_USER` in your `app.env` to true.

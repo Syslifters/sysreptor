@@ -27,7 +27,7 @@ docker compose run --rm app python3 manage.py backup --key "<aes-key-as-hex>" > 
 
 ### Prerequisites
 Creating backups is a high-privilege operation. Therefore, access to the backup API endpoint is restricted.
-Only [`superusers`](../../setup/user-permissions.md#superuser) [`system`-users](../../setup/user-permissions.md#system) can access this endpoint in combination with a `BACKUP_KEY`.
+Only [`superusers`](../users/user-permissions.md#superuser) [`system`-users](../users/user-permissions.md#system) can access this endpoint in combination with a `BACKUP_KEY`.
 Regular users do not have access to the backup API endpoint.
 
 Additionally, you need to configure a `BACKUP_KEY` as environment variable.
