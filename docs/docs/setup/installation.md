@@ -118,4 +118,3 @@ Access your application at http://127.0.0.1:8000/.
 We recommend [using a webserver](../setup/webserver.md) like Caddy (recommended), nginx or Apache to prevent [potential vulnerabilities](../insights/vulnerabilities.md) and to enable HTTPS.
 
 Further [configurations](../setup/configuration.md) can be edited in `sysreptor/deploy/app.env`.
-
