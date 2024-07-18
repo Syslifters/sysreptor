@@ -1,12 +1,12 @@
-# Prerequisites
-## Server
+## Prerequisites
+### Server
 :octicons-server-24: Self-Hosted
 
 * Ubuntu
 * 4GB RAM
 * Latest [Docker](https://docs.docker.com/engine/install/ubuntu/){ target=_blank } (with docker-compose-plugin)
 
-## Client
+### Client
 :octicons-cloud-24: Cloud · :octicons-server-24: Self-Hosted
 
 * Network connection to the server
@@ -17,14 +17,14 @@
     * Safari
 
 
-# Installation
+## Installation
 :octicons-server-24: Self-Hosted
 
 === "Installation via Script"
     
     Installation via script is the easiest option. You need (official) [Docker](https://docs.docker.com/engine/install/ubuntu/){ target=_blank }  installed.
 
-    Install additional requirements of script installation:
+    Install additional requirements:
     ```shell
     sudo apt update
     sudo apt install -y sed curl openssl uuid-runtime coreutils
@@ -33,16 +33,9 @@
     The user running the installation script must have the permission to use docker.  
     Download and run:
 
-    === "Professional"
-        ```shell
-        export SYSREPTOR_LICENSE='your_license_key' 
-        curl -s https://docs.sysreptor.com/install.sh | bash
-        ```
-
-    === "Community"
-        ```shell
-        curl -s https://docs.sysreptor.com/install.sh | bash
-        ```
+    ```shell
+    curl -s https://docs.sysreptor.com/install.sh | bash
+    ```
 
     The installation script creates a new `sysreptor` directory holding the source code and everything you need.  
     It will build a docker image, create volumes and secrets and bring up your containers.
@@ -68,7 +61,7 @@
     printf "SECRET_KEY=\"$(openssl rand -base64 64 | tr -d '\n=')\"\n"
     ```
 
-    Generate data at rest encryption keys and add to `app.env`:
+    Optional: If you want to encrypt sensitive data at rest (data in the database and uploaded files and images), enerate encryption keys and add to `app.env`:
     ```shell
     KEY_ID=$(uuidgen) && printf "ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32)\", \"cipher\": \"AES-GCM\", \"revoked\": false}]\nDEFAULT_ENCRYPTION_KEY_ID=\"${KEY_ID}\"\n"
     ```
@@ -78,24 +71,26 @@
     LICENSE="<your license key>"
     ```
 
+    Optional: Professional installations need an additional docker container for the spell check. Add `languagetool/docker.yml` to `docker-compose.yml` in the `deploy` directory:
+    ```
+    name: sysreptor
+
+    include:
+      - sysreptor/docker.yml
+      - languagetool/docker.yml
+    ```
+
     Create docker volumes:
     ```shell
     docker volume create sysreptor-db-data
     docker volume create sysreptor-app-data
     ```
 
-    Build Docker image and run container:
-    === "Professional"
-        ```shell
-        docker compose up -d
-        ```
+    Build Docker image and run container from the `deploy` directory:
 
-    === "Community"
-        ```shell
-        docker compose -f docker-compose.yml up -d
-        ```
-
-    `-f docker-compose.yml` is specified for Community only to avoid inclusion of Docker Compose Override. This avoids to run an additional Docker container for spell checking and saves resources.
+    ```shell
+    docker compose up -d
+    ```
 
     Add initial superuser:
     ```shell
@@ -118,14 +113,10 @@
     curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=template
     ```
 
-
 Access your application at http://127.0.0.1:8000/.
 
 We recommend [using a webserver](../setup/webserver.md) like Caddy (recommended), nginx or Apache to prevent [potential vulnerabilities](../insights/vulnerabilities.md) and to enable HTTPS.
 
 Further [configurations](../setup/configuration.md) can be edited in `sysreptor/deploy/app.env`.
 
-# Upgrade to Professional
-1. Add your license key to `deploy/app.env` (`LICENSE='your_license_key'`)
-2. `cd` to `deploy/` and run `docker compose up -d`
-3. Enjoy
+
