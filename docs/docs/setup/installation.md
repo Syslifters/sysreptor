@@ -20,7 +20,7 @@
 ## Installation
 :octicons-server-24: Self-Hosted
 
-=== "Installation via Script"
+=== "Easy Script Installation"
     
     Installation via script is the easiest option. You need (official) [Docker](https://docs.docker.com/engine/install/ubuntu/){ target=_blank }  installed.
 
@@ -61,7 +61,7 @@
     printf "SECRET_KEY=\"$(openssl rand -base64 64 | tr -d '\n=')\"\n"
     ```
 
-    Optional: If you want to encrypt sensitive data at rest (data in the database and uploaded files and images), enerate encryption keys and add to `app.env`:
+    Optional: If you want to encrypt sensitive data at rest (data in the database and uploaded files and images), generate encryption keys and add to `app.env`:
     ```shell
     KEY_ID=$(uuidgen) && printf "ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32)\", \"cipher\": \"AES-GCM\", \"revoked\": false}]\nDEFAULT_ENCRYPTION_KEY_ID=\"${KEY_ID}\"\n"
     ```
@@ -115,8 +115,6 @@
 
 Access your application at http://127.0.0.1:8000/.
 
-We recommend [using a webserver](/setup/webserver) like nginx or Apache to prevent [potential vulnerabilities](/insights/vulnerabilities/) and to enable HTTPS.
+We recommend [using a webserver](../../setup/webserver) like Caddy (recommended), nginx or Apache to prevent [potential vulnerabilities](../../insights/vulnerabilities/) and to enable HTTPS.
 
-Further [configurations](/setup/configuration/) can be edited in `sysreptor/deploy/app.env`.
-
-
+Further [configurations](../../setup/configuration/) can be edited in `sysreptor/deploy/app.env`.
