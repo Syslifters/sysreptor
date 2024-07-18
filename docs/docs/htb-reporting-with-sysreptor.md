@@ -14,7 +14,7 @@ Our free cloud service to write your Hack The Box CPTS, CBBH, and CDSA reports.
 <br>
 
 ## Prefer self-hosting?
-1. [Install](/setup/installation/){ target="_blank" } SysReptor
+1. [Install](setup/installation.md){ target="_blank" } SysReptor
 2. Import all HTB Designs:
 
 ```shell
@@ -56,6 +56,6 @@ curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemoda
 
 ## Creating HTB Report
 <figure markdown>
-  ![CPTS Reporting Procedure](/images/cpts-reporting.gif)
+  ![CPTS Reporting Procedure](images/cpts-reporting.gif)
 </figure>
 

@@ -13,4 +13,4 @@ Our free [lab](https://docs.sysreptor.com/oscp-reporting-with-sysreptor/) for Of
 All available report templates are:  
 OSCP/PWK, OSWP/WNA, OSEP/ETBD, OSWA/WAKL, OSWE/AWAE, OSED/WUMED, OSMR/MCB, OSEE/AWE, OSDA/SODA
 
-![New OffSec reports](/images/show/offsec_reports.png)
+![New OffSec reports](../../images/show/offsec_reports.png)

@@ -2,7 +2,7 @@
 
 :octicons-server-24: Self-Hosted
 
-We recommend to create a [backup](/backups/) of your installation before updating.
+We recommend to create a [backup](backups.md) of your installation before updating.
 
 === "Update via Script (recommended)"
     We deliver the shell script `update.sh` in the `sysreptor` directory.

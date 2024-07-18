@@ -14,12 +14,12 @@ title: Azure Active Directory OIDC Configuration
     - Enter the redirect url of your application in the following format: https://your.url/login/oidc/azure/callback (3)
     - Select type "Web" for redirect url (4)
 
-    ![Register application menu](/images/oidc_1_register.png)
+    ![Register application menu](../images/oidc_1_register.png)
 
 4. In the newly created "App registration", go to the Token configuration submenu and add the following *optional* claim:
     - TokenType: ID
     - Claims: auth_time, login_hint
-    ![Register application menu](/images/oidc_2_claims.png)
+    ![Register application menu](../images/oidc_2_claims.png)
 
 
 5. Next go to the "Certificates & Secrets" submenu and add a new client secret with 24 months validity (this is the maximum) and any description.

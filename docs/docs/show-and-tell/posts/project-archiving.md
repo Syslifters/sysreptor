@@ -9,4 +9,4 @@ Archived projects are encrypted. You can define that they can be decrypted follo
 One pentester alone has no access.  
 And we as the cloud provider? No access to archived projects!
 
-![Archiving Keys](/images/show/archiving.png)
+![Archiving Keys](../../images/show/archiving.png)

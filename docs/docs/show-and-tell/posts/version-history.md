@@ -6,4 +6,4 @@ pro: true
 # Version History
 Access previous versions of your findings.
 
-![Finding history](/images/finding_history.png)
+![Finding history](../../images/finding_history.png)

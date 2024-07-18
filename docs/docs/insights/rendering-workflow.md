@@ -7,7 +7,7 @@ PDF rendering is a two-step process.
 First, the VueJS template is rendered to plain HTML with Headless Chromium. In this step report variables (section fields, findings) are embedded in the final HTML.
 Second, the HTML and CSS styles are rendered to a PDF using WeasyPrint.
 
-![Rendering Workflow](/images/render-workflow.drawio.png)
+![Rendering Workflow](../images/render-workflow.drawio.png)
 
 
 ## Two rendering engines: Chromium and Weasyprint
@@ -68,5 +68,5 @@ It natively supports re-rendering parts of the template and therefore we can eas
 With Vue we can re-render the table of contents and other references until nothing changes anymore.
 
 ## ...and delivers a great ecosystem with additional features
-Besides multi-pass rendering, Vue (and JS) are client-side technologies with a great ecosystem of UI libraries, such as [charts](/designer/charts).
+Besides multi-pass rendering, Vue (and JS) are client-side technologies with a great ecosystem of UI libraries, such as [charts](../designer/charts.md).
 We can reuse these libraries for PDF rendering and take advantage of existing, mature, actively maintained and well-documented UI libraries.

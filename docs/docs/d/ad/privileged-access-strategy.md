@@ -8,7 +8,7 @@ grammarly: false
 
 The Privileged Access strategy is part of an overall strategy for access control in an enterprise. The Enterprise Access Model shows how privileged access can be securely managed in an enterprise. 
 
-![Enterprise Access Model](/images/user-app-control-management-data-workload-planes.png)
+![Enterprise Access Model](../../images/user-app-control-management-data-workload-planes.png)
 Source: https://learn.microsoft.com/en-us/security/compass/media/privileged-access-strategy/user-app-control-management-data-workload-planes.png
 
 The applications and data of an organisation usually store a large part of the company's value. This information, which requires special protection, is held in the **Data/Workload Plane** in the Enterprise Access Model. 

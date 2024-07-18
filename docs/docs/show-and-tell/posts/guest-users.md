@@ -12,6 +12,6 @@ Permissions can be further restricted to:
  * update project settings (default: yes)
  * delete projects (default: yes)
 
-See also: https://docs.sysreptor.com/setup/user-permissions/#guest
+See also: [User Permissions](../../users/user-permissions.md#superuser)
 
-![Guest permissions for subcontractors](/images/show/subcontractors.png)
+![Guest permissions for subcontractors](../../images/show/subcontractors.png)
