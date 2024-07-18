@@ -1,5 +1,4 @@
 name: sysreptor
 
 include:
-  - caddy/docker.yml
   - sysreptor/docker.yml
