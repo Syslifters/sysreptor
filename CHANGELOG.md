@@ -1,5 +1,9 @@
 # Changelog
 
+## Next
+* Set restart policy for redis docker container
+
+
 ## v2024.58 - 2024-07-10
 * Fix API token authentication in community edition
 
