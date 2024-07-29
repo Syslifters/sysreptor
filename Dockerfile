@@ -143,12 +143,9 @@ ENV PYTHONUNBUFFERED=on \
     PATH=$PATH:/root/.local/bin
 WORKDIR /app/api/
 COPY api/pyproject.toml api/poetry.lock /app/api/
-# TODO: setuptools workaround: https://github.com/pypa/setuptools/issues/4519
-RUN pip install --no-cache poetry==1.8.3 "setuptools<72.0" && \
+RUN pip install --no-cache poetry==1.8.3 && \
     poetry config virtualenvs.create false && \
-    poetry export -o /tmp/requirements.txt && \
-    echo "setuptools<72.0" > /tmp/constraints.txt && \
-    pip install -r /tmp/requirements.txt -c /tmp/constraints.txt --no-cache-dir
+    poetry install --no-cache --no-interaction --no-root
 
 # Unprivileged user
 RUN useradd --uid=1000 --create-home --shell=/bin/bash user \
