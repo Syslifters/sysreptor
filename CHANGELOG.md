@@ -2,6 +2,7 @@
 
 ## Next
 * Set restart policy for redis docker container
+* Fix error while sorting finding templates by created/updated date
 
 
 ## v2024.58 - 2024-07-10
