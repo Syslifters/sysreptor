@@ -9,7 +9,8 @@
       If no <v-code tag="span">BACKUP_KEY</v-code> is configured, the backup API endpoint is disabled.
     </p>
     <p v-else>
-      Enter the configured <v-code tag="span">BACKUP_KEY</v-code> to create a backup of this SysReptor instance.
+      Enter the configured <v-code tag="span">BACKUP_KEY</v-code> to create a backup of this SysReptor instance
+      (see <a href="https://docs.sysreptor.com/setup/configuration/#backup-key" target="_blank" class="text-primary">https://docs.sysreptor.com/setup/configuration/#backup-key</a>).
     </p>
 
     <s-password-field
