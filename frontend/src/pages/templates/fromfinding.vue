@@ -20,14 +20,16 @@
               <v-alert type="warning">
                 Ensure that no customer specific data is left in the template before saving.
               </v-alert>
-              <p>
-                Make sure that the following data is removed and replaced with <s-code>TODO</s-code> markers:
-              </p>
-              <ul>
-                <li>Customer specific descriptions</li>
-                <li>URLs, hostnames, system identifiers</li>
-                <li>Screenshots</li>
-              </ul>
+              <div class="mt-4">
+                <p>
+                  Make sure that the following data is removed and replaced with <s-code>TODO</s-code> markers:
+                </p>
+                <ul class="ml-6">
+                  <li>Customer specific descriptions</li>
+                  <li>URLs, hostnames, system identifiers</li>
+                  <li>Screenshots</li>
+                </ul>
+              </div>
             </v-card-text>
 
             <v-card-actions>
@@ -40,7 +42,7 @@
                 :action="() => performCreate()"
                 :confirm="false"
                 button-text="Save"
-                button-icon="mdi-save"
+                button-icon="mdi-content-save"
                 button-color="primary"
                 class="ml-1"
               />
@@ -82,7 +84,7 @@ const _fetchState = useLazyAsyncData(async () => {
   const design = await projectTypeStore.getById(project.project_type);
   templateStore.setDesignFilter({ design, clear: true });
 
-  const template = {
+  const template = reactive({
     id: uuidv4(),
     tags: [],
     translations: [{
@@ -95,13 +97,13 @@ const _fetchState = useLazyAsyncData(async () => {
         return value && !(Array.isArray(value) && value.length === 0) && templateStore.fieldDefinitionList.some(d => d.id === key);
       })),
     }],
-  } as unknown as FindingTemplate;
+  }) as unknown as FindingTemplate;
 
   return {
     project,
     template,
   };
-});
+}, { deep: true });
 const fetchState = computed(() => ({
   status: _fetchState.status.value,
   data: _fetchState.data.value,
