@@ -31,6 +31,7 @@ from reportcreator_api.pentests.models import (
     ProjectType,
     ReportSection,
     UserNotebookPage,
+    collab_context,
 )
 from reportcreator_api.pentests.serializers.notes import (
     ProjectNotebookPageSerializer,
@@ -147,6 +148,7 @@ def export_archive_iter(data, serializer_class: Type[serializers.Serializer], co
 
 @transaction.atomic()
 @history_context(history_change_reason='Imported')
+@collab_context(prevent_events=True)
 def import_archive(archive_file, serializer_classes: list[Type[serializers.Serializer]], context=None):
     context = (context or {}) | {
         'archive': None,
