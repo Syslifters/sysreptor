@@ -31,6 +31,7 @@ services:
       REDIS_PASSWORD: reportcreator
     expose:
       - 6379
+    restart: unless-stopped
   app:
     build: 
       context: ../..

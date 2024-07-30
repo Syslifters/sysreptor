@@ -2,6 +2,10 @@
 
 ## Next
 * Rework install.sh
+* Set restart policy for redis docker container
+* Fix error while sorting finding templates by created/updated date
+* Fix create template from finding changes not saved
+
 
 ## v2024.58 - 2024-07-10
 * Fix API token authentication in community edition

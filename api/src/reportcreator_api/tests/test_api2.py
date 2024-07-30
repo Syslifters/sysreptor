@@ -387,6 +387,24 @@ class TestTemplateApi:
         # All templates
         self.assert_search_result({}, [t_no_match, t_partial_term_match, t_data_en, t_title_data_en_de, t_title_tag_data_de, self.template])
 
+    @pytest.mark.parametrize(('ordering', 'expected'), [
+        ('-created', ['t3', 't2', 't1']),
+        ('created', ['t1', 't2', 't3']),
+        ('updated', ['t1', 't3', 't2']),
+        ('-updated', ['t2', 't3', 't1']),
+        ('risk', ['t2', 't1', 't3']),
+        ('-risk', ['t3', 't1', 't2']),
+    ])
+    def test_template_sort(self, ordering, expected):
+        self.template.delete()
+        create_template(data={'title': 't1', 'severity': CVSSLevel.MEDIUM})
+        t2 = create_template(data={'title': 't2', 'severity': CVSSLevel.INFO})
+        create_template(data={'title': 't3', 'severity': CVSSLevel.HIGH})
+        t2.save()  # Update to change updated field
+
+        res = self.client.get(reverse('findingtemplate-list'), data={'ordering': ordering})
+        assert [t['translations'][0]['data']['title'] for t in res.data['results']] == expected
+
 
 @pytest.mark.django_db()
 class TestNotesApi:
