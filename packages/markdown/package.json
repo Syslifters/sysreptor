@@ -24,7 +24,7 @@
     "lowlight": "^3.1.0",
     "lodash-es": "^4.17.21",
 
-    "@codemirror/view": "~6.28",
+    "@codemirror/view": "~6.29",
     "@codemirror/state": "~6.4",
     "@codemirror/commands": "~6.6",
     "@codemirror/lint": "~6.8",
