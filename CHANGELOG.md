@@ -2,6 +2,7 @@
 
 ## Next
 * Set restart policy for redis docker container
+* Add setting to disable websockets and always use HTTP for collaborative editing
 * Fix error while sorting finding templates by created/updated date
 * Fix create template from finding changes not saved
 

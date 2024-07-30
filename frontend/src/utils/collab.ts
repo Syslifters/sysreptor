@@ -71,6 +71,7 @@ export type CollabConnectionInfo = {
   type: CollabConnectionType;
   connectionState: CollabConnectionState;
   connectionError?: { error: any, message?: string };
+  connectionAttempt?: number;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   send: (msg: CollabEvent) => void;
@@ -492,6 +493,7 @@ export function connectionHttpReadonly<T = any>(storeState: CollabStoreState<T>,
 }
 
 export function useCollab<T = any>(storeState: CollabStoreState<T>) {
+  const apiSettings = useApiSettings();
   const eventBusBeforeApplyRemoteTextChange = useEventBus('collab:beforeApplyRemoteTextChanges');
   const eventBusBeforeApplySetValue = useEventBus('collab:beforeApplySetValue');
 
@@ -530,19 +532,25 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       storeState.connection = {
         type: CollabConnectionType.WEBSOCKET,
         connectionState: CollabConnectionState.CONNECTING,
+        connectionAttempt: 0,
         connect: () => Promise.resolve(),
         disconnect: () => Promise.resolve(),
         send: () => {},
       };
 
       // Try websocket connection first
-      for (let i = 0; i < 2; i++) {
-        try {
-          return await connectTo(connectionWebsocket(storeState, onReceiveMessage));
-        } catch {
-          // Backoff time for reconnecting
-          if (i === 0) {
-            await new Promise(resolve => setTimeout(resolve, 500));
+      if (apiSettings.settings!.features.websockets) {
+        for (let i = 0; i < 2; i++) {
+          try {
+            return await connectTo(connectionWebsocket(storeState, onReceiveMessage));
+          } catch {
+            // Increment reconnection attempt counter
+            storeState.connection!.connectionAttempt = (storeState.connection!.connectionAttempt || 0) + 1;
+
+            // Backoff time for reconnecting
+            if (i === 0) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
           }
         }
       }
