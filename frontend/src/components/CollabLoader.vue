@@ -6,7 +6,7 @@
     <slot />
 
     <v-snackbar
-      v-if="!isFirstLoad"
+      v-if="!isFirstLoad && (props.collab.connection?.value?.connectionAttempt || 0) > 0"
       :model-value="connectionState !== CollabConnectionState.OPEN"
       timeout="-1"
       color="warning"

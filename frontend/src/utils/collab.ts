@@ -71,6 +71,7 @@ export type CollabConnectionInfo = {
   type: CollabConnectionType;
   connectionState: CollabConnectionState;
   connectionError?: { error: any, message?: string };
+  connectionAttempt?: number;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   send: (msg: CollabEvent) => void;
@@ -530,6 +531,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       storeState.connection = {
         type: CollabConnectionType.WEBSOCKET,
         connectionState: CollabConnectionState.CONNECTING,
+        connectionAttempt: 0,
         connect: () => Promise.resolve(),
         disconnect: () => Promise.resolve(),
         send: () => {},
@@ -540,6 +542,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         try {
           return await connectTo(connectionWebsocket(storeState, onReceiveMessage));
         } catch {
+          // Increment reconnection attempt counter
+          storeState.connection!.connectionAttempt = (storeState.connection!.connectionAttempt || 0) + 1;
+
           // Backoff time for reconnecting
           if (i === 0) {
             await new Promise(resolve => setTimeout(resolve, 500));
