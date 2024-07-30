@@ -172,7 +172,8 @@ DATABASES = {
 
 # Websockets
 REDIS_URL = config('REDIS_URL', default=None)
-if REDIS_URL:
+DISABLE_WEBSOCKETS = config('DISABLE_WEBSOCKETS', cast=bool, default=False) or (not REDIS_URL)
+if not DISABLE_WEBSOCKETS:
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',

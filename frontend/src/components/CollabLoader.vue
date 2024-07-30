@@ -36,6 +36,8 @@ defineOptions({
   inheritAttrs: false
 });
 
+const apiSettings = useApiSettings();
+
 const props = defineProps<{
   collab: {
     connection: ComputedRef<CollabConnectionInfo|undefined>;
@@ -53,7 +55,7 @@ watch(connectionState, async (newState, oldState) => {
     reconnectAttempted.value = 0;
 
     // Show warning if HTTP fallback was used
-    if (props.collab.connection.value?.type === CollabConnectionType.HTTP_FALLBACK && !warningHttpFallbackShown.value) {
+    if (apiSettings.settings!.features.websockets && props.collab.connection.value?.type === CollabConnectionType.HTTP_FALLBACK && !warningHttpFallbackShown.value) {
       warningHttpFallbackShown.value = true;
       warningToast('Could not establish WebSocket connection, falling back to HTTP. Some features may be limited.');
     }

@@ -95,6 +95,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
                 'archiving': license.is_professional(),
                 'permissions': license.is_professional(),
                 'backup': bool(settings.BACKUP_KEY and license.is_professional()),
+                'websockets': not settings.DISABLE_WEBSOCKETS,
             },
             'guest_permissions': {
                 'import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,
