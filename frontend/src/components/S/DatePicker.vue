@@ -27,6 +27,7 @@
         :disabled="props.disabled || props.disabled"
         :min="props.minDate"
         view-mode="month"
+        :first-day-of-week="1"
         show-adjacent-months
         show-week
       />

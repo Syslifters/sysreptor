@@ -14,7 +14,7 @@
   "dependencies": {
     "nuxt": "~3.12",
     "vuetify": "~3.6",
-    "vuetify-nuxt-module": "^0.14.0",
+    "vuetify-nuxt-module": "^0.16.0",
     "@mdi/font": "^7.3.67",
     "@pinia/nuxt": "^0.5.1",
     "@pinia-plugin-persistedstate/nuxt": "^1.2.0",
@@ -50,7 +50,7 @@
     "sass": "^1.69.3",
     "eslint": "^8.51.0",
     "license-checker-rseidelsohn": "^4.2.8",
-    "vitest": "^1.2.1",
+    "vitest": "^2.0.4",
     "happy-dom": "^14.10.2",
     "vue-tsc": "^2.0.11"
   },

@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@codemirror/autocomplete 6.16.3
+@codemirror/autocomplete 6.17.0
 MIT
 MIT License
 
@@ -248,7 +248,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/merge 6.6.3
+@codemirror/merge 6.6.5
 MIT
 MIT License
 
@@ -298,7 +298,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/view 6.28.3
+@codemirror/view 6.29.1
 MIT
 MIT License
 
@@ -466,7 +466,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/lr 1.4.1
+@lezer/lr 1.4.2
 MIT
 MIT License
 
@@ -1571,7 +1571,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-cytoscape 3.30.0
+cytoscape 3.30.1
 MIT
 Copyright (c) 2016-2024, The Cytoscape Consortium.
 
@@ -2339,7 +2339,7 @@ const zoom = d3.zoom().on('zoom', (zoomEvent) => {
 ```
 
 
-dayjs 1.11.11
+dayjs 1.11.12
 MIT
 MIT License
 
@@ -2364,7 +2364,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-debug 4.3.5
+debug 4.3.6
 MIT
 (The MIT License)
 
@@ -2517,7 +2517,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-dompurify 3.1.5
+dompurify 3.1.6
 (MPL-2.0 OR Apache-2.0)
 DOMPurify
 Copyright 2024 Dr.-Ing. Mario Heiderich, Cure53
@@ -3539,7 +3539,7 @@ THE SOFTWARE.
 
 
 
-glob 10.4.2
+glob 10.4.5
 ISC
 The ISC License
 
@@ -4046,6 +4046,39 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+highlight.js 11.10.0
+BSD-3-Clause
+BSD 3-Clause License
+
+Copyright (c) 2006, Ivan Sagalaev.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
 highlight.js 11.9.0
 BSD-3-Clause
 BSD 3-Clause License
@@ -4233,7 +4266,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-is-core-module 2.14.0
+is-core-module 2.15.0
 MIT
 The MIT License (MIT)
 
@@ -4353,7 +4386,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-jackspeak 3.4.0
+jackspeak 3.4.3
 BlueOak-1.0.0
 # Blue Oak Model License
 
@@ -4723,7 +4756,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-lru-cache 10.3.0
+lru-cache 10.4.3
 ISC
 The ISC License
 
@@ -5376,7 +5409,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-micromark-extension-gfm-autolink-literal 2.0.0
+micromark-extension-gfm-autolink-literal 2.1.0
 MIT
 (The MIT License)
 
@@ -5402,7 +5435,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-micromark-extension-gfm-footnote 2.0.0
+micromark-extension-gfm-footnote 2.1.0
 MIT
 (The MIT License)
 
@@ -5428,7 +5461,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-micromark-extension-gfm-strikethrough 2.0.0
+micromark-extension-gfm-strikethrough 2.1.0
 MIT
 (The MIT License)
 
@@ -5454,7 +5487,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-micromark-extension-gfm-table 2.0.0
+micromark-extension-gfm-table 2.1.0
 MIT
 (The MIT License)
 
@@ -5506,7 +5539,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-micromark-extension-gfm-task-list-item 2.0.1
+micromark-extension-gfm-task-list-item 2.1.0
 MIT
 (The MIT License)
 
@@ -16358,7 +16391,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-semver 7.6.2
+semver 7.6.3
 ISC
 The ISC License
 
@@ -17512,7 +17545,7 @@ Apache-2.0
    limitations under the License.
 
 
-vfile-location 5.0.2
+vfile-location 5.0.3
 MIT
 (The MIT License)
 
@@ -17564,7 +17597,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-vfile 6.0.1
+vfile 6.0.2
 MIT
 (The MIT License)
 
