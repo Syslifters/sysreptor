@@ -14,7 +14,7 @@ We recommend to create a [backup](backups.md) of your installation before updati
 
     Your current SysReptor directory will be renamed for backup purposes. The script will download the newer version and place it into the directory where the old version was.
 
-    It will then copy your `app.env` to the right location of your newer version. The new docker images are build and launched.
+    It will then copy your `app.env` and the `docker-compose.yml` to the `deploy` directory of your newer version. The new docker images are build and launched.
 
     ```shell title="Run update script:"
     bash sysreptor/update.sh
@@ -27,14 +27,11 @@ We recommend to create a [backup](backups.md) of your installation before updati
     tar xzf sysreptor.tar.gz
     ```
 
-    Copy `deploy/app.env` from your old installation to the new installation.
+    Copy `deploy/app.env` and `deploy/docker-compose.yml` from your old installation to the new installation.
 
     `cd` to `sysreptor/deploy`. Then, build Docker images and launch containers:
-    ```shell title="Community:"
-    docker compose -f docker-compose.yml up -d --build
-    ```
 
-    ```shell title="Professional:"
+    ```shell
     docker compose up -d --build
     ```
     
