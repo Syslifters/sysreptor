@@ -173,7 +173,7 @@ release_job_github:
     - docker cp $CONTAINER_ID:/app/api/static api/src/
     - docker cp $CONTAINER_ID:/app/api/frontend/index.html api/src/frontend/index.html
     - sed -i "/^src\/static$/d" api/.gitignore
-    - sed -i "s/target:\ api/target:\ api-prebuilt/g" deploy/docker-compose.yml
+    - sed -i "s/target:\ api/target:\ api-prebuilt/g" deploy/sysreptor/docker-compose.yml
     # Copy pre-built rendering files
     - docker cp $CONTAINER_ID:/app/rendering/dist rendering/dist
     - sed -i "/^dist$/d" rendering/.gitignore
