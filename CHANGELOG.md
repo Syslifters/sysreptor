@@ -1,5 +1,10 @@
 # Changelog
 
+## v2024.61 - 2024-07-31
+* Fix error in update.sh script for languagetool and caddy updates
+* Fix prebuilt frontend JS files not used in docker image
+
+
 ## v2024.60 - 2024-07-31
 * Rework install.sh
 * Set restart policy for redis docker container
