@@ -103,11 +103,15 @@ mkdir "$sysreptor_directory"
 tar xzf sysreptor.tar.gz -C "$sysreptor_directory" --strip-components=1
 echo "Copy your app.env..."
 cp "${backup_copy}/deploy/app.env" "${sysreptor_directory}/deploy/app.env"
-if grep "sysreptor/docker.yml" "${backup_copy}/deploy/docker-compose.yml"
+if grep "sysreptor/docker-compose.yml" "${backup_copy}/deploy/docker-compose.yml"
 then
     # Copy docker-compose.yml if it is not the old version (2024.58 and earlier)
     echo "Copy your docker-compose.yml..."
     cp "${backup_copy}/deploy/docker-compose.yml" "${sysreptor_directory}/deploy/docker-compose.yml"
+fi
+if [ -f "${backup_copy}/deploy/caddy/Caddyfile" ]; then
+    echo "Copying Caddyfile..."
+    cp "${backup_copy}/deploy/caddy/Caddyfile" "${sysreptor_directory}/deploy/caddy/Caddyfile"
 fi
 echo "Build and launch SysReptor via docker compose..."
 echo "We are downloading and installing all dependencies."
@@ -118,7 +122,7 @@ rm "${sysreptor_directory}/deploy/docker-compose.override.yml" 2>/dev/null || tr
 if grep "^LICENSE=" "${sysreptor_directory}/deploy/app.env"
 then
     # This if-statement will be removed July 2025
-    include_languagetool="  - languagetool/docker.yml"
+    include_languagetool="  - languagetool/docker-compose.yml"
     if ! grep -q "^$include_languagetool" "${sysreptor_directory}/deploy/docker-compose.yml"
     then
         # Include languagetool in docker-compose.yml
