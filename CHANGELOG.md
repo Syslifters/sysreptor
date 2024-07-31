@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## v2024.60 - 2024-07-31
 * Rework install.sh
 * Set restart policy for redis docker container
 * Add setting to disable websockets and always use HTTP for collaborative editing
