@@ -62,6 +62,7 @@ nav:
           - PushProject: cli/projects-and-templates/pushproject.md
           - DeleteProjects: cli/projects-and-templates/deleteprojects.md
           - Finding: cli/projects-and-templates/finding.md
+          - FindingFromTemplate: cli/projects-and-templates/findingfromtemplate.md
           - ExportFindings: cli/projects-and-templates/exportfindings.md
           - DeleteFindings: cli/projects-and-templates/deletefindings.md
           - Template: cli/projects-and-templates/template.md
