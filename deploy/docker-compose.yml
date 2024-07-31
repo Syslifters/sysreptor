@@ -1,4 +1,4 @@
 name: sysreptor
 
 include:
-  - sysreptor/docker.yml
+  - sysreptor/docker-compose.yml

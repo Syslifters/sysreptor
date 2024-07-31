@@ -2,4 +2,4 @@
 # It makes sure that Docker starts the languagetool container for Pro customers
 # We will delete this file in July 2025
 include:
-  - languagetool/docker.yml
+  - languagetool/docker-compose.yml

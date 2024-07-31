@@ -127,7 +127,7 @@ else
         sed -i'' -e "s#.*LICENSE=.*#LICENSE='$SYSREPTOR_LICENSE'#" app.env
         
         docker_compose_file="docker-compose.yml"
-        include_languagetool="  - languagetool/docker.yml"
+        include_languagetool="  - languagetool/docker-compose.yml"
         if ! grep -q "^$include_languagetool" "$docker_compose_file"
         then
             echo "Enable languagetool..."

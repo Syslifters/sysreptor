@@ -71,13 +71,13 @@
     LICENSE="<your license key>"
     ```
 
-    Optional: Professional installations need an additional docker container for the spell check. Add `languagetool/docker.yml` to `docker-compose.yml` in the `deploy` directory:
+    Optional: Professional installations need an additional docker container for the spell check. Add `languagetool/docker-compose.yml` to `docker-compose.yml` in the `deploy` directory:
     ```
     name: sysreptor
 
     include:
-      - sysreptor/docker.yml
-      - languagetool/docker.yml
+      - sysreptor/docker-compose.yml
+      - languagetool/docker-compose.yml
     ```
 
     Create docker volumes:

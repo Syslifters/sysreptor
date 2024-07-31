@@ -67,7 +67,7 @@ reverse_proxy http://127.0.0.1:8000""" > Caddyfile
     echo "Setting up your web server..."
 
     docker_compose_file="../docker-compose.yml"
-    include_caddy="  - caddy/docker.yml"
+    include_caddy="  - caddy/docker-compose.yml"
     if ! grep -q "^$include_caddy" "$docker_compose_file"
     then
         # Include Caddy in docker-compose.yml
