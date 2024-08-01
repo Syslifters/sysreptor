@@ -32,7 +32,7 @@
         >
           <v-list-item-title>
             <span>{{ match.previewText.slice(0, match.previewFrom) }}</span>
-            <span class="highlight-match">{{ match.previewText.slice(match.previewFrom, match.previewTo) }}</span>
+            <span class="bg-search-match">{{ match.previewText.slice(match.previewFrom, match.previewTo) }}</span>
             <span>{{ match.previewText.slice(match.previewTo) }}</span>
           </v-list-item-title>
         </v-list-item>
@@ -105,10 +105,6 @@ function navigateToMatch(event: Event, note: NoteBase, match: SearchResultMatch)
   padding-left: 1rem;
 }
 
-:deep(.v-list-item-subtitle) {
-  font-size: x-small !important;
-}
-
 .match-list {
   padding-left: 2rem;
   padding-top: 0;
@@ -123,10 +119,5 @@ function navigateToMatch(event: Event, note: NoteBase, match: SearchResultMatch)
       font-size: small;
     }
   }
-}
-.highlight-match {
-  // TODO: define highlight color
-  background-color: yellow;
-  color: black;
 }
 </style>

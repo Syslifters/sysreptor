@@ -154,16 +154,16 @@ function hideSearch() {
   * [x] enable/disable search
   * [x] search input field
   * [ ] keyboard shortcut for search (ctrl+shift+f)
-* [ ] NotesSearchResultList
+* [x] NotesSearchResultList
   * [x] filter notes matching search term: filter title and text (case insensitive)
   * [x] show (nested?) list of matching notes
   * [x] show words surrounding matching search term (similar to VSCode)
   * [x] truncate words that are too long
   * [x] jump to file (+ search result in MD fields) on click
-* [ ] Markdown Editor
+* [x] Markdown Editor
   * [x] highlight search results
   * [x] do not show CodeMirror search panel
-  * [ ] define search highlight styles (for MDE and SearchResultList)
+  * [x] define search highlight styles (for MDE and SearchResultList)
 * [ ] pages
   * [ ] project notes
   * [ ] personal notes
