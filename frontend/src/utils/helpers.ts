@@ -17,6 +17,33 @@ export function computedThrottled<T>(fn: () => T, options: { throttle: number })
   return valueThrottled;
 }
 
+export function useKeyboardShortcut(shortcut: string, handler: (event: KeyboardEvent) => void) {
+  function onKeyDown(event: KeyboardEvent) {
+    const keys = shortcut.split('+');
+    for (const k of keys) {
+      if (!(
+        (k === 'ctrl' && event.ctrlKey) ||
+        (k === 'alt' && event.altKey) ||
+        (k === 'shift' && event.shiftKey) ||
+        (k === 'meta' && event.metaKey) ||
+        (k === event.key.toLowerCase())
+      )) {
+        return;
+      }
+    }
+
+    event.preventDefault();
+    handler(event);
+  }
+
+  onMounted(() => {
+    window.addEventListener('keydown', onKeyDown);
+  });
+  onBeforeUnmount(() => {
+    window.removeEventListener('keydown', onKeyDown);
+  });
+}
+
 function* positions(node: any, isLineStart = true): Generator<{ node: Node, offset: number, text: string }> {
   let child = node.firstChild;
   let offset = 0;

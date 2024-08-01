@@ -129,6 +129,7 @@ function hideSearch() {
   search.value = '';
 }
 
+useKeyboardShortcut('ctrl+shift+f', () => showSearch());
 </script>
 
 <style lang="scss" scoped>
@@ -150,10 +151,10 @@ function hideSearch() {
 </style>
 
 <!-- TODO: search notes
-* [ ] NotesMenu
+* [x] NotesMenu
   * [x] enable/disable search
   * [x] search input field
-  * [ ] keyboard shortcut for search (ctrl+shift+f)
+  * [x] keyboard shortcut for search (ctrl+shift+f)
 * [x] NotesSearchResultList
   * [x] filter notes matching search term: filter title and text (case insensitive)
   * [x] show (nested?) list of matching notes

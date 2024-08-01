@@ -147,25 +147,12 @@ async function performAction() {
 }
 
 if (props.keyboardShortcut) {
-  function onKeyDown(event: KeyboardEvent) {
-    if (props.keyboardShortcut &&
-        ((props.keyboardShortcut.startsWith('ctrl+') && event.ctrlKey && event.key === props.keyboardShortcut.substring(5)) ||
-         (props.keyboardShortcut === event.key))
-    ) {
-      event.preventDefault();
-      if (props.confirm) {
-        confirmDialogVisible.value = true;
-      } else {
-        performAction();
-      }
+  useKeyboardShortcut(props.keyboardShortcut, () => {
+    if (props.confirm) {
+      confirmDialogVisible.value = true;
+    } else {
+      performAction();
     }
-  }
-
-  onMounted(() => {
-    window.addEventListener('keydown', onKeyDown);
-  });
-  onBeforeUnmount(() => {
-    window.removeEventListener('keydown', onKeyDown);
   });
 }
 
