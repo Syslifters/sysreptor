@@ -11,7 +11,7 @@
     <template #item="{ element: item }">
       <div>
         <v-list-item
-          :to="toPrefix ? (props.toPrefix + item.note.id + '/') : undefined"
+          :to="props.toPrefix ? (props.toPrefix + item.note.id + '/') : undefined"
           @click="emit('update:selected', item.note)"
           link
           :active="props.selected ? props.selected.id === item.note.id : (props.toPrefix ? router.currentRoute.value.path.startsWith(props.toPrefix + item.note.id + '/') : undefined)"

@@ -3,6 +3,7 @@ export { EditorView, ViewUpdate, tooltips, scrollPastEnd, keymap, lineNumbers, d
 export { history, historyKeymap, defaultKeymap, indentWithTab, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 export { forceLinting, setDiagnostics } from '@codemirror/lint';
 export { closeBrackets } from "@codemirror/autocomplete";
+export { search, setSearchQuery, openSearchPanel, closeSearchPanel, searchPanelOpen, SearchQuery, SearchCursor } from '@codemirror/search'
 export { MergeView } from '@codemirror/merge';
 export { syntaxHighlighting, indentUnit } from '@codemirror/language';
 export { vueLanguage } from '@codemirror/lang-vue';

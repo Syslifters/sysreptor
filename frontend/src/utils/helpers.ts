@@ -17,6 +17,39 @@ export function computedThrottled<T>(fn: () => T, options: { throttle: number })
   return valueThrottled;
 }
 
+function* positions(node: any, isLineStart = true): Generator<{ node: Node, offset: number, text: string }> {
+  let child = node.firstChild;
+  let offset = 0;
+  yield { node, offset, text: (!isLineStart && node.tagName === 'DIV') ? '\n' : '' };
+  while (child != null) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      yield { node: child, offset: 0 / 0, text: child.data };
+      isLineStart = false;
+    } else {
+      isLineStart = yield * positions(child, isLineStart);
+    }
+    child = child.nextSibling;
+    offset += 1;
+    yield { node, offset, text: '' };
+  }
+  return isLineStart;
+}
+
+function getCaretPosition(contenteditable: HTMLElement, textPosition: number) {
+  let textOffset = 0;
+  let lastNode = null;
+  let lastOffset = 0;
+  for (const p of positions(contenteditable)) {
+    if (p.text.length > textPosition - textOffset) {
+      return { node: p.node, offset: p.node.nodeType === Node.TEXT_NODE ? textPosition - textOffset : p.offset };
+    }
+    textOffset += p.text.length;
+    lastNode = p.node;
+    lastOffset = p.node.nodeType === Node.TEXT_NODE ? p.text.length : p.offset;
+  }
+  return { node: lastNode!, offset: lastOffset };
+}
+
 export function focusElement(id?: string, options?: { scroll?: ScrollIntoViewOptions }) {
   if (id?.startsWith('#')) {
     id = id.slice(1);
@@ -24,12 +57,28 @@ export function focusElement(id?: string, options?: { scroll?: ScrollIntoViewOpt
   if (!id) {
     return;
   }
+  const idParts = id.split(':');
+  id = idParts[0]!;
+  const idParams = new URLSearchParams(idParts.slice(1).join(':'));
 
   const elField = document.getElementById(id);
   const elFieldInput = (elField?.querySelector('*[contenteditable]') || elField?.querySelector('input')) as HTMLInputElement|undefined;
 
   if (elField && elFieldInput) {
-    if (options?.scroll) {
+    const offset = Number.parseInt(idParams.get('offset') || '');
+    if (!isNaN(offset) && offset >= 0) {
+      const { node, offset: textOffset } = getCaretPosition(elFieldInput, offset);
+      const range = document.createRange();
+      range.setStart(node, textOffset);
+      range.collapse(true);
+
+      node.parentElement?.scrollIntoView(options?.scroll);
+      elFieldInput.focus({ preventScroll: true });
+      
+      const selection = document.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range)
+    } else if (options?.scroll) {
       elField.scrollIntoView(options.scroll);
       elField.focus({ preventScroll: true });
     } else {
