@@ -3,6 +3,7 @@
     <template #menu>
       <notes-menu
         title="Personal Notes"
+        v-model:search="notesCollab.search.value"
         :create-note="createNote"
         :perform-import="performImport"
         :export-url="`/api/v1/pentestusers/self/notes/export/`"
@@ -16,6 +17,12 @@
           :disabled="notesCollab.readonly.value"
           to-prefix="/notes/personal/"
         />
+        <template #search>
+          <notes-search-result-list
+            :result-group="noteSearchResults"
+            to-prefix="/notes/personal/"
+          />
+        </template>
       </notes-menu>
     </template>
 
@@ -41,9 +48,10 @@ useHeadExtended({
   breadcrumbs: () => [{ title: 'Personal Notes', to: '/notes/personal/' }],
 });
 
-const noteGroups = computed(() => userNotesStore.noteGroups);
-
 const notesCollab = userNotesStore.useNotesCollab();
+const noteGroups = computed(() => userNotesStore.noteGroups);
+const noteSearchResults = computed(() => searchNotes(userNotesStore.notes, notesCollab.collabProps.value.search));
+
 onMounted(async () => {
   await notesCollab.connect();
   collabAwarenessSendNavigate();

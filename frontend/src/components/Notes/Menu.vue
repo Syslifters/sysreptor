@@ -149,23 +149,3 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
   width: vuetify.$list-item-icon-margin-start;
 }
 </style>
-
-<!-- TODO: search notes
-* [x] NotesMenu
-  * [x] enable/disable search
-  * [x] search input field
-  * [x] keyboard shortcut for search (ctrl+shift+f)
-* [x] NotesSearchResultList
-  * [x] filter notes matching search term: filter title and text (case insensitive)
-  * [x] show (nested?) list of matching notes
-  * [x] show words surrounding matching search term (similar to VSCode)
-  * [x] truncate words that are too long
-  * [x] jump to file (+ search result in MD fields) on click
-* [x] Markdown Editor
-  * [x] highlight search results
-  * [x] do not show CodeMirror search panel
-  * [x] define search highlight styles (for MDE and SearchResultList)
-* [ ] pages
-  * [ ] project notes
-  * [ ] personal notes
--->
