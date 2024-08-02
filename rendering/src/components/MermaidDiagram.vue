@@ -39,13 +39,17 @@ const canvasRef = ref();
 
 const vm = getCurrentInstance();
 
-onMounted(async () => {
+function unescapeCode(code) {
+  return code.replaceAll('&#x7B;', '{').replaceAll('&#x7D;', '}');
+}
+
+onMounted(async () => { 
   // Ensure custom fonts are loaded
   await document.fonts.ready;
 
   // Get meramid code from slot
   const codeContainer = codeContainerRef.value;
-  const mermaidCode = props.text || codeContainer.innerText;
+  const mermaidCode = props.text || unescapeCode(codeContainer.innerText);
 
   // Render mermaid code to SVG
   let svg = null;
