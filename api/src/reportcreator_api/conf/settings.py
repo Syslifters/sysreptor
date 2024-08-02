@@ -12,11 +12,13 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 import itertools
 import json
+import socket
 import uuid
 from datetime import timedelta
 from pathlib import Path
 
 import fido2.features
+import redis
 from decouple import Csv, config
 from kombu import Queue
 
@@ -178,7 +180,17 @@ if not DISABLE_WEBSOCKETS:
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
             'CONFIG': {
-                'hosts': [REDIS_URL],
+                'hosts': [{
+                    'address': REDIS_URL,
+                    'socket_keepalive': True,
+                    'socket_keepalive_options': {
+                        socket.TCP_KEEPIDLE: 2,
+                        socket.TCP_KEEPINTVL: 3,
+                        socket.TCP_KEEPCNT: 5,
+                    },
+                    'retry_on_timeout': True,
+                    'retry_on_error': [redis.ConnectionError],
+                }],
             },
         },
     }
