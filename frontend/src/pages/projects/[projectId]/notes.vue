@@ -3,6 +3,7 @@
     <template #menu>
       <notes-menu
         title="Notes"
+        v-model:search="notesCollab.search.value"
         :create-note="createNote"
         :perform-import="performImport"
         :export-url="`/api/v1/pentestprojects/${project.id}/notes/export/`"
@@ -17,6 +18,12 @@
           :to-prefix="`/projects/${$route.params.projectId}/notes/`"
           :collab="notesCollab.collabProps.value"
         />
+        <template #search>
+          <notes-search-result-list
+            :result-group="noteSearchResults"
+            :to-prefix="`/projects/${$route.params.projectId}/notes/`"
+          />
+        </template>
       </notes-menu>
     </template>
 
@@ -41,9 +48,10 @@ definePageMeta({
 });
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
-const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
-
 const notesCollab = projectStore.useNotesCollab({ project: project.value });
+const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
+const noteSearchResults = computed(() => searchNotes(projectStore.notes(project.value.id), notesCollab.collabProps.value.search));
+
 onMounted(async () => {
   await notesCollab.connect();
   collabAwarenessSendNavigate();

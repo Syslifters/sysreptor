@@ -38,6 +38,13 @@ body {
 }
 
 
+// CodeMirror overrides
+.cm-searchMatch {
+  background-color: rgb(var(--v-theme-search-match)) !important;
+  color: rgb(var(--v-theme-on-search-match)) !important;
+}
+
+
 // Utilities
 .w-100 {
   width: 100% !important;

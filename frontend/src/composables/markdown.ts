@@ -15,6 +15,12 @@ import {
   commentsExtension, setComments,
   type Extension,
   SelectionRange,
+  search,
+  setSearchQuery,
+  SearchQuery,
+  openSearchPanel,
+  closeSearchPanel,
+  searchPanelOpen,
 } from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '@/utils/types';
 
@@ -207,6 +213,15 @@ export function useMarkdownEditorBase(options: {
       extensions: [
         ...options.extensions,
         history(),
+        search({ 
+          literal: true,
+          createPanel: () => {
+            // Hidden search panel
+            const dom = document.createElement('div');
+            dom.style.display = 'none';
+            return { dom };
+          },
+        }),
         keymap.of([...defaultKeymap, ...historyKeymap]),
         tooltips({ parent: document.body }),
         EditorView.domEventHandlers({
@@ -379,11 +394,21 @@ export function useMarkdownEditorBase(options: {
     const comments = options.props.value.collab.comments
       .filter(c => c.collabPath === options.props.value.collab!.path && c.text_range)
       .map(c => ({ id: c.id, text_range: SelectionRange.fromJSON({ anchor: c.text_range!.from, head: c.text_range!.to }) }));
+    
+    if (options.props.value.collab.search && !searchPanelOpen(options.editorView.value.state)) {
+      openSearchPanel(options.editorView.value);
+    } else if (!options.props.value.collab.search && searchPanelOpen(options.editorView.value.state)) {
+      closeSearchPanel(options.editorView.value);
+    }
 
     options.editorView.value.dispatch({
       effects: [
         setRemoteClients.of(remoteClients),
         setComments.of(comments),
+        setSearchQuery.of(new SearchQuery({
+          search: options.props.value.collab.search || '',
+          literal: true,
+        })),
       ]
     })
   });

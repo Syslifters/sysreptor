@@ -22,6 +22,9 @@ const themeCommon = {
     success: sysreptorGreen,
     warning: '#FFC107',
     'on-warning': themeLightTextColor,
+
+    'search-match': '#ffff00',
+    'on-search-match': themeLightTextColor,
   },
   variables: {
     'high-emphasis-opacity': 0.9,
@@ -44,8 +47,6 @@ const themeLight = merge({}, themeCommon, {
     'on-header': themeLightTextColor,
     drawer: '#ededed',
     'on-drawer': themeLightTextColor,
-
-    'codemirror-selection': '#ADD6FF',
   },
   variables: {
     'border-color': themeLightTextColor,
