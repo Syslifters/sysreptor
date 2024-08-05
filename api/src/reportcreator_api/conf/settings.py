@@ -314,12 +314,12 @@ STATICFILES_DIRS = [
 UPLOADED_FILE_STORAGE = config('UPLOADED_FILE_STORAGE', default='filesystem')
 UPLOADED_FILE_STORAGE = {
     'filesystem': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
-    's3': 'reportcreator_api.utils.storages.EncryptedS3SystemStorage',
+    's3': 'reportcreator_api.utils.storages.EncryptedS3Storage',
 }.get(UPLOADED_FILE_STORAGE, UPLOADED_FILE_STORAGE)
 ARCHIVED_FILE_STORAGE = config('ARCHIVED_FILE_STORAGE', default='filesystem')
 ARCHIVED_FILE_STORAGE = {
      'filesystem': 'reportcreator_api.utils.storages.UnencryptedFileSystemStorage',
-    's3': 'reportcreator_api.utils.storages.UnencryptedS3SystemStorage',
+    's3': 'reportcreator_api.utils.storages.UnencryptedS3Storage',
 }.get(ARCHIVED_FILE_STORAGE, ARCHIVED_FILE_STORAGE)
 
 STORAGES = {
