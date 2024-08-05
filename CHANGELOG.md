@@ -1,5 +1,12 @@
 # Changelog
 
+## Next
+* Allow searching notes in frontend
+* Retry redis commands on connection errors
+* Fix mermaid init blocks not applied in PDF rendering
+* Fix class paths of S3 storage backends
+
+
 ## v2024.61 - 2024-07-31
 * Fix error in update.sh script for languagetool and caddy updates
 * Fix prebuilt frontend JS files not used in docker image
