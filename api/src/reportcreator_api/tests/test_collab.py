@@ -12,6 +12,7 @@ from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_K
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
 from django.core.serializers.json import DjangoJSONEncoder
+from django.test import override_settings
 from django.urls import reverse
 from django.utils.module_loading import import_string
 
@@ -946,16 +947,20 @@ class TestConsumerPermissions:
     @pytest.mark.parametrize(('user_name', 'project_name', 'expected_read', 'expected_write'), [
         ('member', 'project', True, True),
         ('admin', 'project', True, True),
+        ('guest', 'project', True, False),
         ('unauthorized', 'project', False, False),
         ('anonymous', 'project', False, False),
         ('member', 'readonly', True, False),
         ('admin', 'readonly', True, False),
+        ('guest', 'readonly', True, False),
     ])
     async def test_project_permissions(self, user_name, project_name, expected_read, expected_write):
         def setup_db():
             user_member = create_user()
+            user_guest = create_user(is_guest=True)
             users = {
                 'member': user_member,
+                'guest': user_guest,
                 'admin': create_user(is_superuser=True),
                 'unauthorized': create_user(),
                 'anonymous': AnonymousUser(),
@@ -965,26 +970,27 @@ class TestConsumerPermissions:
                 user.admin_permissions_enabled = True
 
             projects = {
-                'project': create_project(members=[user_member]),
-                'readonly': create_project(members=[user_member], readonly=True),
+                'project': create_project(members=[user_member, user_guest]),
+                'readonly': create_project(members=[user_member, user_guest], readonly=True),
             }
             return user, projects[project_name]
-        user, project = await sync_to_async(setup_db)()
-        assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
-        assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)
+        with override_settings(GUEST_USERS_CAN_EDIT_PROJECTS=False):
+            user, project = await sync_to_async(setup_db)()
+            assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
+            assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)
 
-        client = api_client(user)
-        res = await sync_to_async(client.get)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}))
-        assert res.status_code == (200 if expected_read else 403)
-        client_id = res.data.get('client_id', f'{user.id}/asdf')
-        res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
-        assert res.status_code == (200 if expected_write else 403)
+            client = api_client(user)
+            res = await sync_to_async(client.get)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}))
+            assert res.status_code == (200 if expected_read else 403)
+            client_id = res.data.get('client_id', f'{user.id}/asdf')
+            res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+            assert res.status_code == (200 if expected_write else 403)
 
-        res = await sync_to_async(client.get)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}))
-        assert res.status_code == (200 if expected_read else 403)
-        client_id = res.data.get('client_id', f'{user.id}/asdf')
-        res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
-        assert res.status_code == (200 if expected_write else 403)
+            res = await sync_to_async(client.get)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}))
+            assert res.status_code == (200 if expected_read else 403)
+            client_id = res.data.get('client_id', f'{user.id}/asdf')
+            res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+            assert res.status_code == (200 if expected_write else 403)
 
     @pytest.mark.parametrize(('expected', 'user_name'), [
         (True, 'self'),

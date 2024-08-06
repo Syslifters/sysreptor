@@ -579,11 +579,12 @@ ENCRYPTION_KEYS = EncryptionKey.from_json_list(config('ENCRYPTION_KEYS', default
 DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
 ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=bool, default=True)
 
+GUEST_USERS_CAN_EDIT_PROJECTS = config('GUEST_USERS_CAN_EDIT_PROJECTS', cast=bool, default=True)
+GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS = config('GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS', cast=bool, default=GUEST_USERS_CAN_EDIT_PROJECTS)
+GUEST_USERS_CAN_CREATE_PROJECTS = config('GUEST_USERS_CAN_CREATE_PROJECTS', cast=bool, default=GUEST_USERS_CAN_EDIT_PROJECTS)
+GUEST_USERS_CAN_DELETE_PROJECTS = config('GUEST_USERS_CAN_DELETE_PROJECTS', cast=bool, default=GUEST_USERS_CAN_EDIT_PROJECTS)
 GUEST_USERS_CAN_IMPORT_PROJECTS = config('GUEST_USERS_CAN_IMPORT_PROJECTS', cast=bool, default=False)
-GUEST_USERS_CAN_CREATE_PROJECTS = config('GUEST_USERS_CAN_CREATE_PROJECTS', cast=bool, default=True)
-GUEST_USERS_CAN_DELETE_PROJECTS = config('GUEST_USERS_CAN_DELETE_PROJECTS', cast=bool, default=True)
-GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS = config('GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS', cast=bool, default=True)
-GUEST_USERS_SEE_ALL_USERS = config('GUEST_USERS_SEE_ALL_USERS', cast=bool, default=False)
+GUEST_USERS_CAN_SEE_ALL_USERS = config('GUEST_USERS_CAN_SEE_ALL_USERS', cast=bool, default=False)
 
 # TODO: more guest permission settings
 # * [ ] see all users
@@ -593,12 +594,14 @@ GUEST_USERS_SEE_ALL_USERS = config('GUEST_USERS_SEE_ALL_USERS', cast=bool, defau
 #   * [x] tests
 #   * [ ] documentation
 # * [ ] can edit projects
-#   * [ ] setting
-#   * [ ] permission check (backend)
-#   * [ ] permission checks (frontend)
-#   * [ ] api_utils.settings
-#   * [ ] tests
+#   * [x] setting
+#   * [x] permission check (backend)
+#   * [x] permission check => related designs of project => also apply guest permissions
+#   * [x] permission checks (frontend)
+#   * [x] api_utils.settings
+#   * [x] tests: test_api, test_collab
 #   * [ ] documentation
+# * [ ] update changelog
 
 
 ENABLE_PRIVATE_DESIGNS = config('ENABLE_PRIVATE_DESIGNS', cast=bool, default=False)

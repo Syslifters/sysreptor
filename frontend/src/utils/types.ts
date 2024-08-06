@@ -116,6 +116,8 @@ export type ApiSettings = {
       readonly create_projects: boolean;
       readonly delete_projects: boolean;
       readonly update_project_settings: boolean;
+      readonly edit_projects: boolean;
+      readonly see_all_users: boolean;
     };
 }
 

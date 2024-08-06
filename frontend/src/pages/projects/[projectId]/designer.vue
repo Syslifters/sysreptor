@@ -70,6 +70,7 @@ import { pick } from "lodash-es";
 import { PdfDesignerTab } from "~/utils/types";
 
 const route = useRoute();
+const auth = useAuth();
 const projectStore = useProjectStore();
 
 const currentTab = ref(PdfDesignerTab.HTML);
@@ -88,7 +89,7 @@ const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit({
     save: true,
     saveFields: ['report_template', 'report_styles', 'report_preview_data'],
   }),
-  hasEditPermissions: computed(() => !project.value.readonly),
+  hasEditPermissions: computed(() => !project.value.readonly && auth.permissions.value.edit_projects),
   errorMessage: computed(() => project.value.readonly ? 
     'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.' : 
     null),

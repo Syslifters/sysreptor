@@ -103,7 +103,8 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
                 'create_projects': settings.GUEST_USERS_CAN_CREATE_PROJECTS,
                 'delete_projects': settings.GUEST_USERS_CAN_DELETE_PROJECTS,
                 'update_project_settings': settings.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
-                'see_all_users': settings.GUEST_USERS_SEE_ALL_USERS,
+                'edit_projects': settings.GUEST_USERS_CAN_EDIT_PROJECTS,
+                'see_all_users': settings.GUEST_USERS_CAN_SEE_ALL_USERS,
             },
         })
 
