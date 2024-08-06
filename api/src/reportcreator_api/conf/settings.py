@@ -583,6 +583,23 @@ GUEST_USERS_CAN_IMPORT_PROJECTS = config('GUEST_USERS_CAN_IMPORT_PROJECTS', cast
 GUEST_USERS_CAN_CREATE_PROJECTS = config('GUEST_USERS_CAN_CREATE_PROJECTS', cast=bool, default=True)
 GUEST_USERS_CAN_DELETE_PROJECTS = config('GUEST_USERS_CAN_DELETE_PROJECTS', cast=bool, default=True)
 GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS = config('GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS', cast=bool, default=True)
+GUEST_USERS_SEE_ALL_USERS = config('GUEST_USERS_SEE_ALL_USERS', cast=bool, default=False)
+
+# TODO: more guest permission settings
+# * [ ] see all users
+#   * [x] setting
+#   * [x] permission check
+#   * [x] api_utils.settings
+#   * [x] tests
+#   * [ ] documentation
+# * [ ] can edit projects
+#   * [ ] setting
+#   * [ ] permission check (backend)
+#   * [ ] permission checks (frontend)
+#   * [ ] api_utils.settings
+#   * [ ] tests
+#   * [ ] documentation
+
 
 ENABLE_PRIVATE_DESIGNS = config('ENABLE_PRIVATE_DESIGNS', cast=bool, default=False)
 

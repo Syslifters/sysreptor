@@ -452,6 +452,7 @@ def test_api_requests(username, name, perform_request, initialize_dependencies, 
             GUEST_USERS_CAN_CREATE_PROJECTS=False,
             GUEST_USERS_CAN_DELETE_PROJECTS=False,
             GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=False,
+            GUEST_USERS_SEE_ALL_USERS=False,
             ARCHIVING_THRESHOLD=1,
             AUTHLIB_OAUTH_CLIENTS={
                 'dummy': {
