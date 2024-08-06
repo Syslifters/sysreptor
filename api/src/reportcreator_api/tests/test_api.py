@@ -240,7 +240,7 @@ def guest_urls():
         ('projecttype create private', lambda s, c: c.post(reverse('projecttype-list'), data=c.get(reverse('projecttype-detail', kwargs={'pk': s.project_type.pk})).data | {'scope': ProjectTypeScope.PRIVATE})),
         ('projecttype import private', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(s.project_type), 'scope': ProjectTypeScope.PRIVATE}, format='multipart')),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type, list=True, read=True),
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, read=True, write=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, read=True, write=False),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, read=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private, read=True, write=True),
 
@@ -258,6 +258,7 @@ def regular_user_urls():
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, retrieve=True),
 
         *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, write=True, destory=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, write=True),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project.pk}), data={'readonly': True})),
         *project_viewset_urls(get_obj=lambda s: s.project_readonly, destory=True),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project_readonly.pk}), data={'readonly': False})),
