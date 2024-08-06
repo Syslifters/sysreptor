@@ -39,7 +39,6 @@ services:
       args: 
         VERSION: ${SYSREPTOR_VERSION}
         CA_CERTIFICATES: ${SYSREPTOR_CA_CERTIFICATES-}
-        SPELLCHECK_URL: ${SYSREPTOR_SPELLCHECK_URL:-http://languagetool:8010/}
     container_name: 'sysreptor-app'
     init: true
     volumes:
@@ -56,6 +55,7 @@ services:
       DATABASE_USER: reportcreator
       DATABASE_PASSWORD: reportcreator
       REDIS_URL: redis://:reportcreator@redis:6379/0
+      SPELLCHECK_URL: http://languagetool:8010
       HTTP_PROXY: ${HTTP_PROXY-}
       HTTPS_PROXY: ${HTTPS_PROXY-}
     env_file: ../app.env
