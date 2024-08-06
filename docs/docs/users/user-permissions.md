@@ -25,14 +25,15 @@ Template Editors are allowed to create and edit finding templates.
 Users without this permission have only read access to templates.
 
 ## Guest
-Guest users have read-write access to projects they are assigned to.
-
-Guest are not allowed to list other users and might be further restricted by the system operator:
+Guest users permissions can be restricted via global configuration settings by the system operator.
+When all guest permissions are enabled, guest users are equivalent to regular users.
 
 * create projects (default: yes)
 * import projects (default: no)
-* update project settings (default: yes)
+* edit projects (default: yes) - read-write access to projects they are assigned to
+* update project settings (default: yes) - update project settings like name, design, members, does not affect project content like findings, sections, notes
 * delete projects (default: yes)
+* see all users (default: no) - see all users on the SysReptor instance or only users working in the same projects as guest users
 
 :octicons-cloud-24: Cloud · Please [contact us](../contact-us.md){ target=_blank } and we will reconfigure your installation.
 
@@ -42,8 +43,10 @@ Configure your installation by adding the following settings to your `app.env`:
 ```
 GUEST_USERS_CAN_CREATE_PROJECTS=True
 GUEST_USERS_CAN_IMPORT_PROJECTS=False
+GUEST_USERS_CAN_EDIT_PROJECTS=True
 GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=True
 GUEST_USERS_CAN_DELETE_PROJECTS=True
+GUEST_USERS_CAN_SEE_ALL_USERS=False
 ```
 
 ## System
