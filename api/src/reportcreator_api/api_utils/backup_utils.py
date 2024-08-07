@@ -159,14 +159,16 @@ def upload_to_s3_bucket(z, s3_params):
     bucket.upload_fileobj(Wrapper(z), s3_params['key'])
 
 
-def to_chunks(z):
+def to_chunks(z, allow_small_first_chunk=False):
     buffer = bytearray()
+    is_first_chunk = True
 
     for chunk in z:
         buffer.extend(chunk)
-        while len(buffer) > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
+        while len(buffer) > settings.FILE_UPLOAD_MAX_MEMORY_SIZE or (is_first_chunk and allow_small_first_chunk):
             yield bytes(buffer[:settings.FILE_UPLOAD_MAX_MEMORY_SIZE])
             del buffer[:settings.FILE_UPLOAD_MAX_MEMORY_SIZE]
+            is_first_chunk = False
 
     yield bytes(buffer)
 

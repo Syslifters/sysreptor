@@ -1,3 +1,4 @@
+import gc
 import logging
 from base64 import b64decode
 
@@ -125,9 +126,16 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
 
         if s3_params := data.get('s3_params'):
             backup_utils.upload_to_s3_bucket(z, s3_params)
+            gc.collect()
             return Response(status=200)
         else:
-            response = StreamingHttpResponseAsync(backup_utils.to_chunks(z))
+            def backup_chunks():
+                yield from backup_utils.to_chunks(z, allow_small_first_chunk=True)
+
+                # Memory cleanup
+                gc.collect()
+
+            response = StreamingHttpResponseAsync(backup_chunks())
             filename = f'backup-{timezone.now().isoformat()}.zip'
             if aes_key:
                 filename += '.crypt'
@@ -170,7 +178,13 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
     @extend_schema(responses={200: OpenApiTypes.OBJECT, 503: OpenApiTypes.OBJECT})
     @action(detail=False, methods=['get'], authentication_classes=[], permission_classes=[])
     async def healthcheck(self, request, *args, **kwargs):
-        # Trigger periodic tasks
-        await PeriodicTask.objects.run_all_pending_tasks()
+        res = await sync_to_async(run_healthchecks)(settings.HEALTH_CHECKS)
 
-        return await sync_to_async(run_healthchecks)(settings.HEALTH_CHECKS)
+        if res.status_code == 200:
+            # Run periodic tasks
+            await PeriodicTask.objects.run_all_pending_tasks()
+
+            # Memory cleanup of worker process
+            gc.collect()
+
+        return res
