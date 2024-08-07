@@ -44,7 +44,7 @@ class PentestUserQuerySet(models.QuerySet):
         from reportcreator_api.users.models import PentestUser
         if user.is_anonymous:
             return self.none()
-        if user.is_guest:
+        if user.is_guest and not (user.is_superuser or user.is_user_manager):
             # Only show users that are members in projects where the guest user is also a member
             return self \
                 .filter(
