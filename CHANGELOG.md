@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## v2024.63 - 2024-08-07
 * Allow searching notes in frontend
 * Retry redis commands on connection errors
 * Fix mermaid init blocks not applied in PDF rendering
