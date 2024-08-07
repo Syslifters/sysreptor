@@ -5,6 +5,8 @@
 * Retry redis commands on connection errors
 * Fix mermaid init blocks not applied in PDF rendering
 * Fix class paths of S3 storage backends
+* Fix SPELLCHECK_URL not set in docker-compose
+* Fix permission denied when user is superuser and guest
 
 
 ## v2024.61 - 2024-07-31
