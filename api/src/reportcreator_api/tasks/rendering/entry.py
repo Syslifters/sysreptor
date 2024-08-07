@@ -1,5 +1,6 @@
 import asyncio
 import dataclasses
+import gc
 import json
 import logging
 import uuid
@@ -199,6 +200,11 @@ async def render_pdf_task(
         if not m['location']:
             m['location'] = MessageLocationInfo(
                 type=MessageLocationType.DESIGN, id=project_type.id, name=project_type.name).to_dict()
+
+    # Memory cleanup
+    del task
+    gc.collect()
+
     return res
 
 

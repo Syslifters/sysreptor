@@ -170,7 +170,7 @@ EXPOSE 8000
 CMD python3 manage.py migrate && \
     gunicorn \
         --bind=:8000 --worker-class=uvicorn.workers.UvicornWorker --workers=${SERVER_WORKERS} \
-        --max-requests=500 --max-requests-jitter=100 \
+        --max-requests=500 --max-requests-jitter=100 --graceful-timeout=300 \
         reportcreator_api.conf.asgi:application
 
 
