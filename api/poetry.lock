@@ -2,13 +2,13 @@
 
 [[package]]
 name = "adrf"
-version = "0.1.6"
+version = "0.1.7"
 description = "Async support for Django REST framework"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "adrf-0.1.6-py3-none-any.whl", hash = "sha256:4ed8a07159e97602b27b61cccef5a9f4088d07be6899d62fec1300286a6c500f"},
-    {file = "adrf-0.1.6.tar.gz", hash = "sha256:8057be8ac17e1ed47fbec17de4bf1772d467243422fd5f7dd78e97735d395ed3"},
+    {file = "adrf-0.1.7-py3-none-any.whl", hash = "sha256:815c4ce1179931e41f966eb8d36903fcc36bad6964e61cfc0f360d107725bd18"},
+    {file = "adrf-0.1.7.tar.gz", hash = "sha256:2a29a7621767ea670655e744a65ee1f19e8208fffbc5e71d2cf43def4c352740"},
 ]
 
 [package.dependencies]
