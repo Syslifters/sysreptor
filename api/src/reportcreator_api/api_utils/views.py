@@ -130,7 +130,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
             return Response(status=200)
         else:
             def backup_chunks():
-                yield from backup_utils.to_chunks(z)
+                yield from backup_utils.to_chunks(z, allow_small_first_chunk=True)
 
                 # Memory cleanup
                 gc.collect()
