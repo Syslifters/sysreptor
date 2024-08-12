@@ -1,4 +1,5 @@
 import contextlib
+import copy
 import itertools
 import json
 from datetime import timedelta
@@ -653,7 +654,7 @@ class TestProjectReportingDbSync:
             self.project = create_project(
                 project_type=self.project_type,
                 members=[self.user1, self.user2],
-                report_data=ensure_defined_structure(value=initial_data, definition=self.project_type.report_fields_obj),
+                report_data=ensure_defined_structure(value=initial_data, definition=self.project_type.all_report_fields_obj),
                 findings_kwargs=[{'data': ensure_defined_structure(value=initial_data, definition=self.project_type.finding_fields_obj)}],
             )
             self.section = self.project.sections.get(section_id='other')
@@ -868,11 +869,12 @@ class TestProjectReportingDbSync:
         event_project_type_changed = {'type': CollabEventType.UPDATE_KEY, 'path': 'project.project_type', 'value': str(project_type.id), 'client_id': None}
         await self.assert_event(event_project_type_changed)
 
-        project_type.report_fields = project_type.report_fields | {'new_field': {'type': 'string'}}
+        project_type.report_sections = copy.deepcopy(project_type.report_sections)
+        next(s for s in project_type.report_sections if s['id'] == 'other')['fields'].append({'id': 'new_field', 'type': 'string'})
         await project_type.asave()
         await self.assert_event(event_project_type_changed)
 
-        project_type.finding_fields = project_type.finding_fields | {'new_field': {'type': 'string'}}
+        project_type.finding_fields += [{'id': 'new_field', 'type': 'string'}]
         await project_type.asave()
         await self.assert_event(event_project_type_changed)
 

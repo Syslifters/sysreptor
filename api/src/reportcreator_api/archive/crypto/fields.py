@@ -8,7 +8,7 @@ from reportcreator_api.archive.crypto import base as crypto
 
 
 class EncryptedField(models.BinaryField):
-    def __init__(self, base_field, editable=True, *args, **kwargs) -> None:
+    def __init__(self, base_field: models.Field, editable=True, *args, **kwargs) -> None:
         self.base_field = base_field
         super().__init__(*args, editable=editable, **kwargs)
 

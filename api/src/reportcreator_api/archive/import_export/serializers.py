@@ -640,7 +640,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
             'source': SourceEnum.IMPORTED,
             'unknown_custom_fields': ensure_defined_structure(
                 value=report_data,
-                definition=project_type.report_fields_obj,
+                definition=project_type.all_report_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
                 include_unknown=True,
             ),

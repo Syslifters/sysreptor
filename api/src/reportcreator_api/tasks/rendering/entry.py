@@ -19,7 +19,14 @@ from lxml import etree
 
 from reportcreator_api.pentests import cvss
 from reportcreator_api.pentests.customfields.sort import sort_findings
-from reportcreator_api.pentests.customfields.types import CweField, EnumChoice, FieldDataType, FieldDefinition
+from reportcreator_api.pentests.customfields.types import (
+    BaseField,
+    CweField,
+    EnumChoice,
+    FieldDataType,
+    FieldDefinition,
+    ObjectField,
+)
 from reportcreator_api.pentests.customfields.utils import (
     HandleUndefinedFieldsOptions,
     ensure_defined_structure,
@@ -42,11 +49,10 @@ from reportcreator_api.utils.utils import copy_keys, get_key_or_attr
 log = logging.getLogger(__name__)
 
 
-def format_template_field_object(value: dict, definition: dict[str, FieldDefinition], members: Optional[list[dict | ProjectMemberInfo]] = None, require_id=False):
+def format_template_field_object(value: dict, definition: FieldDefinition|ObjectField, members: Optional[list[dict | ProjectMemberInfo]] = None, require_id=False):
     out = value | ensure_defined_structure(value=value, definition=definition)
-    for k, d in (definition or {}).items():
-        out[k] = format_template_field(
-            value=out.get(k), definition=d, members=members)
+    for f in definition.fields:
+        out[f.id] = format_template_field(value=out.get(f.id), definition=f, members=members)
 
     if require_id and 'id' not in out:
         out['id'] = str(uuid.uuid4())
@@ -76,7 +82,7 @@ def format_template_field_user(value: Union[ProjectMemberInfo, str, uuid.UUID, N
         return None
 
 
-def format_template_field(value: Any, definition: FieldDefinition, members: Optional[list[dict | ProjectMemberInfo]] = None):
+def format_template_field(value: Any, definition: BaseField, members: Optional[list[dict | ProjectMemberInfo]] = None):
     value_type = definition.type
     if value_type == FieldDataType.ENUM:
         return dataclasses.asdict(next(filter(lambda c: c.value == value, definition.choices), EnumChoice(value='', label='')))
@@ -101,7 +107,7 @@ def format_template_field(value: Any, definition: FieldDefinition, members: Opti
     elif value_type == FieldDataType.LIST:
         return [format_template_field(value=e, definition=definition.items, members=members) for e in value]
     elif value_type == FieldDataType.OBJECT:
-        return format_template_field_object(value=value, definition=definition.properties, members=members)
+        return format_template_field_object(value=value, definition=definition, members=members)
     else:
         return value
 
@@ -112,9 +118,9 @@ def format_template_data(data: dict, project_type: ProjectType, imported_members
     data['report'] = format_template_field_object(
         value=ensure_defined_structure(
             value=data.get('report', {}),
-            definition=project_type.report_fields_obj,
+            definition=project_type.all_report_fields_obj,
             handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT),
-        definition=project_type.report_fields_obj,
+        definition=project_type.all_report_fields_obj,
         members=members,
         require_id=True)
     data['findings'] = sort_findings(findings=[
@@ -220,7 +226,7 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
     # Collect all markdown fields
     markdown_fields = {}
     async for s in project.sections.all():
-        for (path, value, definition) in iterate_fields(value=s.data, definition=project.project_type.report_fields_obj, path=('sections', str(s.section_id))):
+        for (path, value, definition) in iterate_fields(value=s.data, definition=project.project_type.all_report_fields_obj, path=('sections', str(s.section_id))):
             if definition.type == FieldDataType.MARKDOWN:
                 markdown_fields[json.dumps(path)] = value
     async for f in project.findings.all():

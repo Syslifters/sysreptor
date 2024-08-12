@@ -12,9 +12,7 @@ from reportcreator_api.api_utils.models import LanguageToolIgnoreWords
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
 from reportcreator_api.pentests.customfields.predefined_fields import (
-    finding_field_order_default,
     finding_fields_default,
-    report_fields_default,
     report_sections_default,
 )
 from reportcreator_api.pentests.customfields.utils import (
@@ -154,32 +152,33 @@ def create_template_translation(template, **kwargs):
 
 
 def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
-    additional_fields_simple = {
-        'field_string': {'type': 'string', 'label': 'String Field', 'default': 'test'},
-        'field_markdown': {'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
-        'field_cvss': {'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
-        'field_cwe': {'type': 'cwe', 'label': 'CWE Field', 'default': 'CWE-89'},
-        'field_date': {'type': 'date', 'label': 'Date Field', 'default': '2022-01-01'},
-        'field_int': {'type': 'number', 'label': 'Number Field', 'default': 10},
-        'field_bool': {'type': 'boolean', 'label': 'Boolean Field', 'default': False},
-        'field_enum': {'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'enum1', 'label': 'Enum Value 1'}, {'value': 'enum2', 'label': 'Enum Value 2'}], 'default': 'enum2'},
-        'field_combobox': {'type': 'combobox', 'label': 'Combobox Field', 'suggestions': ['value 1', 'value 2'], 'default': 'value1'},
-        'field_user': {'type': 'user', 'label': 'User Field'},
-    }
-    additional_fields = additional_fields_simple | {
-        'field_object': {'type': 'object', 'label': 'Nested Object', 'properties': {'nested1':  {'type': 'string', 'label': 'Nested Field'}} | additional_fields_simple},
-        'field_list': {'type': 'list', 'label': 'List Field', 'items': {'type': 'string'}},
-        'field_list_objects': {'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': {'nested1': {'type': 'string', 'label': 'Nested object field', 'default': None}} | additional_fields_simple}},
-    }
+    additional_fields_simple = [
+        {'id': 'field_string', 'type': 'string', 'label': 'String Field', 'default': 'test'},
+        {'id': 'field_markdown', 'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
+        {'id': 'field_cvss', 'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
+        {'id': 'field_cwe', 'type': 'cwe', 'label': 'CWE Field', 'default': 'CWE-89'},
+        {'id': 'field_date', 'type': 'date', 'label': 'Date Field', 'default': '2022-01-01'},
+        {'id': 'field_int', 'type': 'number', 'label': 'Number Field', 'default': 10},
+        {'id': 'field_bool', 'type': 'boolean', 'label': 'Boolean Field', 'default': False},
+        {'id': 'field_enum', 'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'enum1', 'label': 'Enum Value 1'}, {'value': 'enum2', 'label': 'Enum Value 2'}], 'default': 'enum2'},
+        {'id': 'field_combobox', 'type': 'combobox', 'label': 'Combobox Field', 'suggestions': ['value 1', 'value 2'], 'default': 'value1'},
+        {'id': 'field_user', 'type': 'user', 'label': 'User Field'},
+    ]
+    additional_fields = additional_fields_simple + [
+        {'id': 'field_object', 'type': 'object', 'label': 'Nested Object', 'properties': [{'id': 'nested1', 'type': 'string', 'label': 'Nested Field'}] + additional_fields_simple},
+        {'id': 'field_list', 'type': 'list', 'label': 'List Field', 'items': {'type': 'string'}},
+        {'id': 'field_list_objects', 'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': [{'id': 'nested1', 'type': 'string', 'label': 'Nested object field', 'default': None}] + additional_fields_simple}},
+    ]
+    report_sections = report_sections_default()
+    next(s for s in report_sections if s['id'] == 'other')['fields'] += additional_fields
+
     project_type = ProjectType.objects.create(**{
         'name': f'Project Type #{get_random_string(8)}',
         'language': Language.ENGLISH_US,
         'status': ProjectTypeStatus.FINISHED,
         'tags': ['web', 'example'],
-        'report_fields': report_fields_default() | additional_fields,
-        'report_sections': report_sections_default(),
-        'finding_fields': finding_fields_default() | additional_fields,
-        'finding_field_order': finding_field_order_default(),
+        'report_sections': report_sections,
+        'finding_fields': finding_fields_default() + additional_fields,
         'default_notes': [
             {'id': str(uuid4()), 'parent': None, 'order': 1, 'checked': None, 'icon_emoji': '🦖', 'title': 'Default note 1', 'text': 'Default note 1 text'},
         ],
@@ -276,7 +275,7 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
         'name': f'Pentest Project #{get_random_string(8)}',
         'language': Language.ENGLISH_US,
         'tags': ['web', 'customer:test'],
-        'unknown_custom_fields': {f: report_data.pop(f) for f in set(report_data.keys()) - set(project_type.report_fields.keys())},
+        'unknown_custom_fields': {f: report_data.pop(f) for f in set(report_data.keys()) - set(project_type.all_report_fields_obj.keys())},
     } | kwargs)
 
     sections = project.sections.all()

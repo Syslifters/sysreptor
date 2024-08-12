@@ -3,6 +3,14 @@ from datetime import timedelta
 import pytest
 from django.test import override_settings
 
+from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE
+from reportcreator_api.pentests.customfields.types import (
+    CvssField,
+    CvssVersion,
+    FieldDefinition,
+    StringField,
+    serialize_field_definition,
+)
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.pentests.models import CommentStatus, ReviewStatus
 from reportcreator_api.tests.mock import (
@@ -34,15 +42,19 @@ def assertNotContainsCheckResults(actual, expected):
 
 
 def set_all_required(definiton, required):
-    if definiton.get('type'):
-        definiton['required'] = required
-        if definiton['type'] == 'object':
-            set_all_required(definiton['properties'], required)
-        elif definiton['type'] == 'list':
-            set_all_required(definiton['items'], required)
+    if isinstance(definiton, list):
+        for f in definiton:
+            set_all_required(f, required)
     elif isinstance(definiton, dict):
-        for d in definiton.values():
-            set_all_required(d, required)
+        if definiton.get('type'):
+            definiton['required'] = required
+
+        if definiton.get('fields'):
+            set_all_required(definiton['fields'], required)
+        elif definiton.get('properties'):
+            set_all_required(definiton['properties'], required)
+        elif definiton.get('items'):
+            set_all_required(definiton['items'], required)
 
 
 def test_check_todo():
@@ -58,7 +70,7 @@ def test_check_todo():
     project_type = create_project_type()
     project = create_project(
         project_type=project_type,
-        report_data=ensure_defined_structure(value=todo_fields, definition=project_type.report_fields_obj),
+        report_data=ensure_defined_structure(value=todo_fields, definition=project_type.all_report_fields_obj),
     )
     finding = create_finding(
         project=project,
@@ -93,12 +105,12 @@ def test_check_empty():
         'field_list', 'field_object.nested1', 'field_list_objects[0].nested1',
     ]
     project_type = create_project_type()
-    set_all_required(project_type.report_fields, True)
+    set_all_required(project_type.report_sections, True)
     set_all_required(project_type.finding_fields, True)
     project_type.save()
     project = create_project(
         project_type=project_type,
-        report_data=ensure_defined_structure(value=empty_fields, definition=project_type.report_fields_obj, handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE),
+        report_data=ensure_defined_structure(value=empty_fields, definition=project_type.all_report_fields_obj, handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE),
     )
     finding = create_finding(
         project=project,
@@ -133,12 +145,12 @@ def test_check_empty_not_required():
         'field_list', 'field_object.nested1', 'field_list_objects[0].nested1',
     ]
     project_type = create_project_type()
-    set_all_required(project_type.report_fields, False)
+    set_all_required(project_type.report_sections, False)
     set_all_required(project_type.finding_fields, False)
     project_type.save()
     project = create_project(
         project_type=project_type,
-        report_data=ensure_defined_structure(value=empty_fields, definition=project_type.report_fields_obj),
+        report_data=ensure_defined_structure(value=empty_fields, definition=project_type.all_report_fields_obj),
     )
     finding = create_finding(
         project=project,
@@ -193,10 +205,9 @@ def test_invalid_cvss():
     (False, 'CVSS:3.1', 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H'),
 ])
 def test_invalid_cvss_version(expected, cvss_version, cvss_vector):
-    project = create_project(findings_kwargs=[], project_type=create_project_type(finding_fields={
-        'title': {'type': 'string'},
-        'cvss': {'type': 'cvss', 'cvss_version': cvss_version},
-    }))
+    project = create_project(findings_kwargs=[], project_type=create_project_type(finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
+        CvssField(id='cvss', cvss_version=CvssVersion(cvss_version)),
+    ]))))
     finding = create_finding(project=project, data={'cvss': cvss_vector})
 
     check_res = project.perform_checks()
@@ -249,10 +260,9 @@ def test_review_status():
     (r'^([a-$', 'abc', 'error'),
 ])
 def test_regex_check(pattern, value, expected):
-    p = create_project(project_type=create_project_type(finding_fields={
-        'title': {'type': 'string'},
-        'field_regex': {'type': 'string', 'pattern': pattern},
-    }), findings_kwargs=[])
+    p = create_project(project_type=create_project_type(finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
+        StringField(id='field_regex', pattern=pattern),
+    ]))), findings_kwargs=[])
     f = create_finding(project=p, data={'field_regex': value})
 
     check_res = p.perform_checks()
@@ -268,10 +278,9 @@ def test_regex_check(pattern, value, expected):
 
 @override_settings(REGEX_VALIDATION_TIMEOUT=timedelta(milliseconds=0.000001))
 def test_regex_timeout():
-    p = create_project(project_type=create_project_type(finding_fields={
-        'title': {'type': 'string'},
-        'field_regex': {'type': 'string', 'pattern': r'^[a-z]+$'},
-    }), findings_kwargs=[])
+    p = create_project(project_type=create_project_type(finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
+        StringField(id='field_regex', pattern=r'^[a-z]+$'),
+    ]))), findings_kwargs=[])
     f = create_finding(project=p, data={'field_regex': 'abc'})
     assertContainsCheckResults(p.perform_checks(), [
         ErrorMessage(level=MessageLevel.ERROR, message='Regex timeout', location=MessageLocationInfo(
