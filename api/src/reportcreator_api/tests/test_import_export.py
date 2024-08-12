@@ -1,3 +1,4 @@
+import copy
 import io
 import json
 import tarfile
@@ -118,7 +119,7 @@ class TestImportExport:
                 text = text.replace(f_name, updated_map[f_content])
         return text
 
-    def test_export_import_template_v2(self):
+    def test_export_import_template(self):
         archive = archive_to_file(export_templates([self.template]))
         imported = import_templates(archive)
         assert len(imported) == 1
@@ -176,13 +177,66 @@ class TestImportExport:
 
         assertKeysEqual(t, self.project_type, [
             'created', 'name', 'language', 'status', 'tags',
-            'report_fields', 'report_sections',
-            'finding_fields', 'finding_field_order', 'finding_ordering',
+            'report_sections', 'finding_fields', 'finding_ordering',
             'default_notes',
             'report_template', 'report_styles', 'report_preview_data'])
         assert t.source == SourceEnum.IMPORTED
 
         assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
+
+    def test_import_project_type_v1(self):
+        field_definition_dict = {
+            'title': {'type': 'string', 'label': 'Title', 'origin': 'core', 'default': None, 'pattern': None, 'required': True, 'spellcheck': True},
+            'field_cvss': {'type': 'cvss', 'label': 'CVSS', 'origin': 'custom', 'default': 'n/a', 'required': True, 'cvss_version': None },
+            'field_list': {'type': 'list', 'label': 'List', 'origin': 'custom', 'required': False, 'items': {'type': 'string', 'label': 'Item', 'origin': 'custom', 'default': None, 'pattern': None, 'required': True, 'spellcheck': True}},
+            'field_object': {'type': 'object', 'label': 'Object', 'origin': 'custom', 'properties': {'field_string': {'type': 'string', 'label': 'String', 'origin': 'custom', 'default': None, 'pattern': None, 'required': True, 'spellcheck': True}}},
+        }
+        field_definition_new = copy.deepcopy(field_definition_dict)
+        field_definition_new['field_list']['items']['id'] = ''
+        field_definition_new['field_object']['properties'] = [d | {'id': k} for k, d in field_definition_new['field_object']['properties'].items()]
+        field_definition_new = [d | {'id': k} for k, d in field_definition_new.items()]
+
+        project_type_data = {
+            "format": "projecttypes/v1",
+            "id": "674f559c-ca41-4925-a24a-586a8b74c51e",
+            "name": "Demo Design",
+            "language": "de-DE",
+            "status": "finished",
+            "tags": ["demo", "tag2"],
+            "finding_fields": field_definition_dict,
+            "finding_field_order": ["title", "field_cvss", "field_list", "field_object"],
+            "report_fields": field_definition_dict,
+            "report_sections": [
+                {'id': 'fields', 'label': 'Type fields', 'fields': ['field_cvss', 'field_list', 'field_object']},
+                {'id': 'other', 'label': 'Other', 'fields': ['title']},
+            ],
+            'finding_ordering': [{'field': 'field_cvss', 'order': 'desc'}, {'field': 'title', 'order': 'asc'}],
+            'default_notes': [],
+            'report_template': '<h1>{{ title }}</h1>',
+            'report_styles': '@page { size: A4 portrait; }',
+            'report_preview_data': {
+                'report': {
+                    'title': 'test',
+                    'field_cvss': 'n/a',
+                    'field_list': [],
+                    'field_object': {'field_string': 'test'},
+                },
+                'findings': [],
+            },
+            'assets': [],
+        }
+        archive = create_archive([project_type_data])
+        imported = import_project_types(archive)
+
+        assert len(imported) == 1
+        t = imported[0]
+
+        assertKeysEqual(t, project_type_data, ['name', 'language', 'status', 'finding_ordering', 'default_notes', 'report_template', 'report_styles', 'report_preview_data'])
+        assert t.finding_fields == field_definition_new
+        assert t.report_sections == [s | {'fields': [next(f for f in field_definition_new if f['id'] == f_id) for f_id in s['fields']]} for s in project_type_data['report_sections']]
+        assert set(t.tags) == set(project_type_data['tags'])
+        assert t.source == SourceEnum.IMPORTED
+        assert t.assets.all().count() == 0
 
     def assert_export_import_comments(self, obj_original, obj_imported):
         for i_c, o_c in zip(obj_imported.comments.order_by('created'), obj_original.comments.order_by('created')):
@@ -208,8 +262,7 @@ class TestImportExport:
 
         assertKeysEqual(p.project_type, project.project_type, [
             'created', 'name', 'language',
-            'report_fields', 'report_sections',
-            'finding_fields', 'finding_field_order', 'finding_ordering',
+            'report_sections', 'finding_fields', 'finding_ordering',
             'default_notes',
             'report_template', 'report_styles', 'report_preview_data'])
         assert p.project_type.source == SourceEnum.IMPORTED_DEPENDENCY
@@ -490,8 +543,7 @@ class TestCopyModel:
         assertKeysEqual(pt, cp, {
             'name', 'language', 'status', 'tags', 'linked_project',
             'report_template', 'report_styles', 'report_preview_data',
-            'report_fields', 'report_sections',
-            'finding_fields', 'finding_field_order', 'finding_ordering',
+            'report_sections', 'finding_fields', 'finding_ordering',
             'default_notes',
         } - set(exclude_fields or []))
 

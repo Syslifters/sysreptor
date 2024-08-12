@@ -16,8 +16,10 @@ from reportcreator_api.archive.import_export.serializers import (
     FindingTemplateExportImportSerializerV2,
     FindingTemplateImportSerializerV1,
     NotesExportImportSerializer,
-    PentestProjectExportImportSerializer,
-    ProjectTypeExportImportSerializer,
+    PentestProjectExportImportSerializerV1,
+    PentestProjectExportImportSerializerV2,
+    ProjectTypeExportImportSerializerV1,
+    ProjectTypeExportImportSerializerV2,
 )
 from reportcreator_api.pentests.consumers import send_collab_event_project, send_collab_event_user
 from reportcreator_api.pentests.models import (
@@ -219,7 +221,7 @@ def export_templates(data: Iterable[FindingTemplate]):
 
 def export_project_types(data: Iterable[ProjectType]):
     prefetch_related_objects(data, 'assets')
-    return export_archive_iter(data, serializer_class=ProjectTypeExportImportSerializer, context={
+    return export_archive_iter(data, serializer_class=ProjectTypeExportImportSerializerV2, context={
         'add_design_notice_file': True,
     })
 
@@ -233,7 +235,7 @@ def export_projects(data: Iterable[PentestProject], export_all=False):
         'images',
         'project_type__assets',
     )
-    return export_archive_iter(data, serializer_class=PentestProjectExportImportSerializer, context={
+    return export_archive_iter(data, serializer_class=PentestProjectExportImportSerializerV2, context={
         'export_all': export_all,
         'add_design_notice_file': True,
     })
@@ -268,10 +270,12 @@ def import_templates(archive_file):
     return import_archive(archive_file, serializer_classes=[FindingTemplateExportImportSerializerV2, FindingTemplateImportSerializerV1])
 
 def import_project_types(archive_file):
-    return import_archive(archive_file, serializer_classes=[ProjectTypeExportImportSerializer])
+    return import_archive(archive_file, serializer_classes=[
+        ProjectTypeExportImportSerializerV2,
+        ProjectTypeExportImportSerializerV1])
 
 def import_projects(archive_file):
-    return import_archive(archive_file, serializer_classes=[PentestProjectExportImportSerializer])
+    return import_archive(archive_file, serializer_classes=[PentestProjectExportImportSerializerV2, PentestProjectExportImportSerializerV1])
 
 def import_notes(archive_file, context):
     if not context.get('project') and not context.get('user'):
