@@ -5,8 +5,7 @@
         <v-col>
           <s-text-field
             :model-value="props.modelValue.id"
-            @update:model-value="!props.isObjectProperty ? updateProperty('id', $event) : null"
-            @change="props.isObjectProperty ? updateProperty('id', $event.target.value) : null"
+            @update:model-value="updateProperty('id', $event)"
             :rules="rules.id"
             :disabled="!props.canChangeStructure"
             :readonly="props.readonly"
@@ -245,21 +244,21 @@
       />
       <!-- Object -->
       <v-list v-else-if="props.modelValue.type === FieldDataType.OBJECT" class="bg-inherit">
-        <v-list-item v-for="f in props.modelValue.properties!" :key="f.id">
+        <v-list-item v-for="f, fIdx in props.modelValue.properties!" :key="fIdx">
           <template #default>
             <design-input-field-definition
               :model-value="f"
-              @update:model-value="updateObject('update', f.id, $event)"
-              :is-object-property="true"
+              @update:model-value="updateObject('update', fIdx, $event)"
               :nesting-level="props.nestingLevel + 1"
               :can-change-structure="props.canChangeStructure"
               :lang="props.lang"
               :readonly="props.readonly"
+              :sibling-field-ids="props.modelValue.properties?.filter(p => p !== f).map(p => p.id)"
             />
           </template>
           <template #append>
             <btn-delete
-              :delete="() => updateObject('delete', f.id)"
+              :delete="() => updateObject('delete', fIdx)"
               :disabled="props.readonly || !props.canChangeStructure"
               button-variant="icon"
             />
@@ -289,13 +288,14 @@ const props = withDefaults(defineProps<{
   modelValue: FieldDefinition;
   canChangeStructure?: boolean;
   isListItem?: boolean;
-  isObjectProperty?: boolean;
   readonly?: boolean;
   lang?: string|null;
   nestingLevel?: number;
+  siblingFieldIds?: string[];
 }>(), {
   lang: null,
-  nestingLevel: 0
+  nestingLevel: 0,
+  siblingFieldIds: () => [],
 });
 const emit = defineEmits<{
   'update:modelValue': [FieldDefinition];
@@ -306,10 +306,9 @@ const localSettings = useLocalSettings();
 const rules = {
   id: [
     (id: string) => (
-    // this.parentObject.filter(f => id === f.id).length === 1 &&
-    // TODO: validate ID unique abd validate custom ID not in list of core and predefined field IDs
       /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(id)
     ) || 'Invalid field ID',
+    (id: string) => !props.siblingFieldIds.includes(id) || 'Field ID is not unique. This ID is already used by another field.',
   ],
   choice: [
     // v => (choices || []).filter(c => c.value === v).length === 1 || 'Enum value is not unique',
@@ -392,16 +391,16 @@ function updateComboboxSuggestion(action: string, suggestionIdx: number, val?: a
   // TODO: allow sorting of suggestions
   emit('update:modelValue', newObj);
 }
-function updateObject(action: string, fieldId?: string, val?: FieldDefinition) {
+function updateObject(action: string, fieldIdx?: number, val?: FieldDefinition) {
   const newObj = { ...props.modelValue, properties: [...(props.modelValue.properties || [])] };
   if (action === "update") {
-    newObj.properties = newObj.properties.map(f => f.id !== fieldId ? f : val!);
+    newObj.properties = newObj.properties.map((f, idx) => idx !== fieldIdx ? f : val!);
   } else if (action === "delete") {
-    newObj.properties = newObj.properties.filter(f => f.id !== fieldId);
+    newObj.properties = newObj.properties.filter((_, idx) => idx !== fieldIdx);
   } else if (action === 'add') {
     if (!val) {
       val = {
-        id: fieldId || '',
+        id: '',
         type: FieldDataType.STRING,
         label: 'New Field',
         required: true,
@@ -416,7 +415,7 @@ function updateObject(action: string, fieldId?: string, val?: FieldDefinition) {
     }
     newObj.properties.push(val);
   }
-
+  // TODO: allow sorting properties
   emit('update:modelValue', newObj);
 }
 

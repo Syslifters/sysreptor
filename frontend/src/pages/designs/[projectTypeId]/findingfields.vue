@@ -36,7 +36,7 @@
                   <template #append>
                     <btn-delete
                       v-if="f.origin !== FieldOrigin.CORE"
-                      :delete="() => deleteField(f.id)"
+                      :delete="() => deleteField(f)"
                       button-variant="icon"
                       size="small"
                       density="compact"
@@ -101,19 +101,21 @@
               />
 
               <design-input-field-definition
-                v-for="f in findingFields" :key="f.id"
+                v-for="f, idx in findingFields" :key="idx"
                 :model-value="f" @update:model-value="updateField(f, $event)"
                 :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
                 :lang="projectType.language"
                 :readonly="readonly"
+                :sibling-field-ids="findingFields.filter(ff => ff !== f).map(f => f.id)"
               />
             </template>
             <design-input-field-definition
               v-else-if="currentField.type"
-              :model-value="currentField" @update:model-value="updateCurrentField"
+              :model-value="currentField" @update:model-value="updateField(currentField, $event)"
               :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentField.origin as any)"
               :lang="projectType.language"
               :readonly="readonly"
+              :sibling-field-ids="findingFields.filter(ff => ff !== currentField).map(f => f.id)"
             />
           </v-container>
         </div>
@@ -127,7 +129,7 @@ import Draggable from "vuedraggable";
 import type { VForm } from 'vuetify/components';
 import { uniqueName } from '@/utils/urls';
 import { useProjectTypeLockEditOptions } from "@/composables/lockedit";
-import { FieldDataType, FieldOrigin } from "@/utils/types";
+import { FieldDataType, FieldOrigin, type FieldDefinition } from "@/utils/types";
 
 const localSettings = useLocalSettings();
 const projectTypeStore = useProjectTypeStore();
@@ -157,37 +159,38 @@ const currentFieldSelection = computed({
 });
 
 function updateField(field: FieldDefinition, val: FieldDefinition) {
-  const oldFieldIdx = projectType.value.finding_fields.map(f => f.id).indexOf(field.id);
-  if (oldFieldIdx === -1) { return; }
-
-  // Remove from finding ordering if data type changed to an unsupported type
-  if ([FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER].includes(val.type)) {
-    projectType.value.finding_ordering = projectType.value.finding_ordering.filter(f => f.field !== val.id);
-  }
+  const oldId = field.id;
 
   // Update field definition
-  projectType.value.finding_fields[oldFieldIdx] = val;
-}
-function updateCurrentField(val: FieldDefinition) {
-  updateField(currentField.value!, val);
+  // @ts-ignore
+  Object.keys(field).forEach(k => delete field[k]);
+  Object.assign(field, val);
 
-  // Update current field in selection
-  currentField.value = findingFields.value.find(f => f.id === val.id)!;
+  if ([FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER].includes(val.type)) {
+    // Remove from finding ordering if data type changed to an unsupported type
+    projectType.value.finding_ordering = projectType.value.finding_ordering.filter(o => o.field !== val.id);
+  } else if (val.id !== oldId && projectType.value.finding_ordering.some(o => o.field === oldId)) {
+    // Update references to field ID
+    projectType.value.finding_ordering = projectType.value.finding_ordering.map(o => ({ ...o, field: val.id }));
+  }
 }
 function addField() {
   const fieldId = uniqueName('new_field', projectType.value.finding_fields.map(f => f.id));
-  projectType.value.finding_fields.push({ id: fieldId, type: FieldDataType.STRING, origin: FieldOrigin.CUSTOM, label: 'New Field', required: true, default: 'TODO: fill field in report' });
-
-  currentField.value = findingFields.value.find(f => f.id === fieldId)!;
+  const newField = { id: fieldId, type: FieldDataType.STRING, origin: FieldOrigin.CUSTOM, label: 'New Field', required: true, default: 'TODO: fill field in report' }
+  projectType.value.finding_fields.push(newField);
+  currentField.value = newField;
 }
 function addPredefinedField(event: { newIndex: number }) {
   // Predefined field is added to projectType in findingFields setter
   // Select new field as currentField
   currentField.value = findingFields.value[event.newIndex]!;
 }
-function deleteField(fieldId: string) {
-  projectType.value.finding_fields = projectType.value.finding_fields.filter(f => f.id !== fieldId);
-  projectType.value.finding_ordering = projectType.value.finding_ordering.filter(f => f.field !== fieldId);
+function deleteField(field: FieldDefinition) {
+  projectType.value.finding_fields = projectType.value.finding_fields.filter(f => f !== field);
+  projectType.value.finding_ordering = projectType.value.finding_ordering.filter(f => f.field !== field.id);
+  if (currentField.value === field) {
+    currentField.value = null;
+  }
 }
 </script>
 
