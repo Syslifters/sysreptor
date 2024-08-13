@@ -69,7 +69,7 @@ You prefer self-hosting? That's fine! You will need:
 You can then install SysReptor with via script:
 
 ```bash
-curl -s https://docs.sysreptor.com/install.sh | bash
+bash <(curl -s https://docs.sysreptor.com/install.sh)
 ```
 
 After successful installation, access your application at http://localhost:8000/.

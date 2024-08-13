@@ -85,6 +85,7 @@ nav:
       - Security Considerations: insights/security-considerations.md
       - Vulnerabilities: insights/vulnerabilities.md
   - HTB Reporting: htb-reporting-with-sysreptor.md
+  - Demo Reports: demo-reports.md
   - Contact Us: contact-us.md
 
 theme:
@@ -116,14 +117,14 @@ plugins:
       archive: false
       categories: false
       post_readtime: false
-  - social:
-      enabled: !ENV [CI, true]
-      cards: !ENV [CI, true]
-      cards_font: "Noto Sans"
-      cards_layout_options:
-        background_color: "#818b06"
-        color: "#FFFFFF"
-        font_family: "Noto Sans"
+  #- social:
+  #    enabled: !ENV [CI, true]
+  #    cards: !ENV [CI, true]
+  #    cards_font: "Noto Sans"
+  #    cards_layout_options:
+  #      background_color: "#818b06"
+  #      color: "#FFFFFF"
+  #      font_family: "Noto Sans"
   - tooltips
   - search
   - privacy:
