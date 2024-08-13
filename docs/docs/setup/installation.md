@@ -34,7 +34,7 @@
     Download and run:
 
     ```shell
-    curl -s https://docs.sysreptor.com/install.sh | bash
+    bash <(curl -s https://docs.sysreptor.com/install.sh)
     ```
 
     The installation script creates a new `sysreptor` directory holding the source code and everything you need.  
