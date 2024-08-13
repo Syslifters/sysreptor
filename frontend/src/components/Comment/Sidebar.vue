@@ -116,18 +116,18 @@ const selectedComment = ref<Comment|null>(null);
 const readonly = computed(() => props.readonly || !apiSettings.isProfessionalLicense);
 
 function prettyFieldLabel(path: string) {
-  let definition: any|FieldDefinition = props.findingId ? props.projectType.finding_fields : props.sectionId ? props.projectType.report_fields : undefined;
+  let definition: FieldDefinition[]|FieldDefinition|undefined = props.findingId ? props.projectType.finding_fields : props.sectionId ? props.projectType.report_sections.find(s => s.id === props.sectionId)?.fields : undefined;
   const pathParts = path.split('.').slice(3);
   const pathLabels = [];
   for (const pp of pathParts) {
     let label = null;
-    if (pp.startsWith('[') && pp.endsWith(']')) {
+    if (Array.isArray(definition)) {
+      definition = definition.find(f => f.id === pp);
+    } else if (pp.startsWith('[') && pp.endsWith(']') && definition?.items) {
       definition = definition?.items;
       label = pp;
     } else if (definition?.properties) {
-      definition = definition.properties[pp];
-    } else if (definition) {
-      definition = definition?.[pp];
+      definition = definition.properties.find(f => f.id === pp);
     }
 
     label = label || definition?.label;

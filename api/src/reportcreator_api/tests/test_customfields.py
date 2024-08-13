@@ -651,7 +651,7 @@ class TestReportSectionDefinition:
         self.project.refresh_from_db()
 
         section_new = self.project.sections.get(section_id='section_new')
-        assert section_new.section_fields == ['field_new']
+        assert section_new.field_definition.keys() == ['field_new']
         assert section_new.data['field_new'] == 'default'
 
     def test_delete_section(self):

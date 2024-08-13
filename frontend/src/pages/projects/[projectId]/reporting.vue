@@ -177,9 +177,9 @@ async function toggleOverrideFindingOrder() {
 }
 
 function riskLevel(finding: PentestFinding) {
-  if ('severity' in projectType.value.finding_fields) {
+  if (projectType.value.finding_fields.some(f => f.id === 'severity')) {
     return levelNumberFromLevelName(finding.data.severity);
-  } else if ('cvss' in projectType.value.finding_fields) {
+  } else if (projectType.value.finding_fields.some(f => f.id === 'cvss')) {
     return levelNumberFromScore(scoreFromVector(finding.data.cvss));
   } else {
     return 'unknown';

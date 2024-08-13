@@ -87,8 +87,7 @@ const emit = defineEmits<{
 }>();
 
 const findingFields = computed(() => {
-  return props.projectType.finding_field_order
-    .map(f => ({ id: f, ...props.projectType.finding_fields[f]! }))
+  return props.projectType.finding_fields
     .filter(f => ![FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER].includes(f.type));
 });
 const availableFindingFields = computed(() => {

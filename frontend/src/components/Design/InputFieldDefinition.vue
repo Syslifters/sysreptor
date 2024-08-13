@@ -235,7 +235,7 @@
       <!-- List Item -->
       <design-input-field-definition
         v-else-if="props.modelValue.type === FieldDataType.LIST"
-        :model-value="(props.modelValue.items! as FieldDefinitionWithId)"
+        :model-value="props.modelValue.items!"
         @update:model-value="updateProperty('items', $event)"
         :is-list-item="true"
         :nesting-level="props.nestingLevel + 1"
@@ -245,7 +245,7 @@
       />
       <!-- Object -->
       <v-list v-else-if="props.modelValue.type === FieldDataType.OBJECT" class="bg-inherit">
-        <v-list-item v-for="f in objectFields" :key="f.id">
+        <v-list-item v-for="f in props.modelValue.properties!" :key="f.id">
           <template #default>
             <design-input-field-definition
               :model-value="f"
@@ -281,13 +281,12 @@
 </template>
 
 <script setup lang="ts">
-import { omit } from "lodash-es";
 import Draggable from "vuedraggable";
 import { CvssVersion } from "@/utils/cvss/base";
 import { FieldDataType, FieldOrigin } from "@/utils/types";
 
 const props = withDefaults(defineProps<{
-  modelValue: FieldDefinitionWithId;
+  modelValue: FieldDefinition;
   canChangeStructure?: boolean;
   isListItem?: boolean;
   isObjectProperty?: boolean;
@@ -299,7 +298,7 @@ const props = withDefaults(defineProps<{
   nestingLevel: 0
 });
 const emit = defineEmits<{
-  'update:modelValue': [FieldDefinitionWithId];
+  'update:modelValue': [FieldDefinition];
 }>();
 
 const localSettings = useLocalSettings();
@@ -329,21 +328,6 @@ const rules = {
   ]
 };
 
-const objectFieldOrder = ref(Object.keys(props.modelValue.properties || {}).sort());
-const objectFields = computed(() => {
-  if (props.modelValue.type === FieldDataType.OBJECT) {
-    for (const k of Object.keys(props.modelValue.properties || {})) {
-      if (!objectFieldOrder.value.includes(k)) {
-        objectFieldOrder.value.push(k);
-      }
-    }
-    return objectFieldOrder.value
-      .filter(f => Object.hasOwn(props.modelValue.properties as object, f))
-      .map(f => ({ id: f, ...props.modelValue.properties![f]! }));
-  } else {
-    return [];
-  }
-});
 const predefinedRegexPatterns = [
   { title: 'E-Mail', value: "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$" },
   { title: 'URL', value: "^(http(s)?:\\/\\/.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$" },
@@ -408,15 +392,12 @@ function updateComboboxSuggestion(action: string, suggestionIdx: number, val?: a
   // TODO: allow sorting of suggestions
   emit('update:modelValue', newObj);
 }
-function updateObject(action: string, fieldId?: string, val?: FieldDefinitionWithId) {
-  const newObj = { ...props.modelValue, properties: { ...props.modelValue.properties! } };
+function updateObject(action: string, fieldId?: string, val?: FieldDefinition) {
+  const newObj = { ...props.modelValue, properties: [...(props.modelValue.properties || [])] };
   if (action === "update") {
-    delete newObj.properties![fieldId!];
-    newObj.properties![val!.id] = omit(val!, ['id']);
-    objectFieldOrder.value = objectFieldOrder.value.map(f => f === fieldId ? val!.id : f);
+    newObj.properties = newObj.properties.map(f => f.id !== fieldId ? f : val!);
   } else if (action === "delete") {
-    newObj.properties = omit(newObj.properties, [fieldId!]);
-    objectFieldOrder.value = objectFieldOrder.value.filter(f => f !== fieldId);
+    newObj.properties = newObj.properties.filter(f => f.id !== fieldId);
   } else if (action === 'add') {
     if (!val) {
       val = {
@@ -431,10 +412,9 @@ function updateObject(action: string, fieldId?: string, val?: FieldDefinitionWit
       };
     }
     if (!val.id) {
-      val.id = uniqueName('new_field', Object.keys(newObj.properties));
+      val.id = uniqueName('new_field', newObj.properties.map(f => f.id));
     }
-    newObj.properties[val.id] = omit(val, ['id']);
-    objectFieldOrder.value.push(val.id);
+    newObj.properties.push(val);
   }
 
   emit('update:modelValue', newObj);
@@ -442,13 +422,13 @@ function updateObject(action: string, fieldId?: string, val?: FieldDefinitionWit
 
 watch(() => props.modelValue.type, () => {
   if (props.modelValue.type === FieldDataType.ENUM && !props.modelValue.choices) {
-    updateProperty('choices', [{ value: 'enum_val', label: 'Enum Value' }]);
+    updateProperty('choices', [{ value: 'enum_val', label: 'Enum Value' }] as FieldDefinition['choices']);
   } else if (props.modelValue.type === FieldDataType.COMBOBOX && !props.modelValue.suggestions) {
-    updateProperty('suggestions', ['Combobox Value']);
+    updateProperty('suggestions', ['Combobox Value'] as FieldDefinition['suggestions']);
   } else if (props.modelValue.type === FieldDataType.LIST && !props.modelValue.items) {
-    updateProperty('items', { type: FieldDataType.STRING, default: null });
+    updateProperty('items', { type: FieldDataType.STRING, default: null } as FieldDefinition['items']);
   } else if (props.modelValue.type === FieldDataType.OBJECT && !props.modelValue.properties) {
-    updateProperty('properties', { nested_field: { type: FieldDataType.STRING, label: 'Nested Field', default: null } });
+    updateProperty('properties', [{ id: 'nested_field', type: FieldDataType.STRING, label: 'Nested Field', default: null }] as FieldDefinition['properties']);
   }
 });
 

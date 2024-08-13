@@ -54,4 +54,4 @@ BACKUP_KEY = 'dummy-backup-key-used-in-unit-test'
 # Disable license check
 from reportcreator_api.utils import license  # noqa: E402
 
-license.check_license = lambda **kwargs: {'type': license.LicenseType.PROFESSIONAL, 'users': 1000}
+license.check_license = lambda **kwargs: {'type': license.LicenseType.PROFESSIONAL, 'users': 1000, 'name': 'Company Name'}

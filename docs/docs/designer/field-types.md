@@ -178,7 +178,7 @@ Object fields are used to group multiple fields together. This is useful to stru
 
 Options:
 
-* Properties: A list of nested fields that are part of the object. Properties can have any data type. Note: Properties are ordered by their ID in the input form.
+* Properties: A list of nested fields that are part of the object. Properties can have any data type.
 
 ![Object field](../images/fields_object.png)
 

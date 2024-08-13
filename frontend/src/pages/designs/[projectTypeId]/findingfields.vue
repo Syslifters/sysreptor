@@ -123,7 +123,6 @@
 </template>
 
 <script setup lang="ts">
-import { omit, sortBy } from 'lodash-es';
 import Draggable from "vuedraggable";
 import type { VForm } from 'vuetify/components';
 import { uniqueName } from '@/utils/urls';
@@ -136,28 +135,20 @@ const projectTypeStore = useProjectTypeStore();
 const { data: predefinedFindingFields } = useLazyAsyncData('projecttype:predefinedFindingFields', async () => await projectTypeStore.getPredefinedFindingFields())
 const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,
-  saveFields: ['finding_fields', 'finding_field_order', 'finding_ordering'],
+  saveFields: ['finding_fields', 'finding_ordering'],
 }));
 
 const findingFields = computed({
-  get: () => {
-    return projectType.value.finding_field_order.map(f => ({ id: f, ...projectType.value.finding_fields[f]! }));
-  },
-  set: (val) => {
-    // Field order
-    projectType.value.finding_fields = Object.fromEntries(val.map(f => [f.id, omit(f, ['id'])]));
-    projectType.value.finding_field_order = val.map(f => f.id);
-  }
+  get: () => projectType.value.finding_fields,
+  set: (val) => { projectType.value.finding_fields = val; }
 });
-const availablePredefinedFields = computed<FieldDefinitionWithId[]>(() => {
-  const out = Object.entries(predefinedFindingFields.value || {})
-    .map(([id, f]) => ({ id, ...f }))
+const availablePredefinedFields = computed<FieldDefinition[]>(() => {
+  return (predefinedFindingFields.value || [])
     .filter(f => !findingFields.value.some(v => f.id === v.id));
-  return sortBy(out, ['id']);
 });
 
-const currentField = ref<FieldDefinitionWithId|null>(null);
-const allFieldsPlaceholder = { id: null } as unknown as FieldDefinitionWithId;
+const currentField = ref<FieldDefinition|null>(null);
+const allFieldsPlaceholder = { id: null } as unknown as FieldDefinition;
 const currentFieldSelection = computed({
   get: () => currentField.value ? [currentField.value] : [allFieldsPlaceholder],
   set: (val) => {
@@ -165,14 +156,9 @@ const currentFieldSelection = computed({
   }
 });
 
-function updateField(field: FieldDefinitionWithId, val: FieldDefinitionWithId) {
-  // Update field order
-  const oldFieldIdx = projectType.value.finding_field_order.indexOf(field.id);
-  if (oldFieldIdx !== -1) {
-    projectType.value.finding_field_order[oldFieldIdx] = val.id;
-  } else {
-    projectType.value.finding_field_order = projectType.value.finding_field_order.filter(f => f !== field.id).concat([val.id]);
-  }
+function updateField(field: FieldDefinition, val: FieldDefinition) {
+  const oldFieldIdx = projectType.value.finding_fields.map(f => f.id).indexOf(field.id);
+  if (oldFieldIdx === -1) { return; }
 
   // Remove from finding ordering if data type changed to an unsupported type
   if ([FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER].includes(val.type)) {
@@ -180,19 +166,17 @@ function updateField(field: FieldDefinitionWithId, val: FieldDefinitionWithId) {
   }
 
   // Update field definition
-  delete projectType.value.finding_fields[field.id];
-  projectType.value.finding_fields[val.id] = omit(val, ['id']);
+  projectType.value.finding_fields[oldFieldIdx] = val;
 }
-function updateCurrentField(val: FieldDefinitionWithId) {
+function updateCurrentField(val: FieldDefinition) {
   updateField(currentField.value!, val);
 
   // Update current field in selection
   currentField.value = findingFields.value.find(f => f.id === val.id)!;
 }
 function addField() {
-  const fieldId = uniqueName('new_field', projectType.value.finding_field_order);
-  projectType.value.finding_fields[fieldId] = { type: FieldDataType.STRING, origin: FieldOrigin.CUSTOM, label: 'New Field', required: true, default: 'TODO: fill field in report' };
-  projectType.value.finding_field_order.push(fieldId);
+  const fieldId = uniqueName('new_field', projectType.value.finding_fields.map(f => f.id));
+  projectType.value.finding_fields.push({ id: fieldId, type: FieldDataType.STRING, origin: FieldOrigin.CUSTOM, label: 'New Field', required: true, default: 'TODO: fill field in report' });
 
   currentField.value = findingFields.value.find(f => f.id === fieldId)!;
 }
@@ -202,8 +186,7 @@ function addPredefinedField(event: { newIndex: number }) {
   currentField.value = findingFields.value[event.newIndex]!;
 }
 function deleteField(fieldId: string) {
-  delete projectType.value.finding_fields[fieldId];
-  projectType.value.finding_field_order = projectType.value.finding_field_order.filter(f => f !== fieldId);
+  projectType.value.finding_fields = projectType.value.finding_fields.filter(f => f.id !== fieldId);
   projectType.value.finding_ordering = projectType.value.finding_ordering.filter(f => f.field !== fieldId);
 }
 </script>

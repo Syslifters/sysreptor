@@ -79,12 +79,12 @@
 
     <template #default>
       <template v-if="currentItemIsSection">
-        <div v-for="fieldId in currentItem.fields" :key="fieldId">
+        <div v-for="fieldDefinition in currentItem.fields" :key="fieldDefinition.id">
           <dynamic-input-field
-            :model-value="props.modelValue.report[fieldId]"
-            @update:model-value="updateSectionField(fieldId, $event)"
-            :id="fieldId"
-            :definition="props.projectType.report_fields[fieldId]!"
+            :model-value="props.modelValue.report[fieldDefinition.id]"
+            @update:model-value="updateSectionField(fieldDefinition.id, $event)"
+            :id="fieldDefinition.id"
+            :definition="fieldDefinition"
             v-bind="fieldAttrs"
           >
             <template #markdown-context-menu="{value, definition, disabled}">
@@ -97,7 +97,7 @@
                 :disabled="disabled || value === definition.default"
               />
               <btn-confirm
-                :action="() => updateSectionField(fieldId, definition.default)"
+                :action="() => updateSectionField(fieldDefinition.id, definition.default)"
                 button-text="Reset to default value"
                 button-icon="mdi-undo-variant"
                 button-variant="list-item"
@@ -109,12 +109,12 @@
         </div>
       </template>
       <template v-else-if="currentItemIsFinding">
-        <div v-for="fieldId in props.projectType.finding_field_order" :key="currentItem.id + fieldId">
+        <div v-for="fieldDefinition in props.projectType.finding_fields" :key="currentItem.id + fieldDefinition.id">
           <dynamic-input-field
-            :model-value="currentItem[fieldId]"
-            @update:model-value="updateFindingField(fieldId, $event)"
-            :id="fieldId"
-            :definition="props.projectType.finding_fields[fieldId]!"
+            :model-value="currentItem[fieldDefinition.id]"
+            @update:model-value="updateFindingField(fieldDefinition.id, $event)"
+            :id="fieldDefinition.id"
+            :definition="fieldDefinition"
             v-bind="fieldAttrs"
           >
             <template #markdown-context-menu="{value, definition, disabled}">
@@ -127,7 +127,7 @@
                 :disabled="disabled || value === definition.default"
               />
               <btn-confirm
-                :action="() => updateFindingField(fieldId, definition.default)"
+                :action="() => updateFindingField(fieldDefinition.id, definition.default)"
                 button-text="Reset to default value"
                 button-icon="mdi-undo-variant"
                 button-variant="list-item"
@@ -219,10 +219,8 @@ function createField(definition: FieldDefinition): any {
   }
   return definition.default;
 }
-function createObject(properties: FieldDefinitionDict) {
-  return Object.fromEntries(
-    Object.entries(properties)
-      .map(([k, d]) => [k, createField(d)]));
+function createObject(properties: FieldDefinition[]) {
+  return Object.fromEntries(properties.map(d => [d.id, createField(d)]));
 }
 function createFinding() {
   const newFinding = createObject(props.projectType.finding_fields);
@@ -249,9 +247,9 @@ function setFieldDefinitionDefault(definition: FieldDefinition, value: any) {
 }
 
 function riskLevel(finding: any) {
-  if ('severity' in props.projectType.finding_fields) {
+  if (props.projectType.finding_fields.some(f => f.id === 'severity')) {
     return levelNumberFromLevelName(finding.severity);
-  } else if ('cvss' in props.projectType.finding_fields) {
+  } else if (props.projectType.finding_fields.some(f => f.id === 'cvss')) {
     return levelNumberFromScore(scoreFromVector(finding.cvss));
   } else {
     return 'unknown';

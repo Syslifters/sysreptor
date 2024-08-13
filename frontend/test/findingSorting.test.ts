@@ -8,18 +8,18 @@ import type { FindingOrderingDefinition, PentestFinding, ProjectType } from "~/u
 function testFindingSort({ findings, findingOrdering = [], overrideFindingOrder = false }: { findings: PentestFinding[], findingOrdering?: FindingOrderingDefinition[], overrideFindingOrder?: boolean}) {
   const unorderedFindings = findings.map((f, idx) => ({ ...f, data: { ...(f.data || {}), title: 'f' + (idx + 1) } })) as PentestFinding[];
   const projectType = {
-    finding_fields: {
-      cvss: { type: 'cvss', label: 'CVSS', default: 'n/a' },
-      field_string: { type: 'string', label: 'String Field', default: 'test' },
-      field_markdown: { type: 'markdown', label: 'Markdown Field', default: '# test\nmarkdown' },
-      field_cvss: { type: 'cvss', label: 'CVSS Field', default: 'n/a' },
-      field_date: { type: 'date', label: 'Date Field', default: '2022-01-01' },
-      field_int: { type: 'number', label: 'Number Field', default: 10 },
-      field_bool: { type: 'boolean', label: 'Boolean Field', default: false },
-      field_enum: { type: 'enum', label: 'Enum Field', choices: [{ value: 'enum1', label: 'Enum Value 1' }, { value: 'enum2', label: 'Enum Value 2' }], default: 'enum2' },
-    },
+    finding_fields: [
+      { id: 'cvss', type: 'cvss', label: 'CVSS', default: 'n/a' },
+      { id: 'field_string', type: 'string', label: 'String Field', default: 'test' },
+      { id: 'field_markdown', type: 'markdown', label: 'Markdown Field', default: '# test\nmarkdown' },
+      { id: 'field_cvss', type: 'cvss', label: 'CVSS Field', default: 'n/a' },
+      { id: 'field_date', type: 'date', label: 'Date Field', default: '2022-01-01' },
+      { id: 'field_int', type: 'number', label: 'Number Field', default: 10 },
+      { id: 'field_bool', type: 'boolean', label: 'Boolean Field', default: false },
+      { id: 'field_enum', type: 'enum', label: 'Enum Field', choices: [{ value: 'enum1', label: 'Enum Value 1' }, { value: 'enum2', label: 'Enum Value 2' }], default: 'enum2' },
+    ],
     finding_ordering: findingOrdering,
-  } as unknown as ProjectType;
+  } as Partial<ProjectType> as ProjectType;
   const sortedFindings = sortFindings({
     findings: reverse(unorderedFindings),
     projectType,
@@ -52,7 +52,7 @@ describe('Finding Sorting', () => {
         { order: 0, created: addDays(new Date(), -2).toISOString() },
         { order: 0, created: addDays(new Date(), -1).toISOString() },
         { order: 0, created: addDays(new Date(), -0).toISOString() },
-      ] as unknown as PentestFinding[],
+      ] as Partial<PentestFinding>[] as PentestFinding[],
       overrideFindingOrder: true,
     });
   });

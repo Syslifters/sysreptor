@@ -63,15 +63,15 @@
 
     <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
       <dynamic-input-field
-        v-for="fieldId in projectType.finding_field_order" :key="fieldId"
-        :model-value="finding.data[fieldId]"
-        :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldId}`)"
+        v-for="fieldDefinition in projectType.finding_fields" :key="fieldDefinition.id"
+        :model-value="finding.data[fieldDefinition.id]"
+        :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldDefinition.id}`)"
         @collab="reportingCollab.onCollabEvent"
         @comment="commentSidebarRef?.onCommentEvent"
         :field-value-suggestions="findingFieldValueSuggestions"
         :readonly="readonly"
-        :id="fieldId"
-        :definition="projectType.finding_fields[fieldId]!"
+        :id="fieldDefinition.id"
+        :definition="fieldDefinition"
         v-bind="inputFieldAttrs"
       />
     </v-container>

@@ -173,34 +173,30 @@
 
 <script setup lang="ts">
 import Draggable from "vuedraggable";
-import { omit, isEqual } from 'lodash-es';
+import { isEqual } from 'lodash-es';
 import { VForm } from "vuetify/components";
 import { uniqueName } from '@/utils/urls';
-import { FieldOrigin } from "~/utils/types";
+import { FieldOrigin, type ReportSectionDefinition } from "~/utils/types";
 
 const localSettings = useLocalSettings();
 
 const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,
-  saveFields: ['report_sections', 'report_fields'],
+  saveFields: ['report_sections'],
 }));
 
 const reportSections = computed({
-  get: () => projectType.value.report_sections
-    .map(s => ({
-      ...s,
-      fields: s.fields.map(f => ({ id: f, ...projectType.value.report_fields[f] }))
-    } as ReportSectionDefinitionWithFieldDefinition)),
+  get: () => projectType.value.report_sections,
   set: (val) => {
-    projectType.value.report_sections = val.map(s => ({ ...s, fields: s.fields.map(f => f.id) }));
+    projectType.value.report_sections = val;
     if (currentItemSection.value) {
       currentItem.value = reportSections.value.find(s => s.id === currentItemSection.value!.id)!;
     }
   }
-})
+});
 const reportFields = computed(() => reportSections.value.map(s => s.fields).flat());
 
-const currentItem = ref<FieldDefinitionWithId|ReportSectionDefinitionWithFieldDefinition|null>(null);
+const currentItem = ref<FieldDefinition|ReportSectionDefinition|null>(null);
 const currentItemIsField = computed(() => reportFields.value.some(f => isEqual(f, currentItem.value)));
 const currentItemIsSection = computed(() => currentItem.value && !currentItemIsField.value && reportSections.value.some(s => s.id === currentItem.value!.id));
 const currentItemSelection = computed({
@@ -209,8 +205,8 @@ const currentItemSelection = computed({
     currentItem.value = (val.length > 0) ? val[0]! : null;
   }
 });
-const currentItemSection = computed(() => currentItemIsSection ? currentItem.value as ReportSectionDefinitionWithFieldDefinition : null);
-const currentItemField = computed(() => currentItemIsField ? currentItem.value as FieldDefinitionWithId : null);
+const currentItemSection = computed(() => currentItemIsSection ? currentItem.value as ReportSectionDefinition : null);
+const currentItemField = computed(() => currentItemIsField ? currentItem.value as FieldDefinition : null);
 
 const rules = {
   sectionId: [
@@ -218,52 +214,48 @@ const rules = {
   ]
 };
 
-function updateField(field: FieldDefinitionWithId, val: FieldDefinitionWithId) {
+function updateField(field: FieldDefinition, val: FieldDefinition) {
   // Update field order in section
-  const section = projectType.value.report_sections.find(s => s.fields.includes(field.id));
+  const section = projectType.value.report_sections.find(s => s.fields.some(f => f.id === field.id));
   if (!section) {
     return;
   }
-  const oldIdx = section.fields.indexOf(field.id);
+  const oldIdx = section.fields.map(f => f.id).indexOf(field.id);
   if (oldIdx !== -1) {
-    section.fields[oldIdx] = val.id;
+    section.fields[oldIdx] = val;
   } else {
-    section.fields.push(val.id);
+    section.fields.push(val);
   }
-
-  // Update field definition
-  delete projectType.value.report_fields[field.id];
-  projectType.value.report_fields[val.id] = omit(val, ['id']);
 }
-function updateCurrentSectionField(field: FieldDefinitionWithId, val: FieldDefinitionWithId) {
+function updateCurrentSectionField(field: FieldDefinition, val: FieldDefinition) {
   const sectionId = currentItem.value!.id;
   updateField(field, val);
 
   currentItem.value = reportSections.value.find(s => s.id === sectionId)!;
 }
-function updateCurrentField(val: FieldDefinitionWithId) {
-  updateField(currentItem.value as FieldDefinitionWithId, val);
+function updateCurrentField(val: FieldDefinition) {
+  updateField(currentItem.value as FieldDefinition, val);
 
   currentItem.value = reportFields.value.find(f => f.id === val.id) || null;
 }
-function updateFieldOrder(section: ReportSectionDefinitionWithFieldDefinition, fields: FieldDefinitionWithId[]) {
+function updateFieldOrder(section: ReportSectionDefinition, fields: FieldDefinition[]) {
   const ptSection = projectType.value.report_sections.find(s => s.id === section.id)!;
-  ptSection.fields = fields.map(f => f.id);
+  ptSection.fields = fields;
   if (currentItemField.value) {
     currentItem.value = reportFields.value.find(f => f.id === currentItemField.value!.id)!;
   }
 }
-function addField(section: ReportSectionDefinitionWithFieldDefinition) {
+function addField(section: ReportSectionDefinition) {
   const ptSection = projectType.value.report_sections.find(s => s.id === section.id)!;
-  const fieldId = uniqueName('new_field', Object.keys(projectType.value.report_fields));
-  projectType.value.report_fields[fieldId] = {
+  const fieldId = uniqueName('new_field', projectType.value.report_sections.map(s => s.fields).flat().map(f => f.id));
+  ptSection.fields.push({
+    id: fieldId,
     type: FieldDataType.STRING,
     label: 'New Field',
     required: true,
     default: 'TODO: fill field in report',
     origin: FieldOrigin.CUSTOM,
-  };
-  ptSection.fields.push(fieldId);
+  });
 
   if (currentItemIsSection.value && section.id === currentItem.value?.id) {
     currentItem.value = reportSections.value.find(s => s.id === section.id)!;
@@ -271,10 +263,9 @@ function addField(section: ReportSectionDefinitionWithFieldDefinition) {
     currentItem.value = reportSections.value.find(s => s.id === section.id)!.fields.find(f => f.id === fieldId)!;
   }
 }
-function deleteField(section: ReportSectionDefinitionWithFieldDefinition, field: FieldDefinitionWithId) {
+function deleteField(section: ReportSectionDefinition, field: FieldDefinition) {
   const ptSection = projectType.value.report_sections.find(s => s.id === section.id)!;
-  ptSection.fields = ptSection.fields.filter(f => f !== field.id);
-  delete projectType.value.report_fields[field.id];
+  ptSection.fields = ptSection.fields.filter(f => f.id !== field.id);
 }
 function updateCurrentSection(sectionField: string, val: any) {
   const ptSection = projectType.value.report_sections.find(s => s.id === currentItem.value!.id)!;
@@ -287,7 +278,7 @@ function addSection() {
   projectType.value.report_sections.push({ id: sectionId, label: 'New Section', fields: [] });
   currentItem.value = reportSections.value.find(s => s.id === sectionId)!;
 }
-function deleteSection(section: ReportSectionDefinitionWithFieldDefinition) {
+function deleteSection(section: ReportSectionDefinition) {
   projectType.value.report_sections = projectType.value.report_sections.filter(s => s.id !== section.id);
 }
 </script>

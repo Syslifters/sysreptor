@@ -72,14 +72,12 @@ const { obj: section, fetchState, toolbarAttrs, fieldAttrsHistoric, fieldAttrsCu
 const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
   historic: {
     value: fetchState.value.dataHistoric?.data,
-    definition: fetchState.value.projectTypeHistoric?.report_fields,
-    fieldIds: fetchState.value.dataHistoric?.fields || [],
+    definition: fetchState.value.projectTypeHistoric?.report_sections.find(s => s.id === route.params.sectionId)?.fields,
     attrs: fieldAttrsHistoric.value,
   },
   current: {
     value: fetchState.value.dataCurrent?.data,
-    definition: fetchState.value?.projectTypeCurrent?.report_fields,
-    fieldIds: fetchState.value.dataCurrent?.fields || [],
+    definition: fetchState.value?.projectTypeCurrent?.report_sections.find(s => s.id === route.params.sectionId)?.fields,
     attrs: {
       ...fieldAttrsCurrent.value,
       collab: collabSubpath(fieldAttrsCurrent.value.collab, 'data'),
