@@ -23,7 +23,9 @@ from reportcreator_api.pentests.customfields.types import (
     ListField,
     StringField,
     parse_field_definition,
+    parse_field_definition_legacy,
     serialize_field_definition,
+    serialize_field_definition_legacy,
 )
 from reportcreator_api.pentests.customfields.utils import (
     HandleUndefinedFieldsOptions,
@@ -98,6 +100,30 @@ def test_definition_formats(valid, definition):
     except ValidationError:
         res_valid = False
     assert res_valid == valid
+
+
+@pytest.mark.parametrize(('definition_old', 'definition_new'), [
+    (
+        {'f': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}},
+        [{'id': 'f', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}],
+    ),
+    (
+        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'type': 'string', 'label': 'Item', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}},
+        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'id': '', 'type': 'string', 'label': 'Item', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}],
+    ),
+    (
+        {'f': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}},
+        [{'id': 'f', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}],
+    ),
+    (
+        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}}},
+        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'id': '', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}}],
+    ),
+])
+def test_legacy_definition_format(definition_old, definition_new):
+    FieldDefinitionValidator()(definition_new)
+    assert serialize_field_definition(parse_field_definition_legacy(definition_old)) == definition_new
+    assert serialize_field_definition_legacy(parse_field_definition(definition_new)) == definition_old
 
 
 @pytest.mark.parametrize(('valid', 'definition', 'value'), [

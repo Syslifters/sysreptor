@@ -165,9 +165,9 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
         {'id': 'field_user', 'type': 'user', 'label': 'User Field'},
     ]
     additional_fields = additional_fields_simple + [
-        {'id': 'field_object', 'type': 'object', 'label': 'Nested Object', 'properties': [{'id': 'nested1', 'type': 'string', 'label': 'Nested Field'}] + additional_fields_simple},
+        {'id': 'field_object', 'type': 'object', 'label': 'Nested Object', 'properties': sorted([{'id': 'nested1', 'type': 'string', 'label': 'Nested Field'}] + additional_fields_simple, key=lambda f: f['id'])},
         {'id': 'field_list', 'type': 'list', 'label': 'List Field', 'items': {'type': 'string'}},
-        {'id': 'field_list_objects', 'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': [{'id': 'nested1', 'type': 'string', 'label': 'Nested object field', 'default': None}] + additional_fields_simple}},
+        {'id': 'field_list_objects', 'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': sorted([{'id': 'nested1', 'type': 'string', 'label': 'Nested object field', 'default': None}] + additional_fields_simple, key=lambda f: f['id'])}},
     ]
     report_sections = report_sections_default()
     next(s for s in report_sections if s['id'] == 'other')['fields'] += additional_fields

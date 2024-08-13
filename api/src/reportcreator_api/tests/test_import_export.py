@@ -1,4 +1,3 @@
-import copy
 import io
 import json
 import tarfile
@@ -18,6 +17,7 @@ from reportcreator_api.archive.import_export import (
 )
 from reportcreator_api.archive.import_export.import_export import build_tarinfo, export_notes, import_notes
 from reportcreator_api.pentests.collab.text_transformations import SelectionRange
+from reportcreator_api.pentests.customfields.types import serialize_field_definition_legacy
 from reportcreator_api.pentests.models import (
     Language,
     PentestProject,
@@ -38,6 +38,7 @@ from reportcreator_api.tests.mock import (
     create_usernotebookpage,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
+from reportcreator_api.utils.utils import copy_keys
 
 
 def archive_to_file(archive_iterator):
@@ -185,55 +186,35 @@ class TestImportExport:
         assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
 
     def test_import_project_type_v1(self):
-        field_definition_dict = {
-            'title': {'type': 'string', 'label': 'Title', 'origin': 'core', 'default': None, 'pattern': None, 'required': True, 'spellcheck': True},
-            'field_cvss': {'type': 'cvss', 'label': 'CVSS', 'origin': 'custom', 'default': 'n/a', 'required': True, 'cvss_version': None },
-            'field_list': {'type': 'list', 'label': 'List', 'origin': 'custom', 'required': False, 'items': {'type': 'string', 'label': 'Item', 'origin': 'custom', 'default': None, 'pattern': None, 'required': True, 'spellcheck': True}},
-            'field_object': {'type': 'object', 'label': 'Object', 'origin': 'custom', 'properties': {'field_string': {'type': 'string', 'label': 'String', 'origin': 'custom', 'default': None, 'pattern': None, 'required': True, 'spellcheck': True}}},
-        }
-        field_definition_new = copy.deepcopy(field_definition_dict)
-        field_definition_new['field_list']['items']['id'] = ''
-        field_definition_new['field_object']['properties'] = [d | {'id': k} for k, d in field_definition_new['field_object']['properties'].items()]
-        field_definition_new = [d | {'id': k} for k, d in field_definition_new.items()]
+        # Remove document_history field from report_sections because order of properties changed
+        section = next(s for s in self.project_type.report_sections if s['id'] == 'other')
+        section['fields'] = [f for f in section['fields'] if f['id'] not in ['document_history']]
+        self.project_type.save()
 
         project_type_data = {
             "format": "projecttypes/v1",
-            "id": "674f559c-ca41-4925-a24a-586a8b74c51e",
-            "name": "Demo Design",
-            "language": "de-DE",
-            "status": "finished",
-            "tags": ["demo", "tag2"],
-            "finding_fields": field_definition_dict,
-            "finding_field_order": ["title", "field_cvss", "field_list", "field_object"],
-            "report_fields": field_definition_dict,
-            "report_sections": [
-                {'id': 'fields', 'label': 'Type fields', 'fields': ['field_cvss', 'field_list', 'field_object']},
-                {'id': 'other', 'label': 'Other', 'fields': ['title']},
-            ],
-            'finding_ordering': [{'field': 'field_cvss', 'order': 'desc'}, {'field': 'title', 'order': 'asc'}],
-            'default_notes': [],
-            'report_template': '<h1>{{ title }}</h1>',
-            'report_styles': '@page { size: A4 portrait; }',
-            'report_preview_data': {
-                'report': {
-                    'title': 'test',
-                    'field_cvss': 'n/a',
-                    'field_list': [],
-                    'field_object': {'field_string': 'test'},
-                },
-                'findings': [],
-            },
+            "id": str(self.project_type.id),
+            "finding_fields": serialize_field_definition_legacy(self.project_type.finding_fields_obj),
+            "finding_field_order": self.project_type.finding_fields_obj.keys(),
+            "report_fields": serialize_field_definition_legacy(self.project_type.all_report_fields_obj),
+            "report_sections": [s | {'fields': [f['id'] for f in s['fields']]} for s in self.project_type.report_sections],
             'assets': [],
-        }
+        } | copy_keys(self.project_type, [
+            'name', 'language', 'status', 'tags',
+            'finding_ordering', 'default_notes',
+            'report_template', 'report_styles', 'report_preview_data',
+        ])
         archive = create_archive([project_type_data])
         imported = import_project_types(archive)
 
         assert len(imported) == 1
         t = imported[0]
 
-        assertKeysEqual(t, project_type_data, ['name', 'language', 'status', 'finding_ordering', 'default_notes', 'report_template', 'report_styles', 'report_preview_data'])
-        assert t.finding_fields == field_definition_new
-        assert t.report_sections == [s | {'fields': [next(f for f in field_definition_new if f['id'] == f_id) for f_id in s['fields']]} for s in project_type_data['report_sections']]
+        assertKeysEqual(t, self.project_type, [
+            'name', 'language', 'status',
+            'report_sections', 'finding_fields', 'finding_ordering', 'default_notes',
+            'report_template', 'report_styles', 'report_preview_data'])
+        assertKeysEqual(t, self.project_type, ['name', 'language', 'status', 'finding_fields', 'finding_ordering', 'report_sections', 'default_notes', 'report_template', 'report_styles', 'report_preview_data'])
         assert set(t.tags) == set(project_type_data['tags'])
         assert t.source == SourceEnum.IMPORTED
         assert t.assets.all().count() == 0

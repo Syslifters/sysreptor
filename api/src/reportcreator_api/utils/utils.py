@@ -137,16 +137,6 @@ def groupby_to_dict(data: dict, key) -> dict:
     return dict(map(lambda t: (t[0], list(t[1])), groupby(sorted(data, key=key), key=key)))
 
 
-def batched(iterable: Iterable, n: int) -> Iterable:
-    "Batch data into tuples of length n. The last batch may be shorter."
-    # batched('ABCDEFG', 3) --> ABC DEF G
-    if n < 1:
-        raise ValueError('n must be at least one')
-    it = iter(iterable)
-    while batch := tuple(itertools.islice(it, n)):
-        yield batch
-
-
 async def aretry(func, timeout=timedelta(seconds=1), interval=timedelta(seconds=0.1), retry_for=None):
     timeout_abs = timezone.now() + timeout
     while True:
