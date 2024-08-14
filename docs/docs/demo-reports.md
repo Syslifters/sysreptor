@@ -32,6 +32,13 @@
         <!--<figcaption><a href="#">Download Design</a></figcaption>-->
     </figure>
 </a>
+</a>
+<a href="/assets/reports/Altered-Security-Report.pdf" target="_blank">
+    <figure style="float:left;width:24%;margin:0.5em;">
+        <img alt="Offsec OSCP Report" src="/assets/reports/Altered-Security-Report-Preview.png" style="border:1px solid;" />
+        <figcaption><a href="/assets/reports/Altered-Security-Report-Design.tar.gz">Download Design</a></figcaption>
+    </figure>
+</a>
 </div>
 <br style="clear:both" />
 
