@@ -446,7 +446,7 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
     id = serializers.UUIDField(source='finding_id')
     assignee = RelatedUserIdExportImportSerializer()
     template = OptionalPrimaryKeyRelatedField(queryset=FindingTemplate.objects.all(), source='template_id')
-    data = serializers.DictField(source='data_all')
+    data = serializers.DictField()
 
     class Meta:
         model = PentestFinding
@@ -457,7 +457,7 @@ class PentestFindingExportImportSerializer(ExportImportSerializer):
 
     def create(self, validated_data):
         project = self.context['project']
-        data = validated_data.pop('data_all', {})
+        data = validated_data.pop('data', {})
         template = validated_data.pop('template_id', None)
 
         return PentestFinding.objects.create(**{
@@ -572,7 +572,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
     members = ProjectMemberListExportImportSerializer(source='*', required=False)
     pentesters = ProjectMemberListExportImportSerializer(required=False, write_only=True)
     project_type = ProjectTypeExportImportSerializer()
-    report_data = serializers.DictField(source='data_all')
+    report_data = serializers.DictField(source='data')  # TODO: update tests
     sections = ReportSectionExportImportSerializer(many=True)
     findings = PentestFindingExportImportSerializer(many=True)
     notes = NotebookPageListExportImportSerializer(child=ProjectNotebookPageExportImportSerializer(), required=False)
@@ -626,7 +626,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         sections = validated_data.pop('sections', [])
         findings = validated_data.pop('findings', [])
         notes = validated_data.pop('notes', [])
-        report_data = validated_data.pop('data_all', {})
+        report_data = validated_data.pop('data', {})
         images_data = validated_data.pop('images', [])
         files_data = validated_data.pop('files', [])
         comments_data = validated_data.pop('comments', [])

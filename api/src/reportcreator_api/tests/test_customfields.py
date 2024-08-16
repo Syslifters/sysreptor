@@ -256,7 +256,7 @@ class TestUpdateFieldDefinition:
         self.refresh_data()
 
         assert 'field_string' not in set(itertools.chain(*map(lambda s: s['fields'], self.project_type.report_sections)))
-        assert 'field_string' in self.project_type.report_preview_data['report']
+        assert 'field_string' not in self.project_type.report_preview_data['report']
 
         # Field removed from project (but data is kept in DB)
         assert 'field_string' not in self.project.data
@@ -272,7 +272,7 @@ class TestUpdateFieldDefinition:
         self.refresh_data()
 
         assert 'field_string' not in self.project_type.finding_field_order
-        assert 'field_string' in self.project_type.report_preview_data['findings'][0]
+        assert 'field_string' not in self.project_type.report_preview_data['findings'][0]
 
         # Field remove from project (but data is kept in DB)
         assert 'field_string' not in self.finding.data
