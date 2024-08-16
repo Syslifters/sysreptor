@@ -192,7 +192,7 @@ class TestImportExport:
                 assertKeysEqual(i_ca, o_ca, ['created', 'user', 'text'])
 
     def assert_export_import_project(self, project, p):
-        assertKeysEqual(p, project, ['name', 'language', 'tags', 'data', 'override_finding_ordering', 'data_all', 'unknown_custom_fields'])
+        assertKeysEqual(p, project, ['name', 'language', 'tags', 'data', 'override_finding_ordering'])
         assert members_equal(p.members, project.members)
         assert p.source == SourceEnum.IMPORTED
 
@@ -203,7 +203,7 @@ class TestImportExport:
 
         assert p.findings.count() == project.findings.count()
         for i, f in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id')):
-            assertKeysEqual(i, f, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
+            assertKeysEqual(i, f, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data'])
             self.assert_export_import_comments(i, f)
 
         assertKeysEqual(p.project_type, project.project_type, [
@@ -258,9 +258,9 @@ class TestImportExport:
         assert p.findings.exclude(assignee=None).count() == 0
 
         # Check UUID of nonexistent user is still present in data
-        assert p.data_all == self.project.data_all
+        assert p.data == self.project.data
         for i, s in zip(p.findings.order_by('created'), self.project.findings.order_by('created')):
-            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data', 'data_all'])
+            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data'])
 
         # Test nonexistent user is added to project.imported_members
         assert len(p.imported_members) == 1
