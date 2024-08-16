@@ -26,6 +26,9 @@ class GenericAPIViewAsyncMixin:
         await sync_to_async(serializer.is_valid)(raise_exception=True)
         return serializer
 
+    async def aget_object(self):
+        return await sync_to_async(super().get_object)()
+
 
 class GenericAPIViewAsync(GenericAPIViewAsyncMixin, AdrfAsyncGenericAPIView):
     _action = None
