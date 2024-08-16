@@ -187,28 +187,47 @@
 
       <!-- Combobox suggestions -->
       <v-list v-if="props.modelValue.type === FieldDataType.COMBOBOX" class="bg-inherit">
-        <v-list-item v-for="(suggestion, suggestionIdx) in props.modelValue.suggestions || []" :key="suggestionIdx">
-          <template #default>
-            <s-text-field
-              :model-value="suggestion"
-              @update:model-value="updateComboboxSuggestion('update', suggestionIdx, $event)"
-              :disabled="!props.canChangeStructure"
-              :readonly="props.readonly"
-              label="Value"
-              required
-              spellcheck="false"
-              class="mt-2"
-            />
+        <draggable
+          :model-value="props.modelValue.suggestions || []"
+          @update:model-value="updateComboboxSuggestion('sort', 0, $event)"
+          :item-key="(item: string) => props.modelValue.suggestions!.indexOf(item)"
+          :disabled="props.readonly || !props.canChangeStructure"
+          handle=".draggable-handle"
+        >
+          <template #item="{ element: suggestion, index: suggestionIdx }">
+            <v-list-item>
+              <template #prepend>
+                <v-icon
+                  size="x-large"
+                  class="draggable-handle"
+                  :disabled="props.readonly || !props.canChangeStructure"
+                  icon="mdi-drag-horizontal"
+                />
+              </template>
+              <template #default>
+                <s-text-field
+                  :model-value="suggestion"
+                  @update:model-value="updateComboboxSuggestion('update', suggestionIdx, $event)"
+                  :disabled="!props.canChangeStructure"
+                  :readonly="props.readonly"
+                  label="Value"
+                  required
+                  spellcheck="false"
+                  class="mt-2"
+                />
+              </template>
+              <template #append>
+                <btn-delete
+                  :delete="() => updateComboboxSuggestion('delete', suggestionIdx)"
+                  :confirm="false"
+                  :disabled="props.readonly || !props.canChangeStructure"
+                  button-variant="icon"
+                />
+              </template>
+            </v-list-item>
           </template>
-          <template #append>
-            <btn-delete
-              :delete="() => updateComboboxSuggestion('delete', suggestionIdx)"
-              :confirm="false"
-              :disabled="props.readonly || !props.canChangeStructure"
-              button-variant="icon"
-            />
-          </template>
-        </v-list-item>
+        </draggable>
+
         <v-list-item>
           <s-btn-secondary
             @click="updateComboboxSuggestion('add', 0)"
@@ -244,7 +263,7 @@
       />
       <!-- Object -->
       <v-list v-else-if="props.modelValue.type === FieldDataType.OBJECT" class="bg-inherit">
-        <v-list-item v-for="f, fIdx in props.modelValue.properties!" :key="fIdx">
+        <v-list-item v-for="f, fIdx in props.modelValue.properties || []" :key="fIdx">
           <template #default>
             <design-input-field-definition
               :model-value="f"
@@ -257,11 +276,31 @@
             />
           </template>
           <template #append>
-            <btn-delete
-              :delete="() => updateObject('delete', fIdx)"
-              :disabled="props.readonly || !props.canChangeStructure"
-              button-variant="icon"
-            />
+            <div class="d-flex flex-column">
+              <btn-delete
+                :delete="() => updateObject('delete', fIdx)"
+                :disabled="props.readonly || !props.canChangeStructure"
+                button-variant="icon"
+                density="comfortable"
+              />
+              <s-btn-icon 
+                @click="updateObject('move', fIdx, fIdx - 1)"
+                :disabled="props.readonly || fIdx === 0"
+                density="comfortable"
+              >
+                <v-icon icon="mdi-arrow-up-drop-circle-outline" />
+                <s-tooltip activator="parent" text="Move up in list" />
+              </s-btn-icon>
+
+              <s-btn-icon
+                @click="updateObject('move', fIdx, fIdx + 1)"
+                :disabled="props.readonly || fIdx === props.modelValue.properties!.length - 1"
+                density="comfortable"
+              >
+                <v-icon icon="mdi-arrow-down-drop-circle-outline" />
+                <s-tooltip activator="parent" text="Move down in list" />
+              </s-btn-icon>
+            </div>
           </template>
         </v-list-item>
 
@@ -386,12 +425,13 @@ function updateComboboxSuggestion(action: string, suggestionIdx: number, val?: a
   } else if (action === 'delete') {
     newObj.suggestions.splice(suggestionIdx, 1);
   } else if (action === 'add') {
-    newObj.suggestions.push('New Value');
+    newObj.suggestions.push(uniqueName('New Value', newObj.suggestions));
+  } else if (action === 'sort') {
+    newObj.suggestions = val;
   }
-  // TODO: allow sorting of suggestions
   emit('update:modelValue', newObj);
 }
-function updateObject(action: string, fieldIdx?: number, val?: FieldDefinition) {
+function updateObject(action: string, fieldIdx?: number, val?: FieldDefinition|any) {
   const newObj = { ...props.modelValue, properties: [...(props.modelValue.properties || [])] };
   if (action === "update") {
     newObj.properties = newObj.properties.map((f, idx) => idx !== fieldIdx ? f : val!);
@@ -414,8 +454,12 @@ function updateObject(action: string, fieldIdx?: number, val?: FieldDefinition) 
       val.id = uniqueName('new_field', newObj.properties.map(f => f.id));
     }
     newObj.properties.push(val);
+  } else if (action === 'sort') {
+    newObj.properties = val;
+  } else if (action === 'move') {
+    const [moved] = newObj.properties.splice(fieldIdx!, 1);
+    newObj.properties.splice(val!, 0, moved!);
   }
-  // TODO: allow sorting properties
   emit('update:modelValue', newObj);
 }
 

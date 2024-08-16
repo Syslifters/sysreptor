@@ -1,5 +1,11 @@
 # Changelog
 
+## Next
+* Allow custom order of object field properties
+* Allow sorting combobox suggestions
+* Rework field definition data format. Warning: breaking API changes
+
+
 ## v2024.63 - 2024-08-07
 * Allow searching notes in frontend
 * More settings for guest user permissions: GUEST_USERS_CAN_EDIT_PROJECTS, GUEST_USERS_CAN_SEE_ALL_USERS
