@@ -250,6 +250,7 @@ export function useProjectEditBase(options: {
   markdownEditorMode?: Ref<MarkdownEditorMode>;
 }) {
   const route = useRoute();
+  const auth = useAuth();
   const localSettings = useLocalSettings();
   const projectStore = useProjectStore();
 
@@ -258,18 +259,20 @@ export function useProjectEditBase(options: {
   const hasEditPermissions = computed(() => {
     if (options.historyDate) {
       return false;
-    }
-    if (options.project.value) {
-      return !options.project.value?.readonly;
+    } else if (options.project.value && !options.project.value.readonly) {
+      return false;
+    } else if (!auth.permissions.value.edit_projects) {
+      return false;
     }
     return true;
   });
   const errorMessage = computed(() => {
     if (options.historyDate) {
       return `You are comparing a historic version from ${formatISO9075(new Date(options.historyDate))} to the current version.`;
-    }
-    if (options.project.value?.readonly) {
+    } else if (options.project.value?.readonly) {
       return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'
+    } else if (!auth.permissions.value.edit_projects) {
+      return 'You do not have permissions to edit this resource.';
     }
     return null;
   });

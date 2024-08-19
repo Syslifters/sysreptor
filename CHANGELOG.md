@@ -2,6 +2,7 @@
 
 ## v2024.63 - 2024-08-07
 * Allow searching notes in frontend
+* More settings for guest user permissions: GUEST_USERS_CAN_EDIT_PROJECTS, GUEST_USERS_CAN_SEE_ALL_USERS
 * Retry redis commands on connection errors
 * Fix mermaid init blocks not applied in PDF rendering
 * Fix class paths of S3 storage backends

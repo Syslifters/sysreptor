@@ -8,6 +8,8 @@ from fido2.server import AttestedCredentialData
 from fido2.utils import websafe_decode, websafe_encode
 from fido2.webauthn import AuthenticatorAttachment, PublicKeyCredentialUserEntity, UserVerificationRequirement
 
+from reportcreator_api.conf import settings
+
 
 class SessionQueryset(models.QuerySet):
     def filter(self, **kwargs):
@@ -44,7 +46,7 @@ class PentestUserQuerySet(models.QuerySet):
         from reportcreator_api.users.models import PentestUser
         if user.is_anonymous:
             return self.none()
-        if user.is_guest and not (user.is_superuser or user.is_user_manager):
+        if user.is_guest and not settings.GUEST_USERS_CAN_SEE_ALL_USERS and not (user.is_superuser or user.is_user_manager):
             # Only show users that are members in projects where the guest user is also a member
             return self \
                 .filter(
