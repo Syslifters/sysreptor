@@ -630,7 +630,7 @@ class PentestProjectExportImportSerializerV1(ExportImportSerializer):
     members = ProjectMemberListExportImportSerializer(source='*', required=False)
     pentesters = ProjectMemberListExportImportSerializer(required=False, write_only=True)
     project_type = ProjectTypeExportImportSerializerV1()
-    report_data = serializers.DictField(source='data')  # TODO: update tests
+    report_data = serializers.DictField(source='data')
     sections = ReportSectionExportImportSerializer(many=True)
     findings = PentestFindingExportImportSerializer(many=True)
     notes = NotebookPageListExportImportSerializer(child=ProjectNotebookPageExportImportSerializer(), required=False)
