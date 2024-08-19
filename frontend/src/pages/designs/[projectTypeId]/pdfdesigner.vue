@@ -131,7 +131,7 @@ const pdfRenderingInProgress = computed(() => pdfPreviewRef.value?.renderingInPr
 
 const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,
-  saveFields: ['report_template', 'report_styles', 'report_preview_data', 'finding_fields', 'report_fields'],
+  saveFields: ['report_template', 'report_styles', 'report_preview_data', 'finding_fields', 'report_sections'],
 }));
 
 async function fetchPdf() {

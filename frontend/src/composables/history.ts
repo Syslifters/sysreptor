@@ -3,7 +3,7 @@ import { pick, get, trim } from "lodash-es";
 import {
   MergeView, EditorView,
 } from "reportcreator-markdown/editor";
-import { MarkdownEditorMode, type FieldDefinitionDict, type PentestProject, type ProjectType } from '@/utils/types';
+import { MarkdownEditorMode, type FieldDefinition, type PentestProject, type ProjectType } from '@/utils/types';
 
 export type DiffFieldProps = {
   value?: any;
@@ -104,20 +104,18 @@ export function formatHistoryObjectFieldProps(options: {
   id?: string;
   historic: {
     value?: any;
-    definition?: FieldDefinitionDict;
-    fieldIds: string[];
+    definition?: FieldDefinition[];
     attrs?: any;
   },
   current: {
     value?: any;
-    definition?: FieldDefinitionDict;
-    fieldIds: string[];
+    definition?: FieldDefinition[];
     attrs?: any;
   },
   attrs?: any;
 }) {
   const out = [] as DynamicInputFieldDiffProps[];
-  for (const fieldId of options.historic.fieldIds.concat(options.current.fieldIds)) {
+  for (const fieldId of (options.historic.definition?.map(f => f.id) || []).concat(options.current.definition?.map(f => f.id) || [])) {
     if (!out.some(f => f.id === fieldId)) {
       out.push({
         ...options.attrs,
@@ -125,12 +123,12 @@ export function formatHistoryObjectFieldProps(options: {
         historic: {
           ...options.historic.attrs,
           value: options.historic.value?.[fieldId],
-          definition: options.historic.definition?.[fieldId],
+          definition: options.historic.definition?.find(f => f.id === fieldId),
         },
         current: {
           ...options.current.attrs,
           value: options.current.value?.[fieldId],
-          definition: options.current.definition?.[fieldId],
+          definition: options.current.definition?.find(f => f.id === fieldId),
           collab: options.current.attrs?.collab ? collabSubpath(options.current.attrs.collab, fieldId) : undefined,
         },
       });

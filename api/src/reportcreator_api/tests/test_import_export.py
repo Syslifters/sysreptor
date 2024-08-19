@@ -17,6 +17,7 @@ from reportcreator_api.archive.import_export import (
 )
 from reportcreator_api.archive.import_export.import_export import build_tarinfo, export_notes, import_notes
 from reportcreator_api.pentests.collab.text_transformations import SelectionRange
+from reportcreator_api.pentests.customfields.types import serialize_field_definition_legacy
 from reportcreator_api.pentests.models import (
     Language,
     PentestProject,
@@ -37,6 +38,7 @@ from reportcreator_api.tests.mock import (
     create_usernotebookpage,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
+from reportcreator_api.utils.utils import copy_keys
 
 
 def archive_to_file(archive_iterator):
@@ -118,7 +120,7 @@ class TestImportExport:
                 text = text.replace(f_name, updated_map[f_content])
         return text
 
-    def test_export_import_template_v2(self):
+    def test_export_import_template(self):
         archive = archive_to_file(export_templates([self.template]))
         imported = import_templates(archive)
         assert len(imported) == 1
@@ -176,13 +178,46 @@ class TestImportExport:
 
         assertKeysEqual(t, self.project_type, [
             'created', 'name', 'language', 'status', 'tags',
-            'report_fields', 'report_sections',
-            'finding_fields', 'finding_field_order', 'finding_ordering',
+            'report_sections', 'finding_fields', 'finding_ordering',
             'default_notes',
             'report_template', 'report_styles', 'report_preview_data'])
         assert t.source == SourceEnum.IMPORTED
 
         assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
+
+    def test_import_project_type_v1(self):
+        # Remove document_history field from report_sections because order of properties changed
+        section = next(s for s in self.project_type.report_sections if s['id'] == 'other')
+        section['fields'] = [f for f in section['fields'] if f['id'] not in ['document_history']]
+        self.project_type.save()
+
+        project_type_data = {
+            "format": "projecttypes/v1",
+            "id": str(self.project_type.id),
+            "finding_fields": serialize_field_definition_legacy(self.project_type.finding_fields_obj),
+            "finding_field_order": self.project_type.finding_fields_obj.keys(),
+            "report_fields": serialize_field_definition_legacy(self.project_type.all_report_fields_obj),
+            "report_sections": [s | {'fields': [f['id'] for f in s['fields']]} for s in self.project_type.report_sections],
+            'assets': [],
+        } | copy_keys(self.project_type, [
+            'name', 'language', 'status', 'tags',
+            'finding_ordering', 'default_notes',
+            'report_template', 'report_styles', 'report_preview_data',
+        ])
+        archive = create_archive([project_type_data])
+        imported = import_project_types(archive)
+
+        assert len(imported) == 1
+        t = imported[0]
+
+        assertKeysEqual(t, self.project_type, [
+            'name', 'language', 'status',
+            'report_sections', 'finding_fields', 'finding_ordering', 'default_notes',
+            'report_template', 'report_styles', 'report_preview_data'])
+        assertKeysEqual(t, self.project_type, ['name', 'language', 'status', 'finding_fields', 'finding_ordering', 'report_sections', 'default_notes', 'report_template', 'report_styles', 'report_preview_data'])
+        assert set(t.tags) == set(project_type_data['tags'])
+        assert t.source == SourceEnum.IMPORTED
+        assert t.assets.all().count() == 0
 
     def assert_export_import_comments(self, obj_original, obj_imported):
         for i_c, o_c in zip(obj_imported.comments.order_by('created'), obj_original.comments.order_by('created')):
@@ -208,8 +243,7 @@ class TestImportExport:
 
         assertKeysEqual(p.project_type, project.project_type, [
             'created', 'name', 'language',
-            'report_fields', 'report_sections',
-            'finding_fields', 'finding_field_order', 'finding_ordering',
+            'report_sections', 'finding_fields', 'finding_ordering',
             'default_notes',
             'report_template', 'report_styles', 'report_preview_data'])
         assert p.project_type.source == SourceEnum.IMPORTED_DEPENDENCY
@@ -490,8 +524,7 @@ class TestCopyModel:
         assertKeysEqual(pt, cp, {
             'name', 'language', 'status', 'tags', 'linked_project',
             'report_template', 'report_styles', 'report_preview_data',
-            'report_fields', 'report_sections',
-            'finding_fields', 'finding_field_order', 'finding_ordering',
+            'report_sections', 'finding_fields', 'finding_ordering',
             'default_notes',
         } - set(exclude_fields or []))
 

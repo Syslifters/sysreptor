@@ -1,10 +1,10 @@
 import { sortBy } from "lodash-es";
-import type { TemplateFieldDefinition, FieldDefinitionDict, FindingTemplate, ProjectType, FindingTemplateTranslation } from "~/utils/types";
+import type { TemplateFieldDefinition, FieldDefinition, FindingTemplate, ProjectType, FindingTemplateTranslation } from "~/utils/types";
 
 export const useTemplateStore = defineStore('templates', {
   state: () => ({
-    fieldDefinition: null as (FieldDefinitionDict)|null,
-    getFieldDefinitionSync: null as Promise<FieldDefinitionDict>|null,
+    fieldDefinition: null as (FieldDefinition[])|null,
+    getFieldDefinitionSync: null as Promise<FieldDefinition[]>|null,
     designFilter: null as ProjectType|null,
   }),
   getters: {
@@ -15,14 +15,13 @@ export const useTemplateStore = defineStore('templates', {
 
       const fieldFilterHiddenFields = useLocalSettings().templateFieldFilterHiddenFields;
       return sortBy(
-        Object.keys(this.fieldDefinition).map(id => ({ 
-          id, 
-          visible: !fieldFilterHiddenFields.includes(id), 
-          used_in_designs: (this.fieldDefinition![id] as any).used_in_designs,
-          ...this.fieldDefinition![id]!,
+        this.fieldDefinition.map(f => ({ 
+          ...f,
+          visible: !fieldFilterHiddenFields.includes(f.id), 
+          used_in_designs: (f as any).used_in_designs || false,
         })),
         [
-          d => ((this.designFilter?.finding_field_order || []).indexOf(d.id) + 1) || 100000,
+          d => ((this.designFilter?.finding_fields || []).map(f => f.id).indexOf(d.id) + 1) || 100000,
           d => d.used_in_designs ? 0 : 1,
           (d) => {
             const originOrder = { core: 1, predefined: 2, custom: 3 };
@@ -68,7 +67,7 @@ export const useTemplateStore = defineStore('templates', {
       });
     },
     async fetchFieldDefinition() {
-      this.fieldDefinition = await $fetch<FieldDefinitionDict>('/api/v1/findingtemplates/fielddefinition/', { method: 'GET' });
+      this.fieldDefinition = await $fetch<FieldDefinition[]>('/api/v1/findingtemplates/fielddefinition/', { method: 'GET' });
       return this.fieldDefinition;
     },
     async getFieldDefinition() {
@@ -94,7 +93,7 @@ export const useTemplateStore = defineStore('templates', {
         if (options.clear) {
           localSettings.templateFieldFilterHiddenFields = this.fieldDefinitionList.map(f => f.id);
         }
-        localSettings.templateFieldFilterHiddenFields = localSettings.templateFieldFilterHiddenFields.filter(f => !options.design!.finding_field_order.includes(f));
+        localSettings.templateFieldFilterHiddenFields = localSettings.templateFieldFilterHiddenFields.filter(fId => !options.design!.finding_fields.some(f => f.id === fId));
       } else {
         this.designFilter = null;
         localSettings.templateFieldFilterDesign = 'all';

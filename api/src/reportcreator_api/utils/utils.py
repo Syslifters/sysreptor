@@ -3,7 +3,7 @@ import itertools
 import uuid
 from datetime import date, timedelta
 from itertools import groupby
-from typing import Any, Iterable, OrderedDict, Union
+from typing import Any, Iterable, OrderedDict
 
 from django.utils import dateparse, timezone
 
@@ -37,18 +37,18 @@ def find_index(lst: list, idx: int, default=-1):
         return default
 
 
-def get_key_or_attr(d: Union[dict, object], k: str, default=None):
+def get_key_or_attr(d: dict|object, k: str, default=None):
     return d.get(k, default) if isinstance(d, (dict, OrderedDict)) else getattr(d, k, default)
 
 
-def set_key_or_attr(d: Union[dict, object], k: str, value: Any):
+def set_key_or_attr(d: dict|object, k: str, value: Any):
     if isinstance(d, (dict, OrderedDict)):
         d[k] = value
     else:
         setattr(d, k, value)
 
 
-def copy_keys(d: Union[dict, object], keys: Iterable[str]) -> dict:
+def copy_keys(d: dict|object, keys: Iterable[str]) -> dict:
     keys = set(keys)
     out = {}
     for k in keys:
@@ -78,7 +78,7 @@ def omit_items(l: Iterable, items: Iterable) -> list:
     return l
 
 
-def is_uuid(val):
+def is_uuid(val) -> bool:
     try:
         uuid.UUID(val)
         return True
@@ -86,7 +86,7 @@ def is_uuid(val):
         return False
 
 
-def is_date_string(val):
+def is_date_string(val) -> bool:
     try:
         date.fromisoformat(val)
         return True
@@ -94,12 +94,12 @@ def is_date_string(val):
         return False
 
 
-def is_unique(lst):
+def is_unique(lst: Iterable) -> bool:
     lst = list(lst)
     return len(lst) == len(set(lst))
 
 
-def parse_date_string(val):
+def parse_date_string(val: str):
     out = dateparse.parse_datetime(val)
     if out is None:
         raise ValueError()
@@ -133,18 +133,8 @@ def merge(*args):
     return out
 
 
-def groupby_to_dict(data, key):
+def groupby_to_dict(data: dict, key) -> dict:
     return dict(map(lambda t: (t[0], list(t[1])), groupby(sorted(data, key=key), key=key)))
-
-
-def batched(iterable, n):
-    "Batch data into tuples of length n. The last batch may be shorter."
-    # batched('ABCDEFG', 3) --> ABC DEF G
-    if n < 1:
-        raise ValueError('n must be at least one')
-    it = iter(iterable)
-    while batch := tuple(itertools.islice(it, n)):
-        yield batch
 
 
 async def aretry(func, timeout=timedelta(seconds=1), interval=timedelta(seconds=0.1), retry_for=None):

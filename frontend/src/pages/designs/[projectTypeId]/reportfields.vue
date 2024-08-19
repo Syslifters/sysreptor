@@ -49,7 +49,7 @@
                       group="fields"
                       :disabled="readonly"
                     >
-                      <template #item="{ element: f}">
+                      <template #item="{ element: f }">
                         <v-list-item :value="f" class="draggable-handle" :ripple="false" link>
                           <template #prepend>
                             <v-icon icon="mdi-drag-horizontal" />
@@ -139,13 +139,13 @@
                 </v-card-text>
               </s-card>
               <design-input-field-definition
-                v-for="f in currentItemSection!.fields" :key="f.id"
+                v-for="f, fIdx in currentItemSection!.fields" :key="fIdx"
                 :model-value="f"
-                @update:model-value="updateCurrentSectionField(f, $event)"
+                @update:model-value="updateField(f, $event)"
                 :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
                 :lang="projectType.language"
                 :readonly="readonly"
-                :is-object-property="true"
+                :sibling-field-ids="allReportFields.filter(rf => rf !== f).map(rf => rf.id)"
               />
               <s-btn-secondary
                 @click.stop="addField(currentItemSection!)"
@@ -158,10 +158,11 @@
             <template v-else-if="currentItemIsField">
               <design-input-field-definition
                 :model-value="currentItemField!"
-                @update:model-value="updateCurrentField"
+                @update:model-value="updateField(currentItemField!, $event)"
                 :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentItemField!.origin as any)"
                 :lang="projectType.language"
                 :readonly="readonly"
+                :sibling-field-ids="allReportFields.filter(rf => rf !== currentItemField!).map(rf => rf.id)"
               />
             </template>
           </v-container>
@@ -173,122 +174,86 @@
 
 <script setup lang="ts">
 import Draggable from "vuedraggable";
-import { omit, isEqual } from 'lodash-es';
 import { VForm } from "vuetify/components";
 import { uniqueName } from '@/utils/urls';
-import { FieldOrigin } from "~/utils/types";
+import { FieldOrigin, type ReportSectionDefinition } from "~/utils/types";
 
 const localSettings = useLocalSettings();
 
 const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,
-  saveFields: ['report_sections', 'report_fields'],
+  saveFields: ['report_sections'],
 }));
 
 const reportSections = computed({
-  get: () => projectType.value.report_sections
-    .map(s => ({
-      ...s,
-      fields: s.fields.map(f => ({ id: f, ...projectType.value.report_fields[f] }))
-    } as ReportSectionDefinitionWithFieldDefinition)),
+  get: () => projectType.value.report_sections,
   set: (val) => {
-    projectType.value.report_sections = val.map(s => ({ ...s, fields: s.fields.map(f => f.id) }));
+    projectType.value.report_sections = val;
     if (currentItemSection.value) {
       currentItem.value = reportSections.value.find(s => s.id === currentItemSection.value!.id)!;
     }
   }
-})
-const reportFields = computed(() => reportSections.value.map(s => s.fields).flat());
+});
+const allReportFields = computed(() => reportSections.value.map(s => s.fields).flat());
 
-const currentItem = ref<FieldDefinitionWithId|ReportSectionDefinitionWithFieldDefinition|null>(null);
-const currentItemIsField = computed(() => reportFields.value.some(f => isEqual(f, currentItem.value)));
-const currentItemIsSection = computed(() => currentItem.value && !currentItemIsField.value && reportSections.value.some(s => s.id === currentItem.value!.id));
+const currentItem = ref<FieldDefinition|ReportSectionDefinition|null>(null);
+const currentItemIsField = computed(() => allReportFields.value.includes(currentItem.value as any));
+const currentItemField = computed(() => currentItemIsField ? currentItem.value as FieldDefinition : null);
+const currentItemIsSection = computed(() => reportSections.value.includes(currentItem.value as any));
+const currentItemSection = computed(() => currentItemIsSection ? currentItem.value as ReportSectionDefinition : null);
 const currentItemSelection = computed({
   get: () => currentItem.value ? [currentItem.value] : [],
-  set: (val) => {
-    currentItem.value = (val.length > 0) ? val[0]! : null;
-  }
+  set: (val) => { currentItem.value = (val.length > 0) ? val[0]! : null; },
 });
-const currentItemSection = computed(() => currentItemIsSection ? currentItem.value as ReportSectionDefinitionWithFieldDefinition : null);
-const currentItemField = computed(() => currentItemIsField ? currentItem.value as FieldDefinitionWithId : null);
 
 const rules = {
   sectionId: [
-    (id: string) => /^[a-zA-Z0-9_-]+$/.test(id) || 'Invalid ID',
+    (id: string) => /^[a-zA-Z0-9_-]+$/.test(id) || 'Invalid ID format',
+    (id: string) => !reportSections.value.filter(s => s !== currentItemSection.value).map(s => s.id).includes(id) || 'Section ID is not unique. This ID is already used by another section.',
   ]
 };
 
-function updateField(field: FieldDefinitionWithId, val: FieldDefinitionWithId) {
-  // Update field order in section
-  const section = projectType.value.report_sections.find(s => s.fields.includes(field.id));
-  if (!section) {
-    return;
-  }
-  const oldIdx = section.fields.indexOf(field.id);
-  if (oldIdx !== -1) {
-    section.fields[oldIdx] = val.id;
-  } else {
-    section.fields.push(val.id);
-  }
-
-  // Update field definition
-  delete projectType.value.report_fields[field.id];
-  projectType.value.report_fields[val.id] = omit(val, ['id']);
+function updateField(field: FieldDefinition, val: FieldDefinition) {
+  // @ts-ignore
+  Object.keys(field).forEach(k => delete field[k]);
+  Object.assign(field, val);
 }
-function updateCurrentSectionField(field: FieldDefinitionWithId, val: FieldDefinitionWithId) {
-  const sectionId = currentItem.value!.id;
-  updateField(field, val);
-
-  currentItem.value = reportSections.value.find(s => s.id === sectionId)!;
+function updateFieldOrder(section: ReportSectionDefinition, fields: FieldDefinition[]) {
+  section.fields = fields;
 }
-function updateCurrentField(val: FieldDefinitionWithId) {
-  updateField(currentItem.value as FieldDefinitionWithId, val);
-
-  currentItem.value = reportFields.value.find(f => f.id === val.id) || null;
-}
-function updateFieldOrder(section: ReportSectionDefinitionWithFieldDefinition, fields: FieldDefinitionWithId[]) {
-  const ptSection = projectType.value.report_sections.find(s => s.id === section.id)!;
-  ptSection.fields = fields.map(f => f.id);
-  if (currentItemField.value) {
-    currentItem.value = reportFields.value.find(f => f.id === currentItemField.value!.id)!;
-  }
-}
-function addField(section: ReportSectionDefinitionWithFieldDefinition) {
-  const ptSection = projectType.value.report_sections.find(s => s.id === section.id)!;
-  const fieldId = uniqueName('new_field', Object.keys(projectType.value.report_fields));
-  projectType.value.report_fields[fieldId] = {
+function addField(section: ReportSectionDefinition) {
+  const fieldId = uniqueName('new_field', allReportFields.value.map(f => f.id));
+  section.fields.push({
+    id: fieldId,
     type: FieldDataType.STRING,
     label: 'New Field',
     required: true,
     default: 'TODO: fill field in report',
     origin: FieldOrigin.CUSTOM,
-  };
-  ptSection.fields.push(fieldId);
+  });
 
-  if (currentItemIsSection.value && section.id === currentItem.value?.id) {
-    currentItem.value = reportSections.value.find(s => s.id === section.id)!;
-  } else {
-    currentItem.value = reportSections.value.find(s => s.id === section.id)!.fields.find(f => f.id === fieldId)!;
+  if (currentItem.value !== section) {
+    currentItem.value = section.fields.find(f => f.id === fieldId)!;
   }
 }
-function deleteField(section: ReportSectionDefinitionWithFieldDefinition, field: FieldDefinitionWithId) {
-  const ptSection = projectType.value.report_sections.find(s => s.id === section.id)!;
-  ptSection.fields = ptSection.fields.filter(f => f !== field.id);
-  delete projectType.value.report_fields[field.id];
+function deleteField(section: ReportSectionDefinition, field: FieldDefinition) {
+  section.fields = section.fields.filter(f => f !== field);
 }
 function updateCurrentSection(sectionField: string, val: any) {
-  const ptSection = projectType.value.report_sections.find(s => s.id === currentItem.value!.id)!;
+  if (!currentItemSection.value) {
+    return;
+  }
   // @ts-ignore
-  ptSection[sectionField] = val;
-  currentItem.value = reportSections.value.find(s => s.id === ptSection.id)!;
+  currentItemSection.value[sectionField] = val;
 }
 function addSection() {
   const sectionId = uniqueName('section', projectType.value.report_sections.map(s => s.id));
-  projectType.value.report_sections.push({ id: sectionId, label: 'New Section', fields: [] });
-  currentItem.value = reportSections.value.find(s => s.id === sectionId)!;
+  const newSection = { id: sectionId, label: 'New Section', fields: [] }
+  projectType.value.report_sections.push(newSection);
+  currentItem.value = newSection;
 }
-function deleteSection(section: ReportSectionDefinitionWithFieldDefinition) {
-  projectType.value.report_sections = projectType.value.report_sections.filter(s => s.id !== section.id);
+function deleteSection(section: ReportSectionDefinition) {
+  projectType.value.report_sections = projectType.value.report_sections.filter(s => s !== section);
 }
 </script>
 

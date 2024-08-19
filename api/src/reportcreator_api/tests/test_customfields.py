@@ -14,13 +14,18 @@ from reportcreator_api.pentests.customfields.predefined_fields import (
     FINDING_FIELDS_PREDEFINED,
     REPORT_FIELDS_CORE,
     finding_fields_default,
-    report_fields_default,
+    report_sections_default,
 )
 from reportcreator_api.pentests.customfields.sort import sort_findings
 from reportcreator_api.pentests.customfields.types import (
     FieldDataType,
-    field_definition_to_dict,
+    FieldDefinition,
+    ListField,
+    StringField,
     parse_field_definition,
+    parse_field_definition_legacy,
+    serialize_field_definition,
+    serialize_field_definition_legacy,
 )
 from reportcreator_api.pentests.customfields.utils import (
     HandleUndefinedFieldsOptions,
@@ -40,50 +45,53 @@ from reportcreator_api.tests.mock import (
     create_user,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
-from reportcreator_api.utils.utils import copy_keys, omit_items, omit_keys
 
 
 @pytest.mark.parametrize(('valid', 'definition'), [
-    (True, {}),
-    (False, {'f': {}}),
-    (False, {'f': {'type': 'string'}}),
+    (True, []),
+    (False, [{'id': 'f'}]),
+    (True, [{'id': 'f', 'type': 'string'}]),
     # Test field id
-    (True, {'field1': {'type': 'string', 'label': 'Field 1', 'default': None}}),
-    (True, {'fieldNumber_one': {'type': 'string', 'label': 'Field 1', 'default': None}}),
-    (False, {'field 1': {'type': 'string', 'label': 'Field 1', 'default': None}}),
-    (False, {'field.one': {'type': 'string', 'label': 'Field 1', 'default': None}}),
-    (False, {'1st_field': {'type': 'string', 'label': 'Field 1', 'default': None}}),
+    (True, [{'id': 'field1', 'type': 'string', 'label': 'Field 1', 'default': None}]),
+    (True, [{'id': 'fieldNumber_one', 'type': 'string', 'label': 'Field 1', 'default': None}]),
+    (False, [{'id': 'field 1', 'type': 'string', 'label': 'Field 1', 'default': None}]),
+    (False, [{'id': 'field.one', 'type': 'string', 'label': 'Field 1', 'default': None}]),
+    (False, [{'id': '1st_field', 'type': 'string', 'label': 'Field 1', 'default': None}]),
+    # Test duplicate IDs
+    (False, [{'id': 'f', 'type': 'string', 'label': 'Field 1', 'default': None}, {'id': 'f', 'type': 'string', 'label': 'Field 1', 'default': None}]),
+    (False, [{'id': 'f', 'type': 'object', 'properties': [{'id': 'f', 'type': 'string', 'label': 'Field 1', 'default': None}, {'id': 'f', 'type': 'string', 'label': 'Field 1', 'default': None}]}]),
+    (False, [{'id': 'f', 'type': 'list', 'items': {'id': 'f', 'type': 'object', 'properties': [{'id': 'f', 'type': 'string', 'label': 'Field 1', 'default': None}, {'id': 'f', 'type': 'string', 'label': 'Field 1', 'default': None}]}}]),
     # Test data types
-    (True, {
-        'field_string': {'type': 'string', 'label': 'String Field', 'default': 'test'},
-        'field_markdown': {'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
-        'field_cvss': {'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
-        'field_cwe': {'type': 'cwe', 'label': 'CWE Field', 'default': 'CWE-89'},
-        'field_date': {'type': 'date', 'label': 'Date Field', 'default': '2022-01-01'},
-        'field_int': {'type': 'number', 'label': 'Number Field', 'default': 10},
-        'field_bool': {'type': 'boolean', 'label': 'Boolean Field', 'default': False},
-        'field_enum': {'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'enum1', 'label': 'Enum Value 1'}, {'value': 'enum2', 'label': 'Enum Value 2'}], 'default': 'enum2'},
-        'field_combobox': {'type': 'combobox', 'label': 'Combobox Field', 'suggestions': ['value 1', 'value 2'], 'default': 'value1'},
-        'field_user': {'type': 'user', 'label': 'User Field'},
-        'field_object': {'type': 'object', 'label': 'Nested Object', 'properties': {'nested1':  {'type': 'string', 'label': 'Nested Field'}}},
-        'field_list': {'type': 'list', 'label': 'List Field', 'items': {'type': 'string'}},
-        'field_list_objects': {'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': {'nested1': {'type': 'string', 'label': 'Nested object field', 'default': None}}}},
-    }),
-    (False, {'f': {'type': 'unknown', 'label': 'Unknown'}}),
-    (False, {'f': {'type': 'date', 'label': 'Date', 'default': 'not a date'}}),
-    (False, {'f': {'type': 'number', 'label': 'Number', 'default': 'not an int'}}),
-    (False, {'f': {'type': 'enum', 'label': 'Enum Filed'}}),
-    (False, {'f': {'type': 'enum', 'label': 'Enum Field', 'choices': []}}),
-    (False, {'f': {'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'v1'}]}}),
-    (False, {'f': {'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': None}]}}),
-    (False, {'f': {'type': 'enum', 'label': 'Enum Field', 'choices': [{'label': 'Name only'}]}}),
-    (False, {'f': {'type': 'cwe', 'label': 'CWE Field', 'default': 'not a CWE'}}),
-    (False, {'f': {'type': 'combobox'}}),
-    (False, {'f': {'type': 'combobox', 'suggestions': [None]}}),
-    (False, {'f': {'type': 'object', 'label': 'Object Field'}}),
-    (False, {'f': {'type': 'object', 'label': 'Object Field', 'properties': {'adsf': {}}}}),
-    (False, {'f': {'type': 'list', 'label': 'List Field'}}),
-    (False, {'f': {'type': 'list', 'label': 'List Field', 'items': {}}}),
+    (True, [
+        {'id': 'field_string', 'type': 'string', 'label': 'String Field', 'default': 'test'},
+        {'id': 'field_markdown', 'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
+        {'id': 'field_cvss', 'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
+        {'id': 'field_cwe', 'type': 'cwe', 'label': 'CWE Field', 'default': 'CWE-89'},
+        {'id': 'field_date', 'type': 'date', 'label': 'Date Field', 'default': '2022-01-01'},
+        {'id': 'field_int', 'type': 'number', 'label': 'Number Field', 'default': 10},
+        {'id': 'field_bool', 'type': 'boolean', 'label': 'Boolean Field', 'default': False},
+        {'id': 'field_enum', 'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'enum1', 'label': 'Enum Value 1'}, {'value': 'enum2', 'label': 'Enum Value 2'}], 'default': 'enum2'},
+        {'id': 'field_combobox', 'type': 'combobox', 'label': 'Combobox Field', 'suggestions': ['value 1', 'value 2'], 'default': 'value1'},
+        {'id': 'field_user', 'type': 'user', 'label': 'User Field'},
+        {'id': 'field_object', 'type': 'object', 'label': 'Nested Object', 'properties': [{'id': 'nested1', 'type': 'string', 'label': 'Nested Field'}]},
+        {'id': 'field_list', 'type': 'list', 'label': 'List Field', 'items': {'type': 'string'}},
+        {'id': 'field_list_objects', 'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': [{'id': 'nested1', 'type': 'string', 'label': 'Nested object field', 'default': None}]}},
+    ]),
+    (False, [{'id': 'f', 'type': 'unknown', 'label': 'Unknown'}]),
+    (False, [{'id': 'f', 'type': 'date', 'label': 'Date', 'default': 'not a date'}]),
+    (False, [{'id': 'f', 'type': 'number', 'label': 'Number', 'default': 'not an int'}]),
+    (False, [{'id': 'f', 'type': 'enum', 'label': 'Enum Filed'}]),
+    (False, [{'id': 'f', 'type': 'enum', 'label': 'Enum Field', 'choices': []}]),
+    (False, [{'id': 'f', 'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'v1'}]}]),
+    (False, [{'id': 'f', 'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': None}]}]),
+    (False, [{'id': 'f', 'type': 'enum', 'label': 'Enum Field', 'choices': [{'label': 'Name only'}]}]),
+    (False, [{'id': 'f', 'type': 'cwe', 'label': 'CWE Field', 'default': 'not a CWE'}]),
+    (False, [{'id': 'f', 'type': 'combobox'}]),
+    (False, [{'id': 'f', 'type': 'combobox', 'suggestions': [None]}]),
+    (False, [{'id': 'f', 'type': 'object', 'label': 'Object Field'}]),
+    (False, [{'id': 'f', 'type': 'object', 'label': 'Object Field', 'properties': [{'id': 'adsf'}]}]),
+    (False, [{'id': 'f', 'type': 'list', 'label': 'List Field'}]),
+    (False, [{'id': 'f', 'type': 'list', 'label': 'List Field', 'items': {}}]),
 ])
 def test_definition_formats(valid, definition):
     res_valid = True
@@ -94,22 +102,46 @@ def test_definition_formats(valid, definition):
     assert res_valid == valid
 
 
+@pytest.mark.parametrize(('definition_old', 'definition_new'), [
+    (
+        {'f': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}},
+        [{'id': 'f', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}],
+    ),
+    (
+        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'type': 'string', 'label': 'Item', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}},
+        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'id': '', 'type': 'string', 'label': 'Item', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}],
+    ),
+    (
+        {'f': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}},
+        [{'id': 'f', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}],
+    ),
+    (
+        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}}},
+        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'id': '', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}}],
+    ),
+])
+def test_legacy_definition_format(definition_old, definition_new):
+    FieldDefinitionValidator()(definition_new)
+    assert serialize_field_definition(parse_field_definition_legacy(definition_old)) == definition_new
+    assert serialize_field_definition_legacy(parse_field_definition(definition_new)) == definition_old
+
+
 @pytest.mark.parametrize(('valid', 'definition', 'value'), [
-    (True, {
-            'field_string': {'type': 'string', 'label': 'String Field', 'default': 'test'},
-            'field_string2': {'type': 'string', 'label': 'String Field', 'default': None},
-            'field_markdown': {'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
-            'field_cvss': {'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
-            'field_cwe': {'type': 'cwe', 'label': 'CWE Field', 'default': None},
-            'field_date': {'type': 'date', 'label': 'Date Field', 'default': '2022-01-01'},
-            'field_int': {'type': 'number', 'label': 'Number Field', 'default': 10},
-            'field_bool': {'type': 'boolean', 'label': 'Boolean Field', 'default': False},
-            'field_enum': {'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'enum1', 'label': 'Enum Value 1'}, {'value': 'enum2', 'label': 'Enum Value 2'}], 'default': 'enum2'},
-            'field_combobox': {'type': 'combobox', 'lable': 'Combobox Field', 'suggestions': ['a', 'b']},
-            'field_object': {'type': 'object', 'label': 'Nested Object', 'properties': {'nested1':  {'type': 'string', 'label': 'Nested Field'}}},
-            'field_list': {'type': 'list', 'label': 'List Field', 'items': {'type': 'string'}},
-            'field_list_objects': {'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': {'nested1': {'type': 'string', 'label': 'Nested object field', 'default': None}}}},
-        }, {
+    (True, [
+            {'id': 'field_string', 'type': 'string', 'label': 'String Field', 'default': 'test'},
+            {'id': 'field_string2', 'type': 'string', 'label': 'String Field', 'default': None},
+            {'id': 'field_markdown', 'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
+            {'id': 'field_cvss', 'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
+            {'id': 'field_cwe', 'type': 'cwe', 'label': 'CWE Field', 'default': None},
+            {'id': 'field_date', 'type': 'date', 'label': 'Date Field', 'default': '2022-01-01'},
+            {'id': 'field_int', 'type': 'number', 'label': 'Number Field', 'default': 10},
+            {'id': 'field_bool', 'type': 'boolean', 'label': 'Boolean Field', 'default': False},
+            {'id': 'field_enum', 'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'enum1', 'label': 'Enum Value 1'}, {'value': 'enum2', 'label': 'Enum Value 2'}], 'default': 'enum2'},
+            {'id': 'field_combobox', 'type': 'combobox', 'lable': 'Combobox Field', 'suggestions': ['a', 'b']},
+            {'id': 'field_object', 'type': 'object', 'label': 'Nested Object', 'properties': [{'id': 'nested1', 'type': 'string', 'label': 'Nested Field'}]},
+            {'id': 'field_list', 'type': 'list', 'label': 'List Field', 'items': {'type': 'string'}},
+            {'id': 'field_list_objects', 'type': 'list', 'label': 'List of nested objects', 'items': {'type': 'object', 'properties': [{'id': 'nested1', 'type': 'string', 'label': 'Nested object field', 'default': None}]}},
+        ], {
             'field_string': 'This is a string',
             'field_string2': None,
             'field_markdown': 'Some **markdown**\n* String\n*List',
@@ -125,15 +157,15 @@ def test_definition_formats(valid, definition):
             'field_list_objects': [{'nested1': 'test'}, {'nested1': 'values'}],
             'field_additional': 'test',
         }),
-    (False, {'f': {'type': 'string'}}, {'f': {}}),
-    (False, {'f': {'type': 'string'}}, {}),
-    (False, {'f': {'type': 'cwe'}}, {'f': 'not a CWE'}),
-    (False, {'f': {'type': 'cwe'}}, {'f': 'CWE-99999999'}),
-    (False, {'f': {'type': 'list', 'items': {'type': 'object', 'properties': {'f': {'type': 'string'}}}}}, {'f': [{'f': 'v'}, {'f': 1}]}),
-    (True, {'f': {'type': 'list', 'items': {'type': 'object', 'properties': {'f': {'type': 'string'}}}}}, {'f': [{'f': 'v'}, {'f': None}]}),
-    (True, {'f': {'type': 'list', 'items': {'type': 'string'}}}, {'f': []}),
-    (False, {'f': {'type': 'list', 'items': {'type': 'string'}}}, {'f': None}),
-    (True, {'f': {'type': 'combobox', 'suggestions': ['a', 'b']}}, {'f': 'other'}),
+    (False, [{'id': 'f', 'type': 'string'}], {'f': {}}),
+    (False, [{'id': 'f', 'type': 'string'}], {}),
+    (False, [{'id': 'f', 'type': 'cwe'}], {'f': 'not a CWE'}),
+    (False, [{'id': 'f', 'type': 'cwe'}], {'f': 'CWE-99999999'}),
+    (False, [{'id': 'f', 'type': 'list', 'items': {'type': 'object', 'properties': [{'id': 'f', 'type': 'string'}]}}], {'f': [{'f': 'v'}, {'f': 1}]}),
+    (True, [{'id': 'f', 'type': 'list', 'items': {'type': 'object', 'properties': [{'id': 'f', 'type': 'string'}]}}], {'f': [{'f': 'v'}, {'f': None}]}),
+    (True, [{'id': 'f', 'type': 'list', 'items': {'type': 'string'}}], {'f': []}),
+    (False, [{'id': 'f', 'type': 'list', 'items': {'type': 'string'}}], {'f': None}),
+    (True, [{'id': 'f', 'type': 'combobox', 'suggestions': ['a', 'b']}], {'f': 'other'}),
     # (False, {'f': {'type': 'user'}}, {'f': str(uuid4())}),
 ])
 def test_field_values(valid, definition, value):
@@ -148,7 +180,7 @@ def test_field_values(valid, definition, value):
 @pytest.mark.django_db()
 def test_user_field_value():
     user = create_user()
-    FieldValuesValidator(parse_field_definition({'field_user': {'type': 'user', 'label': 'User Field'}}))({'field_user': str(user.id)})
+    FieldValuesValidator(parse_field_definition([{'id': 'field_user', 'type': 'user', 'label': 'User Field'}]))({'field_user': str(user.id)})
 
 
 class CustomFieldsTestModel(CustomFieldsMixin):
@@ -162,12 +194,13 @@ class CustomFieldsTestModel(CustomFieldsMixin):
 
 
 @pytest.mark.parametrize(('definition', 'old_value', 'new_value'), [
-    ({'a': {'type': 'string'}}, {'a': 'old'}, {'a': 'new'}),
-    ({'a': {'type': 'string'}}, {'a': 'text'}, {'a': None}),
-    ({'a': {'type': 'number'}}, {'a': 10}, {'a': None}),
-    ({'a': {'type': 'enum', 'choices': [{'value': 'a'}]}}, {'a': 'a'}, {'a': None}),
-    ({'a': {'type': 'list', 'items': {'type': 'enum', 'choices': [{'value': 'a'}]}}}, {'a': ['a', 'a']}, {'a': ['a', None]}),
-    ({'a': {'type': 'list', 'items': {'type': 'string'}}}, {'a': ['text']}, {'a': []}),
+    ([{'id': 'a', 'type': 'string'}], {'a': 'old'}, {'a': 'new'}),
+    ([{'id': 'a', 'type': 'string'}], {'a': 'text'}, {'a': None}),
+    ([{'id': 'a', 'type': 'number'}], {'a': 10}, {'a': None}),
+    ([{'id': 'a', 'type': 'enum', 'choices': [{'value': 'a'}]}], {'a': 'a'}, {'a': None}),
+    ([{'id': 'a', 'type': 'list', 'items': {'type': 'enum', 'choices': [{'value': 'a'}]}}], {'a': ['a', 'a']}, {'a': ['a', None]}),
+    ([{'id': 'a', 'type': 'list', 'items': {'type': 'string'}}], {'a': ['text']}, {'a': []}),
+    ([{'id': 'a', 'type': 'object', 'properties': [{'id': 'b', 'type': 'string'}]}], {'a': {'b': 'old'}}, {'a': {'b': 'new'}}),
 ])
 def test_update_field_values(definition, old_value, new_value):
     m = CustomFieldsTestModel(field_definition=definition, custom_fields=old_value)
@@ -176,24 +209,40 @@ def test_update_field_values(definition, old_value, new_value):
 
 
 @pytest.mark.parametrize(('compatible', 'a', 'b'), [
-    (True, {'a': {'type': 'string'}}, {'b': {'type': 'string'}}),
-    (True, {'a': {'type': 'string'}}, {'a': {'type': 'string'}}),
-    (True, {'a': {'type': 'string', 'label': 'left', 'default': 'left', 'required': False}}, {'a': {'type': 'string', 'label': 'right', 'default': 'right', 'required': True}}),
-    (True, {'a': {'type': 'string'}}, {'a': {'type': 'string'}, 'b': {'type': 'string'}}),
-    (True, {'a': {'type': 'string'}, 'b': {'type': 'string'}}, {'a': {'type': 'string'}}),
-    (False, {'a': {'type': 'string'}}, {'a': {'type': 'list', 'items': {'type': 'string'}}}),
-    (False, {'a': {'type': 'string'}}, {'a': {'type': 'markdown'}}),
-    (True, {'a': {'type': 'list', 'items': {'type': 'string'}}}, {'a': {'type': 'list', 'items': {'type': 'string'}}}),
-    (False, {'a': {'type': 'list', 'items': {'type': 'string'}}}, {'a': {'type': 'list', 'items': {'type': 'number'}}}),
-    (True, {'a': {'type': 'object', 'properties': {'a': {'type': 'string'}}}}, {'a': {'type': 'object', 'properties': {'a': {'type': 'string'}}}}),
-    (True, {'a': {'type': 'object', 'properties': {'a': {'type': 'string'}}}}, {'a': {'type': 'object', 'properties': {'a': {'type': 'boolean'}}}}),
-    (True, {'a': {'type': 'enum', 'choices': [{'value': 'a'}]}}, {'a': {'type': 'enum', 'choices': [{'value': 'a'}]}}),
-    (True, {'a': {'type': 'enum', 'choices': [{'value': 'a'}]}}, {'a': {'type': 'enum', 'choices': [{'value': 'a'}, {'value': 'b'}]}}),
-    (False, {'a': {'type': 'enum', 'choices': [{'value': 'a'}, {'value': 'b'}]}}, {'a': {'type': 'enum', 'choices': [{'value': 'a'}]}}),
-    (True, {'a': {'type': 'combobox', 'suggestions': ['a']}}, {'a': {'type': 'combobox', 'choices': ['b']}}),
+    (True, [{'id': 'a', 'type': 'string'}], [{'id': 'b', 'type': 'string'}]),
+    (True, [{'id': 'a', 'type': 'string'}], [{'id': 'a', 'type': 'string'}]),
+    (True, [{'id': 'a', 'type': 'string', 'label': 'left', 'default': 'left', 'required': False}], [{'id': 'a', 'type': 'string', 'label': 'right', 'default': 'right', 'required': True}]),
+    (True, [{'id': 'a', 'type': 'string'}], [{'id': 'a', 'type': 'string'}, {'id': 'b', 'type': 'string'}]),
+    (True, [{'id': 'a', 'type': 'string'}, {'id': 'b', 'type': 'string'}], [{'id': 'a', 'type': 'string'}]),
+    (True, [{'id': 'a', 'type': 'string'}, {'id': 'b', 'type': 'string'}], [{'id': 'b', 'type': 'string'}, {'id': 'a', 'type': 'string'}]),
+    (False, [{'id': 'a', 'type': 'string'}], [{'id': 'a', 'type': 'list', 'items': {'type': 'string'}}]),
+    (False, [{'id': 'a', 'type': 'string'}], [{'id': 'a', 'type': 'markdown'}]),
+    (True, [{'id': 'a', 'type': 'list', 'items': {'type': 'string'}}], [{'id': 'a', 'type': 'list', 'items': {'type': 'string'}}]),
+    (False, [{'id': 'a', 'type': 'list', 'items': {'type': 'string'}}], [{'id': 'a', 'type': 'list', 'items': {'type': 'number'}}]),
+    (True, [{'id': 'a', 'type': 'object', 'properties': [{'id': 'a', 'type': 'string'}]}], [{'id': 'a', 'type': 'object', 'properties': [{'id': 'a', 'type': 'string'}]}]),
+    (False, [{'id': 'a', 'type': 'object', 'properties': [{'id': 'a', 'type': 'string'}]}], [{'id': 'a', 'type': 'object', 'properties': [{'id': 'a', 'type': 'boolean'}]}]),
+    (True, [{'id': 'a', 'type': 'object', 'properties': [{'id': 'a', 'type': 'string'}, {'id': 'b', 'type': 'string'}]}], [{'id': 'a', 'type': 'object', 'properties': [{'id': 'b', 'type': 'string'}, {'id': 'a', 'type': 'string'}]}]),
+    (True, [{'id': 'a', 'type': 'enum', 'choices': [{'value': 'a'}]}], [{'id': 'a', 'type': 'enum', 'choices': [{'value': 'a'}]}]),
+    (True, [{'id': 'a', 'type': 'enum', 'choices': [{'value': 'a'}]}], [{'id': 'a', 'type': 'enum', 'choices': [{'value': 'a'}, {'value': 'b'}]}]),
+    (False, [{'id': 'a', 'type': 'enum', 'choices': [{'value': 'a'}, {'value': 'b'}]}], [{'id': 'a', 'type': 'enum', 'choices': [{'value': 'a'}]}]),
+    (True, [{'id': 'a', 'type': 'combobox', 'suggestions': ['a']}], [{'id': 'a', 'type': 'combobox', 'choices': ['b']}]),
 ])
 def test_definitions_compatible(compatible, a, b):
     assert check_definitions_compatible(parse_field_definition(a), parse_field_definition(b))[0] == compatible
+
+
+def get_definition(definition: list[dict], path: str|tuple[str]):
+    if isinstance(path, str):
+        path = path.split('.')
+    for f in definition:
+        if f['id'] == path[0]:
+            if len(path) == 1:
+                return f
+            elif 'fields' in f:
+                return get_definition(f['fields'], path[1:])
+            elif f.get('type') == 'object':
+                return get_definition(f['properties'], path[1:])
+    raise ValueError('Field not found')
 
 
 @pytest.mark.django_db()
@@ -216,14 +265,13 @@ class TestUpdateFieldDefinition:
 
     def test_add_report_field(self):
         default_value = 'new'
-        self.project_type.report_fields |= {
-            'field_new': {'type': 'string', 'label': 'New field', 'default': default_value},
-        }
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        get_definition(self.project_type.report_sections, 'other')['fields'].append({'id': 'field_new', 'type': 'string', 'label': 'New field', 'default': default_value})
         self.project_type.save()
         self.refresh_data()
 
         section = self.project.sections.get(section_id='other')
-        assert 'field_new' in section.section_definition['fields']
+        assert 'field_new' in [f['id'] for f in section.section_definition['fields']]
         assert self.project_type.report_preview_data['report']['field_new'] == default_value
 
         # New field added to projects
@@ -234,13 +282,13 @@ class TestUpdateFieldDefinition:
 
     def test_add_finding_field(self):
         default_value = 'new'
-        self.project_type.finding_fields |= {
-            'field_new': {'type': 'string', 'label': 'New field', 'default': default_value},
-        }
+        self.project_type.finding_fields += [
+            {'id': 'field_new', 'type': 'string', 'label': 'New field', 'default': default_value},
+        ]
         self.project_type.save()
         self.refresh_data()
 
-        assert self.project_type.finding_field_order[-1] == 'field_new'
+        assert self.project_type.finding_fields[-1]['id'] == 'field_new'
         assert self.project_type.report_preview_data['findings'][0]['field_new'] == default_value
 
         # New field added to projects
@@ -251,11 +299,12 @@ class TestUpdateFieldDefinition:
 
     def test_delete_report_field(self):
         old_value = self.project.data['field_string']
-        del self.project_type.report_fields['field_string']
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        get_definition(self.project_type.report_sections, 'other')['fields'] = [f for f in get_definition(self.project_type.report_sections, 'other')['fields'] if f['id'] != 'field_string']
         self.project_type.save()
         self.refresh_data()
 
-        assert 'field_string' not in set(itertools.chain(*map(lambda s: s['fields'], self.project_type.report_sections)))
+        assert 'field_string' not in set(map(lambda f: f['id'], itertools.chain(*map(lambda s: s['fields'], self.project_type.report_sections))))
         assert 'field_string' not in self.project_type.report_preview_data['report']
 
         # Field removed from project (but data is kept in DB)
@@ -267,11 +316,11 @@ class TestUpdateFieldDefinition:
 
     def test_delete_finding_field(self):
         old_value = self.finding.data['field_string']
-        del self.project_type.finding_fields['field_string']
+        self.project_type.finding_fields = [f for f in self.project_type.finding_fields if f['id'] != 'field_string']
         self.project_type.save()
         self.refresh_data()
 
-        assert 'field_string' not in self.project_type.finding_field_order
+        assert 'field_string' not in [f['id'] for f in self.project_type.finding_fields]
         assert 'field_string' not in self.project_type.report_preview_data['findings'][0]
 
         # Field remove from project (but data is kept in DB)
@@ -282,9 +331,10 @@ class TestUpdateFieldDefinition:
         assert 'field_string' in self.finding_other.data
 
     def test_change_type_report_field(self):
-        self.project_type.report_fields |= {
-            'field_string': {'type': 'object', 'label': 'Changed type', 'properties': {'nested': {'type': 'string', 'label': 'Nested field', 'default': 'default'}}},
-        }
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        get_definition(self.project_type.report_sections, 'other.field_string').update(
+            {'type': 'object', 'label': 'Changed type', 'properties': [{'id': 'nested', 'type': 'string', 'label': 'Nested field', 'default': 'default'}]},
+        )
         self.project_type.save()
         self.refresh_data()
 
@@ -293,9 +343,10 @@ class TestUpdateFieldDefinition:
         assert section.data['field_string'] == {'nested': 'default'}
 
     def test_change_type_finding_field(self):
-        self.project_type.finding_fields |= {
-            'field_string': {'type': 'object', 'label': 'Changed type', 'properties': {'nested': {'type': 'string', 'label': 'Nested field', 'default': 'default'}}},
-        }
+        self.project_type.finding_fields = copy.deepcopy(self.project_type.finding_fields)
+        get_definition(self.project_type.finding_fields, 'field_string').update(
+            {'type': 'object', 'label': 'Changed type', 'properties': [{'id': 'nested', 'type': 'string', 'label': 'Nested field', 'default': 'default'}]},
+        )
         self.project_type.save()
         self.refresh_data()
 
@@ -304,9 +355,8 @@ class TestUpdateFieldDefinition:
 
     def test_change_default_report_field(self):
         default_val = 'changed'
-        report_fields = copy.deepcopy(self.project_type.report_fields)
-        report_fields['field_string']['default'] = default_val
-        self.project_type.report_fields = report_fields
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        get_definition(self.project_type.report_sections, 'other.field_string')['default'] = default_val
         self.project_type.save()
         self.refresh_data()
 
@@ -319,9 +369,8 @@ class TestUpdateFieldDefinition:
 
     def test_change_default_finding_field(self):
         default_val = 'changed'
-        finding_fields = copy.deepcopy(self.project_type.finding_fields)
-        finding_fields['field_string']['default'] = default_val
-        self.project_type.finding_fields = finding_fields
+        self.project_type.finding_fields = copy.deepcopy(self.project_type.finding_fields)
+        get_definition(self.project_type.finding_fields, 'field_string')['default'] = default_val
         self.project_type.save()
         self.refresh_data()
 
@@ -335,43 +384,45 @@ class TestUpdateFieldDefinition:
 
     def test_restore_data_report_field(self):
         old_value = self.project.data['field_string']
-        old_definition = self.project_type.report_fields['field_string']
+        old_definition = get_definition(self.project_type.report_sections, 'other.field_string')
 
         # Delete field from definition
-        self.project_type.report_fields = omit_keys(self.project_type.report_fields, ['field_string'])
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        get_definition(self.project_type.report_sections, 'other')['fields'] = [f for f in get_definition(self.project_type.report_sections, 'other')['fields'] if f['id'] != 'field_string']
         self.project_type.save()
         self.refresh_data()
         assert 'field_string' not in self.project.data
         assert self.project.data_all['field_string'] == old_value
 
         # Restore field in definition
-        self.project_type.report_fields |= {'field_string': old_definition | {'labal': 'Changed name', 'default': 'other'}}
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        get_definition(self.project_type.report_sections, 'other')['fields'].append(old_definition | {'labal': 'Changed name', 'default': 'other'})
         self.project_type.save()
         self.refresh_data()
         assert self.project.data['field_string'] == old_value
 
     def test_restore_data_finding_field(self):
         old_value = self.finding.data['field_string']
-        old_definition = self.project_type.finding_fields['field_string']
+        old_definition = get_definition(self.project_type.finding_fields, 'field_string')
 
         # Delete field from definition
-        del self.project_type.finding_fields['field_string']
+        self.project_type.finding_fields = [f for f in self.project_type.finding_fields if f['id'] != 'field_string']
         self.project_type.save()
         self.refresh_data()
         assert 'field_string' not in self.finding.data
         assert self.finding.data_all['field_string'] == old_value
 
         # Restore field in definition
-        self.project_type.finding_fields |= {'field_string': old_definition | {'labal': 'Changed name', 'default': 'other'}}
+        self.project_type.finding_fields += [old_definition | {'labal': 'Changed name', 'default': 'other'}]
         self.project_type.save()
         self.refresh_data()
         assert self.finding.data['field_string'] == old_value
 
     def test_change_project_type_report_fields(self):
         old_value = self.project.data['field_string']
-        project_type_new = create_project_type(report_fields=field_definition_to_dict(REPORT_FIELDS_CORE) | {
-            'field_new': {'type': 'string', 'default': 'default', 'label': 'New field'},
-        })
+        project_type_new = create_project_type(report_sections=[{'id': 'other', 'label': 'Other', 'fields': serialize_field_definition(REPORT_FIELDS_CORE | FieldDefinition(fields=[
+            StringField(id='field_new', default='default', label='New field'),
+        ]))}])
         self.project.project_type = project_type_new
         self.project.save()
         self.refresh_data()
@@ -382,23 +433,22 @@ class TestUpdateFieldDefinition:
 
     def test_change_project_type_finding_fields(self):
         old_value = self.project.data['field_string']
-        project_type_new = create_project_type(finding_fields=field_definition_to_dict(FINDING_FIELDS_CORE) | {
-            'field_new': {'type': 'string', 'default': 'default', 'label': 'New field'},
-        })
+        project_type_new = create_project_type(finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
+            StringField(id='field_new', default='default', label='New field'),
+        ])))
         self.project.project_type = project_type_new
         self.project.save()
         self.refresh_data()
 
         assert 'field_string' not in self.finding.data
         assert self.finding.data_all['field_string'], old_value
-        assert self.finding.data['field_new'], 'default'
+        assert self.finding.data['field_new'] == 'default'
 
     def test_change_default_report_field_sync_previewdata(self):
         # If preview_data == default => update to new default value
         default_val = 'default changed'
-        report_fields = copy.deepcopy(self.project_type.report_fields)
-        report_fields['field_string']['default'] = default_val
-        self.project_type.report_fields = report_fields
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        get_definition(self.project_type.report_sections, 'other.field_string')['default'] = default_val
         self.project_type.save()
         self.refresh_data()
         assert self.project_type.report_preview_data['report']['field_string'] == default_val
@@ -406,8 +456,8 @@ class TestUpdateFieldDefinition:
         # If preview_data != default => do not update
         preview_data_value = 'non-default value'
         self.project_type.report_preview_data['report']['field_string'] = preview_data_value
-        report_fields['field_string']['default'] = 'default changed 2'
-        self.project_type.report_fields = report_fields
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        get_definition(self.project_type.report_sections, 'other.field_string')['default'] = 'default changed 2'
         self.project_type.save()
         assert self.project_type.report_preview_data['report']['field_string'] == preview_data_value
 
@@ -435,7 +485,7 @@ class TestUpdateFieldDefinitionSyncComments:
 
     def test_update_projecttype_delete_fields(self):
         self.project_type.finding_fields = finding_fields_default()
-        self.project_type.report_fields = report_fields_default()
+        self.project_type.report_sections = report_sections_default()
         self.project_type.save()
 
         assert Comment.objects.filter_project(self.project).count() == 0
@@ -443,7 +493,7 @@ class TestUpdateFieldDefinitionSyncComments:
     def test_change_projecttype_delete_fields(self):
         pt2 = create_project_type()
         pt2.finding_fields = finding_fields_default()
-        pt2.report_fields = report_fields_default()
+        pt2.report_sections = report_sections_default()
         pt2.save()
         self.project.project_type = pt2
         self.project.save()
@@ -452,45 +502,48 @@ class TestUpdateFieldDefinitionSyncComments:
 
     def test_fields_deleted(self):
         self.project_type.finding_fields = copy.deepcopy(self.project_type.finding_fields)
-        self.project_type.report_fields = copy.deepcopy(self.project_type.report_fields)
-        for d in [self.project_type.finding_fields, self.project_type.report_fields]:
-            d['field_markdown_renamed'] = d.pop('field_markdown')
-            del d['field_cvss']
-            del d['field_object']['properties']['field_string']
-            del d['field_list_objects']['items']['properties']['field_markdown']
-            d['field_list']['type'] = 'string'
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        for d in [self.project_type.finding_fields, get_definition(self.project_type.report_sections, 'other')['fields']]:
+            get_definition(d, 'field_markdown')['id'] = 'field_markdown_renamed'
+            get_definition(d, 'field_list')['type'] = 'string'
+            d.remove(get_definition(d, 'field_cvss'))
+            d_props = get_definition(d, 'field_object')['properties']
+            d_props.remove(get_definition(d_props, 'field_string'))
+            d_item_props = get_definition(d, 'field_list_objects')['items']['properties']
+            d_item_props.remove(get_definition(d_item_props, 'field_markdown'))
         self.project_type.save()
 
         assert Comment.objects.filter_project(self.project).count() == 0
 
     def test_field_added(self):
-        self.project_type.finding_fields = self.project_type.finding_fields | {'field_new': {'type': 'string'}}
-        self.project_type.report_fields = self.project_type.report_fields | {'field_new': {'type': 'string'}}
+        self.project_type.finding_fields += [{'id': 'field_new', 'type': 'string'}]
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        get_definition(self.project_type.report_sections, 'other')['fields'].append({'id': 'field_new', 'type': 'string'})
         self.project_type.save()
 
         # No comment deleted or created
         assert Comment.objects.filter_project(self.project).count() == len(self.comment_paths) * 2
 
     def test_field_moved_to_other_section(self):
-        fields_moved = ['field_markdown', 'field_list', 'field_list_objects']
-        rs = copy.deepcopy(self.project_type.report_sections)
-        rs_other = next(s for s in rs if s['id'] == 'other')
-        rs_other['fields'] = omit_items(rs_other['fields'], fields_moved)
-        rs.append({'id': 'new', 'fields': fields_moved})
-        self.project_type.report_sections = rs
+        fields_moved_ids = ['field_markdown', 'field_list', 'field_list_objects']
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        rs_other = get_definition(self.project_type.report_sections, 'other')
+        fields_moved_definitions = [f for f in rs_other['fields'] if f['id'] in fields_moved_ids]
+        rs_other['fields'] = [f for f in rs_other['fields'] if f['id'] not in fields_moved_ids]
+        self.project_type.report_sections.append({'id': 'new', 'fields': fields_moved_definitions})
         self.project_type.save()
 
         for cp in self.comment_paths:
             c = Comment.objects.filter_project(self.project).filter(path=cp).first()
-            assert c.section.section_id == 'new' if cp.split('.')[0] in fields_moved else 'other'
+            assert c.section.section_id == 'new' if cp.split('.')[0] in fields_moved_definitions else 'other'
 
     def test_type_changed_text_range_cleared(self):
         comments = list(Comment.objects.filter_project(self.project).filter(path='field_markdown'))
 
         self.project_type.finding_fields = copy.deepcopy(self.project_type.finding_fields)
-        self.project_type.finding_fields['field_markdown']['type'] = 'cvss'
-        self.project_type.report_fields = copy.deepcopy(self.project_type.report_fields)
-        self.project_type.report_fields['field_markdown']['type'] = 'cvss'
+        next(f for f in self.project_type.finding_fields if f['id'] == 'field_markdown')['type'] = 'cvss'
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        next(f for f in next(s for s in self.project_type.report_sections if s['id'] == 'other')['fields'] if f['id'] == 'field_markdown')['type'] = 'cvss'
         self.project_type.save()
 
         for c in comments:
@@ -505,21 +558,21 @@ class TestPredefinedFields:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
         self.project_type = create_project_type(
-            finding_fields=field_definition_to_dict(FINDING_FIELDS_CORE | copy_keys(FINDING_FIELDS_PREDEFINED, 'description')))
+            finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[FINDING_FIELDS_PREDEFINED['description']])))
         project = create_project(project_type=self.project_type)
         self.finding = create_finding(project=project)
 
     def test_change_structure(self):
-        self.project_type.finding_fields |= {
-            'description': {'type': 'list', 'label': 'Changed', 'items': {'type': 'string', 'default': 'changed'}},
-        }
+        self.project_type.finding_fields = serialize_field_definition(self.project_type.finding_fields_obj | FieldDefinition(fields=[
+            ListField(id='description', label='Changed', items=StringField(default='changed')),
+        ]))
         with pytest.raises(ValidationError):
             self.project_type.clean_fields()
 
     def test_add_conflicting_field(self):
-        self.project_type.finding_fields |= {
-            'recommendation': {'type': 'list', 'label': 'Changed', 'items': {'type': 'string', 'default': 'changed'}},
-        }
+        self.project_type.finding_fields = serialize_field_definition(self.project_type.finding_fields_obj | FieldDefinition(fields=[
+            ListField(id='recommendation', label='Changed', items=StringField(default='changed')),
+        ]))
         with pytest.raises(ValidationError):
             self.project_type.clean_fields()
 
@@ -529,21 +582,21 @@ class TestTemplateFieldDefinition:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.project_type1 = create_project_type(
-            finding_fields=field_definition_to_dict(FINDING_FIELDS_CORE | {
-                'field1': {'type': 'string', 'default': 'default', 'label': 'Field 1'},
-                'field_conflict': {'type': 'string', 'default': 'default', 'label': 'Conflicting field type'},
-            }),
+            finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
+                StringField(id='field1', default='default', label='Field 1'),
+                StringField(id='field_conflict', default='default', label='Conflicting field type'),
+            ])),
         )
         self.project_type2 = create_project_type(
-            finding_fields=field_definition_to_dict(FINDING_FIELDS_CORE | {
-                'field2': {'type': 'string', 'default': 'default', 'label': 'Field 2'},
-                'field_conflict': {'type': 'list', 'label': 'conflicting field type', 'items': {'type': 'string', 'default': 'default'}},
-            }),
+            finding_fields=serialize_field_definition(FINDING_FIELDS_CORE| FieldDefinition(fields=[
+                StringField(id='field2', default='default', label='Field 2'),
+                ListField(id='field_conflict', label='Conflicting field type', items=StringField(default='default')),
+            ])),
         )
         self.project_type_hidden = create_project_type(
-            finding_fields=field_definition_to_dict(FINDING_FIELDS_CORE | {
-                'field_hidden': {'type': 'string', 'default': 'default', 'label': 'Field of hidden ProjectType'},
-            }),
+            finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
+                StringField(id='field_hidden', default='default', label='Field of hidden ProjectType'),
+            ])),
         )
         project_hidden = create_project(project_type=self.project_type_hidden)
         self.project_type_hidden.linked_project = project_hidden
@@ -559,7 +612,7 @@ class TestTemplateFieldDefinition:
 
     def test_delete_field_definition(self):
         old_value = self.template.main_translation.data['field1']
-        del self.project_type1.finding_fields['field1']
+        self.project_type1.finding_fields = [f for f in self.project_type1.finding_fields if f['id'] != 'field1']
         self.project_type1.save()
         self.template.main_translation.refresh_from_db()
 
@@ -567,7 +620,10 @@ class TestTemplateFieldDefinition:
         assert self.template.main_translation.data_all['field1'] == old_value
 
     def test_change_field_type(self):
-        self.project_type1.finding_fields |= {'field1': {'type': 'list', 'label': 'changed field type', 'items': {'type': 'string', 'default': 'default'}}}
+        self.project_type1.finding_fields = copy.deepcopy(self.project_type1.finding_fields)
+        get_definition(self.project_type1.finding_fields, 'field1').update(
+            {'type': 'list', 'label': 'changed field type', 'items': {'type': 'string', 'default': 'default'}},
+        )
         self.project_type1.save()
         self.template.refresh_from_db()
 
@@ -581,38 +637,29 @@ class TestReportSectionDefinition:
     def setUp(self):
         field_definition = {'type': 'string', 'default': 'default', 'label': 'Field label'}
         self.project_type = create_project_type(
-            report_fields=field_definition_to_dict(REPORT_FIELDS_CORE) | {
-                'field1': field_definition,
-                'field2': field_definition,
-                'field3': field_definition,
-            },
             report_sections=[
-                {'id': 'section1', 'fields': ['field1'], 'label': 'Section 1'},
-                {'id': 'section2', 'fields': ['field2'], 'label': ['Section 2']},
+                {'id': 'section1', 'label': 'Section 1', 'fields': [{'id': 'field1'} | field_definition]},
+                {'id': 'section2', 'label': 'Section 2', 'fields': [{'id': 'field2'} | field_definition]},
+                {'id': 'other', 'label': 'Other', 'fields': [{'id': 'field3'} | field_definition]},
             ],
         )
         self.project = create_project(project_type=self.project_type)
 
-    def test_fields_in_no_section_put_it_other_section(self):
-        assert set(self.project.sections.values_list('section_id', flat=True)) == {'section1', 'section2', 'other'}
-        assert set(self.project.sections.get(section_id='other').section_fields) == set(REPORT_FIELDS_CORE.keys()) | {'field3'}
-
     def test_add_section(self):
-        self.project_type.report_fields |= {'field_new': {'type': 'string', 'default': 'default', 'label': 'new field'}}
-        self.project_type.report_sections += [{'id': 'section_new', 'fields': ['field_new']}]
+        self.project_type.report_sections += [{'id': 'section_new', 'fields': [{'id': 'field_new', 'type': 'string', 'default': 'default', 'label': 'new field'}]}]
         self.project_type.save()
         self.project.refresh_from_db()
 
         section_new = self.project.sections.get(section_id='section_new')
-        assert section_new.section_fields == ['field_new']
+        assert section_new.field_definition.keys() == ['field_new']
         assert section_new.data['field_new'] == 'default'
 
     def test_delete_section(self):
         old_value = self.project.sections.get(section_id='section1').data['field1']
-        report_sections = copy.deepcopy(self.project_type.report_sections)
-        section1 = next(filter(lambda s: s['id'] == 'section1', report_sections))
-        section2 = next(filter(lambda s: s['id'] == 'section2', report_sections))
-        section2['fields'].extend(section1['fields'])
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        section1 = get_definition(self.project_type.report_sections, 'section1')
+        section2 = get_definition(self.project_type.report_sections, 'section2')
+        section2['fields'] += section1['fields']
         self.project_type.report_sections = [section2]
         self.project_type.save()
         self.project.refresh_from_db()
@@ -622,12 +669,11 @@ class TestReportSectionDefinition:
 
     def test_move_field_to_other_section(self):
         old_value = self.project.sections.get(section_id='section1').data['field1']
-        report_sections = copy.deepcopy(self.project_type.report_sections)
-        section1 = next(filter(lambda s: s['id'] == 'section1', report_sections))
-        section1['fields'].remove('field1')
-        section2 = next(filter(lambda s: s['id'] == 'section2', report_sections))
-        section2['fields'].append('field1')
-        self.project_type.report_sections = report_sections
+        self.project_type.report_sections = copy.deepcopy(self.project_type.report_sections)
+        section1 = get_definition(self.project_type.report_sections, 'section1')
+        field1 = get_definition(section1['fields'], 'field1')
+        section1['fields'].remove(field1)
+        get_definition(self.project_type.report_sections, 'section2')['fields'].append(field1)
         self.project_type.save()
         self.project.refresh_from_db()
 
@@ -639,7 +685,7 @@ class TestReportSectionDefinition:
 class TestTemplateTranslation:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        create_project_type()  # create dummy project_type to get field_defintions
+        create_project_type()  # create dummy project_type to get field_definition
         self.template = create_template(language=Language.ENGLISH_US, data={
             'title': 'Title main',
             'description': 'Description main',

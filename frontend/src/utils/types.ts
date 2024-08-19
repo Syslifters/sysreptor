@@ -416,6 +416,7 @@ export type EnumFieldChoiceDefinition = {
 };
 
 export type FieldDefinition = {
+  id: string;
   type: FieldDataType;
   label: string;
   origin: FieldOrigin;
@@ -426,21 +427,14 @@ export type FieldDefinition = {
   cvss_version?: CvssVersion;
   suggestions?: string[];
   choices?: EnumFieldChoiceDefinition[];
-  properties?: Record<string, FieldDefinition>;
+  properties?: FieldDefinition[];
   items?: FieldDefinition;
 }
 
 export type TemplateFieldDefinition = FieldDefinition & { 
-  id: string; 
   visible: boolean;
   used_in_designs: boolean;
 };
-
-export type FieldDefinitionWithId = FieldDefinition & {
-  id: string;
-};
-
-export type FieldDefinitionDict = Record<string, FieldDefinition>;
 
 export enum SortOrder {
   ASC = 'asc',
@@ -455,11 +449,8 @@ export type FindingOrderingDefinition = {
 export type ReportSectionDefinition = {
     id: string;
     label: string;
-    fields: string[];
+    fields: FieldDefinition[];
 };
-export type ReportSectionDefinitionWithFieldDefinition = Omit<ReportSectionDefinition, 'fields'> & {
-  fields: FieldDefinitionWithId[];
-}
 
 export type ProjectType = BaseModel & Lockable & {
   readonly source: SourceEnum;
@@ -480,10 +471,8 @@ export type ProjectType = BaseModel & Lockable & {
       [key: string]: any;
     }[];
   };
-  report_fields: FieldDefinitionDict,
   report_sections: ReportSectionDefinition[];
-  finding_fields: FieldDefinitionDict;
-  finding_field_order: string[];
+  finding_fields: FieldDefinition[];
   finding_ordering: FindingOrderingDefinition[];
   default_notes: NoteBase[];
 }

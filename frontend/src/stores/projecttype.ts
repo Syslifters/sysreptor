@@ -1,12 +1,12 @@
 import { pick } from 'lodash-es';
 import { parseISO, formatISO9075 } from 'date-fns';
 import { ProjectTypeScope } from '~/utils/types';
-import type { FieldDefinitionDict, ProjectType } from "~/utils/types";
+import type { FieldDefinition, ProjectType } from "~/utils/types";
 
 export const useProjectTypeStore = defineStore('projecttype', {
   state: () => ({
     data: {} as Record<string, ProjectType>,
-    predefinedFindingFields: null as FieldDefinitionDict|null,
+    predefinedFindingFields: null as FieldDefinition[]|null,
   }),
   getters: {
     projectType() {
@@ -59,7 +59,7 @@ export const useProjectTypeStore = defineStore('projecttype', {
     },
     async getPredefinedFindingFields() {
       if (!this.predefinedFindingFields) {
-        this.predefinedFindingFields = await $fetch('/api/v1/projecttypes/predefinedfields/findings/', { method: 'GET' });
+        this.predefinedFindingFields = await $fetch<FieldDefinition[]>('/api/v1/projecttypes/predefinedfields/findings/', { method: 'GET' });
       }
       return this.predefinedFindingFields!;
     },

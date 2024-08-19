@@ -126,13 +126,13 @@
 
             <v-card-text>
               <dynamic-input-field
-                v-for="objectFieldId in Object.keys(props.definition.properties || {}).sort()"
-                :key="objectFieldId"
-                :model-value="formValue[objectFieldId]"
-                @update:model-value="emitInputObject(objectFieldId as string, $event)"
-                :collab="props.collab ? collabSubpath(props.collab, objectFieldId) : undefined"
-                :id="props.id ? (props.id + '.' + objectFieldId) : undefined"
-                v-bind="inheritedAttrs(props.definition.properties![objectFieldId]!)"
+                v-for="objectField in (props.definition.properties || [])"
+                :key="objectField.id"
+                :model-value="formValue[objectField.id]"
+                @update:model-value="emitInputObject(objectField.id as string, $event)"
+                :collab="props.collab ? collabSubpath(props.collab, objectField.id) : undefined"
+                :id="props.id ? (props.id + '.' + objectField.id) : undefined"
+                v-bind="inheritedAttrs(objectField)"
               >
                 <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
               </dynamic-input-field>
@@ -314,7 +314,7 @@ function getInitialValue(fieldDef: FieldDefinition, useDefault = true): any {
   } else if (fieldDef.type === "list") {
     return [];
   } else if (fieldDef.type === 'object') {
-    return Object.fromEntries(Object.entries(fieldDef.properties!).map(([f, d]) => [f, getInitialValue(d, useDefault)]));
+    return Object.fromEntries(fieldDef.properties!.map(d => [d.id, getInitialValue(d, useDefault)]));
   } else {
     return null;
   }
@@ -420,7 +420,7 @@ function isEmptyOrDefault(value: any, definition: FieldDefinition): boolean {
   if (definition.type === 'list') {
     return value.length === 0 || value.every((v: any) => isEmptyOrDefault(v, definition.items!));
   } else if (definition.type === 'object') {
-    return !value || Object.entries(definition.properties!).every(([k, d]) => isEmptyOrDefault(value[k], d));
+    return !value || definition.properties!.every(d => isEmptyOrDefault(value[d.id], d));
   } else {
     return !value || value === definition.default;
   }

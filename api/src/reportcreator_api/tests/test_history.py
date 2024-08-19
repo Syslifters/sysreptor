@@ -1,3 +1,4 @@
+import copy
 import enum
 from datetime import timedelta
 
@@ -17,6 +18,8 @@ from reportcreator_api.archive.import_export.import_export import (
     import_projects,
     import_templates,
 )
+from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE, REPORT_FIELDS_CORE
+from reportcreator_api.pentests.customfields.types import FieldDefinition, StringField, serialize_field_definition
 from reportcreator_api.pentests.models import (
     FindingTemplate,
     FindingTemplateTranslation,
@@ -48,7 +51,7 @@ from reportcreator_api.tests.mock import (
     mock_time,
 )
 from reportcreator_api.tests.test_import_export import archive_to_file
-from reportcreator_api.utils.utils import copy_keys, omit_keys
+from reportcreator_api.utils.utils import omit_keys
 
 
 def has_changes(a, b):
@@ -373,7 +376,7 @@ class TestProjectTypeHistory:
         a1 = UploadedAsset.objects.create(linked_object=pt, name='file-new.png', file=SimpleUploadedFile(name='file-new.png', content=b'file-new'))
         add_history_test()
         # Update fields
-        pt.finding_fields = omit_keys(pt.finding_fields, ['cvss'])
+        pt.finding_fields = [f for f in pt.finding_fields if f['id'] not in ['cvss']]
         pt.save()
         add_history_test()
         # Delete asset
@@ -454,9 +457,10 @@ class TestProjectHistory:
         sections_prev = list(p.sections.all())
 
         p.project_type = create_project_type(
-            finding_fields=copy_keys(p.project_type.finding_fields, ['title', 'cvss']) | {'field_new': {'type': 'string'}},
-            report_fields=copy_keys(p.project_type.finding_fields, ['title']),
-            report_sections=[{'id': 'new', 'label': 'New', 'fields': ['title']}],
+            finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields= [
+                StringField(id='field_new'),
+            ])),
+            report_sections=[{'id': 'new', 'label': 'New', 'fields': serialize_field_definition(REPORT_FIELDS_CORE)}],
         )
         p.save()
 
@@ -470,9 +474,10 @@ class TestProjectHistory:
     def test_update_project_type_fields(self):
         p = create_project(members=[self.user])
         sections_prev = list(p.sections.all())
-        p.project_type.finding_fields = copy_keys(p.project_type.finding_fields, ['title', 'cvss']) | {'field_new': {'type': 'string'}}
-        p.project_type.report_fields = copy_keys(p.project_type.report_fields, ['title'])
-        p.project_type.report_sections = [{'id': 'new', 'label': 'New', 'fields': ['title']}]
+        p.project_type.finding_fields = serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
+            StringField(id='field_new'),
+        ]))
+        p.project_type.report_sections = [{'id': 'new', 'label': 'New', 'fields': serialize_field_definition(REPORT_FIELDS_CORE)}]
         p.project_type.save()
 
         assert_history(p, history_count=2, history_type='~', history_change_reason='Field definition changed')
@@ -545,16 +550,16 @@ class TestProjectHistory:
 
         # Change project_type
         p.project_type = create_project_type(
-            finding_fields=copy_keys(p.project_type.finding_fields, ['title', 'cvss']) | {'field_new': {'type': 'string'}},
-            report_fields=copy_keys(p.project_type.finding_fields, ['title']),
-            report_sections=[{'id': 'new', 'label': 'New', 'fields': ['title']}],
+            finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[StringField(id='field_new')])),
+            report_sections=[{'id': 'new', 'label': 'New', 'fields': serialize_field_definition(REPORT_FIELDS_CORE)}],
         )
         p.save()
         add_history_test()
 
         # Update project_type fields
-        p.project_type.finding_fields |= {'field_new2': {'type': 'string', 'default': 'test'}}
-        p.project_type.report_fields |= {'field_new': {'type': 'string', 'default': 'test'}}
+        p.project_type.finding_fields += [{'id': 'field_new2', 'type': 'string', 'default': 'test'}]
+        p.project_type.report_sections = copy.deepcopy(p.project_type.report_sections)
+        next(s for s in p.project_type.report_sections if s['id'] == 'new')['fields'].append({'id': 'field_new', 'type': 'string', 'default': 'test'})
         p.save()
         add_history_test()
 

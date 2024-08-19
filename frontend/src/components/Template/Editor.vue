@@ -239,7 +239,7 @@ function deleteTranslation(translationId: string) {
   updateTemplateField('translations', template.value.translations.filter(tr => tr.id !== translationId))
 }
 
-const fieldAttrs = computed(() => (translation: FindingTemplateTranslation, definition: FieldDefinitionWithId) => ({
+const fieldAttrs = computed(() => (translation: FindingTemplateTranslation, definition: FieldDefinition) => ({
   modelValue: (definition.id in translation.data) ? translation.data[definition.id] : mainTranslation.value.data[definition.id],
   'onUpdate:modelValue': (v: any) => updateTranslationData(translation, definition.id, v),
   id: definition.id,

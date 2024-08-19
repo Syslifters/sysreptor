@@ -11,9 +11,9 @@ export function sortFindings<T extends PentestFinding>({ findings, projectType, 
       findings,
       projectType.finding_ordering.map(o => (finding: T) => {
         const v = topLevelFields ? (finding as any)[o.field] : finding.data[o.field];
-        const d = projectType.finding_fields[o.field];
+        const d = projectType.finding_fields.find(f => f.id === o.field);
         if (!d || d.type in [FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER] || Array.isArray(v) || typeof v === 'object') {
-          // Sorting by field is unsupported
+          // Sorting by field is not supported
           return '';
         } else if (d.type === FieldDataType.CVSS) {
           return scoreFromVector(v) || 0;
@@ -44,7 +44,7 @@ export function getFindingFieldValueSuggestions(options: { findings: PentestFind
     if (definition.type === FieldDataType.LIST && Array.isArray(value)) {
       return value.flatMap(v => getValue(`${path}[]`, definition.items!, v));
     } else if (definition.type === FieldDataType.OBJECT && isObject(value)) {
-      return Object.entries(definition.properties || {}).flatMap(([key, def]) => getValue(`${path}.${key}`, def, (value as any)[key]));
+      return (definition.properties || []).flatMap(def => getValue(`${path}.${def.id}`, def, (value as any)[def.id]));
     } else if (definition.type === FieldDataType.COMBOBOX && value) {
       return [{ path, value }];
     }
@@ -53,8 +53,8 @@ export function getFindingFieldValueSuggestions(options: { findings: PentestFind
 
   const out = new Map<string, string[]>();
   for (const finding of options.findings) {
-    for (const [fieldId, fieldDefinition] of Object.entries(options.projectType.finding_fields)) {
-      for (const { path, value } of getValue(fieldId, fieldDefinition, finding.data[fieldId])) {
+    for (const fieldDefinition of options.projectType.finding_fields) {
+      for (const { path, value } of getValue(fieldDefinition.id, fieldDefinition, finding.data[fieldDefinition.id])) {
         if (!out.has(path)) {
           out.set(path, []);
         }
@@ -131,7 +131,7 @@ export const useProjectStore = defineStore('project', {
             commentData.filter(c => c.path.startsWith(basePath)), 
             [(c) => {
               const fieldId = c.path.slice(basePath.length).split('.')?.[0];
-              return options.projectType?.finding_field_order.indexOf(fieldId!)
+              return options.projectType?.finding_fields.map(f => f.id).indexOf(fieldId!)
             }, 'path', 'created']
           );
         } else if (options.sectionId) {
@@ -141,7 +141,7 @@ export const useProjectStore = defineStore('project', {
             [(c) => {
               const fieldId = c.path.slice(basePath.length).split('.')?.[0];
               const sectionFields = options.projectType?.report_sections.find(s => s.id === options.sectionId)?.fields || [];
-              return sectionFields.indexOf(fieldId!)
+              return sectionFields.map(f => f.id).indexOf(fieldId!)
             }, 'path', 'created']
           );
         } else {

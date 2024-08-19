@@ -5,8 +5,7 @@
         <v-col>
           <s-text-field
             :model-value="props.modelValue.id"
-            @update:model-value="!props.isObjectProperty ? updateProperty('id', $event) : null"
-            @change="props.isObjectProperty ? updateProperty('id', $event.target.value) : null"
+            @update:model-value="updateProperty('id', $event)"
             :rules="rules.id"
             :disabled="!props.canChangeStructure"
             :readonly="props.readonly"
@@ -188,28 +187,47 @@
 
       <!-- Combobox suggestions -->
       <v-list v-if="props.modelValue.type === FieldDataType.COMBOBOX" class="bg-inherit">
-        <v-list-item v-for="(suggestion, suggestionIdx) in props.modelValue.suggestions || []" :key="suggestionIdx">
-          <template #default>
-            <s-text-field
-              :model-value="suggestion"
-              @update:model-value="updateComboboxSuggestion('update', suggestionIdx, $event)"
-              :disabled="!props.canChangeStructure"
-              :readonly="props.readonly"
-              label="Value"
-              required
-              spellcheck="false"
-              class="mt-2"
-            />
+        <draggable
+          :model-value="props.modelValue.suggestions || []"
+          @update:model-value="updateComboboxSuggestion('sort', 0, $event)"
+          :item-key="(item: string) => props.modelValue.suggestions!.indexOf(item)"
+          :disabled="props.readonly || !props.canChangeStructure"
+          handle=".draggable-handle"
+        >
+          <template #item="{ element: suggestion, index: suggestionIdx }">
+            <v-list-item>
+              <template #prepend>
+                <v-icon
+                  size="x-large"
+                  class="draggable-handle"
+                  :disabled="props.readonly || !props.canChangeStructure"
+                  icon="mdi-drag-horizontal"
+                />
+              </template>
+              <template #default>
+                <s-text-field
+                  :model-value="suggestion"
+                  @update:model-value="updateComboboxSuggestion('update', suggestionIdx, $event)"
+                  :disabled="!props.canChangeStructure"
+                  :readonly="props.readonly"
+                  label="Value"
+                  required
+                  spellcheck="false"
+                  class="mt-2"
+                />
+              </template>
+              <template #append>
+                <btn-delete
+                  :delete="() => updateComboboxSuggestion('delete', suggestionIdx)"
+                  :confirm="false"
+                  :disabled="props.readonly || !props.canChangeStructure"
+                  button-variant="icon"
+                />
+              </template>
+            </v-list-item>
           </template>
-          <template #append>
-            <btn-delete
-              :delete="() => updateComboboxSuggestion('delete', suggestionIdx)"
-              :confirm="false"
-              :disabled="props.readonly || !props.canChangeStructure"
-              button-variant="icon"
-            />
-          </template>
-        </v-list-item>
+        </draggable>
+
         <v-list-item>
           <s-btn-secondary
             @click="updateComboboxSuggestion('add', 0)"
@@ -235,7 +253,7 @@
       <!-- List Item -->
       <design-input-field-definition
         v-else-if="props.modelValue.type === FieldDataType.LIST"
-        :model-value="(props.modelValue.items! as FieldDefinitionWithId)"
+        :model-value="props.modelValue.items!"
         @update:model-value="updateProperty('items', $event)"
         :is-list-item="true"
         :nesting-level="props.nestingLevel + 1"
@@ -245,24 +263,44 @@
       />
       <!-- Object -->
       <v-list v-else-if="props.modelValue.type === FieldDataType.OBJECT" class="bg-inherit">
-        <v-list-item v-for="f in objectFields" :key="f.id">
+        <v-list-item v-for="f, fIdx in props.modelValue.properties || []" :key="fIdx">
           <template #default>
             <design-input-field-definition
               :model-value="f"
-              @update:model-value="updateObject('update', f.id, $event)"
-              :is-object-property="true"
+              @update:model-value="updateObject('update', fIdx, $event)"
               :nesting-level="props.nestingLevel + 1"
               :can-change-structure="props.canChangeStructure"
               :lang="props.lang"
               :readonly="props.readonly"
+              :sibling-field-ids="props.modelValue.properties?.filter(p => p !== f).map(p => p.id)"
             />
           </template>
           <template #append>
-            <btn-delete
-              :delete="() => updateObject('delete', f.id)"
-              :disabled="props.readonly || !props.canChangeStructure"
-              button-variant="icon"
-            />
+            <div class="d-flex flex-column">
+              <btn-delete
+                :delete="() => updateObject('delete', fIdx)"
+                :disabled="props.readonly || !props.canChangeStructure"
+                button-variant="icon"
+                density="comfortable"
+              />
+              <s-btn-icon 
+                @click="updateObject('move', fIdx, fIdx - 1)"
+                :disabled="props.readonly || fIdx === 0"
+                density="comfortable"
+              >
+                <v-icon icon="mdi-arrow-up-drop-circle-outline" />
+                <s-tooltip activator="parent" text="Move up in list" />
+              </s-btn-icon>
+
+              <s-btn-icon
+                @click="updateObject('move', fIdx, fIdx + 1)"
+                :disabled="props.readonly || fIdx === props.modelValue.properties!.length - 1"
+                density="comfortable"
+              >
+                <v-icon icon="mdi-arrow-down-drop-circle-outline" />
+                <s-tooltip activator="parent" text="Move down in list" />
+              </s-btn-icon>
+            </div>
           </template>
         </v-list-item>
 
@@ -281,25 +319,25 @@
 </template>
 
 <script setup lang="ts">
-import { omit } from "lodash-es";
 import Draggable from "vuedraggable";
 import { CvssVersion } from "@/utils/cvss/base";
 import { FieldDataType, FieldOrigin } from "@/utils/types";
 
 const props = withDefaults(defineProps<{
-  modelValue: FieldDefinitionWithId;
+  modelValue: FieldDefinition;
   canChangeStructure?: boolean;
   isListItem?: boolean;
-  isObjectProperty?: boolean;
   readonly?: boolean;
   lang?: string|null;
   nestingLevel?: number;
+  siblingFieldIds?: string[];
 }>(), {
   lang: null,
-  nestingLevel: 0
+  nestingLevel: 0,
+  siblingFieldIds: () => [],
 });
 const emit = defineEmits<{
-  'update:modelValue': [FieldDefinitionWithId];
+  'update:modelValue': [FieldDefinition];
 }>();
 
 const localSettings = useLocalSettings();
@@ -307,10 +345,9 @@ const localSettings = useLocalSettings();
 const rules = {
   id: [
     (id: string) => (
-    // this.parentObject.filter(f => id === f.id).length === 1 &&
-    // TODO: validate ID unique abd validate custom ID not in list of core and predefined field IDs
       /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(id)
     ) || 'Invalid field ID',
+    (id: string) => !props.siblingFieldIds.includes(id) || 'Field ID is not unique. This ID is already used by another field.',
   ],
   choice: [
     // v => (choices || []).filter(c => c.value === v).length === 1 || 'Enum value is not unique',
@@ -329,21 +366,6 @@ const rules = {
   ]
 };
 
-const objectFieldOrder = ref(Object.keys(props.modelValue.properties || {}).sort());
-const objectFields = computed(() => {
-  if (props.modelValue.type === FieldDataType.OBJECT) {
-    for (const k of Object.keys(props.modelValue.properties || {})) {
-      if (!objectFieldOrder.value.includes(k)) {
-        objectFieldOrder.value.push(k);
-      }
-    }
-    return objectFieldOrder.value
-      .filter(f => Object.hasOwn(props.modelValue.properties as object, f))
-      .map(f => ({ id: f, ...props.modelValue.properties![f]! }));
-  } else {
-    return [];
-  }
-});
 const predefinedRegexPatterns = [
   { title: 'E-Mail', value: "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$" },
   { title: 'URL', value: "^(http(s)?:\\/\\/.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$" },
@@ -403,24 +425,22 @@ function updateComboboxSuggestion(action: string, suggestionIdx: number, val?: a
   } else if (action === 'delete') {
     newObj.suggestions.splice(suggestionIdx, 1);
   } else if (action === 'add') {
-    newObj.suggestions.push('New Value');
+    newObj.suggestions.push(uniqueName('New Value', newObj.suggestions));
+  } else if (action === 'sort') {
+    newObj.suggestions = val;
   }
-  // TODO: allow sorting of suggestions
   emit('update:modelValue', newObj);
 }
-function updateObject(action: string, fieldId?: string, val?: FieldDefinitionWithId) {
-  const newObj = { ...props.modelValue, properties: { ...props.modelValue.properties! } };
+function updateObject(action: string, fieldIdx?: number, val?: FieldDefinition|any) {
+  const newObj = { ...props.modelValue, properties: [...(props.modelValue.properties || [])] };
   if (action === "update") {
-    delete newObj.properties![fieldId!];
-    newObj.properties![val!.id] = omit(val!, ['id']);
-    objectFieldOrder.value = objectFieldOrder.value.map(f => f === fieldId ? val!.id : f);
+    newObj.properties = newObj.properties.map((f, idx) => idx !== fieldIdx ? f : val!);
   } else if (action === "delete") {
-    newObj.properties = omit(newObj.properties, [fieldId!]);
-    objectFieldOrder.value = objectFieldOrder.value.filter(f => f !== fieldId);
+    newObj.properties = newObj.properties.filter((_, idx) => idx !== fieldIdx);
   } else if (action === 'add') {
     if (!val) {
       val = {
-        id: fieldId || '',
+        id: '',
         type: FieldDataType.STRING,
         label: 'New Field',
         required: true,
@@ -431,24 +451,27 @@ function updateObject(action: string, fieldId?: string, val?: FieldDefinitionWit
       };
     }
     if (!val.id) {
-      val.id = uniqueName('new_field', Object.keys(newObj.properties));
+      val.id = uniqueName('new_field', newObj.properties.map(f => f.id));
     }
-    newObj.properties[val.id] = omit(val, ['id']);
-    objectFieldOrder.value.push(val.id);
+    newObj.properties.push(val);
+  } else if (action === 'sort') {
+    newObj.properties = val;
+  } else if (action === 'move') {
+    const [moved] = newObj.properties.splice(fieldIdx!, 1);
+    newObj.properties.splice(val!, 0, moved!);
   }
-
   emit('update:modelValue', newObj);
 }
 
 watch(() => props.modelValue.type, () => {
   if (props.modelValue.type === FieldDataType.ENUM && !props.modelValue.choices) {
-    updateProperty('choices', [{ value: 'enum_val', label: 'Enum Value' }]);
+    updateProperty('choices', [{ value: 'enum_val', label: 'Enum Value' }] as FieldDefinition['choices']);
   } else if (props.modelValue.type === FieldDataType.COMBOBOX && !props.modelValue.suggestions) {
-    updateProperty('suggestions', ['Combobox Value']);
+    updateProperty('suggestions', ['Combobox Value'] as FieldDefinition['suggestions']);
   } else if (props.modelValue.type === FieldDataType.LIST && !props.modelValue.items) {
-    updateProperty('items', { type: FieldDataType.STRING, default: null });
+    updateProperty('items', { type: FieldDataType.STRING, default: null } as FieldDefinition['items']);
   } else if (props.modelValue.type === FieldDataType.OBJECT && !props.modelValue.properties) {
-    updateProperty('properties', { nested_field: { type: FieldDataType.STRING, label: 'Nested Field', default: null } });
+    updateProperty('properties', [{ id: 'nested_field', type: FieldDataType.STRING, label: 'Nested Field', default: null }] as FieldDefinition['properties']);
   }
 });
 

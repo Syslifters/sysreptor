@@ -170,7 +170,7 @@ watch(markdownEditorMode, (val) => {
   }
 });
 
-const diffFieldAttrs = computed(() => (translationInfo: TranslationDiffInfo, definition: FieldDefinitionWithId) => {
+const diffFieldAttrs = computed(() => (translationInfo: TranslationDiffInfo, definition: FieldDefinition) => {
   const commonProps = {
     definition,
     markdownEditorMode: markdownEditorMode.value,

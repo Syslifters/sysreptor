@@ -41,14 +41,14 @@
 
     <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
       <dynamic-input-field
-        v-for="fieldId in section.fields" :key="fieldId"
-        :model-value="section.data[fieldId]"
-        :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldId}`)"
+        v-for="fieldDefinition in sectionDefinition.fields" :key="fieldDefinition.id"
+        :model-value="section.data[fieldDefinition.id]"
+        :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldDefinition.id}`)"
         @collab="reportingCollab.onCollabEvent"
         @comment="commentSidebarRef?.onCommentEvent"
         :readonly="readonly"
-        :id="fieldId"
-        :definition="projectType.report_fields[fieldId]!"
+        :id="fieldDefinition.id"
+        :definition="fieldDefinition"
         v-bind="inputFieldAttrs"
       />
     </v-container>
@@ -65,6 +65,7 @@ const projectTypeStore = useProjectTypeStore();
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'sections:project' });
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'sections:projectType' });
+const sectionDefinition = computed(() => projectType.value.report_sections.find(s => s.id === route.params.sectionId)!);
 
 const reportingCollab = projectStore.useReportingCollab({ project: project.value, sectionId: route.params.sectionId as string });
 const section = computedThrottled(() => reportingCollab.data.value.sections[route.params.sectionId as string], { throttle: 500 });

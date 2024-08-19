@@ -386,10 +386,10 @@ export class AppendixComponent extends DesignerComponentBase {
       <markdown :text="appendix_section.text" />
     </div>
     `;
-    const appendixField = context?.projectType?.report_fields?.appendix_sections;
+    const appendixField = context?.projectType?.report_sections.map(s => s.fields).flat().find(f => f.id === 'appendix_sections');
     if (!appendixField || appendixField?.type !== 'list' || appendixField?.items?.type !== 'object' ||
-    appendixField?.items?.properties?.title?.type !== 'string' ||
-    appendixField?.items?.properties?.content?.type !== 'markdown') {
+    appendixField?.items?.properties?.find(f => f.id === 'title')?.type !== 'string' ||
+    appendixField?.items?.properties?.find(f => f.id === 'content')?.type !== 'markdown') {
       dynamicAppendixSection = '<!--\n' + dynamicAppendixSection + '\n-->';
     }
     return {
@@ -957,7 +957,7 @@ export class FindingsChapterComponent extends DesignerComponentBase {
           <strong>CVSS-Score: </strong><span :class="'risk-' + finding.cvss.level">{{ finding.cvss.score }}</span><br />
           <strong>CVSS-Vector: </strong>{{ finding.cvss.vector }}<br />
       `);
-      if ('affected_components' in context.projectType.finding_fields) {
+      if (context.projectType.finding_fields.some(f => f.id === 'affected_components')) {
         htmlHeader += '\n' + trimLeadingWhitespace(`
           <template v-if="finding.affected_components && finding.affected_components.length > 0">
             <strong>Affects: </strong>
@@ -996,7 +996,7 @@ export class FindingsChapterComponent extends DesignerComponentBase {
         }
       `);
 
-      if ('affected_components' in context.projectType.finding_fields) {
+      if (context.projectType.finding_fields.some(f => f.id === 'affected_components')) {
         htmlHeader += '\n' + trimLeadingWhitespace(`
           <tr v-if="finding.affected_components && finding.affected_components.length > 0">
             <td class="finding-header-key">Affects</td>
@@ -1014,15 +1014,14 @@ export class FindingsChapterComponent extends DesignerComponentBase {
       htmlHeader += '\n  </tbody>\n</table>';
     }
 
-    const includeFields = context.projectType.finding_field_order
-      .filter(f => !['title', 'cvss', 'affected_components', 'short_recommendation'].includes(f))
-      .map(f => [f, context.projectType.finding_fields[f]])
-      .filter(([_f, d]) => (d as FieldDefinition).type === FieldDataType.MARKDOWN);
-    for (const [f, d] of includeFields) {
+    const includeFields = context.projectType.finding_fields
+      .filter(f => !['title', 'cvss', 'affected_components', 'short_recommendation'].includes(f.id))
+      .filter(f => f.type === FieldDataType.MARKDOWN);
+    for (const f of includeFields) {
       htmlFields += trimLeadingWhitespace(`
-        <div v-if="finding.${f}">
-          <h3 :id="finding.id + '-${f}'">${(d as FieldDefinition).label}</h3>
-          <markdown :text="finding.${f}" />
+        <div v-if="finding.${f.id}">
+          <h3 :id="finding.id + '-${f.id}'">${f.label}</h3>
+          <markdown :text="finding.${f.id}" />
         </div>
       `);
     }
@@ -1381,6 +1380,7 @@ export class CoverPageComponent extends DesignerComponentBase {
   }
 
   override createCode(form: any, context: DesignerContext) {
+    const allReportFields = context.projectType.report_sections.map(s => s.fields).flat().map(f => f.id);
     const id = createUniqueId('page-cover', context);
     const html = trimLeadingWhitespace(`
       <section id="${id}" data-sysreptor-generated="page-cover">
@@ -1391,8 +1391,8 @@ export class CoverPageComponent extends DesignerComponentBase {
         <div class="page-cover-customer">
           <p>
             <strong>Customer:</strong><br>
-            ${'customer' in context.projectType.report_fields ? '{{ report.customer }}' : 'Example Customer'}<br>
-            ${'document_history' in context.projectType.report_fields ? 
+            ${allReportFields.includes('customer') ? '{{ report.customer }}' : 'Example Customer'}<br>
+            ${allReportFields.includes('document_history') ? 
               "{{ report.document_history[report.document_history.length - 1]?.date || '' }}<br>" +
               "{{ report.document_history[report.document_history.length - 1]?.version || '0.0' }}<br>" : ""
             }

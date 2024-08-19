@@ -5,6 +5,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from rest_framework import serializers
 
+from reportcreator_api.pentests.customfields.types import (
+    FieldDefinition,
+    parse_field_definition_legacy,
+    serialize_field_definition,
+)
 from reportcreator_api.pentests.customfields.utils import (
     HandleUndefinedFieldsOptions,
     ensure_defined_structure,
@@ -344,9 +349,13 @@ class UploadedAssetExportImportSerializer(FileExportImportSerializer):
         return str(self.context.get('project_type_id') or self.get_linked_object().id) + '-assets/' + name
 
 
-class ProjectTypeExportImportSerializer(ExportImportSerializer):
+class ProjectTypeExportImportSerializerV1(ExportImportSerializer):
     format = FormatField('projecttypes/v1')
     assets = UploadedAssetExportImportSerializer(many=True)
+    finding_fields = serializers.DictField()
+    finding_field_order = serializers.ListField(child=serializers.CharField())
+    report_fields = serializers.DictField()
+    report_sections = serializers.ListField(child=serializers.DictField())
 
     class Meta:
         model = ProjectType
@@ -355,6 +364,55 @@ class ProjectTypeExportImportSerializer(ExportImportSerializer):
             'name', 'language', 'status', 'tags',
             'report_fields', 'report_sections',
             'finding_fields', 'finding_field_order', 'finding_ordering',
+            'default_notes',
+            'report_template', 'report_styles', 'report_preview_data',
+            'assets',
+        ]
+        extra_kwargs = {
+            'id': {'read_only': False},
+            'created': {'read_only': False, 'required': False},
+            'status': {'required': False, 'default': ProjectTypeStatus.FINISHED},
+        }
+
+    def create(self, validated_data):
+        old_id = validated_data.pop('id')
+        assets = validated_data.pop('assets', [])
+
+        # Load old field definition format
+        try:
+            finding_fields = serialize_field_definition(parse_field_definition_legacy(
+                field_dict=validated_data.pop('finding_fields', {}),
+                field_order=validated_data.pop('finding_field_order', []),
+            ))
+            report_fields = parse_field_definition_legacy(field_dict=validated_data.pop('report_fields', {}))
+            report_sections = validated_data.pop('report_sections', [])
+            for section_data in report_sections:
+                section_data['fields'] = serialize_field_definition(FieldDefinition(fields=[report_fields[f_id] for f_id in section_data['fields']]))
+        except Exception as ex:
+            raise serializers.ValidationError('Invalid field definition') from ex
+
+        project_type = super().create({
+            'source': SourceEnum.IMPORTED,
+            'finding_fields': finding_fields,
+            'report_sections': report_sections,
+        } | validated_data)
+        project_type.full_clean()
+
+        self.context.update({'project_type': project_type, 'project_type_id': old_id})
+        self.fields['assets'].create(assets)
+        return project_type
+
+
+class ProjectTypeExportImportSerializerV2(ExportImportSerializer):
+    format = FormatField('projecttypes/v2')
+    assets = UploadedAssetExportImportSerializer(many=True)
+
+    class Meta:
+        model = ProjectType
+        fields = [
+            'format', 'id', 'created', 'updated',
+            'name', 'language', 'status', 'tags',
+            'report_sections', 'finding_fields', 'finding_ordering',
             'default_notes',
             'report_template', 'report_styles', 'report_preview_data',
             'assets',
@@ -567,12 +625,12 @@ class NotebookPageListExportImportSerializer(serializers.ListSerializer):
         return instances
 
 
-class PentestProjectExportImportSerializer(ExportImportSerializer):
+class PentestProjectExportImportSerializerV1(ExportImportSerializer):
     format = FormatField('projects/v1')
     members = ProjectMemberListExportImportSerializer(source='*', required=False)
     pentesters = ProjectMemberListExportImportSerializer(required=False, write_only=True)
-    project_type = ProjectTypeExportImportSerializer()
-    report_data = serializers.DictField(source='data')  # TODO: update tests
+    project_type = ProjectTypeExportImportSerializerV1()
+    report_data = serializers.DictField(source='data')
     sections = ReportSectionExportImportSerializer(many=True)
     findings = PentestFindingExportImportSerializer(many=True)
     notes = NotebookPageListExportImportSerializer(child=ProjectNotebookPageExportImportSerializer(), required=False)
@@ -640,7 +698,7 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
             'source': SourceEnum.IMPORTED,
             'unknown_custom_fields': ensure_defined_structure(
                 value=report_data,
-                definition=project_type.report_fields_obj,
+                definition=project_type.all_report_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
                 include_unknown=True,
             ),
@@ -666,6 +724,11 @@ class PentestProjectExportImportSerializer(ExportImportSerializer):
         self.fields['comments'].create(comments_data)
 
         return project
+
+
+class PentestProjectExportImportSerializerV2(PentestProjectExportImportSerializerV1):
+    format = FormatField('projects/v2')
+    project_type = ProjectTypeExportImportSerializerV2()
 
 
 class NotesImageExportImportSerializer(FileExportImportSerializer):

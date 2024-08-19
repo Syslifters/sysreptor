@@ -80,13 +80,11 @@ const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
   historic: {
     value: fetchState.value.dataHistoric?.data,
     definition: fetchState.value.projectTypeHistoric?.finding_fields,
-    fieldIds: fetchState.value.projectTypeHistoric?.finding_field_order || [],
     attrs: fieldAttrsHistoric.value,
   },
   current: {
     value: fetchState.value.dataCurrent?.data,
     definition: fetchState.value.projectTypeCurrent?.finding_fields,
-    fieldIds: fetchState.value.projectTypeCurrent?.finding_field_order || [],
     attrs: {
       ...fieldAttrsCurrent.value,
       collab: collabSubpath(fieldAttrsCurrent.value.collab, 'data'),
