@@ -3,15 +3,15 @@ import operator
 from functools import reduce
 from types import NoneType
 
-from adrf.views import APIView as AsyncAPIView
-from adrf.viewsets import ViewSet as AdrfAsyncViewSet
+from adrf.generics import GenericAPIView as AdrfAsyncGenericAPIView
+from adrf.viewsets import GenericViewSet as AdrfAsyncGenericViewSet
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db.models import OrderBy, Q
 from django.http import FileResponse, Http404, StreamingHttpResponse
 from django.utils.functional import classproperty
-from rest_framework import exceptions, generics, pagination, views
+from rest_framework import exceptions, pagination, views
 from rest_framework.response import Response
 
 from reportcreator_api.archive.crypto import CryptoError
@@ -30,7 +30,7 @@ class GenericAPIViewAsyncMixin:
         return await sync_to_async(super().get_object)()
 
 
-class GenericAPIViewAsync(GenericAPIViewAsyncMixin, generics.GenericAPIView, AsyncAPIView):
+class GenericAPIViewAsync(GenericAPIViewAsyncMixin, AdrfAsyncGenericAPIView):
     _action = None
 
     @property
@@ -46,11 +46,8 @@ class GenericAPIViewAsync(GenericAPIViewAsyncMixin, generics.GenericAPIView, Asy
         await sync_to_async(serializer.is_valid)(raise_exception=True)
         return serializer
 
-    async def aget_object(self):
-        return await sync_to_async(super().get_object)()
 
-
-class ViewSetAsync(GenericAPIViewAsyncMixin, AdrfAsyncViewSet):
+class ViewSetAsync(GenericAPIViewAsyncMixin, AdrfAsyncGenericViewSet):
     @classproperty
     def view_is_async(cls):
         return True
