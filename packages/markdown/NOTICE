@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@codemirror/autocomplete 6.17.0
+@codemirror/autocomplete 6.18.0
 MIT
 MIT License
 
@@ -248,7 +248,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/merge 6.6.5
+@codemirror/merge 6.7.0
 MIT
 MIT License
 
@@ -323,7 +323,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/view 6.29.1
+@codemirror/view 6.32.0
 MIT
 MIT License
 
@@ -416,7 +416,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@lezer/highlight 1.2.0
+@lezer/highlight 1.2.1
 MIT
 MIT License
 
@@ -970,7 +970,7 @@ MIT
     SOFTWARE
 
 
-@types/unist 2.0.10
+@types/unist 2.0.11
 MIT
     MIT License
 
@@ -995,7 +995,7 @@ MIT
     SOFTWARE
 
 
-@types/unist 3.0.2
+@types/unist 3.0.3
 MIT
     MIT License
 
@@ -1596,7 +1596,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-cytoscape 3.30.1
+cytoscape 3.30.2
 MIT
 Copyright (c) 2016-2024, The Cytoscape Consortium.
 
@@ -2364,7 +2364,7 @@ const zoom = d3.zoom().on('zoom', (zoomEvent) => {
 ```
 
 
-dayjs 1.11.12
+dayjs 1.11.13
 MIT
 MIT License
 
@@ -3521,7 +3521,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-foreground-child 3.2.1
+foreground-child 3.3.0
 ISC
 The ISC License
 
@@ -4923,7 +4923,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-mdast-util-gfm-autolink-literal 2.0.0
+mdast-util-gfm-autolink-literal 2.0.1
 MIT
 (The MIT License)
 
@@ -16811,7 +16811,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-spdx-license-ids 3.0.18
+spdx-license-ids 3.0.20
 CC0-1.0
 # spdx-license-ids
 

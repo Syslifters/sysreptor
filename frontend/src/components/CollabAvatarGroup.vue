@@ -61,13 +61,17 @@ const clientsHidden = computed(() => clientsAll.value.length > props.limit ? cli
   border: 3px solid var(--avatar-border-color);
 
   /* overlap */
-  margin-right: -6px;
+  & {
+    margin-right: -6px;
+  }
   &:last-of-type {
     margin-right: 0;
   }
 
   /* hover animation */
-  transition: all .2s ease-out;
+  & {
+    transition: all .2s ease-out;
+  }
   &:hover {
     z-index: 1;
     transform: translateY(-4px);
