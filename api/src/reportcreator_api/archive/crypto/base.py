@@ -67,7 +67,7 @@ def open(fileobj, mode='r', **kwargs):
         elif plaintext_fallback:
             return BufferedReaderNonClosing(fileobj)
         else:
-            raise CryptoError('Data is not encrypted and plaintext fallback is disabled')
+            raise CryptoError('Cannot decrypt data: Encountered plaintext data and ENCRYPTION_PLAINTEXT_FALLBACK=False')
     elif mode in ['w', 'wb']:
         key_id = kwargs.pop('key_id', settings.DEFAULT_ENCRYPTION_KEY_ID)
         key = kwargs.pop('key', settings.ENCRYPTION_KEYS.get(key_id))
@@ -77,7 +77,7 @@ def open(fileobj, mode='r', **kwargs):
         elif plaintext_fallback:
             return BufferedWriterNonClosing(fileobj)
         else:
-            raise CryptoError('No key provided and plaintext fallback is disabled')
+            raise CryptoError('Cannot encrypt data: No key provided and ENCRYPTION_PLAINTEXT_FALLBACK=False')
 
 
 def readexact(fileobj, size):
@@ -106,6 +106,7 @@ class NonClosingBufferedIOMixin:
             # may raise BlockingIOError or BrokenPipeError etc
             self.flush()
 
+
 class BufferedReaderNonClosing(NonClosingBufferedIOMixin, io.BufferedReader):
     pass
 
@@ -132,11 +133,11 @@ class EncryptionStream(io.RawIOBase):
 
     def _init_cipher(self, nonce=None):
         if self.key.revoked:
-            raise CryptoError('Key is revoked. It cannot be used for encryption anymore.')
+            raise CryptoError(f'Cannot encrypt data: Key with id={self.key.id} is revoked. It cannot be used for encryption anymore.')
         if self.key.cipher == EncryptionCipher.AES_GCM:
             return AES.new(key=self.key.key, mode=AES.MODE_GCM, nonce=nonce)
         else:
-            raise CryptoError('Unknown cipher')
+            raise CryptoError('Cannot encrypt data: Unknown cipher')
 
     def _ensure_header(self):
         if self.header_written:
@@ -201,14 +202,14 @@ class DecryptionStream(io.RawIOBase):
     def _load_header(self, key=None, keys=None):
         # Check magic
         if self.fileobj.read(len(MAGIC)) != MAGIC:
-            raise CryptoError('Invalid header: magic not found')
+            raise CryptoError('Cannot decrypt data: Invalid header: magic not found')
 
         # Read metadata
         metadata_buffer = bytearray()
         while True:
             b = self.fileobj.read(1)
             if not b:
-                raise CryptoError('Invalid header: missing or corrupted metadata')
+                raise CryptoError('Cannot decrypt data: Invalid header: missing or corrupted metadata')
             elif b == b'\x00':
                 break
             else:
@@ -225,17 +226,17 @@ class DecryptionStream(io.RawIOBase):
             elif keys:
                 self.metadata['key'] = keys.get(self.metadata['key_id'])
             else:
-                raise CryptoError('Either a key or a multiple available keys must be given')
+                raise CryptoError('Cannot decrypt data: no encryption keys available. Configure ENCRYPTION_KEYS in settings.')
         except CryptoError:
             raise
         except Exception as ex:
-            raise CryptoError('Failed to load metadata') from ex
+            raise CryptoError('Cannot decrypt data: Failed to load metadata') from ex
 
         # Check metadata
         if not self.metadata['key']:
-            raise CryptoError('Metadata contains unknown key_id. Cannot find a suitable key for decryption.')
+            raise CryptoError(f'Cannot decrypt data: No key with id={self.metadata.get('key_id')} in ENCRYPTION_KEYS.')
         if self.metadata['key'].revoked:
-            raise CryptoError('Key was revoked and cannot be used for decryption anymore.')
+            raise CryptoError(f'Cannot decrypt data: Key with id={self.metadata['key'].id} was revoked and cannot be used for decryption anymore.')
 
         # Initialize cipher
         try:
@@ -246,9 +247,9 @@ class DecryptionStream(io.RawIOBase):
                     nonce=self.metadata['nonce'],
                 )
             else:
-                raise CryptoError('Unsupported cipher')
+                raise CryptoError('Cannot decrypt data: Unsupported cipher in metadata')
         except Exception as ex:
-            raise CryptoError('Error initializing cipher') from ex
+            raise CryptoError('Cannot decrypt data: Error initializing cipher') from ex
 
         # Add header to auth tag
         header = MAGIC + metadata_buffer + b'\x00'
@@ -350,7 +351,7 @@ class DecryptionStream(io.RawIOBase):
             self.cipher.verify(self.auth_tag_buffer)
             self.auth_tag_verified = True
         except Exception as ex:
-            raise CryptoError('Auth tag verification failed') from ex
+            raise CryptoError('Cannot decrypt data: Auth tag verification failed') from ex
 
     def close(self):
         try:
