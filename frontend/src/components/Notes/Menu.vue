@@ -72,7 +72,7 @@
 
       <div class="flex-grow-1 overflow-y-auto">
         <slot 
-          v-if="isInSearchMode"
+          v-if="isInSearchMode && (search?.length || 0) >= 3"
           name="search"
           :search="search!"
         />
