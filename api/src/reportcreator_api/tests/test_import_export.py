@@ -629,5 +629,5 @@ class TestCopyModel:
 ])
 @pytest.mark.django_db()
 def test_uploadedfile_filename(original, cleaned):
-    actual_name = UploadedAsset.objects.create(name=original, file=ContentFile(b'test'), linked_object=create_project_type()).name
+    actual_name = UploadedAsset.objects.create(name=original, file=ContentFile(content=b'test', name='test'), linked_object=create_project_type()).name
     assert actual_name == cleaned
