@@ -1,6 +1,12 @@
 # Reports created with SysReptor ❤️ 
 ## Company Demo Reports
 <div style="text-align:center">
+<a href="/assets/reports/DEMO-Bericht-R-IT-v1.0.pdf" target="_blank">
+    <figure style="float:left;width:24%;margin:0.5em;">
+        <img alt="R-IT Report" src="/assets/reports/DEMO-Bericht-R-IT-v1.0-Preview.png" style="border:1px solid;" />
+        <figcaption><a href="https://www.raiffeiseninformatik.at/" target="_blank">Raiffeisen Informatik GmbH & Co KG</a></figcaption>
+    </figure>
+</a>
 <a href="/assets/reports/Demo-Report-Syslifters.pdf" target="_blank">
     <figure style="float:left;width:24%;margin:0.5em;">
         <img alt="Syslifters Report" src="/assets/reports/Demo-Report-Syslifters-Preview.png" style="border:1px solid;" />
