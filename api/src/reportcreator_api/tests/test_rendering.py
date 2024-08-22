@@ -133,9 +133,12 @@ class TestHtmlRendering:
                     '* list item 1',
                     '* list item 2',
                     '    * list item 2.1',
-                    '',
                     '> blockquote',
                     '> text',
+                    '',
+                    '',
+                    '* [ ] task',
+                    '* [x] task',
                     '',
                     '```',
                     'code block content',
@@ -155,7 +158,8 @@ class TestHtmlRendering:
                         'second line <a href="#ref" class="ref ref-heading"><span class="ref-title">Report title</span></a><br>'
                         'third line</p>',
                     '<ul><li>list item 1</li><li>list item 2<ul><li>list item 2.1</li></ul></li></ul>',
-                    '<blockquote><p>blockquote text</p></blockquote>'
+                    '<blockquote><p>blockquote text</p></blockquote>',
+                    '<ul class="contains-task-list"><li class="task-list-item"><input type="checkbox" disabled> task</li><li class="task-list-item"><input type="checkbox" checked disabled> task</li>\n</ul>',
                     '<pre class="code-block"><code class="hljs">',
                     '<span class="code-block-line" data-line-number="1">code block content</span>',
                     '<span class="code-block-line" data-line-number="2">    indentation preserved</span>',

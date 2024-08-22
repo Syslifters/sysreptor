@@ -17,3 +17,11 @@ export function slotDataArray(items) {
   data.items = data;
   return data;
 }
+
+
+export function* getChildNotesRecursive(node) {
+  yield node;
+  for (const child of node.childNodes) {
+    yield* getChildNotesRecursive(child);
+  }
+}

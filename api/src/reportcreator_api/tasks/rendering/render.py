@@ -194,6 +194,8 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
                 page.evaluate("""() => document.head.querySelectorAll('script').forEach(s => s.remove())""")
                 # Get rendered HTML
                 html = page.content()
+                # Post-process HTML
+                html = html.replace('data-checked="checked"', 'checked')
     except Exception:
         messages.add(ErrorMessage(
             level=MessageLevel.ERROR,

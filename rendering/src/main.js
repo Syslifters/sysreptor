@@ -10,7 +10,7 @@ import ListOfTables from './components/ListOfTables.vue';
 import Chart from './components/ChartVue.vue';
 import MermaidDiagram from './components/MermaidDiagram.vue';
 import Ref from './components/Ref.vue';
-import { callForTicks } from './utils';
+import { callForTicks, getChildNotesRecursive } from './utils';
 import lodash from 'lodash';
 
 // injected as global variables
@@ -150,12 +150,16 @@ if (!window.RENDERING_COMPLETED) {
       this._observer = new MutationObserver((mutationList) => {
         for (const mutation of mutationList) {
           if (mutation.type === 'childList') {
-            for (const node of mutation.addedNodes) {
-              if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === 'SCRIPT') {
-                this._pendingPromises.push(new Promise((resolve, reject) => {
-                  node.addEventListener('load', resolve);
-                  node.addEventListener('error', reject);
-                }));
+            for (const an of mutation.addedNodes) {
+              for (const node of getChildNotesRecursive(an)) {
+                if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === 'SCRIPT') {
+                  this._pendingPromises.push(new Promise((resolve, reject) => {
+                    node.addEventListener('load', resolve);
+                    node.addEventListener('error', reject);
+                  }));
+                } else if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === 'INPUT' && node.attributes.type.value === 'checkbox' && node.checked) {
+                  node.setAttribute('data-checked', 'checked');
+                }
               }
             }
           }
