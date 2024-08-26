@@ -7,6 +7,7 @@
 * More settings for guest user permissions: GUEST_USERS_CAN_EDIT_PROJECTS, GUEST_USERS_CAN_SEE_ALL_USERS
 * Improve error messages for decryption errors
 * Fix checkboxes not rendered as checked in PDF
+* Fix chromium error while rendering PDFs
 
 
 ## v2024.63 - 2024-08-07

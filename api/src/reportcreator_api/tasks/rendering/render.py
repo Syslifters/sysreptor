@@ -97,7 +97,7 @@ def get_page():
         ) as browser:
             with browser.new_context(
                 base_url=FAKE_BASE_URL,
-                offline=False,  # Offline mode prevents request mocking. A catch-all route handler is used instead
+                offline=True,
                 java_script_enabled=True,
                 service_workers='block',
                 accept_downloads=False,
@@ -138,7 +138,7 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
             )))
 
             # Catch all requests
-            page.route('**', chromium_request_handler)
+            page.route('**/*', chromium_request_handler)
 
             # Load Vue template
             page.route(FAKE_BASE_URL + '/', lambda route: route.fulfill(content_type='text/html', body=''))
@@ -182,8 +182,7 @@ def render_to_html(template: str, styles: str, resources: dict[str, str], data: 
                     }
                 if msg['message'] in [
                     '[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.',
-                    'Failed to load resource: net::ERR_FAILED',
-                ]:
+                ] or msg['message'].startswith('Failed to load resource: net::'):
                     continue
                 if msg['level'] not in ['error', 'warning', 'info']:
                     msg['level'] = 'info'
