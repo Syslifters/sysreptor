@@ -6,6 +6,7 @@
 * Allow sorting combobox suggestions
 * More settings for guest user permissions: GUEST_USERS_CAN_EDIT_PROJECTS, GUEST_USERS_CAN_SEE_ALL_USERS
 * Improve error messages for decryption errors
+* Fix user.is_active checkbox not reactive in edit user page
 * Fix checkboxes not rendered as checked in PDF
 * Fix chromium error while rendering PDFs
 
