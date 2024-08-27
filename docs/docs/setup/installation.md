@@ -38,15 +38,15 @@
     ```
 
     The installation script creates a new `sysreptor` directory holding the source code and everything you need.  
-    It will build a docker image, create volumes and secrets and bring up your containers.
+    It will set up all configurations, create volumes and secrets, download images from Docker hub and bring up your containers.
 
 === "Manual Installation"
 
     You need (official) [Docker](https://docs.docker.com/engine/install/ubuntu/){ target=_blank }  installed.
 
-    Download and extract the latest SysReptor release:
+    Download and extract the latest SysReptor setup files:
     ```shell
-    curl -s -L --output sysreptor.tar.gz https://github.com/syslifters/sysreptor/releases/latest/download/source-prebuilt.tar.gz
+    curl -s -L --output sysreptor.tar.gz https://github.com/syslifters/sysreptor/releases/latest/download/setup.tar.gz
     tar xzf sysreptor.tar.gz
     ```
 
@@ -86,7 +86,7 @@
     docker volume create sysreptor-app-data
     ```
 
-    Build Docker image and run container from the `deploy` directory:
+    Launch containers (from the `deploy` directory):
 
     ```shell
     docker compose up -d

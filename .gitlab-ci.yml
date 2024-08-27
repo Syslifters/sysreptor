@@ -4,30 +4,122 @@ stages:
   - test
   - build-release
   - release
-  - docs
+  - release-docs
 
 image: docker:23.0.1
 variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_TLS_CERTDIR: ""
   CI_REGISTRY_IMAGE: registry.internal.syslifters.com/reportcreator/reportcreator
+  DOCKER_HUB_IMAGE: syslifters/sysreptor
 
 services:
-  - docker:23.0.1-dind
+  - docker:27.1.2-dind
 
 .depends_docker:
   before_script:
     - i=0; while [ "$i" -lt 12 ]; do docker info && break; sleep 5; i=$(( i + 1 )) ; done
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD registry.internal.syslifters.com
     - export DOCKER_BUILDKIT=1
+    - docker buildx create --use
+
+.deploy_docs:
+  image: python:latest
+  script:
+    - cd docs
+    - git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor-docs.git ghpages
+    - cd ghpages
+    - git config --global user.email $GITHUB_USER_MAIL
+    - git config --global user.name $GITHUB_USERNAME
+    - shopt -u dotglob
+    - rm -rf *
+    - cp -r ../site/* .
+    - git add .
+    - git commit -m "INIT"
+    - git reset $(git commit-tree HEAD^{tree} -m "INIT")
+    - git push --force
+  allow_failure:
+    exit_codes: 127
+
+sync:
+  stage: sync
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  variables:
+    GIT_STRATEGY: clone
+  script:
+    - apk add git
+    - git checkout -b $CI_COMMIT_BRANCH
+    - git remote add public https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor.git
+    - git status
+    - git config --global user.email $GITHUB_USER_MAIL
+    - git config --global user.name $GITHUB_USERNAME
+    - git push public main
+
+build-docs:
+  image: python:latest
+  stage: build-release
+  needs: []
+  artifacts:
+    when: always
+    paths:
+      - docs/site/
+    expire_in: 2 days
+  allow_failure:
+    exit_codes: 127
+  script:
+    - cd docs
+    - pip3 install -r requirements.txt
+    - set +e
+    - python3 -c 'from hooks import *; generate_software_lists()' || EXIT_CODE=$?
+    - set -e
+    # Publish latest version number
+    - VERSION_NUMBER_LEADING_ZEROS=`git tag | grep ^prod- | sort -r | head -n 1 | sed -nr 's/^(prod|test|ltest)-([0-9]+\.[0-9]+([\.ab][0-9]+)?)$/\2/p'`
+    - VERSION_NUMBER=$(python3 -c "from packaging.version import Version;print(Version('${VERSION_NUMBER_LEADING_ZEROS}'))")
+    - echo "$VERSION_NUMBER" > docs/latest.version
+    # Pack demo data archives
+    - for archive_dir in ../demo_data/*; do reptor packarchive "$archive_dir" -o "docs/assets/${archive_dir##*/}.tar.gz"; done
+    # Fetch remote docs from reptor CLI
+    - mkdir -p docs/cli && cd docs/cli
+    - git init && git remote add -f origin https://github.com/Syslifters/reptor.git
+    - git config core.sparseCheckout true
+    - echo "docs" >> .git/info/sparse-checkout
+    - git pull origin main
+    - mv docs/* .
+    - rm -rf docs .git
+    - cd ../..
+    # Build docs
+    - mkdocs build
 
 build-test-api:
   stage: build-test
   extends: .depends_docker
   script:
-    # Build container
-    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --target=api-test -t $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA .
-    - docker push $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA
+    - ISO_WEEK=$(date +%V)
+    - |
+      for img in rendering api-dev; do
+        if docker manifest inspect $CI_REGISTRY_IMAGE/$img:$ISO_WEEK > /dev/null; then
+          docker pull $CI_REGISTRY_IMAGE/$img:$ISO_WEEK
+        else
+          docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --no-cache --pull --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
+        fi
+      done
+    - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/rendering:$ISO_WEEK --cache-from $CI_REGISTRY_IMAGE/api-dev:$ISO_WEEK --target=api-test --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA .
+
+build-test-frontend:
+  stage: build-test
+  extends: .depends_docker
+  script:
+    - ISO_WEEK=$(date +%V)
+    - |
+      for img in pdfviewer-dev frontend-dev; do
+        if docker manifest inspect $CI_REGISTRY_IMAGE/$img:$ISO_WEEK > /dev/null; then
+          docker pull $CI_REGISTRY_IMAGE/$img:$ISO_WEEK
+        else
+          docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --no-cache --pull --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
+        fi
+      done
+    - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$ISO_WEEK --cache-from $CI_REGISTRY_IMAGE/frontend-dev:$ISO_WEEK --target=frontend-test --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA .
 
 test-api:
   stage: test
@@ -55,14 +147,8 @@ test-api:
   script:
     - mkdir api/test-reports
     - chmod 777 api/test-reports
-    - docker run  -e DATABASE_HOST=${POSTGRES_PORT_5432_TCP_ADDR} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n auto --junitxml=test-reports/junit.xml --cov=reportcreator_api --cov-report=term --cov-report=xml:test-reports/coverage.xml
+    - docker run -e DATABASE_HOST=${POSTGRES_PORT_5432_TCP_ADDR} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n auto --junitxml=test-reports/junit.xml --cov=reportcreator_api --cov-report=term --cov-report=xml:test-reports/coverage.xml
 
-build-test-frontend:
-  stage: build-test
-  extends: .depends_docker
-  script:
-    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --target=frontend-test -t $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA .
-    - docker push $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA
 
 test-frontend:
   stage: test
@@ -78,21 +164,6 @@ test-frontend:
     - mkdir frontend/test-reports
     - docker run --mount=type=bind,source=$PWD/frontend/test-reports,target=/app/frontend/test-reports $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA npm run test
 
-sync:
-  stage: sync
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-  variables:
-    GIT_STRATEGY: clone
-  script:
-    - apk add git
-    - git checkout -b $CI_COMMIT_BRANCH
-    - git remote add public https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor.git
-    - git status
-    - git config --global user.email $GITHUB_USER_MAIL
-    - git config --global user.name $GITHUB_USERNAME
-    - git push public main
-
 build-release:
   stage: build-release
   extends: .depends_docker
@@ -104,19 +175,27 @@ build-release:
     - VERSION_NUMBER_LEADING_ZEROS=$(echo "$CI_COMMIT_TAG" | sed -nr 's/^(prod|test|ltest)-([0-9]+\.[0-9]+([\.ab][0-9]+)?)$/\2/p')
     - VERSION_NUMBER=$(python3 -c "from packaging.version import Version;print(Version('${VERSION_NUMBER_LEADING_ZEROS}'))")
     # Ensure the version number is in the changelog for prod deployments
-    - if [[ $CI_COMMIT_TAG =~ '^prod-.*' ]]; then grep -qE "^## (v${VERSION_NUMBER})" CHANGELOG.md || exit 1; fi
+    - |
+      if [[ $CI_COMMIT_TAG =~ '^prod-.*' ]]; then
+        grep -qE "^## (v${VERSION_NUMBER})" CHANGELOG.md || exit 1
+        CACHE_RELEASE_TAG=$(test-$VERSION_NUMBER_LEADING_ZEROS)
+      else:
+        CACHE_RELEASE_TAG=$CI_COMMIT_SHORT_SHA
+      fi
     # Build containers
-    - docker pull $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA
-    - docker pull $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA
-    - docker build --cache-from $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA --cache-from $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA --build-arg VERSION=$VERSION_NUMBER --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-    - cd languagetool && docker build -t $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA . && cd ..
-    - docker push $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA
+    - docker pull $CI_REGISTRY_IMAGE/frontend-test:$CACHE_RELEASE_TAG
+    - docker pull $CI_REGISTRY_IMAGE/api-test:$CACHE_RELEASE_TAG
+    - docker pull $CI_REGISTRY_IMAGE/languagetool:$CACHE_RELEASE_TAG
+    - export VERSION_NUMBER
+    - docker buildx build --provenance false --build-arg VERSION="$VERSION_NUMBER" --cache-from $CI_REGISTRY_IMAGE/frontend-test:$CACHE_RELEASE_TAG --cache-from $CI_REGISTRY_IMAGE/api-test:$CACHE_RELEASE_TAG --target=api --platform linux/amd64,linux/arm64 --push --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - cd languagetool
+    - docker buildx build --provenance false --cache-from $CI_REGISTRY_IMAGE/languagetool:$CACHE_RELEASE_TAG --target=api --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA .
+    - cd ..
 
-release_job_docker:
+release-docker-internal:
   stage: release
-  needs: [build-release]
   extends: .depends_docker
+  needs: [build-release]
   rules:
     - if: $CI_COMMIT_TAG # Run this job when a tag is created
   script:
@@ -127,9 +206,9 @@ release_job_docker:
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
     - docker push $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_TAG
 
-release_job_release:
+release-gitlab-release:
   stage: release
-  needs: [release_job_docker]
+  needs: [release-docker-internal]
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   script:
     - echo "works"
@@ -139,9 +218,9 @@ release_job_release:
     tag_name: "$CI_COMMIT_TAG"
     description: "$CI_COMMIT_TAG"
 
-release_job_github:
+release-prod:
   stage: release
-  needs: [build-release]
+  needs: [build-release, build-docs]
   extends: 
     - .depends_docker
   variables:
@@ -154,16 +233,26 @@ release_job_github:
     - VERSION_NUMBER_LEADING_ZEROS=$(echo "$CI_COMMIT_TAG" | sed -nr 's/^(prod|test|ltest)-([0-9]+\.[0-9]+([\.ab][0-9]+)?)$/\2/p')
     - VERSION_NUMBER=$(python3 -c "from packaging.version import Version;print(Version('${VERSION_NUMBER_LEADING_ZEROS}'))")
     - RELEASE_NOTES=$(awk "/## v${VERSION_NUMBER}.*/{include=1; next} /## v.*/{include=0} include && NF" CHANGELOG.md)
-    - echo "# Do not modify. This file is automatically generated." > deploy/.env
-    - echo "# Make changes to host.env instead." >> deploy/.env
-    - echo "SYSREPTOR_VERSION=${VERSION_NUMBER}" >> deploy/.env
+    - sed -i '1s/^/SYSREPTOR_VERSION=${VERSION_NUMBER}\n/' deploy/.env
     # Generate api notice file
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-    - docker run -u0 $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA /app/api/generate_notice.sh
-    - CONTAINER_ID=$(docker ps -qa --filter "ancestor=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA")
+    - CONTAINER_ID=$(docker create $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA)
     - docker cp $CONTAINER_ID:/app/api/NOTICE api/NOTICE
+    - docker rm -v $CONTAINER_ID
     # Delete unnecessary files
     - rm -rf docs/docs/s docs/README.md docs/reporting_software.yml docs/wip docs/hooks.py dev .vscode api/.vscode
+
+    # Build container with copyleft source code
+    - docker buildx build --provenance false --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --target api-src --build-arg VERSION=$VERSION_NUMBER --target=api --platform linux/amd64,linux/arm64 --load --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER-src .
+    # Push containers to Docker Hub
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA $DOCKER_HUB_IMAGE:$VERSION_NUMBER
+    - docker tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER $DOCKER_HUB_IMAGE:latest
+    - docker push $DOCKER_HUB_IMAGE:$VERSION_NUMBER-src
+    - docker push $DOCKER_HUB_IMAGE:$VERSION_NUMBER
+    - docker push $DOCKER_HUB_IMAGE:latest
+    - docker tag $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA $DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER
+    - docker push $DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER
+    - docker push $DOCKER_HUB_IMAGE-languagetool:latest
 
     # Publish to github
     - apk add git github-cli
@@ -173,22 +262,25 @@ release_job_github:
     - docker cp $CONTAINER_ID:/app/api/static api/src/
     - docker cp $CONTAINER_ID:/app/api/frontend/index.html api/src/frontend/index.html
     - sed -i "/^src\/static$/d" api/.gitignore
-    - sed -i "s/target:\ api/target:\ api-prebuilt/g" deploy/sysreptor/docker-compose.yml
     # Copy pre-built rendering files
     - docker cp $CONTAINER_ID:/app/rendering/dist rendering/dist
     - sed -i "/^dist$/d" rendering/.gitignore
     - rm -rf api/.vscode
-    # Create archive
+    # Create archive with prebuilt sources
     - mkdir -p /tmp/sysreptor
     - cp -r * .gitignore .dockerignore /tmp/sysreptor
-    - tar -czf /tmp/source-prebuilt.tar.gz -C /tmp sysreptor --exclude=sysreptor/.git
+    # Prebuilt sources are deprecated, required for legacy update scripts. Delete in 08/2025.
+    - tar -czf /tmp/source-prebuilt-deprecated.tar.gz -C /tmp --exclude=sysreptor/.git --exclude=sysreptor/demo_data --exclude=sysreptor/docs sysreptor 
+
+    # Create archive with setup files
+    - tar -czf /tmp/setup.tar.gz -C /tmp --exclude=sysreptor/.git --exclude=sysreptor/deploy/.gitignore sysreptor/deploy sysreptor/update.sh sysreptor/LICENSE sysreptor/INSTALL.md
 
     - git remote add public https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor.git
     - git config --global user.email $GITHUB_USER_MAIL
     - git config --global user.name $GITHUB_USERNAME
     # Upload to GitHub
     - "RELEASE_NOTES=$RELEASE_NOTES$(echo -n '\n\nClick here to go to the update instructions: https://docs.sysreptor.com/setup/updates/')"
-    - gh release create "${VERSION_NUMBER}" /tmp/source-prebuilt.tar.gz --title="${VERSION_NUMBER}" --target="${CI_COMMIT_SHA}" --notes="$RELEASE_NOTES"
+    - gh release create "${VERSION_NUMBER}" /tmp/source-prebuilt.tar.gz /tmp/setup.tar.gz --title="${VERSION_NUMBER}" --target="${CI_COMMIT_SHA}" --notes="$RELEASE_NOTES"
     
     # Send notification for new release
     - >
@@ -198,60 +290,18 @@ release_job_github:
         -H "Content-Type: application/json" \
         -d "{\"title\": \"🎊 Update available\", \"text\": \"There's a new SysReptor version (v${VERSION_NUMBER}) waiting for you.\", \"link_url\": \"https://github.com/Syslifters/sysreptor/releases/tag/${VERSION_NUMBER}\", \"instance_conditions\": {\"version\": \"<${VERSION_NUMBER}\"} }"
 
-build-docs:
-  image: python:latest
-  stage: docs
-  needs: []
-  artifacts:
-    when: always
-    paths:
-      - docs/site/
-    expire_in: 2 days
-  allow_failure:
-    exit_codes: 127
-  script:
-    - cd docs
-    - pip3 install -r requirements.txt
-    - set +e
-    - python3 -c 'from hooks import *; generate_software_lists()' || EXIT_CODE=$?
-    - set -e
-    # Pack demo data archives
-    - for archive_dir in ../demo_data/*; do reptor packarchive "$archive_dir" -o "docs/assets/${archive_dir##*/}.tar.gz"; done
-    # Fetch remote docs from reptor CLI
-    - mkdir -p docs/cli && cd docs/cli
-    - git init && git remote add -f origin https://github.com/Syslifters/reptor.git
-    - git config core.sparseCheckout true
-    - echo "docs" >> .git/info/sparse-checkout
-    - git pull origin main
-    - mv docs/* .
-    - rm -rf docs .git
-    - cd ../..
-    # Build docs
-    - mkdocs build
-
-deploy-docs:
-  image: python:latest
-  stage: docs
+release-docs:
+  stage: release
+  extends: .deploy_docs
   needs: [build-docs]
   rules:
-    - if: $CI_COMMIT_TAG =~ /^prod-.*/  # Run this job on prod deployments
-      when: always
     - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
-  allow_failure:
-    exit_codes: 127
-  script:
-    - cd docs
-    - git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor-docs.git ghpages
-    - ls -lA
-    - cd ghpages
-    - ls -lA
-    - git config --global user.email $GITHUB_USER_MAIL
-    - git config --global user.name $GITHUB_USERNAME
-    - shopt -u dotglob
-    - rm -rf *
-    - cp -r ../site/* .
-    - git add .
-    - git commit -m "INIT"
-    - git reset $(git commit-tree HEAD^{tree} -m "INIT")
-    - git push --force
+
+release-docs-on-prod-release:
+  stage: release
+  extends: .deploy_docs
+  rules:
+    - if: $CI_COMMIT_TAG # Run this job when a tag is created
+  needs: [release-prod]
+

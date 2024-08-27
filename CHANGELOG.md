@@ -8,6 +8,7 @@
 * Improve error messages for decryption errors
 * Fix user.is_active checkbox not reactive in edit user page
 * Fix checkboxes not rendered as checked in PDF
+* Provide prebuilt Docker images
 * Fix chromium error while rendering PDFs
 
 
