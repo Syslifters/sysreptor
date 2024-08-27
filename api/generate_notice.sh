@@ -25,10 +25,10 @@ ignore="$ignore freetype2"
 ignore="$ignore cwe"
 ignore="$ignore randomcolor"
 
+export PATH="/home/user/.local/bin:$PATH"
 pip3 install pip-licenses
 pip-licenses --allow-only "$allow_only" --ignore-packages $ignore >/dev/null
 pip-licenses -l --no-license-path -f plain-vertical --no-version --ignore-packages $ignore > NOTICE
-
 
 # Those packages do not include valid license files
 webencodings=$(cat << EOF

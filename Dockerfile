@@ -1,18 +1,11 @@
-FROM node:20-alpine3.19 AS pdfviewer-dev
-
-# Add custom CA certificates
-ARG CA_CERTIFICATES=""
-RUN mkdir -p /usr/local/share/ca-certificates/ && \
-    echo "${CA_CERTIFICATES}" | tee -a /usr/local/share/ca-certificates/custom-user-cert.crt /etc/ssl/certs/ca-certificates.crt && \
-    apk add --no-cache ca-certificates && \
-    update-ca-certificates
+FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS pdfviewer-dev
 
 # Install dependencies
 WORKDIR /app/packages/pdfviewer/
 COPY packages/pdfviewer/package.json packages/pdfviewer/package-lock.json /app/packages/pdfviewer//
 RUN npm install
 
-FROM pdfviewer-dev AS pdfviewer
+FROM --platform=$BUILDPLATFORM pdfviewer-dev AS pdfviewer
 # Build JS bundle
 COPY packages/pdfviewer /app/packages/pdfviewer//
 RUN npm run build
@@ -20,19 +13,9 @@ RUN npm run build
 
 
 
-
-
-
-FROM node:20-alpine3.19 AS frontend-dev
+FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS frontend-dev
 
 ENV NODE_OPTIONS="--max-old-space-size=4096"
-
-# Add custom CA certificates
-ARG CA_CERTIFICATES=""
-RUN mkdir -p /usr/local/share/ca-certificates/ && \
-    echo "${CA_CERTIFICATES}" | tee -a /usr/local/share/ca-certificates/custom-user-cert.crt /etc/ssl/certs/ca-certificates.crt && \
-    apk add --no-cache ca-certificates && \
-    update-ca-certificates
 
 # Install dependencies
 WORKDIR /app/packages/markdown/
@@ -44,7 +27,7 @@ COPY frontend/package.json frontend/package-lock.json /app/frontend/
 RUN npm install
 
 
-FROM frontend-dev AS frontend-test
+FROM --platform=$BUILDPLATFORM frontend-dev AS frontend-test
 # Include source code
 COPY packages/markdown/ /app/packages/markdown/
 COPY frontend /app/frontend/
@@ -52,10 +35,10 @@ COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/frontend/src/a
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/src/public/static/pdfviewer/
 
 # Test command
-CMD npm run test
+CMD ["npm", "run", "test"]
 
 
-FROM frontend-test AS frontend
+FROM --platform=$BUILDPLATFORM frontend-test AS frontend
 # Build JS bundle
 RUN npm run generate
 
@@ -65,14 +48,7 @@ RUN npm run generate
 
 
 
-FROM node:20-alpine3.19 AS rendering-dev
-
-# Add custom CA certificates
-ARG CA_CERTIFICATES=""
-RUN mkdir -p /usr/local/share/ca-certificates/ && \
-    echo "${CA_CERTIFICATES}" | tee -a /usr/local/share/ca-certificates/custom-user-cert.crt /etc/ssl/certs/ca-certificates.crt && \
-    apk add --no-cache ca-certificates && \
-    update-ca-certificates
+FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS rendering-dev
 
 # Install dependencies
 WORKDIR /app/packages/markdown/
@@ -84,7 +60,7 @@ COPY rendering/package.json rendering/package-lock.json /app/rendering/
 RUN npm install
 
 
-FROM rendering-dev AS rendering
+FROM --platform=$BUILDPLATFORM rendering-dev AS rendering
 # Include source code
 COPY rendering /app/rendering/
 COPY packages/markdown/ /app/packages/markdown/
@@ -96,14 +72,11 @@ RUN npm run build
 
 FROM python:3.12-slim-bookworm AS api-dev
 
-# Add custom CA certificates
-ARG CA_CERTIFICATES=""
-RUN echo "${CA_CERTIFICATES}" | tee -a /usr/local/share/ca-certificates/custom-user-cert.crt && \
-    update-ca-certificates && \
-    cat /etc/ssl/certs/* > /etc/ssl/certs/bundle.pem && \
-    pip config set global.cert /etc/ssl/certs/bundle.pem
-ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+# Get a list a preinstalled apt packages
+RUN mkdir /src && \
+    chown 1000:1000 /src && \
+    dpkg-query -W -f='${binary:Package}=${Version}\n' > /src/pre_installed.txt && \
+    echo "This image distributes binaries of copyleft licensed software. Please find the corresponding source code in our source-code distributing images (append `-src` to the image tags; e.g. syslifters/sysreptor:2024.58-src)." > /src/SOURCES.txt
 
 # Install system dependencies required by weasyprint and chromium
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -140,10 +113,15 @@ ENV PYTHONUNBUFFERED=on \
     PYTHONDONTWRITEBYTECODE=on \
     CHROMIUM_EXECUTABLE=/usr/lib/chromium/chromium \
     GHOSTSCRIPT_EXECUTABLE=/usr/bin/gs \
-    PATH=$PATH:/root/.local/bin
+    PATH=$PATH:/root/.local/bin \
+    REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
+    SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+
+
 WORKDIR /app/api/
 COPY api/pyproject.toml api/poetry.lock /app/api/
-RUN pip install --no-cache poetry==1.8.3 && \
+RUN --mount=type=cache,target=/root/.cache/ \
+    pip install --no-cache poetry==1.8.3 && \
     poetry config virtualenvs.create false && \
     poetry install --no-cache --no-interaction --no-root
 
@@ -161,21 +139,13 @@ ENV VERSION=${VERSION} \
     SERVER_WORKERS=4 \
     PDF_RENDER_SCRIPT_PATH=/app/rendering/dist/bundle.js
 
-# Copy license and changelog
-COPY LICENSE CHANGELOG.md /app/
-COPY api/generate_notice.sh api/NOTICE /app/api/
-
 # Start server
 EXPOSE 8000
-CMD python3 manage.py migrate && \
-    gunicorn \
-        --bind=:8000 --worker-class=uvicorn.workers.UvicornWorker --workers=${SERVER_WORKERS} \
-        --max-requests=500 --max-requests-jitter=100 --graceful-timeout=300 \
-        reportcreator_api.conf.asgi:application
+CMD ["/bin/bash", "/app/api/start.sh"]
 
 
 
-FROM api-dev AS api-prebuilt
+FROM --platform=$BUILDPLATFORM api-dev AS api-prebuilt
 
 # Copy source code (including pre-build static files)
 COPY --chown=user:user api/src /app/api/
@@ -183,7 +153,7 @@ COPY --chown=user:user rendering/dist /app/rendering/dist/
 
 
 
-FROM api-dev AS api-test
+FROM --platform=$BUILDPLATFORM api-dev AS api-test
 # Copy source code
 COPY --chown=user:user api/src /app/api/
 
@@ -191,7 +161,7 @@ COPY --chown=user:user api/src /app/api/
 COPY --from=rendering --chown=user:user /app/rendering/dist /app/rendering/dist/
 
 
-FROM api-test AS api
+FROM --platform=$BUILDPLATFORM api-test AS api-statics
 # Generate static frontend files
 # Post-process django files (for admin, API browser) and post-process them (e.g. add unique file hash)
 # Do not post-process nuxt files, because they already have hash names (and django failes to post-process them)
@@ -200,3 +170,24 @@ COPY --from=frontend /app/frontend/dist/index.html /app/frontend/dist/static/ /a
 RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
     && python3 manage.py collectstatic --no-input --no-post-process \
     && python3 -m whitenoise.compress /app/api/static/ map
+
+
+
+FROM api-test AS api
+COPY --from=api-statics /app/api/frontend/index.html /app/api/frontend/index.html
+COPY --from=api-statics /app/api/static/ /app/api/static/
+USER 0
+COPY --chown=1000:1000 api/generate_notice.sh api/download_sources.sh api/start.sh api/NOTICE /app/api/
+RUN /bin/bash /app/api/generate_notice.sh
+# Copy of changelog should be one of the last things to use cache for prod releases
+COPY LICENSE CHANGELOG.md /app/
+USER 1000
+
+
+
+
+FROM api AS api-src
+USER 0
+RUN dpkg-query -W -f='${binary:Package}=${Version}\n' > /src/post_installed.txt \
+    && bash /app/api/download_sources.sh
+USER 1000

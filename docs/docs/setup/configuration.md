@@ -241,9 +241,8 @@ Uploaded images are compressed to reduce file size, but to retain quality suitab
 COMPRESS_IMAGES=false
 ```
 
-
 ### Reverse Proxy
-Interpret `X-Forwared-*` headers when SysReptor is behind a reverse proxy. 
+Interpret `X-Forwarded-*` headers when SysReptor is behind a reverse proxy. 
 See also https://docs.djangoproject.com/en/stable/ref/settings/#use-x-forwarded-host
 
 ```
@@ -257,6 +256,26 @@ This flag also enables setting the `Secure` flag for cookies.
 SECURE_SSL_REDIRECT=on
 ```
 
+### Proxy Server
+Set the proxy variables `HTTP_PROXY` and `HTTPS_PROXY` to allow outbound connections using a proxy server.
+
+```bash title="Example:"
+HTTP_PROXY="http://192.168.0.111:8080"
+HTTPS_PROXY="http://192.168.0.111:8080"
+```
+
+!!! info "The proxy server must be reachable from container"
+
+    Make sure that the proxy server is reachable from inside your docker container.
+    Loopback addresses (e. g. `127.0.0.1`) or `localhost` will not work.
+
+
+### Custom CA Certificates
+If your SysReptor is behind a proxy with a custom certificate, you can use this setting to specify your custom CA certificates.
+
+```
+CA_CERTIFICATES="-----BEGIN CERTIFICATE-----\nMIIDqDCCApCgAwIBAgIFAMjv7sswDQYJKoZIhv..."
+```
 
 ### WebSockets
 Disable WebSockets and always use HTTP fallback for collaborative editing. 

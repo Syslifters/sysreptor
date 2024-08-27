@@ -2,10 +2,7 @@
 # Changes will be overwritten.
 services:
   languagetool:
-    build: 
-      context: ../../languagetool
-      args:
-        CA_CERTIFICATES: ${SYSREPTOR_CA_CERTIFICATES-}
+    image: syslifters/sysreptor-languagetool:${SYSREPTOR_VERSION:-latest}
     container_name: 'sysreptor-languagetool'
     init: true
     environment:

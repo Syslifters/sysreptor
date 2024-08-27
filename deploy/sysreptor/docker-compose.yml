@@ -33,12 +33,7 @@ services:
       - 6379
     restart: unless-stopped
   app:
-    build: 
-      context: ../..
-      target: api
-      args: 
-        VERSION: ${SYSREPTOR_VERSION}
-        CA_CERTIFICATES: ${SYSREPTOR_CA_CERTIFICATES-}
+    image: 'syslifters/sysreptor:${SYSREPTOR_VERSION:-latest}'
     container_name: 'sysreptor-app'
     init: true
     volumes:
