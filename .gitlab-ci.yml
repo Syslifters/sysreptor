@@ -179,7 +179,7 @@ build-release:
       if [[ $CI_COMMIT_TAG =~ '^prod-.*' ]]; then
         grep -qE "^## (v${VERSION_NUMBER})" CHANGELOG.md || exit 1
         CACHE_RELEASE_TAG=$(test-$VERSION_NUMBER_LEADING_ZEROS)
-      else:
+      else
         CACHE_RELEASE_TAG=$CI_COMMIT_SHORT_SHA
       fi
     # Build containers
