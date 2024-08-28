@@ -98,9 +98,7 @@ build-test-api:
     - ISO_WEEK=$(date +%V)
     - |
       for img in rendering api-dev; do
-        if docker manifest inspect $CI_REGISTRY_IMAGE/$img:$ISO_WEEK > /dev/null; then
-          docker pull $CI_REGISTRY_IMAGE/$img:$ISO_WEEK
-        else
+        if ! docker manifest inspect $CI_REGISTRY_IMAGE/$img:$ISO_WEEK > /dev/null; then
           docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --no-cache --pull --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
         fi
       done
@@ -113,9 +111,7 @@ build-test-frontend:
     - ISO_WEEK=$(date +%V)
     - |
       for img in pdfviewer-dev frontend-dev; do
-        if docker manifest inspect $CI_REGISTRY_IMAGE/$img:$ISO_WEEK > /dev/null; then
-          docker pull $CI_REGISTRY_IMAGE/$img:$ISO_WEEK
-        else
+        if ! docker manifest inspect $CI_REGISTRY_IMAGE/$img:$ISO_WEEK > /dev/null; then
           docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --no-cache --pull --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
         fi
       done
@@ -179,7 +175,6 @@ build-release:
       if [[ $CI_COMMIT_TAG =~ '^prod-.*' ]]; then
         grep -qE "^## (v${VERSION_NUMBER})" CHANGELOG.md || exit 1
         CACHE_RELEASE_TAG=$(test-$VERSION_NUMBER_LEADING_ZEROS)
-        docker pull $CI_REGISTRY_IMAGE/languagetool:$CACHE_RELEASE_TAG
         cd languagetool
         docker buildx build --provenance false --cache-from $CI_REGISTRY_IMAGE/languagetool:$CACHE_RELEASE_TAG --target=api --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA .
         cd ..
@@ -188,8 +183,6 @@ build-release:
         docker buildx build --provenance false --target=api --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA .
       fi
     # Build containers
-    - docker pull $CI_REGISTRY_IMAGE/frontend-test:$CACHE_RELEASE_TAG
-    - docker pull $CI_REGISTRY_IMAGE/api-test:$CACHE_RELEASE_TAG
     - export VERSION_NUMBER
     - docker buildx build --provenance false --build-arg VERSION="$VERSION_NUMBER" --cache-from $CI_REGISTRY_IMAGE/frontend-test:$CACHE_RELEASE_TAG --cache-from $CI_REGISTRY_IMAGE/api-test:$CACHE_RELEASE_TAG --target=api --platform linux/amd64,linux/arm64 --push --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
 
@@ -200,12 +193,9 @@ release-docker-internal:
   rules:
     - if: $CI_COMMIT_TAG # Run this job when a tag is created
   script:
-    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-    - docker pull $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA
-    - docker image tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-    - docker image tag $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_TAG
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-    - docker push $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_TAG
+    - docker buildx imagetools create $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    - docker buildx imagetools create $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_TAG
+
 
 release-gitlab-release:
   stage: release
@@ -244,16 +234,12 @@ release-prod:
     - rm -rf docs/docs/s docs/README.md docs/reporting_software.yml docs/wip docs/hooks.py dev .vscode api/.vscode
 
     # Build container with copyleft source code
-    - docker buildx build --provenance false --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --target api-src --build-arg VERSION=$VERSION_NUMBER --target=api --platform linux/amd64,linux/arm64 --load --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER-src .
+    - docker buildx build --provenance false --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --target api-src --build-arg VERSION=$VERSION_NUMBER --target=api --platform linux/amd64,linux/arm64 --push --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER-src .
     # Push containers to Docker Hub
-    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA $DOCKER_HUB_IMAGE:$VERSION_NUMBER
-    - docker tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER $DOCKER_HUB_IMAGE:latest
-    - docker push $DOCKER_HUB_IMAGE:$VERSION_NUMBER-src
-    - docker push $DOCKER_HUB_IMAGE:$VERSION_NUMBER
-    - docker push $DOCKER_HUB_IMAGE:latest
-    - docker tag $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA $DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER
-    - docker push $DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER
-    - docker push $DOCKER_HUB_IMAGE-languagetool:latest
+    - docker buildx imagetools create $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER
+    - docker buildx imagetools create $DOCKER_HUB_IMAGE:$VERSION_NUMBER --tag $DOCKER_HUB_IMAGE:latest
+    - docker buildx imagetools create $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA --tag $DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER
+    - docker buildx imagetools create $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA --tag $DOCKER_HUB_IMAGE-languagetool:latest
 
     # Publish to github
     - apk add git github-cli
