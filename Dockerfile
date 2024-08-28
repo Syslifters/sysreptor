@@ -76,7 +76,7 @@ FROM python:3.12-slim-bookworm AS api-dev
 RUN mkdir /src && \
     chown 1000:1000 /src && \
     dpkg-query -W -f='${binary:Package}=${Version}\n' > /src/pre_installed.txt && \
-    echo "This image distributes binaries of copyleft licensed software. Please find the corresponding source code in our source-code distributing images (append `-src` to the image tags; e.g. syslifters/sysreptor:2024.58-src)." > /src/SOURCES.txt
+    echo "This image distributes binaries of copyleft licensed software. Please find the corresponding source code in our source-code distributing images (append -src to the image tags; e.g. syslifters/sysreptor:2024.58-src)." > /src/SOURCES.txt
 
 # Install system dependencies required by weasyprint and chromium
 RUN apt-get update && apt-get install -y --no-install-recommends \
