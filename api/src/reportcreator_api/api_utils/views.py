@@ -104,6 +104,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
                 'delete_projects': settings.GUEST_USERS_CAN_DELETE_PROJECTS,
                 'update_project_settings': settings.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
                 'edit_projects': settings.GUEST_USERS_CAN_EDIT_PROJECTS,
+                'share_notes': settings.GUEST_USERS_CAN_SHARE_NOTES,
                 'see_all_users': settings.GUEST_USERS_CAN_SEE_ALL_USERS,
             },
         })

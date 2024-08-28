@@ -32,7 +32,7 @@ export type TextUpdate = {
 export type CollabClientInfo = {
   client_id: string;
   client_color: string;
-  user: UserShortInfo;
+  user: UserShortInfo|null;
 }
 
 export type CollabEvent = {

@@ -33,6 +33,7 @@ from reportcreator_api.pentests.models import (
     ProjectMemberInfo,
     ProjectMemberRole,
     ProjectNotebookPage,
+    ProjectNoteShareInfo,
     ProjectType,
     ProjectTypeStatus,
     ReviewStatus,
@@ -264,7 +265,15 @@ def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
     } | kwargs)
 
 
-def create_project(project_type=None, members=None, report_data=None, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, comments=False, **kwargs) -> PentestProject:
+def create_shareinfo(note, **kwargs):
+    return ProjectNoteShareInfo.objects.create(**{
+        'note': note,
+        'expire_date': (timezone.now() + timedelta(days=30)).date(),
+        'permissions_write': True,
+    } | kwargs)
+
+
+def create_project(project_type=None, members=None, report_data=None, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, comments=False, shared=False, **kwargs) -> PentestProject:
     project_type = project_type or create_project_type()
     report_data = {
         'title': 'Report title',
@@ -312,7 +321,9 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
         # Delete default notes
         project.notes.all().delete()
     for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}] * 1:
-        create_projectnotebookpage(project=project, **note_kwargs)
+        note = create_projectnotebookpage(project=project, **note_kwargs)
+        if shared:
+            create_shareinfo(note=note)
 
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}] * 1):
         UploadedImage.objects.create(linked_object=project, **{
@@ -404,6 +415,7 @@ def mock_time(before=None, after=None):
 
 def api_client(user=None):
     client = APIClient()
-    client.force_authenticate(user)
+    if user:
+        client.force_authenticate(user)
     return client
 
