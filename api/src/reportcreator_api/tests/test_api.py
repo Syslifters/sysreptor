@@ -118,7 +118,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
         *file_viewset_urls('uploadedprojectfile', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).files.first(), read=read, write=write),
         *viewset_urls('comment', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'pk': get_obj(s).findings.first().comments.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
         *viewset_urls('commentanswer', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'comment_pk': get_obj(s).findings.first().comments.first().id} | ({'pk': get_obj(s).findings.first().comments.first().answers.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
-        *viewset_urls('shareinfo', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'note_id': get_obj(s).notes.only_shared().first().note_id} | ({'pk': get_obj(s).notes.only_shared().first().shareinfos.first().pk} if detail else {}), list=read, retrieve=read, create=share),
+        *viewset_urls('shareinfo', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'note_id': get_obj(s).notes.only_shared().first().note_id} | ({'pk': get_obj(s).notes.only_shared().first().shareinfos.first().pk} if detail else {}), list=read, retrieve=read, create=share, update=share, update_partial=share),
     ]
     if read:
       out.extend([
