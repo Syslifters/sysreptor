@@ -44,7 +44,7 @@ class PentestUserQuerySet(models.QuerySet):
 
     def only_permitted(self, user):
         from reportcreator_api.users.models import PentestUser
-        if user.is_anonymous:
+        if not user or user.is_anonymous:
             return self.none()
         if user.is_guest and not settings.GUEST_USERS_CAN_SEE_ALL_USERS and not (user.is_superuser or user.is_user_manager):
             # Only show users that are members in projects where the guest user is also a member

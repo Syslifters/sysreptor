@@ -1021,7 +1021,7 @@ class TestSharedProjectNotesDbSync:
     async def test_create_sync(self):
         res_api = await sync_to_async(self.api_client_public.post)(
             path=reverse('sharednote-list', kwargs={'shareinfo_pk': self.share_info.id}),
-            data={'title': 'new', 'text': 'new'})
+            data={'title': 'new', 'text': 'new', 'parent': self.note_shared.note_id})
         # Create event
         await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'value': res_api.data, 'client_id': None})
         # Sort event
@@ -1032,7 +1032,7 @@ class TestSharedProjectNotesDbSync:
         await self.childnote_shared.adelete()
         await self.assert_event({'type': CollabEventType.DELETE, 'path': self.childnote_shared_path_prefix, 'client_id': None})
 
-    async def test_access_shared_notes(self):
+    async def test_receive_only_shared_notes(self):
         shared_note_ids = {str(self.note_shared.note_id), str(self.childnote_shared.note_id)}
         # Only shared notes in init message
         assert set(self.client_public.init['data']['notes'].keys()) == shared_note_ids
@@ -1048,16 +1048,20 @@ class TestSharedProjectNotesDbSync:
         await self.assert_event(event_update_text, user=True, public=False)
 
         # Not-shared note moved to childnote of shared note
-        await sync_to_async(self.api_client_user.post)(
-            path=reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}),
-            data=[
-                {'id': self.note_shared.note_id, 'parent': None, 'order': 0},
-                {'id': self.childnote_shared.note_id, 'parent': self.note_shared.note_id, 'order': 0},
-                {'id': self.note_not_shared.note_id, 'parent': self.note_shared.note_id, 'order': 1},
-                {'id': self.childnote_not_shared.note_id, 'parent': self.childnote_shared.note_id, 'order': 0},
-            ],
-        )
-        # TODO: sort event; create events for new notes
+        sort_data = [
+            {'id': str(self.childnote_shared.note_id), 'parent': str(self.note_shared.note_id), 'order': 1},
+            {'id': str(self.childnote_not_shared.note_id), 'parent': str(self.childnote_shared.note_id), 'order': 1},
+            {'id': str(self.note_shared.note_id), 'parent': None, 'order': 1},
+            {'id': str(self.note_not_shared.note_id), 'parent': str(self.note_shared.note_id), 'order': 2},
+        ]
+        await sync_to_async(self.api_client_user.post)(reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}), data=sort_data)
+        # TODO: collab.create events for notes moved from non-shared to shared
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': sort_data})
+
+    async def test_cannot_update_nonshared_notes(self):
+        await self.client_public.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': f'notes.{self.note_not_shared.note_id}.icon_emoji', 'value': '👍'})
+        res = await self.client_public.receive_json_from()
+        assert res['type'] == 'error', res
 
 
 @pytest.mark.django_db(transaction=True)
@@ -1155,9 +1159,10 @@ class TestConsumerPermissions:
 
         client = api_client(user)
         res = await sync_to_async(client.get)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}))
-        assert res.status_code == (200 if expected else 403)
-        client_id = res.data.get('client_id', f'{user.id}/asdf')
-        assert (await sync_to_async(client.post)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}), data={'version': 1, 'client_id': client_id, 'messages': []})).status_code == (200 if expected else 403)
+        assert res.status_code == (200 if expected else 403), res.data
+        client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
+        res = await sync_to_async(client.post)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+        assert res.status_code == (200 if expected else 403), res.data
 
     @pytest.mark.parametrize(('share_kwargs', 'expected_read', 'expected_write'), [
         ({'is_revoked': True}, False, False),
