@@ -100,6 +100,8 @@ build-test-api:
       for img in rendering api-dev; do
         if ! docker manifest inspect $CI_REGISTRY_IMAGE/$img:$ISO_WEEK > /dev/null; then
           docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --no-cache --pull --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
+        else
+          docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/rendering:$ISO_WEEK --cache-from $CI_REGISTRY_IMAGE/api-dev:$ISO_WEEK --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
         fi
       done
     - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/rendering:$ISO_WEEK --cache-from $CI_REGISTRY_IMAGE/api-dev:$ISO_WEEK --target=api-test --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA .
@@ -113,6 +115,8 @@ build-test-frontend:
       for img in pdfviewer-dev frontend-dev; do
         if ! docker manifest inspect $CI_REGISTRY_IMAGE/$img:$ISO_WEEK > /dev/null; then
           docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --no-cache --pull --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
+        else
+          docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$ISO_WEEK --cache-from $CI_REGISTRY_IMAGE/frontend-dev:$ISO_WEEK --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
         fi
       done
     - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$ISO_WEEK --cache-from $CI_REGISTRY_IMAGE/frontend-dev:$ISO_WEEK --target=frontend-test --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA .
