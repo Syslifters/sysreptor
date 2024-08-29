@@ -100,6 +100,8 @@ build-test-api:
       for img in rendering api-dev; do
         if ! docker manifest inspect $CI_REGISTRY_IMAGE/$img:$ISO_WEEK > /dev/null; then
           docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --no-cache --pull --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
+        else
+          docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/rendering:$ISO_WEEK --cache-from $CI_REGISTRY_IMAGE/api-dev:$ISO_WEEK --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
         fi
       done
     - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/rendering:$ISO_WEEK --cache-from $CI_REGISTRY_IMAGE/api-dev:$ISO_WEEK --target=api-test --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA .
@@ -113,6 +115,8 @@ build-test-frontend:
       for img in pdfviewer-dev frontend-dev; do
         if ! docker manifest inspect $CI_REGISTRY_IMAGE/$img:$ISO_WEEK > /dev/null; then
           docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --no-cache --pull --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
+        else
+          docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$ISO_WEEK --cache-from $CI_REGISTRY_IMAGE/frontend-dev:$ISO_WEEK --target=$img --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/$img:$ISO_WEEK .
         fi
       done
     - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$ISO_WEEK --cache-from $CI_REGISTRY_IMAGE/frontend-dev:$ISO_WEEK --target=frontend-test --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA .
@@ -175,31 +179,19 @@ build-release:
       if [[ $CI_COMMIT_TAG =~ '^prod-.*' ]]; then
         grep -qE "^## (v${VERSION_NUMBER})" CHANGELOG.md || exit 1
         CACHE_RELEASE_TAG=$(test-$VERSION_NUMBER_LEADING_ZEROS)
-        cd languagetool
-        docker buildx build --provenance false --cache-from $CI_REGISTRY_IMAGE/languagetool:$CACHE_RELEASE_TAG --target=api --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA .
-        cd ..
       else
         CACHE_RELEASE_TAG=$CI_COMMIT_SHORT_SHA
-        docker buildx build --provenance false --target=api --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA .
       fi
     # Build containers
+    - cd languagetool
+    - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/languagetool:$CACHE_RELEASE_TAG --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_TAG .
+    - cd ..
     - export VERSION_NUMBER
-    - docker buildx build --provenance false --build-arg VERSION="$VERSION_NUMBER" --cache-from $CI_REGISTRY_IMAGE/frontend-test:$CACHE_RELEASE_TAG --cache-from $CI_REGISTRY_IMAGE/api-test:$CACHE_RELEASE_TAG --target=api --platform linux/amd64,linux/arm64 --push --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
-
-release-docker-internal:
-  stage: release
-  extends: .depends_docker
-  needs: [build-release]
-  rules:
-    - if: $CI_COMMIT_TAG # Run this job when a tag is created
-  script:
-    - docker buildx imagetools create $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-    - docker buildx imagetools create $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_TAG
-
+    - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg VERSION="$VERSION_NUMBER" --cache-from $CI_REGISTRY_IMAGE/api-test:$CACHE_RELEASE_TAG --cache-from $CI_REGISTRY_IMAGE/api:$CACHE_RELEASE_TAG --target=api --platform linux/amd64,linux/arm64 --push --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG .
 
 release-gitlab-release:
   stage: release
-  needs: [release-docker-internal]
+  needs: [build-release]
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   script:
     - echo "works"
@@ -235,7 +227,7 @@ release-prod:
     - rm -rf docs/docs/s docs/README.md docs/reporting_software.yml docs/wip docs/hooks.py dev .vscode api/.vscode
 
     # Build container with copyleft source code
-    - docker buildx build --provenance false --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --target api-src --build-arg VERSION=$VERSION_NUMBER --target=api --platform linux/amd64,linux/arm64 --push --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER-src .
+    - docker buildx build --build-arg BUILDKIT_INLINE_CACHE=1 --provenance false --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --target api-src --build-arg VERSION=$VERSION_NUMBER --target=api --platform linux/amd64,linux/arm64 --push --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER-src .
     # Push containers to Docker Hub
     - docker buildx imagetools create $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER
     - docker buildx imagetools create $DOCKER_HUB_IMAGE:$VERSION_NUMBER --tag $DOCKER_HUB_IMAGE:latest
