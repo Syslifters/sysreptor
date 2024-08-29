@@ -19,6 +19,7 @@ services:
 .depends_docker:
   before_script:
     - i=0; while [ "$i" -lt 12 ]; do docker info && break; sleep 5; i=$(( i + 1 )) ; done
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD registry.internal.syslifters.com
     - export DOCKER_BUILDKIT=1
     - docker buildx create --use
