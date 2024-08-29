@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## v2024.68 - 2024-08-29
 * Rework field definition data format. Warning: breaking API changes
 * Allow custom order of object field properties
 * Allow sorting combobox suggestions
