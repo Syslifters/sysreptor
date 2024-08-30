@@ -20,7 +20,7 @@
         :to="currentUrl" exact
         class="ml-1 mr-1 d-none d-lg-inline-flex"
         prepend-icon="mdi-undo"
-        text="Back to current version"
+        text="Close Version History"
       />
       <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="fieldAttrsCurrent.collab.comments" />
       <btn-history v-model="historyVisible" />

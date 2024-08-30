@@ -15,7 +15,7 @@
               :to="`/templates/${fetchState.data.value.templateCurrent!.id}/`" exact
               class="ml-1 mr-1"
               prepend-icon="mdi-undo"
-              text="Back to current version"
+              text="Close Version History"
             />
           </template>
         </template-editor-diff>
