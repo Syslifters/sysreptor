@@ -254,7 +254,7 @@ release-prod:
     - mkdir -p /tmp/sysreptor
     - cp -r * .gitignore .dockerignore /tmp/sysreptor
     # Prebuilt sources are deprecated, required for legacy update scripts. Delete in 08/2025.
-    - tar -czf /tmp/source-prebuilt-deprecated.tar.gz -C /tmp --exclude=sysreptor/.git --exclude=sysreptor/demo_data --exclude=sysreptor/docs sysreptor 
+    - tar -czf /tmp/source-prebuilt.tar.gz -C /tmp --exclude=sysreptor/.git --exclude=sysreptor/demo_data --exclude=sysreptor/docs sysreptor 
 
     # Create archive with setup files
     - tar -czf /tmp/setup.tar.gz -C /tmp --exclude=sysreptor/.git --exclude=sysreptor/deploy/.gitignore sysreptor/deploy sysreptor/update.sh sysreptor/LICENSE sysreptor/INSTALL.md
