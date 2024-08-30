@@ -296,5 +296,5 @@ release-docs-on-prod-release:
   extends: .deploy_docs
   rules:
     - if: $CI_COMMIT_TAG =~ /^prod-.*/  # Run this job on prod deployments
-  needs: [release-prod]
+  needs: [release-prod, build-docs]
 
