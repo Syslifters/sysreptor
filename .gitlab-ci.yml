@@ -239,7 +239,7 @@ release-prod:
     - rm -rf docs/docs/s docs/README.md docs/reporting_software.yml docs/wip docs/hooks.py dev .vscode api/.vscode
 
     # Build container with copyleft source code
-    - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg VERSION="$VERSION_NUMBER" --cache-from $CI_REGISTRY_IMAGE/api-statics:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/frontend:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$TEST_CI_COMMIT_TAG --cache-form $CI_REGISTRY_IMAGE/rendering:$TEST_CI_COMMIT_TAG --target=api-src --platform linux/amd64,linux/arm64 --push --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER-src .
+    - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg VERSION="$VERSION_NUMBER" --cache-from $CI_REGISTRY_IMAGE/api-statics:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/frontend:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/rendering:$TEST_CI_COMMIT_TAG --target=api-src --platform linux/amd64,linux/arm64 --push --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER-src .
     # Push containers to Docker Hub
     - docker buildx imagetools create $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER
     - docker buildx imagetools create $DOCKER_HUB_IMAGE:$VERSION_NUMBER --tag $DOCKER_HUB_IMAGE:latest
