@@ -62,7 +62,7 @@ OLD_SYSREPTOR_VERSION=$SYSREPTOR_VERSION
 echo "Your current version is $OLD_SYSREPTOR_VERSION"
 
 echo "Checking if update is available..."
-version=`curl -s https://docs.sysreptor.org/latest.version`
+version=`curl -s https://docs.sysreptor.com/latest.version`
 if ! [[ $version =~ ^[0-9]{4}\.[0-9]+$ ]]
 then
     echo "Checking for new version failed."
@@ -100,8 +100,8 @@ echo "Copying your config files app.env and .env..."
 source "${sysreptor_directory}/deploy/.env"  # get new SYSREPTOR_VERSION
 NEW_SYSREPTOR_VERSION=$SYSREPTOR_VERSION
 cp "${backup_copy}/deploy/app.env" "${sysreptor_directory}/deploy/app.env"
-grep -v "^NEW_SYSREPTOR_VERSION=" "${backup_copy}/deploy/.env" > "${sysreptor_directory}/deploy/.env"
-sed -i '1s/^/NEW_SYSREPTOR_VERSION=${NEW_SYSREPTOR_VERSION}\n/' "${sysreptor_directory}/deploy/app.env"
+grep -v "^SYSREPTOR_VERSION=" "${backup_copy}/deploy/.env" > "${sysreptor_directory}/deploy/.env"
+sed -i "1s/^/SYSREPTOR_VERSION=${NEW_SYSREPTOR_VERSION}\n/" "${sysreptor_directory}/deploy/.env"
 
 if grep "sysreptor/docker-compose.yml" "${backup_copy}/deploy/docker-compose.yml" >/dev/null 2>&1
 then
