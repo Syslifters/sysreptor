@@ -133,7 +133,7 @@ VOLUME [ "/data" ]
 
 # Configure application
 ARG VERSION=dev
-ENV VERSION=${VERSION} \
+ENV VERSION=dev \
     DEBUG=off \
     MEDIA_ROOT=/data/ \
     SERVER_WORKERS=4 \
@@ -181,6 +181,8 @@ COPY --chown=1000:1000 api/generate_notice.sh api/download_sources.sh api/start.
 RUN /bin/bash /app/api/generate_notice.sh
 # Copy of changelog should be one of the last things to use cache for prod releases
 COPY LICENSE CHANGELOG.md /app/
+ARG VERSION=dev
+ENV VERSION=${VERSION}
 USER 1000
 
 
