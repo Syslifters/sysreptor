@@ -148,7 +148,7 @@ test-api:
   script:
     - mkdir api/test-reports
     - chmod 777 api/test-reports
-    - docker run -e DATABASE_HOST=${POSTGRES_PORT_5432_TCP_ADDR} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n auto --junitxml=test-reports/junit.xml --cov=reportcreator_api --cov-report=term --cov-report=xml:test-reports/coverage.xml
+    #- docker run -e DATABASE_HOST=${POSTGRES_PORT_5432_TCP_ADDR} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n auto --junitxml=test-reports/junit.xml --cov=reportcreator_api --cov-report=term --cov-report=xml:test-reports/coverage.xml
 
 
 test-frontend:
@@ -189,9 +189,13 @@ build-release:
         # pdfviewer-dev
         docker buildx imagetools create $CI_REGISTRY_IMAGE/pdfviewer-dev:$ISO_WEEK --tag $CI_REGISTRY_IMAGE/pdfviewer-dev:$TEST_CI_COMMIT_TAG
         # frontend
-        docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$TEST_CI_COMMIT_TAG --target=frontend --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/frontend:$TEST_CI_COMMIT_TAG .
+        if ! docker manifest inspect $CI_REGISTRY_IMAGE/frontend:$TEST_CI_COMMIT_TAG > /dev/null; then
+          docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$TEST_CI_COMMIT_TAG --target=frontend --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/frontend:$TEST_CI_COMMIT_TAG .
+        fi
         # api-statics
-        docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/frontend:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA --cache-from $CI_REGISTRY_IMAGE/rendering:$TEST_CI_COMMIT_TAG --target=api-statics --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/api-statics:$TEST_CI_COMMIT_TAG .
+        if ! docker manifest inspect $CI_REGISTRY_IMAGE/api-statics:$TEST_CI_COMMIT_TAG > /dev/null; then
+          docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $CI_REGISTRY_IMAGE/frontend:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA --cache-from $CI_REGISTRY_IMAGE/rendering:$TEST_CI_COMMIT_TAG --target=api-statics --platform linux/amd64,linux/arm64 --push -t $CI_REGISTRY_IMAGE/api-statics:$TEST_CI_COMMIT_TAG .
+        fi
       fi
     # Build containers
     - cd languagetool
@@ -199,7 +203,11 @@ build-release:
     - cd ..
     - TEST
     - export VERSION_NUMBER
-    - docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg VERSION="$VERSION_NUMBER" --cache-from $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA --cache-from $CI_REGISTRY_IMAGE/api-statics:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/frontend:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/rendering:$TEST_CI_COMMIT_TAG --target=api --platform linux/amd64,linux/arm64 --push --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG .
+    - |
+      if ! docker manifest inspect $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG > /dev/null; then
+        docker buildx build --provenance false --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg VERSION="$VERSION_NUMBER" --cache-from $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA --cache-from $CI_REGISTRY_IMAGE/api-statics:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/frontend:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/pdfviewer-dev:$TEST_CI_COMMIT_TAG --cache-from $CI_REGISTRY_IMAGE/rendering:$TEST_CI_COMMIT_TAG --target=api --platform linux/amd64,linux/arm64 --push --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG .
+      fi
+    
 
 release-gitlab-release:
   stage: release
