@@ -57,8 +57,8 @@ then
     exit -4
 fi
 
-download_url=https://github.com/syslifters/sysreptor/releases/latest/download/source-prebuilt.tar.gz
-echo "Downloading SysReptor from $download_url ..."
+download_url=https://github.com/syslifters/sysreptor/releases/latest/download/setup.tar.gz
+echo "Downloading Docker Compose files from $download_url ..."
 curl -s -L --output sysreptor.tar.gz "$download_url"
 echo "Checking download..."
 if
@@ -100,10 +100,6 @@ else
         fi
     done
 
-    # Delete docker-compose.override.yml because that's needed for existing PRO installations only due to legacy reasons
-    # ...not for new installations
-    rm docker-compose.override.yml 2>/dev/null || true
-
     echo "Creating app.env..."
     cp app.env.example app.env
 
@@ -143,24 +139,30 @@ then
     source caddy/setup.sh || true  # do not exit on error
 fi
 
+# Delete docker-compose.override.yml because that's needed for existing PRO installations only due to legacy reasons
+# ...not for new installations
+rm docker-compose.override.yml 2>/dev/null || true
+
 echo "Creating docker volumes..."
 echo -n "Volume: "
 docker volume create sysreptor-db-data
 echo -n "Volume: "
 docker volume create sysreptor-app-data
 
-echo "Build and launch SysReptor via docker compose..."
-echo "We are downloading and installing all dependencies."
-echo "This may take a few minutes."
+echo "Launching SysReptor via docker compose..."
+echo "Downloading the Docker images may take a few minutes."
 
 if
+    source .env
+    export SYSREPTOR_VERSION
     ! docker compose up -d
 then
     echo "Ups. Something did not work while bringing up your containers."
     exit -2
 fi
 
-echo "Running migrations..."
+echo ""
+echo "Waiting for database setup..."
 while
     sleep 1
     ! echo '' | docker compose exec --no-TTY app python3 manage.py migrate --check 1>/dev/null 2>&1
@@ -206,7 +208,7 @@ do
     read -p "Copy your password now. Copied? [y/n]: " CONFIRM
     if [[ $CONFIRM == [nN] ]]
     then
-        echo "C'mon. Copy it. It's a good password."
+        echo "It's a good password. You will like it."
     fi
 done
 

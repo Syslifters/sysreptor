@@ -1,6 +1,11 @@
 # Changelog
 
-## v2024.68 - 2024-08-29
+## v2024.69 - 2024-08-30
+* Fix install and update procedures
+* Fix error importing designs without ordering fields
+* Rename version history close button
+
+## v2024.68 - 2024-08-29 (pre-release)
 * Rework field definition data format. Warning: breaking API changes
 * Allow custom order of object field properties
 * Allow sorting combobox suggestions
