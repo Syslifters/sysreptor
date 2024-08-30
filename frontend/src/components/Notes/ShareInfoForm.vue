@@ -1,0 +1,96 @@
+<template>
+  <div>
+    <v-row>
+      <v-col cols="12" class="pt-0 pb-0">
+        <div v-if="publicLink">
+          <v-code>
+            <s-btn-icon
+              @click="copyToClipboard(publicLink)"
+              icon="mdi-content-copy"
+              size="small"
+              density="compact"
+            />
+            {{ publicLink }}
+          </v-code>
+          <p class="mt-2">
+            Shared by 
+            <chip-member :value="modelValue.shared_by || ({username: 'unknown'} as unknown as UserShortInfo)" /> 
+            <chip-created :value="modelValue.created" />
+          </p>
+        </div>
+        <div v-else>
+          <v-card-title class="pa-0">New Share Link</v-card-title>
+        </div>
+      </v-col>
+
+      <v-col cols="6">
+        <s-password-field
+          :model-value="modelValue.password"
+          @update:model-value="updateProp('password', $event)"
+          label="Password (optional)"
+          :disabled="props.disabled"
+          :error-messages="props.error?.password"
+        />
+      </v-col>
+      <v-col cols="6">
+        <s-checkbox
+          :model-value="modelValue.permissions_write"
+          @update:model-value="updateProp('permissions_write', $event)"
+          label="Write access"
+          messages="Allow public users to edit note contents"
+          :disabled="props.disabled"
+          :error-messages="props.error?.permissions_write"
+        />
+      </v-col>
+
+      <v-col cols="6">
+        <s-date-picker
+          :model-value="modelValue.expire_date"
+          @update:model-value="updateProp('expire_date', $event)"
+          label="Expire Date"
+          :disabled="props.disabled"
+          :error-messages="props.error?.expire_date"
+        />
+      </v-col>
+      <v-col cols="6">
+        <s-checkbox 
+          :model-value="modelValue.is_revoked"
+          @update:model-value="updateProp('is_revoked', $event)"
+          label="Is Revoked?"
+          messages="Revoked share links can no longer be accessed"
+          :disabled="props.disabled"
+          :error-messages="props.error?.is_revoked"
+        />
+      </v-col>
+    </v-row>
+    <v-alert v-if="props.error?.detail" color="error">
+      {{ props.error.detail }}
+    </v-alert>
+  </div>
+</template>
+
+<script setup lang="ts">
+const modelValue = defineModel<ShareInfo>('modelValue', { required: true });
+const props = defineProps<{
+  disabled?: boolean;
+  error?: any|null;
+}>();
+
+const publicLink = computed(() => {
+  if (!modelValue.value.id) {
+    return null;
+  }
+  return `${window.location.origin}/shared/${modelValue.value.id}/`;
+});
+
+function updateProp(prop: string, value: any) {
+  modelValue.value = {
+    ...modelValue.value,
+    [prop]: value,
+  };
+}
+
+function copyToClipboard(link: string) {
+  window.navigator.clipboard.writeText(link);
+}
+</script>

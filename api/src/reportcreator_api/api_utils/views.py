@@ -97,6 +97,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
                 'permissions': license.is_professional(),
                 'backup': bool(settings.BACKUP_KEY and license.is_professional()),
                 'websockets': not settings.DISABLE_WEBSOCKETS,
+                'sharing': not settings.DISABLE_SHARING,
             },
             'guest_permissions': {
                 'import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,

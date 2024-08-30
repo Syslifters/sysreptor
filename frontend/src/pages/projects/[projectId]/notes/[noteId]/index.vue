@@ -60,6 +60,13 @@
             extension=".pdf"
             button-text="Export as PDF"
           />
+          <btn-confirm
+            :action="() => { shareDialogVisible = true }"
+            :confirm="false"
+            button-text="Share"
+            button-icon="mdi-share-variant"
+            button-variant="list-item"    
+          />
         </template>
       </edit-toolbar>
     </template>
@@ -69,6 +76,12 @@
         :project="project"
         :note="note"
         :current-url="route.fullPath"
+      />
+
+      <notes-share-dialog
+        v-model="shareDialogVisible"
+        :project="project"
+        :note="note"
       />
 
       <markdown-page
@@ -133,6 +146,8 @@ const hasChildNotes = computed(() => {
 });
 
 useAutofocus(note, 'text');
+
+const shareDialogVisible = ref(false);
 </script>
 
 <style lang="scss" scoped>

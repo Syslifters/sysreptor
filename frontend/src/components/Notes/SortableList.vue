@@ -35,7 +35,10 @@
             </div>
           </template>
           <template #default>
-            <v-list-item-title class="text-body-2">{{ item.note.title }}</v-list-item-title>
+            <v-list-item-title class="text-body-2">
+              <v-icon v-if="item.note.is_shared" size="small" icon="mdi-share-variant" />
+              {{ item.note.title }}
+            </v-list-item-title>
             <v-list-item-subtitle>
               <span v-if="item.note.assignee" :class="{'assignee-self': item.note.assignee.id == auth.user.value!.id}">
                 @{{ item.note.assignee.username }}
