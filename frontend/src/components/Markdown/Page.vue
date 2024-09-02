@@ -38,6 +38,8 @@
 </template>
 
 <script setup lang="ts">
+import { MarkdownEditorMode } from '#imports';
+
 const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
 

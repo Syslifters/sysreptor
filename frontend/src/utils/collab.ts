@@ -32,7 +32,7 @@ export type TextUpdate = {
 export type CollabClientInfo = {
   client_id: string;
   client_color: string;
-  user: UserShortInfo|null;
+  user?: UserShortInfo|null;
 }
 
 export type CollabEvent = {
@@ -1070,7 +1070,7 @@ export type CollabPropType = {
   clients: {
     client_id: string;
     client_color: string;
-    user: UserShortInfo;
+    user?: UserShortInfo|null;
     path: string;
     selection?: EditorSelection;
     isSelf: boolean;

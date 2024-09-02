@@ -439,7 +439,7 @@ export const useProjectStore = defineStore('project', {
       if (options.noteId && !apiSettings.isProfessionalLicense) {
         hasLock.value = false;
         watch(() => collabProps.value.clients, () => {
-          if (!hasLock.value && collabProps.value.clients.filter(c => c.user.id !== auth.user.value?.id).length === 0) {
+          if (!hasLock.value && collabProps.value.clients.filter(c => c.user?.id !== auth.user.value?.id).length === 0) {
             hasLock.value = true;
           }
         }, { immediate: true });
@@ -473,7 +473,7 @@ export const useProjectStore = defineStore('project', {
       if ((options.findingId || options.sectionId) && !apiSettings.isProfessionalLicense) {
         hasLock.value = false;
         watch(() => collabProps.value.clients, () => {
-          if (!hasLock.value && collabProps.value.clients.filter(c => c.user.id !== auth.user.value?.id).length === 0) {
+          if (!hasLock.value && collabProps.value.clients.filter(c => c.user?.id !== auth.user.value?.id).length === 0) {
             hasLock.value = true;
           }
         }, { immediate: true });

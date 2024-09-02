@@ -63,15 +63,15 @@ export const useShareInfoStore = defineStore('shareinfo', {
         return await this.fetchById(shareId);
       }
     },
-    async createNote(shareInfo: ShareInfoPublic, note: ProjectNote) {
-      note = await $fetch<ProjectNote>(`/api/v1/shareinfos/${shareInfo.id}/notes/`, {
+    async createNote(shareInfo: ShareInfoPublic, note: Partial<ProjectNote>) {
+      const newNote = await $fetch<ProjectNote>(`/api/v1/shareinfos/${shareInfo.id}/notes/`, {
         method: 'POST',
         body: note
       });
       if (this.data?.shareInfo.id === shareInfo.id) {
-        this.data.notesCollabState.data.notes[note.id] = note;
+        this.data.notesCollabState.data.notes[newNote.id] = newNote;
       }
-      return note;
+      return newNote;
     },
     async deleteNote(shareInfo: ShareInfoPublic, note: UserNote) {
       await $fetch(`/api/v1/shareinfos/${shareInfo.id}/notes/${note.id}/`, {
@@ -96,7 +96,7 @@ export const useShareInfoStore = defineStore('shareinfo', {
       if (options?.noteId && !apiSettings.isProfessionalLicense) {
         hasLock.value = false;
         watch(() => collabProps.value.clients, () => {
-          if (!hasLock.value && collabProps.value.clients.filter(c => (auth.user && c.user.id !== auth.user?.id) || c.client_id !== collab.storeState.clientID).length === 0) {
+          if (!hasLock.value && collabProps.value.clients.filter(c => (auth.user.value && c.user?.id !== auth.user.value.id) || c.client_id !== collab.storeState.clientID).length === 0) {
             hasLock.value = true;
           }
         }, { immediate: true });

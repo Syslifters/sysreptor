@@ -389,7 +389,9 @@ export function useMarkdownEditorBase(options: {
       .map(c => ({
         client_id: c.client_id,
         color: c.client_color,
-        name: c.user.username + (c.user.name ? ` (${c.user.name})` : ''),
+        name: c.user ? 
+            (c.user.username + (c.user.name ? ` (${c.user.name})` : '')) :
+            (`${c.client_id} (Anonymous User)`),
         selection: c.selection!,
       }));
     const comments = options.props.value.collab.comments

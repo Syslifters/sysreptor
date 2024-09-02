@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { FieldOrigin, type ProjectType, type TemplateFieldDefinition } from "~/utils/types";
+import { ProjectTypeScope, FieldOrigin, type ProjectType, type TemplateFieldDefinition } from "#imports";
 
 const props = defineProps<{
   fieldDefinitionList?: TemplateFieldDefinition[];

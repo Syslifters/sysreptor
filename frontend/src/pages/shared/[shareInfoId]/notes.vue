@@ -76,20 +76,20 @@ function collabAwarenessSendNavigate() {
 }
 
 async function createNote() {
-  let currentNote = shareInfoStore.notes.find(n => n.id === route.params.noteId);
-  let parentNoteId = currentNote.parent;
+  let currentNote = shareInfoStore.notes.find(n => n.id === route.params.noteId) || null;
+  let parentNoteId = currentNote?.parent;
   if (!parentNoteId || !shareInfoStore.notes.find(n => n.id === parentNoteId)) {
     parentNoteId = shareInfoStore.noteGroups[0]!.note.id;
-    currentNote = shareInfoStore.noteGroups[0]!.children.at(-1) || null;
+    currentNote = shareInfoStore.noteGroups[0]!.children.at(-1)?.note || null;
   }
-  const obj = await shareInfoStore.createNote(shareInfo.value, {
+  const obj = await shareInfoStore.createNote(shareInfo.value!, {
     title: 'New Note',
     // Insert new note after the currently selected note, or at the end of the list
     parent: parentNoteId,
     order: (currentNote ? currentNote.order + 1 : undefined),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
   })
-  await navigateTo({ path: `/shared/${shareInfo.value.id}/notes/${obj.id}/`, hash: '#title' })
+  await navigateTo({ path: `/shared/${shareInfo.value!.id}/notes/${obj.id}/`, hash: '#title' })
 }
 
 function updateNoteChecked(note: NoteBase) {

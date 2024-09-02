@@ -39,7 +39,7 @@
               <v-icon color="warning" icon="mdi-alert" />
               User does not have any public keys. Add public keys <strong>before</strong> archiving the project.
               <v-btn
-                v-if="user.id === $auth.user.value!.id"
+                v-if="user.id === auth.user.value!.id"
                 to="/users/self/publickeys/"
                 target="_blank"
                 size="small"
@@ -74,6 +74,7 @@
 <script setup lang="ts">
 import { sortBy } from "lodash-es";
 
+const auth = useAuth();
 const route = useRoute();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();

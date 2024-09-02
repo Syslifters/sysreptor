@@ -80,6 +80,7 @@
 
 <script setup lang="ts">
 import type { CommentSidebar } from '#components';
+import { collabSubpath } from '#imports';
 
 const auth = useAuth();
 const route = useRoute();

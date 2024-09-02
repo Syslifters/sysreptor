@@ -47,6 +47,7 @@
 
 <script setup lang="ts">
 import urlJoin from "url-join";
+import { collabSubpath } from '#imports';
 
 definePageMeta({
   auth: false,

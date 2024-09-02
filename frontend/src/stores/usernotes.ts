@@ -71,13 +71,13 @@ export const useUserNotesStore = defineStore('usernotes', {
         clients: []
       };
     },
-    async createNote(note: UserNote) {
-      note = await $fetch<UserNote>(`/api/v1/pentestusers/self/notes/`, {
+    async createNote(note: Partial<UserNote>) {
+      const newNote = await $fetch<UserNote>(`/api/v1/pentestusers/self/notes/`, {
         method: 'POST',
         body: note
       });
-      this.notesCollabState.data.notes[note.id] = note;
-      return note;
+      this.notesCollabState.data.notes[newNote.id] = newNote;
+      return newNote;
     },
     async deleteNote(note: UserNote) {
       await $fetch(`/api/v1/pentestusers/self/notes/${note.id}/`, {

@@ -18,7 +18,7 @@
             color="header" 
             flat 
           />
-          <v-form @submit="submitPasswordForm">
+          <v-form @submit.prevent="submitPasswordForm">
             <v-card-text>
               <s-password-field
                 v-model="passwordForm.data.password"

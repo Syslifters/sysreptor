@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import { truncate } from 'lodash-es';
-import type { Comment } from '#imports';
+import { type Comment, CommentStatus } from '#imports';
 
 const props = defineProps<{
   project: PentestProject;

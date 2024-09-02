@@ -57,6 +57,7 @@
 
 <script setup lang="ts">
 import type { CommentSidebar } from '#components';
+import { collabSubpath } from '#imports';
 
 const route = useRoute();
 const localSettings = useLocalSettings();

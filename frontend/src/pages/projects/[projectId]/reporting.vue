@@ -7,8 +7,8 @@
           <v-list-item
             v-for="section in sections"
             :key="section.id"
-            :to="`/projects/${$route.params.projectId}/reporting/sections/${section.id}/`"
-            :active="router.currentRoute.value.path.startsWith(`/projects/${$route.params.projectId}/reporting/sections/${section.id}/`)"
+            :to="`/projects/${route.params.projectId}/reporting/sections/${section.id}/`"
+            :active="router.currentRoute.value.path.startsWith(`/projects/${route.params.projectId}/reporting/sections/${section.id}/`)"
             density="compact"
           >
             <template #default>
@@ -67,8 +67,8 @@
           >
             <template #item="{element: finding}">
               <v-list-item
-                :to="`/projects/${$route.params.projectId}/reporting/findings/${finding.id}/`"
-                :active="router.currentRoute.value.path.startsWith(`/projects/${$route.params.projectId}/reporting/findings/${finding.id}/`)"
+                :to="`/projects/${route.params.projectId}/reporting/findings/${finding.id}/`"
+                :active="router.currentRoute.value.path.startsWith(`/projects/${route.params.projectId}/reporting/findings/${finding.id}/`)"
                 :ripple="false"
                 density="compact"
                 :class="'finding-level-' + riskLevel(finding)"
@@ -118,6 +118,7 @@
 <script setup lang="ts">
 import Draggable from "vuedraggable";
 import { scoreFromVector, levelNumberFromScore, levelNumberFromLevelName } from "~/utils/cvss";
+import { collabSubpath, ReviewStatus } from '#imports';
 
 const route = useRoute();
 const router = useRouter();

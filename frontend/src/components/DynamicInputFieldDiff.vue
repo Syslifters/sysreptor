@@ -52,7 +52,7 @@
   </v-hover>
   <div v-else-if="props.historic.definition?.type === FieldDataType.MARKDOWN && props.current.definition?.type === FieldDataType.MARKDOWN" class="mt-4">
     <markdown-diff-field
-      :label="props.current.definition.label"
+      :label="props.current.definition!.label"
       v-bind="markdownDiffAttrs"
       :class="{'diff-highlight-changed': hasChanged}"
     />
@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { pick, merge, omit } from 'lodash-es';
-import type { DynamicInputFieldDiffProps } from '~/composables/history';
+import { FieldDataType, type DynamicInputFieldDiffProps } from '#imports';
 
 const props = defineProps<DynamicInputFieldDiffProps>();
 

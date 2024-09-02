@@ -32,6 +32,8 @@
 </template>
 
 <script setup lang="ts">
+import { mfaMethodChoices } from '#imports';
+
 const route = useRoute();
 const auth = useAuth();
 
