@@ -10,7 +10,7 @@
             <v-card-title class="text-body-1">{{ props.current.definition.label }}</v-card-title>
             <template #append>
               <comment-btn
-                v-if="props.current.collab"
+                v-if="props.current.collab?.comments"
                 v-bind="commentBtnAttrs"
               />
             </template>
@@ -30,7 +30,7 @@
             <v-card-title class="text-body-1">{{ props.current.definition.label }}</v-card-title>
             <template #append>
               <comment-btn
-                v-if="props.current.collab"
+                v-if="props.current.collab?.comments"
                 v-bind="commentBtnAttrs"
               />
             </template>
@@ -172,7 +172,7 @@ const nestedClass = computed(() => {
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({
-  comments: props.current.collab?.comments.filter(c => c.collabPath === props.current.collab?.path) || [],
+  comments: props.current.collab?.comments?.filter(c => c.collabPath === props.current.collab?.path) || [],
   onComment: (v: any) => props.current?.onComment?.(v),
   collabPath: props.current.collab?.path || '',
   isHovering: isHovering.value,

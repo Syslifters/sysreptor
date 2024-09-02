@@ -20,7 +20,7 @@
         />
       </div>
 
-      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="reportingCollab.collabProps.value.comments" />
+      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="reportingCollab.collabProps.value.comments!" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
 

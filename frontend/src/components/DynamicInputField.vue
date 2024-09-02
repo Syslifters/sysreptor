@@ -117,7 +117,7 @@
               <v-card-title class="text-body-1">{{ label }}</v-card-title>
               <template #append>
                 <comment-btn
-                  v-if="props.collab"
+                  v-if="props.collab?.comments"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
                 />
@@ -145,7 +145,7 @@
               <v-card-title class="text-body-1">{{ label }}</v-card-title>
               <template #append>
                 <comment-btn
-                  v-if="props.collab"
+                  v-if="props.collab?.comments"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
                 />
@@ -267,7 +267,7 @@
           </div>
         </div>
         <comment-btn
-          v-if="props.collab && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type)"
+          v-if="props.collab?.comments && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type)"
           v-bind="commentBtnAttrs"
         />
       </div>
@@ -534,7 +534,7 @@ const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({
-  comments: props.collab?.comments.filter(c => c.collabPath === props.collab?.path) || [],
+  comments: props.collab?.comments?.filter(c => c.collabPath === props.collab?.path) || [],
   onComment: (v: any) => emit('comment', v),
   collabPath: props.collab?.path || '',
   isHovering: isHovering.value,

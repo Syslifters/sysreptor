@@ -265,7 +265,7 @@ export function useMarkdownEditorBase(options: {
           }
 
           // Select current comment if the cursor is within a comment
-          if (options.props.value.collab && editorState.value?.selection.main.empty && viewUpdate.selectionSet) {
+          if (options.props.value.collab?.comments && editorState.value?.selection.main.empty && viewUpdate.selectionSet) {
             const commentsAroundCursor = options.props.value.collab.comments
               .filter(c => c.collabPath === options.props.value.collab?.path && c.text_range)
               .filter(c => c.text_range!.from < editorState.value!.selection.main.from && c.text_range!.to > editorState.value!.selection.main.to);
@@ -394,7 +394,7 @@ export function useMarkdownEditorBase(options: {
             (`${c.client_id} (Anonymous User)`),
         selection: c.selection!,
       }));
-    const comments = options.props.value.collab.comments
+    const comments = (options.props.value.collab.comments || [])
       .filter(c => c.collabPath === options.props.value.collab!.path && c.text_range)
       .map(c => ({ id: c.id, text_range: SelectionRange.fromJSON({ anchor: c.text_range!.from, head: c.text_range!.to }) }));
     
@@ -437,6 +437,7 @@ export function useMarkdownEditorBase(options: {
     lang: options.props.value.lang,
     collab: options.props.value.collab,
     onComment: (value: any) => options.emit('comment', value),
+    spellcheckSupported: options.props.value.spellcheckSupported,
     spellcheckEnabled: options.props.value.spellcheckEnabled,
     'onUpdate:spellcheckEnabled': (val: boolean) => options.emit('update:spellcheckEnabled', val),
     markdownEditorMode: options.props.value.markdownEditorMode,
