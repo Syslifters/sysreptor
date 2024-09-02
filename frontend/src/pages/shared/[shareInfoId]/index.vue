@@ -14,7 +14,7 @@
         </s-card>
         <s-card v-else-if="shareInfo?.password_required">
           <v-toolbar 
-            title=""
+            :title="`Access ${shareInfo.title}`"
             color="header" 
             flat 
           />

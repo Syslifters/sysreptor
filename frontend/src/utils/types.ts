@@ -586,4 +586,5 @@ export type ShareInfoPublic = BaseModel & {
   readonly password_required: boolean;
   readonly password_verified: boolean;
   readonly note_id: string;
+  readonly title: string;
 }
