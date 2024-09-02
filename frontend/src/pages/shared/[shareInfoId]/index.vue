@@ -75,11 +75,12 @@ const passwordForm = ref({
 async function submitPasswordForm() {
   try {
     passwordForm.value.inProgress = true;
-    await $fetch(`/api/v1/shareinfos/${shareInfo!.id}/auth/`, {
+    await $fetch(`/api/v1/shareinfos/${shareInfo.value!.id}/auth/`, {
       method: 'POST',
       body: passwordForm.value.data,
     });
-    await navigateTo(`/shared/${shareInfo!.id}/notes/`);
+    await shareInfoStore.fetchById(shareInfo.value!.id);
+    await navigateTo(`/shared/${shareInfo.value!.id}/notes/`);
   } catch (error: any) {
     if (error?.data?.detail) {
       passwordForm.value.error = error.data.detail;

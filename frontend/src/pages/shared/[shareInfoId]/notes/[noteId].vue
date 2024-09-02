@@ -1,3 +1,150 @@
 <template>
-  <div></div>
+  <full-height-page v-if="shareInfo && note" :key="shareInfo.id + note.id">
+    <template #header>
+      <edit-toolbar v-bind="toolbarAttrs">
+        <template #title>
+          <div class="note-title-container">
+            <div>
+              <s-btn-icon
+                @click="updateKey('checked', note.checked === null ? false : !note.checked ? true : null)"
+                :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
+                :disabled="readonly"
+                density="comfortable"
+              />
+            </div>
+            <s-emoji-picker-field
+              v-if="note.checked === null"
+              :model-value="note.icon_emoji"
+              @update:model-value="updateKey('icon_emoji', $event)"
+              :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
+              :readonly="readonly"
+              density="comfortable"
+            />
+              
+            <markdown-text-field-content
+              id="title"
+              :model-value="note.title"
+              :collab="collabSubpath(notesCollab.collabProps.value, 'title')"
+              @collab="notesCollab.onCollabEvent"
+              v-bind="inputFieldAttrs"
+              class="note-title"
+            />
+          </div>
+        </template>
+      </edit-toolbar>
+    </template>
+    <template #default>
+      <markdown-page
+        id="text"
+        :model-value="note.text"
+        :collab="collabSubpath(notesCollab.collabProps.value, 'text')"
+        @collab="notesCollab.onCollabEvent"
+        v-bind="inputFieldAttrs"
+      />
+    </template>
+  </full-height-page>
 </template>
+
+<script setup lang="ts">
+import urlJoin from "url-join";
+
+definePageMeta({
+  auth: false,
+});
+
+const route = useRoute();
+const localSettings = useLocalSettings();
+const shareInfoStore = useShareInfoStore();
+
+const shareInfo = await useAsyncDataE(async () => {
+  try {
+    const shareInfo = await shareInfoStore.getById(route.params.shareInfoId as string);
+    if (shareInfo.password_required && !shareInfo.password_verified) {
+      throw new Error('Password required');
+    }
+    return shareInfo;
+  } catch (e) {
+    await navigateTo(`/shared/${route.params.shareInfoId}/`);
+    return null;
+  }
+});
+
+const notesCollab = shareInfoStore.useNotesCollab({ shareInfo: shareInfo.value!, noteId: route.params.noteId as string });
+const note = computedThrottled(() => notesCollab.data.value.notes[route.params.noteId as string], { throttle: 500 });
+const readonly = computed(() => notesCollab.readonly.value);
+
+async function uploadFile(file: File) {
+  const obj = await uploadFileHelper<UploadedFileInfo>(`/api/v1/shareinfos/${shareInfo.value!.id}/upload/`, file);
+  if (obj.resource_type === 'file') {
+    return `[${obj.name}](/files/name/${obj.name})`;
+  } else {
+    return `![${obj.name}](/images/name/${obj.name}){width="auto"}`;
+  }
+}
+function rewriteFileUrl(imgSrc: string) {
+  return urlJoin(`/api/v1/shareinfos/${shareInfo.value!.id}/`, imgSrc);
+}
+const inputFieldAttrs = computed(() => ({
+  readonly: readonly.value,
+  lang: 'auto',
+  spellcheckSupported: false,
+  markdownEditorMode: localSettings.projectNoteMarkdownEditorMode,
+  'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { localSettings.projectNoteMarkdownEditorMode = val },
+  uploadFile,
+  rewriteFileUrl,
+}));
+const toolbarAttrs = computed(() => ({
+  data: note.value,
+  errorMessage: 
+    ((shareInfo.value?.permissions_write && notesCollab.readonlyCollab.value) ? 'You do not have permissions to edit this note.' : null) ||
+    ((shareInfo.value?.permissions_write && !notesCollab.hasLock.value) ? 'This note is locked by another user. Upgrade to SysReptor Professional for lock-free collaborative editing.' : null),
+  canDelete: shareInfo.value?.permissions_write && note.value?.id !== shareInfo.value?.note_id,
+  delete: async (note: ProjectNote) => {
+    await shareInfoStore.deleteNote(shareInfo.value!, note);
+    await navigateTo(`/shared/${shareInfo.value!.id}/notes/`);
+  },
+}));
+
+function updateKey(key: string, value: any) {
+  notesCollab.onCollabEvent({
+    type: CollabEventType.UPDATE_KEY,
+    path: collabSubpath(notesCollab.collabProps.value, key).path,
+    value,
+  })
+}
+
+const hasChildNotes = computed(() => {
+  if (!shareInfo.value || !note.value) {
+    return false;
+  }
+  return shareInfoStore.notes
+    .some(n => n.parent === note.value!.id && n.id !== note.value!.id);
+});
+
+useAutofocus(note, 'text');
+</script>
+
+<style lang="scss" scoped>
+.note-title-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  
+  & > * {
+    flex-shrink: 0;
+  }
+
+  .note-title {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 0.25em;
+    margin-right: 0.25em;
+  }
+}
+
+.assignee-container {
+  width: 17em;
+  min-width: 17em;
+}
+</style>

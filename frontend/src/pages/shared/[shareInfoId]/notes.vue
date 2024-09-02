@@ -5,23 +5,19 @@
         title="Notes"
         v-model:search="notesCollab.search.value"
         :create-note="createNote"
-        :perform-import="performImport"
-        :export-url="`/api/v1/pentestprojects/${project.id}/notes/export/`"
-        :export-name="'notes-' + project.name"
         :readonly="notesCollab.readonly.value"
       >
         <notes-sortable-list
           :model-value="noteGroups"
-          @update:model-value="updateNoteOrder"
           @update:checked="updateNoteChecked"
-          :disabled="notesCollab.readonly.value"
-          :to-prefix="`/projects/${route.params.projectId}/notes/`"
+          :disabled="true"
+          :to-prefix="`/shared/${route.params.shareInfoId}/notes/`"
           :collab="notesCollab.collabProps.value"
         />
         <template #search>
           <notes-search-result-list
             :result-group="noteSearchResults"
-            :to-prefix="`/projects/${route.params.projectId}/notes/`"
+            :to-prefix="`/shared/${route.params.projectId}/notes/`"
           />
         </template>
       </notes-menu>
@@ -36,21 +32,31 @@
 </template>
 
 <script setup lang="ts">
-import { debounce } from "lodash-es";
-
 const route = useRoute();
 const router = useRouter();
 const localSettings = useLocalSettings();
-const projectStore = useProjectStore();
+const shareInfoStore = useShareInfoStore();
 
 definePageMeta({
-  title: 'Notes',
+  auth: false,
 });
 
-const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
-const notesCollab = projectStore.useNotesCollab({ project: project.value });
-const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
-const noteSearchResults = computed(() => searchNotes(projectStore.notes(project.value.id), notesCollab.collabProps.value.search));
+const shareInfo = await useAsyncDataE(async () => {
+  try {
+    const shareInfo = await shareInfoStore.getById(route.params.shareInfoId as string);
+    if (shareInfo.password_required && !shareInfo.password_verified) {
+      throw new Error('Password required');
+    }
+    return shareInfo;
+  } catch (e) {
+    await navigateTo(`/shared/${route.params.shareInfoId}/`);
+    return null;
+  }
+});
+
+const notesCollab = shareInfoStore.useNotesCollab({ shareInfo: shareInfo.value! });
+const noteGroups = computed(() => shareInfoStore.noteGroups);
+const noteSearchResults = computed(() => searchNotes(shareInfoStore.notes, notesCollab.collabProps.value.search));
 
 onMounted(async () => {
   await notesCollab.connect();
@@ -70,20 +76,20 @@ function collabAwarenessSendNavigate() {
 }
 
 async function createNote() {
-  const currentNote = projectStore.notes(project.value.id).find(n => n.id === route.params.noteId);
-  const obj = await projectStore.createNote(project.value, {
+  let currentNote = shareInfoStore.notes.find(n => n.id === route.params.noteId);
+  let parentNoteId = currentNote.parent;
+  if (!parentNoteId || !shareInfoStore.notes.find(n => n.id === parentNoteId)) {
+    parentNoteId = shareInfoStore.noteGroups[0]!.note.id;
+    currentNote = shareInfoStore.noteGroups[0]!.children.at(-1) || null;
+  }
+  const obj = await shareInfoStore.createNote(shareInfo.value, {
     title: 'New Note',
     // Insert new note after the currently selected note, or at the end of the list
-    parent: currentNote?.parent || null,
+    parent: parentNoteId,
     order: (currentNote ? currentNote.order + 1 : undefined),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
   })
-  await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, hash: '#title' })
-}
-async function performImport(file: File) {
-  const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);
-  const note = res.find(n => n.parent === null)!;
-  await navigateTo(`/projects/${project.value.id}/notes/${note.id}/`);
+  await navigateTo({ path: `/shared/${shareInfo.value.id}/notes/${obj.id}/`, hash: '#title' })
 }
 
 function updateNoteChecked(note: NoteBase) {
@@ -93,12 +99,4 @@ function updateNoteChecked(note: NoteBase) {
     value: note.checked,
   });
 }
-// Execute in next tick: prevent two requests for events in the same tick
-const updateNoteOrder = debounce(async (notes: NoteGroup<NoteBase>) => {
-  try {
-    await projectStore.sortNotes(project.value, notes as NoteGroup<ProjectNote>);
-  } catch (error) {
-    requestErrorToast({ error });
-  }
-}, 0);
 </script>

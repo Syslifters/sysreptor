@@ -41,7 +41,6 @@
                   size="small"
                   block
                 />
-                <!-- TODO: create button -->
               </v-list-item>
             </div>
           </v-list>
@@ -86,7 +85,6 @@
               </v-alert>
             </div>
           </v-container>
-          <!-- TODO: view/edit, create -->
         </template>
       </split-menu>
     </template>

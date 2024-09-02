@@ -14,7 +14,7 @@ export const useShareInfoStore = defineStore('shareinfo', {
       return Object.values(this.data?.notesCollabState.data.notes || {});
     },
     noteGroups(): NoteGroup<ProjectNote> {
-      return groupNotes(this.notes);
+      return groupNotes(this.notes, { parentNoteId: this.notes.find(n => n.id === this.data?.shareInfo.note_id)?.parent || null });
     },
   },
   actions: {
@@ -24,26 +24,36 @@ export const useShareInfoStore = defineStore('shareinfo', {
     },
     async fetchById(shareId: string) {
       const shareInfo = await $fetch<ShareInfoPublic>(`/api/v1/shareinfos/${shareId}/`);
-      this.data = {
-        shareInfo,
-        notesCollabState: makeCollabStoreState({
-          apiPath: `/ws/shareinfos/${shareId}/notes/`,
-          initialData: { notes: {} as Record<string, ProjectNote> },
-          initialPath: 'notes',
-          handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
-            if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
-              for (const note of Object.values(collabState.data.notes) as UserNote[]) {
-                const no = msgData.sort.find((n: UserNote) => n.id === note.id);
-                note.parent = no?.parent || null;
-                note.order = no?.order || 0;
+      if (this.data?.shareInfo.id !== shareId) {
+        this.data = {
+          shareInfo,
+          notesCollabState: makeCollabStoreState({
+            apiPath: `/ws/shareinfos/${shareId}/notes/`,
+            initialData: { notes: {} as Record<string, ProjectNote> },
+            initialPath: 'notes',
+            handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
+              if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
+                if (msgData.sort.some((sn: ProjectNote) => !Object.values(collabState.data.notes).map(dn => dn.id).includes(sn.id))) {
+                  // Non-shared note moved to shared note. Close and reopen WebSocket connection to get updated data.
+                  collabState.connection?.disconnect();
+                }
+
+                for (const note of Object.values(collabState.data.notes) as UserNote[]) {
+                  const no = msgData.sort.find((n: UserNote) => n.id === note.id);
+                  note.parent = no?.parent || null;
+                  note.order = no?.order || 0;
+                }
+                return true;
+              } else {
+                return false;
               }
-              return true;
-            } else {
-              return false;
-            }
-          },
-        }),
-      };
+            },
+          }),
+        };
+      } else {
+        this.data.shareInfo = shareInfo;
+      }
+      
       return this.data.shareInfo;
     },
     async getById(shareId: string) {
@@ -54,7 +64,7 @@ export const useShareInfoStore = defineStore('shareinfo', {
       }
     },
     async createNote(shareInfo: ShareInfoPublic, note: ProjectNote) {
-      note = await $fetch<ProjectNote>(`/api/v1/shareinfos${shareInfo.id}/notes/`, {
+      note = await $fetch<ProjectNote>(`/api/v1/shareinfos/${shareInfo.id}/notes/`, {
         method: 'POST',
         body: note
       });
@@ -78,10 +88,26 @@ export const useShareInfoStore = defineStore('shareinfo', {
 
       const collabState = this.data!.notesCollabState;
       const collab = useCollab(collabState as CollabStoreState<{ notes: Record<string, ProjectNote> }>);
+      const collabProps = computed(() => collabSubpath(collab.collabProps.value, options?.noteId ? `notes.${options.noteId}` : null));
+      
+      const apiSettings = useApiSettings();
+      const auth = useAuth();
+      const hasLock = ref(true);
+      if (options?.noteId && !apiSettings.isProfessionalLicense) {
+        hasLock.value = false;
+        watch(() => collabProps.value.clients, () => {
+          if (!hasLock.value && collabProps.value.clients.filter(c => (auth.user && c.user.id !== auth.user?.id) || c.client_id !== collab.storeState.clientID).length === 0) {
+            hasLock.value = true;
+          }
+        }, { immediate: true });
+      }
 
       return {
         ...collab,
-        collabProps: computed(() => collabSubpath(collab.collabProps.value, options?.noteId ? `notes.${options.noteId}` : null)),
+        collabProps,
+        hasLock,
+        readonlyCollab: computed(() => collab.readonly.value),
+        readonly: computed(() => collab.readonly.value || !hasLock.value),
       }
     },
   },
