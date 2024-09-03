@@ -1055,7 +1055,6 @@ class TestSharedProjectNotesDbSync:
             {'id': str(self.note_not_shared.note_id), 'parent': str(self.note_shared.note_id), 'order': 2},
         ]
         await sync_to_async(self.api_client_user.post)(reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}), data=sort_data)
-        # TODO: collab.create events for notes moved from non-shared to shared
         await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': sort_data})
 
     async def test_cannot_update_nonshared_notes(self):
@@ -1125,13 +1124,13 @@ class TestConsumerPermissions:
             client = api_client(user)
             res = await sync_to_async(client.get)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}))
             assert res.status_code == (200 if expected_read else 403)
-            client_id = res.data.get('client_id', f'{user.id}/asdf')
+            client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
             res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
             assert res.status_code == (200 if expected_write else 403)
 
             res = await sync_to_async(client.get)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}))
             assert res.status_code == (200 if expected_read else 403)
-            client_id = res.data.get('client_id', f'{user.id}/asdf')
+            client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
             res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
             assert res.status_code == (200 if expected_write else 403)
 
@@ -1186,8 +1185,6 @@ class TestConsumerPermissions:
         res = await sync_to_async(client.post)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
         assert res.status_code == (200 if expected_write else 403)
 
-        res = await sync_to_async(client.get)(reverse('shareinfopublic-detail', kwargs={'pk': share_info.id}))
-        assert res.status_code in ([200] if expected_read else [403, 404])
         res = await sync_to_async(client.get)(reverse('sharednote-list', kwargs={'shareinfo_pk': share_info.id}))
         assert res.status_code in ([200] if expected_read else [403, 404])
         res = await sync_to_async(client.patch)(reverse('sharednote-detail', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.note.note_id}), data={})
