@@ -6,10 +6,11 @@ services:
     container_name: 'sysreptor-languagetool'
     init: true
     environment:
-      languagetool_dbHost: db
-      languagetool_dbName: reportcreator
-      languagetool_dbUsername: reportcreator
-      languagetool_dbPassword: reportcreator
+      languagetool_dbHost: ${POSTGRES_HOST:-db}
+      languagetool_dbName: ${POSTGRES_NAME:-reportcreator}
+      languagetool_dbUsername: ${POSTGRES_USER:-reportcreator}
+      languagetool_dbPassword: ${POSTGRES_PASSWORD:-reportcreator}
+      languagetool_dbPort: ${POSTGRES_PORT:-5432}
       HTTP_PROXY: ${HTTP_PROXY-}
       HTTPS_PROXY: ${HTTPS_PROXY-}
     expose:
