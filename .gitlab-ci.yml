@@ -288,7 +288,7 @@ release-prod:
         -X POST \
         -H "Authorization: Bearer ${SAASPANEL_API_TOKEN}" \
         -H "Content-Type: application/json" \
-        -d "{\"title\": \"🎊 Update available\", \"text\": \"There's a new SysReptor version (v${VERSION_NUMBER}) waiting for you.\", \"active_until\": \"$(date -d "yesterday" +%Y-%m-%d)\", \"link_url\": \"https://github.com/Syslifters/sysreptor/releases/tag/${VERSION_NUMBER}\", \"instance_conditions\": {\"version\": \"<${VERSION_NUMBER}\"} }"
+        -d "{\"title\": \"🎊 Update available\", \"text\": \"There's a new SysReptor version (v${VERSION_NUMBER}) waiting for you.\", \"active_until\": \"$(date -d "@$(( $(date +%s) + 30 * 24 * 60 * 60 ))" -I)\", \"link_url\": \"https://github.com/Syslifters/sysreptor/releases/tag/${VERSION_NUMBER}\", \"instance_conditions\": {\"version\": \"<${VERSION_NUMBER}\"} }"
 
 release-docs:
   stage: release
