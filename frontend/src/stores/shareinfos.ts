@@ -106,7 +106,6 @@ export const useShareInfoStore = defineStore('shareinfo', {
         ...collab,
         collabProps,
         hasLock,
-        readonlyCollab: computed(() => collab.readonly.value),
         readonly: computed(() => collab.readonly.value || !hasLock.value),
       }
     },

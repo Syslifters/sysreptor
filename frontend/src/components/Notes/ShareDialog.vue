@@ -78,7 +78,9 @@
                 class="mt-4"
               />
             </div>
-            
+            <div v-else-if="isListLoading" class="mt-4 d-flex flex-column align-center" >
+              <v-progress-circular indeterminate size="50" />
+            </div>
             <div v-else>
               <v-alert v-if="!apiSettings.settings!.features.sharing" color="warning">
                 Note sharing is disabled in instance settings.
@@ -106,6 +108,7 @@ const props = defineProps<{
 const canShare = computed(() => auth.permissions.value.share_notes);
 
 const shareInfos = ref<ShareInfo[]>([]);
+const isListLoading = ref(false);
 const currentShareInfo = ref<ShareInfo|null>(null);
 const currentShareInfoSelection = computed({
   get: () => {
@@ -125,11 +128,16 @@ const currentShareInfoSelection = computed({
 
 whenever(isVisible, updateShareInfoList);
 async function updateShareInfoList() {
-  shareInfos.value = await $fetch(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/`);
-  if (shareInfos.value.length > 0) {
-    currentShareInfo.value = shareInfos.value[0]!;
-  } else {
-    openCreateForm();
+  try {
+    isListLoading.value = true;
+    shareInfos.value = await $fetch(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/`);
+    if (shareInfos.value.length > 0) {
+      currentShareInfo.value = shareInfos.value[0]!;
+    } else {
+      openCreateForm();
+    }
+  } finally {
+    isListLoading.value = false;
   }
 }
 

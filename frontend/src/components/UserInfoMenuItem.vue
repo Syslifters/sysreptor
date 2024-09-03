@@ -5,17 +5,23 @@
     <v-menu activator="parent" location="bottom">
       <v-list>
         <v-list-item
+          v-if="auth.user.value"
           lines="two"
-          :title="auth.user.value!.username"
-          :subtitle="auth.user.value!.name || ''"
+          :title="auth.user.value.username"
+          :subtitle="auth.user.value.name || ''"
+        />
+        <v-list-item
+          v-else
+          title="Logged out"
         />
         <v-divider />
         <v-list-item
+          v-if="auth.loggedIn.value"  
           to="/users/self/"
           prepend-icon="mdi-account"
           title="Profile"
         />
-        <template v-if="apiSettings.isProfessionalLicense">
+        <template v-if="auth.loggedIn.value && apiSettings.isProfessionalLicense">
           <v-list-item
             v-if="auth.permissions.value.admin"
             :to="{path: '/users/self/admin/disable/', query: { next: route.fullPath }}"
@@ -35,9 +41,17 @@
           :title="localSettings.theme === 'dark' ? 'Theme: Dark' : localSettings.theme === 'light' ? 'Theme: Light' : 'Theme: System'"
         />
         <v-list-item
+          v-if="auth.loggedIn.value"
           @click="auth.logout"
           prepend-icon="mdi-logout"
           title="Log out"
+          link
+        />
+        <v-list-item
+          v-else
+          to="/login/"
+          prepend-icon="mdi-login"
+          title="Log in"
           link
         />
       </v-list>

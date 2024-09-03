@@ -39,6 +39,7 @@ const shareInfoStore = useShareInfoStore();
 
 definePageMeta({
   auth: false,
+  layout: 'public',
 });
 
 const shareInfo = await useAsyncDataE(async () => {

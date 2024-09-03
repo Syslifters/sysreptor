@@ -57,18 +57,7 @@ const route = useRoute();
 const localSettings = useLocalSettings();
 const shareInfoStore = useShareInfoStore();
 
-const shareInfo = await useAsyncDataE(async () => {
-  try {
-    const shareInfo = await shareInfoStore.getById(route.params.shareInfoId as string);
-    if (shareInfo.password_required && !shareInfo.password_verified) {
-      throw new Error('Password required');
-    }
-    return shareInfo;
-  } catch (e) {
-    await navigateTo(`/shared/${route.params.shareInfoId}/`);
-    return null;
-  }
-});
+const shareInfo = await useAsyncDataE(async () => await shareInfoStore.getById(route.params.shareInfoId as string));    
 
 const notesCollab = shareInfoStore.useNotesCollab({ shareInfo: shareInfo.value!, noteId: route.params.noteId as string });
 const note = computedThrottled(() => notesCollab.data.value.notes[route.params.noteId as string], { throttle: 500 });
@@ -97,7 +86,6 @@ const inputFieldAttrs = computed(() => ({
 const toolbarAttrs = computed(() => ({
   data: note.value,
   errorMessage: 
-    ((shareInfo.value?.permissions_write && notesCollab.readonlyCollab.value) ? 'You do not have permissions to edit this note.' : null) ||
     ((shareInfo.value?.permissions_write && !notesCollab.hasLock.value) ? 'This note is locked by another user. Upgrade to SysReptor Professional for lock-free collaborative editing.' : null),
   canDelete: shareInfo.value?.permissions_write && note.value?.id !== shareInfo.value?.note_id,
   delete: async (note: ProjectNote) => {

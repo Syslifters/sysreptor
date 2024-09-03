@@ -34,7 +34,7 @@
         <v-icon icon="mdi-help-circle" />
         <s-tooltip activator="parent" location="bottom" text="Documentation" />
       </s-btn-icon>
-      <user-info-menu-item v-if="auth.loggedIn.value" />
+      <user-info-menu-item />
     </v-app-bar>
 
     <v-navigation-drawer v-if="auth.loggedIn.value" v-bind="naviagtionDrawerProps" color="drawer" class="menu-drawer">

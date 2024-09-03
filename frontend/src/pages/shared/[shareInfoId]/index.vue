@@ -14,7 +14,7 @@
         </s-card>
         <s-card v-else-if="shareInfo?.password_required">
           <v-toolbar 
-            :title="`Access ${shareInfo.title}`"
+            title="Access Shared Data"
             color="header" 
             flat 
           />
@@ -50,7 +50,7 @@
 <script setup lang="ts">
 definePageMeta({
   auth: false,
-  title: 'Shared',
+  layout: 'public',
 })
 
 const route = useRoute();
