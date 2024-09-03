@@ -55,6 +55,7 @@ from reportcreator_api.users.views import (
 router = DefaultRouter()
 # Make trailing slash in URL optional to support loading images and assets by fielname
 router.trailing_slash = '/?'
+router.include_format_suffixes = False
 
 router.register('pentestusers', PentestUserViewSet, basename='pentestuser')
 router.register('projecttypes', ProjectTypeViewSet, basename='projecttype')
@@ -104,6 +105,7 @@ template_router.register('history', FindingTemplateHistoryViewSet, basename='fin
 
 public_router = DefaultRouter()
 public_router.trailing_slash = router.trailing_slash
+public_router.include_format_suffixes = router.include_format_suffixes
 
 public_router.register('utils', PublicUtilsViewSet, basename='publicutils')
 public_router.register('shareinfos', ShareInfoPublicViewSet, basename='publicshareinfo')

@@ -87,8 +87,8 @@ class TestSharedPermissions:
         ('file3.txt', False),
     ])
     def test_access_images(self, filename, expected):
-        urlname = 'shareinfopublic-image-by-name' if 'img' in filename else 'shareinfopublic-file-by-name'
-        res = self.client.get(reverse(urlname, kwargs={'pk': self.share_info.id, 'filename': filename}))
+        urlname = 'sharednote-image-by-name' if 'img' in filename else 'sharednote-file-by-name'
+        res = self.client.get(reverse(urlname, kwargs={'shareinfo_pk': self.share_info.id, 'filename': filename}))
         assert res.status_code == (200 if expected else 403)
 
 
@@ -103,7 +103,7 @@ class TestSharePasswordAuth:
         self.client = api_client(user=None)
 
     def test_password_required(self):
-        res = self.client.get(reverse('shareinfopublic-detail', kwargs={'pk': self.share_info.id}))
+        res = self.client.get(reverse('publicshareinfo-detail', kwargs={'pk': self.share_info.id}))
         assert res.status_code == 200
         assert res.data['password_required']
 
@@ -111,14 +111,14 @@ class TestSharePasswordAuth:
         assert res.status_code == 403
 
     def test_password_invalid(self):
-        res = self.client.post(reverse('shareinfopublic-auth', kwargs={'pk': self.share_info.id}), data={'password': 'invalid'})
+        res = self.client.post(reverse('publicshareinfo-auth', kwargs={'pk': self.share_info.id}), data={'password': 'invalid'})
         assert res.status_code == 400
 
         res = self.client.get(reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.note.note_id}))
         assert res.status_code == 403
 
     def test_password_valid(self):
-        res = self.client.post(reverse('shareinfopublic-auth', kwargs={'pk': self.share_info.id}), data={'password': self.password})
+        res = self.client.post(reverse('publicshareinfo-auth', kwargs={'pk': self.share_info.id}), data={'password': self.password})
         assert res.status_code == 200
 
         res = self.client.get(reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.note.note_id}))

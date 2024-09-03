@@ -195,27 +195,13 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
             },
         })
 
-    @extend_schema(responses={200: OpenApiTypes.OBJECT, 503: OpenApiTypes.OBJECT})
-    @action(detail=False, methods=['get'], authentication_classes=[], permission_classes=[])
-    async def healthcheck(self, request, *args, **kwargs):
-        res = await sync_to_async(run_healthchecks)(settings.HEALTH_CHECKS)
-
-        if res.status_code == 200:
-            # Run periodic tasks
-            await PeriodicTask.objects.run_all_pending_tasks()
-
-            # Memory cleanup of worker process
-            gc.collect()
-
-        return res
-
 
 class HealthcheckApiView(APIViewAsync):
     authentication_classes = []
     permission_classes = []
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT, 503: OpenApiTypes.OBJECT})
-    async def healthcheck(self, request, *args, **kwargs):
+    async def get(self, request, *args, **kwargs):
         res = await sync_to_async(run_healthchecks)(settings.HEALTH_CHECKS)
 
         if res.status_code == 200:

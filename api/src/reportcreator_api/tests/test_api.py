@@ -34,6 +34,7 @@ from reportcreator_api.tests.mock import (
     create_png_file,
     create_project,
     create_project_type,
+    create_shareinfo,
     create_template,
     create_user,
 )
@@ -206,9 +207,9 @@ def public_urls():
 
         ('publicshareinfo retrieve', lambda s, c: c.get(reverse('publicshareinfo-detail', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk}))),
          *viewset_urls('sharednote', get_kwargs=lambda s, detail: {'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk} | ({'id': s.project.notes.only_shared().first().note_id} if detail else {}), list=True, retrieve=True, create=True, update=True, update_partial=True, create_data=lambda s: {'parent': s.project.notes.only_shared().first().note_id}),
-        ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-image-by-name', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.images.first().name}))),
-        ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-file-by-name', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.files.first().name}))),
-        ('sharednote upload-image-or-file', lambda s, c: c.post(reverse('sharednote-upload-image-or-file', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
+        ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-image-by-name', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.images.first().name}))),
+        ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-file-by-name', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.files.first().name}))),
+        ('sharednote upload-image-or-file', lambda s, c: c.post(reverse('sharednote-upload-image-or-file', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
     ]
 
 
@@ -346,34 +347,34 @@ def build_test_parameters():
         urls=public_urls(),
         allowed_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
     )
-    # yield from expect_result(
-    #     urls=guest_urls(),
-    #     allowed_users=['guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
-    # )
-    # yield from expect_result(
-    #     urls=regular_user_urls(),
-    #     allowed_users=['regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
-    # )
-    # yield from expect_result(
-    #     urls=template_editor_urls(),
-    #     allowed_users=['template_editor', 'superuser'],
-    # )
-    # yield from expect_result(
-    #     urls=designer_urls(),
-    #     allowed_users=['designer', 'superuser'],
-    # )
-    # yield from expect_result(
-    #     urls=user_manager_urls(),
-    #     allowed_users=['user_manager', 'superuser'],
-    # )
-    # yield from expect_result(
-    #     urls=superuser_urls(),
-    #     allowed_users=['superuser'],
-    # )
-    # yield from expect_result(
-    #     urls=forbidden_urls(),
-    #     allowed_users=[],
-    # )
+    yield from expect_result(
+        urls=guest_urls(),
+        allowed_users=['guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
+    )
+    yield from expect_result(
+        urls=regular_user_urls(),
+        allowed_users=['regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
+    )
+    yield from expect_result(
+        urls=template_editor_urls(),
+        allowed_users=['template_editor', 'superuser'],
+    )
+    yield from expect_result(
+        urls=designer_urls(),
+        allowed_users=['designer', 'superuser'],
+    )
+    yield from expect_result(
+        urls=user_manager_urls(),
+        allowed_users=['user_manager', 'superuser'],
+    )
+    yield from expect_result(
+        urls=superuser_urls(),
+        allowed_users=['superuser'],
+    )
+    yield from expect_result(
+        urls=forbidden_urls(),
+        allowed_users=[],
+    )
 
 
 class ApiRequestsAndPermissionsTestData:
@@ -395,21 +396,36 @@ class ApiRequestsAndPermissionsTestData:
         NotificationSpec.objects.create(text='Test')
         return self.current_user.notifications.first() if self.current_user else UserNotification()
 
+    def _create_project(self, members=None, **kwargs):
+        if not members:
+            if self.current_user:
+                members = [self.current_user]
+            else:
+                members = [self.user_other]
+        p = create_project(members=members, comments=True, **kwargs)
+        image_name = p.images.all().first().name
+        file_name = p.files.all().first().name
+        note = p.notes.all().first()
+        note.text = f'![](/images/name/{image_name})\n![](/files/name/{file_name})'
+        note.save()
+        create_shareinfo(note=note)
+        return p
+
     @cached_property
     def project(self):
-        return create_project(members=[self.current_user] if self.current_user else [self.user_other], comments=True, shared=True)
+        return self._create_project()
 
     @cached_property
     def project_readonly(self):
-        return create_project(members=[self.current_user] if self.current_user else [self.user_other], comments=True, readonly=True, shared=True)
+        return self._create_project(readonly=True)
 
     @cached_property
     def project_unauthorized(self):
-        return create_project(members=[self.user_other], comments=True, shared=True)
+        return self._create_project(members=[self.user_other])
 
     @cached_property
     def project_readonly_unauthorized(self):
-        return create_project(members=[self.user_other], comments=True, readonly=True, shared=True)
+        return self._create_project(members=[self.user_other], readonly=True)
 
     @cached_property
     def archived_project(self):

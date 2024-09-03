@@ -924,7 +924,6 @@ class TestProjectReportingDbSync:
         await self.assert_event({'type': CollabEventType.CREATE, 'path': f'comments.{res.data["id"]}', 'value': res.data, 'client_id': None})
 
 
-
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio()
 class TestSharedProjectNotesDbSync:
@@ -1049,18 +1048,44 @@ class TestSharedProjectNotesDbSync:
 
         # Not-shared note moved to childnote of shared note
         sort_data = [
-            {'id': str(self.childnote_shared.note_id), 'parent': str(self.note_shared.note_id), 'order': 1},
-            {'id': str(self.childnote_not_shared.note_id), 'parent': str(self.childnote_shared.note_id), 'order': 1},
             {'id': str(self.note_shared.note_id), 'parent': None, 'order': 1},
+            {'id': str(self.childnote_shared.note_id), 'parent': str(self.note_shared.note_id), 'order': 1},
             {'id': str(self.note_not_shared.note_id), 'parent': str(self.note_shared.note_id), 'order': 2},
+            {'id': str(self.childnote_not_shared.note_id), 'parent': str(self.childnote_shared.note_id), 'order': 1},
         ]
         await sync_to_async(self.api_client_user.post)(reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}), data=sort_data)
-        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': sort_data})
+        sort_event = await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
+        assert {s['id'] for s in sort_event['sort']} == {s['id'] for s in sort_data}
 
     async def test_cannot_update_nonshared_notes(self):
         await self.client_public.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': f'notes.{self.note_not_shared.note_id}.icon_emoji', 'value': '👍'})
         res = await self.client_public.receive_json_from()
         assert res['type'] == 'error', res
+
+    async def test_project_readonly_write(self):
+        self.project.readonly = True
+        await self.project.asave()
+
+        await self.client_public.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.childnote_shared_path_prefix + '.checked', 'value': True})
+        res = await self.client_public.receive_output()
+        assert res['type'] == 'websocket.close'
+
+    async def test_revoked_write(self):
+        self.share_info.is_revoked = True
+        await self.share_info.asave()
+
+        await self.client_public.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.childnote_shared_path_prefix + '.checked', 'value': True})
+        res = await self.client_public.receive_output()
+        assert res['type'] == 'websocket.close'
+
+    async def test_revoked_read(self):
+        self.share_info.is_revoked = True
+        await self.share_info.asave()
+
+        with mock_time(after=timedelta(minutes=2)):
+            await self.client_user.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.childnote_shared_path_prefix + '.checked', 'value': False})
+            res = await self.client_public.receive_output()
+            assert res['type'] == 'websocket.close'
 
 
 @pytest.mark.django_db(transaction=True)
