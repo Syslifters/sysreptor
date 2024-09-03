@@ -199,15 +199,16 @@ def expect_result(urls, allowed_users=None):
 
 def public_urls():
     return [
-        ('utils healthcheck', lambda s, c: c.get(reverse('utils-healthcheck'))),
-        ('utils settings', lambda s, c: c.get(reverse('utils-settings'))),
-        ('utils openapi', lambda s, c: c.get(reverse('utils-openapi-schema'))),
+        ('publicutils list', lambda s, c: c.get(reverse('publicutils-list'))),
+        ('publicutils healthcheck', lambda s, c: c.get(reverse('publicutils-healthcheck'))),
+        ('publicutils settings', lambda s, c: c.get(reverse('publicutils-settings'))),
+        ('publicutils openapi', lambda s, c: c.get(reverse('publicutils-openapi-schema'))),
 
-        ('shareinfopublic retrieve', lambda s, c: c.get(reverse('shareinfopublic-detail', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk}))),
-        ('shareinfopublic retrive-image-by-name', lambda s, c: c.get(reverse('shareinfopublic-image-by-name', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.images.first().name}))),
-        ('shareinfopublic retrive-image-by-name', lambda s, c: c.get(reverse('shareinfopublic-file-by-name', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.files.first().name}))),
-        ('shareinfopublic upload-image-or-file', lambda s, c: c.post(reverse('shareinfopublic-upload-image-or-file', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
-        *viewset_urls('sharednote', get_kwargs=lambda s, detail: {'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk} | ({'id': s.project.notes.only_shared().first().note_id} if detail else {}), list=True, retrieve=True, create=True, update=True, update_partial=True, create_data=lambda s: {'parent': s.project.notes.only_shared().first().note_id}),
+        ('publicshareinfo retrieve', lambda s, c: c.get(reverse('publicshareinfo-detail', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk}))),
+         *viewset_urls('sharednote', get_kwargs=lambda s, detail: {'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk} | ({'id': s.project.notes.only_shared().first().note_id} if detail else {}), list=True, retrieve=True, create=True, update=True, update_partial=True, create_data=lambda s: {'parent': s.project.notes.only_shared().first().note_id}),
+        ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-image-by-name', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.images.first().name}))),
+        ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-file-by-name', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.files.first().name}))),
+        ('sharednote upload-image-or-file', lambda s, c: c.post(reverse('sharednote-upload-image-or-file', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
     ]
 
 

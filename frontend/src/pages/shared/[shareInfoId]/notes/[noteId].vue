@@ -64,7 +64,7 @@ const note = computedThrottled(() => notesCollab.data.value.notes[route.params.n
 const readonly = computed(() => notesCollab.readonly.value);
 
 async function uploadFile(file: File) {
-  const obj = await uploadFileHelper<UploadedFileInfo>(`/api/v1/shareinfos/${shareInfo.value!.id}/notes/upload/`, file);
+  const obj = await uploadFileHelper<UploadedFileInfo>(`/api/public/shareinfos/${shareInfo.value!.id}/notes/upload/`, file);
   if (obj.resource_type === 'file') {
     return `[${obj.name}](/files/name/${obj.name})`;
   } else {
@@ -72,7 +72,7 @@ async function uploadFile(file: File) {
   }
 }
 function rewriteFileUrl(imgSrc: string) {
-  return urlJoin(`/api/v1/shareinfos/${shareInfo.value!.id}/notes/`, imgSrc);
+  return urlJoin(`/api/public/shareinfos/${shareInfo.value!.id}/notes/`, imgSrc);
 }
 const inputFieldAttrs = computed(() => ({
   readonly: readonly.value,

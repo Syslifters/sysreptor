@@ -2,6 +2,7 @@ import gc
 import logging
 from base64 import b64decode
 
+from adrf.views import APIView as APIViewAsync
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils import timezone
@@ -55,60 +56,16 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
     @extend_schema(exclude=True)
     def list(self, *args, **kwargs):
         return routers.APIRootView(api_root_dict={
-            'settings': 'utils-settings',
             'license': 'utils-license',
             'cwes': 'utils-cwes',
             'spellcheck': 'utils-spellcheck',
             'backup': 'utils-backup',
             'backuplogs': 'utils-backuplogs',
-            'healthcheck': 'utils-healthcheck',
-            'openapi': 'utils-openapi-schema',
-            'swagger-ui': 'utils-swagger-ui',
+            'settings': 'publicutils-settings',
+            'healthcheck': 'publicutils-healthcheck',
+            'openapi': 'publicutils-openapi-schema',
+            'swagger-ui': 'publicutils-swagger-ui',
         }).get(*args, **kwargs)
-
-    @extend_schema(responses=OpenApiTypes.OBJECT)
-    @action(detail=False, url_name='settings', url_path='settings', authentication_classes=[], permission_classes=[])
-    def settings_endpoint(self, *args, **kwargs):
-        languages = [{
-            'code': l.value,
-            'name': l.label,
-            'spellcheck': l.spellcheck,
-            'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES,
-        } for l in remove_duplicates(list(map(Language, settings.PREFERRED_LANGUAGES)) + list(Language))]
-
-        auth_providers = \
-            ([{'type': 'local', 'id': 'local', 'name': 'Local User'}] if settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional() else []) + \
-            ([{'type': AuthIdentity.PROVIDER_REMOTE_USER, 'id': AuthIdentity.PROVIDER_REMOTE_USER, 'name': 'Remote User'}] if settings.REMOTE_USER_AUTH_ENABLED and license.is_professional() else []) + \
-            ([{'type': 'oidc', 'id': k, 'name': v.get('label', k)} for k, v in settings.AUTHLIB_OAUTH_CLIENTS.items()] if license.is_professional() else [])
-
-        return Response({
-            'languages': languages,
-            'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
-            'auth_providers': auth_providers,
-            'default_auth_provider': settings.DEFAULT_AUTH_PROVIDER,
-            'default_reauth_provider': settings.DEFAULT_REAUTH_PROVIDER,
-            'elastic_apm_rum_config': settings.ELASTIC_APM_RUM_CONFIG if settings.ELASTIC_APM_RUM_ENABLED else None,
-            'archiving_threshold': settings.ARCHIVING_THRESHOLD,
-            'license': copy_keys(license.check_license(), ['type', 'error']),
-            'features': {
-                'private_designs': settings.ENABLE_PRIVATE_DESIGNS,
-                'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
-                'archiving': license.is_professional(),
-                'permissions': license.is_professional(),
-                'backup': bool(settings.BACKUP_KEY and license.is_professional()),
-                'websockets': not settings.DISABLE_WEBSOCKETS,
-                'sharing': not settings.DISABLE_SHARING,
-            },
-            'guest_permissions': {
-                'import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,
-                'create_projects': settings.GUEST_USERS_CAN_CREATE_PROJECTS,
-                'delete_projects': settings.GUEST_USERS_CAN_DELETE_PROJECTS,
-                'update_project_settings': settings.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
-                'edit_projects': settings.GUEST_USERS_CAN_EDIT_PROJECTS,
-                'share_notes': settings.GUEST_USERS_CAN_SHARE_NOTES,
-                'see_all_users': settings.GUEST_USERS_CAN_SEE_ALL_USERS,
-            },
-        })
 
     @extend_schema(responses={(200, 'application/octet-stream'): OpenApiTypes.BINARY})
     @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsAdminOrSystem, license.ProfessionalLicenseRequired])
@@ -179,8 +136,85 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
     def cwes(self, request, *args, **kwargs):
         return Response(data=CweField.cwe_definitions())
 
+
+
+class PublicUtilsViewSet(viewsets.GenericViewSet):
+    authentication_classes = []
+    permission_classes = []
+
+    @extend_schema(exclude=True)
+    def list(self, *args, **kwargs):
+        return routers.APIRootView(api_root_dict={
+            'settings': 'publicutils-settings',
+            'healthcheck': 'publicutils-healthcheck',
+            'openapi': 'publicutils-openapi-schema',
+            'swagger-ui': 'publicutils-swagger-ui',
+        }).get(*args, **kwargs)
+
+    @extend_schema(responses=OpenApiTypes.OBJECT)
+    @action(detail=False, url_name='settings', url_path='settings')
+    def settings_endpoint(self, *args, **kwargs):
+        languages = [{
+            'code': l.value,
+            'name': l.label,
+            'spellcheck': l.spellcheck,
+            'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES,
+        } for l in remove_duplicates(list(map(Language, settings.PREFERRED_LANGUAGES)) + list(Language))]
+
+        auth_providers = \
+            ([{'type': 'local', 'id': 'local', 'name': 'Local User'}] if settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional() else []) + \
+            ([{'type': AuthIdentity.PROVIDER_REMOTE_USER, 'id': AuthIdentity.PROVIDER_REMOTE_USER, 'name': 'Remote User'}] if settings.REMOTE_USER_AUTH_ENABLED and license.is_professional() else []) + \
+            ([{'type': 'oidc', 'id': k, 'name': v.get('label', k)} for k, v in settings.AUTHLIB_OAUTH_CLIENTS.items()] if license.is_professional() else [])
+
+        return Response({
+            'languages': languages,
+            'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
+            'auth_providers': auth_providers,
+            'default_auth_provider': settings.DEFAULT_AUTH_PROVIDER,
+            'default_reauth_provider': settings.DEFAULT_REAUTH_PROVIDER,
+            'elastic_apm_rum_config': settings.ELASTIC_APM_RUM_CONFIG if settings.ELASTIC_APM_RUM_ENABLED else None,
+            'archiving_threshold': settings.ARCHIVING_THRESHOLD,
+            'license': copy_keys(license.check_license(), ['type', 'error']),
+            'features': {
+                'private_designs': settings.ENABLE_PRIVATE_DESIGNS,
+                'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
+                'archiving': license.is_professional(),
+                'permissions': license.is_professional(),
+                'backup': bool(settings.BACKUP_KEY and license.is_professional()),
+                'websockets': not settings.DISABLE_WEBSOCKETS,
+                'sharing': not settings.DISABLE_SHARING,
+            },
+            'guest_permissions': {
+                'import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,
+                'create_projects': settings.GUEST_USERS_CAN_CREATE_PROJECTS,
+                'delete_projects': settings.GUEST_USERS_CAN_DELETE_PROJECTS,
+                'update_project_settings': settings.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
+                'edit_projects': settings.GUEST_USERS_CAN_EDIT_PROJECTS,
+                'share_notes': settings.GUEST_USERS_CAN_SHARE_NOTES,
+                'see_all_users': settings.GUEST_USERS_CAN_SEE_ALL_USERS,
+            },
+        })
+
     @extend_schema(responses={200: OpenApiTypes.OBJECT, 503: OpenApiTypes.OBJECT})
     @action(detail=False, methods=['get'], authentication_classes=[], permission_classes=[])
+    async def healthcheck(self, request, *args, **kwargs):
+        res = await sync_to_async(run_healthchecks)(settings.HEALTH_CHECKS)
+
+        if res.status_code == 200:
+            # Run periodic tasks
+            await PeriodicTask.objects.run_all_pending_tasks()
+
+            # Memory cleanup of worker process
+            gc.collect()
+
+        return res
+
+
+class HealthcheckApiView(APIViewAsync):
+    authentication_classes = []
+    permission_classes = []
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT, 503: OpenApiTypes.OBJECT})
     async def healthcheck(self, request, *args, **kwargs):
         res = await sync_to_async(run_healthchecks)(settings.HEALTH_CHECKS)
 

@@ -86,10 +86,6 @@ export default defineNuxtConfig({
         '/api': {
           target: 'http://api:8000',
           changeOrigin: false,
-        },
-        '/ws': {
-          target: 'ws://api:8000',
-          changeOrigin: false,
           ws: true,
         },
         '/admin': {
@@ -119,7 +115,7 @@ export default defineNuxtConfig({
 
       server.removeAllListeners("upgrade")
       server.on("upgrade", (req: IncomingMessage, socket: ServerResponse, head: any) => {
-        if (req.url!.startsWith('/ws')) {
+        if (req.url!.startsWith('/api')) {
           proxy.ws(req, socket, head);
         }
       })

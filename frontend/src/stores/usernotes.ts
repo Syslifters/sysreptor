@@ -35,7 +35,7 @@ export const useUserNotesStore = defineStore('usernotes', {
   state() {
     return {
       notesCollabState: makeCollabStoreState({
-        apiPath: '/ws/pentestusers/self/notes/',
+        apiPath: '/api/ws/pentestusers/self/notes/',
         initialData: { notes: {} as Record<string, UserNote> },
         initialPath: 'notes',
         handleAdditionalWebSocketMessages: (msgData: any, collabState) => {

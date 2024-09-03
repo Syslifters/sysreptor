@@ -33,10 +33,10 @@ from reportcreator_api.pentests.models import (
     ProjectMemberInfo,
     ProjectMemberRole,
     ProjectNotebookPage,
-    ProjectNoteShareInfo,
     ProjectType,
     ProjectTypeStatus,
     ReviewStatus,
+    ShareInfo,
     UploadedAsset,
     UploadedImage,
     UploadedProjectFile,
@@ -266,7 +266,7 @@ def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
 
 
 def create_shareinfo(note, **kwargs):
-    return ProjectNoteShareInfo.objects.create(**{
+    return ShareInfo.objects.create(**{
         'note': note,
         'expire_date': (timezone.now() + timedelta(days=30)).date(),
         'permissions_write': True,

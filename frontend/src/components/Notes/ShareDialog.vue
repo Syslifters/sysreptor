@@ -78,7 +78,7 @@
                 class="mt-4"
               />
             </div>
-            <div v-else-if="isListLoading" class="mt-4 d-flex flex-column align-center" >
+            <div v-else-if="isListLoading" class="mt-4 d-flex flex-column align-center">
               <v-progress-circular indeterminate size="50" />
             </div>
             <div v-else>

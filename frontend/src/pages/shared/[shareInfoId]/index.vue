@@ -75,7 +75,7 @@ const passwordForm = ref({
 async function submitPasswordForm() {
   try {
     passwordForm.value.inProgress = true;
-    await $fetch(`/api/v1/shareinfos/${shareInfo.value!.id}/auth/`, {
+    await $fetch(`/api/public/shareinfos/${shareInfo.value!.id}/auth/`, {
       method: 'POST',
       body: passwordForm.value.data,
     });

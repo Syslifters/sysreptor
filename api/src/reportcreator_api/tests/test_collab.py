@@ -293,8 +293,8 @@ class TestCollaborativeTextEditing:
                 self.comment = create_comment(finding=self.finding, path='data.field_markdown', text_range=SelectionRange(anchor=1, head=2))
         await sync_to_async(setup_db)()
 
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
-                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
+        async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
+                   ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
 
     async def refresh_data(self):
@@ -408,7 +408,7 @@ class TestCollaborativeTextEditing:
         assert comment_list_a.path == 'data.field_list.[2]'
 
     async def test_client_collab_info_lifecycle(self):
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1, consume_init=False) as client:
+        async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1, consume_init=False) as client:
             # path of other clients in collab.init
             init = await client.receive_json_from()
             await client.receive_json_from()
@@ -490,8 +490,8 @@ class TestProjectNotesDbSync:
             self.api_client1 = api_client(self.user1)
         await sync_to_async(setup_db)()
 
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user1) as self.client1, \
-                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user2, other_clients=[self.client1]) as self.client2:
+        async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/notes/', user=self.user1) as self.client1, \
+                   ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/notes/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
 
     async def refresh_data(self):
@@ -669,8 +669,8 @@ class TestProjectReportingDbSync:
             self.api_client1 = api_client(self.user1)
         await sync_to_async(setup_db)()
 
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
-                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
+        async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
+                   ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
 
     async def assert_event(self, event):
@@ -945,8 +945,8 @@ class TestSharedProjectNotesDbSync:
             self.api_client_user = api_client(self.user)
         await sync_to_async(setup_db)()
 
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user) as self.client_user, \
-                   ws_connect(path=f'/ws/shareinfos/{self.share_info.id}/notes/', user=None, other_clients=[self.client_user]) as self.client_public:
+        async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/notes/', user=self.user) as self.client_user, \
+                   ws_connect(path=f'/api/public/ws/shareinfos/{self.share_info.id}/notes/', user=None, other_clients=[self.client_user]) as self.client_public:
             yield
 
     async def refresh_data(self):
@@ -1118,8 +1118,8 @@ class TestConsumerPermissions:
             return user, projects[project_name]
         with override_settings(GUEST_USERS_CAN_EDIT_PROJECTS=False):
             user, project = await sync_to_async(setup_db)()
-            assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
-            assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)
+            assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
+            assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)
 
             client = api_client(user)
             res = await sync_to_async(client.get)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}))
@@ -1154,7 +1154,7 @@ class TestConsumerPermissions:
                 user.admin_permissions_enabled = True
             return user, user_notes
         user, user_notes = await sync_to_async(setup_db)()
-        assert await self.ws_connect(f'/ws/pentestusers/{user_notes.id}/notes/', user) == (expected, expected)
+        assert await self.ws_connect(f'/api/ws/pentestusers/{user_notes.id}/notes/', user) == (expected, expected)
 
         client = api_client(user)
         res = await sync_to_async(client.get)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}))
@@ -1176,7 +1176,7 @@ class TestConsumerPermissions:
             project = create_project(**share_kwargs.pop('project', {}))
             return create_shareinfo(note=project.notes.first(), **share_kwargs)
         share_info = await sync_to_async(setup_db)()
-        assert await self.ws_connect(f'/ws/shareinfos/{share_info.id}/notes/', user=None) == (expected_read, expected_write)
+        assert await self.ws_connect(f'/api/public/ws/shareinfos/{share_info.id}/notes/', user=None) == (expected_read, expected_write)
 
         client = api_client()
         res = await sync_to_async(client.get)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}))

@@ -8,7 +8,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerSplitVie
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
-from reportcreator_api.api_utils.views import UtilsViewSet
+from reportcreator_api.api_utils.views import HealthcheckApiView, PublicUtilsViewSet, UtilsViewSet
 from reportcreator_api.notifications.views import NotificationViewSet
 from reportcreator_api.pentests.collab.fallback import ConsumerHttpFallbackView
 from reportcreator_api.pentests.consumers import (
@@ -29,12 +29,12 @@ from reportcreator_api.pentests.views import (
     PentestProjectHistoryViewSet,
     PentestProjectViewSet,
     ProjectNotebookPageViewSet,
-    ProjectNoteShareInfoPublicViewSet,
-    ProjectNoteShareInfoViewSet,
     ProjectTypeHistoryViewSet,
     ProjectTypeViewSet,
     ReportSectionViewSet,
     SharedProjectNotePublicViewSet,
+    ShareInfoPublicViewSet,
+    ShareInfoViewSet,
     UploadedAssetViewSet,
     UploadedImageViewSet,
     UploadedProjectFileViewSet,
@@ -63,7 +63,6 @@ router.register('archivedprojects', ArchivedProjectViewSet, basename='archivedpr
 router.register('findingtemplates', FindingTemplateViewSet, basename='findingtemplate')
 router.register('utils', UtilsViewSet, basename='utils')
 router.register('auth', AuthViewSet, basename='auth')
-router.register('shareinfos', ProjectNoteShareInfoPublicViewSet, basename='shareinfopublic')
 
 user_router = NestedSimpleRouter(router, 'pentestusers', lookup='pentestuser')
 user_router.register('mfa', MFAMethodViewSet, basename='mfamethod')
@@ -88,7 +87,7 @@ comment_router = NestedSimpleRouter(project_router, 'comments', lookup='comment'
 comment_router.register('answers', CommentAnswerViewSet, basename='commentanswer')
 
 projectnotes_router = NestedSimpleRouter(project_router, 'notes', lookup='note')
-projectnotes_router.register('shareinfos', ProjectNoteShareInfoViewSet, basename='shareinfo')
+projectnotes_router.register('shareinfos', ShareInfoViewSet, basename='shareinfo')
 
 projecttype_router = NestedSimpleRouter(router, 'projecttypes', lookup='projecttype')
 projecttype_router.register('assets', UploadedAssetViewSet, basename='uploadedasset')
@@ -102,7 +101,14 @@ template_router.register('translations', FindingTemplateTranslationViewSet, base
 template_router.register('images', UploadedTemplateImageViewSet, basename='uploadedtemplateimage')
 template_router.register('history', FindingTemplateHistoryViewSet, basename='findingtemplatehistory')
 
-shareinfo_router = NestedSimpleRouter(router, 'shareinfos', lookup='shareinfo')
+
+public_router = DefaultRouter()
+public_router.trailing_slash = router.trailing_slash
+
+public_router.register('utils', PublicUtilsViewSet, basename='publicutils')
+public_router.register('shareinfos', ShareInfoPublicViewSet, basename='publicshareinfo')
+
+shareinfo_router = NestedSimpleRouter(public_router, 'shareinfos', lookup='shareinfo')
 shareinfo_router.register('notes', SharedProjectNotePublicViewSet, basename='sharednote')
 
 
@@ -119,21 +125,30 @@ urlpatterns = [
             projectnotes_router.urls +
             projecttype_router.urls +
             archivedproject_router.urls +
-            template_router.urls +
+            template_router.urls,
+        )),
+
+        path('utils/healthcheck/', HealthcheckApiView.as_view(), name='utils-healthcheck'),
+    ])),
+
+    path('api/public/', include([
+        path('', include(
+            public_router.urls +
             shareinfo_router.urls,
         )),
 
-        # OpenAPI schema
-        path('utils/openapi/', SpectacularAPIView.as_view(), name='utils-openapi-schema'),
-        path('utils/swagger-ui/', SpectacularSwaggerSplitView.as_view(url_name='utils-openapi-schema'), name='utils-swagger-ui'),
+        path('utils/healthcheck/', HealthcheckApiView.as_view(), name='publicutils-healthcheck'),
 
+        # OpenAPI schema
+        path('utils/openapi/', SpectacularAPIView.as_view(), name='publicutils-openapi-schema'),
+        path('utils/swagger-ui/', SpectacularSwaggerSplitView.as_view(url_name='publicutils-openapi-schema'), name='publicutils-swagger-ui'),
     ])),
 
     # Websocket HTTP fallback
-    path('ws/pentestprojects/<uuid:project_pk>/reporting/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectReportingConsumer), name='projectreporting-fallback'),
-    path('ws/pentestprojects/<uuid:project_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectNotesConsumer), name='projectnotebookpage-fallback'),
-    path('ws/pentestusers/<str:pentestuser_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=UserNotesConsumer), name='usernotebookpage-fallback'),
-    path('ws/shareinfos/<uuid:shareinfo_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=SharedProjectNotesPublicConsumer), name='sharednote-fallback'),
+    path('api/ws/pentestprojects/<uuid:project_pk>/reporting/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectReportingConsumer), name='projectreporting-fallback'),
+    path('api/ws/pentestprojects/<uuid:project_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectNotesConsumer), name='projectnotebookpage-fallback'),
+    path('api/ws/pentestusers/<str:pentestuser_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=UserNotesConsumer), name='usernotebookpage-fallback'),
+    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=SharedProjectNotesPublicConsumer), name='sharednote-fallback'),
 
     # Static files
     path('robots.txt', lambda *args, **kwargs: HttpResponse("User-Agent: *\nDisallow: /\n", content_type="text/plain")),
@@ -144,10 +159,10 @@ urlpatterns = [
 
 
 websocket_urlpatterns = [
-    path('ws/pentestprojects/<uuid:project_pk>/reporting/', ProjectReportingConsumer.as_asgi(), name='projectreporting-ws'),
-    path('ws/pentestprojects/<uuid:project_pk>/notes/', ProjectNotesConsumer.as_asgi(), name='projectnotebookpage-ws'),
-    path('ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi(), name='usernotebookpage-ws'),
-    path('ws/shareinfos/<uuid:shareinfo_pk>/notes/', SharedProjectNotesPublicConsumer.as_asgi(), name='sharednote-ws'),
+    path('api/ws/pentestprojects/<uuid:project_pk>/reporting/', ProjectReportingConsumer.as_asgi(), name='projectreporting-ws'),
+    path('api/ws/pentestprojects/<uuid:project_pk>/notes/', ProjectNotesConsumer.as_asgi(), name='projectnotebookpage-ws'),
+    path('api/ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi(), name='usernotebookpage-ws'),
+    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/', SharedProjectNotesPublicConsumer.as_asgi(), name='sharednote-ws'),
 ]
 
 

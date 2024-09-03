@@ -51,7 +51,7 @@ class TestCommunityLicenseRestrictions:
             yield
 
     def test_spellcheck_disabled(self):
-        assert self.client.get(reverse('utils-settings')).data['features']['spellcheck'] is False
+        assert self.client.get(reverse('publicutils-settings')).data['features']['spellcheck'] is False
         assert_api_license_error(self.client.post(reverse('utils-spellcheck')))
         assert_api_license_error(self.client.post(reverse('utils-spellcheck-add-word')))
 

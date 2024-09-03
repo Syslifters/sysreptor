@@ -161,7 +161,7 @@ export const useProjectStore = defineStore('project', {
           project: null as unknown as PentestProject,
           getByIdSync: null,
           notesCollabState: makeCollabStoreState({
-            apiPath: `/ws/pentestprojects/${projectId}/notes/`,
+            apiPath: `/api/ws/pentestprojects/${projectId}/notes/`,
             initialData: { notes: {} as Record<string, ProjectNote> },
             initialPath: 'notes',
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
@@ -178,7 +178,7 @@ export const useProjectStore = defineStore('project', {
             }
           }),
           reportingCollabState: makeCollabStoreState({
-            apiPath: `/ws/pentestprojects/${projectId}/reporting/`,
+            apiPath: `/api/ws/pentestprojects/${projectId}/reporting/`,
             initialData: { 
               project: {} as any, 
               findings: {} as Record<string, PentestFinding>, 

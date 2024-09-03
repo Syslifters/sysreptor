@@ -23,12 +23,12 @@ export const useShareInfoStore = defineStore('shareinfo', {
       this.data = null;
     },
     async fetchById(shareId: string) {
-      const shareInfo = await $fetch<ShareInfoPublic>(`/api/v1/shareinfos/${shareId}/`);
+      const shareInfo = await $fetch<ShareInfoPublic>(`/api/public/shareinfos/${shareId}/`);
       if (this.data?.shareInfo.id !== shareId) {
         this.data = {
           shareInfo,
           notesCollabState: makeCollabStoreState({
-            apiPath: `/ws/shareinfos/${shareId}/notes/`,
+            apiPath: `/api/public/ws/shareinfos/${shareId}/notes/`,
             initialData: { notes: {} as Record<string, ProjectNote> },
             initialPath: 'notes',
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
@@ -64,7 +64,7 @@ export const useShareInfoStore = defineStore('shareinfo', {
       }
     },
     async createNote(shareInfo: ShareInfoPublic, note: Partial<ProjectNote>) {
-      const newNote = await $fetch<ProjectNote>(`/api/v1/shareinfos/${shareInfo.id}/notes/`, {
+      const newNote = await $fetch<ProjectNote>(`/api/public/shareinfos/${shareInfo.id}/notes/`, {
         method: 'POST',
         body: note
       });
@@ -74,7 +74,7 @@ export const useShareInfoStore = defineStore('shareinfo', {
       return newNote;
     },
     async deleteNote(shareInfo: ShareInfoPublic, note: UserNote) {
-      await $fetch(`/api/v1/shareinfos/${shareInfo.id}/notes/${note.id}/`, {
+      await $fetch(`/api/public/shareinfos/${shareInfo.id}/notes/${note.id}/`, {
         method: 'DELETE'
       });
       if (this.data?.shareInfo.id === shareInfo.id) {
