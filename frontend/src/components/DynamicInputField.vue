@@ -202,7 +202,7 @@
                       </template>
                       <template #append>
                         <div 
-                          v-if="[FieldDataType.MARKDOWN, FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.items!.type)"
+                          v-if="[FieldDataType.MARKDOWN, FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.items!.type as any)"
                           class="d-flex flex-column"
                         >
                           <btn-delete
@@ -267,7 +267,7 @@
           </div>
         </div>
         <comment-btn
-          v-if="props.collab?.comments && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type)"
+          v-if="props.collab?.comments && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type as any)"
           v-bind="commentBtnAttrs"
         />
       </div>
@@ -279,7 +279,7 @@
 import Draggable from 'vuedraggable';
 import { pick, uniq } from 'lodash-es';
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
-import { collabSubpath, MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo } from '#imports';
+import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo } from '#imports';
 
 defineOptions({
   inheritAttrs: false,

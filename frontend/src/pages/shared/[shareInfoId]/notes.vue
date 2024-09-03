@@ -49,7 +49,7 @@ const shareInfo = await useAsyncDataE(async () => {
       throw new Error('Password required');
     }
     return shareInfo;
-  } catch (e) {
+  } catch {
     await navigateTo(`/shared/${route.params.shareInfoId}/`);
     return null;
   }
