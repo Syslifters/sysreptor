@@ -128,8 +128,14 @@ RUN --mount=type=cache,target=/root/.cache/ \
 # Unprivileged user
 RUN useradd --uid=1000 --create-home --shell=/bin/bash user \
     && mkdir -p /data /app/api && chown user:user /data /app/api
+# Change owner and permissions to allow adding custom CA certificates
+RUN chown 0:1000 /etc/ssl/certs/ && \
+    chown 0:1000 /usr/local/share/ca-certificates/ && \
+    chmod g+w /etc/ssl/certs/ && \
+    chmod g+w /usr/local/share/ca-certificates/
 USER 1000
 VOLUME [ "/data" ]
+
 
 # Configure application
 ARG VERSION=dev
