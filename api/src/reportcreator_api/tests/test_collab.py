@@ -502,6 +502,7 @@ class TestProjectNotesDbSync:
         res2 = await self.client2.receive_json_from()
         for k, v in event.items():
             assert res1[k] == res2[k] == v
+        return res1
 
     async def test_update_key(self):
         event = {'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.icon_emoji', 'value': '👍'}
@@ -576,7 +577,8 @@ class TestProjectNotesDbSync:
         res = await sync_to_async(self.api_client1.post)(
             path=reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}),
             data=[{'id': self.note.note_id, 'order': 1, 'parent': None}])
-        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
+        sort_event = await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
+        assert sort_event['version'] > self.client1.init['version']
 
     async def test_import_sync(self):
         def import_notes():
@@ -678,6 +680,7 @@ class TestProjectReportingDbSync:
         res2 = await self.client2.receive_json_from()
         for k, v in event.items():
             assert res1[k] == res2[k] == v
+        return res1
 
     async def refresh_data(self, obj=None):
         self.section = await ReportSection.objects \
@@ -857,7 +860,8 @@ class TestProjectReportingDbSync:
         res = await sync_to_async(self.api_client1.post)(
             path=reverse('finding-sort', kwargs={'project_pk': self.project.id}),
             data=[{'id': self.finding.finding_id, 'order': 1, 'parent': None}])
-        await self.assert_event({'type': CollabEventType.SORT, 'path': 'findings', 'client_id': None, 'sort': res.data})
+        sort_event = await self.assert_event({'type': CollabEventType.SORT, 'path': 'findings', 'client_id': None, 'sort': res.data})
+        assert sort_event['version'] > self.client1.init['version']
 
     async def test_update_project_sync(self):
         self.project.override_finding_order = True
@@ -1053,9 +1057,8 @@ class TestSharedProjectNotesDbSync:
             {'id': str(self.note_not_shared.note_id), 'parent': str(self.note_shared.note_id), 'order': 2},
             {'id': str(self.childnote_not_shared.note_id), 'parent': str(self.childnote_shared.note_id), 'order': 1},
         ]
-        await sync_to_async(self.api_client_user.post)(reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}), data=sort_data)
-        sort_event = await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
-        assert {s['id'] for s in sort_event['sort']} == {s['id'] for s in sort_data}
+        res = await sync_to_async(self.api_client_user.post)(reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}), data=sort_data)
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
 
     async def test_cannot_update_nonshared_notes(self):
         await self.client_public.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': f'notes.{self.note_not_shared.note_id}.icon_emoji', 'value': '👍'})
