@@ -148,7 +148,7 @@ test-api:
   script:
     - mkdir api/test-reports
     - chmod 777 api/test-reports
-    #- docker run -e DATABASE_HOST=${POSTGRES_PORT_5432_TCP_ADDR} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n auto --junitxml=test-reports/junit.xml --cov=reportcreator_api --cov-report=term --cov-report=xml:test-reports/coverage.xml
+    - docker run -e DATABASE_HOST=${POSTGRES_PORT_5432_TCP_ADDR} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n auto --junitxml=test-reports/junit.xml --cov=reportcreator_api --cov-report=term --cov-report=xml:test-reports/coverage.xml
 
 
 test-frontend:
@@ -288,7 +288,7 @@ release-prod:
         -X POST \
         -H "Authorization: Bearer ${SAASPANEL_API_TOKEN}" \
         -H "Content-Type: application/json" \
-        -d "{\"title\": \"🎊 Update available\", \"text\": \"There's a new SysReptor version (v${VERSION_NUMBER}) waiting for you.\", \"active_until\": \"$(date -d "yesterday" +%Y-%m-%d)\", \"link_url\": \"https://github.com/Syslifters/sysreptor/releases/tag/${VERSION_NUMBER}\", \"instance_conditions\": {\"version\": \"<${VERSION_NUMBER}\"} }"
+        -d "{\"title\": \"🎊 Update available\", \"text\": \"There's a new SysReptor version (v${VERSION_NUMBER}) waiting for you.\", \"active_until\": \"$(date -d "@$(( $(date +%s) + 30 * 24 * 60 * 60 ))" -I)\", \"link_url\": \"https://github.com/Syslifters/sysreptor/releases/tag/${VERSION_NUMBER}\", \"instance_conditions\": {\"version\": \"<${VERSION_NUMBER}\"} }"
 
 release-docs:
   stage: release
