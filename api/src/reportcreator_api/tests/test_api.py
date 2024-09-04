@@ -188,7 +188,7 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=Fal
 
 
 def expect_result(urls, allowed_users=None):
-    all_users = {'public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'}
+    all_users = {'public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'project_admin', 'superuser'}
     urls = [((*u, None) if len(u) == 2 else u) for u in urls]
 
     for user in allowed_users or []:
@@ -307,23 +307,28 @@ def user_manager_urls():
     ]
 
 
+def project_admin_urls():
+    return [
+        # Not a project member
+        *project_viewset_urls(get_obj=lambda s: s.project_unauthorized, read=True, write=True),
+        ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly_unauthorized.pk}))),
+        ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly_unauthorized.pk}))),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized_unauthorized, read=True, write=True),
+
+        *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project_unauthorized.pk} if detail else {}, retrieve=True),
+        *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project_unauthorized.pk} | ({'pk': s.archived_project_unauthorized.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
+    ]
+
+
 def superuser_urls():
     return [
         ('pentestuser enable-admin-permissions', lambda s, c: c.post(reverse('pentestuser-enable-admin-permissions'))),
         ('pentestuser disable-admin-permissions', lambda s, c: c.post(reverse('pentestuser-disable-admin-permissions'))),
 
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, write=True),
-
-        # Not a project member
-        *project_viewset_urls(get_obj=lambda s: s.project_unauthorized, read=True, write=True),
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized_unauthorized, read=True, write=True),
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private_unauthorized, read=True, write=True),
-
-        ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly_unauthorized.pk}))),
-        ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly_unauthorized.pk}))),
-        *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project_unauthorized.pk} if detail else {}, retrieve=True),
-        *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project_unauthorized.pk} | ({'pk': s.archived_project_unauthorized.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
         ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project_unauthorized.pk, 'pk': s.archived_project_unauthorized.key_parts.first().pk}))),
+
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, write=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private_unauthorized, read=True, write=True),
 
         ('utils-backuplogs', lambda s, c: c.get(reverse('utils-backuplogs'))),
     ]
@@ -345,15 +350,15 @@ def forbidden_urls():
 def build_test_parameters():
     yield from expect_result(
         urls=public_urls(),
-        allowed_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
+        allowed_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'project_admin', 'superuser'],
     )
     yield from expect_result(
         urls=guest_urls(),
-        allowed_users=['guest', 'regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
+        allowed_users=['guest', 'regular', 'template_editor', 'designer', 'user_manager', 'project_admin',  'superuser'],
     )
     yield from expect_result(
         urls=regular_user_urls(),
-        allowed_users=['regular', 'template_editor', 'designer', 'user_manager', 'superuser'],
+        allowed_users=['regular', 'template_editor', 'designer', 'user_manager', 'project_admin',  'superuser'],
     )
     yield from expect_result(
         urls=template_editor_urls(),
@@ -366,6 +371,10 @@ def build_test_parameters():
     yield from expect_result(
         urls=user_manager_urls(),
         allowed_users=['user_manager', 'superuser'],
+    )
+    yield from expect_result(
+        urls=project_admin_urls(),
+        allowed_users=['project_admin', 'superuser'],
     )
     yield from expect_result(
         urls=superuser_urls(),
@@ -494,6 +503,7 @@ def test_api_requests(username, name, perform_request, initialize_dependencies, 
             'template_editor': lambda: ApiRequestsAndPermissionsTestData.create_user(is_template_editor=True),
             'designer': lambda: ApiRequestsAndPermissionsTestData.create_user(is_designer=True),
             'user_manager': lambda: ApiRequestsAndPermissionsTestData.create_user(is_user_manager=True),
+            'project_admin': lambda: ApiRequestsAndPermissionsTestData.create_user(is_project_admin=True),
             'superuser': lambda: ApiRequestsAndPermissionsTestData.create_user(is_superuser=True),
         }
         user = user_map[username]()

@@ -22,6 +22,7 @@ class UserNotificationSerializer(serializers.ModelSerializer):
 
 class UserConditionsSerializer(serializers.Serializer):
     is_superuser = serializers.BooleanField(required=False)
+    is_project_admin = serializers.BooleanField(required=False)
     is_user_manager = serializers.BooleanField(required=False)
     is_designer = serializers.BooleanField(required=False)
     is_template_editor = serializers.BooleanField(required=False)

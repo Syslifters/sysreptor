@@ -152,6 +152,14 @@
           density="compact"
         />
         <s-checkbox
+          :model-value="user.is_project_admin" @update:model-value="updateField('is_project_admin', $event)"
+          label="Project Admin"
+          hint="Project Admins can access and manage all projects, regardless if they are members of the project or not."
+          :error-messages="errors?.is_project_admin || []"
+          :disabled="!canEditGeneralPermissions"
+          density="compact"
+        />
+        <s-checkbox
           :model-value="user.is_superuser" @update:model-value="updateField('is_superuser', $event)"
           label="Superuser"
           hint="Superusers have the highest privileges available. They have all permissions without explicitly assigning them."
