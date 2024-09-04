@@ -1,9 +1,10 @@
 import { v4 as uuid4 } from 'uuid';
 import { sortBy, isEqual } from "lodash-es";
 import type { PropType } from "vue";
-import {
+import { 
+  type ViewUpdate,
   createEditorExtensionToggler,
-  EditorState, EditorView, ViewUpdate,
+  EditorState, EditorView,
   forceLinting, highlightTodos, tooltips, scrollPastEnd, closeBrackets, 
   drawSelection, rectangularSelection, crosshairCursor, dropCursor,
   history, historyKeymap, keymap, setDiagnostics,
@@ -22,7 +23,7 @@ import {
   closeSearchPanel,
   searchPanelOpen,
 } from "reportcreator-markdown/editor/index";
-import { MarkdownEditorMode } from '@/utils/types';
+import { MarkdownEditorMode } from '#imports';
 
 export type MarkdownProps = {
   lang?: string|null;

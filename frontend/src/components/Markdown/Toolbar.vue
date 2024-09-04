@@ -73,10 +73,9 @@
 </template>
 
 <script setup lang="ts">
-// @ts-ignore
 import {
-  EditorView,
-  EditorState,
+  type EditorView,
+  type EditorState,
   insertCodeBlock,
   insertTable,
   redo,

@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-// @ts-ignore
+// @ts-expect-error missing types
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 
@@ -24,7 +24,7 @@ const router = useRouter();
 
 const props = withDefaults(defineProps<{
   modelValue?: number;
-  contentProps?: Object;
+  contentProps?: object;
 }>(), {
   modelValue: 15,
   contentProps: () => ({}),

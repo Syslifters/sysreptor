@@ -198,9 +198,9 @@ const allReportFields = computed(() => reportSections.value.map(s => s.fields).f
 
 const currentItem = ref<FieldDefinition|ReportSectionDefinition|null>(null);
 const currentItemIsField = computed(() => allReportFields.value.includes(currentItem.value as any));
-const currentItemField = computed(() => currentItemIsField ? currentItem.value as FieldDefinition : null);
+const currentItemField = computed(() => currentItemIsField.value ? currentItem.value as FieldDefinition : null);
 const currentItemIsSection = computed(() => reportSections.value.includes(currentItem.value as any));
-const currentItemSection = computed(() => currentItemIsSection ? currentItem.value as ReportSectionDefinition : null);
+const currentItemSection = computed(() => currentItemIsSection.value ? currentItem.value as ReportSectionDefinition : null);
 const currentItemSelection = computed({
   get: () => currentItem.value ? [currentItem.value] : [],
   set: (val) => { currentItem.value = (val.length > 0) ? val[0]! : null; },
@@ -214,8 +214,7 @@ const rules = {
 };
 
 function updateField(field: FieldDefinition, val: FieldDefinition) {
-  // @ts-ignore
-  Object.keys(field).forEach(k => delete field[k]);
+  Object.keys(field).forEach(k => delete field[k as keyof FieldDefinition]);
   Object.assign(field, val);
 }
 function updateFieldOrder(section: ReportSectionDefinition, fields: FieldDefinition[]) {
@@ -239,11 +238,10 @@ function addField(section: ReportSectionDefinition) {
 function deleteField(section: ReportSectionDefinition, field: FieldDefinition) {
   section.fields = section.fields.filter(f => f !== field);
 }
-function updateCurrentSection(sectionField: string, val: any) {
+function updateCurrentSection(sectionField: keyof ReportSectionDefinition, val: any) {
   if (!currentItemSection.value) {
     return;
   }
-  // @ts-ignore
   currentItemSection.value[sectionField] = val;
 }
 function addSection() {

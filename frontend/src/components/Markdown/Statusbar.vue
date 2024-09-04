@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { EditorState } from 'reportcreator-markdown/editor';
+import type { EditorState } from 'reportcreator-markdown/editor';
 
 const props = defineProps<{
   editorState: EditorState;

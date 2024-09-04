@@ -220,7 +220,7 @@ async function setReadonly(val: boolean) {
     editMode.value = EditMode.EDIT;
   }
 }
-async function performCopy(data?: Object) {
+async function performCopy(data?: object) {
   const obj = await projectStore.copyProject({ ...project.value, ...data });
   await toolbarRef.value?.resetComponent();
   await navigateTo(`/projects/${obj.id}/`);

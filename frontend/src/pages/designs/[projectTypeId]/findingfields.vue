@@ -162,8 +162,7 @@ function updateField(field: FieldDefinition, val: FieldDefinition) {
   const oldId = field.id;
 
   // Update field definition
-  // @ts-ignore
-  Object.keys(field).forEach(k => delete field[k]);
+  Object.keys(field).forEach(k => delete field[k as keyof FieldDefinition]);
   Object.assign(field, val);
 
   if ([FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER].includes(val.type)) {

@@ -7,17 +7,15 @@ import {
   EditMode,
   ProjectTypeScope,
   UploadedFileType,
-  MarkdownEditorMode,
-} from "~/utils/types";
-import type {
-  PentestProject,
-  ProjectType,
-  UploadedFileInfo,
-} from "~/utils/types";
-import { type EditToolbar } from "#components";
+  type MarkdownEditorMode,
+  type PentestProject,
+  type ProjectType,
+  type UploadedFileInfo,
+} from "#imports";
+import type { EditToolbar } from "#components";
 
-// @ts-ignore
-export type ToolbarRef = Ref<InstanceType<typeof EditToolbar>>|ComputedRef<InstanceType<typeof EditToolbar>>;
+// @ts-expect-error typeof generic component 
+export type ToolbarRef = Ref<InstanceType<typeof EditToolbar>|ComputedRef<InstanceType<typeof EditToolbar>>>;
 export type LockEditOptions<T> = {
   toolbarRef?: ToolbarRef;
   data: Ref<T>;

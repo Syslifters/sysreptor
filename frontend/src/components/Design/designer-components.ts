@@ -23,9 +23,7 @@ export type TagInfo = {
 
 export type DesignerComponentBlock = {
   tagInfo: TagInfo;
-  // eslint-disable-next-line no-use-before-define
   component: DesignerComponent;
-  // eslint-disable-next-line no-use-before-define
   context: DesignerContext;
   parent: DesignerComponentBlock|null;
   children: DesignerComponentBlock[];

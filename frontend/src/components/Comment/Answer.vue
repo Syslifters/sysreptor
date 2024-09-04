@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Comment, type CommentAnswer } from '@/utils/types';
+import type { Comment, CommentAnswer } from '#imports';
 
 const props = defineProps<{
   answer: CommentAnswer;

@@ -1,4 +1,4 @@
-export async function uploadFileHelper<T>(url: string, file: File, data: Object = {}) {
+export async function uploadFileHelper<T>(url: string, file: File, data: object = {}) {
   const form = new FormData();
   form.append('file', file);
   for (const [k, v] of Object.entries(data)) {

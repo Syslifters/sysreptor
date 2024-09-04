@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-expect-error missing types
 import { ApmVuePlugin } from '@elastic/apm-rum-vue'
 
 export default defineNuxtPlugin(async (nuxtApp) => {

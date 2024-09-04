@@ -196,9 +196,9 @@ const rules = {
   required: [(v: any) => !!v || 'This field is required!'],
 };
 
-function updateField(fieldName: string, val: any) {
+function updateField(fieldName: keyof User, val: any) {
   const newUser = Object.assign({}, user.value);
-  // @ts-ignore
+  // @ts-expect-error no readonly fields are updated
   newUser[fieldName] = val;
   emit('update:modelValue', newUser);
 }

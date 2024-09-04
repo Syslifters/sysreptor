@@ -19,7 +19,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     global: true,
   });
 
-  if (process.client) {
+  if (import.meta.client) {
     // Redirect to login
     const route = useRoute();
     watch(auth.loggedIn, async (loggedIn) => {

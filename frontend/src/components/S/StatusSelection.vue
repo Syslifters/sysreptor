@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { VSelect } from "vuetify/lib/components/index.mjs";
-import { ReviewStatus, ProjectTypeStatus } from "~/utils/types";
+import type { ReviewStatus, ProjectTypeStatus } from "#imports";
 
 const props = withDefaults(defineProps<{
   modelValue?: ReviewStatus|ProjectTypeStatus|null;

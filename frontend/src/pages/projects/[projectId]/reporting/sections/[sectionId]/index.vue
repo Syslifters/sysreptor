@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { type CommentSidebar } from '#components';
+import type { CommentSidebar } from '#components';
 
 const route = useRoute();
 const localSettings = useLocalSettings();

@@ -59,8 +59,7 @@
 
 <script setup lang="ts">
 import urlJoin from "url-join";
-import { MarkdownEditorMode, type UserNote } from "~/utils/types";
-import { uploadFileHelper } from "~/utils/upload";
+import { type MarkdownEditorMode, type UserNote, uploadFileHelper } from "#imports";
 
 const route = useRoute();
 const localSettings = useLocalSettings();

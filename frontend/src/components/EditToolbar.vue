@@ -182,7 +182,6 @@ watch(() => props.data, async (newValue) => {
   const oldValue = previousData.value as T;
   const valueChanged = !isEqual(newValue, previousData.value);
   if (!oldValue && newValue) {
-    // @ts-ignore
     previousData.value = cloneDeep(newValue)
   }
   if (newValue && !hasLock.value && props.editMode === EditMode.EDIT) {
@@ -190,10 +189,8 @@ watch(() => props.data, async (newValue) => {
   }
   if (oldValue && valueChanged) {
     hasChangesValue.value = true;
-    // @ts-ignore
     previousData.value = cloneDeep(newValue);
-    // @ts-ignore
-    emit('update:data', { newValue, oldValue });
+    emit('update:data', { newValue: newValue || null, oldValue });
     if (autoSaveEnabled.value) {
       autoSave();
     }
@@ -236,7 +233,6 @@ async function performSave() {
     savingInProgress.value = true;
     await props.save!(props.data!);
     await nextTick();
-    // @ts-ignore
     previousData.value = cloneDeep(props.data!);
     hasChangesValue.value = false;
   } catch (error) {

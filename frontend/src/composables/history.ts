@@ -1,7 +1,7 @@
 import urlJoin from "url-join";
 import { pick, get, trim } from "lodash-es";
 import {
-  MergeView, EditorView,
+  MergeView, type EditorView,
 } from "reportcreator-markdown/editor";
 import { MarkdownEditorMode, type FieldDefinition, type PentestProject, type ProjectType } from '@/utils/types';
 
