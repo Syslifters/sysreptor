@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Set custom database credentials in languagetool container
+* Fix bug when using custom CA
+
 ## v2024.69 - 2024-08-30
 * Fix install and update procedures
 * Fix error importing designs without ordering fields

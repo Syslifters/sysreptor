@@ -1,3 +1,7 @@
+# Globally defined ARGS
+ARG TESTED_API_IMAGE=undefined_test_image
+ARG PROD_API_IMAGE=undefined_prod_image
+
 FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS pdfviewer-dev
 
 # Install dependencies
@@ -191,10 +195,13 @@ ARG VERSION=dev
 ENV VERSION=${VERSION}
 USER 1000
 
+FROM $TESTED_API_IMAGE AS api-prod
+ARG VERSION
+ENV VERSION=${VERSION}
+COPY CHANGELOG.md /app/
 
 
-
-FROM api AS api-src
+FROM ${PROD_API_IMAGE} AS api-src
 USER 0
 RUN dpkg-query -W -f='${binary:Package}=${Version}\n' > /src/post_installed.txt \
     && bash /app/api/download_sources.sh
