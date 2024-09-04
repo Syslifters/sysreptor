@@ -40,7 +40,7 @@ export default defineNuxtConfig({
   ],
 
   modules: [
-    ['@nuxtjs/eslint-module', { lintOnStart: false }],
+    '@nuxt/eslint',
     'vuetify-nuxt-module',
     '@vueuse/nuxt',
     '@pinia/nuxt',

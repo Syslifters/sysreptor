@@ -15,7 +15,7 @@
         <template #prepend>
           <span v-for="i in cwe.level" :key="i" class="tree-level" />
           <v-icon v-if="cwe.hasChildren" icon="mdi-menu-down" />
-          <v-icon v-else :icon="null" />
+          <v-icon v-else :icon="undefined" />
         </template>
         <template #default>
           <s-tooltip 
