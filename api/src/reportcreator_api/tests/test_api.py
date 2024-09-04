@@ -187,13 +187,12 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=Fal
     return out
 
 
-def expect_result(urls, allowed_users=None):
-    all_users = {'public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'project_admin', 'superuser'}
+def expect_result(urls, allowed_users, forbidden_users):
     urls = [((*u, None) if len(u) == 2 else u) for u in urls]
 
     for user in allowed_users or []:
         yield from [(user, *u, True) for u in urls]
-    for user in all_users - set(allowed_users or []):
+    for user in forbidden_users:
         yield from [(user, *u, False) for u in urls]
 
 
@@ -350,39 +349,48 @@ def forbidden_urls():
 def build_test_parameters():
     yield from expect_result(
         urls=public_urls(),
-        allowed_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'project_admin', 'superuser'],
+        allowed_users=['public', 'guest', 'regular', 'superuser'],
+        forbidden_users=[],
     )
     yield from expect_result(
         urls=guest_urls(),
-        allowed_users=['guest', 'regular', 'template_editor', 'designer', 'user_manager', 'project_admin',  'superuser'],
+        allowed_users=['guest', 'regular', 'superuser'],
+        forbidden_users=['public'],
     )
     yield from expect_result(
         urls=regular_user_urls(),
-        allowed_users=['regular', 'template_editor', 'designer', 'user_manager', 'project_admin',  'superuser'],
+        allowed_users=['regular', 'superuser'],
+        forbidden_users=['public', 'guest'],
     )
     yield from expect_result(
         urls=template_editor_urls(),
         allowed_users=['template_editor', 'superuser'],
+        forbidden_users=['public', 'guest', 'regular'],
     )
     yield from expect_result(
         urls=designer_urls(),
         allowed_users=['designer', 'superuser'],
+        forbidden_users=['public', 'guest', 'regular'],
     )
     yield from expect_result(
         urls=user_manager_urls(),
         allowed_users=['user_manager', 'superuser'],
+        forbidden_users=['public', 'guest', 'regular'],
     )
     yield from expect_result(
         urls=project_admin_urls(),
         allowed_users=['project_admin', 'superuser'],
+        forbidden_users=['public', 'guest', 'regular'],
     )
     yield from expect_result(
         urls=superuser_urls(),
         allowed_users=['superuser'],
+        forbidden_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'project_admin'],
     )
     yield from expect_result(
         urls=forbidden_urls(),
         allowed_users=[],
+        forbidden_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'project_admin', 'superuser'],
     )
 
 
