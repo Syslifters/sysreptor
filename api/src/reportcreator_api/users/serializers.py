@@ -29,7 +29,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'id', 'created', 'updated', 'last_login', 'is_active',
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
             'email', 'phone', 'mobile',
-            'scope', 'is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user', 'is_global_archiver',
+            'scope', 'is_superuser', 'is_project_admin', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user', 'is_global_archiver',
             'is_mfa_enabled', 'can_login_local', 'can_login_sso',
         ]
         read_only_fields = ['is_system_user']
@@ -41,6 +41,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
 
     def get_extra_kwargs(self):
         user = self.context['request'].user
+        # TODO: who can set project_admin permissions: user_manager vs admin
         read_only = not (getattr(user, 'is_user_manager', False) or getattr(user, 'is_admin', False))
         return super().get_extra_kwargs() | {
             'is_superuser': {'read_only': not getattr(user, 'is_admin', False)},

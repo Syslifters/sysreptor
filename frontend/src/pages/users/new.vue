@@ -65,6 +65,7 @@ const userForm = ref<User & { password: string|null }>({
   phone: null,
   mobile: null,
   is_superuser: !apiSettings.isProfessionalLicense,
+  is_project_admin: false,
   is_user_manager: false,
   is_designer: false,
   is_template_editor: false,

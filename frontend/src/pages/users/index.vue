@@ -28,6 +28,7 @@
           </v-col>
           <v-col md="3">
             <v-chip size="small" class="ma-1" v-if="user.is_superuser" text="Superuser" />
+            <v-chip size="small" class="ma-1" v-if="user.is_project_admin" text="Project Admin" />
             <v-chip size="small" class="ma-1" v-if="user.is_user_manager" text="User Manager" />
             <v-chip size="small" class="ma-1" v-if="user.is_designer" text="Designer" />
             <v-chip size="small" class="ma-1" v-if="user.is_template_editor" text="Template Editor" />

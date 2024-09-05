@@ -36,6 +36,7 @@ class PentestUser(BaseModel, AbstractUser):
     is_designer = models.BooleanField(default=False, db_index=True)
     is_template_editor = models.BooleanField(default=False, db_index=True)
     is_user_manager = models.BooleanField(default=False, db_index=True)
+    is_project_admin = models.BooleanField(default=False, db_index=True)
     is_guest = models.BooleanField(default=False, db_index=True)
     is_system_user = models.BooleanField(default=False, db_index=True)
     is_global_archiver = models.BooleanField(default=False, db_index=True)
@@ -55,6 +56,7 @@ class PentestUser(BaseModel, AbstractUser):
     @property
     def scope(self) -> list[str]:
         return (['admin'] if self.is_admin else []) + \
+               (['project_admin'] if self.is_project_admin or self.is_admin else []) + \
                (['template_editor'] if self.is_template_editor or self.is_admin else []) + \
                (['designer'] if self.is_designer or self.is_admin else []) + \
                (['user_manager'] if self.is_user_manager or self.is_admin else []) + \
@@ -196,3 +198,5 @@ class MFAMethod(BaseModel):
             rp=PublicKeyCredentialRpEntity(id=rp_id, name=settings.MFA_SERVER_NAME),
             verify_origin=verify_origin,
         )
+
+

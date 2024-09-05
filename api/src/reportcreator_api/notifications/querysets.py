@@ -61,7 +61,7 @@ class NotificationSpecManager(models.Manager.from_queryset(NotificationSpecQuery
 
         # User conditions
         users = PentestUser.objects.all()
-        for role in ['is_superuser', 'is_designer', 'is_template_editor', 'is_user_manager']:
+        for role in ['is_superuser', 'is_project_admin', 'is_designer', 'is_template_editor', 'is_user_manager']:
             if role in notification.user_conditions and isinstance(notification.user_conditions[role], bool):
                 users = users.filter(**{role: notification.user_conditions[role]})
 
@@ -75,7 +75,8 @@ class NotificationSpecManager(models.Manager.from_queryset(NotificationSpecQuery
             .filter(models.Q(user_conditions__is_superuser__isnull=True) | models.Q(user_conditions__is_superuser=user.is_superuser)) \
             .filter(models.Q(user_conditions__is_desinger__isnull=True) | models.Q(user_conditions__is_designer=user.is_designer)) \
             .filter(models.Q(user_conditions__is_template_editor__isnull=True) | models.Q(user_conditions__is_template_editor=user.is_template_editor)) \
-            .filter(models.Q(user_conditions__is_user_manager__isnull=True) | models.Q(user_conditions__is_user_manager=user.is_user_manager))
+            .filter(models.Q(user_conditions__is_user_manager__isnull=True) | models.Q(user_conditions__is_user_manager=user.is_user_manager)) \
+            .filter(models.Q(user_conditions__is_project_admin__isnull=True) | models.Q(user_conditions__is_project_admin=user.is_project_admin))
 
     def assign_to_users(self, notification):
         from reportcreator_api.notifications.models import UserNotification

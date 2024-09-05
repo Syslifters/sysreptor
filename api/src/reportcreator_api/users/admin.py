@@ -21,6 +21,7 @@ class PentestUserAdmin(BaseUserAdmin):
                     "is_staff",
                     "is_superuser",
                     "is_system_user",
+                    "is_project_admin",
                     "is_user_manager",
                     "is_designer",
                     "is_template_editor",
