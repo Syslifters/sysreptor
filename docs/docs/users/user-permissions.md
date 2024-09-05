@@ -17,6 +17,9 @@ User Managers can create and update other users, assign permissions and reset pa
 
 Users without this permission can only update their own user information (e.g. name, email, phone number), change their own password, but are not allowed to modify their permissions.
 
+## Project Admin
+Project Admins can access and manage all projects, even if they are not members. Users without this permission can only access projects they are members of.
+
 ## Designer
 Designers can create and edit report designs. Users without this permission can create and edit private designs that cannot be used by other users. They have read access to non-private designs.
 

@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Public note sharing
+* Add permission Project Admin
 
 
 ## v2024.70 - 2024-09-04
