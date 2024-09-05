@@ -20,31 +20,33 @@
     <markdown-toolbar-button @click="codemirrorAction(undo)" title="Undo" icon="mdi-undo" :disabled="props.disabled || !canUndo" />
     <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
     <span class="separator" />
-    <markdown-toolbar-button
-      v-if="apiSettings.isProfessionalLicense"
-      @click="toggleSpellcheck"
-      title="Spell check"
-      icon="mdi-spellcheck"
-      :disabled="props.disabled || !spellcheckSupported"
-      :active="spellcheckEnabled"
-    />
-    <markdown-toolbar-button
-      v-else
-      @click="toggleSpellcheck"
-      :title="'Spell check (basic)'"
-      icon="mdi-spellcheck"
-      :dot="!spellcheckSupported ? undefined : (spellcheckEnabled ? 'warning' : 'error')"
-      :disabled="props.disabled || !spellcheckSupported"
-      :active="spellcheckEnabled"
-    />
-    <markdown-toolbar-button
-      v-if="props.collab"
-      @click="emitCreateComment"
-      title="Comment"
-      icon="mdi-comment-plus-outline"
-      :disabled="props.disabled || !props.editorState"
-    />
-    <span class="separator" />
+    <template v-if="props.spellcheckSupported || props.collab?.comments">
+      <markdown-toolbar-button
+        v-if="props.spellcheckSupported && apiSettings.isProfessionalLicense"
+        @click="toggleSpellcheck"
+        title="Spell check"
+        icon="mdi-spellcheck"
+        :disabled="props.disabled || !spellcheckSupported"
+        :active="spellcheckEnabled"
+      />
+      <markdown-toolbar-button
+        v-else-if="props.spellcheckSupported"
+        @click="toggleSpellcheck"
+        :title="'Spell check (basic)'"
+        icon="mdi-spellcheck"
+        :dot="!spellcheckSupported ? undefined : (spellcheckEnabled ? 'warning' : 'error')"
+        :disabled="props.disabled || !spellcheckSupported"
+        :active="spellcheckEnabled"
+      />
+      <markdown-toolbar-button
+        v-if="props.collab?.comments"
+        @click="emitCreateComment"
+        title="Comment"
+        icon="mdi-comment-plus-outline"
+        :disabled="props.disabled || !props.editorState"
+      />
+      <span class="separator" />
+    </template>
     <s-btn-icon 
       v-if="slots['context-menu']"
       size="small"
@@ -99,6 +101,7 @@ import { MarkdownEditorMode } from '@/utils/types';
 const props = defineProps<{
   editorView?: EditorView|null;
   editorState?: EditorState|null;
+  spellcheckSupported?: boolean;
   spellcheckEnabled?: boolean;
   markdownEditorMode?: MarkdownEditorMode;
   disabled?: boolean;
@@ -117,6 +120,10 @@ const apiSettings = useApiSettings();
 const slots = useSlots();
 
 const spellcheckSupported = computed(() => {
+  if (!props.spellcheckSupported) {
+    return false
+  }
+
   if (apiSettings.isProfessionalLicense) {
     return apiSettings.spellcheckLanguageToolSupportedForLanguage(props.lang);
   } else {
@@ -183,7 +190,7 @@ async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
 }
 
 function emitCreateComment() {
-  if (!props.collab || !props.editorState || props.disabled) {
+  if (!props.collab?.comments || !props.editorState || props.disabled) {
     return;
   }
   

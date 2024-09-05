@@ -8,12 +8,12 @@
       class="avatar-group-item"
       :style="{'--avatar-border-color': c.client_color}"
     >
-      {{ c.user.username[0] }}
+      {{ userLetter(c) }}
       <s-tooltip activator="parent">
         <v-avatar size="small" density="compact" class="avatar-group-item avatar-colored" :style="{'--avatar-border-color': c.client_color}"> 
-          {{ c.user.username[0] }}
+          {{ userLetter(c) }}
         </v-avatar>
-        {{ c.user.username }} <template v-if="c.user.name">({{ c.user.name }})</template>
+        {{ userFullName(c) }}
       </s-tooltip>
     </v-avatar>
     <v-avatar 
@@ -27,9 +27,9 @@
       <s-tooltip activator="parent">
         <span v-for="c in clientsHidden" :key="c.client_id">
           <v-avatar size="small" density="compact" class="avatar-group-item avatar-colored" :style="{'--avatar-border-color': c.client_color}"> 
-            {{ c.user.username[0] }}
+            {{ userLetter(c) }}
           </v-avatar>
-          {{ c.user.username }} <template v-if="c.user.name">({{ c.user.name }})</template><br>
+          {{ userFullName(c) }}<br>
         </span>
       </s-tooltip>
     </v-avatar>
@@ -46,6 +46,17 @@ const props = withDefaults(defineProps<{
 const clientsAll = computed(() => props.collab.clients);
 const clientsVisible = computed(() => clientsAll.value.slice(0, clientsAll.value.length > props.limit ? props.limit - 1 : undefined));
 const clientsHidden = computed(() => clientsAll.value.length > props.limit ? clientsAll.value.slice(props.limit - 1) : []);
+
+function userLetter(client: CollabPropType['clients'][0]) {
+  return (client.user?.username[0] || 'a').toLowerCase();
+}
+function userFullName(client: CollabPropType['clients'][0]) {
+  if (client.user) {
+    return client.user.username + (client.user.name ? ` (${client.user.name})` : '');
+  } else {
+    return `${client.client_id} (Anonymous User)`;
+  }
+}
 </script>
 
 <style lang="scss" scoped>

@@ -20,7 +20,7 @@ def log_timing(fn):
 class RequestLoggingMiddleware(deprecation.MiddlewareMixin):
     def should_log(self, request, response):
         # Do not log healthchecks
-        return request.resolver_match and request.resolver_match.url_name not in ['utils-healthcheck']
+        return request.resolver_match and request.resolver_match.url_name not in ['utils-healthcheck', 'publicutils-healthcheck']
 
     def process_response(self, request, response):
         if self.should_log(request, response):

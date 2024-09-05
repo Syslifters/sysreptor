@@ -36,6 +36,7 @@ from reportcreator_api.pentests.models import (
     ProjectType,
     ProjectTypeStatus,
     ReviewStatus,
+    ShareInfo,
     UploadedAsset,
     UploadedImage,
     UploadedProjectFile,
@@ -264,6 +265,14 @@ def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
     } | kwargs)
 
 
+def create_shareinfo(note, **kwargs):
+    return ShareInfo.objects.create(**{
+        'note': note,
+        'expire_date': (timezone.now() + timedelta(days=30)).date(),
+        'permissions_write': True,
+    } | kwargs)
+
+
 def create_project(project_type=None, members=None, report_data=None, findings_kwargs=None, notes_kwargs=None, images_kwargs=None, files_kwargs=None, comments=False, **kwargs) -> PentestProject:
     project_type = project_type or create_project_type()
     report_data = {
@@ -404,6 +413,7 @@ def mock_time(before=None, after=None):
 
 def api_client(user=None):
     client = APIClient()
-    client.force_authenticate(user)
+    if user:
+        client.force_authenticate(user)
     return client
 

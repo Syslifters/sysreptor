@@ -34,6 +34,7 @@ from reportcreator_api.tests.mock import (
     create_png_file,
     create_project,
     create_project_type,
+    create_shareinfo,
     create_template,
     create_user,
 )
@@ -64,7 +65,7 @@ def viewset_urls(basename, get_kwargs, create_data=None, list=False, retrieve=Fa
     if retrieve:
         out.append((basename + ' retrieve', lambda s, c: c.get(reverse(detail_urlname, kwargs=get_kwargs(s, True)))))
     if create:
-        out.append((basename + ' create', lambda s, c: c.post(reverse(list_urlname, kwargs=get_kwargs(s, False)), data=c.get(reverse(detail_urlname, kwargs=get_kwargs(s, True))).data | (create_data or {}))))
+        out.append((basename + ' create', lambda s, c: c.post(reverse(list_urlname, kwargs=get_kwargs(s, False)), data=c.get(reverse(detail_urlname, kwargs=get_kwargs(s, True))).data | ((create_data(s) if callable(create_data) else create_data) or {}))))
     if update:
         out.append((basename + ' update', lambda s, c: c.put(reverse(detail_urlname, kwargs=get_kwargs(s, True)), data=c.get(reverse(detail_urlname, kwargs=get_kwargs(s, True))).data)))
     if update_partial:
@@ -105,7 +106,7 @@ def file_viewset_urls(basename, get_obj, get_base_kwargs=None, read=False, write
     return out
 
 
-def project_viewset_urls(get_obj, read=False, write=False, create=False, list=False, destory=None, update=None):
+def project_viewset_urls(get_obj, read=False, write=False, create=False, list=False, destory=None, update=None, share=False):
     destory = destory if destory is not None else write
     update = update if update is not None else write
 
@@ -118,6 +119,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
         *file_viewset_urls('uploadedprojectfile', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).files.first(), read=read, write=write),
         *viewset_urls('comment', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'pk': get_obj(s).findings.first().comments.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
         *viewset_urls('commentanswer', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'comment_pk': get_obj(s).findings.first().comments.first().id} | ({'pk': get_obj(s).findings.first().comments.first().answers.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write),
+        *viewset_urls('shareinfo', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'note_id': get_obj(s).notes.only_shared().first().note_id} | ({'pk': get_obj(s).notes.only_shared().first().shareinfos.first().pk} if detail else {}), list=read, retrieve=read, create=share, update=share, update_partial=share),
     ]
     if read:
       out.extend([
@@ -198,9 +200,16 @@ def expect_result(urls, allowed_users=None):
 
 def public_urls():
     return [
-        ('utils healthcheck', lambda s, c: c.get(reverse('utils-healthcheck'))),
-        ('utils settings', lambda s, c: c.get(reverse('utils-settings'))),
-        ('utils openapi', lambda s, c: c.get(reverse('utils-openapi-schema'))),
+        ('publicutils list', lambda s, c: c.get(reverse('publicutils-list'))),
+        ('publicutils healthcheck', lambda s, c: c.get(reverse('publicutils-healthcheck'))),
+        ('publicutils settings', lambda s, c: c.get(reverse('publicutils-settings'))),
+        ('publicutils openapi', lambda s, c: c.get(reverse('publicutils-openapi-schema'))),
+
+        ('publicshareinfo retrieve', lambda s, c: c.get(reverse('publicshareinfo-detail', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk}))),
+         *viewset_urls('sharednote', get_kwargs=lambda s, detail: {'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk} | ({'id': s.project.notes.only_shared().first().note_id} if detail else {}), list=True, retrieve=True, create=True, update=True, update_partial=True, create_data=lambda s: {'parent': s.project.notes.only_shared().first().note_id}),
+        ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-image-by-name', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.images.first().name}))),
+        ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-file-by-name', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.files.first().name}))),
+        ('sharednote upload-image-or-file', lambda s, c: c.post(reverse('sharednote-upload-image-or-file', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
     ]
 
 
@@ -244,8 +253,8 @@ def guest_urls():
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, read=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private, read=True, write=True),
 
-        *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True, write=False, destory=False, update=False),
-        *project_viewset_urls(get_obj=lambda s: s.project_readonly, read=True),
+        *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True, write=False, destory=False, update=False, share=False),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, read=True, share=False),
 
         *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project.pk} | ({'pk': s.archived_project.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
@@ -257,10 +266,10 @@ def regular_user_urls():
     return [
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, retrieve=True),
 
-        *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, write=True, destory=True),
+        *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, write=True, destory=True, share=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, write=True),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project.pk}), data={'readonly': True})),
-        *project_viewset_urls(get_obj=lambda s: s.project_readonly, destory=True),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, destory=True, share=True),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project_readonly.pk}), data={'readonly': False})),
 
         ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly.pk}))),
@@ -387,21 +396,36 @@ class ApiRequestsAndPermissionsTestData:
         NotificationSpec.objects.create(text='Test')
         return self.current_user.notifications.first() if self.current_user else UserNotification()
 
+    def _create_project(self, members=None, **kwargs):
+        if not members:
+            if self.current_user:
+                members = [self.current_user]
+            else:
+                members = [self.user_other]
+        p = create_project(members=members, comments=True, **kwargs)
+        image_name = p.images.all().first().name
+        file_name = p.files.all().first().name
+        note = p.notes.all().first()
+        note.text = f'![](/images/name/{image_name})\n![](/files/name/{file_name})'
+        note.save()
+        create_shareinfo(note=note)
+        return p
+
     @cached_property
     def project(self):
-        return create_project(members=[self.current_user] if self.current_user else [self.user_other], comments=True)
+        return self._create_project()
 
     @cached_property
     def project_readonly(self):
-        return create_project(members=[self.current_user] if self.current_user else [self.user_other], comments=True, readonly=True)
+        return self._create_project(readonly=True)
 
     @cached_property
     def project_unauthorized(self):
-        return create_project(members=[self.user_other], comments=True)
+        return self._create_project(members=[self.user_other])
 
     @cached_property
     def project_readonly_unauthorized(self):
-        return create_project(members=[self.user_other], comments=True, readonly=True)
+        return self._create_project(members=[self.user_other], readonly=True)
 
     @cached_property
     def archived_project(self):
@@ -454,6 +478,7 @@ def test_api_requests(username, name, perform_request, initialize_dependencies, 
             GUEST_USERS_CAN_DELETE_PROJECTS=False,
             GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=False,
             GUEST_USERS_CAN_EDIT_PROJECTS=False,
+            GUEST_USERS_CAN_SHARE_NOTES=False,
             GUEST_USERS_CAN_SEE_ALL_USERS=False,
             ARCHIVING_THRESHOLD=1,
             AUTHLIB_OAUTH_CLIENTS={

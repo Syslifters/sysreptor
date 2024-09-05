@@ -6,14 +6,14 @@ export type NoteGroup<T extends NoteBase> = {
   children: NoteGroup<T>;
 }[];
 
-export function groupNotes<T extends NoteBase>(noteList: T[]): NoteGroup<T> {
+export function groupNotes<T extends NoteBase>(noteList: T[], options?: { parentNoteId: string|null}): NoteGroup<T> {
   const groups = groupBy(noteList, 'parent');
 
   function collectChildren(parentId: string|null): NoteGroup<T> {
     return sortBy(groups[parentId as any] || [], 'order')
       .map(note => ({ note, children: collectChildren(note.id) }));
   }
-  return collectChildren(null);
+  return collectChildren(options?.parentNoteId || null);
 }
 
 export function sortNotes<T extends NoteBase>(noteGroups: NoteGroup<T>, commitNote: (n: T) => void) {
@@ -35,7 +35,7 @@ export const useUserNotesStore = defineStore('usernotes', {
   state() {
     return {
       notesCollabState: makeCollabStoreState({
-        apiPath: '/ws/pentestusers/self/notes/',
+        apiPath: '/api/ws/pentestusers/self/notes/',
         initialData: { notes: {} as Record<string, UserNote> },
         initialPath: 'notes',
         handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
@@ -71,13 +71,13 @@ export const useUserNotesStore = defineStore('usernotes', {
         clients: []
       };
     },
-    async createNote(note: UserNote) {
-      note = await $fetch<UserNote>(`/api/v1/pentestusers/self/notes/`, {
+    async createNote(note: Partial<UserNote>) {
+      const newNote = await $fetch<UserNote>(`/api/v1/pentestusers/self/notes/`, {
         method: 'POST',
         body: note
       });
-      this.notesCollabState.data.notes[note.id] = note;
-      return note;
+      this.notesCollabState.data.notes[newNote.id] = newNote;
+      return newNote;
     },
     async deleteNote(note: UserNote) {
       await $fetch(`/api/v1/pentestusers/self/notes/${note.id}/`, {

@@ -117,7 +117,7 @@
               <v-card-title class="text-body-1">{{ label }}</v-card-title>
               <template #append>
                 <comment-btn
-                  v-if="props.collab"
+                  v-if="props.collab?.comments"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
                 />
@@ -145,7 +145,7 @@
               <v-card-title class="text-body-1">{{ label }}</v-card-title>
               <template #append>
                 <comment-btn
-                  v-if="props.collab"
+                  v-if="props.collab?.comments"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
                 />
@@ -202,7 +202,7 @@
                       </template>
                       <template #append>
                         <div 
-                          v-if="[FieldDataType.MARKDOWN, FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.items!.type)"
+                          v-if="[FieldDataType.MARKDOWN, FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.items!.type as any)"
                           class="d-flex flex-column"
                         >
                           <btn-delete
@@ -267,7 +267,7 @@
           </div>
         </div>
         <comment-btn
-          v-if="props.collab && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type)"
+          v-if="props.collab?.comments && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type as any)"
           v-bind="commentBtnAttrs"
         />
       </div>
@@ -278,9 +278,8 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
 import { pick, uniq } from 'lodash-es';
-import type { MarkdownEditorMode, FieldDefinition, UserShortInfo } from '~/utils/types';
-import type { MarkdownProps } from "~/composables/markdown";
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
+import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo } from '#imports';
 
 defineOptions({
   inheritAttrs: false,
@@ -535,7 +534,7 @@ const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({
-  comments: props.collab?.comments.filter(c => c.collabPath === props.collab?.path) || [],
+  comments: props.collab?.comments?.filter(c => c.collabPath === props.collab?.path) || [],
   onComment: (v: any) => emit('comment', v),
   collabPath: props.collab?.path || '',
   isHovering: isHovering.value,

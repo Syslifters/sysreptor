@@ -2,19 +2,19 @@
   <full-height-page>
     <s-sub-drawer>
       <template #default="{ isExpanded }">
-        <v-list-item :to="`/designs/${$route.params.projectTypeId}/`" exact prepend-icon="mdi-cogs" title="Settings">
+        <v-list-item :to="`/designs/${route.params.projectTypeId}/`" exact prepend-icon="mdi-cogs" title="Settings">
           <s-tooltip v-if="!isExpanded" activator="parent" text="Settings" />
         </v-list-item>
-        <v-list-item :to="`/designs/${$route.params.projectTypeId}/pdfdesigner/`" prepend-icon="mdi-pencil-ruler" title="PDF Designer">
+        <v-list-item :to="`/designs/${route.params.projectTypeId}/pdfdesigner/`" prepend-icon="mdi-pencil-ruler" title="PDF Designer">
           <s-tooltip v-if="!isExpanded" activator="parent" text="PDF Designer" />
         </v-list-item>
-        <v-list-item :to="`/designs/${$route.params.projectTypeId}/reportfields/`" prepend-icon="mdi-alpha-r-box" title="Report Fields">
+        <v-list-item :to="`/designs/${route.params.projectTypeId}/reportfields/`" prepend-icon="mdi-alpha-r-box" title="Report Fields">
           <s-tooltip v-if="!isExpanded" activator="parent" text="Report Fields" />
         </v-list-item>
-        <v-list-item :to="`/designs/${$route.params.projectTypeId}/findingfields/`" prepend-icon="mdi-alpha-f-box" title="Finding Fields">
+        <v-list-item :to="`/designs/${route.params.projectTypeId}/findingfields/`" prepend-icon="mdi-alpha-f-box" title="Finding Fields">
           <s-tooltip v-if="!isExpanded" activator="parent" text="Finding Fields" />
         </v-list-item>
-        <v-list-item :to="`/designs/${$route.params.projectTypeId}/notes/`" prepend-icon="mdi-notebook" title="Notes">
+        <v-list-item :to="`/designs/${route.params.projectTypeId}/notes/`" prepend-icon="mdi-notebook" title="Notes">
           <s-tooltip v-if="!isExpanded" activator="parent" text="Notes" />
         </v-list-item>
       </template>

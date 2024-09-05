@@ -15,6 +15,7 @@ from django.core.files.base import ContentFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.module_loading import import_string
 
 from reportcreator_api.archive.import_export import export_notes
@@ -46,6 +47,8 @@ from reportcreator_api.tests.mock import (
     create_comment,
     create_project,
     create_project_type,
+    create_projectnotebookpage,
+    create_shareinfo,
     create_user,
     mock_time,
 )
@@ -224,15 +227,13 @@ class TestTextTransformations:
 
 @sync_to_async
 def create_session(user):
-    if not user or user.is_anonymous:
-        return None
-
     engine = import_string(settings.SESSION_ENGINE)
     session = engine.SessionStore()
-    session[SESSION_KEY] = str(user.id)
-    session[BACKEND_SESSION_KEY] = settings.AUTHENTICATION_BACKENDS[0]
-    session[HASH_SESSION_KEY] = user.get_session_auth_hash()
-    session['admin_permissions_enabled'] = True
+    if user and not user.is_anonymous:
+        session[SESSION_KEY] = str(user.id)
+        session[BACKEND_SESSION_KEY] = settings.AUTHENTICATION_BACKENDS[0]
+        session[HASH_SESSION_KEY] = user.get_session_auth_hash()
+        session['admin_permissions_enabled'] = True
     session.save()
     return session
 
@@ -292,8 +293,8 @@ class TestCollaborativeTextEditing:
                 self.comment = create_comment(finding=self.finding, path='data.field_markdown', text_range=SelectionRange(anchor=1, head=2))
         await sync_to_async(setup_db)()
 
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
-                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
+        async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
+                   ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
 
     async def refresh_data(self):
@@ -407,7 +408,7 @@ class TestCollaborativeTextEditing:
         assert comment_list_a.path == 'data.field_list.[2]'
 
     async def test_client_collab_info_lifecycle(self):
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1, consume_init=False) as client:
+        async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1, consume_init=False) as client:
             # path of other clients in collab.init
             init = await client.receive_json_from()
             await client.receive_json_from()
@@ -489,8 +490,8 @@ class TestProjectNotesDbSync:
             self.api_client1 = api_client(self.user1)
         await sync_to_async(setup_db)()
 
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user1) as self.client1, \
-                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/notes/', user=self.user2, other_clients=[self.client1]) as self.client2:
+        async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/notes/', user=self.user1) as self.client1, \
+                   ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/notes/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
 
     async def refresh_data(self):
@@ -501,6 +502,7 @@ class TestProjectNotesDbSync:
         res2 = await self.client2.receive_json_from()
         for k, v in event.items():
             assert res1[k] == res2[k] == v
+        return res1
 
     async def test_update_key(self):
         event = {'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.icon_emoji', 'value': '👍'}
@@ -575,7 +577,8 @@ class TestProjectNotesDbSync:
         res = await sync_to_async(self.api_client1.post)(
             path=reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}),
             data=[{'id': self.note.note_id, 'order': 1, 'parent': None}])
-        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
+        sort_event = await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
+        assert sort_event['version'] > self.client1.init['version']
 
     async def test_import_sync(self):
         def import_notes():
@@ -668,8 +671,8 @@ class TestProjectReportingDbSync:
             self.api_client1 = api_client(self.user1)
         await sync_to_async(setup_db)()
 
-        async with ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
-                   ws_connect(path=f'/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
+        async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1) as self.client1, \
+                   ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user2, other_clients=[self.client1]) as self.client2:
             yield
 
     async def assert_event(self, event):
@@ -677,6 +680,7 @@ class TestProjectReportingDbSync:
         res2 = await self.client2.receive_json_from()
         for k, v in event.items():
             assert res1[k] == res2[k] == v
+        return res1
 
     async def refresh_data(self, obj=None):
         self.section = await ReportSection.objects \
@@ -856,7 +860,8 @@ class TestProjectReportingDbSync:
         res = await sync_to_async(self.api_client1.post)(
             path=reverse('finding-sort', kwargs={'project_pk': self.project.id}),
             data=[{'id': self.finding.finding_id, 'order': 1, 'parent': None}])
-        await self.assert_event({'type': CollabEventType.SORT, 'path': 'findings', 'client_id': None, 'sort': res.data})
+        sort_event = await self.assert_event({'type': CollabEventType.SORT, 'path': 'findings', 'client_id': None, 'sort': res.data})
+        assert sort_event['version'] > self.client1.init['version']
 
     async def test_update_project_sync(self):
         self.project.override_finding_order = True
@@ -925,6 +930,169 @@ class TestProjectReportingDbSync:
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio()
+class TestSharedProjectNotesDbSync:
+    @pytest_asyncio.fixture(autouse=True)
+    async def setUp(self):
+        def setup_db():
+            self.user = create_user()
+            self.project = create_project(members=[self.user], notes_kwargs=[])
+            note_kwargs = {'checked': None, 'icon_emoji': None, 'title': 'ABC', 'text': 'ABC'}
+            self.note_shared = create_projectnotebookpage(project=self.project, **note_kwargs)
+            self.childnote_shared = create_projectnotebookpage(project=self.project, parent=self.note_shared, **note_kwargs)
+            self.note_not_shared = create_projectnotebookpage(project=self.project, **note_kwargs)
+            self.childnote_not_shared = create_projectnotebookpage(project=self.project, parent=self.note_not_shared, **note_kwargs)
+            self.share_info = create_shareinfo(note=self.note_shared)
+            self.childnote_shared_path_prefix = f'notes.{self.childnote_shared.note_id}'
+
+            self.api_client_public = api_client()
+            self.api_client_user = api_client(self.user)
+        await sync_to_async(setup_db)()
+
+        async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/notes/', user=self.user) as self.client_user, \
+                   ws_connect(path=f'/api/public/ws/shareinfos/{self.share_info.id}/notes/', user=None, other_clients=[self.client_user]) as self.client_public:
+            yield
+
+    async def refresh_data(self):
+        await self.note_shared.arefresh_from_db()
+        await self.childnote_shared.arefresh_from_db()
+        await self.note_not_shared.arefresh_from_db()
+        await self.childnote_not_shared.arefresh_from_db()
+
+    async def assert_event(self, event, user=True, public=True):
+        res_user = None
+        res_public = None
+
+        if user is True:
+            res_user = await self.client_user.receive_json_from()
+        elif user is False:
+            assert await self.client_user.receive_nothing()
+
+        if public is True:
+            res_public = await self.client_public.receive_json_from()
+        elif public is False:
+            assert await self.client_public.receive_nothing()
+
+        for k, v in event.items():
+            if res_user:
+                assert res_user[k] == v
+            if res_public:
+                assert res_public[k] == v
+        return res_public
+
+    async def test_update_key(self):
+        # Public event
+        event1 = {'type': CollabEventType.UPDATE_KEY, 'path': self.childnote_shared_path_prefix + '.icon_emoji', 'value': '👍'}
+        await self.client_public.send_json_to(event1)
+        await self.assert_event(event1 | {'client_id': self.client_public.client_id})
+
+        # User event
+        event2 = event1 | {'value': '👎'}
+        await self.client_user.send_json_to(event2)
+        await self.assert_event(event2 | {'client_id': self.client_user.client_id})
+
+        # Changes synced to DB
+        await self.refresh_data()
+        assert self.childnote_shared.icon_emoji == event2['value']
+
+        # History entry created
+        assert await self.childnote_shared.history.acount() == 3
+        note_h = await self.childnote_shared.history.order_by('-history_date').afirst()
+        assert note_h.history_type == '~'
+        assert note_h.icon_emoji == self.childnote_shared.icon_emoji
+
+    async def test_update_text(self):
+        # Public event
+        event1 = {'type': CollabEventType.UPDATE_TEXT, 'path': self.childnote_shared_path_prefix + '.text', 'updates': [{'changes': [3, [0, 'D']]}]}
+        await self.client_public.send_json_to(event1 | {'version': self.client_public.init['version']})
+        event1_res = await self.assert_event(event1 | {'client_id': self.client_public.client_id})
+
+        # User event
+        event2 = event1 | {'updates': [{'changes': [4, [0, 'E']]}]}
+        await self.client_user.send_json_to(event2 | {'version': event1_res['version']})
+        await self.assert_event(event2 | {'client_id': self.client_user.client_id})
+
+        # Changes synced to DB
+        await self.refresh_data()
+        assert self.childnote_shared.text == 'ABCDE'
+
+        # History entry created
+        assert await self.childnote_shared.history.acount() == 3
+        note_h = await self.childnote_shared.history.order_by('-history_date').afirst()
+        assert note_h.history_type == '~'
+        assert note_h.text == self.childnote_shared.text
+
+    async def test_create_sync(self):
+        res_api = await sync_to_async(self.api_client_public.post)(
+            path=reverse('sharednote-list', kwargs={'shareinfo_pk': self.share_info.id}),
+            data={'title': 'new', 'text': 'new', 'parent': self.note_shared.note_id})
+        # Create event
+        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'value': res_api.data, 'client_id': None})
+        # Sort event
+        event_sort = await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
+        assert {s['id'] for s in event_sort['sort']} == {str(self.note_shared.note_id), str(self.childnote_shared.note_id), res_api.data['id']}
+
+    async def test_delete_sync(self):
+        await self.childnote_shared.adelete()
+        await self.assert_event({'type': CollabEventType.DELETE, 'path': self.childnote_shared_path_prefix, 'client_id': None})
+
+    async def test_receive_only_shared_notes(self):
+        shared_note_ids = {str(self.note_shared.note_id), str(self.childnote_shared.note_id)}
+        # Only shared notes in init message
+        assert set(self.client_public.init['data']['notes'].keys()) == shared_note_ids
+
+        # Does not receive events for non-shared notes
+        path_prefix_not_shared = f'notes.{self.note_not_shared.note_id}'
+        event_update_key = {'type': CollabEventType.UPDATE_KEY, 'path': f'{path_prefix_not_shared}.icon_emoji', 'value': '👍'}
+        await self.client_user.send_json_to(event_update_key)
+        await self.assert_event(event_update_key, user=True, public=False)
+
+        event_update_text = {'type': CollabEventType.UPDATE_TEXT, 'path': f'{path_prefix_not_shared}.text', 'updates': [{'changes': [3, [0, 'D']]}]}
+        await self.client_user.send_json_to(event_update_text | {'version': self.client_user.init['version']})
+        await self.assert_event(event_update_text, user=True, public=False)
+
+        # Not-shared note moved to childnote of shared note
+        sort_data = [
+            {'id': str(self.note_shared.note_id), 'parent': None, 'order': 1},
+            {'id': str(self.childnote_shared.note_id), 'parent': str(self.note_shared.note_id), 'order': 1},
+            {'id': str(self.note_not_shared.note_id), 'parent': str(self.note_shared.note_id), 'order': 2},
+            {'id': str(self.childnote_not_shared.note_id), 'parent': str(self.childnote_shared.note_id), 'order': 1},
+        ]
+        res = await sync_to_async(self.api_client_user.post)(reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}), data=sort_data)
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
+
+    async def test_cannot_update_nonshared_notes(self):
+        await self.client_public.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': f'notes.{self.note_not_shared.note_id}.icon_emoji', 'value': '👍'})
+        res = await self.client_public.receive_json_from()
+        assert res['type'] == 'error', res
+
+    async def test_project_readonly_write(self):
+        self.project.readonly = True
+        await self.project.asave()
+
+        await self.client_public.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.childnote_shared_path_prefix + '.checked', 'value': True})
+        res = await self.client_public.receive_output()
+        assert res['type'] == 'websocket.close'
+
+    async def test_revoked_write(self):
+        self.share_info.is_revoked = True
+        await self.share_info.asave()
+
+        await self.client_public.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.childnote_shared_path_prefix + '.checked', 'value': True})
+        res = await self.client_public.receive_output()
+        assert res['type'] == 'websocket.close'
+
+    async def test_revoked_read(self):
+        self.share_info.is_revoked = True
+        await self.share_info.asave()
+
+        with mock_time(after=timedelta(minutes=2)):
+            await self.client_user.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.childnote_shared_path_prefix + '.checked', 'value': False})
+            res = await self.client_public.receive_output()
+            assert res['type'] == 'websocket.close'
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio()
 class TestConsumerPermissions:
     async def ws_connect(self, path, user):
         session = await create_session(user)
@@ -978,19 +1146,19 @@ class TestConsumerPermissions:
             return user, projects[project_name]
         with override_settings(GUEST_USERS_CAN_EDIT_PROJECTS=False):
             user, project = await sync_to_async(setup_db)()
-            assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
-            assert await self.ws_connect(f'/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)
+            assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
+            assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)
 
             client = api_client(user)
             res = await sync_to_async(client.get)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}))
             assert res.status_code == (200 if expected_read else 403)
-            client_id = res.data.get('client_id', f'{user.id}/asdf')
+            client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
             res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
             assert res.status_code == (200 if expected_write else 403)
 
             res = await sync_to_async(client.get)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}))
             assert res.status_code == (200 if expected_read else 403)
-            client_id = res.data.get('client_id', f'{user.id}/asdf')
+            client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
             res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
             assert res.status_code == (200 if expected_write else 403)
 
@@ -1014,10 +1182,38 @@ class TestConsumerPermissions:
                 user.admin_permissions_enabled = True
             return user, user_notes
         user, user_notes = await sync_to_async(setup_db)()
-        assert await self.ws_connect(f'/ws/pentestusers/{user_notes.id}/notes/', user) == (expected, expected)
+        assert await self.ws_connect(f'/api/ws/pentestusers/{user_notes.id}/notes/', user) == (expected, expected)
 
         client = api_client(user)
         res = await sync_to_async(client.get)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}))
-        assert res.status_code == (200 if expected else 403)
-        client_id = res.data.get('client_id', f'{user.id}/asdf')
-        assert (await sync_to_async(client.post)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}), data={'version': 1, 'client_id': client_id, 'messages': []})).status_code == (200 if expected else 403)
+        assert res.status_code == (200 if expected else 403), res.data
+        client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
+        res = await sync_to_async(client.post)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+        assert res.status_code == (200 if expected else 403), res.data
+
+    @pytest.mark.parametrize(('share_kwargs', 'expected_read', 'expected_write'), [
+        ({'is_revoked': True}, False, False),
+        ({'expire_date': (timezone.now() - timedelta(days=1)).date()}, False, False),
+        ({'password': 'password'}, False, False),
+        ({'permissions_write': False}, True, False),
+        ({'permissions_write': True, 'project': {'readonly': True}}, True, False),
+        ({'permissions_write': True}, True, True),
+    ])
+    async def test_shared_notes_permissions(self, share_kwargs, expected_read, expected_write):
+        def setup_db():
+            project = create_project(**share_kwargs.pop('project', {}))
+            return create_shareinfo(note=project.notes.first(), **share_kwargs)
+        share_info = await sync_to_async(setup_db)()
+        assert await self.ws_connect(f'/api/public/ws/shareinfos/{share_info.id}/notes/', user=None) == (expected_read, expected_write)
+
+        client = api_client()
+        res = await sync_to_async(client.get)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}))
+        assert res.status_code == (200 if expected_read else 403)
+        client_id = res.data.get('client_id', 'anonymous/asdf')
+        res = await sync_to_async(client.post)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+        assert res.status_code == (200 if expected_write else 403)
+
+        res = await sync_to_async(client.get)(reverse('sharednote-list', kwargs={'shareinfo_pk': share_info.id}))
+        assert res.status_code in ([200] if expected_read else [403, 404])
+        res = await sync_to_async(client.patch)(reverse('sharednote-detail', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.note.note_id}), data={})
+        assert res.status_code in ([200] if expected_write else [403, 404])

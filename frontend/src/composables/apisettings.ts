@@ -11,7 +11,7 @@ export const useApiSettings = defineStore('apisettings', {
   actions: {
     async fetchSettings() : Promise<ApiSettings> {
       this.$patch({
-        settings: await $fetch<ApiSettings>('/api/v1/utils/settings/', { method: 'GET' }),
+        settings: await $fetch<ApiSettings>('/api/public/utils/settings/', { method: 'GET' }),
       })
       return this.settings!;
     },

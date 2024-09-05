@@ -117,8 +117,7 @@
 <script setup lang="ts">
 import urlJoin from "url-join";
 import { initialCss } from '~/components/Design/designer-components';
-import { uploadFileHelper } from "~/utils/upload";
-import { PdfDesignerTab } from "~/utils/types";
+import { formatProjectTypeTitle, uploadFileHelper, PdfDesignerTab } from "#imports";
 
 const currentTab = ref(PdfDesignerTab.HTML);
 const previewSplitSize = ref(60);

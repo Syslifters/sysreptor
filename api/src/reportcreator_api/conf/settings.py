@@ -435,7 +435,7 @@ USE_X_FORWARDED_PORT = config('USE_X_FORWARDED_PORT', cast=bool, default=False)
 
 # SSL required
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', cast=bool, default=False)
-SECURE_REDIRECT_EXEMPT = [r'^api/v1/utils/healthcheck/?$']
+SECURE_REDIRECT_EXEMPT = [r'^api/v1/utils/healthcheck/?$', r'^api/public/utils/healthcheck/?$']
 SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
 CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
 
@@ -586,6 +586,13 @@ GUEST_USERS_CAN_CREATE_PROJECTS = config('GUEST_USERS_CAN_CREATE_PROJECTS', cast
 GUEST_USERS_CAN_DELETE_PROJECTS = config('GUEST_USERS_CAN_DELETE_PROJECTS', cast=bool, default=GUEST_USERS_CAN_EDIT_PROJECTS)
 GUEST_USERS_CAN_IMPORT_PROJECTS = config('GUEST_USERS_CAN_IMPORT_PROJECTS', cast=bool, default=False)
 GUEST_USERS_CAN_SEE_ALL_USERS = config('GUEST_USERS_CAN_SEE_ALL_USERS', cast=bool, default=False)
+GUEST_USERS_CAN_SHARE_NOTES = config('GUEST_USERS_CAN_SHARE_NOTES', cast=bool, default=False)
+
+
+DISABLE_SHARING = config('DISABLE_SHARING', cast=bool, default=False)
+SHARING_PASSWORD_REQUIRED = config('SHARING_PASSWORD_REQUIRED', cast=bool, default=False)
+SHARING_READONLY_REQUIRED = config('SHARING_READONLY_REQUIRED', cast=bool, default=False)
+
 
 ENABLE_PRIVATE_DESIGNS = config('ENABLE_PRIVATE_DESIGNS', cast=bool, default=False)
 

@@ -39,6 +39,7 @@
 
 <script setup lang="ts">
 import { debounce } from "lodash-es"
+import { MessageLevel } from '#imports'
 
 const props = withDefaults(defineProps<{
   fetchPdf: () => Promise<PdfResponse>;

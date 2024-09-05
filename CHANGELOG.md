@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Public note sharing
+
+
 ## v2024.70 - 2024-09-04
 * Set custom database credentials in languagetool container
 * Fix bug when using custom CA

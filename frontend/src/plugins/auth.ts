@@ -34,11 +34,13 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     const projectTypeStore = useProjectTypeStore();
     const templateStore = useTemplateStore();
     const userNoteStore = useUserNotesStore();
+    const shareInfoStore = useShareInfoStore();
     watch(auth.loggedIn, () => {
       projectStore.clear();
       projectTypeStore.clear();
       templateStore.clear();
       userNoteStore.clear();
+      shareInfoStore.clear();
     });
   }
 

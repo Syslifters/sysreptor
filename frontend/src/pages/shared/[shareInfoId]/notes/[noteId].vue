@@ -1,5 +1,5 @@
 <template>
-  <full-height-page v-if="note" :key="note.id">
+  <full-height-page v-if="shareInfo && note" :key="shareInfo.id + note.id">
     <template #header>
       <edit-toolbar v-bind="toolbarAttrs">
         <template #title>
@@ -8,7 +8,7 @@
               <s-btn-icon
                 @click="updateKey('checked', note.checked === null ? false : !note.checked ? true : null)"
                 :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
-                :disabled="notesCollab.readonly.value"
+                :disabled="readonly"
                 density="comfortable"
               />
             </div>
@@ -17,7 +17,7 @@
               :model-value="note.icon_emoji"
               @update:model-value="updateKey('icon_emoji', $event)"
               :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
-              :readonly="notesCollab.readonly.value"
+              :readonly="readonly"
               density="comfortable"
             />
               
@@ -30,18 +30,6 @@
               class="note-title"
             />
           </div>
-        </template>
-        <template #context-menu>
-          <btn-export
-            :export-url="exportUrl"
-            :name="'notes-' + note.title"
-          />
-          <btn-export
-            :export-url="exportPdfUrl"
-            :name="note.title"
-            extension=".pdf"
-            button-text="Export as PDF"
-          />
         </template>
       </edit-toolbar>
     </template>
@@ -59,20 +47,50 @@
 
 <script setup lang="ts">
 import urlJoin from "url-join";
-import { type MarkdownEditorMode, type UserNote, uploadFileHelper, collabSubpath } from "#imports";
+import { collabSubpath } from '#imports';
+
+definePageMeta({
+  auth: false,
+});
 
 const route = useRoute();
 const localSettings = useLocalSettings();
-const userNotesStore = useUserNotesStore();
+const shareInfoStore = useShareInfoStore();
 
-const notesCollab = userNotesStore.useNotesCollab({ noteId: route.params.noteId as string });
+const shareInfo = await useAsyncDataE(async () => await shareInfoStore.getById(route.params.shareInfoId as string));    
+
+const notesCollab = shareInfoStore.useNotesCollab({ shareInfo: shareInfo.value!, noteId: route.params.noteId as string });
 const note = computedThrottled(() => notesCollab.data.value.notes[route.params.noteId as string], { throttle: 500 });
+const readonly = computed(() => notesCollab.readonly.value);
 
+async function uploadFile(file: File) {
+  const obj = await uploadFileHelper<UploadedFileInfo>(`/api/public/shareinfos/${shareInfo.value!.id}/notes/upload/`, file);
+  if (obj.resource_type === 'file') {
+    return `[${obj.name}](/files/name/${obj.name})`;
+  } else {
+    return `![${obj.name}](/images/name/${obj.name}){width="auto"}`;
+  }
+}
+function rewriteFileUrl(imgSrc: string) {
+  return urlJoin(`/api/public/shareinfos/${shareInfo.value!.id}/notes/`, imgSrc);
+}
+const inputFieldAttrs = computed(() => ({
+  readonly: readonly.value,
+  lang: 'auto',
+  spellcheckSupported: false,
+  markdownEditorMode: localSettings.projectNoteMarkdownEditorMode,
+  'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { localSettings.projectNoteMarkdownEditorMode = val },
+  uploadFile,
+  rewriteFileUrl,
+}));
 const toolbarAttrs = computed(() => ({
   data: note.value,
-  delete: async (note: UserNote) => {
-    await userNotesStore.deleteNote(note);
-    await navigateTo('/notes/personal/');
+  errorMessage: 
+    ((shareInfo.value?.permissions_write && !notesCollab.hasLock.value) ? 'This note is locked by another user. Upgrade to SysReptor Professional for lock-free collaborative editing.' : null),
+  canDelete: shareInfo.value?.permissions_write && note.value?.id !== shareInfo.value?.note_id,
+  delete: async (note: ProjectNote) => {
+    await shareInfoStore.deleteNote(shareInfo.value!, note);
+    await navigateTo(`/shared/${shareInfo.value!.id}/notes/`);
   },
 }));
 
@@ -84,41 +102,14 @@ function updateKey(key: string, value: any) {
   })
 }
 
-const baseUrl = computed(() => `/api/v1/pentestusers/self/notes/${route.params.noteId}/`);
-const exportUrl = computed(() => urlJoin(baseUrl.value, '/export/'));
-const exportPdfUrl = computed(() => urlJoin(baseUrl.value, '/export-pdf/'));
 const hasChildNotes = computed(() => {
-  if (!note.value) {
+  if (!shareInfo.value || !note.value) {
     return false;
   }
-  return userNotesStore.notes
+  return shareInfoStore.notes
     .some(n => n.parent === note.value!.id && n.id !== note.value!.id);
 });
 
-async function uploadFile(file: File) {
-  const obj = await uploadFileHelper<UploadedFileInfo>('/api/v1/pentestusers/self/notes/upload/', file);
-  if (obj.resource_type === 'file') {
-    return `[${obj.name}](/files/name/${obj.name})`;
-  } else {
-    return `![${obj.name}](/images/name/${obj.name}){width="auto"}`;
-  }
-}
-function rewriteFileUrl(imgSrc: string) {
-  return urlJoin('/api/v1/pentestusers/self/notes/', imgSrc);
-}
-const inputFieldAttrs = computed(() => ({
-  readonly: notesCollab.readonly.value,
-  lang: 'auto',
-  spellcheckSupported: true,
-  spellcheckEnabled: localSettings.userNoteSpellcheckEnabled,
-  'onUpdate:spellcheckEnabled': (val: boolean) => { localSettings.userNoteSpellcheckEnabled = val }, 
-  markdownEditorMode: localSettings.userNoteMarkdownEditorMode,
-  'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { localSettings.userNoteMarkdownEditorMode = val },
-  uploadFile,
-  rewriteFileUrl,
-}));
-
-// Autofocus input
 useAutofocus(note, 'text');
 </script>
 
@@ -139,5 +130,10 @@ useAutofocus(note, 'text');
     margin-left: 0.25em;
     margin-right: 0.25em;
   }
+}
+
+.assignee-container {
+  width: 17em;
+  min-width: 17em;
 }
 </style>

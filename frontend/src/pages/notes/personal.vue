@@ -74,9 +74,9 @@ async function createNote() {
     title: 'New Note',
     // Insert new note after the currently selected note, or at the end of the list
     parent: currentNote?.parent || null,
-    order: (currentNote ? currentNote.order + 1 : null),
+    order: (currentNote ? currentNote.order + 1 : undefined),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
-  } as UserNote);
+  });
   await navigateTo({ path: `/notes/personal/${obj.id}/`, hash: 'title' });
 }
 async function performImport(file: File) {

@@ -161,7 +161,7 @@ export const useProjectStore = defineStore('project', {
           project: null as unknown as PentestProject,
           getByIdSync: null,
           notesCollabState: makeCollabStoreState({
-            apiPath: `/ws/pentestprojects/${projectId}/notes/`,
+            apiPath: `/api/ws/pentestprojects/${projectId}/notes/`,
             initialData: { notes: {} as Record<string, ProjectNote> },
             initialPath: 'notes',
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
@@ -178,7 +178,7 @@ export const useProjectStore = defineStore('project', {
             }
           }),
           reportingCollabState: makeCollabStoreState({
-            apiPath: `/ws/pentestprojects/${projectId}/reporting/`,
+            apiPath: `/api/ws/pentestprojects/${projectId}/reporting/`,
             initialData: { 
               project: {} as any, 
               findings: {} as Record<string, PentestFinding>, 
@@ -439,7 +439,7 @@ export const useProjectStore = defineStore('project', {
       if (options.noteId && !apiSettings.isProfessionalLicense) {
         hasLock.value = false;
         watch(() => collabProps.value.clients, () => {
-          if (!hasLock.value && collabProps.value.clients.filter(c => c.user.id !== auth.user.value?.id).length === 0) {
+          if (!hasLock.value && collabProps.value.clients.filter(c => c.user?.id !== auth.user.value?.id).length === 0) {
             hasLock.value = true;
           }
         }, { immediate: true });
@@ -473,7 +473,7 @@ export const useProjectStore = defineStore('project', {
       if ((options.findingId || options.sectionId) && !apiSettings.isProfessionalLicense) {
         hasLock.value = false;
         watch(() => collabProps.value.clients, () => {
-          if (!hasLock.value && collabProps.value.clients.filter(c => c.user.id !== auth.user.value?.id).length === 0) {
+          if (!hasLock.value && collabProps.value.clients.filter(c => c.user?.id !== auth.user.value?.id).length === 0) {
             hasLock.value = true;
           }
         }, { immediate: true });

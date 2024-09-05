@@ -38,11 +38,13 @@
 </template>
 
 <script setup lang="ts">
+import { MarkdownEditorMode } from '#imports';
+
 const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
 
 const { editorView, markdownToolbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
-  props: computed(() => ({ ...props, spellcheckSupported: true } as any)),
+  props: computed(() => props),
   emit,
   extensions: markdownEditorPageExtensions(),
   fileUploadSupported: true,

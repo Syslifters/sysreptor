@@ -32,7 +32,7 @@ export type TextUpdate = {
 export type CollabClientInfo = {
   client_id: string;
   client_color: string;
-  user: UserShortInfo;
+  user?: UserShortInfo|null;
 }
 
 export type CollabEvent = {
@@ -1053,9 +1053,11 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           isSelf: c.client_id === storeState.clientID,
         };
       }),
-      comments: sortBy(Object.values(storeState.data.comments || {}), ['created'])
-        .filter(c => c.status === CommentStatus.OPEN)
-        .map(c => ({ ...c, collabPath: storeState.apiPath + c.path })),
+      comments: !storeState.data.comments ? undefined : (
+        sortBy(Object.values(storeState.data.comments), ['created'])
+          .filter(c => c.status === CommentStatus.OPEN)
+          .map(c => ({ ...c, collabPath: storeState.apiPath + c.path }))
+      ),
       search: storeState.search,
     }), { throttle: 1000 }),
     search: computed({
@@ -1070,12 +1072,12 @@ export type CollabPropType = {
   clients: {
     client_id: string;
     client_color: string;
-    user: UserShortInfo;
+    user?: UserShortInfo|null;
     path: string;
     selection?: EditorSelection;
     isSelf: boolean;
   }[];
-  comments: Comment[];
+  comments?: Comment[];
   search?: string;
 };
 
@@ -1087,6 +1089,6 @@ export function collabSubpath(collab: CollabPropType, subPath: string|null) {
     ...collab,
     path,
     clients: collab.clients.filter(a => isSubpath(a.path, path)),
-    comments: collab.comments.filter(c => isSubpath(c.collabPath || '', path)),
+    comments: collab.comments?.filter(c => isSubpath(c.collabPath || '', path)),
   };
 }

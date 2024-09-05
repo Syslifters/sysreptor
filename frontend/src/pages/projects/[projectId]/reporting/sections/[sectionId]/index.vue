@@ -20,7 +20,7 @@
         />
       </div>
 
-      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="reportingCollab.collabProps.value.comments" />
+      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="reportingCollab.collabProps.value.comments!" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
 
@@ -57,6 +57,7 @@
 
 <script setup lang="ts">
 import type { CommentSidebar } from '#components';
+import { collabSubpath } from '#imports';
 
 const route = useRoute();
 const localSettings = useLocalSettings();

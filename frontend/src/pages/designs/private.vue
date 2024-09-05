@@ -26,6 +26,8 @@
 </template>
 
 <script setup lang="ts">
+import { ProjectTypeScope } from '#imports';
+
 definePageMeta({
   title: 'Designs',
   toplevel: true,

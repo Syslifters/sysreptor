@@ -10,7 +10,7 @@
             <v-card-title class="text-body-1">{{ props.current.definition.label }}</v-card-title>
             <template #append>
               <comment-btn
-                v-if="props.current.collab"
+                v-if="props.current.collab?.comments"
                 v-bind="commentBtnAttrs"
               />
             </template>
@@ -30,7 +30,7 @@
             <v-card-title class="text-body-1">{{ props.current.definition.label }}</v-card-title>
             <template #append>
               <comment-btn
-                v-if="props.current.collab"
+                v-if="props.current.collab?.comments"
                 v-bind="commentBtnAttrs"
               />
             </template>
@@ -52,7 +52,7 @@
   </v-hover>
   <div v-else-if="props.historic.definition?.type === FieldDataType.MARKDOWN && props.current.definition?.type === FieldDataType.MARKDOWN" class="mt-4">
     <markdown-diff-field
-      :label="props.current.definition.label"
+      :label="props.current.definition!.label"
       v-bind="markdownDiffAttrs"
       :class="{'diff-highlight-changed': hasChanged}"
     />
@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { pick, merge, omit } from 'lodash-es';
-import type { DynamicInputFieldDiffProps } from '~/composables/history';
+import { FieldDataType, type DynamicInputFieldDiffProps } from '#imports';
 
 const props = defineProps<DynamicInputFieldDiffProps>();
 
@@ -172,7 +172,7 @@ const nestedClass = computed(() => {
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({
-  comments: props.current.collab?.comments.filter(c => c.collabPath === props.current.collab?.path) || [],
+  comments: props.current.collab?.comments?.filter(c => c.collabPath === props.current.collab?.path) || [],
   onComment: (v: any) => props.current?.onComment?.(v),
   collabPath: props.current.collab?.path || '',
   isHovering: isHovering.value,

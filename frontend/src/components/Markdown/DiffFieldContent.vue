@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import type { DiffFieldProps, MarkdownEditorMode } from '#imports';
+import { type DiffFieldProps, MarkdownEditorMode } from '#imports';
 
 const props = defineProps<{
   historic: DiffFieldProps,

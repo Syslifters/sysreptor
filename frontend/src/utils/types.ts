@@ -110,6 +110,7 @@ export type ApiSettings = {
         readonly permissions: boolean;
         readonly backup: boolean;
         readonly websockets: boolean;
+        readonly sharing: boolean;
     };
     readonly guest_permissions: {
       readonly import_projects: boolean;
@@ -117,6 +118,7 @@ export type ApiSettings = {
       readonly delete_projects: boolean;
       readonly update_project_settings: boolean;
       readonly edit_projects: boolean;
+      readonly share_notes: boolean;
       readonly see_all_users: boolean;
     };
 }
@@ -323,6 +325,7 @@ export type UserNote = BaseModel & NoteBase;
 
 export type ProjectNote = BaseModel & NoteBase & {
   assignee: UserShortInfo|null;
+  is_shared: boolean;
 };
 
 export type ArchivedProjectKeyPart = BaseModel & {
@@ -567,4 +570,20 @@ export type OrderingOption = {
   id: string;
   title: string;
   value: string;
+}
+
+export type ShareInfo = BaseModel & {
+  readonly shared_by?: UserShortInfo|null;
+  expire_date: string;
+  is_revoked: boolean;
+  permissions_write: boolean;
+  password: string|null;
+}
+
+export type ShareInfoPublic = BaseModel & {
+  readonly expire_date: string;
+  readonly permissions_write: boolean;
+  readonly password_required: boolean;
+  readonly password_verified: boolean;
+  readonly note_id: string;
 }

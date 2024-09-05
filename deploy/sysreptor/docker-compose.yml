@@ -57,7 +57,7 @@ services:
     env_file: ../app.env
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/healthcheck/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/public/utils/healthcheck/"]
       interval: 30s
       timeout: 30s
       retries: 5

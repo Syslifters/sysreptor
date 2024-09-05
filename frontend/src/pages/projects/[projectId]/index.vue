@@ -42,7 +42,7 @@
       <history-timeline-project
         v-model="historyVisible"
         :project="project"
-        :current-url="$route.fullPath"
+        :current-url="route.fullPath"
       />
 
       <p v-if="project.copy_of" class="mt-4">
@@ -141,6 +141,7 @@
 
 <script setup lang="ts">
 import type { VForm } from "vuetify/lib/components/index.mjs";
+import { ProjectTypeScope } from '#imports';
 
 const route = useRoute();
 const auth = useAuth();

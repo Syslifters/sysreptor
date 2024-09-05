@@ -31,6 +31,8 @@
 </template>
 
 <script setup lang="ts">
+import { MarkdownEditorMode } from '#imports';
+
 const props = defineProps<{
   historic: DiffFieldProps,
   current: DiffFieldProps,
