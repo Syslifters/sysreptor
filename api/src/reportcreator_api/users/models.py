@@ -200,30 +200,3 @@ class MFAMethod(BaseModel):
         )
 
 
-# TODO: project admin permissions
-# * [x] model
-#   * [x] User
-#       * [x] is_project_admin
-#       * [x] scopes: project_admin
-# * [x] migration
-# * [ ] API
-#   * [x] user serializer
-#   * [x] permissions: project admin vs guest => see+edit projects (project_admin overrides guest)
-#   * [x] permissions: project admin can access archived projects => yes
-#   * [ ] permissions: who can set is_project_admin => user_manager or admin ???
-# * [ ] querysets
-#   * [x] Project.only_permitted()
-#   * [x] review is_admin usage
-#   * [x] notifications: UserCondition
-# * [ ] frontend
-#   * [x] update User types
-#   * [x] UserForm: view/edit project_admin
-#   * [x] UserList: show is_project_admin
-#   * [x] apiSettings: permissions
-#   * [x] review has_scope('admin') usage
-#   * [ ] UserForm: disable project_admin for ???
-# * [x] tests
-#   * [x] test_api: add role
-#   * [x] test_notifications
-# * [ ] docs
-#   * [ ] add to permission docs

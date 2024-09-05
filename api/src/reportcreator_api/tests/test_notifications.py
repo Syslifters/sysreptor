@@ -26,15 +26,15 @@ class TestNotifications:
         self.user_superuser = create_user(username='superuser', is_superuser=True)
 
     @pytest.mark.parametrize(('notification', 'expected_users'), [
-        (NotificationSpec(), ['regular', 'template_editor', 'designer', 'user_manager', 'superuser']),
+        (NotificationSpec(), ['regular', 'template_editor', 'designer', 'user_manager', 'project_admin', 'superuser']),
         (NotificationSpec(active_until=(timezone.now() - timedelta(days=10)).date()), []),
         (NotificationSpec(user_conditions={'is_superuser': True}), ['superuser']),
-        (NotificationSpec(user_conditions={'is_superuser': False}), ['regular', 'template_editor', 'designer', 'user_manager']),
+        (NotificationSpec(user_conditions={'is_superuser': False}), ['regular', 'template_editor', 'designer', 'user_manager', 'project_admin']),
         (NotificationSpec(user_conditions={'is_project_admin': True}), ['project_admin']),
         (NotificationSpec(user_conditions={'is_user_manager': True}), ['user_manager']),
         (NotificationSpec(user_conditions={'is_designer': True}), ['designer']),
         (NotificationSpec(user_conditions={'is_template_editor': True}), ['template_editor']),
-        (NotificationSpec(user_conditions={'is_superuser': False, 'is_user_manager': False, 'is_designer': False, 'is_template_editor': False}), ['regular']),
+        (NotificationSpec(user_conditions={'is_superuser': False, 'is_project_admin': False, 'is_user_manager': False, 'is_designer': False, 'is_template_editor': False}), ['regular']),
     ])
     def test_user_conditions(self, notification, expected_users):
         # Test queryset filter
