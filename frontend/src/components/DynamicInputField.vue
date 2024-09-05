@@ -278,7 +278,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
 import { pick, uniq } from 'lodash-es';
-import { MarkdownEditorMode, type FieldDefinition, type UserShortInfo } from '~/utils/types';
+import type { MarkdownEditorMode, FieldDefinition, UserShortInfo } from '~/utils/types';
 import type { MarkdownProps } from "~/composables/markdown";
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 

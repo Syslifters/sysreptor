@@ -527,7 +527,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       if (storeState.version > 0 && Array.from(storeState.perPathState.values()).some(s => s.unconfirmedTextUpdates.length > 0)) {
         try {
           await sendPendingMessagesHttp(storeState);
-        } catch {}
+        } catch {
+          // Ignore errors. If data is saved: good, if not: discard it (there's most likely an error or conflict in it)
+        }
       }
 
       // Dummy connection info with connectionState=CONNECTING
@@ -601,18 +603,18 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
         receiveUpdateText(msgData);
       } else if (msgData.type === CollabEventType.CREATE) {
-        set(storeState.data as Object, msgData.path!, msgData.value);
+        set(storeState.data as object, msgData.path!, msgData.value);
       } else if (msgData.type === CollabEventType.DELETE) {
         const pathParts = msgData.path!.split('.');
         const parentPath = pathParts.slice(0, -1).join('.');
-        const parentList = get(storeState.data as Object, parentPath);
+        const parentList = get(storeState.data as object, parentPath);
         const parentListIndex = Number.parseInt(pathParts.slice(-1)?.[0]?.startsWith('[') ? pathParts.slice(-1)[0]!.slice(1, -1) : '');
                 
         if (Array.isArray(parentList) && !Number.isNaN(parentListIndex)) {
           const parentListNew = parentList.filter((_, idx) => idx !== parentListIndex);
           setValue(parentPath, parentListNew);
         } else {
-          unset(storeState.data as Object, msgData.path!);
+          unset(storeState.data as object, msgData.path!);
         }
         removeInvalidSelections(parentPath);
         updateComments({ comments: msgData.comments });
@@ -634,7 +636,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
             selection: msgData.path ? parseSelection({
               selectionJson: msgData.selection, 
               unconfirmed: storeState.perPathState.get(msgData.path)?.unconfirmedTextUpdates || [], 
-              text: get(storeState.data as Object, msgData.path) || ''
+              text: get(storeState.data as object, msgData.path) || ''
             }) : undefined,
           };
         }
@@ -716,7 +718,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     const perPathState = ensurePerPathState(dataPath);
 
     // Update local state
-    const text = get(storeState.data as Object, dataPath) || '';
+    const text = get(storeState.data as object, dataPath) || '';
     let cmText = Text.of(text.split(/\r?\n/));
     let selection = storeState.awareness.self.path === dataPath ? storeState.awareness.self.selection : undefined;
 
@@ -767,7 +769,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       composedChanges = composedChanges ? composedChanges.compose(u.changes) : u.changes;
     }
     // Update text
-    set(storeState.data as Object, dataPath, cmText.toString());
+    set(storeState.data as object, dataPath, cmText.toString());
 
     // Update awareness
     storeState.awareness.self = {
@@ -817,7 +819,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     emitBeforeApplySetValue(path, value);
 
     // Update local state
-    set(storeState.data as Object, path!, value);
+    set(storeState.data as object, path!, value);
     removeInvalidSelections(path!);
   }
 
@@ -884,10 +886,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       })
 
       // Apply changes to store state
-      const text = get(storeState.data as Object, event.path) || '';
+      const text = get(storeState.data as object, event.path) || '';
       let cmText = Text.of(text.split(/\r?\n/));
       cmText = changes.apply(cmText);
-      set(storeState.data as Object, event.path, cmText.toString());
+      set(storeState.data as object, event.path, cmText.toString());
 
       // Update local selection
       if (storeState.awareness.self.path === event.path) {
@@ -936,7 +938,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         }
       }
       return selection;
-    } catch (e) {
+    } catch {
       return undefined;
     }
   }
@@ -945,7 +947,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     // Filter out invalid selections of current field and child fields
     for (const a of [storeState.awareness.self].concat(Object.values(storeState.awareness.other))) {
       if (a.path && (!path || isSubpath(a.path, path)) && a.selection) {
-        const text = get(storeState.data as Object, a.path);
+        const text = get(storeState.data as object, a.path);
         if (typeof text !== 'string' || !a.selection.ranges.every(r => r.from >= 0 && r.to <= (text || '').length)) {
           a.selection = undefined;
         }
@@ -994,7 +996,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       error, 
       event, 
       version: storeState.version,
-      fieldValue: cloneDeep(get(storeState.data as Object, dataPath)),
+      fieldValue: cloneDeep(get(storeState.data as object, dataPath)),
       perPathState: cloneDeep(storeState.perPathState.get(dataPath)),
     });
     if (storeState.connection) {

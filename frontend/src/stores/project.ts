@@ -155,7 +155,7 @@ export const useProjectStore = defineStore('project', {
     clear() {
       this.data = {};
     },
-    ensureExists(projectId: string, initialStoreData?: Object) {
+    ensureExists(projectId: string, initialStoreData?: object) {
       if (!(projectId in this.data)) {
         this.data[projectId] = {
           project: null as unknown as PentestProject,
@@ -193,7 +193,7 @@ export const useProjectStore = defineStore('project', {
                 }
                 return true;
               } else if (msgData.type === CollabEventType.UPDATE_KEY && msgData.path?.startsWith('project.')) {
-                set(this.data[projectId]!.project || {} as Object, msgData.path.slice('project.'.length), msgData.value);
+                set(this.data[projectId]!.project || {} as object, msgData.path.slice('project.'.length), msgData.value);
                 if (msgData.path === 'project.project_type') {
                   // Reload page on project_type changed to apply the new field definition
                   this.useReportingCollab({ project: this.data[projectId]!.project! }).disconnect();
@@ -242,7 +242,7 @@ export const useProjectStore = defineStore('project', {
         }
       }
     },
-    async createProject(projectData: Object) {
+    async createProject(projectData: object) {
       const proj = await $fetch<PentestProject>(`/api/v1/pentestprojects/`, {
         method: 'POST',
         body: projectData

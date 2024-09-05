@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { type CommentSidebar } from '#components';
+import type { CommentSidebar } from '#components';
 
 const auth = useAuth();
 const route = useRoute();

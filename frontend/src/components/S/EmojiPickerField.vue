@@ -35,9 +35,9 @@
 </template>
 
 <script setup lang="ts">
-// @ts-ignore
+// @ts-expect-error missing types
 import { Picker, EmojiIndex, Search } from "emoji-mart-vue-fast/src";
-// @ts-ignore
+// @ts-expect-error missing types
 import frequentlyUsedEmojis from 'emoji-mart-vue-fast/src/utils/frequently';
 import emojiData from "emoji-mart-vue-fast/data/twitter.json";
 import "emoji-mart-vue-fast/css/emoji-mart.css";

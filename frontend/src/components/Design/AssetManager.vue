@@ -8,7 +8,7 @@
             <s-btn-secondary
               :disabled="props.disabled || uploadInProgress"
               :loading="uploadInProgress"
-              @click="($refs.fileInput as HTMLInputElement).click()"
+              @click="($refs.fileInput as unknown as HTMLInputElement).click()"
               block
               prepend-icon="mdi-upload"
               text="Upload"

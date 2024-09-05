@@ -113,7 +113,7 @@ const props = defineProps<{
     rewriteFileUrl?: (fileSrc: string) => string;
   }
   initialLanguage?: string|null;
-  toolbarAttrs?: Object;
+  toolbarAttrs?: object;
   fieldDefinitionList: TemplateFieldDefinition[];
   historyDate: string;
 }>();

@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { type VForm } from 'vuetify/components';
+import type { VForm } from 'vuetify/components';
 import { useProjectTypeLockEditOptions } from "~/composables/lockedit";
 
 const auth = useAuth();

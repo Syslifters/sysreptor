@@ -124,14 +124,14 @@
 <script setup lang="ts">
 import { cloneDeep } from "lodash-es";
 import { v4 as uuidv4 } from "uuid";
-import { MarkdownEditorMode } from "~/utils/types";
+import type { MarkdownEditorMode } from "#imports";
 
 const props = withDefaults(defineProps<{
   modelValue: FindingTemplate;
   fieldDefinitionList?: TemplateFieldDefinition[];
   initialLanguage?: string|null;
   readonly?: boolean;
-  toolbarAttrs?: Object;
+  toolbarAttrs?: object;
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrl?: (fileSrc: string) => string;
   history?: boolean;

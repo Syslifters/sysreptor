@@ -72,7 +72,7 @@ watch(() => localSettings.templateFieldFilterDesign, async (val: string) => {
   } else {
     try {
       design = await projectTypeStore.getById(val);
-    } catch (error) {
+    } catch {
       design = null;
     }
   }

@@ -1,4 +1,4 @@
-import { CvssVersion } from "./cvss/base";
+import type { CvssVersion } from "./cvss/base";
 
 export type BaseModel = {
   id: string;

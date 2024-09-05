@@ -186,8 +186,7 @@
 
 <script setup lang="ts">
 import { pick } from "lodash-es";
-import { MarkdownEditorMode } from "~/utils/types";
-import type { MarkdownProps } from "~/composables/markdown";
+import type { MarkdownEditorMode, MarkdownProps } from "#imports";
 
 const props = defineProps<{
   modelValue: any;

@@ -44,7 +44,7 @@
                     :readonly="readonly"
                     :spellcheck-supported="true"
                     :lang="projectType.language"
-                    v-model:spellcheckEnabled="localSettings.designSpellcheckEnabled"
+                    v-model:spellcheck-enabled="localSettings.designSpellcheckEnabled"
                     class="note-title"
                   />
                 </div>
@@ -66,8 +66,8 @@
               v-model="currentNote.text"
               :readonly="readonly"
               :lang="projectType.language"
-              v-model:spellcheckEnabled="localSettings.designSpellcheckEnabled"
-              v-model:markdownEditorMode="localSettings.designMarkdownEditorMode"
+              v-model:spellcheck-enabled="localSettings.designSpellcheckEnabled"
+              v-model:markdown-editor-mode="localSettings.designMarkdownEditorMode"
             />
             <v-empty-state v-else>
               <template #media>

@@ -12,9 +12,9 @@
     "dependencies": "npm run generate-notice"
   },
   "dependencies": {
-    "nuxt": "~3.12",
+    "nuxt": "~3.13",
     "vuetify": "~3.7",
-    "vuetify-nuxt-module": "^0.17.1",
+    "vuetify-nuxt-module": "^0.18.2",
     "@mdi/font": "^7.3.67",
     "@pinia/nuxt": "^0.5.1",
     "@pinia-plugin-persistedstate/nuxt": "^1.2.0",
@@ -24,7 +24,7 @@
     "splitpanes": "^3.1.5",
     "vuedraggable": "^4.1.0",
     "vue-toastification": "^2.0.0-rc.5",
-    "monaco-editor": "^0.50.0",
+    "monaco-editor": "^0.51.0",
 
     "@iconify/vue": "^4.1.1",
     "@iconify/icons-fluent-emoji": "^1.2.10",
@@ -40,15 +40,14 @@
     "date-fns": "^3.2.0"
   },
   "devDependencies": {
-    "@nuxtjs/eslint-module": "^4.1.0",
-    "@nuxtjs/eslint-config-typescript": "^12.0.0",
+    "@nuxt/eslint": "^0.5.5",
     "@nuxt/test-utils": "^3.10.0",
     "@types/node": "^20",
     "@types/zxcvbn": "^4.4.2",
     "@types/lodash-es": "^4.17.0",
     "@types/uuid": "^10.0.0",
     "sass": "^1.69.3",
-    "eslint": "^8.51.0",
+    "eslint": "^9.0.0",
     "license-checker-rseidelsohn": "^4.2.8",
     "vitest": "^2.0.4",
     "happy-dom": "^14.10.2",

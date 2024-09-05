@@ -356,7 +356,6 @@ const rules = {
   pattern: [
     (v: string) => {
       try {
-        // eslint-disable-next-line no-new
         new RegExp(v);
         return true;
       } catch (e: any) {

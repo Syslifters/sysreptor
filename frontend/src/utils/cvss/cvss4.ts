@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { CvssVersion } from "./base";
 import type { CvssDefinition, CvssMetricsValue, CvssMetricsValueCollection } from "./base";
 

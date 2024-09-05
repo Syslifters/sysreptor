@@ -6,8 +6,7 @@
       <v-icon start color="error" icon="mdi-alert-decagram" />
       License Error: {{ license.error }}<br>
       Falling back to a free community license. Some features are disabled.<br>
-      See <a href="https://docs.sysreptor.com/features-and-pricing/"
-        target="_blank">https://docs.sysreptor.com/features-and-pricing/</a>
+      See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank">https://docs.sysreptor.com/features-and-pricing/</a>
     </p>
 
     <v-table class="table-key-value">
@@ -28,8 +27,7 @@
           <td>Valid until:</td>
           <td>
             {{ license.valid_until }}
-            <v-chip v-if="new Date(license.valid_until) < new Date()" text="Expired" color="error" size="small"
-              class="ml-2" />
+            <v-chip v-if="new Date(license.valid_until) < new Date()" text="Expired" color="error" size="small" class="ml-2" />
             <v-chip v-else-if="licenseWarning" text="Expires soon" color="warning" size="small" class="ml-2" />
           </td>
         </tr>
@@ -41,8 +39,7 @@
           <td>Active Users:</td>
           <td>
             {{ license.active_users }}
-            <v-chip v-if="license.active_users > license.users" text="Limit exceeded" color="error" size="small"
-              class="ml-2" />
+            <v-chip v-if="license.active_users > license.users" text="Limit exceeded" color="error" size="small" class="ml-2" />
           </td>
         </tr>
         <tr>

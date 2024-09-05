@@ -1,4 +1,5 @@
 import { createProxyServer } from "httpxy"
+import type { IncomingMessage, ServerResponse } from 'http';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -40,7 +41,7 @@ export default defineNuxtConfig({
   ],
 
   modules: [
-    ['@nuxtjs/eslint-module', { lintOnStart: false }],
+    '@nuxt/eslint',
     'vuetify-nuxt-module',
     '@vueuse/nuxt',
     '@pinia/nuxt',
@@ -117,9 +118,8 @@ export default defineNuxtConfig({
       const proxy = createProxyServer({ target: { host: "api", port: 8000 }, ws: true })
 
       server.removeAllListeners("upgrade")
-      server.on("upgrade", (req, socket, head) => {
+      server.on("upgrade", (req: IncomingMessage, socket: ServerResponse, head: any) => {
         if (req.url!.startsWith('/ws')) {
-          // @ts-ignore
           proxy.ws(req, socket, head);
         }
       })

@@ -1,7 +1,5 @@
 import { type Event } from 'micromark-util-types';
-import { parse } from 'micromark/lib/parse';
-import { preprocess } from 'micromark/lib/preprocess';
-import { postprocess } from 'micromark/lib/postprocess';
+import { parse, preprocess, postprocess } from 'micromark';
 
 
 export type MicromarkTreeNode = {

@@ -8,7 +8,6 @@
 
 <script lang="ts">
 import { v4 as uuidv4 } from 'uuid';
-// @ts-ignore
 import { renderMarkdownToHtml, mermaid } from 'reportcreator-markdown';
 import { absoluteApiUrl } from '~/utils/urls';
 

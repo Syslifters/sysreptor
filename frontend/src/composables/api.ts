@@ -22,7 +22,7 @@ export async function useAsyncDataE<T>(handler: (ctx?: NuxtApp) => Promise<T>, o
   return res.data as Ref<T>;
 }
 
-export function useCursorPaginationFetcher<T>({ baseURL, query }: { baseURL: string|null, query?: Object }) {
+export function useCursorPaginationFetcher<T>({ baseURL, query }: { baseURL: string|null, query?: object }) {
   const searchParams = new URLSearchParams((baseURL || '').split('?')[1]);
   for (const [k, v] of Object.entries(query || {})) {
     if (v) {
@@ -82,14 +82,14 @@ export function useCursorPaginationFetcher<T>({ baseURL, query }: { baseURL: str
   };
 }
 
-export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: string|null, query?: Object }) {
+export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: string|null, query?: object }) {
   const initializingFetcher = ref(false);
   const fetcher = ref<ReturnType<typeof useCursorPaginationFetcher<T>>>(null as any);
   const fetchNextPageDebounced = debounce(async () => {
     await fetcher.value.fetchNextPage();
     initializingFetcher.value = true;
   }, 750);
-  function createFetcher(options: { baseURL: string|null, query?: Object, fetchInitialPage?: boolean, debounce?: boolean }) {
+  function createFetcher(options: { baseURL: string|null, query?: object, fetchInitialPage?: boolean, debounce?: boolean }) {
     const newFetcher = useCursorPaginationFetcher<T>(options) as any;
     if (options.fetchInitialPage) {
       initializingFetcher.value = true;
@@ -113,7 +113,7 @@ export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: stri
     return Object.fromEntries(new URLSearchParams((fetcher.value.baseURL || '').split('?')[1] || ''));
   });
 
-  function applyFilters(query: Object, { fetchInitialPage = true, debounce = false } = {}) {
+  function applyFilters(query: object, { fetchInitialPage = true, debounce = false } = {}) {
     const newQuery = { ...currentQuery.value, ...query };
     if (isEqual(currentQuery.value, newQuery)) {
       return;
@@ -126,7 +126,7 @@ export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: stri
     set: (val: string) => applyFilters({ search: val }, { debounce: true }),
   });
 
-  function reset(opts?: { baseURL: string|null, query?: Object }) {
+  function reset(opts?: { baseURL: string|null, query?: object }) {
     createFetcher(opts || options);
   }
 

@@ -46,7 +46,7 @@ const props = withDefaults(defineProps<{
   required?: boolean,
   readonly?: boolean,
   additionalItems?: ProjectType[],
-  queryFilters?: Object,
+  queryFilters?: object,
   appendLink?: boolean,
   label?: string,
 }>(), {

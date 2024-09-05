@@ -65,12 +65,13 @@ import { sortBy } from "lodash-es";
 import Draggable from "vuedraggable";
 import type { MarkdownProps } from "~/composables/markdown";
 import {
+  type DesignerComponent,
+  type DesignerComponentBlock,
   predefinedDesignerComponentGroups,
   parseToComponentTree,
   DesignerComponentBase
 } from '~/components/Design/designer-components';
-import type { DesignerComponent, DesignerComponentBlock } from "~/components/Design/designer-components";
-import { PdfDesignerTab } from "~/utils/types";
+import type { PdfDesignerTab } from "~/utils/types";
 
 const props = defineProps<{
   projectType: ProjectType;

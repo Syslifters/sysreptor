@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import { capitalize } from "lodash-es";
-import { RiskLevel } from "@/utils/types";
+import type { RiskLevel } from "#imports";
 import { levelNameFromScore, levelNumberFromLevelName, scoreFromVector } from "~/utils/cvss";
 
 const props = withDefaults(defineProps<{
