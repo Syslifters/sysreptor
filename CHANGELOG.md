@@ -3,6 +3,7 @@
 ## Upcoming
 * Public note sharing
 * Add permission Project Admin
+* Update ghostscript to fix multiple bugs in pdf post-processing
 
 
 ## v2024.70 - 2024-09-04
