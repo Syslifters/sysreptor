@@ -1,6 +1,6 @@
 # Globally defined ARGS
-ARG TESTED_API_IMAGE=api-test
-ARG PROD_API_IMAGE=api-prod
+ARG TESTED_API_IMAGE=undefined_test_image_used_in_ci
+ARG PROD_API_IMAGE=undefined_prod_image_used_in_ci
 
 FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS pdfviewer-dev
 
@@ -84,7 +84,7 @@ RUN mkdir /src && \
 
 # Install system dependencies required by weasyprint and chromium
 # Install ghostscript from debian testing
-RUN echo 'deb http://deb.debian.org/debian trixie main' > /etc/apt/sources.list.d/trixie.list \
+RUN echo 'Types: deb\nURIs: http://deb.debian.org/debian\nSuites: trixie\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg' > /etc/apt/sources.list.d/testing.sources \
     && echo 'APT::Default-Release "stable";' > /etc/apt/apt.conf.d/default-release \
     && apt-get update && apt-get install -y --no-install-recommends \
         chromium \
@@ -198,14 +198,20 @@ ARG VERSION=dev
 ENV VERSION=${VERSION}
 USER 1000
 
+
+# These stages are only used in CI
 FROM ${TESTED_API_IMAGE} AS api-prod
 ARG VERSION
 ENV VERSION=${VERSION}
 COPY CHANGELOG.md /app/
-
 
 FROM ${PROD_API_IMAGE} AS api-src
 USER 0
 RUN dpkg-query -W -f='${binary:Package}=${Version}\n' > /src/post_installed.txt \
     && bash /app/api/download_sources.sh
 USER 1000
+
+
+
+# Default stage
+FROM api
