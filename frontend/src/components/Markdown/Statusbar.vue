@@ -1,8 +1,16 @@
 <template>
   <div class="mde-statusbar d-flex flex-row">
-    <div v-if="props.fileUploadEnabled">
-      <span v-if="!props.fileUploadInProgress">Paste or drop to upload files</span>
+    <div v-if="props.uploadFiles">
+      <v-btn 
+         v-if="!props.fileUploadInProgress"
+        @click="fileInput.click()"
+        text="Paste, drop or click to upload files"
+        :disabled="props.disabled"
+        variant="plain"
+        class="btn-upload"
+      />
       <span v-else><v-progress-circular indeterminate :size="16" width="3" class="mr-1"/> Uploading files...</span>
+      <input ref="fileInput" type="file" multiple @change="e => onUploadFiles(e as InputEvent)" @click.stop :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
     </div>
     <v-spacer />
     <div class="status-items">
@@ -18,8 +26,9 @@ import type { EditorState } from 'reportcreator-markdown/editor';
 
 const props = defineProps<{
   editorState: EditorState;
-  fileUploadEnabled: boolean;
-  fileUploadInProgress: boolean;
+  uploadFiles?: (files: FileList) => Promise<void>;
+  fileUploadInProgress?: boolean;
+  disabled?: boolean;
 }>();
 
 const currentLineNumber = computed(() => props.editorState.doc.lineAt(props.editorState.selection.main.head).number);
@@ -44,6 +53,19 @@ const wordCount = computed(() => {
   return count;
 });
 
+const fileInput = ref();
+async function onUploadFiles(event: InputEvent) {
+  const files = (event.target as HTMLInputElement).files;
+  if (!files || !props.uploadFiles) { return; }
+  try {
+    await props.uploadFiles(files);
+  } finally {
+    if (fileInput.value) {
+      fileInput.value.value = null;
+    }
+  }
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -60,5 +82,14 @@ const wordCount = computed(() => {
       margin-left: 1em;
     }
   }
+}
+
+.btn-upload {
+  font-size: inherit;
+  font-weight: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  height: unset;
+  padding: 0;
 }
 </style>
