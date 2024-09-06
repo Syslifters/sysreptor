@@ -444,8 +444,9 @@ export function useMarkdownEditorBase(options: {
     'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => options.emit('update:markdownEditorMode', val),
   }));
   const markdownStatusbarAttrs = computed(() => ({
+    disabled: options.props.value.disabled || options.props.value.readonly,
     editorState: editorState.value!,
-    fileUploadEnabled: fileUploadEnabled.value,
+    uploadFiles: fileUploadEnabled.value ? uploadFiles : undefined,
     fileUploadInProgress: fileUploadInProgress.value,
   }));
   const markdownPreviewAttrs = computed(() => ({

@@ -34,6 +34,11 @@
         </v-col>
       </v-row>
     </template>
+
+    <template #footer>
+      <v-divider />
+      <markdown-statusbar v-if="editorView" v-bind="markdownStatusbarAttrs" />
+    </template>
   </full-height-page>
 </template>
 
@@ -43,7 +48,7 @@ import { MarkdownEditorMode } from '#imports';
 const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
 
-const { editorView, markdownToolbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
+const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
   props: computed(() => props),
   emit,
   extensions: markdownEditorPageExtensions(),
