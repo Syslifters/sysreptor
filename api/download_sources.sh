@@ -26,11 +26,7 @@ fetch_source() {
   echo "Fetching $package"
   mkdir "$package"
   cd "$package"
-  # if apt-cache policy "$package" 2>/dev/null | grep '\*\*\*' -A1 | grep trixie; then
-  #   apt-get -t testing source "$package" --download-only > /dev/null 2>&1
-  # else
   apt-get source "$package" --download-only > /dev/null 2>&1
-  # fi
   cd ..
   echo "Done $package"
 }
