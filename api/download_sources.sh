@@ -129,7 +129,7 @@ X11
 MIT-1"
 
 cd /src
-sed -i "s/^Types: deb$/Types: deb deb-src/" /etc/apt/sources.list.d/debian.sources
+sed -i "s/^Types: deb$/Types: deb deb-src/" /etc/apt/sources.list.d/*.sources
 apt-get update > /dev/null 2>&1
 
 # Diff with previously installed packages

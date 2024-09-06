@@ -1,6 +1,6 @@
 # Globally defined ARGS
-ARG TESTED_API_IMAGE=undefined_test_image
-ARG PROD_API_IMAGE=undefined_prod_image
+ARG TESTED_API_IMAGE=undefined_test_image_used_in_ci
+ARG PROD_API_IMAGE=undefined_prod_image_used_in_ci
 
 FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS pdfviewer-dev
 
@@ -83,7 +83,10 @@ RUN mkdir /src && \
     echo "This image distributes binaries of copyleft licensed software. Please find the corresponding source code in our source-code distributing images (append -src to the image tags; e.g. syslifters/sysreptor:2024.58-src)." > /src/SOURCES.txt
 
 # Install system dependencies required by weasyprint and chromium
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install ghostscript from debian testing
+RUN echo 'Types: deb\nURIs: http://deb.debian.org/debian\nSuites: trixie\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg' > /etc/apt/sources.list.d/testing.sources \
+    && echo 'APT::Default-Release "stable";' > /etc/apt/apt.conf.d/default-release \
+    && apt-get update && apt-get install -y --no-install-recommends \
         chromium \
         curl \
         fontconfig \
@@ -93,7 +96,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         fonts-noto-color-emoji \
         fonts-noto-cjk \
         fonts-noto-cjk-extra \
-        ghostscript \
         gpg \
         gpg-agent \
         libharfbuzz-subset0 \
@@ -102,6 +104,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         unzip \
         wget \
         postgresql-client \
+    && apt-get -t testing install -y --no-install-recommends ghostscript \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -195,14 +198,20 @@ ARG VERSION=dev
 ENV VERSION=${VERSION}
 USER 1000
 
-FROM $TESTED_API_IMAGE AS api-prod
+
+# These stages are only used in CI
+FROM ${TESTED_API_IMAGE} AS api-prod
 ARG VERSION
 ENV VERSION=${VERSION}
 COPY CHANGELOG.md /app/
-
 
 FROM ${PROD_API_IMAGE} AS api-src
 USER 0
 RUN dpkg-query -W -f='${binary:Package}=${Version}\n' > /src/post_installed.txt \
     && bash /app/api/download_sources.sh
 USER 1000
+
+
+
+# Default stage
+FROM api
