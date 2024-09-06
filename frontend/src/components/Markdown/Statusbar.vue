@@ -1,12 +1,15 @@
 <template>
-  <div class="mde-statusbar">
-    <template v-if="props.fileUploadEnabled">
-      <span v-if="!props.fileUploadInProgress">Attach files via drag and drop or pasting from clipboard.</span>
-      <span v-else>Upload in progress...</span>
-    </template>
-    <span>lines: {{ lineCount }}</span>
-    <span>words: {{ wordCount }}</span>
-    <span>{{ currentLineNumber }}:{{ currentColNumber }}</span>
+  <div class="mde-statusbar d-flex flex-row">
+    <div v-if="props.fileUploadEnabled">
+      <span v-if="!props.fileUploadInProgress">Paste or drop to upload files</span>
+      <span v-else><v-progress-circular indeterminate :size="16" width="3" class="mr-1"/> Uploading files...</span>
+    </div>
+    <v-spacer />
+    <div class="status-items">
+      <span>lines: {{ lineCount }}</span>
+      <span>words: {{ wordCount }}</span>
+      <span>{{ currentLineNumber }}:{{ currentColNumber }}</span>
+    </div>
   </div>
 </template>
 
@@ -47,14 +50,15 @@ const wordCount = computed(() => {
 .mde-statusbar {
   width: 100%;
   font-size: smaller;
-  text-align: right;
   padding: 0.3em 1em;
   color: #959694;
 
-  span {
-    display: inline-block;
-    min-width: 4em;
-    margin-left: 1em;
+  .status-items {
+    span {
+      display: inline-block;
+      min-width: 4em;
+      margin-left: 1em;
+    }
   }
 }
 </style>
