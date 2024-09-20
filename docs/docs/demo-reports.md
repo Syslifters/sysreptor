@@ -3,7 +3,7 @@
 <div style="text-align:center">
 <a href="/assets/reports/Demo-Red Bull.pdf" target="_blank">
     <figure style="float:left;width:24%;margin:0.5em;">
-        <img alt="R-IT Report" src="/assets/reports/Demo-Red Bull-Preview.png" style="border:1px solid;" />
+        <img alt="Red Bull Report" src="/assets/reports/Demo-Red Bull-Preview.png" style="border:1px solid;" />
         <figcaption><a href="https://www.raiffeiseninformatik.at/" target="_blank">Raiffeisen Informatik GmbH & Co KG</a></figcaption>
     </figure>
 </a>
