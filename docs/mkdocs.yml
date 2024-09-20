@@ -142,7 +142,7 @@ plugins:
         "setup/oidc-azure-active-directory.md": "users/oidc-azure-active-directory.md"
         "setup/oidc-google.md": "users/oidc-google.md"
         "setup/oidc-generic.md": "users/oidc-generic.md"
-        "setup/proxy.md": "setup/network.md"
+        "setup/proxy.md": "setup/configuration.md"
         "setup/network.md": "setup/configuration.md"
 
 markdown_extensions:

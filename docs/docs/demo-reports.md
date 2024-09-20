@@ -4,7 +4,7 @@
 <a href="/assets/reports/Demo-Red Bull.pdf" target="_blank">
     <figure style="float:left;width:24%;margin:0.5em;">
         <img alt="Red Bull Report" src="/assets/reports/Demo-Red Bull-Preview.png" style="border:1px solid;" />
-        <figcaption><a href="https://www.raiffeiseninformatik.at/" target="_blank">Raiffeisen Informatik GmbH & Co KG</a></figcaption>
+        <figcaption><a href="https://www.redbull.com/" target="_blank">Red Bull GmbH</a></figcaption>
     </figure>
 </a>
 <a href="/assets/reports/DEMO-Bericht-R-IT-v1.0.pdf" target="_blank">
@@ -19,6 +19,8 @@
         <figcaption><a href="https://www.syslifters.com/" target="_blank">Syslifters GmbH</a></figcaption>
     </figure>
 </a>
+<br style="clear:both" />
+
 <a href="/assets/reports/Demo-Report-Sysleaks.pdf" target="_blank">
     <figure style="float:left;width:24%;margin:0.5em;">
         <img alt="Sysleaks Report" src="/assets/reports/Demo-Report-Sysleaks-Preview.png" style="border:1px solid;" />
