@@ -2,8 +2,8 @@
   <s-dialog
     v-if="isVisible"
     v-model="isVisible"
+    :min-width="mdAndDown ? '90vw' : '60vw'"
     min-height="50vh"
-    min-width="50vw"
   >
     <template #title>Share Note</template>
     <template #default>
@@ -21,6 +21,7 @@
                 :key="shareInfo.id"
                 :value="shareInfo.id"
                 prepend-icon="mdi-share-variant"
+                class="pl-2"
               >
                 <template #title>
                   <chip-created :value="shareInfo.created" />
@@ -36,7 +37,7 @@
               <v-list-item>
                 <s-btn-secondary
                   @click="openCreateForm"
-                  text="New Share Link"
+                  text="Share"
                   prepend-icon="mdi-share-variant"
                   size="small"
                   block
@@ -99,6 +100,7 @@ import { addDays, formatISO9075 } from "date-fns";
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
+const { mdAndDown } = useDisplay();
 
 const isVisible = defineModel<boolean>();
 const props = defineProps<{
