@@ -34,7 +34,7 @@
     "@codemirror/lang-markdown": "~6.2",
     "@codemirror/lang-html": "~6.4",
     "@codemirror/lang-vue": "~0.1.3",
-    "@codemirror/lang-css": "~6.2",
+    "@codemirror/lang-css": "~6.3",
 
     "mermaid": "^11.1.0"
   },
