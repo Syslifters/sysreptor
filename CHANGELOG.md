@@ -4,6 +4,7 @@
 * Public note sharing
 * Add permission Project Admin
 * Update ghostscript to fix multiple bugs in pdf post-processing
+* Base styles: break words anywhere inside tables to prevent page overflows
 
 
 ## v2024.70 - 2024-09-04
