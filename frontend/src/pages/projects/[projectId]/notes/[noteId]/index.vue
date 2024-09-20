@@ -46,6 +46,11 @@
             />
           </div>
 
+          <s-btn-icon @click="shareDialogVisible = true">
+            <v-icon icon="mdi-share-variant" />
+            <s-tooltip activator="parent" text="Share" />
+          </s-btn-icon>
+
           <btn-history v-model="historyVisible" />
         </template>
 
@@ -59,13 +64,6 @@
             :name="note.title"
             extension=".pdf"
             button-text="Export as PDF"
-          />
-          <btn-confirm
-            :action="() => { shareDialogVisible = true }"
-            :confirm="false"
-            button-text="Share"
-            button-icon="mdi-share-variant"
-            button-variant="list-item"    
           />
         </template>
       </edit-toolbar>
