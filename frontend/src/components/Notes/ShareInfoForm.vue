@@ -20,6 +20,7 @@
         </div>
         <div v-else>
           <v-card-title class="pa-0">New Share Link</v-card-title>
+          <p>Share notes to allow public access via a share link.</p>
         </div>
       </v-col>
 

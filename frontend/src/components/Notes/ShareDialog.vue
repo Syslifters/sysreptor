@@ -37,6 +37,7 @@
               <v-list-item>
                 <s-btn-secondary
                   @click="openCreateForm"
+                  :disabled="!canShare"
                   text="Share"
                   prepend-icon="mdi-share-variant"
                   size="small"
@@ -56,6 +57,7 @@
               />
               <btn-confirm
                 :action="createShareInfo"
+                :disabled="!canShare"
                 :loading="createShareInfoForm.saveInProgress"
                 :confirm="false"
                 button-text="Share"
