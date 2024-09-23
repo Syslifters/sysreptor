@@ -13,7 +13,7 @@ import {
   makeMarkdownEmits,
   makeMarkdownProps,
   markdownEditorTextFieldExtensions
-} from "~/composables/markdown";
+} from "#imports";
 
 const props = defineProps(makeMarkdownProps({
   spellcheckSupportedDefault: false

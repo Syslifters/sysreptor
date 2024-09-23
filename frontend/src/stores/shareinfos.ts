@@ -1,4 +1,4 @@
-import type { ProjectNote, ShareInfoPublic } from "~/utils/types";
+import type { ProjectNote, ShareInfoPublic } from "#imports";
 
 export const useShareInfoStore = defineStore('shareinfo', {
   state: () => {

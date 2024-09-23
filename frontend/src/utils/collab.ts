@@ -1,7 +1,7 @@
 import { get, set, unset, throttle, trimStart, sortBy, cloneDeep } from "lodash-es";
 import urlJoin from "url-join";
 import { ChangeSet, EditorSelection, SelectionRange, Text } from "reportcreator-markdown/editor"
-import { CommentStatus, type Comment, type UserShortInfo } from "@/utils/types"
+import { CommentStatus, type Comment, type UserShortInfo } from "#imports"
 
 const WS_RESPONSE_TIMEOUT = 7_000;
 const WS_PING_INTERVAL = 30_000;

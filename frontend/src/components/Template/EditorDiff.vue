@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { MarkdownEditorMode } from "~/utils/types";
+import { MarkdownEditorMode } from "#imports";
 
 const props = defineProps<{
   historic: {

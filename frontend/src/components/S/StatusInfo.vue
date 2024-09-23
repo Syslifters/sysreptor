@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { ReviewStatus } from "~/utils/types";
+import { ReviewStatus } from "#imports";
 
 const props = defineProps<{
   value?: ReviewStatus|null;

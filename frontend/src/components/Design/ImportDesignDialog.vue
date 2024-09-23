@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { ProjectTypeScope } from "~/utils/types";
+import { ProjectTypeScope } from "#imports";
 
 const props = withDefaults(defineProps<{
   projectTypeScope: ProjectTypeScope

@@ -1,5 +1,5 @@
 import { CvssVersion } from "~/utils/cvss/base";
-import { MarkdownEditorMode, CommentStatus } from "~/utils/types";
+import { MarkdownEditorMode, CommentStatus } from "#imports";
 
 export const useLocalSettings = defineStore('settings', {
   state: () => ({

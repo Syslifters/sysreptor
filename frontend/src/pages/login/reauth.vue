@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { AuthProviderType } from "~/utils/types";
+import { AuthProviderType } from "#imports";
 
 definePageMeta({
   title: 'Re-Authenticate',

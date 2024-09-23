@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { pick } from "lodash-es";
-import { PdfDesignerTab } from "~/utils/types";
+import { PdfDesignerTab } from "#imports";
 
 const route = useRoute();
 const auth = useAuth();
