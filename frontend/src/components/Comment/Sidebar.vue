@@ -83,7 +83,7 @@
 
 <script setup lang="ts">
 import { groupBy } from 'lodash-es';
-import { CommentStatus, type Comment, type FieldDefinition } from '@/utils/types';
+import { CommentStatus, type Comment, type FieldDefinition } from '#imports';
 
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();

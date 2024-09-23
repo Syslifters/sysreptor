@@ -1,5 +1,5 @@
 import { createProxyServer } from "httpxy"
-import type { IncomingMessage, ServerResponse } from 'http';
+import type { IncomingMessage, ServerResponse } from "http";
 
 const isDev = process.env.NODE_ENV === 'development';
 
