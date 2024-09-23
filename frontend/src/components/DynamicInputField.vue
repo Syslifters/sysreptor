@@ -280,6 +280,7 @@ import Draggable from 'vuedraggable';
 import { pick, uniq } from 'lodash-es';
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo } from '#imports';
+import { workerUrlPolicy } from '~/plugins/trustedtypes';
 
 defineOptions({
   inheritAttrs: false,
@@ -436,7 +437,7 @@ async function validateRegexPattern(value: string) {
     const pattern = new RegExp(props.definition.pattern);
 
     if (!regexWorker.value) {
-      regexWorker.value = new Worker(regexWorkerUrl, { type: 'module' });
+      regexWorker.value = new Worker(workerUrlPolicy.createScriptURL!(regexWorkerUrl) as string, { type: 'module' });
     }
 
     const threadedRegexMatch = new Promise((resolve) => {

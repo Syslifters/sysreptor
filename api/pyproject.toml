@@ -12,7 +12,7 @@ djangorestframework = "~3.15.0"
 weasyprint = "~62.3"
 
 django-phonenumber-field = { version = "^8.0.0", extras = ["phonenumberslite"] }
-django-csp = "^3.7"
+django-csp = "^4.0b2"
 django-storages = "^1.13.2"
 drf-nested-routers = "^0.94.1"
 django-filter = "^24.1"

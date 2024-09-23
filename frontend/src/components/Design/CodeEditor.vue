@@ -4,19 +4,20 @@
 
 <script lang="ts">
 import * as monaco from 'monaco-editor';
+import cssWorkerUrl from 'monaco-editor/esm/vs/language/css/css.worker?worker&url';
+import htmlWorkerUrl from 'monaco-editor/esm/vs/language/html/html.worker?worker&url';
+import editorWorkerUrl from 'monaco-editor/esm/vs/editor/editor.worker?worker&url';
 
 self.MonacoEnvironment = {
-  async getWorker(_: any, label: string) {
-    let worker: typeof import('*?worker');
+  getWorkerUrl(_: string, label: string) {
     if (label === 'css') {
-      worker = await import('monaco-editor/esm/vs/language/css/css.worker?worker');
+      return cssWorkerUrl;
     } else if (label === 'html') {
-      worker = await import('monaco-editor/esm/vs/language/html/html.worker?worker');
+      return htmlWorkerUrl;
     } else {
-      worker = await import('monaco-editor/esm/vs/editor/editor.worker?worker');
+      return editorWorkerUrl;
     }
-    return new worker.default();
-  }
+  },
 };
 
 monaco.languages.html.htmlDefaults.setOptions({

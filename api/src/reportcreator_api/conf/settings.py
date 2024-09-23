@@ -19,6 +19,7 @@ from pathlib import Path
 
 import fido2.features
 import redis
+from csp.constants import NONE, SELF, UNSAFE_INLINE
 from decouple import Csv, config
 from kombu import Queue
 
@@ -376,22 +377,34 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
 SECURE_REFERRER_POLICY = 'same-origin'
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
-CSP_DEFAULT_SRC = ["'none'"]
-CSP_IMG_SRC = ["'self'", "data:"]
-CSP_FONT_SRC = ["'self'"]
-CSP_WORKER_SRC = ["'self'"]
-CSP_CONNECT_SRC = ["'self'", "data:"]
-CSP_FRAME_SRC = ["'self'"]
-CSP_FRAME_ANCESTORS = ["'self'"]
-CSP_FORM_ACTION = ["'self'"]
-# nuxt, vuetify and markdown preview use inline styles
-CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]
-# unsafe-inline:
-
-CSP_SCRIPT_SRC = [
-    "'self'",
-    "'sha256-vfPLwqW0BNyGGLG6upxgxsXF+K7Jp/V2hJGlbPt7NJY='",  # hash of nuxt inline script injected in index.html
-]
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': [NONE],
+        'img-src': [SELF, 'data:'],
+        'font-src': [SELF],
+        'worker-src': [SELF],
+        'connect-src': [SELF, 'data:'],
+        'frame-src': [SELF],
+        'frame-ancestors': [SELF],
+        'form-action': [SELF],
+        # nuxt, vuetify and markdown preview use inline styles
+        'style-src': [SELF, UNSAFE_INLINE],
+        # hash of nuxt inline script injected in index.html
+        'script-src': [SELF, "'sha256-vfPLwqW0BNyGGLG6upxgxsXF+K7Jp/V2hJGlbPt7NJY='"],
+        'require-trusted-types-for': ["'script'"],
+        'trusted-types': [
+            'default',  # required for vuetify, unhead, mermaid
+            'worker-url',  # load web workers via import URL
+            'vue',  # used by vue and markdown
+            'dompurify',  # used by mermaid
+            "'allow-duplicates'",  # dompurify is used twice as dependency
+            # monaco-editor policies
+            'defaultWorkerFactory', 'tokenizeToString', 'standaloneColorizer',
+            'editorViewLayer', 'domLineBreaksComputer', 'domLineBreaksComputer',
+            'diffEditorWidget', 'editorGhostText', 'diffReview', 'stickyScrollViewLayer',
+        ],
+    },
+}
 
 PERMISSIONS_POLICY = {
     'publickey-credentials-get': '(self)',
@@ -658,7 +671,7 @@ ELASTIC_APM_RUM_CONFIG = {
     'serviceVersion': 'dev',
 }
 if ELASTIC_APM_RUM_ENABLED:
-    CSP_CONNECT_SRC.append(ELASTIC_APM_RUM_CONFIG['serverUrl'])
+    CONTENT_SECURITY_POLICY['DIRECTIVES']['connect-src'].append(ELASTIC_APM_RUM_CONFIG['serverUrl'])
 
 
 if DEBUG:
