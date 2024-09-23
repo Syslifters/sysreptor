@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { VForm } from "vuetify/components";
-import { EditMode } from "~/utils/types";
+import { EditMode } from "#imports";
 
 const route = useRoute();
 const auth = useAuth();

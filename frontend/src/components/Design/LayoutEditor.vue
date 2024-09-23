@@ -63,7 +63,7 @@
 <script setup lang="ts">
 import { sortBy } from "lodash-es";
 import Draggable from "vuedraggable";
-import type { MarkdownProps } from "~/composables/markdown";
+import type { MarkdownProps, PdfDesignerTab } from "#imports";
 import {
   type DesignerComponent,
   type DesignerComponentBlock,
@@ -71,7 +71,6 @@ import {
   parseToComponentTree,
   DesignerComponentBase
 } from '~/components/Design/designer-components';
-import type { PdfDesignerTab } from "~/utils/types";
 
 const props = defineProps<{
   projectType: ProjectType;

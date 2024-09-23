@@ -1,4 +1,4 @@
-import type { ArchivedProject, Breadcrumbs, FindingTemplate, PentestProject, ProjectType, UserShortInfo } from "~/utils/types";
+import type { ArchivedProject, Breadcrumbs, FindingTemplate, PentestProject, ProjectType, UserShortInfo } from "#imports";
 
 type RouteType = ReturnType<typeof useRoute>;
 

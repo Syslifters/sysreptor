@@ -1,7 +1,7 @@
 import { debounce, isEqual } from "lodash-es";
 import { useFetch, useAsyncData } from "nuxt/app";
 import type { NuxtApp, AsyncDataOptions } from "nuxt/app";
-import type { PaginatedResponse } from "@/utils/types";
+import type { PaginatedResponse } from "#imports";
 
 export async function useFetchE<T>(...args: Parameters<typeof useFetch<T>>): Promise<Ref<T>> {
   const res = await useFetch(...args);

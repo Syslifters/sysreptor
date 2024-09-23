@@ -176,7 +176,7 @@
 import Draggable from "vuedraggable";
 import { VForm } from "vuetify/components";
 import { uniqueName } from '@/utils/urls';
-import { FieldOrigin, type ReportSectionDefinition } from "~/utils/types";
+import { FieldOrigin, type ReportSectionDefinition } from "#imports";
 
 const localSettings = useLocalSettings();
 
