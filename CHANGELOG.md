@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2024.73 - 2024-09-23
 * Public note sharing
 * Add permission Project Admin
 * Update ghostscript to fix multiple bugs in pdf post-processing
@@ -11,10 +11,12 @@
 * Set custom database credentials in languagetool container
 * Fix bug when using custom CA
 
+
 ## v2024.69 - 2024-08-30
 * Fix install and update procedures
 * Fix error importing designs without ordering fields
 * Rename version history close button
+
 
 ## v2024.68 - 2024-08-29 (pre-release)
 * Rework field definition data format. Warning: breaking API changes
