@@ -265,7 +265,7 @@
 import { create as navigatorCredentialsCreate, parseCreationOptionsFromJSON } from "@github/webauthn-json/browser-ponyfill";
 import { cloneDeep } from 'lodash-es';
 import type { VForm } from "vuetify/lib/components/index.mjs";
-import { mfaMethodChoices, MfaMethodType } from '@/utils/types';
+import { mfaMethodChoices, MfaMethodType } from '#imports';
 
 const auth = useAuth();
 

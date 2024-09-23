@@ -96,7 +96,7 @@ import {
   isTaskListInSelection,
 } from 'reportcreator-markdown/editor';
 import type { VToolbar } from 'vuetify/lib/components/index.mjs';
-import { MarkdownEditorMode } from '@/utils/types';
+import { MarkdownEditorMode } from '#imports';
 
 const props = defineProps<{
   editorView?: EditorView|null;

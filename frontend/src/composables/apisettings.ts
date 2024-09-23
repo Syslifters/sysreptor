@@ -1,5 +1,4 @@
-import { AuthProviderType } from '@/utils/types';
-import type { ApiSettings, AuthProvider, CWE } from '@/utils/types';
+import { type ApiSettings, type AuthProvider, type CWE, AuthProviderType } from '#imports';
 
 export const useApiSettings = defineStore('apisettings', {
   state: () => ({

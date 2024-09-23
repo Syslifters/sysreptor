@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { sortBy, groupBy } from "lodash-es";
-import type { MessageLevel as MessageLevelType } from '~/utils/types';
+import type { MessageLevel as MessageLevelType } from '#imports';
 
 const props = defineProps<{
   value: ErrorMessage[];

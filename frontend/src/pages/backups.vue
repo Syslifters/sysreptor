@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { BackupLogType } from '@/utils/types';
+import { BackupLogType } from '#imports';
 
 definePageMeta({
   title: 'Backup',

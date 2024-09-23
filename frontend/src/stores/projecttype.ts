@@ -1,7 +1,6 @@
 import { pick } from 'lodash-es';
 import { parseISO, formatISO9075 } from 'date-fns';
-import { ProjectTypeScope } from '~/utils/types';
-import type { FieldDefinition, ProjectType } from "#imports";
+import { type FieldDefinition, type ProjectType, ProjectTypeScope } from "#imports";
 
 export const useProjectTypeStore = defineStore('projecttype', {
   state: () => ({
