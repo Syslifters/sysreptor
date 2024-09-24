@@ -4,6 +4,7 @@
 * Add more granular file storage settings
 * Add trusted types configuration to Content Security Policy
 * Show markdown snippet in markdown image preview dialogs
+* Bugfixes in note sharing
 
 
 ## v2024.74 - 2024-09-24
