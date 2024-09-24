@@ -39,7 +39,7 @@
           <v-card-title>{{ asset.name }}</v-card-title>
           <v-card-text class="text--small pb-0">
             {{ assetUrl(asset) }}
-            <s-btn-icon @click="copyAssetUrl(asset)" size="small" density="compact">
+            <s-btn-icon @click="copyToClipboard(assetUrl(asset))" size="small" density="compact">
               <v-icon size="small" icon="mdi-content-copy" />
               <s-tooltip activator="parent" text="Copy path to clipboard" />
             </s-btn-icon>
@@ -136,9 +136,6 @@ async function performDelete(asset: UploadedFileInfo) {
     method: 'DELETE'
   });
   assets.data.value = assets.data.value.filter(a => a.id !== asset.id);
-}
-function copyAssetUrl(asset: UploadedFileInfo) {
-  window.navigator.clipboard.writeText(assetUrl(asset));
 }
 </script>
 

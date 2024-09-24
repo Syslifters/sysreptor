@@ -134,3 +134,8 @@ export function useAutofocus(ready: Ref<any>|(() => any), fallbackId?: string) {
     focusElement(route.hash || fallbackId);
   }, { immediate: true, once: true });
 }
+
+
+export function copyToClipboard(text: string) {
+  window.navigator.clipboard.writeText(text);
+}
