@@ -1,6 +1,6 @@
 # Changelog
 
-## v2024.73 - 2024-09-23
+## v2024.74 - 2024-09-24
 * Public note sharing
 * Add permission Project Admin
 * Update ghostscript to fix multiple bugs in pdf post-processing
