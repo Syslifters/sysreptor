@@ -12,4 +12,4 @@ Notes sharing support:
  * multiple links per note
  * read-only or read-write
 
-![Guest permissions for subcontractors](../../images/show/share_notes.gif)
+![Share notes with customers](../../images/show/share_notes.gif)
