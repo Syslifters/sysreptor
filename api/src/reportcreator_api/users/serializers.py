@@ -41,7 +41,6 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
 
     def get_extra_kwargs(self):
         user = self.context['request'].user
-        # TODO: who can set project_admin permissions: user_manager vs admin
         read_only = not (getattr(user, 'is_user_manager', False) or getattr(user, 'is_admin', False))
         return super().get_extra_kwargs() | {
             'is_superuser': {'read_only': not getattr(user, 'is_admin', False)},
