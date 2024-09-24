@@ -4,7 +4,7 @@ pro: false
 ---
 
 # Share notes with your customers
-Notes sharing support:
+Note sharing supports:
 
  * password protection
  * expiration
