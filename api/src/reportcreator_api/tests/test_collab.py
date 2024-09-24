@@ -594,6 +594,14 @@ class TestProjectNotesDbSync:
             await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{n["id"]}', 'value': n, 'client_id': None})
         await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
 
+    async def test_shareinfo_sync(self):
+        res = await sync_to_async(self.api_client1.post)(
+            path=reverse('shareinfo-list', kwargs={'project_pk': self.project.id, 'note_id': self.note.note_id}),
+            data={'expire_date': (timezone.now() + timedelta(days=10)).date()},
+        )
+        assert res.status_code == 201, res.data
+        await self.assert_event({'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.is_shared', 'value': True, 'client_id': None})
+
     async def test_member_removed_write(self):
         await ProjectMemberInfo.objects.filter(project=self.project, user=self.user1).adelete()
 
