@@ -49,7 +49,22 @@
         </template>
         <template #default>
           <v-container fluid>
-            <div v-if="createShareInfoForm">
+            <div v-if="currentShareInfo">
+              <notes-share-info-form
+                v-model="currentShareInfo"
+                :disabled="!canShare"
+              />
+              <btn-confirm
+                :action="() => updateShareInfo(currentShareInfo!)"
+                :disabled="!canShare || (isEqual(currentShareInfo, shareInfos.find(si => si.id === currentShareInfo?.id)))"
+                :confirm="false"
+                button-text="Update"
+                button-icon="mdi-content-save"
+                button-color="primary"
+                class="mt-4"
+              />
+            </div>
+            <div v-else-if="createShareInfoForm">
               <notes-share-info-form
                 v-model="createShareInfoForm.data"
                 :disabled="createShareInfoForm.saveInProgress || !canShare"
@@ -62,21 +77,6 @@
                 :confirm="false"
                 button-text="Share"
                 button-icon="mdi-share-variant"
-                button-color="primary"
-                class="mt-4"
-              />
-            </div>
-            <div v-else-if="currentShareInfo">
-              <notes-share-info-form
-                v-model="currentShareInfo"
-                :disabled="!canShare"
-              />
-              <btn-confirm
-                :action="() => updateShareInfo(currentShareInfo!)"
-                :disabled="!canShare || (isEqual(currentShareInfo, shareInfos.find(si => si.id === currentShareInfo?.id)))"
-                :confirm="false"
-                button-text="Update"
-                button-icon="mdi-content-save"
                 button-color="primary"
                 class="mt-4"
               />
