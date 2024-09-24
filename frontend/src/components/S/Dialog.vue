@@ -11,7 +11,6 @@
         <v-card-title>
           <v-toolbar color="inherit" flat :density="props.density">
             <v-toolbar-title><slot name="title" /></v-toolbar-title>
-            <v-spacer />
             <slot name="toolbar" />
 
             <v-btn @click="emit('update:modelValue', false)" icon>

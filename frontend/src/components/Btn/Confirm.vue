@@ -48,8 +48,7 @@
           Enter the following text to confirm: <br>
           <strong>{{ props.confirmInput }}</strong>
           <s-btn-icon 
-            v-if="clipboard"
-            @click="clipboard.writeText(props.confirmInput)" 
+            @click="copyToClipboard(props.confirmInput)" 
             size="small" 
             density="compact"
             class="ml-1"
@@ -120,8 +119,6 @@ const props = withDefaults(defineProps<{
   keyboardShortcut: undefined,
 });
 const attrs = useAttrs();
-
-const clipboard = window.navigator.clipboard;
 
 const confirmDialogVisible = ref(false);
 const confirmUserInput = ref('');

@@ -90,8 +90,4 @@ function updateProp(prop: string, value: any) {
     [prop]: value,
   };
 }
-
-function copyToClipboard(link: string) {
-  window.navigator.clipboard.writeText(link);
-}
 </script>

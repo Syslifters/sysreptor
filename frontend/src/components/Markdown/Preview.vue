@@ -29,12 +29,15 @@ const props = defineProps<{
 const cacheBusterFallback = uuidv4();
 const cacheBuster = computed(() => props.cacheBuster || cacheBusterFallback);
 const renderedMarkdown = ref('');
+const renderedMarkdownText = ref('');
 watchThrottled(() => props.value, () => {
-  renderedMarkdown.value = renderMarkdownToHtml(props.value || '', {
+  const mdText = props.value || '';
+  renderedMarkdown.value = renderMarkdownToHtml(mdText, {
     preview: true,
     rewriteFileSource,
     rewriteReferenceLink: props.rewriteReferenceLink,
   });
+  renderedMarkdownText.value = mdText;
 }, { throttle: 500, leading: true, immediate: true });
 
 function rewriteFileSource(imgSrc: string) {
@@ -78,9 +81,20 @@ function showPreviewImage(event: MouseEvent) {
     // Collect all images in the preview
     previewImagesAll.value = Array.from(previewRef.value!.querySelectorAll('img')).map((img: HTMLImageElement) => {
       const captionEl = img.parentElement?.querySelector('figcaption');
+
+      let markdown = undefined;
+      try {
+        const position = JSON.parse(img.parentElement?.getAttribute('data-position') || '');
+        if (position?.start?.offset && position?.end?.offset) {
+          markdown = renderedMarkdownText.value.substring(position.start.offset, position.end.offset) || undefined;
+        }
+      } catch {
+        // Ignore error
+      }
       return {
         src: img.src,
         caption: captionEl?.innerText,
+        markdown,
       };
     });
     // Select the clicked image

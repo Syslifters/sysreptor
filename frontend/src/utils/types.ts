@@ -547,6 +547,7 @@ export type Breadcrumbs = Breadcrumb[];
 export type PreviewImage = {
   src: string;
   caption?: string|null;
+  markdown?: string|null;
 };
 
 export type CWE = {

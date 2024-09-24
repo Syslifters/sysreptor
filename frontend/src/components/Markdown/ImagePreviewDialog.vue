@@ -12,7 +12,18 @@
     @keydown.arrow-left="windowRef?.group.prev()"
     @keydown.arrow-right="windowRef?.group.next()"
   >
-    <template #title>{{ modelValue.caption || '' }}</template>
+    <template #title>
+      <v-code v-if="modelValue.markdown" class="d-inline">
+        <s-btn-icon
+          @click="copyToClipboard(modelValue.markdown)"
+          icon="mdi-content-copy"
+          size="small"
+          density="compact"
+        />
+          {{ modelValue.markdown }}
+      </v-code>
+      <span v-else>{{ modelValue.caption || '' }}</span>
+    </template>
     <v-card-text class="pa-0 flex-grow-height">
       <v-window
         ref="windowRef"
@@ -61,6 +72,11 @@ watch(modelValue, () => {
 
   .v-window, .v-window__container, .v-window-item {
     height: 100%;
+  }
+
+  :deep(.v-toolbar__content > .v-spacer) {
+    // display: none;
+    min-width: 0
   }
 }
 </style>
