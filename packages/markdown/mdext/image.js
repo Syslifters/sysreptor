@@ -145,6 +145,9 @@ export const remarkToRehypeHandlersFigure = {
     const result = {
       type: 'element',
       tagName: 'figure',
+      properties: {
+        dataPosition: JSON.stringify(node.position),
+      },
       children: [
         {
           type: 'element',
