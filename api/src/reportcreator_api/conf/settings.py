@@ -312,14 +312,35 @@ STATICFILES_DIRS = [
     BASE_DIR / 'frontend' / 'static',
 ]
 
-UPLOADED_FILE_STORAGE = config('UPLOADED_FILE_STORAGE', default='filesystem')
+
+DEFAULT_FILE_STORAGE = config('DEFAULT_FILE_STORAGE', default='filesystem')
+DEFAULT_S3_ACCESS_KEY = config('DEFAULT_S3_ACCESS_KEY', default='')
+DEFAULT_S3_SECRET_KEY = config('DEFAULT_S3_SECRET_KEY', default='')
+DEFAULT_S3_SESSION_TOKEN = config('DEFAULT_S3_SESSION_TOKEN', default=None)
+DEFAULT_S3_BUCKET_NAME = config('DEFAULT_S3_BUCKET_NAME', default='')
+DEFAULT_S3_ENDPOINT_URL = config('DEFAULT_S3_ENDPOINT_URL', default='')
+
+UPLOADED_IMAGE_STORAGE = config('UPLOADED_IMAGE_STORAGE', default=DEFAULT_FILE_STORAGE)
+UPLOADED_IMAGE_STORAGE = {
+    'filesystem': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
+    's3': 'reportcreator_api.utils.storages.EncryptedS3Storage',
+}.get(UPLOADED_IMAGE_STORAGE, UPLOADED_IMAGE_STORAGE)
+
+UPLOADED_ASSET_STORAGE = config('UPLOADED_ASSET_STORAGE', default=DEFAULT_FILE_STORAGE)
+UPLOADED_ASSET_STORAGE = {
+    'filesystem': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
+    's3': 'reportcreator_api.utils.storages.EncryptedS3Storage',
+}.get(UPLOADED_ASSET_STORAGE, UPLOADED_ASSET_STORAGE)
+
+UPLOADED_FILE_STORAGE = config('UPLOADED_FILE_STORAGE', default=DEFAULT_FILE_STORAGE)
 UPLOADED_FILE_STORAGE = {
     'filesystem': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
     's3': 'reportcreator_api.utils.storages.EncryptedS3Storage',
 }.get(UPLOADED_FILE_STORAGE, UPLOADED_FILE_STORAGE)
-ARCHIVED_FILE_STORAGE = config('ARCHIVED_FILE_STORAGE', default='filesystem')
+
+ARCHIVED_FILE_STORAGE = config('ARCHIVED_FILE_STORAGE', default=DEFAULT_FILE_STORAGE)
 ARCHIVED_FILE_STORAGE = {
-     'filesystem': 'reportcreator_api.utils.storages.UnencryptedFileSystemStorage',
+    'filesystem': 'reportcreator_api.utils.storages.UnencryptedFileSystemStorage',
     's3': 'reportcreator_api.utils.storages.UnencryptedS3Storage',
 }.get(ARCHIVED_FILE_STORAGE, ARCHIVED_FILE_STORAGE)
 
@@ -328,37 +349,47 @@ STORAGES = {
         'BACKEND': 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
     },
     'uploaded_images': {
-        'BACKEND': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
+        'BACKEND': UPLOADED_IMAGE_STORAGE,
         'OPTIONS': {
-            'location': config('UPLOADED_IMAGE_LOCATION', default=MEDIA_ROOT / 'uploadedimages', cast=Path),
+            'location': config('UPLOADED_IMAGE_LOCATION', default=(MEDIA_ROOT if 'filesystem' in UPLOADED_IMAGE_STORAGE.lower() else Path()) / 'uploadedimages', cast=Path),
+            'access_key': config('UPLOADED_IMAGE_S3_ACCESS_KEY', default=DEFAULT_S3_ACCESS_KEY),
+            'secret_key': config('UPLOADED_IMAGE_S3_SECRET_KEY', default=DEFAULT_S3_SECRET_KEY),
+            'security_token': config('UPLOADED_IMAGE_S3_SESSION_TOKEN', default=DEFAULT_S3_SESSION_TOKEN),
+            'bucket_name': config('UPLOADED_IMAGE_S3_BUCKET_NAME', default=DEFAULT_S3_BUCKET_NAME),
+            'endpoint_url': config('UPLOADED_IMAGE_S3_ENDPOINT_URL', default=DEFAULT_S3_ENDPOINT_URL),
         },
     },
     'uploaded_assets': {
-        'BACKEND': 'reportcreator_api.utils.storages.EncryptedFileSystemStorage',
+        'BACKEND': UPLOADED_ASSET_STORAGE,
         'OPTIONS': {
-            'location': config('UPLOADED_ASSET_LOCATION', default=MEDIA_ROOT / 'uploadedassets', cast=Path),
+            'location': config('UPLOADED_ASSET_LOCATION', default=(MEDIA_ROOT if 'filesystem' in UPLOADED_ASSET_STORAGE.lower() else Path()) / 'uploadedassets', cast=Path),
+            'access_key': config('UPLOADED_ASSET_S3_ACCESS_KEY', default=DEFAULT_S3_ACCESS_KEY),
+            'secret_key': config('UPLOADED_ASSET_S3_SECRET_KEY', default=DEFAULT_S3_SECRET_KEY),
+            'security_token': config('UPLOADED_ASSET_S3_SESSION_TOKEN', default=DEFAULT_S3_SESSION_TOKEN),
+            'bucket_name': config('UPLOADED_ASSET_S3_BUCKET_NAME', default=DEFAULT_S3_BUCKET_NAME),
+            'endpoint_url': config('UPLOADED_ASSET_S3_ENDPOINT_URL', default=DEFAULT_S3_ENDPOINT_URL),
         },
     },
     'uploaded_files': {
         'BACKEND': UPLOADED_FILE_STORAGE,
         'OPTIONS': {
-            'location': config('UPLOADED_FILE_LOCATION', default=MEDIA_ROOT / 'uploadedfiles', cast=Path),
-            'access_key': config('UPLOADED_FILE_S3_ACCESS_KEY', default=''),
-            'secret_key': config('UPLOADED_FILE_S3_SECRET_KEY', default=''),
-            'security_token': config('UPLOADED_FILE_S3_SESSION_TOKEN', default=None),
-            'bucket_name': config('UPLOADED_FILE_S3_BUCKET_NAME', default=''),
-            'endpoint_url': config('UPLOADED_FILE_S3_ENDPOINT_URL', default=''),
+            'location': config('UPLOADED_FILE_LOCATION', default=(MEDIA_ROOT if 'filesystem' in UPLOADED_FILE_STORAGE.lower() else Path()) / 'uploadedfiles', cast=Path),
+            'access_key': config('UPLOADED_FILE_S3_ACCESS_KEY', default=DEFAULT_S3_ACCESS_KEY),
+            'secret_key': config('UPLOADED_FILE_S3_SECRET_KEY', default=DEFAULT_S3_SECRET_KEY),
+            'security_token': config('UPLOADED_FILE_S3_SESSION_TOKEN', default=DEFAULT_S3_SESSION_TOKEN),
+            'bucket_name': config('UPLOADED_FILE_S3_BUCKET_NAME', default=DEFAULT_S3_BUCKET_NAME),
+            'endpoint_url': config('UPLOADED_FILE_S3_ENDPOINT_URL', default=DEFAULT_S3_ENDPOINT_URL),
         },
     },
     'archived_files': {
         'BACKEND': ARCHIVED_FILE_STORAGE,
         'OPTIONS': {
-            'location': config('ARCHIVED_FILE_LOCATION', default=MEDIA_ROOT / 'archivedfiles', cast=Path),
-            'access_key': config('ARCHIVED_FILE_S3_ACCESS_KEY', default=''),
-            'secret_key': config('ARCHIVED_FILE_S3_SECRET_KEY', default=''),
-            'security_token': config('ARCHIVED_FILE_S3_SESSION_TOKEN', default=None),
-            'bucket_name': config('ARCHIVED_FILE_S3_BUCKET_NAME', default=''),
-            'endpoint_url': config('ARCHIVED_FILE_S3_ENDPOINT_URL', default=''),
+            'location': config('ARCHIVED_FILE_LOCATION', default=(MEDIA_ROOT if 'filesystem' in UPLOADED_FILE_STORAGE.lower() else Path()) / 'archivedfiles', cast=Path),
+            'access_key': config('ARCHIVED_FILE_S3_ACCESS_KEY', default=DEFAULT_S3_ACCESS_KEY),
+            'secret_key': config('ARCHIVED_FILE_S3_SECRET_KEY', default=DEFAULT_S3_SECRET_KEY),
+            'security_token': config('ARCHIVED_FILE_S3_SESSION_TOKEN', default=DEFAULT_S3_SESSION_TOKEN),
+            'bucket_name': config('ARCHIVED_FILE_S3_BUCKET_NAME', default=DEFAULT_S3_BUCKET_NAME),
+            'endpoint_url': config('ARCHIVED_FILE_S3_ENDPOINT_URL', default=DEFAULT_S3_ENDPOINT_URL),
         },
     },
 }

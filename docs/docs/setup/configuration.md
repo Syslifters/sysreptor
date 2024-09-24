@@ -197,26 +197,60 @@ GUEST_USERS_CAN_SEE_ALL_USERS=False
 ```
 
 ### S3 Storage
-Uploaded files (~~except images~~, images are also encrypted) in notes can be uploaded to an S3 bucket. Files are stored on the filesystem in a docker volume by default. If data at rest encryption is configured files are encrypted.
+Uploaded files and images can be stored in an S3 bucket. Files are stored on the filesystem in a docker volume by default. If data at rest encryption is configured files are encrypted (~~except images~~, images are also encrypted).
 
-``` title="Example:"
+`DEFAULT_S3_*` settings to apply to all file storages. It is possible to configure different settings per storage.
+
+
+``` title="Global storage configuration: store everything in S3 bucket"
+DEFAULT_STORAGE="s3"  # Default: "filesystem"
+DEFAULT_S3_ACCESS_KEY="access-key"
+DEFAULT_S3_SECRET_KEY="secret-key"
+DEFAULT_S3_SESSION_TOKEN="session-token"  # optional
+DEFAULT_S3_BUCKET_NAME="bucket-name"
+DEFAULT_S3_ENDPOINT_URL="endpoint-url"
+```
+
+``` title="Uploaded file storage configuration"
 UPLOADED_FILE_STORAGE="s3"  # Default: "filesystem"
 UPLOADED_FILE_S3_ACCESS_KEY="access-key"
 UPLOADED_FILE_S3_SECRET_KEY="secret-key"
 UPLOADED_FILE_S3_SESSION_TOKEN="session-token"  # optional
 UPLOADED_FILE_S3_BUCKET_NAME="bucket-name"
 UPLOADED_FILE_S3_ENDPOINT_URL="endpoint-url"
+UPLOADED_FILE_LOCATION="uploadedfiles"
+```
+
+``` title="Uploaded image storage configuration"
+UPLOADED_IMAGE_STORAGE="s3"  # Default: "filesystem"
+UPLOADED_IMAGE_S3_ACCESS_KEY="access-key"
+UPLOADED_IMAGE_S3_SECRET_KEY="secret-key"
+UPLOADED_IMAGE_S3_SESSION_TOKEN="session-token"  # optional
+UPLOADED_IMAGE_S3_BUCKET_NAME="bucket-name"
+UPLOADED_IMAGE_S3_ENDPOINT_URL="endpoint-url"
+UPLOADED_IMAGE_LOCATION="uploadedimages"
+```
+
+``` title="Uploaded asset storage configuration"
+UPLOADED_ASSET_STORAGE="s3"  # Default: "filesystem"
+UPLOADED_ASSET_S3_ACCESS_KEY="access-key"
+UPLOADED_ASSET_S3_SECRET_KEY="secret-key"
+UPLOADED_ASSET_S3_SESSION_TOKEN="session-token"  # optional
+UPLOADED_ASSET_S3_BUCKET_NAME="bucket-name"
+UPLOADED_ASSET_S3_ENDPOINT_URL="endpoint-url"
+UPLOADED_ASSET_LOCATION="uploadedasset"
 ```
 
 Archived project files can also be uploaded to an S3 bucket. Archives are stored on the filesystem in a docker volume by default.
 
-``` title="Example"
+``` title="Archived file storage configuratio"
 ARCHIVED_FILE_STORAGE="s3"  # Default: "filesystem"
 ARCHIVED_FILE_S3_ACCESS_KEY="access-key"
 ARCHIVED_FILE_S3_SECRET_KEY="secret-key"
 ARCHIVED_FILE_S3_SESSION_TOKEN="session-token"  # optional
 ARCHIVED_FILE_S3_BUCKET_NAME="bucket-name"
 ARCHIVED_FILE_S3_ENDPOINT_URL="endpoint-url"
+ARCHIVED_FILE_LOCATION="archivedfiles"
 ```
 
 
