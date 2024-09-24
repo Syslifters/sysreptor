@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- Rendered markdown gets sanitized in renderMarkdownToHtml -->
     <!-- eslint-disable-next-line vue/no-v-html -->
     <div ref="previewRef" v-html="renderedMarkdown" @click.stop class="preview" />
     <markdown-image-preview-dialog v-model="previewImageSrc" :images="previewImagesAll" />

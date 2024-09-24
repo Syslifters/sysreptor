@@ -1001,21 +1001,23 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-csp"
-version = "3.8"
+version = "4.0b2"
 description = "Django Content Security Policy support."
 optional = false
 python-versions = "*"
 files = [
-    {file = "django_csp-3.8-py3-none-any.whl", hash = "sha256:19b2978b03fcd73517d7d67acbc04fbbcaec0facc3e83baa502965892d1e0719"},
-    {file = "django_csp-3.8.tar.gz", hash = "sha256:ef0f1a9f7d8da68ae6e169c02e9ac661c0ecf04db70e0d1d85640512a68471c0"},
+    {file = "django_csp-4.0b2-py3-none-any.whl", hash = "sha256:48b159f9eddd9a2140df483e224c76ec4bf6118010e67d5b62279dd897b6b88a"},
+    {file = "django_csp-4.0b2.tar.gz", hash = "sha256:3d4912655d5b97a6b9bd74c3fc78af534d531f5e72c17c4565083b4bd872ff09"},
 ]
 
 [package.dependencies]
-Django = ">=3.2"
+django = ">=4.2"
 
 [package.extras]
+dev = ["django-stubs[compatible-mypy]", "jinja2 (>=2.9.6)", "mypy", "pre-commit", "pytest", "pytest-cov", "pytest-django", "pytest-ruff", "sphinx", "sphinx-rtd-theme", "tox", "tox-gh-actions", "types-setuptools"]
 jinja2 = ["jinja2 (>=2.9.6)"]
 tests = ["jinja2 (>=2.9.6)", "pytest", "pytest-cov", "pytest-django", "pytest-ruff"]
+typing = ["django-stubs[compatible-mypy]", "jinja2 (>=2.9.6)", "mypy", "pytest", "pytest-django", "types-setuptools"]
 
 [[package]]
 name = "django-debug-toolbar"
@@ -3788,4 +3790,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.12"
-content-hash = "cde09c98f3477b7dc84d81d25a16e082670ea9a7f6f55f3c3ac59f5f69a3136a"
+content-hash = "3a993f9f10f1ef5ae9b89cfd9f8d78e2e2681300e8d36f5b3254e37d08ca0c6f"
