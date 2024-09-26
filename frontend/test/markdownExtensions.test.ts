@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest'
 import { formatMarkdown, renderMarkdownToHtml } from 'reportcreator-markdown';
 
-function codeBlock(content, language = null) {
+function codeBlock(content: string, language: string|null = null) {
   return `<pre class="code-block"><code class="${language ? 'language-' + language + ' ' : ''}hljs">${
     content.split('\n')
       .map((l, idx) => `<span class="code-block-line" data-line-number="${idx + 1}">${l}</span>`)
@@ -85,7 +85,7 @@ describe('Markdown extensions', () => {
     '`{{ text }}`': '<p><code class="code-inline">&#x7B;&#x7B; text &#x7D;&#x7D;</code></p>',
     '```\n{{ text }}\n```': codeBlock('&#x7B;&#x7B; text &#x7D;&#x7D;'),
     '```\n\\# \\{\\{ text \\}\\}\n```': codeBlock('\\# \\&#x7B;\\&#x7B; text \\&#x7D;\\&#x7D;'),
-  }).map(([md, expected]) => [md, typeof expected === 'string' ? { html: expected, formatted: md } : expected])) {
+  }).map(([md, expected]) => [md, typeof expected === 'string' ? { html: expected, formatted: md } : expected]) as [string, { html: string, formatted: string }][]) {
     test(md, () => {
       const html = renderMarkdownToHtml(md).replaceAll(/ data-position=".*?"/g, '').trim()
       expect(html).toBe(expected.html);

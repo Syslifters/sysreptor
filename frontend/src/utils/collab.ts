@@ -353,6 +353,9 @@ export function connectionHttpReadonly<T = any>(storeState: CollabStoreState<T>,
     type: CollabConnectionType.HTTP_READONLY,
     connectionState: CollabConnectionState.CLOSED,
     connectionError: undefined,
+    connectionConfig: {
+      throttleInterval: HTTP_THROTTLE_INTERVAL,
+    },
     connect,
     disconnect: () => Promise.resolve(),
     send: () => {},
@@ -582,7 +585,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
             sendAwarenessEvent = true;
           }
         } else if (e.type !== CollabEventType.UPDATE_TEXT) {
-          let update_awareness = undefined as boolean|undefined;
+          let update_awareness = false;
           if (e.update_awareness && e.path === storeState.awareness.self.path) {
             update_awareness = true;
             // Do not send awareness separately
@@ -637,7 +640,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
 
   function sendPendingMessages() {
     const events = getPendingEvents({ clearPending: true, includeAwareness: true });
-    storeState.connection?.send(events);
+    if (events.length > 0) {
+      storeState.connection?.send(events);
+    }
   }
 
   function sendEventsThrottled(...events: CollabEvent[]) {
@@ -1019,8 +1024,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
 
   return {
     connect,
+    connectTo,
     disconnect,
     onCollabEvent,
+    onReceiveMessage,
     storeState,
     data: computed(() => storeState.data),
     readonly: computed(() => storeState.connection?.connectionState !== CollabConnectionState.OPEN || !storeState.permissions.write),

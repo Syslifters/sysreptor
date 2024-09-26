@@ -65,6 +65,11 @@ export function markdownParser() {
 }
 
 
+/**
+ * 
+ * @param {string} text 
+ * @returns {string}
+ */
 export function formatMarkdown(text) {
   const md = markdownParser()
     .use(remarkParse)
