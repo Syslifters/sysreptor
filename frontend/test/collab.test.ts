@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { v4 as uuid4 } from 'uuid'
 import { cloneDeep } from 'lodash-es'
-import { CollabEventType, type CollabEvent, type User } from '#imports';
+import { CollabEventType, type CollabEvent, type Comment, type User } from '#imports';
 import { ChangeSet, EditorSelection } from 'reportcreator-markdown/editor';
 
 
@@ -29,6 +29,8 @@ async function createCollab(options?: { collabInitEvent?: Partial<CollabEvent> }
   }
   await collab.connectTo(connection);
 
+  const commentIdText = uuid4();
+  const commentIdList = uuid4();
   const collabInitEvent = {
     type: CollabEventType.INIT,
     version: 1,
@@ -42,21 +44,21 @@ async function createCollab(options?: { collabInitEvent?: Partial<CollabEvent> }
       field_text: 'ABCD',
       field_key: 'value',
       field_list: ['a', 'b', 'c'],
-    },
-    comments: [
-      {
-        id: uuid4(),
-        text: 'comment on field_text',
-        path: 'field_text',
-        text_range: { from: 1, to: 2 }, // 'BC'
+      comments: {
+        [commentIdText]: {
+          id: commentIdText,
+          text: 'comment on field_text',
+          path: 'field_text',
+          text_range: { from: 1, to: 2 }, // 'BC'
+        },
+        [commentIdList]: {
+          id: commentIdList,
+          text: 'comment on field_list[0]',
+          path: 'field_list.[0]',
+          text_range: { from: 0, to: 1 }, // 'a'
+        }
       },
-      {
-        id: uuid4(),
-        text: 'comment on field_list[0]',
-        path: 'field_list.[0]',
-        text_range: { from: 0, to: 1 }, // 'a'
-      }
-    ],
+    },
     clients: [
       {
         client_id: 'self',
@@ -72,6 +74,11 @@ async function createCollab(options?: { collabInitEvent?: Partial<CollabEvent> }
     ...(options?.collabInitEvent || {})
   }
   connection.receive(cloneDeep(collabInitEvent));
+
+  collab.storeState.awareness.other['other'] = {
+    path: 'field_text',
+    selection: EditorSelection.create([EditorSelection.range(1, 2)]),
+  }
 
   // Reset mocks
   await vi.runOnlyPendingTimersAsync();
@@ -133,7 +140,7 @@ describe('connection', () => {
   });
 
   test('disconnect on error', async () => {
-    collab.onReceiveMessage(createReceivedEvent({
+    connection.receive(createReceivedEvent({
       type: CollabEventType.UPDATE_TEXT,
       path: 'field_text',
       updates: [{ changes: [10, [0, 'a']]}],  // Invalid update
@@ -191,13 +198,13 @@ describe('send and receive', () => {
 
   test('version updated', () => {
     const newVersion = 1234;
-    collab.onReceiveMessage(createReceivedEvent({type: CollabEventType.UPDATE_KEY, version: newVersion}));
+    connection.receive(createReceivedEvent({type: CollabEventType.UPDATE_KEY, version: newVersion}));
     expect(collab.storeState.version).toBe(newVersion);
   });
 
   test('collab.update_key', () => {
     const newValue = 'changed value';
-    collab.onReceiveMessage(createReceivedEvent({type: CollabEventType.UPDATE_KEY, path: 'field_key', value: newValue}));
+    connection.receive(createReceivedEvent({type: CollabEventType.UPDATE_KEY, path: 'field_key', value: newValue}));
     expect(collab.storeState.data.field_key).toBe(newValue);
   });
 
@@ -213,7 +220,7 @@ describe('send and receive', () => {
       path: collab.storeState.apiPath + 'field_list.[1]',
       updates: [{ changes: ChangeSet.fromJSON([1, [0, 'y']]) }],
     });
-    collab.onReceiveMessage(createReceivedEvent({type: CollabEventType.UPDATE_KEY, path: 'field_list', value: newValue}));
+    connection.receive(createReceivedEvent({type: CollabEventType.UPDATE_KEY, path: 'field_list', value: newValue}));
     await vi.runOnlyPendingTimersAsync();
     expect(collab.storeState.data.field_list).toEqual(newValue);
     expect(connection.send).not.toHaveBeenCalled();
@@ -221,24 +228,24 @@ describe('send and receive', () => {
 
   test('collab.create', () => {
     const newValue = 'new value';
-    collab.onReceiveMessage(createReceivedEvent({type: CollabEventType.CREATE, path: 'field_new', value: newValue}));
+    connection.receive(createReceivedEvent({type: CollabEventType.CREATE, path: 'field_new', value: newValue}));
     expect(collab.storeState.data.field_new).toBe(newValue);
   });
 
   test('collab.delete', () => {
-    collab.onReceiveMessage(createReceivedEvent({type: CollabEventType.DELETE, path: 'field_text'}));
+    connection.receive(createReceivedEvent({type: CollabEventType.DELETE, path: 'field_text'}));
     expect(collab.storeState.data.field_text).toBeUndefined();
   });
 
   test('collab.create list', () => {
     const newValue = 'new value';
-    collab.onReceiveMessage(createReceivedEvent({type: CollabEventType.CREATE, path: 'field_list.[3]', value: newValue}));
+    connection.receive(createReceivedEvent({type: CollabEventType.CREATE, path: 'field_list.[3]', value: newValue}));
     expect(collab.storeState.data.field_list[3]).toBe(newValue);
     expect(collab.storeState.data.field_list.length).toBe(4);
   });
 
   test('collab.delete list', () => {
-    collab.onReceiveMessage(createReceivedEvent({type: CollabEventType.DELETE, path: 'field_list.[1]'}));
+    connection.receive(createReceivedEvent({type: CollabEventType.DELETE, path: 'field_list.[1]'}));
     const newList = collabInitEvent.data.field_list;
     newList.splice(1, 1);
     expect(collab.storeState.data.field_list.length).toBe(newList.length);
@@ -246,7 +253,7 @@ describe('send and receive', () => {
   });
 
   test('collab.connect', () => {
-    collab.onReceiveMessage(createReceivedEvent({
+    connection.receive(createReceivedEvent({
       type: CollabEventType.CONNECT,
       client_id: 'other2',
       client: {
@@ -259,13 +266,13 @@ describe('send and receive', () => {
   });
 
   test('collab.disconnect', () => {
-    collab.onReceiveMessage(createReceivedEvent({type: CollabEventType.DISCONNECT, client_id: 'other'}));
+    connection.receive(createReceivedEvent({type: CollabEventType.DISCONNECT, client_id: 'other'}));
     expect(collab.storeState.awareness.clients.length).toBe(1);
   })
 
   test('collab.awareness', () => {
     const selection = EditorSelection.create([EditorSelection.range(0, 1)]).toJSON();
-    collab.onReceiveMessage(createReceivedEvent({
+    connection.receive(createReceivedEvent({
       type: CollabEventType.AWARENESS,
       client_id: 'other',
       path: 'field_text',
@@ -312,12 +319,11 @@ describe('collab.awareness', () => {
   });
 
   test('collab.update_text with selection: collab.awareness not sent', () => {
-    collab.onCollabEvent({type: CollabEventType.AWARENESS, path: collab.storeState.apiPath + 'field_text'});
+    collab.onCollabEvent({type: CollabEventType.AWARENESS, path: collab.storeState.apiPath + 'field_text', selection: EditorSelection.create([EditorSelection.cursor(0)])});
     collab.onCollabEvent({
       type: CollabEventType.UPDATE_TEXT,
       path: collab.storeState.apiPath + 'field_text',
       updates: [{ changes: ChangeSet.fromJSON([4, [0, 'E']]) }],
-      selection: EditorSelection.create([EditorSelection.cursor(0)]),
     });
     const selection = EditorSelection.create([EditorSelection.range(0, 2)]);
     collab.onCollabEvent({type: CollabEventType.AWARENESS, path: collab.storeState.apiPath + 'field_text', selection})
@@ -329,8 +335,8 @@ describe('collab.awareness', () => {
       type: CollabEventType.UPDATE_TEXT,
       path: collab.storeState.apiPath + 'field_text',
       updates: [{ changes: ChangeSet.fromJSON([4, [0, 'E']]) }],
-      selection: EditorSelection.create([EditorSelection.cursor(1)]),
     });
+    collab.onCollabEvent({type: CollabEventType.AWARENESS, path: collab.storeState.apiPath + 'field_text', Selection: EditorSelection.create([EditorSelection.cursor(1)])});
     collab.onCollabEvent({type: CollabEventType.AWARENESS, path: collab.storeState.apiPath + 'field_key'});
     expectEventsSent(
       {type: CollabEventType.UPDATE_TEXT, path: 'field_text', selection: undefined},
@@ -379,71 +385,153 @@ describe('collab.awareness', () => {
 });
 
 
-// describe('collab.update_text', () => {
-//   let { collab }: Awaited<ReturnType<typeof createCollab>> = {} as any;
-//   beforeEach(async () => {
-//     const res = await createCollab();
-//     collab = res.collab;
-//   });
+describe('collab.update_text', () => {
+  let { collab, connection, collabInitEvent }: Awaited<ReturnType<typeof createCollab>> = {} as any;
+  beforeEach(async () => {
+    const res = await createCollab();
+    collab = res.collab;
+    connection = res.connection;
+    collabInitEvent = res.collabInitEvent;
+  });
 
-  
-// });
+  test('send', () => {
+    collab.onCollabEvent({
+      type: CollabEventType.UPDATE_TEXT,
+      path: collab.storeState.apiPath + 'field_text',
+      updates: [{ changes: ChangeSet.fromJSON([4, [0, 'E']]) }],
+    });
+    const selection = EditorSelection.create([EditorSelection.range(0, 1)]);
+    collab.onCollabEvent({
+      type: CollabEventType.UPDATE_TEXT,
+      path: collab.storeState.apiPath + 'field_text',
+      updates: [{ changes: ChangeSet.fromJSON([0, [0, '0'], 5]) }],
+    });
+    collab.onCollabEvent({type: CollabEventType.AWARENESS, path: collab.storeState.apiPath + 'field_text', selection});
 
+    // Text updated
+    expect(collab.storeState.data.field_text).toBe('0ABCDE');
 
-// TODO: collab tests
-// * [x] refactor
-//   * [x] connection
-//     * [x] connect, disconnect, connectionInfo, onReceiveMessage
-//     * [x] connectionConfig: throttle timer
-//     * [x] send(events: CollabEvent[])
-//   * [x] WSConnection
-//     * [x] send: send all events immediately, no throttle
-//   * [x] HTTPConnection
-//     * [x] timer: fetch events every 10s
-//     * [x] reset timer on send
-//   * [x] useCollab:
-//     * [x] timer with connection.connectionConfig.throttle_interval
-//     * [x] 1 timer for all fields, remove per-field timers
-//     * [x] send events to connection in batch
-//     * [x] throttle update_text, update_key, awareness
-//     * [x] do not throttle other events
-//   * [x] useCollab: moved from WSConnection
-//     * [x] before connect: stop timer, reset pending events
-//     * [x] on disconnect: stop timer, flush pending events
-//     * [x] on receive CollabEventType.INIT: sendAwarenessThrottled
-//     * [x] on receive CollabEventType.CONNECT: sendAwarenessThrottled
-// * [ ] tests
-//   * [ ] connection
-//     * [x] send not called when connectionState != connected
-//     * [ ] test connection timeout detection: no answer received from server => disconnect called
-//   * [ ] collab receive
-//     * [x] events received: version updated
-//     * [ ] test update_text received: rebase positions for text + selection + comments
-//     * [x] test update_key received: clear pending events of field + child fields
-//     * [x] test create received
-//     * [x] test delete received
-//     * [x] text receive list operations
-//   * [ ] awareness
-//     * [x] update_text event with selection: send + clear pending collab.awareness events
-//     * [x] awareness event: send + clear pending collab.awareness events
-//     * [x] send update_key with update_awareness=True: collab.awareness not sent
-//     * [x] send update_key with update_awareness=True, other field focussed:  collab.awareness sent
-//     * [x] send update_key with update_awareness=False: update_awareness sent
-//     * [x] send update_text with selection, other field focussed: update_text.selection=undefined, update_awareness sent
-//     * [ ] update selection on receive collab.update_text
-//     * [ ] update selection on send collab.update_text
-//     * [ ] rebase selection on receive collab.awareness onto unconfirmedTextUpdates
-//   * [ ] collab send
-//     * [x] multiple update_text events on same field: combine
-//     * [x] multiple update_key events on same field: only send last
-//     * [x] update_text child, then update_key parent: only send update_key
-//   * [ ] collab.update_text
-//     * [ ] test rebase on receive remote events 
-//     * [ ] test rebase on send onto unconfirmedTextUpdates
-//     * [ ] test mark text updates as confirmed on receive remote events
-//   * [ ] comments
-//     * [ ] update according to event.comments
-//     * [ ] update comments position on receive collab.update_text
-//     * [ ] update comments position on send collab.update_text
-//     * [ ] rebase comments position on receive collab.awareness onto unconfirmedTextUpdates
+    // Awareness of self updated
+    expect(collab.storeState.awareness.self).toEqual({
+      path: 'field_text',
+      selection,
+    });
+
+    // Selection position of other users updated
+    expect(collab.storeState.awareness.other['other']).toEqual({
+      path: 'field_text',
+      selection: EditorSelection.create([EditorSelection.range(2, 3)]),
+    });
+
+    // Comment positions updated
+    const commentId = Object.values(collabInitEvent.data.comments as Record<string, Partial<Comment>>).find(c => c.path === 'field_text')!.id!;
+    expect(collab.storeState.data.comments[commentId].text_range).toEqual(EditorSelection.range(2, 3));
+  });
+
+  test('receive: no unconfirmedTextUpdates', () => {
+    collab.storeState.awareness.self = {
+      path: 'field_text',
+      selection: EditorSelection.create([EditorSelection.range(1, 2)]),
+    }
+
+    const selection = EditorSelection.create([EditorSelection.range(0, 1)]);
+    const commentId = Object.values(collabInitEvent.data.comments as Record<string, Partial<Comment>>).find(c => c.path === 'field_text')!.id;
+    connection.receive(createReceivedEvent({
+      type: CollabEventType.UPDATE_TEXT,
+      client_id: 'other',
+      path: 'field_text',
+      updates: [{ changes: [0, [0, '0'], 4] }],
+      selection: selection.toJSON(),
+      comments: [{ id: commentId, path: 'field_text', text_range: { from: 2, to: 3 }}],
+    }));
+
+    // Text updated
+    expect(collab.storeState.data.field_text).toBe('0ABCD');
+
+    // Awareness of other user updated
+    expect(collab.storeState.awareness.other['other']).toEqual({
+      path: 'field_text',
+      selection,
+    });
+
+    // Selection position of self updated
+    expect(collab.storeState.awareness.self).toEqual({
+      path: 'field_text',
+      selection: EditorSelection.create([EditorSelection.range(2, 3)])
+    });
+
+    // Comment positions updated
+    const commentActual = Object.values(collab.storeState.data.comments as Record<string, Partial<Comment>>).find(c => c.id === commentId)!;
+    expect(commentActual.path).toBe('field_text');
+    expect(commentActual.text_range).toEqual(EditorSelection.range(2, 3));
+  });
+
+  test('receive: rebase onto unconfirmedTextUpdates', () => {
+    const selection = EditorSelection.create([EditorSelection.range(0, 1)]);
+    collab.onCollabEvent({
+      type: CollabEventType.UPDATE_TEXT,
+      path: collab.storeState.apiPath + 'field_text',
+      updates: [{ changes: ChangeSet.fromJSON([0, [0, '0'], 4]) }],
+    });
+    collab.onCollabEvent({type: CollabEventType.AWARENESS, path: collab.storeState.apiPath + 'field_text', selection});
+    const commentId = Object.values(collabInitEvent.data.comments as Record<string, Partial<Comment>>).find(c => c.path === 'field_text')!.id!;
+    connection.receive(createReceivedEvent({
+      type: CollabEventType.UPDATE_TEXT,
+      client_id: 'other',
+      path: 'field_text',
+      updates: [{ changes: [4, [0, 'E']] }],
+      selection: EditorSelection.create([EditorSelection.range(1, 2)]).toJSON(),
+    }));
+
+    // Text updated
+    expect(collab.storeState.data.field_text).toBe('0ABCDE');
+
+    // Awareness of self updated
+    expect(collab.storeState.awareness.self).toEqual({
+      path: 'field_text',
+      selection,
+    });
+
+    // Selection position of other users updated: rebased onto unconfirmedTextUpdates
+    expect(collab.storeState.awareness.other['other']).toEqual({
+      path: 'field_text',
+      selection: EditorSelection.create([EditorSelection.range(2, 3)]),
+    });
+
+    // Comment positions updated: rebased onto unconfirmedTextUpdates
+    const commentActual = collab.storeState.data.comments[commentId];
+    expect(commentActual.path).toBe('field_text');
+    expect(commentActual.text_range).toEqual(EditorSelection.range(2, 3));
+
+    // Rebase collab.awareness
+    connection.receive({
+      type: CollabEventType.AWARENESS,
+      client_id: 'other',
+      path: 'field_text',
+      selection: EditorSelection.create([EditorSelection.cursor(1)]).toJSON(),
+    });
+    expect(collab.storeState.awareness.other['other']).toEqual({
+      path: 'field_text',
+      selection: EditorSelection.create([EditorSelection.cursor(2)]),
+    });
+  });
+
+  test('receive: confirm unconfirmedTextUpdates', () => {
+    const updates = [{ changes: ChangeSet.fromJSON([4, [0, 'E']]) }];
+    collab.onCollabEvent({
+      type: CollabEventType.UPDATE_TEXT,
+      path: collab.storeState.apiPath + 'field_text',
+      updates,
+    });
+    expect(collab.storeState.perPathState.get('field_text')!.unconfirmedTextUpdates).toEqual(updates);
+
+    connection.receive({
+      type: CollabEventType.UPDATE_TEXT,
+      client_id: 'self',
+      path: 'field_text',
+      updates: updates.map(u => ({ changes: u.changes.toJSON() })),
+    });
+    expect(collab.storeState.perPathState.get('field_text')!.unconfirmedTextUpdates).toEqual([]);
+  });
+});
 

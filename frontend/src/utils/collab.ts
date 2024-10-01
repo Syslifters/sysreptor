@@ -86,7 +86,6 @@ export type AwarenessInfos = {
     selection?: EditorSelection;
   };
   other: Record<string, {
-    client_id: string;
     path: string|null;
     selection?: EditorSelection;
   }>;
@@ -538,7 +537,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       } else if (msgData.type === CollabEventType.AWARENESS) {
         if (msgData.client_id !== storeState.clientID) {
           storeState.awareness.other[msgData.client_id!] = {
-            client_id: msgData.client_id!,
             path: msgData.path,
             selection: msgData.path ? parseSelection({
               selectionJson: msgData.selection, 
@@ -894,8 +892,8 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       });
       
       // Update remote selections
-      for (const a of Object.values(storeState.awareness.other)) {
-        if (a.client_id === event.client_id) {
+      for (const [clientId, a] of Object.entries(storeState.awareness.other)) {
+        if (event.client_id === clientId) {
           a.path = event.path;
           if (event.selection) {
             a.selection = parseSelection({
