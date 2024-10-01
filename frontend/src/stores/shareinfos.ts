@@ -19,7 +19,6 @@ export const useShareInfoStore = defineStore('shareinfo', {
   },
   actions: {
     clear() {
-      this.useNotesCollab().disconnect();
       this.data = null;
     },
     async fetchById(shareId: string) {

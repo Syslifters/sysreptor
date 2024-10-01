@@ -3,11 +3,10 @@ import urlJoin from "url-join";
 import { ChangeSet, EditorSelection, SelectionRange, Text } from "reportcreator-markdown/editor"
 import { CommentStatus, type Comment, type UserShortInfo } from "#imports"
 
+const WS_THROTTLE_INTERVAL = 1_000;
 const WS_RESPONSE_TIMEOUT = 7_000;
 const WS_PING_INTERVAL = 30_000;
-const WS_THROTTLE_INTERVAL_UPDATE_KEY = 1_000;
-const WS_THROTTLE_INTERVAL_UPDATE_TEXT = 1_000;
-const WS_THROTTLE_INTERVAL_AWARENESS = 1_000;
+const HTTP_THROTTLE_INTERVAL = 5_000;
 const HTTP_FALLBACK_INTERVAL = 10_000;
 
 export enum CollabEventType {
@@ -70,11 +69,15 @@ export enum CollabConnectionState {
 export type CollabConnectionInfo = {
   type: CollabConnectionType;
   connectionState: CollabConnectionState;
+  connectionConfig: {
+    throttleInterval: number;
+  },
   connectionError?: { error: any, message?: string };
   connectionAttempt?: number;
+  sendThrottled?: ReturnType<typeof throttle>;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
-  send: (msg: CollabEvent) => void;
+  send: (events: CollabEvent[]) => void;
 };
 
 export type AwarenessInfos = {
@@ -83,7 +86,6 @@ export type AwarenessInfos = {
     selection?: EditorSelection;
   };
   other: Record<string, {
-    client_id: string;
     path: string|null;
     selection?: EditorSelection;
   }>;
@@ -98,6 +100,7 @@ export type CollabStoreState<T> = {
   connection?: CollabConnectionInfo;
   handleAdditionalWebSocketMessages?: (event: CollabEvent, collabState: CollabStoreState<T>) => boolean;
   perPathState: Map<string, {
+    pendingEvents: CollabEvent[];
     unconfirmedTextUpdates: TextUpdate[];
   }>;
   awareness: AwarenessInfos,
@@ -147,19 +150,8 @@ function isSubpath(subpath?: string|null, parent?: string|null) {
   return subpath === parent || subpath.startsWith(parent + (!parent.endsWith('/') ? '.' : ''));
 }
 
-async function sendPendingMessagesHttp<T>(storeState: CollabStoreState<T>, messages?: CollabEvent[]) {
+async function sendEventsHttp<T>(storeState: CollabStoreState<T>, messages?: CollabEvent[]) {
   messages = Array.from(messages || []);
-
-  for (const [p, s] of storeState.perPathState.entries()) {
-    if (s.unconfirmedTextUpdates.length > 0) {
-      messages.push({
-        type: CollabEventType.UPDATE_TEXT,
-        path: p,
-        version: storeState.version,
-        updates: s.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
-      });
-    }
-  }
 
   return await $fetch<{ version: number, messages: CollabEvent[], clients: CollabClientInfo[] }>(urlJoin(storeState.apiPath, '/fallback/'), { 
     method: 'POST', 
@@ -175,22 +167,21 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
   const serverUrl = `${window.location.protocol === 'http:' ? 'ws' : 'wss'}://${window.location.host}/`;
   const wsUrl = urlJoin(serverUrl, storeState.apiPath);
   const websocket = ref<WebSocket|null>(null);
-  const perPathState = new Map<string, {
-    sendUpdateTextThrottled: ReturnType<typeof throttle>;
-    sendUpdateKeyThrottled: ReturnType<typeof throttle>;
-  }>();
-  const sendAwarenessThrottled = throttle(websocketSendAwareness, WS_THROTTLE_INTERVAL_AWARENESS, { leading: false, trailing: true });
 
   const connectionInfo = reactive<CollabConnectionInfo>({
     type: CollabConnectionType.WEBSOCKET,
     connectionState: CollabConnectionState.CLOSED,
     connectionError: undefined,
+    connectionConfig: {
+      throttleInterval: WS_THROTTLE_INTERVAL,
+    },
     connect,
     disconnect,
     send,
   });
 
-  const websocketConnectionLostTimeout = throttle(() => {
+  const websocketPingInterval = useIntervalFn(websocketSendPing, WS_PING_INTERVAL, { immediate: false });
+  const websocketResponseTimeout = throttle(() => {
     // Possible reasons: network outage, browser tab becomes inactive, server crashes
     if (websocket.value && ![WebSocket.CLOSED, WebSocket.CLOSING].includes(websocket.value?.readyState as any)) {
       websocket.value?.close(4504, 'Connection loss detection timeout');
@@ -207,7 +198,7 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
       connectionInfo.connectionState = CollabConnectionState.CONNECTING;
       websocket.value = new WebSocket(wsUrl);
       websocket.value.addEventListener('open', () => {
-        websocketConnectionLossDetection();
+        websocketPingInterval.resume();
       })
       websocket.value.addEventListener('close', (event) => {
         // Error handling
@@ -221,15 +212,12 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
           connectionInfo.connectionError = { error: event, message: event.reason };
         }
         // eslint-disable-next-line no-console
-        console.log('Websocket closed', event, connectionInfo.connectionError);
+        console.log('Websocket closed', event, toValue(connectionInfo.connectionError));
         
         // Reset data
         websocket.value = null;
-        websocketConnectionLostTimeout.cancel();
-        sendAwarenessThrottled?.cancel();
-        for (const s of perPathState.values()) {
-          s.sendUpdateTextThrottled.cancel();
-        }
+        websocketPingInterval.pause();
+        websocketResponseTimeout.cancel();
         connectionInfo.connectionState = CollabConnectionState.CLOSED;
 
         reject(connectionInfo.connectionError);
@@ -238,7 +226,7 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
         const msgData = JSON.parse(event.data) as CollabEvent;
 
         // Reset connection loss detection
-        websocketConnectionLostTimeout?.cancel();
+        websocketResponseTimeout?.cancel();
         
         // Handle message
         onReceiveMessage(msgData);
@@ -246,22 +234,7 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
         // Promise result
         if (msgData.type === CollabEventType.INIT) {
           connectionInfo.connectionState = CollabConnectionState.OPEN;
-          sendAwarenessThrottled();
           resolve();
-        } else if (msgData.type === CollabEventType.UPDATE_KEY) {
-          if (msgData.client_id !== storeState.clientID) {
-            // Clear pending events of sub-fields
-            for (const [k, v] of perPathState.entries()) {
-              if (isSubpath(k, msgData.path)) {
-                v.sendUpdateTextThrottled.cancel();
-              }
-            }
-          }
-        } else if (msgData.type === CollabEventType.CONNECT) {
-          if (msgData.client_id !== storeState.clientID) {
-            // Send awareness info to new client
-            sendAwarenessThrottled();
-          }
         }
       });
     });
@@ -272,12 +245,6 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
       return;
     }
 
-    // Send all pending messages
-    for (const s of perPathState.values()) {
-      s.sendUpdateTextThrottled.flush();
-    }
-    await nextTick();
-
     if (websocket.value?.readyState === WebSocket.OPEN) {
       await new Promise<void>((resolve) => {
         websocket.value?.addEventListener('close', () => resolve(), { once: true });
@@ -286,33 +253,8 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
     }
   }
 
-  function send(msg: CollabEvent) {
-    if (msg.type === CollabEventType.UPDATE_KEY) {
-      if (msg.update_awareness) {
-        // Awareness info is included in update_key message
-        sendAwarenessThrottled?.cancel();
-      }
-
-      // Cancel pending update_key events of child fields
-      for (const [k, v] of perPathState.entries()) {
-        if (isSubpath(k, msg.path) && k !== msg.path) {
-          v.sendUpdateKeyThrottled.cancel();
-        }
-      }
-      
-      // Throttle update_key messages
-      const s = ensurePerPathState(msg.path!);
-      s.sendUpdateKeyThrottled(msg);
-    } else if (msg.type === CollabEventType.UPDATE_TEXT) {
-      // Cancel pending awareness send: awareness info is included in the next update_text message
-      sendAwarenessThrottled.cancel();
-      // Throttle update_text messages
-      const s = ensurePerPathState(msg.path!);
-      s.sendUpdateTextThrottled();
-    } else if (msg.type === CollabEventType.AWARENESS) {
-      // Throttle awareness messages
-      sendAwarenessThrottled();
-    } else {
+  function send(events: CollabEvent[]) {
+    for (const msg of events) {
       websocketSend(msg);
     }
   }
@@ -322,72 +264,15 @@ export function connectionWebsocket<T = any>(storeState: CollabStoreState<T>, on
       return;
     }
     websocket.value?.send(JSON.stringify(msg));
-    websocketConnectionLostTimeout();
+    websocketResponseTimeout();
   }
 
-  function websocketSendAwareness() {
-    if (!storeState.permissions.write) {
-      return;
-    }
-
-    websocketSend({
-      type: CollabEventType.AWARENESS,
-      path: storeState.awareness.self.path,
+  async function websocketSendPing() {
+    websocketSend({ 
+      type: CollabEventType.PING,
       version: storeState.version,
-      selection: storeState.awareness.self.selection?.toJSON(),
+      path: null,
     });
-  }
-
-  function websocketSendUpdateText(path: string) {
-    const updates = storeState.perPathState.get(path)?.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })) || [];
-    if (updates.length === 0) {
-      return;
-    }
-
-    let selection;
-    if (storeState.awareness.self.path === path) {
-      // Awareness info is included in update_text message
-      // No need to send it separately
-      selection = storeState.awareness.self.selection?.toJSON();
-      sendAwarenessThrottled?.cancel();
-    }
-
-    websocketSend({
-      type: CollabEventType.UPDATE_TEXT,
-      path,
-      version: storeState.version,
-      updates,
-      selection,
-    });
-  }
-
-  function websocketSendUpdateKey(msg: CollabEvent) {
-    websocketSend({
-      ...msg,
-      update_awareness: msg.update_awareness && msg.path === storeState.awareness.self.path,
-    });
-  }
-
-  function ensurePerPathState(path: string) {
-    if (!perPathState.has(path)) {
-      perPathState.set(path, {
-        sendUpdateTextThrottled: throttle(() => websocketSendUpdateText(path), WS_THROTTLE_INTERVAL_UPDATE_TEXT, { leading: false, trailing: true }),
-        sendUpdateKeyThrottled: throttle((msg: CollabEvent) => websocketSendUpdateKey(msg), WS_THROTTLE_INTERVAL_UPDATE_KEY, { leading: true, trailing: true }),
-      });
-    }
-    return perPathState.get(path)!;
-  }
-
-  async function websocketConnectionLossDetection() {
-    const ws = websocket.value;
-    while (connectionInfo.connectionState !== CollabConnectionState.CLOSED && websocket.value === ws) {
-      await new Promise(resolve => setTimeout(resolve, WS_PING_INTERVAL));
-      websocketSend({ 
-        type: CollabEventType.PING,
-        version: storeState.version,
-        path: null,
-      });
-    }
   }
 
   return connectionInfo;
@@ -397,14 +282,16 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
   const httpUrl = urlJoin(storeState.apiPath, '/fallback/');
   const connectionInfo = reactive<CollabConnectionInfo>({
     type: CollabConnectionType.HTTP_FALLBACK,
+    connectionConfig: {
+      throttleInterval: HTTP_THROTTLE_INTERVAL,
+    },
     connectionState: CollabConnectionState.CLOSED,
     connectionError: undefined,
     connect,
     disconnect,
     send,
   });
-  const pendingMessages = ref<CollabEvent[]>([]);
-  const sendInterval = ref();
+  const fetchInterval = useIntervalFn(() => sendAndReceiveMessages([]), HTTP_FALLBACK_INTERVAL, { immediate: false });
 
   async function connect() {
     connectionInfo.connectionState = CollabConnectionState.CONNECTING;
@@ -413,7 +300,7 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
       onReceiveMessage(res);
       connectionInfo.connectionState = CollabConnectionState.OPEN;
 
-      sendInterval.value = setInterval(sendPendingMessages, HTTP_FALLBACK_INTERVAL);
+      fetchInterval.resume();
     } catch (error) {
       connectionInfo.connectionError = { error };
       connectionInfo.connectionState = CollabConnectionState.CLOSED;
@@ -421,36 +308,28 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
     }
   }
 
-  async function disconnect(opts?: { skipSendPendingMessages?: boolean }) {
-    clearInterval(sendInterval.value);
-    sendInterval.value = undefined;
-
-    if (!opts?.skipSendPendingMessages) {
-      await sendPendingMessages();
-    }
-
+  async function disconnect() {
+    fetchInterval.pause();
     connectionInfo.connectionState = CollabConnectionState.CLOSED;
   }
 
-  function send(msg: CollabEvent) {
-    if ([CollabEventType.AWARENESS, CollabEventType.PING, CollabEventType.UPDATE_TEXT].includes(msg.type)) {
-      // Do not send awareness and ping event at all.
-      // collab.update_text is handled in sendPendingMessages
-    } else if ([CollabEventType.CREATE, CollabEventType.DELETE].includes(msg.type)) {
-      // Send immediately
-      pendingMessages.value.push(msg);
-      sendPendingMessages();
-    } else {
-      pendingMessages.value.push(msg);
+  function send(events: CollabEvent[]) {
+    // Do not send awareness and ping event at all.
+    events = events.filter(e => ![CollabEventType.AWARENESS, CollabEventType.PING].includes(e.type));
+    if (events.length === 0) {
+      return;
     }
+
+    // Reset fetch interval because sendMessages also fetches server events since last update
+    fetchInterval.pause();
+    fetchInterval.resume();
+
+    sendAndReceiveMessages(events);
   }
 
-  async function sendPendingMessages() {
-    const messages = [...pendingMessages.value]
-    pendingMessages.value = [];
-
+  async function sendAndReceiveMessages(events?: CollabEvent[]) {
     try {
-      const res = await sendPendingMessagesHttp(storeState, messages);
+      const res = await sendEventsHttp(storeState, events || []);
       
       storeState.version = res.version;
       storeState.awareness.clients = res.clients;
@@ -460,7 +339,7 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
     } catch (error) {
       // Disconnect on error
       connectionInfo.connectionError = { error };
-      disconnect({ skipSendPendingMessages: true });
+      disconnect();
     }
   }
 
@@ -473,6 +352,9 @@ export function connectionHttpReadonly<T = any>(storeState: CollabStoreState<T>,
     type: CollabConnectionType.HTTP_READONLY,
     connectionState: CollabConnectionState.CLOSED,
     connectionError: undefined,
+    connectionConfig: {
+      throttleInterval: HTTP_THROTTLE_INTERVAL,
+    },
     connect,
     disconnect: () => Promise.resolve(),
     send: () => {},
@@ -507,9 +389,17 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       other: {},
       clients: [],
     };
+    storeState.connection?.sendThrottled?.cancel();
 
-    await connection.connect();
-    storeState.connection = connection;
+    try {
+      connection.sendThrottled = throttle(sendPendingMessages, connection.connectionConfig.throttleInterval, { leading: false, trailing: true });
+      await connection.connect();
+      storeState.connection = connection;
+    } catch (error) {
+      connection.sendThrottled?.cancel();
+      connection.sendThrottled = undefined;
+      throw error;
+    }
   }
 
   async function connect(options?: { connectionType?: CollabConnectionType }) {
@@ -524,18 +414,22 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     } else {
       // If there are pending events from the previous connection, send them now to prevent losing events.
       // Try to sync as many changes as possible. When some events cannot be processed, we don't care since we cannot handle them anyway.
-      if (storeState.version > 0 && Array.from(storeState.perPathState.values()).some(s => s.unconfirmedTextUpdates.length > 0)) {
-        try {
-          await sendPendingMessagesHttp(storeState);
-        } catch {
-          // Ignore errors. If data is saved: good, if not: discard it (there's most likely an error or conflict in it)
+      try {
+        const pendingEvents = getPendingEvents({ clearPending: false, includeAwareness: false });
+        if (storeState.version > 0 && pendingEvents.length > 0) {
+            await sendEventsHttp(storeState, pendingEvents);
         }
+      } catch {
+        // Ignore errors. If data is saved: good, if not: discard it (there's most likely a error or conflict in it)
       }
 
       // Dummy connection info with connectionState=CONNECTING
       storeState.connection = {
         type: CollabConnectionType.WEBSOCKET,
         connectionState: CollabConnectionState.CONNECTING,
+        connectionConfig: {
+          throttleInterval: 1_000,
+        },
         connectionAttempt: 0,
         connect: () => Promise.resolve(),
         disconnect: () => Promise.resolve(),
@@ -572,6 +466,12 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
 
   async function disconnect() {
     const con = storeState.connection;
+    if (con?.sendThrottled) {
+      // Flush pending events
+      con.sendThrottled();
+      con.sendThrottled.flush();
+      con.sendThrottled = undefined;
+    }
     await con?.disconnect();
     if (storeState.connection === con) {
       storeState.connection = undefined;
@@ -595,6 +495,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           path: c.path, 
           selection: undefined, 
         }]));
+
+        // Send awareness
+        sendAwarenessThrottled();
       } else if (msgData.type === CollabEventType.UPDATE_KEY) {
         if (msgData.client_id !== storeState.clientID) {
           setValue(msgData.path!, msgData.value);
@@ -623,6 +526,9 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           // Add new client
           storeState.awareness.clients.push(msgData.client!);
         }
+
+        // Send awareness
+        sendAwarenessThrottled();
       } else if (msgData.type === CollabEventType.DISCONNECT) {
         // Remove client
         storeState.awareness.clients = storeState.awareness.clients
@@ -631,7 +537,6 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       } else if (msgData.type === CollabEventType.AWARENESS) {
         if (msgData.client_id !== storeState.clientID) {
           storeState.awareness.other[msgData.client_id!] = {
-            client_id: msgData.client_id!,
             path: msgData.path,
             selection: msgData.path ? parseSelection({
               selectionJson: msgData.selection, 
@@ -660,10 +565,103 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   function ensurePerPathState(path: string) {
     if (!storeState.perPathState.has(path)) {
       storeState.perPathState.set(path, {
+        pendingEvents: [],
         unconfirmedTextUpdates: [],
       });
     }
     return storeState.perPathState.get(path)!;
+  }
+
+  function getPendingEvents(options?: { clearPending?: boolean, includeAwareness?: boolean }) {
+    const events = [];
+    let sendAwarenessEvent = null as boolean|null;
+    for (const [p, s] of storeState.perPathState.entries()) {
+      // Collect non-text events
+      for (const e of s.pendingEvents) {
+        if (e.type === CollabEventType.AWARENESS) {
+          if (sendAwarenessEvent === null) {
+            sendAwarenessEvent = true;
+          }
+        } else if (e.type !== CollabEventType.UPDATE_TEXT) {
+          let update_awareness = false;
+          if (e.update_awareness && e.path === storeState.awareness.self.path) {
+            update_awareness = true;
+            // Do not send awareness separately
+            sendAwarenessEvent = false;
+          }
+          events.push({
+            ...e,
+            version: storeState.version,
+            update_awareness,
+          });
+        }
+      }
+      
+      // Collect text updates
+      if (s.unconfirmedTextUpdates.length > 0) {
+        let selection;
+        if (storeState.awareness.self.path === p) {
+          // Awareness info is included in update_text message
+          // No need to send it separately
+          selection = storeState.awareness.self.selection?.toJSON();
+          // Do not send awareness separately because informations are included in update_text
+          sendAwarenessEvent = false;   
+        }
+
+        events.push({
+          type: CollabEventType.UPDATE_TEXT,
+          path: p,
+          version: storeState.version,
+          updates: s.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
+          selection,
+        })
+      }
+
+      // Clear pending events that will be sent
+      if (options?.clearPending) {
+        s.pendingEvents = [];
+      }
+    }
+
+    // Send awareness event
+    if (options?.includeAwareness && sendAwarenessEvent) {
+      events.push({
+        type: CollabEventType.AWARENESS,
+        path: storeState.awareness.self.path,
+        version: storeState.version,
+        selection: storeState.awareness.self.selection?.toJSON(),
+      });
+    }
+
+    return events;
+  }
+
+  function sendPendingMessages() {
+    const events = getPendingEvents({ clearPending: true, includeAwareness: true });
+    if (events.length > 0) {
+      storeState.connection?.send(events);
+    }
+  }
+
+  function sendEventsThrottled(...events: CollabEvent[]) {
+    for (const e of events) {
+      ensurePerPathState(e.path!).pendingEvents.push(e);
+    }
+    storeState.connection?.sendThrottled?.();
+  }
+
+  function sendEventsImmediately(...events: CollabEvent[]) {
+    sendEventsThrottled(...events);
+    storeState.connection?.sendThrottled?.flush();
+  }
+
+  function sendAwarenessThrottled() {
+    sendEventsThrottled({
+      type: CollabEventType.AWARENESS,
+      path: storeState.awareness.self.path,
+      version: storeState.version,
+      selection: storeState.awareness.self.selection?.toJSON(),
+    });
   }
 
   function updateKey(event: any) {
@@ -680,7 +678,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     }
 
     // Propagate event to other clients
-    storeState.connection?.send({
+    sendEventsThrottled({
       type: event.type || CollabEventType.UPDATE_KEY,
       path: dataPath,
       version: storeState.version,
@@ -694,7 +692,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     // Do not update local state here. Wait for server event.
     // Propagate event to other clients
     const dataPath = toDataPath(event.path);
-    storeState.connection?.send({
+    sendEventsImmediately({
       type: CollabEventType.CREATE,
       path: dataPath,
       version: storeState.version,
@@ -706,7 +704,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     // Do not update local state here. Wait for server event.
     // Propagate event to other clients
     const dataPath = toDataPath(event.path);
-    storeState.connection?.send({
+    sendEventsImmediately({
       type: CollabEventType.DELETE,
       path: dataPath,
       version: storeState.version,
@@ -783,20 +781,15 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     })));
 
     // Propagate unconfirmed events to other clients
-    storeState.connection?.send({
-      type: CollabEventType.UPDATE_TEXT,
-      path: dataPath,
-      version: storeState.version,
-      updates: perPathState.unconfirmedTextUpdates.map(u => ({ changes: u.changes.toJSON() })),
-      selection: storeState.awareness.self.selection?.toJSON(),
-    })
+    sendEventsThrottled();
   }
 
   function setValue(path: string, value: any) {
-    // Clear pending text updates, because they are overwritten by the value of collab.update_key
+    // Clear pending updates, because they are overwritten by the value of collab.update_key
     for (const [k, v] of storeState.perPathState.entries()) {
       if (isSubpath(k, path)) {
         v.unconfirmedTextUpdates = [];
+        v.pendingEvents = [];
       }
     }
 
@@ -835,12 +828,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         path: dataPath,
         selection: event.selection,
       };
-      storeState.connection?.send({
-        type: CollabEventType.AWARENESS,
-        path: dataPath,
-        version: storeState.version,
-        selection: event.selection?.toJSON(),
-      });
+      sendAwarenessThrottled();
     }
   }
 
@@ -904,8 +892,8 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       });
       
       // Update remote selections
-      for (const a of Object.values(storeState.awareness.other)) {
-        if (a.client_id === event.client_id) {
+      for (const [clientId, a] of Object.entries(storeState.awareness.other)) {
+        if (event.client_id === clientId) {
           a.path = event.path;
           if (event.selection) {
             a.selection = parseSelection({
@@ -1034,8 +1022,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
 
   return {
     connect,
+    connectTo,
     disconnect,
     onCollabEvent,
+    onReceiveMessage,
     storeState,
     data: computed(() => storeState.data),
     readonly: computed(() => storeState.connection?.connectionState !== CollabConnectionState.OPEN || !storeState.permissions.write),
