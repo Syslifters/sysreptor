@@ -83,11 +83,7 @@
 
 <script setup lang="ts">
 import { groupBy } from 'lodash-es';
-import { CommentStatus, type Comment, type FieldDefinition } from '#imports';
-
-const localSettings = useLocalSettings();
-const apiSettings = useApiSettings();
-const projectStore = useProjectStore();
+import { CollabEventType, CommentStatus, type CollabEvent, type CollabPropType, type Comment, type FieldDefinition } from '#imports';
 
 const props = defineProps<{
   project: PentestProject;
@@ -97,6 +93,12 @@ const props = defineProps<{
   readonly?: boolean;
 }>();
 
+const localSettings = useLocalSettings();
+const apiSettings = useApiSettings();
+const projectStore = useProjectStore();
+const eventBusBeforeApplySetValue = useEventBus('collab:beforeApplySetValue');
+
+const reportingCollab = projectStore.useReportingCollab({ project: props.project, findingId: props.findingId, sectionId: props.sectionId });
 const commentNew = ref<Comment|null>(null);
 const commentsAll = computedThrottled(() => {
   return projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId });
@@ -189,6 +191,33 @@ async function selectComment(comment: Comment|null, options?: { focus?: string }
   }
 }
 
+async function createComment(comment: Partial<Comment>) {
+  const path = comment.path || comment.collabPath?.split('/').at(-1)
+
+  const commentCreated = new Promise<Comment>(resolve => {
+    function onSetValue(event: any) {
+      if (event.path?.split('/').at(-1)!.startsWith('comments.') && event.value?.path === path) {
+        eventBusBeforeApplySetValue.off(onSetValue);
+        resolve(event.value);
+      }
+    }
+
+    eventBusBeforeApplySetValue.on(onSetValue);
+  });
+
+  reportingCollab.onCollabEvent({
+    type: CollabEventType.CREATE,
+    path: reportingCollab.storeState.apiPath + 'comments',
+    value: {
+      text: '',
+      text_range: null,
+      ...comment,
+      path,
+    },
+  });
+  return await commentCreated;
+}
+
 async function onCommentEvent(event: any) {
   if (event.openSidebar || event.type === 'create') {
     localSettings.reportingCommentSidebarVisible = true;
@@ -197,9 +226,8 @@ async function onCommentEvent(event: any) {
 
   if (event.type === 'create' && !props.readonly) {
     try {
-      const comment = await projectStore.createComment(props.project, event.comment);
-      commentNew.value = comment;
-      await selectComment(comment, { focus: 'comment' });
+      commentNew.value = await createComment(event.comment);
+      await selectComment(commentNew.value, { focus: 'comment' });
       commentNew.value = null;
     } catch (error) {
       requestErrorToast({ error })
