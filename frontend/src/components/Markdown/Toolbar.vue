@@ -195,6 +195,10 @@ function emitCreateComment() {
   }
   
   const selectionRange = props.editorState.selection.main
+  // TODO: selection and version are out of sync because of throtteling
+  //       some events are not yet saved on the server, while the CREATE API call is made
+  //       solution: flush events, then create comment ???
+  //       solution: create comment via websocket API
   emit('comment', {
     type: 'create', 
     comment: { 

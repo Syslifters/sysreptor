@@ -506,7 +506,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
       } else if (msgData.type === CollabEventType.UPDATE_TEXT) {
         receiveUpdateText(msgData);
       } else if (msgData.type === CollabEventType.CREATE) {
-        set(storeState.data as object, msgData.path!, msgData.value);
+        setValue(msgData.path!, msgData.value);
       } else if (msgData.type === CollabEventType.DELETE) {
         const pathParts = msgData.path!.split('.');
         const parentPath = pathParts.slice(0, -1).join('.');
@@ -576,13 +576,23 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     const events = [];
     let sendAwarenessEvent = null as boolean|null;
     for (const [p, s] of storeState.perPathState.entries()) {
+      const appendEvents = [];
+      
       // Collect non-text events
       for (const e of s.pendingEvents) {
         if (e.type === CollabEventType.AWARENESS) {
           if (sendAwarenessEvent === null) {
             sendAwarenessEvent = true;
           }
-        } else if (e.type !== CollabEventType.UPDATE_TEXT) {
+        } else if(e.type === CollabEventType.UPDATE_TEXT) {
+          // Handle below
+        } else if ([CollabEventType.CREATE, CollabEventType.DELETE].includes(e.type)) {
+          // Handle events last
+          appendEvents.push({
+            ...e,
+            version: storeState.version,
+          });
+        } else {
           let update_awareness = false;
           if (e.update_awareness && e.path === storeState.awareness.self.path) {
             update_awareness = true;
@@ -616,6 +626,8 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
           selection,
         })
       }
+
+      events.push(...appendEvents);
 
       // Clear pending events that will be sent
       if (options?.clearPending) {

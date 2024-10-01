@@ -899,7 +899,7 @@ class TestProjectReportingDbSync:
         )
         await self.assert_event({ 'type': CollabEventType.CREATE, 'path': f'comments.{res1.data["id"]}', 'value': res1.data, 'client_id': None })
 
-        # # Update comment
+        # Update comment
         comment_url = reverse('comment-detail', kwargs={'project_pk': self.project.id, 'pk': res1.data['id']})
         comment_path_prefix = f'comments.{res1.data["id"]}'
         res2 = await sync_to_async(self.api_client1.patch)(comment_url, data={'text': 'updated'})
@@ -927,13 +927,16 @@ class TestProjectReportingDbSync:
         await self.client1.send_json_to(event_update | {'version': version})
         await self.assert_event(event_update)
 
-        res = await sync_to_async(self.api_client1.post)(
-            path=reverse('comment-list', kwargs={'project_pk': self.project.id}) + f'?version={version}',
-            data={'path': f'{self.finding_path_prefix}.data.field_markdown', 'text_range': {'from': 1, 'to': 3}, 'text': 'comment text'},
-        )
-        assert res.data['text_range'] == {'from': 7, 'to': 15}
-        assert res.data['text_original'] == 'BinsideC'
-        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'comments.{res.data["id"]}', 'value': res.data, 'client_id': None})
+        await self.client1.send_json_to({
+            'type': CollabEventType.CREATE,
+            'path': 'comments',
+            'version': version,
+            'value': {'path': f'{self.finding_path_prefix}.data.field_markdown', 'text_range': {'from': 1, 'to': 3}, 'text': 'comment text'},
+        })
+        res = await self.assert_event({'type': CollabEventType.CREATE, 'client_id': None})
+        assert res['path'].startswith('comments.')
+        assert res['value']['text_range'] == {'from': 7, 'to': 15}
+        assert res['value']['text_original'] == 'BinsideC'
 
 
 @pytest.mark.django_db(transaction=True)

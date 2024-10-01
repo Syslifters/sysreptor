@@ -330,29 +330,6 @@ export const useProjectStore = defineStore('project', {
         body: orderedFindings.map(f => ({ id: f.id, order: f.order })),
       });
     },
-    async createComment(project: PentestProject, comment: Partial<Comment>) {
-      this.ensureExists(project.id);
-
-      let path = comment.path;
-      if (!path) {
-        path = comment.collabPath?.split('/').at(-1);
-      }
-      const newComment = await $fetch<Comment>(`/api/v1/pentestprojects/${project.id}/comments/`, {
-        method: 'POST',
-        body: {
-          text: '',
-          text_range: null,
-          ...comment,
-          path,
-        },
-        query: {
-          version: this.data[project.id]!.reportingCollabState.version,
-        },
-      });
-
-      this.data[project.id]!.reportingCollabState.data.comments[newComment.id] = newComment;
-      return newComment;
-    },
     async deleteComment(project: PentestProject, comment: Comment) {
       await $fetch(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/`, {
         method: 'DELETE'
