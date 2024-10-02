@@ -45,7 +45,7 @@ export const useAuthStore = defineStore('auth', {
   },
   persist: {
     storage: persistedState.sessionStorage,
-    paths: ['authRedirect'],
+    pick: ['authRedirect'],
   }
 })
 

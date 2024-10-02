@@ -62,15 +62,6 @@ export const useUserNotesStore = defineStore('usernotes', {
     },
   },
   actions: {
-    clear() {
-      this.useNotesCollab().disconnect();
-      this.notesCollabState.data = { notes: {} };
-      this.notesCollabState.awareness = {
-        self: { path: null },
-        other: {},
-        clients: []
-      };
-    },
     async createNote(note: Partial<UserNote>) {
       const newNote = await $fetch<UserNote>(`/api/v1/pentestusers/self/notes/`, {
         method: 'POST',

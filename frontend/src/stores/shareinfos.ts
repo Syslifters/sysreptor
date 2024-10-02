@@ -18,9 +18,6 @@ export const useShareInfoStore = defineStore('shareinfo', {
     },
   },
   actions: {
-    clear() {
-      this.data = null;
-    },
     async fetchById(shareId: string) {
       const shareInfo = await $fetch<ShareInfoPublic>(`/api/public/shareinfos/${shareId}/`);
       if (this.data?.shareInfo.id !== shareId) {
