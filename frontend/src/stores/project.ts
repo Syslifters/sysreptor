@@ -1,7 +1,7 @@
 import { orderBy, pick, set, isObject } from "lodash-es";
 import { groupNotes } from "@/stores/usernotes";
 import type { Comment, CommentAnswer, CommentStatus, PentestFinding, PentestProject, ProjectNote, ProjectType, ReportSection } from "#imports";
-import { scoreFromVector } from "~/utils/cvss";
+import { levelNumberFromLevelName, levelNumberFromScore, scoreFromVector } from "~/utils/cvss";
 
 export function sortFindings<T extends PentestFinding>({ findings, projectType, overrideFindingOrder = false, topLevelFields = false }: {findings: T[], projectType: ProjectType, overrideFindingOrder?: boolean, topLevelFields?: boolean}): T[] {
   if (overrideFindingOrder || projectType.finding_ordering.length === 0) {
@@ -66,6 +66,16 @@ export function getFindingFieldValueSuggestions(options: { findings: PentestFind
     }
   }
   return out;
+}
+
+export function getFindingRiskLevel(options: { finding: PentestFinding, projectType: ProjectType }) {
+  if (options.projectType.finding_fields.some(f => f.id === 'severity')) {
+    return levelNumberFromLevelName(options.finding.data.severity);
+  } else if (options.projectType.finding_fields.some(f => f.id === 'cvss')) {
+    return levelNumberFromScore(scoreFromVector(options.finding.data.cvss));
+  } else {
+    return 'unknown';
+  }
 }
 
 export const useProjectStore = defineStore('project', {

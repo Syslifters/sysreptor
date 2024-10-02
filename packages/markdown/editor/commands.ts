@@ -629,6 +629,20 @@ export function toggleLink({state, dispatch}: CommandArg) {
   });
 }
 
+
+export function insertText({state, dispatch}: CommandArg, text: string) {
+  return toggleMarkdownAction({state, dispatch}, {
+    isInSelection: () => false,
+    enable: (range) => {
+      return {
+        range: EditorSelection.cursor(range.to + text.length),
+        changes: [{from: range.to, insert: text}],
+      };
+    }
+  });
+}
+
+
 export function insertCodeBlock({state, dispatch}: CommandArg) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => n.name === 'codeFenced',

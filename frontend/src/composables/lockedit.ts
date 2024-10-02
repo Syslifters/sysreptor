@@ -242,6 +242,7 @@ export async function useProjectTypeLockEditOptions(options: {save?: boolean, de
 
 export function useProjectEditBase(options: {
   project: ComputedRef<PentestProject|undefined|null>,
+  projectType?: ComputedRef<ProjectType|undefined|null>,
   historyDate?: string,
   canUploadFiles?: boolean,
   spellcheckEnabled?: Ref<boolean>;
@@ -294,12 +295,21 @@ export function useProjectEditBase(options: {
       return urlJoin(projectUrl.value, fileSrc);
     }
   }
+
+  const referenceItems = computed(() => {
+    return projectStore.findings(options.project.value?.id || '', { projectType: options.projectType?.value })
+      .map(f => ({
+        id: f.id, 
+        title: f.data.title,
+        riskLevel: options.projectType?.value ? getFindingRiskLevel({ finding: f, projectType: options.projectType?.value }) : undefined,
+      }))
+  });
   function rewriteReferenceLink(refId: string) {
-    const finding = projectStore.findings(options.project.value?.id || '').find(f => f.id === refId);
-    if (finding) {
+    const findingRef = referenceItems.value.find(f => f.id === refId);
+    if (findingRef) {
       return {
-        href: `/projects/${options.project.value!.id}/reporting/findings/${finding.id}/`,
-        title: `[Finding ${finding.data.title}]`,
+        href: `/projects/${options.project.value!.id}/reporting/findings/${findingRef.id}/`,
+        title: `[Finding ${findingRef.title}]`,
       };
     }
     return null;
@@ -316,6 +326,7 @@ export function useProjectEditBase(options: {
   const inputFieldAttrs = computed(() => ({
     lang: options.project.value?.language || 'en-US',
     selectableUsers: [...(options.project.value?.members || []), ...(options.project.value?.imported_members || [])],
+    referenceItems: referenceItems.value,
     spellcheckEnabled: spellcheckEnabled.value,
     'onUpdate:spellcheckEnabled': (val: boolean) => { spellcheckEnabled.value = val; },
     markdownEditorMode: markdownEditorMode.value,

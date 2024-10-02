@@ -11,6 +11,26 @@
     <markdown-toolbar-button @click="codemirrorAction(insertCodeBlock)" title="Code" icon="mdi-code-tags" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'codeFenced')" />
     <markdown-toolbar-button @click="codemirrorAction(insertTable)" title="Table" icon="mdi-table" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'table')" />
     <span class="separator" />
+    <v-menu
+      v-if="props.referenceItems"
+      :disabled="props.disabled || props.referenceItems.length === 0"
+    >
+      <template #activator="{ props: menuProps }">
+        <markdown-toolbar-button title="Finding Reference" icon="mdi-alpha-f-box-outline" v-bind="menuProps" />
+      </template>
+      <template #default>
+        <v-list density="compact" class="pa-0">
+          <v-list-subheader>Finding Reference</v-list-subheader>
+          <v-list-item
+            v-for="item in props.referenceItems"
+            :key="item.id"
+            @click="codemirrorAction(() => insertText(props.editorView!, `[](#${item.id})`))"
+            :title="item.title"
+            :class="'finding-level-' + item.riskLevel"
+          />
+        </v-list>
+      </template>
+    </v-menu>
     <markdown-toolbar-button @click="codemirrorAction(toggleLink)" title="Link" icon="mdi-link" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'link')" />
     <template v-if="uploadFiles">
       <markdown-toolbar-button @click="fileInput.click()" title="Image" icon="mdi-image" :disabled="props.disabled || props.fileUploadInProgress" />
@@ -80,6 +100,7 @@ import {
   type EditorState,
   insertCodeBlock,
   insertTable,
+  insertText,
   redo,
   redoDepth,
   toggleEmphasis,
@@ -104,6 +125,7 @@ const props = defineProps<{
   spellcheckSupported?: boolean;
   spellcheckEnabled?: boolean;
   markdownEditorMode?: MarkdownEditorMode;
+  referenceItems?: LinkableItem[];
   disabled?: boolean;
   lang?: string|null;
   collab?: CollabPropType;
@@ -195,10 +217,6 @@ function emitCreateComment() {
   }
   
   const selectionRange = props.editorState.selection.main
-  // TODO: selection and version are out of sync because of throtteling
-  //       some events are not yet saved on the server, while the CREATE API call is made
-  //       solution: flush events, then create comment ???
-  //       solution: create comment via websocket API
   emit('comment', {
     type: 'create', 
     comment: { 
@@ -212,6 +230,14 @@ function emitCreateComment() {
 </script>
 
 <style lang="scss" scoped>
+@use "assets/settings" as settings;
+
+@for $level from 1 through 5 {
+  .finding-level-#{$level} {
+    border-left: 0.4em solid map-get(settings.$risk-color-levels, $level);
+  }
+}
+
 .toolbar {
   background-color: rgba(var(--v-theme-surface), 1) !important;
   border-bottom: thin solid rgba(var(--v-theme-on-surface), var(--v-border-opacity));

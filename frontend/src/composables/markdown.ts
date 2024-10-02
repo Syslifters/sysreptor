@@ -25,10 +25,17 @@ import {
 } from "reportcreator-markdown/editor/index";
 import { MarkdownEditorMode } from '#imports';
 
+export type ReferenceItem = {
+  id: string;
+  title: string;
+  severity?: string;
+}
+
 export type MarkdownProps = {
   lang?: string|null;
   spellcheckEnabled?: boolean;
   markdownEditorMode?: MarkdownEditorMode;
+  referenceItems?: ReferenceItem[];
   collab?: CollabPropType;
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrl?: (fileSrc: string) => string;
@@ -64,6 +71,10 @@ export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean
     markdownEditorMode: {
       type: String as PropType<MarkdownEditorMode>,
       default: MarkdownEditorMode.MARKDOWN_AND_PREVIEW,
+    },
+    referenceItems: {
+      type: Array as PropType<ReferenceItem[]>,
+      default: undefined,
     },
     collab: {
       type: Object as PropType<CollabPropType>,
@@ -435,6 +446,7 @@ export function useMarkdownEditorBase(options: {
     uploadFiles: fileUploadEnabled.value ? uploadFiles : undefined,
     fileUploadInProgress: fileUploadInProgress.value,
     lang: options.props.value.lang,
+    referenceItems: options.props.value.referenceItems,
     collab: options.props.value.collab,
     onComment: (value: any) => options.emit('comment', value),
     spellcheckSupported: options.props.value.spellcheckSupported,
