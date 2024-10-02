@@ -152,9 +152,6 @@ export const useProjectStore = defineStore('project', {
     },
   },
   actions: {
-    clear() {
-      this.data = {};
-    },
     ensureExists(projectId: string, initialStoreData?: object) {
       if (!(projectId in this.data)) {
         this.data[projectId] = {

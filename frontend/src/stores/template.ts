@@ -31,9 +31,6 @@ export const useTemplateStore = defineStore('templates', {
     },
   },
   actions: {
-    clear() {
-      // Nothing to clear
-    },
     async create(template: Partial<Omit<FindingTemplate, 'translations'> & { translations: Partial<FindingTemplateTranslation>[] }>) {
       return await $fetch<FindingTemplate>(`/api/v1/findingtemplates/`, {
         method: 'POST',

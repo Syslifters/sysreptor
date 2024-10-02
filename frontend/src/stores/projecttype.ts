@@ -13,9 +13,6 @@ export const useProjectTypeStore = defineStore('projecttype', {
     },
   },
   actions: {
-    clear() {
-      this.data = {};
-    },
     async fetchById(id: string) {
       this.data[id] = await $fetch<ProjectType>(`/api/v1/projecttypes/${id}/`, { method: 'GET' });
       return this.data[id]!;
