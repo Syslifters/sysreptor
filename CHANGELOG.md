@@ -3,7 +3,8 @@
 ## Upcoming
 * Add more granular file storage settings
 * Add trusted types configuration to Content Security Policy
-* Show markdown snippet in markdown image preview dialogs
+* Markdown editor: Add toolbar button to reference findings
+* Markdown editor: Show markdown snippet in markdown image preview dialogs
 * Bugfixes in note sharing
 * Fix race condition when creating comments for text selection
 

@@ -42,7 +42,10 @@ export function useMarkdownDiff(options: {
     extensions: options.extensions,
     props: computed(() => ({
       modelValue: options.props.value.current.value,
-      ...pick(options.props.value.current, ['collab', 'lang', 'readonly', 'disabled', 'markdownEditorMode', 'spellcheckSupported', 'spellcheckEnabled', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink']),
+      ...pick(options.props.value.current, [
+        'collab', 'lang', 'readonly', 'disabled', 'markdownEditorMode', 'spellcheckSupported', 'spellcheckEnabled', 
+        'referenceItems', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink',
+      ]),
     })),
     emit: (name: string, value: any) => {
       const emit = (options.props.value.current as any)['on' + name.charAt(0).toUpperCase() + name.slice(1)];
@@ -181,12 +184,14 @@ export async function useProjectHistory<T>(options: {
 
   const projectEditBaseHistoric = useProjectEditBase({
     project: computed(() => fetchState.value.projectHistoric),
+    projectType: computed(() => fetchState.value.projectTypeHistoric),
     historyDate: route.params.historyDate as string,
     markdownEditorMode,
     spellcheckEnabled,
   });
   const projectEditBaseCurrent = useProjectEditBase({
     project: computed(() => fetchState.value.projectCurrent),
+    projectType: computed(() => fetchState.value.projectTypeCurrent),
     markdownEditorMode,
     spellcheckEnabled,
   })

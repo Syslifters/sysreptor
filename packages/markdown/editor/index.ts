@@ -16,7 +16,7 @@ export { markdownHighlightStyle, markdownHighlightCodeBlocks } from './highlight
 export { 
   toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
   toggleListUnordered, toggleListOrdered, toggleTaskList,
-  toggleLink, insertCodeBlock, insertTable, 
+  toggleLink, insertCodeBlock, insertTable, insertText,
   isTypeInSelection, isTaskListInSelection,
   insertNewlineContinueMarkup
 } from './commands';
