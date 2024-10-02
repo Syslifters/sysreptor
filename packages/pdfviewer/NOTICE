@@ -602,7 +602,7 @@ MIT
     SOFTWARE
 
 
-@types/node 22.5.5
+@types/node 22.7.4
 MIT
     MIT License
 
@@ -2032,7 +2032,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-browserslist 4.23.3
+browserslist 4.24.0
 MIT
 The MIT License (MIT)
 
@@ -2106,7 +2106,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-caniuse-lite 1.0.30001662
+caniuse-lite 1.0.30001666
 CC-BY-4.0
 Attribution 4.0 International
 
@@ -3937,7 +3937,7 @@ Original Code is [東アジアの文字幅 (East Asian Width) の判定 - 中途
     console.log(eaw.length('￠￦｡ￜㄅ뀀¢⟭a⊙①بف')) // 19
 
 
-electron-to-chromium 1.5.25
+electron-to-chromium 1.5.31
 ISC
 Copyright 2018 Kilian Valkhof
 
@@ -4433,7 +4433,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-fast-uri 3.0.1
+fast-uri 3.0.2
 MIT
 Copyright (c) 2021 The Fastify Team
 Copyright (c) 2011-2021, Gary Court until https://github.com/garycourt/uri-js/commit/a1acf730b4bba3f1097c9f52e7d9d3aba8cdcaae
@@ -6639,7 +6639,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-package-json-from-dist 1.0.0
+package-json-from-dist 1.0.1
 BlueOak-1.0.0
 All packages under `src/` are licensed according to the terms in
 their respective `LICENSE` or `LICENSE.md` files.
@@ -8749,7 +8749,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-terser 5.33.0
+terser 5.34.1
 BSD-2-Clause
 Copyright 2012-2018 (c) Mihai Bazon <mihai.bazon@gmail.com>
 
@@ -8887,7 +8887,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-update-browserslist-db 1.1.0
+update-browserslist-db 1.1.1
 MIT
 The MIT License (MIT)
 
@@ -9322,7 +9322,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-webpack 5.94.0
+webpack 5.95.0
 MIT
 Copyright JS Foundation and other contributors
 
