@@ -23,6 +23,8 @@ from csp.constants import NONE, SELF, UNSAFE_INLINE
 from decouple import Csv, config
 from kombu import Queue
 
+from reportcreator_api.conf.plugins import load_plugins
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 MEDIA_ROOT = config('MEDIA_ROOT', default=BASE_DIR / 'data', cast=Path)
@@ -312,7 +314,6 @@ STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
     BASE_DIR / 'frontend' / 'static',
 ]
-
 
 DEFAULT_FILE_STORAGE = config('DEFAULT_FILE_STORAGE', default='filesystem')
 DEFAULT_S3_ACCESS_KEY = config('DEFAULT_S3_ACCESS_KEY', default='')
@@ -679,6 +680,17 @@ INSTALLATION_ID = INSTALLATION_ID_PATH.read_text().strip()
 
 # Languages
 PREFERRED_LANGUAGES = config('PREFERRED_LANGUAGES', cast=Csv(), default=None)
+
+
+# Plugins
+PLUGIN_DIRS = [
+    BASE_DIR / 'reportcreator_api' / 'plugins',
+]
+ENABLED_PLUGINS = [
+    'demoplugin',
+    'cyberchef',
+]
+INSTALLED_APPS += load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
 
 
 # Elastic APM

@@ -9,6 +9,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
 from reportcreator_api.api_utils.views import HealthcheckApiView, PublicUtilsViewSet, UtilsViewSet
+from reportcreator_api.conf import plugins
 from reportcreator_api.notifications.views import NotificationViewSet
 from reportcreator_api.pentests.collab.fallback import ConsumerHttpFallbackView
 from reportcreator_api.pentests.consumers import (
@@ -144,6 +145,11 @@ urlpatterns = [
         # OpenAPI schema
         path('utils/openapi/', SpectacularAPIView.as_view(), name='publicutils-openapi-schema'),
         path('utils/swagger-ui/', SpectacularSwaggerSplitView.as_view(url_name='publicutils-openapi-schema'), name='publicutils-swagger-ui'),
+    ])),
+
+    # Plugins
+    path('api/plugins/', include([
+        *[path(f'{p.plugin_id}/api/', include(p.urlpatterns)) for p in plugins.enabled_plugins],
     ])),
 
     # Websocket HTTP fallback
