@@ -314,6 +314,11 @@ STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
     BASE_DIR / 'frontend' / 'static',
 ]
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'reportcreator_api.conf.plugins.AppDirectoriesFinderWithoutPluginApps',
+    'reportcreator_api.conf.plugins.PluginDirectoriesFinder',
+]
 
 DEFAULT_FILE_STORAGE = config('DEFAULT_FILE_STORAGE', default='filesystem')
 DEFAULT_S3_ACCESS_KEY = config('DEFAULT_S3_ACCESS_KEY', default='')
