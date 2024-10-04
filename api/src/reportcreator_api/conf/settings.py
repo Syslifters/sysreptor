@@ -688,12 +688,13 @@ PREFERRED_LANGUAGES = config('PREFERRED_LANGUAGES', cast=Csv(), default=None)
 
 
 # Plugins
+# TODO: load from env variables
 PLUGIN_DIRS = [
     BASE_DIR / 'reportcreator_api' / 'plugins',
 ]
 ENABLED_PLUGINS = [
-    'demoplugin',
     'cyberchef',
+    'demoplugin',
 ]
 INSTALLED_APPS += load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
 

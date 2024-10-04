@@ -20,14 +20,15 @@ enabled_plugins = []
 
 class PluginMenuId(StrEnum):
     MAIN = 'main'
+    PROJECT = 'project'
 
 
 @dataclasses.dataclass
 class PluginMenuEntry:
-    name: str
+    title: str
     url: str
     id: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))  # TODO: validate charset is URL path segment
-    menu_id: PluginMenuId = PluginMenuId.MAIN
+    menu_id: PluginMenuId = PluginMenuId.MAIN  # TODO: make menu_id optional => only required when registering multiple menus at the same level
     icon: str|None = None
 
 
@@ -44,13 +45,13 @@ class PluginConfig(AppConfig):
     The plugin_id is used internally to uniquely identify the plugin and it's resources (e.g. DB tables, API endpoints, etc.).
     """
 
-    display_name: str = None
-
     menu_entries: list[PluginMenuEntry] = []
 
     def __init__(self, *args, **kwargs) -> None:
         if not self.plugin_id:
             raise ImproperlyConfigured('PluginConfig must have a plugin_id attribute')
+
+        # TODO: validate unique menu_entries IDs
 
         super().__init__(*args, **kwargs)
         enabled_plugins.append(self)

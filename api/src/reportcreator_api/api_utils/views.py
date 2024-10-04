@@ -1,3 +1,4 @@
+import dataclasses
 import gc
 import logging
 from base64 import b64decode
@@ -24,6 +25,7 @@ from reportcreator_api.api_utils.serializers import (
     LanguageToolAddWordSerializer,
     LanguageToolSerializer,
 )
+from reportcreator_api.conf import plugins
 from reportcreator_api.pentests.customfields.types import CweField
 from reportcreator_api.pentests.models import Language, ProjectMemberRole
 from reportcreator_api.tasks.models import PeriodicTask
@@ -193,6 +195,13 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'share_notes': settings.GUEST_USERS_CAN_SHARE_NOTES,
                 'see_all_users': settings.GUEST_USERS_CAN_SEE_ALL_USERS,
             },
+            'plugins': [
+                {
+                    'id': p.plugin_id,
+                    'name': p.name.split('.')[-1],
+                    'menu_entries': [dataclasses.asdict(m) for m in p.menu_entries],
+                } for p in plugins.enabled_plugins
+            ],
         })
 
 

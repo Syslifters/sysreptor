@@ -20,6 +20,18 @@
         <v-list-item :to="`/projects/${project.id}/history/`" prepend-icon="mdi-history" title="History">
           <s-tooltip v-if="!isExpanded" activator="parent" text="History" />
         </v-list-item>
+        
+        <template v-if="pluginMenuEntries.length > 0">
+          <v-list-item
+            v-for="pluginMenuEntry in pluginMenuEntries"
+            :key="pluginMenuEntry.id"
+            :to="`/projects/${project.id}/plugins/${pluginMenuEntry.plugin.id}/${pluginMenuEntry.id}/`"
+            :title="pluginMenuEntry.title"
+            :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
+          >
+            <s-tooltip v-if="!isExpanded" activator="parent" :text="pluginMenuEntry.title" />
+          </v-list-item>
+        </template>
       </template>
     </s-sub-drawer>
 
@@ -28,9 +40,10 @@
 </template>
 
 <script setup lang="ts">
-import { projectTitleTemplate } from "~/utils/title";
+import { PluginMenuId, projectTitleTemplate } from "#imports";
 
 const route = useRoute();
+const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
 
@@ -43,6 +56,8 @@ watch(() => project.value?.project_type, async () => {
   }
   projectType.value = await projectTypeStore.getById(project.value.project_type);
 });
+
+const pluginMenuEntries = computed(() => apiSettings.pluginMenuEntries(PluginMenuId.PROJECT));
 
 useHeadExtended({
   titleTemplate: title => projectTitleTemplate(project.value, title, route),

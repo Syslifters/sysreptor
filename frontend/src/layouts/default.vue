@@ -48,6 +48,19 @@
         <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" :active="route.path.startsWith('/designs')" />
         <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" :active="route.path.startsWith('/notes')" />
         
+        <template v-if="pluginMenuEntries.length > 0">
+          <v-list-item class="mt-6 pa-0" min-height="0">
+            <v-list-subheader title="Plugins" />
+          </v-list-item>
+          <v-list-item
+            v-for="pluginMenuEntry in pluginMenuEntries"
+            :key="pluginMenuEntry.id"
+            :to="`/plugins/${pluginMenuEntry.plugin.id}/${pluginMenuEntry.id}/`"
+            :title="pluginMenuEntry.title"
+            :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
+          />
+        </template>
+
         <template v-if="auth.permissions.value.superuser || auth.permissions.value.user_manager || auth.permissions.value.view_license">
           <v-list-item class="mt-6 pa-0" min-height="0">
             <v-list-subheader title="Administration" />
@@ -124,6 +137,8 @@ const licenseText = computed(() => {
     professional: '/PRO',
   }[license] || '';
 });
+
+const pluginMenuEntries = computed(() => apiSettings.pluginMenuEntries(PluginMenuId.MAIN));
 
 // Breadcrumbs
 const breadcrumbs = ref<Breadcrumbs>();

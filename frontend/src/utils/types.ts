@@ -89,6 +89,25 @@ export type AuthIdentity = BaseModel & {
   identifier: string;
 }
 
+export enum PluginMenuId {
+  MAIN = 'main',
+  PROJECT = 'project',
+}
+
+export type PluginMenuEntry = {
+  id: string;
+  title: string;
+  menu_id: PluginMenuId;
+  url: string;
+  icon: string|null;
+}
+
+export type PluginConfig = {
+  id: string;
+  name: string;
+  menu_entries: PluginMenuEntry[];
+}
+
 export type ApiSettings = {
     readonly license: {
         readonly type: LicenseType;
@@ -122,6 +141,7 @@ export type ApiSettings = {
       readonly share_notes: boolean;
       readonly see_all_users: boolean;
     };
+    readonly plugins: PluginConfig[];
 }
 
 export type LicenseInfoDetails = {
