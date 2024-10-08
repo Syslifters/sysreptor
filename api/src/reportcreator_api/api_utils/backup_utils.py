@@ -14,6 +14,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core import serializers
 from django.core.management import call_command
+from django.core.management.color import no_style
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, transaction
 from django.db.migrations.executor import MigrationExecutor
@@ -235,6 +236,14 @@ def restore_database_dump(f):
     connection.check_constraints()
 
 
+def reset_database_sequences():
+    app_list = [app_config for app_config in apps.get_app_configs() if app_config.models_module is not None]
+    models = list(itertools.chain(*map(lambda a: a.get_models(include_auto_created=True), app_list)))
+    statements = connection.ops.sequence_reset_sql(style=no_style(), model_list=models)
+    with connection.cursor() as cursor:
+        cursor.execute('\n'.join(statements))
+
+
 def walk_storage_dir(storage, base_dir=None):
     base_dir = base_dir or ''
     try:
@@ -332,6 +341,11 @@ def restore_backup(z, keepfiles=True):
     with z.open('backup.jsonl') as f:
         restore_database_dump(f)
     logging.info('Finished restoring DB data')
+
+    # Reset sequences
+    logging.info('Begin resetting DB sequences')
+    reset_database_sequences()
+    logging.info('Finished resetting DB sequences')
 
     # Restore files
     logging.info('Begin restoring files')
