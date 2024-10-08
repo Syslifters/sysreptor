@@ -7,6 +7,7 @@
 * Markdown editor: Show markdown snippet in markdown image preview dialogs
 * Bugfixes in note sharing
 * Fix race condition when creating comments for text selection
+* Reset DB sequences on restore backup to prevent ID conflicts
 
 
 ## v2024.74 - 2024-09-24

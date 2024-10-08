@@ -240,6 +240,9 @@ class TestBackupRestore:
         # BackupLog entry created
         assert list(BackupLog.objects.values_list('type', flat=True)) == [BackupLogType.RESTORE, BackupLogType.BACKUP, BackupLogType.SETUP]
 
+        # Can add ignored word without ID conflict
+        create_languagetool_ignore_word()
+
     def test_backup_restore_damaged(self):
         backup = b''.join(self.backup_request(aes_key=self.backup_encryption_key).streaming_content)
         backup = backup[:len(backup) - 100]
