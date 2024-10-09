@@ -668,6 +668,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
   }
 
   function sendAwarenessThrottled() {
+    if (!storeState.permissions.write) {
+      return;
+    }
+
     sendEventsThrottled({
       type: CollabEventType.AWARENESS,
       path: storeState.awareness.self.path,
