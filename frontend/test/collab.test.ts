@@ -4,6 +4,7 @@ import { v4 as uuid4 } from 'uuid'
 import { cloneDeep } from 'lodash-es'
 import { CollabEventType, type CollabEvent, type Comment, type User } from '#imports';
 import { ChangeSet, EditorSelection } from 'reportcreator-markdown/editor';
+import { fa } from 'vuetify/locale';
 
 
 async function createCollab(options?: { collabInitEvent?: Partial<CollabEvent> }) {
@@ -180,6 +181,40 @@ describe('connection', () => {
     collab.onCollabEvent({type: CollabEventType.CREATE, path: 'not_for' + collab.storeState.apiPath + 'field_new', value: 'value'});
     expect(connection.send).not.toHaveBeenCalled();
   })
+});
+
+
+describe('readonly connection', () => {
+  let { connection, collab, collabInitEvent }: Awaited<ReturnType<typeof createCollab>> = {} as any;
+  beforeEach(async () => {
+    const res = await createCollab({
+      collabInitEvent: {
+        permissions: {
+          read: true,
+          write: false,
+        }
+      }
+    });
+    collab = res.collab;
+    connection = res.connection;
+    collabInitEvent = res.collabInitEvent;
+  });
+
+  test('no events sent', async () => {
+    collab.onCollabEvent({ type: CollabEventType.AWARENESS, path: collab.storeState.apiPath + 'field_text'});
+    collab.onCollabEvent({ type: CollabEventType.UPDATE_KEY, path: collab.storeState.apiPath + 'field_key', value: 'x' });
+    collab.onCollabEvent({ type: CollabEventType.DELETE, path: collab.storeState.apiPath + 'field_list[0]' });
+    collab.onCollabEvent({ type: CollabEventType.CREATE, path: collab.storeState.apiPath + 'field_list', value: 'new'});
+    collab.onCollabEvent({ 
+      type: CollabEventType.UPDATE_TEXT, 
+      path: collab.storeState.apiPath + 'field_text', 
+      updates: [{changes: ChangeSet.fromJSON([4, [0, 'E']])}]
+    });
+    await vi.runOnlyPendingTimersAsync();
+    expect(connection.send).not.toHaveBeenCalled();
+    expect(collab.storeState.data).toEqual(collabInitEvent.data);
+    expect(collab.storeState.awareness.self).toEqual({ path: '' });
+  });
 });
 
 
