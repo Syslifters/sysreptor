@@ -19,7 +19,8 @@ Specify the key as hex string via the `--key` CLI argument.
 docker compose run --rm app python3 manage.py backup --key "<aes-key-as-hex>" > backup.zip.crypt
 ```
 
-
+## Create a backup during update
+When [updating](updates.md) SysReptor, you can use the `--backup` switch, which will create a backup before applying the update.
 
 
 ## Create backups via API
