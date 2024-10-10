@@ -22,8 +22,10 @@ error_cleanup() {
 trap 'error_cleanup' ERR INT
 echo "Easy update of SysReptor"
 echo ""
+
+# Check if required commands are installed
 error=1
-for cmd in curl tar docker date grep
+for cmd in curl tar docker date grep realpath dirname
 do
     if
         ! command -v "$cmd" >/dev/null
@@ -53,6 +55,25 @@ then
     echo "\"`readlink -e ..`\" not writeable. Exiting..."
     exit -2
 fi
+
+# Parse CLI arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --backup)
+      BACKUP_LOCATION=`realpath "$script_location/../sysreptor-full-backup-$(date -Iseconds).zip"`
+      shift
+      ;;
+    -*|--*)
+      echo "$1 is not a valid option."
+      exit -7
+      ;;
+    *)
+      # Positional arguments (not processed)
+      shift
+      ;;
+  esac
+done
+
 DOWNLOAD_URL=https://github.com/syslifters/sysreptor/releases/latest/download/setup.tar.gz
 DOCKER_HUB_IMAGE=syslifters/sysreptor
 DOCKER_HUB_LANGUAGETOOL_IMAGE=syslifters/sysreptor-languagetool
@@ -77,6 +98,21 @@ else
 fi
 NEW_SYSREPTOR_VERSION=$version
 
+if [ -n "$BACKUP_LOCATION" ]; then
+    cd "$script_location"
+    echo ""
+    echo "Creating full backup of your current installation..."
+    if
+        docker compose -f deploy/docker-compose.yml exec -it app python3 manage.py backup > "$BACKUP_LOCATION" 2>/dev/null
+    then
+        echo "Backup written to $BACKUP_LOCATION"
+        echo ""
+    else
+        echo "Backup failed. Exiting..."
+        exit -9
+    fi
+fi
+
 echo "Downloading SysReptor from $DOWNLOAD_URL ..."
 curl -s -L --output ../sysreptor.tar.gz "$DOWNLOAD_URL"
 echo "Checking download..."
@@ -86,13 +122,14 @@ then
     exit -5
 fi
 
-echo "Creating backup copy of your current installation..."
+echo "Creating copy of your config files..."
 sysreptor_directory=${PWD##*/}
 backup_copy="$sysreptor_directory"-backup-$(date -Iseconds)
 cd ..
 mv "$sysreptor_directory" "$backup_copy"
 created_backup=1
-echo "Backup copy located at $backup_copy"
+echo "Config backup located at $backup_copy"
+
 echo "Unpacking sysreptor.tar.gz..."
 mkdir "$sysreptor_directory"
 tar xzf sysreptor.tar.gz -C "$sysreptor_directory" --strip-components=1
