@@ -8,7 +8,7 @@ error_cleanup() {
         echo cd "$script_location"
         echo "Trying to restore your old version..."
         cd `dirname "$script_location"`
-        mv "$sysreptor_directory" "$sysreptor_directory"-failed-update-$(date -Iseconds)
+        mv "$sysreptor_directory" "$sysreptor_directory-failed-update-$filename_date"
         mv "$backup_copy" "$sysreptor_directory"
         cd "$sysreptor_directory"/deploy
         source .env
@@ -19,6 +19,10 @@ error_cleanup() {
     fi
     exit -4
 }
+filename_date=$(date -Iseconds)
+sysreptor_directory=${PWD##*/}
+backup_copy="$sysreptor_directory-backup-$filename_date"
+script_location="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 trap 'error_cleanup' ERR INT
 echo "Easy update of SysReptor"
 echo ""
@@ -46,7 +50,6 @@ then
     exit -1
 fi
 # cd to script location
-script_location="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd "$script_location"
 # check if parent directory writable
 if
@@ -60,7 +63,7 @@ fi
 while [[ $# -gt 0 ]]; do
   case $1 in
     --backup)
-      BACKUP_LOCATION=`realpath "$script_location/../sysreptor-full-backup-$(date -Iseconds).zip"`
+      BACKUP_LOCATION=`realpath "$script_location/../sysreptor-full-backup-$filename_date.zip"`
       shift
       ;;
     -*|--*)
@@ -123,8 +126,6 @@ then
 fi
 
 echo "Creating copy of your config files..."
-sysreptor_directory=${PWD##*/}
-backup_copy="$sysreptor_directory"-backup-$(date -Iseconds)
 cd ..
 mv "$sysreptor_directory" "$backup_copy"
 created_backup=1
