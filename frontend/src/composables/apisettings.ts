@@ -1,4 +1,4 @@
-import type { PluginMenuId, type ApiSettings, type AuthProvider, type CWE, AuthProviderType } from '#imports';
+import { type ApiSettings, type AuthProvider, type CWE, AuthProviderType } from '#imports';
 
 export const useApiSettings = defineStore('apisettings', {
   state: () => ({
@@ -74,14 +74,6 @@ export const useApiSettings = defineStore('apisettings', {
     spellcheckLanguageToolSupportedForLanguage() {
       return (lang?: string|null) => this.spellcheckLanguageToolSupported && 
         (!!this.settings!.languages.find(l => l.code === lang)?.spellcheck || lang === 'auto');
-    },
-    pluginMenuEntries() {
-      return (menuId: PluginMenuId) => 
-        this.settings?.plugins.flatMap(plugin => 
-          plugin.menu_entries
-          .filter(m => m.menu_id === menuId)
-          .map(m => ({ ...m, plugin }))
-        ) || [];
     },
   }
 })

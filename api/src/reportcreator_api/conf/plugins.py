@@ -1,35 +1,17 @@
-
-
-import dataclasses
 import importlib.util
 import logging
 import sys
-import uuid
-from enum import StrEnum
 from importlib import import_module
 from pathlib import Path
 
 from django.apps import AppConfig, apps
+from django.contrib.staticfiles import finders
 from django.contrib.staticfiles.finders import AppDirectoriesFinder, FileSystemFinder
 from django.core.exceptions import ImproperlyConfigured
-from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import FileSystemStorage, storages
 from django.utils.module_loading import module_has_submodule
 
 enabled_plugins = []
-
-
-class PluginMenuId(StrEnum):
-    MAIN = 'main'
-    PROJECT = 'project'
-
-
-@dataclasses.dataclass
-class PluginMenuEntry:
-    title: str
-    url: str
-    id: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))  # TODO: validate charset is URL path segment
-    menu_id: PluginMenuId = PluginMenuId.MAIN  # TODO: make menu_id optional => only required when registering multiple menus at the same level
-    icon: str|None = None
 
 
 class PluginConfig(AppConfig):
@@ -45,26 +27,22 @@ class PluginConfig(AppConfig):
     The plugin_id is used internally to uniquely identify the plugin and it's resources (e.g. DB tables, API endpoints, etc.).
     """
 
-    menu_entries: list[PluginMenuEntry] = []
-
     def __init__(self, *args, **kwargs) -> None:
         if not self.plugin_id:
             raise ImproperlyConfigured('PluginConfig must have a plugin_id attribute')
-
-        # TODO: validate unique menu_entries IDs
 
         super().__init__(*args, **kwargs)
         enabled_plugins.append(self)
 
     @property
-    def label(self):
+    def label(self) -> str:
         """
         Django app label used to identify the app internally
         """
         return f'plugin_{self.plugin_id.replace("-", "")}'
 
     @property
-    def urlpatterns(self):
+    def urlpatterns(self) -> list:
         """
         Return the urlpatterns defined in the plugin's urls.py file.
         """
@@ -74,6 +52,13 @@ class PluginConfig(AppConfig):
         if not hasattr(urls_module, 'urlpatterns'):
             return []
         return urls_module.urlpatterns
+
+    @property
+    def frontend_entry(self) -> str|None:
+        path = f'plugins/{self.plugin_id}/plugin.js'
+        if finders.find(path):
+            return storages['staticfiles'].url(path)
+        return None
 
 
 def load_module_from_dir(module_name: str, path: Path):
@@ -92,7 +77,8 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
     all_plugins_classes = []
 
     # Register top-level module
-    load_module_from_dir('sysreptor_plugins', Path(__file__).parent.parent / 'plugins' / '__init__.py')
+    sys.modules['sysreptor_plugins'] = {}
+    # load_module_from_dir('sysreptor_plugins', Path(__file__).parent.parent / 'plugins' / '__init__.py')
 
     for plugins_dir in plugin_dirs:
         for module_dir in plugins_dir.iterdir():

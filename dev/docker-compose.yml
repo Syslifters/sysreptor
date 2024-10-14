@@ -124,6 +124,9 @@ services:
       - type: bind
         source: ../rendering/dist
         target: /app/rendering/dist/
+      - type: bind
+        source: ../plugins
+        target: /app/plugins/
     expose:
       - 8000
     ports:

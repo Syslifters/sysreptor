@@ -199,7 +199,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 {
                     'id': p.plugin_id,
                     'name': p.name.split('.')[-1],
-                    'menu_entries': [dataclasses.asdict(m) for m in p.menu_entries],
+                    'frontend_entry': p.frontend_entry,
                 } for p in plugins.enabled_plugins
             ],
         })

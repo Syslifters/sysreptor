@@ -7,6 +7,9 @@ from reportcreator_api.pentests.models.project import PentestProject
 
 log = logging.getLogger(__name__)
 
+# Register django signal handlers
+# https://docs.djangoproject.com/en/5.1/topics/signals/
+
 
 @receiver(signals.post_save, sender=PentestProject)
 def on_project_saved(sender, instance, created, **kwargs):

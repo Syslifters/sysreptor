@@ -49,20 +49,19 @@
         <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" :active="route.path.startsWith('/notes')" />
         
         <template v-if="pluginMenuEntries.length > 0">
-          <v-list-item class="mt-6 pa-0" min-height="0">
-            <v-list-subheader title="Plugins" />
-          </v-list-item>
+          <v-list-subheader title="Plugins" class="mt-4 pa-0" />
           <v-list-item
             v-for="pluginMenuEntry in pluginMenuEntries"
             :key="pluginMenuEntry.id"
-            :to="`/plugins/${pluginMenuEntry.plugin.id}/${pluginMenuEntry.id}/`"
+            :to="pluginMenuEntry.to"
             :title="pluginMenuEntry.title"
             :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
+            v-bind="pluginMenuEntry.attrs"
           />
         </template>
 
         <template v-if="auth.permissions.value.superuser || auth.permissions.value.user_manager || auth.permissions.value.view_license">
-          <v-list-item class="mt-6 pa-0" min-height="0">
+          <v-list-item class="mt-4 pa-0" min-height="0">
             <v-list-subheader title="Administration" />
             <template #append>
               <template v-if="apiSettings.isProfessionalLicense">
@@ -113,8 +112,11 @@
 </template>
 
 <script setup lang="ts">
+import { PluginRouteScope } from '#imports';
+
 const auth = useAuth();
 const apiSettings = useApiSettings();
+const pluginStore = usePluginStore();
 const route = useRoute();
 const display = useDisplay();
 
@@ -138,7 +140,7 @@ const licenseText = computed(() => {
   }[license] || '';
 });
 
-const pluginMenuEntries = computed(() => apiSettings.pluginMenuEntries(PluginMenuId.MAIN));
+const pluginMenuEntries = computed(() => pluginStore.menuEntries.filter(e => e.scope === PluginRouteScope.MAIN));
 
 // Breadcrumbs
 const breadcrumbs = ref<Breadcrumbs>();

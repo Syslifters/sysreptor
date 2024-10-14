@@ -1,4 +1,5 @@
 import type { ArchivedProject, Breadcrumbs, FindingTemplate, PentestProject, ProjectType, UserShortInfo } from "#imports";
+import type { PluginRouteScope } from "./types";
 
 type RouteType = ReturnType<typeof useRoute>;
 
@@ -91,4 +92,21 @@ export function userDetailBreadcrumbs(user?: UserShortInfo): Breadcrumbs {
   return userListBreadcrumbs().concat([
     { title: user?.username, to: `/users/${user?.id}/` },
   ]);
+}
+
+export function pluginBreadcrumbs(scope: PluginRouteScope): Breadcrumbs {
+  const breadcrumbs = [
+    { title: 'Plugins' },
+  ] as Breadcrumbs;
+
+  // Get nearest plugin menu entry for page
+  const router = useRouter();
+  const pluginStore = usePluginStore();
+  const route = router.currentRoute.value;
+  const pluginMenuEntries = pluginStore.menuEntries.filter(e => e.scope === scope)
+  const menuEntry = route.matched.map(m => pluginMenuEntries.find(e => e.to.name === m.name)).filter(e => !!e)[0];
+  if (menuEntry) {
+    breadcrumbs.push({ title: menuEntry.title, to: menuEntry.to });
+  }
+  return breadcrumbs;
 }

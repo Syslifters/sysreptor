@@ -22,12 +22,16 @@
         </v-list-item>
         
         <template v-if="pluginMenuEntries.length > 0">
+          <v-list-subheader>
+            <span v-if="isExpanded">Plugins</span>
+          </v-list-subheader>
           <v-list-item
             v-for="pluginMenuEntry in pluginMenuEntries"
             :key="pluginMenuEntry.id"
-            :to="`/projects/${project.id}/plugins/${pluginMenuEntry.plugin.id}/${pluginMenuEntry.id}/`"
+            :to="pluginMenuEntry.to"
             :title="pluginMenuEntry.title"
             :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
+            v-bind="pluginMenuEntry.attrs"
           >
             <s-tooltip v-if="!isExpanded" activator="parent" :text="pluginMenuEntry.title" />
           </v-list-item>
@@ -40,10 +44,10 @@
 </template>
 
 <script setup lang="ts">
-import { PluginMenuId, projectTitleTemplate } from "#imports";
+import { projectTitleTemplate } from "#imports";
 
 const route = useRoute();
-const apiSettings = useApiSettings();
+const pluginStore = usePluginStore();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
 
@@ -57,7 +61,7 @@ watch(() => project.value?.project_type, async () => {
   projectType.value = await projectTypeStore.getById(project.value.project_type);
 });
 
-const pluginMenuEntries = computed(() => apiSettings.pluginMenuEntries(PluginMenuId.PROJECT));
+const pluginMenuEntries = computed(() => pluginStore.menuEntries.filter(e => e.scope === PluginRouteScope.PROJECT));
 
 useHeadExtended({
   titleTemplate: title => projectTitleTemplate(project.value, title, route),

@@ -1,4 +1,5 @@
 import type { CvssVersion } from "./cvss/base";
+import type { RouteLocationRaw } from '#vue-router';
 
 export type BaseModel = {
   id: string;
@@ -89,23 +90,23 @@ export type AuthIdentity = BaseModel & {
   identifier: string;
 }
 
-export enum PluginMenuId {
+export type PluginConfig = {
+  id: string;
+  name: string;
+  frontend_entry: string|null;
+}
+
+export enum PluginRouteScope {
   MAIN = 'main',
   PROJECT = 'project',
 }
 
 export type PluginMenuEntry = {
-  id: string;
   title: string;
-  menu_id: PluginMenuId;
-  url: string;
-  icon: string|null;
-}
-
-export type PluginConfig = {
-  id: string;
-  name: string;
-  menu_entries: PluginMenuEntry[];
+  icon?: string;
+  attrs?: Record<string, any>;
+  scope: PluginRouteScope;
+  to: { name: string };
 }
 
 export type ApiSettings = {
@@ -560,7 +561,7 @@ export type CodeChange = StringChange & {type: string};
 export type Breadcrumb = {
   title?: string;
   icon?: string;
-  to?: string;
+  to?: RouteLocationRaw;
 };
 export type Breadcrumbs = Breadcrumb[];
 

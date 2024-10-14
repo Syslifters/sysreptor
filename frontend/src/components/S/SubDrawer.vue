@@ -28,6 +28,9 @@ const isExpanded = computed(() => localSettings.subDrawerExpanded);
 
 <style lang="scss">
 .subdrawer {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+
   .v-list-item {
     padding-inline: 6px !important;
     padding-top: 1em;
