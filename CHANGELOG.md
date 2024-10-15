@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2024.79 - 2024-10-15
 * Add more granular file storage settings
 * Add trusted types configuration to Content Security Policy
 * Markdown editor: Add toolbar button to reference findings
