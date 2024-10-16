@@ -17,6 +17,16 @@ We recommend to create a [backup](backups.md) of your installation before updati
     bash sysreptor/update.sh
     ```
 
+    <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+    
+    Using the `--backup` switch, a SysReptor backup will be created prior to the update. The update will fail if the backup fails.
+
+    ```shell title="Run update script:"
+    bash sysreptor/update.sh --backup
+    ```
+
+    Please make sure to monitor your disk space and clean up old backups, as automatic backups might increase disk usage significantly.
+
 === "Manual update"
     Download and extract the latest SysReptor release:
     ```shell
@@ -37,6 +47,8 @@ We recommend to create a [backup](backups.md) of your installation before updati
     docker compose up -d
     ```
     
+Find instructions how to [downgrade](downgrades.md) to previous versions.
+
 
 ## Recommended: Automatic updates
 We recommend to deploy automatic updates and run the script once per day. This ensures you receive updates early.
@@ -56,7 +68,7 @@ crontab -e
 
 Schedule your update, e.g. every day at midnight:
 ```shell
-0 0 * * * /bin/bash /home/yourpath/sysreptor/update.sh
+0 0 * * * /bin/bash /home/yourpath/sysreptor/update.sh  # Optional (pro only): --backup
 ```
 
 Make sure your user has write permissions to the parent directory of your SysReptor directory. In this example, you need write permissions to `/home/yourpath/`.
