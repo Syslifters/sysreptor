@@ -33,7 +33,7 @@ const emojiObject = computed(() => emojiIndex.nativeEmoji(props.value));
 
 :deep() {
   .emoji-type-image.emoji-set-local {
-    background-image: url('@/assets/emojis/sheet_twitter_32_indexed_128.png');
+    background-image: url('@base/assets/emojis/sheet_twitter_32_indexed_128.png');
   }
 }
 </style>

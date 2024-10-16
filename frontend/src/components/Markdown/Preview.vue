@@ -10,7 +10,7 @@
 <script lang="ts">
 import { v4 as uuidv4 } from 'uuid';
 import { renderMarkdownToHtml, mermaid } from 'reportcreator-markdown';
-import { absoluteApiUrl } from '~/utils/urls';
+import { absoluteApiUrl } from '#imports';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -117,7 +117,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/vuetify.scss" as vuetify;
+@use "@base/assets/vuetify.scss" as vuetify;
 
 .preview {
   overflow: auto;

@@ -71,7 +71,7 @@
             />
             <v-empty-state v-else>
               <template #media>
-                <img src="~/assets/dino/project.svg" alt="" class="img-raptor" />
+                <img src="@base/assets/dino/project.svg" alt="" class="img-raptor" />
               </template>
               <template #text>
                 <strong>Define initial notes applied to new projects</strong>

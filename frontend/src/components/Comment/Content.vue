@@ -124,7 +124,7 @@ async function performUpdate() {
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/vuetify.scss" as vuetify;
+@use "@base/assets/vuetify.scss" as vuetify;
 
 .comment-header {
   padding-top: 0.1em;

@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts" generic="T">
-import type { useSearchableCursorPaginationFetcher } from "~/composables/api";
+import type { useSearchableCursorPaginationFetcher } from "#imports";
 
 const props = defineProps<{
   items: ReturnType<typeof useCursorPaginationFetcher> | ReturnType<typeof useSearchableCursorPaginationFetcher>;

@@ -1,4 +1,4 @@
-@use '@/assets/settings.scss' as settings;
+@use '@base/assets/settings.scss' as settings;
 
 // Vuetify customizations
 @forward 'vuetify/settings' with (

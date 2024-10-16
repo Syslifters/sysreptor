@@ -1,4 +1,4 @@
-import type { PluginMenuEntry } from "~/utils/types";
+import type { PluginMenuEntry } from "#imports";
 
 export const usePluginStore = defineStore('pluginStore', {
   state: () => ({

@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { capitalize } from "lodash-es";
 import type { RiskLevel } from "#imports";
-import { levelNameFromScore, levelNumberFromLevelName, scoreFromVector } from "~/utils/cvss";
+import { levelNameFromScore, levelNumberFromLevelName, scoreFromVector } from "@base/utils/cvss";
 
 const props = withDefaults(defineProps<{
   value?: string|null;
@@ -36,7 +36,7 @@ const levelNumber = computed(() => levelNumberFromLevelName(levelName.value));
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/settings.scss" as settings;
+@use "@base/assets/settings.scss" as settings;
 
 @for $level from 1 through 5 {
   .risk-level-#{$level} {

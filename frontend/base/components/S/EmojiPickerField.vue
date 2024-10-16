@@ -94,7 +94,7 @@ function clearEmoji() {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/vuetify.scss' as vuetify;
+@use '@base/assets/vuetify.scss' as vuetify;
 
 .emoji-mart {
   background-color: rgb(var(--v-theme-surface));
@@ -104,7 +104,7 @@ function clearEmoji() {
 
 :deep() {
   .emoji-type-image.emoji-set-local {
-    background-image: url('@/assets/emojis/sheet_twitter_32_indexed_128.png');
+    background-image: url('@base/assets/emojis/sheet_twitter_32_indexed_128.png');
   }
 
   .emoji-mart-emoji {

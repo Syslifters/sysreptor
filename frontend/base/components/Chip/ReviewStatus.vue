@@ -15,7 +15,7 @@ const statusInfo = computed(() => ProjectTypeStatusItems.find(i => i.value === p
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/settings.scss" as settings;
+@use "@base/assets/settings.scss" as settings;
 
 .status-finished {
   color: settings.$status-color-finished !important;

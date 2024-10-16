@@ -1,7 +1,7 @@
 import { orderBy, pick, set, isObject } from "lodash-es";
 import { groupNotes } from "@/stores/usernotes";
 import type { Comment, CommentAnswer, CommentStatus, PentestFinding, PentestProject, ProjectNote, ProjectType, ReportSection } from "#imports";
-import { levelNumberFromLevelName, levelNumberFromScore, scoreFromVector } from "~/utils/cvss";
+import { levelNumberFromLevelName, levelNumberFromScore, scoreFromVector } from "@base/utils/cvss";
 
 export function sortFindings<T extends PentestFinding>({ findings, projectType, overrideFindingOrder = false, topLevelFields = false }: {findings: T[], projectType: ProjectType, overrideFindingOrder?: boolean, topLevelFields?: boolean}): T[] {
   if (overrideFindingOrder || projectType.finding_ordering.length === 0) {

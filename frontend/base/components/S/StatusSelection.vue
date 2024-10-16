@@ -42,7 +42,7 @@ const emit = defineEmits<{
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/settings" as settings;
+@use "@base/assets/settings" as settings;
 
 .status-finished {
   color: settings.$status-color-finished !important;

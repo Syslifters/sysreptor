@@ -33,7 +33,7 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/settings" as settings;
+@use "@base/assets/settings" as settings;
 
 .mde-text-field, .mde-text-field-wrapper {
   width: 100%;

@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CvssMetricDefinition } from '~/utils/cvss/base';
+import type { CvssMetricDefinition } from '@base/utils/cvss/base';
 
 const props = defineProps<{
   modelValue: string;
@@ -49,7 +49,7 @@ const tooltipAttrs = {
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/vuetify" as vuetify;
+@use "@base/assets/vuetify" as vuetify;
 
 .metric-label {
   cursor: help;

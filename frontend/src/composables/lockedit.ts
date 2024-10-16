@@ -2,6 +2,7 @@ import urlJoin from "url-join";
 import { cloneDeep } from "lodash-es";
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";
 import type { VForm } from "vuetify/lib/components/index.mjs";
+import { levelNameFromScore } from '@base/utils/cvss';
 import { formatISO9075 } from "date-fns";
 import {
   EditMode,
@@ -241,8 +242,8 @@ export async function useProjectTypeLockEditOptions(options: {save?: boolean, de
 }
 
 export function useProjectEditBase(options: {
-  project: ComputedRef<PentestProject|undefined|null>,
-  projectType?: ComputedRef<ProjectType|undefined|null>,
+  project: ComputedRef<PentestProject|undefined|null>|Ref<PentestProject|undefined|null>,
+  projectType?: ComputedRef<ProjectType|undefined|null>|Ref<ProjectType|undefined|null>,
   historyDate?: string,
   canUploadFiles?: boolean,
   spellcheckEnabled?: Ref<boolean>;
@@ -301,7 +302,9 @@ export function useProjectEditBase(options: {
       .map(f => ({
         id: f.id, 
         title: f.data.title,
-        riskLevel: options.projectType?.value ? getFindingRiskLevel({ finding: f, projectType: options.projectType?.value }) : undefined,
+        severity: options.projectType?.value ? 
+          levelNameFromScore(getFindingRiskLevel({ finding: f, projectType: options.projectType?.value }) as any)?.toLowerCase() : 
+          undefined,
       }))
   });
   function rewriteReferenceLink(refId: string) {

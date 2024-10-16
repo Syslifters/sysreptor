@@ -133,7 +133,7 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/vuetify" as vuetify;
+@use "@base/assets/vuetify" as vuetify;
 
 :deep(.v-list-subheader) {
   padding-left: 0.5em !important;

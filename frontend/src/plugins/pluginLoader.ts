@@ -1,7 +1,7 @@
 import { PluginIFrame } from '#components';
 import type { RouteRecordRaw } from '#vue-router';
 import { trimStart } from 'lodash-es';
-import { PluginRouteScope } from '~/utils/types';
+import { PluginRouteScope } from '#imports';
 
 
 export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConfig }) {

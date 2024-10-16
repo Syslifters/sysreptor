@@ -44,7 +44,7 @@
           title="No data found"
         >
           <div class="w-100 text-center">
-            <img src="~/assets/dino/notfound.svg" alt="" class="img-raptor" />
+            <img src="@base/assets/dino/notfound.svg" alt="" class="img-raptor" />
           </div>
         </v-list-item>
       </v-list>
@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts" generic="T = any">
-import { useSearchableCursorPaginationFetcher } from "~/composables/api";
+import { useSearchableCursorPaginationFetcher } from "#imports";
 
 const orderingModel = defineModel<string|null>('ordering');
 const props = defineProps<{
@@ -112,7 +112,7 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/vuetify.scss" as vuetify;
+@use "@base/assets/vuetify.scss" as vuetify;
 .list-header {
   position: sticky;
   top: 0;

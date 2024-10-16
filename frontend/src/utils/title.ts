@@ -1,5 +1,5 @@
 import type { ArchivedProject, Breadcrumbs, FindingTemplate, PentestProject, ProjectType, UserShortInfo } from "#imports";
-import type { PluginRouteScope } from "./types";
+import type { PluginRouteScope } from "@base/utils/types";
 
 type RouteType = ReturnType<typeof useRoute>;
 

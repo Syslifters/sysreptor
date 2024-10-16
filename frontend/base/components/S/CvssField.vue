@@ -123,10 +123,10 @@
 </template>
 
 <script setup lang="ts">
-import { isValidVector, scoreFromVector, levelNumberFromScore, levelNameFromScore, parseVector, stringifyVector } from "@/utils/cvss";
-import { CVSS31_DEFINITION } from "@/utils/cvss/cvss3";
-import { CVSS40_DEFINITION } from "@/utils/cvss/cvss4";
-import { CvssVersion } from "@/utils/cvss/base";
+import { isValidVector, scoreFromVector, levelNumberFromScore, levelNameFromScore, parseVector, stringifyVector } from "@base/utils/cvss";
+import { CVSS31_DEFINITION } from "@base/utils/cvss/cvss3";
+import { CVSS40_DEFINITION } from "@base/utils/cvss/cvss4";
+import { CvssVersion } from "@base/utils/cvss/base";
 
 const props = defineProps<{
   modelValue: string|null;
@@ -323,8 +323,8 @@ function applyDialog() {
 </script>
 
 <style scoped lang="scss">
-@use "@/assets/settings" as settings;
-@use "@/assets/vuetify" as vuetify;
+@use "@base/assets/settings" as settings;
+@use "@base/assets/vuetify" as vuetify;
 
 .cvss-score {
   width: 8em;

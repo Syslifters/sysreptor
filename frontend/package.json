@@ -47,7 +47,7 @@
     "@types/lodash-es": "^4.17.0",
     "@types/uuid": "^10.0.0",
     "@types/dompurify": "^3.0.5",
-    "sass": "^1.69.3",
+    "sass-embedded": "^1.79.5",
     "eslint": "^9.0.0",
     "license-checker-rseidelsohn": "^4.2.8",
     "vitest": "^2.0.4",

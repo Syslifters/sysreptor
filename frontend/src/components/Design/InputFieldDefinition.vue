@@ -320,7 +320,7 @@
 
 <script setup lang="ts">
 import Draggable from "vuedraggable";
-import { CvssVersion } from "@/utils/cvss/base";
+import { CvssVersion } from "@base/utils/cvss/base";
 import { FieldDataType, FieldOrigin } from "#imports";
 
 const props = withDefaults(defineProps<{

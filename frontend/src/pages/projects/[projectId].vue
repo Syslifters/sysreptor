@@ -26,8 +26,8 @@
             <span v-if="isExpanded">Plugins</span>
           </v-list-subheader>
           <v-list-item
-            v-for="pluginMenuEntry in pluginMenuEntries"
-            :key="pluginMenuEntry.id"
+            v-for="pluginMenuEntry, idx in pluginMenuEntries"
+            :key="idx"
             :to="pluginMenuEntry.to"
             :title="pluginMenuEntry.title"
             :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"

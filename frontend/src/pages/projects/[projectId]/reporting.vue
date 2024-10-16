@@ -117,7 +117,6 @@
 
 <script setup lang="ts">
 import Draggable from "vuedraggable";
-import { scoreFromVector, levelNumberFromScore, levelNumberFromLevelName } from "~/utils/cvss";
 import { collabSubpath, ReviewStatus } from '#imports';
 
 const route = useRoute();
@@ -183,7 +182,7 @@ function riskLevel(finding: PentestFinding) {
 </script>
 
 <style lang="scss" scoped>
-@use "assets/settings" as settings;
+@use "@base/assets/settings" as settings;
 
 @for $level from 1 through 5 {
   .finding-level-#{$level} {

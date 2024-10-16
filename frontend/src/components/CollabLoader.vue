@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { CollabConnectionState, type CollabConnectionInfo } from '~/utils/collab';
+import { CollabConnectionState, type CollabConnectionInfo } from '#imports';
 
 defineOptions({
   inheritAttrs: false

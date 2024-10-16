@@ -1,5 +1,5 @@
-@use "./settings" as settings;
-@use "./vuetify" as vuetify;
+@use "@base/assets/settings" as settings;
+@use "@base/assets/vuetify" as vuetify;
 
 .cm-focused {
   outline: none !important;

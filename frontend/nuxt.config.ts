@@ -5,15 +5,12 @@ const isDev = process.env.NODE_ENV === 'development';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  // Build as SPA application
-  ssr: false,
+  extends: ['./base'],
+
   // Source code directory
   srcDir: 'src/',
   dir: {
     public: 'src/public/'
-  },
-  sourcemap: {
-    client: true,
   },
 
   buildId: 'static',
@@ -33,45 +30,6 @@ export default defineNuxtConfig({
       ],
     }
   },
-
-  css: [
-    'vuetify/styles',
-    '@/assets/global.scss',
-    '@mdi/font/css/materialdesignicons.css',
-  ],
-
-  modules: [
-    '@nuxt/eslint',
-    'vuetify-nuxt-module',
-    '@vueuse/nuxt',
-    '@pinia/nuxt',
-    '@pinia-plugin-persistedstate/nuxt',
-  ],
-
-  piniaPersistedstate: {
-    storage: 'localStorage'
-  },
-
-  vuetify: {
-    moduleOptions: {
-      styles: {
-        configFile: 'assets/vuetify.scss',
-      }
-    },
-    vuetifyOptions: 'src/vuetify.config.ts',
-  },
-
-  build: {
-    transpile: ['vue-toastification'],
-  },
-
-  experimental: {
-    payloadExtraction: false,
-  },
-  future: {
-    compatibilityVersion: 4,
-  },
-  compatibilityDate: '2024-07-08',
 
   // Dev settings
   devtools: {

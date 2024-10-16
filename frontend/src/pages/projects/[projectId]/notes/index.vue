@@ -1,7 +1,7 @@
 <template>
   <v-empty-state>
     <template #media>
-      <img src="~/assets/dino/project.svg" alt="" class="img-raptor" />
+      <img src="@base/assets/dino/project.svg" alt="" class="img-raptor" />
     </template>
     <template #text>
       <strong>Start writing notes</strong>

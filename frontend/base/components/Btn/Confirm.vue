@@ -167,7 +167,7 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/vuetify" as vuetify;
+@use "@base/assets/vuetify" as vuetify;
 
 :deep(.v-list-item__prepend > .v-progress-circular ~ .v-list-item__spacer) {
   width: vuetify.$list-item-icon-margin-start;

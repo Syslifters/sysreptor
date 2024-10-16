@@ -51,8 +51,8 @@
         <template v-if="pluginMenuEntries.length > 0">
           <v-list-subheader title="Plugins" class="mt-4 pa-0" />
           <v-list-item
-            v-for="pluginMenuEntry in pluginMenuEntries"
-            :key="pluginMenuEntry.id"
+            v-for="pluginMenuEntry, idx in pluginMenuEntries"
+            :key="idx"
             :to="pluginMenuEntry.to"
             :title="pluginMenuEntry.title"
             :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
@@ -165,7 +165,7 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
 
 <style lang="scss" scoped>
 @use 'sass:map';
-@use "@/assets/vuetify.scss" as vuetify;
+@use "@base/assets/vuetify.scss" as vuetify;
 
 .height-fullscreen {
   height: 100vh;

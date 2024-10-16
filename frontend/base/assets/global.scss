@@ -1,6 +1,6 @@
-@use "@/assets/settings.scss" as settings;
-@use "@/assets/vuetify.scss" as vuetify;
-@import '~/assets/fonts/noto/noto.css';
+@use "@base/assets/settings.scss" as settings;
+@use "@base/assets/vuetify.scss" as vuetify;
+@import '@base/assets/fonts/noto/noto.css';
 
 
 // Hide scrollbar when it is not needed

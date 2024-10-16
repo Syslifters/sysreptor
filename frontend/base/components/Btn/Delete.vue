@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BtnConfirmVariant } from "@/components/Btn/Confirm.vue";
+import type { BtnConfirmVariant } from "@base/components/Btn/Confirm.vue";
 
 const props = withDefaults(defineProps<{
   delete: (() => Promise<void>)|(() => void),

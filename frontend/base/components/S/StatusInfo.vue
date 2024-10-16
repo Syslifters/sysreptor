@@ -15,7 +15,7 @@ const statusInfo = computed(() => ReviewStatusItems.find(i => i.value === props.
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/settings" as settings;
+@use "@base/assets/settings" as settings;
 
 .status-icon {
   margin-left: 0 !important;

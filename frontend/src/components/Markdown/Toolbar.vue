@@ -26,7 +26,7 @@
             :key="item.id"
             @click="codemirrorAction(() => insertText(props.editorView!, `[](#${item.id})`))"
             :title="item.title"
-            :class="'finding-level-' + item.riskLevel"
+            :class="'finding-level-' + levelNumberFromLevelName(item.severity)"
           />
         </v-list>
       </template>
@@ -117,7 +117,8 @@ import {
   isTaskListInSelection,
 } from 'reportcreator-markdown/editor';
 import type { VToolbar } from 'vuetify/lib/components/index.mjs';
-import { MarkdownEditorMode } from '#imports';
+import { levelNumberFromLevelName } from '@base/utils/cvss';
+import { MarkdownEditorMode, type ReferenceItem } from '#imports';
 
 const props = defineProps<{
   editorView?: EditorView|null;
@@ -125,7 +126,7 @@ const props = defineProps<{
   spellcheckSupported?: boolean;
   spellcheckEnabled?: boolean;
   markdownEditorMode?: MarkdownEditorMode;
-  referenceItems?: LinkableItem[];
+  referenceItems?: ReferenceItem[];
   disabled?: boolean;
   lang?: string|null;
   collab?: CollabPropType;
@@ -230,7 +231,7 @@ function emitCreateComment() {
 </script>
 
 <style lang="scss" scoped>
-@use "assets/settings" as settings;
+@use "@base/assets/settings" as settings;
 
 @for $level from 1 through 5 {
   .finding-level-#{$level} {
