@@ -160,6 +160,7 @@ urlpatterns = [
 
     # Static files
     path('robots.txt', lambda *args, **kwargs: HttpResponse("User-Agent: *\nDisallow: /\n", content_type="text/plain")),
+    path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico', permanent=True)),
 
     # Fallback URL for SPA
     re_path(r'^(?!(api|admin)).*/?$', TemplateView.as_view(template_name='index.html')),

@@ -1,5 +1,6 @@
 import importlib.util
 import logging
+import shutil
 import sys
 from importlib import import_module
 from pathlib import Path
@@ -9,6 +10,7 @@ from django.contrib.staticfiles import finders
 from django.contrib.staticfiles.finders import AppDirectoriesFinder, FileSystemFinder
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import FileSystemStorage, storages
+from django.utils.functional import classproperty
 from django.utils.module_loading import module_has_submodule
 
 enabled_plugins = []
@@ -34,12 +36,12 @@ class PluginConfig(AppConfig):
         super().__init__(*args, **kwargs)
         enabled_plugins.append(self)
 
-    @property
-    def label(self) -> str:
+    @classproperty
+    def label(cls) -> str:
         """
         Django app label used to identify the app internally
         """
-        return f'plugin_{self.plugin_id.replace("-", "")}'
+        return f'plugin_{cls.plugin_id.replace("-", "")}'
 
     @property
     def urlpatterns(self) -> list:
@@ -76,15 +78,31 @@ def load_module_from_dir(module_name: str, path: Path):
 def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
     all_plugins_classes = []
 
+    # Clear plugin link dir
+    plugin_link_dir = Path('/app/api/sysreptor_plugins')
+    plugin_link_dir.mkdir(exist_ok=True, parents=True)
+    for plugin_dir in plugin_link_dir.iterdir():
+        if plugin_dir.is_dir() and not plugin_dir.is_symlink():
+            shutil.rmtree(plugin_dir)
+        elif not (plugin_dir.is_file() and plugin_dir.name == '__init__.py'):
+            plugin_dir.unlink()
+    if not (plugin_link_dir_init := (plugin_link_dir / '__init__.py')).exists():
+        plugin_link_dir_init.touch()
+
     # Register top-level module
     sys.modules['sysreptor_plugins'] = {}
     # load_module_from_dir('sysreptor_plugins', Path(__file__).parent.parent / 'plugins' / '__init__.py')
 
     for plugins_dir in plugin_dirs:
-        for module_dir in plugins_dir.iterdir():
-            app_file = module_dir / 'app.py'
-            if module_dir.is_dir() and app_file.is_file():
+        for module_dir_original in plugins_dir.iterdir():
+            app_file = module_dir_original / 'app.py'
+            if module_dir_original.is_dir() and app_file.is_file():
                 try:
+                    module_dir = (plugin_link_dir / module_dir_original.name)
+                    if module_dir.exists():
+                        raise ImproperlyConfigured(f'Duplicate plugin name: {module_dir.name}')
+                    module_dir.symlink_to(module_dir_original.resolve().absolute())
+
                     module_name = f"sysreptor_plugins.{module_dir.name}"
                     if any(c.name == module_name for c in all_plugins_classes):
                         raise ImproperlyConfigured(f'Duplicate plugin name: {module_name}')
@@ -101,13 +119,20 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
                     logging.exception(f'Failed to load plugin from {module_dir}')
 
     out = []
-    for plugin_id in enabled_plugins:
+    for enabled_plugin_id in enabled_plugins:
         for plugin_config_class in all_plugins_classes:
-            if plugin_config_class.plugin_id == plugin_id or plugin_config_class.name.split('.')[-1] == plugin_id:
-                out.append(plugin_config_class.__module__ + '.' + plugin_config_class.__name__)
+            plugin_id = plugin_config_class.plugin_id
+            plugin_name = plugin_config_class.name.split('.')[-1]
+            if enabled_plugin_id in [plugin_id, plugin_name]:
+                # Add to installed_apps
+                app_class = plugin_config_class.__module__ + '.' + plugin_config_class.__name__
+                app_label = plugin_config_class.label
+                out.append(app_class)
+                logging.info(f'Enabling plugin {plugin_name} ({plugin_id=}, {app_label=}, {app_class=})', file=sys.stderr)  # noqa: T201
                 break
         else:
-            logging.warning(f'Plugin "{plugin_id}" not found in plugins')
+            logging.warning(f'Plugin "{enabled_plugin_id}" not found in plugins')
+
     return out
 
 

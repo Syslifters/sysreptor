@@ -41,9 +41,9 @@ export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConf
       props.src = `/static/plugins/${pluginHelperOptions.pluginConfig.id}/${trimStart(props.src || '', '/')}`;
     }
 
-    return defineComponent(() => {
+    return Promise.resolve(defineComponent(() => {
       return () => h(PluginIFrame, props);
-    });
+    }));
   }
 
   return {
@@ -59,7 +59,7 @@ export async function loadPlugin(pluginConfig: PluginConfig) {
       // eslint-disable-next-line no-console
       console.log(`Initializing plugin: ${pluginConfig.name} (plugin_id=${pluginConfig.id})`);
       const frontendEntry = await import(/* @vite-ignore */ pluginConfig.frontend_entry);
-      await Promise.resolve(frontendEntry.default({
+      await Promise.resolve(frontendEntry?.default({
         pluginConfig,
         pluginHelpers: usePluginHelpers({ pluginConfig }),
         nuxtApp: useNuxtApp(),
@@ -74,9 +74,11 @@ export async function loadPlugin(pluginConfig: PluginConfig) {
 
 export default defineNuxtPlugin({
   enforce: 'post',
-  async setup() {
-    // Load and initilaize plugins
-    const apiSettings = useApiSettings();
-    await Promise.all(apiSettings.settings!.plugins.map(loadPlugin));
+  hooks: {
+    async 'app:created'() {
+       // Load and initilaize plugins
+      const apiSettings = useApiSettings();
+      await Promise.all(apiSettings.settings!.plugins.map(loadPlugin));
+    }
   },
 })

@@ -688,6 +688,7 @@ PREFERRED_LANGUAGES = config('PREFERRED_LANGUAGES', cast=Csv(), default=None)
 
 
 # Plugins
+# TODO: copy plugins to /app/api/sysreptor_plugins/{module_name}/
 # TODO: load from env variables
 PLUGIN_DIRS = [
     Path('/app/plugins/'),
@@ -695,6 +696,8 @@ PLUGIN_DIRS = [
 ENABLED_PLUGINS = [
     'cyberchef',
     'demoplugin',
+    'customtheme',
+    'checklists',
 ]
 INSTALLED_APPS += load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
 

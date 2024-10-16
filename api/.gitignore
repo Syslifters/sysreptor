@@ -145,3 +145,4 @@ src/frontend/*/static/*
 !src/frontend/index.html
 !src/frontend/static
 !src/frontend/static/.gitkeep
+src/sysreptor_plugins

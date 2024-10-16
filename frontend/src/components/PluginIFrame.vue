@@ -5,7 +5,7 @@
     </div>
     <iframe
       ref="iframeRef"
-      :src="props.src"
+      :src="iframeUrl"
       class="iframe-container"
       :class="{
         'iframe-loading': isLoading,
@@ -24,42 +24,55 @@ const props = defineProps<{
   src: string;
 }>();
 
+const route = useRoute();
 const attrs = useAttrs();
 const theme = useTheme();
 
-const iframeRef = ref<HTMLIFrameElement>('iframeRef');
+const iframeRef = ref<HTMLIFrameElement>();
 const isLoading = ref(true);
+const iframeUrl = computed(() => {
+  const url = new URL(props.src, window.location.href);
+  // Append current query to iframe URL
+  new URLSearchParams(route.query as Record<string, string>).forEach((value, key) => url.searchParams.append(key, value));
+  // Append route params as query to iframe URL
+  new URLSearchParams(route.params as Record<string, string>).forEach((value, key) => url.searchParams.append(key, value));
+  return url.toString();
+});
+
 
 function onIframeLoaded() {
   isLoading.value = false;
 
   // Hook navigation inside iframe: redirect to top-level navigation outside of iframe
   // Add target="_top" to all <a> tags inside iframe
+  const iframeDocument = iframeRef.value!.contentWindow!.document;
+  iframeDocument.querySelectorAll('a:not([target])')
+    .forEach((a) => a.setAttribute('target', '_top'));
   new MutationObserver((mutationList) => {
     for (const mutation of mutationList) {
       if (mutation.type === 'childList') {
         for (const an of mutation.addedNodes) {
-          for (const node of getChildNotesRecursive(an)) {
-            if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === 'A' && !node.hasAttribute('target')) {
+          for (const node of getChildElementsRecursive(an)) {
+            if (node.nodeName === 'A' && !node.hasAttribute('target')) {
               node.setAttribute('target', '_top');
             }
           }
         }
       }
     }
-  }).observe(iframeRef.value.contentWindow.document.body, { childList: true, subtree: true });
+  }).observe(iframeDocument.body, { childList: true, subtree: true });
   // TODO: hook programmatic navigation?
-  // TODO: pass project id to iframe: hash or window.parent.useNuxtApp().$router.currentRoute.value.params.projectId
+  // TODO: cache-busting for plugin iframe .html and plugin.js files
 }
 
-function* getChildNotesRecursive(node) {
-  yield node;
+function* getChildElementsRecursive(node: Node): Generator<Element> {
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    yield node as Element;
+  }
   for (const child of node.childNodes) {
-    yield* getChildNotesRecursive(child);
+    yield* getChildElementsRecursive(child);
   }
 }
-
-
 </script>
 
 <style lang="scss" scoped>

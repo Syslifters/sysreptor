@@ -2,11 +2,11 @@
 $body-font-family: 'Noto Sans', sans-serif;
 
 // Colors
-$risk-color-info: #14AE92;
-$risk-color-low: #4285F5;
-$risk-color-medium: #FBBC05;
-$risk-color-high: #F76226;
-$risk-color-critical: #E83221;
+$risk-color-info: rgb(var(--v-theme-risk-info)); 
+$risk-color-low: rgb(var(--v-theme-risk-low)); 
+$risk-color-medium: rgb(var(--v-theme-risk-medium)); 
+$risk-color-high: rgb(var(--v-theme-risk-high)); 
+$risk-color-critical: rgb(var(--v-theme-risk-critical)); 
 
 $risk-color-levels: (
   1: $risk-color-info,

@@ -23,6 +23,12 @@ const themeCommon = {
     warning: '#FFC107',
     'on-warning': themeLightTextColor,
 
+    'risk-info': '#14AE92',
+    'risk-low': '#4285F5',
+    'risk-medium': '#FBBC05',
+    'risk-high': '#F76226',
+    'risk-critical': '#E83221',
+
     'search-match': '#ffff00',
     'on-search-match': themeLightTextColor,
   },

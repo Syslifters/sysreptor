@@ -105,6 +105,10 @@ export default defineNuxtConfig({
             }
           },
         },
+        '/favicon.ico': {
+          target: 'http://api:8000',
+          changeOrigin: false,
+        },
       }
     },
   },
