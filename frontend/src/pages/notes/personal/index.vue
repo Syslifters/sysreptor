@@ -14,5 +14,7 @@
   width: 30em;
   max-width: 50%;
   max-height: 50vh;
+  pointer-events: none;
+  user-select: none;
 }
 </style>

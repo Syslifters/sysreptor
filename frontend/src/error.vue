@@ -76,5 +76,7 @@ h1 {
 .img-raptor {
   display: block;
   width: 25rem;
+  pointer-events: none;
+  user-select: none;
 }
 </style>
