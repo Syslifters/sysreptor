@@ -29,7 +29,7 @@ cat <your-backup-file>.zip | docker compose run --rm --no-TTY app python3 manage
 
 !!! warning
 
-    This command deletes all present data an restores data from the backup.
+    This command deletes all present data and restores data from the backup.
     Do not run without having made a backup.
 
 
