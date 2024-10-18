@@ -143,5 +143,7 @@ defineExpose({
   margin-top: 1rem;
   margin-left: auto;
   margin-right: auto;
+  pointer-events: none;
+  user-select: none;
 }
 </style>
