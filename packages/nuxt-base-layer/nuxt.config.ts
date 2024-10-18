@@ -4,6 +4,12 @@ import { dirname, join } from 'path'
 const currentDir = dirname(fileURLToPath(import.meta.url))
 
 export default defineNuxtConfig({
+  future: {
+    compatibilityVersion: 4,
+  },
+  compatibilityDate: '2024-07-08',
+  devtools: { enabled: false },
+
   // Build as SPA application
   ssr: false,
   
@@ -11,16 +17,11 @@ export default defineNuxtConfig({
     client: true,
   },
   buildId: 'static',
+  srcDir: join(currentDir, './src'),
 
   alias: {
-    '@base': currentDir,
+    '@base': join(currentDir, './src'),
   },
-
-  css: [
-    'vuetify/styles',
-    join(currentDir, './assets/global.scss'),
-    '@mdi/font/css/materialdesignicons.css',
-  ],
 
   modules: [
     '@nuxt/eslint',
@@ -30,6 +31,12 @@ export default defineNuxtConfig({
     '@pinia-plugin-persistedstate/nuxt',
   ],
 
+  css: [
+    'vuetify/styles',
+    join(currentDir, './src/assets/global.scss'),
+    '@mdi/font/css/materialdesignicons.css',
+  ],
+
   piniaPersistedstate: {
     storage: 'localStorage'
   },
@@ -37,22 +44,23 @@ export default defineNuxtConfig({
   vuetify: {
     moduleOptions: {
       styles: {
-        configFile: join(currentDir, './assets/vuetify.scss'),
+        configFile: join(currentDir, './src/assets/vuetify.scss'),
       }
     },
-    vuetifyOptions: join(currentDir, './vuetify.config.ts'),
+    vuetifyOptions: join(currentDir, './src/vuetify.config.ts'),
   },
 
-  build: {
-    transpile: ['vue-toastification'],
+  // build: {
+  //   transpile: ['vue-toastification'],
+  // },
+
+  vite: {
+    resolve: {
+      dedupe: ['vuetify'],
+    },
   },
 
   experimental: {
     payloadExtraction: false,
   },
-  future: {
-    compatibilityVersion: 4,
-  },
-  compatibilityDate: '2024-07-08',
-
 });

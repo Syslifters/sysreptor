@@ -5,7 +5,12 @@ const isDev = process.env.NODE_ENV === 'development';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: ['./base'],
+  extends: ['nuxt-base-layer'],
+
+  future: {
+    compatibilityVersion: 4,
+  },
+  compatibilityDate: '2024-07-08',
 
   // Source code directory
   srcDir: 'src/',

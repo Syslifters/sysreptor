@@ -26,6 +26,10 @@ WORKDIR /app/packages/markdown/
 COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
 RUN npm install
 
+WORKDIR /app/packages/nuxt-base-layer/
+COPY packages/nuxt-base-layer/package.json packages/nuxt-base-layer/package-lock.json /app/packages/nuxt-base-layer/
+RUN npm install
+
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json /app/frontend/
 RUN npm install
@@ -34,6 +38,7 @@ RUN npm install
 FROM --platform=$BUILDPLATFORM frontend-dev AS frontend-test
 # Include source code
 COPY packages/markdown/ /app/packages/markdown/
+COPY packages/nuxt-base-layer/ /app/packages/nuxt-base-layer/
 COPY frontend /app/frontend/
 COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/frontend/src/assets/rendering/
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/src/public/static/pdfviewer/

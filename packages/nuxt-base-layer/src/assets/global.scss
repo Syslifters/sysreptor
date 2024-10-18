@@ -8,6 +8,13 @@
 // See https://github.com/vuetifyjs/vuetify/issues/1197
 html {
   overflow-y: auto !important;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark light;
+  }
 }
 
 body {

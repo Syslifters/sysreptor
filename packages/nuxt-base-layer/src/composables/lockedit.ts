@@ -1,6 +1,6 @@
 import urlJoin from "url-join";
 import { cloneDeep } from "lodash-es";
-import { onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from "#vue-router";
 import type { VForm } from "vuetify/lib/components/index.mjs";
 import { levelNameFromScore } from '@base/utils/cvss';
 import { formatISO9075 } from "date-fns";

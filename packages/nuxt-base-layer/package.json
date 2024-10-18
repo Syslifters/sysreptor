@@ -1,0 +1,53 @@
+{
+  "name": "reportcreator-nuxt-base-layer",
+  "private": true,
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "scripts": {
+    "dev": "nuxi dev .playground",
+    "dev:prepare": "nuxt prepare .playground",
+    "build": "nuxt build .playground",
+    "generate": "nuxt generate .playground",
+    "preview": "nuxt preview .playground",
+    "lint": "eslint .",
+    "postinstall": "nuxt prepare .playground",
+    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --excludePackages='stackframe@0.3.1' --onlyAllow='MIT;MIT*;Apache-2.0;MIT OR Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;CC-BY-ND-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0;Python-2.0;EPL-2.0;(BSD-3-Clause OR GPL-2.0);(MIT AND CC-BY-3.0);(MIT OR CC0-1.0)' --plainVertical > NOTICE",
+    "dependencies": "npm run generate-notice"
+  },
+  "dependencies": {
+    "vuetify-nuxt-module": "^0.18.2",
+    "@mdi/font": "^7.3.67",
+    "@pinia/nuxt": "^0.5.1",
+    "@pinia-plugin-persistedstate/nuxt": "^1.2.0",
+    "sass-embedded": "^1.79.5",
+    "@nuxt/eslint": "^0.5.5",
+    "@vueuse/nuxt": "^11.1.0",
+
+    "emoji-mart-vue-fast": "^15.0.0",
+    "splitpanes": "^3.1.5",
+    "vue-toastification": "^2.0.0-rc.5",
+
+    "js-file-download": "^0.4.12",
+    "lodash-es": "^4.17.21",
+    "url-join": "^5.0.0",
+    "zxcvbn": "^4.4.2",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "nuxt": "3.13.0",
+    "vuetify": "^3.7.0",
+    
+    "@types/node": "^20",
+    "@types/zxcvbn": "^4.4.2",
+    "@types/lodash-es": "^4.17.12",
+    
+    "eslint": "^9.0.0",
+    "license-checker-rseidelsohn": "^4.2.8",
+    "vue-tsc": "^2.0.11"
+  },
+  "peerDependencies": {
+    "nuxt": "^3.12.0",
+    "vuetify": "^3.7.0",
+    "pinia": "^2.2.0"
+  }
+}

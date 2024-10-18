@@ -1,5 +1,6 @@
 // @ts-expect-error missing types
 import { ApmVuePlugin } from '@elastic/apm-rum-vue'
+import { useLocalSettings, useApiSettings } from '#imports';
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   const localSettings = useLocalSettings();

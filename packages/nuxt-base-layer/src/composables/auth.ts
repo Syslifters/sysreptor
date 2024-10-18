@@ -1,6 +1,6 @@
 import type { NavigateToOptions } from '#app/composables/router'
 import type { LocationQueryValue } from "#vue-router";
-import { AuthProviderType, type AuthProvider, type User  } from "#imports";
+import { AuthProviderType, type AuthProvider, type User, useApiSettings  } from "#imports";
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
