@@ -1,11 +1,18 @@
-import { PluginIFrame } from '#components';
-import type { RouteRecordRaw } from '#vue-router';
+import type { RouteRecordRaw, RouteLocationNormalizedLoadedGeneric } from '#vue-router';
 import { trimStart } from 'lodash-es';
 import { PluginRouteScope } from '#imports';
+import { PluginIFrame } from '#components';
+
+
+export type PluginIframeSrc = string|((options: { 
+  route: RouteLocationNormalizedLoadedGeneric;
+  user: User;
+}) => string);
 
 
 export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConfig }) {
   const router = useRouter();
+  const auth = useAuth();
   const pluginStore = usePluginStore();
 
   function addRoute(options: {
@@ -36,13 +43,25 @@ export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConf
     }
   }
 
-  function iframeComponent(props: { src: string, [key: string]: any }) {
-    if (pluginHelperOptions?.pluginConfig?.id) {
-      props.src = `/static/plugins/${pluginHelperOptions.pluginConfig.id}/${trimStart(props.src || '', '/')}`;
-    }
-
+  function iframeComponent(props: { src: PluginIframeSrc, [key: string]: any }) {
     return Promise.resolve(defineComponent(() => {
-      return () => h(PluginIFrame, props);
+      let iframeSrc = props.src as string;
+      if (typeof props.src === 'function') {
+        // Build dynamic src
+        iframeSrc = props.src({
+          route: router.currentRoute.value,
+          user: auth.user.value!,
+        });
+      }
+      if (!iframeSrc.startsWith('/')) {
+        // Convert relative src to absolute
+        iframeSrc = `/static/plugins/${pluginHelperOptions.pluginConfig.id}/${iframeSrc}`;
+      }
+
+      return () => h(PluginIFrame, {
+        ...props,
+        src: iframeSrc,
+      });
     }));
   }
 
@@ -55,7 +74,7 @@ export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConf
 
 export async function loadPlugin(pluginConfig: PluginConfig) {
   if (pluginConfig.frontend_entry) {
-    // try {
+    try {
       // eslint-disable-next-line no-console
       console.log(`Initializing plugin: ${pluginConfig.name} (plugin_id=${pluginConfig.id})`);
       const frontendEntry = await import(/* @vite-ignore */ pluginConfig.frontend_entry);
@@ -64,11 +83,11 @@ export async function loadPlugin(pluginConfig: PluginConfig) {
         pluginHelpers: usePluginHelpers({ pluginConfig }),
         nuxtApp: useNuxtApp(),
       }));
-    // }
-    // catch (error) {
-    //   // eslint-disable-next-line no-console
-    //   console.error(`Failed to initialize plugin: ${pluginConfig.name} (plugin_id=${pluginConfig.id})`, error);
-    // }
+    }
+    catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`Failed to initialize plugin: ${pluginConfig.name} (plugin_id=${pluginConfig.id})`, error);
+    }
   }
 }
 

@@ -1,22 +1,17 @@
 <template>
-  <div class="h-100">
-    <div v-if="isLoading" class="centered" v-bind="$attrs">
-      <v-progress-circular indeterminate size="50" />
-    </div>
-    <iframe
-      ref="iframeRef"
-      :src="iframeUrl"
-      class="iframe-container"
-      :class="{
-        'iframe-loading': isLoading,
-      }"
-      :style="{ 
-        colorScheme: theme.current.value.dark ? 'dark': 'light',
-      }"
-      @load="onIframeLoaded"
-      v-bind="attrs"
-    />
-  </div>
+  <iframe
+    ref="iframeRef"
+    :src="iframeUrl"
+    class="iframe-container"
+    :class="{
+      'iframe-loading': loadingIndicator.isLoading.value,
+    }"
+    :style="{ 
+      colorScheme: theme.current.value.dark ? 'dark': 'light',
+    }"
+    @load="onIframeLoaded"
+    v-bind="attrs"
+  />
 </template>
 
 <script setup lang="ts">
@@ -24,12 +19,14 @@ const props = defineProps<{
   src: string;
 }>();
 
+const router = useRouter();
 const route = useRoute();
-const attrs = useAttrs();
 const theme = useTheme();
+const attrs = useAttrs();
+const loadingIndicator = useLoadingIndicator();
+loadingIndicator.start();
 
 const iframeRef = ref<HTMLIFrameElement>();
-const isLoading = ref(true);
 const iframeUrl = computed(() => {
   const url = new URL(props.src, window.location.href);
   // Append current query to iframe URL
@@ -41,12 +38,10 @@ const iframeUrl = computed(() => {
 
 
 function onIframeLoaded() {
-  isLoading.value = false;
-
   // Hook navigation inside iframe: redirect to top-level navigation outside of iframe
   // Add target="_top" to all <a> tags inside iframe
-  const iframeDocument = iframeRef.value!.contentWindow!.document;
-  iframeDocument.querySelectorAll('a:not([target])')
+  const iframeWindow = iframeRef.value!.contentWindow!;
+  iframeWindow.document.querySelectorAll('a:not([target])')
     .forEach((a) => a.setAttribute('target', '_top'));
   new MutationObserver((mutationList) => {
     for (const mutation of mutationList) {
@@ -60,9 +55,33 @@ function onIframeLoaded() {
         }
       }
     }
-  }).observe(iframeDocument.body, { childList: true, subtree: true });
-  // TODO: hook programmatic navigation?
+  }).observe(iframeWindow.document.body, { childList: true, subtree: true });
+
+  // Patch window.open
+  const windowOpenOriginal = iframeWindow.open;
+  iframeWindow.open = (url?: string, target?: string, features?: string) => {
+    if (!target) {
+      target = '_top';
+    }
+    return windowOpenOriginal(url, target, features);
+  };
+  // Hook navigation events (Chrome only)
+  (iframeWindow as any).navigation?.addEventListener('navigate', (event: any) => {
+    if (event.hashChange || event.downloadRequest || event.formData || !event.cancelable || event.destination.sameDocument) {
+      return;
+    }
+    event.preventDefault();
+    iframeWindow.open(event.destination.url, '_top');
+  })
+
   // TODO: cache-busting for plugin iframe .html and plugin.js files
+
+  // Disable loading animation
+  if (iframeWindow.document.readyState === 'loading') {
+    iframeWindow.document.addEventListener('load', () => loadingIndicator.finish());
+  } else {
+    loadingIndicator.finish();
+  }
 }
 
 function* getChildElementsRecursive(node: Node): Generator<Element> {
@@ -71,6 +90,27 @@ function* getChildElementsRecursive(node: Node): Generator<Element> {
   }
   for (const child of node.childNodes) {
     yield* getChildElementsRecursive(child);
+  }
+}
+
+
+// Redirect native top-level navigation to nuxt navigation.
+// Speed up navigation performance and prevent flashing pages (supported only in Chrome)
+onMounted(() => {
+  (window as any).navigation?.addEventListener('navigate', onNavigate, { once: true });
+});
+onUnmounted(() => {
+  (window as any).navigation?.removeEventListener('navigate', onNavigate);
+});
+function onNavigate(event: any) {
+  if (!['push', 'traverse'].includes(event.navigationType) || !event.cancelable || new URL(event.destination.url).origin !== window.location.origin) {
+    return;
+  }
+  
+  const resolvedRoute = router.resolve('/' + event.destination.url.split('/').slice(3).join('/'));
+  if (resolvedRoute) {
+    event.preventDefault();
+    navigateTo(resolvedRoute);
   }
 }
 </script>
