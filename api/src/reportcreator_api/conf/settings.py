@@ -422,18 +422,19 @@ CONTENT_SECURITY_POLICY = {
         'style-src': [SELF, UNSAFE_INLINE],
         # hash of nuxt inline script injected in index.html
         'script-src': [SELF, "'sha256-vfPLwqW0BNyGGLG6upxgxsXF+K7Jp/V2hJGlbPt7NJY='"],
-        'require-trusted-types-for': ["'script'"],
-        'trusted-types': [
-            'default',  # required for vuetify, unhead, mermaid
-            'worker-url',  # load web workers via import URL
-            'vue',  # used by vue and markdown
-            'dompurify',  # used by mermaid
-            "'allow-duplicates'",  # dompurify is used twice as dependency
-            # monaco-editor policies
-            'defaultWorkerFactory', 'tokenizeToString', 'standaloneColorizer',
-            'editorViewLayer', 'domLineBreaksComputer', 'domLineBreaksComputer',
-            'diffEditorWidget', 'editorGhostText', 'diffReview', 'stickyScrollViewLayer',
-        ],
+        # Trusted types are not compatible with django admin, django rest framework's browsable API, swagger UI and django debug toolbar
+        # 'require-trusted-types-for': ["'script'"],
+        # 'trusted-types': [
+        #     'default',  # required for vuetify, unhead, mermaid
+        #     'worker-url',  # load web workers via import URL
+        #     'vue',  # used by vue and markdown
+        #     'dompurify',  # used by mermaid
+        #     "'allow-duplicates'",  # dompurify is used twice as dependency
+        #     # monaco-editor policies
+        #     'defaultWorkerFactory', 'tokenizeToString', 'standaloneColorizer',
+        #     'editorViewLayer', 'domLineBreaksComputer', 'domLineBreaksComputer',
+        #     'diffEditorWidget', 'editorGhostText', 'diffReview', 'stickyScrollViewLayer',
+        # ],
     },
 }
 
