@@ -428,8 +428,11 @@ CONTENT_SECURITY_POLICY = {
         'form-action': [SELF],
         # nuxt, vuetify and markdown preview use inline styles
         'style-src': [SELF, UNSAFE_INLINE],
-        # hash of nuxt inline script injected in index.html
-        'script-src': [SELF, "'sha256-vfPLwqW0BNyGGLG6upxgxsXF+K7Jp/V2hJGlbPt7NJY='"],
+        'script-src': [
+            SELF,
+            "'sha256-vfPLwqW0BNyGGLG6upxgxsXF+K7Jp/V2hJGlbPt7NJY='",  # hash of nuxt inline script injected in index.html
+            "'sha256-1ZUB9s0p0xzsCHT4Po01KCQkk81VXHhcdMMi0dWtbvg='",  # hash of nuxt inline script for plugins in default config
+        ],
         # Trusted types are not compatible with django admin, django rest framework's browsable API, swagger UI and django debug toolbar
         # 'require-trusted-types-for': ["'script'"],
         # 'trusted-types': [

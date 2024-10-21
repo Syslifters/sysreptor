@@ -99,6 +99,10 @@ export default defineVuetifyConfiguration({
   labComponents: true,
   icons: {
     defaultSet: 'mdi',
+    sets: [{ 
+      name: 'mdi', 
+      cdn: '',  // Use local icon font instead of CDN
+    }],
   },
 
   theme: {

@@ -18,6 +18,9 @@ export default defineNuxtConfig({
   },
   buildId: 'static',
   srcDir: join(currentDir, './src'),
+  watch: [
+    join(currentDir, './src'),
+  ],
 
   alias: {
     '@base': join(currentDir, './src'),

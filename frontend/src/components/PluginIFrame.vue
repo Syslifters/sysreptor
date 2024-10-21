@@ -74,8 +74,6 @@ function onIframeLoaded() {
     iframeWindow.open(event.destination.url, '_top');
   })
 
-  // TODO: nuxt-base-layer: do not load mdi font from CDN
-
   // Disable loading animation
   if (iframeWindow.document.readyState === 'loading') {
     iframeWindow.document.addEventListener('load', () => loadingIndicator.finish());
