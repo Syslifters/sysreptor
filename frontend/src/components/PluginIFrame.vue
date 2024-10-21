@@ -74,7 +74,7 @@ function onIframeLoaded() {
     iframeWindow.open(event.destination.url, '_top');
   })
 
-  // TODO: cache-busting for plugin iframe .html and plugin.js files
+  // TODO: nuxt-base-layer: do not load mdi font from CDN
 
   // Disable loading animation
   if (iframeWindow.document.readyState === 'loading') {

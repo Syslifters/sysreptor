@@ -57,9 +57,12 @@ class PluginConfig(AppConfig):
 
     @property
     def frontend_entry(self) -> str|None:
-        path = f'plugins/{self.plugin_id}/plugin.js'
-        if finders.find(path):
-            return storages['staticfiles'].url(path)
+        try:
+            path = f'plugins/{self.plugin_id}/plugin.js'
+            if finders.find(path):
+                return storages['staticfiles'].url(path)
+        except ValueError:
+            pass
         return None
 
 
@@ -79,7 +82,7 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
     all_plugins_classes = []
 
     # Clear plugin link dir
-    plugin_link_dir = Path('/app/api/sysreptor_plugins')
+    plugin_link_dir = Path(__file__).parent.parent.parent / 'sysreptor_plugins'
     plugin_link_dir.mkdir(exist_ok=True, parents=True)
     for plugin_dir in plugin_link_dir.iterdir():
         if plugin_dir.is_dir() and not plugin_dir.is_symlink():
@@ -94,6 +97,9 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
     # load_module_from_dir('sysreptor_plugins', Path(__file__).parent.parent / 'plugins' / '__init__.py')
 
     for plugins_dir in plugin_dirs:
+        if not plugins_dir.is_dir():
+            continue
+
         for module_dir_original in plugins_dir.iterdir():
             app_file = module_dir_original / 'app.py'
             if module_dir_original.is_dir() and app_file.is_file():
