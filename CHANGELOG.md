@@ -1,5 +1,10 @@
 # Changelog
 
+## Upcoming
+* Fix mermaid diagram labels not rendered
+* Disable CSP trusted types enforcement because of incompatibilities
+
+
 ## v2024.79 - 2024-10-15
 * Add more granular file storage settings
 * Add trusted types configuration to Content Security Policy
