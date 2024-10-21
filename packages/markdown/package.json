@@ -26,7 +26,7 @@
 
     "@codemirror/view": "~6.34",
     "@codemirror/state": "~6.4",
-    "@codemirror/commands": "~6.6",
+    "@codemirror/commands": "~6.7",
     "@codemirror/lint": "~6.8",
     "@codemirror/search": "~6.5",
     "@codemirror/merge": "~6.7",
