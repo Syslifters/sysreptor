@@ -77,14 +77,11 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'csp.middleware.CSPMiddleware',
-    'reportcreator_api.utils.middleware.PermissionsPolicyMiddleware',
     'reportcreator_api.utils.middleware.CacheControlMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'reportcreator_api.utils.logging.RequestLoggingMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'reportcreator_api.utils.middleware.ExtendSessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -92,6 +89,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'reportcreator_api.utils.middleware.AdminSessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
+    'reportcreator_api.utils.middleware.PermissionsPolicyMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
@@ -431,7 +431,6 @@ CONTENT_SECURITY_POLICY = {
         'script-src': [
             SELF,
             "'sha256-vfPLwqW0BNyGGLG6upxgxsXF+K7Jp/V2hJGlbPt7NJY='",  # hash of nuxt inline script injected in index.html
-            "'sha256-1ZUB9s0p0xzsCHT4Po01KCQkk81VXHhcdMMi0dWtbvg='",  # hash of nuxt inline script for plugins in default config
         ],
         # Trusted types are not compatible with django admin, django rest framework's browsable API, swagger UI and django debug toolbar
         # 'require-trusted-types-for': ["'script'"],
@@ -693,17 +692,8 @@ PREFERRED_LANGUAGES = config('PREFERRED_LANGUAGES', cast=Csv(), default=None)
 
 
 # Plugins
-# TODO: copy plugins to /app/api/sysreptor_plugins/{module_name}/
-# TODO: load from env variables
-PLUGIN_DIRS = [
-    Path('/app/plugins/'),
-]
-ENABLED_PLUGINS = [
-    'cyberchef',
-    'demoplugin',
-    'customtheme',
-    'checklists',
-]
+PLUGIN_DIRS = list(filter(None, config('PLUGIN_DIRS', cast=Csv(cast=Path), default='')))
+ENABLED_PLUGINS = list(filter(None, config('ENABLED_PLUGINS', cast=Csv(), default='')))
 INSTALLED_APPS += load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
 
 

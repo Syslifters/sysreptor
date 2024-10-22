@@ -1,5 +1,6 @@
 import type { RouteRecordRaw, RouteLocationNormalizedLoadedGeneric } from '#vue-router';
 import { trimStart } from 'lodash-es';
+import type { ThemeInstance } from 'vuetify';
 import { PluginRouteScope } from '#imports';
 import { PluginIFrame } from '#components';
 
@@ -7,7 +8,22 @@ import { PluginIFrame } from '#components';
 export type PluginIframeSrc = string|((options: { 
   route: RouteLocationNormalizedLoadedGeneric;
   user: User;
+  theme: ThemeInstance;
 }) => string);
+
+
+export type PluginIFrameAttrs = {
+  src: string;
+  [key: string]: any;
+};
+
+export type PluginIFrameComponentProps = 
+  PluginIFrameAttrs | 
+  ((options: {
+    route: RouteLocationNormalizedLoadedGeneric;
+    user: User;
+    theme: ThemeInstance;
+  }) => PluginIFrameAttrs);
 
 
 export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConfig }) {
@@ -43,23 +59,29 @@ export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConf
     }
   }
 
-  function iframeComponent(props: { src: PluginIframeSrc, [key: string]: any }) {
+  function iframeComponent(props: PluginIFrameComponentProps) {
     return Promise.resolve(defineComponent(() => {
-      let iframeSrc = props.src as string;
-      if (typeof props.src === 'function') {
+      let attrs = props as PluginIFrameAttrs;
+      if (typeof props === 'function') {
         // Build dynamic src
-        iframeSrc = props.src({
+        attrs = props({
           route: router.currentRoute.value,
           user: auth.user.value!,
+          theme: useTheme(),
         });
       }
+      let iframeSrc = attrs.src;
       if (!iframeSrc.startsWith('/')) {
         // Convert relative src to absolute
-        iframeSrc = `/static/plugins/${pluginHelperOptions.pluginConfig.id}/${iframeSrc}`;
+        if (iframeSrc.startsWith('api/')) {
+          iframeSrc = `/api/plugins/${pluginHelperOptions.pluginConfig.id}/${iframeSrc}`;
+        } else {
+          iframeSrc = `/static/plugins/${pluginHelperOptions.pluginConfig.id}/${iframeSrc}`;
+        }
       }
 
       return () => h(PluginIFrame, {
-        ...props,
+        ...attrs,
         src: iframeSrc,
       });
     }));

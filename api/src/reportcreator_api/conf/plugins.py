@@ -41,7 +41,7 @@ class PluginConfig(AppConfig):
         """
         Django app label used to identify the app internally
         """
-        return f'plugin_{cls.plugin_id.replace("-", "")}'
+        return f'plugin_{cls.plugin_id.replace("-", "").replace("/", "")}'
 
     @property
     def urlpatterns(self) -> list:
@@ -66,82 +66,6 @@ class PluginConfig(AppConfig):
         return None
 
 
-def load_module_from_dir(module_name: str, path: Path):
-    """
-    Load a module from a directory.
-    Sets the module import directory such that sub-modules can be imported.
-    """
-    spec = importlib.util.spec_from_file_location(module_name, path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
-    all_plugins_classes = []
-
-    # Clear plugin link dir
-    plugin_link_dir = Path(__file__).parent.parent.parent / 'sysreptor_plugins'
-    plugin_link_dir.mkdir(exist_ok=True, parents=True)
-    for plugin_dir in plugin_link_dir.iterdir():
-        if plugin_dir.is_dir() and not plugin_dir.is_symlink():
-            shutil.rmtree(plugin_dir)
-        elif not (plugin_dir.is_file() and plugin_dir.name == '__init__.py'):
-            plugin_dir.unlink()
-    if not (plugin_link_dir_init := (plugin_link_dir / '__init__.py')).exists():
-        plugin_link_dir_init.touch()
-
-    # Register top-level module
-    sys.modules['sysreptor_plugins'] = {}
-    # load_module_from_dir('sysreptor_plugins', Path(__file__).parent.parent / 'plugins' / '__init__.py')
-
-    for plugins_dir in plugin_dirs:
-        if not plugins_dir.is_dir():
-            continue
-
-        for module_dir_original in plugins_dir.iterdir():
-            app_file = module_dir_original / 'app.py'
-            if module_dir_original.is_dir() and app_file.is_file():
-                try:
-                    module_dir = (plugin_link_dir / module_dir_original.name)
-                    if module_dir.exists():
-                        raise ImproperlyConfigured(f'Duplicate plugin name: {module_dir.name}')
-                    module_dir.symlink_to(module_dir_original.resolve().absolute())
-
-                    module_name = f"sysreptor_plugins.{module_dir.name}"
-                    if any(c.name == module_name for c in all_plugins_classes):
-                        raise ImproperlyConfigured(f'Duplicate plugin name: {module_name}')
-
-                    load_module_from_dir(module_name, module_dir / '__init__.py')
-                    plugin_module = import_module(module_name + '.app')
-                    plugin_config_class = next(filter(lambda c: issubclass(c, PluginConfig), map(lambda c: getattr(plugin_module, c), dir(plugin_module))))
-                    plugin_config_class.name = module_name
-                    if any(c.plugin_id == plugin_config_class.plugin_id for c in all_plugins_classes):
-                        raise ImproperlyConfigured(f'Duplicate plugin_id: {plugin_config_class.plugin_id}')
-
-                    all_plugins_classes.append(plugin_config_class)
-                except Exception:
-                    logging.exception(f'Failed to load plugin from {module_dir}')
-
-    out = []
-    for enabled_plugin_id in enabled_plugins:
-        for plugin_config_class in all_plugins_classes:
-            plugin_id = plugin_config_class.plugin_id
-            plugin_name = plugin_config_class.name.split('.')[-1]
-            if enabled_plugin_id in [plugin_id, plugin_name]:
-                # Add to installed_apps
-                app_class = plugin_config_class.__module__ + '.' + plugin_config_class.__name__
-                app_label = plugin_config_class.label
-                out.append(app_class)
-                logging.info(f'Enabling plugin {plugin_name} ({plugin_id=}, {app_label=}, {app_class=})', file=sys.stderr)  # noqa: T201
-                break
-        else:
-            logging.warning(f'Plugin "{enabled_plugin_id}" not found in plugins')
-
-    return out
-
-
 class AppDirectoriesFinderWithoutPluginApps(AppDirectoriesFinder):
     def __init__(self, app_names=None, *args, **kwargs):
         if not app_names:
@@ -164,3 +88,115 @@ class PluginDirectoriesFinder(FileSystemFinder):
                 storage.prefix = prefix
                 self.storages[str(path)] = storage
 
+
+def load_module_from_dir(module_name: str, path: Path):
+    """
+    Load a module from a directory.
+    Sets the module import directory such that sub-modules can be imported.
+    """
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def remove_entry(path: Path):
+    if not path.exists():
+        return
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+
+
+def create_plugin_module_dir(dst: Path, srcs: list[Path]):
+    # Collect plugins from all plugin directories
+    all_module_dirs = []
+    for plugins_dir in srcs:
+        if not plugins_dir.is_dir():
+            continue
+        for src_module in plugins_dir.iterdir():
+            for p in all_module_dirs:
+                if p.name == src_module.name and p != src_module:
+                    raise ImproperlyConfigured(f'Duplicate plugin module: {src_module.name}')
+            all_module_dirs.append(src_module)
+
+    # Create symlinks to srcs modules in dst directory
+    dst.mkdir(exist_ok=True, parents=True)
+    for src_module in all_module_dirs:
+        dst_module = dst / src_module.name
+
+        if dst_module.is_dir() and dst_module.is_symlink() and dst_module.resolve() == src_module.resolve():
+            # Already the expected entry. Do nothing
+            continue
+        else:
+            # Create symlink
+            remove_entry(dst_module)
+            dst_module.symlink_to(src_module.resolve())
+    # Add __init__.py
+    dst_init = dst / '__init__.py'
+    if not dst_init.exists():
+        dst_init.touch()
+
+    # Delete outdated entries
+    expected_names = [m.name for m in all_module_dirs] + ['__init__.py']
+    for dst_module in dst.iterdir():
+        if dst_module.name not in expected_names:
+            remove_entry(dst_module)
+
+
+def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
+    dst = Path(__file__).parent.parent.parent / 'sysreptor_plugins'
+    # Collect all plugin modules in dst directory
+    create_plugin_module_dir(
+        dst=dst,
+        srcs=plugin_dirs,
+    )
+
+    # Load sysreptor_plugins module from dst directory
+    load_module_from_dir('sysreptor_plugins', dst / '__init__.py')
+
+    # Check plugin modules and get plugin config classes
+    available_plugin_configs = []
+    for module_dir in dst.iterdir():
+        if not module_dir.is_dir():
+            continue
+
+        init_file = module_dir / '__init__.py'
+        app_file = module_dir / 'app.py'
+        if not init_file.is_file() or not app_file.is_file():
+            continue
+
+        module_name = f"sysreptor_plugins.{module_dir.name}"
+        try:
+            plugin_app_module = import_module(module_name + '.app')
+        except ImportError:
+            continue
+        plugin_config_class = next(filter(lambda c: issubclass(c, PluginConfig), map(lambda c: getattr(plugin_app_module, c), dir(plugin_app_module))), None)
+        if not plugin_config_class:
+            continue
+
+        plugin_config_class.name = module_name
+        if any(c.plugin_id == plugin_config_class.plugin_id for c in available_plugin_configs):
+            raise ImproperlyConfigured(f'Duplicate plugin_id: {plugin_config_class.plugin_id}')
+
+        available_plugin_configs.append(plugin_config_class)
+
+    # Determine enabled plugins
+    installed_apps = []
+    for enabled_plugin_id in enabled_plugins:
+        for plugin_config_class in available_plugin_configs:
+            plugin_id = plugin_config_class.plugin_id
+            plugin_name = plugin_config_class.name.split('.')[-1]
+            if enabled_plugin_id in [plugin_id, plugin_name]:
+                # Add to installed_apps
+                app_class = plugin_config_class.__module__ + '.' + plugin_config_class.__name__
+                app_label = plugin_config_class.label
+                installed_apps.append(app_class)
+                logging.info(f'Enabling plugin {plugin_name} ({plugin_id=}, {app_label=}, {app_class=})', file=sys.stderr)  # noqa: T201
+                break
+        else:
+            logging.warning(f'Plugin "{enabled_plugin_id}" not found in plugins')
+
+    return installed_apps

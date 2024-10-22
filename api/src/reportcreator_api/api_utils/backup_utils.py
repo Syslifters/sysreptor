@@ -15,11 +15,11 @@ from django.conf import settings
 from django.core import serializers
 from django.core.management import call_command
 from django.core.management.color import no_style
+from django.core.serializers.base import DeserializationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, transaction
 from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.loader import MigrationLoader
-from django.db.migrations.recorder import MigrationRecorder
 
 from reportcreator_api.api_utils.models import BackupLog, BackupLogType
 from reportcreator_api.archive import crypto
@@ -199,12 +199,18 @@ def destroy_database():
     """
     Delete all DB data; drop all tables, views, sequences
     """
-    tables = connection.introspection.django_table_names(include_views=True) + [MigrationRecorder.Migration._meta.db_table]
+    tables = connection.introspection.table_names(include_views=False)
+    views = set(connection.introspection.table_names(include_views=True)) - set(tables)
     connection.check_constraints()
     with connection.cursor() as cursor:
         cursor.execute(
             'DROP TABLE IF EXISTS ' +
             ', '.join([connection.ops.quote_name(t) for t in tables]) +
+            ' CASCADE;',
+        )
+        cursor.execute(
+            'DROP VIEW IF EXISTS ' +
+            ', '.join([connection.ops.quote_name(v) for v in views]) +
             ' CASCADE;',
         )
 
@@ -219,13 +225,19 @@ def restore_database_dump(f):
     migration_apps = MigrationExecutor(connection)._create_project_state(with_applied_migrations=True).apps
     def get_model(model_identifier):
         app_label, model_name = model_identifier.split('.')
-        return migration_apps.get_model(app_label, model_name)
+        try:
+            return migration_apps.get_model(app_label, model_name)
+        except LookupError as ex:
+            if app_label.startswith('plugin_'):
+                raise DeserializationError(f'Plugin model "{model_identifier}" not found. Plugin is probably not enabled.') from ex
+            else:
+                raise ex
 
     # Defer DB constraint checking
     with constraint_checks_disabled(), \
         mock.patch('django.core.serializers.python._get_model', get_model):
         objs_with_deferred_fields = []
-        for obj in serializers.deserialize('jsonl', f, handle_forward_references=True):
+        for obj in serializers.deserialize('jsonl', f, handle_forward_references=True, ignorenonexistent=True):
             obj.save()
             if obj.deferred_fields:
                 objs_with_deferred_fields.append(obj)
@@ -326,6 +338,10 @@ def restore_backup(z, keepfiles=True):
     logging.info('Begin running migrations from backup')
     if migrations is not None:
         for m in migrations:
+            if m['app_label'].startswith('plugin_') and not any(a for a in apps.get_app_configs() if a.label == m['app_label']):
+                logging.warning(f'Cannot run migation "{m["migration_name"]}", because plugin "{m["app_label"]}" is not enabled. Plugin data will not be restored.')
+                continue
+
             call_command('migrate', app_label=m['app_label'], migration_name=m['migration_name'], interactive=False, verbosity=0)
     else:
         logging.warning('No migrations info found in backup. Applying all available migrations')

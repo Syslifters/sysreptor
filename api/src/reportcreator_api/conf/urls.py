@@ -149,7 +149,7 @@ urlpatterns = [
 
     # Plugins
     path('api/plugins/', include([
-        *[path(f'{p.plugin_id}/api/', include(p.urlpatterns)) for p in plugins.enabled_plugins],
+        *[path(f'{p.plugin_id}/api/', include((p.urlpatterns, p.label))) for p in plugins.enabled_plugins],
     ])),
 
     # Websocket HTTP fallback
