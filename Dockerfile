@@ -79,6 +79,23 @@ RUN npm run build
 
 
 
+FROM --platform=$BUILDPLATFORM frontend-test AS plugin-builder
+RUN apk add --no-cache \
+    bash \
+    git \
+    curl \
+    wget \
+    unzip \ 
+    jq
+
+COPY plugins /app/plugins/
+WORKDIR /app/plugins/
+RUN /app/plugins/build.sh
+
+
+
+
+
 FROM python:3.12-slim-bookworm AS api-dev
 
 # Get a list a preinstalled apt packages
@@ -155,7 +172,8 @@ ENV VERSION=dev \
     DEBUG=off \
     MEDIA_ROOT=/data/ \
     SERVER_WORKERS=4 \
-    PDF_RENDER_SCRIPT_PATH=/app/rendering/dist/bundle.js
+    PDF_RENDER_SCRIPT_PATH=/app/rendering/dist/bundle.js \
+    PLUGIN_DIRS=/app/plugins/
 
 # Start server
 EXPOSE 8000
@@ -174,6 +192,7 @@ COPY --chown=user:user rendering/dist /app/rendering/dist/
 FROM --platform=$BUILDPLATFORM api-dev AS api-test
 # Copy source code
 COPY --chown=user:user api/src /app/api/
+COPY --chown=user:user plugins /app/plugins/
 
 # Copy generated template rendering script
 COPY --from=rendering --chown=user:user /app/rendering/dist /app/rendering/dist/
@@ -189,11 +208,13 @@ RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
     && python3 manage.py collectstatic --no-input --no-post-process \
     && python3 -m whitenoise.compress /app/api/static/ map
 
+COPY --from=plugin-builder /app/plugins/ /app/plugins/
 
 
 FROM api-test AS api
 COPY --from=api-statics /app/api/frontend/index.html /app/api/frontend/index.html
 COPY --from=api-statics /app/api/static/ /app/api/static/
+COPY --from=api-statics /app/plugins/ /app/plugins/
 USER 0
 COPY --chown=1000:1000 api/generate_notice.sh api/download_sources.sh api/start.sh api/NOTICE /app/api/
 RUN /bin/bash /app/api/generate_notice.sh
