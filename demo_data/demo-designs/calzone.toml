@@ -866,7 +866,7 @@ fields = [
 [finding_fields]
 [finding_fields.title]
 type = "string"
-label = "Titel"
+label = "Title"
 origin = "core"
 default = "TODO finding title"
 required = true
