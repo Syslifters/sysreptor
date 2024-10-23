@@ -1,8 +1,9 @@
 # Changelog
 
-## Upcoming
+## v2024.80 - 2024-10-23
 * Fix mermaid diagram labels not rendered
 * Disable CSP trusted types enforcement because of incompatibilities
+* Autofocus TOTP input field in login form
 
 
 ## v2024.79 - 2024-10-15
