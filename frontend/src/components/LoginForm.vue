@@ -59,6 +59,7 @@
           </template>
           <template v-else-if="currentMfaMethod!.method_type === MfaMethodType.TOTP">
             <v-otp-input
+              ref="otpRef"
               v-model="formCode.code"
               type="number"
               length="6"
@@ -71,6 +72,7 @@
           </template>
           <template v-else-if="currentMfaMethod!.method_type === MfaMethodType.BACKUP">
             <v-otp-input
+              ref="otpRef"
               v-model="formCode.code"
               type="text"
               length="12"
@@ -128,6 +130,7 @@
 
 <script setup lang="ts">
 import { get as navigatorCredentialsGet, parseRequestOptionsFromJSON } from "@github/webauthn-json/browser-ponyfill";
+import type { VOtpInput } from "vuetify/components";
 import { LoginResponseStatus, mfaMethodChoices, MfaMethodType } from '#imports';
 
 const props = defineProps({
@@ -157,6 +160,7 @@ const currentMfaMethod = ref<MfaMethod | null>(null);
 const formCode = ref({
   code: '',
 });
+const otpRef = ref<VOtpInput|null>(null);
 
 async function loginStep(fn: () => Promise<LoginResponse|null>) {
   if (actionInProgress.value) {
@@ -212,12 +216,17 @@ async function beginMfaLogin(mfaMethod: MfaMethod) {
   formCode.value = { code: '' };
 
   if (currentMfaMethod.value.method_type === MfaMethodType.FIDO2) {
+    // Start FIDO2 flow
     await nextTick();
     await loginStep(async () => {
       const options = await $fetch<any>('/api/v1/auth/login/fido2/begin/', { method: 'POST', body: {} });
       const fido2Response = await navigatorCredentialsGet(parseRequestOptionsFromJSON(options));
       return await $fetch('/api/v1/auth/login/fido2/complete/', { method: 'POST', body: fido2Response });
     });
+  } else {
+    // Autofocus OTP input
+    await nextTick();
+    otpRef.value?.focus();
   }
 }
 
