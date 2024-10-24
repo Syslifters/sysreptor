@@ -9,8 +9,12 @@
     class="subdrawer"
   >
     <v-list class="pa-0 h-100 d-flex flex-column" density="compact">
-      <slot :is-expanded="isExpanded" />
-      <v-spacer />
+      <div 
+        class="subdrawer-items flex-grow-height overflow-y-auto" 
+        :class="{'subdrawer-items-collapsed': !isExpanded}"
+      >
+        <slot :is-expanded="isExpanded" />
+      </div>
       <v-list-item 
         @click="localSettings.subDrawerExpanded = !localSettings.subDrawerExpanded"
         class="pa-0 ma-0"
@@ -28,9 +32,6 @@ const isExpanded = computed(() => localSettings.subDrawerExpanded);
 
 <style lang="scss">
 .subdrawer {
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
-
   .v-list-item {
     padding-inline: 6px !important;
     padding-top: 1em;
@@ -49,6 +50,15 @@ const isExpanded = computed(() => localSettings.subDrawerExpanded);
     .v-list-item__prepend .v-icon, .v-list-item-title {
       color: rgb(var(--v-theme-primary));
     }
+  }
+}
+
+.subdrawer-items {
+  overflow-y: auto;
+
+  &-collapsed {
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
   }
 }
 </style>

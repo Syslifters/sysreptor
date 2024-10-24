@@ -1,4 +1,3 @@
-import dataclasses
 import gc
 import logging
 from base64 import b64decode
@@ -8,7 +7,7 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiTypes, extend_schema
-from rest_framework import routers, viewsets
+from rest_framework import routers, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
@@ -221,3 +220,14 @@ class HealthcheckApiView(APIViewAsync):
             gc.collect()
 
         return res
+
+
+class PluginApiView(views.APIView):
+    def get(self, request, *args, **kwargs):
+        out = {}
+        for p in plugins.enabled_plugins:
+            plugin_api_root = None
+            if p.urlpatterns:
+                plugin_api_root = request.build_absolute_uri(f'/api/plugins/{p.plugin_id}/api/')
+            out[p.name.split('.')[-1]] = plugin_api_root
+        return Response(data=out)

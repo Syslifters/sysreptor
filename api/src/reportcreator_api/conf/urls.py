@@ -8,7 +8,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerSplitVie
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
-from reportcreator_api.api_utils.views import HealthcheckApiView, PublicUtilsViewSet, UtilsViewSet
+from reportcreator_api.api_utils.views import HealthcheckApiView, PluginApiView, PublicUtilsViewSet, UtilsViewSet
 from reportcreator_api.conf import plugins
 from reportcreator_api.notifications.views import NotificationViewSet
 from reportcreator_api.pentests.collab.fallback import ConsumerHttpFallbackView
@@ -149,7 +149,11 @@ urlpatterns = [
 
     # Plugins
     path('api/plugins/', include([
-        *[path(f'{p.plugin_id}/api/', include((p.urlpatterns, p.label))) for p in plugins.enabled_plugins],
+        path('', PluginApiView.as_view()),
+
+         path('', include([
+            *[path(f'{p.plugin_id}/api/', include((p.urlpatterns, p.label))) for p in plugins.enabled_plugins],
+        ])),
     ])),
 
     # Websocket HTTP fallback

@@ -152,6 +152,9 @@ services:
         condition: service_started
       # rendering-worker:
       #   condition: service_started
+    # cpu_count: 2
+    # cpuset: 0,1
+    # mem_limit: 4g
   frontend:
     build: 
       context: ..
