@@ -96,6 +96,7 @@ export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConf
 
 export async function loadPlugin(pluginConfig: PluginConfig) {
   if (pluginConfig.frontend_entry) {
+    const nuxtApp = useNuxtApp();
     try {
       // eslint-disable-next-line no-console
       console.log(`Initializing plugin: ${pluginConfig.name} (plugin_id=${pluginConfig.id})`);
@@ -103,7 +104,8 @@ export async function loadPlugin(pluginConfig: PluginConfig) {
       await Promise.resolve(frontendEntry?.default({
         pluginConfig,
         pluginHelpers: usePluginHelpers({ pluginConfig }),
-        nuxtApp: useNuxtApp(),
+        nuxtApp,
+        theme: nuxtApp.$vuetify.theme,
       }));
     }
     catch (error) {

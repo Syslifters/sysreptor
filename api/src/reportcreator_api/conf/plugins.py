@@ -2,6 +2,7 @@ import importlib.util
 import logging
 import shutil
 import sys
+from functools import cached_property
 from importlib import import_module
 from pathlib import Path
 
@@ -29,6 +30,8 @@ class PluginConfig(AppConfig):
     The plugin_id is used internally to uniquely identify the plugin and it's resources (e.g. DB tables, API endpoints, etc.).
     """
 
+    frontend_settings = {}
+
     def __init__(self, *args, **kwargs) -> None:
         if not self.plugin_id:
             raise ImproperlyConfigured('PluginConfig must have a plugin_id attribute')
@@ -55,8 +58,11 @@ class PluginConfig(AppConfig):
             return []
         return urls_module.urlpatterns
 
-    @property
-    def frontend_entry(self) -> str|None:
+    def get_frontend_entry(self, request) -> str|None:
+        return self._frontend_entry
+
+    @cached_property
+    def _frontend_entry(self) -> str|None:
         try:
             path = f'plugins/{self.plugin_id}/plugin.js'
             if finders.find(path):
@@ -64,6 +70,9 @@ class PluginConfig(AppConfig):
         except ValueError:
             pass
         return None
+
+    def get_frontend_settings(self, request) -> dict:
+        return self.frontend_settings
 
 
 class AppDirectoriesFinderWithoutPluginApps(AppDirectoriesFinder):

@@ -73,7 +73,7 @@ def test_plugin_loading():
     res = api_client().get(reverse('publicutils-settings'))
     assert res.status_code == 200
     demoplugin_config = next(filter(lambda p: p['id'] == DEMOPLUGIN_ID, res.data['plugins']))
-    assert demoplugin_config == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_entry': f'/static/plugins/{DEMOPLUGIN_ID}/plugin.js'}
+    assert demoplugin_config == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_entry': f'/static/plugins/{DEMOPLUGIN_ID}/plugin.js', 'frontend_settings': {}}
 
 
 @pytest.mark.django_db()

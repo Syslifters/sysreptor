@@ -154,7 +154,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_name='settings', url_path='settings')
-    def settings_endpoint(self, *args, **kwargs):
+    def settings_endpoint(self, request, *args, **kwargs):
         languages = [{
             'code': l.value,
             'name': l.label,
@@ -198,7 +198,8 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 {
                     'id': p.plugin_id,
                     'name': p.name.split('.')[-1],
-                    'frontend_entry': p.frontend_entry,
+                    'frontend_entry': p.get_frontend_entry(request),
+                    'frontend_settings': p.get_frontend_settings(request),
                 } for p in plugins.enabled_plugins
             ],
         })

@@ -94,6 +94,7 @@ export type PluginConfig = {
   id: string;
   name: string;
   frontend_entry: string|null;
+  frontend_settings: Record<string, any>;
 }
 
 export enum PluginRouteScope {
