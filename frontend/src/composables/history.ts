@@ -2,7 +2,7 @@ import urlJoin from "url-join";
 import { pick, get, trim } from "lodash-es";
 import {
   MergeView, type EditorView,
-} from "reportcreator-markdown/editor";
+} from "@sysreptor/markdown/editor";
 import { MarkdownEditorMode, type FieldDefinition, type PentestProject, type ProjectType } from '#imports';
 
 export type DiffFieldProps = {

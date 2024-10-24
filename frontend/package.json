@@ -1,5 +1,5 @@
 {
-  "name": "reportcreator-frontend",
+  "name": "@sysreptor/frontend",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -13,8 +13,8 @@
     "dependencies": "npm run generate-notice"
   },
   "dependencies": {
-    "nuxt-base-layer": "../packages/nuxt-base-layer",
-    "reportcreator-markdown": "../packages/markdown",
+    "@sysreptor/nuxt-base-layer": "../packages/nuxt-base-layer",
+    "@sysreptor/markdown": "../packages/markdown",
     
     "nuxt": "3.13.0",
     "vuetify": "~3.7",
@@ -32,6 +32,7 @@
     "lodash-es": "^4.17.21",
     "uuid": "^10.0.0",
     "url-join": "^5.0.0",
+    "js-file-download": "^0.4.12",
     "dompurify": "^3.1.6"
   },
   "devDependencies": {

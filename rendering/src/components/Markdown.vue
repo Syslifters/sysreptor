@@ -1,6 +1,6 @@
 <script>
 import { defineComponent, h } from 'vue';
-import { renderMarkdownToHtml } from 'reportcreator-markdown';
+import { renderMarkdownToHtml } from '@sysreptor/markdown';
 
 export default {
   name: 'markdown',

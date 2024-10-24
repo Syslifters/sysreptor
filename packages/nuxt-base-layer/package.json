@@ -1,5 +1,5 @@
 {
-  "name": "reportcreator-nuxt-base-layer",
+  "name": "@sysreptor/nuxt-base-layer",
   "private": true,
   "type": "module",
   "main": "./nuxt.config.ts",

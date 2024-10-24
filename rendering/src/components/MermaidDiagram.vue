@@ -13,7 +13,7 @@
 
 <script>
 import { defineProps, getCurrentInstance, onMounted, ref } from 'vue';
-import { mermaid } from 'reportcreator-markdown';
+import { mermaid } from '@sysreptor/markdown';
 
 mermaid.initialize({
   startOnLoad: false,

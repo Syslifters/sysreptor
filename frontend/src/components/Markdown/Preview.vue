@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import { v4 as uuidv4 } from 'uuid';
-import { renderMarkdownToHtml, mermaid } from 'reportcreator-markdown';
+import { renderMarkdownToHtml, mermaid } from '@sysreptor/markdown';
 import { absoluteApiUrl } from '#imports';
 
 mermaid.initialize({

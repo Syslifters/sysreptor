@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import type { EditorState } from 'reportcreator-markdown/editor';
+import type { EditorState } from '@sysreptor/markdown/editor';
 
 const props = defineProps<{
   editorState: EditorState;

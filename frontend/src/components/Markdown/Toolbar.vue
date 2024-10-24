@@ -115,7 +115,7 @@ import {
   undoDepth,
   isTypeInSelection,
   isTaskListInSelection,
-} from 'reportcreator-markdown/editor';
+} from '@sysreptor/markdown/editor';
 import type { VToolbar } from 'vuetify/lib/components/index.mjs';
 import { levelNumberFromLevelName } from '@base/utils/cvss';
 import { MarkdownEditorMode, type ReferenceItem } from '#imports';

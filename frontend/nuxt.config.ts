@@ -5,7 +5,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: ['nuxt-base-layer'],
+  extends: ['@sysreptor/nuxt-base-layer'],
 
   future: {
     compatibilityVersion: 4,

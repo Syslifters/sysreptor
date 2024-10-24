@@ -8640,7 +8640,11 @@ MIT
     SOFTWARE
 
 
+<<<<<<< HEAD
 @types/lodash 4.17.12
+=======
+@types/lodash 4.17.10
+>>>>>>> a6ad9c51 (Rename node packages to "@sysreptor/...")
 MIT
     MIT License
 

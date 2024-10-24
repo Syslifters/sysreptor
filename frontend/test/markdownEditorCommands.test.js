@@ -5,7 +5,7 @@ import {
   toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
   toggleListUnordered, toggleListOrdered, toggleTaskList,
   toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup
-} from 'reportcreator-markdown/editor';
+} from '@sysreptor/markdown/editor';
 
 function createEditorState(textWithSelection, cursorMarker = '|') {
   const parts = textWithSelection.split(cursorMarker);
