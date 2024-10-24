@@ -1,0 +1,20 @@
+{
+  "name": "demoplugin-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
+
+    "nuxt": "^3.13.2",
+    "vuetify": "^3.7.3",
+    "pinia": "^2.2.4"
+  },
+  "overrides": {
+    "vue": "latest"
+  }
+}
