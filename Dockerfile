@@ -80,6 +80,11 @@ RUN npm run build
 
 
 FROM --platform=$BUILDPLATFORM frontend-test AS plugin-builder
+
+WORKDIR /app/packages/plugin-base-layer/
+COPY packages/plugin-base-layer /app/packages/plugin-base-layer/
+RUN npm install
+
 RUN apk add --no-cache \
     bash \
     git \
