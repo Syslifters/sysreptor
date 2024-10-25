@@ -19,6 +19,7 @@
     "nuxt": "3.13.0",
     "vuetify": "~3.7",
     "pinia": "^2.2.4",
+    "sass-embedded": "^1.79.5",
 
     "@vueuse/nuxt": "^11.0.1",
     "monaco-editor": "^0.52.0",
