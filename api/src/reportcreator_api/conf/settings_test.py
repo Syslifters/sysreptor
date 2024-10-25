@@ -1,5 +1,5 @@
 from reportcreator_api.conf.settings import *  # noqa: F403
-from reportcreator_api.conf.settings import REST_FRAMEWORK, STORAGES
+from reportcreator_api.conf.settings import ENABLED_PLUGINS, INSTALLED_APPS, REST_FRAMEWORK, STORAGES
 
 STORAGES = STORAGES | {
     'uploaded_images': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
@@ -55,9 +55,10 @@ INSTALLATION_ID = 'dummy-installation-id-used-in-unit-test'
 BACKUP_KEY = 'dummy-backup-key-used-in-unit-test'
 
 
-# Disable plugins
-# ENABLED_PLUGINS = []
-# INSTALLED_APPS = [app for app in INSTALLED_APPS if not app.startswith('sysreptor_plugins.')]
+# Always enable some plugins during tests
+enable_test_plugins = ['demoplugin']
+ENABLED_PLUGINS = ENABLED_PLUGINS + enable_test_plugins
+INSTALLED_APPS = INSTALLED_APPS + [f'sysreptor_plugins.{p}' for p in enable_test_plugins if not any(a.startswith(f'sysreptor_plugins.{p}.') for a in INSTALLED_APPS)]
 
 
 # Disable license check

@@ -1,5 +1,6 @@
 import io
 from contextlib import contextmanager
+from pathlib import Path
 
 import pytest
 from django.apps import apps
@@ -27,13 +28,13 @@ def enable_demoplugin():
 
     if 'demoplugin' in settings.ENABLED_PLUGINS or DEMOPLUGIN_ID in settings.ENABLED_PLUGINS:
         yield
+        return
 
     with override_settings(
         ENABLED_PLUGINS=settings.ENABLED_PLUGINS + ['demoplugin'],
         INSTALLED_APPS=settings.INSTALLED_APPS + [DemoPluginConfig.__module__ + '.' + DemoPluginConfig.__name__],
     ):
         call_command('migrate', app_label=DEMOPLUGIN_APPLABEL, interactive=False)
-
         yield
 
 
@@ -64,10 +65,16 @@ def test_plugin_loading():
     assert model.objects.filter(pk=obj.pk).exists()
 
     # Static files
+    # Create dummy file when the frontend was not built yet
+    import sysreptor_plugins.demoplugin  # noqa: I001
+    pluginjs_path = Path(sysreptor_plugins.demoplugin.__file__).parent / 'static' / 'plugin.js'
+    if not pluginjs_path.exists():
+        pluginjs_path.touch()
+
     assert finders.find(f'plugins/{DEMOPLUGIN_ID}/plugin.js') is not None
 
     # URLs registered
-    assert api_client().get(reverse(f'{DEMOPLUGIN_APPLABEL}:demourl')).status_code == 200
+    assert api_client().get(reverse(f'{DEMOPLUGIN_APPLABEL}:helloworld')).status_code == 200
 
     # Plugin config in api settings
     res = api_client().get(reverse('publicutils-settings'))
