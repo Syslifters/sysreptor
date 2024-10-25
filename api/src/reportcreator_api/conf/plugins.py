@@ -114,9 +114,12 @@ def remove_entry(path: Path):
     if not path.exists():
         return
     if path.is_dir() and not path.is_symlink():
-        shutil.rmtree(path)
+        try:
+            shutil.rmtree(path)
+        except FileNotFoundError:
+            pass  # ignore race condition errors when multiple worker processes start at the same time
     else:
-        path.unlink()
+        path.unlink(missing_ok=True)
 
 
 def create_plugin_module_dir(dst: Path, srcs: list[Path]):
@@ -142,7 +145,10 @@ def create_plugin_module_dir(dst: Path, srcs: list[Path]):
         else:
             # Create symlink
             remove_entry(dst_module)
-            dst_module.symlink_to(src_module.resolve())
+            try:
+                dst_module.symlink_to(src_module.resolve())
+            except FileExistsError:
+                pass
     # Add __init__.py
     dst_init = dst / '__init__.py'
     if not dst_init.exists():
