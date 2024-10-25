@@ -140,7 +140,7 @@ const licenseText = computed(() => {
   }[license] || '';
 });
 
-const pluginMenuEntries = computed(() => pluginStore.menuEntries.filter(e => e.scope === PluginRouteScope.MAIN));
+const pluginMenuEntries = computed(() => pluginStore.menuEntriesForScope(PluginRouteScope.MAIN));
 
 // Breadcrumbs
 const breadcrumbs = ref<Breadcrumbs>();

@@ -108,6 +108,7 @@ export type PluginMenuEntry = {
   attrs?: Record<string, any>;
   scope: PluginRouteScope;
   to: { name: string };
+  pluginConfig: PluginConfig;
 }
 
 export type ApiSettings = {

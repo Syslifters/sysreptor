@@ -55,6 +55,7 @@ export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConf
         ...options.menu,
         scope: options.scope,
         to: { name: routeOptions.name },
+        pluginConfig: pluginHelperOptions.pluginConfig,
       });
     }
   }

@@ -61,7 +61,7 @@ watch(() => project.value?.project_type, async () => {
   projectType.value = await projectTypeStore.getById(project.value.project_type);
 });
 
-const pluginMenuEntries = computed(() => pluginStore.menuEntries.filter(e => e.scope === PluginRouteScope.PROJECT));
+const pluginMenuEntries = computed(() => pluginStore.menuEntriesForScope(PluginRouteScope.PROJECT));
 
 useHeadExtended({
   titleTemplate: title => projectTitleTemplate(project.value, title, route),
