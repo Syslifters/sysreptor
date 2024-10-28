@@ -231,11 +231,12 @@ function emitCreateComment() {
 </script>
 
 <style lang="scss" scoped>
+@use 'sass:map';
 @use "@base/assets/settings" as settings;
 
 @for $level from 1 through 5 {
   .finding-level-#{$level} {
-    border-left: 0.4em solid map-get(settings.$risk-color-levels, $level);
+    border-left: 0.4em solid map.get(settings.$risk-color-levels, $level);
   }
 }
 

@@ -36,11 +36,12 @@ const levelNumber = computed(() => levelNumberFromLevelName(levelName.value));
 </script>
 
 <style lang="scss" scoped>
+@use 'sass:map';
 @use "@base/assets/settings.scss" as settings;
 
 @for $level from 1 through 5 {
   .risk-level-#{$level} {
-    background-color: map-get(settings.$risk-color-levels, $level) !important;
+    background-color: map.get(settings.$risk-color-levels, $level) !important;
     color: white !important;
     width: 7.7em;
     min-width: 7.7em;
