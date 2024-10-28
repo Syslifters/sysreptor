@@ -66,8 +66,8 @@ def test_plugin_loading():
 
     # Static files
     # Create dummy file when the frontend was not built yet
-    import sysreptor_plugins.demoplugin  # noqa: I001
-    pluginjs_path = Path(sysreptor_plugins.demoplugin.__file__).parent / 'static' / 'plugin.js'
+    from sysreptor_plugins import demoplugin  # noqa: I001
+    pluginjs_path = Path(demoplugin.__path__[0]) / 'static' / 'plugin.js'
     if not pluginjs_path.exists():
         pluginjs_path.touch()
 

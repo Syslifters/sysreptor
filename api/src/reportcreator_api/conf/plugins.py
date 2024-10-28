@@ -129,6 +129,8 @@ def create_plugin_module_dir(dst: Path, srcs: list[Path]):
         if not plugins_dir.is_dir():
             continue
         for src_module in plugins_dir.iterdir():
+            if not src_module.is_dir():
+                continue
             for p in all_module_dirs:
                 if p.name == src_module.name and p != src_module:
                     raise ImproperlyConfigured(f'Duplicate plugin module: {src_module.name}')
@@ -208,8 +210,9 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
                 # Add to installed_apps
                 app_class = plugin_config_class.__module__ + '.' + plugin_config_class.__name__
                 app_label = plugin_config_class.label
-                installed_apps.append(app_class)
-                logging.info(f'Enabling plugin {plugin_name} ({plugin_id=}, {app_label=}, {app_class=})', file=sys.stderr)  # noqa: T201
+                if app_class not in installed_apps:
+                    installed_apps.append(app_class)
+                    logging.info(f'Enabling plugin {plugin_name} ({plugin_id=}, {app_label=}, {app_class=})', file=sys.stderr)  # noqa: T201
                 break
         else:
             logging.warning(f'Plugin "{enabled_plugin_id}" not found in plugins')

@@ -1,5 +1,4 @@
 import asyncio
-import itertools
 import uuid
 from datetime import date, timedelta
 from itertools import groupby

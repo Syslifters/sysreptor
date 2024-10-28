@@ -213,7 +213,7 @@ RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
     && python3 manage.py collectstatic --no-input --no-post-process \
     && python3 -m whitenoise.compress /app/api/static/ map
 
-COPY --from=plugin-builder /app/plugins/ /app/plugins/
+COPY --from=plugin-builder --chown=user:user /app/plugins/ /app/plugins/
 
 
 FROM api-test AS api
