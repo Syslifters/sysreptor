@@ -224,6 +224,8 @@ class HealthcheckApiView(APIViewAsync):
 
 
 class PluginApiView(views.APIView):
+    schema = None
+
     def get(self, request, *args, **kwargs):
         out = {}
         for p in plugins.enabled_plugins:

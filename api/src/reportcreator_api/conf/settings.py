@@ -693,7 +693,7 @@ PREFERRED_LANGUAGES = config('PREFERRED_LANGUAGES', cast=Csv(), default=None)
 
 # Plugins
 PLUGIN_DIRS = list(filter(None, config('PLUGIN_DIRS', cast=Csv(cast=Path), default='')))
-ENABLED_PLUGINS = [] # TODO: list(filter(None, config('ENABLED_PLUGINS', cast=Csv(), default='')))
+ENABLED_PLUGINS = list(filter(None, config('ENABLED_PLUGINS', cast=Csv(), default='')))
 INSTALLED_APPS += load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
 
 
