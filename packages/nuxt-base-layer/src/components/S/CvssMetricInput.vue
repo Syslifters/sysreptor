@@ -49,6 +49,7 @@ const tooltipAttrs = {
 </script>
 
 <style lang="scss" scoped>
+@use 'sass:map';
 @use "@base/assets/vuetify" as vuetify;
 
 .metric-label {
@@ -60,7 +61,7 @@ const tooltipAttrs = {
   flex-direction: column;
 }
 
-@media #{map-get(vuetify.$display-breakpoints, 'lg-and-up')} {
+@media #{map.get(vuetify.$display-breakpoints, 'lg-and-up')} {
   .metric-inline {
     flex-direction: row;
 

@@ -323,6 +323,7 @@ function applyDialog() {
 </script>
 
 <style scoped lang="scss">
+@use 'sass:map';
 @use "@base/assets/settings" as settings;
 @use "@base/assets/vuetify" as vuetify;
 
@@ -344,11 +345,11 @@ function applyDialog() {
 @for $level from 1 through 5 {
   .level-#{$level} {
     .cvss-score-header {
-      background-color: map-get(settings.$risk-color-levels, $level);
+      background-color: map.get(settings.$risk-color-levels, $level);
       color: white;
     }
     .cvss-score-label {
-      color: map-get(settings.$risk-color-levels, $level);
+      color: map.get(settings.$risk-color-levels, $level);
     }
   }
 }
@@ -358,7 +359,7 @@ function applyDialog() {
 }
 
 .submetric-title {
-  @media #{map-get(vuetify.$display-breakpoints, 'lg-and-up')} {
+  @media #{map.get(vuetify.$display-breakpoints, 'lg-and-up')} {
     padding-left: 15em !important;
   }
 }
