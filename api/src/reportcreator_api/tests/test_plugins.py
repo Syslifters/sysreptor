@@ -69,6 +69,7 @@ def test_plugin_loading():
     from sysreptor_plugins import demoplugin  # noqa: I001
     pluginjs_path = Path(demoplugin.__path__[0]) / 'static' / 'plugin.js'
     if not pluginjs_path.exists():
+        pluginjs_path.parent.mkdir(parents=True, exist_ok=True)
         pluginjs_path.touch()
 
     assert finders.find(f'plugins/{DEMOPLUGIN_ID}/plugin.js') is not None
