@@ -83,7 +83,7 @@
 
 <script setup lang="ts">
 import { groupBy } from 'lodash-es';
-import { CollabEventType, CommentStatus, type CollabEvent, type CollabPropType, type Comment, type FieldDefinition } from '#imports';
+import { CollabEventType, CommentStatus, type Comment, type FieldDefinition } from '#imports';
 
 const props = defineProps<{
   project: PentestProject;
@@ -244,7 +244,7 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/vuetify.scss" as vuetify;
+@use "@base/assets/vuetify.scss" as vuetify;
 
 .sidebar-header {
   position: sticky;

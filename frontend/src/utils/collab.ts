@@ -1,6 +1,6 @@
 import { get, set, unset, throttle, trimStart, sortBy, cloneDeep } from "lodash-es";
 import urlJoin from "url-join";
-import { ChangeSet, EditorSelection, SelectionRange, Text } from "reportcreator-markdown/editor"
+import { ChangeSet, EditorSelection, SelectionRange, Text } from "@sysreptor/markdown/editor"
 import { CommentStatus, type Comment, type UserShortInfo } from "#imports"
 
 const WS_THROTTLE_INTERVAL = 1_000;

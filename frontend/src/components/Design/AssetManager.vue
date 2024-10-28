@@ -79,8 +79,7 @@
 import urlJoin from "url-join";
 import { last } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
-import { uploadFileHelper } from "~/utils/upload";
-import { absoluteApiUrl } from "~/utils/urls";
+import { uploadFileHelper, absoluteApiUrl } from "#imports";
 
 const props = defineProps<{
   projectType: ProjectType;

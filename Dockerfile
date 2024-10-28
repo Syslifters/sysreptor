@@ -26,6 +26,10 @@ WORKDIR /app/packages/markdown/
 COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
 RUN npm install
 
+WORKDIR /app/packages/nuxt-base-layer/
+COPY packages/nuxt-base-layer/package.json packages/nuxt-base-layer/package-lock.json /app/packages/nuxt-base-layer/
+RUN npm install
+
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json /app/frontend/
 RUN npm install
@@ -34,6 +38,7 @@ RUN npm install
 FROM --platform=$BUILDPLATFORM frontend-dev AS frontend-test
 # Include source code
 COPY packages/markdown/ /app/packages/markdown/
+COPY packages/nuxt-base-layer/ /app/packages/nuxt-base-layer/
 COPY frontend /app/frontend/
 COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/frontend/src/assets/rendering/
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/src/public/static/pdfviewer/
@@ -70,6 +75,28 @@ COPY rendering /app/rendering/
 COPY packages/markdown/ /app/packages/markdown/
 # Build JS bundle
 RUN npm run build
+
+
+
+
+FROM --platform=$BUILDPLATFORM frontend-test AS plugin-builder
+
+WORKDIR /app/packages/plugin-base-layer/
+COPY packages/plugin-base-layer /app/packages/plugin-base-layer/
+RUN npm install
+
+RUN apk add --no-cache \
+    bash \
+    git \
+    curl \
+    wget \
+    unzip \ 
+    jq
+
+COPY plugins /app/plugins/
+WORKDIR /app/plugins/
+RUN /app/plugins/build.sh
+
 
 
 
@@ -150,7 +177,8 @@ ENV VERSION=dev \
     DEBUG=off \
     MEDIA_ROOT=/data/ \
     SERVER_WORKERS=4 \
-    PDF_RENDER_SCRIPT_PATH=/app/rendering/dist/bundle.js
+    PDF_RENDER_SCRIPT_PATH=/app/rendering/dist/bundle.js \
+    PLUGIN_DIRS=/app/plugins/
 
 # Start server
 EXPOSE 8000
@@ -169,6 +197,7 @@ COPY --chown=user:user rendering/dist /app/rendering/dist/
 FROM --platform=$BUILDPLATFORM api-dev AS api-test
 # Copy source code
 COPY --chown=user:user api/src /app/api/
+COPY --chown=user:user plugins /app/plugins/
 
 # Copy generated template rendering script
 COPY --from=rendering --chown=user:user /app/rendering/dist /app/rendering/dist/
@@ -184,11 +213,13 @@ RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
     && python3 manage.py collectstatic --no-input --no-post-process \
     && python3 -m whitenoise.compress /app/api/static/ map
 
+COPY --from=plugin-builder --chown=user:user /app/plugins/ /app/plugins/
 
 
 FROM api-test AS api
 COPY --from=api-statics /app/api/frontend/index.html /app/api/frontend/index.html
 COPY --from=api-statics /app/api/static/ /app/api/static/
+COPY --from=api-statics /app/plugins/ /app/plugins/
 USER 0
 COPY --chown=1000:1000 api/generate_notice.sh api/download_sources.sh api/start.sh api/NOTICE /app/api/
 RUN /bin/bash /app/api/generate_notice.sh

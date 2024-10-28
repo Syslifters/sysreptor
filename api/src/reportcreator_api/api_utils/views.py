@@ -7,7 +7,7 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiTypes, extend_schema
-from rest_framework import routers, viewsets
+from rest_framework import routers, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
@@ -24,6 +24,7 @@ from reportcreator_api.api_utils.serializers import (
     LanguageToolAddWordSerializer,
     LanguageToolSerializer,
 )
+from reportcreator_api.conf import plugins
 from reportcreator_api.pentests.customfields.types import CweField
 from reportcreator_api.pentests.models import Language, ProjectMemberRole
 from reportcreator_api.tasks.models import PeriodicTask
@@ -153,7 +154,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, url_name='settings', url_path='settings')
-    def settings_endpoint(self, *args, **kwargs):
+    def settings_endpoint(self, request, *args, **kwargs):
         languages = [{
             'code': l.value,
             'name': l.label,
@@ -193,6 +194,14 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'share_notes': settings.GUEST_USERS_CAN_SHARE_NOTES,
                 'see_all_users': settings.GUEST_USERS_CAN_SEE_ALL_USERS,
             },
+            'plugins': [
+                {
+                    'id': p.plugin_id,
+                    'name': p.name.split('.')[-1],
+                    'frontend_entry': p.get_frontend_entry(request),
+                    'frontend_settings': p.get_frontend_settings(request),
+                } for p in plugins.enabled_plugins
+            ],
         })
 
 
@@ -212,3 +221,16 @@ class HealthcheckApiView(APIViewAsync):
             gc.collect()
 
         return res
+
+
+class PluginApiView(views.APIView):
+    schema = None
+
+    def get(self, request, *args, **kwargs):
+        out = {}
+        for p in plugins.enabled_plugins:
+            plugin_api_root = None
+            if p.urlpatterns:
+                plugin_api_root = request.build_absolute_uri(f'/api/plugins/{p.plugin_id}/api/')
+            out[p.name.split('.')[-1]] = plugin_api_root
+        return Response(data=out)

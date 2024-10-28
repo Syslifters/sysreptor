@@ -48,8 +48,20 @@
         <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" :active="route.path.startsWith('/designs')" />
         <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" :active="route.path.startsWith('/notes')" />
         
+        <template v-if="pluginMenuEntries.length > 0">
+          <v-list-subheader title="Plugins" class="mt-4 pa-0" />
+          <v-list-item
+            v-for="pluginMenuEntry, idx in pluginMenuEntries"
+            :key="idx"
+            :to="pluginMenuEntry.to"
+            :title="pluginMenuEntry.title"
+            :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
+            v-bind="pluginMenuEntry.attrs"
+          />
+        </template>
+
         <template v-if="auth.permissions.value.superuser || auth.permissions.value.user_manager || auth.permissions.value.view_license">
-          <v-list-item class="mt-6 pa-0" min-height="0">
+          <v-list-item class="mt-4 pa-0" min-height="0">
             <v-list-subheader title="Administration" />
             <template #append>
               <template v-if="apiSettings.isProfessionalLicense">
@@ -100,8 +112,11 @@
 </template>
 
 <script setup lang="ts">
+import { PluginRouteScope } from '#imports';
+
 const auth = useAuth();
 const apiSettings = useApiSettings();
+const pluginStore = usePluginStore();
 const route = useRoute();
 const display = useDisplay();
 
@@ -124,6 +139,8 @@ const licenseText = computed(() => {
     professional: '/PRO',
   }[license] || '';
 });
+
+const pluginMenuEntries = computed(() => pluginStore.menuEntriesForScope(PluginRouteScope.MAIN));
 
 // Breadcrumbs
 const breadcrumbs = ref<Breadcrumbs>();
@@ -148,7 +165,7 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
 
 <style lang="scss" scoped>
 @use 'sass:map';
-@use "@/assets/vuetify.scss" as vuetify;
+@use "@base/assets/vuetify.scss" as vuetify;
 
 .height-fullscreen {
   height: 100vh;

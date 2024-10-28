@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { scoreFromVector } from '@/utils/cvss';
+import { scoreFromVector } from '@base/utils/cvss';
 
 describe('CVSS score calculation', () => {
   for (const [vector, score] of Object.entries({

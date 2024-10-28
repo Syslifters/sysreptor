@@ -1,5 +1,5 @@
 {
-  "name": "reportcreator-rendering",
+  "name": "@sysreptor/rendering",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
     "chartjs-plugin-datalabels": "^2",
     "uuid": "^10",
     "lodash": "^4.17.21",
-    "reportcreator-markdown": "../packages/markdown"
+    "@sysreptor/markdown": "../packages/markdown"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",

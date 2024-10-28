@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import { isEqual } from "lodash-es";
 import urlJoin from "url-join";
-import { uploadFileHelper } from "~/utils/upload";
+import { uploadFileHelper } from "#imports";
 
 const route = useRoute();
 const auth = useAuth();

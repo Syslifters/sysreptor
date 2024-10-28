@@ -83,7 +83,7 @@ watch(() => props.url, () => {
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/vuetify.scss" as vuetify;
+@use "@base/assets/vuetify.scss" as vuetify;
 
 .history-sidebar {
   z-index: 5001 !important;

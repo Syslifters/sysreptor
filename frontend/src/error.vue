@@ -8,7 +8,7 @@
         @click:action="handleError"
       >
         <template #media>
-          <img v-if="props.error.statusCode === 404" src="~/assets/dino/notfound.svg" alt="" class="img-raptor" />
+          <img v-if="props.error.statusCode === 404" src="@base/assets/dino/notfound.svg" alt="" class="img-raptor" />
           <icon v-else class="emoji-heading" icon="fluent-emoji:face-with-peeking-eye" />
         </template>
         <template #text>

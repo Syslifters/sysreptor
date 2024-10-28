@@ -30,7 +30,7 @@ const licenseTextFull = computed(() => {
 
 <style lang="scss" scoped>
 @use 'sass:map';
-@use "@/assets/vuetify.scss" as vuetify;
+@use "@base/assets/vuetify.scss" as vuetify;
 
 .height-fullscreen {
   height: 100vh;

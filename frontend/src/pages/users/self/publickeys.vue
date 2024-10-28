@@ -473,7 +473,7 @@ async function deletePublicKey(publicKey: UserPublicKey) {
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/vuetify" as vuetify;
+@use "@base/assets/vuetify" as vuetify;
 
 .textarea-codeblock {
   :deep(textarea) {

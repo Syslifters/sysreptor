@@ -127,9 +127,7 @@
 <script setup lang="ts">
 import Draggable from "vuedraggable";
 import type { VForm } from 'vuetify/components';
-import { uniqueName } from '@/utils/urls';
-import { useProjectTypeLockEditOptions } from "@/composables/lockedit";
-import { FieldDataType, FieldOrigin, type FieldDefinition } from "#imports";
+import { FieldDataType, FieldOrigin, type FieldDefinition, uniqueName, useProjectTypeLockEditOptions } from "#imports";
 
 const localSettings = useLocalSettings();
 const projectTypeStore = useProjectTypeStore();

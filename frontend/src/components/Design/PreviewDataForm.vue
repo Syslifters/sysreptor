@@ -146,7 +146,7 @@
 import Draggable from "vuedraggable";
 import { v4 as uuidv4 } from "uuid";
 import { FieldDataType, type MarkdownEditorMode, type FieldDefinition } from "#imports";
-import { scoreFromVector, levelNumberFromLevelName, levelNumberFromScore } from "~/utils/cvss";
+import { scoreFromVector, levelNumberFromLevelName, levelNumberFromScore } from "@base/utils/cvss";
 
 const props = defineProps<{
   modelValue: any;
@@ -271,7 +271,7 @@ const fieldAttrs = computed(() => ({
 </script>
 
 <style lang="scss" scoped>
-@use "assets/settings" as settings;
+@use "@base/assets/settings" as settings;
 
 @for $level from 1 through 5 {
   .finding-level-#{$level} {

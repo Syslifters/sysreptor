@@ -1,0 +1,20 @@
+// Vuetify settings
+$body-font-family: 'Noto Sans', sans-serif;
+
+// Colors
+$risk-color-info: rgb(var(--v-theme-risk-info)); 
+$risk-color-low: rgb(var(--v-theme-risk-low)); 
+$risk-color-medium: rgb(var(--v-theme-risk-medium)); 
+$risk-color-high: rgb(var(--v-theme-risk-high)); 
+$risk-color-critical: rgb(var(--v-theme-risk-critical)); 
+
+$risk-color-levels: (
+  1: $risk-color-info,
+  2: $risk-color-low,
+  3: $risk-color-medium,
+  4: $risk-color-high,
+  5: $risk-color-critical
+);
+
+$status-color-finished: rgb(var(--v-theme-success));
+$status-color-deprecated: rgb(var(--v-theme-error));

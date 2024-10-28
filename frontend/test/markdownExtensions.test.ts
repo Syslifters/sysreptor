@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { formatMarkdown, renderMarkdownToHtml } from 'reportcreator-markdown';
+import { formatMarkdown, renderMarkdownToHtml } from '@sysreptor/markdown';
 
 function codeBlock(content: string, language: string|null = null) {
   return `<pre class="code-block"><code class="${language ? 'language-' + language + ' ' : ''}hljs">${

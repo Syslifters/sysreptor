@@ -3,8 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { v4 as uuid4 } from 'uuid'
 import { cloneDeep } from 'lodash-es'
 import { CollabEventType, type CollabEvent, type Comment, type User } from '#imports';
-import { ChangeSet, EditorSelection } from 'reportcreator-markdown/editor';
-import { fa } from 'vuetify/locale';
+import { ChangeSet, EditorSelection } from '@sysreptor/markdown/editor';
 
 
 async function createCollab(options?: { collabInitEvent?: Partial<CollabEvent> }) {

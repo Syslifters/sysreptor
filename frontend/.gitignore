@@ -4,6 +4,7 @@
 .nitro
 .cache
 dist
+.__mf__temp
 
 # Node dependencies
 node_modules

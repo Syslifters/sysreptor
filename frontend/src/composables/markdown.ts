@@ -22,7 +22,7 @@ import {
   openSearchPanel,
   closeSearchPanel,
   searchPanelOpen,
-} from "reportcreator-markdown/editor/index";
+} from "@sysreptor/markdown/editor/index";
 import { MarkdownEditorMode } from '#imports';
 
 export type ReferenceItem = {

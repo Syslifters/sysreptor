@@ -1,5 +1,5 @@
 {
-  "name": "reportcreator-pdfviewer",
+  "name": "@sysreptor/pdfviewer",
   "version": "0.1.0",
   "private": true,
   "scripts": {

@@ -602,7 +602,7 @@ MIT
     SOFTWARE
 
 
-@types/node 22.7.4
+@types/node 22.7.9
 MIT
     MIT License
 
@@ -1501,7 +1501,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-acorn 8.12.1
+acorn 8.13.0
 MIT
 MIT License
 
@@ -2032,7 +2032,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-browserslist 4.24.0
+browserslist 4.24.2
 MIT
 The MIT License (MIT)
 
@@ -2106,7 +2106,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-caniuse-lite 1.0.30001666
+caniuse-lite 1.0.30001669
 CC-BY-4.0
 Attribution 4.0 International
 
@@ -3937,7 +3937,7 @@ Original Code is [東アジアの文字幅 (East Asian Width) の判定 - 中途
     console.log(eaw.length('￠￦｡ￜㄅ뀀¢⟭a⊙①بف')) // 19
 
 
-electron-to-chromium 1.5.31
+electron-to-chromium 1.5.45
 ISC
 Copyright 2018 Kilian Valkhof
 
@@ -4433,8 +4433,8 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-fast-uri 3.0.2
-MIT
+fast-uri 3.0.3
+BSD-3-Clause
 Copyright (c) 2021 The Fastify Team
 Copyright (c) 2011-2021, Gary Court until https://github.com/garycourt/uri-js/commit/a1acf730b4bba3f1097c9f52e7d9d3aba8cdcaae
 All rights reserved.
@@ -5028,7 +5028,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 
-html-webpack-plugin 5.6.0
+html-webpack-plugin 5.6.3
 MIT
 Copyright JS Foundation and other contributors
 
@@ -6282,7 +6282,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-nan 2.20.0
+nan 2.22.0
 MIT
 The MIT License (MIT)
 
@@ -7110,7 +7110,7 @@ Apache-2.0
    END OF TERMS AND CONDITIONS
 
 
-picocolors 1.1.0
+picocolors 1.1.1
 ISC
 ISC License
 
@@ -8749,7 +8749,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-terser 5.34.1
+terser 5.36.0
 BSD-2-Clause
 Copyright 2012-2018 (c) Mihai Bazon <mihai.bazon@gmail.com>
 
@@ -8834,7 +8834,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-tslib 2.7.0
+tslib 2.8.0
 0BSD
 Copyright (c) Microsoft Corporation.
 

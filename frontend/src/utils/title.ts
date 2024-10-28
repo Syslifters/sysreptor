@@ -1,4 +1,6 @@
 import type { ArchivedProject, Breadcrumbs, FindingTemplate, PentestProject, ProjectType, UserShortInfo } from "#imports";
+import type { PluginRouteScope } from "@base/utils/types";
+import { sortBy } from "lodash-es";
 
 type RouteType = ReturnType<typeof useRoute>;
 
@@ -91,4 +93,22 @@ export function userDetailBreadcrumbs(user?: UserShortInfo): Breadcrumbs {
   return userListBreadcrumbs().concat([
     { title: user?.username, to: `/users/${user?.id}/` },
   ]);
+}
+
+export function pluginBreadcrumbs(scope: PluginRouteScope): Breadcrumbs {
+  const breadcrumbs = [
+    { title: 'Plugins' },
+  ] as Breadcrumbs;
+
+  // Get nearest plugin menu entry for page
+  const router = useRouter();
+  const pluginStore = usePluginStore();
+  const route = router.currentRoute.value;
+  const routeMatches = sortBy(router.getRoutes().filter(r => route.path.startsWith(r.path) && r.path !== '/'), [r => -r.path.length]);
+  const pluginMenuEntries = pluginStore.menuEntriesForScope(scope)
+  const menuEntry = routeMatches.map(m => pluginMenuEntries.find(e => e.to.name === m.name)).filter(e => !!e)[0];
+  if (menuEntry) {
+    breadcrumbs.push({ title: menuEntry.title, to: menuEntry.to });
+  }
+  return breadcrumbs;
 }

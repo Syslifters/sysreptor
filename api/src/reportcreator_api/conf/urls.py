@@ -8,7 +8,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerSplitVie
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
-from reportcreator_api.api_utils.views import HealthcheckApiView, PublicUtilsViewSet, UtilsViewSet
+from reportcreator_api.api_utils.views import HealthcheckApiView, PluginApiView, PublicUtilsViewSet, UtilsViewSet
+from reportcreator_api.conf import plugins
 from reportcreator_api.notifications.views import NotificationViewSet
 from reportcreator_api.pentests.collab.fallback import ConsumerHttpFallbackView
 from reportcreator_api.pentests.consumers import (
@@ -146,6 +147,15 @@ urlpatterns = [
         path('utils/swagger-ui/', SpectacularSwaggerSplitView.as_view(url_name='publicutils-openapi-schema'), name='publicutils-swagger-ui'),
     ])),
 
+    # Plugins
+    path('api/plugins/', include([
+        path('', PluginApiView.as_view()),
+
+         path('', include([
+            *[path(f'{p.plugin_id}/api/', include((p.urlpatterns, p.label))) for p in plugins.enabled_plugins],
+        ])),
+    ])),
+
     # Websocket HTTP fallback
     path('api/ws/pentestprojects/<uuid:project_pk>/reporting/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectReportingConsumer), name='projectreporting-fallback'),
     path('api/ws/pentestprojects/<uuid:project_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectNotesConsumer), name='projectnotebookpage-fallback'),
@@ -154,6 +164,7 @@ urlpatterns = [
 
     # Static files
     path('robots.txt', lambda *args, **kwargs: HttpResponse("User-Agent: *\nDisallow: /\n", content_type="text/plain")),
+    path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico', permanent=True)),
 
     # Fallback URL for SPA
     re_path(r'^(?!(api|admin)).*/?$', TemplateView.as_view(template_name='index.html')),

@@ -88,7 +88,7 @@ const textOriginalExpanded = ref(false);
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/vuetify.scss" as vuetify;
+@use "@base/assets/vuetify.scss" as vuetify;
 
 .comment-selected {
   :deep(.v-card__overlay) {

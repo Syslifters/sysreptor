@@ -1,5 +1,5 @@
 import { get, groupBy, sortBy } from "lodash-es";
-import { SearchCursor, Text } from "reportcreator-markdown/editor";
+import { SearchCursor, Text } from "@sysreptor/markdown/editor";
 
 export type SearchResultMatch = {
   field: string;
