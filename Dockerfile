@@ -198,6 +198,7 @@ FROM --platform=$BUILDPLATFORM api-dev AS api-test
 # Copy source code
 COPY --chown=user:user api/src /app/api/
 COPY --chown=user:user plugins /app/plugins/
+RUN mkdir -p /app/api/sysreptor_plugins/ && chmod 777 /app/api/sysreptor_plugins/
 
 # Copy generated template rendering script
 COPY --from=rendering --chown=user:user /app/rendering/dist /app/rendering/dist/
@@ -210,8 +211,7 @@ FROM --platform=$BUILDPLATFORM api-test AS api-statics
 RUN python3 manage.py collectstatic --no-input --clear
 COPY --from=frontend /app/frontend/dist/index.html /app/frontend/dist/static/ /app/api/frontend/static/
 RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
-    && python3 manage.py collectstatic --no-input --no-post-process \
-    && python3 -m whitenoise.compress /app/api/static/ map
+    && python3 manage.py collectstatic --no-input --no-post-process
 
 COPY --from=plugin-builder --chown=user:user /app/plugins/ /app/plugins/
 

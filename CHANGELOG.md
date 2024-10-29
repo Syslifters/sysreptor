@@ -1,5 +1,10 @@
 # Changelog
 
+## Upcoming
+* Experimental plugin system
+* Disable static file compression
+
+
 ## v2024.81 - 2024-10-25
 * Fix mermaid diagram labels not rendered
 * Disable CSP trusted types enforcement because of incompatibilities
