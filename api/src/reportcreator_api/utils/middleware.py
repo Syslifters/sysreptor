@@ -53,13 +53,12 @@ class CacheControlMiddleware(deprecation.MiddlewareMixin):
 
         # Cache static files
         if request.path.startswith(settings.STATIC_URL) and response.status_code == 200 and not settings.DEBUG:
-            if any(request.path.endswith(e) for e in ['.html', '.json']) or \
-                (request.path.startswith(settings.STATIC_URL + 'plugins/') and '/_nuxt/' not in request.path):
-                # Do not cache for long
-                cache.patch_cache_control(response, public=True, max_age=2 * 60)
-            else:
+            if '/_nuxt/' not in request.path and not any(request.path.endswith(e) for e in ['.html', '.json']):
                 # Chunk files with unique names. Can be cached for a long time
-                cache.patch_cache_control(response, public=True, max_age=24 * 3600)
+                cache.patch_cache_control(response, public=True, max_age=24 * 60 * 60)
+            else:
+                # Do not cache for long
+                cache.patch_cache_control(response, public=True, max_age=1 * 60)
         else:
             # Do not cache API responses and django views
             cache.add_never_cache_headers(response)
