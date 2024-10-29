@@ -198,6 +198,7 @@ FROM --platform=$BUILDPLATFORM api-dev AS api-test
 # Copy source code
 COPY --chown=user:user api/src /app/api/
 COPY --chown=user:user plugins /app/plugins/
+RUN mkdir -p /app/api/sysreptor_plugins/ && chmod 777 /app/api/sysreptor_plugins/
 
 # Copy generated template rendering script
 COPY --from=rendering --chown=user:user /app/rendering/dist /app/rendering/dist/

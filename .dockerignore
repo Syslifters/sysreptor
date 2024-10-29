@@ -27,3 +27,4 @@ node_modules/
 **/node_modules/
 
 api/data
+api/src/sysreptor_plugins/
