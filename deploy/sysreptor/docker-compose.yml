@@ -34,6 +34,7 @@ services:
     restart: unless-stopped
   app:
     image: 'syslifters/sysreptor:${SYSREPTOR_VERSION:-latest}'
+    # build: ../../
     container_name: 'sysreptor-app'
     init: true
     volumes:
