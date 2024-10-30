@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e  # exit on error
 
 for plugin in ./*; do

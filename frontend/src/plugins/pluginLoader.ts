@@ -72,7 +72,7 @@ export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConf
         });
       }
       let iframeSrc = attrs.src;
-      if (!iframeSrc.startsWith('/')) {
+      if (!iframeSrc.startsWith('/') && !iframeSrc.startsWith('https://') && !iframeSrc.startsWith('http://')) {
         // Convert relative src to absolute
         if (iframeSrc.startsWith('api/')) {
           iframeSrc = `/api/plugins/${pluginHelperOptions.pluginConfig.id}/${iframeSrc}`;

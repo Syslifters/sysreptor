@@ -210,10 +210,9 @@ FROM --platform=$BUILDPLATFORM api-test AS api-statics
 # Do not post-process nuxt files, because they already have hash names (and django failes to post-process them)
 RUN python3 manage.py collectstatic --no-input --clear
 COPY --from=frontend /app/frontend/dist/index.html /app/frontend/dist/static/ /app/api/frontend/static/
-RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
-    && python3 manage.py collectstatic --no-input --no-post-process
-
 COPY --from=plugin-builder --chown=user:user /app/plugins/ /app/plugins/
+RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
+    && ENABLED_PLUGINS='*' python3 manage.py collectstatic --no-input --no-post-process
 
 
 FROM api-test AS api

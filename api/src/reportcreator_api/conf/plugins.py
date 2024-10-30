@@ -122,7 +122,7 @@ def remove_entry(path: Path):
         path.unlink(missing_ok=True)
 
 
-def create_plugin_module_dir(dst: Path, srcs: list[Path]):
+def collect_plugins(dst: Path, srcs: list[Path]):
     # Collect plugins from all plugin directories
     all_module_dirs = []
     for plugins_dir in srcs:
@@ -166,10 +166,17 @@ def create_plugin_module_dir(dst: Path, srcs: list[Path]):
 def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
     dst = Path(__file__).parent.parent.parent / 'sysreptor_plugins'
     # Collect all plugin modules in dst directory
-    create_plugin_module_dir(
-        dst=dst,
-        srcs=plugin_dirs,
-    )
+    try:
+        collect_plugins(
+            dst=dst,
+            srcs=plugin_dirs,
+        )
+    except Exception:
+        logging.exception('Error while collecting plugins')
+
+    if not dst.is_dir() or not (dst / '__init__.py').is_file():
+        logging.warning(f'Cannot load plugins: Plugin directory "{dst}" not found')
+        return []
 
     # Load sysreptor_plugins module from dst directory
     load_module_from_dir('sysreptor_plugins', dst / '__init__.py')
@@ -196,7 +203,8 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
 
         plugin_config_class.name = module_name
         if any(c.plugin_id == plugin_config_class.plugin_id for c in available_plugin_configs):
-            raise ImproperlyConfigured(f'Duplicate plugin_id: {plugin_config_class.plugin_id}')
+            logging.warning(f'Duplicate plugin_id: {plugin_config_class.plugin_id}')
+            continue
 
         available_plugin_configs.append(plugin_config_class)
 
@@ -206,15 +214,17 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
         for plugin_config_class in available_plugin_configs:
             plugin_id = plugin_config_class.plugin_id
             plugin_name = plugin_config_class.name.split('.')[-1]
-            if enabled_plugin_id in [plugin_id, plugin_name]:
+            if enabled_plugin_id in [plugin_id, plugin_name, '*']:
                 # Add to installed_apps
                 app_class = plugin_config_class.__module__ + '.' + plugin_config_class.__name__
                 app_label = plugin_config_class.label
                 if app_class not in installed_apps:
                     installed_apps.append(app_class)
-                    logging.info(f'Enabling plugin {plugin_name} ({plugin_id=}, {app_label=}, {app_class=})', file=sys.stderr)  # noqa: T201
-                break
+                    logging.info(f'Enabling plugin {plugin_name} ({plugin_id=}, {app_label=}, {app_class=})')
+                if enabled_plugin_id != '*':
+                    break
         else:
-            logging.warning(f'Plugin "{enabled_plugin_id}" not found in plugins')
+            if enabled_plugin_id != '*':
+                logging.warning(f'Plugin "{enabled_plugin_id}" not found in plugins')
 
     return installed_apps

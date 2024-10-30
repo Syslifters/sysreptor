@@ -3,7 +3,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import include, path, re_path
-from django.views.generic.base import RedirectView, TemplateView
+from django.views.generic.base import RedirectView
+from django.views.static import serve
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerSplitView
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
@@ -167,7 +168,7 @@ urlpatterns = [
     path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico', permanent=True)),
 
     # Fallback URL for SPA
-    re_path(r'^(?!(api|admin)).*/?$', TemplateView.as_view(template_name='index.html')),
+    re_path(r'^(?!(api|admin|static)).*/?$', lambda request, *args, **kwargs: serve(request, path='index.html', document_root=settings.BASE_DIR / 'frontend')),
 ]
 
 

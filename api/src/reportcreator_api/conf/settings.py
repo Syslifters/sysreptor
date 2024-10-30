@@ -101,7 +101,7 @@ WEBSOCKET_URLCONF = 'reportcreator_api.conf.urls_websocket'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'frontend'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
