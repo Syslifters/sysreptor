@@ -707,6 +707,7 @@ ELASTIC_APM = {
     'SPAN_COMPRESSION_ENABLED': False,
     'DJANGO_AUTOINSERT_MIDDLEWARE': False,
     'DJANGO_TRANSACTION_NAME_FROM_ROUTE': True,
+    'TRANSACTIONS_IGNORE_PATTERNS': ['^OPTIONS', ' /static/'],
 }
 if ELASTIC_APM_ENABLED:
     INSTALLED_APPS.append('elasticapm.contrib.django')
@@ -789,6 +790,11 @@ LOGGING = {
         'fontTools': {
             'level': 'WARNING',
             'handlers': logging_handlers,
+            'propagate': False,
+        },
+        'elasticapm.errors': {
+            'level': 'ERROR',
+            'handlers': ['console'],
             'propagate': False,
         },
     },

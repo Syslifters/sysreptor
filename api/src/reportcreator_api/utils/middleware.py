@@ -53,9 +53,9 @@ class CacheControlMiddleware(deprecation.MiddlewareMixin):
 
         # Cache static files
         if request.path.startswith(settings.STATIC_URL) and response.status_code == 200 and not settings.DEBUG:
-            if '/_nuxt/' not in request.path and not any(request.path.endswith(e) for e in ['.html', '.json']):
+            if '/_nuxt/' in request.path and not any(request.path.endswith(e) for e in ['.html', '.json']):
                 # Chunk files with unique names. Can be cached for a long time
-                cache.patch_cache_control(response, public=True, max_age=24 * 60 * 60)
+                cache.patch_cache_control(response, public=True, max_age=7 * 24 * 60 * 60)
             else:
                 # Do not cache for long
                 cache.patch_cache_control(response, public=True, max_age=1 * 60)
