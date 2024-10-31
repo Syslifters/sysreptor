@@ -31,12 +31,14 @@ class DjangoASGITracingMiddleware(ASGITracingMiddleware):
 
     def set_transaction_name(self, method: str, url: str) -> None:
         path = urlparse(url).path
+        route = path
         try:
             resolver_match = resolve(path)
+            route = resolver_match.route or resolver_match.url_name
         except Resolver404:
-            resolver_match = None
+            pass
 
-        elasticapm.set_transaction_name(f"{method} {resolver_match.route or resolver_match.url_name or path}")
+        elasticapm.set_transaction_name(f"{method} {route}")
 
 
 def get_data_from_request(scope, event_type, event=None):
