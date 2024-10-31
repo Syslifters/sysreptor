@@ -120,10 +120,13 @@ const pluginStore = usePluginStore();
 const route = useRoute();
 const display = useDisplay();
 
+const pluginMenuEntries = computed(() => pluginStore.menuEntriesForScope(PluginRouteScope.MAIN));
+
 const navigationDrawerVisible = ref(false);
+const isToplevel = computed(() => route.meta.toplevel || pluginMenuEntries.value.some(e => route.name && route.name === e.to.name));
 const naviagtionDrawerProps = computed(() => ({
   absolute: true,
-  ...(route.meta.toplevel && display.mdAndUp.value ? { 
+  ...(isToplevel.value && display.mdAndUp.value ? { 
     permanent: true,
   } : { 
     temporary: true,
@@ -139,8 +142,6 @@ const licenseText = computed(() => {
     professional: '/PRO',
   }[license] || '';
 });
-
-const pluginMenuEntries = computed(() => pluginStore.menuEntriesForScope(PluginRouteScope.MAIN));
 
 // Breadcrumbs
 const breadcrumbs = ref<Breadcrumbs>();
