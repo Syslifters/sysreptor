@@ -23,7 +23,7 @@
       <error-list :value="messages" :show-no-message-info="true" class="mt-5" />
     </v-overlay>
     <v-overlay
-      :model-value="renderingInProgress && (!pdfData || props.showLoadingSpinnerOnReload)"
+      :model-value="fetchPdf.pending.value && (!pdfData || props.showLoadingSpinnerOnReload)"
       persistent
       no-click-animation
       transition="none"
@@ -42,7 +42,7 @@ import { debounce } from "lodash-es"
 import { MessageLevel } from '#imports'
 
 const props = withDefaults(defineProps<{
-  fetchPdf: () => Promise<PdfResponse>;
+  fetchPdf: (fetchOptions: { signal: AbortSignal }) => Promise<PdfResponse>;
   reloadDebounceTime?: number;
   showLoadingSpinnerOnReload?: boolean
 }>(), {
@@ -51,14 +51,16 @@ const props = withDefaults(defineProps<{
 });
 
 const pdfData = ref<string|null>(null);
-const renderingInProgress = ref(false);
 const messages = ref<ErrorMessage[]>([]);
 const showMessages = ref(false);
+const fetchPdf = useAbortController(props.fetchPdf);
 
 async function reload() {
-  renderingInProgress.value = true;
+  // Abort pending requests
+  fetchPdf.abort();
+
   try {
-    const res = await props.fetchPdf();
+    const res = await fetchPdf.run();
     messages.value = res.messages;
     if (messages.value.length === 0) {
       showMessages.value = false;
@@ -76,7 +78,7 @@ async function reload() {
       details = error?.data[0];
     } else if (error?.status === 429) {
       details = 'Exceeded PDF rendering rate limit. Try again later.'
-    } else if (error) {
+    } else if (error?.statusCode) {
       details = `${error.statusCode} ${error.statusText}`;
     }
     messages.value.push({
@@ -91,8 +93,6 @@ async function reload() {
       }
     });
     showMessages.value = true;
-  } finally {
-    renderingInProgress.value = false;
   }
 }
 const reloadDebounced = debounce(reload, props.reloadDebounceTime);
@@ -106,7 +106,7 @@ onMounted(() => {
 
 defineExpose({
   pdfData,
-  renderingInProgress,
+  renderingInProgress: fetchPdf.pending,
   reloadDebounced,
   reloadImmediate,
 })

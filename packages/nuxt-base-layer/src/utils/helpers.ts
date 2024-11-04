@@ -139,3 +139,43 @@ export function useAutofocus(ready: Ref<any>|(() => any), fallbackId?: string) {
 export function copyToClipboard(text: string) {
   window.navigator.clipboard.writeText(text);
 }
+
+
+export function useAbortController<T>(performFetch: (fetchOptions: { signal: AbortSignal }) => Promise<T>) {
+  const abortController = ref<AbortController|null>(null);
+  const pending = computed(() => !!abortController.value);
+
+  function abort() {
+    if (abortController.value) {
+      abortController.value.abort();
+      abortController.value = null;
+    }
+  }
+
+  async function run() {
+    abort();
+
+    try {
+      abortController.value = new AbortController();
+      return await performFetch({ signal: abortController.value.signal });
+    } finally {
+      abortController.value = null;
+    }
+  }
+
+  onMounted(() => {
+    window.addEventListener('beforeunload', abort);
+  })
+  onBeforeUnmount(() => {
+    window.removeEventListener('beforeunload', abort);
+
+    abort();
+  });
+
+  return {
+    run,
+    abort,
+    abortController,
+    pending,
+  }
+}
