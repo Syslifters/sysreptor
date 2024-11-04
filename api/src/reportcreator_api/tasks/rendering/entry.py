@@ -196,7 +196,7 @@ async def _render_pdf_task_async(timeout=None, **kwargs):
             # Tasks continue running in background, even when the asyncio coroutine is already cancelled.
             res = await asyncio.wait_for(tasks.render_pdf_task_async(**kwargs), timeout=timeout.total_seconds())
         else:
-            task = tasks.render_pdf_task_celery.delay(**kwargs)
+            task = await sync_to_async(tasks.render_pdf_task_celery.delay)(**kwargs)
             res = await get_celery_result_async(task, timeout=timeout)
         return RenderStageResult.from_dict(res)
     except asyncio.CancelledError:

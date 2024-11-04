@@ -13,6 +13,12 @@ from reportcreator_api.pentests.customfields.types import (
 )
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 from reportcreator_api.pentests.models import CommentStatus, ReviewStatus
+from reportcreator_api.tasks.rendering.error_messages import (
+    ErrorMessage,
+    MessageLevel,
+    MessageLocationInfo,
+    MessageLocationType,
+)
 from reportcreator_api.tests.mock import (
     create_comment,
     create_finding,
@@ -20,7 +26,6 @@ from reportcreator_api.tests.mock import (
     create_project_type,
     create_user,
 )
-from reportcreator_api.tasks.rendering.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
 
 pytestmark = pytest.mark.django_db
 

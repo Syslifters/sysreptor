@@ -76,10 +76,12 @@ async function reload() {
       details = error?.data[0];
     } else if (error?.status === 429) {
       details = 'Exceeded PDF rendering rate limit. Try again later.'
+    } else if (error) {
+      details = `${error.statusCode} ${error.statusText}`;
     }
     messages.value.push({
       level: MessageLevel.ERROR,
-      message: 'PDF rendering error',
+      message: 'PDF rendering error (HTTP error)',
       details,
       location: {
         type: MessageLocationType.OTHER,

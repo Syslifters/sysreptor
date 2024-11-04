@@ -1,6 +1,6 @@
 import json
+import logging
 import sys
-import time
 from unittest import mock
 
 from weasyprint import HTML, default_url_fetcher
@@ -12,7 +12,7 @@ from .render_utils import FAKE_BASE_URL, RenderStageResult, request_handler
 
 
 def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], data: dict) -> RenderStageResult:
-    out = RenderStageResult(other={'weasyprint_startup': time.perf_counter()})
+    out = RenderStageResult()
 
     def weasyprint_request_handler(url, timeout=10, ssl_context=None):
         # allow data URLs
@@ -57,7 +57,7 @@ def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], 
             message_text = 'Font loading problem'
             message_level = MessageLevel.INFO
 
-        out.messages.add(ErrorMessage(
+        out.messages.append(ErrorMessage(
             level=message_level,
             message=message_text,
             details=details_text,
@@ -71,8 +71,7 @@ def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], 
     with mock.patch.object(WEASYPRINT_LOGGER, 'error', new=weasyprint_capture_logs, spec=True), \
          mock.patch.object(WEASYPRINT_LOGGER, 'warning', new=weasyprint_capture_logs, spec=True), \
          mock.patch.object(WEASYPRINT_LOGGER, 'info', new=weasyprint_capture_logs, spec=True), \
-         mock.patch.object(WEASYPRINT_LOGGER, 'debug', new=weasyprint_capture_logs, spec=True), \
-         out.add_timing('weasyprint_render'):
+         mock.patch.object(WEASYPRINT_LOGGER, 'debug', new=weasyprint_capture_logs, spec=True):
         try:
             font_config = FontConfiguration()
             html = HTML(string=html_content, base_url=FAKE_BASE_URL, url_fetcher=weasyprint_request_handler)
@@ -84,9 +83,10 @@ def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], 
                 finisher=weasyprint_strip_pdf_metadata,
             )
         except Exception:
-            out.messages.add(ErrorMessage(
+            logging.exception('Error rendering PDF (stage: weasyprint)')
+            out.messages.append(ErrorMessage(
                 level=MessageLevel.ERROR,
-                message='Error rendering PDF',
+                message='Error rendering PDF (stage: weasyprint)',
             ))
 
     return out

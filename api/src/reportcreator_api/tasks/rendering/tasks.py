@@ -4,7 +4,6 @@ from celery import shared_task
 from django.conf import settings
 
 from reportcreator_api.tasks.rendering import render
-from reportcreator_api.utils.logging import log_timing
 
 
 @shared_task(
@@ -14,7 +13,7 @@ from reportcreator_api.utils.logging import log_timing
     expires=settings.PDF_RENDERING_TIME_LIMIT + 5,
 )
 def render_pdf_task_celery(*args, **kwargs) -> dict:
-    asyncio.run(render_pdf_task_async(*args, **kwargs))
+    return asyncio.run(render_pdf_task_async(*args, **kwargs))
 
 
 async def render_pdf_task_async(*args, **kwargs) -> dict:

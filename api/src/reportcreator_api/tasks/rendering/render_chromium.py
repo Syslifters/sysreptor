@@ -65,7 +65,7 @@ async def chromium_render_to_html(template: str, styles: str, resources: dict[st
             with out.add_timing('chromium_rendering'):
                 console_output = []
                 page.on('console', lambda l: console_output.append(l))
-                page.on('pageerror', lambda exc: out.messages.add(ErrorMessage(
+                page.on('pageerror', lambda exc: out.messages.append(ErrorMessage(
                     level=MessageLevel.ERROR,
                     message='Uncaught error during template rendering',
                     details=str(exc),
@@ -130,12 +130,10 @@ async def chromium_render_to_html(template: str, styles: str, resources: dict[st
                     # Post-process HTML
                     out.pdf = html.replace('data-checked="checked"', 'checked').encode()
     except Exception:
+        logging.exception('Error rendering HTML template (stage: chromium)')
         out.messages.append(ErrorMessage(
             level=MessageLevel.ERROR,
-            message='Error rendering HTML template',
+            message='Error rendering HTML template (stage: chromium)',
         ))
-
-    if out.messages:
-        logging.info(f'Chromium messages: {out.messages}')
 
     return out
