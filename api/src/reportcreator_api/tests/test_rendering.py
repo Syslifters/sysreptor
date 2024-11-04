@@ -1,6 +1,5 @@
 import io
 import re
-from base64 import b64decode
 from unittest import mock
 
 import pikepdf
@@ -121,8 +120,8 @@ class TestHtmlRendering:
     def test_error_messages(self, template, expected):
         self.project_type.report_template = template
         res = async_to_sync(render_pdf)(project=self.project)
-        assert len(res['messages']) >= 1
-        assert expected in [copy_keys(m, expected.keys()) for m in res['messages']]
+        assert len(res.messages) >= 1
+        assert expected in [copy_keys(m.to_dict(), expected.keys()) for m in res.messages]
 
     def test_markdown_rendering(self):
         assertHTMLEqual(
@@ -362,7 +361,7 @@ class TestHtmlRendering:
         ('', False),
     ])
     def test_pdf_encryption(self, password, encrypted):
-        pdf_data = b64decode(async_to_sync(render_pdf)(project=self.project, password=password)['pdf'])
+        pdf_data = async_to_sync(render_pdf)(project=self.project, password=password).pdf
         with pikepdf.Pdf.open(io.BytesIO(pdf_data), password=password) as pdf:
             assert pdf.is_encrypted == encrypted
 

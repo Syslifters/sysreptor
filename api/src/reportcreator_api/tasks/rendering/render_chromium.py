@@ -57,12 +57,12 @@ async def chromium_render_to_html(template: str, styles: str, resources: dict[st
             await route.abort()
 
     try:
-        chromium_startup_timer = out.add_timing('chromium startup')
+        chromium_startup_timer = out.add_timing('chromium_startup')
         chromium_startup_timer.__enter__()
         async with get_page() as page:
             chromium_startup_timer.__exit__(None, None, None)
 
-            with out.add_timing('chromium render'):
+            with out.add_timing('chromium_render'):
                 console_output = []
                 page.on('console', lambda l: console_output.append(l))
                 page.on('pageerror', lambda exc: out.messages.append(ErrorMessage(

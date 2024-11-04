@@ -186,7 +186,8 @@ async def get_celery_result_async(task, timeout=None):
 
 
 async def _render_pdf_task_async(timeout=None, **kwargs):
-    timeout = timeout or timedelta(seconds=settings.PDF_RENDERING_TIME_LIMIT + 5)
+    if not timeout and settings.PDF_RENDERING_TIME_LIMIT:
+        timeout = timedelta(seconds=settings.PDF_RENDERING_TIME_LIMIT + 5)
 
     try:
         if settings.CELERY_TASK_ALWAYS_EAGER:
@@ -224,7 +225,7 @@ async def render_pdf_task(
             resources |= {'/images/name/' + i.name: b64encode(i.file.read()).decode() for i in project.images.all() if project.is_file_referenced(i, sections=True, findings=True, notes=False)}
         return resources
 
-    with res.add_timing('collect data'):
+    with res.add_timing('collect_data'):
         resources = await format_resources()
 
     timing_total_before = sum(res.timings.values())
@@ -325,7 +326,7 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
     parent_obj = note.project if is_project_note else note.user
 
     res = RenderStageResult()
-    with res.add_timing('collect data'):
+    with res.add_timing('collect_data'):
         # Prevent sending unreferenced images to rendering task to reduce memory consumption
         resources = {}
         async for i in parent_obj.images.all():
@@ -343,7 +344,7 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
                         absolute_file_url = request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f.name}))
                     note_text = note_text.replace(f'/files/name/{f.name}', absolute_file_url)
 
-    return await _render_pdf_task_async(
+    res |= await _render_pdf_task_async(
         template="""<h1>{{ data.note.title }}</h1><markdown :text="data.note.text" />""",
         styles="""@import "/assets/global/base.css";""",
         data={
@@ -355,8 +356,8 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
         },
         language=note.project.language if is_project_note else Language.ENGLISH_US,
         resources=resources,
-        timings=res.timings,
     )
+    return res
 
 
 async def render_pdf(
@@ -373,7 +374,7 @@ async def render_pdf(
 
 
     res = RenderStageResult()
-    with res.add_timing('collect data'):
+    with res.add_timing('collect_data'):
         data = await format_project_template_data(project=project, project_type=project_type)
     return await render_pdf_task(
         project=project,
@@ -389,7 +390,7 @@ async def render_pdf(
 
 async def render_pdf_preview(project_type: ProjectType, report_template: str, report_styles: str, report_preview_data: dict) -> RenderStageResult:
     res = RenderStageResult()
-    with res.add_timing('collect data'):
+    with res.add_timing('collect_data'):
         preview_data = report_preview_data.copy()
         data = await sync_to_async(format_template_data)(data=preview_data, project_type=project_type)
 

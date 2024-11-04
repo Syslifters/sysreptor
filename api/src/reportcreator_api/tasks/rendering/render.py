@@ -110,7 +110,7 @@ def encrypt_pdf(pdf_data: bytes, password: Optional[str]) -> RenderStageResult:
     if not password:
         return out
 
-    with out.add_timing('compress_pdf'), \
+    with out.add_timing('encrypt_pdf'), \
          Pdf.open(BytesIO(pdf_data)) as pdf:
         out_data = BytesIO()
         # Encrypt PDF with AES-256

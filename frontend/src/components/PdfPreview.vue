@@ -13,7 +13,7 @@
           <v-menu activator="parent" location="top right" :close-on-content-click="false">
             <v-table class="pa-2">
               <tr v-for="[key, timing] in Object.entries(timings).filter(([k]) => k !== 'total')" :key="key">
-                <td class="timing-table-key">{{ key }}</td>
+                <td class="timing-table-key">{{ key.replaceAll('_', ' ') }}</td>
                 <td class="timing-value">{{ formatTiming(timing) }}</td>
               </tr>
               <tr>

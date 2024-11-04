@@ -8,9 +8,9 @@ from reportcreator_api.tasks.rendering import render
 
 @shared_task(
     name='reportcreator.render_pdf',
-    soft_time_limit=settings.PDF_RENDERING_TIME_LIMIT,
-    time_limit=settings.PDF_RENDERING_TIME_LIMIT + 5,
-    expires=settings.PDF_RENDERING_TIME_LIMIT + 5,
+    soft_time_limit=settings.PDF_RENDERING_TIME_LIMIT or None,
+    time_limit=settings.PDF_RENDERING_TIME_LIMIT + 5 if settings.PDF_RENDERING_TIME_LIMIT else None,
+    expires=settings.PDF_RENDERING_TIME_LIMIT + 5 if settings.PDF_RENDERING_TIME_LIMIT else None,
 )
 def render_pdf_task_celery(*args, **kwargs) -> dict:
     return asyncio.run(render_pdf_task_async(*args, **kwargs))
