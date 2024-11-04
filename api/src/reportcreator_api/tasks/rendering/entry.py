@@ -179,9 +179,9 @@ async def get_celery_result_async(task, timeout=None):
         return task.result
     except asyncio.CancelledError:
         try:
-            task.revoke()
+            await sync_to_async(task.revoke)(terminate=True, wait=False)
         except Exception:  # noqa: S110
-            pass  # Ignore errors
+            pass # Ignore errors
         raise
 
 
@@ -200,7 +200,7 @@ async def _render_pdf_task_async(timeout=None, **kwargs):
             res = await get_celery_result_async(task, timeout=timeout)
         return RenderStageResult.from_dict(res)
     except asyncio.CancelledError:
-        logging.info('PDF rendering task canceled')
+        logging.info('PDF rendering task cancelled')
         raise
     except TimeoutError as ex:
         logging.error('PDF rendering task timeout')
