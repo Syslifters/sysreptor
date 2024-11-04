@@ -39,7 +39,7 @@ Create your OIDC configuration for SysReptor...
 ```
 
 ```env
-OIDC_AUTHLIB_OAUTH_CLIENTS='"<your provider name>": {"label": "<human readable provider name>",...''
+OIDC_AUTHLIB_OAUTH_CLIENTS='{"<your provider name>": {"label": "<human readable provider name>",...}}'
 ```
 
 ## Limitations
