@@ -1,10 +1,9 @@
 import asyncio
 import dataclasses
-import gc
 import json
 import logging
 import uuid
-from base64 import b64decode, b64encode
+from base64 import b64encode
 from datetime import timedelta
 from types import NoneType
 from typing import Any, Optional, Union
@@ -42,8 +41,10 @@ from reportcreator_api.pentests.models import (
     UserNotebookPage,
 )
 from reportcreator_api.tasks.rendering import tasks
+from reportcreator_api.tasks.rendering.error_messages import MessageLocationInfo, MessageLocationType
+from reportcreator_api.tasks.rendering.render_utils import RenderStageResult
 from reportcreator_api.users.models import PentestUser
-from reportcreator_api.utils.error_messages import MessageLocationInfo, MessageLocationType
+from reportcreator_api.utils.logging import log_timing
 from reportcreator_api.utils.utils import copy_keys, get_key_or_attr
 
 log = logging.getLogger(__name__)
@@ -166,23 +167,56 @@ async def format_project_template_data(project: PentestProject, project_type: Op
     )
 
 
-async def get_celery_result_async(task, timeout=timedelta(seconds=settings.PDF_RENDERING_TIME_LIMIT + 5)):
-    start_time = timezone.now()
-    while not task.ready():
-        if timezone.now() > start_time + timeout:
-            logging.error('PDF rendering task timeout')
-            raise TimeoutError('PDF rendering timeout')
-        await asyncio.sleep(0.2)
-    if isinstance(task.result, Exception):
-        raise task.result
-    return task.result
+async def get_celery_result_async(task, timeout=None):
+    try:
+        start_time = timezone.now()
+        while not task.ready():
+            if timeout and timezone.now() > start_time + timeout:
+                raise TimeoutError()
+            await asyncio.sleep(0.2)
+        if isinstance(task.result, Exception):
+            raise task.result
+        return task.result
+    except asyncio.CancelledError:
+        try:
+            task.revoke()
+        except Exception:  # noqa: S110
+            pass  # Ignore errors
+        raise
+
+
+async def _render_pdf_task_async(timeout=None, **kwargs):
+    timeout = timeout or timedelta(seconds=settings.PDF_RENDERING_TIME_LIMIT + 5)
+
+    try:
+        if settings.CELERY_TASK_ALWAYS_EAGER:
+            # Do not use celery when tasks are executed eagerly in the same process
+            # Use async instead to be able to cancel tasks.
+            # sync_to_async functions are not cancelled because the ThreadPoolExecutor does not support cancellation.
+            # Tasks continue running in background, even when the asyncio coroutine is already cancelled.
+            res = await asyncio.wait_for(tasks.render_pdf_task_async(**kwargs), timeout=timeout.total_seconds())
+        else:
+            task = tasks.render_pdf_task_celery.delay(**kwargs)
+            res = await get_celery_result_async(task, timeout=timeout)
+        return RenderStageResult.from_dict(res)
+    except asyncio.CancelledError:
+        logging.info('PDF rendering task canceled')
+        raise
+    except TimeoutError as ex:
+        logging.error('PDF rendering task timeout')
+        raise TimeoutError('PDF rendering timeout') from ex
 
 
 @elasticapm.async_capture_span()
+@log_timing(log_start=True, log_detailed_timings=True)
 async def render_pdf_task(
     project_type: ProjectType, report_template: str, report_styles: str, data: dict,
     password: Optional[str] = None, can_compress_pdf: bool = False, project: Optional[PentestProject] = None, output=None,
-) -> dict:
+    timings=None,
+) -> RenderStageResult:
+    res = RenderStageResult(timings=timings or {})
+
+    @sync_to_async()
     def format_resources():
         resources = {}
         resources |= {'/assets/name/' + a.name: b64encode(a.file.read()).decode() for a in project_type.assets.all()}
@@ -190,32 +224,35 @@ async def render_pdf_task(
             resources |= {'/images/name/' + i.name: b64encode(i.file.read()).decode() for i in project.images.all() if project.is_file_referenced(i, sections=True, findings=True, notes=False)}
         return resources
 
-    task = await sync_to_async(tasks.render_pdf_task.delay)(
-        template=report_template,
-        styles=report_styles,
-        data=data,
-        language=project.language if project else project_type.language,
-        password=password,
-        compress_pdf=can_compress_pdf and settings.COMPRESS_PDFS,
-        output=output,
-        resources=await sync_to_async(format_resources)(),
-    )
-    res = await get_celery_result_async(task)
+    with res.add_timing('collect_data'):
+        resources = await format_resources()
+
+    timing_total_before = sum(res.timings.values())
+    with res.add_timing('total'):
+        res_pdf = await _render_pdf_task_async(
+            template=report_template,
+            styles=report_styles,
+            data=data,
+            language=project.language if project else project_type.language,
+            password=password,
+            compress_pdf=can_compress_pdf and settings.COMPRESS_PDFS,
+            output=output,
+            resources=resources,
+        )
+    res |= res_pdf
+    res.timings['total'] += timing_total_before
+    res.timings['other'] = max(0, res.timings['total'] - sum(v for k, v in res.timings.items() if k != 'total'))
+
     # Set message location info to ProjectType (if not available)
-    for m in res.get('messages', []):
-        if not m['location']:
-            m['location'] = MessageLocationInfo(
-                type=MessageLocationType.DESIGN, id=project_type.id, name=project_type.name).to_dict()
-
-    # Memory cleanup
-    del task
-    gc.collect()
-
+    res.messages = [
+        (m if m.location else dataclasses.replace(m, location=MessageLocationInfo(type=MessageLocationType.DESIGN, id=project_type.id, name=project_type.name)))
+        for m in res.messages
+    ]
     return res
 
 
 @elasticapm.async_capture_span()
-async def render_project_markdown_fields_to_html(project: PentestProject, request):
+async def render_project_markdown_fields_to_html(project: PentestProject, request) -> dict:
     """
     Render the all markdown fields of a project to HTML and return the project data with the rendered HTML fields.
     Markdown rendering is done in Chromium similar to the PDF rendering.
@@ -245,14 +282,14 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
         data=data,
         output='html',
     )
-    if not res.get('pdf'):
+    if not res.pdf:
         return res
 
     def format_output():
         from reportcreator_api.pentests.serializers.project import PentestProjectDetailSerializer
 
         # Extract markdown fields from HTML (maybe with lxml)
-        html_tree = etree.HTML(b64decode(res['pdf']).decode())
+        html_tree = etree.HTML(res.pdf.decode())
         rendered_md_nodes = html_tree.getchildren()[1].getchildren()[0].getchildren()
         for mdf in rendered_md_nodes:
             mdf_id = mdf.attrib.get('id')
@@ -272,7 +309,7 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
 
         return {
             'result': result,
-            'messages': res.get('messages', []),
+            'messages': res.to_dict()['messages'],
         }
 
     try:
@@ -283,28 +320,30 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
 
 
 @elasticapm.async_capture_span()
-async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage], request=None):
+async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage], request=None) -> RenderStageResult:
     is_project_note = isinstance(note, ProjectNotebookPage)
     parent_obj = note.project if is_project_note else note.user
 
-    # Prevent sending unreferenced images to rendering task to reduce memory consumption
-    resources = {}
-    async for i in parent_obj.images.all():
-        if note.is_file_referenced(i):
-            resources['/images/name/' + i.name] = b64encode(i.file.read()).decode()
+    res = RenderStageResult()
+    with res.add_timing('collect_data'):
+        # Prevent sending unreferenced images to rendering task to reduce memory consumption
+        resources = {}
+        async for i in parent_obj.images.all():
+            if note.is_file_referenced(i):
+                resources['/images/name/' + i.name] = b64encode(i.file.read()).decode()
 
-    # Rewrite file links to absolute URL
-    note_text = note.text
-    if request:
-        async for f in parent_obj.files.only('id', 'name'):
-            if note.is_file_referenced(f):
-                if is_project_note:
-                    absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f.name}))
-                else:
-                    absolute_file_url = request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f.name}))
-                note_text = note_text.replace(f'/files/name/{f.name}', absolute_file_url)
+        # Rewrite file links to absolute URL
+        note_text = note.text
+        if request:
+            async for f in parent_obj.files.only('id', 'name'):
+                if note.is_file_referenced(f):
+                    if is_project_note:
+                        absolute_file_url = request.build_absolute_uri(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': note.project.id, 'filename': f.name}))
+                    else:
+                        absolute_file_url = request.build_absolute_uri(reverse('uploadedusernotebookfile-retrieve-by-name', kwargs={'pentestuser_pk': note.user.id, 'filename': f.name}))
+                    note_text = note_text.replace(f'/files/name/{f.name}', absolute_file_url)
 
-    task = await sync_to_async(tasks.render_pdf_task.delay)(
+    return await _render_pdf_task_async(
         template="""<h1>{{ data.note.title }}</h1><markdown :text="data.note.text" />""",
         styles="""@import "/assets/global/base.css";""",
         data={
@@ -316,16 +355,15 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
         },
         language=note.project.language if is_project_note else Language.ENGLISH_US,
         resources=resources,
+        timings=res.timings,
     )
-    res = await get_celery_result_async(task)
-    return res
 
 
 async def render_pdf(
     project: PentestProject, project_type: Optional[ProjectType] = None,
     report_template: Optional[str] = None, report_styles: Optional[str] = None,
     password: Optional[str] = None, can_compress_pdf: bool = False,
-) -> dict:
+) -> RenderStageResult:
     if not project_type:
         project_type = project.project_type
     if not report_template:
@@ -333,7 +371,10 @@ async def render_pdf(
     if not report_styles:
         report_styles = project_type.report_styles
 
-    data = await format_project_template_data(project=project, project_type=project_type)
+
+    res = RenderStageResult()
+    with res.add_timing('collect_data'):
+        data = await format_project_template_data(project=project, project_type=project_type)
     return await render_pdf_task(
         project=project,
         project_type=project_type,
@@ -342,16 +383,20 @@ async def render_pdf(
         data=data,
         password=password,
         can_compress_pdf=can_compress_pdf,
+        timings=res.timings,
     )
 
 
-async def render_pdf_preview(project_type: ProjectType, report_template: str, report_styles: str, report_preview_data: dict) -> dict:
-    preview_data = report_preview_data.copy()
-    data = await sync_to_async(format_template_data)(data=preview_data, project_type=project_type)
+async def render_pdf_preview(project_type: ProjectType, report_template: str, report_styles: str, report_preview_data: dict) -> RenderStageResult:
+    res = RenderStageResult()
+    with res.add_timing('collect_data'):
+        preview_data = report_preview_data.copy()
+        data = await sync_to_async(format_template_data)(data=preview_data, project_type=project_type)
 
     return await render_pdf_task(
         project_type=project_type,
         report_template=report_template,
         report_styles=report_styles,
         data=data,
+        timings=res.timings,
     )

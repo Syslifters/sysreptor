@@ -20,7 +20,7 @@ from reportcreator_api.tests.mock import (
     create_project_type,
     create_user,
 )
-from reportcreator_api.utils.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
+from reportcreator_api.tasks.rendering.error_messages import ErrorMessage, MessageLevel, MessageLocationInfo, MessageLocationType
 
 pytestmark = pytest.mark.django_db
 

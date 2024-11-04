@@ -11,7 +11,7 @@ from pytest_django.asserts import assertHTMLEqual
 
 from reportcreator_api.pentests import cvss
 from reportcreator_api.tasks.rendering.entry import render_pdf, render_project_markdown_fields_to_html
-from reportcreator_api.tasks.rendering.render import render_to_html
+from reportcreator_api.tasks.rendering.render import render_pdf_impl
 from reportcreator_api.tests.mock import (
     create_finding,
     create_imported_member,
@@ -48,14 +48,20 @@ class TestHtmlRendering:
             yield
 
     def render_html(self, template, additional_data=None):
-        def render_only_html(data, language, **kwargs):
-            html, msgs = render_to_html(template=template, styles='@import url("/assets/global/base.css");', data=merge(data, additional_data or {}), resources={}, language=language)
-            return html.encode() if html else None, msgs
+        async def render_only_html(data, language, **kwargs):
+            return await render_pdf_impl(
+                template=template,
+                styles='@import url("/assets/global/base.css");',
+                data=merge(data, additional_data or {}),
+                resources={},
+                language=language,
+                output='html',
+            )
 
-        with mock.patch('reportcreator_api.tasks.rendering.render.render_pdf', render_only_html):
+        with mock.patch('reportcreator_api.tasks.rendering.render.render_pdf_impl', render_only_html):
             res = async_to_sync(render_pdf)(self.project)
-            assert not res['messages']
-            html = b64decode(res['pdf']).decode()
+            assert not res.messages
+            html = res.pdf.decode()
             return self.extract_html_part(html)
 
     def extract_html_part(self, html, start=None, end=None):
