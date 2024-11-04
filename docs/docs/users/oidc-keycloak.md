@@ -39,7 +39,7 @@ Create your OIDC configuration for SysReptor...
 ...and add it to your `app.env`:
 
 ```env
-OIDC_AUTHLIB_OAUTH_CLIENTS='"keycloak": {"label": "Keycloak",...''
+OIDC_AUTHLIB_OAUTH_CLIENTS='{"keycloak": {"label": "Keycloak",...}}'
 ```
 
 ## Limitations
