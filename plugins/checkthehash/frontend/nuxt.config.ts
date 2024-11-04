@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   ],
 
   appConfig: {
-    pluginId: 'db365aa0-ed36-4e90-93b6-a28effc4ed47',
+    pluginId: 'bfc0b269-4113-4b3c-b9f2-a150dae4abae',
   },
 
   nitro: {

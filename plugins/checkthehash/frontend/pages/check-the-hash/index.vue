@@ -9,16 +9,13 @@ const copiedIndex = ref<number | null>(null);
 const noResults = ref(false); // Flag for showing no results message
 
 function renderHash() {
-  console.log("Running render Hash");
   const possibleHashes: string[] = CheckTheHash(hash.value, prototypes);
-  console.log(possibleHashes);
   results.value = possibleHashes;
   noResults.value = possibleHashes.length === 0 && hash.value.trim() !== ""; // Show message if no results
 }
 
 function copyToClipboard(text: string, index: number) {
   navigator.clipboard.writeText(text).then(() => {
-    console.log('Copied to clipboard:', text);
     copiedIndex.value = index;
     setTimeout(() => {
       copiedIndex.value = null;
