@@ -165,12 +165,9 @@ export function useAbortController<T>(performFetch: (fetchOptions: { signal: Abo
 
   onMounted(() => {
     window.addEventListener('beforeunload', abort);
-  })
-  onBeforeUnmount(() => {
-    window.removeEventListener('beforeunload', abort);
-
-    abort();
   });
+  onBeforeUnmount(() => window.removeEventListener('beforeunload', abort));
+  onUnmounted(() => abort());
 
   return {
     run,

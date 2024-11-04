@@ -224,7 +224,7 @@ async def render_pdf_task(
             resources |= {'/images/name/' + i.name: b64encode(i.file.read()).decode() for i in project.images.all() if project.is_file_referenced(i, sections=True, findings=True, notes=False)}
         return resources
 
-    with res.add_timing('collect_data'):
+    with res.add_timing('collect data'):
         resources = await format_resources()
 
     timing_total_before = sum(res.timings.values())
@@ -325,7 +325,7 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
     parent_obj = note.project if is_project_note else note.user
 
     res = RenderStageResult()
-    with res.add_timing('collect_data'):
+    with res.add_timing('collect data'):
         # Prevent sending unreferenced images to rendering task to reduce memory consumption
         resources = {}
         async for i in parent_obj.images.all():
@@ -373,7 +373,7 @@ async def render_pdf(
 
 
     res = RenderStageResult()
-    with res.add_timing('collect_data'):
+    with res.add_timing('collect data'):
         data = await format_project_template_data(project=project, project_type=project_type)
     return await render_pdf_task(
         project=project,
@@ -389,7 +389,7 @@ async def render_pdf(
 
 async def render_pdf_preview(project_type: ProjectType, report_template: str, report_styles: str, report_preview_data: dict) -> RenderStageResult:
     res = RenderStageResult()
-    with res.add_timing('collect_data'):
+    with res.add_timing('collect data'):
         preview_data = report_preview_data.copy()
         data = await sync_to_async(format_template_data)(data=preview_data, project_type=project_type)
 

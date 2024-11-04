@@ -542,8 +542,9 @@ export type ErrorMessage = {
 };
 
 export type PdfResponse = {
-  messages: ErrorMessage[];
   pdf: string;
+  messages: ErrorMessage[];
+  timings: Record<string, number>;
 }
 
 export enum UploadedFileType {
