@@ -1,5 +1,3 @@
-import type { Ref, UnwrapRef } from "vue";
-
 export default function checkHash(hash: string, prototypes: any[]): string[] {
   let returnData: string[] = [];
   prototypes.forEach(hashType => {

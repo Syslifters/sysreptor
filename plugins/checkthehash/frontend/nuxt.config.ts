@@ -13,4 +13,8 @@ export default defineNuxtConfig({
       publicDir: '../static/'
     }
   },
+
+  modules: [
+    '@nuxt/test-utils/module'
+  ]
 })
