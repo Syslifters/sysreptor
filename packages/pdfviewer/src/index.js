@@ -1,3 +1,4 @@
+import { decode as base64decode } from 'base64-arraybuffer';
 import * as pdfjsLib from 'pdfjs-dist/webpack';
 import { PDFViewerApplication } from 'pdfjs-dist/lib/web/app';
 import { DEFAULT_SCALE_VALUE, RenderingStates, ScrollMode, SpreadMode } from 'pdfjs-dist/lib/web/ui_utils';
@@ -81,7 +82,7 @@ async function webViewerLoad() {
   });
 
   // Load empty dummy PDF to prevent the bitwarden browser extension from crashing the chrome tab
-  const dummyPdf = new Uint8Array(await (await fetch("data:application/pdf;base64,JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAw\nIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0\ncmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg==")).arrayBuffer());
+  const dummyPdf = new Uint8Array(base64decode('JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg=='));
   await PDFViewerApplication.open({ data: dummyPdf });
 
   window.addEventListener('message', async (msg) => {

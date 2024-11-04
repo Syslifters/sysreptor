@@ -10,6 +10,8 @@
 </template>
 
 <script setup lang="ts">
+import { decode as base64decode } from 'base64-arraybuffer';
+
 const props = defineProps<{
   value: Uint8Array|string|null;
 }>();
@@ -22,7 +24,7 @@ async function updatePdf() {
   }
   let msg = null;
   if (typeof props.value === 'string') {
-    msg = new Uint8Array(await (await fetch("data:application/pdf;base64," + props.value)).arrayBuffer());
+    msg = new Uint8Array(base64decode(props.value));
   } else {
     msg = new Uint8Array(props.value);
   }

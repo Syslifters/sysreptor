@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "pdfjs-dist": "~3.3.122",
-    "fit-curve": "^0.2.0"
+    "fit-curve": "^0.2.0",
+    "base64-arraybuffer": "^1.0.2"
   },
   "devDependencies": {
     "webpack": "^5.75.0",
