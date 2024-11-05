@@ -45,6 +45,8 @@ const { markdownPreviewAttrsHistoric, markdownPreviewAttrsCurrent, markdownToolb
 </script>
 
 <style lang="scss" scoped>
+@use "sass:meta";
+
 :deep(.mde-mergeview) {
   .cm-wrap { border: 1px solid silver; }
 
@@ -54,7 +56,7 @@ const { markdownPreviewAttrsHistoric, markdownPreviewAttrsCurrent, markdownToolb
 }
 
 :deep(.mde-mergeview) {
-  @import "@/assets/mde-highlight.scss";
+  @include meta.load-css("@/assets/mde-highlight.scss");
 
   .cm-content {
     font-family: monospace;

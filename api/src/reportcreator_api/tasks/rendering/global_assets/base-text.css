@@ -1,9 +1,6 @@
 /*
 This file is used as a common base style for markdown text rendering.
 It is included in the global base styles in PDF rendering and in the markdown preview in the frontend.
-
-This file is not actually a scss file, but a regular css file.
-The reason why the file extension is .scss is that the SCSS-preprocessor inlines it in the markdown preview component styles.
 */
 
 
