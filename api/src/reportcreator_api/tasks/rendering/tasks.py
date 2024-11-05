@@ -1,27 +1,26 @@
-from base64 import b64encode
+import asyncio
 
 from celery import shared_task
 from django.conf import settings
 
 from reportcreator_api.tasks.rendering import render
-from reportcreator_api.utils.logging import log_timing
 
 
 @shared_task(
     name='reportcreator.render_pdf',
-    soft_time_limit=settings.PDF_RENDERING_TIME_LIMIT,
-    time_limit=settings.PDF_RENDERING_TIME_LIMIT + 5,
-    expires=settings.PDF_RENDERING_TIME_LIMIT + 5,
+    soft_time_limit=settings.PDF_RENDERING_TIME_LIMIT or None,
+    time_limit=settings.PDF_RENDERING_TIME_LIMIT + 5 if settings.PDF_RENDERING_TIME_LIMIT else None,
+    expires=settings.PDF_RENDERING_TIME_LIMIT + 5 if settings.PDF_RENDERING_TIME_LIMIT else None,
 )
-@log_timing
-def render_pdf_task(*args, **kwargs) -> dict:
-    pdf, msgs = render.render_pdf(
+def render_pdf_task_celery(*args, **kwargs) -> dict:
+    return asyncio.run(render_pdf_task_async(*args, **kwargs))
+
+
+async def render_pdf_task_async(*args, **kwargs) -> dict:
+    out = await render.render_pdf_impl(
         *args,
         should_compress_pdf=kwargs.pop('compress_pdf', False),
         **kwargs,
     )
-    return {
-        'pdf': b64encode(pdf).decode() if pdf else None,
-        'messages': [m.to_dict() for m in msgs],
-    }
+    return out.to_dict()
 

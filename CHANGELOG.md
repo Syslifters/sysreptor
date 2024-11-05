@@ -3,6 +3,8 @@
 ## Upcoming
 * Experimental plugin system
 * Disable static file compression
+* Allow to cancel PDF rendering requests
+* Show PDF render timing information
 
 
 ## v2024.81 - 2024-10-25

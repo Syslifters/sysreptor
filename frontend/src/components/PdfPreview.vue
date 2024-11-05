@@ -5,6 +5,31 @@
     <v-footer theme="dark" class="footer">
       <v-btn @click="showMessages = !showMessages" size="small" block class="footer-btn" :ripple="false">
         <v-spacer />
+
+        <v-btn size="small" variant="text" :ripple="false">
+          <v-icon start size="small" icon="mdi-clock-outline" />
+          <span class="timing-value">{{ formatTiming(timings.total) }}</span>
+
+          <v-menu activator="parent" location="top right" :close-on-content-click="false">
+            <v-table class="pa-2">
+              <tr v-for="[key, timing] in Object.entries(timings).filter(([k]) => k !== 'total')" :key="key">
+                <td class="timing-table-key">{{ key.replaceAll('_', ' ') }}</td>
+                <td class="timing-value">{{ formatTiming(timing) }}</td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <v-divider class="mt-1 mb-1" />
+                </td>
+              </tr>
+              <tr>
+                <td class="timing-table-key">Total</td>
+                <td class="timing-value">{{ formatTiming(timings.total) }}</td>
+              </tr>
+            </v-table>
+          </v-menu>
+        </v-btn>
+        
+        <v-divider vertical class="ml-3 mr-3"/>
         <span class="mr-6"><v-icon start size="small" color="error" icon="mdi-close-circle" /> {{ messages.filter(m => m.level === MessageLevel.ERROR).length }}</span>
         <span class="mr-6"><v-icon start size="small" color="warning" icon="mdi-alert" /> {{ messages.filter(m => m.level === MessageLevel.WARNING).length }}</span>
         <span><v-icon start size="small" color="info" icon="mdi-message-text" /> {{ messages.filter(m => m.level === MessageLevel.INFO).length }}</span>
@@ -19,16 +44,18 @@
       transition="none"
       contained
       z-index="10"
+      class="pdf-overlay"
     >
       <error-list :value="messages" :show-no-message-info="true" class="mt-5" />
     </v-overlay>
     <v-overlay
-      :model-value="renderingInProgress && (!pdfData || props.showLoadingSpinnerOnReload)"
+      :model-value="fetchPdf.pending.value && (!pdfData || props.showLoadingSpinnerOnReload)"
       persistent
       no-click-animation
       transition="none"
       contained
       z-index="20"
+      class="pdf-overlay"
     >
       <div class="initial-loading">
         <v-progress-circular indeterminate size="50" />
@@ -42,7 +69,7 @@ import { debounce } from "lodash-es"
 import { MessageLevel } from '#imports'
 
 const props = withDefaults(defineProps<{
-  fetchPdf: () => Promise<PdfResponse>;
+  fetchPdf: (fetchOptions: { signal: AbortSignal }) => Promise<PdfResponse>;
   reloadDebounceTime?: number;
   showLoadingSpinnerOnReload?: boolean
 }>(), {
@@ -51,18 +78,22 @@ const props = withDefaults(defineProps<{
 });
 
 const pdfData = ref<string|null>(null);
-const renderingInProgress = ref(false);
 const messages = ref<ErrorMessage[]>([]);
+const timings = ref<Record<string, number>>({});
 const showMessages = ref(false);
+const fetchPdf = useAbortController(props.fetchPdf);
 
 async function reload() {
-  renderingInProgress.value = true;
+  // Abort pending requests
+  fetchPdf.abort();
+
   try {
-    const res = await props.fetchPdf();
+    const res = await fetchPdf.run();
     messages.value = res.messages;
     if (messages.value.length === 0) {
       showMessages.value = false;
     }
+    timings.value = res.timings;
     if (res.pdf) {
       pdfData.value = res.pdf;
     } else {
@@ -76,10 +107,12 @@ async function reload() {
       details = error?.data[0];
     } else if (error?.status === 429) {
       details = 'Exceeded PDF rendering rate limit. Try again later.'
+    } else if (error?.statusCode) {
+      details = `${error.statusCode} ${error.statusText}`;
     }
     messages.value.push({
       level: MessageLevel.ERROR,
-      message: 'PDF rendering error',
+      message: 'PDF rendering error (HTTP error)',
       details,
       location: {
         type: MessageLocationType.OTHER,
@@ -89,8 +122,6 @@ async function reload() {
       }
     });
     showMessages.value = true;
-  } finally {
-    renderingInProgress.value = false;
   }
 }
 const reloadDebounced = debounce(reload, props.reloadDebounceTime);
@@ -102,16 +133,20 @@ onMounted(() => {
   reloadImmediate();
 })
 
+function formatTiming(timing?: number) {
+  return (timing || 0).toFixed(2) + ' s';
+}
+
 defineExpose({
   pdfData,
-  renderingInProgress,
+  renderingInProgress: fetchPdf.pending,
   reloadDebounced,
   reloadImmediate,
 })
 </script>
 
 <style lang="scss" scoped>
-.v-overlay {
+.pdf-overlay {
   color: white;
 
   :deep(.v-overlay__content) {
@@ -153,5 +188,14 @@ defineExpose({
 
 .pos-relative {
   position: relative;
+}
+
+.timing-value {
+  text-transform: none;
+}
+.timing-table-key {
+  text-align: right;
+  padding-right: 0.75em;
+  opacity: 0.8;
 }
 </style>
