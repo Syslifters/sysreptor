@@ -5,6 +5,7 @@
 * Disable static file compression
 * Allow to cancel PDF rendering requests
 * Show PDF render timing information
+* Fix error while updating user fields via REST API
 
 
 ## v2024.81 - 2024-10-25
