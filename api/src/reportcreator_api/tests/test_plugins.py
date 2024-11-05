@@ -67,12 +67,13 @@ def test_plugin_loading():
     # Static files
     # Create dummy file when the frontend was not built yet
     from sysreptor_plugins import demoplugin  # noqa: I001
-    pluginjs_path = Path(demoplugin.__path__[0]) / 'static' / 'plugin.js'
+    pluginjs_path = (Path(demoplugin.__path__[0]) / 'static' / 'plugin.js').resolve()
     if not pluginjs_path.exists():
         pluginjs_path.parent.mkdir(parents=True, exist_ok=True)
         pluginjs_path.touch()
 
-    assert finders.find(f'plugins/{DEMOPLUGIN_ID}/plugin.js') is not None
+    finders.get_finder.cache_clear()
+    res = finders.find(f'plugins/{DEMOPLUGIN_ID}/plugin.js') is not None
 
     # URLs registered
     assert api_client().get(reverse(f'{DEMOPLUGIN_APPLABEL}:helloworld')).status_code == 200
