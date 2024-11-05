@@ -73,8 +73,13 @@ export function levelNumberFromScore(score?: number|null) {
   }
 }
 
+export function levelNameFromLevelNumber(levelNumber?: number|null) {
+  const levelIndex = Math.min(Math.max((levelNumber || 1) - 1, 0), 4);
+  return ['Info', 'Low', 'Medium', 'High', 'Critical'][levelIndex];
+}
+
 export function levelNameFromScore(score?: number|null) {
-  return ['Info', 'Low', 'Medium', 'High', 'Critical'][levelNumberFromScore(score) - 1];
+  return levelNameFromLevelNumber(levelNumberFromScore(score) - 1);
 }
 
 export function levelNumberFromLevelName(levelName?: string|null) {
