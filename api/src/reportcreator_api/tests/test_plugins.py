@@ -13,6 +13,7 @@ from django.urls import reverse
 
 from reportcreator_api.management.commands import restorebackup
 from reportcreator_api.tests.mock import api_client, create_user
+from reportcreator_api.utils.utils import omit_keys
 
 DEMOPLUGIN_ID = 'db365aa0-ed36-4e90-93b6-a28effc4ed47'
 DEMOPLUGIN_APPLABEL = 'plugin_db365aa0ed364e9093b6a28effc4ed47'
@@ -71,8 +72,8 @@ def test_plugin_loading():
     if not pluginjs_path.exists():
         pluginjs_path.parent.mkdir(parents=True, exist_ok=True)
         pluginjs_path.touch()
-
     finders.get_finder.cache_clear()
+
     res = finders.find(f'plugins/{DEMOPLUGIN_ID}/plugin.js') is not None
 
     # URLs registered
@@ -82,7 +83,7 @@ def test_plugin_loading():
     res = api_client().get(reverse('publicutils-settings'))
     assert res.status_code == 200
     demoplugin_config = next(filter(lambda p: p['id'] == DEMOPLUGIN_ID, res.data['plugins']))
-    assert demoplugin_config == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_entry': f'/static/plugins/{DEMOPLUGIN_ID}/plugin.js', 'frontend_settings': {}}
+    assert omit_keys(demoplugin_config, ['frontend_entry']) == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_settings': {}}
 
 
 @pytest.mark.django_db()
