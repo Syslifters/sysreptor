@@ -1,21 +1,28 @@
- @import 'pdfjs-dist/web/pdf_viewer.css';
+@import 'pdfjs-dist/web/pdf_viewer.css';
 
- :root {
-  --body-bg-color: #525659;
-  --main-color: rgba(249, 249, 250, 1);
+:root {
+ --body-bg-color: #525659;
+ --main-color: rgba(249, 249, 250, 1);
+ --toolbar-height: 2rem;
+ --toolbar-bg-color: #323639;
+ --toolbar-border-color: rgba(12, 12, 13, 1);
+ --field-color: var(--main-color);
+ --field-bg-color: rgba(64, 64, 68, 1);
+ --field-border-color: rgba(115, 115, 115, 1);
+ --hover-bg-color: rgba(102, 102, 103, 1);
+}
 
-  --toolbar-height: 2rem;
-  --toolbar-bg-color: #323639;
-  --toolbar-border-color: rgba(12, 12, 13, 1);
+html {
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark light;
+  }
+}
 
-  --field-color: var(--main-color);
-  --field-bg-color: rgba(64, 64, 68, 1);
-  --field-border-color: rgba(115, 115, 115, 1);
 
-  --hover-bg-color: rgba(102, 102, 103, 1);
- }
-
- * {
+* {
   padding: 0;
   margin: 0;
 }
@@ -66,6 +73,8 @@ body {
 }
 #toolbarViewer {
   height: var(--toolbar-height);
+  display: flex;
+  flex-direction: row;;
 }
 #toolbarViewerMiddle {
   width: max-content;
@@ -75,6 +84,12 @@ body {
 
   display: flex;
   align-items: center;
+}
+#toolbarViewerRight {
+  float: right;
+  display: flex;
+  align-items: center;
+  padding-right: 0.5em;
 }
 
 .toolbar {
@@ -147,12 +162,16 @@ body {
   background: none;
   width: 1.5em;
   height: 1.5em;
-  padding: 0.2em;
+  /* padding: 0.2em; */
   border-radius: 2px;
   color: var(--main-color);
   cursor: pointer;
   user-select: none;
 }
+.toolbarButton svg {
+  fill: var(--main-color);
+}
+
 .toolbarButton[disabled] {
   opacity: 0.5;
 }
@@ -164,63 +183,6 @@ body {
 
 .toolbarSpacing {
   width: 2em;
-}
-
-
-.icon-plus, .icon-minus, .icon-close, .icon-prev, .icon-next {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.icon-plus::before, .icon-minus::before, .icon-close::before {
-  content: " ";
-  position: absolute;
-  display: block;
-  background-color: #fff;
-  height: 10%;
-  margin-top: -5%;
-  top: 50%;
-  left: 5%;
-  right: 5%;
-}
-.icon-plus::after, .icon-close::after {
-  content: " ";
-  position: absolute;
-  display: block;
-  background-color: #fff;
-  width: 10%;
-  margin-left: -5%;
-  left: 50%;
-  top: 5%;
-  bottom: 5%;
-}
-.icon-close::before, .icon-close::after  {
-  transform: rotate(-45deg);
-}
-.icon-prev::after {
-  content: "";
-  position: absolute;
-  display: block;
-  width: 60%;
-  height: 60%;
-  border-top: 0.2em solid white;
-  border-right: 0.2em solid white;
-  transform: rotate(-45deg);
-  top: 30%;
-  left: 10%;
-}
-.icon-next::after {
-  content: "";
-  position: absolute;
-  display: block;
-  width: 60%;
-  height: 60%;
-  border-bottom: 0.2em solid white;
-  border-left: 0.2em solid white;
-  transform: rotate(-45deg);
-  bottom: 30%;
-  left: 10%;
 }
 
 
@@ -238,6 +200,10 @@ body {
   width: 26em;
   background-color: var(--toolbar-bg-color);
   padding: 1px;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 #findInput {
@@ -256,7 +222,7 @@ body {
 
 #findResultsCount {
   text-align: center;
-  padding: 4px 5px;
+  /* padding: 4px 5px; */
   margin: 5px;
 }
 :is(#findResultsCount, #findMsg):empty {

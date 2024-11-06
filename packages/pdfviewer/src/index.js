@@ -41,11 +41,11 @@ function getViewerConfiguration() {
       customScaleOption: document.getElementById("customScaleOption"),
       zoomIn: document.getElementById("zoomIn"),
       zoomOut: document.getElementById("zoomOut"),
+      download: document.getElementById("download"),
 
       previous: disabled,
       next: disabled,
       print: disabled,
-      download: disabled,
       viewFind: disabled,
       openFile: disabled,
       editorFreeTextButton: disabled,
