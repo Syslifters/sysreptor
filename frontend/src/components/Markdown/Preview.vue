@@ -117,6 +117,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:meta";
 @use "@base/assets/vuetify.scss" as vuetify;
 
 .preview {
@@ -130,7 +131,7 @@ onBeforeUnmount(() => {
 }
 
 .preview :deep() {
-  @import "@/assets/rendering/base-text.scss";
+  @include meta.load-css("@/assets/rendering/base-text.css");
 
   .footnotes {
     border-top: 1px solid currentColor;

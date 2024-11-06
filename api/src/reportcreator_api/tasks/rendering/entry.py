@@ -41,7 +41,12 @@ from reportcreator_api.pentests.models import (
     UserNotebookPage,
 )
 from reportcreator_api.tasks.rendering import tasks
-from reportcreator_api.tasks.rendering.error_messages import MessageLocationInfo, MessageLocationType
+from reportcreator_api.tasks.rendering.error_messages import (
+    ErrorMessage,
+    MessageLevel,
+    MessageLocationInfo,
+    MessageLocationType,
+)
 from reportcreator_api.tasks.rendering.render_utils import RenderStageResult
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.logging import log_timing
@@ -284,7 +289,7 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
         output='html',
     )
     if not res.pdf:
-        return res
+        return res.to_dict()
 
     def format_output():
         from reportcreator_api.pentests.serializers.project import PentestProjectDetailSerializer
@@ -317,7 +322,11 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
         return await sync_to_async(format_output)()
     except Exception:
         log.exception('Error while formatting output')
-        return res
+        res.messages.append(ErrorMessage(
+            level=MessageLevel.ERROR,
+            message='Error while formatting output',
+        ))
+        return res.to_dict()
 
 
 @elasticapm.async_capture_span()
