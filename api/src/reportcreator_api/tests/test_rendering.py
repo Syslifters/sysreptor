@@ -26,6 +26,7 @@ def html_load_script(src):
     return f"""<component :is="{{ template: '<div />', mounted() {{ const script = document.createElement('script'); script.type = 'text/javascript'; script.src='{src}'; document.head.appendChild(script); }} }}" />"""
 
 
+@pytest.mark.xdist_group('rendering')
 @pytest.mark.django_db()
 class TestHtmlRendering:
     @pytest.fixture(autouse=True)
