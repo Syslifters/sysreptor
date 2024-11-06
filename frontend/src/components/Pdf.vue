@@ -5,6 +5,9 @@
     @load="iframeLoaded = true"
     class="pdfviewer"
     :class="{loading: !iframeLoaded}"
+    :style="{ 
+      colorScheme: theme.current.value.dark ? 'dark': 'light',
+    }"
     title="PDF Viewer"
   />
 </template>
@@ -15,6 +18,8 @@ import { decode as base64decode } from 'base64-arraybuffer';
 const props = defineProps<{
   value: Uint8Array|string|null;
 }>();
+
+const theme = useTheme();
 
 const iframeRef = ref();
 const iframeLoaded = ref(false);
