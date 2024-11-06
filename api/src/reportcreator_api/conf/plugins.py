@@ -90,7 +90,7 @@ class PluginDirectoriesFinder(FileSystemFinder):
         self.storages = {}
         for plugin in enabled_plugins:
             prefix = f'plugins/{plugin.plugin_id}'
-            path = Path(plugin.path) / 'static'
+            path = (Path(plugin.path) / 'static').resolve()
             if path.is_dir():
                 self.locations.append((prefix, str(path)))
                 storage = FileSystemStorage(location=path)
