@@ -13,8 +13,8 @@ exports.default = {
     }),
     new CopyWebpackPlugin({
       patterns: [
-        'node_modules/pdfjs-dist/build/pdf.js.map',
-        'node_modules/pdfjs-dist/build/pdf.worker.js.map'
+        '../node_modules/pdfjs-dist/build/pdf.js.map',
+        '../node_modules/pdfjs-dist/build/pdf.worker.js.map'
       ]
     }),
   ],

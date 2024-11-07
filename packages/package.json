@@ -1,0 +1,10 @@
+{
+  "workspaces": ["*"],
+  "scripts": {
+    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --excludePackages='stackframe@0.3.1' --onlyAllow='MIT;MIT*;Apache-2.0;MIT OR Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;CC-BY-ND-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0;Python-2.0;EPL-2.0;(BSD-3-Clause OR GPL-2.0);(MIT AND CC-BY-3.0);(MIT OR CC0-1.0)' --plainVertical > NOTICE",
+    "dependencies": "npm run generate-notice"
+  },
+  "devDependencies": {
+    "license-checker-rseidelsohn": "^4.4.2"
+  }
+}

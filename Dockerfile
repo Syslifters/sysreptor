@@ -2,18 +2,6 @@
 ARG TESTED_API_IMAGE=undefined_test_image_used_in_ci
 ARG PROD_API_IMAGE=undefined_prod_image_used_in_ci
 
-FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS pdfviewer-dev
-
-# Install dependencies
-WORKDIR /app/packages/pdfviewer/
-COPY packages/pdfviewer/package.json packages/pdfviewer/package-lock.json /app/packages/pdfviewer//
-RUN npm install
-
-FROM --platform=$BUILDPLATFORM pdfviewer-dev AS pdfviewer
-# Build JS bundle
-COPY packages/pdfviewer /app/packages/pdfviewer//
-RUN npm run build
-
 
 
 
@@ -21,31 +9,51 @@ FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS frontend-dev
 
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Install dependencies
-WORKDIR /app/packages/markdown/
-COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
+# Copy package.json files of all packages
+COPY packages/package.json packages/package-lock.json /app/packages/
+COPY packages/frontend/package.json /app/packages/frontend/
+COPY packages/markdown/package.json /app/packages/markdown/
+COPY packages/pdfviewer/package.json /app/packages/pdfviewer/
+COPY packages/nuxt-base-layer/package.json /app/packages/nuxt-base-layer/
+COPY packages/plugin-base-layer/package.json /app/packages/plugin-base-layer/
+COPY packages/rendering/package.json /app/packages/rendering/
+
+# Install dependencies of all packages
+WORKDIR /app/packages/
 RUN npm install
 
-WORKDIR /app/packages/nuxt-base-layer/
-COPY packages/nuxt-base-layer/package.json packages/nuxt-base-layer/package-lock.json /app/packages/nuxt-base-layer/
-RUN npm install
 
-WORKDIR /app/frontend
-COPY frontend/package.json frontend/package-lock.json /app/frontend/
-RUN npm install
+
+
+FROM --platform=$BUILDPLATFORM frontend-dev AS pdfviewer
+# Build JS bundle
+COPY packages/pdfviewer /app/packages/pdfviewer/
+WORKDIR /app/packages/pdfviewer/
+RUN npm run build
+
+
+FROM --platform=$BUILDPLATFORM frontend-dev AS rendering
+# Include source code
+COPY packages/markdown /app/packages/markdown/
+COPY packages/rendering /app/packages/rendering/
+# Build JS bundle
+WORKDIR /app/packages/rendering/
+RUN npm run build
+
+
 
 
 FROM --platform=$BUILDPLATFORM frontend-dev AS frontend-test
 # Include source code
-COPY packages/markdown/ /app/packages/markdown/
-COPY packages/nuxt-base-layer/ /app/packages/nuxt-base-layer/
-COPY frontend /app/frontend/
-COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/frontend/src/assets/rendering/
-COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/frontend/src/public/static/pdfviewer/
+COPY packages/markdown /app/packages/markdown/
+COPY packages/nuxt-base-layer /app/packages/nuxt-base-layer/
+COPY packages/frontend /app/packages/frontend/
+COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/packages/frontend/src/assets/rendering/
+COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/frontend/src/public/static/pdfviewer/
 
 # Test command
-CMD ["npm", "run", "test"]
-
+WORKDIR /app/packages/frontend/
+CMD npm run test
 
 FROM --platform=$BUILDPLATFORM frontend-test AS frontend
 # Build JS bundle
@@ -54,37 +62,7 @@ RUN npm run generate
 
 
 
-
-
-
-FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS rendering-dev
-
-# Install dependencies
-WORKDIR /app/packages/markdown/
-COPY packages/markdown/package.json packages/markdown/package-lock.json /app/packages/markdown/
-RUN npm install
-
-WORKDIR /app/rendering/
-COPY rendering/package.json rendering/package-lock.json /app/rendering/
-RUN npm install
-
-
-FROM --platform=$BUILDPLATFORM rendering-dev AS rendering
-# Include source code
-COPY rendering /app/rendering/
-COPY packages/markdown/ /app/packages/markdown/
-# Build JS bundle
-RUN npm run build
-
-
-
-
-FROM --platform=$BUILDPLATFORM frontend-test AS plugin-builder
-
-WORKDIR /app/packages/plugin-base-layer/
-COPY packages/plugin-base-layer /app/packages/plugin-base-layer/
-RUN npm install
-
+FROM --platform=$BUILDPLATFORM frontend-dev AS plugin-builder
 RUN apk add --no-cache \
     bash \
     git \
@@ -93,10 +71,11 @@ RUN apk add --no-cache \
     unzip \ 
     jq
 
+COPY packages /app/packages/
 COPY plugins /app/plugins/
+
 WORKDIR /app/plugins/
 RUN /app/plugins/build.sh
-
 
 
 
@@ -177,7 +156,7 @@ ENV VERSION=dev \
     DEBUG=off \
     MEDIA_ROOT=/data/ \
     SERVER_WORKERS=4 \
-    PDF_RENDER_SCRIPT_PATH=/app/rendering/dist/bundle.js \
+    PDF_RENDER_SCRIPT_PATH=/app/packages/rendering/dist/bundle.js \
     PLUGIN_DIRS=/app/plugins/
 
 # Start server
@@ -190,7 +169,7 @@ FROM --platform=$BUILDPLATFORM api-dev AS api-prebuilt
 
 # Copy source code (including pre-build static files)
 COPY --chown=user:user api/src /app/api/
-COPY --chown=user:user rendering/dist /app/rendering/dist/
+COPY --chown=user:user rendering/dist /app/packages/rendering/dist/
 
 
 
@@ -201,7 +180,7 @@ COPY --chown=user:user plugins /app/plugins/
 RUN mkdir -p /app/api/sysreptor_plugins/ && chmod 777 /app/api/sysreptor_plugins/
 
 # Copy generated template rendering script
-COPY --from=rendering --chown=user:user /app/rendering/dist /app/rendering/dist/
+COPY --from=rendering --chown=user:user /app/packages/rendering/dist /app/packages/rendering/dist/
 
 
 FROM --platform=$BUILDPLATFORM api-test AS api-statics
@@ -209,7 +188,7 @@ FROM --platform=$BUILDPLATFORM api-test AS api-statics
 # Post-process django files (for admin, API browser) and post-process them (e.g. add unique file hash)
 # Do not post-process nuxt files, because they already have hash names (and django failes to post-process them)
 RUN python3 manage.py collectstatic --no-input --clear
-COPY --from=frontend /app/frontend/dist/index.html /app/frontend/dist/static/ /app/api/frontend/static/
+COPY --from=frontend /app/packages/frontend/dist/index.html /app/packages/frontend/dist/static/ /app/api/frontend/static/
 COPY --from=plugin-builder --chown=user:user /app/plugins/ /app/plugins/
 RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
     && ENABLED_PLUGINS='*' python3 manage.py collectstatic --no-input --no-post-process

@@ -1,8 +1,8 @@
 import { htmlVoidElements } from 'html-void-elements'
 import { html } from 'property-information'
 import { stringifyEntities } from 'stringify-entities'
-import { handle } from '../node_modules/hast-util-to-html/lib/handle/index'
-import { all } from '../node_modules/hast-util-to-html/lib/index'
+import { handle } from '../../node_modules/hast-util-to-html/lib/handle/index'  
+import { all } from '../../node_modules/hast-util-to-html/lib/index'
 
 
 export function rehypeStringify() {

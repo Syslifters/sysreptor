@@ -158,12 +158,12 @@ test-frontend:
   artifacts:
     when: always
     paths:
-      - frontend/test-reports
+      - packages/frontend/test-reports
     reports:
-      junit: frontend/test-reports/junit.xml
+      junit: packages/frontend/test-reports/junit.xml
   script:
-    - mkdir frontend/test-reports
-    - docker run --mount=type=bind,source=$PWD/frontend/test-reports,target=/app/frontend/test-reports $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA npm run test
+    - mkdir packages/frontend/test-reports
+    - docker run --mount=type=bind,source=$PWD/packages/frontend/test-reports,target=/app/packages/frontend/test-reports $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA npm run test
 
 build-release:
   stage: build-release
@@ -248,9 +248,9 @@ release-prod:
     - docker cp $CONTAINER_ID:/app/api/frontend/index.html api/src/frontend/index.html
     - sed -i "/^src\/static$/d" api/.gitignore
     # Copy pre-built rendering files
-    - docker cp $CONTAINER_ID:/app/rendering/dist rendering/dist
+    - docker cp $CONTAINER_ID:/app/packages/rendering/dist packages/rendering/dist
     - docker rm -v $CONTAINER_ID
-    - sed -i "/^dist$/d" rendering/.gitignore
+    - sed -i "/^dist$/d" packages/rendering/.gitignore
     - rm -rf api/.vscode
     # Create archive with prebuilt sources
     - mkdir -p /tmp/sysreptor
