@@ -36,9 +36,7 @@
 
 <script setup lang="ts">
 // @ts-expect-error missing types
-import { Picker, EmojiIndex, Search } from "emoji-mart-vue-fast/src";
-// @ts-expect-error missing types
-import frequentlyUsedEmojis from 'emoji-mart-vue-fast/src/utils/frequently';
+import { Picker, EmojiIndex, Search, frequently } from "emoji-mart-vue-fast/src";
 import emojiData from "emoji-mart-vue-fast/data/twitter.json";
 import "emoji-mart-vue-fast/css/emoji-mart.css";
 
@@ -73,7 +71,7 @@ const DEFAULT_EMOJIS = [
   'cry',
   'grinning',
 ];
-const recentEmojis = frequentlyUsedEmojis.get(10);
+const recentEmojis = frequently.get(10);
 for (const d of DEFAULT_EMOJIS) {
   if (!recentEmojis.includes(d)) {
     recentEmojis.push(d);
