@@ -23,7 +23,7 @@ function copyToClipboard(text: string) {
 <script lang="ts">
 export default {
   data: () => ({
-    // keeps track of wether a list item is open
+    // keeps track of whether a list item is open
     open: ['Open'],
   }),
 }
@@ -33,22 +33,36 @@ export default {
   <full-height-page class="scrollbar">
     <div class="content-wrapper">
       <v-container class="pt-5">
-            <!-- Text input triggers renderHash on input automatically -->
-            <v-text-field v-model="hash" label="Paste The Hash" variant="underlined" spellcheck="false"
-              hide-details="auto" autofocus class="mt-0 mb-2" style="width: 100%;" />
+        <!-- Text input triggers renderHash on input automatically -->
+        <v-text-field v-model="hash" label="Paste The Hash" variant="underlined" spellcheck="false" hide-details="auto"
+          autofocus class="mt-0 mb-2" style="width: 100%;" />
 
-            <v-subheader v-if="noResults" class="text-h5 text-error mb-4">No matching hash mode found.</v-subheader>
-            <v-subheader v-if="results.length" class="text-h5 mb-4">Possible Hash Modes:</v-subheader>
-            <v-list v-if="results.length" v-model:opened="open">
-              <v-list-group v-for="({ name, hashcat, john, extended }, index) in results" :key="index" :title="name">
-                <template v-slot:activator="{ props }">
-                  <v-list-item v-bind="props"></v-list-item>
-                </template>
-                <v-list-item v-if="hashcat != null" :title="'Hashcat: ' + hashcat"></v-list-item>
-                <v-list-item v-if="john != null" :title="'John: ' + john"></v-list-item>
-                <v-list-item v-if="extended != null" :title="'Extended: ' + extended"></v-list-item>
-              </v-list-group>
-            </v-list>
+        <v-subheader v-if="noResults" class="text-h5 text-error mb-4">No matching hash mode found.</v-subheader>
+        <v-subheader v-if="results.length" class="text-h5 mb-4">Possible Hash Modes:</v-subheader>
+        <v-list v-if="results.length" v-model:opened="open">
+          <template v-for="({ name, hashcat, john }, index) in results" :key="index">
+            <v-list-group v-if="hashcat != null || john != null">
+              <template v-slot:activator="{ props }">
+                <v-list-item v-bind="props" :title="name"></v-list-item>
+              </template>
+              <v-list-item v-if="hashcat != null">
+                <v-code class="code-container">
+                  <v-icon size="small" class="copy-icon"
+                    @click="copyToClipboard(`hashcat --hash-type ${hashcat} ${hash}`)">mdi-content-copy</v-icon>
+                  <span class="command"> hashcat --hash-type {{ hashcat }} {{ hash }}</span>
+                </v-code>
+              </v-list-item>
+              <v-list-item v-if="john != null">
+                <v-code class="code-container">
+                  <v-icon size="small" class="copy-icon"
+                    @click="copyToClipboard(`john --format=${john} <(echo '${hash}')`)">mdi-content-copy</v-icon>
+                  <span class="command"> john --format={{ john }} <(echo '{{ hash }}')</span>
+                </v-code>
+              </v-list-item>
+            </v-list-group>
+            <v-list-item v-else :title="name"></v-list-item>
+          </template>
+        </v-list>
       </v-container>
       <footer class="footer">
         <p>Identification based on: <a href="https://github.com/noraj/haiti" target="_blank">noraj/haiti</a></p>
@@ -58,6 +72,10 @@ export default {
 </template>
 
 <style scoped>
+.copy-icon {
+  margin-right: 5px;
+}
+
 .scrollbar {
   display: flex;
   flex-direction: column;
