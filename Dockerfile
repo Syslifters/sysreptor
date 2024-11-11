@@ -4,11 +4,12 @@ ARG PROD_API_IMAGE=undefined_prod_image_used_in_ci
 
 
 
-
 FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS frontend-dev
-
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+WORKDIR /app/packages/
 
+
+FROM --platform=$BUILDPLATFORM frontend-dev AS frontend-base
 # Copy package.json files of all packages
 COPY packages/package.json packages/package-lock.json /app/packages/
 COPY packages/frontend/package.json /app/packages/frontend/
@@ -17,22 +18,20 @@ COPY packages/pdfviewer/package.json /app/packages/pdfviewer/
 COPY packages/nuxt-base-layer/package.json /app/packages/nuxt-base-layer/
 COPY packages/plugin-base-layer/package.json /app/packages/plugin-base-layer/
 COPY packages/rendering/package.json /app/packages/rendering/
-
 # Install dependencies of all packages
-WORKDIR /app/packages/
 RUN npm install
 
 
 
 
-FROM --platform=$BUILDPLATFORM frontend-dev AS pdfviewer
+FROM --platform=$BUILDPLATFORM frontend-base AS pdfviewer
 # Build JS bundle
 COPY packages/pdfviewer /app/packages/pdfviewer/
 WORKDIR /app/packages/pdfviewer/
 RUN npm run build
 
 
-FROM --platform=$BUILDPLATFORM frontend-dev AS rendering
+FROM --platform=$BUILDPLATFORM frontend-base AS rendering
 # Include source code
 COPY packages/markdown /app/packages/markdown/
 COPY packages/rendering /app/packages/rendering/
@@ -43,17 +42,17 @@ RUN npm run build
 
 
 
-FROM --platform=$BUILDPLATFORM frontend-dev AS frontend-test
+FROM --platform=$BUILDPLATFORM frontend-base AS frontend-test
 # Include source code
 COPY packages/markdown /app/packages/markdown/
 COPY packages/nuxt-base-layer /app/packages/nuxt-base-layer/
 COPY packages/frontend /app/packages/frontend/
 COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/packages/frontend/src/assets/rendering/
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/frontend/src/public/static/pdfviewer/dist/
-
 # Test command
 WORKDIR /app/packages/frontend/
 CMD npm run test
+
 
 FROM --platform=$BUILDPLATFORM frontend-test AS frontend
 # Build JS bundle
@@ -62,7 +61,7 @@ RUN npm run generate
 
 
 
-FROM --platform=$BUILDPLATFORM frontend-dev AS plugin-builder
+FROM --platform=$BUILDPLATFORM frontend-base AS plugin-builder
 RUN apk add --no-cache \
     bash \
     git \

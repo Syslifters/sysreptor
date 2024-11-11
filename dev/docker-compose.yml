@@ -136,7 +136,7 @@ services:
         target: /app/api/
       - type: bind
         source: ../packages/rendering
-        target: /app/rendering
+        target: /app/packages/rendering
       - type: bind
         source: ../plugins
         target: /app/plugins/
