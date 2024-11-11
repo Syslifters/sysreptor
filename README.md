@@ -3,7 +3,7 @@
     <a href="https://docs.sysreptor.com/"><img src="/docs/docs/assets/dino/banner.svg" width="100%" alt="SysReptor"></a>
 </h1>
 
-<h4 align="center">Easy and customisable pentest report creator based on simple web technologies.</h4>
+<h4 align="center">An easy and customizable pentest reporting platform designed to simplify pentest report creation for security professionals.</h4>
 
 <p align="center">
 <a href="https://github.com/syslifters/sysreptor/">
@@ -38,7 +38,7 @@
 
 ---
 
-SysReptor is a fully customisable, offensive security reporting solution designed for pentesters, red teamers and other security-related people alike. You can create designs based on simple HTML and CSS, write your reports in user-friendly Markdown and convert them to PDF with just a single click, in the cloud or self-hosted!
+SysReptor is a fully customizable pentest reporting platform designed for penetration testers, red teamers, and other cybersecurity professionals. Simplify, customize, and automate your pentest reports with ease. You can create designs based on simple HTML and CSS, write your reports in user-friendly Markdown and convert them to PDF with just a single click, in the cloud or self-hosted!
 
 ## Your Benefits
 
@@ -51,7 +51,7 @@ SysReptor is a fully customisable, offensive security reporting solution designe
 
 
 ## SysReptor Cloud
-You just want to start reporting and save yourself all the effort of setting up, configuring and maintaining a dedicated server? Then SysReptor Cloud is the right choice for you! Get to know SysReptor on our [Playground](https://cloud.sysreptor.com/demo) and if you like it, you can get your personal Cloud instance [here](https://cloud.sysreptor.com/order/).
+You just want to start pentest reporting and save yourself all the effort of setting up, configuring and maintaining a dedicated server? Then SysReptor Cloud is the right choice for you! Get to know SysReptor on our [Playground](https://cloud.sysreptor.com/demo) and if you like it, you can get your personal Cloud instance [here](https://cloud.sysreptor.com/order/).
 
 <h3 align="center">
     <a href="https://cloud.sysreptor.com/demo"><img src="/docs/docs/assets/dino/sign_demo.svg" width="15%" alt="Demo"></a>

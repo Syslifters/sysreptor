@@ -19,7 +19,7 @@
         <markdown-toolbar-button title="Finding Reference" icon="mdi-alpha-f-box-outline" v-bind="menuProps" />
       </template>
       <template #default>
-        <v-list density="compact" class="pa-0">
+        <v-list density="compact" class="pa-0 finding-reference-list">
           <v-list-subheader>Finding Reference</v-list-subheader>
           <v-list-item
             v-for="item in props.referenceItems"
@@ -28,6 +28,7 @@
             :title="item.title"
             :class="'finding-level-' + levelNumberFromLevelName(item.severity)"
           />
+          <!-- TODO: wrong risk color -->
         </v-list>
       </template>
     </v-menu>
@@ -257,5 +258,9 @@ function emitCreateComment() {
   color: transparent;
   text-indent: -10px;
   margin: 0 0.5em;
+}
+
+.finding-reference-list {
+  max-height: 70vh;
 }
 </style>

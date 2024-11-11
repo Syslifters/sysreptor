@@ -37,7 +37,7 @@ def image_contains_transparent_pixels(img):
     return any(map(lambda d: d[a_band_index] != 255, img.getdata()))
 
 
-@log_timing
+@log_timing()
 def compress_image(file, name=None):
     """
     Compress image files and convert the to JPEG.

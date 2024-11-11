@@ -3,6 +3,11 @@
 ## Upcoming
 * Experimental plugin system
 * Disable static file compression
+* Allow to cancel PDF rendering requests
+* Show PDF render timing information
+* Fix error while updating user fields via REST API
+* Update HTB designs to improve table rendering performance
+* Add button to download preview PDF
 
 
 ## v2024.81 - 2024-10-25

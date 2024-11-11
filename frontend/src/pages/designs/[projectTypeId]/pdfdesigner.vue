@@ -133,10 +133,11 @@ const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await use
   saveFields: ['report_template', 'report_styles', 'report_preview_data', 'finding_fields', 'report_sections'],
 }));
 
-async function fetchPdf() {
+async function fetchPdf(fetchOptions: { signal: AbortSignal }) {
   return await $fetch<PdfResponse>(`/api/v1/projecttypes/${projectType.value.id}/preview/`, {
     method: 'POST',
-    body: projectType.value
+    body: projectType.value,
+    ...fetchOptions,
   });
 }
 function loadPdf(immediate = true) {

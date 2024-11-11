@@ -67,7 +67,7 @@
         <div class="mt-4">
           <btn-confirm
             :disabled="!canGenerateFinalReport"
-            :action="generateFinalReport"
+            :action="generateFinalReport.run"
             :confirm="false"
             button-text="Download"
             button-icon="mdi-download"
@@ -172,22 +172,25 @@ function refreshPreviewAndChecks() {
   pdfPreviewRef.value.reloadImmediate();
   refreshCheckMessages();
 }
-async function fetchPreviewPdf() {
+async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }) {
   return await $fetch<PdfResponse>(`/api/v1/pentestprojects/${project.value.id}/preview/`, {
     method: 'POST',
     body: {},
+    ...fetchOptions,
   });
 }
-async function generateFinalReport() {
+
+const generateFinalReport = useAbortController(async (fetchOptions: { signal: AbortSignal }) => {
   const res = await $fetch<Blob>(`/api/v1/pentestprojects/${project.value.id}/generate/`, {
     method: 'POST',
     body: {
       password: localSettings.encryptPdfEnabled ? form.value.password : null,
     },
-    responseType: "blob"
-  })
+    responseType: "blob",
+    ...fetchOptions,
+  });
   fileDownload(res, form.value.filename + (form.value.filename.endsWith('.pdf') ? '' : '.pdf'));
-}
+});
 async function setReadonly() {
   await projectStore.setReadonly(project.value, true);
 }

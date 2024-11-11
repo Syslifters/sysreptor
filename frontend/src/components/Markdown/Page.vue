@@ -68,6 +68,8 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
+@use "sass:meta";
+
 .mde-editor-side.cm-editor {
   width: 50%;
 }
@@ -79,7 +81,7 @@ defineExpose({
 }
 
 :deep(.mde-editor) {
-  @import "@/assets/mde-highlight.scss";
+  @include meta.load-css("@/assets/mde-highlight.scss");
 
   .cm-content {
     font-family: monospace;
