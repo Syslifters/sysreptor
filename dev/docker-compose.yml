@@ -66,25 +66,41 @@ services:
   #       condition: service_healthy
   #     rendering-builder:
   #       condition: service_started
+  frontend-setup:
+    build:
+      context: ..
+      target: frontend-dev
+    command: npm install
+    restart: "no"
+    volumes:
+      - type: bind
+        source: ../packages/
+        target: /app/packages/
   pdfviewer-builder:
     build: 
       context: ..
       target: frontend-dev
-    command: sh -c "npm install && npm run --workspace=pdfviewer build-watch"
+    command: npm run --workspace=pdfviewer build-watch
     init: true
     volumes:
       - type: bind
         source: ../packages/
         target: /app/packages/
+    depends_on:
+      frontend-setup:
+        condition: service_completed_successfully
   rendering-builder:
     build: 
       context: ..
       target: frontend-dev
-    command: sh -c "npm install && npm run --workspace=rendering build-watch"
+    command: npm run --workspace=rendering build-watch
     volumes:
       - type: bind
         source: ../packages/
         target: /app/packages/
+    depends_on:
+      frontend-setup:
+        condition: service_completed_successfully
   languagetool:
     build: 
       context: ../languagetool
@@ -156,7 +172,7 @@ services:
     build: 
       context: ..
       target: frontend-dev
-    command: sh -c "npm install && npm run --workspace=frontend dev"
+    command: npm run --workspace=frontend dev
     volumes:
       - type: bind
         source: ../packages/
@@ -180,6 +196,8 @@ services:
         condition: service_started
       pdfviewer-builder:
         condition: service_started
+      frontend-setup:
+        condition: service_completed_successfully
       
     
 

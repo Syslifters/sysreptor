@@ -61,6 +61,13 @@ export default defineNuxtConfig({
     resolve: {
       dedupe: ['vuetify'],
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern',
+        },
+      },
+    },
   },
 
   experimental: {
