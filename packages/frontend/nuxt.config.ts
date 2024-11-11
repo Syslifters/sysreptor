@@ -44,6 +44,9 @@ export default defineNuxtConfig({
     port: 3000,
   },
   vite: {
+    optimizeDeps: {
+      include: ['vuedraggable', 'uuid', 'base64-arraybuffer', 'monaco-editor'],
+    },
     server: {
       proxy: {
         '/api': {
@@ -90,3 +93,4 @@ export default defineNuxtConfig({
   },
 
 });
+

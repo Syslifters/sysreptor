@@ -1,12 +1,10 @@
 {
   "name": "@sysreptor/pdfviewer",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
     "build": "webpack",
-    "build-watch": "webpack watch",
-    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --onlyAllow='MIT;Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0' --plainVertical > NOTICE",
-    "dependencies": "npm run generate-notice"
+    "build-watch": "webpack watch"
   },
   "dependencies": {
     "pdfjs-dist": "~3.3.122",
@@ -19,7 +17,6 @@
     "html-webpack-plugin": "^5.5.0",
     "copy-webpack-plugin": "^12.0.0",
     "style-loader": "^4.0.0",
-    "css-loader": "^7.1.0",
-    "license-checker-rseidelsohn": "^4.2.6"
+    "css-loader": "^7.1.0"
   }
 }

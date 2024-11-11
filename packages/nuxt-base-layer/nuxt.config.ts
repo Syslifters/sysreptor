@@ -61,6 +61,16 @@ export default defineNuxtConfig({
     resolve: {
       dedupe: ['vuetify'],
     },
+    optimizeDeps: {
+      include: ['splitpanes', 'js-file-download', 'zxcvbn', 'emoji-mart-vue-fast/src'],
+    },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern',
+        },
+      },
+    },
   },
 
   experimental: {

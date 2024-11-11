@@ -3,4 +3,6 @@ app.env
 **/app.env
 .DS_Store
 .scannerwork
-.vscode
+
+.vscode/*
+!.vscode/sysreptor.code-workspace

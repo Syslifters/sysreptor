@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
-    "license-checker-rseidelsohn": "^4.2.8",
+    
     "nuxt": "^3.13.2",
     "pinia": "^2.2.4",
     "vuetify": "^3.7.3"
@@ -21,6 +21,7 @@
     "vue": "latest"
   },
   "devDependencies": {
+    "license-checker-rseidelsohn": "^4.2.8",
     "@nuxt/test-utils": "^3.14.4",
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^15.8.3",

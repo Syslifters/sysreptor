@@ -28,7 +28,6 @@
             :title="item.title"
             :class="'finding-level-' + levelNumberFromLevelName(item.severity)"
           />
-          <!-- TODO: wrong risk color -->
         </v-list>
       </template>
     </v-menu>

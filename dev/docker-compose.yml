@@ -50,7 +50,7 @@ services:
   #   user: "1000"
   #   command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery --app=reportcreator_api.conf.celery --quiet worker -Q rendering --without-heartbeat --without-gossip --without-mingle 
   #   environment:
-  #     PDF_RENDER_SCRIPT_PATH: /app/rendering/dist/bundle.js
+  #     PDF_RENDER_SCRIPT_PATH: /app/packages/rendering/dist/bundle.js
   #     CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
   #     CELERY_RESULT_BACKEND: reportcreator_api.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
   #     CELERY_SECURE_WORKER: "on"
@@ -59,35 +59,63 @@ services:
   #       source: ../api/src/
   #       target: /app/api/
   #     - type: bind
-  #       source: ../rendering/dist
-  #       target: /app/rendering/dist/
+  #       source: ../packages/rendering/dist
+  #       target: /app/packages/rendering/dist/
   #   depends_on:
   #     rabbitmq:
   #       condition: service_healthy
   #     rendering-builder:
   #       condition: service_started
-  pdfviewer-builder:
-    build: 
+  frontend-setup:
+    build:
       context: ..
-      target: pdfviewer-dev
-    command: sh -c "npm install && npm run build-watch"
-    init: true
+      target: frontend-dev
+    command: npm install
+    restart: "no"
     volumes:
-      - type: bind
-        source: ../packages/pdfviewer/
-        target: /app/packages/pdfviewer/
-  rendering-builder:
-    build: 
-      context: ..
-      target: rendering-dev
-    command: sh -c "npm install && npm run build-watch"
-    volumes:
-      - type: bind
-        source: ../rendering/
-        target: /app/rendering/
       - type: bind
         source: ../packages/
         target: /app/packages/
+  pdfviewer-builder:
+    build: 
+      context: ..
+      target: frontend-dev
+    command: npm run --workspace=pdfviewer build-watch
+    init: true
+    volumes:
+      - type: bind
+        source: ../packages/
+        target: /app/packages/
+    depends_on:
+      frontend-setup:
+        condition: service_completed_successfully
+  rendering-builder:
+    build: 
+      context: ..
+      target: frontend-dev
+    command: npm run --workspace=rendering build-watch
+    volumes:
+      - type: bind
+        source: ../packages/
+        target: /app/packages/
+    depends_on:
+      frontend-setup:
+        condition: service_completed_successfully
+  plugin-builder:
+    build:
+      context: ..
+      target: plugin-builder-dev
+    command: /app/plugins/build.sh dev
+    volumes:
+      - type: bind
+        source: ../plugins/
+        target: /app/plugins/
+      - type: bind
+        source: ../packages/
+        target: /app/packages/
+    depends_on:
+      frontend-setup:
+        condition: service_completed_successfully
   languagetool:
     build: 
       context: ../languagetool
@@ -122,8 +150,8 @@ services:
         source: ../api/src/
         target: /app/api/
       - type: bind
-        source: ../rendering/dist
-        target: /app/rendering/dist/
+        source: ../packages/rendering
+        target: /app/packages/rendering
       - type: bind
         source: ../plugins
         target: /app/plugins/
@@ -159,20 +187,17 @@ services:
     build: 
       context: ..
       target: frontend-dev
-    command: sh -c "npm install && npm run dev"
+    command: npm run --workspace=frontend dev
     volumes:
-      - type: bind
-        source: ../frontend/
-        target: /app/frontend/
       - type: bind
         source: ../packages/
         target: /app/packages/
       - type: bind
-        source: ../packages/pdfviewer/dist/
-        target: /app/frontend/src/public/static/pdfviewer/
+        source: ../packages/pdfviewer/
+        target: /app/packages/frontend/src/public/static/pdfviewer/
       - type: bind
         source: ../api/src/reportcreator_api/tasks/rendering/global_assets/
-        target: /app/frontend/src/assets/rendering/
+        target: /app/packages/frontend/src/assets/rendering/
     expose:
       - 3000
       - 24678
@@ -186,6 +211,8 @@ services:
         condition: service_started
       pdfviewer-builder:
         condition: service_started
+      frontend-setup:
+        condition: service_completed_successfully
       
     
 
