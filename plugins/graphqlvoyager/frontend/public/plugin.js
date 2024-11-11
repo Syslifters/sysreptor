@@ -4,7 +4,7 @@ export default function(options) {
       path: '',
       component: () => options.pluginHelpers.iframeComponent(({ _ }) => { 
         return {
-          src: 'voyager/index.html'
+          src: 'index.html'
         };
       }),
     },
