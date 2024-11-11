@@ -101,6 +101,21 @@ services:
     depends_on:
       frontend-setup:
         condition: service_completed_successfully
+  plugin-builder:
+    build:
+      context: ..
+      target: plugin-builder-dev
+    command: /app/plugins/build.sh dev
+    volumes:
+      - type: bind
+        source: ../plugins/
+        target: /app/plugins/
+      - type: bind
+        source: ../packages/
+        target: /app/packages/
+    depends_on:
+      frontend-setup:
+        condition: service_completed_successfully
   languagetool:
     build: 
       context: ../languagetool

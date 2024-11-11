@@ -61,19 +61,26 @@ RUN npm run generate
 
 
 
-FROM --platform=$BUILDPLATFORM frontend-base AS plugin-builder
+FROM --platform=$BUILDPLATFORM frontend-dev AS plugin-builder-dev
 RUN apk add --no-cache \
     bash \
     git \
     curl \
     wget \
     unzip \ 
-    jq
-
-COPY packages /app/packages/
-COPY plugins /app/plugins/
-
+    jq \
+    inotify-tools
 WORKDIR /app/plugins/
+
+FROM --platform=$BUILDPLATFORM plugin-builder-dev AS plugin-builder
+# Copy installed node_modules
+COPY --from=frontend-base /app/packages /app/packages/
+# Copy source code
+COPY packages/nuxt-base-layer /app/packages/nuxt-base-layer/
+COPY packages/plugin-base-layer /app/packages/plugin-base-layer/
+COPY packages/markdown /app/packages/markdown/
+COPY plugins /app/plugins/
+# Build plugins
 RUN /app/plugins/build.sh
 
 
