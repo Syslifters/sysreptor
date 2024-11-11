@@ -1,0 +1,56 @@
+{
+    "folders": [
+        {
+            "name": "ROOT",
+            "path": ".."
+        },
+        {
+            "name": "api",
+            "path": "../api"
+        },
+        {
+            "name": "frontend",
+            "path": "../packages/frontend"
+        },
+        {
+            "name": "nuxt-base-layer",
+            "path": "../packages/nuxt-base-layer"
+        },
+        {
+            "name": "markdown",
+            "path": "../packages/markdown"
+        },
+        {
+            "name": "rendering",
+            "path": "../packages/rendering"
+        },
+        {
+            "name": "docs",
+            "path": "../docs"
+        }
+    ],
+    "settings": {
+        "files.autoSave": "afterDelay",
+        "editor.tabSize": 2,
+        "[python]": {
+            "editor.tabSize": 4,
+            "editor.codeActionsOnSave": {
+                "source.fixAll": "explicit",
+                "source.organizeImports": "explicit"
+            }
+        },
+        "eslint.format.enable": true,
+        "python.analysis.autoFormatStrings": true
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-python.python",
+            "charliermarsh.ruff",
+            "vue.volar",
+            "ms-azuretools.vscode-docker",
+            "dbaeumer.vscode-eslint",
+            "syler.sass-indented",
+            "gruntfuggly.todo-tree"
+        ]
+    }
+}
