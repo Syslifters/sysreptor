@@ -49,7 +49,7 @@ COPY packages/markdown /app/packages/markdown/
 COPY packages/nuxt-base-layer /app/packages/nuxt-base-layer/
 COPY packages/frontend /app/packages/frontend/
 COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/packages/frontend/src/assets/rendering/
-COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/frontend/src/public/static/pdfviewer/
+COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/frontend/src/public/static/pdfviewer/dist/
 
 # Test command
 WORKDIR /app/packages/frontend/

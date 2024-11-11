@@ -90,3 +90,6 @@ export default defineNuxtConfig({
   },
 
 });
+
+// TODO: update vscode workspace
+// TODO: review and commit .vscode directory

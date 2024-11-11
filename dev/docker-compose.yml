@@ -162,7 +162,7 @@ services:
         source: ../packages/
         target: /app/packages/
       - type: bind
-        source: ../packages/pdfviewer/dist/
+        source: ../packages/pdfviewer/
         target: /app/packages/frontend/src/public/static/pdfviewer/
       - type: bind
         source: ../api/src/reportcreator_api/tasks/rendering/global_assets/

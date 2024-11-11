@@ -1,7 +1,7 @@
 <template>
   <iframe
     ref="iframeRef"
-    src="/static/pdfviewer/viewer.html"
+    src="/static/pdfviewer/dist/viewer.html"
     @load="iframeLoaded = true"
     class="pdfviewer"
     :class="{loading: !iframeLoaded}"
