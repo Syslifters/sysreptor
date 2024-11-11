@@ -2,14 +2,16 @@
 import { ref, computed } from 'vue';
 import CheckTheHash from '~~/utils/CheckTheHash';
 import prototypes from '../../data/converted-prototypes.json';
+import type HashInfo from '~~/domain/hashinfo';
 
 const hash = ref("");
+const noResults = ref(false); // Flag for showing no results message
+
 const results = computed(() => {
-  const possibleHashes: string[] = CheckTheHash(hash.value, prototypes);
+  const possibleHashes: HashInfo[] = CheckTheHash(hash.value, prototypes);
   noResults.value = possibleHashes.length === 0 && hash.value.trim() !== ""; // Show message if no results
   return possibleHashes;
 });
-const noResults = ref(false); // Flag for showing no results message
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).then(() => {
@@ -18,36 +20,36 @@ function copyToClipboard(text: string) {
 }
 </script>
 
+<script lang="ts">
+export default {
+  data: () => ({
+    // keeps track of wether a list item is open
+    open: ['Open'],
+  }),
+}
+</script>
+
 <template>
   <full-height-page class="scrollbar">
     <div class="content-wrapper">
       <v-container class="pt-5">
-        <v-row>
-          <v-col cols="12" class="d-flex flex-column align-center">
             <!-- Text input triggers renderHash on input automatically -->
             <v-text-field v-model="hash" label="Paste The Hash" variant="underlined" spellcheck="false"
-              hide-details="auto" autofocus class="mt-0 mb-2" style="width: 50vw;" />
-          </v-col>
+              hide-details="auto" autofocus class="mt-0 mb-2" style="width: 100%;" />
 
-          <v-col cols="12" class="d-flex flex-column align-center">
-            <!-- Display "No results found" message when no matching hashes -->
             <v-subheader v-if="noResults" class="text-h5 text-error mb-4">No matching hash mode found.</v-subheader>
-
-            <!-- Display possible hashes if there are any -->
             <v-subheader v-if="results.length" class="text-h5 mb-4">Possible Hash Modes:</v-subheader>
-
-            <v-list v-if="results.length" class="pt-0 overflow-visible" style="width: 100%;">
-              <v-list-item v-for="(result, index) in results" :key="index" class="mb-2 list-item"
-                @click="copyToClipboard(result)">
-                <v-list-item-content>
-                  <v-list-item :title="result" prepend-icon="mdi-content-copy"></v-list-item>
-                </v-list-item-content>
-              </v-list-item>
+            <v-list v-if="results.length" v-model:opened="open">
+              <v-list-group v-for="({ name, hashcat, john, extended }, index) in results" :key="index" :title="name">
+                <template v-slot:activator="{ props }">
+                  <v-list-item v-bind="props"></v-list-item>
+                </template>
+                <v-list-item v-if="hashcat != null" :title="'Hashcat: ' + hashcat"></v-list-item>
+                <v-list-item v-if="john != null" :title="'John: ' + john"></v-list-item>
+                <v-list-item v-if="extended != null" :title="'Extended: ' + extended"></v-list-item>
+              </v-list-group>
             </v-list>
-          </v-col>
-        </v-row>
       </v-container>
-      <div class="flex-grow-1"></div>
       <footer class="footer">
         <p>Identification based on: <a href="https://github.com/noraj/haiti" target="_blank">noraj/haiti</a></p>
       </footer>
@@ -77,15 +79,10 @@ function copyToClipboard(text: string) {
   height: 100%;
 }
 
-.flex-grow-1 {
-  flex-grow: 1;
-}
-
 .footer {
   padding: 1rem;
-  background-color: #353535;
-  border-top: 1px solid #1d1d1d;
-  text-align: center;
+  border-top: 1px solid darkgray;
+  text-align: right;
   position: relative;
   bottom: 0;
 }
@@ -109,6 +106,7 @@ function copyToClipboard(text: string) {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 }
 
 .list-item:hover {
