@@ -97,7 +97,7 @@ function* getChildElementsRecursive(node: Node): Generator<Element> {
 onMounted(() => {
   (window as any).navigation?.addEventListener('navigate', onNavigate, { once: true });
 });
-onUnmounted(() => {
+onBeforeUnmount(() => {
   (window as any).navigation?.removeEventListener('navigate', onNavigate);
 });
 function onNavigate(event: any) {

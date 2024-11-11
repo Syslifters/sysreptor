@@ -32,6 +32,8 @@ export function requestErrorToast({ error, message }: { error: any, message?: st
       .filter(v => Array.isArray(v))
       .flat();
     message += ': ' + entries.join(', ');
+  } else if (error?.options?.signal?.aborted) {
+    return;  // Do not show toast for aborted requests
   }
   errorToast(message);
 }

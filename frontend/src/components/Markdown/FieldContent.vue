@@ -55,6 +55,8 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
+@use "sass:meta";
+
 $mde-min-height: 15em;
 
 .mde-editor {
@@ -74,7 +76,7 @@ $mde-min-height: 15em;
 }
 
 :deep(.mde-editor) {
-  @import "@/assets/mde-highlight.scss";
+  @include meta.load-css("@/assets/mde-highlight.scss");
 }
 
 .mde-preview {

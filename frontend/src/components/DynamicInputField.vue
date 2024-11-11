@@ -462,7 +462,7 @@ async function validateRegexPattern(value: string) {
   }
   return true;
 }
-onUnmounted(async () => {
+onBeforeUnmount(async () => {
   if (regexWorker.value) {
     await regexWorker.value.terminate();
     regexWorker.value = null;

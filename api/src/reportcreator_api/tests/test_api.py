@@ -1,6 +1,7 @@
 from datetime import timedelta
 from functools import cached_property
 from typing import Optional
+from unittest import mock
 from uuid import uuid4
 
 import pytest
@@ -29,6 +30,7 @@ from reportcreator_api.pentests.models import (
     UploadedUserNotebookImage,
 )
 from reportcreator_api.pentests.models.project import CommentStatus
+from reportcreator_api.tasks.rendering.render_utils import RenderStageResult
 from reportcreator_api.tests.mock import (
     create_archived_project,
     create_png_file,
@@ -61,7 +63,7 @@ def viewset_urls(basename, get_kwargs, create_data=None, list=False, retrieve=Fa
 
     out = []
     if list:
-        out.append((basename + ' list', lambda s, c: c.get(reverse(list_urlname, kwargs=get_kwargs(s, False))), lambda s: get_kwargs(s, True)))
+        out.append((basename + ' list', lambda s, c: c.get(reverse(list_urlname, kwargs=get_kwargs(s, False))), {'initialize_dependencies': lambda s: get_kwargs(s, True)}))
     if retrieve:
         out.append((basename + ' retrieve', lambda s, c: c.get(reverse(detail_urlname, kwargs=get_kwargs(s, True)))))
     if create:
@@ -241,7 +243,7 @@ def guest_urls():
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True, history_timeline=True),
         *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, read=True),
-        ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition')), lambda s: [s.template, s.project_type]),
+        ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition')), {'initialize_dependencies': lambda s: [s.template, s.project_type]}),
         ('findingtemplatehistory template', lambda s, c: c.get(reverse('findingtemplatehistory-detail', kwargs={'template_pk': s.template.pk, 'history_date': s.history_date}))),
         ('findingtemplatehistory image-by-name', lambda s, c: c.get(reverse('findingtemplatehistory-image-by-name', kwargs={'template_pk': s.template.pk, 'filename': s.template.images.first().name, 'history_date': s.history_date}))),
 
@@ -487,8 +489,11 @@ class ApiRequestsAndPermissionsTestData:
 
 
 @pytest.mark.django_db()
-@pytest.mark.parametrize(('username', 'name', 'perform_request', 'initialize_dependencies', 'expected'), sorted(build_test_parameters(), key=lambda t: (t[0], t[1], t[4])))
-def test_api_requests(username, name, perform_request, initialize_dependencies, expected):
+@pytest.mark.parametrize(('username', 'name', 'perform_request', 'options', 'expected'), sorted(build_test_parameters(), key=lambda t: (t[0], t[1], t[4])))
+def test_api_requests(username, name, perform_request, options, expected):
+    async def mock_render_pdf(*args, output=None, **kwargs):
+        return RenderStageResult(pdf=b'<html><head></head><body><div></div></body></html>' if output == 'html' else b'%PDF-1.3')
+
     with override_settings(
             GUEST_USERS_CAN_IMPORT_PROJECTS=False,
             GUEST_USERS_CAN_CREATE_PROJECTS=False,
@@ -503,7 +508,7 @@ def test_api_requests(username, name, perform_request, initialize_dependencies, 
                     'label': 'Dummy',
                 },
             },
-        ):
+        ), mock.patch('reportcreator_api.tasks.rendering.render.render_pdf_impl', mock_render_pdf):
         user_map = {
             'public': lambda: None,
             'guest': lambda: ApiRequestsAndPermissionsTestData.create_user(is_guest=True),
@@ -528,7 +533,7 @@ def test_api_requests(username, name, perform_request, initialize_dependencies, 
             }
             session.save()
 
-        if initialize_dependencies:
+        if initialize_dependencies := (options or {}).get('initialize_dependencies'):
             initialize_dependencies(data)
         res = perform_request(data, client)
         info = res.data if not isinstance(res, (FileResponse, StreamingHttpResponse)) else res

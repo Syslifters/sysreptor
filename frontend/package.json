@@ -34,7 +34,8 @@
     "uuid": "^10.0.0",
     "url-join": "^5.0.0",
     "js-file-download": "^0.4.12",
-    "dompurify": "^3.1.6"
+    "dompurify": "^3.1.6",
+    "base64-arraybuffer": "^1.0.2"
   },
   "devDependencies": {
     "@nuxt/test-utils": "^3.10.0",

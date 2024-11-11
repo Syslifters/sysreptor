@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from django.utils import timezone
 
 from reportcreator_api.pentests.collab.text_transformations import SelectionRange
@@ -37,6 +38,7 @@ from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTr
 from reportcreator_api.pentests.models.project import Comment
 from reportcreator_api.tasks.rendering.entry import format_template_field_object
 from reportcreator_api.tests.mock import (
+    api_client,
     create_comment,
     create_finding,
     create_project,
@@ -180,7 +182,61 @@ def test_field_values(valid, definition, value):
 @pytest.mark.django_db()
 def test_user_field_value():
     user = create_user()
-    FieldValuesValidator(parse_field_definition([{'id': 'field_user', 'type': 'user', 'label': 'User Field'}]))({'field_user': str(user.id)})
+    definition = parse_field_definition([{'id': 'field_user', 'type': 'user', 'label': 'User Field'}])
+    FieldValuesValidator(definition)({'field_user': str(user.id)})
+
+
+@pytest.mark.django_db()
+def test_api_serializer():
+    user = create_user()
+    project = create_project(members=[user])
+    client = api_client(user)
+
+    field_data = {
+        'field_string': 'This is a string',
+        'field_markdown': 'Some **markdown**\n* String\n*List',
+        'field_cvss': 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:H/A:H',
+        'field_cwe': 'CWE-89',
+        'field_date': '2024-01-01',
+        'field_int': 17,
+        'field_bool': True,
+        'field_enum': 'enum1',
+        'field_combobox': 'value2',
+        'field_user': str(user.id),
+        'field_list': ['test'],
+        'field_object': {'nested1': 'val'},
+    }
+
+    res1 = client.patch(reverse('section-detail', kwargs={'project_pk': project.id, 'id': 'other'}), data={
+        'data': field_data,
+    })
+    assert res1.status_code == 200, res1.data
+
+    res2 = client.patch(reverse('finding-detail', kwargs={'project_pk': project.id, 'id': project.findings.first().finding_id}), data={
+        'data': field_data,
+    })
+    assert res2.status_code == 200, res2.data
+
+
+@pytest.mark.django_db()
+def test_api_serializer_user():
+    user = create_user()
+    user_imported = {
+        'id': str(uuid4()),
+        'name': 'Imported User',
+    }
+    project = create_project(members=[user], imported_members=[user_imported])
+    client = api_client(user)
+
+    def assert_valid_user_field_value(user_id, expected):
+        res = client.patch(reverse('section-detail', kwargs={'project_pk': project.id, 'id': 'other'}), data={
+            'data': {'field_user': user_id},
+        })
+        assert (res.status_code == 200) is expected
+
+    assert_valid_user_field_value(str(user.id), True)  # Project member
+    assert_valid_user_field_value(user_imported['id'], True)  # Imported member
+    assert_valid_user_field_value(str(uuid4()), False)  # Nonexistent user
 
 
 class CustomFieldsTestModel(CustomFieldsMixin):

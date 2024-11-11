@@ -12,20 +12,26 @@
       <div id="mainContainer">
 
         <div class="findbar hidden" id="findbar">
-          <input id="findInput" class="toolbarField" title="Find" placeholder="Find" tabindex="91" autocomplete="off" data-l10n-id="find_input" aria-invalid="false">
-          <div id="findbarMessageContainer" aria-live="polite">
-            <span id="findResultsCount" class="toolbarLabel"></span>
-            <span id="findMsg" class="toolbarLabel">No results</span>
+          <div>
+            <input id="findInput" class="toolbarField" title="Find" placeholder="Find" tabindex="91" autocomplete="off" data-l10n-id="find_input" aria-invalid="false">
           </div>
-          <button id="findPrevious" class="toolbarButton" title="Find the previous occurrence of the phrase" tabindex="92" data-l10n-id="find_previous">
-            <span class="icon"><span class="icon-prev"></span></span>
-          </button>
-          <button id="findNext" class="toolbarButton" title="Find the next occurrence of the phrase" tabindex="93" data-l10n-id="find_next">
-            <span class="icon"><span class="icon-next"></span></span>
-          </button>
-          <button id="findToggle" class="toolbarButton" title="Close" tabindex="94" data-l10n-id="find_close">
-            <span class="icon"><span class="icon-close"></span></span> 
-          </button>
+          <div>
+            <div id="findbarMessageContainer" aria-live="polite">
+              <span id="findResultsCount" class="toolbarLabel"></span>
+              <span id="findMsg" class="toolbarLabel">No results</span>
+            </div>
+          </div>
+          <div>
+            <button id="findPrevious" class="toolbarButton" title="Find the previous occurrence of the phrase" tabindex="92" data-l10n-id="find_previous">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z" /></svg>
+            </button>
+            <button id="findNext" class="toolbarButton" title="Find the next occurrence of the phrase" tabindex="93" data-l10n-id="find_next">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg>
+            </button>
+            <button id="findToggle" class="toolbarButton" title="Close" tabindex="94" data-l10n-id="find_close">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>
+            </button>
+          </div>
         </div>
         
         <div class="toolbar">
@@ -40,7 +46,7 @@
                 <div class="toolbarSpacing"></div>
 
                 <button id="zoomOut" class="toolbarButton" title="Zoom Out" tabindex="21">
-                  <span class="icon"><span class="icon-minus"></span></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z" /></svg>
                 </button>
                 <select id="scaleSelect" class="toolbarField" title="Zoom" tabindex="23">
                   <option id="pageAutoOption" title="" value="auto" selected="selected">Automatic Zoom</option>
@@ -58,9 +64,14 @@
                   <option title="" value="4">400%</option>
                 </select>
                 <button id="zoomIn" class="toolbarButton" title="Zoom In" tabindex="22">
-                  <span class="icon"><span class="icon-plus"></span></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" /></svg>
                 </button>
-                
+              </div>
+
+              <div id="toolbarViewerRight">
+                <button id="download" class="toolbarButton hiddenMediumView" title="Download Preview PDF" tabindex="33" data-l10n-id="save">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>
+                </button>
               </div>
             </div>
           </div>

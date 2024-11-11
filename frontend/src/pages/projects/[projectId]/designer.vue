@@ -95,10 +95,11 @@ const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit({
     null),
 });
 
-async function fetchPdf() {
+async function fetchPdf(fetchOptions: { signal: AbortSignal }) {
   return await $fetch<PdfResponse>(`/api/v1/pentestprojects/${project.value.id}/preview/`, {
     method: 'POST',
     body: pick(projectType.value, ['report_template', 'report_styles']),
+    ...fetchOptions,
   });
 }
 function loadPdf(immediate = true) {

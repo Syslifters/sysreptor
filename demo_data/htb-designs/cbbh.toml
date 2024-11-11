@@ -484,6 +484,9 @@ footnote {
 
 
 /* Finding */
+.finding-header {
+    table-layout: fixed;
+}
 .finding-header th {
     font-weight: normal;
     width: 7em;

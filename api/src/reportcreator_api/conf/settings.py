@@ -551,9 +551,9 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 # Execute tasks locally, if no broker is configured
 CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 
-# Time limits are only enforced if a broker is configured and an external worker is used (but not in eager mode).
-# Self-hosted SysReptor instances use the eager mode by default, resulting in no PDF rendering time limits being applied.
-PDF_RENDERING_TIME_LIMIT = config('PDF_RENDERING_TIME_LIMIT', cast=int, default=60)
+# Maximum time a PDF rendering task is allowed to run. If a task takes longer, it gets cancelled.
+# Set to 0 to disable the time limit
+PDF_RENDERING_TIME_LIMIT = config('PDF_RENDERING_TIME_LIMIT', cast=int, default=5 * 60)
 
 
 # History
@@ -707,6 +707,7 @@ ELASTIC_APM = {
     'SPAN_COMPRESSION_ENABLED': False,
     'DJANGO_AUTOINSERT_MIDDLEWARE': False,
     'DJANGO_TRANSACTION_NAME_FROM_ROUTE': True,
+    'TRANSACTIONS_IGNORE_PATTERNS': ['^OPTIONS', ' /static/'],
 }
 if ELASTIC_APM_ENABLED:
     INSTALLED_APPS.append('elasticapm.contrib.django')
@@ -789,6 +790,11 @@ LOGGING = {
         'fontTools': {
             'level': 'WARNING',
             'handlers': logging_handlers,
+            'propagate': False,
+        },
+        'elasticapm.errors': {
+            'level': 'ERROR',
+            'handlers': ['console'],
             'propagate': False,
         },
     },
