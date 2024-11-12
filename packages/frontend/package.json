@@ -1,6 +1,6 @@
 {
   "name": "@sysreptor/frontend",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,7 @@
     "@sysreptor/nuxt-base-layer": "../nuxt-base-layer",
     "@sysreptor/markdown": "../markdown",
     
-    "nuxt": "3.13.0",
+    "nuxt": "~3.14",
     "vuetify": "~3.7",
     "pinia": "^2.2.4",
     "sass-embedded": "^1.79.5",
@@ -29,7 +29,7 @@
 
     "date-fns": "^4.1.0",
     "lodash-es": "^4.17.21",
-    "uuid": "^10.0.0",
+    "uuid": "^11.0.0",
     "url-join": "^5.0.0",
     "js-file-download": "^0.4.12",
     "dompurify": "^3.1.6",
@@ -42,7 +42,6 @@
     "@types/dompurify": "^3.0.5",
     "eslint": "^9.0.0",
     "vitest": "^2.0.4",
-    "happy-dom": "^14.10.2",
     "vue-tsc": "^2.0.11"
   },
   "overrides": {

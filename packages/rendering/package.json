@@ -12,7 +12,7 @@
     "vue": "~3.3",
     "chart.js": "^4",
     "chartjs-plugin-datalabels": "^2",
-    "uuid": "^10",
+    "uuid": "^11",
     "lodash": "^4.17.21",
     "@sysreptor/markdown": "../markdown"
   },

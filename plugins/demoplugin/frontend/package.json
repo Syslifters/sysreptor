@@ -11,11 +11,13 @@
   },
   "dependencies": {
     "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
+    "@sysreptor/nuxt-base-layer": "../../../packages/nuxt-base-layer",
 
-    "nuxt": "^3.13.2",
+    "nuxt": "^3.14.0",
     "vuetify": "^3.7.3",
-    "pinia": "^2.2.4",
-
+    "pinia": "^2.2.4"
+  },
+  "devDependencies": {
     "license-checker-rseidelsohn": "^4.2.8"
   },
   "overrides": {

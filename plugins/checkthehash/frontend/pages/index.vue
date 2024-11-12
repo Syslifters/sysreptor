@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import CheckTheHash from '~~/utils/CheckTheHash';
-import prototypes from '../../data/converted-prototypes.json';
+import prototypes from '../data/converted-prototypes.json';
 import type HashInfo from '~~/domain/hashinfo';
 
 const hash = ref("");
@@ -48,8 +48,8 @@ export default {
               <v-list-item v-if="hashcat != null">
                 <v-code class="code-container">
                   <v-icon size="small" class="copy-icon"
-                    @click="copyToClipboard(`hashcat --hash-type ${hashcat} ${hash}`)">mdi-content-copy</v-icon>
-                  <span class="command"> hashcat --hash-type {{ hashcat }} {{ hash }}</span>
+                    @click="copyToClipboard(`hashcat --hash-type=${hashcat} ${hash}`)">mdi-content-copy</v-icon>
+                  <span class="command"> hashcat --hash-type={{ hashcat }} {{ hash }}</span>
                 </v-code>
               </v-list-item>
               <v-list-item v-if="john != null">
