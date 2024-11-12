@@ -4,7 +4,7 @@ export default function (options) {
     route: {
       path: 'check-the-hash',  
       component: () => options.pluginHelpers.iframeComponent({ 
-        src: 'index.html#/check-the-hash',  
+        src: 'index.html#/',  
       }),
     },
     menu: {

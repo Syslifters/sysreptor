@@ -580,11 +580,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@esbuild/linux-arm64 0.21.5
+@esbuild/linux-x64 0.21.5
 MIT
 # esbuild
 
-This is the Linux ARM 64-bit binary for esbuild, a JavaScript bundler and minifier. See https://github.com/evanw/esbuild for details.
+This is the Linux 64-bit binary for esbuild, a JavaScript bundler and minifier. See https://github.com/evanw/esbuild for details.
 
 
 @floating-ui/core 1.6.8
@@ -1320,18 +1320,18 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@rollup/rollup-linux-arm64-gnu 4.24.3
+@rollup/rollup-linux-x64-gnu 4.25.0
 MIT
-# `@rollup/rollup-linux-arm64-gnu`
+# `@rollup/rollup-linux-x64-gnu`
 
-This is the **aarch64-unknown-linux-gnu** binary for `rollup`
+This is the **x86_64-unknown-linux-gnu** binary for `rollup`
 
 
-@rollup/rollup-linux-arm64-musl 4.24.3
+@rollup/rollup-linux-x64-musl 4.25.0
 MIT
-# `@rollup/rollup-linux-arm64-musl`
+# `@rollup/rollup-linux-x64-musl`
 
-This is the **aarch64-unknown-linux-musl** binary for `rollup`
+This is the **x86_64-unknown-linux-musl** binary for `rollup`
 
 
 @types/estree 1.0.6
@@ -1881,7 +1881,7 @@ SOFTWARE.
 
 
 
-cross-spawn 7.0.3
+cross-spawn 7.0.5
 MIT
 The MIT License (MIT)
 
@@ -3294,7 +3294,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-postcss 8.4.47
+postcss 8.4.49
 MIT
 The MIT License (MIT)
 
@@ -3579,7 +3579,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-rollup 4.24.3
+rollup 4.25.0
 MIT
 # Rollup core license
 Rollup is released under the MIT license:
@@ -5185,7 +5185,7 @@ Apache-2.0
    limitations under the License.
 
 
-vite 5.4.10
+vite 5.4.11
 MIT
 # Vite core license
 Vite is released under the MIT license:

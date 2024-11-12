@@ -14,7 +14,7 @@ describe("checkHash function - Sample Detection Summary", () => {
           test(`should detect hash type ${mode.name}`, () => {
             const result = checkHash(sample, prototypes);
 
-            expect(result).toContain(mode.name);
+            expect(result.map(r => r.name)).toContain(mode.name);
           });
         });
       }

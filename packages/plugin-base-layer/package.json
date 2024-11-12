@@ -15,13 +15,16 @@
     "@sysreptor/nuxt-base-layer": "../nuxt-base-layer"
   },
   "devDependencies": {
-    "nuxt": "3.13.0",
+    "nuxt": "~3.14.0",
     "vuetify": "^3.7.0",
     "pinia": "^2.2.4",
     "sass-embedded": "^1.79.5",
     
     "eslint": "^9.0.0",
     "vue-tsc": "^2.0.11"
+  },
+  "peerDependencies": {
+    "@sysreptor/nuxt-base-layer": "*"
   },
   "overrides": {
     "vue": "latest"

@@ -106,6 +106,7 @@ services:
       context: ..
       target: plugin-builder-dev
     command: /app/plugins/build.sh dev
+    init: true
     volumes:
       - type: bind
         source: ../plugins/
