@@ -4,6 +4,7 @@ set -e
 
 allow_only="MIT"
 allow_only="$allow_only;MIT License"
+allow_only="$allow_only;CMU License (MIT-CMU)"
 allow_only="$allow_only;BSD"
 allow_only="$allow_only;BSD License"
 allow_only="$allow_only;Apache Software License"
