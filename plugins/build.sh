@@ -46,7 +46,16 @@ function build_plugin() {
 
 for plugin in *; do
   if [[ -d "$plugin" ]]; then
-    build_plugin "$plugin" "$action" &
+    if [ $action == "dev" ]; then
+      # Start plugins in dev mode in parallel
+      build_plugin "$plugin" "$action" &
+    else 
+      # Build plugins after each other
+      build_plugin "$plugin" "$action"
+    fi
   fi
 done
-wait
+
+if [ $action == "dev" ]; then
+  wait
+fi

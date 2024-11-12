@@ -51,12 +51,12 @@ COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/packages/front
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/frontend/src/public/static/pdfviewer/dist/
 # Test command
 WORKDIR /app/packages/frontend/
-CMD npm run test
+CMD ["npm", "run", "test"]
 
 
 FROM --platform=$BUILDPLATFORM frontend-test AS frontend
 # Build JS bundle
-RUN npm run generate
+RUN npm run postinstall && npm run generate
 
 
 
