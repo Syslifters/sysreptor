@@ -7,9 +7,10 @@
 * Allow to cancel PDF rendering requests
 * Enforce PDF rendering timeout in self-hosted installations (default: 5 min)
 * Show PDF render timing information
+* Always remove PDF metadata
+* Add button to download preview PDF
 * Fix error while updating user fields via REST API
 * Update HTB designs to improve table rendering performance
-* Add button to download preview PDF
 
 
 ## v2024.81 - 2024-10-25
