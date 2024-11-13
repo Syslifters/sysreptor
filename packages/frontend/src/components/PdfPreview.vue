@@ -8,11 +8,11 @@
 
         <v-btn size="small" variant="text" :ripple="false">
           <v-icon start size="small" icon="mdi-clock-outline" />
-          <span class="timing-value">{{ formatTiming(timings.total) }}</span>
+          <span class="timing-value">{{ timingsTotal }}</span>
 
           <v-menu activator="parent" location="top right" :close-on-content-click="false">
             <v-table class="pa-2">
-              <tr v-for="[key, timing] in Object.entries(timings).filter(([k]) => k !== 'total')" :key="key">
+              <tr v-for="(timing, key) in timings" :key="key">
                 <td class="timing-table-key">{{ key.replaceAll('_', ' ') }}</td>
                 <td class="timing-value">{{ formatTiming(timing) }}</td>
               </tr>
@@ -23,7 +23,7 @@
               </tr>
               <tr>
                 <td class="timing-table-key">Total</td>
-                <td class="timing-value">{{ formatTiming(timings.total) }}</td>
+                <td class="timing-value">{{ timingsTotal }}</td>
               </tr>
             </v-table>
           </v-menu>
@@ -82,18 +82,25 @@ const messages = ref<ErrorMessage[]>([]);
 const timings = ref<Record<string, number>>({});
 const showMessages = ref(false);
 const fetchPdf = useAbortController(props.fetchPdf);
+const timingsTotal = computed(() => formatTiming(sum(Object.values(timings.value))));
 
 async function reload() {
   // Abort pending requests
   fetchPdf.abort();
 
   try {
+    const fetchPdfStartTime = window.performance.now();
     const res = await fetchPdf.run();
+    const fetchPdfTime = (window.performance.now() - fetchPdfStartTime) / 1000;
+
     messages.value = res.messages;
     if (messages.value.length === 0) {
       showMessages.value = false;
     }
     timings.value = res.timings;
+    if (timings.value) {
+      timings.value.network = fetchPdfTime - sum(Object.values(timings.value));
+    }
     if (res.pdf) {
       pdfData.value = res.pdf;
     } else {
@@ -135,6 +142,10 @@ onMounted(() => {
 
 function formatTiming(timing?: number) {
   return (timing || 0).toFixed(2) + ' s';
+}
+
+function sum(numbers: number[]) {
+  return numbers.reduce((a, b) => a + b, 0);
 }
 
 defineExpose({

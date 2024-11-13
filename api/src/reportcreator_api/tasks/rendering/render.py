@@ -10,6 +10,7 @@ from typing import Optional
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
 from pikepdf import Encryption, Pdf
 
 from reportcreator_api.tasks.rendering.error_messages import (
@@ -126,7 +127,7 @@ async def render_pdf_impl(
     template: str, styles: str, data: dict, resources: dict, language: str,
     password: Optional[str] = None, should_compress_pdf: bool = False, output=None,
 ) -> RenderStageResult:
-    out = RenderStageResult()
+    out = RenderStageResult(other={'task_start_time': timezone.now().isoformat()})
 
     # Start weasyprint subprocess in parallel with chromium rendering, because python has a long startup time
     weasyprint_proc = (await weasyprint_start_process()) if output != 'html' else None
