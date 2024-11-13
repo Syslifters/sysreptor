@@ -248,9 +248,9 @@ async def render_pdf_task(
             resources=resources,
         )
     res |= res_pdf
-    if (task_start_time := dateparse.parse_datetime(res.other.pop('task_start_time', None))):
+    if (task_start_time := res.other.pop('task_start_time', None)):
         # use datetimes instead of perf_counter, because the task might be executed by a worker on a different machine and perf_counter is not synchronized
-        res.timings['queue'] = (task_start_time - before_task_start).total_seconds()
+        res.timings['queue'] = (dateparse.parse_datetime(task_start_time) - before_task_start).total_seconds()
     res.timings['other'] = max(0, res.timings.pop('task_total') + timing_before_task_total - sum(v for k, v in res.timings.items()))
 
     # Set message location info to ProjectType (if not available)
