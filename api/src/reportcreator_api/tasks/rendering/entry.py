@@ -13,7 +13,7 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import dateparse, timezone
 from lxml import etree
 
 from reportcreator_api.pentests import cvss
@@ -178,7 +178,7 @@ async def get_celery_result_async(task, timeout=None):
         while not task.ready():
             if timeout and timezone.now() > start_time + timeout:
                 raise TimeoutError()
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(0.1)
         if isinstance(task.result, Exception):
             raise task.result
         return task.result
@@ -233,8 +233,10 @@ async def render_pdf_task(
     with res.add_timing('collect_data'):
         resources = await format_resources()
 
-    timing_total_before = sum(res.timings.values())
-    with res.add_timing('total'):
+    res.timings['queue'] = 0.0
+    before_task_start = timezone.now()
+    timing_before_task_total = sum(res.timings.values())
+    with res.add_timing('task_total'):
         res_pdf = await _render_pdf_task_async(
             template=report_template,
             styles=report_styles,
@@ -246,8 +248,10 @@ async def render_pdf_task(
             resources=resources,
         )
     res |= res_pdf
-    res.timings['total'] += timing_total_before
-    res.timings['other'] = max(0, res.timings['total'] - sum(v for k, v in res.timings.items() if k != 'total'))
+    if (task_start_time := res.other.pop('task_start_time', None)):
+        # use datetimes instead of perf_counter, because the task might be executed by a worker on a different machine and perf_counter is not synchronized
+        res.timings['queue'] = (dateparse.parse_datetime(task_start_time) - before_task_start).total_seconds()
+    res.timings['other'] = max(0, res.timings.pop('task_total') + timing_before_task_total - sum(v for k, v in res.timings.items()))
 
     # Set message location info to ProjectType (if not available)
     res.messages = [

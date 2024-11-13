@@ -1,9 +1,11 @@
 # Changelog
 
 ## Upcoming
-* Experimental plugin system
+* Introduce a plugin system (experimental)
+* Add plugins: CyberChef, GraphQL Voyager, Hash Identifier
 * Disable static file compression
 * Allow to cancel PDF rendering requests
+* Enforce PDF rendering timeout in self-hosted installations (default: 5 min)
 * Show PDF render timing information
 * Fix error while updating user fields via REST API
 * Update HTB designs to improve table rendering performance

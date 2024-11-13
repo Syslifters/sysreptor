@@ -22,5 +22,5 @@ async def render_pdf_task_async(*args, **kwargs) -> dict:
         should_compress_pdf=kwargs.pop('compress_pdf', False),
         **kwargs,
     )
-    return out.to_dict()
+    return out.to_dict(include_other=True)
 
