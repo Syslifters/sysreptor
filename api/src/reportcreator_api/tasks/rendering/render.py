@@ -67,6 +67,17 @@ async def weasyprint_render_to_pdf(proc, **kwargs) -> RenderStageResult:
         )
 
 
+@sync_to_async()
+def remove_metadata(pdf_data: bytes) -> RenderStageResult:
+    with Pdf.open(BytesIO(pdf_data)) as pdf:
+        delattr(pdf.Root, 'Metadata')
+        delattr(pdf, 'docinfo')
+
+        out_data = BytesIO()
+        pdf.save(filename_or_stream=out_data)
+        return out_data.getvalue()
+
+
 @log_timing(log_start=True)
 async def compress_pdf(pdf_data: bytes) -> RenderStageResult:
     out = RenderStageResult()
@@ -90,7 +101,7 @@ async def compress_pdf(pdf_data: bytes) -> RenderStageResult:
                 raise Exception(f'Ghostscript failed with exit code {proc.returncode}')
 
             pdfout.seek(0)
-            out.pdf = pdfout.read()
+            out.pdf = await remove_metadata(pdfout.read())
     except Exception:
         logging.exception('Error while compressing PDF (ghostscript)')
         out.pdf = pdf_data
@@ -164,5 +175,6 @@ async def render_pdf_impl(
             pdf_data=out.pdf,
             password=password,
         )
+
     return out
 

@@ -64,8 +64,8 @@ def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], 
         ))
 
     def weasyprint_strip_pdf_metadata(doc, pdf):
-        # remove Producer meta-data info from PDF
-        del pdf.info['Producer']
+        # remove PDF metadata
+        pdf.info.clear()
 
     # Capture weasyprint logs and provide as messages
     with mock.patch.object(WEASYPRINT_LOGGER, 'error', new=weasyprint_capture_logs, spec=True), \
