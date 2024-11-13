@@ -1,4 +1,4 @@
-# SysReptor Community License 1.0 (SysReptorL)
+# SysReptor Community License 1.1 (SysReptorL)
 ## Acceptance
 
 In order to get any Permissions to Use the Software under the 
@@ -14,8 +14,7 @@ any permitted purpose, other than distributing the software or
 making changes or new works based on the Software. Attempts to 
 circumvent technical License restrictions are prohibited (e.g. 
 to unlock or extend functionalities), even if they result from 
-errors in the Software. You must not use a license key that you
-did not obtain from us or an authorized reseller.
+errors in the Software.
 
 ## Patent License
 
@@ -39,7 +38,7 @@ permitted purpose.
 
 ## Fair Use
 
-You may have "Fair Use" rights for the Software under the law. 
+You may have "**Fair Use**" rights for the Software under the law. 
 The SysReptorL does not limit them unless otherwise agreed.
 
 Pursuant to Section 40d of the Act on Copyright and Related 
@@ -47,8 +46,22 @@ Rights (Urheberrechtsgesetz, UrhG), computer programs may be
 edited and reproduced within the framework of the Fair Use of 
 works to the extent that this is necessary for the Intended 
 Use of the Software by the person entitled to use it. The 
-Intended Use is limited to the permitted purpose of the Software 
+**Intended Use** is limited to the permitted purpose of the Software 
 in accordance with the SysReptorL.
+
+## Plugin Development and Usage
+
+The licensor grants you permission to develop and use plugins 
+that use official plugin interfaces for the Software, provided 
+that these plugins do not bypass any license restrictions. Use 
+of non-official plugins that bypass or attempt to bypass license 
+restrictions is a violation of these terms. This includes the 
+usage of any plugins that unlock or extend functionalities in 
+ways not permitted by the SysReptorL.
+
+The licensor reserves the right to revoke or modify interfaces 
+from and to the Software without prior notice. This may affect 
+the functionality of plugins and other integrations.
 
 ## No Other Rights
 
@@ -69,13 +82,7 @@ to assert claims for damages.
 
 ## Violations
 
-The first time you are notified in writing that you have
-violated any of these terms, or done anything with the software
-not covered by your licenses, your licenses can nonetheless
-continue if you come into full compliance with these terms,
-and take practical steps to correct past violations, within
-32 days of receiving notice.  Otherwise, all your licenses
-end immediately.
+In case of license violations, all your licenses end immediately.
 
 ## No Liability
 
@@ -115,4 +122,4 @@ software under these terms.
 
 
 ------------
-**Last Updated:** 24 March 2023
+**Last Updated:** 11 November 2024
