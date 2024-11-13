@@ -1,4 +1,4 @@
-# SysReptor Community License 1.0 (SysReptorL)
+# SysReptor Community License 1.1 (SysReptorL)
 ## Acceptance
 
 In order to get any Permissions to Use the Software under the 
@@ -49,6 +49,20 @@ Use of the Software by the person entitled to use it. The
 **Intended Use** is limited to the permitted purpose of the Software 
 in accordance with the SysReptorL.
 
+## Plugin Development and Usage
+
+The licensor grants you permission to develop and use plugins 
+that use official plugin interfaces for the Software, provided 
+that these plugins do not bypass any license restrictions. Use 
+of non-official plugins that bypass or attempt to bypass license 
+restrictions is a violation of these terms. This includes the 
+usage of any plugins that unlock or extend functionalities in 
+ways not permitted by the SysReptorL.
+
+The licensor reserves the right to revoke or modify interfaces 
+from and to the Software without prior notice. This may affect 
+the functionality of plugins and other integrations.
+
 ## No Other Rights
 
 The SysReptorL does not allow you to sublicense or transfer 
@@ -68,13 +82,7 @@ to assert claims for damages.
 
 ## Violations
 
-The first time you are notified in writing that you have
-violated any of these terms, or done anything with the software
-not covered by your licenses, your licenses can nonetheless
-continue if you come into full compliance with these terms,
-and take practical steps to correct past violations, within
-32 days of receiving notice.  Otherwise, all your licenses
-end immediately.
+In case of license violations, all your licenses end immediately.
 
 ## No Liability
 
@@ -114,4 +122,4 @@ software under these terms.
 
 
 ------------
-**Last Updated:** 24 March 2023
+**Last Updated:** 11 November 2024
