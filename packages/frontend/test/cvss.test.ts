@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { scoreFromVector } from '@base/utils/cvss';
+import { levelNameFromLevelNumber, levelNameFromScore, levelNumberFromLevelName, levelNumberFromScore, scoreFromVector } from '@base/utils/cvss';
 
 describe('CVSS score calculation', () => {
   for (const [vector, score] of Object.entries({
@@ -46,5 +46,27 @@ describe('CVSS score calculation', () => {
     'CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H/E:P/RL:X/RC:U/CR:M/IR:H/AR:X/MAV:A/MAC:L/MPR:L/MUI:R/MS:U/MC:L/MI:L/MA:X': 5.7,
   })) {
     test(vector, () => expect(scoreFromVector(vector)).toBe(score));
+  }
+});
+
+
+describe('CVSS level calculation', () => {
+  const levels = [
+    { level: 1, name: 'Info', scoreMin: 0, scoreMax: 0 },
+    { level: 2, name: 'Low', scoreMin: 0.1, scoreMax: 3.9 },
+    { level: 3, name: 'Medium', scoreMin: 4.0, scoreMax: 6.9 },
+    { level: 4, name: 'High', scoreMin: 7.0, scoreMax: 8.9 },
+    { level: 5, name: 'Critical', scoreMin: 9.0, scoreMax: 10.0 },
+  ];
+
+  for (const info of levels) {
+    for (const score of [info.scoreMin, info.scoreMax]) {
+      test(`Score ${score} -> Level ${info.name}`, () => {
+        expect(levelNumberFromScore(score)).toBe(info.level);
+        expect(levelNameFromScore(score)).toBe(info.name);
+        expect(levelNameFromLevelNumber(levelNumberFromScore(score))).toBe(info.name);
+        expect(levelNumberFromLevelName(levelNameFromScore(score))).toBe(info.level);
+      });
+    }
   }
 });
