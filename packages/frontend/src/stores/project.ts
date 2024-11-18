@@ -345,13 +345,16 @@ export const useProjectStore = defineStore('project', {
         delete this.data[project.id]!.reportingCollabState.data.comments[comment.id];
       }
     },
-    async updateComment(project: PentestProject, comment: Comment) {
+    async updateComment(project: PentestProject, comment: Partial<Comment>) {
       const obj = await $fetch<Comment>(`/api/v1/pentestprojects/${project.id}/comments/${comment.id}/`, {
         method: 'PATCH',
         body: comment,
       });
       if (project.id in this.data) {
-        this.data[project.id]!.reportingCollabState.data.comments[obj.id] = obj;
+        this.data[project.id]!.reportingCollabState.data.comments[obj.id] = {
+          ...obj,
+          text_range: this.data[project.id]?.reportingCollabState?.data.comments[obj.id]?.text_range || obj.text_range,
+        }
       }
     },
     async resolveComment(project: PentestProject, comment: Comment, data: { status: CommentStatus }) {
