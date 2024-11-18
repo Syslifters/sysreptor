@@ -19,7 +19,7 @@
     "@pinia/nuxt": "^0.5.1",
     "@pinia-plugin-persistedstate/nuxt": "^1.2.0",
     "sass-embedded": "^1.79.5",
-    "@nuxt/eslint": "^0.6.1",
+    "@nuxt/eslint": "^0.7.0",
     "@vueuse/nuxt": "^11.1.0",
 
     "emoji-mart-vue-fast": "^15.0.0",
