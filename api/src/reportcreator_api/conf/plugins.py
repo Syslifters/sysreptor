@@ -44,6 +44,8 @@ class PluginConfig(AppConfig):
         """
         Django app label used to identify the app internally
         """
+        if not cls.plugin_id:
+            return None
         return f'plugin_{cls.plugin_id.replace("-", "").replace("/", "")}'
 
     @property
@@ -197,8 +199,12 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
             plugin_app_module = import_module(module_name + '.app')
         except ImportError:
             continue
-        plugin_config_class = next(filter(lambda c: issubclass(c, PluginConfig), map(lambda c: getattr(plugin_app_module, c), dir(plugin_app_module))), None)
+        plugin_config_class = next(filter(lambda c: issubclass(c, PluginConfig) and c != PluginConfig, map(lambda c: getattr(plugin_app_module, c), dir(plugin_app_module))), None)
         if not plugin_config_class:
+            continue
+
+        if not plugin_config_class.plugin_id or not isinstance(plugin_config_class.plugin_id, str):
+            logging.warning(f'PluginConfig "{plugin_config_class.__name__}" must have a valid plugin_id')
             continue
 
         plugin_config_class.name = module_name

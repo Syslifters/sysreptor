@@ -79,7 +79,7 @@ export function levelNameFromLevelNumber(levelNumber?: number|null) {
 }
 
 export function levelNameFromScore(score?: number|null) {
-  return levelNameFromLevelNumber(levelNumberFromScore(score) - 1);
+  return levelNameFromLevelNumber(levelNumberFromScore(score));
 }
 
 export function levelNumberFromLevelName(levelName?: string|null) {

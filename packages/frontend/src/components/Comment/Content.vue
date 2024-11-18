@@ -106,7 +106,7 @@ const updateInProgress = ref(false);
 async function performUpdate() {
   try {
     updateInProgress.value = true;
-    const value = { ...modelValue.value, text: editText.value, editEnabled: false };
+    const value = { id: modelValue.value.id, text: editText.value, editEnabled: false };
     await props.update(value);
     if (props.initialEdit) {
       editEnabled.value = true;
