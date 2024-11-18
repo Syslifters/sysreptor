@@ -1,11 +1,13 @@
 /**
- * @typedef {import('micromark-util-types').Construct} Construct
- * @typedef {import('micromark-util-types').Event} Event
- * @typedef {import('micromark-util-types').Resolver} Resolver
- * @typedef {import('micromark-util-types').State} State
- * @typedef {import('micromark-util-types').Token} Token
- * @typedef {import('micromark-util-types').TokenizeContext} TokenizeContext
- * @typedef {import('micromark-util-types').Tokenizer} Tokenizer
+ * @import {
+ *   Construct,
+ *   Event,
+ *   Resolver,
+ *   State,
+ *   TokenizeContext,
+ *   Tokenizer,
+ *   Token
+ * } from 'micromark-util-types'
  */
 
 import {factoryDestination} from 'micromark-factory-destination'
@@ -20,11 +22,11 @@ import {codes, constants, types} from 'micromark-util-symbol'
 import { assert } from './helpers'
 
 /** @type {Construct} */
-const labelEnd = {
+export const labelEnd = {
   name: 'labelEndCustom',
-  tokenize: tokenizeLabelEnd,
+  resolveAll: resolveAllLabelEnd,
   resolveTo: resolveToLabelEnd,
-  resolveAll: resolveAllLabelEnd
+  tokenize: tokenizeLabelEnd
 }
 
 /** @type {Construct} */
@@ -38,8 +40,11 @@ const referenceCollapsedConstruct = {tokenize: tokenizeReferenceCollapsed}
 function resolveAllLabelEnd(events) {
   let index = -1
 
+  /** @type {Array<Event>} */
+  const newEvents = []
   while (++index < events.length) {
     const token = events[index][1]
+    newEvents.push(events[index])
 
     if (
       token.type === types.labelImage ||
@@ -49,10 +54,15 @@ function resolveAllLabelEnd(events) {
       token.type === 'inlineFootnoteEnd'
     ) {
       // Remove the marker.
-      events.splice(index + 1, (token.type === types.labelImage || token.type === 'inlineFootnoteStart') ? 4 : 2)
+      const offset = (token.type === types.labelImage || token.type === 'inlineFootnoteStart') ? 4 : 2
       token.type = types.data
-      index++
+      index += offset
     }
+  }
+
+  // If the events are equal, we don't have to copy newEvents to events
+  if (events.length !== newEvents.length) {
+    splice(events, 0, events.length, newEvents)
   }
 
   return events
@@ -93,7 +103,7 @@ function resolveToLabelEnd(events, context) {
       if (
         events[index][0] === 'enter' &&
         (token.type === types.labelImage || token.type === types.labelLink || token.type === 'inlineFootnoteStart') &&
-        !token._labelEnd_balanced
+        !token._labelEndCustom_balanced
       ) {
         open = index
 
@@ -112,20 +122,20 @@ function resolveToLabelEnd(events, context) {
 
   const group = {
     type: events[open][1].type === types.labelLink ? types.link : types.image,
-    start: Object.assign({}, events[open][1].start),
-    end: Object.assign({}, events[events.length - 1][1].end)
+    start: {...events[open][1].start},
+    end: {...events[events.length - 1][1].end}
   }
 
   const label = {
     type: types.label,
-    start: Object.assign({}, events[open][1].start),
-    end: Object.assign({}, events[close][1].end)
+    start: {...events[open][1].start},
+    end: {...events[close][1].end}
   }
 
   const text = {
     type: types.labelText,
-    start: Object.assign({}, events[open + offset + 2][1].end),
-    end: Object.assign({}, events[close - 2][1].start)
+    start: {...events[open + offset + 2][1].end},
+    end: {...events[close - 2][1].start}
   }
 
   media = [
@@ -139,6 +149,12 @@ function resolveToLabelEnd(events, context) {
   // Text open.
   media = push(media, [['enter', text, context]])
 
+  // Always populated by defaults.
+  assert(
+    context.parser.constructs.insideSpan.null,
+    'expected `insideSpan.null` to be populated'
+  )
+
   // Between.
   media = push(
     media,
@@ -149,11 +165,6 @@ function resolveToLabelEnd(events, context) {
     )
   )
 
-  // Always populated by defaults.
-  assert(
-    context.parser.constructs.insideSpan.null,
-    'expected `insideSpan.null` to be populated'
-  )
   // Text close, marker close, label close.
   media = push(media, [
     ['exit', text, context],
@@ -175,6 +186,7 @@ function resolveToLabelEnd(events, context) {
 
 /**
  * @this {TokenizeContext}
+ *    Context.
  * @type {Tokenizer}
  */
 function tokenizeLabelEnd(effects, ok, nok) {
@@ -191,7 +203,7 @@ function tokenizeLabelEnd(effects, ok, nok) {
       (self.events[index][1].type === types.labelImage ||
         self.events[index][1].type === types.labelLink ||
         self.events[index][1].type === 'inlineFootnoteStart') &&
-      !self.events[index][1]._labelEnd_balanced
+      !self.events[index][1]._labelEndCustom_balanced
     ) {
       labelStart = self.events[index][1]
       break
@@ -266,6 +278,9 @@ function tokenizeLabelEnd(effects, ok, nok) {
    * @type {State}
    */
   function after(code) {
+    // Note: `markdown-rs` also parses GFM footnotes here, which for us is in
+    // an extension.
+
     // Resource (`[asd](fgh)`)?
     if (code === codes.leftParenthesis) {
       return effects.attempt(
@@ -348,13 +363,14 @@ function tokenizeLabelEnd(effects, ok, nok) {
    * @type {State}
    */
   function labelEndNok(code) {
-    labelStart._labelEnd_balanced = true
+    labelStart._labelEndCustom_balanced = true
     return nok(code)
   }
 }
 
 /**
  * @this {TokenizeContext}
+ *   Context.
  * @type {Tokenizer}
  */
 function tokenizeResource(effects, ok, nok) {
@@ -523,6 +539,7 @@ function tokenizeResource(effects, ok, nok) {
 
 /**
  * @this {TokenizeContext}
+ *   Context.
  * @type {Tokenizer}
  */
 function tokenizeReferenceFull(effects, ok, nok) {
@@ -590,6 +607,7 @@ function tokenizeReferenceFull(effects, ok, nok) {
 
 /**
  * @this {TokenizeContext}
+ *   Context.
  * @type {Tokenizer}
  */
 function tokenizeReferenceCollapsed(effects, ok, nok) {

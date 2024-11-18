@@ -27,7 +27,7 @@ function build_plugin() {
         npm run generate
         echo "$plugin: Finished generating frontend"
         echo "$plugin: Watching for changes"
-        inotifywait --recursive --event=create --event=delete --event=modify --event=move --exclude=.nuxt --exclude=.output --exclude=dist --exclude=node_modules --exclude=NOTICE ./ || break
+        inotifywait --recursive --event=create --event=delete --event=modify --event=move --exclude='^(.nuxt|.output|dist|node_modules|NOTICE)(/.*)?' ./ || break
         echo "$plugin: Changes detected"
       done
       exit 0

@@ -1149,7 +1149,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-channels-redis
+channels_redis
 BSD
 Copyright (c) Django Software Foundation and individual contributors.
 All rights reserved.
