@@ -56,7 +56,7 @@ class TestSignalsSent:
 
         signal.connect(signal_handler_func, sender=sender)
         yield
-        signal.disconnect(signal_handler_func, sender=sender)
+        signal.disconnect(signal_handler_func)
 
         assert actual_call_count['value'] == expected_call_count
 

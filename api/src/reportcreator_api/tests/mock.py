@@ -110,7 +110,7 @@ def create_imported_member(roles=None, **kwargs):
 def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> FindingTemplate:
     data = {
         'title': f'Finding Template #{get_random_string(8)}',
-        'description': 'Template Description ![](/images/name/file0.png)',
+        'description': 'Template Description ![](/images/name/file0.png)' if images_kwargs is None else 'Template Description',
         'recommendation': 'Template Recommendation',
         'unknown_field': 'test',
     } | kwargs.pop('data', {})
@@ -286,7 +286,7 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
     report_data = {
         'title': 'Report title',
         'unknown_field': 'test',
-        'field_markdown': '![](/images/name/file0.png) [](/files/name/file0.pdf)',
+        'field_markdown': '![](/images/name/file0.png) [](/files/name/file0.pdf)' if images_kwargs is None and files_kwargs is None else 'test',
     } | (report_data or {})
     project = PentestProject.objects.create(**{
         'project_type': project_type,
@@ -300,7 +300,7 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
     sections = project.sections.all()
     section_histories = list(ReportSection.history.filter(project_id=project))
     for s in sections:
-        s.update_data(report_data)
+        s.update_data({f: v for f, v in report_data.items() if f in s.field_definition})
         if sh := next(filter(lambda sh: sh.section_id == s.section_id, section_histories), None):
             sh.custom_fields = s.custom_fields
     ReportSection.objects.bulk_update(sections, ['custom_fields'])
