@@ -31,7 +31,7 @@ from reportcreator_api.tasks.models import PeriodicTask
 from reportcreator_api.users.models import AuthIdentity
 from reportcreator_api.utils import license
 from reportcreator_api.utils.api import StreamingHttpResponseAsync, ViewSetAsync
-from reportcreator_api.utils.utils import copy_keys, remove_duplicates
+from reportcreator_api.utils.utils import copy_keys, remove_duplicates, run_in_background
 
 log = logging.getLogger(__name__)
 
@@ -215,7 +215,7 @@ class HealthcheckApiView(APIViewAsync):
 
         if res.status_code == 200:
             # Run periodic tasks
-            await PeriodicTask.objects.run_all_pending_tasks()
+            run_in_background(PeriodicTask.objects.run_all_pending_tasks())
 
             # Memory cleanup of worker process
             gc.collect()
@@ -234,3 +234,8 @@ class PluginApiView(views.APIView):
                 plugin_api_root = request.build_absolute_uri(f'/api/plugins/{p.plugin_id}/api/')
             out[p.name.split('.')[-1]] = plugin_api_root
         return Response(data=out)
+
+
+class PublicAPIRootView(routers.APIRootView):
+    authentication_classes = []
+    permission_classes = []

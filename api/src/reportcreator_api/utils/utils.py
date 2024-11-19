@@ -148,3 +148,11 @@ async def aretry(func, timeout=timedelta(seconds=1), interval=timedelta(seconds=
                 raise
             else:
                 await asyncio.sleep(interval.total_seconds())
+
+
+_background_tasks = set()
+def run_in_background(coro):
+    task = asyncio.create_task(coro)
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+
