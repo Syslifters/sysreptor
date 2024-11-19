@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from datetime import date, timedelta
+from datetime import date
 from itertools import groupby
 from typing import Any, Iterable, OrderedDict
 
@@ -134,20 +134,6 @@ def merge(*args):
 
 def groupby_to_dict(data: dict, key) -> dict:
     return dict(map(lambda t: (t[0], list(t[1])), groupby(sorted(data, key=key), key=key)))
-
-
-async def aretry(func, timeout=timedelta(seconds=1), interval=timedelta(seconds=0.1), retry_for=None):
-    timeout_abs = timezone.now() + timeout
-    while True:
-        try:
-            return await func()
-        except Exception as ex:
-            if retry_for and not isinstance(ex, retry_for):
-                raise
-            elif timezone.now() > timeout_abs:
-                raise
-            else:
-                await asyncio.sleep(interval.total_seconds())
 
 
 _background_tasks = set()
