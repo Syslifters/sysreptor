@@ -53,7 +53,7 @@
           <v-list-item
             v-for="pluginMenuEntry, idx in pluginMenuEntries"
             :key="idx"
-            :to="pluginMenuEntry.to"
+            :to="router.resolve(pluginMenuEntry.to).href"
             :title="pluginMenuEntry.title"
             :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
             v-bind="pluginMenuEntry.attrs"
@@ -118,6 +118,7 @@ const auth = useAuth();
 const apiSettings = useApiSettings();
 const pluginStore = usePluginStore();
 const route = useRoute();
+const router = useRouter();
 const display = useDisplay();
 
 const pluginMenuEntries = computed(() => pluginStore.menuEntriesForScope(PluginRouteScope.MAIN));

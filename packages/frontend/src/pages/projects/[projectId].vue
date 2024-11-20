@@ -28,7 +28,7 @@
           <v-list-item
             v-for="pluginMenuEntry, idx in pluginMenuEntries"
             :key="idx"
-            :to="pluginMenuEntry.to"
+            :to="router.resolve(pluginMenuEntry.to).href"
             :title="pluginMenuEntry.title"
             :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
             v-bind="pluginMenuEntry.attrs"
@@ -47,6 +47,7 @@
 import { projectTitleTemplate } from "#imports";
 
 const route = useRoute();
+const router = useRouter();
 const pluginStore = usePluginStore();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
