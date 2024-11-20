@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2024.91 - 2024-11-20
 * Introduce a plugin system (experimental)
 * Add plugins: CyberChef, GraphQL Voyager, Hash Identifier
 * Disable static file compression
