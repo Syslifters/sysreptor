@@ -168,8 +168,8 @@ class TestSignalsSent:
             assert res.status_code == 201, res.data
 
     def test_post_archive(self):
-        def signal_handler(sender, project, archive, *args, **kwargs):
-            assert PentestProject.objects.filter(pk=project.pk).exists()
+        def signal_handler(sender, instance, archive, *args, **kwargs):
+            assert PentestProject.objects.filter(pk=instance.pk).exists()
             assert ArchivedProject.objects.filter(pk=archive.pk).exists()
 
         p = create_project(members=[self.user], readonly=True)
