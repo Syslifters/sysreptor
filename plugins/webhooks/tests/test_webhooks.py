@@ -1,5 +1,4 @@
 import contextlib
-import time
 from unittest import mock
 
 import pytest
@@ -65,3 +64,12 @@ class TestWebhooksCalled:
         # Subscribed to event: webhook called
         create_project()
         self.mock.assert_called_once()
+
+    @override_webhook_settings(WEBHOOKS=[
+        {'url': 'https://example.com/webhook1', 'events': ['project_created']}, 
+        {'url': 'https://example.com/webhook2', 'events': ['project_created']}
+    ])
+    def test_error_handling(self):
+        self.mock.side_effect = [Exception('Request failed'), mock.DEFAULT]
+        create_project()
+        assert self.mock.call_count == 2
