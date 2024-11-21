@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from rest_framework.test import APIClient
 
+from reportcreator_api import signals as sysreptor_signals
 from reportcreator_api.api_utils.models import LanguageToolIgnoreWords
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
@@ -109,7 +110,7 @@ def create_imported_member(roles=None, **kwargs):
 def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> FindingTemplate:
     data = {
         'title': f'Finding Template #{get_random_string(8)}',
-        'description': 'Template Description',
+        'description': 'Template Description ![](/images/name/file0.png)' if images_kwargs is None else 'Template Description',
         'recommendation': 'Template Recommendation',
         'unknown_field': 'test',
     } | kwargs.pop('data', {})
@@ -118,6 +119,7 @@ def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> F
 
     template = FindingTemplate(**{
         'tags': ['web', 'dev'],
+        'skip_post_create_signal': True,
     } | kwargs)
     template.save_without_historical_record()
 
@@ -138,6 +140,8 @@ def create_template(translations_kwargs=None, images_kwargs=None, **kwargs) -> F
             'name': f'file{idx}.png',
             'file': SimpleUploadedFile(name=f'file{idx}.png', content=create_png_file()),
         } | image_kwargs)
+
+    sysreptor_signals.post_create.send(sender=template.__class__, instance=template)
 
     return template
 
@@ -189,6 +193,7 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
             'report': {'title': 'Demo Report', 'field_string': 'test', 'field_int': 5, 'unknown_field': 'test'},
             'findings': [{'title': 'Demo finding', 'unknown_field': 'test'}],
         },
+        'skip_post_create_signal': True,
     } | kwargs)
     for idx, asset_kwargs in enumerate(assets_kwargs if assets_kwargs is not None else [{}] * 1):
         UploadedAsset.objects.create(linked_object=project_type, **{
@@ -198,6 +203,9 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
 
     UploadedAsset.objects.create(linked_object=project_type, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=b'file1'))
     UploadedAsset.objects.create(linked_object=project_type, name='file2.png', file=SimpleUploadedFile(name='file2.png', content=b'file2'))
+
+    sysreptor_signals.post_create.send(sender=project_type.__class__, instance=project_type)
+
     return project_type
 
 
@@ -278,6 +286,7 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
     report_data = {
         'title': 'Report title',
         'unknown_field': 'test',
+        'field_markdown': '![](/images/name/file0.png) [](/files/name/file0.pdf)' if images_kwargs is None and files_kwargs is None else 'test',
     } | (report_data or {})
     project = PentestProject.objects.create(**{
         'project_type': project_type,
@@ -285,12 +294,13 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
         'language': Language.ENGLISH_US,
         'tags': ['web', 'customer:test'],
         'unknown_custom_fields': {f: report_data.pop(f) for f in set(report_data.keys()) - set(project_type.all_report_fields_obj.keys())},
+        'skip_post_create_signal': True,
     } | kwargs)
 
     sections = project.sections.all()
     section_histories = list(ReportSection.history.filter(project_id=project))
     for s in sections:
-        s.update_data(report_data)
+        s.update_data({f: v for f, v in report_data.items() if f in s.field_definition})
         if sh := next(filter(lambda sh: sh.section_id == s.section_id, section_histories), None):
             sh.custom_fields = s.custom_fields
     ReportSection.objects.bulk_update(sections, ['custom_fields'])
@@ -333,6 +343,8 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
             'name': f'file{idx}.pdf',
             'file': SimpleUploadedFile(name=f'file{idx}.pdf', content=file_kwargs.pop('content', f'%PDF-1.3{idx}'.encode())),
         } | file_kwargs)
+
+    sysreptor_signals.post_create.send(sender=PentestProject, instance=project)
 
     return project
 

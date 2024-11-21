@@ -83,6 +83,14 @@ class BaseModel(ModelDiffMixin, models.Model):
         abstract = True
         ordering = ['-created']
 
+    _skip_post_create_signal = False
+    @property
+    def skip_post_create_signal(self):
+        return self._skip_post_create_signal
+    @skip_post_create_signal.setter
+    def skip_post_create_signal(self, value):
+        self._skip_post_create_signal = value
+
 
 def disable_for_loaddata(signal_handler):
     """

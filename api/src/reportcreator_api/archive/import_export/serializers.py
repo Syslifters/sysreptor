@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from rest_framework import serializers
 
+from reportcreator_api import signals as sysreptor_signals
 from reportcreator_api.pentests.customfields.types import (
     FieldDefinition,
     parse_field_definition_legacy,
@@ -221,13 +222,15 @@ class FindingTemplateImportSerializerV1(ExportImportSerializer):
         main_translation_data = {k[len('main_translation__'):]: validated_data.pop(k) for k in validated_data.copy().keys() if k.startswith('main_translation__')}
         template = FindingTemplate.objects.create(**{
             'source': SourceEnum.IMPORTED,
+            'skip_post_create_signal': True,
         } | validated_data)
         data = main_translation_data.pop('data', {})
         main_translation = FindingTemplateTranslation(template=template, **main_translation_data)
         main_translation.update_data(data)
         main_translation.save()
         template.main_translation = main_translation
-        template.save()
+        template.save(update_fields=['main_translation'])
+        sysreptor_signals.post_create.send(sender=template.__class__, instance=template)
         return template
 
 
@@ -293,6 +296,7 @@ class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
         translations_data = validated_data.pop('translations')
         instance = FindingTemplate(**{
             'source': SourceEnum.IMPORTED,
+            'skip_post_create_signal': True,
         } | validated_data)
         instance.save_without_historical_record()
         self.context['template'] = instance
@@ -307,6 +311,8 @@ class FindingTemplateExportImportSerializerV2(ExportImportSerializer):
 
         self.context.update({'template': instance, 'template_id': old_id})
         self.fields['images'].create(images_data)
+
+        sysreptor_signals.post_create.send(sender=instance.__class__, instance=instance)
         return instance
 
 
@@ -395,11 +401,14 @@ class ProjectTypeExportImportSerializerV1(ExportImportSerializer):
             'source': SourceEnum.IMPORTED,
             'finding_fields': finding_fields,
             'report_sections': report_sections,
+            'skip_post_create_signal': True,
         } | validated_data)
         project_type.full_clean()
 
         self.context.update({'project_type': project_type, 'project_type_id': old_id})
         self.fields['assets'].create(assets)
+
+        sysreptor_signals.post_create.send(sender=project_type.__class__, instance=project_type)
         return project_type
 
 
@@ -438,9 +447,11 @@ class ProjectTypeExportImportSerializerV2(ExportImportSerializer):
         assets = validated_data.pop('assets', [])
         project_type = super().create({
             'source': SourceEnum.IMPORTED,
+            'skip_post_create_signal': True,
         } | validated_data)
         self.context.update({'project_type': project_type, 'project_type_id': old_id})
         self.fields['assets'].create(assets)
+        sysreptor_signals.post_create.send(sender=project_type.__class__, instance=project_type)
         return project_type
 
 
@@ -702,6 +713,7 @@ class PentestProjectExportImportSerializerV1(ExportImportSerializer):
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
                 include_unknown=True,
             ),
+            'skip_post_create_signal': True,
         })
         project_type.linked_project = project
         project_type.save()
@@ -722,6 +734,8 @@ class PentestProjectExportImportSerializerV1(ExportImportSerializer):
         self.fields['images'].create(images_data)
         self.fields['files'].create(files_data)
         self.fields['comments'].create(comments_data)
+
+        sysreptor_signals.post_create.send(sender=project.__class__, instance=project)
 
         return project
 

@@ -271,10 +271,12 @@ class TestCleanupUnreferencedFiles:
     def test_file_referenced_by_multiple_projects(self):
         with mock_time(before=timedelta(days=10)):
             project_unreferenced = create_project(
+                name='unreferenced',
                 images_kwargs=[{'name': 'image.png'}],
                 files_kwargs=[{'name': 'file.pdf'}],
+                report_data={'field_markdown': 'not referenced'},
             )
-            project_referenced = project_unreferenced.copy()
+            project_referenced = project_unreferenced.copy(name='referenced')
             section_referenced = project_referenced.sections.filter(section_id='other').get()
             section_referenced.update_data({'field_markdown': '![](/images/name/image.png)\n[](/files/name/file.pdf)'})
             section_referenced.save()
