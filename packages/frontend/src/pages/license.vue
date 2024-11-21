@@ -46,6 +46,10 @@
           <td>Software Version:</td>
           <td>{{ license.software_version }}</td>
         </tr>
+        <tr>
+          <td>Plugins:</td>
+          <td>{{ license.plugins.join(', ') || '-' }}</td>
+        </tr>
       </tbody>
     </v-table>
   </v-container>
@@ -60,7 +64,7 @@ useHeadExtended({
   breadcrumbs: () => [{ title: 'License', to: '/license/' }],
 });
 
-const license = await useFetchE<LicenseInfoDetails>('/api/v1/utils/license', { method: 'GET' });
+const license = await useFetchE<LicenseInfoDetails>('/api/v1/utils/license/', { method: 'GET' });
 const licenseWarning = computed(() => {
   if (!license.value || !license.value.valid_until) {
     return false;
