@@ -7,6 +7,7 @@ from reportcreator_api.pentests.models import ArchivedProject
 from reportcreator_api.tests.mock import create_finding, create_project, create_user
 
 from ..app import WebhooksPluginConfig
+from ..models import WebhookEventType
 
 
 @contextlib.contextmanager
@@ -37,12 +38,12 @@ class TestWebhooksCalled:
             yield
     
     @pytest.mark.parametrize(['event', 'trigger'], [
-        ('project_created', lambda s: create_project()),
-        ('project_finished', lambda s: update(s.project, readonly=True)),
-        ('project_archived', lambda s: ArchivedProject.objects.create_from_project(s.project)),
-        ('project_deleted', lambda s: s.project.delete()),
-        ('finding_created', lambda s: create_finding(s.project)),
-        ('finding_deleted', lambda s: s.project.findings.first().delete()),
+        (WebhookEventType.PROJECT_CREATED, lambda s: create_project()),
+        (WebhookEventType.PROJECT_FINISHED, lambda s: update(s.project, readonly=True)),
+        (WebhookEventType.PROJECT_ARCHIVED, lambda s: ArchivedProject.objects.create_from_project(s.project)),
+        (WebhookEventType.PROJECT_DELETED, lambda s: s.project.delete()),
+        (WebhookEventType.FINDING_CREATED, lambda s: create_finding(s.project)),
+        (WebhookEventType.FINDING_DELETED, lambda s: s.project.findings.first().delete()),
     ])
     def test_webhooks_called(self, event, trigger):
         webhook_config = {'url': 'https://example.com/webhook1', 'events': [event]}
@@ -54,7 +55,7 @@ class TestWebhooksCalled:
             assert call_args['webhook'] == webhook_config
             assert call_args['data']['event'] == event
     
-    @override_webhook_settings(WEBHOOKS=[{'url': 'https://example.com/webhook1', 'events': ['project_created']}])
+    @override_webhook_settings(WEBHOOKS=[{'url': 'https://example.com/webhook1', 'events': [WebhookEventType.PROJECT_CREATED]}])
     def test_event_filter(self):
         # Not subscribed to event
         self.mock.assert_not_called()
@@ -66,8 +67,8 @@ class TestWebhooksCalled:
         self.mock.assert_called_once()
 
     @override_webhook_settings(WEBHOOKS=[
-        {'url': 'https://example.com/webhook1', 'events': ['project_created']}, 
-        {'url': 'https://example.com/webhook2', 'events': ['project_created']}
+        {'url': 'https://example.com/webhook1', 'events': [WebhookEventType.PROJECT_CREATED]}, 
+        {'url': 'https://example.com/webhook2', 'events': [WebhookEventType.PROJECT_CREATED]}
     ])
     def test_error_handling(self):
         self.mock.side_effect = [Exception('Request failed'), mock.DEFAULT]
