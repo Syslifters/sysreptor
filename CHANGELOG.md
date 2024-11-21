@@ -1,5 +1,11 @@
 # Changelog
 
+## Upcoming
+* Plugin: webhooks at certain events
+* Run periodic tasks in background
+* UI: fix line break in logo text on Firefox
+
+
 ## v2024.91 - 2024-11-20
 * Introduce a plugin system (experimental)
 * Add plugins: CyberChef, GraphQL Voyager, Hash Identifier

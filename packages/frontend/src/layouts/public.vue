@@ -62,8 +62,8 @@ const licenseTextFull = computed(() => {
   align-items: center;
   flex-grow: 0;
   flex-shrink: 0;
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
 }
 
 .license-text {
