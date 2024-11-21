@@ -11,6 +11,7 @@ from django.db import models
 from django.utils import dateparse, timezone
 from rest_framework import permissions
 
+from reportcreator_api.conf import plugins
 from reportcreator_api.utils.decorators import cache
 
 
@@ -135,6 +136,7 @@ def get_license_info():
         'total_users': PentestUser.objects.get_total_user_count(),
         'installation_id': settings.INSTALLATION_ID,
         'software_version': settings.VERSION,
+        'plugins': [p.name.split('.')[-1] for p in plugins.enabled_plugins],
     }
 
 async def aget_license_info():
