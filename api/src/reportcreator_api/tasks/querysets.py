@@ -12,10 +12,10 @@ log = logging.getLogger(__name__)
 
 
 class PeriodicTaskQuerySet(models.QuerySet):
-    def get_pending_tasks(self):
+    async def get_pending_tasks(self):
         from reportcreator_api.tasks.models import TaskStatus
         pending_tasks = {t['id']: t.copy() for t in settings.PERIODIC_TASKS}
-        for t in self.filter(id__in=pending_tasks.keys()):
+        async for t in self.filter(id__in=pending_tasks.keys()):
             pending_tasks[t.id]['model'] = t
             # Remove non-pending tasks
             if (t.status == TaskStatus.RUNNING and t.started > timezone.now() - timedelta(minutes=10)) or \
@@ -75,5 +75,5 @@ class PeriodicTaskManager(models.Manager.from_queryset(PeriodicTaskQuerySet)):
         await task_info['model'].asave()
 
     async def run_all_pending_tasks(self):
-        for t in await sync_to_async(self.get_pending_tasks)():
+        for t in await self.get_pending_tasks():
             await self.run_task(t)

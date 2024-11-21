@@ -5,10 +5,8 @@ from uuid import uuid4
 import pytest
 from asgiref.sync import async_to_sync
 from django.test import override_settings
-from django.urls import reverse
 from django.utils import timezone
 from pytest_django.asserts import assertNumQueries
-from rest_framework.test import APIClient
 
 from reportcreator_api.pentests.models import ArchivedProject, CollabEvent, CollabEventType, PentestProject
 from reportcreator_api.pentests.tasks import (
@@ -59,8 +57,7 @@ class TestPeriodicTaskScheduling:
             yield
 
     def run_tasks(self):
-        res = APIClient().get(reverse('utils-healthcheck'))
-        assert res.status_code == 200, res.data
+        async_to_sync(PeriodicTask.objects.run_all_pending_tasks)()
 
     def test_initial_run(self):
         self.run_tasks()
@@ -348,7 +345,7 @@ class TestResetStaleArchiveRestore:
             keypart.key_part = {'key_id': 'shamir-key-id', 'key': 'dummy-key'}
             keypart.save()
 
-        reset_stale_archive_restores(None)
+        async_to_sync(reset_stale_archive_restores)(None)
 
         keypart.refresh_from_db()
         assert not keypart.is_decrypted
@@ -368,7 +365,7 @@ class TestResetStaleArchiveRestore:
         keypart2.key_part = {'key_id': 'shamir-key-id-2', 'key': 'dummy-key2'}
         keypart2.save()
 
-        reset_stale_archive_restores(None)
+        async_to_sync(reset_stale_archive_restores)(None)
 
         keypart1.refresh_from_db()
         assert keypart1.is_decrypted
@@ -391,7 +388,7 @@ class TestResetStaleArchiveRestore:
         keypart2.key_part = {'key_id': 'shamir-key-id', 'key': 'dummy-key'}
         keypart2.save()
 
-        reset_stale_archive_restores(None)
+        async_to_sync(reset_stale_archive_restores)(None)
 
         keypart1.refresh_from_db()
         assert not keypart1.is_decrypted

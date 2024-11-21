@@ -9,7 +9,13 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerSplitVie
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
-from reportcreator_api.api_utils.views import HealthcheckApiView, PluginApiView, PublicUtilsViewSet, UtilsViewSet
+from reportcreator_api.api_utils.views import (
+    HealthcheckApiView,
+    PluginApiView,
+    PublicAPIRootView,
+    PublicUtilsViewSet,
+    UtilsViewSet,
+)
 from reportcreator_api.conf import plugins
 from reportcreator_api.notifications.views import NotificationViewSet
 from reportcreator_api.pentests.collab.fallback import ConsumerHttpFallbackView
@@ -106,6 +112,7 @@ template_router.register('history', FindingTemplateHistoryViewSet, basename='fin
 
 
 public_router = DefaultRouter()
+public_router.APIRootView = PublicAPIRootView
 public_router.trailing_slash = router.trailing_slash
 public_router.include_format_suffixes = router.include_format_suffixes
 
