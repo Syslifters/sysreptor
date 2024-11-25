@@ -119,7 +119,6 @@ plugins:
   - social:
       enabled: !ENV [CI, false]
       cards: !ENV [CI, false]
-      cards_font: "Noto Sans"
       cards_layout_options:
         background_color: "#818b06"
         color: "#FFFFFF"
@@ -149,8 +148,8 @@ markdown_extensions:
   - attr_list
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_generator: !!python/name:materialx.emoji.to_svg
-      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.magiclink
   - pymdownx.highlight:
       use_pygments: true
@@ -180,5 +179,9 @@ extra:
     - icon: fontawesome/brands/linkedin
       link: https://at.linkedin.com/showcase/sysreptor
   generator: false
+
+validation:
+  links:
+    absolute_links: relative_to_docs
 
 copyright: '<a href="https://www.syslifters.com/" target="_blank">Our Website</a> | <a href="/notice">Third Party Software</a> | <a href="https://www.syslifters.com/impressum" target="_blank">Imprint</a> | <a href="/data-privacy">Data Privacy</a> | <a href="/contact-us" target="blank">Contact</a><br><br>The FFG is the central national funding organization and strengthens Austria''s innovative power.<br>This project is funded by the <a href="https://www.ffg.at" target="_blank">FFG</a>.<br>'
