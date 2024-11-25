@@ -319,3 +319,14 @@ This setting sould only be activated if WebSockets are blocked by a firewall or 
 ``` title="Example:"
 DISABLE_WEBSOCKETS=true
 ```
+
+### Plugins
+Extend the functionality of SysReptor by enabling plugins. Plugins are disabled by default and need to be explicitly enabled.
+`ENABLED_PLUGINS` is a comma separated list of plugin names or plugin IDs.
+
+``` title="Example:"
+ENABLED_PLUGINS="cyberchef,graphqlvoyager,checkthehash"
+```
+
+Some plugins require additional configuration. These plugin settings are configured as separate entries in `app.env`.
+Please refer to the plugin documentation for more information on available plugin setting.

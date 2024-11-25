@@ -10,6 +10,7 @@ nav:
       - Setup Webserver: setup/webserver.md
       - Updates: setup/updates.md
       - Backups: setup/backups.md
+      - Plugins: setup/plugins.md
       - Upgrade to PRO: setup/upgrade-to-professional.md
   - Writing Reports:
       - Markdown Syntax: reporting/markdown-features.md
