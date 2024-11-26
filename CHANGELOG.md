@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Plugin: webhooks at certain events
+* Plugin: automatically assign project numbers
 * Run periodic tasks in background
 * UI: fix line break in logo text on Firefox
 

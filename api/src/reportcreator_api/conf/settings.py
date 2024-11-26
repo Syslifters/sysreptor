@@ -25,6 +25,10 @@ from kombu import Queue
 
 from reportcreator_api.conf.plugins import load_plugins
 
+
+def remove_empty_items(lst=None):
+    return list(filter(None, lst or []))
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 MEDIA_ROOT = config('MEDIA_ROOT', default=BASE_DIR / 'data', cast=Path)
@@ -246,7 +250,7 @@ fido2.features.webauthn_json_mapping.enabled = True
 
 
 # Allowed Hosts
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default='*')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(post_process=remove_empty_items), default='*')
 if not MFA_FIDO2_RP_ID and len(ALLOWED_HOSTS) == 1 and '*' not in ALLOWED_HOSTS[0]:
     MFA_FIDO2_RP_ID = ALLOWED_HOSTS[0]
 
@@ -669,7 +673,7 @@ HEALTH_CHECKS = {
 
 # Notifications
 VERSION = config('VERSION', default='dev')
-INSTANCE_TAGS = config('INSTANCE_TAGS', cast=Csv(delimiter=';'), default='on-premise')
+INSTANCE_TAGS = config('INSTANCE_TAGS', cast=Csv(delimiter=';', post_process=remove_empty_items), default='on-premise')
 NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://cloud.sysreptor.com/api/v1/notifications/')
 
 # License
@@ -688,12 +692,12 @@ INSTALLATION_ID = INSTALLATION_ID_PATH.read_text().strip()
 
 
 # Languages
-PREFERRED_LANGUAGES = config('PREFERRED_LANGUAGES', cast=Csv(), default=None)
+PREFERRED_LANGUAGES = config('PREFERRED_LANGUAGES', cast=Csv(post_process=remove_empty_items), default=None)
 
 
 # Plugins
-PLUGIN_DIRS = list(filter(None, config('PLUGIN_DIRS', cast=Csv(cast=Path), default='')))
-ENABLED_PLUGINS = list(filter(None, config('ENABLED_PLUGINS', cast=Csv(), default='')))
+PLUGIN_DIRS = config('PLUGIN_DIRS', cast=Csv(cast=Path, post_process=remove_empty_items), default='')
+ENABLED_PLUGINS = config('ENABLED_PLUGINS', cast=Csv(post_process=remove_empty_items), default='')
 INSTALLED_APPS += load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
 
 
