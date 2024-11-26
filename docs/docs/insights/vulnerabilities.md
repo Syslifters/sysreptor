@@ -14,7 +14,7 @@ Find more information in our [advisory](https://github.com/Syslifters/sysreptor/
 
 **CVSSv3.1:** High (7.8; CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H)  
 **Fixed in 2024.29** (on 17 April 2024)  
-**Workaround:** Use a reverse proxy (like [Caddy](../setup/webserver.md#caddy-recommended) or [nginx](../setup/webserver.md#nginx)).
+**Workaround:** Use a reverse proxy (like [Caddy](../setup/webserver.md#caddy) or [nginx](../setup/webserver.md#nginx)).
 
 If you don't use a reverse proxy (like Caddy or nginx) for SysReptor and expose the SysReptor port (TCP 8000 by default) directly, you are probably vulnerable to HTTP Request Smuggling attacks.
 

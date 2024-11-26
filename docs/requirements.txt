@@ -1,10 +1,10 @@
-mkdocs==1.5.3
-git+https://${MKDOCS_MATERIAL_GIT_USERNAME}:${MKDOCS_MATERIAL_GIT_TOKEN}@gitlab.internal.syslifters.com/docs/mkdocs-material-insiders.git@9.5.17-insiders-4.53.6#egg=mkdocs-material
-mkdocs-jupyter==0.24.6
+mkdocs==1.6.1
+git+https://${MKDOCS_MATERIAL_GIT_USERNAME}:${MKDOCS_MATERIAL_GIT_TOKEN}@gitlab.internal.syslifters.com/docs/mkdocs-material-insiders.git@9.5.46-insiders-4.53.14#egg=mkdocs-material
+mkdocs-jupyter==0.25.1
 mkdocs-simple-hooks==0.1.5
 mkdocs-tooltips==0.1.0
-mkdocs-redirects==1.2.1
-pymdown-extensions==10.7.1
+mkdocs-redirects==1.2.2
+pymdown-extensions==10.12
 pillow>=10.2.0
 cairosvg==2.7.1
 requests>=2.31.0
