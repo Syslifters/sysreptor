@@ -275,6 +275,23 @@ Uploaded images are compressed to reduce file size, but to retain quality suitab
 COMPRESS_IMAGES=false
 ```
 
+### PDF Rendering
+PDFs are compressed via `ghostscript` when generating the final report (not in previews). 
+PDF compression reduces the file size, but can lead to quality loss of images and differences between the preview and the final PDF.
+PDF compression is enabled by default. Disable PDF compression using this setting.
+
+``` title="Example:"
+COMPRESS_PDF=false
+```
+
+SysReptor limits the rendering time a PDF can take. If the rendering time exceeds the limit, the PDF render task is aborted. The default limit is 300 seconds (5 minutes).
+If you experience slow PDF rendering, try to [optimize your design](../designer/debugging.md#slow-pdf-rendering) before increasing the limit.
+
+``` title="Example:"
+PDF_RENDERING_TIME_LIMIT=300
+```
+
+
 ### Reverse Proxy
 Interpret `X-Forwarded-*` headers when SysReptor is behind a reverse proxy. 
 See also https://docs.djangoproject.com/en/stable/ref/settings/#use-x-forwarded-host

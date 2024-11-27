@@ -30,3 +30,17 @@ However, you can set background colors or borders on elements to see where they 
   background-color: rgba(255, 0, 0, 0.2);
 }
 ```
+
+
+## Slow PDF Rendering
+If you experience slow PDF rendering, here are a few tips to speed up rendering:
+
+* Identify the slow step: Is the slow step `chromium` (Vue template to HTML) or `weasyprint` (HTML+CSS to PDF)?
+* If `weasyprint` is slow (most likely):
+    * Weasyprint render times increase with the number of pages and the complexity of the HTML/CSS. Rendering times up to 20s are normal for complex reports.
+    * Table rendering is a common bottleneck, especially with large tables containing multiline cells with `table-layout: auto` (default). Try settings `table { table-layout: fixed; }` in your design's CSS and assign fixed widths to columns (e.g. `<th style="width: 10em">...</th>`).
+    * If that did not help, try to identify the slowest part by commenting out HTML and CSS blocks until rendering is fast again. Try to optimize the slow part, by using different CSS rules or HTML structures.
+* If `chromium` is slow:
+    * Chromium has rendering times of up to 5s on average for complex reports. This step is usually faster than `weasyprint`.
+    * If this step is slow, try to identify the slowest part by commenting out Vue template blocks (e.g. custom JS functions) until rendering is fast again. Try to optimize the slow part, by using different Vue template structures.
+
