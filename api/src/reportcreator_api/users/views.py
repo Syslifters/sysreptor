@@ -32,6 +32,7 @@ from reportcreator_api.users.serializers import (
     APITokenCreateSerializer,
     APITokenSerializer,
     AuthIdentitySerializer,
+    ChangePasswordSerializer,
     CreateUserSerializer,
     LoginMFACodeSerializer,
     LoginSerializer,
@@ -104,8 +105,10 @@ class PentestUserViewSet(viewsets.ModelViewSet):
         return super().get_object()
 
     def get_serializer_class(self):
-        if self.action in ['change_password', 'reset_password']:
+        if self.action == 'reset_password':
             return ResetPasswordSerializer
+        elif self.action == 'change_password':
+            return ChangePasswordSerializer
         elif self.action == 'create':
             return CreateUserSerializer
         elif (getattr(self.request.user, 'is_admin', False) or getattr(self.request.user, 'is_user_manager', False)) or \
@@ -272,6 +275,8 @@ class AuthViewSet(viewsets.ViewSet):
             return LoginSerializer
         elif self.action == 'login_code':
             return LoginMFACodeSerializer
+        elif self.action == 'change_password':
+            return ChangePasswordSerializer
         else:
             return serializers.Serializer
 
@@ -284,20 +289,7 @@ class AuthViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
 
-        mfa_methods = list(user.mfa_methods.all().default_order())
-        if not mfa_methods:
-            # MFA disabled
-            return self.perform_login(request, user)
-        else:
-            request.session['login_state'] = request.session.get('login_state', {}) | {
-                'status': 'mfa-required',
-                'user_id': str(user.id),
-                'start': timezone.now().isoformat(),
-            }
-            return Response({
-                'status': 'mfa-required',
-                'mfa': MFAMethodSerializer(mfa_methods, many=True).data,
-            }, status=200)
+        return self.perform_login_local(request, user)
 
     @action(detail=False, methods=['post'], authentication_classes=api_settings.DEFAULT_AUTHENTICATION_CLASSES)
     def logout(self, request, *args, **kwargs):
@@ -310,7 +302,7 @@ class AuthViewSet(viewsets.ViewSet):
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return self.perform_login(request, request.user)
+        return self.perform_login_local(request, request.user, step='mfa')
 
     @action(detail=False, url_path='login/fido2/begin', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication], permission_classes=[LocalUserAuthPermissions])
     def login_fido2_begin(self, request, *args, **kwargs):
@@ -338,7 +330,7 @@ class AuthViewSet(viewsets.ViewSet):
                 raise serializers.ValidationError(ex.args[0], 'fido2') from ex
             else:
                 raise ex
-        return self.perform_login(request, request.user)
+        return self.perform_login_local(request, request.user, step='mfa')
 
     def _verify_mfa_preconditions(self, request):
         login_state = request.session.get('login_state', {})
@@ -347,10 +339,63 @@ class AuthViewSet(viewsets.ViewSet):
         elif datetime.fromisoformat(login_state.get('start')) + settings.MFA_LOGIN_TIMEOUT < timezone.now():
             raise APIBadRequestError('Login timeout. Please restart login.')
 
-    def perform_login(self, request, user, can_reauth=True):
+    @action(detail=False, url_path='login/change-password', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication], permission_classes=[LocalUserAuthPermissions])
+    def change_password(self, request, *args, **kwargs):
+        # verify login state
+        login_state = request.session.get('login_state', {})
+        if login_state.get('status') != 'password-change-required':
+            raise APIBadRequestError('Password change not allowed')
+
+        serializer = self.get_serializer(instance=request.user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return self.perform_login_local(request, request.user, step='change-password')
+
+    def perform_login_local(self, request, user, step=None, can_reauth=True):
+        is_reauth = bool(request.session.get('authentication_info', {}).get('login_time')) and str(user.id) == request.session.get(SESSION_KEY)
+        if not step:
+            # After username+password successful
+            request.session['login_state'] = request.session.get('login_state', {}) | {
+                'status': 'mfa-required',
+                'user_id': str(user.id),
+                'start': timezone.now().isoformat(),
+            }
+
+            mfa_methods = list(user.mfa_methods.all().default_order())
+            if not mfa_methods:
+                # MFA disabled: skip MFA setp
+                return self.perform_login_local(request, user, step='mfa')
+            else:
+                return Response({
+                    'status': 'mfa-required',
+                    'mfa': MFAMethodSerializer(mfa_methods, many=True).data,
+                }, status=200)
+        elif step == 'mfa':
+            # After MFA successful
+            self.validate_login_allowed(user)
+            request.session['login_state'] = request.session.get('login_state', {}) | {
+                'status': 'password-change-required',
+            }
+
+            if not user.must_change_password or is_reauth:
+                # Continue with next stage
+                return self.perform_login_local(request, user, step='change-password')
+            else:
+                return Response({
+                    'status': 'password-change-required',
+                }, status=200)
+        else:
+            # After all other steps: perform actual login
+            return self.perform_login(request, user, can_reauth=can_reauth)
+
+    def validate_login_allowed(self, user):
         if not user.is_active:
             raise APIBadRequestError('User is inactive')
         license.validate_login_allowed(user)
+
+    def perform_login(self, request, user, can_reauth=True):
+        self.validate_login_allowed(user)
 
         request.session.pop('login_state', None)
         first_login = not user.last_login

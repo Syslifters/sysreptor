@@ -1,5 +1,5 @@
 <template>
-  <v-form ref="form" @submit.prevent="changePassword">
+  <v-form ref="formRef" @submit.prevent="changePassword">
     <v-toolbar density="compact" flat color="inherit">
       <v-toolbar-title>
         Reset password of {{ user.username }}<template v-if="user.name"> ({{ user.name }})</template>
@@ -7,10 +7,18 @@
     </v-toolbar>
 
     <s-password-field
-      v-model="password"
+      v-model="form.password"
       label="New password"
       :error-messages="serverErrors?.password || []"
       confirm show-strength
+      :disabled="!canEdit"
+    />
+
+    <s-checkbox
+      v-model="form.must_change_password"
+      label="Must change password"
+      hint="The user has to change the password at the next login."
+      :error-message="serverErrors?.must_change_password || []"
       :disabled="!canEdit"
     />
 
@@ -32,23 +40,24 @@ const auth = useAuth();
 
 const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/`, { method: 'GET' });
 
-const password = ref(null);
+const form = ref({
+  password: '',
+  must_change_password: true,
+})
 const serverErrors = ref<any|null>(null);
 
 const canEdit = computed(() => auth.permissions.value.user_manager && !user.value!.is_system_user);
 
-const form = ref<VForm>();
+const formRef = ref<VForm>();
 async function changePassword() {
-  if (!((await form.value!.validate()).valid)) {
+  if (!((await formRef.value!.validate()).valid)) {
     return;
   }
 
   try {
     await $fetch(`/api/v1/pentestusers/${user.value!.id}/reset-password/`, {
       method: 'POST',
-      body: {
-        password: password.value
-      }
+      body: form.value,
     });
     successToast('Password changed');
     await navigateTo(`/users/${user.value.id}/`);

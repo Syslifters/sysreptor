@@ -52,6 +52,8 @@ const { error } = useAsyncData(async () => {
     });
     if (res.status === LoginResponseStatus.MFA_REQUIRED) {
       throw new Error('MFA required, but not supported for autologin');
+    } else if (res.status !== LoginResponseStatus.SUCCESS) {
+      throw new Error(`Login failed: ${res.status}`);
     }
     await auth.fetchUser();
     await auth.redirect();

@@ -45,7 +45,7 @@ class TestLogin:
             self.assert_api_access(False)
         return res
 
-    def assert_mfa_login(self, mfa_method, data=None, user=None, success=True):
+    def assert_mfa_login(self, mfa_method, data=None, user=None, success=True, status='success'):
         self.assert_login(user=user or self.user_mfa, status='mfa-required')
         if mfa_method.method_type == MFAMethodType.BACKUP:
             res = self.client.post(reverse('auth-login-code'), data={
@@ -62,10 +62,21 @@ class TestLogin:
 
         if success:
             assert res.status_code == 200
-            self.assert_api_access(True)
+            assert res.data['status'] == status
+            if status == 'success':
+                self.assert_api_access(True)
         else:
             assert res.status_code in [400, 403]
             self.assert_api_access(False)
+        return res
+
+    def assert_change_password(self, password=None, success=True):
+        res = self.client.post(reverse('auth-change-password'), data={'password': password or get_random_string(32)})
+        if success:
+            assert res.status_code == 200
+            assert res.data['status'] == 'success'
+        else:
+            assert res.status_code in [400, 403]
         return res
 
     def test_login(self):
@@ -115,6 +126,32 @@ class TestLogin:
         other_user = create_user()
         other_mfa = MFAMethod.objects.create_totp(user=other_user)
         self.assert_mfa_login(user=self.user_mfa, mfa_method=other_mfa, success=False)
+
+    def test_must_change_password(self):
+        self.user.must_change_password = True
+        self.user.save()
+
+        self.assert_login(self.user, status='password-change-required')
+        self.assert_api_access(False)
+        self.assert_change_password(password=get_random_string(3), success=False)
+        self.assert_api_access(False)
+        self.assert_change_password()
+        self.assert_api_access(True)
+
+        self.user.refresh_from_db()
+        assert not self.user.must_change_password
+
+    def test_must_change_password_mfa(self):
+        self.user_mfa.must_change_password = True
+        self.user_mfa.save()
+
+        self.assert_mfa_login(mfa_method=self.mfa_totp, user=self.user_mfa, status='password-change-required')
+        self.assert_api_access(False)
+        self.assert_change_password()
+        self.assert_api_access(True)
+
+        self.user.refresh_from_db()
+        assert not self.user.must_change_password
 
     @override_settings(REMOTE_USER_AUTH_ENABLED=True, REMOTE_USER_AUTH_HEADER='Remote-User')
     def test_login_remoteuser(self):

@@ -53,6 +53,8 @@ class Command(BaseCommand):
             user.is_staff = True
         if is_system_user:
             user.is_system_user = True
+        if is_initial_saas_user:
+            user.must_change_password = True
         user.save()
 
         self.stdout.write("User created or updated")
