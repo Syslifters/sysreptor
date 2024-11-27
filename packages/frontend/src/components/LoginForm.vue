@@ -1,7 +1,12 @@
 <template>
   <s-card>
     <v-toolbar color="header" flat>
-      <v-toolbar-title><slot name="title">Login</slot></v-toolbar-title>
+      <v-toolbar-title>
+        <slot name="title">
+          <template v-if="step === LoginStep.CHANGE_PASSWORD">Change Password</template>
+          <template v-else>Login</template>
+        </slot>
+      </v-toolbar-title>
     </v-toolbar>
 
     <template v-if="step === LoginStep.USERNAME">
@@ -125,6 +130,29 @@
         </v-list>
       </v-card-text>
     </template>
+
+    <template v-else-if="step === LoginStep.CHANGE_PASSWORD">
+      <v-form ref="form" @submit.prevent="changePassword">
+        <v-card-text>
+          <s-password-field
+            v-model="formChangePassword.password"
+            confirm show-strength
+            label="New Password"
+          />
+
+          <p v-if="errorMessage" class="text-error">
+            {{ errorMessage }}
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <s-btn-primary
+            type="submit"
+            text="Change Password"
+          />
+        </v-card-actions>
+      </v-form>
+    </template>
   </s-card>
 </template>
 
@@ -146,6 +174,7 @@ enum LoginStep {
   USERNAME = 'username',
   MFA = 'mfa',
   MFA_SELECT = 'mfa-select',
+  CHANGE_PASSWORD = 'change-password',
 }
 
 const step = ref<LoginStep>(LoginStep.USERNAME);
@@ -161,6 +190,9 @@ const formCode = ref({
   code: '',
 });
 const otpRef = ref<VOtpInput|null>(null);
+const formChangePassword = ref({
+  password: '',
+});
 
 async function loginStep(fn: () => Promise<LoginResponse|null>) {
   if (actionInProgress.value) {
@@ -183,12 +215,16 @@ async function loginStep(fn: () => Promise<LoginResponse|null>) {
     } else if (res.status === LoginResponseStatus.MFA_REQUIRED) {
       mfaMethods.value = res.mfa!;
       beginMfaLogin(mfaMethods.value!.find(m => m.is_primary) || mfaMethods.value![0]!)
+    } else if (res.status === LoginResponseStatus.PASSWORD_CHANGE_REQUIRED) {
+      step.value = LoginStep.CHANGE_PASSWORD;
     }
   } catch (error: any) {
     if (error?.data?.detail) {
       errorMessage.value = error.data.detail;
     } else if (error?.data?.non_field_errors) {
       errorMessage.value = error.data.non_field_errors[0];
+    } else if (error?.data?.password) {
+      errorMessage.value = error.data.password.join(', ');
     } else if (error instanceof DOMException) {
       errorMessage.value = error.message;
     } else {
@@ -240,6 +276,17 @@ async function loginCode() {
       },
     });
   });
+}
+
+async function changePassword() {
+  await loginStep(async () => {
+    return await $fetch('/api/v1/auth/login/change-password/', {
+      method: 'POST',
+      body: {
+        password: formChangePassword.value.password,
+      },
+    });
+  })
 }
 
 </script>

@@ -24,6 +24,7 @@ from reportcreator_api.utils.models import BaseModel
 
 class PentestUser(BaseModel, AbstractUser):
     password = EncryptedField(base_field=models.CharField(_("password"), max_length=128))
+    must_change_password = models.BooleanField(_('Must change password at next login'), default=False)
 
     middle_name = models.CharField(_('Middle name'), max_length=255, null=True, blank=True)
     title_before = models.CharField(_('Title (before)'), max_length=255, null=True, blank=True)

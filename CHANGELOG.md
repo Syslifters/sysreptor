@@ -4,6 +4,7 @@
 * Plugin: webhooks at certain events
 * Plugin: automatically assign project numbers
 * Run periodic tasks in background
+* Add user option to force change password on next login
 * UI: fix line break in logo text on Firefox
 
 

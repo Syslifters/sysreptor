@@ -18,28 +18,48 @@
           class="mt-4 mb-4"
         />
 
-        <s-checkbox
-          v-model="user.is_active"
-          :disabled="!canEdit || user.id === auth.user.value!.id"
-          label="User is active"
-          hint="Inactive users cannot log in"
-          density="compact"
-        />
-        <s-checkbox
-          v-model="user.can_login_local"
-          label="Local user"
-          hint="The user can log in with username and password."
-          disabled
-          density="compact"
-        />
-        <s-checkbox
-          v-if="apiSettings.isSsoEnabled"
-          v-model="user.can_login_sso"
-          label="SSO user"
-          hint="The user can login with an authentication provider. Linked identities are configured."
-          disabled
-          density="compact"
-        />
+        <v-row>
+          <v-col>
+            <s-checkbox
+              v-model="user.is_active"
+              :disabled="!canEdit || user.id === auth.user.value!.id"
+              label="User is active"
+              hint="Inactive users cannot log in"
+              density="compact"
+            />
+          </v-col>
+          <v-col>
+            <s-checkbox
+              v-if="user.can_login_local"
+              v-model="user.must_change_password"
+              :disabled="!canEdit"
+              label="Must change password"
+              hint="The user has to change the password at the next login."
+              density="compact"
+            />
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <s-checkbox
+              v-model="user.can_login_local"
+              label="Local user"
+              hint="The user can log in with username and password."
+              disabled
+              density="compact"
+            />
+          </v-col>
+          <v-col>
+            <s-checkbox
+              v-if="apiSettings.isSsoEnabled"
+              v-model="user.can_login_sso"
+              label="SSO user"
+              hint="The user can login with an authentication provider. Linked identities are configured."
+              disabled
+              density="compact"
+            />
+          </v-col>
+        </v-row>
       </template>
       <s-checkbox
         v-if="apiSettings.isLocalUserAuthEnabled && !user.is_system_user"

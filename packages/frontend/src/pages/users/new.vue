@@ -12,12 +12,19 @@
 
       <user-info-form v-model="userForm" :errors="serverErrors" :can-edit-permissions="true" :can-edit-username="true">
         <template #login-information>
-          <s-password-field
-            v-if="apiSettings.isLocalUserAuthEnabled"
-            v-model="userForm.password"
-            confirm show-strength
-            :error-messages="serverErrors?.password || []"
-          />
+          <div v-if="apiSettings.isLocalUserAuthEnabled">
+            <s-password-field
+              v-model="userForm.password"
+              confirm show-strength
+              :error-messages="serverErrors?.password || []"
+            />
+            <s-checkbox
+              v-model="userForm.must_change_password"
+              label="Must change password"
+              hint="The user has to change the password at the next login."
+              :error-message="serverErrors?.must_change_password || []"
+            />
+          </div>
           <div v-if="apiSettings.isSsoEnabled" class="mt-4">
             SSO Authentication Identity (optional):
             <v-row>
@@ -64,6 +71,7 @@ const userForm = ref<User & { password: string|null }>({
   email: null,
   phone: null,
   mobile: null,
+  must_change_password: true,
   is_superuser: !apiSettings.isProfessionalLicense,
   is_project_admin: false,
   is_user_manager: false,

@@ -17,7 +17,6 @@
         <v-progress-linear
           v-model="passwordStrengthLevel"
           :color="passwordStrengthColor"
-          absolute
           height="7"
         />
       </template>

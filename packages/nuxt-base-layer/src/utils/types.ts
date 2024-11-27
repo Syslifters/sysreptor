@@ -34,6 +34,8 @@ export type User = UserShortInfo & BaseModel & {
   readonly can_login_local: boolean;
   readonly can_login_sso: boolean;
 
+  must_change_password: boolean;
+
   email: string|null;
   phone: string|null;
   mobile: string|null;
@@ -195,6 +197,7 @@ export type UserPublicKey = BaseModel & {
 export enum LoginResponseStatus {
   SUCCESS = 'success',
   MFA_REQUIRED = 'mfa-required',
+  PASSWORD_CHANGE_REQUIRED = 'password-change-required',
 }
 
 export type LoginResponse = {
