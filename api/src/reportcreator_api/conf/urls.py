@@ -184,6 +184,15 @@ websocket_urlpatterns = [
     path('api/ws/pentestprojects/<uuid:project_pk>/notes/', ProjectNotesConsumer.as_asgi(), name='projectnotebookpage-ws'),
     path('api/ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi(), name='usernotebookpage-ws'),
     path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/', SharedProjectNotesPublicConsumer.as_asgi(), name='sharednote-ws'),
+
+     # Plugins
+    path('api/plugins/', include([
+        path('', PluginApiView.as_view()),
+
+         path('', include([
+            *[path(f'{p.plugin_id}/ws/', include((p.websocket_urlpatterns, p.label))) for p in plugins.enabled_plugins],
+        ])),
+    ])),
 ]
 
 
