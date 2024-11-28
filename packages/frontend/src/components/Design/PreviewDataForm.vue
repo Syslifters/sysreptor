@@ -225,6 +225,7 @@ function createObject(properties: FieldDefinition[]) {
 function createFinding() {
   const newFinding = createObject(props.projectType.finding_fields);
   newFinding.id = uuidv4();
+  newFinding.created = new Date().toISOString();
   newFinding.title = newFinding.title || 'New Demo Finding';
 
   emit('update:modelValue', {

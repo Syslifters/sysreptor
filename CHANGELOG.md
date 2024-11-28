@@ -5,6 +5,7 @@
 * Plugin: automatically assign project numbers
 * Run periodic tasks in background
 * Add user option to force change password on next login
+* Fix finding.created not included in design preview data 
 * UI: fix line break in logo text on Firefox
 
 
