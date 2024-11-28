@@ -1,3 +1,4 @@
+from channels.routing import URLRouter
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -185,14 +186,8 @@ websocket_urlpatterns = [
     path('api/ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi(), name='usernotebookpage-ws'),
     path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/', SharedProjectNotesPublicConsumer.as_asgi(), name='sharednote-ws'),
 
-     # Plugins
-    path('api/plugins/', include([
-        path('', PluginApiView.as_view()),
-
-         path('', include([
-            *[path(f'{p.plugin_id}/ws/', include((p.websocket_urlpatterns, p.label))) for p in plugins.enabled_plugins],
-        ])),
-    ])),
+    # Plugins
+    *[path(f'api/plugins/{p.plugin_id}/ws/', URLRouter(p.websocket_urlpatterns)) for p in plugins.enabled_plugins],
 ]
 
 
