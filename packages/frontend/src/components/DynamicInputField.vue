@@ -1,7 +1,7 @@
 <template>
   <v-hover v-model="isHovering">
     <template #default="{ props: hoverProps }">
-      <div :id="props.id" class="mt-4 d-flex flex-row flex-grow-width" :class="nestedClass" v-bind="hoverProps">
+      <div :id="props.id" class="mt-4 d-flex flex-row flex-grow-width" :class="nestedClass" @keydown.ctrl.alt.m.stop="commentBtnRef?.createComment()" v-bind="hoverProps">
         <div class="flex-grow-width">
           <!-- String -->
           <markdown-text-field
@@ -538,12 +538,15 @@ const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({
+  ref: 'commentBtnRef',
   comments: props.collab?.comments?.filter(c => c.collabPath === props.collab?.path) || [],
   onComment: (v: any) => emit('comment', v),
   collabPath: props.collab?.path || '',
   isHovering: isHovering.value,
   disabled: props.disabled || props.readonly,
 }));
+
+const commentBtnRef = ref();
 </script>
 
 <style lang="scss" scoped>

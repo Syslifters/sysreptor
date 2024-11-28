@@ -47,6 +47,7 @@
         <v-textarea
           ref="textFieldRef"
           v-model="editText"
+          @keydown.ctrl.enter.prevent="performUpdate"
           :placeholder="props.placeholder"
           density="compact"
           variant="outlined"

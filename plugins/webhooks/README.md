@@ -7,7 +7,7 @@ Configure webhooks by enabling this plugin and configuring `WEBHOOKS='[...]'` in
 
 ```shell
 ENABLED_PLUGINS="webhooks"
-WEBHOOKS='[{"url": "https://example.com/webhook", "headers": {"Authorization": "shared secret", "X-Custom-Header": "other"} "events": ["project_created"]}]'
+WEBHOOKS='[{"url": "https://example.com/webhook", "headers": {"Authorization": "shared secret", "X-Custom-Header": "other"} "events": ["project_created", "project_finished"]}]'
 ```
 
 The `events` option configures a list of events that should trigger the webhook. See [WebhookEventType in models.py](./models.py) for available events.
@@ -20,7 +20,7 @@ The body contains the event type and resource IDs, but no (potentially sensitive
 
 ```json
 {
-    "event": "project_created",
+    "event": "project_finished",
     "project_id": "11223344-5566-7788-9900-aabbccddeeff"
 }
 ```

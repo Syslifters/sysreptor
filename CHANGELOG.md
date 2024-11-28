@@ -6,6 +6,9 @@
 * Run periodic tasks in background
 * Add user option to force change password on next login
 * Fix finding.created not included in design preview data 
+* Allow marking resolved comments as open
+* UI: Create comments with Ctrl+Alt+M
+* UI: Save comment texts with Ctrl+Enter
 * UI: fix line break in logo text on Firefox
 
 
