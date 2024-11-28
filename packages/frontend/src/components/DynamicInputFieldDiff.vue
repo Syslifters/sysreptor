@@ -4,7 +4,7 @@
     v-model="isHovering"
   >
     <template #default="{ props: hoverProps }">
-      <div :id="props.id" class="mt-4" :class="nestedClass" v-bind="hoverProps">
+      <div :id="props.id" class="mt-4" :class="nestedClass" @keydown.ctrl.alt.m.stop="commentBtnRef?.createComment()" v-bind="hoverProps">
         <s-card v-if="props.current.definition?.type === 'object'">
           <v-card-item class="pb-0">
             <v-card-title class="text-body-1">{{ props.current.definition.label }}</v-card-title>
@@ -173,6 +173,7 @@ const nestedClass = computed(() => {
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({
+  ref: 'commentBtnRef',
   comments: props.current.collab?.comments?.filter(c => c.collabPath === props.current.collab?.path) || [],
   onComment: (v: any) => props.current?.onComment?.(v),
   collabPath: props.current.collab?.path || '',
@@ -180,4 +181,5 @@ const commentBtnAttrs = computed(() => ({
   disabled: (props.current as any).disabled || props.current.readonly,
   density: 'comfortable',
 }));
+const commentBtnRef = ref();
 </script>

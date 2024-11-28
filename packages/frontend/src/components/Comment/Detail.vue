@@ -22,13 +22,24 @@
       <template #menu>
         <btn-confirm
           v-if="comment.status === CommentStatus.OPEN"
-          :action="() => projectStore.resolveComment(props.project, comment, { status: comment.status === CommentStatus.OPEN ? CommentStatus.RESOLVED : CommentStatus.OPEN })"
+          :action="() => projectStore.resolveComment(props.project, comment, { status: CommentStatus.RESOLVED })"
           :disabled="readonly"
           :confirm="false"
           button-variant="icon"
-          button-icon="mdi-check"
+          button-icon="mdi-circle-outline"
           button-text="Resolve"
           tooltip-text="Resolve comment"
+          density="compact"
+        />
+        <btn-confirm
+          v-else
+          :action="() => projectStore.resolveComment(props.project, comment, { status: CommentStatus.OPEN })"
+          :disabled="readonly"
+          :confirm="false"
+          button-variant="icon"
+          button-icon="mdi-checkbox-marked-circle-outline"
+          button-text="Un-resolve"
+          tooltip-text="Mark as open (unresolved)"
           :button-color="'success'"
           density="compact"
         />

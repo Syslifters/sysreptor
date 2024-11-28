@@ -185,6 +185,24 @@ export function useMarkdownEditorBase(options: {
       fileUploadInProgress.value = false;
     }
   }
+
+  function createCommentShortcut(view: EditorView) {
+    if (!options.props.value.collab?.comments || options.props.value.disabled || options.props.value.readonly) {
+      return false;
+    }
+    
+    const selectionRange = view.state.selection.main
+    options.emit('comment', {
+      type: 'create', 
+      comment: { 
+        text: '', 
+        collabPath: options.props.value.collab!.path, 
+        text_range: selectionRange.empty ? null : { from: selectionRange.from, to: selectionRange.to },
+      }
+    });
+
+    return true;
+  }
   
   function onBeforeApplyRemoteTextChange(event: any) {
     if (options.editorView.value && event.path === options.props.value.collab?.path) {
@@ -234,7 +252,11 @@ export function useMarkdownEditorBase(options: {
             return { dom };
           },
         }),
-        keymap.of([...defaultKeymap, ...historyKeymap]),
+        keymap.of([
+          ...defaultKeymap, 
+          ...historyKeymap,
+          { key: 'Ctrl-Alt-m', stopPropagation: true, run: createCommentShortcut },
+        ]),
         tooltips({ parent: document.body }),
         EditorView.domEventHandlers({
           blur: (event: FocusEvent) => options.emit('blur', event),
