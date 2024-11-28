@@ -16,11 +16,12 @@
 
     <s-checkbox
       v-model="form.must_change_password"
-      label="Must change password"
       hint="The user has to change the password at the next login."
       :error-message="serverErrors?.must_change_password || []"
-      :disabled="!canEdit"
-    />
+      :disabled="!canEdit || !apiSettings.isProfessionalLicense"
+    >
+      <template #label><pro-info>Must change password</pro-info></template>
+    </s-checkbox>
 
     <s-btn-secondary
       type="submit"
@@ -37,12 +38,13 @@ import type { VForm } from 'vuetify/lib/components/index.mjs';
 
 const route = useRoute();
 const auth = useAuth();
+const apiSettings = useApiSettings();
 
 const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/`, { method: 'GET' });
 
 const form = ref({
   password: '',
-  must_change_password: true,
+  must_change_password: apiSettings.isProfessionalLicense,
 })
 const serverErrors = ref<any|null>(null);
 

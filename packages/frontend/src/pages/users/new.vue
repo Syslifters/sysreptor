@@ -23,7 +23,10 @@
               label="Must change password"
               hint="The user has to change the password at the next login."
               :error-message="serverErrors?.must_change_password || []"
-            />
+              :disabled="!apiSettings.isProfessionalLicense"
+            >
+              <template #label><pro-info>Must change password</pro-info></template>
+            </s-checkbox>
           </div>
           <div v-if="apiSettings.isSsoEnabled" class="mt-4">
             SSO Authentication Identity (optional):
@@ -71,7 +74,7 @@ const userForm = ref<User & { password: string|null }>({
   email: null,
   phone: null,
   mobile: null,
-  must_change_password: true,
+  must_change_password: apiSettings.isProfessionalLicense,
   is_superuser: !apiSettings.isProfessionalLicense,
   is_project_admin: false,
   is_user_manager: false,

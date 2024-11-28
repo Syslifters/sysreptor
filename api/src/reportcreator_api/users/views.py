@@ -378,7 +378,7 @@ class AuthViewSet(viewsets.ViewSet):
                 'status': 'password-change-required',
             }
 
-            if not user.must_change_password or is_reauth:
+            if not (user.must_change_password and license.is_professional()) or is_reauth:
                 # Continue with next stage
                 return self.perform_login_local(request, user, step='change-password')
             else:

@@ -51,6 +51,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'is_global_archiver': {'read_only': read_only},
             'username': {'read_only': read_only},
             'is_active': {'read_only': read_only},
+            'must_change_password': {'read_only': read_only},
         }
 
     def validate_is_active(self, value):

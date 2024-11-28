@@ -32,11 +32,12 @@
             <s-checkbox
               v-if="user.can_login_local"
               v-model="user.must_change_password"
-              :disabled="!canEdit"
-              label="Must change password"
+              :disabled="!canEdit || !apiSettings.isProfessionalLicense"
               hint="The user has to change the password at the next login."
               density="compact"
-            />
+            >
+              <template #label><pro-info>Must change password</pro-info></template>
+            </s-checkbox>
           </v-col>
         </v-row>
         <v-row>
