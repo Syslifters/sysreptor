@@ -131,14 +131,18 @@ def format_template_data(data: dict, project_type: ProjectType, imported_members
         require_id=True)
     data['findings'] = sort_findings(findings=[
         format_template_field_object(
-            value=(f if isinstance(f, dict) else {}) | ensure_defined_structure(
+            value={
+                'id': uuid.uuid4(),
+                'created': timezone.now().isoformat(),
+                'order': fidx,
+            } | (f if isinstance(f, dict) else {}) | ensure_defined_structure(
                 value=f,
                 definition=project_type.finding_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT),
             definition=project_type.finding_fields_obj,
             members=members,
             require_id=True)
-        for f in data.get('findings', [])],
+        for fidx, f in enumerate(data.get('findings', []))],
         project_type=project_type, override_finding_order=override_finding_order)
     data['pentesters'] = sorted(
         members,
@@ -158,7 +162,7 @@ async def format_project_template_data(project: PentestProject, project_type: Op
         },
         'findings': [{
             'id': str(f.finding_id),
-            'created': str(f.created),
+            'created': f.created.isoformat(),
             'order': f.order,
             **f.data,
         } async for f in project.findings.all()],

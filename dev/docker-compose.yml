@@ -199,6 +199,8 @@ services:
       - type: bind
         source: ../api/src/reportcreator_api/tasks/rendering/global_assets/
         target: /app/packages/frontend/src/assets/rendering/
+    tmpfs:
+      - /tmp
     expose:
       - 3000
       - 24678

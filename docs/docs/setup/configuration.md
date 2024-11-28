@@ -281,7 +281,7 @@ PDF compression reduces the file size, but can lead to quality loss of images an
 PDF compression is enabled by default. Disable PDF compression using this setting.
 
 ``` title="Example:"
-COMPRESS_PDF=false
+COMPRESS_PDFS=false
 ```
 
 SysReptor limits the rendering time a PDF can take. If the rendering time exceeds the limit, the PDF render task is aborted. The default limit is 300 seconds (5 minutes).
