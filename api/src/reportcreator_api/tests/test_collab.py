@@ -7,19 +7,14 @@ from datetime import timedelta
 import pytest
 import pytest_asyncio
 from asgiref.sync import sync_to_async
-from channels.testing import WebsocketCommunicator
-from django.conf import settings
-from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.module_loading import import_string
 
 from reportcreator_api.archive.import_export import export_notes
-from reportcreator_api.conf.asgi import application
 from reportcreator_api.pentests.collab.text_transformations import (
     ChangeSet,
     CollabStr,
@@ -51,6 +46,7 @@ from reportcreator_api.tests.mock import (
     create_shareinfo,
     create_user,
     mock_time,
+    websocket_client,
 )
 from reportcreator_api.utils.utils import copy_keys
 
@@ -225,34 +221,11 @@ class TestTextTransformations:
         c2.to_dict()
 
 
-@sync_to_async
-def create_session(user):
-    engine = import_string(settings.SESSION_ENGINE)
-    session = engine.SessionStore()
-    if user and not user.is_anonymous:
-        session[SESSION_KEY] = str(user.id)
-        session[BACKEND_SESSION_KEY] = settings.AUTHENTICATION_BACKENDS[0]
-        session[HASH_SESSION_KEY] = user.get_session_auth_hash()
-        session['admin_permissions_enabled'] = True
-    session.save()
-    return session
 
 
 @contextlib.asynccontextmanager
 async def ws_connect(path, user, consume_init=True, other_clients=None):
-    session = await create_session(user)
-    consumer = WebsocketCommunicator(
-        application=application,
-        path=path,
-        headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())],
-    )
-    consumer.session = session
-
-    try:
-        # Connect
-        connected, _ = await consumer.connect()
-        assert connected
-
+    async with websocket_client(path=path, user=user) as consumer:
         if consume_init:
             # Consume initial message
             init = await consumer.receive_json_from()
@@ -271,8 +244,6 @@ async def ws_connect(path, user, consume_init=True, other_clients=None):
                 assert msg_connect.get('client_id') == init['client_id']
 
         yield consumer
-    finally:
-        await consumer.disconnect()
 
 
 @pytest.mark.django_db(transaction=True)
@@ -1106,24 +1077,18 @@ class TestSharedProjectNotesDbSync:
 @pytest.mark.asyncio()
 class TestConsumerPermissions:
     async def ws_connect(self, path, user):
-        session = await create_session(user)
-        consumer = WebsocketCommunicator(
-            application=application,
-            path=path,
-            headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())] if session else [],
-        )
-        can_read, _ = await consumer.connect()
-        can_write = False
-        if can_read:
-            await consumer.receive_json_from()  # collab.init
-            await consumer.receive_json_from()  # collab.connect
+        async with websocket_client(path=path, user=user, connect=False) as consumer:
+            can_read, _ = await consumer.connect()
+            can_write = False
+            if can_read:
+                await consumer.receive_json_from()  # collab.init
+                await consumer.receive_json_from()  # collab.connect
 
-            await consumer.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': 'test', 'value': 'test'})
-            msg = await consumer.receive_output()
-            can_write = msg['type'] != 'websocket.close'
+                await consumer.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': 'test', 'value': 'test'})
+                msg = await consumer.receive_output()
+                can_write = msg['type'] != 'websocket.close'
 
-        await consumer.disconnect()
-        return can_read, can_write
+            return can_read, can_write
 
     @pytest.mark.parametrize(('user_name', 'project_name', 'expected_read', 'expected_write'), [
         ('member', 'project', True, True),

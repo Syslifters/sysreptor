@@ -60,6 +60,15 @@ class PluginConfig(AppConfig):
             return []
         return urls_module.urlpatterns
 
+    @property
+    def websocket_urlpatterns(self) -> list:
+        if not module_has_submodule(self.module, 'urls'):
+            return []
+        urls_module = import_module(f'{self.name}.urls')
+        if not hasattr(urls_module, 'websocket_urlpatterns'):
+            return []
+        return urls_module.websocket_urlpatterns
+
     def get_frontend_entry(self, request) -> str|None:
         return self._frontend_entry
 

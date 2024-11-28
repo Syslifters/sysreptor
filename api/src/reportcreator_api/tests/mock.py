@@ -1,17 +1,24 @@
+import contextlib
 import random
 from datetime import datetime, timedelta
 from unittest import mock
 from uuid import uuid4
 
+from asgiref.sync import sync_to_async
+from channels.testing import WebsocketCommunicator
+from django.conf import settings
+from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.module_loading import import_string
 from rest_framework.test import APIClient
 
 from reportcreator_api import signals as sysreptor_signals
 from reportcreator_api.api_utils.models import LanguageToolIgnoreWords
 from reportcreator_api.archive import crypto
 from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
+from reportcreator_api.conf.asgi import application
 from reportcreator_api.pentests.customfields.predefined_fields import (
     finding_fields_default,
     report_sections_default,
@@ -429,3 +436,35 @@ def api_client(user=None):
         client.force_authenticate(user)
     return client
 
+
+def create_session(user):
+    engine = import_string(settings.SESSION_ENGINE)
+    session = engine.SessionStore()
+    if user and not user.is_anonymous:
+        session[SESSION_KEY] = str(user.id)
+        session[BACKEND_SESSION_KEY] = settings.AUTHENTICATION_BACKENDS[0]
+        session[HASH_SESSION_KEY] = user.get_session_auth_hash()
+        session['admin_permissions_enabled'] = True
+    session.save()
+    return session
+
+
+@contextlib.asynccontextmanager
+async def websocket_client(path, user, connect=True):
+    session = await sync_to_async(create_session)(user)
+    consumer = WebsocketCommunicator(
+        application=application,
+        path=path,
+        headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())],
+    )
+    consumer.session = session
+
+    try:
+        # Connect
+        if connect:
+            connected, _ = await consumer.connect()
+            assert connected
+
+        yield consumer
+    finally:
+        await consumer.disconnect()

@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from .consumers import DemoPluginConsumer
 from .views import DemoPluginModelViewSet
 
 router = DefaultRouter()
@@ -16,3 +17,19 @@ urlpatterns = [
     path('helloworld/', lambda *args, **kwargs: HttpResponse("Hello world", content_type="text/plain"), name='helloworld'),
     path('', include(router.urls))
 ]
+
+
+"""
+WebSocket consumers defined by plugin.
+Accessible at /api/plugins/<plugin_id>/ws/...
+"""
+websocket_urlpatterns = [
+    path('projects/<uuid:project_pk>/hellowebsocket/', DemoPluginConsumer.as_asgi(), name='hellowebsocket'),
+]
+
+
+# TODO: websocket demoplugin
+# * [x] register URLs
+# * [ ] demo ws urls
+# * [ ] demo consumer
+# * [ ] test WS consumer
