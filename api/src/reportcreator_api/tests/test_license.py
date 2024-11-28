@@ -121,6 +121,18 @@ class TestCommunityLicenseRestrictions:
             'password': self.password,
         }))
 
+    def test_ignore_must_change_password(self):
+        self.user.must_change_password = True
+        self.user.save()
+
+        self.client.force_authenticate(None)
+        res = self.client.post(reverse('auth-login'), data={
+            'username': self.user.username,
+            'password': self.password,
+        })
+        assert res.status_code == 200, res.data
+        assert res.data['status'] == 'success'
+
     def test_prevent_create_non_superusers(self):
         self.user_regular.delete()
         self.user_system.delete()
