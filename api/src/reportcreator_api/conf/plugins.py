@@ -6,13 +6,17 @@ from functools import cached_property
 from importlib import import_module
 from pathlib import Path
 
+from decouple import config
 from django.apps import AppConfig, apps
+from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.contrib.staticfiles.finders import AppDirectoriesFinder, FileSystemFinder
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import FileSystemStorage, storages
 from django.utils.functional import classproperty
 from django.utils.module_loading import module_has_submodule
+
+from reportcreator_api.utils import license
 
 enabled_plugins = []
 
@@ -28,6 +32,11 @@ class PluginConfig(AppConfig):
     Unique plugin identifier, that never changes.
     It's recommended to use a UUID (`python3 -c 'import uuid; print(str(uuid.uuid4()))'`).
     The plugin_id is used internally to uniquely identify the plugin and it's resources (e.g. DB tables, API endpoints, etc.).
+    """
+
+    professional_only: bool = False
+    """
+    Indicates whether the plugin is only available in SysReptor professional or also in SysReptor community edition.
     """
 
     frontend_settings = {}
@@ -83,6 +92,9 @@ class PluginConfig(AppConfig):
         return None
 
     def get_frontend_settings(self, request) -> dict:
+        """
+        Dictionary with settings passed to the plugin's frontend implementation
+        """
         return self.frontend_settings
 
 
@@ -131,6 +143,12 @@ def remove_entry(path: Path):
             pass  # ignore race condition errors when multiple worker processes start at the same time
     else:
         path.unlink(missing_ok=True)
+
+
+def can_load_professional_plugins():
+    license_text = getattr(settings, 'LICENSE', config('LICENSE', default=None))
+    return license.decode_and_validate_license(license=license_text, skip_db_checks=True) \
+        .get('type') == license.LicenseType.PROFESSIONAL
 
 
 def collect_plugins(dst: Path, srcs: list[Path]):
@@ -233,6 +251,10 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
                 # Add to installed_apps
                 app_class = plugin_config_class.__module__ + '.' + plugin_config_class.__name__
                 app_label = plugin_config_class.label
+
+                if plugin_config_class.professional_only and not can_load_professional_plugins():
+                    logging.warning(f'Plugin "{plugin_name}" requires a professional license. Not enabling plugin.')
+                    continue
                 if app_class not in installed_apps:
                     installed_apps.append(app_class)
                     logging.info(f'Enabling plugin {plugin_name} ({plugin_id=}, {app_label=}, {app_class=})')

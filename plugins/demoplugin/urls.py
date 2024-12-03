@@ -28,8 +28,3 @@ websocket_urlpatterns = [
 ]
 
 
-# TODO: websocket demoplugin
-# * [x] register URLs
-# * [ ] demo ws urls
-# * [ ] demo consumer
-# * [ ] test WS consumer
