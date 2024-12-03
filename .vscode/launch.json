@@ -14,12 +14,12 @@
             },
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}/src",
-                    "remoteRoot": "/app/api"
+                    "localRoot": "${workspaceFolder}/plugins",
+                    "remoteRoot": "/app/api/sysreptor_plugins"
                 },
                 {
-                    "localRoot": "${workspaceFolder}/../plugins",
-                    "remoteRoot": "/app/api/sysreptor_plugins"
+                    "localRoot": "${workspaceFolder}/api/src",
+                    "remoteRoot": "/app/api"
                 }
             ],
             "django": true,
