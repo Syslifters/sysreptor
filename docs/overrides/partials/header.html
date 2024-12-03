@@ -23,27 +23,12 @@
   .demo-button:hover {
     background-color: var(--md-accent-fg-color);
   }
-  .black-friday-button {
-    border-radius: 0.1rem;
-    background-color: #646464;
-    color: white !important;
-    cursor: pointer;
-    display: inline-block;
-    font-weight: 600;
-    font-size: medium;
-    padding: 0.4em 1.5em;
-    transition: color 1250ms, background-color;
-    margin-top: 2em;
-  }
-  .black-friday-button:hover {
-    background-color: #FF7300;
-  }
 
   .md-header {
     top: 0px; /* This setting prevents the Material header from imposing into the space of the banner! */
   }
 </style>
-<header class="{{ class }}" data-md-component="header" style="background-color: black;">
+<header class="{{ class }}" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="{{ lang.t('header') }}">
     <a
       href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}"

@@ -1,45 +1,6 @@
 ---
 title: SysReptor Pentest Report Creator
 ---
-
-<div style="background-color: black; color: white; text-align: center; padding: 1em; margin-bottom:5em;">
-  <div style="display: flex; justify-content: space-between;">
-    <div style="flex: 1; padding: 1em; ">
-      <h1 style="color: white; font-weight: bold; font-size: 3em">BLACK<br>FRIDAY<br>-30%</h1>
-      
-      <a class="black-friday-button" style="text-align:center;" href="https://cloud.sysreptor.com/order/" target="_blank">Order Now</a>
-      <p id="countdown" style="font-size: 1em; font-weight: bold;"></p>
-      <script>
-        function updateCountdown() {
-          const targetDate = new Date('December 2, 2024 23:59:59 GMT');
-          const now = new Date();
-          const difference = targetDate - now;
-
-          const days = Math.max(0, Math.floor(difference / (1000 * 60 * 60 * 24))+1);
-          document.getElementById('countdown').innerHTML = `${days} ${days > 1 ? 'days' : 'day'} to go`;
-        }
-        updateCountdown();
-      </script>
-    </div>
-    <div style="flex: 1; padding: 1em;">
-      <img 
-        style="display: block; 
-            margin-left: auto;
-            margin-right: auto;
-            margin-bottom: -7.3em;
-            width: 18em;"
-        src="/assets/dino/eating_cake.svg"
-        viewBox="0 0 400 400"
-        height="400"
-        width="260"
-        alt="It's a pie. Because Pentest reports are as easy as pie.">
-  </img>
-    </div>
-  </div>
-</div>
-
-
-<!--
 <h1 style="text-align: center;font-weight:bold;">Pentest Reports<br>Easy As Pie.</h1>
 
 <div style="overflow: hidden;">
@@ -55,7 +16,7 @@ title: SysReptor Pentest Report Creator
       width="130"
       alt="It's a pie. Because Pentest reports are as easy as pie.">
   </img>
-</div>-->
+</div>
 
 <div class="grid cards" style="text-align: center; margin-top: 0;" markdown>
 
