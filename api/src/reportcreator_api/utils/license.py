@@ -11,7 +11,6 @@ from django.db import models
 from django.utils import dateparse, timezone
 from rest_framework import permissions
 
-from reportcreator_api.conf import plugins
 from reportcreator_api.utils.decorators import cache
 
 
@@ -79,8 +78,6 @@ def decode_license(license):
 
 
 def decode_and_validate_license(license, skip_db_checks=False, skip_limit_validation=False):
-    from reportcreator_api.users.models import PentestUser
-
     try:
         if not license:
             raise LicenseError(None)
@@ -96,6 +93,7 @@ def decode_and_validate_license(license, skip_db_checks=False, skip_limit_valida
 
             # Validate license limits not exceeded
             if not skip_db_checks:
+                from reportcreator_api.users.models import PentestUser
                 current_user_count = PentestUser.objects.get_licensed_user_count()
                 if current_user_count > license_data['users']:
                     raise LicenseError(license_data | {
@@ -115,7 +113,7 @@ def decode_and_validate_license(license, skip_db_checks=False, skip_limit_valida
         error_details = ex.detail if isinstance(ex.detail, dict) else {'error': ex.detail}
         return error_details | {
             'type': LicenseType.COMMUNITY,
-            'users': settings.LICENSE_COMMUNITY_MAX_USERS,
+            'users': 3,
         }
 
 
@@ -129,6 +127,7 @@ async def acheck_license(**kwargs):
 
 
 def get_license_info():
+    from reportcreator_api.conf import plugins
     from reportcreator_api.users.models import PentestUser
 
     return check_license() | {

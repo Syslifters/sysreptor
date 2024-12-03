@@ -62,13 +62,15 @@ INSTALLATION_ID = 'dummy-installation-id-used-in-unit-test'
 BACKUP_KEY = 'dummy-backup-key-used-in-unit-test'
 
 
+# Disable license check
+from reportcreator_api.conf import plugins  # noqa: E402
+from reportcreator_api.utils import license  # noqa: E402
+
+license.check_license = lambda **kwargs: {'type': license.LicenseType.PROFESSIONAL, 'users': 1000, 'name': 'Company Name'}
+plugins.can_load_professional_plugins = lambda: True
+
+
 # Always enable some plugins during tests
 ENABLED_PLUGINS += ['demoplugin']
 enable_test_plugins = load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
 INSTALLED_APPS += [p for p in enable_test_plugins if p not in INSTALLED_APPS]
-
-
-# Disable license check
-from reportcreator_api.utils import license  # noqa: E402
-
-license.check_license = lambda **kwargs: {'type': license.LicenseType.PROFESSIONAL, 'users': 1000, 'name': 'Company Name'}

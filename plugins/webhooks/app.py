@@ -8,6 +8,7 @@ from .serializers import WebhookConfigSerializer
 
 class WebhooksPluginConfig(PluginConfig):
     plugin_id = 'b97e16cf-74a9-45bf-b0ae-8bd81929c805'
+    professional_only = True
     settings = {
         'WEBHOOKS': []
     }

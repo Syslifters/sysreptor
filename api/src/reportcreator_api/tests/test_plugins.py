@@ -1,6 +1,7 @@
 import io
 from contextlib import contextmanager
 from pathlib import Path
+from unittest import mock
 
 import pytest
 from django.apps import apps
@@ -11,6 +12,7 @@ from django.db import ProgrammingError
 from django.test import override_settings
 from django.urls import reverse
 
+from reportcreator_api.conf.plugins import load_plugins
 from reportcreator_api.management.commands import restorebackup
 from reportcreator_api.tests.mock import api_client, create_user
 from reportcreator_api.utils.utils import omit_keys
@@ -23,7 +25,7 @@ DEMOPLUGIN_APPLABEL = 'plugin_db365aa0ed364e9093b6a28effc4ed47'
 def enable_demoplugin():
     # Import config to check if plugin exists
     try:
-        from sysreptor_plugins.demoplugin.app import DemoPluginConfig
+        from sysreptor_plugins.demoplugin.app import DemoPluginConfig  # type: ignore
     except ImportError:
         pytest.skip('DemoPlugin not found')
 
@@ -49,42 +51,52 @@ def disable_demoplugin():
 
 
 def create_demopluginmodel(**kwargs):
-    from sysreptor_plugins.demoplugin.models import DemoPluginModel
+    from sysreptor_plugins.demoplugin.models import DemoPluginModel  # type: ignore
     return DemoPluginModel.objects.create(**kwargs)
 
 
 @pytest.mark.django_db()
-@enable_demoplugin()
-def test_plugin_loading():
-    # Test django app of plugin is installed
-    assert apps.is_installed('sysreptor_plugins.demoplugin')
-    assert apps.get_app_config(DEMOPLUGIN_APPLABEL) is not None
+class TestPluginLoading:
+    @enable_demoplugin()
+    def test_plugin_loading(self):
+        # Test django app of plugin is installed
+        assert apps.is_installed('sysreptor_plugins.demoplugin')
+        assert apps.get_app_config(DEMOPLUGIN_APPLABEL) is not None
 
-    # Models registered
-    model = apps.get_model(DEMOPLUGIN_APPLABEL, 'DemoPluginModel')
-    obj = model.objects.create(name='test')
-    assert model.objects.filter(pk=obj.pk).exists()
+        # Models registered
+        model = apps.get_model(DEMOPLUGIN_APPLABEL, 'DemoPluginModel')
+        obj = model.objects.create(name='test')
+        assert model.objects.filter(pk=obj.pk).exists()
 
-    # Static files
-    # Create dummy file when the frontend was not built yet
-    from sysreptor_plugins import demoplugin  # noqa: I001
-    pluginjs_path = (Path(demoplugin.__path__[0]) / 'static' / 'plugin.js').resolve()
-    if not pluginjs_path.exists():
-        pluginjs_path.parent.mkdir(parents=True, exist_ok=True)
-        pluginjs_path.touch()
-    finders.get_finder.cache_clear()
+        # Static files
+        # Create dummy file when the frontend was not built yet
+        from sysreptor_plugins import demoplugin  # noqa: I001
+        pluginjs_path = (Path(demoplugin.__path__[0]) / 'static' / 'plugin.js').resolve()
+        if not pluginjs_path.exists():
+            pluginjs_path.parent.mkdir(parents=True, exist_ok=True)
+            pluginjs_path.touch()
+        finders.get_finder.cache_clear()
 
-    res = finders.find(f'plugins/{DEMOPLUGIN_ID}/plugin.js') is not None
+        res = finders.find(f'plugins/{DEMOPLUGIN_ID}/plugin.js') is not None
 
-    # URLs registered
-    assert api_client().get(reverse(f'{DEMOPLUGIN_APPLABEL}:helloworld')).status_code == 200
+        # URLs registered
+        assert api_client().get(reverse(f'{DEMOPLUGIN_APPLABEL}:helloworld')).status_code == 200
 
-    # Plugin config in api settings
-    res = api_client().get(reverse('publicutils-settings'))
-    assert res.status_code == 200
-    demoplugin_config = next(filter(lambda p: p['id'] == DEMOPLUGIN_ID, res.data['plugins']))
-    assert omit_keys(demoplugin_config, ['frontend_entry']) == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_settings': {}}
+        # Plugin config in api settings
+        res = api_client().get(reverse('publicutils-settings'))
+        assert res.status_code == 200
+        demoplugin_config = next(filter(lambda p: p['id'] == DEMOPLUGIN_ID, res.data['plugins']))
+        assert omit_keys(demoplugin_config, ['frontend_entry']) == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_settings': {}}
 
+    def test_load_professional_only(self):
+        from sysreptor_plugins.demoplugin.app import DemoPluginConfig  # type: ignore
+
+        try:
+            DemoPluginConfig.professional_only = True
+            with mock.patch('reportcreator_api.conf.plugins.can_load_professional_plugins', return_value=False):
+                assert load_plugins(plugin_dirs=settings.PLUGIN_DIRS, enabled_plugins=['demoplugin']) == []
+        finally:
+            DemoPluginConfig.professional_only = False
 
 @pytest.mark.django_db()
 class TestPluginBackupRestore:
