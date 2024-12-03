@@ -221,8 +221,8 @@ async def _render_pdf_task_async(timeout=None, **kwargs):
 @log_timing(log_start=True, log_detailed_timings=True)
 async def render_pdf_task(
     project_type: ProjectType, report_template: str, report_styles: str, data: dict,
-    password: Optional[str] = None, can_compress_pdf: bool = False, project: Optional[PentestProject] = None, output=None,
-    timings=None,
+    password: Optional[str] = None, can_compress_pdf: bool = False, project: Optional[PentestProject] = None,
+    output=None, html=None, timings=None,
 ) -> RenderStageResult:
     res = RenderStageResult(timings=timings or {})
 
@@ -237,7 +237,7 @@ async def render_pdf_task(
     with res.add_timing('collect_data'):
         resources = await format_resources()
 
-    res.timings['queue'] = 0.0
+    res.timings.setdefault('queue', 0.0)
     before_task_start = timezone.now()
     timing_before_task_total = sum(res.timings.values())
     with res.add_timing('task_total'):
@@ -249,13 +249,14 @@ async def render_pdf_task(
             password=password,
             compress_pdf=can_compress_pdf and settings.COMPRESS_PDFS,
             output=output,
+            html=html,
             resources=resources,
         )
     res |= res_pdf
     if (task_start_time := res.other.pop('task_start_time', None)):
         # use datetimes instead of perf_counter, because the task might be executed by a worker on a different machine and perf_counter is not synchronized
-        res.timings['queue'] = (dateparse.parse_datetime(task_start_time) - before_task_start).total_seconds()
-    res.timings['other'] = max(0, res.timings.pop('task_total') + timing_before_task_total - sum(v for k, v in res.timings.items()))
+        res.timings['queue'] += (dateparse.parse_datetime(task_start_time) - before_task_start).total_seconds()
+    res.timings['other'] = res.timings.get('other', 0) + max(0, res.timings.pop('task_total') + timing_before_task_total - sum(v for v in res.timings.values()))
 
     # Set message location info to ProjectType (if not available)
     res.messages = [
@@ -304,7 +305,7 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
 
         # Extract markdown fields from HTML (maybe with lxml)
         html_tree = etree.HTML(res.pdf.decode())
-        rendered_md_nodes = html_tree.getchildren()[1].getchildren()[0].getchildren()
+        rendered_md_nodes = html_tree.find('body/div').getchildren()
         for mdf in rendered_md_nodes:
             mdf_id = mdf.attrib.get('id')
             if mdf_id in markdown_fields:
@@ -380,7 +381,7 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
 async def render_pdf(
     project: PentestProject, project_type: Optional[ProjectType] = None,
     report_template: Optional[str] = None, report_styles: Optional[str] = None,
-    password: Optional[str] = None, can_compress_pdf: bool = False,
+    password: Optional[str] = None, can_compress_pdf: bool = False, output: Optional[str] = None,
 ) -> RenderStageResult:
     if not project_type:
         project_type = project.project_type
@@ -388,7 +389,6 @@ async def render_pdf(
         report_template = project_type.report_template
     if not report_styles:
         report_styles = project_type.report_styles
-
 
     res = RenderStageResult()
     with res.add_timing('collect_data'):
@@ -402,6 +402,7 @@ async def render_pdf(
         password=password,
         can_compress_pdf=can_compress_pdf,
         timings=res.timings,
+        output=output,
     )
 
 

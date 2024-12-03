@@ -136,20 +136,25 @@ def encrypt_pdf(pdf_data: bytes, password: Optional[str]) -> RenderStageResult:
 
 async def render_pdf_impl(
     template: str, styles: str, data: dict, resources: dict, language: str,
-    password: Optional[str] = None, should_compress_pdf: bool = False, output=None,
+    password: Optional[str] = None, should_compress_pdf: bool = False,
+    html: Optional[str] = None, output=None,
 ) -> RenderStageResult:
     out = RenderStageResult(other={'task_start_time': timezone.now().isoformat()})
 
     # Start weasyprint subprocess in parallel with chromium rendering, because python has a long startup time
     weasyprint_proc = (await weasyprint_start_process()) if output != 'html' else None
     try:
-        out |= await chromium_render_to_html(
-            template=template,
-            styles=styles,
-            resources=resources,
-            data=data,
-            language=language,
-        )
+        if not html:
+            out |= await chromium_render_to_html(
+                template=template,
+                styles=styles,
+                resources=resources,
+                data=data,
+                language=language,
+            )
+        else:
+            out.pdf = html.encode()
+
         if out.pdf is None or output == 'html':
             return out
 
