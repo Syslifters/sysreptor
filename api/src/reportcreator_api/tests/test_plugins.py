@@ -15,7 +15,6 @@ from django.urls import reverse
 from reportcreator_api.conf.plugins import load_plugins
 from reportcreator_api.management.commands import restorebackup
 from reportcreator_api.tests.mock import api_client, create_user
-from reportcreator_api.utils.license import LicenseType
 from reportcreator_api.utils.utils import omit_keys
 
 DEMOPLUGIN_ID = 'db365aa0-ed36-4e90-93b6-a28effc4ed47'
@@ -26,7 +25,7 @@ DEMOPLUGIN_APPLABEL = 'plugin_db365aa0ed364e9093b6a28effc4ed47'
 def enable_demoplugin():
     # Import config to check if plugin exists
     try:
-        from sysreptor_plugins.demoplugin.app import DemoPluginConfig
+        from sysreptor_plugins.demoplugin.app import DemoPluginConfig  # type: ignore
     except ImportError:
         pytest.skip('DemoPlugin not found')
 
@@ -52,7 +51,7 @@ def disable_demoplugin():
 
 
 def create_demopluginmodel(**kwargs):
-    from sysreptor_plugins.demoplugin.models import DemoPluginModel
+    from sysreptor_plugins.demoplugin.models import DemoPluginModel  # type: ignore
     return DemoPluginModel.objects.create(**kwargs)
 
 
@@ -89,13 +88,13 @@ class TestPluginLoading:
         demoplugin_config = next(filter(lambda p: p['id'] == DEMOPLUGIN_ID, res.data['plugins']))
         assert omit_keys(demoplugin_config, ['frontend_entry']) == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_settings': {}}
 
-    @mock.patch('reportcreator_api.utils.license.decode_and_validate_license', return_value={'type': LicenseType.COMMUNITY, 'users': 3, 'error': None})
-    def test_load_professional_only(self, _mock):
-        from sysreptor_plugins.demoplugin.app import DemoPluginConfig
+    def test_load_professional_only(self):
+        from sysreptor_plugins.demoplugin.app import DemoPluginConfig  # type: ignore
 
         try:
             DemoPluginConfig.professional_only = True
-            assert load_plugins(plugin_dirs=settings.PLUGIN_DIRS, enabled_plugins=['demoplugin']) == []
+            with mock.patch('reportcreator_api.conf.plugins.can_load_professional_plugins', return_value=False):
+                assert load_plugins(plugin_dirs=settings.PLUGIN_DIRS, enabled_plugins=['demoplugin']) == []
         finally:
             DemoPluginConfig.professional_only = False
 
