@@ -1,10 +1,10 @@
 # Changelog
 
-## Upcoming
+## v2024.96 - 2024-12-04
 * Plugin: webhooks at certain events
 * Plugin: automatically assign project numbers
 * Run periodic tasks in background
-* Add user option to force change password on next login
+* Add user option to force password change on next login
 * Fix finding.created not included in design preview data 
 * Allow marking resolved comments as open
 * UI: Create comments with Ctrl+Alt+M
