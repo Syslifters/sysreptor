@@ -21,8 +21,8 @@
             "path": "../packages/markdown"
         },
         {
-            "name": "rendering",
-            "path": "../packages/rendering"
+            "name": "plugins",
+            "path": "../plugins"
         },
         {
             "name": "docs",

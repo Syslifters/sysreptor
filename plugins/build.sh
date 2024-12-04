@@ -24,7 +24,7 @@ function build_plugin() {
     if [ "$action" == "dev" ]; then
       while : ; do
         echo "$plugin: Generating frontend"
-        npm run generate
+        npm run generate || true
         echo "$plugin: Finished generating frontend"
         echo "$plugin: Watching for changes"
         inotifywait --recursive --event=create --event=delete --event=modify --event=move --exclude='^(.nuxt|.output|dist|node_modules|NOTICE)(/.*)?' ./ || break

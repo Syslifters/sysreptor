@@ -546,7 +546,7 @@ export type ErrorMessage = {
 };
 
 export type PdfResponse = {
-  pdf: string;
+  pdf: string|null;
   messages: ErrorMessage[];
   timings: Record<string, number>;
 }

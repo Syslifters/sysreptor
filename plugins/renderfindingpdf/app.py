@@ -7,6 +7,7 @@ from reportcreator_api.conf.plugins import PluginConfig
 
 class RenderFindingPdfPluginConfig(PluginConfig):
     plugin_id = '62d0f5ae-5c07-47c6-9203-a9d9c3dbffb2'
+    professional_only = True
 
     # TODO: do we need settings?
     #       instead: annotate HTML elements in the design with data-sysreptor-renderfindingpdf="include|exclude"
@@ -51,11 +52,11 @@ class RenderFindingPdfPluginConfig(PluginConfig):
 #       * render HTML to PDF
 #   * [x] modify render function: allow rendering HTML+CSS to PDF
 #   * [x] API endpoint: async
-# * [ ] frontend
-#   * [ ] per-project menu entry
-#   * [ ] select one or multiple findings
-#   * [ ] PDF preview
-#   * [ ] move PdfPreview to nuxt-base-layer
+# * [x] frontend
+#   * [x] per-project menu entry
+#   * [x] select one or multiple findings
+#   * [x] PDF preview
+#   * [x] move PdfPreview to nuxt-base-layer
 # * [ ] other
 #   * [ ] reuse plugin to render finding summary ???
 # * [ ] tests
