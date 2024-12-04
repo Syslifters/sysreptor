@@ -115,9 +115,9 @@ definePageMeta({
 
 const route = useRoute();
 const auth = useAuth();
-const localSettings = useLocalSettings()
+const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
-const projectTypeStore = useProjectTypeStore()
+const projectTypeStore = useProjectTypeStore();
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'publish:project' });
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'publish:projecttype' });

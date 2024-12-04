@@ -72,6 +72,14 @@ export default defineNuxtConfig({
       },
     },
   },
+  nitro: {
+    publicAssets: [
+      {
+        dir: join(currentDir, './src/public/static/pdfviewer'),
+        baseURL: '/static/pdfviewer'
+      },
+    ],
+  },
 
   experimental: {
     payloadExtraction: false,
