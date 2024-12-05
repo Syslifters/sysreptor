@@ -50,7 +50,7 @@ from reportcreator_api.tasks.rendering.error_messages import (
 from reportcreator_api.tasks.rendering.render_utils import RenderStageResult
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils.logging import log_timing
-from reportcreator_api.utils.utils import copy_keys, get_key_or_attr
+from reportcreator_api.utils.utils import copy_keys, get_key_or_attr, merge
 
 log = logging.getLogger(__name__)
 
@@ -118,7 +118,10 @@ def format_template_field(value: Any, definition: BaseField, members: Optional[l
         return value
 
 
-def format_template_data(data: dict, project_type: ProjectType, imported_members: Optional[list[dict]] = None, override_finding_order=False):
+def format_template_data(
+        data: dict, project_type: ProjectType, imported_members: Optional[list[dict]] = None,
+        override_finding_order=False, additonal_data: dict|None = None,
+):
     members = [format_template_field_user(u, members=imported_members) for u in data.get(
         'pentesters', []) + (imported_members or [])]
     data['report'] = format_template_field_object(
@@ -149,10 +152,11 @@ def format_template_data(data: dict, project_type: ProjectType, imported_members
         key=lambda u: (0 if 'lead' in u.get('roles', []) else 1 if 'pentester' in u.get(
             'roles', []) else 2 if 'reviewer' in u.get('roles', []) else 10, u.get('username')),
     )
+    data = merge(data, additonal_data or {})
     return data
 
 
-async def format_project_template_data(project: PentestProject, project_type: Optional[ProjectType] = None):
+async def format_project_template_data(project: PentestProject, project_type: Optional[ProjectType] = None, additonal_data: dict|None = None):
     if not project_type:
         project_type = project.project_type
     data = {
@@ -173,6 +177,7 @@ async def format_project_template_data(project: PentestProject, project_type: Op
         project_type=project_type,
         imported_members=project.imported_members,
         override_finding_order=project.override_finding_order,
+        additonal_data=additonal_data,
     )
 
 
@@ -381,6 +386,7 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
 async def render_pdf(
     project: PentestProject, project_type: Optional[ProjectType] = None,
     report_template: Optional[str] = None, report_styles: Optional[str] = None,
+    additonal_data: Optional[dict] =None,
     password: Optional[str] = None, can_compress_pdf: bool = False, output: Optional[str] = None,
 ) -> RenderStageResult:
     if not project_type:
@@ -392,7 +398,7 @@ async def render_pdf(
 
     res = RenderStageResult()
     with res.add_timing('collect_data'):
-        data = await format_project_template_data(project=project, project_type=project_type)
+        data = await format_project_template_data(project=project, project_type=project_type, additonal_data=additonal_data)
     return await render_pdf_task(
         project=project,
         project_type=project_type,

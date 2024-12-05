@@ -12,8 +12,9 @@ ENABLED_PLUGINS="renderfindings"
 You might need to update your design to support this plugin.
 This plugin depends on some conventions in the design to work properly.
 * Findings need to have a `:id="finding.id"` attribute (e.g. on `<h2>` finding title or wrapper `<div>`)
-* Top-level elements containing elements with attribute `data-sysreptor-renderfindings="include"` will be included in the PDF
-* Elements with attribute `data-sysreptor-renderfindings="exclude"` will be removed from the PDF
+* The design's HTML+Vue template must not use a wapper element for the whole report, but instead use separate top-level elements for each section
+* Top-level sections containing elements with attribute `data-sysreptor-renderfindings="include"` will be included in the PDF
+* Detailed customization of rendered elements can be archived via `v-if="data.isPluginRenderFindings"` in design's Vue template
 * Some CSS rules might result in unexpected styling (especially `@page:first`)
 
 How rendering works:
@@ -21,12 +22,12 @@ How rendering works:
 * Render the selected findings and all sections to HTML using the project's design
     * Only selected findings are rendered
     * Sections are rendered, because they might affect the rendering of findings or contain data that should be included in the PDF (e.g. in headers/footers, explicitely included sections)
+    * The variable `data.isPluginRenderFindings` is set to `true`. Use this variable to customize rendering.
 * Remove unnecessary sections and elements from HTML (e.g. title page, table of contents, executive summary, etc.)
-    * Select all top-level elements containing findings (`:id="finding.id"`)
+    * Select all top-level sections containing findings (`:id="finding.id"`)
     * Select all top-level page headers and footers (attributes `data-sysreptor-generated="page-header"` and `data-sysreptor-generated="page-footer"`)
-    * Select all top-level elements containing `data-sysreptor-renderfindings="include"` (either as attribute on top-level element or on child elements)
-    * Remove all other top-level elements
-    * Remove all elements with attribute `data-sysreptor-renderfindings="exclude"` (not only top-level elements, also child elements)
+    * Select all top-level sections containing `data-sysreptor-renderfindings="include"` (either as attribute on top-level element or on child elements)
+    * Remove all other top-level sections
 * Render post-processed HTML to PDF
 
 
@@ -56,9 +57,9 @@ How rendering works:
   <markdown :text="report.executive_summary" />
 </section>
 
-<section> <!-- the whole top-level element is included -->
+<section> <!-- the whole top-level section is included -->
   <!-- except explicitly excluded child elements -->
-  <h1 data-sysreptor-renderfindings="exclude">Finding List</h1>
+  <h1 v-if="!data.isPluginRenderFindings">Finding List</h1>
 
   <!-- included -->
   <div v-for="finding in findings">
@@ -76,7 +77,7 @@ How rendering works:
   <h1>Included</h1>
   ...
 
-  <div data-sysreptor-renderfindings="exclude">
+  <div v-if="!data.isPluginRenderFindings">
     <h2>Excluded</h2>
     ...
   </div>
@@ -87,7 +88,7 @@ How rendering works:
 You can either include the title page by adding the attribute `data-sysreptor-renderfindings="include"` to the corresponding HTML element in your design.
 
 ```html
-<section id="page-cover" data-sysreptor-generated="page-cover" data-sysreptor-renderfindings="exclude">
+<section v-if="!data.isPluginRenderFindings" id="page-cover" data-sysreptor-generated="page-cover">
   ...
 </section>
 ```
