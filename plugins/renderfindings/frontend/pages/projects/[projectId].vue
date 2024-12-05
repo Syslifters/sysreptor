@@ -35,9 +35,8 @@
             />
           </div>
           <div>
-            <!-- TOOD: link to documentation --> 
             <v-btn 
-              href="" 
+              href="https://github.com/Syslifters/sysreptor/tree/main/plugins/renderfindings/README.md" 
               target="_blank"
               text="The PDF does not look right? You might need to update your design."
               prepend-icon="mdi-help-circle" 
@@ -124,7 +123,7 @@ async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }): Promise<P
     };
   }
 
-  const res = await $fetch<PdfResponse>(`/api/plugins/${appConfig.pluginId}/api/projects/${project.value.id}/renderfindingspdf/`, {
+  const res = await $fetch<PdfResponse>(`/api/plugins/${appConfig.pluginId}/api/projects/${project.value.id}/renderfindings/`, {
     method: 'POST',
     body: {
       finding_ids: selectedFindings.value.map(f => f.id),

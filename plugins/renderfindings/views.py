@@ -1,5 +1,4 @@
 from asgiref.sync import sync_to_async
-from django.apps import apps
 from django.db.models import Prefetch, aprefetch_related_objects
 from lxml import etree
 from reportcreator_api.pentests.models import PentestFinding
@@ -8,14 +7,11 @@ from reportcreator_api.tasks.rendering.entry import render_pdf, render_pdf_task
 from reportcreator_api.utils.api import GenericAPIViewAsync
 from rest_framework.response import Response
 
-from .app import RenderFindingPdfPluginConfig
 from .serializers import RenderFindingsSerializer
 
 
 class RenderFindingPdfView(ProjectSubresourceMixin, GenericAPIViewAsync):
     serializer_class = RenderFindingsSerializer
-    # TODO: restrict to pro version? => yes
-    # TODO: plugin system: mark as community/pro plugin in app.py ???
 
     def to_xpath(self, selectors):
         out = []
@@ -40,9 +36,17 @@ class RenderFindingPdfView(ProjectSubresourceMixin, GenericAPIViewAsync):
             # Handle top-level wrapper
             html_toplevel = html_toplevel[0].getchildren()
         
-        plugin_settings = apps.get_app_config(RenderFindingPdfPluginConfig.label).settings
-        include_selectors = self.to_xpath(plugin_settings.get('PLUGIN_RENDERFINDINGPDF_INCLUDE_ELEMENTS', []) + [f'@id="{f.finding_id}"' for f in findings])
-        exclude_selectors = self.to_xpath(plugin_settings.get('PLUGIN_RENDERFINDINGPDF_EXCLUDE_ELEMENTS', []))
+        include_selectors = self.to_xpath([
+            # Explicitely included elements
+            '@data-sysreptor-renderfindingpdf="include"',
+            # Include page headers and footers by default
+            '@data-sysreptor-generated="page-header"', '@id="header"',
+            '@data-sysreptor-generated="page-footer"', '@id="footer"',
+        ] + [f'@id="{f.finding_id}"' for f in findings])
+        exclude_selectors = self.to_xpath([
+            # Explicitely excluded elements
+            '@data-sysreptor-renderfindingpdf="exclude"',
+        ])
         for elem in list(html_toplevel):
             # Only include top-level elements matching include_selectors
             for selector in include_selectors:
