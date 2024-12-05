@@ -144,9 +144,9 @@
 
 <script setup lang="ts">
 import Draggable from "vuedraggable";
-import { v4 as uuidv4 } from "uuid";
 import { FieldDataType, type MarkdownEditorMode, type FieldDefinition } from "#imports";
 import { scoreFromVector, levelNumberFromLevelName, levelNumberFromScore } from "@base/utils/cvss";
+import { uuidv4 } from "@base/utils/helpers";
 
 const props = defineProps<{
   modelValue: any;

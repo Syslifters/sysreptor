@@ -107,7 +107,7 @@
 
 <script setup lang="ts">
 import { sampleSize } from "lodash-es"
-import fileDownload from "js-file-download";
+import { fileDownload } from "@base/utils/helpers";
 
 definePageMeta({
   title: 'Publish',

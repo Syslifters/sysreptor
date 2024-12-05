@@ -12,29 +12,40 @@
       <div class="h-100 d-flex flex-column">
         <div class="pa-2">
           <h1>{{ project.name }}</h1>
-          <s-btn-secondary
-            :loading="renderingInProgress"
-            :disabled="renderingInProgress"
-            @click="refreshPdfPreview"
-            prepend-icon="mdi-cached"
-            text="Refresh PDF"
-            class="mr-1 mb-1"
-          >
-            <template #loader>
-              <s-saving-loader-spinner />
-              Refresh PDF
-            </template>
-          </s-btn-secondary>
-          <p>
+          <div>
+            <s-btn-secondary
+              :loading="renderingInProgress"
+              :disabled="renderingInProgress"
+              @click="refreshPdfPreview"
+              prepend-icon="mdi-cached"
+              text="Refresh PDF"
+              class="mr-1 mb-1"
+            >
+              <template #loader>
+                <s-saving-loader-spinner />
+                Refresh PDF
+              </template>
+            </s-btn-secondary>
+            <s-btn-secondary
+              @click="downloadPdf"
+              :disabled="!pdfPreviewRef?.pdfData"
+              prepend-icon="mdi-download"
+              text="Download"
+              class="mr-1 mb-1"
+            />
+          </div>
+          <div>
+            <!-- TOOD: link to documentation --> 
             <v-btn 
               href="" 
               target="_blank"
-              icon="mdi-help-circle" 
-              variant="text" 
+              text="The PDF does not look right? You might need to update your design."
+              prepend-icon="mdi-help-circle" 
+              variant="plain" 
               density="compact"
+              class="btn-help"
             />
-            <small>The PDF does not look right? </small>
-          </p>
+          </div>
 
           <p class="mt-2">
             Select all findings that should be included in the PDF.
@@ -76,6 +87,7 @@
 <script setup lang="ts">
 import { useFetchE, type PentestProject, type PentestFinding, type PdfResponse, MessageLevel, type ProjectType } from '#imports';
 import { getFindingRiskLevel, sortFindings } from '@base/utils/project';
+import { base64decode, fileDownload } from '@base/utils/helpers';
 
 const route = useRoute();
 const appConfig = useAppConfig();
@@ -129,6 +141,14 @@ async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }): Promise<P
   return res;
 }
 
+function downloadPdf() {
+  if (!pdfPreviewRef.value?.pdfData) {
+    return;
+  }
+
+  fileDownload(base64decode(pdfPreviewRef.value.pdfData), 'finding.pdf');
+}
+
 function riskLevel(finding: PentestFinding) {
   return getFindingRiskLevel({ finding, projectType: projectType.value });
 }
@@ -142,5 +162,10 @@ function riskLevel(finding: PentestFinding) {
   .finding-level-#{$level} {
     border-left: 0.4em solid map.get(settings.$risk-color-levels, $level);
   }
+}
+
+.btn-help {
+  text-transform: none;
+  letter-spacing: normal;
 }
 </style>

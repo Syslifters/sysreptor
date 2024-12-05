@@ -1,9 +1,9 @@
-import urlJoin from "url-join";
 import { cloneDeep } from "lodash-es";
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from "#vue-router";
 import type { VForm } from "vuetify/lib/components/index.mjs";
 import { EditMode } from "#imports";
 import type { EditToolbar } from "#components";
+import { urlJoin } from "@base/utils/helpers";
 
 // @ts-expect-error typeof generic component 
 export type ToolbarRef = Ref<InstanceType<typeof EditToolbar>|ComputedRef<InstanceType<typeof EditToolbar>>>;

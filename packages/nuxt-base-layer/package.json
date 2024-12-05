@@ -10,6 +10,7 @@
     "build": "nuxt build .playground",
     "generate": "nuxt generate .playground",
     "preview": "nuxt preview .playground",
+    "typecheck": "nuxi typecheck",
     "lint": "eslint .",
     "postinstall": "nuxt prepare .playground"
   },
@@ -26,9 +27,11 @@
     "splitpanes": "^3.1.5",
     "vue-toastification": "^2.0.0-rc.5",
 
+    "base64-arraybuffer": "^1.0.2",
     "js-file-download": "^0.4.12",
     "lodash-es": "^4.17.21",
     "url-join": "^5.0.0",
+    "uuid": "^11.0.3",
     "zxcvbn": "^4.4.2",
     "date-fns": "^4.1.0"
   },
@@ -37,6 +40,7 @@
     "vuetify": "~3.7",
     
     "@types/node": "^20",
+    "@types/uuid": "^10.0.0",
     "@types/zxcvbn": "^4.4.2",
     "@types/lodash-es": "^4.17.12",
     

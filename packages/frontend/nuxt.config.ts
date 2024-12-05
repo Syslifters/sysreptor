@@ -45,7 +45,7 @@ export default defineNuxtConfig({
   },
   vite: {
     optimizeDeps: {
-      include: ['vuedraggable', 'uuid', 'base64-arraybuffer', 'monaco-editor', '@github/webauthn-json/browser-ponyfill'],
+      include: ['vuedraggable', 'monaco-editor', '@github/webauthn-json/browser-ponyfill'],
     },
     server: {
       proxy: {

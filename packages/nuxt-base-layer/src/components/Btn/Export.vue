@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import fileDownload from "js-file-download";
+import { fileDownload } from "@base/utils/helpers";
 
 const props = withDefaults(defineProps<{
   exportUrl: string;

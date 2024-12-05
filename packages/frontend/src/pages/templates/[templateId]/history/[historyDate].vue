@@ -25,9 +25,9 @@
 </template>
 
 <script setup lang="ts">
-import urlJoin from "url-join";
 import { sortBy } from "lodash-es";
 import { formatISO9075 } from "date-fns";
+import { urlJoin } from "@base/utils/helpers";
 
 const route = useRoute();
 const localSettings = useLocalSettings();
