@@ -3,6 +3,7 @@ from unittest import mock
 
 import pytest
 from django.apps import apps
+from django.core.management import call_command
 from django.template.defaultfilters import date
 from django.template.defaulttags import NowNode
 from django.utils import dateparse
@@ -19,6 +20,7 @@ from reportcreator_api.tests.mock import (
 )
 
 from ..app import ProjectNumberPluginConfig
+from ..management.commands import resetprojectnumber
 from ..models import ProjectNumber
 
 
@@ -99,3 +101,14 @@ class TestProjectNumberPlugin:
             # Check project counter increment
             counter.refresh_from_db()
             assert counter.current_id == 1
+
+    def test_command_resetprojectnumber(self):
+        # Reset project counter to a specific value
+        call_command(resetprojectnumber.Command(), '10')
+        counter = ProjectNumber.objects.get(pk=1)
+        assert counter.current_id == 10
+
+        # Reset to 0
+        call_command(resetprojectnumber.Command())
+        counter.refresh_from_db()
+        assert counter.current_id == 0

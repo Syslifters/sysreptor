@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Plugin projectnumber: Add manage.py command to reset projectnumber
+
+
 ## v2024.96 - 2024-12-04
 * Plugin: webhooks at certain events
 * Plugin: automatically assign project numbers
