@@ -96,3 +96,17 @@ class TestRenderSingleFindingPdf:
     def test_html_postprocess(self, template, expected):
         html = self.render_html(findings=[self.finding1], template=template)
         assertHTMLEqual(html, expected)
+
+
+@pytest.mark.django_db()
+class TestPluginApiPermissions:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user()
+        self.user_other = create_user()
+        self.project = create_project(members=[self.user])
+        
+    def test_permissions(self):
+        url = reverse(f'{URL_NAMESPACE}:renderfindings', kwargs={'project_pk': self.project.id})
+        assert api_client(self.user).post(url, data={}).status_code == 400  # Allowed, but no findings selected
+        assert api_client(self.user_other).post(url, data={}).status_code in [403, 404]  # Forbidden
