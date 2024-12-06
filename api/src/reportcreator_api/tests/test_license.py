@@ -236,7 +236,7 @@ class TestLicenseValidation:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.license_private_key, self.license_public_key = self.generate_signing_key()
-        with override_settings(LICENSE_VALIDATION_KEYS=[self.license_public_key]):
+        with mock.patch('reportcreator_api.utils.license.LICENSE_VALIDATION_KEYS', new=[self.license_public_key]):
             yield
 
     def generate_signing_key(self):
