@@ -31,15 +31,7 @@ class GenericAPIViewAsyncMixin:
 
 
 class GenericAPIViewAsync(GenericAPIViewAsyncMixin, AdrfAsyncGenericAPIView):
-    _action = None
-
-    @property
-    def action(self):
-        return self._action
-
-    @action.setter
-    def action(self, value):
-        self._action = value
+    pass
 
 
 class ViewSetAsync(GenericAPIViewAsyncMixin, AdrfAsyncGenericViewSet):
