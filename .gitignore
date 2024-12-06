@@ -6,3 +6,4 @@ app.env
 
 .vscode/*
 !.vscode/sysreptor.code-workspace
+!.vscode/launch.json

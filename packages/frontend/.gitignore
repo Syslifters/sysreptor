@@ -36,8 +36,3 @@ coverage
 
 # Unit test output
 test-reports
-
-
-!src/public/static/pdfviewer/dist/
-src/public/static/pdfviewer/dist/**/*
-!src/public/static/pdfviewer/dist/.gitkeep

@@ -1,4 +1,4 @@
-import urlJoin from "url-join";
+import { urlJoin } from "@base/utils/helpers";
 
 export function absoluteApiUrl(url: string): string {
   if (['http', 'data'].some(p => url.startsWith(p))) {

@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Plugin projectnumber: Add manage.py command to reset projectnumber
+* Add plugin: renderfindings - Render single finding to PDF
 
 
 ## v2024.96 - 2024-12-04

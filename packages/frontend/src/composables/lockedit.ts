@@ -1,6 +1,6 @@
-import urlJoin from "url-join";
 import { formatISO9075 } from "date-fns";
 import { levelNameFromLevelNumber } from '@base/utils/cvss';
+import { urlJoin } from "@base/utils/helpers";
 import {
   ProjectTypeScope,
   UploadedFileType,

@@ -13,6 +13,12 @@ from rest_framework import permissions
 
 from reportcreator_api.utils.decorators import cache
 
+LICENSE_VALIDATION_KEYS = [
+    {'id': 'amber', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAkqCS3lZbrzh+2mKTYymqPHtKBrh8glFxnj9OcoQR9xQ='},
+    {'id': 'silver', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAwu/cl0CZSSBFOzFSz/hhUQQjHIKiT4RS3ekPevSKn7w='},
+    {'id': 'magenta', 'algorithm': 'ed25519', 'key': 'MCowBQYDK2VwAyEAd10mgfTx0fuPO6KwcYU98RLhreCF+BQCeI6CAs0YztA='},
+]
+
 
 class LicenseError(Exception):
     def __init__(self, detail: str|dict) -> None:
@@ -37,7 +43,7 @@ class ProfessionalLicenseRequired(permissions.BasePermission):
 
 
 def verify_signature(data: str, signature: dict):
-    public_key = next(filter(lambda k: k['id'] == signature['key_id'], settings.LICENSE_VALIDATION_KEYS), None)
+    public_key = next(filter(lambda k: k['id'] == signature['key_id'], LICENSE_VALIDATION_KEYS), None)
     if not public_key:
         return False
     if public_key['algorithm'] != signature['algorithm'] or signature['algorithm'] != 'ed25519':

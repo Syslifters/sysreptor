@@ -76,10 +76,9 @@
 </template>
 
 <script setup lang="ts">
-import urlJoin from "url-join";
 import { last } from 'lodash-es';
-import { v4 as uuidv4 } from 'uuid';
 import { uploadFileHelper, absoluteApiUrl } from "#imports";
+import { urlJoin, uuidv4 } from "@base/utils/helpers";
 
 const props = defineProps<{
   projectType: ProjectType;

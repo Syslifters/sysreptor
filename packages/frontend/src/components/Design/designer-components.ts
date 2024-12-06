@@ -1,6 +1,6 @@
-import { v4 as uuid4 } from 'uuid';
 import { escape, unescape, escapeRegExp, kebabCase } from 'lodash-es';
 import { cssLanguage, vueLanguage } from '@sysreptor/markdown/editor';
+import { uuidv4 } from "@base/utils/helpers";
 import { FieldDataType } from "#imports";
 
 export type Node = any;
@@ -85,7 +85,7 @@ export class DesignerComponentBlockImpl implements DesignerComponentBlock {
     this.children = [];
     this.childrenArea = getChildrenArea(this.tagInfo.node);
 
-    this.id = this.tagInfo.attributes.id?.value || uuid4();
+    this.id = this.tagInfo.attributes.id?.value || uuidv4();
     this.cssPosition = this.findCssPosition();
   }
 

@@ -85,8 +85,8 @@
 </template>
 
 <script setup lang="ts">
-import { v4 as uuid4 } from 'uuid';
 import { VForm } from 'vuetify/components';
+import { uuidv4 } from "@base/utils/helpers";
 
 const localSettings = useLocalSettings();
 
@@ -113,7 +113,7 @@ const titleRef = ref();
 const textRef = ref();
 async function createNote() {
   const newNote = {
-    id: uuid4(),
+    id: uuidv4(),
     parent: null,
     order: noteGroups.value.length + 1,
     checked: null,

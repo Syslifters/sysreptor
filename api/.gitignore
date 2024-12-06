@@ -131,8 +131,7 @@ Control.system-ca-bundle
 GitHub.sublime-settings 
 
 # Visual Studio Code # 
-.vscode/* 
-!.vscode/launch.json 
+.vscode
 .history
 
 data

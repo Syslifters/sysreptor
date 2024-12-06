@@ -104,7 +104,7 @@ export function pluginBreadcrumbs(scope: PluginRouteScope): Breadcrumbs {
   const router = useRouter();
   const pluginStore = usePluginStore();
   const route = router.currentRoute.value;
-  const routeMatches = sortBy(router.getRoutes().filter(r => route.path.startsWith(r.path) && r.path !== '/'), [r => -r.path.length]);
+  const routeMatches = sortBy(router.getRoutes().filter(r => route.matched.at(-1)?.path.startsWith(r.path) && r.path !== '/'), [r => -r.path.length]);
   const pluginMenuEntries = pluginStore.menuEntriesForScope(scope)
   const menuEntry = routeMatches.map(m => pluginMenuEntries.find(e => e.to.name === m.name)).filter(e => !!e)[0];
   if (menuEntry) {

@@ -8,6 +8,7 @@
     "generate": "nuxt generate",
     "test": "vitest run",
     "postinstall": "nuxt prepare",
+    "typecheck": "nuxi typecheck",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -29,16 +30,11 @@
 
     "date-fns": "^4.1.0",
     "lodash-es": "^4.17.21",
-    "uuid": "^11.0.0",
-    "url-join": "^5.0.0",
-    "js-file-download": "^0.4.12",
-    "dompurify": "^3.1.6",
-    "base64-arraybuffer": "^1.0.2"
+    "dompurify": "^3.1.6"
   },
   "devDependencies": {
     "@nuxt/test-utils": "^3.10.0",
     "@types/lodash-es": "^4.17.0",
-    "@types/uuid": "^10.0.0",
     "@types/dompurify": "^3.0.5",
     "eslint": "^9.0.0",
     "vitest": "^2.0.4",

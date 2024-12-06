@@ -1,9 +1,9 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { v4 as uuid4 } from 'uuid'
 import { cloneDeep } from 'lodash-es'
 import { CollabEventType, type CollabEvent, type Comment, type User } from '#imports';
 import { ChangeSet, EditorSelection } from '@sysreptor/markdown/editor';
+import { uuidv4 } from "@base/utils/helpers";
 
 
 async function createCollab(options?: { collabInitEvent?: Partial<CollabEvent> }) {
@@ -29,8 +29,8 @@ async function createCollab(options?: { collabInitEvent?: Partial<CollabEvent> }
   }
   await collab.connectTo(connection);
 
-  const commentIdText = uuid4();
-  const commentIdList = uuid4();
+  const commentIdText = uuidv4();
+  const commentIdList = uuidv4();
   const collabInitEvent = {
     type: CollabEventType.INIT,
     version: 1,
@@ -63,12 +63,12 @@ async function createCollab(options?: { collabInitEvent?: Partial<CollabEvent> }
       {
         client_id: 'self',
         client_color: 'red',
-        user: { id: uuid4(), username: 'user', name: 'User Name' } as unknown as User,
+        user: { id: uuidv4(), username: 'user', name: 'User Name' } as unknown as User,
       },
       {
         client_id: 'other',
         client_color: 'blue',
-        user: { id: uuid4(), username: 'other', name: 'Other User' } as unknown as User,
+        user: { id: uuidv4(), username: 'other', name: 'Other User' } as unknown as User,
       }
     ],
     ...(options?.collabInitEvent || {})
@@ -293,7 +293,7 @@ describe('send and receive', () => {
       client: {
         client_id: 'other2',
         client_color: 'green',
-        user: { id: uuid4(), username: 'other2', name: 'Other User 2' } as unknown as User,
+        user: { id: uuidv4(), username: 'other2', name: 'Other User 2' } as unknown as User,
       },
     }));
     expect(collab.storeState.awareness.clients.at(-1)?.client_id).toBe('other2');

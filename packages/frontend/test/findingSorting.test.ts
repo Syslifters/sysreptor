@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { addDays } from "date-fns";
 import { reverse } from 'lodash-es';
-import { sortFindings } from '@/stores/project';
+import { sortFindings } from '@base/utils/project';
 import { type FindingOrderingDefinition, type PentestFinding, type ProjectType, SortOrder } from "#imports";
 
 function testFindingSort({ findings, findingOrdering = [], overrideFindingOrder = false }: { findings: PentestFinding[], findingOrdering?: FindingOrderingDefinition[], overrideFindingOrder?: boolean}) {

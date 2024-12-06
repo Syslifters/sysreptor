@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import urlJoin from "url-join";
+import { urlJoin } from "@base/utils/helpers";
 
 const props = defineProps<{
   modelValue: boolean;

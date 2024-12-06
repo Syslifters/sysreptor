@@ -123,7 +123,7 @@
 
 <script setup lang="ts">
 import { cloneDeep } from "lodash-es";
-import { v4 as uuidv4 } from "uuid";
+import { uuidv4 } from "@base/utils/helpers";
 import type { MarkdownEditorMode } from "#imports";
 
 const props = withDefaults(defineProps<{

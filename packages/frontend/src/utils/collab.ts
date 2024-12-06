@@ -1,5 +1,5 @@
 import { get, set, unset, throttle, trimStart, sortBy, cloneDeep } from "lodash-es";
-import urlJoin from "url-join";
+import { urlJoin } from "@base/utils/helpers";
 import { ChangeSet, EditorSelection, SelectionRange, Text } from "@sysreptor/markdown/editor"
 import { CommentStatus, type Comment, type UserShortInfo } from "#imports"
 

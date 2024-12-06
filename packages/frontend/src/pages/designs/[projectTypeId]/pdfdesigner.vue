@@ -115,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import urlJoin from "url-join";
+import { urlJoin } from "@base/utils/helpers";
 import { initialCss } from '~/components/Design/designer-components';
 import { formatProjectTypeTitle, uploadFileHelper, PdfDesignerTab } from "#imports";
 

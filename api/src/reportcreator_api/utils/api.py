@@ -31,20 +31,7 @@ class GenericAPIViewAsyncMixin:
 
 
 class GenericAPIViewAsync(GenericAPIViewAsyncMixin, AdrfAsyncGenericAPIView):
-    _action = None
-
-    @property
-    def action(self):
-        return self._action
-
-    @action.setter
-    def action(self, value):
-        self._action = value
-
-    async def aget_valid_serializer(self, *args, **kwargs):
-        serializer = self.get_serializer(*args, **kwargs)
-        await sync_to_async(serializer.is_valid)(raise_exception=True)
-        return serializer
+    pass
 
 
 class ViewSetAsync(GenericAPIViewAsyncMixin, AdrfAsyncGenericViewSet):

@@ -1,4 +1,3 @@
-import { v4 as uuid4 } from 'uuid';
 import { sortBy, isEqual } from "lodash-es";
 import type { PropType } from "vue";
 import { 
@@ -23,6 +22,7 @@ import {
   closeSearchPanel,
   searchPanelOpen,
 } from "@sysreptor/markdown/editor/index";
+import { uuidv4 } from "@base/utils/helpers";
 import { MarkdownEditorMode } from '#imports';
 
 export type ReferenceItem = {
@@ -113,7 +113,7 @@ export function useMarkdownEditorBase(options: {
   const apiSettings = useApiSettings();
   const theme = useTheme();
   const editorWasInView = ref(false);
-  const previewCacheBuster = uuid4();
+  const previewCacheBuster = uuidv4();
 
   const valueNotNull = computed(() => options.props.value.modelValue || '');
   const spellcheckLanguageToolEnabled = computed(() =>
