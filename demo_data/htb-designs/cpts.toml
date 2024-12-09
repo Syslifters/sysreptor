@@ -1,18 +1,13 @@
-format = "projecttypes/v1"
+format = "projecttypes/v2"
 id = "f0b48bc5-af2b-4566-a904-9604f79a3229"
-name = "HTB CPTS Report v1.0"
+name = "HTB CPTS Report v1.1"
 language = "en-US"
-finding_field_order = [
-    "title",
-    "cwe",
-    "cvss",
-    "summary",
-    "impact",
-    "affected_components",
-    "recommendation",
-    "references",
-    "description",
+status = "finished"
+tags = [
+    "htb",
+    "HackTheBox",
 ]
+default_notes = []
 report_template = """
 <div id="header" data-sysreptor-generated="page-header">
     <div id="header-left">
@@ -41,7 +36,7 @@ report_template = """
         <h2 id="page-cover-report-title">{{ report.title }}</h2>
         <h2>Report of Findings</h2>
         <h3>HTB Certified Penetration Testing Specialist (CPTS) Exam Report</h3>
-        <h3>Candidate Name: {{ report.candidate.a_name }}</h3>
+        <h3>Candidate Name: {{ report.candidate.name }}</h3>
     </div>
 
     <div id="page-cover-recipient">
@@ -78,6 +73,11 @@ report_template = """
     <div>
         <h1 id="contacts" class="in-toc numbered">Engagement Contacts</h1>
         <table>
+            <colgroup>
+                <col style="width: auto;" />
+                <col style="width: auto;" />
+                <col style="width: auto;" />
+            </colgroup>
             <tr>
                 <th colspan="3" style="text-align: center">
                     {{ report.customer_short }} Contacts
@@ -89,13 +89,18 @@ report_template = """
                 <td><strong>Contact Email</strong></td>
             </tr>
             <tr v-for="contact in report.customer_contacts">
-                <td>{{ contact.a_name }}</td>
-                <td>{{ contact.b_title }}</td>
-                <td>{{ contact.c_email }}</td>
+                <td>{{ contact.name }}</td>
+                <td>{{ contact.title }}</td>
+                <td>{{ contact.email }}</td>
             </tr>
         </table>
 
         <table>
+            <colgroup>
+                <col style="width: auto;" />
+                <col style="width: auto;" />
+                <col style="width: auto;" />
+            </colgroup>
             <tr>
                 <th colspan="3" style="text-align: center">
                     Assessor Contact
@@ -107,9 +112,9 @@ report_template = """
                 <td><strong>Assessor Contact Email</strong></td>
             </tr>
             <tr>
-                <td>{{ report.candidate.a_name }}</td>
-                <td>{{ report.candidate.b_title }}</td>
-                <td>{{ report.candidate.c_email }}</td>
+                <td>{{ report.candidate.name }}</td>
+                <td>{{ report.candidate.title }}</td>
+                <td>{{ report.candidate.email }}</td>
             </tr>
         </table>
     </div>
@@ -205,18 +210,18 @@ report_template = """
         <table class="findings-list">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Severity Level</th>
-                    <th>Finding Name</th>
-                    <th align="center">Page</th>
+                    <th style="width: 3em;" align="center">#</th>
+                    <th style="width: 8em;" align="center">Severity Level</th>
+                    <th style="width: auto;">Finding Name</th>
+                    <th style="width: 3em;" align="center">Page</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="finding in findings" class="table-row-link">
-                    <td>
+                    <td align="center">
                         <ref :to="finding.id" class="ref-finding-number" />
                     </td>
-                    <td :class="'risk-bg-' + finding.cvss.level">
+                    <td :class="'risk-bg-' + finding.cvss.level" align="center">
                         <ref :to="finding.id">{{ finding.cvss.score}} ({{ lodash.capitalize(finding.cvss.level) }})</ref>
                     </td>
                     <td>
@@ -448,14 +453,20 @@ p {
 }
 
 a {
-  color: var(--color-secondary); /* Set the color of unvisited links */
-  text-decoration: underline; /* Remove the underline from unvisited links */
+    color: var(--color-secondary); /* Set the color of unvisited links */
+    text-decoration: underline; /* Remove the underline from unvisited links */
 }
 
 
 /* Table styling */
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
 table, th, td {
-  border: 1px solid white;
+    border: 1px solid white;
 }
 th {
     background-color: var(--color-table-header);
@@ -487,6 +498,9 @@ tr:nth-child(even) {
 tr:nth-child(odd) {
     background-color: var(--color-table-row-odd)
 }
+tr .highlight, tr code {
+    background-color: var(--color-page-background);
+}
 
 
 /* Code block styling */
@@ -507,12 +521,12 @@ code {
 
 /* Footnotes */
 @page {
-  @footnote {
-    border-top: 1px solid white;
-  }
+    @footnote {
+        border-top: 1px solid white;
+    }
 }
 footnote {
-  font-size: 8pt;
+    font-size: 8pt;
 }
 
 /* Classes for risk colors */
@@ -534,10 +548,10 @@ footnote {
     content: "" !important;
 }
 .ref-page .ref-title, .ref-finding-number .ref-title {
-  display: none !important;
+    display: none !important;
 }
 .ref-page::after {
-  content: target-counter(attr(href), page) !important;
+    content: target-counter(attr(href), page) !important;
 }
 .ref-finding-number::before {
     content: target-counter(attr(href), finding-number);
@@ -557,19 +571,12 @@ footnote {
 
 
 /* Finding */
-.finding-header {
-    table-layout: fixed;
-}
 .finding-header th {
     font-weight: normal;
     width: 7em;
 }
 .finding-header tr {
     break-inside: auto;
-}
-.finding-header-color{
-    font-size: 12pt;
-    color: white !important;
 }
 
 
@@ -597,7 +604,6 @@ footnote {
 /* #region header */
 @page {
     margin-top: 35mm;
-
     --header-margin-bottom: 5mm;
     
     @top-left-corner {
@@ -617,6 +623,10 @@ footnote {
         border-bottom: 2px dotted white;
     }
 }
+#header {
+    position: absolute;
+    width: 0;
+}
 #header-left { 
     position: running(header-left); 
     display: flex;
@@ -632,6 +642,10 @@ footnote {
     @bottom-left { content: element(footer-left); }
     @bottom-center { content: element(footer-center); }
     @bottom-right-corner { content: counter(page); }
+}
+#footer {
+    position: absolute;
+    width: 0;
 }
 #footer-left { position: running(footer-left); }
 #footer-center { position: running(footer-center); }
@@ -699,7 +713,10 @@ footnote {
     color: var(--color-secondary);
 }
 
-@page :first {
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
     /* Hide header */
     @top-left-corner { content: none !important; }
     @top-left { content: none !important; }
@@ -741,8 +758,45 @@ footnote {
 /* #endregion toc */
 """
 
-[report_fields]
-[report_fields.title]
+[[report_sections]]
+id = "meta"
+label = "Meta"
+
+[[report_sections.fields]]
+id = "candidate"
+type = "object"
+label = "HTB Candidate"
+origin = "custom"
+
+[[report_sections.fields.properties]]
+id = "name"
+type = "string"
+label = "Full Name"
+origin = "custom"
+default = "TODO Candidate Name"
+required = true
+spellcheck = false
+
+[[report_sections.fields.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO Candidate Title"
+required = true
+spellcheck = false
+
+[[report_sections.fields.properties]]
+id = "email"
+type = "string"
+label = "Email"
+origin = "custom"
+default = "TODO Candidate Email"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "title"
 type = "string"
 label = "Report Title"
 origin = "core"
@@ -750,7 +804,140 @@ default = "TODO Internal Pentest"
 required = true
 spellcheck = false
 
-[report_fields.scope]
+[[report_sections.fields]]
+id = "customer_full"
+type = "string"
+label = "Customer"
+origin = "custom"
+default = "TODO Customer Ltd."
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "customer_short"
+type = "string"
+label = "Customer (abbreviated)"
+origin = "custom"
+default = "TODO Customer"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "pentest_approach"
+type = "enum"
+label = "Pentest Approach"
+origin = "custom"
+default = "BLACKBOX"
+required = true
+
+[[report_sections.fields.choices]]
+label = "Black Box"
+value = "BLACKBOX"
+
+[[report_sections.fields.choices]]
+label = "Grey Box"
+value = "GREYBOX"
+
+[[report_sections.fields.choices]]
+label = "White Box"
+value = "WHITEBOX"
+
+[[report_sections.fields]]
+id = "pentest_start"
+type = "date"
+label = "Pentest Start"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "pentest_end"
+type = "date"
+label = "Pentest End"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "report_date"
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "report_version"
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "TODO 1.0"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "document_control"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "customer_contacts"
+type = "list"
+label = "Customer Contacts"
+origin = "custom"
+required = true
+
+[report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[report_sections.fields.items.properties]]
+id = "name"
+type = "string"
+label = "Name"
+origin = "custom"
+default = "TODO Name"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO Title"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "email"
+type = "string"
+label = "Email"
+origin = "custom"
+default = "TODO Email"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "executive_summary"
+label = "Executive Summary"
+
+[[report_sections.fields]]
+id = "executive_summary"
+type = "markdown"
+label = "Executive Summary"
+origin = "custom"
+default = "{{ report.customer_full }} (“{{ report.customer_short }}” herein) contracted {{ report.candidate.name }} to perform a Network Penetration Test of {{ report.customer_short }}’s externally facing network to identify security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations."
+required = true
+
+[[report_sections.fields]]
+id = "approach"
+type = "markdown"
+label = "Approach"
+origin = "custom"
+default = "{{ report.candidate.name }} performed testing under a “{{ report.pentest_approach.label }}” approach from {{ formatDate(report.pentest_start, 'long') }}, to {{ formatDate(report.pentest_end, 'long') }} without credentials or any advance knowledge of {{ report.customer_short }}’s externally facing environment with the goal of identifying unknown weaknesses. Testing was performed from a non-evasive standpoint with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Testing was performed remotely from {{ report.candidate.name }}'s assessment labs. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential. {{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal domain compromise. If {{ report.candidate.name }} were able to gain a foothold in the internal network, {{ report.customer_short }} as a result of external network testing, {{ report.customer_short }} allowed for further testing including lateral movement and horizontal/vertical privilege escalation to demonstrate the impact of an internal network compromise."
+required = true
+
+[[report_sections.fields]]
+id = "scope"
 type = "markdown"
 label = "Scope"
 origin = "custom"
@@ -761,51 +948,126 @@ The scope of this assessment was one external IP address, two internal network r
 | Host/URL/IP Address | Description |
 |:---|:---|
 | TODO 10.129.X.X | TODO |
-| 172.16.139.0/24  | {{ report.customer_short }} internal network |
-| 172.16.210.0/24  | {{ report.customer_short }} internal network |
-| TODO  | {{ report.customer_short }} internal AD domain |
+| 172.16.139.0/24  | {{ report.customer_short }} internal network |
+| 172.16.210.0/24  | {{ report.customer_short }} internal network |
+| TODO  | {{ report.customer_short }} internal AD domain |
 | TODO other discovered internal domain(s) | TODO |
 """
 required = true
 
-[report_fields.approach]
+[[report_sections.fields]]
+id = "assessment_overview"
 type = "markdown"
-label = "Approach"
+label = "Assessment Overview and Recommendations"
 origin = "custom"
-default = "{{ report.candidate.a_name }} performed testing under a “{{ report.pentest_approach.label }}” approach from {{ formatDate(report.pentest_start, 'long') }}, to {{ formatDate(report.pentest_end, 'long') }} without credentials or any advance knowledge of {{ report.customer_short }}’s externally facing environment with the goal of identifying unknown weaknesses. Testing was performed from a non-evasive standpoint with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Testing was performed remotely from {{ report.candidate.a_name }}'s assessment labs. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential. {{ report.candidate.a_name }} sought to demonstrate the full impact of every vulnerability, up to and including internal domain compromise. If {{ report.candidate.a_name }} were able to gain a foothold in the internal network, {{ report.customer_short }} as a result of external network testing, {{ report.customer_short }} allowed for further testing including lateral movement and horizontal/vertical privilege escalation to demonstrate the impact of an internal network compromise."
+default = """
+During the penetration test against {{ report.customer_short }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}'s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_hight }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
+
+TODO EXECUTIVE SUMMARY HERE
+
+{{ report.customer_short }} should create a remediation plan based on the [Remediation Summary](#remediation-summary) section of this report, addressing all high findings as soon as possible according to the needs of the business. {{ report.customer_short }} should also consider performing periodic vulnerability assessments if they are not already being performed. Once the issues identified in this report have been addressed, a more collaborative, in-depth Active Directory security assessment may help identify additional opportunities to harden the Active Directory environment, making it more difficult for attackers to move around the network and increasing the likelihood that {{ report.customer_short }} will be able to detect and respond to suspicious activity.
+"""
 required = true
 
-[report_fields.candidate]
-type = "object"
-label = "HTB Candidate"
-origin = "custom"
+[[report_sections]]
+id = "network_pentest_summary"
+label = "Network Penetration Test Assessment Summary"
 
-[report_fields.candidate.properties]
-[report_fields.candidate.properties.a_name]
-type = "string"
-label = "Full Name"
+[[report_sections.fields]]
+id = "network_summary"
+type = "markdown"
+label = "Network Summary"
 origin = "custom"
-default = "TODO Candidate Name"
+default = "{{ report.candidate.name }} began all testing activities from the perspective of an unauthenticated user on the internet. {{ report.customer_short }} provided the tester with network ranges but did not provide additional information such as operating system or configuration information."
 required = true
-spellcheck = false
 
-[report_fields.candidate.properties.b_title]
-type = "string"
-label = "Title"
+[[report_sections.fields]]
+id = "finding_summary"
+type = "markdown"
+label = "Summary of Findings"
 origin = "custom"
-default = "TODO Candidate Title"
+default = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}'s information systems. {{ report.candidate.name }} also identified {{ finding_stats.count_info }} informational finding that, if addressed, could further strengthen {{ report.customer_short }}'s overall security posture. Informational findings are observations for areas of improvement by the organization and do not represent security vulnerabilities on their own. The below chart provides a summary of the findings by severity level."
 required = true
-spellcheck = false
 
-[report_fields.candidate.properties.c_email]
-type = "string"
-label = "Email"
+[[report_sections]]
+id = "network_pentest_walkthrough"
+label = "Internal Network Compromise Walkthrough"
+
+[[report_sections.fields]]
+id = "walkthrough_summary"
+type = "markdown"
+label = "Walkthrough Summary"
 origin = "custom"
-default = "TODO Candidate Email"
+default = "During the course of the assessment {{ report.candidate.name }} was able gain a foothold via the external network, move laterally, and compromise the internal network, leading to full administrative control over the TODO INSERT DOMAIN NAME Active Directory domain. The steps below demonstrate the steps taken from initial access to compromise and does not include all vulnerabilities and misconfigurations discovered during the course of testing. Any issues not used as part of the path to compromise are listed as separate, standalone issues in the [Technical Findings Details](#findings) section, ranked by severity level. The intent of this attack chain is to demonstrate to {{ report.customer_short }} the impact of each vulnerability shown in this report and how they fit together to demonstrate the overall risk to the client environment and help to prioritize remediation efforts (i.e., patching two flaws quickly could break up the attack chain while the company works to remediate all issues reported). While other findings shown in this report could be leveraged to gain a similar level of access, this attack chain shows the initial path of least resistance taken by the tester to achieve domain compromise."
 required = true
-spellcheck = false
 
-[report_fields.long_term]
+[[report_sections.fields]]
+id = "walkthrough_details"
+type = "markdown"
+label = "Detailed Walkthrough"
+origin = "custom"
+default = """
+{{ report.candidate.name }}performed the following to fully compromise the TODO INSERT DOMAIN NAME domain.
+
+1. TODO LIST HIGH LEVEL STEPS
+2. ...
+
+**Detailed reproduction steps for this attack chain are as follows:**
+TODO FILL IN DETAILED ATTACK CHAIN STEPS
+
+{{ report.candidate.name }}then performed the following to fully compromise the TODO INSERT OTHER INTERNAL DOMAIN NAME(S) domain.
+
+1. TODO LIST HIGH LEVEL STEPS
+2. ...
+
+**Detailed reproduction steps for this attack chain are as follows:**
+TODO FILL IN DETAILED ATTACK CHAIN STEPS
+"""
+required = true
+
+[[report_sections]]
+id = "remediation_summary"
+label = "Remediation Summary"
+
+[[report_sections.fields]]
+id = "remediation_summary"
+type = "markdown"
+label = "Remediation Summary"
+origin = "custom"
+default = "As a result of this assessment there are several opportunities for {{ report.customer_short }} to strengthen its internal network security. Remediation efforts are prioritized below starting with those that will likely take the least amount of time and effort to complete. {{ report.customer_short }} should ensure that all remediation steps and mitigating controls are carefully planned and tested to prevent any service disruptions or loss of data."
+required = true
+
+[[report_sections.fields]]
+id = "short_term"
+type = "markdown"
+label = "Short Term"
+origin = "custom"
+default = """
+TODO SHORT TERM REMEDIATION:
+* [Finding Reference 1](#findingid1) - Set strong (24+ character) passwords on all SPN accounts
+* [Finding Reference 2](#findingid2) - TODO FILL IN AS APPROPRIATE
+* [Finding Reference 3](#findingid3) - Enforce a password change for all users because of the domain compromise
+
+TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
+"""
+required = true
+
+[[report_sections.fields]]
+id = "medium_term"
+type = "markdown"
+label = "Medium Term"
+origin = "custom"
+default = """
+TODO MEDIUM TERM REMEDIATION:
+* [Finding Reference 1](#findingid1) - Disable LLMNR and NBT-NS wherever possible
+* [Finding Reference 2](#findingid2) - TODO FILL IN AS APPROPRIATE
+
+TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
+"""
+required = true
+
+[[report_sections.fields]]
+id = "long_term"
 type = "markdown"
 label = "Long Term"
 origin = "custom"
@@ -821,60 +1083,91 @@ TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
 """
 required = true
 
-[report_fields.short_term]
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[report_sections.fields]]
+id = "appendix_severities"
 type = "markdown"
-label = "Short Term"
+label = "Finding Severities"
 origin = "custom"
 default = """
-TODO SHORT TERM REMEDIATION:
-* [Finding Reference 1](#findingid1) - Set strong (24+ character) passwords on all SPN accounts
-* [Finding Reference 2](#findingid2) - TODO FILL IN AS APPROPRIATE
-* [Finding Reference 3](#findingid3) - Enforce a password change for all users because of the domain compromise
+Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
 
-TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
+| Rating   | CVSS Score Range |
+| -------- | ---------------- | 
+| Critical | 9.0 – 10.0       |
+| High     | 7.0 – 8.9        |
+| Medium   | 4.0 – 6.9        |
+| Low      | 0.1 – 3.9        |
+| Info     | 0.0              |
 """
-required = true
+required = false
 
-[report_fields.medium_term]
+[[report_sections.fields]]
+id = "appendix_host_discovery"
 type = "markdown"
-label = "Medium Term"
+label = "Host & Service Discovery"
 origin = "custom"
 default = """
-TODO MEDIUM TERM REMEDIATION:
-* [Finding Reference 1](#findingid1) - Disable LLMNR and NBT-NS wherever possible
-* [Finding Reference 2](#findingid2) - TODO FILL IN AS APPROPRIATE
+| IP Address | Port | Service | Notes |
+| ------- | ------- | ------- | ------- |
+| TODO FILL IN AS APPROPRIATE   |     |     |    |
 
-TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
 """
-required = true
+required = false
 
-[report_fields.pentest_end]
-type = "date"
-label = "Pentest End"
+[[report_sections.fields]]
+id = "appendix_subdomain_discovery"
+type = "markdown"
+label = "Subdomain Discovery"
 origin = "custom"
-required = true
+default = """
+| URL | Description | Discovery Method |
+| ------- | ------- | ------- | 
+| TODO FILL IN DISCOVERED VHOSTS/SUBDOMAINS   |     |     |
+"""
+required = false
 
-[report_fields.report_date]
-type = "date"
-label = "Report Date"
+[[report_sections.fields]]
+id = "appendix_exploited_hosts"
+type = "markdown"
+label = "Exploited Hosts"
 origin = "custom"
-required = true
+default = """
+| Host | Scope | Method | Notes |
+| ------- | ------- | ------- | ------- |
+| TODO FILL IN AS APPROPRIATE   | Text    | Text    |Text    |
+"""
+required = false
 
-[report_fields.customer_full]
-type = "string"
-label = "Customer"
+[[report_sections.fields]]
+id = "appendix_compromised_users"
+type = "markdown"
+label = "Compromised Users"
 origin = "custom"
-default = "TODO Customer Ltd."
-required = true
-spellcheck = false
+default = """
+| Username | Type | Method | Notes |
+| ------- | ------- | ------- | ------- |
+| TODO FILL IN AS APPROPRIATE   | Text    | Text    |Text    |
+"""
+required = false
 
-[report_fields.pentest_start]
-type = "date"
-label = "Pentest Start"
+[[report_sections.fields]]
+id = "appendix_cleanup"
+type = "markdown"
+label = "Changes/Host Cleanup"
 origin = "custom"
-required = true
+default = """
+| Host | Scope | Change/Cleanup Needed |
+| ------- | ------- | ------- | 
+| TODO FILL IN AS APPROPRIATE   |     |     |
+"""
+required = false
 
-[report_fields.appendix_flags]
+[[report_sections.fields]]
+id = "appendix_flags"
 type = "markdown"
 label = "Flags Discovered"
 origin = "custom"
@@ -897,223 +1190,21 @@ default = """
 """
 required = false
 
-[report_fields.customer_short]
-type = "string"
-label = "Customer (abbreviated)"
-origin = "custom"
-default = "TODO Customer"
-required = true
-spellcheck = false
-
-[report_fields.report_version]
-type = "string"
-label = "Report Version"
-origin = "custom"
-default = "TODO 1.0"
-required = true
-spellcheck = false
-
-[report_fields.finding_summary]
-type = "markdown"
-label = "Summary of Findings"
-origin = "custom"
-default = "During the course of testing, {{ report.candidate.a_name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}’s information systems. {{ report.candidate.a_name }} also identified {{ finding_stats.count_info }} informational finding that, if addressed, could further strengthen {{ report.customer_short }}’s overall security posture. Informational findings are observations for areas of improvement by the organization and do not represent security vulnerabilities on their own. The below chart provides a summary of the findings by severity level."
-required = true
-
-[report_fields.network_summary]
-type = "markdown"
-label = "Network Summary"
-origin = "custom"
-default = "{{ report.candidate.a_name }} began all testing activities from the perspective of an unauthenticated user on the internet. {{ report.customer_short }} provided the tester with network ranges but did not provide additional information such as operating system or configuration information."
-required = true
-
-[report_fields.appendix_cleanup]
-type = "markdown"
-label = "Changes/Host Cleanup"
-origin = "custom"
-default = """
-| Host | Scope | Change/Cleanup Needed |
-| ------- | ------- | ------- | 
-| TODO FILL IN AS APPROPRIATE   |     |     |
-"""
-required = false
-
-[report_fields.pentest_approach]
-type = "enum"
-label = "Pentest Approach"
-origin = "custom"
-default = "BLACKBOX"
-required = true
-
-[[report_fields.pentest_approach.choices]]
-label = "Black Box"
-value = "BLACKBOX"
-
-[[report_fields.pentest_approach.choices]]
-label = "Grey Box"
-value = "GREYBOX"
-
-[[report_fields.pentest_approach.choices]]
-label = "White Box"
-value = "WHITEBOX"
-
-[report_fields.customer_contacts]
-type = "list"
-label = "Customer Contacts"
-origin = "custom"
-required = true
-
-[report_fields.customer_contacts.items]
-type = "object"
-label = ""
-origin = "custom"
-
-[report_fields.customer_contacts.items.properties]
-[report_fields.customer_contacts.items.properties.a_name]
-type = "string"
-label = "Name"
-origin = "custom"
-default = "TODO Name"
-required = true
-spellcheck = false
-
-[report_fields.customer_contacts.items.properties.b_title]
-type = "string"
-label = "Title"
-origin = "custom"
-default = "TODO Title"
-required = true
-spellcheck = false
-
-[report_fields.customer_contacts.items.properties.c_email]
-type = "string"
-label = "Email"
-origin = "custom"
-default = "TODO Email"
-required = true
-spellcheck = false
-
-[report_fields.executive_summary]
-type = "markdown"
-label = "Executive Summary"
-origin = "custom"
-default = "{{ report.customer_full }} (“{{ report.customer_short }}” herein) contracted {{ report.candidate.a_name }} to perform a Network Penetration Test of {{ report.customer_short }}’s externally facing network to identify security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations."
-required = true
-
-[report_fields.appendix_severities]
-type = "markdown"
-label = "Finding Severities"
-origin = "custom"
-default = """
-Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
-
-| Rating   | CVSS Score Range |
-| -------- | ---------------- | 
-| Critical | 9.0 – 10.0       |
-| High     | 7.0 – 8.9        |
-| Medium   | 4.0 – 6.9        |
-| Low      | 0.1 – 3.9        |
-| Info     | 0.0              |
-"""
-required = false
-
-[report_fields.assessment_overview]
-type = "markdown"
-label = "Assessment Overview and Recommendations"
-origin = "custom"
-default = """
-During the penetration test against {{ report.customer_short }}, {{ report.candidate.a_name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}’s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_hight }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
-
-TODO EXECUTIVE SUMMARY HERE
-
-{{ report.customer_short }} should create a remediation plan based on the [Remediation Summary](#remediation-summary) section of this report, addressing all high findings as soon as possible according to the needs of the business. {{ report.customer_short }} should also consider performing periodic vulnerability assessments if they are not already being performed. Once the issues identified in this report have been addressed, a more collaborative, in-depth Active Directory security assessment may help identify additional opportunities to harden the Active Directory environment, making it more difficult for attackers to move around the network and increasing the likelihood that {{ report.customer_short }} will be able to detect and respond to suspicious activity.
-"""
-required = true
-
-[report_fields.remediation_summary]
-type = "markdown"
-label = "Remediation Summary"
-origin = "custom"
-default = "As a result of this assessment there are several opportunities for {{ report.customer_short }} to strengthen its internal network security. Remediation efforts are prioritized below starting with those that will likely take the least amount of time and effort to complete. {{ report.customer_short }} should ensure that all remediation steps and mitigating controls are carefully planned and tested to prevent any service disruptions or loss of data."
-required = true
-
-[report_fields.walkthrough_details]
-type = "markdown"
-label = "Detailed Walkthrough"
-origin = "custom"
-default = """
-{{ report.candidate.a_name }}performed the following to fully compromise the TODO INSERT DOMAIN NAME domain.
-
-1. TODO LIST HIGH LEVEL STEPS
-2. ...
-
-**Detailed reproduction steps for this attack chain are as follows:**
-TODO FILL IN DETAILED ATTACK CHAIN STEPS
-
-{{ report.candidate.a_name }}then performed the following to fully compromise the TODO INSERT OTHER INTERNAL DOMAIN NAME(S) domain.
-
-1. TODO LIST HIGH LEVEL STEPS
-2. ...
-
-**Detailed reproduction steps for this attack chain are as follows:**
-TODO FILL IN DETAILED ATTACK CHAIN STEPS
-"""
-required = true
-
-[report_fields.walkthrough_summary]
-type = "markdown"
-label = "Walkthrough Summary"
-origin = "custom"
-default = "During the course of the assessment {{ report.candidate.a_name }} was able gain a foothold via the external network, move laterally, and compromise the internal network, leading to full administrative control over the TODO INSERT DOMAIN NAME Active Directory domain. The steps below demonstrate the steps taken from initial access to compromise and does not include all vulnerabilities and misconfigurations discovered during the course of testing. Any issues not used as part of the path to compromise are listed as separate, standalone issues in the [Technical Findings Details](#findings) section, ranked by severity level. The intent of this attack chain is to demonstrate to {{ report.customer_short }} the impact of each vulnerability shown in this report and how they fit together to demonstrate the overall risk to the client environment and help to prioritize remediation efforts (i.e., patching two flaws quickly could break up the attack chain while the company works to remediate all issues reported). While other findings shown in this report could be leveraged to gain a similar level of access, this attack chain shows the initial path of least resistance taken by the tester to achieve domain compromise."
-required = true
-
-[report_fields.appendix_host_discovery]
-type = "markdown"
-label = "Host & Service Discovery"
-origin = "custom"
-default = """
-| IP Address | Port | Service | Notes |
-| ------- | ------- | ------- | ------- |
-| TODO FILL IN AS APPROPRIATE   |     |     |    |
-
-"""
-required = false
-
-[report_fields.appendix_exploited_hosts]
-type = "markdown"
-label = "Exploited Hosts"
-origin = "custom"
-default = """
-| Host | Scope | Method | Notes |
-| ------- | ------- | ------- | ------- |
-| TODO FILL IN AS APPROPRIATE   | Text    | Text    |Text    |
-"""
-required = false
-
-[report_fields.appendix_compromised_users]
-type = "markdown"
-label = "Compromised Users"
-origin = "custom"
-default = """
-| Username | Type | Method | Notes |
-| ------- | ------- | ------- | ------- |
-| TODO FILL IN AS APPROPRIATE   | Text    | Text    |Text    |
-"""
-required = false
-
-[report_fields.appendix_additional_sections]
+[[report_sections.fields]]
+id = "appendix_additional_sections"
 type = "list"
 label = "Additional Appendix"
 origin = "custom"
 required = false
 
-[report_fields.appendix_additional_sections.items]
+[report_sections.fields.items]
+id = ""
 type = "object"
 label = ""
 origin = "custom"
 
-[report_fields.appendix_additional_sections.items.properties]
-[report_fields.appendix_additional_sections.items.properties.title]
+[[report_sections.fields.items.properties]]
+id = "title"
 type = "string"
 label = "Title"
 origin = "custom"
@@ -1121,98 +1212,16 @@ default = "TODO Appendix Title"
 required = true
 spellcheck = false
 
-[report_fields.appendix_additional_sections.items.properties.content]
+[[report_sections.fields.items.properties]]
+id = "content"
 type = "markdown"
 label = "Content"
 origin = "custom"
 default = "TODO Additional Appendix"
 required = true
 
-[report_fields.appendix_subdomain_discovery]
-type = "markdown"
-label = "Subdomain Discovery"
-origin = "custom"
-default = """
-| URL | Description | Discovery Method |
-| ------- | ------- | ------- | 
-| TODO FILL IN DISCOVERED VHOSTS/SUBDOMAINS   |     |     |
-"""
-required = false
-
-[[report_sections]]
-id = "meta"
-label = "Meta"
-fields = [
-    "candidate",
-    "title",
-    "customer_full",
-    "customer_short",
-    "pentest_approach",
-    "pentest_start",
-    "pentest_end",
-    "report_date",
-    "report_version",
-]
-
-[[report_sections]]
-id = "document_control"
-label = "Document Control"
-fields = [
-    "customer_contacts",
-]
-
-[[report_sections]]
-id = "executive_summary"
-label = "Executive Summary"
-fields = [
-    "executive_summary",
-    "approach",
-    "scope",
-    "assessment_overview",
-]
-
-[[report_sections]]
-id = "network_pentest_summary"
-label = "Network Penetration Test Assessment Summary"
-fields = [
-    "network_summary",
-    "finding_summary",
-]
-
-[[report_sections]]
-id = "network_pentest_walkthrough"
-label = "Internal Network Compromise Walkthrough"
-fields = [
-    "walkthrough_summary",
-    "walkthrough_details",
-]
-
-[[report_sections]]
-id = "remediation_summary"
-label = "Remediation Summary"
-fields = [
-    "remediation_summary",
-    "short_term",
-    "medium_term",
-    "long_term",
-]
-
-[[report_sections]]
-id = "appendix"
-label = "Appendix"
-fields = [
-    "appendix_severities",
-    "appendix_host_discovery",
-    "appendix_subdomain_discovery",
-    "appendix_exploited_hosts",
-    "appendix_compromised_users",
-    "appendix_cleanup",
-    "appendix_flags",
-    "appendix_additional_sections",
-]
-
-[finding_fields]
-[finding_fields.title]
+[[finding_fields]]
+id = "title"
 type = "string"
 label = "Title"
 origin = "core"
@@ -1220,28 +1229,81 @@ default = "TODO FINDING TITLE"
 required = true
 spellcheck = false
 
-[finding_fields.cvss]
+[[finding_fields]]
+id = "cwe"
+type = "string"
+label = "CWE"
+origin = "custom"
+default = "TODO CWE"
+required = false
+spellcheck = false
+
+[[finding_fields]]
+id = "cvss"
 type = "cvss"
 label = "CVSS"
 origin = "predefined"
 default = "n/a"
 required = true
 
-[finding_fields.summary]
+[[finding_fields]]
+id = "summary"
 type = "markdown"
 label = "Overview"
 origin = "predefined"
 default = "TODO DESCRIPTION"
 required = true
 
-[finding_fields.impact]
+[[finding_fields]]
+id = "impact"
 type = "markdown"
 label = "Impact"
 origin = "predefined"
 default = "TODO IMPACT"
 required = true
 
-[finding_fields.description]
+[[finding_fields]]
+id = "affected_components"
+type = "list"
+label = "Affected Components"
+origin = "predefined"
+required = false
+
+[finding_fields.items]
+id = ""
+type = "string"
+label = "Component"
+origin = "predefined"
+default = "TODO AFFECTED COMPONENT"
+required = true
+spellcheck = false
+
+[[finding_fields]]
+id = "recommendation"
+type = "markdown"
+label = "Recommendation"
+origin = "predefined"
+default = "TODO REMEDIATION"
+required = true
+
+[[finding_fields]]
+id = "references"
+type = "list"
+label = "References"
+origin = "predefined"
+required = false
+
+[finding_fields.items]
+id = ""
+type = "string"
+label = "Reference"
+origin = "predefined"
+default = "TODO REFERENCES"
+required = true
+spellcheck = false
+
+[[finding_fields]]
+id = "description"
 type = "markdown"
 label = "Details"
 origin = "predefined"
@@ -1254,49 +1316,6 @@ TODO ADD SCREENSHOTS AS APPROPRIATE
 """
 required = false
 
-[finding_fields.recommendation]
-type = "markdown"
-label = "Recommendation"
-origin = "predefined"
-default = "TODO REMEDIATION"
-required = true
-
-[finding_fields.cwe]
-type = "string"
-label = "CWE"
-origin = "custom"
-default = "TODO CWE"
-required = false
-spellcheck = false
-
-[finding_fields.references]
-type = "list"
-label = "References"
-origin = "predefined"
-required = false
-
-[finding_fields.references.items]
-type = "string"
-label = "Reference"
-origin = "predefined"
-default = "TODO REFERENCES"
-required = true
-spellcheck = false
-
-[finding_fields.affected_components]
-type = "list"
-label = "Affected Components"
-origin = "predefined"
-required = false
-
-[finding_fields.affected_components.items]
-type = "string"
-label = "Component"
-origin = "predefined"
-default = "TODO AFFECTED COMPONENT"
-required = true
-spellcheck = false
-
 [[finding_ordering]]
 field = "cvss"
 order = "desc"
@@ -1308,6 +1327,15 @@ order = "asc"
 [report_preview_data]
 [report_preview_data.report]
 title = "Trilocor Network Pentest"
+customer_full = "Trilocor Robotics Ltd."
+customer_short = "Trilocor"
+pentest_approach = "BLACKBOX"
+pentest_start = "2023-05-12"
+pentest_end = "2023-05-31"
+report_date = "2023-05-31"
+report_version = "1.0"
+executive_summary = "{{ report.customer_full }} (“{{ report.customer_short }}” herein) contracted {{ report.candidate.name }} to perform a Network Penetration Test of {{ report.customer_short }}’s externally facing network to identify security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations."
+approach = "{{ report.candidate.name }} performed testing under a “{{ report.pentest_approach.label }}” approach from {{ formatDate(report.pentest_start, 'long') }}, to {{ formatDate(report.pentest_end, 'long') }} without credentials or any advance knowledge of {{ report.customer_short }}’s externally facing environment with the goal of identifying unknown weaknesses. Testing was performed from a non-evasive standpoint with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Testing was performed remotely from {{ report.candidate.name }}'s assessment labs. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential. {{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal domain compromise. If {{ report.candidate.name }} were able to gain a foothold in the internal network, {{ report.customer_short }} as a result of external network testing, {{ report.customer_short }} allowed for further testing including lateral movement and horizontal/vertical privilege escalation to demonstrate the impact of an internal network compromise."
 scope = """
 The scope of this assessment was one external IP address, two internal network ranges, the TODO Active Directory domain, and any other Active Directory domains owned by {{ report.customer_short }} discovered if internal network access were achieved.
 
@@ -1315,32 +1343,23 @@ The scope of this assessment was one external IP address, two internal network r
 | Host/URL/IP Address | Description |
 |:---|:---|
 | TODO 10.129.X.X | TODO |
-| 172.16.139.0/24  | {{ report.customer_short }} internal network |
-| 172.16.210.0/24  | {{ report.customer_short }} internal network |
-| TODO  | {{ report.customer_short }} internal AD domain |
+| 172.16.139.0/24  | {{ report.customer_short }} internal network |
+| 172.16.210.0/24  | {{ report.customer_short }} internal network |
+| TODO  | {{ report.customer_short }} internal AD domain |
 | TODO other discovered internal domain(s) | TODO |
 """
-report_date = "2023-05-31"
-report_version = "1.0"
-executive_summary = "{{ report.customer_full }} (“{{ report.customer_short }}” herein) contracted {{ report.candidate.a_name }} to perform a Network Penetration Test of {{ report.customer_short }}’s externally facing network to identify security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations."
-customer_short = "Trilocor"
-customer_full = "Trilocor Robotics Ltd."
-approach = "{{ report.candidate.a_name }} performed testing under a “{{ report.pentest_approach.label }}” approach from {{ formatDate(report.pentest_start, 'long') }}, to {{ formatDate(report.pentest_end, 'long') }} without credentials or any advance knowledge of {{ report.customer_short }}’s externally facing environment with the goal of identifying unknown weaknesses. Testing was performed from a non-evasive standpoint with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Testing was performed remotely from {{ report.candidate.a_name }}'s assessment labs. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential. {{ report.candidate.a_name }} sought to demonstrate the full impact of every vulnerability, up to and including internal domain compromise. If {{ report.candidate.a_name }} were able to gain a foothold in the internal network, {{ report.customer_short }} as a result of external network testing, {{ report.customer_short }} allowed for further testing including lateral movement and horizontal/vertical privilege escalation to demonstrate the impact of an internal network compromise."
-pentest_start = "2023-05-12"
-pentest_end = "2023-05-31"
-pentest_approach = "BLACKBOX"
 assessment_overview = """
-During the penetration test against {{ report.customer_short }}, {{ report.candidate.a_name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}’s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk rating, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There was also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
+During the penetration test against {{ report.customer_short }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}'s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk rating, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There was also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
 
 TODO EXECUTIVE SUMMARY HERE
 
 {{ report.customer_short }} should create a remediation plan based on the [Remediation Summary](#remediation-summary) section of this report, addressing all high findings as soon as possible according to the needs of the business. {{ report.customer_short }} should also consider performing periodic vulnerability assessments if they are not already being performed. Once the issues identified in this report have been addressed, a more collaborative, in-depth Active Directory security assessment may help identify additional opportunities to harden the Active Directory environment, making it more difficult for attackers to move around the network and increasing the likelihood that {{ report.customer_short }} will be able to detect and respond to suspicious activity.
 """
-network_summary = "{{ report.candidate.a_name }} began all testing activities from the perspective of an unauthenticated user on the internet. {{ report.customer_short }} provided the tester with network ranges but did not provide additional information such as operating system or configuration information."
-finding_summary = "During the course of testing, {{ report.candidate.a_name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}’s information systems. {{ report.candidate.a_name }} also identified {{ finding_stats.count_info }} informational finding that, if addressed, could further strengthen {{ report.customer_short }}’s overall security posture. Informational findings are observations for areas of improvement by the organization and do not represent security vulnerabilities on their own. The below chart provides a summary of the findings by severity level."
-walkthrough_summary = "During the course of the assessment {{ report.candidate.a_name }} was able gain a foothold via the external network, move laterally, and compromise the internal network, leading to full administrative control over the TODO INSERT DOMAIN NAME Active Directory domain. The steps below demonstrate the steps taken from initial access to compromise and does not include all vulnerabilities and misconfigurations discovered during the course of testing. Any issues not used as part of the path to compromise are listed as separate, standalone issues in the [Technical Findings Details](#findings) section, ranked by severity level. The intent of this attack chain is to demonstrate to {{ report.customer_short }} the impact of each vulnerability shown in this report and how they fit together to demonstrate the overall risk to the client environment and help to prioritize remediation efforts (i.e., patching two flaws quickly could break up the attack chain while the company works to remediate all issues reported). While other findings shown in this report could be leveraged to gain a similar level of access, this attack chain shows the initial path of least resistance taken by the tester to achieve domain compromise."
+network_summary = "{{ report.candidate.name }} began all testing activities from the perspective of an unauthenticated user on the internet. {{ report.customer_short }} provided the tester with network ranges but did not provide additional information such as operating system or configuration information."
+finding_summary = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}'s information systems. {{ report.candidate.name }} also identified {{ finding_stats.count_info }} informational finding that, if addressed, could further strengthen {{ report.customer_short }}’s overall security posture. Informational findings are observations for areas of improvement by the organization and do not represent security vulnerabilities on their own. The below chart provides a summary of the findings by severity level."
+walkthrough_summary = "During the course of the assessment {{ report.candidate.name }} was able gain a foothold via the external network, move laterally, and compromise the internal network, leading to full administrative control over the TODO INSERT DOMAIN NAME Active Directory domain. The steps below demonstrate the steps taken from initial access to compromise and does not include all vulnerabilities and misconfigurations discovered during the course of testing. Any issues not used as part of the path to compromise are listed as separate, standalone issues in the [Technical Findings Details](#findings) section, ranked by severity level. The intent of this attack chain is to demonstrate to {{ report.customer_short }} the impact of each vulnerability shown in this report and how they fit together to demonstrate the overall risk to the client environment and help to prioritize remediation efforts (i.e., patching two flaws quickly could break up the attack chain while the company works to remediate all issues reported). While other findings shown in this report could be leveraged to gain a similar level of access, this attack chain shows the initial path of least resistance taken by the tester to achieve domain compromise."
 walkthrough_details = """
-{{ report.candidate.a_name }}performed the following to fully compromise the TODO INSERT DOMAIN NAME domain.
+{{ report.candidate.name }}performed the following to fully compromise the TODO INSERT DOMAIN NAME domain.
 
 1. TODO LIST HIGH LEVEL STEPS
 2. ...
@@ -1349,7 +1368,7 @@ walkthrough_details = """
 
 TODO FILL IN DETAILED ATTACK CHAIN STEPS
 
-{{ report.candidate.a_name }}then performed the following to fully compromise the TODO INSERT OTHER INTERNAL DOMAIN NAME(S) domain.
+{{ report.candidate.name }}then performed the following to fully compromise the TODO INSERT OTHER INTERNAL DOMAIN NAME(S) domain.
 
 1. TODO LIST HIGH LEVEL STEPS
 2. ...
@@ -1384,16 +1403,26 @@ TODO LONG TERM REMEDIATION:
 
 TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
 """
-appendix_subdomain_discovery = """
-| URL | Description | Discovery Method |
-| ------- | ------- | ------- | 
-| TODO FILL IN DISCOVERED VHOSTS/SUBDOMAINS   |     |     |
+appendix_severities = """
+Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
+
+| Rating   | CVSS Score Range |
+| -------- | ---------------- | 
+| Critical | 9.0 – 10.0       |
+| High     | 7.0 – 8.9        |
+| Medium   | 4.0 – 6.9        |
+| Low      | 0.1 – 3.9        |
+| Info     | 0.0              |
 """
 appendix_host_discovery = """
 | IP Address | Port | Service | Notes |
 | ------- | ------- | ------- | ------- |
 | TODO FILL IN AS APPROPRIATE   |     |     |    |
-
+"""
+appendix_subdomain_discovery = """
+| URL | Description | Discovery Method |
+| ------- | ------- | ------- | 
+| TODO FILL IN DISCOVERED VHOSTS/SUBDOMAINS   |     |     |
 """
 appendix_exploited_hosts = """
 | Host | Scope | Method | Notes |
@@ -1427,33 +1456,22 @@ appendix_flags = """
 | 12. | | | | |
 | 13. | | | | |
 """
-appendix_severities = """
-Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
-
-| Rating   | CVSS Score Range |
-| -------- | ---------------- | 
-| Critical | 9.0 – 10.0       |
-| High     | 7.0 – 8.9        |
-| Medium   | 4.0 – 6.9        |
-| Low      | 0.1 – 3.9        |
-| Info     | 0.0              |
-"""
 appendix_additional_sections = []
 
-[[report_preview_data.report.customer_contacts]]
-a_name = "Yelon Husk"
-b_title = "Chief Executive Officer"
-c_email = "yelon@trilocor.local"
-
-[[report_preview_data.report.customer_contacts]]
-a_name = "Zeyad AlMadani"
-b_title = "Chief Technical Officer"
-c_email = "zeyad@trilocor.local"
-
 [report_preview_data.report.candidate]
-a_name = "<CANDIDATE NAME>"
-b_title = "Security Consultant"
-c_email = "<CANDIDATE MAIL>"
+title = "TODO Candidate Title"
+name = "TODO Candidate Name"
+email = "TODO Candidate Email"
+
+[[report_preview_data.report.customer_contacts]]
+title = "TODO Title"
+name = "TODO Name"
+email = "TODO Email"
+
+[[report_preview_data.report.customer_contacts]]
+title = "TODO Title"
+name = "TODO Name"
+email = "TODO Email"
 
 [[report_preview_data.findings]]
 title = "LLMNR/NBT-NS Response Spoofing"
@@ -1484,14 +1502,15 @@ recommendation = """
 * Network segmentation can be used to isolate infrastructure components that do not require broad network access. This may mitigate, or at least alleviate, the scope of MiTM activity.
 """
 id = "a10eed1a-07f5-46ef-bf3a-b78208e72272"
-references = [
-    "https://attack.mitre.org/techniques/T1557/001/",
-]
+created = "2024-12-09T09:49:08.895277+00:00"
+order = 1
+cwe = "CWE-522"
 affected_components = [
     "TRICOLOR.LOCAL",
 ]
-cwe = "CWE-522"
-order = 1
+references = [
+    "https://attack.mitre.org/techniques/T1557/001/",
+]
 
 [[report_preview_data.findings]]
 title = "Insecure File Shares"
@@ -1503,14 +1522,15 @@ Viewing file shares accessible to a standard Domain user with the [CrackMapExec]
 """
 recommendation = "Review file share privileges to ensure that users are granted access in accordance with the principal of least privilege."
 id = "89b9d011-8782-4a14-be15-ead66d720936"
+created = "2024-12-09T09:49:08.895342+00:00"
+order = 2
 cwe = "CWE-284"
-references = [
-    "https://attack.mitre.org/techniques/T1135/",
-]
 affected_components = [
     "TRICOLOR.LOCAL",
 ]
-order = 2
+references = [
+    "https://attack.mitre.org/techniques/T1135/",
+]
 
 [[report_preview_data.findings]]
 title = "Directory Listing Enabled"
@@ -1522,15 +1542,16 @@ Using a web browser, browsing to the affected host lists the directory contents.
 """
 recommendation = "Restrict access to files and directories based on the concept of least privilege. Enforce authentication wherever possible and disable directory listing in the web server configuration."
 id = "f622369f-782e-4d77-bf2d-493b85747b3b"
+created = "2024-12-09T09:49:08.895388+00:00"
+order = 3
 cwe = "CWE-548"
+affected_components = [
+    "192.168.195.215 (80/TCP)",
+]
 references = [
     "https://attack.mitre.org/techniques/T1083/",
     "https://www.acunetix.com/blog/articles/directory-listing-information-disclosure/",
 ]
-affected_components = [
-    "192.168.195.215 (80/TCP)",
-]
-order = 3
 
 [[report_preview_data.findings]]
 title = "Enhance Security Monitoring Capabilities"
@@ -1544,17 +1565,10 @@ Remediation
 organization should not rely on endpoint protection alone. When combined with a defense-in- depth security strategy, they can be an excellent tool for detecting an attacker who gains internal network access and is forced to perform “noisier” and riskier activities to the nature of the hardened environment.
 """
 id = "85a9fd04-6f23-45b9-9056-0d3f24965327"
+created = "2024-12-09T09:49:08.895434+00:00"
+order = 4
 cwe = "CWE-693"
+affected_components = []
 references = [
     "https://attack.mitre.org/tactics/TA0005/",
 ]
-affected_components = []
-order = 4
-
-[[assets]]
-id = "85d13985-933e-4d05-8623-b736c363385b"
-name = "logo-transparent.png"
-
-[[assets]]
-id = "598ee464-3e67-4cc2-9eeb-842e176d0630"
-name = "LICENSE"

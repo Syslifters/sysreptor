@@ -1,15 +1,14 @@
-format = "projecttypes/v1"
+format = "projecttypes/v2"
 id = "c465ed9d-546f-44ba-b519-eb3c036fda01"
-name = "OSWP Exam Report v1.1"
+name = "OSWP Exam Report v1.2"
 language = "en-US"
-finding_field_order = [
-    "title",
-    "description",
-    "proof",
-    "screenshots",
-    "steps",
-    "cvss",
+status = "finished"
+tags = [
+    "offsec",
+    "OffensiveSecurity",
 ]
+finding_ordering = []
+default_notes = []
 report_template = """
 <div id="footer" data-sysreptor-generated="page-footer">
     <div id="footer-left"><em>CONFIDENTIAL</em></div>
@@ -65,8 +64,8 @@ report_template = """
 <section>
     <h1 id="findings" class="in-toc numbered">Findings</h1>
     <div v-for="finding in findings">
-        <markdown :text="finding.description" />
         <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
+        <markdown :text="finding.description" />
         <div v-if="finding.proof">
             <h3 class="in-toc numbered">Proof</h3>
             <markdown :text="finding.proof" />
@@ -147,6 +146,13 @@ code {
     background-color: rgb(221, 221, 221);
 }
 
+
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
 th {
     background-color: #ABABAB;
     font-weight: bold;
@@ -184,10 +190,10 @@ tr.table-row-link td a {
     content: "" !important;
 }
 .ref-page::after {
-  content: target-counter(attr(href), page) !important;
+    content: target-counter(attr(href), page) !important;
 }
 .ref-page .ref-title {
-  display: none !important;
+    display: none !important;
 }
 
 /* Table in finding chapters */
@@ -214,6 +220,10 @@ tr.table-row-link td a {
     @bottom-center { content: element(footer-center); }
     @bottom-right-corner { content: counter(page); }
 }
+#footer {
+    position: absolute;
+    width: 0;
+}
 #footer #footer-left { position: running(footer-left); }
 #footer #footer-center { position: running(footer-center); }
 /* #endregion footer */
@@ -231,7 +241,10 @@ tr.table-row-link td a {
 /* #endregion watermark */
 
 /* #region page-cover */
-@page :first {
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
     /* Footer on the cover page */
     @bottom-right-corner {
         content: "";
@@ -253,7 +266,7 @@ tr.table-row-link td a {
         content: '';
     }
 }
-#page-cover-background{
+#page-cover-background {
     position: absolute;
     margin-top: -35mm;
     margin-left: -20mm;
@@ -303,63 +316,35 @@ tr.table-row-link td a {
     content: " " leader(".") " " target-counter(attr(href), page);
 }
 #toc .toc-level1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-top: 0.8rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
 }
 #toc .toc-level2 {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-top: 0.5rem;
-  margin-left: 2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-left: 2rem;
 }
 #toc .toc-level3 {
-  font-size: 1rem;
-  margin-top: 0.4rem;
-  margin-left: 4rem;
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    margin-left: 4rem;
 }
 #toc .toc-level4 {
-  font-size: 1rem;
-  margin-top: 0;
-  margin-left: 6rem;
+    font-size: 1rem;
+    margin-top: 0;
+    margin-left: 6rem;
 }
 /* #endregion toc */
 """
 
-[report_fields]
-[report_fields.title]
-type = "string"
-label = "Title"
-origin = "core"
-default = "OSWP Exam Documentation"
-required = true
-spellcheck = true
+[[report_sections]]
+id = "Student"
+label = "Student"
 
-[report_fields.mail]
-type = "string"
-label = "Mail"
-origin = "custom"
-default = "student@example.com"
-required = true
-spellcheck = false
-
-[report_fields.osid]
-type = "string"
-label = "OSID"
-origin = "custom"
-default = "XXXXX"
-required = true
-spellcheck = false
-
-[report_fields.lastname]
-type = "string"
-label = "Lastname"
-origin = "custom"
-default = "Doe"
-required = true
-spellcheck = false
-
-[report_fields.firstname]
+[[report_sections.fields]]
+id = "firstname"
 type = "string"
 label = "Firstname"
 origin = "custom"
@@ -367,19 +352,55 @@ default = "John"
 required = true
 spellcheck = false
 
-[report_fields.watermark]
-type = "boolean"
-label = "Watermark"
+[[report_sections.fields]]
+id = "lastname"
+type = "string"
+label = "Lastname"
 origin = "custom"
-default = false
+default = "Doe"
+required = true
+spellcheck = false
 
-[report_fields.report_date]
+[[report_sections.fields]]
+id = "osid"
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "mail"
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "other"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "OSWP Exam Documentation"
+required = true
+spellcheck = true
+
+[[report_sections.fields]]
+id = "report_date"
 type = "date"
 label = "Report Date"
 origin = "custom"
 required = true
 
-[report_fields.report_version]
+[[report_sections.fields]]
+id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
@@ -387,19 +408,32 @@ default = "1.0"
 required = true
 spellcheck = false
 
-[report_fields.appendix_sections]
+[[report_sections.fields]]
+id = "watermark"
+type = "boolean"
+label = "Watermark"
+origin = "custom"
+default = false
+
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[report_sections.fields]]
+id = "appendix_sections"
 type = "list"
 label = "Additional Items Not Mentioned in the Report"
 origin = "custom"
 required = true
 
-[report_fields.appendix_sections.items]
+[report_sections.fields.items]
+id = ""
 type = "object"
 label = ""
 origin = "custom"
 
-[report_fields.appendix_sections.items.properties]
-[report_fields.appendix_sections.items.properties.title]
+[[report_sections.fields.items.properties]]
+id = "title"
 type = "string"
 label = "Title"
 origin = "custom"
@@ -407,42 +441,16 @@ default = "TODO appendix title"
 required = true
 spellcheck = false
 
-[report_fields.appendix_sections.items.properties.content]
+[[report_sections.fields.items.properties]]
+id = "content"
 type = "markdown"
 label = "Content"
 origin = "custom"
 default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
 required = true
 
-[[report_sections]]
-id = "Student"
-label = "Student"
-fields = [
-    "firstname",
-    "lastname",
-    "osid",
-    "mail",
-]
-
-[[report_sections]]
-id = "other"
-label = "Document Control"
-fields = [
-    "title",
-    "report_date",
-    "report_version",
-    "watermark",
-]
-
-[[report_sections]]
-id = "appendix"
-label = "Appendix"
-fields = [
-    "appendix_sections",
-]
-
-[finding_fields]
-[finding_fields.title]
+[[finding_fields]]
+id = "title"
 type = "string"
 label = "Target"
 origin = "core"
@@ -450,51 +458,48 @@ default = "TODO Target Name"
 required = true
 spellcheck = true
 
-[finding_fields.cvss]
-type = "cvss"
-label = "CVSS (not required)"
-origin = "core"
-default = "n/a"
-required = false
-
-[finding_fields.description]
+[[finding_fields]]
+id = "description"
 type = "markdown"
 label = "Technical Description"
 origin = "predefined"
 default = "TODO A brief description of the attack chain with machine names, including the depth of compromise should be included here."
 required = true
 
-[finding_fields.proof]
+[[finding_fields]]
+id = "proof"
 type = "markdown"
 label = "Proof"
 origin = "custom"
 default = "TODO Provide the contents of the \"Access Point X\" wireless network key."
 required = true
 
-[finding_fields.steps]
-type = "markdown"
-label = "Steps"
-origin = "custom"
-default = "TODO Provide a detailed account of your methodology in obtaining the \"Access Point X\" wireless network key. **The steps taken should be able to be easily followed and reproducible if necessary.**"
-required = true
-
-[finding_fields.screenshots]
+[[finding_fields]]
+id = "screenshots"
 type = "markdown"
 label = "Screenshots"
 origin = "custom"
 default = "TODO Provide at least one screenshot of the successfully cracked \"Access Point X\" wireless network key and a screenshot of proof.txt."
 required = true
 
+[[finding_fields]]
+id = "steps"
+type = "markdown"
+label = "Steps"
+origin = "custom"
+default = "TODO Provide a detailed account of your methodology in obtaining the \"Access Point X\" wireless network key. **The steps taken should be able to be easily followed and reproducible if necessary.**"
+required = true
+
 [report_preview_data]
 [report_preview_data.report]
 title = "OSWP Exam Documentation"
-mail = "student@example.com"
-osid = "OS-XXXXX"
-watermark = true
-report_date = "2022-07-29"
-report_version = "1.0"
 firstname = "John"
 lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_date = "2022-07-29"
+report_version = "1.0"
+watermark = true
 
 [[report_preview_data.report.appendix_sections]]
 title = "Appendix Title"
@@ -502,13 +507,10 @@ content = "Appendix content"
 
 [[report_preview_data.findings]]
 title = "Access Point X"
-cvss = "n/a"
 description = "TODO: A brief description of the attack chain with machine names, including the depth of compromise should be included here."
 id = "30fa6ea9-64f0-4b95-a7ff-dcc2e1983d3f"
+created = "2024-12-09T13:59:15.670800+00:00"
+order = 1
 proof = "TODO Provide the contents of the \"Access Point X\" wireless network key."
-steps = "TODO Provide a detailed account of your methodology in obtaining the \"Access Point X\" wireless network key. **The steps taken should be able to be easily followed and reproducible if necessary.**"
 screenshots = "TODO Provide at least one screenshot of the successfully cracked \"Access Point X\" wireless network key and a screenshot of proof.txt."
-
-[[assets]]
-id = "1b6169aa-b720-4de0-b6ec-3dee7b52ec18"
-name = "LICENSE"
+steps = "TODO Provide a detailed account of your methodology in obtaining the \"Access Point X\" wireless network key. **The steps taken should be able to be easily followed and reproducible if necessary.**"

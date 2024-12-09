@@ -1,19 +1,12 @@
-format = "projecttypes/v1"
+format = "projecttypes/v2"
 id = "5d5aae0e-0027-4646-a967-f10a38f376d3"
-name = "Demo Margherita v1.1"
+name = "Demo Margherita v1.2"
 language = "en-US"
-finding_field_order = [
-    "title",
-    "cvss",
-    "summary",
-    "short_recommendation",
-    "affected_components",
-    "description",
-    "recommendation",
-    "references",
-    "retest_status",
-    "retest_notes",
+status = "finished"
+tags = [
+    "demo",
 ]
+default_notes = []
 report_template = """
 <div id="header" data-sysreptor-generated="page-header">
   <div id="header-left">
@@ -31,7 +24,7 @@ report_template = """
 
 <section id="page-cover" data-sysreptor-generated="page-cover">
   <div id="page-cover-background">
-    <img id="page-cover-background-img" src="/assets/name/background-26185.jpg" alt="">
+    <img id="page-cover-background-img" src="/assets/name/background.jpg" alt="">
   </div>
 
   <img id="page-cover-logo" src="/assets/name/logo-transparent.png" alt="">
@@ -132,9 +125,9 @@ report_template = """
   <table class="finding-summary-table">
     <thead>
       <tr>
-        <th>Vulnerability</th>
-        <th align="center">Criticality</th>
-        <th v-if="report.is_retest" align="center">Remediation Status</th>
+        <th style="width: auto;">Vulnerability</th>
+        <th style="width: 6em;" align="center">Criticality</th>
+        <th v-if="report.is_retest" style="width: 10em;" align="center">Remediation Status</th>
       </tr>
     </thead>
     <tbody>
@@ -223,10 +216,10 @@ report_template = """
   <table>
     <thead>
       <tr>
-        <th align="center">Version</th>
-        <th align="center">Date</th>
-        <th>Description</th>
-        <th>Author</th>
+        <th style="width: 4em;" align="center">Version</th>
+        <th style="width: 6em;" align="center">Date</th>
+        <th style="width: auto;">Description</th>
+        <th style="width: 12em;">Author</th>
       </tr>
     </thead>
     <tbody>
@@ -312,6 +305,13 @@ pre code {
   padding: 0.2em !important;
 }
 
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
+
 /* helper classes */
 .location-ul {
     margin: 0px;
@@ -363,6 +363,11 @@ pre code {
     }
 }
 
+#header {
+    position: absolute;
+    width: 0;
+}
+
 #header #header-left { position: running(header-left); }
 #header #header-logo {
     display: inline-block;
@@ -402,9 +407,10 @@ pre code {
 
 /* #region page-cover */
 #page-cover {
+    page: page-cover;
     margin: -35mm -26mm 10mm -26mm;
 }
-@page :first {
+@page page-cover {
     /* Hide header */
     @top-left-corner { content: none !important; }
     @top-left { content: none !important; }
@@ -539,16 +545,32 @@ pre code {
 /* #endregion findings-list */
 """
 
-[report_fields]
-[report_fields.title]
-type = "string"
-label = "Title"
-origin = "core"
-default = "TODO report title"
-required = true
-spellcheck = true
+[[report_sections]]
+id = "executive_summary"
+label = "Executive Summary"
 
-[report_fields.scope]
+[[report_sections.fields]]
+id = "executive_summary"
+type = "markdown"
+label = "Executive Summary"
+origin = "custom"
+default = """
+**TODO summary**
+
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
+
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
+
+Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse
+"""
+required = true
+
+[[report_sections]]
+id = "scope"
+label = "Scope"
+
+[[report_sections.fields]]
+id = "scope"
 type = "markdown"
 label = "Scope"
 origin = "custom"
@@ -565,15 +587,8 @@ At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergr
 """
 required = true
 
-[report_fields.customer]
-type = "string"
-label = "Customer"
-origin = "custom"
-default = "TODO customer"
-required = true
-spellcheck = false
-
-[report_fields.duration]
+[[report_sections.fields]]
+id = "duration"
 type = "string"
 label = "Duration"
 origin = "custom"
@@ -581,44 +596,61 @@ default = "TODO person days"
 required = true
 spellcheck = false
 
-[report_fields.end_date]
-type = "date"
-label = "Pentest End Date"
-origin = "custom"
-required = true
-
-[report_fields.is_retest]
-type = "boolean"
-label = "Is Retest"
-origin = "predefined"
-
-[report_fields.start_date]
+[[report_sections.fields]]
+id = "start_date"
 type = "date"
 label = "Pentest Start Date"
 origin = "custom"
 required = true
 
-[report_fields.report_date]
+[[report_sections.fields]]
+id = "end_date"
+type = "date"
+label = "Pentest End Date"
+origin = "custom"
+required = true
+
+[[report_sections]]
+id = "customer"
+label = "Customer"
+
+[[report_sections.fields]]
+id = "customer"
+type = "string"
+label = "Customer"
+origin = "custom"
+default = "TODO customer"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "other"
+label = "Other"
+
+[[report_sections.fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "TODO report title"
+required = true
+spellcheck = true
+
+[[report_sections.fields]]
+id = "report_date"
 type = "date"
 label = "Report Date"
 origin = "custom"
 required = true
 
-[report_fields.lead_pentester]
+[[report_sections.fields]]
+id = "lead_pentester"
 type = "object"
 label = "Lead Pentester"
 origin = "custom"
 
-[report_fields.lead_pentester.properties]
-[report_fields.lead_pentester.properties.name]
-type = "string"
-label = "Name"
-origin = "custom"
-default = "TODO name"
-required = true
-spellcheck = false
-
-[report_fields.lead_pentester.properties.email]
+[[report_sections.fields.properties]]
+id = "email"
 type = "string"
 label = "Email"
 origin = "custom"
@@ -626,7 +658,17 @@ default = "TODO email"
 required = true
 spellcheck = false
 
-[report_fields.lead_pentester.properties.phone]
+[[report_sections.fields.properties]]
+id = "name"
+type = "string"
+label = "Name"
+origin = "custom"
+default = "TODO name"
+required = true
+spellcheck = false
+
+[[report_sections.fields.properties]]
+id = "phone"
 type = "string"
 label = "Phone Number"
 origin = "custom"
@@ -634,39 +676,28 @@ default = "TODO phone"
 required = true
 spellcheck = false
 
-[report_fields.document_history]
+[[report_sections.fields]]
+id = "document_history"
 type = "list"
 label = "Document History"
 origin = "custom"
 required = true
 
-[report_fields.document_history.items]
+[report_sections.fields.items]
+id = ""
 type = "object"
 label = ""
 origin = "custom"
 
-[report_fields.document_history.items.properties]
-[report_fields.document_history.items.properties.description]
-type = "string"
-label = "Description"
-origin = "custom"
-default = "TODO description"
-required = true
-spellcheck = false
-
-[report_fields.document_history.items.properties.date]
-type = "date"
-label = "Date"
-origin = "custom"
-required = true
-
-[report_fields.document_history.items.properties.authors]
+[[report_sections.fields.items.properties]]
+id = "authors"
 type = "list"
 label = "Authors"
 origin = "custom"
 required = true
 
-[report_fields.document_history.items.properties.authors.items]
+[report_sections.fields.items.properties.items]
+id = ""
 type = "string"
 label = ""
 origin = "custom"
@@ -674,7 +705,24 @@ default = "TODO author"
 required = true
 spellcheck = false
 
-[report_fields.document_history.items.properties.version]
+[[report_sections.fields.items.properties]]
+id = "date"
+type = "date"
+label = "Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields.items.properties]]
+id = "description"
+type = "string"
+label = "Description"
+origin = "custom"
+default = "TODO description"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "version"
 type = "string"
 label = "Version"
 origin = "custom"
@@ -682,58 +730,14 @@ default = "TODO version"
 required = true
 spellcheck = false
 
-[report_fields.executive_summary]
-type = "markdown"
-label = "Executive Summary"
-origin = "custom"
-default = """
-**TODO summary**
+[[report_sections.fields]]
+id = "is_retest"
+type = "boolean"
+label = "Is Retest"
+origin = "predefined"
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
-
-Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
-
-Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse
-"""
-required = true
-
-[[report_sections]]
-id = "executive_summary"
-label = "Executive Summary"
-fields = [
-    "executive_summary",
-]
-
-[[report_sections]]
-id = "scope"
-label = "Scope"
-fields = [
-    "scope",
-    "duration",
-    "start_date",
-    "end_date",
-]
-
-[[report_sections]]
-id = "customer"
-label = "Customer"
-fields = [
-    "customer",
-]
-
-[[report_sections]]
-id = "other"
-label = "Other"
-fields = [
-    "title",
-    "report_date",
-    "lead_pentester",
-    "document_history",
-    "is_retest",
-]
-
-[finding_fields]
-[finding_fields.title]
+[[finding_fields]]
+id = "title"
 type = "string"
 label = "Title"
 origin = "core"
@@ -741,86 +745,39 @@ default = "TODO: New Finding"
 required = true
 spellcheck = true
 
-[finding_fields.cvss]
+[[finding_fields]]
+id = "cvss"
 type = "cvss"
 label = "CVSS"
-origin = "core"
+origin = "predefined"
 default = "n/a"
 required = true
 
-[finding_fields.summary]
+[[finding_fields]]
+id = "summary"
 type = "markdown"
 label = "Summary"
 origin = "predefined"
 default = "TODO summary"
 required = true
 
-[finding_fields.description]
-type = "markdown"
-label = "Technical Description"
-origin = "predefined"
-default = "TODO description"
-required = true
-
-[finding_fields.recommendation]
-type = "markdown"
-label = "Recommendation"
-origin = "predefined"
-default = "TODO recommendation"
-required = true
-
-[finding_fields.references]
-type = "list"
-label = "References"
-origin = "predefined"
-required = false
-
-[finding_fields.references.items]
+[[finding_fields]]
+id = "short_recommendation"
 type = "string"
-label = ""
+label = "Short Recommendation"
 origin = "predefined"
 required = true
-spellcheck = false
+spellcheck = true
 
-[finding_fields.retest_notes]
-type = "markdown"
-label = "Re-test Notes"
-origin = "predefined"
-required = false
-
-[finding_fields.retest_status]
-type = "enum"
-label = "Re-test Status"
-origin = "predefined"
-required = false
-
-[[finding_fields.retest_status.choices]]
-label = "Open"
-value = "open"
-
-[[finding_fields.retest_status.choices]]
-label = "Resolved"
-value = "resolved"
-
-[[finding_fields.retest_status.choices]]
-label = "Partially Resolved"
-value = "partial"
-
-[[finding_fields.retest_status.choices]]
-label = "Changed"
-value = "changed"
-
-[[finding_fields.retest_status.choices]]
-label = "Accepted"
-value = "accepted"
-
-[finding_fields.affected_components]
+[[finding_fields]]
+id = "affected_components"
 type = "list"
 label = "Affected Components"
 origin = "predefined"
 required = true
 
-[finding_fields.affected_components.items]
+[finding_fields.items]
+id = ""
 type = "string"
 label = "Component"
 origin = "predefined"
@@ -828,16 +785,89 @@ default = "TODO affected component"
 required = true
 spellcheck = false
 
-[finding_fields.short_recommendation]
+[[finding_fields]]
+id = "description"
+type = "markdown"
+label = "Technical Description"
+origin = "predefined"
+default = "TODO description"
+required = true
+
+[[finding_fields]]
+id = "recommendation"
+type = "markdown"
+label = "Recommendation"
+origin = "predefined"
+default = "TODO recommendation"
+required = true
+
+[[finding_fields]]
+id = "references"
+type = "list"
+label = "References"
+origin = "predefined"
+required = false
+
+[finding_fields.items]
+id = ""
 type = "string"
-label = "Short Recommendation"
+label = ""
 origin = "predefined"
 required = true
-spellcheck = true
+spellcheck = false
+
+[[finding_fields]]
+id = "retest_status"
+type = "enum"
+label = "Re-test Status"
+origin = "predefined"
+required = false
+
+[[finding_fields.choices]]
+label = "Open"
+value = "open"
+
+[[finding_fields.choices]]
+label = "Resolved"
+value = "resolved"
+
+[[finding_fields.choices]]
+label = "Partially Resolved"
+value = "partial"
+
+[[finding_fields.choices]]
+label = "Changed"
+value = "changed"
+
+[[finding_fields.choices]]
+label = "Accepted"
+value = "accepted"
+
+[[finding_fields]]
+id = "retest_notes"
+type = "markdown"
+label = "Re-test Notes"
+origin = "predefined"
+required = false
+
+[[finding_ordering]]
+field = "cvss"
+order = "desc"
+
+[[finding_ordering]]
+field = "title"
+order = "asc"
 
 [report_preview_data]
 [report_preview_data.report]
 title = "Example Web-App"
+executive_summary = """
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
+
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
+
+Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse
+"""
 scope = """
 Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
 
@@ -847,40 +877,33 @@ Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie co
 
 At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur
 """
-customer = "Example Customer"
 duration = "TODO person days"
-end_date = "2022-07-08"
-is_retest = true
 start_date = "2022-07-08"
+end_date = "2022-07-08"
+customer = "Example Customer"
 report_date = "2022-07-08"
-executive_summary = """
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
-
-Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
-
-Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse
-"""
+is_retest = true
 
 [report_preview_data.report.lead_pentester]
-name = "Maxima Mustermensch"
 email = "maxima@securitymaximale.com"
+name = "Maxima Mustermensch"
 phone = "+43 660 123 456 78 "
 
 [[report_preview_data.report.document_history]]
 description = "Draft"
-date = "2022-07-08"
 authors = [
     "TODO Author1",
 ]
+date = "2022-07-08"
 version = "0.1"
 
 [[report_preview_data.report.document_history]]
 description = "Final Report"
-date = "2022-07-08"
 authors = [
     "TODO Author1",
     "TODO Author2",
 ]
+date = "2022-07-08"
 version = "1.0"
 
 [[report_preview_data.findings]]
@@ -890,16 +913,18 @@ summary = "TODO summary"
 description = "TODO description"
 recommendation = "TODO recommendation"
 id = "c5012235-9cd4-475f-86de-0236de1b4b88"
+created = "2024-12-09T07:07:03.760680+00:00"
+order = 1
+short_recommendation = ""
+affected_components = [
+    "TODO affected component",
+]
 references = [
     "https://example.com/reference1",
     "https://example.com/reference2",
 ]
-retest_notes = ""
 retest_status = "open"
-affected_components = [
-    "TODO affected component",
-]
-short_recommendation = ""
+retest_notes = ""
 
 [[report_preview_data.findings]]
 title = "Demo Finding Also Critical"
@@ -908,13 +933,15 @@ summary = "TODO summary"
 description = "TODO description"
 recommendation = "TODO recommendation"
 id = "c6a6d51c-999c-4e8c-a506-596689e73f0b"
+created = "2024-12-09T07:07:03.760750+00:00"
+order = 2
+short_recommendation = ""
+affected_components = []
 references = [
     "https://example.com/reference3",
 ]
-retest_notes = ""
 retest_status = "open"
-affected_components = []
-short_recommendation = ""
+retest_notes = ""
 
 [[report_preview_data.findings]]
 title = "Demo Finding Low"
@@ -923,13 +950,15 @@ summary = "TODO summary"
 description = "TODO description"
 recommendation = "TODO recommendation"
 id = "cd3c3719-8536-43d4-878a-cdb9dc842b70"
-references = []
-retest_notes = ""
-retest_status = "open"
+created = "2024-12-09T07:07:03.760813+00:00"
+order = 3
+short_recommendation = ""
 affected_components = [
     "TODO affected component",
 ]
-short_recommendation = ""
+references = []
+retest_status = "open"
+retest_notes = ""
 
 [[report_preview_data.findings]]
 title = "Demo Finding Info"
@@ -938,26 +967,13 @@ summary = "TODO summary"
 description = "TODO description"
 recommendation = "TODO recommendation"
 id = "e899b5cf-83d2-48bf-8838-9899246b67fc"
-references = []
-retest_notes = ""
-retest_status = "open"
+created = "2024-12-09T07:07:03.760870+00:00"
+order = 4
+short_recommendation = ""
 affected_components = [
     "TODO affected component",
 ]
-short_recommendation = ""
+references = []
+retest_status = "open"
+retest_notes = ""
 
-[[assets]]
-id = "9c692534-b436-43a8-aeb3-73e6c7f338a5"
-name = "LICENSE"
-
-[[assets]]
-id = "7454d0de-ec3b-43f3-9d28-24a045ce199b"
-name = "header-logo.png"
-
-[[assets]]
-id = "6f56f563-1ad5-4552-a188-ff34c97a7e83"
-name = "background-26185.jpg"
-
-[[assets]]
-id = "4b253945-b794-4942-b01f-c28ef83b503c"
-name = "logo-transparent.png"

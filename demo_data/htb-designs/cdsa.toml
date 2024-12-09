@@ -1,24 +1,14 @@
-format = "projecttypes/v1"
+format = "projecttypes/v2"
 id = "558ef188-b35c-42ef-b9f0-53cab280cff4"
-name = "HTB CDSA Report v1.0"
+name = "HTB CDSA Report v1.1"
 language = "en-US"
-finding_field_order = [
-    "title",
-    "incident_id",
-    "incident_severity",
-    "incident_status",
-    "incident_overview",
-    "key_findings",
-    "immediate_actions",
-    "stakeholder_impact",
-    "affected_systems",
-    "evidence_sources",
-    "ioc",
-    "root_cause",
-    "timeline",
-    "nature",
+status = "finished"
+tags = [
+    "htb",
+    "HackTheBox",
 ]
 finding_ordering = []
+default_notes = []
 report_template = """
 <div id="header" data-sysreptor-generated="page-header">
     <div id="header-left">
@@ -45,7 +35,7 @@ report_template = """
         <h1>Security Incident Report</h1>
         <h2 id="page-cover-report-title">{{ report.title }}</h2>
         <h3>HTB Certified Defensive Security Analyst (HTB CDSA) Exam Report</h3>
-        <h3>Candidate Name: {{ report.candidate.a_name }}</h3>
+        <h3>Candidate Name: {{ report.candidate.name }}</h3>
     </div>
 
     <div id="page-cover-recipient">
@@ -80,6 +70,11 @@ report_template = """
 <section>
     <h1 id="contacts" class="in-toc numbered">Engagement Contacts</h1>
     <table>
+        <colgroup>
+            <col style="width: auto;" />
+            <col style="width: 12em;" />
+            <col style="width: auto;" />
+        </colgroup>
         <tr>
             <th colspan="3" style="text-align: center">
                 Contacts
@@ -91,14 +86,14 @@ report_template = """
             <td><strong>Contact Email</strong></td>
         </tr>
         <tr v-for="contact in report.engagement_contacts">
-            <td>{{ contact.a_name }}</td>
-            <td>{{ contact.b_title }}</td>
-            <td>{{ contact.c_email }}</td>
+            <td>{{ contact.name }}</td>
+            <td>{{ contact.title }}</td>
+            <td>{{ contact.email }}</td>
         </tr>
         <tr>
-            <td>{{ report.candidate.a_name }}</td>
-            <td>{{ report.candidate.b_title }}</td>
-            <td>{{ report.candidate.c_email }}</td>
+            <td>{{ report.candidate.name }}</td>
+            <td>{{ report.candidate.title }}</td>
+            <td>{{ report.candidate.email }}</td>
         </tr>
     </table>
     <pagebreak />
@@ -123,28 +118,31 @@ report_template = """
             {{ finding.title }}
         </h3>
         <p>
-            Incident ID: {{ finding.incident_id }}
+            <span class="finding-key">Incident ID:</span> 
+            {{ finding.incident_id }}
         </p>
         <p>
-            Incident Severity: {{ finding.incident_severity }}
+            <span class="finding-key">Incident Severity:</span>
+            {{ finding.incident_severity }}
         </p>
         <p>
-            Incident Status: <span class="highlight">{{ finding.incident_status }}</span>
+            <span class="finding-key">Incident Status:</span>
+            <span class="highlight">{{ finding.incident_status }}</span>
         </p>
         <p>
-            Incident Overview:
+            <span class="finding-key">Incident Overview:</span>
             <markdown :text="finding.incident_overview" />
         </p>
         <p>
-            Key Findings:
+            <span class="finding-key">Key Findings:</span>
             <markdown :text="finding.key_findings" />
         </p>
         <p>
-            Immediate Actions:
+            <span class="finding-key">Immediate Actions:</span>
             <markdown :text="finding.immediate_actions" />
         </p>
         <p>
-            Stakeholder Impact:
+            <span class="finding-key">Stakeholder Impact:</span>
             <markdown :text="finding.stakeholder_impact" />
         </p>
     </div>
@@ -224,12 +222,6 @@ report_styles = """
 
 /* Define variables */
 :root {
-    --color-risk-critical: #E83221;
-    --color-risk-high: #FF9300;
-    --color-risk-medium: #ffc400;
-    --color-risk-low: #4285F5;
-    --color-risk-info: #00AE51;
-
     --color-highlight: #9FEF00;
     --color-secondary: #A6B0CB;
 
@@ -264,13 +256,19 @@ p {
 }
 
 a {
-  color: var(--color-secondary); /* Set the color of unvisited links */
-  text-decoration: underline; /* Remove the underline from unvisited links */
+    color: var(--color-secondary); /* Set the color of unvisited links */
+    text-decoration: underline; /* Remove the underline from unvisited links */
 }
 
 /* Table styling */
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
 table, th, td {
-  border: 1px solid white;
+    border: 1px solid white;
 }
 th {
     background-color: var(--color-table-header);
@@ -279,21 +277,7 @@ th {
 th, td {
     padding: 0.2em 0.5em 0.2em 0.5em;
 }
-tr.table-row-link td {
-    padding: 0;
-}
-tr.table-row-link td a {
-    display: block;
-    padding: 0.2em 0.5em 0.2em 0.5em;
-    color: inherit;
-    text-decoration: none;
-    font-style: inherit;
-}
-td.table-key {
-    height: 3em;
-    width: 10em;
-}
-tr{
+tr {
     color: var(--color-table-content);
 }
 tr:nth-child(even) {
@@ -301,6 +285,9 @@ tr:nth-child(even) {
 }
 tr:nth-child(odd) {
     background-color: var(--color-table-row-odd)
+}
+tr .highlight, tr code {
+    background-color: var(--color-page-background);
 }
 
 
@@ -314,39 +301,27 @@ code {
     background-color: inherit;
 }
 
-.code-important{
+.code-important {
     background-color: yellow;
     color: red;
     font-style: italic;
 }
 
-/* Footnotes */
-@page {
-  @footnote {
-    border-top: 1px solid white;
-  }
-}
-footnote {
-  font-size: 8pt;
-}
-
-/* Classes for risk colors */
-.risk-critical { color: var(--color-risk-critical) !important; font-weight: bold; }
-.risk-high { color: var(--color-risk-high) !important; font-weight: bold; }
-.risk-medium { color: var(--color-risk-medium) !important; font-weight: bold; }
-.risk-low { color: var(--color-risk-low) !important; font-weight: bold; }
-.risk-info { color: var(--color-risk-info) !important; font-weight: bold; }
-
-.risk-bg-critical { background-color: var(--color-risk-critical) !important; color: white !important; }
-.risk-bg-high { background-color: var(--color-risk-high) !important; }
-.risk-bg-medium { background-color: var(--color-risk-medium) !important; }
-.risk-bg-low { background-color: var(--color-risk-low) !important; }
-.risk-bg-info { background-color: var(--color-risk-info) !important; }
-
 .highlight {
     font-weight: bold;
     color: var(--color-highlight);
 }
+
+/* Footnotes */
+@page {
+    @footnote {
+        border-top: 1px solid white;
+    }
+}
+footnote {
+    font-size: 8pt;
+}
+
 
 
 /* Helper class for referencing page number */
@@ -354,63 +329,16 @@ footnote {
     content: "" !important;
 }
 .ref-page .ref-title, .ref-finding-number .ref-title {
-  display: none !important;
+    display: none !important;
 }
 .ref-page::after {
-  content: target-counter(attr(href), page) !important;
+    content: target-counter(attr(href), page) !important;
 }
 .ref-finding-number::before {
     content: target-counter(attr(href), finding-number);
 }
 
-.findings-list {
-    counter-reset: finding-number;
-}
-.finding-number {
-    color: white;
-}
-.finding-number::before {
-    counter-increment: finding-number;
-    content: counter(finding-number) ". ";
-}
 
-
-
-/* Finding */
-.finding-header .table-key {
-    height: 3em;
-    width: 10em;
-}
-
-.finding-header-color{
-    font-size: 12pt;
-    color: white !important;
-}
-
-
-
-
-/*CSS classes for multiple systems */
-.finding-systems {
-    padding-left: 1em;
-}
-.finding-systems-cols {
-    column-count: 2;
-    padding-top: 1em;
-    margin-bottom: 1em;
-}
-
-
-/*Draft Watermark*/
-#watermark-draft {
-    position: fixed;
-    top: 8cm;
-    left: 2cm;
-    transform: rotate(-45deg);
-    font-size: 110pt;
-    text-transform: uppercase;
-    opacity: 0.2;
-}
 
 .end-of-report {
     text-align:center;
@@ -419,12 +347,14 @@ footnote {
     line-height:1.7;
 }
 
+.finding-key {
+    font-weight: bold;
+}
 
 
 /* #region header */
 @page {
     margin-top: 35mm;
-
     --header-margin-bottom: 5mm;
     
     @top-left-corner {
@@ -444,6 +374,10 @@ footnote {
         border-bottom: 2px dotted white;
     }
 }
+#header {
+    position: absolute;
+    width: 0;
+}
 #header-left { 
     position: running(header-left); 
     display: flex;
@@ -459,6 +393,10 @@ footnote {
     @bottom-left { content: element(footer-left); }
     @bottom-center { content: element(footer-center); }
     @bottom-right-corner { content: counter(page); }
+}
+#footer {
+    position: absolute;
+    width: 0;
 }
 #footer-left { position: running(footer-left); }
 #footer-center { position: running(footer-center); }
@@ -526,7 +464,10 @@ footnote {
     color: var(--color-secondary);
 }
 
-@page :first {
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
     /* Hide header */
     @top-left-corner { content: none !important; }
     @top-left { content: none !important; }
@@ -568,8 +509,12 @@ footnote {
 /* #endregion toc */
 """
 
-[report_fields]
-[report_fields.title]
+[[report_sections]]
+id = "meta"
+label = "Meta"
+
+[[report_sections.fields]]
+id = "title"
 type = "string"
 label = "Report Title"
 origin = "core"
@@ -577,13 +522,14 @@ default = "TODO Report Title"
 required = true
 spellcheck = false
 
-[report_fields.candidate]
+[[report_sections.fields]]
+id = "candidate"
 type = "object"
 label = "HTB Candidate"
 origin = "custom"
 
-[report_fields.candidate.properties]
-[report_fields.candidate.properties.a_name]
+[[report_sections.fields.properties]]
+id = "name"
 type = "string"
 label = "Full Name"
 origin = "custom"
@@ -591,7 +537,8 @@ default = "TODO Candidate Name"
 required = true
 spellcheck = false
 
-[report_fields.candidate.properties.b_title]
+[[report_sections.fields.properties]]
+id = "title"
 type = "string"
 label = "Title"
 origin = "custom"
@@ -599,7 +546,8 @@ default = "TODO Candidate Title"
 required = true
 spellcheck = false
 
-[report_fields.candidate.properties.c_email]
+[[report_sections.fields.properties]]
+id = "email"
 type = "string"
 label = "Email"
 origin = "custom"
@@ -607,13 +555,8 @@ default = "TODO Candidate Email "
 required = true
 spellcheck = false
 
-[report_fields.report_date]
-type = "date"
-label = "Report Date"
-origin = "custom"
-required = true
-
-[report_fields.customer_full]
+[[report_sections.fields]]
+id = "customer_full"
 type = "string"
 label = "Customer"
 origin = "custom"
@@ -621,7 +564,8 @@ default = "TODO Customer Ltd."
 required = true
 spellcheck = false
 
-[report_fields.customer_short]
+[[report_sections.fields]]
+id = "customer_short"
 type = "string"
 label = "Customer (abbreviated)"
 origin = "custom"
@@ -629,7 +573,15 @@ default = "TODO Customer"
 required = true
 spellcheck = false
 
-[report_fields.report_version]
+[[report_sections.fields]]
+id = "report_date"
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
@@ -637,7 +589,68 @@ default = "TODO 1.0"
 required = true
 spellcheck = false
 
-[report_fields.appendix_timeline]
+[[report_sections]]
+id = "document_control"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "engagement_contacts"
+type = "list"
+label = "Engagement Contacts"
+origin = "custom"
+required = true
+
+[report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[report_sections.fields.items.properties]]
+id = "name"
+type = "string"
+label = "Name"
+origin = "custom"
+default = "TODO Name"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO Title"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "email"
+type = "string"
+label = "Email"
+origin = "custom"
+default = "TODO Email"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "executive_summary"
+label = "Executive Summary"
+
+[[report_sections.fields]]
+id = "executive_summary"
+type = "markdown"
+label = "Executive Summary"
+origin = "custom"
+default = "{{ report.customer_full }} engaged {{ report.candidate.name }} to investigate two (2) independent security incidents across two of {{ report.customer_full }}' separate networks. The objective is to identify the root causes and the full extent of these incidents and to meticulously document the findings in an understandable, technically robust, and reproducible way."
+required = true
+
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[report_sections.fields]]
+id = "appendix_timeline"
 type = "markdown"
 label = "Technical Timeline"
 origin = "custom"
@@ -652,62 +665,29 @@ default = """
 """
 required = true
 
-[report_fields.executive_summary]
-type = "markdown"
-label = "Executive Summary"
-origin = "custom"
-default = "{{ report.customer_full }} engaged {{ report.candidate.a_name }} to investigate two (2) independent security incidents across two of {{ report.customer_full }}' separate networks. The objective is to identify the root causes and the full extent of these incidents and to meticulously document the findings in an understandable, technically robust, and reproducible way."
-required = true
-
-[report_fields.engagement_contacts]
-type = "list"
-label = "Engagement Contacts"
-origin = "custom"
-required = true
-
-[report_fields.engagement_contacts.items]
-type = "object"
-label = ""
-origin = "custom"
-
-[report_fields.engagement_contacts.items.properties]
-[report_fields.engagement_contacts.items.properties.a_name]
-type = "string"
-label = "Name"
-origin = "custom"
-default = "TODO Name"
-required = true
-spellcheck = false
-
-[report_fields.engagement_contacts.items.properties.b_title]
-type = "string"
-label = "Title"
-origin = "custom"
-default = "TODO Title"
-required = true
-spellcheck = false
-
-[report_fields.engagement_contacts.items.properties.c_email]
-type = "string"
-label = "Email"
-origin = "custom"
-default = "TODO Email"
-required = true
-spellcheck = false
-
-[report_fields.appendix_additional_sections]
+[[report_sections.fields]]
+id = "appendix_additional_sections"
 type = "list"
 label = "Additional Appendix"
 origin = "custom"
 required = false
 
-[report_fields.appendix_additional_sections.items]
+[report_sections.fields.items]
+id = ""
 type = "object"
 label = ""
 origin = "custom"
 
-[report_fields.appendix_additional_sections.items.properties]
-[report_fields.appendix_additional_sections.items.properties.title]
+[[report_sections.fields.items.properties]]
+id = "content"
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO Additional Appendix"
+required = true
+
+[[report_sections.fields.items.properties]]
+id = "title"
 type = "string"
 label = "Title"
 origin = "custom"
@@ -715,49 +695,8 @@ default = "TODO Appendix Title"
 required = true
 spellcheck = false
 
-[report_fields.appendix_additional_sections.items.properties.content]
-type = "markdown"
-label = "Content"
-origin = "custom"
-default = "TODO Additional Appendix"
-required = true
-
-[[report_sections]]
-id = "meta"
-label = "Meta"
-fields = [
-    "title",
-    "candidate",
-    "customer_full",
-    "customer_short",
-    "report_date",
-    "report_version",
-]
-
-[[report_sections]]
-id = "document_control"
-label = "Document Control"
-fields = [
-    "engagement_contacts",
-]
-
-[[report_sections]]
-id = "executive_summary"
-label = "Executive Summary"
-fields = [
-    "executive_summary",
-]
-
-[[report_sections]]
-id = "appendix"
-label = "Appendix"
-fields = [
-    "appendix_timeline",
-    "appendix_additional_sections",
-]
-
-[finding_fields]
-[finding_fields.title]
+[[finding_fields]]
+id = "title"
 type = "string"
 label = "Incident Title"
 origin = "core"
@@ -765,7 +704,100 @@ default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
 required = true
 spellcheck = false
 
-[finding_fields.ioc]
+[[finding_fields]]
+id = "incident_id"
+type = "string"
+label = "Incident ID"
+origin = "custom"
+default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+required = true
+spellcheck = false
+
+[[finding_fields]]
+id = "incident_severity"
+type = "combobox"
+label = "Incident Severity"
+origin = "custom"
+default = "TODO: TO BE FILLED BY THE SECURITY ANALYST"
+required = true
+suggestions = [
+    "Critical",
+    "High",
+    "Medium",
+    "Low",
+]
+
+[[finding_fields]]
+id = "incident_status"
+type = "combobox"
+label = "Incident Status"
+origin = "custom"
+required = true
+suggestions = [
+    "New",
+    "In Progress",
+    "Complete",
+    "Declined",
+]
+
+[[finding_fields]]
+id = "incident_overview"
+type = "markdown"
+label = "Incident Overview"
+origin = "custom"
+default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+required = true
+
+[[finding_fields]]
+id = "key_findings"
+type = "markdown"
+label = "Key Findings"
+origin = "custom"
+default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+required = true
+
+[[finding_fields]]
+id = "immediate_actions"
+type = "markdown"
+label = "Immediate Actions"
+origin = "custom"
+default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+required = true
+
+[[finding_fields]]
+id = "stakeholder_impact"
+type = "markdown"
+label = "Stakeholder Impact"
+origin = "custom"
+default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+required = true
+
+[[finding_fields]]
+id = "affected_systems"
+type = "markdown"
+label = "Affected Systems & Data"
+origin = "custom"
+default = """
+Highlight all systems and data that were either potentially accessed or definitively compromised during the incident. If data was exfiltrated, specify the volume or quantity, if ascertainable.
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+required = true
+
+[[finding_fields]]
+id = "evidence_sources"
+type = "markdown"
+label = "Evidence Sources & Analysis"
+origin = "custom"
+default = """
+Emphasize the evidence scrutinized, the results, and the analytical methodology employed. Each detection should be elucidated step by step, inclusive of the associated data sources, SIEM queries, and tool commands.
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+required = true
+
+[[finding_fields]]
+id = "ioc"
 type = "markdown"
 label = "Indicators of Compromise (IoCs)"
 origin = "custom"
@@ -776,18 +808,20 @@ TODO TO BE FILLED BY THE SECURITY ANALYST
 """
 required = true
 
-[finding_fields.nature]
+[[finding_fields]]
+id = "root_cause"
 type = "markdown"
-label = "Nature of the Attack"
+label = "Root Cause Analysis"
 origin = "custom"
 default = """
-Deep-dive into the type of attack, as well as the tactics, techniques, and procedures (TTPs) employed by the attacker. 
+Within this section, detail the root cause analysis conducted and elaborate on the underlying cause of the security incident (vulnerabilities exploited, failure points, etc.).
 
 TODO TO BE FILLED BY THE SECURITY ANALYST
 """
 required = true
 
-[finding_fields.timeline]
+[[finding_fields]]
+id = "timeline"
 type = "markdown"
 label = "Technical Timeline"
 origin = "custom"
@@ -808,109 +842,26 @@ TODO TO BE FILLED BY THE SECURITY ANALYST
 """
 required = true
 
-[finding_fields.root_cause]
+[[finding_fields]]
+id = "nature"
 type = "markdown"
-label = "Root Cause Analysis"
+label = "Nature of the Attack"
 origin = "custom"
 default = """
-Within this section, detail the root cause analysis conducted and elaborate on the underlying cause of the security incident (vulnerabilities exploited, failure points, etc.).
+Deep-dive into the type of attack, as well as the tactics, techniques, and procedures (TTPs) employed by the attacker. 
 
 TODO TO BE FILLED BY THE SECURITY ANALYST
 """
-required = true
-
-[finding_fields.incident_id]
-type = "string"
-label = "Incident ID"
-origin = "custom"
-default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
-required = true
-spellcheck = false
-
-[finding_fields.key_findings]
-type = "markdown"
-label = "Key Findings"
-origin = "custom"
-default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
-required = true
-
-[finding_fields.incident_status]
-type = "combobox"
-label = "Incident Status"
-origin = "custom"
-required = true
-suggestions = [
-    "New",
-    "In Progress",
-    "Complete",
-    "Declined",
-]
-
-[finding_fields.affected_systems]
-type = "markdown"
-label = "Affected Systems & Data"
-origin = "custom"
-default = """
-Highlight all systems and data that were either potentially accessed or definitively compromised during the incident. If data was exfiltrated, specify the volume or quantity, if ascertainable.
-
-TODO TO BE FILLED BY THE SECURITY ANALYST
-"""
-required = true
-
-[finding_fields.evidence_sources]
-type = "markdown"
-label = "Evidence Sources & Analysis"
-origin = "custom"
-default = """
-Emphasize the evidence scrutinized, the results, and the analytical methodology employed. Each detection should be elucidated step by step, inclusive of the associated data sources, SIEM queries, and tool commands.
-
-TODO TO BE FILLED BY THE SECURITY ANALYST
-"""
-required = true
-
-[finding_fields.immediate_actions]
-type = "markdown"
-label = "Immediate Actions"
-origin = "custom"
-default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
-required = true
-
-[finding_fields.incident_overview]
-type = "markdown"
-label = "Incident Overview"
-origin = "custom"
-default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
-required = true
-
-[finding_fields.incident_severity]
-type = "combobox"
-label = "Incident Severity"
-origin = "custom"
-default = "TODO: TO BE FILLED BY THE SECURITY ANALYST"
-required = true
-suggestions = [
-    "Critical",
-    "High",
-    "Medium",
-    "Low",
-]
-
-[finding_fields.stakeholder_impact]
-type = "markdown"
-label = "Stakeholder Impact"
-origin = "custom"
-default = "TODO TO BE FILLED BY THE SECURITY ANALYST"
 required = true
 
 [report_preview_data]
 [report_preview_data.report]
 title = "Quantum Security Labs"
+customer_full = "Quantum Security Labs"
+customer_short = "Quantum Security Labs"
 report_date = "2023-05-31"
 report_version = "1.0"
-executive_summary = "{{ report.customer_full }} engaged {{ report.candidate.a_name }} to investigate two (2) independent security incidents across two of {{ report.customer_full }}' separate networks. The objective is to identify the root causes and the full extent of these incidents and to meticulously document the findings in an understandable, technically robust, and reproducible way."
-customer_short = "Quantum Security Labs"
-customer_full = "Quantum Security Labs"
-appendix_additional_sections = []
+executive_summary = "{{ report.customer_full }} engaged {{ report.candidate.name }} to investigate two (2) independent security incidents across two of {{ report.customer_full }}' separate networks. The objective is to identify the root causes and the full extent of these incidents and to meticulously document the findings in an understandable, technically robust, and reproducible way."
 appendix_timeline = """
 | Time | Activity |
 | ------- | ------- | 
@@ -920,65 +871,28 @@ appendix_timeline = """
 | ...    | ...    |
 | ...   | ... |
 """
+appendix_additional_sections = []
 
 [report_preview_data.report.candidate]
-a_name = "TODO CANDIDATE NAME"
-b_title = "Security Analyst"
-c_email = "TODO CANDIDATE MAIL"
+name = "TODO CANDIDATE NAME"
+title = "Security Analyst"
+email = "TODO CANDIDATE MAIL"
 
 [[report_preview_data.report.engagement_contacts]]
-a_name = "Android Lloyd"
-b_title = "SoC Manager"
-c_email = "a.lloyd@corp.local"
+name = "Android Lloyd"
+title = "SoC Manager"
+email = "a.lloyd@corp.local"
 
 [[report_preview_data.report.engagement_contacts]]
-a_name = "Darren McLemore"
-b_title = "SoC Manager"
-c_email = "d.mclemore@htbdefense.local"
+name = "Darren McLemore"
+title = "SoC Manager"
+email = "d.mclemore@htbdefense.local"
 
 [[report_preview_data.findings]]
 title = "Incident 1: Phishing Email Detected on the corp.local Network"
 id = "ed119472-b112-40a1-8687-acf1c4827e2f"
-ioc = """
-IoCs are instrumental for hunting potential compromises across our broader environment or even among partner organizations. These can range from abnormal outbound traffic to unfamiliar processes and scheduled tasks initiated by the attacker.
-
-TODO TO BE FILLED BY THE SECURITY ANALYST
-"""
-nature = """
-Deep-dive into the type of attack, as well as the tactics, techniques, and procedures (TTPs) employed by the attacker. 
-
-TODO TO BE FILLED BY THE SECURITY ANALYST
-"""
-timeline = """
-This is a pivotal component for comprehending the incident's sequence of events. The timeline should include:
-* Reconnaissance
-* Initial Compromise
-* C2 Communications
-* Enumeration
-* Lateral Movement
-* Data Access & Exfiltration
-* Malware Deployment or Activity (including Process Injection and Persistence)
-* Containment Times (can be excluded)
-* Eradication Times (can be excluded)
-* Recovery Times (can be excluded)
-
-TODO TO BE FILLED BY THE SECURITY ANALYST
-"""
-root_cause = """
-Within this section, detail the root cause analysis conducted and elaborate on the underlying cause of the security incident (vulnerabilities exploited, failure points, etc.).
-
-TODO TO BE FILLED BY THE SECURITY ANALYST
-"""
-affected_systems = """
-Highlight all systems and data that were either potentially accessed or definitively compromised during the incident. If data was exfiltrated, specify the volume or quantity, if ascertainable.
-
-TODO TO BE FILLED BY THE SECURITY ANALYST
-"""
-evidence_sources = """
-Emphasize the evidence scrutinized, the results, and the analytical methodology employed. Each detection should be elucidated step by step, inclusive of the associated data sources, SIEM queries, and tool commands.
-
-TODO TO BE FILLED BY THE SECURITY ANALYST
-"""
+created = "2024-12-09T09:26:08.603049+00:00"
+order = 1
 incident_id = "1c041934-4e91-4547-a3ce-3bd3a26762ca"
 incident_severity = "TO BE FILLED BY THE SECURITY ANALYST"
 incident_status = "In Progress"
@@ -986,17 +900,23 @@ incident_overview = "TODO TO BE FILLED BY THE SECURITY ANALYST"
 key_findings = "TODO TO BE FILLED BY THE SECURITY ANALYST"
 immediate_actions = "TODO TO BE FILLED BY THE SECURITY ANALYST"
 stakeholder_impact = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+affected_systems = """
+Highlight all systems and data that were either potentially accessed or definitively compromised during the incident. If data was exfiltrated, specify the volume or quantity, if ascertainable.
 
-[[report_preview_data.findings]]
-title = "Incident 2: Potential DCSync Activity Detected on Quantum Security Labs' Second Network"
-id = "8d1be449-46d5-4cc9-bd77-101fcd178a9c"
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+evidence_sources = """
+Emphasize the evidence scrutinized, the results, and the analytical methodology employed. Each detection should be elucidated step by step, inclusive of the associated data sources, SIEM queries, and tool commands.
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
 ioc = """
 IoCs are instrumental for hunting potential compromises across our broader environment or even among partner organizations. These can range from abnormal outbound traffic to unfamiliar processes and scheduled tasks initiated by the attacker.
 
 TODO TO BE FILLED BY THE SECURITY ANALYST
 """
-nature = """
-Deep-dive into the type of attack, as well as the tactics, techniques, and procedures (TTPs) employed by the attacker. 
+root_cause = """
+Within this section, detail the root cause analysis conducted and elaborate on the underlying cause of the security incident (vulnerabilities exploited, failure points, etc.).
 
 TODO TO BE FILLED BY THE SECURITY ANALYST
 """
@@ -1015,11 +935,24 @@ This is a pivotal component for comprehending the incident's sequence of events.
 
 TODO TO BE FILLED BY THE SECURITY ANALYST
 """
-root_cause = """
-Within this section, detail the root cause analysis conducted and elaborate on the underlying cause of the security incident (vulnerabilities exploited, failure points, etc.).
+nature = """
+Deep-dive into the type of attack, as well as the tactics, techniques, and procedures (TTPs) employed by the attacker. 
 
 TODO TO BE FILLED BY THE SECURITY ANALYST
 """
+
+[[report_preview_data.findings]]
+title = "Incident 2: Potential DCSync Activity Detected on Quantum Security Labs' Second Network"
+id = "8d1be449-46d5-4cc9-bd77-101fcd178a9c"
+created = "2024-12-09T09:26:08.603114+00:00"
+order = 2
+incident_id = "63b3e9ef-3def-49d9-9960-5df399d1bd80"
+incident_severity = "TO BE FILLED BY THE SECURITY ANALYST"
+incident_status = "In Progress"
+incident_overview = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+key_findings = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+immediate_actions = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+stakeholder_impact = "TODO TO BE FILLED BY THE SECURITY ANALYST"
 affected_systems = """
 Highlight all systems and data that were either potentially accessed or definitively compromised during the incident. If data was exfiltrated, specify the volume or quantity, if ascertainable.
 
@@ -1030,18 +963,34 @@ Emphasize the evidence scrutinized, the results, and the analytical methodology 
 
 TODO TO BE FILLED BY THE SECURITY ANALYST
 """
-incident_id = "63b3e9ef-3def-49d9-9960-5df399d1bd80"
-incident_severity = "TO BE FILLED BY THE SECURITY ANALYST"
-incident_status = "In Progress"
-incident_overview = "TODO TO BE FILLED BY THE SECURITY ANALYST"
-key_findings = "TODO TO BE FILLED BY THE SECURITY ANALYST"
-immediate_actions = "TODO TO BE FILLED BY THE SECURITY ANALYST"
-stakeholder_impact = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+ioc = """
+IoCs are instrumental for hunting potential compromises across our broader environment or even among partner organizations. These can range from abnormal outbound traffic to unfamiliar processes and scheduled tasks initiated by the attacker.
 
-[[assets]]
-id = "72481cdf-2aaa-40a3-b0e5-23798747c7e0"
-name = "logo-transparent.png"
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+root_cause = """
+Within this section, detail the root cause analysis conducted and elaborate on the underlying cause of the security incident (vulnerabilities exploited, failure points, etc.).
 
-[[assets]]
-id = "598ee464-3e67-4cc2-9eeb-842e176d0630"
-name = "LICENSE"
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+timeline = """
+This is a pivotal component for comprehending the incident's sequence of events. The timeline should include:
+* Reconnaissance
+* Initial Compromise
+* C2 Communications
+* Enumeration
+* Lateral Movement
+* Data Access & Exfiltration
+* Malware Deployment or Activity (including Process Injection and Persistence)
+* Containment Times (can be excluded)
+* Eradication Times (can be excluded)
+* Recovery Times (can be excluded)
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+nature = """
+Deep-dive into the type of attack, as well as the tactics, techniques, and procedures (TTPs) employed by the attacker. 
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+

@@ -1,17 +1,14 @@
-format = "projecttypes/v1"
+format = "projecttypes/v2"
 id = "650eba7d-2ae4-4646-9125-fcd597af5809"
-name = "OSED Exam Report v1.1"
+name = "OSED Exam Report v1.2"
 language = "en-US"
-finding_field_order = [
-    "title",
-    "proof",
-    "initial_analysis",
-    "application_analysis",
-    "vulnerability_discovery",
-    "exploit_creation",
-    "screenshots",
-    "cvss",
+status = "finished"
+tags = [
+    "offsec",
+    "OffensiveSecurity",
 ]
+finding_ordering = []
+default_notes = []
 report_template = """
 <div id="footer" data-sysreptor-generated="page-footer">
     <div id="footer-left"><em>CONFIDENTIAL</em></div>
@@ -172,6 +169,12 @@ code {
     background-color: rgb(221, 221, 221);
 }
 
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
 th {
     background-color: #ABABAB;
     font-weight: bold;
@@ -209,10 +212,10 @@ tr.table-row-link td a {
     content: "" !important;
 }
 .ref-page::after {
-  content: target-counter(attr(href), page) !important;
+    content: target-counter(attr(href), page) !important;
 }
 .ref-page .ref-title {
-  display: none !important;
+    display: none !important;
 }
 
 /* Table in finding chapters */
@@ -239,6 +242,10 @@ tr.table-row-link td a {
     @bottom-center { content: element(footer-center); }
     @bottom-right-corner { content: counter(page); }
 }
+#footer {
+    position: absolute;
+    width: 0;
+}
 #footer #footer-left { position: running(footer-left); }
 #footer #footer-center { position: running(footer-center); }
 /* #endregion footer */
@@ -256,7 +263,10 @@ tr.table-row-link td a {
 /* #endregion watermark */
 
 /* #region page-cover */
-@page :first {
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
     /* Footer on the cover page */
     @bottom-right-corner {
         content: "";
@@ -278,7 +288,7 @@ tr.table-row-link td a {
         content: '';
     }
 }
-#page-cover-background{
+#page-cover-background {
     position: absolute;
     margin-top: -35mm;
     margin-left: -20mm;
@@ -317,9 +327,9 @@ tr.table-row-link td a {
 
 /* #region toc */
 #toc li {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 #toc .ref::before {
     padding-right: 0.5em;
@@ -328,63 +338,35 @@ tr.table-row-link td a {
     content: " " leader(".") " " target-counter(attr(href), page);
 }
 #toc .toc-level1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-top: 0.8rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
 }
 #toc .toc-level2 {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-top: 0.5rem;
-  margin-left: 2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-left: 2rem;
 }
 #toc .toc-level3 {
-  font-size: 1rem;
-  margin-top: 0.4rem;
-  margin-left: 4rem;
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    margin-left: 4rem;
 }
 #toc .toc-level4 {
-  font-size: 1rem;
-  margin-top: 0;
-  margin-left: 6rem;
+    font-size: 1rem;
+    margin-top: 0;
+    margin-left: 6rem;
 }
 /* #endregion toc */
 """
 
-[report_fields]
-[report_fields.title]
-type = "string"
-label = "Title"
-origin = "core"
-default = "OSED Exam Documentation"
-required = true
-spellcheck = true
+[[report_sections]]
+id = "Student"
+label = "Student"
 
-[report_fields.mail]
-type = "string"
-label = "Mail"
-origin = "custom"
-default = "student@example.com"
-required = true
-spellcheck = false
-
-[report_fields.osid]
-type = "string"
-label = "OSID"
-origin = "custom"
-default = "XXXXX"
-required = true
-spellcheck = false
-
-[report_fields.lastname]
-type = "string"
-label = "Lastname"
-origin = "custom"
-default = "Doe"
-required = true
-spellcheck = false
-
-[report_fields.firstname]
+[[report_sections.fields]]
+id = "firstname"
 type = "string"
 label = "Firstname"
 origin = "custom"
@@ -392,19 +374,55 @@ default = "John"
 required = true
 spellcheck = false
 
-[report_fields.watermark]
-type = "boolean"
-label = "Watermark"
+[[report_sections.fields]]
+id = "lastname"
+type = "string"
+label = "Lastname"
 origin = "custom"
-default = false
+default = "Doe"
+required = true
+spellcheck = false
 
-[report_fields.report_date]
+[[report_sections.fields]]
+id = "osid"
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "mail"
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "other"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "OSED Exam Documentation"
+required = true
+spellcheck = true
+
+[[report_sections.fields]]
+id = "report_date"
 type = "date"
 label = "Report Date"
 origin = "custom"
 required = true
 
-[report_fields.report_version]
+[[report_sections.fields]]
+id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
@@ -412,34 +430,19 @@ default = "1.0"
 required = true
 spellcheck = false
 
-[report_fields.appendix_sections]
-type = "list"
-label = "Appendix"
+[[report_sections.fields]]
+id = "watermark"
+type = "boolean"
+label = "Watermark"
 origin = "custom"
-required = true
+default = false
 
-[report_fields.appendix_sections.items]
-type = "object"
-label = ""
-origin = "custom"
+[[report_sections]]
+id = "highlevel_summary"
+label = "High-Level Summary"
 
-[report_fields.appendix_sections.items.properties]
-[report_fields.appendix_sections.items.properties.title]
-type = "string"
-label = "Title"
-origin = "custom"
-default = "TODO appendix title"
-required = true
-spellcheck = false
-
-[report_fields.appendix_sections.items.properties.content]
-type = "markdown"
-label = "Content"
-origin = "custom"
-default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
-required = true
-
-[report_fields.highlevel_summary]
+[[report_sections.fields]]
+id = "highlevel_summary"
 type = "markdown"
 label = "High-Level Summary"
 origin = "custom"
@@ -447,41 +450,41 @@ default = "TODO A brief description of the assignments that were solved, includi
 required = true
 
 [[report_sections]]
-id = "Student"
-label = "Student"
-fields = [
-    "firstname",
-    "lastname",
-    "osid",
-    "mail",
-]
-
-[[report_sections]]
-id = "other"
-label = "Document Control"
-fields = [
-    "title",
-    "report_date",
-    "report_version",
-    "watermark",
-]
-
-[[report_sections]]
-id = "highlevel_summary"
-label = "High-Level Summary"
-fields = [
-    "highlevel_summary",
-]
-
-[[report_sections]]
 id = "appendix"
 label = "Appendix"
-fields = [
-    "appendix_sections",
-]
 
-[finding_fields]
-[finding_fields.title]
+[[report_sections.fields]]
+id = "appendix_sections"
+type = "list"
+label = "Appendix"
+origin = "custom"
+required = true
+
+[report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO appendix title"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "content"
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+required = true
+
+[[finding_fields]]
+id = "title"
 type = "string"
 label = "Assignment"
 origin = "core"
@@ -489,47 +492,24 @@ default = "TODO Assignment Name"
 required = true
 spellcheck = true
 
-[finding_fields.cvss]
-type = "cvss"
-label = "CVSS (not required)"
-origin = "core"
-default = "n/a"
-required = false
-
-[finding_fields.proof]
+[[finding_fields]]
+id = "proof"
 type = "markdown"
 label = "Proof.txt"
 origin = "custom"
 default = "TODO Provide the contents of proof.txt."
 required = true
 
-[finding_fields.screenshots]
-type = "markdown"
-label = "Screenshots"
-origin = "custom"
-default = """
-TODO The exam control panel contains a section available to submit your proof files. The contents of the proof.txt files obtained from your exam machines must be submitted in the control panel be-fore your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
-
-Each proof.txt found must be shown in a screenshot that includes the contents of the file, as well as the IP address of the target by using ipconfig.
-
-"""
-required = true
-
-[finding_fields.exploit_creation]
-type = "markdown"
-label = "Exploit Creation"
-origin = "custom"
-default = "TODO Provide a description of steps to create the exploit, this includes how to combine vulnerabilities, how to bypass DEP and how to write any custom shellcode. At the end of this section the full exploit code should be developed while an explanation of each step should be performed."
-required = true
-
-[finding_fields.initial_analysis]
+[[finding_fields]]
+id = "initial_analysis"
 type = "markdown"
 label = "Initial Analysis"
 origin = "custom"
 default = "Todo Provide relevant techniques and methods used to perform enumeration of the application, including network ports, security mitigations etc. The steps taken should be reproducible and easy to understand. Include any custom code or references to public tools."
 required = true
 
-[finding_fields.application_analysis]
+[[finding_fields]]
+id = "application_analysis"
 type = "markdown"
 label = "Application Analysis"
 origin = "custom"
@@ -541,7 +521,8 @@ The analysis should include any reverse engineering performed to understand netw
 """
 required = true
 
-[finding_fields.vulnerability_discovery]
+[[finding_fields]]
+id = "vulnerability_discovery"
 type = "markdown"
 label = "Vulnerability Discovery"
 origin = "custom"
@@ -555,17 +536,38 @@ Only the steps that ended up working are required.
 """
 required = true
 
+[[finding_fields]]
+id = "exploit_creation"
+type = "markdown"
+label = "Exploit Creation"
+origin = "custom"
+default = "TODO Provide a description of steps to create the exploit, this includes how to combine vulnerabilities, how to bypass DEP and how to write any custom shellcode. At the end of this section the full exploit code should be developed while an explanation of each step should be performed."
+required = true
+
+[[finding_fields]]
+id = "screenshots"
+type = "markdown"
+label = "Screenshots"
+origin = "custom"
+default = """
+TODO The exam control panel contains a section available to submit your proof files. The contents of the proof.txt files obtained from your exam machines must be submitted in the control panel be-fore your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
+
+Each proof.txt found must be shown in a screenshot that includes the contents of the file, as well as the IP address of the target by using ipconfig.
+
+"""
+required = true
+
 [report_preview_data]
 [report_preview_data.report]
 title = "OSED Exam Documentation"
-mail = "student@example.com"
-osid = "OS-XXXXX"
-watermark = true
-report_date = "2022-07-29"
-report_version = "1.0"
-highlevel_summary = "TODO A brief description of the assignments that were solved, including the overall exploitation steps."
 firstname = "John"
 lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_date = "2022-07-29"
+report_version = "1.0"
+watermark = true
+highlevel_summary = "TODO A brief description of the assignments that were solved, including the overall exploitation steps."
 
 [[report_preview_data.report.appendix_sections]]
 title = "Appendix Title"
@@ -573,16 +575,10 @@ content = "Appendix content"
 
 [[report_preview_data.findings]]
 title = "TODO Assignment X"
-cvss = "n/a"
 id = "af3d5c20-71ef-4bb2-b7af-155a5c375af1"
+created = "2024-12-09T13:21:51.088580+00:00"
+order = 1
 proof = "TODO Provide the contents of proof.txt."
-screenshots = """
-TODO The exam control panel contains a section available to submit your proof files. The contents of the proof.txt files obtained from your exam machines must be submitted in the control panel be-fore your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
-
-Each proof.txt found must be shown in a screenshot that includes the contents of the file, as well as the IP address of the target by using ipconfig.
-
-"""
-exploit_creation = "TODO Provide a description of steps to create the exploit, this includes how to combine vulnerabilities, how to bypass DEP and how to write any custom shellcode. At the end of this section the full exploit code should be developed while an explanation of each step should be performed."
 initial_analysis = "Todo Provide relevant techniques and methods used to perform enumeration of the application, including network ports, security mitigations etc. The steps taken should be reproducible and easy to understand. Include any custom code or references to public tools."
 application_analysis = """
 TODO Provide a description of the analysis performed against the application, this includes both dynamic and static analysis.
@@ -598,7 +594,10 @@ As part of the documentation, proof of concept Python3 code must be created and 
 Only the steps that ended up working are required.
 
 """
+exploit_creation = "TODO Provide a description of steps to create the exploit, this includes how to combine vulnerabilities, how to bypass DEP and how to write any custom shellcode. At the end of this section the full exploit code should be developed while an explanation of each step should be performed."
+screenshots = """
+TODO The exam control panel contains a section available to submit your proof files. The contents of the proof.txt files obtained from your exam machines must be submitted in the control panel be-fore your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
 
-[[assets]]
-id = "eddcfd32-4595-4968-a41e-80f624bbe457"
-name = "LICENSE"
+Each proof.txt found must be shown in a screenshot that includes the contents of the file, as well as the IP address of the target by using ipconfig.
+
+"""

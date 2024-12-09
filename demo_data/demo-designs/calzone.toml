@@ -1,16 +1,12 @@
-format = "projecttypes/v1"
+format = "projecttypes/v2"
 id = "e2fead8f-9a43-4a7d-b694-44cdbcd6c4a6"
-name = "Demo Calzone v1.1"
+name = "Demo Calzone v1.2"
 language = "en-US"
-finding_field_order = [
-    "title",
-    "cvss",
-    "references",
-    "affected_components",
-    "summary",
-    "description",
-    "recommendation",
+status = "finished"
+tags = [
+    "demo",
 ]
+default_notes = []
 report_template = """
 <div data-sysreptor-generated="page-header" id="header">
     <div id="header-right">
@@ -99,9 +95,9 @@ report_template = """
         <h2 id="team" class="in-toc numbered">Team</h2>
         <table>
             <tr>
-                <th>Contact</th>
-                <th>Details</th>
-                <th>Role</th>
+                <th style="width: auto;">Contact</th>
+                <th style="width: auto;">Details</th>
+                <th style="width: 8em;" align="center">Role</th>
             </tr>
             <tr v-for="u in pentesters">
                 <td>{{ u.name }}</td>
@@ -109,7 +105,7 @@ report_template = """
                     <span v-if="u.mobile">Mobile: {{ u.mobile }}<br></span>
                     <span v-if="u.email">E-Mail: {{ u.email }}</span>
                 </td>
-                <td>
+                <td align="center">
                     <comma-and-join comma=", " and=", ">
                         <template v-for="role in u.roles" #[role]>{{ {lead: 'Lead Pentester', pentester: 'Pentester',
                             reviewer: 'Reviewer'}[role] || lodash.capitalize(role) }}</template>
@@ -123,14 +119,14 @@ report_template = """
         <h2 id="list-of-changes" class="in-toc numbered">List of Changes</h2>
         <table>
             <tr>
-                <th>Version</th>
-                <th>Description</th>
-                <th>Date</th>
+                <th style="width: 4em;" align="center">Version</th>
+                <th style="width: auto;">Description</th>
+                <th style="width: 7em;" align="center">Date</th>
             </tr>
             <tr v-for="version in report.list_of_changes">
-                <td>{{ version.version }}</td>
+                <td align="center">{{ version.version }}</td>
                 <td>{{ version.description }}</td>
-                <td>{{ formatDate(version.date, 'medium') }}</td>
+                <td align="center">{{ formatDate(version.date, 'medium') }}</td>
             </tr>
         </table>
     </div>
@@ -156,24 +152,24 @@ report_template = """
         <table>
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>CVSS</th>
-                    <th>Description</th>
-                    <th>Page</th>
+                    <th style="width: 3em;" align="center">#</th>
+                    <th style="width: 3em;" align="center">CVSS</th>
+                    <th style="width: auto;">Description</th>
+                    <th style="width: 3em;" align="center">Page</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="finding in findings" class="table-row-link" :class="'risk-bg-' + finding.cvss.level">
-                    <td>
+                    <td align="center">
                         <ref :to="finding.id">{{ ['I', 'L', 'M', 'H', 'C'][finding.cvss.level_number - 1] }}{{ findings.filter(f => f.cvss.level === finding.cvss.level).indexOf(finding) + 1 }}</ref>
                     </td>
-                    <td>
+                    <td align="center">
                         <ref :to="finding.id">{{ finding.cvss.score }}</ref>
                     </td>
                     <td>
                         <ref :to="finding.id">{{ finding.title }}</ref>
                     </td>
-                    <td>
+                    <td align="center">
                         <ref :to="finding.id" class="ref-page" />
                     </td>
                 </tr>
@@ -289,6 +285,10 @@ report_template = """
 
     <div v-for="finding in findings">
         <table class="finding-header">
+            <colgroup>
+                <col class="table-key" />
+                <col />
+            </colgroup>
             <tr>
                 <th colspan="2">
                     <h2 :id="finding.id" class="in-toc text-center">
@@ -427,6 +427,13 @@ th {
 
 
 /* Table styling */
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+.markdown table {
+    table-layout: auto;
+}
 tr.table-row-link td {
     padding: 0;
 }
@@ -437,7 +444,7 @@ tr.table-row-link td a {
     text-decoration: none;
     font-style: inherit;
 }
-td.table-key {
+.table-key {
     height: 3em;
     width: 10em;
     background-color: #ABABAB;
@@ -540,6 +547,10 @@ footnote {
 
 
 /* #region footer */
+#footer { 
+    position: absolute;
+    width: 0;
+}
 #footer-left {
     position: running(footer-left);
 }
@@ -570,6 +581,10 @@ footnote {
         margin-bottom: 5mm; 
         width: 50%;
     }
+}
+#header { 
+    position: absolute;
+    width: 0;
 }
 #header-right {
     position: running(header-right);
@@ -614,7 +629,8 @@ footnote {
     width: 40mm;
     font-size: 8pt;
 }
-@page:first {
+#page-cover { page: page-cover; }
+@page page-cover {
     /* Hide footer*/
     @bottom-center { content: none !important; }
     @bottom-right-corner { content: none !important; }
@@ -622,22 +638,32 @@ footnote {
 /* #endregion page-cover */
 """
 
-[report_fields]
-[report_fields.title]
-type = "string"
-label = "Title"
-origin = "core"
-default = "TODO report title"
-required = true
-spellcheck = false
+[[report_sections]]
+id = "executive_summary"
+label = "Executive Summary"
 
-[report_fields.draft]
-type = "boolean"
-label = "Is Draft?"
+[[report_sections.fields]]
+id = "executive_summary"
+type = "markdown"
+label = "Executive Summary"
 origin = "custom"
-default = true
+default = """
+**TODO: Executive Summary**
 
-[report_fields.scope]
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
+
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
+
+Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse
+"""
+required = true
+
+[[report_sections]]
+id = "scope"
+label = "Scope"
+
+[[report_sections.fields]]
+id = "scope"
 type = "markdown"
 label = "Scope"
 origin = "custom"
@@ -658,7 +684,22 @@ At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergr
 """
 required = true
 
-[report_fields.duration]
+[[report_sections.fields]]
+id = "start_date"
+type = "date"
+label = "Pentest Start Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "end_date"
+type = "date"
+label = "Pentest End Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "duration"
 type = "string"
 label = "Duration"
 origin = "custom"
@@ -666,41 +707,8 @@ default = "TODO person days"
 required = true
 spellcheck = false
 
-[report_fields.end_date]
-type = "date"
-label = "Pentest End Date"
-origin = "custom"
-required = true
-
-[report_fields.start_date]
-type = "date"
-label = "Pentest Start Date"
-origin = "custom"
-required = true
-
-[report_fields.report_date]
-type = "date"
-label = "Report Date"
-origin = "custom"
-required = true
-
-[report_fields.customer_name]
-type = "string"
-label = "Customer"
-origin = "custom"
-default = "TODO company"
-required = true
-spellcheck = false
-
-[report_fields.receiver_name]
-type = "string"
-label = "Receiver Name"
-origin = "custom"
-default = "TODO receiver"
-required = true
-spellcheck = false
-
-[report_fields.provided_users]
+[[report_sections.fields]]
+id = "provided_users"
 type = "markdown"
 label = "Users and Permissions"
 origin = "custom"
@@ -712,55 +720,27 @@ default = """
 """
 required = true
 
-[report_fields.report_version]
+[[report_sections]]
+id = "customer"
+label = "Customer"
+
+[[report_sections.fields]]
+id = "customer_name"
 type = "string"
-label = "Report Version"
+label = "Customer"
 origin = "custom"
-default = "1.0"
+default = "TODO company"
 required = true
 spellcheck = false
 
-[report_fields.list_of_changes]
-type = "list"
-label = "List of Changes"
-origin = "custom"
-required = true
-
-[report_fields.list_of_changes.items]
-type = "object"
-label = ""
-origin = "custom"
-
-[report_fields.list_of_changes.items.properties]
-[report_fields.list_of_changes.items.properties.description]
-type = "string"
-label = "Description"
-origin = "custom"
-default = "TODO description"
-required = true
-spellcheck = false
-
-[report_fields.list_of_changes.items.properties.date]
-type = "date"
-label = "Date"
-origin = "custom"
-required = true
-
-[report_fields.list_of_changes.items.properties.version]
-type = "string"
-label = "Version"
-origin = "custom"
-default = "TODO version"
-required = true
-spellcheck = false
-
-[report_fields.customer_address]
+[[report_sections.fields]]
+id = "customer_address"
 type = "object"
 label = "Address"
 origin = "custom"
 
-[report_fields.customer_address.properties]
-[report_fields.customer_address.properties.city]
+[[report_sections.fields.properties]]
+id = "city"
 type = "string"
 label = "City"
 origin = "custom"
@@ -768,7 +748,8 @@ default = "TODO city"
 required = true
 spellcheck = false
 
-[report_fields.customer_address.properties.street]
+[[report_sections.fields.properties]]
+id = "street"
 type = "string"
 label = "Street"
 origin = "custom"
@@ -776,19 +757,116 @@ default = "TODO street"
 required = true
 spellcheck = false
 
-[report_fields.appendix_sections]
+[[report_sections.fields]]
+id = "receiver_name"
+type = "string"
+label = "Receiver Name"
+origin = "custom"
+default = "TODO receiver"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "other"
+label = "Other"
+
+[[report_sections.fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "TODO report title"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "report_date"
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "report_version"
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "1.0"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "list_of_changes"
+type = "list"
+label = "List of Changes"
+origin = "custom"
+required = true
+
+[report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[report_sections.fields.items.properties]]
+id = "date"
+type = "date"
+label = "Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields.items.properties]]
+id = "description"
+type = "string"
+label = "Description"
+origin = "custom"
+default = "TODO description"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "version"
+type = "string"
+label = "Version"
+origin = "custom"
+default = "TODO version"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "draft"
+type = "boolean"
+label = "Is Draft?"
+origin = "custom"
+default = true
+
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[report_sections.fields]]
+id = "appendix_sections"
 type = "list"
 label = "Appendix"
 origin = "custom"
 required = true
 
-[report_fields.appendix_sections.items]
+[report_sections.fields.items]
+id = ""
 type = "object"
 label = ""
 origin = "custom"
 
-[report_fields.appendix_sections.items.properties]
-[report_fields.appendix_sections.items.properties.title]
+[[report_sections.fields.items.properties]]
+id = "content"
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO appendix content"
+required = true
+
+[[report_sections.fields.items.properties]]
+id = "title"
 type = "string"
 label = "Title"
 origin = "custom"
@@ -796,117 +874,32 @@ default = "TODO appendix title"
 required = true
 spellcheck = false
 
-[report_fields.appendix_sections.items.properties.content]
-type = "markdown"
-label = "Content"
-origin = "custom"
-default = "TODO appendix content"
-required = true
-
-[report_fields.executive_summary]
-type = "markdown"
-label = "Executive Summary"
-origin = "custom"
-default = """
-**TODO: Executive Summary**
-
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
-
-Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
-
-Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse
-"""
-required = true
-
-[[report_sections]]
-id = "executive_summary"
-label = "Executive Summary"
-fields = [
-    "executive_summary",
-]
-
-[[report_sections]]
-id = "scope"
-label = "Scope"
-fields = [
-    "scope",
-    "start_date",
-    "end_date",
-    "duration",
-    "provided_users",
-]
-
-[[report_sections]]
-id = "customer"
-label = "Customer"
-fields = [
-    "customer_name",
-    "customer_address",
-    "receiver_name",
-]
-
-[[report_sections]]
-id = "other"
-label = "Other"
-fields = [
-    "title",
-    "report_date",
-    "report_version",
-    "list_of_changes",
-    "draft",
-]
-
-[[report_sections]]
-id = "appendix"
-label = "Appendix"
-fields = [
-    "appendix_sections",
-]
-
-[finding_fields]
-[finding_fields.title]
+[[finding_fields]]
+id = "title"
 type = "string"
-label = "Title"
+label = "Titel"
 origin = "core"
 default = "TODO finding title"
 required = true
 spellcheck = false
 
-[finding_fields.cvss]
+[[finding_fields]]
+id = "cvss"
 type = "cvss"
 label = "CVSS"
-origin = "core"
+origin = "predefined"
 default = "n/a"
 required = true
 
-[finding_fields.summary]
-type = "markdown"
-label = "Overview"
-origin = "predefined"
-default = "TODO summary"
-required = true
-
-[finding_fields.description]
-type = "markdown"
-label = "Details"
-origin = "predefined"
-default = "TODO description"
-required = true
-
-[finding_fields.recommendation]
-type = "markdown"
-label = "Recommendation"
-origin = "predefined"
-default = "TODO recommendation"
-required = true
-
-[finding_fields.references]
+[[finding_fields]]
+id = "references"
 type = "list"
 label = "References"
 origin = "predefined"
 required = false
 
-[finding_fields.references.items]
+[finding_fields.items]
+id = ""
 type = "string"
 label = "Reference"
 origin = "predefined"
@@ -914,19 +907,53 @@ default = "TODO reference"
 required = true
 spellcheck = false
 
-[finding_fields.affected_components]
+[[finding_fields]]
+id = "affected_components"
 type = "list"
 label = "Affected Components"
 origin = "predefined"
 required = true
 
-[finding_fields.affected_components.items]
+[finding_fields.items]
+id = ""
 type = "string"
 label = "Component"
 origin = "predefined"
 default = "TODO affected component"
 required = true
 spellcheck = false
+
+[[finding_fields]]
+id = "summary"
+type = "markdown"
+label = "Overview"
+origin = "predefined"
+default = "TODO summary"
+required = true
+
+[[finding_fields]]
+id = "description"
+type = "markdown"
+label = "Details"
+origin = "predefined"
+default = "TODO description"
+required = true
+
+[[finding_fields]]
+id = "recommendation"
+type = "markdown"
+label = "Recommendation"
+origin = "predefined"
+default = "TODO recommendation"
+required = true
+
+[[finding_ordering]]
+field = "cvss"
+order = "desc"
+
+[[finding_ordering]]
+field = "title"
+order = "asc"
 
 [report_preview_data]
 [report_preview_data.report]
@@ -996,6 +1023,8 @@ summary = "TODO summary"
 description = "TODO description"
 recommendation = "TODO recommendation"
 id = "a10eed1a-07f5-46ef-bf3a-b78208e72272"
+created = "2024-12-09T07:07:03.662911+00:00"
+order = 1
 references = [
     "https://example.com",
 ]
@@ -1010,6 +1039,8 @@ summary = "TODO summary"
 description = "TODO description"
 recommendation = "TODO recommendation"
 id = "36b093db-5512-4169-9641-947d16dfce31"
+created = "2024-12-09T07:07:03.662989+00:00"
+order = 2
 references = [
     "https://example.com",
 ]
@@ -1024,6 +1055,8 @@ summary = "TODO summary"
 description = "TODO description"
 recommendation = "TODO recommendation"
 id = "25a70e70-515e-4664-b7ab-dffc2f2fe12e"
+created = "2024-12-09T07:07:03.663050+00:00"
+order = 3
 references = [
     "https://example.com",
 ]
@@ -1038,17 +1071,7 @@ summary = "TODO summary"
 description = "TODO description"
 recommendation = "TODO recommendation"
 id = "7ecef42b-d76e-4b29-93ad-2f52d0eee4d8"
+created = "2024-12-09T07:07:03.663109+00:00"
+order = 4
 references = []
 affected_components = []
-
-[[assets]]
-id = "b51faf43-60cb-4205-b362-4d68920956ec"
-name = "LICENSE"
-
-[[assets]]
-id = "ba9ed70f-4394-4ceb-9e88-4cd4db82e650"
-name = "test.png"
-
-[[assets]]
-id = "757e56f7-84a3-47b9-807a-3b69d910a0c2"
-name = "logo-transparent.png"

@@ -1,12 +1,14 @@
-format = "projecttypes/v1"
+format = "projecttypes/v2"
 id = "431ca4e2-14f4-41bc-a431-07e8002b45de"
-name = "OSDA Exam Report v1.1"
+name = "OSDA Exam Report v1.2"
 language = "en-US"
-finding_field_order = [
-    "title",
-    "steps",
-    "cvss",
+status = "finished"
+tags = [
+    "offsec",
+    "OffensiveSecurity",
 ]
+finding_ordering = []
+default_notes = []
 report_template = """
 <div id="footer" data-sysreptor-generated="page-footer">
     <div id="footer-left"><em>CONFIDENTIAL</em></div>
@@ -76,8 +78,8 @@ report_template = """
     <div v-for="finding in findings">
         <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
         <div v-for="step in finding.steps">
-            <h3 class="in-toc numbered">{{ step.a_step_title }}</h3>
-            <markdown :text="step.b_step_details" />
+            <h3 class="in-toc numbered">{{ step.step_title }}</h3>
+            <markdown :text="step.step_details" />
         </div>
         <pagebreak />
     </div>
@@ -145,6 +147,13 @@ code {
     background-color: rgb(221, 221, 221);
 }
 
+
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
 th {
     background-color: #ABABAB;
     font-weight: bold;
@@ -182,10 +191,10 @@ tr.table-row-link td a {
     content: "" !important;
 }
 .ref-page::after {
-  content: target-counter(attr(href), page) !important;
+    content: target-counter(attr(href), page) !important;
 }
 .ref-page .ref-title {
-  display: none !important;
+    display: none !important;
 }
 
 /* Table in finding chapters */
@@ -212,6 +221,10 @@ tr.table-row-link td a {
     @bottom-center { content: element(footer-center); }
     @bottom-right-corner { content: counter(page); }
 }
+#footer {
+    position: absolute;
+    width: 0;
+}
 #footer #footer-left { position: running(footer-left); }
 #footer #footer-center { position: running(footer-center); }
 /* #endregion footer */
@@ -229,7 +242,10 @@ tr.table-row-link td a {
 /* #endregion watermark */
 
 /* #region page-cover */
-@page :first {
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
     /* Footer on the cover page */
     @bottom-right-corner {
         content: "";
@@ -251,7 +267,7 @@ tr.table-row-link td a {
         content: '';
     }
 }
-#page-cover-background{
+#page-cover-background {
     position: absolute;
     margin-top: -35mm;
     margin-left: -20mm;
@@ -290,9 +306,9 @@ tr.table-row-link td a {
 
 /* #region toc */
 #toc li {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 #toc .ref::before {
     padding-right: 0.5em;
@@ -301,63 +317,35 @@ tr.table-row-link td a {
     content: " " leader(".") " " target-counter(attr(href), page);
 }
 #toc .toc-level1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-top: 0.8rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
 }
 #toc .toc-level2 {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-top: 0.5rem;
-  margin-left: 2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-left: 2rem;
 }
 #toc .toc-level3 {
-  font-size: 1rem;
-  margin-top: 0.4rem;
-  margin-left: 4rem;
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    margin-left: 4rem;
 }
 #toc .toc-level4 {
-  font-size: 1rem;
-  margin-top: 0;
-  margin-left: 6rem;
+    font-size: 1rem;
+    margin-top: 0;
+    margin-left: 6rem;
 }
 /* #endregion toc */
 """
 
-[report_fields]
-[report_fields.title]
-type = "string"
-label = "Title"
-origin = "core"
-default = "OSDA Exam Documentation"
-required = true
-spellcheck = true
+[[report_sections]]
+id = "Student"
+label = "Student"
 
-[report_fields.mail]
-type = "string"
-label = "Mail"
-origin = "custom"
-default = "student@example.com"
-required = true
-spellcheck = false
-
-[report_fields.osid]
-type = "string"
-label = "OSID"
-origin = "custom"
-default = "XXXXX"
-required = true
-spellcheck = false
-
-[report_fields.lastname]
-type = "string"
-label = "Lastname"
-origin = "custom"
-default = "Doe"
-required = true
-spellcheck = false
-
-[report_fields.firstname]
+[[report_sections.fields]]
+id = "firstname"
 type = "string"
 label = "Firstname"
 origin = "custom"
@@ -365,19 +353,55 @@ default = "John"
 required = true
 spellcheck = false
 
-[report_fields.watermark]
-type = "boolean"
-label = "Watermark"
+[[report_sections.fields]]
+id = "lastname"
+type = "string"
+label = "Lastname"
 origin = "custom"
-default = false
+default = "Doe"
+required = true
+spellcheck = false
 
-[report_fields.report_date]
+[[report_sections.fields]]
+id = "osid"
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "mail"
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "other"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "OSDA Exam Documentation"
+required = true
+spellcheck = true
+
+[[report_sections.fields]]
+id = "report_date"
 type = "date"
 label = "Report Date"
 origin = "custom"
 required = true
 
-[report_fields.report_version]
+[[report_sections.fields]]
+id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
@@ -385,34 +409,19 @@ default = "1.0"
 required = true
 spellcheck = false
 
-[report_fields.appendix_sections]
-type = "list"
-label = "Appendix"
+[[report_sections.fields]]
+id = "watermark"
+type = "boolean"
+label = "Watermark"
 origin = "custom"
-required = true
+default = false
 
-[report_fields.appendix_sections.items]
-type = "object"
-label = ""
-origin = "custom"
+[[report_sections]]
+id = "highlevel_summary"
+label = "High-Level Summary"
 
-[report_fields.appendix_sections.items.properties]
-[report_fields.appendix_sections.items.properties.title]
-type = "string"
-label = "Title"
-origin = "custom"
-default = "TODO appendix title"
-required = true
-spellcheck = false
-
-[report_fields.appendix_sections.items.properties.content]
-type = "markdown"
-label = "Content"
-origin = "custom"
-default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
-required = true
-
-[report_fields.highlevel_summary]
+[[report_sections.fields]]
+id = "highlevel_summary"
 type = "markdown"
 label = "High-Level Summary"
 origin = "custom"
@@ -428,41 +437,41 @@ Next the attacker performed lateral movement to the internal server APPSRV02 by 
 required = true
 
 [[report_sections]]
-id = "Student"
-label = "Student"
-fields = [
-    "firstname",
-    "lastname",
-    "osid",
-    "mail",
-]
-
-[[report_sections]]
-id = "other"
-label = "Document Control"
-fields = [
-    "title",
-    "report_date",
-    "report_version",
-    "watermark",
-]
-
-[[report_sections]]
-id = "highlevel_summary"
-label = "High-Level Summary"
-fields = [
-    "highlevel_summary",
-]
-
-[[report_sections]]
 id = "appendix"
 label = "Appendix"
-fields = [
-    "appendix_sections",
-]
 
-[finding_fields]
-[finding_fields.title]
+[[report_sections.fields]]
+id = "appendix_sections"
+type = "list"
+label = "Appendix"
+origin = "custom"
+required = true
+
+[report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO appendix title"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "content"
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+required = true
+
+[[finding_fields]]
+id = "title"
 type = "string"
 label = "Phase"
 origin = "core"
@@ -470,26 +479,29 @@ default = "TODO Phase Name"
 required = true
 spellcheck = true
 
-[finding_fields.cvss]
-type = "cvss"
-label = "CVSS (not required)"
-origin = "core"
-default = "n/a"
-required = false
-
-[finding_fields.steps]
+[[finding_fields]]
+id = "steps"
 type = "list"
 label = "Steps"
 origin = "custom"
 required = true
 
-[finding_fields.steps.items]
+[finding_fields.items]
+id = ""
 type = "object"
 label = ""
 origin = "custom"
 
-[finding_fields.steps.items.properties]
-[finding_fields.steps.items.properties.a_step_title]
+[[finding_fields.items.properties]]
+id = "step_details"
+type = "markdown"
+label = "Step Details"
+origin = "custom"
+default = "TODO step details"
+required = true
+
+[[finding_fields.items.properties]]
+id = "step_title"
 type = "string"
 label = "Step Title"
 origin = "custom"
@@ -497,21 +509,16 @@ default = "TODO step title"
 required = true
 spellcheck = false
 
-[finding_fields.steps.items.properties.b_step_details]
-type = "markdown"
-label = "Step Details"
-origin = "custom"
-default = "TODO step details"
-required = true
-
 [report_preview_data]
 [report_preview_data.report]
 title = "OSDA Exam Documentation"
-mail = "student@example.com"
+firstname = "John"
+lastname = "Doe"
 osid = "OS-XXXXX"
-watermark = true
+mail = "student@example.com"
 report_date = "2022-07-29"
 report_version = "1.0"
+watermark = true
 highlevel_summary = """
 TODO This report details and documents the attacks observed against the Offensive Security OSDA exam network.
 
@@ -521,8 +528,6 @@ Next the attacker performed lateral movement to the internal server APPSRV02 by 
 
 […]
 """
-firstname = "John"
-lastname = "Doe"
 
 [[report_preview_data.report.appendix_sections]]
 title = "Appendix Title"
@@ -530,12 +535,12 @@ content = "Appendix content"
 
 [[report_preview_data.findings]]
 title = "Phase 1"
-cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
 id = "90a0038a-3649-4a37-8151-06c935a5a15e"
+created = "2024-12-09T13:11:25.791917+00:00"
+order = 1
 
 [[report_preview_data.findings.steps]]
-a_step_title = "RDP Brute Force"
-b_step_details = """
+step_details = """
 The initial indicator of an attack happening was the triggering of a pre-defined threshold rule called “Possible RDP brute force” as shown below.
 
 ![](/assets/name/image-590869.png)
@@ -560,10 +565,10 @@ This shows that the user Peter did a successful logon to APPSRV02 shortly after 
 
 At this point we have a strong suspicion that the account with the username Peter was compromised and a malicious actor obtained access to APPSRV02 coming from the IP address 192.168.67.69. We should escalate this to an incident and contact the user to verify whether this was a legitimate logon.
 """
+step_title = "RDP Brute Force"
 
 [[report_preview_data.findings.steps]]
-a_step_title = "Persistence"
-b_step_details = """
+step_details = """
 After suspicion of a compromise, additional investigation should be performed. One area is looking for persistence and a common way attackers employ is through the registry.
 
 To try and determine if this happed, we can use the KQL query:
@@ -580,124 +585,98 @@ In particular we notice that the file “C:\\Windows\\System32\\update.exe” wi
 We should escalate this to investigate what the file update.exe is.
 
 """
+step_title = "Persistence"
 
 [[report_preview_data.findings.steps]]
-a_step_title = "Summary"
-b_step_details = "In this phase we have strong suspicions that a malicious actor performed a brute force attack against APPSRV02 and managed to compromise the user account with the username “Peter”. Additionally, we suspect that persistence was set up through a Run key in the registry to execute the file “C:\\Windows\\System32\\update.exe”."
+step_details = "In this phase we have strong suspicions that a malicious actor performed a brute force attack against APPSRV02 and managed to compromise the user account with the username “Peter”. Additionally, we suspect that persistence was set up through a Run key in the registry to execute the file “C:\\Windows\\System32\\update.exe”."
+step_title = "Summary"
 
 [[report_preview_data.findings]]
 title = "Phase 2"
-cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:H"
 id = "8a39146e-3b2c-4d93-b1d7-9f604092fae4"
+created = "2024-12-09T13:11:25.791979+00:00"
+order = 2
 
 [[report_preview_data.findings.steps]]
-a_step_title = "TODO step title"
-b_step_details = "TODO step details"
+step_details = "TODO step details"
+step_title = "TODO step title"
 
 [[report_preview_data.findings]]
 title = "Phase 3"
-cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:H"
 id = "7d3e1727-5993-44b8-b06c-89e97c3d35c0"
+created = "2024-12-09T13:11:25.792015+00:00"
+order = 3
 
 [[report_preview_data.findings.steps]]
-a_step_title = "TODO step title"
-b_step_details = "TODO step details"
+step_details = "TODO step details"
+step_title = "TODO step title"
 
 [[report_preview_data.findings]]
 title = "Phase 4"
-cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L"
 id = "489071b1-0a42-47ca-aa31-0b3f7e5260cd"
+created = "2024-12-09T13:11:25.792047+00:00"
+order = 4
 
 [[report_preview_data.findings.steps]]
-a_step_title = "TODO step title"
-b_step_details = "TODO step details"
+step_details = "TODO step details"
+step_title = "TODO step title"
 
 [[report_preview_data.findings]]
 title = "Phase 5"
-cvss = "CVSS:3.1/AV:A/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L"
 id = "cab9e74f-4735-4665-ad2f-f9a05ca84870"
+created = "2024-12-09T13:11:25.792078+00:00"
+order = 5
 
 [[report_preview_data.findings.steps]]
-a_step_title = "TODO step title"
-b_step_details = "TODO step details"
+step_details = "TODO step details"
+step_title = "TODO step title"
 
 [[report_preview_data.findings]]
 title = "Phase 6"
-cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
 id = "cba6456f-02f1-4ce0-9b1e-88f8bca06430"
+created = "2024-12-09T13:11:25.792109+00:00"
+order = 6
 
 [[report_preview_data.findings.steps]]
-a_step_title = "TODO step title"
-b_step_details = "TODO step details"
+step_details = "TODO step details"
+step_title = "TODO step title"
 
 [[report_preview_data.findings]]
 title = "Phase 7"
-cvss = "CVSS:3.1/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
 id = "9e79526d-1c15-4eaa-8335-490e895053b0"
+created = "2024-12-09T13:11:25.792140+00:00"
+order = 7
 
 [[report_preview_data.findings.steps]]
-a_step_title = "TODO step title"
-b_step_details = "TODO step details"
+step_details = "TODO step details"
+step_title = "TODO step title"
 
 [[report_preview_data.findings]]
 title = "Phase 8"
-cvss = "CVSS:3.1/AV:A/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N"
 id = "9fb08d0f-f4f7-469c-9423-87bc6e6b25de"
+created = "2024-12-09T13:11:25.792173+00:00"
+order = 8
 
 [[report_preview_data.findings.steps]]
-a_step_title = "TODO step title"
-b_step_details = "TODO step details"
+step_details = "TODO step details"
+step_title = "TODO step title"
 
 [[report_preview_data.findings]]
 title = "Phase 9"
-cvss = "CVSS:3.1/AV:L/AC:H/PR:L/UI:R/S:U/C:L/I:N/A:N"
 id = "81d6959d-f7e7-4cab-a0e5-484107a4a534"
+created = "2024-12-09T13:11:25.792204+00:00"
+order = 9
 
 [[report_preview_data.findings.steps]]
-a_step_title = "TODO step title"
-b_step_details = "TODO step details"
+step_details = "TODO step details"
+step_title = "TODO step title"
 
 [[report_preview_data.findings]]
 title = "Phase 10"
-cvss = "n/a"
 id = "2a5fd063-334a-4158-9ff9-a4735f556c51"
+created = "2024-12-09T13:11:25.792235+00:00"
+order = 10
 
 [[report_preview_data.findings.steps]]
-a_step_title = "TODO step title"
-b_step_details = "TODO step details"
-
-[[assets]]
-id = "adc2295d-5fe1-419b-a767-f277437ed91f"
-name = "LICENSE"
-
-[[assets]]
-id = "e84943a8-5de0-47ac-b308-4a5854156b45"
-name = "image-916547.png"
-
-[[assets]]
-id = "a31b6a77-cf79-4539-8a9a-f49f09c2f109"
-name = "image-781171.png"
-
-[[assets]]
-id = "5abf3a1c-641f-4742-93bf-5763590d8b5b"
-name = "image-152717.png"
-
-[[assets]]
-id = "89ea6aec-d546-43a9-9ce2-bb81e5aa6281"
-name = "image-322213.png"
-
-[[assets]]
-id = "1c12c44d-11f3-4bd4-ad4f-79e6d9e5668c"
-name = "image-608270.png"
-
-[[assets]]
-id = "b67b4f0a-d754-4bca-909d-376ee1751ab1"
-name = "image-127195.png"
-
-[[assets]]
-id = "b42f7152-07e4-4614-9786-90a8756fcb59"
-name = "image-590869.png"
-
-[[assets]]
-id = "b3e1a3b9-1c2e-4449-beb5-1282b40a03fe"
-name = "image.png"
+step_details = "TODO step details"
+step_title = "TODO step title"

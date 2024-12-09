@@ -1,21 +1,11 @@
-format = "projecttypes/v1"
+format = "projecttypes/v2"
 id = "58b39367-e10b-418e-9455-e003599a49de"
-created = "2024-02-21T14:53:41.334592Z"
-updated = "2024-02-22T08:55:59.049440Z"
-name = "HTB CWEE Report v1.0"
+name = "HTB CWEE Report v1.1"
 language = "en-US"
 status = "finished"
-tags = []
-finding_field_order = [
-    "title",
-    "cwe",
-    "cvss",
-    "affected_components",
-    "references",
-    "summary",
-    "impact",
-    "description",
-    "recommendation",
+tags = [
+    "htb",
+    "HackTheBox",
 ]
 default_notes = []
 report_template = """
@@ -45,7 +35,7 @@ report_template = """
         <h1 id="page-cover-report-title">{{ report.title }}</h1>
         <h2>Report of Findings</h2>
         <h3>HTB Certified Web Exploitation Expert (CWEE) Exam Report</h3>
-        <h3>Candidate Name: {{ report.candidate.a_name }}</h3>
+        <h3>Candidate Name: {{ report.candidate.name }}</h3>
     </div>
 
     <div id="page-cover-recipient">
@@ -78,50 +68,57 @@ report_template = """
 
 
 <section>
-    <div>
-        <h1 id="contacts" class="in-toc numbered">Engagement Contacts</h1>
-        <table>
-            <tr>
-                <th colspan="3" style="text-align: center">
-                    {{ report.customer_short }} Contacts
-                </th>
-            </tr>
-            <tr>
-                <td><strong>Contact</strong></td>
-                <td><strong>Title</strong></td>
-                <td><strong>Contact Email</strong></td>
-            </tr>
-            <tr v-for="contact in report.customer_contacts">
-                <td>{{ contact.a_name }}</td>
-                <td>{{ contact.b_title }}</td>
-                <td>{{ contact.c_email }}</td>
-            </tr>
-        </table>
+    <h1 id="contacts" class="in-toc numbered">Engagement Contacts</h1>
+    <table>
+        <colgroup>
+            <col style="width: auto;" />
+            <col style="width: auto;" />
+            <col style="width: auto;" />
+        </colgroup>
+        <tr>
+            <th colspan="3" style="text-align: center">
+                {{ report.customer_short }} Contacts
+            </th>
+        </tr>
+        <tr>
+            <td><strong>Contact</strong></td>
+            <td><strong>Title</strong></td>
+            <td><strong>Contact Email</strong></td>
+        </tr>
+        <tr v-for="contact in report.customer_contacts">
+            <td>{{ contact.name }}</td>
+            <td>{{ contact.title }}</td>
+            <td>{{ contact.email }}</td>
+        </tr>
+    </table>
 
-        <table>
-            <tr>
-                <th colspan="3" style="text-align: center">
-                    Assessor Contact
-                </th>
-            </tr>
-            <tr>
-                <td><strong>Assessor Name</strong></td>
-                <td><strong>Title</strong></td>
-                <td><strong>Assessor Contact Email</strong></td>
-            </tr>
-            <tr>
-                <td>{{ report.candidate.a_name }}</td>
-                <td>{{ report.candidate.b_title }}</td>
-                <td>{{ report.candidate.c_email }}</td>
-            </tr>
-        </table>
-    </div>
+    <table>
+        <colgroup>
+            <col style="width: auto;" />
+            <col style="width: auto;" />
+            <col style="width: auto;" />
+        </colgroup>
+        <tr>
+            <th colspan="3" style="text-align: center">
+                Assessor Contact
+            </th>
+        </tr>
+        <tr>
+            <td><strong>Assessor Name</strong></td>
+            <td><strong>Title</strong></td>
+            <td><strong>Assessor Contact Email</strong></td>
+        </tr>
+        <tr>
+            <td>{{ report.candidate.name }}</td>
+            <td>{{ report.candidate.title }}</td>
+            <td>{{ report.candidate.email }}</td>
+        </tr>
+    </table>
     <pagebreak />
 </section>
 
 
 <section>
-
     <h1 id="summary" class="in-toc numbered">Executive Summary</h1>
     <markdown :text="report.executive_summary" />
 
@@ -133,10 +130,8 @@ report_template = """
 </section>
 
 <section>
-    <div>
     <h1 id="scope" class="in-toc numbered">Scope</h1>
     <markdown :text="report.scope" />
-    </div>
     <pagebreak />
 </section>
 
@@ -146,7 +141,7 @@ report_template = """
     <div>
         <h2 class="in-toc numbered">Summary of Findings</h2>
         <markdown>
-            During the course of testing, {{ report.candidate.a_name }} uncovered a total of **{{ finding_stats.count_total }}** findings that pose a material risk to client’s web applications and systems. The below chart provides a summary of the findings by severity level.
+            During the course of testing, {{ report.candidate.name }} uncovered a total of **{{ finding_stats.count_total }}** findings that pose a material risk to client's web applications and systems. The below chart provides a summary of the findings by severity level.
         </markdown>
         <p>
             In the course of this penetration test
@@ -207,18 +202,18 @@ report_template = """
         <table class="findings-list">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Severity Level</th>
-                    <th>Finding Name</th>
-                    <th align="center">Page</th>
+                    <th style="width: 3em;" align="center">#</th>
+                    <th style="width: 8em;" align="center">Severity Level</th>
+                    <th style="width: auto;">Finding Name</th>
+                    <th style="width: 3em;" align="center">Page</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="finding in findings" class="table-row-link">
-                    <td>
+                    <td align="center">
                         <ref :to="finding.id" class="ref-finding-number" />
                     </td>
-                    <td :class="'risk-bg-' + finding.cvss.level">
+                    <td :class="'risk-bg-' + finding.cvss.level" align="center">
                         <ref :to="finding.id">{{ finding.cvss.score}} ({{ lodash.capitalize(finding.cvss.level) }})</ref>
                     </td>
                     <td>
@@ -386,14 +381,20 @@ p {
 }
 
 a {
-  color: var(--color-secondary); /* Set the color of unvisited links */
-  text-decoration: underline; /* Remove the underline from unvisited links */
+    color: var(--color-secondary); /* Set the color of unvisited links */
+    text-decoration: underline; /* Remove the underline from unvisited links */
 }
 
 
 /* Table styling */
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
 table, th, td {
-  border: 1px solid white;
+    border: 1px solid white;
 }
 th {
     background-color: var(--color-table-header);
@@ -416,7 +417,7 @@ td.table-key {
     height: 3em;
     width: 10em;
 }
-tr{
+tr {
     color: var(--color-table-content);
 }
 tr:nth-child(even) {
@@ -424,6 +425,9 @@ tr:nth-child(even) {
 }
 tr:nth-child(odd) {
     background-color: var(--color-table-row-odd)
+}
+tr .highlight, tr code {
+    background-color: var(--color-page-background);
 }
 
 
@@ -445,12 +449,12 @@ code {
 
 /* Footnotes */
 @page {
-  @footnote {
-    border-top: 1px solid white;
-  }
+    @footnote {
+        border-top: 1px solid white;
+    }
 }
 footnote {
-  font-size: 8pt;
+    font-size: 8pt;
 }
 
 /* Classes for risk colors */
@@ -505,10 +509,6 @@ footnote {
 .finding-header tr {
     break-inside: auto;
 }
-.finding-header-color{
-    font-size: 12pt;
-    color: white !important;
-}
 
 
 
@@ -554,6 +554,10 @@ footnote {
         border-bottom: 2px dotted white;
     }
 }
+#header {
+    position: absolute;
+    width: 0;
+}
 #header-left { 
     position: running(header-left); 
     display: flex;
@@ -569,6 +573,10 @@ footnote {
     @bottom-left { content: element(footer-left); }
     @bottom-center { content: element(footer-center); }
     @bottom-right-corner { content: counter(page); }
+}
+#footer {
+    position: absolute;
+    width: 0;
 }
 #footer-left { position: running(footer-left); }
 #footer-center { position: running(footer-center); }
@@ -636,7 +644,10 @@ footnote {
     color: var(--color-secondary);
 }
 
-@page :first {
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
     /* Hide header */
     @top-left-corner { content: none !important; }
     @top-left { content: none !important; }
@@ -678,8 +689,45 @@ footnote {
 /* #endregion toc */
 """
 
-[report_fields]
-[report_fields.title]
+[[report_sections]]
+id = "meta"
+label = "Meta"
+
+[[report_sections.fields]]
+id = "candidate"
+type = "object"
+label = "HTB Candidate"
+origin = "custom"
+
+[[report_sections.fields.properties]]
+id = "name"
+type = "string"
+label = "Full Name"
+origin = "custom"
+default = "TODO Candidate Name"
+required = true
+spellcheck = false
+
+[[report_sections.fields.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO Candidate Title"
+required = true
+spellcheck = false
+
+[[report_sections.fields.properties]]
+id = "email"
+type = "string"
+label = "Email"
+origin = "custom"
+default = "TODO Candidate Email"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "title"
 type = "string"
 label = "Report Title"
 origin = "core"
@@ -687,7 +735,163 @@ default = "TODO Internal Pentest"
 required = true
 spellcheck = false
 
-[report_fields.scope]
+[[report_sections.fields]]
+id = "customers"
+type = "list"
+label = "Customers"
+origin = "custom"
+required = true
+
+[report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[report_sections.fields.items.properties]]
+id = "customer_full"
+type = "string"
+label = "Customer"
+origin = "custom"
+default = "TODO Customer Ltd."
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "customer_short"
+type = "string"
+label = "Customer (abbreviated)"
+origin = "custom"
+default = "TODO Customer"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "pentest_approach"
+type = "markdown"
+label = "Pentest Approach"
+origin = "custom"
+default = "TODO Customer Pentest Approach (Black-Box, White-Box, Grey-Box)"
+required = true
+
+[[report_sections.fields]]
+id = "pentest_start"
+type = "date"
+label = "Pentest Start"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "pentest_end"
+type = "date"
+label = "Pentest End"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "report_date"
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "report_version"
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "TODO 1.0"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "document_control"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "customer_contacts"
+type = "list"
+label = "Customer Contacts"
+origin = "custom"
+required = true
+
+[report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[report_sections.fields.items.properties]]
+id = "name"
+type = "string"
+label = "Name"
+origin = "custom"
+default = "TODO Name"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO Title"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "email"
+type = "string"
+label = "Email"
+origin = "custom"
+default = "TODO Email"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "executive_summary"
+label = "Executive Summary"
+
+[[report_sections.fields]]
+id = "executive_summary"
+type = "markdown"
+label = "Executive Summary"
+origin = "custom"
+default = """
+{{ report.customers[0]?.customer_full }} (“{{ report.customers[0]?.customer_short }}” herein), {{ report.customers[1]?.customer_full }} (“{{ report.customers[1]?.customer_short }}” herein), and {{ report.customers[2]?.customer_full }} (“{{ report.customers[2]?.customer_short }}” herein) have invited {{ report.candidate.name }} to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
+
+All web-related findings were considered in-scope, as long as they can be proven harmful to the client with a Medium-High impact. The following types of activities were considered out-of-scope for this test:
+
+* Physical attacks against the clients' properties
+* Unverified scanner output
+* Any vulnerabilities identified through DDoS or spam attacks
+* Vulnerabilities in third-party libraries unless they can be leveraged to impact the target significantly
+* Any theoretical attacks or attacks that require significant user interaction or are considered low-risk
+"""
+required = true
+
+[[report_sections.fields]]
+id = "approach"
+type = "markdown"
+label = "Approach"
+origin = "custom"
+default = """
+{{ report.candidate.name }} performed testing under a mixture of "blackbox" and a "whitebox" approach from {{ formatDate(report.pentest_start, 'long', 'en-US') }} to {{ formatDate(report.pentest_end, 'long', 'en-US') }}, as follows:
+
+<ul><li v-for="customer in report.customers"> <code v-text="customer.customer_short" /> <markdown :text="customer.pentest_approach" class="markdown-inline" /></li></ul>
+
+Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
+
+{{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal network access. Furthermore, {{ report.candidate.name }} has also documented the sources of vulnerabilities that were identified through source code analysis, and provided recommended patches to fix them.
+"""
+required = true
+
+[[report_sections]]
+id = "scope"
+label = "Scope"
+
+[[report_sections.fields]]
+id = "scope"
 type = "markdown"
 label = "Scope"
 origin = "custom"
@@ -705,119 +909,42 @@ The scope of this assessment was as follows:
 """
 required = true
 
-[report_fields.approach]
+[[report_sections]]
+id = "web_application_security_assessment_summary"
+label = "Web Application Security Assessment Summary"
+
+[[report_sections.fields]]
+id = "assessment_overview_and_recommendations"
 type = "markdown"
-label = "Approach"
+label = "Assessment Overview and Recomendations"
+origin = "custom"
+default = "TODO: 1 page summary of all identified vulnerabilities, as well as their respective recommended remediations."
+required = true
+
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[report_sections.fields]]
+id = "appendix_severities"
+type = "markdown"
+label = "Finding Severities"
 origin = "custom"
 default = """
-{{ report.candidate.a_name }} performed testing under a mixture of "blackbox" and a "whitebox" approach from {{ formatDate(report.pentest_start, 'long', 'en-US') }} to {{ formatDate(report.pentest_end, 'long', 'en-US') }}, as follows:
+Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
 
-<ul><li v-for="customer in report.customers"> <code>{{ customer.customer_short }}</code> <markdown :text="customer.pentest_approach" class="markdown-inline" /></li></ul>
-
-Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
-
-{{ report.candidate.a_name }} sought to demonstrate the full impact of every vulnerability, up to and including internal network access. Furthermore, {{ report.candidate.a_name }} has also documented the sources of vulnerabilities that were identified through source code analysis, and provided recommended patches to fix them.
+| Rating   | CVSS Score Range |
+| -------- | ---------------- | 
+| Critical | 9.0 – 10.0       |
+| High     | 7.0 – 8.9        |
+| Medium   | 4.0 – 6.9        |
+| Low      | 0.1 – 3.9        |
+| Info     | 0.0              |
 """
-required = true
+required = false
 
-[report_fields.candidate]
-type = "object"
-label = "HTB Candidate"
-origin = "custom"
-
-[report_fields.candidate.properties]
-[report_fields.candidate.properties.a_name]
-type = "string"
-label = "Full Name"
-origin = "custom"
-default = "TODO Candidate Name"
-required = true
-spellcheck = false
-
-[report_fields.candidate.properties.a_name.extra_info]
-
-[report_fields.candidate.properties.b_title]
-type = "string"
-label = "Title"
-origin = "custom"
-default = "TODO Candidate Title"
-required = true
-spellcheck = false
-
-[report_fields.candidate.properties.b_title.extra_info]
-
-[report_fields.candidate.properties.c_email]
-type = "string"
-label = "Email"
-origin = "custom"
-default = "TODO Candidate Email"
-required = true
-spellcheck = false
-
-[report_fields.candidate.properties.c_email.extra_info]
-
-[report_fields.customers]
-type = "list"
-label = "Customers"
-origin = "custom"
-required = true
-
-[report_fields.customers.items]
-type = "object"
-label = ""
-origin = "custom"
-
-[report_fields.customers.items.extra_info]
-
-[report_fields.customers.items.properties]
-[report_fields.customers.items.properties.customer_full]
-type = "string"
-label = "Customer"
-origin = "custom"
-default = "TODO Customer Ltd."
-required = true
-spellcheck = false
-
-[report_fields.customers.items.properties.customer_full.extra_info]
-
-[report_fields.customers.items.properties.customer_short]
-type = "string"
-label = "Customer (abbreviated)"
-origin = "custom"
-default = "TODO Customer"
-required = true
-spellcheck = false
-
-[report_fields.customers.items.properties.customer_short.extra_info]
-
-[report_fields.customers.items.properties.pentest_approach]
-type = "markdown"
-label = "Pentest Approach"
-origin = "custom"
-default = "TODO Customer Pentest Approach (Black-Box, White-Box, Grey-Box)"
-required = true
-
-[report_fields.customers.items.properties.pentest_approach.extra_info]
-
-[report_fields.pentest_end]
-type = "date"
-label = "Pentest End"
-origin = "custom"
-required = true
-
-[report_fields.report_date]
-type = "date"
-label = "Report Date"
-origin = "custom"
-required = true
-
-[report_fields.pentest_start]
-type = "date"
-label = "Pentest Start"
-origin = "custom"
-required = true
-
-[report_fields.appendix_flags]
+[[report_sections.fields]]
+id = "appendix_flags"
 type = "markdown"
 label = "Flags Discovered"
 origin = "custom"
@@ -835,107 +962,21 @@ TODO: fill in any identified flags.
 """
 required = false
 
-[report_fields.report_version]
-type = "string"
-label = "Report Version"
-origin = "custom"
-default = "TODO 1.0"
-required = true
-spellcheck = false
-
-[report_fields.customer_contacts]
-type = "list"
-label = "Customer Contacts"
-origin = "custom"
-required = true
-
-[report_fields.customer_contacts.items]
-type = "object"
-label = ""
-origin = "custom"
-
-[report_fields.customer_contacts.items.extra_info]
-
-[report_fields.customer_contacts.items.properties]
-[report_fields.customer_contacts.items.properties.a_name]
-type = "string"
-label = "Name"
-origin = "custom"
-default = "TODO Name"
-required = true
-spellcheck = false
-
-[report_fields.customer_contacts.items.properties.a_name.extra_info]
-
-[report_fields.customer_contacts.items.properties.b_title]
-type = "string"
-label = "Title"
-origin = "custom"
-default = "TODO Title"
-required = true
-spellcheck = false
-
-[report_fields.customer_contacts.items.properties.b_title.extra_info]
-
-[report_fields.customer_contacts.items.properties.c_email]
-type = "string"
-label = "Email"
-origin = "custom"
-default = "TODO Email"
-required = true
-spellcheck = false
-
-[report_fields.customer_contacts.items.properties.c_email.extra_info]
-
-[report_fields.executive_summary]
-type = "markdown"
-label = "Executive Summary"
-origin = "custom"
-default = """
-{{ report.customers[0]?.customer_full }} (“{{ report.customers[0]?.customer_short }}” herein), {{ report.customers[1]?.customer_full }} (“{{ report.customers[1]?.customer_short }}” herein), and {{ report.customers[2]?.customer_full }} (“{{ report.customers[2]?.customer_short }}” herein) have invited {{ report.candidate.a_name }} to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
-
-All web-related findings were considered in-scope, as long as they can be proven harmful to the client with a Medium-High impact. The following types of activities were considered out-of-scope for this test:
-
-* Physical attacks against the clients' properties
-* Unverified scanner output
-* Any vulnerabilities identified through DDoS or spam attacks
-* Vulnerabilities in third-party libraries unless they can be leveraged to impact the target significantly
-* Any theoretical attacks or attacks that require significant user interaction or are considered low-risk
-"""
-required = true
-
-[report_fields.appendix_severities]
-type = "markdown"
-label = "Finding Severities"
-origin = "custom"
-default = """
-Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
-
-| Rating   | CVSS Score Range |
-| -------- | ---------------- | 
-| Critical | 9.0 – 10.0       |
-| High     | 7.0 – 8.9        |
-| Medium   | 4.0 – 6.9        |
-| Low      | 0.1 – 3.9        |
-| Info     | 0.0              |
-"""
-required = false
-
-[report_fields.appendix_additional_sections]
+[[report_sections.fields]]
+id = "appendix_additional_sections"
 type = "list"
 label = "Additional Appendix"
 origin = "custom"
 required = false
 
-[report_fields.appendix_additional_sections.items]
+[report_sections.fields.items]
+id = ""
 type = "object"
 label = ""
 origin = "custom"
 
-[report_fields.appendix_additional_sections.items.extra_info]
-
-[report_fields.appendix_additional_sections.items.properties]
-[report_fields.appendix_additional_sections.items.properties.title]
+[[report_sections.fields.items.properties]]
+id = "title"
 type = "string"
 label = "Title"
 origin = "custom"
@@ -943,77 +984,16 @@ default = "TODO Appendix Title"
 required = true
 spellcheck = false
 
-[report_fields.appendix_additional_sections.items.properties.title.extra_info]
-
-[report_fields.appendix_additional_sections.items.properties.content]
+[[report_sections.fields.items.properties]]
+id = "content"
 type = "markdown"
 label = "Content"
 origin = "custom"
 default = "TODO Additional Appendix"
 required = true
 
-[report_fields.appendix_additional_sections.items.properties.content.extra_info]
-
-[report_fields.assessment_overview_and_recommendations]
-type = "markdown"
-label = "Assessment Overview and Recomendations"
-origin = "custom"
-default = "TODO: 1 page summary of all identified vulnerabilities, as well as their respective recommended remediations."
-required = true
-
-[[report_sections]]
-id = "meta"
-label = "Meta"
-fields = [
-    "candidate",
-    "title",
-    "customers",
-    "pentest_start",
-    "pentest_end",
-    "report_date",
-    "report_version",
-]
-
-[[report_sections]]
-id = "document_control"
-label = "Document Control"
-fields = [
-    "customer_contacts",
-]
-
-[[report_sections]]
-id = "executive_summary"
-label = "Executive Summary"
-fields = [
-    "executive_summary",
-    "approach",
-]
-
-[[report_sections]]
-id = "scope"
-label = "Scope"
-fields = [
-    "scope",
-]
-
-[[report_sections]]
-id = "web_application_security_assessment_summary"
-label = "Web Application Security Assessment Summary"
-fields = [
-    "assessment_overview_and_recommendations",
-]
-
-[[report_sections]]
-id = "appendix"
-label = "Appendix"
-fields = [
-    "appendix_severities",
-    "appendix_flags",
-    "appendix_additional_sections",
-]
-
-[finding_fields]
-[finding_fields.title]
+[[finding_fields]]
+id = "title"
 type = "string"
 label = "Finding Title"
 origin = "core"
@@ -1021,7 +1001,15 @@ default = "TODO FINDING TITLE"
 required = true
 spellcheck = true
 
-[finding_fields.cvss]
+[[finding_fields]]
+id = "cwe"
+type = "cwe"
+label = "CWE"
+origin = "custom"
+required = true
+
+[[finding_fields]]
+id = "cvss"
 type = "cvss"
 label = "CVSS 4.0"
 origin = "predefined"
@@ -1029,21 +1017,56 @@ default = "n/a"
 required = true
 cvss_version = "CVSS:4.0"
 
-[finding_fields.summary]
+[[finding_fields]]
+id = "affected_components"
+type = "list"
+label = "Affected Component(s)"
+origin = "predefined"
+required = false
+
+[finding_fields.items]
+id = ""
+type = "string"
+label = "Component"
+origin = "predefined"
+default = "TODO AFFECTED COMPONENT"
+required = true
+spellcheck = false
+
+[[finding_fields]]
+id = "references"
+type = "list"
+label = "External References"
+origin = "predefined"
+required = false
+
+[finding_fields.items]
+id = ""
+type = "string"
+label = "Reference"
+origin = "predefined"
+default = "TODO EXTERNAL REFERENCES"
+required = false
+spellcheck = false
+
+[[finding_fields]]
+id = "summary"
 type = "markdown"
 label = "Description & Cause"
 origin = "predefined"
 default = "TODO DESCRIPTION & CAUSE"
 required = true
 
-[finding_fields.impact]
+[[finding_fields]]
+id = "impact"
 type = "markdown"
 label = "Security Impact"
 origin = "predefined"
 default = "TODO SECURITY IMPACT"
 required = true
 
-[finding_fields.description]
+[[finding_fields]]
+id = "description"
 type = "markdown"
 label = "Detailed Walkthrough"
 origin = "predefined"
@@ -1054,7 +1077,8 @@ TODO: For vulnerabilities identified through source code analysis "whitebox", yo
 """
 required = false
 
-[finding_fields.recommendation]
+[[finding_fields]]
+id = "recommendation"
 type = "markdown"
 label = "Patching and Remediation"
 origin = "predefined"
@@ -1064,44 +1088,6 @@ TODO: Provide detailed remediation advice to fix the identified vulnerability. T
 TODO: For vulnerabilities identified through source code analysis "whitebox", you need to provide a recommended patch for each vulnerable code block, while highlighting the applied changes, and explaining how they remediate the issue.
 """
 required = true
-
-[finding_fields.cwe]
-type = "cwe"
-label = "CWE"
-origin = "custom"
-required = true
-
-[finding_fields.references]
-type = "list"
-label = "External References"
-origin = "predefined"
-required = false
-
-[finding_fields.references.items]
-type = "string"
-label = "Reference"
-origin = "predefined"
-default = "TODO EXTERNAL REFERENCES"
-required = false
-spellcheck = false
-
-[finding_fields.references.items.extra_info]
-
-[finding_fields.affected_components]
-type = "list"
-label = "Affected Component(s)"
-origin = "predefined"
-required = false
-
-[finding_fields.affected_components.items]
-type = "string"
-label = "Component"
-origin = "predefined"
-default = "TODO AFFECTED COMPONENT"
-required = true
-spellcheck = false
-
-[finding_fields.affected_components.items.extra_info]
 
 [[finding_ordering]]
 field = "cvss"
@@ -1114,8 +1100,30 @@ order = "asc"
 [report_preview_data]
 [report_preview_data.report]
 title = "Private Web App Pentest"
-pta = "TODO: screenshots of PTA"
-draft = true
+pentest_start = "2023-05-12"
+pentest_end = "2023-05-31"
+report_date = "2023-05-31"
+report_version = "1.0"
+executive_summary = """
+{{ report.customers[0]?.customer_full }} (“{{ report.customers[0]?.customer_short }}” herein), {{ report.customers[1]?.customer_full }} (“{{ report.customers[1]?.customer_short }}” herein), and {{ report.customers[2]?.customer_full }} (“{{ report.customers[2]?.customer_short }}” herein) have invited {{ report.candidate.name }} to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
+
+All web-related findings were considered in-scope, as long as they can be proven harmful to the client with a Medium-High impact. The following types of activities were considered out-of-scope for this test:
+
+* Physical attacks against the clients' properties
+* Unverified scanner output
+* Any vulnerabilities identified through DDoS or spam attacks
+* Vulnerabilities in third-party libraries unless they can be leveraged to impact the target significantly
+* Any theoretical attacks or attacks that require significant user interaction or are considered low-risk
+"""
+approach = """
+{{ report.candidate.name }} performed testing under a mixture of "blackbox" and a "whitebox" approach from {{ formatDate(report.pentest_start, 'long', 'en-US') }} to {{ formatDate(report.pentest_end, 'long', 'en-US') }}, as follows:
+
+<ul><li v-for="customer in report.customers"> <code v-text="customer.customer_short" /> <markdown :text="customer.pentest_approach" class="markdown-inline" /></li></ul>
+
+Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
+
+{{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal network access. Furthermore, {{ report.candidate.name }} has also documented the sources of vulnerabilities that were identified through source code analysis, and provided recommended patches to fix them.
+"""
 scope = """
 The scope of this assessment was as follows:
 
@@ -1128,163 +1136,17 @@ The scope of this assessment was as follows:
 | \\*.securedata.htb    | SecureData web app(s)       |
 | \\*.vitamedix.htb     | VitaMedix web app(s)        |
 """
-company = "TODO company"
-contact = "TODO: fill field in report"
-customer = "TODO company"
-duration = "10 Person Days"
-end_date = "2022-07-29"
-location = "onsite"
-portscan = "TODO: results of nmap scans showing open ports"
-situation = """
-**TODO** Musterkunde betreibt ein großes Computernetz mit vielen Webapplikationen und ist um dessen Sicherheit besorgt. 
+assessment_overview_and_recommendations = "TODO: 1 page summary of all identified vulnerabilities, as well as their respective recommended remediations."
+appendix_severities = """
+Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
 
-Daher plant **TODO Musterkunde** die Durchführung eines Penetrationstests der **TODO Musterprojekt Webapplikation**.
-"""
-new_field1 = """
-TODO: Ausgangslage war ein externer Angreifer, welcher über eine normale Internetverbindung auf die Applikation
-zugreift. 
-"""
-start_date = "2022-07-18"
-report_date = "2023-05-31"
-short_scope = "die Webapplikation „Beispielapplikation“ (Bsp-App)/Infrastruktur von x IP-Adressen."
-company_name = "Musterkunde GmbH"
-order_number = "A21xxxxxx"
-out_of_scope = "Nicht im Audit-Umfang ist die hinter der Applikation befindliche Serverinfrastruktur."
-pentest_type = "web_greybox"
-customer_name = "Inlanefreight Ltd."
-port_services = "TODO: fill field in report"
-receiver_name = "Maximus Demoman"
-contact_person = "TODO: Max Mustermann"
-lead_pentester = "bc5c9c67-43e3-467f-924b-02bd76807d24"
-provided_users = """
-This content is also created in a markdown field per report.
-
-* **Admin**: admin1@example.com
-* **User**: user1@example.com
-* **User**: user2@example.com
-"""
-report_version = "1.0"
-starting_point = """
-Ausgangslage war ein externer Angreifer, welcher über eine normale Internetverbindung auf die Applikation
-zugreift. 
-"""
-target_systems = "TODO: fill field in report"
-internal_contact = "TODO: fill field in report"
-executive_summary = """
-{{ report.customers[0]?.customer_full }} (“{{ report.customers[0]?.customer_short }}” herein), {{ report.customers[1]?.customer_full }} (“{{ report.customers[1]?.customer_short }}” herein), and {{ report.customers[2]?.customer_full }} (“{{ report.customers[2]?.customer_short }}” herein) have invited {{ report.candidate.a_name }} to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
-
-All web-related findings were considered in-scope, as long as they can be proven harmful to the client with a Medium-High impact. The following types of activities were considered out-of-scope for this test:
-
-* Physical attacks against the clients' properties
-* Unverified scanner output
-* Any vulnerabilities identified through DDoS or spam attacks
-* Vulnerabilities in third-party libraries unless they can be leveraged to impact the target significantly
-* Any theoretical attacks or attacks that require significant user interaction or are considered low-risk
-"""
-receiver_person_name = "vero architecto"
-application_appearance = "TODO: screenshots of applications"
-customer_short = "RoyalFlush"
-customer_full = "Royal Flush Ltd."
-approach = """
-{{ report.candidate.a_name }} performed testing under a mixture of "blackbox" and a "whitebox" approach from {{ formatDate(report.pentest_start, 'long', 'en-US') }} to {{ formatDate(report.pentest_end, 'long', 'en-US') }}, as follows:
-
-<ul><li v-for="customer in report.customers"> <code>{{ customer.customer_short }}</code> <markdown :text="customer.pentest_approach" class="markdown-inline" /></li></ul>
-
-Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
-
-{{ report.candidate.a_name }} sought to demonstrate the full impact of every vulnerability, up to and including internal network access. Furthermore, {{ report.candidate.a_name }} has also documented the sources of vulnerabilities that were identified through source code analysis, and provided recommended patches to fix them.
-"""
-pentest_start = "2023-05-12"
-pentest_end = "2023-05-31"
-pentest_approach = "WHITEBOX"
-assessment_overview = """
-During the penetration test against {{ report.customer_short }}, {{ report.candidate.a_name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}’s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk rating, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There was also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
-
-TODO EXECUTIVE SUMMARY HERE
-
-{{ report.customer_short }} should create a remediation plan based on the [Remediation Summary](#remediation-summary) section of this report, addressing all high findings as soon as possible according to the needs of the business. {{ report.customer_short }} should also consider performing periodic vulnerability assessments if they are not already being performed. Once the issues identified in this report have been addressed, a more collaborative, in-depth Active Directory security assessment may help identify additional opportunities to harden the Active Directory environment, making it more difficult for attackers to move around the network and increasing the likelihood that {{ report.customer_short }} will be able to detect and respond to suspicious activity.
-"""
-contacts = "TODO: fill field in report"
-network_summary = "{{ report.candidate.a_name }} began all testing activities from the perspective of an unauthenticated user on the internet. {{ report.customer_short }} provided the tester with network ranges but did not provide additional information such as operating system or configuration information."
-finding_summary = "During the course of testing, {{ report.candidate.a_name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}’s information systems. {{ report.candidate.a_name }} also identified {{ finding_stats.count_info }} informational finding that, if addressed, could further strengthen {{ report.customer_short }}’s overall security posture. Informational findings are observations for areas of improvement by the organization and do not represent security vulnerabilities on their own. The below chart provides a summary of the findings by severity level."
-walkthrough_summary = "During the course of the assessment {{ report.candidate.a_name }} was able gain a foothold via the external network, move laterally, and compromise the internal network, leading to full administrative control over the TODO INSERT DOMAIN NAME Active Directory domain. The steps below demonstrate the steps taken from initial access to compromise and does not include all vulnerabilities and misconfigurations discovered during the course of testing. Any issues not used as part of the path to compromise are listed as separate, standalone issues in the [Technical Findings Details](#findings) section, ranked by severity level. The intent of this attack chain is to demonstrate to {{ report.customer_short }} the impact of each vulnerability shown in this report and how they fit together to demonstrate the overall risk to the client environment and help to prioritize remediation efforts (i.e., patching two flaws quickly could break up the attack chain while the company works to remediate all issues reported). While other findings shown in this report could be leveraged to gain a similar level of access, this attack chain shows the initial path of least resistance taken by the tester to achieve domain compromise."
-walkthrough_details = """
-{{ report.candidate.a_name }}performed the following to fully compromise the TODO INSERT DOMAIN NAME domain.
-
-1. TODO LIST HIGH LEVEL STEPS
-2. ...
-
-**Detailed reproduction steps for this attack chain are as follows:**
-
-TODO FILL IN DETAILED ATTACK CHAIN STEPS
-
-{{ report.candidate.a_name }}then performed the following to fully compromise the TODO INSERT OTHER INTERNAL DOMAIN NAME(S) domain.
-
-1. TODO LIST HIGH LEVEL STEPS
-2. ...
-
-**Detailed reproduction steps for this attack chain are as follows:**
-
-TODO FILL IN DETAILED ATTACK CHAIN STEPS
-"""
-remediation_summary = "As a result of this assessment there are several opportunities for {{ report.customer_short }} to strengthen its internal network security. Remediation efforts are prioritized below starting with those that will likely take the least amount of time and effort to complete. {{ report.customer_short }} should ensure that all remediation steps and mitigating controls are carefully planned and tested to prevent any service disruptions or loss of data."
-short_term = """
-TODO SHORT TERM REMEDIATION:
-* [Finding Reference 1](#a10eed1a-07f5-46ef-bf3a-b78208e72272) - Set strong (24+ character) passwords on all SPN accounts
-* [Finding Reference 2](#89b9d011-8782-4a14-be15-ead66d720936) - TODO FILL IN AS APPROPRIATE
-* [Finding Reference 3](#f622369f-782e-4d77-bf2d-493b85747b3b) - Enforce a password change for all users because of the domain compromise
-
-TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
-"""
-medium_term = """
-TODO MEDIUM TERM REMEDIATION:
-* [Finding Reference 1](#a10eed1a-07f5-46ef-bf3a-b78208e72272) - Disable LLMNR and NBT-NS wherever possible
-* [Finding Reference 2](#89b9d011-8782-4a14-be15-ead66d720936) - TODO FILL IN AS APPROPRIATE
-
-TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
-"""
-long_term = """
-TODO LONG TERM REMEDIATION:
-* Perform ongoing internal network vulnerability assessments and domain password audits
-* Perform periodic Active Directory security assessments
-* Educate systems and network administrators and developers on security hardening best practices compromise
-* Enhance network segmentation to isolate critical hosts and limit the effects of an internal compromise
-* TODO FILL IN AS APPROPRIATE
-
-TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
-"""
-candidate1 = "TODO Full Candidate Name"
-appendix_hostdiscovery = """
-| IP Address | Port | Service | Notes |
-| ------- | ------- | ------- | ------- |
-| TODO FILL IN AS APPROPRIATE   | Text    | Text    |Text    |
-
-"""
-appendix_subdomain_discovery = """
-| URL | Description | Discovery Method |
-| ------- | ------- | ------- | 
-| TODO FILL IN DISCOVERED VHOSTS/SUBDOMAINS   |     |     |
-"""
-appendix_host_discovery = """
-| IP Address | Port | Service | Notes |
-| ------- | ------- | ------- | ------- |
-| TODO FILL IN AS APPROPRIATE   |     |     |    |
-
-"""
-appendix_exploited_hosts = """
-| Host | Scope | Method | Notes |
-| ------- | ------- | ------- | ------- |
-| TODO FILL IN AS APPROPRIATE   | Text    | Text    |Text    |
-"""
-appendix_compromised_users = """
-| Username | Type | Method | Notes |
-| ------- | ------- | ------- | ------- |
-| TODO FILL IN AS APPROPRIATE   | Text    | Text    |Text    |
-"""
-appendix_cleanup = """
-| Host | Scope | Change/Cleanup Needed |
-| ------- | ------- | ------- | 
-| TODO FILL IN AS APPROPRIATE   |     |     |
+| Rating   | CVSS Score Range |
+| -------- | ---------------- | 
+| Critical | 9.0 – 10.0       |
+| High     | 7.0 – 8.9        |
+| Medium   | 4.0 – 6.9        |
+| Low      | 0.1 – 3.9        |
+| Info     | 0.0              |
 """
 appendix_flags = """
 TODO: fill in any identified flags. 
@@ -1298,138 +1160,12 @@ TODO: fill in any identified flags.
 | 5.     | **VitaMedix - Auth**  |            |                       |
 | 6.     | **VitaMedix - RCE**   |            |                       |
 """
-appendix_severities = """
-Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
-
-| Rating   | CVSS Score Range |
-| -------- | ---------------- | 
-| Critical | 9.0 – 10.0       |
-| High     | 7.0 – 8.9        |
-| Medium   | 4.0 – 6.9        |
-| Low      | 0.1 – 3.9        |
-| Info     | 0.0              |
-"""
 appendix_additional_sections = []
-summary_of_findings = "During the course of testing, {{ report.candidate.a_name }} uncovered a total of **{{ finding_stats.count_total }}** findings that pose a material risk to client’s web applications and systems. The below chart provides a summary of the findings by severity level."
-assessment_overview_and_recommendations = "TODO: 1 page summary of all identified vulnerabilities, as well as their respective recommended remediations."
-
-[[report_preview_data.report.review]]
-name = "Collegius Doe"
-email = "c.doe@example.com"
-mobile = "+43 660 123 456 78"
-
-[report_preview_data.report.company_address]
-city = "A-1111 Wien"
-street = "Musterstraße 1"
-
-[[report_preview_data.report.list_of_changes]]
-description = "Final Report"
-date = "2023-05-31"
-version = "1.0"
-
-[[report_preview_data.report.list_of_changes]]
-description = "Draft"
-date = "2023-05-31"
-version = "0.1"
-
-[[report_preview_data.report.security_niveau]]
-area = "sit illum"
-rating = "solid"
-
-[[report_preview_data.report.security_niveau]]
-area = "necessitatibus repellat"
-rating = "rather_solid"
-
-[[report_preview_data.report.security_niveau]]
-area = "asdf"
-rating = "improvement_potential"
-
-[[report_preview_data.report.security_niveau]]
-area = "sdfg"
-rating = "rather_problematic"
-
-[[report_preview_data.report.security_niveau]]
-area = "ghkj"
-rating = "problematic"
-
-[report_preview_data.report.customer_address]
-city = "A-4711 Example"
-street = "Demo Street 1"
-
-[[report_preview_data.report.document_history]]
-description = "Initiale Berichtsversion"
-date = "2022-07-29"
-version = "1.0"
-
-[[report_preview_data.report.appendix_sections]]
-title = "Host & Service Discovery"
-content = """
-| IP Address | Port | Service | Notes |
-| ------- | ------- | ------- |------- |
-| TODO FILL IN AS APPROPRIATE    | Text    | Text    |Text    |
-
-"""
-
-[[report_preview_data.report.appendix_sections]]
-title = "Subdomain Discovery"
-content = """
-| Column1 | Column2 | Column3 |
-| ------- | ------- | ------- |
-| Text    | Text    | Text    |
-
-"""
-
-[[report_preview_data.report.quality_assurance]]
-name = "TODO"
-email = "TODO"
-mobile = "TODO"
-
-[[report_preview_data.report.quality_assurance]]
-name = "TODO"
-email = "TODO"
-mobile = "TODO"
-
-[report_preview_data.report.wstg_categories_niveau]
-apit = "problematic"
-athn = "improvement"
-athz = "improvement"
-busl = "improvement"
-clnt = "improvement"
-conf = "improvement"
-cryp = "improvement"
-errh = "solid"
-idnt = "improvement"
-info = "improvement"
-inpv = "problematic"
-sess = "improvement"
-
-[[report_preview_data.report.customer_contacts]]
-a_name = "Yelon Husk"
-b_title = "Chief Executive Officer"
-c_email = "yelon@royalflush.htb"
-
-[[report_preview_data.report.customer_contacts]]
-a_name = "Zeyad AlMadani"
-b_title = "Chief Technical Officer"
-c_email = "zeyad@securedata.htb"
-
-[[report_preview_data.report.assessor_contacts]]
-a_name = "Hack The Box Academy"
-b_title = "Security Consultant"
-c_email = "someone@htbacademy.local"
 
 [report_preview_data.report.candidate]
-a_name = "<CANDIDATE NAME>"
-b_title = "Security Consultant"
-c_email = "<CANDIDATE MAIL>"
-
-[[report_preview_data.report.appendix_other_sections]]
-title = "TODO Appendix Title"
-content = "TODO Additional Appendix"
-
-[[report_preview_data.report.appendix_other_sections]]
-title = "TODO Appendix Title"
-content = "TODO Additional Appendix"
+title = "TODO Candidate Title"
+name = "TODO Candidate Name"
+email = "TODO Candidate Email"
 
 [[report_preview_data.report.customers]]
 customer_full = "Royal Flush Ltd."
@@ -1445,6 +1181,16 @@ pentest_approach = "A blackbox penetration test was performed, with no further d
 customer_full = "Vita Medix Ltd."
 customer_short = "VitaMedix"
 pentest_approach = "A mixture of blackbox and whitebox was carried against all web applications under their sub-domains."
+
+[[report_preview_data.report.customer_contacts]]
+title = "TODO Title"
+name = "TODO Name"
+email = "TODO Email"
+
+[[report_preview_data.report.customer_contacts]]
+title = "TODO Title"
+name = "TODO Name"
+email = "TODO Email"
 
 [[report_preview_data.findings]]
 title = "TODO FINDING TITLE"
@@ -1462,17 +1208,13 @@ TODO: Provide detailed remediation advice to fix the identified vulnerability. T
 TODO: For vulnerabilities identified through source code analysis "whitebox", you need to provide a recommended patch for each vulnerable code block, while highlighting the applied changes, and explaining how they remediate the issue.
 """
 id = "bfc6e2b5-05ba-4b2b-bad9-c2bcc564d969"
+created = "2024-12-09T12:06:19.855540+00:00"
+order = 1
 cwe = "CWE-89"
-references = [
-    "TODO EXTERNAL REFERENCES",
-]
 affected_components = [
     "TODO AFFECTED COMPONENT",
 ]
-order = 1
+references = [
+    "TODO EXTERNAL REFERENCES",
+]
 
-[[assets]]
-id = "d7cfa08d-597f-4a14-b259-1395545c9b67"
-created = "2023-05-18T08:05:56.908459Z"
-updated = "2024-02-21T14:53:41.377191Z"
-name = "logo-transparent.png"

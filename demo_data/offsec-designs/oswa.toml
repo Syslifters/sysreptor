@@ -1,16 +1,16 @@
-format = "projecttypes/v1"
-id = "15e47af0-c357-4a5e-a033-c31d51f249d0"
-name = "OSWA Exam Report v1.1"
+format = "projecttypes/v2"
+id = "666aa376-9bf5-4a7a-93b0-0c1156f0beeb"
+created = "2024-12-09T13:48:39.171956Z"
+updated = "2024-12-09T13:49:00.084446Z"
+name = "OSWA Exam Report v1.2"
 language = "en-US"
-finding_field_order = [
-    "title",
-    "proof",
-    "vulnerabilities",
-    "poc",
-    "screenshots",
-    "steps",
-    "cvss",
+status = "finished"
+tags = [
+    "offsec",
+    "OffensiveSecurity",
 ]
+finding_ordering = []
+default_notes = []
 report_template = """
 <div id="footer" data-sysreptor-generated="page-footer">
     <div id="footer-left"><em>CONFIDENTIAL</em></div>
@@ -156,6 +156,13 @@ code {
     background-color: rgb(221, 221, 221);
 }
 
+
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
 th {
     background-color: #ABABAB;
     font-weight: bold;
@@ -193,10 +200,10 @@ tr.table-row-link td a {
     content: "" !important;
 }
 .ref-page::after {
-  content: target-counter(attr(href), page) !important;
+    content: target-counter(attr(href), page) !important;
 }
 .ref-page .ref-title {
-  display: none !important;
+    display: none !important;
 }
 
 /* Table in finding chapters */
@@ -223,6 +230,10 @@ tr.table-row-link td a {
     @bottom-center { content: element(footer-center); }
     @bottom-right-corner { content: counter(page); }
 }
+#footer {
+    position: absolute;
+    width: 0;
+}
 #footer #footer-left { position: running(footer-left); }
 #footer #footer-center { position: running(footer-center); }
 /* #endregion footer */
@@ -240,7 +251,10 @@ tr.table-row-link td a {
 /* #endregion watermark */
 
 /* #region page-cover */
-@page :first {
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
     /* Footer on the cover page */
     @bottom-right-corner {
         content: "";
@@ -262,7 +276,7 @@ tr.table-row-link td a {
         content: '';
     }
 }
-#page-cover-background{
+#page-cover-background {
     position: absolute;
     margin-top: -35mm;
     margin-left: -20mm;
@@ -301,9 +315,9 @@ tr.table-row-link td a {
 
 /* #region toc */
 #toc li {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 #toc .ref::before {
     padding-right: 0.5em;
@@ -312,63 +326,35 @@ tr.table-row-link td a {
     content: " " leader(".") " " target-counter(attr(href), page);
 }
 #toc .toc-level1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-top: 0.8rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
 }
 #toc .toc-level2 {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-top: 0.5rem;
-  margin-left: 2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-left: 2rem;
 }
 #toc .toc-level3 {
-  font-size: 1rem;
-  margin-top: 0.4rem;
-  margin-left: 4rem;
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    margin-left: 4rem;
 }
 #toc .toc-level4 {
-  font-size: 1rem;
-  margin-top: 0;
-  margin-left: 6rem;
+    font-size: 1rem;
+    margin-top: 0;
+    margin-left: 6rem;
 }
 /* #endregion toc */
 """
 
-[report_fields]
-[report_fields.title]
-type = "string"
-label = "Title"
-origin = "core"
-default = "OSWA Exam Documentation"
-required = true
-spellcheck = true
+[[report_sections]]
+id = "Student"
+label = "Student"
 
-[report_fields.mail]
-type = "string"
-label = "Mail"
-origin = "custom"
-default = "student@example.com"
-required = true
-spellcheck = false
-
-[report_fields.osid]
-type = "string"
-label = "OSID"
-origin = "custom"
-default = "XXXXX"
-required = true
-spellcheck = false
-
-[report_fields.lastname]
-type = "string"
-label = "Lastname"
-origin = "custom"
-default = "Doe"
-required = true
-spellcheck = false
-
-[report_fields.firstname]
+[[report_sections.fields]]
+id = "firstname"
 type = "string"
 label = "Firstname"
 origin = "custom"
@@ -376,19 +362,55 @@ default = "John"
 required = true
 spellcheck = false
 
-[report_fields.watermark]
-type = "boolean"
-label = "Watermark"
+[[report_sections.fields]]
+id = "lastname"
+type = "string"
+label = "Lastname"
 origin = "custom"
-default = false
+default = "Doe"
+required = true
+spellcheck = false
 
-[report_fields.report_date]
+[[report_sections.fields]]
+id = "osid"
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "mail"
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "other"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "OSWA Exam Documentation"
+required = true
+spellcheck = true
+
+[[report_sections.fields]]
+id = "report_date"
 type = "date"
 label = "Report Date"
 origin = "custom"
 required = true
 
-[report_fields.report_version]
+[[report_sections.fields]]
+id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
@@ -396,19 +418,32 @@ default = "1.0"
 required = true
 spellcheck = false
 
-[report_fields.appendix_sections]
+[[report_sections.fields]]
+id = "watermark"
+type = "boolean"
+label = "Watermark"
+origin = "custom"
+default = false
+
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[report_sections.fields]]
+id = "appendix_sections"
 type = "list"
 label = "Appendix"
 origin = "custom"
 required = true
 
-[report_fields.appendix_sections.items]
+[report_sections.fields.items]
+id = ""
 type = "object"
 label = ""
 origin = "custom"
 
-[report_fields.appendix_sections.items.properties]
-[report_fields.appendix_sections.items.properties.title]
+[[report_sections.fields.items.properties]]
+id = "title"
 type = "string"
 label = "Title"
 origin = "custom"
@@ -416,42 +451,16 @@ default = "TODO appendix title"
 required = true
 spellcheck = false
 
-[report_fields.appendix_sections.items.properties.content]
+[[report_sections.fields.items.properties]]
+id = "content"
 type = "markdown"
 label = "Content"
 origin = "custom"
 default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
 required = true
 
-[[report_sections]]
-id = "Student"
-label = "Student"
-fields = [
-    "firstname",
-    "lastname",
-    "osid",
-    "mail",
-]
-
-[[report_sections]]
-id = "other"
-label = "Document Control"
-fields = [
-    "title",
-    "report_date",
-    "report_version",
-    "watermark",
-]
-
-[[report_sections]]
-id = "appendix"
-label = "Appendix"
-fields = [
-    "appendix_sections",
-]
-
-[finding_fields]
-[finding_fields.title]
+[[finding_fields]]
+id = "title"
 type = "string"
 label = "Target"
 origin = "core"
@@ -459,61 +468,37 @@ default = "TODO Target Name"
 required = true
 spellcheck = true
 
-[finding_fields.cvss]
-type = "cvss"
-label = "CVSS (not required)"
-origin = "core"
-default = "n/a"
-required = false
-
-[finding_fields.poc]
-type = "markdown"
-label = "PoC Code"
-origin = "custom"
-default = "TODO Provide the final proof of concept code used to gain access to the server."
-required = true
-
-[finding_fields.proof]
+[[finding_fields]]
+id = "proof"
 type = "markdown"
 label = "Proof.txt"
 origin = "custom"
 default = "TODO Provide the contents of local.txt and proof.txt"
 required = true
 
-[finding_fields.steps]
-type = "markdown"
-label = "Steps"
-origin = "custom"
-default = "TODO Provide a detailed account of your methodology in creating the exploits. The steps taken should be able to be easily followed and reproducible if necessary."
-required = true
-
-[finding_fields.screenshots]
-type = "markdown"
-label = "Screenshots"
-origin = "custom"
-default = "TODO Provide screenshots of local.txt and proof.txt contents as stated in the Exam Control Panel Objectives."
-required = true
-
-[finding_fields.vulnerabilities]
+[[finding_fields]]
+id = "vulnerabilities"
 type = "list"
 label = "Vulnerabilities"
 origin = "custom"
 required = true
 
-[finding_fields.vulnerabilities.items]
+[finding_fields.items]
+id = ""
 type = "object"
 label = ""
 origin = "custom"
 
-[finding_fields.vulnerabilities.items.properties]
-[finding_fields.vulnerabilities.items.properties.details]
+[[finding_fields.items.properties]]
+id = "details"
 type = "markdown"
 label = "Details"
 origin = "custom"
 default = "TODO Provide the method and steps used to find the vulnerability."
 required = true
 
-[finding_fields.vulnerabilities.items.properties.reference]
+[[finding_fields.items.properties]]
+id = "reference"
 type = "string"
 label = "Reference"
 origin = "custom"
@@ -521,16 +506,40 @@ default = "Vulnerability X"
 required = true
 spellcheck = false
 
+[[finding_fields]]
+id = "poc"
+type = "markdown"
+label = "PoC Code"
+origin = "custom"
+default = "TODO Provide the final proof of concept code used to gain access to the server."
+required = true
+
+[[finding_fields]]
+id = "screenshots"
+type = "markdown"
+label = "Screenshots"
+origin = "custom"
+default = "TODO Provide screenshots of local.txt and proof.txt contents as stated in the Exam Control Panel Objectives."
+required = true
+
+[[finding_fields]]
+id = "steps"
+type = "markdown"
+label = "Steps"
+origin = "custom"
+default = "TODO Provide a detailed account of your methodology in creating the exploits. The steps taken should be able to be easily followed and reproducible if necessary."
+required = true
+
 [report_preview_data]
 [report_preview_data.report]
 title = "OSWA Exam Documentation"
-mail = "student@example.com"
-osid = "OS-XXXXX"
-watermark = true
-report_date = "2022-07-29"
-report_version = "1.0"
 firstname = "John"
 lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_date = "2022-07-29"
+report_version = "1.0"
+watermark = true
 
 [[report_preview_data.report.appendix_sections]]
 title = "Appendix Title"
@@ -538,25 +547,22 @@ content = "TODO This section is placed for any additional items that were not me
 
 [[report_preview_data.findings]]
 title = "192.168.X.X"
-cvss = ""
 id = "25a70e70-515e-4664-b7ab-dffc2f2fe12e"
+created = "2024-12-09T13:48:39.173500+00:00"
+order = 1
 proof = "TODO Provide the contents of local.txt and proof.txt"
 poc = "TODO Provide the method and steps used to find the vulnerability."
 screenshots = "TODO Provide screenshots of local.txt and proof.txt contents as stated in the Exam Control Panel Objectives."
 steps = "TODO Provide a detailed account of your methodology in creating the exploits. The steps taken should be able to be easily followed and reproducible if necessary."
 
 [[report_preview_data.findings.vulnerabilities]]
-reference = "Vulnerability X"
 details = "TODO Provide the method and steps used to find the vulnerability."
+reference = "Vulnerability X"
 
 [[report_preview_data.findings.vulnerabilities]]
-reference = "Vulnerability X"
 details = "TODO Provide the method and steps used to find the vulnerability."
+reference = "Vulnerability X"
 
 [[report_preview_data.findings.vulnerabilities]]
-reference = "Vulnerability X"
 details = "TODO Provide the method and steps used to find the vulnerability."
-
-[[assets]]
-id = "61da17b8-8645-4a6b-b23c-fa907945a607"
-name = "LICENSE"
+reference = "Vulnerability X"
