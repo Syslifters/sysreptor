@@ -3,6 +3,7 @@
 ## Upcoming
 * Plugin projectnumber: Add manage.py command to reset projectnumber
 * Add plugin: renderfindings - Render single finding to PDF
+* Update and optimize designs: demo, HTB and OffSec designs
 
 
 ## v2024.96 - 2024-12-04
