@@ -1,0 +1,104 @@
+format = "projects/v2"
+id = "357a21a6-636a-4579-beff-1e0bcb8bdc3e"
+name = "CDSA Exam Report"
+language = "en-US"
+tags = []
+members = []
+override_finding_order = false
+images = []
+
+[[sections]]
+id = "executive_summary"
+status = "in-progress"
+
+[[sections]]
+id = "meta"
+status = "in-progress"
+
+[[sections]]
+id = "document_control"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[report_data]
+title = "CDSA Exam Report"
+executive_summary = "{{ report.customer_full }} engaged {{ report.candidate.name }} to investigate two (2) independent security incidents across two of {{ report.customer_full }}' separate networks. The objective is to identify the root causes and the full extent of these incidents and to meticulously document the findings in an understandable, technically robust, and reproducible way."
+customer_full = "TODO Customer Ltd."
+customer_short = "TODO Customer"
+report_version = "TODO 1.0"
+engagement_contacts = []
+appendix_timeline = """
+| Time                | Activity                                           |
+| ------------------- | -------------------------------------------------- |
+| TODO                | TODO                                              |
+| ...                 | ...                                                |
+| ...                 | ...                                                |
+| ...                 | ...                                                |
+| ...                 | ...                                                |
+"""
+appendix_additional_sections = []
+
+[report_data.candidate]
+a_name = "TODO Candidate Name"
+b_title = "TODO Candidate Title"
+c_email = "TODO Candidate Email "
+
+[[findings]]
+id = "c18ae678-4844-4a9d-8b28-a536feda2df2"
+status = "in-progress"
+order = 1
+
+[findings.data]
+title = "TODO INCIDENT TITLE"
+ioc = """
+IoCs are instrumental for hunting potential compromises across our broader environment or even among partner organizations. These can range from abnormal outbound traffic to unfamiliar processes and scheduled tasks initiated by the attacker.
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+nature = """
+Deep-dive into the type of attack, as well as the tactics, techniques, and procedures (TTPs) employed by the attacker. 
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+timeline = """
+This is a pivotal component for comprehending the incident's sequence of events. The timeline should include:
+* Reconnaissance
+* Initial Compromise
+* C2 Communications
+* Enumeration
+* Lateral Movement
+* Data Access & Exfiltration
+* Malware Deployment or Activity (including Process Injection and Persistence)
+* Containment Times (can be excluded)
+* Eradication Times (can be excluded)
+* Recovery Times (can be excluded)
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+root_cause = """
+Within this section, detail the root cause analysis conducted and elaborate on the underlying cause of the security incident (vulnerabilities exploited, failure points, etc.).
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+incident_id = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+key_findings = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+affected_systems = """
+Highlight all systems and data that were either potentially accessed or definitively compromised during the incident. If data was exfiltrated, specify the volume or quantity, if ascertainable.
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+evidence_sources = """
+Emphasize the evidence scrutinized, the results, and the analytical methodology employed. Each detection should be elucidated step by step, inclusive of the associated data sources, SIEM queries, and tool commands.
+
+TODO TO BE FILLED BY THE SECURITY ANALYST
+"""
+immediate_actions = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+incident_overview = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+incident_severity = "TODO: TO BE FILLED BY THE SECURITY ANALYST"
+stakeholder_impact = "TODO TO BE FILLED BY THE SECURITY ANALYST"
+
+[project_type]
+file = "../htb-designs/cdsa.toml"

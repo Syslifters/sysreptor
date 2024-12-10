@@ -1,0 +1,60 @@
+format = "projects/v2"
+id = "eacbd761-0503-4bdb-a0a4-b14653c42157"
+name = "OSEP Exam Report"
+language = "en-US"
+tags = []
+images = []
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[[sections]]
+id = "other"
+status = "in-progress"
+
+[[sections]]
+id = "Student"
+status = "in-progress"
+
+[[sections]]
+id = "highlevel_summary"
+status = "in-progress"
+
+[report_data]
+title = "OSEP Exam Report"
+mail = "student@example.com"
+osid = "XXXXX"
+lastname = "Doe"
+firstname = "John"
+watermark = false
+report_version = "1.0"
+highlevel_summary = "TODO A brief description of the attack chain with machine names, including the depth of compromise should be included here."
+
+[[report_data.appendix_sections]]
+title = "TODO appendix title"
+content = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+
+[[findings]]
+id = "e600f074-2155-4250-8620-09bcc70b260c"
+status = "in-progress"
+
+[findings.assignee]
+id = "c01c7ccf-7597-45cc-99bb-01be93743b97"
+
+[findings.data]
+title = "192.168.XX.XX / Hostname"
+cvss = "n/a"
+proof = "TODO Provide the contents of local.txt, proof.txt or secret.txt"
+compromise = "TODO Provide a description of exploitation steps to compromise the machine and obtain shell access, the steps taken should be able to be easily followed and reproducible if necessary. Only the steps that ended up working are required. Include any custom code or references to public tools."
+enumeration = "TODO Provide relevant techniques and methods used to perform enumeration prior to initial compromise, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."
+screenshots = """
+TODO The exam control panel contains a section available to submit your proof files. The contents of the local.txt, proof.txt and secret.txt files obtained from your exam machines must be submitted in the control panel before your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
+
+Each local.txt, proof.txt and secret.txt found must be shown in a screenshot that includes the contents of the file, as well as the IP address of the target by using `ipconfig`, `ifconfig` or `ip addr`.
+"""
+postexploitation = "TODO Provide relevant post-exploitation enumeration steps related to the network or local privilege escalation, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."
+privilegeescalation = "TODO Provide a description of exploitation steps to escalate privileges on the machine if applicable, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."
+
+[project_type]
+file = "../offsec-designs/osep.toml"

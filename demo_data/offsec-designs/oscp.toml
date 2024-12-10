@@ -1,17 +1,13 @@
-format = "projecttypes/v1"
+format = "projecttypes/v2"
 id = "de0fcd3c-9548-40e2-8c48-3ab0b4b3c69b"
-name = "OSCP Exam Report v1.1"
+name = "OSCP Exam Report v1.2"
 language = "en-US"
-finding_field_order = [
-    "title",
-    "ip_address",
-    "isActiveDirectory",
-    "cvss",
-    "serviceenum",
-    "initialaccess",
-    "privilegeescalation",
-    "postexploitation",
+status = "finished"
+tags = [
+    "offsec",
+    "OffensiveSecurity",
 ]
+default_notes = []
 report_template = """
 <div id="footer" data-sysreptor-generated="page-footer">
     <div id="footer-left"><em>CONFIDENTIAL</em></div>
@@ -99,10 +95,10 @@ report_template = """
         <table>
             <thead>
                 <tr>
-                    <th>Target Name</th>
-                    <th>IP</th>
-                    <th align="center">CVSS</th>
-                    <th align="center">Page</th>
+                    <th style="width: auto;">Target Name</th>
+                    <th style="width: auto;">IP</th>
+                    <th style="width: 3em;" align="center">CVSS</th>
+                    <th style="width: 3em;" align="center">Page</th>
                 </tr>
             </thead>
             <tbody>
@@ -277,6 +273,13 @@ code {
     background-color: rgb(221, 221, 221);
 }
 
+
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
 th {
     background-color: #ABABAB;
     font-weight: bold;
@@ -344,6 +347,10 @@ tr.table-row-link td a {
     @bottom-center { content: element(footer-center); }
     @bottom-right-corner { content: counter(page); }
 }
+#footer {
+    position: absolute;
+    width: 0;
+}
 #footer #footer-left { position: running(footer-left); }
 #footer #footer-center { position: running(footer-center); }
 /* #endregion footer */
@@ -361,7 +368,10 @@ tr.table-row-link td a {
 /* #endregion watermark */
 
 /* #region page-cover */
-@page :first {
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
     /* Footer on the cover page */
     @bottom-right-corner {
         content: "";
@@ -456,40 +466,12 @@ tr.table-row-link td a {
 /* #endregion toc */
 """
 
-[report_fields]
-[report_fields.title]
-type = "string"
-label = "Title"
-origin = "core"
-default = "OSCP Penetration Test Report"
-required = true
-spellcheck = true
+[[report_sections]]
+id = "Student"
+label = "Student"
 
-[report_fields.mail]
-type = "string"
-label = "Mail"
-origin = "custom"
-default = "student@example.com"
-required = true
-spellcheck = false
-
-[report_fields.osid]
-type = "string"
-label = "OSID"
-origin = "custom"
-default = "XXXXX"
-required = true
-spellcheck = false
-
-[report_fields.lastname]
-type = "string"
-label = "lastname"
-origin = "custom"
-default = "Doe"
-required = true
-spellcheck = false
-
-[report_fields.firstname]
+[[report_sections.fields]]
+id = "firstname"
 type = "string"
 label = "firstname"
 origin = "custom"
@@ -497,13 +479,105 @@ default = "John"
 required = true
 spellcheck = false
 
-[report_fields.watermark]
+[[report_sections.fields]]
+id = "lastname"
+type = "string"
+label = "lastname"
+origin = "custom"
+default = "Doe"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "osid"
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "mail"
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "other"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "OSCP Penetration Test Report"
+required = true
+spellcheck = true
+
+[[report_sections.fields]]
+id = "report_date"
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "report_version"
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "1.0"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "watermark"
 type = "boolean"
 label = "Watermark"
 origin = "custom"
 default = false
 
-[report_fields.methodology]
+[[report_sections]]
+id = "high-level_summary"
+label = "High-Level Summary"
+
+[[report_sections.fields]]
+id = "highlevel_summary"
+type = "markdown"
+label = "High-Level Summary"
+origin = "custom"
+default = """
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname}}’s ({{ report.osid}}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
+
+When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
+
+TODO Adapt summary as required
+"""
+required = true
+
+[[report_sections.fields]]
+id = "recommendations"
+type = "markdown"
+label = "Recommendations"
+origin = "custom"
+default = """
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date.
+
+TODO Adapt as required
+"""
+required = true
+
+[[report_sections]]
+id = "methodology"
+label = "Methodologies"
+
+[[report_sections.fields]]
+id = "methodology"
 type = "markdown"
 label = "Methodologies"
 origin = "custom"
@@ -514,48 +588,8 @@ TODO Adapt as required
 """
 required = true
 
-[report_fields.penetration]
-type = "markdown"
-label = "Penetration"
-origin = "custom"
-default = """
-The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was able to successfully gain access to 10 out of the 50 systems.
-
-TODO Adapt as required
-"""
-required = true
-
-[report_fields.report_date]
-type = "date"
-label = "Report Date"
-origin = "custom"
-required = true
-
-[report_fields.serviceenum]
-type = "markdown"
-label = "Service Enumeration"
-origin = "custom"
-default = """
-The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed.
-
-TODO Adapt as required
-"""
-required = true
-
-[report_fields.housecleaning]
-type = "markdown"
-label = "House Cleaning"
-origin = "custom"
-default = """
-The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
-
-After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
-
-TODO Adapt as required
-"""
-required = true
-
-[report_fields.infogathering]
+[[report_sections.fields]]
+id = "infogathering"
 type = "markdown"
 label = "Information Gathering"
 origin = "custom"
@@ -573,7 +607,32 @@ TODO Adapt as required
 """
 required = true
 
-[report_fields.maintainaccess]
+[[report_sections.fields]]
+id = "serviceenum"
+type = "markdown"
+label = "Service Enumeration"
+origin = "custom"
+default = """
+The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed.
+
+TODO Adapt as required
+"""
+required = true
+
+[[report_sections.fields]]
+id = "penetration"
+type = "markdown"
+label = "Penetration"
+origin = "custom"
+default = """
+The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was able to successfully gain access to 10 out of the 50 systems.
+
+TODO Adapt as required
+"""
+required = true
+
+[[report_sections.fields]]
+id = "maintainaccess"
 type = "markdown"
 label = "Maintaining Access"
 origin = "custom"
@@ -586,38 +645,39 @@ TODO Adapt as required
 """
 required = true
 
-[report_fields.report_version]
-type = "string"
-label = "Report Version"
-origin = "custom"
-default = "1.0"
-required = true
-spellcheck = false
-
-[report_fields.recommendations]
+[[report_sections.fields]]
+id = "housecleaning"
 type = "markdown"
-label = "Recommendations"
+label = "House Cleaning"
 origin = "custom"
 default = """
-{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date.
+The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
+
+After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
 
 TODO Adapt as required
 """
 required = true
 
-[report_fields.appendix_sections]
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[report_sections.fields]]
+id = "appendix_sections"
 type = "list"
 label = "Appendix"
 origin = "custom"
 required = true
 
-[report_fields.appendix_sections.items]
+[report_sections.fields.items]
+id = ""
 type = "object"
 label = ""
 origin = "custom"
 
-[report_fields.appendix_sections.items.properties]
-[report_fields.appendix_sections.items.properties.title]
+[[report_sections.fields.items.properties]]
+id = "title"
 type = "string"
 label = "Title"
 origin = "custom"
@@ -625,75 +685,16 @@ default = "TODO appendix title"
 required = true
 spellcheck = false
 
-[report_fields.appendix_sections.items.properties.content]
+[[report_sections.fields.items.properties]]
+id = "content"
 type = "markdown"
 label = "Content"
 origin = "custom"
 default = "TODO appendix content"
 required = true
 
-[report_fields.highlevel_summary]
-type = "markdown"
-label = "High-Level Summary"
-origin = "custom"
-default = """
-{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname}}’s ({{ report.osid}}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
-
-When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
-
-TODO Adapt summary as required
-"""
-required = true
-
-[[report_sections]]
-id = "Student"
-label = "Student"
-fields = [
-    "firstname",
-    "lastname",
-    "osid",
-    "mail",
-]
-
-[[report_sections]]
-id = "other"
-label = "Document Control"
-fields = [
-    "title",
-    "report_date",
-    "report_version",
-    "watermark",
-]
-
-[[report_sections]]
-id = "high-level_summary"
-label = "High-Level Summary"
-fields = [
-    "highlevel_summary",
-    "recommendations",
-]
-
-[[report_sections]]
-id = "methodology"
-label = "Methodologies"
-fields = [
-    "methodology",
-    "infogathering",
-    "serviceenum",
-    "penetration",
-    "maintainaccess",
-    "housecleaning",
-]
-
-[[report_sections]]
-id = "appendix"
-label = "Appendix"
-fields = [
-    "appendix_sections",
-]
-
-[finding_fields]
-[finding_fields.title]
+[[finding_fields]]
+id = "title"
 type = "string"
 label = "Target Name"
 origin = "core"
@@ -701,14 +702,8 @@ default = "TODO Target Name"
 required = true
 spellcheck = true
 
-[finding_fields.cvss]
-type = "cvss"
-label = "CVSS"
-origin = "core"
-default = "n/a"
-required = true
-
-[finding_fields.ip_address]
+[[finding_fields]]
+id = "ip_address"
 type = "string"
 label = "IP Address"
 origin = "custom"
@@ -716,7 +711,23 @@ default = "TODO IP Address"
 required = true
 spellcheck = false
 
-[finding_fields.serviceenum]
+[[finding_fields]]
+id = "isActiveDirectory"
+type = "boolean"
+label = "is Active Directory Set?"
+origin = "custom"
+default = false
+
+[[finding_fields]]
+id = "cvss"
+type = "cvss"
+label = "CVSS"
+origin = "predefined"
+default = "n/a"
+required = true
+
+[[finding_fields]]
+id = "serviceenum"
 type = "markdown"
 label = "Service Enumeration"
 origin = "custom"
@@ -735,7 +746,8 @@ TODO
 """
 required = true
 
-[finding_fields.initialaccess]
+[[finding_fields]]
+id = "initialaccess"
 type = "markdown"
 label = "Initial Access"
 origin = "custom"
@@ -750,20 +762,8 @@ default = """
 """
 required = true
 
-[finding_fields.postexploitation]
-type = "markdown"
-label = "Post Exploitation"
-origin = "custom"
-default = "**System Proof Screenshot:** TODO"
-required = true
-
-[finding_fields.isActiveDirectory]
-type = "boolean"
-label = "is Active Directory Set?"
-origin = "custom"
-default = false
-
-[finding_fields.privilegeescalation]
+[[finding_fields]]
+id = "privilegeescalation"
 type = "markdown"
 label = "Privilege Escalation"
 origin = "custom"
@@ -778,21 +778,39 @@ default = """
 """
 required = true
 
+[[finding_fields]]
+id = "postexploitation"
+type = "markdown"
+label = "Post Exploitation"
+origin = "custom"
+default = "**System Proof Screenshot:** TODO"
+required = true
+
+[[finding_ordering]]
+field = "cvss"
+order = "desc"
+
+[[finding_ordering]]
+field = "title"
+order = "asc"
+
 [report_preview_data]
 [report_preview_data.report]
 title = "OSCP Penetration Test Report"
-mail = "student@example.com"
+firstname = "John"
+lastname = "Doe"
 osid = "OS-XXXXX"
-watermark = true
-methodology = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) utilized a widely adopted approach to perform penetration testing that is effective in testing how well the Offensive Security Labs and Exam environments are secure. Below is a breakout of how {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to identify and exploit the variety of systems and includes all individual vulnerabilities found."
-penetration = "The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was able to successfully gain access to 10 out of the 50 systems."
+mail = "student@example.com"
 report_date = "2022-07-29"
-serviceenum = "The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed."
-housecleaning = """
-The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
+report_version = "1.0"
+watermark = true
+highlevel_summary = """
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname}}’s ({{ report.osid}}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
 
-After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
+When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
 """
+recommendations = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
+methodology = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) utilized a widely adopted approach to perform penetration testing that is effective in testing how well the Offensive Security Labs and Exam environments are secure. Below is a breakout of how {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to identify and exploit the variety of systems and includes all individual vulnerabilities found."
 infogathering = """
 The information gathering portion of a penetration test focuses on identifying the scope of the penetration test. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was tasked with exploiting the lab and exam network. The specific IP addresses were:
 
@@ -803,28 +821,29 @@ The information gathering portion of a penetration test focuses on identifying t
 * 172.16.203.135
 * 172.16.203.136
 """
+serviceenum = "The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed."
+penetration = "The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was able to successfully gain access to 10 out of the 50 systems."
 maintainaccess = """
 Maintaining access to a system is important to us as attackers, ensuring that we can get back into a system after it has been exploited is invaluable. The maintaining access phase of the penetration test focuses on ensuring that once the focused attack has occurred (i.e. a buffer overflow), we have administrative access over the system again. Many exploits may only be exploitable once and we may never be able to get back into a system after we have already performed the exploit. 
 
 {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
 
 """
-report_version = "1.0"
-recommendations = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
-appendix_sections = []
-highlevel_summary = """
-{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname}}’s ({{ report.osid}}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
+housecleaning = """
+The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
 
-When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
+After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
 """
-firstname = "John"
-lastname = "Doe"
+appendix_sections = []
 
 [[report_preview_data.findings]]
 title = "Target #1"
 cvss = "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H"
 id = "c7f12f17-96bf-4899-b10f-2b1a513382e8"
+created = "2024-12-09T12:34:29.549244+00:00"
+order = 1
 ip_address = "172.16.203.134"
+isActiveDirectory = false
 serviceenum = """
 **Port Scan Results**
 
@@ -903,8 +922,6 @@ except:
 print "\\nDone."
 ```
 """
-postexploitation = ""
-isActiveDirectory = false
 privilegeescalation = """
 **Vulnerability Explation:** After establishing a foothold on target, John noticed there were several applications running locally, one of them, a custom web application on port 80 was prone to SQL Injection attacks. Using Chisel for port forwarding, John was able to access the web application. When performing the penetration test, John noticed error-based MySQL Injection on the taxid query string parameter. While enumerating table data, John was able to successfully extract the database root account login and password credentials that were unencrypted that also matched username and password accounts for the administrative user account on the system and John was able to log in remotely using RDP. This allowed for a successful breach of the operating system as well as all data contained on the system.
 
@@ -917,7 +934,4 @@ SELECT * FROM login WHERE id = 1 or 1=1 AND user LIKE “%root%"
 ```
 
 """
-
-[[assets]]
-id = "0b55fb94-e829-453b-9ef7-8d066210b83a"
-name = "LICENSE"
+postexploitation = ""

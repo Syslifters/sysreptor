@@ -1,0 +1,61 @@
+format = "projects/v2"
+id = "06398e34-0cc2-40d2-99c9-7a8ecafc594c"
+name = "OSWE Exam Report"
+language = "en-US"
+tags = []
+images = []
+
+[[sections]]
+id = "other"
+status = "in-progress"
+
+[[sections]]
+id = "Student"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[report_data]
+title = "OSWE Exam Documentation"
+mail = "student@example.com"
+osid = "XXXXX"
+lastname = "Doe"
+firstname = "John"
+watermark = false
+report_version = "1.0"
+
+[[report_data.appendix_sections]]
+title = "TODO appendix title"
+content = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+
+[[findings]]
+id = "bafab1a9-80b7-4ec7-8330-533b533c4fdd"
+status = "in-progress"
+
+[findings.assignee]
+id = "c01c7ccf-7597-45cc-99bb-01be93743b97"
+
+[findings.data]
+title = "192.168.X.X"
+cvss = "n/a"
+poc = "TODO Provide the final proof of concept code used to gain access to the server."
+proof = "TODO Provide the contents of local.txt and proof.txt"
+steps = "TODO Provide a detailed account of your methodology in creating the exploits. The steps taken should be able to be easily followed and reproducible if necessary."
+screenshots = "TODO Provide screenshots of local.txt and proof.txt contents as stated in the Exam Control Panel Objectives."
+
+[[findings.data.vulnerabilities]]
+details = "TODO Provide the method and code used to find the vulnerability ."
+reference = "Vulnerability X"
+
+[[findings.data.vulnerabilities]]
+details = "TODO Provide the method and code used to find the vulnerability ."
+reference = "Vulnerability X"
+
+[[findings.data.vulnerabilities]]
+details = "TODO Provide the method and code used to find the vulnerability ."
+reference = "Vulnerability X"
+
+[project_type]
+file = "../offsec-designs/oswe.toml"

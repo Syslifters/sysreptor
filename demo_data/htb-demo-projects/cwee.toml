@@ -1,0 +1,166 @@
+format = "projects/v2"
+id = "89dd7dd4-34a7-48fa-a781-bcb80060f964"
+name = "CWEE Exam Report"
+language = "en-US"
+tags = []
+override_finding_order = false
+images = []
+
+[[sections]]
+id = "document_control"
+created = "2024-02-22T08:14:06.791606Z"
+updated = "2024-02-22T08:17:08.083896Z"
+status = "in-progress"
+
+[[sections]]
+id = "executive_summary"
+created = "2024-02-22T08:14:06.791576Z"
+updated = "2024-02-22T08:43:22.586673Z"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+created = "2024-02-22T08:14:06.791548Z"
+updated = "2024-02-22T08:14:06.793642Z"
+status = "in-progress"
+
+[[sections]]
+id = "meta"
+created = "2024-02-22T08:14:06.791520Z"
+updated = "2024-02-22T09:05:43.100622Z"
+status = "in-progress"
+
+[[sections]]
+id = "scope"
+created = "2024-02-22T08:14:06.791485Z"
+updated = "2024-02-22T08:14:06.793347Z"
+status = "in-progress"
+
+[[sections]]
+id = "web_application_security_assessment_summary"
+created = "2024-02-22T08:14:06.791430Z"
+updated = "2024-02-22T08:14:06.793171Z"
+status = "in-progress"
+
+[report_data]
+title = "CWEE Exam Report"
+executive_summary = """
+{{ report.customers[0]?.customer_full }} (“{{ report.customers[0]?.customer_short }}” herein), {{ report.customers[1]?.customer_full }} (“{{ report.customers[1]?.customer_short }}” herein), and {{ report.customers[2]?.customer_full }} (“{{ report.customers[2]?.customer_short }}” herein) have invited {{ report.candidate.name }} to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
+
+All web-related findings were considered in-scope, as long as they can be proven harmful to the client with a Medium-High impact. The following types of activities were considered out-of-scope for this test:
+
+* Physical attacks against the clients' properties
+* Unverified scanner output
+* Any vulnerabilities identified through DDoS or spam attacks
+* Vulnerabilities in third-party libraries unless they can be leveraged to impact the target significantly
+* Any theoretical attacks or attacks that require significant user interaction or are considered low-risk
+"""
+approach = """
+{{ report.candidate.name }} performed testing under a mixture of "blackbox" and a "whitebox" approach from {{ formatDate(report.pentest_start, 'long', 'en-US') }}  to {{ formatDate(report.pentest_end, 'long', 'en-US') }}, as follows:
+
+<ul><li v-for="customer in report.customers"> <code v-text="customer.customer_short" /> <markdown :text="customer.pentest_approach" class="markdown-inline" /></li></ul>
+
+Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
+
+{{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal network access. Furthermore, {{ report.candidate.name }} has also documented the sources of vulnerabilities that were identified through source code analysis, and provided recommended patches to fix them.
+"""
+appendix_severities = """
+Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
+
+| Rating   | CVSS Score Range |
+| -------- | ---------------- | 
+| Critical | 9.0 – 10.0       |
+| High     | 7.0 – 8.9        |
+| Medium   | 4.0 – 6.9        |
+| Low      | 0.1 – 3.9        |
+| Info     | 0.0              |
+"""
+appendix_flags = """
+TODO: fill in any identified flags. 
+
+| Flag # | Application           | Flag Value | Method Used           |
+| ------ | --------------------- | ---------- | --------------------- |
+| 1.     | **RoyalFlush - Auth** | **HASH**   | **Command Injection** |
+| 2.     | **RoyalFlush - RCE**  |            |                       |
+| 3.     | **SecureData - Auth** |            |                       |
+| 4.     | **SecureData - RCE**  |            |                       |
+| 5.     | **VitaMedix - Auth**  |            |                       |
+| 6.     | **VitaMedix - RCE**   |            |                       |
+"""
+appendix_additional_sections = []
+pentest_start = "2024-02-18"
+pentest_end = "2024-02-23"
+report_date = "2024-02-23"
+report_version = "TODO 1.0"
+scope = """
+The scope of this assessment was as follows:
+
+| **URL**              | **Description**             |
+| -------------------- | --------------------------- |
+| www.royalflush.htb   | Main RoyalFlush website     |
+| git.royalflush.htb   | RoyalFlush Git Repositories |
+| forum.royalflush.htb | RoyalFlush Forums           |
+| vault.royalflush.htb | RoyalFlush Secure Vault     |
+| \\*.securedata.htb    | SecureData web app(s)       |
+| \\*.vitamedix.htb     | VitaMedix web app(s)        |
+"""
+assessment_overview_and_recommendations = "TODO: 1 page summary of all identified vulnerabilities, as well as their respective recommended remediations."
+
+[[report_data.customer_contacts]]
+a_name = "Yelon Husk"
+b_title = "Chief Executive Officer"
+c_email = "yelon@royalflush.htb"
+
+[[report_data.customer_contacts]]
+a_name = "Zeyad AlMadani"
+b_title = "Chief Technical Officer"
+c_email = "zeyad@securedata.htb"
+
+[report_data.candidate]
+a_name = "TODO Candidate Name"
+b_title = "TODO Candidate Title"
+c_email = "TODO Candidate Email"
+
+[[report_data.customers]]
+customer_full = "Royal Flush Ltd."
+customer_short = "RoyalFlush"
+pentest_approach = "A whitebox penetration test was carried against their targets, with access to their web applications' source code on [http://git.royalflush.htb/](http://git.royalflush.htb/)."
+
+[[report_data.customers]]
+customer_full = "Secure Data Ltd."
+customer_short = "SecureData"
+pentest_approach = "A blackbox penetration test was performed, with no further details or access to their web applications."
+
+[[report_data.customers]]
+customer_full = "Vita Medix Ltd."
+customer_short = "VitaMedix"
+pentest_approach = "A mixture of blackbox and whitebox was carried against all web applications under their sub-domains."
+
+[[findings]]
+id = "dfee355f-30f6-4129-b8c1-43cc7d581387"
+created = "2024-02-22T08:19:50.790911Z"
+updated = "2024-02-22T08:24:32.629275Z"
+status = "in-progress"
+template = "7fc45348-0d04-45f6-8798-0aa38782e325"
+order = 1
+
+[findings.assignee]
+id = "b9a1560e-79ea-4d73-b1e0-818601d0386f"
+
+[findings.data]
+title = "Stored Cross-Site Scripting (XSS)"
+cvss = "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N"
+summary = "TODO DESCRIPTION & CAUSE"
+impact = "TODO SECURITY IMPACT"
+description = "TODO DETAILED WALKTHROUGH"
+recommendation = "TODO PATCHING AND REMEDIATION"
+cwe = "CWE-79"
+references = [
+    "TODO EXTERNAL REFERENCES",
+]
+affected_components = [
+    "TODO AFFECTED COMPONENT",
+]
+
+[project_type]
+file = "../htb-designs/cwee.toml"
