@@ -4,6 +4,7 @@
 * Plugin projectnumber: Add manage.py command to reset projectnumber
 * Add plugin: renderfindings - Render single finding to PDF
 * Update and optimize designs: demo, HTB and OffSec designs
+* Add design for HTB CAPE certification
 
 
 ## v2024.96 - 2024-12-04
