@@ -961,7 +961,7 @@ type = "markdown"
 label = "Assessment Overview and Recommendations"
 origin = "custom"
 default = """
-During the penetration test against {{ report.customer_short }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}'s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_hight }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
+During the penetration test against {{ report.customer_short }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}'s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
 
 TODO EXECUTIVE SUMMARY HERE
 
