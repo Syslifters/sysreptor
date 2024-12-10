@@ -1,7 +1,5 @@
 format = "projecttypes/v2"
 id = "666aa376-9bf5-4a7a-93b0-0c1156f0beeb"
-created = "2024-12-09T13:48:39.171956Z"
-updated = "2024-12-09T13:49:00.084446Z"
 name = "OSWA Exam Report v1.2"
 language = "en-US"
 status = "finished"

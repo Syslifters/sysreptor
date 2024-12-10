@@ -1,0 +1,129 @@
+format = "projects/v2"
+id = "bb4eddb5-eead-48ab-9416-181bb6ddaeb2"
+name = "CBBH Exam Report"
+language = "en-US"
+tags = []
+members = []
+override_finding_order = false
+images = []
+
+[[sections]]
+id = "overview_summary"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[[sections]]
+id = "meta"
+status = "in-progress"
+
+[[sections]]
+id = "document_control"
+status = "in-progress"
+
+[[sections]]
+id = "executive_summary"
+status = "in-progress"
+
+[report_data]
+title = "CBBH Exam Report"
+web_application_summary = "{{ report.candidate.name }} began all testing activities from the perspective of an unauthenticated user on the internet. {{ report.customer_short }} provided the tester with a single URL and IP address but did not provide additional information such as operating system or configuration information."
+finding_summary = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}’s information systems. The below chart provides a summary of the findings by severity level."
+appendix_flags = """
+| Flag # | Application | Flag Value | Flag Location | Method Used |
+| ------- | ------- | ------- | ------- | ------- |
+| 1. | TODO HOSTNAME   | TODO HTB RANDOM VALUE    |  TODO Web root   |  TODO Command Injection (example)  |
+| 2. | | | | |
+| 3. | | | | |
+| 4. | | | | |
+| 5. | | | | |
+| 6. | | | | |
+| 7. | | | | |
+| 8. | | | | |
+| 9. | | | | |
+| 10. | | | | |
+"""
+appendix_additional_sections = []
+customer_full = "TODO Customer Ltd."
+customer_short = "TODO Customer"
+pentest_approach = "BLACKBOX"
+report_version = "TODO 1.0"
+customer_contacts = []
+executive_summary = """
+{{ report.customer_full }} (“{{ report.customer_short }}” herein) invited {{ report.candidate.name }} to a private bug bounty program to perform a targeted Web Application Penetration Test of {{ report.customer_short }}’s externally facing web applications to identify high-risk security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations. The following types of findings were in-scope for this private bug bounty program: 
+
+* Sensitive or personally identifiable information disclosure
+* Cross-Site Scripting (XSS)
+* Server-side or remote code execution (RCE)
+* Arbitrary file upload
+* Authentication or authorization flaws, such as insecure direct object references (IDOR), and authentication bypasses
+* All forms of injection vulnerabilities
+* Directory traversal
+* Local file read
+* Significant security misconfigurations and business logic flaws
+* Exposed credentials that could be leveraged to gain further access
+
+The following types of activities were considered out-of-scope for this bug bounty program:
+
+* Scanning and assessing any other IP in the Entry Point's network
+* Physical attacks against {{ report.customer_short }} properties
+* Unverified scanner output
+* Man-in-the-Middle attacks
+* Any vulnerabilities identified through DDoS or spam attacks
+* Self-XSS
+* Login/logout CSRF
+* Issues with SSL certificates, open ports, TLS versions, or missing HTTP response headers
+* Vulnerabilities in third party libraries unless they can be leveraged to significantly impact the target
+* Any theoretical attacks or attacks that require significant user interaction or low risk
+
+{{ report.candidate.name }} performed testing under a “{{ report.pentest_approach.label }}” approach from {{ formatDate(report.pentest_start, 'long') }}, to {{ formatDate(report.pentest_end, 'long') }} without credentials or any advance knowledge of {{ report.customer_short }}’s web applications with the goal of identifying unknown weaknesses. Testing was performed from a non-evasive standpoint with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Testing was performed remotely. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential. {{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal network access.
+"""
+scope = """
+The scope of this assessment was as follows TODO *.tricolor.local and any and all open web server ports discovered on the target IP address provided at the start of the assessment.
+
+### In Scope Assets
+| Host/URL/IP Address | Description |
+|:---|:---|
+| TODO www.triclor.local | Main Tricolor website/unauthenticated |
+| TODO exam IP address  | PR website/unauthenticated |
+| TODO exam IP address  | Jobs Portal/unauthenticated |
+| TODO exam IP address  | HR website/unauthenticated |
+| TODO exam IP address  | Tricolor online store/unauthenticated |
+"""
+assessment_overview = """
+During the course of testing against {{ report.candidate.name }} identified ...
+
+TODO SUMMARY OF FINDINGS AND RECOMMENDATIONS HERE
+"""
+
+[report_data.candidate]
+a_name = "TODO Candidate Name"
+b_title = "TODO Candidate Title"
+c_email = "TODO Candidate Email"
+
+[[findings]]
+id = "dd47a6dd-5f26-4920-a48e-a1ff002e0a47"
+status = "in-progress"
+order = 1
+
+[findings.data]
+title = "TODO FINDING TITLE"
+cvss = "n/a"
+summary = "TODO DESCRIPTION"
+impact = "TODO IMPACT"
+description = """
+```
+ADD COMMAND OUTPUT AS APPROPRIATE
+```
+
+TODO ADD SCREENSHOTS AS APPROPRIATE
+"""
+recommendation = "TODO REMEDIATION"
+cwe = "TODO CWE"
+references = []
+affected_components = []
+
+[project_type]
+file = "../htb-designs/cbbh.toml"
