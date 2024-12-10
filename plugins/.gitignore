@@ -1,6 +1,12 @@
 /*
 !.gitignore
 !build.sh
+!package.json
+!package-lock.json
+!.npmrc
+!NOTICE
+
+# Plugin directories
 !/demoplugin
 !/cyberchef
 !/customizetheme

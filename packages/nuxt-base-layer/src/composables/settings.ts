@@ -55,6 +55,6 @@ export const useLocalSettings = defineStore('settings', {
     },
   },
   persist: {
-    storage: persistedState.localStorage,
+    storage: localStorage,
   }
 })

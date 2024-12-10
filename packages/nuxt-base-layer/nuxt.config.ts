@@ -31,7 +31,7 @@ export default defineNuxtConfig({
     'vuetify-nuxt-module',
     '@vueuse/nuxt',
     '@pinia/nuxt',
-    '@pinia-plugin-persistedstate/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
   ],
 
   css: [

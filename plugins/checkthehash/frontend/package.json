@@ -1,28 +1,24 @@
 {
-  "name": "check-the-hash",
+  "name": "@sysreptor/plugin-checkthehash-frontend",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "nuxt dev",
     "test": "vitest",
     "generate": "nuxt generate",
-    "postinstall": "nuxt prepare",
-    "generate-notice": "license-checker-rseidelsohn --excludePrivatePackages --excludePackages='stackframe@0.3.1' --onlyAllow='MIT;MIT*;Apache-2.0;MIT OR Apache-2.0;0BSD;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;CC-BY-ND-4.0;Unlicense;MPL-2.0;BlueOak-1.0.0;Python-2.0;EPL-2.0;(BSD-3-Clause OR GPL-2.0);(MIT AND CC-BY-3.0);(MIT OR CC0-1.0)' --plainVertical > NOTICE",
-    "dependencies": "npm run generate-notice"
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
     "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
     "@sysreptor/nuxt-base-layer": "../../../packages/nuxt-base-layer",
     
-    "nuxt": "^3.14.0",
-    "pinia": "^2.2.4",
-    "vuetify": "^3.7.3"
+    "nuxt": "*",
+    "pinia": "*",
+    "vuetify": "*"
   },
   "overrides": {
     "vue": "latest"
   },
   "devDependencies": {
-    "license-checker-rseidelsohn": "^4.2.8",
     "@nuxt/test-utils": "^3.14.4",
     "vitest": "^2.1.4",
     "happy-dom": "^15.11.2"

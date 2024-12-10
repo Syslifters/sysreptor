@@ -1,7 +1,6 @@
 import { orderBy, pick, set, isObject } from "lodash-es";
 import { groupNotes } from "@/stores/usernotes";
 import type { Comment, CommentAnswer, CommentStatus, PentestFinding, PentestProject, ProjectNote, ProjectType, ReportSection } from "#imports";
-import { levelNumberFromLevelName, levelNumberFromScore, scoreFromVector } from "@base/utils/cvss";
 
 export function getFindingFieldValueSuggestions(options: { findings: PentestFinding[], projectType: ProjectType }) {
   function getValue(path: string, definition: FieldDefinition, value: any): { path: string, value: any }[] {

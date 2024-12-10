@@ -20,14 +20,13 @@ function build_plugin() {
   elif [ -d "frontend" ] && [ -f "frontend/package.json" ] && cat "frontend/package.json" | jq -e '.scripts.generate' > /dev/null; then
     echo "$plugin: Generating frontend"
     cd frontend
-    npm install
     if [ "$action" == "dev" ]; then
       while : ; do
         echo "$plugin: Generating frontend"
         npm run generate || true
         echo "$plugin: Finished generating frontend"
         echo "$plugin: Watching for changes"
-        inotifywait --recursive --event=create --event=delete --event=modify --event=move --exclude='^(.nuxt|.output|dist|node_modules|NOTICE)(/.*)?' ./ || break
+        inotifywait --recursive --event=create --event=delete --event=modify --event=move --exclude='^(.nuxt|.output|dist|node_modules)(/.*)?' ./ || break
         echo "$plugin: Changes detected"
       done
       exit 0
@@ -44,18 +43,27 @@ function build_plugin() {
 }
 
 
-for plugin in *; do
-  if [[ -d "$plugin" ]]; then
-    if [ $action == "dev" ]; then
-      # Start plugins in dev mode in parallel
-      build_plugin "$plugin" "$action" &
-    else 
-      # Build plugins after each other
-      build_plugin "$plugin" "$action"
-    fi
-  fi
-done
+function build_all() {
+  # Install dependencies of all plugins
+  npm install
 
-if [ $action == "dev" ]; then
-  wait
-fi
+  # Build all plugins
+  for plugin in *; do
+    if [[ -d "$plugin" ]]; then
+      if [ $action == "dev" ]; then
+        # Start plugins in dev mode in parallel
+        build_plugin "$plugin" "$action" &
+      else 
+        # Build plugins after each other
+        build_plugin "$plugin" "$action"
+      fi
+    fi
+  done
+
+  if [ $action == "dev" ]; then
+    wait
+  fi
+}
+
+build_all
+
