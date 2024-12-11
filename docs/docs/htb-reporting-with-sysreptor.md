@@ -19,8 +19,8 @@ Our free cloud service to write your Hack The Box CPTS, CBBH, and CDSA reports.
 
 ```shell
 cd sysreptor/deploy
-url="https://docs.sysreptor.com/assets/htb-designs.tar.gz"
-curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=design
+curl -s "https://docs.sysreptor.com/assets/htb-designs.tar.gz" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=design
+curl -s "https://docs.sysreptor.com/assets/htb-demo-projects.tar.gz" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=project
 ```
 
 <br><br>
