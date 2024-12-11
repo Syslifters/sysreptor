@@ -5,7 +5,7 @@ Our free cloud service to write your Hack The Box CPTS, CBBH, and CDSA reports.
 💲 Free  
 📝 Write in markdown  
 ⚙️ Render your report to PDF  
-🛡️ CPTS, CBBH, CDSA, CWEE  
+🛡️ CPTS, CBBH, CDSA, CWEE, CAPE  
 🚀 Fully customizable  
 👌 No local software troubleshooting
 
@@ -19,8 +19,8 @@ Our free cloud service to write your Hack The Box CPTS, CBBH, and CDSA reports.
 
 ```shell
 cd sysreptor/deploy
-url="https://docs.sysreptor.com/assets/htb-designs.tar.gz"
-curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=design
+curl -s "https://docs.sysreptor.com/assets/htb-designs.tar.gz" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=design
+curl -s "https://docs.sysreptor.com/assets/htb-demo-projects.tar.gz" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=project
 ```
 
 <br><br>
@@ -49,6 +49,12 @@ curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemoda
     <figure style="float:left;width:24%;margin:0.5em;">
         <img alt="HTB CWEE Report Demo" src="/assets/reports/HTB-CWEE-Report-Preview.png" style="border:1px solid;" />
         <figcaption>HTB CWEE Report Demo</figcaption>
+    </figure>
+</a>
+<a href="/assets/reports/HTB-CAPE-Report.pdf" target="_blank">
+    <figure style="float:left;width:24%;margin:0.5em;">
+        <img alt="HTB CAPE Report Demo" src="/assets/reports/HTB-CAPE-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>HTB CAPE Report Demo</figcaption>
     </figure>
 </a>
 </div>
