@@ -38,9 +38,46 @@ If you experience slow PDF rendering, here are a few tips to speed up rendering:
 * Identify the slow step: Is the slow step `chromium` (Vue template to HTML) or `weasyprint` (HTML+CSS to PDF)?
 * If `weasyprint` is slow (most likely):
     * Weasyprint render times increase with the number of pages and the complexity of the HTML/CSS. Rendering times up to 20s are normal for complex reports.
-    * Table rendering is a common bottleneck, especially with large tables containing multiline cells with `table-layout: auto` (default). Try settings `table { table-layout: fixed; }` in your design's CSS and assign fixed widths to columns (e.g. `<th style="width: 10em">...</th>`).
+    * Table rendering is a common bottleneck, especially with large tables containing multiline cells with `table-layout: auto` (default). Try settings `table-layout: fixed;` in your design's CSS and assign fixed widths to columns.
+    ```css
+    table { 
+      table-layout: fixed; 
+    }
+    .markdown table { 
+      /* Keep auto layout for markdown tables to not cause unexpected rendering, 
+      because we can't control the column widths in the design */
+      table-layout: auto; 
+    }  
+    ```
+    ```html
+    <table>
+      <thead>
+        <tr>
+          <!-- Set widths in table header -->
+          <th style="width: 8em;">Column 1</th>
+          <th style="width: auto;">Column 2</th>
+        </tr>
+      </thead>
+      <tbody>...</tbody>
+    </table>
+
+    <table>
+      <!-- Set widths in colgroup. Required when cells in table header span 
+      multiple columns or when no table header is included. -->
+      <colgroup>
+        <col style="width: 8em;">
+        <col style="width: auto;">
+      </colgroup>
+      <thead>
+        <tr>
+          <th colspan="2">Column 1</th>
+        </tr>
+      </thead>
+      <tbody>...</tbody>
+    </table>
+    ```
     * If that did not help, try to identify the slowest part by commenting out HTML and CSS blocks until rendering is fast again. Try to optimize the slow part, by using different CSS rules or HTML structures.
 * If `chromium` is slow:
-    * Chromium has rendering times of up to 5s on average for complex reports. This step is usually faster than `weasyprint`.
+    * Chromium has rendering times of up to 5s for complex reports. This step is usually faster than `weasyprint`.
     * If this step is slow, try to identify the slowest part by commenting out Vue template blocks (e.g. custom JS functions) until rendering is fast again. Try to optimize the slow part, by using different Vue template structures.
 
