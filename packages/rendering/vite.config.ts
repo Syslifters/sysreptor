@@ -1,5 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, PluginOption } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import { viteStaticCopy } from 'vite-plugin-static-copy'
@@ -15,7 +15,7 @@ export default defineConfig({
         dest: '',
       }],
     }),
-  ],
+  ] as unknown as PluginOption[],
   resolve: {
     alias: {
       vue: 'vue/dist/vue.esm-bundler.js',
@@ -27,7 +27,7 @@ export default defineConfig({
     sourcemap: false,
     minify: 'esbuild',
     lib: {
-      entry: 'src/main.js',
+      entry: 'src/main.ts',
       formats: ['iife'],
       name: 'rendering',
       fileName: () => 'bundle.js',

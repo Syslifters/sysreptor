@@ -8,18 +8,15 @@
   </span>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, useSlots } from "vue";
 
-const props = defineProps({
-  comma: {
-    type: String,
-    default: ', ',
-  },
-  and: {
-    type: String,
-    default: ' and ',
-  }
+const props = withDefaults(defineProps<{
+  comma?: string;
+  and?: string;
+}>(), {
+  comma: ', ',
+  and: ' and ',
 });
 
 const slots = useSlots();

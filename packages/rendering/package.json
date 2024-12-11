@@ -6,20 +6,25 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build-watch": "vite build --watch"
+    "build-watch": "vite build --watch",
+    "typecheck": "vue-tsc --build"
   },
   "dependencies": {
+    "@sysreptor/markdown": "../markdown",
+
     "vue": "~3.3",
     "chart.js": "^4",
     "chartjs-plugin-datalabels": "^2",
     "uuid": "^11",
-    "lodash": "^4.17.21",
-    "@sysreptor/markdown": "../markdown"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
     "vite": "^6.0.0",
     "vite-plugin-css-injected-by-js": "^3.3.1",
-    "vite-plugin-static-copy": "^2.0.0"
+    "vite-plugin-static-copy": "^2.0.0",
+
+    "vue-tsc": "^2.1.10",
+    "@vue/tsconfig": "^0.7.0"
   }
 }

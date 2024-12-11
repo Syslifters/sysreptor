@@ -3,7 +3,7 @@
     <pre ref="codeContainerRef" v-bind="$attrs">
       <slot name="default" />
     </pre>
-    <img ref="svgContainerRef" :src="diagramSvg" alt="" v-bind="$attrs" />
+    <img ref="svgContainerRef" :src="diagramSvg || undefined" alt="" v-bind="$attrs" />
     <canvas ref="canvasRef" />
   </template>
   <div v-else class="mermaid-diagram" v-bind="$attrs">
@@ -11,7 +11,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { defineProps, getCurrentInstance, onMounted, ref } from 'vue';
 import { mermaid } from '@sysreptor/markdown';
 
@@ -22,24 +22,23 @@ mermaid.initialize({
 });
 </script>
 
-<script setup>
-const props = defineProps({
-  text: {
-    type: String,
-    default: null,
-  },
+<script setup lang="ts">
+const props = withDefaults(defineProps<{
+  text?: string|null;
+}>(), {
+  text: null,
 });
 
-const diagramSvg = ref(null);
-const diagramPng = ref(null);
+const diagramSvg = ref<string|null>(null);
+const diagramPng = ref<string|null>(null);
 
-const codeContainerRef = ref();
-const svgContainerRef = ref();
-const canvasRef = ref();
+const codeContainerRef = ref<HTMLElement>();
+const svgContainerRef = ref<HTMLImageElement>();
+const canvasRef = ref<HTMLCanvasElement>();
 
 const vm = getCurrentInstance();
 
-function unescapeCode(code) {
+function unescapeCode(code: string) {
   return code.replaceAll('&#x7B;', '{').replaceAll('&#x7D;', '}');
 }
 
@@ -48,27 +47,27 @@ onMounted(async () => {
   await document.fonts.ready;
 
   // Get meramid code from slot
-  const codeContainer = codeContainerRef.value;
+  const codeContainer = codeContainerRef.value!;
   const mermaidCode = props.text || unescapeCode(codeContainer.innerText);
 
   // Render mermaid code to SVG
   let svg = null;
   try {
-    const res = await mermaid.render(`mermaid-${vm.uid}`, mermaidCode, codeContainer);
+    const res = await mermaid.render(`mermaid-${vm!.uid}`, mermaidCode, codeContainer);
     svg = res.svg;
-  } catch (e) {
+  } catch (e: any) {
     console.warn('mermaid error', { message: 'Mermaid error', details: e.message });
     // Show mermaid error image in PDF
-    svg = codeContainer.querySelector('svg').outerHTML;
+    svg = codeContainer.querySelector('svg')!.outerHTML;
   }
 
   // Convert SVG to PNG, because weasyprint does not support all required SVG features.
   // Diagrams would not be displayed correctly.
-  const svgImg = svgContainerRef.value;;
-  const canvas = canvasRef.value;
+  const svgImg = svgContainerRef.value!;
+  const canvas = canvasRef.value!;
   try {
     // First, render SVG to <img> tag
-    const waitSvgLoaded = new Promise((resolve, reject) => {
+    const waitSvgLoaded = new Promise<void>((resolve, reject) => {
       svgImg.addEventListener('load', () => resolve(), { once: true });
       svgImg.addEventListener('error', () => reject(new Error('Failed to render mermaid diagram from SVG to PNG')), { once: false });
     });
@@ -79,8 +78,8 @@ onMounted(async () => {
     // Only works with <img> tags and not <svg> directly, therefore we need the previous step
     canvas.width = svgImg.width;
     canvas.height = svgImg.height;
-    canvas.getContext('2d').drawImage(svgImg, 0, 0, canvas.width, canvas.height);
-  } catch (e) {
+    canvas.getContext('2d')?.drawImage(svgImg, 0, 0, canvas.width, canvas.height);
+  } catch (e: any) {
     console.error('mermaid error', { message: 'Mermaid error', details: e.message });
     // Continue with an empty image
   }

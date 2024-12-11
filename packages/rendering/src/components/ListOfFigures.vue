@@ -4,20 +4,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { v4 as uuidv4 } from "uuid";
 import { onMounted, ref, getCurrentInstance, computed } from "vue";
-import { callForTicks, slotDataArray } from "@/utils";
+import { callForTicks, getAllElements, slotDataArray } from "@/utils";
 
 const shouldRender = ref(false);
-const items = ref([]);
+const items = ref<any>([]);
 const slotData = computed(() => slotDataArray(items.value));
 const vm = getCurrentInstance();
 
 
 function updateItems() {
   items.value = [];
-  for (const el of vm.root.vnode.el.querySelectorAll('figcaption')) {
+  for (const el of getAllElements(vm, 'figcaption') || []) {
     if (!el.id) {
       el.setAttribute('id', uuidv4());
     }

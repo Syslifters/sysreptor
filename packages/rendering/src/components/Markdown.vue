@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { defineComponent, h } from 'vue';
 import { renderMarkdownToHtml } from '@sysreptor/markdown';
 
@@ -11,7 +11,7 @@ export default {
     },
   },
   methods: {
-    compileMarkdown(text) {
+    compileMarkdown(text: string) {
       return renderMarkdownToHtml(text, { preview: false });
     },
   },
@@ -24,8 +24,8 @@ export default {
     return h('div', { class: 'markdown' }, [
       h(defineComponent({
         name: 'markdown-content',
-        data: () => this.$root,
-        components: this.$root.$options.components,
+        data: () => this.$root!,
+        components: this.$root?.$options.components,
         ...(mdText ? 
           { template: this.compileMarkdown(mdText) } : 
           { render: () => [] }
