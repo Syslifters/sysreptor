@@ -434,7 +434,7 @@ CONTENT_SECURITY_POLICY = {
         'style-src': [SELF, UNSAFE_INLINE],
         'script-src': [
             SELF,
-            "'sha256-vfPLwqW0BNyGGLG6upxgxsXF+K7Jp/V2hJGlbPt7NJY='",  # hash of nuxt inline script injected in index.html
+            "'sha256-ZESfSOJLE5b5VnKTOBGcFd0Ea51UX+V9WhyGwiB1wgc='",  # hash of nuxt inline script injected in index.html
         ],
         # Trusted types are not compatible with django admin, django rest framework's browsable API, swagger UI and django debug toolbar
         # 'require-trusted-types-for': ["'script'"],
