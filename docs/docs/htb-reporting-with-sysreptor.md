@@ -1,6 +1,6 @@
 # Hack The Box Reporting
 
-Our free cloud service to write your Hack The Box CPTS, CBBH, and CDSA reports.
+Our free cloud service to write your Hack The Box CPTS, CHHB, CDSA, CWEE or CAPE reports.
 
 💲 Free  
 📝 Write in markdown  
@@ -15,7 +15,7 @@ Our free cloud service to write your Hack The Box CPTS, CBBH, and CDSA reports.
 
 ## Prefer self-hosting?
 1. [Install](setup/installation.md){ target="_blank" } SysReptor
-2. Import all HTB Designs:
+2. Import all HTB Designs and Reports:
 
 ```shell
 cd sysreptor/deploy
