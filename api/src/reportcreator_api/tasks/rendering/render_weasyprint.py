@@ -9,7 +9,7 @@ from weasyprint.logger import LOGGER as WEASYPRINT_LOGGER
 from weasyprint.text.fonts import FontConfiguration
 
 from .error_messages import ErrorMessage, MessageLevel
-from .render_utils import RenderStageResult, get_location, request_handler
+from .render_utils import FAKE_BASE_URL, RenderStageResult, get_location, request_handler
 
 
 def pre_process_html(html: HTML, out: RenderStageResult, data: dict):
@@ -41,7 +41,7 @@ def pre_process_html(html: HTML, out: RenderStageResult, data: dict):
             ))
 
         # Remove relative link targets
-        etree_link.attrib['href'] = '#'
+        etree_link.attrib['href'] = ''
 
 
 def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], data: dict) -> RenderStageResult:
@@ -60,7 +60,6 @@ def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], 
             'Failed to load inline SVG:',
             'Failed to load stylesheet at',
             'Failed to load attachment:',
-            'Relative URI reference without a base URI:',
             # Suppress message for unsupported "overflow-x" rule use by highlight.js markdown code block syntax highlighting
             'Ignored `overflow-x:',
         ]
@@ -71,6 +70,7 @@ def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], 
             'Unsupported stylesheet type',
             'Missing href in <link rel="attachment">',
             'No anchor #%s for internal URI reference',
+            'Relative URI reference without a base URI:',
         ]
         font_messages = [
             'Failed to get matching local font for',
@@ -107,7 +107,7 @@ def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], 
          mock.patch.object(WEASYPRINT_LOGGER, 'debug', new=weasyprint_capture_logs, spec=True):
         try:
             font_config = FontConfiguration()
-            html = HTML(string=html_content, base_url=None, url_fetcher=weasyprint_request_handler)
+            html = HTML(string=html_content, base_url=FAKE_BASE_URL, url_fetcher=weasyprint_request_handler)
             pre_process_html(html=html, out=out, data=data)
             out.pdf = html.write_pdf(
                 font_config=font_config,
@@ -128,17 +128,6 @@ def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], 
 
 def main():
     kwargs = json.loads(sys.stdin.read())
-    # kwargs = {
-    #     'html_content': '''<html><body>
-    #         <a href="/files/name/nonexistent.txt">File</a>
-    #         <a href="/relative/link">Relative Link 1</a>
-    #         <a href="relative/link">Relative Link 2</a>
-    #         <a href="../relative/link">Relative Link</a>
-    #         <a href="https://sysreptor.com">Absolute Link</a>
-    #     </body></html>''',
-    #     'resources': {},
-    #     'data': {},
-    # }
     res = weasyprint_render_to_pdf_sync(**kwargs)
     print(json.dumps(res.to_dict(include_other=True)))  # noqa: T201
 
