@@ -80,6 +80,12 @@ def get_location_info(content: str, objs: list[dict], type: MessageLocationType,
             return res
 
 
+def get_location(content, data):
+    return get_location_info(content=content, objs=data.get('findings', []), type=MessageLocationType.FINDING, get_name=lambda f: f.get('title')) or \
+           get_location_info(content=content, objs=data.get('sections', {}).values(), type=MessageLocationType.SECTION, get_name=lambda s: s.get('label')) or \
+           None
+
+
 def request_handler(url, resources: dict[str, str], messages: list[ErrorMessage], data: dict) -> dict:
     if url.startswith(FAKE_BASE_URL):
         url = url[len(FAKE_BASE_URL):]
@@ -100,9 +106,7 @@ def request_handler(url, resources: dict[str, str], messages: list[ErrorMessage]
             level=MessageLevel.WARNING,
             message='Resource not found',
             details=f'Could not find resource for URL "{url}". Check if the URL is correct and the resource exists on the server.',
-            location=get_location_info(content=url, objs=data.get('findings', []), type=MessageLocationType.FINDING, get_name=lambda f: f.get('title')) or
-                     get_location_info(content=url, objs=data.get('sections', {}).values(), type=MessageLocationType.SECTION, get_name=lambda s: s.get('label')) or
-                     None,
+            location=get_location(content=url, data=data),
         ))
         raise URLFetchingError('Resource not found')
     else:

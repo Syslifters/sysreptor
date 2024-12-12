@@ -41,6 +41,8 @@ class TestHtmlRendering:
             members=[self.user],
             imported_members=[create_imported_member(roles=['lead'])],
             findings_kwargs=[],
+            images_kwargs=[{'name': 'image.png'}],
+            files_kwargs=[{'name': 'file.pdf'}],
             report_data={'field_user': str(self.user.id)})
         self.finding = create_finding(project=self.project)
 
@@ -112,6 +114,8 @@ class TestHtmlRendering:
         ('{{ report.nonexistent_variable.prop }}', {'level': 'error', 'message': "TypeError: Cannot read properties of undefined (reading 'prop')"}),
         ('{{ nonexistent_variable }}', {'level': 'warning', 'message': 'Property "nonexistent_variable" was accessed during render but is not defined on instance.'}),
         ('<ref to="nonexistent" />', {'level': 'warning', 'message': 'Invalid reference'}),
+        ('<a href="/files/name/file.pdf">File</a>', {'level': 'warning', 'message': 'Cannot embed uploaded files'}),
+        ('<a href="/path/to/relative/url">Relative URL</a>', {'level': 'warning', 'message': 'Link to relative URL'}),
         ('<img src="/assets/name/nonexistent.png" />', {'level': 'warning', 'message': 'Resource not found'}),
         ('<img src="https://example.com/external.png" />', {'level': 'warning', 'message': 'Blocked request to external URL'}),
         (html_load_script('/assets/name/nonexistent.js'), {'level': 'warning', 'message': 'Resource not found' }),

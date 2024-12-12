@@ -2,13 +2,46 @@ import json
 import logging
 import sys
 from unittest import mock
+from urllib.parse import urlparse
 
 from weasyprint import HTML, default_url_fetcher
 from weasyprint.logger import LOGGER as WEASYPRINT_LOGGER
 from weasyprint.text.fonts import FontConfiguration
 
 from .error_messages import ErrorMessage, MessageLevel
-from .render_utils import FAKE_BASE_URL, RenderStageResult, request_handler
+from .render_utils import FAKE_BASE_URL, RenderStageResult, get_location, request_handler
+
+
+def pre_process_html(html: HTML, out: RenderStageResult, data: dict):
+    # Remove relative links and add warning messages
+    for etree_link in html.etree_element.findall('.//a[@href]'):
+        href = etree_link.attrib.get('href')
+        if not href or href.startswith('#'):
+            # Internal reference in PDF
+            continue
+        url = urlparse(href)
+        if url.scheme or url.netloc:
+            # Absolute URL
+            continue
+
+        # Relative URL
+        if href.startswith('/files/'):
+            out.messages.append(ErrorMessage(
+                level=MessageLevel.WARNING,
+                message='Cannot embed uploaded files',
+                details=f'Link to uploaded file "{href}" detected. Uploaded files cannot be embedded in PDFs.',
+                location=get_location(content=href, data=data),
+            ))
+        else:
+            out.messages.append(ErrorMessage(
+                level=MessageLevel.WARNING,
+                message='Link to relative URL',
+                details=f'Link to relative URL "{href}" detected. Relative links do not work in PDFs.',
+                location=get_location(content=href, data=data),
+            ))
+
+        # Remove relative link targets
+        etree_link.attrib['href'] = ''
 
 
 def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], data: dict) -> RenderStageResult:
@@ -75,6 +108,7 @@ def weasyprint_render_to_pdf_sync(html_content: str, resources: dict[str, str], 
         try:
             font_config = FontConfiguration()
             html = HTML(string=html_content, base_url=FAKE_BASE_URL, url_fetcher=weasyprint_request_handler)
+            pre_process_html(html=html, out=out, data=data)
             out.pdf = html.write_pdf(
                 font_config=font_config,
                 presentational_hints=True,
