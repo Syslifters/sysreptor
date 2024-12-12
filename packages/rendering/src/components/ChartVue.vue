@@ -6,37 +6,27 @@
   <img v-else :src="chartImageData" alt="" :style="{width: width + 'cm', height: height + 'cm'}"   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Chart from 'chart.js/auto';
 import { defineProps, ref, nextTick, onMounted } from 'vue';
 
-const props = defineProps({
-  config: {
-    type: Object,
-    required: true,
-  },
+const props = withDefaults(defineProps<{
+  config: any;
   // Width and height in cm
-  width: {
-    type: Number,
-    default: 15,
-  },
-  height: {
-    type: Number,
-    default: 10,
-  },
+  width?: number;
+  height?: number;
   // Optional pixel width and height of chart canvas
-  chartWidth: {
-    type: Number,
-    default: null,
-  },
-  chartHeight: {
-    type: Number,
-    default: null,
-  }
+  chartWidth?: number|null;
+  chartHeight?: number|null;
+}>(), {
+  width: 15,
+  height: 10,
+  chartWidth: null,
+  chartHeight: null,
 });
 
 const canvasRef = ref();
-const chartImageData = ref(null);
+const chartImageData = ref<string|null>(null);
 
 async function renderChartImage() {
   if (chartImageData.value) {

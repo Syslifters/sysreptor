@@ -8,23 +8,19 @@
   </a>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { v4 as uuidv4 } from "uuid";
 import { computed, defineProps, onMounted, ref, useSlots } from "vue";
 import { callForTicks } from "@/utils";
 
-
-const props = defineProps({
-  to: {
-    type: String,
-    required: true
-  },
-});
+const props = defineProps<{
+  to: string;
+}>();
 
 const slots = useSlots();
 
-const refEl = ref(null);
-const error = ref(null);
+const refEl = ref<HTMLElement|null|undefined>(null);
+const error = ref<{ message: string; details: string; }|null>(null);
 
 const toId = computed(() => {
   const toStr = props.to || '';
@@ -64,14 +60,14 @@ const refTitle = computed(() => {
     return titleAttr
   }
 
-  let titleEl = refEl.value;
-  if (titleEl.tagName === 'FIGURE') {
+  let titleEl = refEl.value as HTMLElement|null;
+  if (titleEl?.tagName === 'FIGURE') {
     titleEl = titleEl.querySelector('figcaption');
-  } else if (titleEl.tagName === 'TABLE') {
+  } else if (titleEl?.tagName === 'TABLE') {
     titleEl = titleEl.querySelector('caption');
   }
 
-  return titleEl.textContent;
+  return titleEl?.textContent || null;
 });
 
 
