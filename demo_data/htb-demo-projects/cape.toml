@@ -36,7 +36,7 @@ id = "ad_pentest_summary"
 status = "in-progress"
 
 [report_data]
-title = "EverGreen Active Directory"
+title = "CAPE Exam Report"
 customer_full = "EverGreen Healthcare LLC"
 customer_short = "EverGreen"
 pentest_approach = "GREYBOX"
