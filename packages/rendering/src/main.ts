@@ -100,7 +100,7 @@ if (!window.RENDERING_COMPLETED) {
       const findings_medium = computed(() => findings.value.filter(f => (f.severity?.value || f.cvss?.level) === 'medium'));
       const findings_high = computed(() => findings.value.filter(f => (f.severity?.value || f.cvss?.level) === 'high'));
       const findings_critical = computed(() => findings.value.filter(f => (f.severity?.value || f.cvss?.level) === 'critical'));
-      const findings_stats = computed(() => ({
+      const finding_stats = computed(() => ({
         count_total: findings.value.length,
         count_critical: findings_critical.value.length,
         count_high: findings_high.value.length,
@@ -122,7 +122,8 @@ if (!window.RENDERING_COMPLETED) {
                     node.addEventListener('load', () => resolve());
                     node.addEventListener('error', reject);
                   }));
-                } else if (node.nodeName === 'INPUT' && node.attributes.getNamedItem('type')?.value === 'checkbox' && node.attributes.getNamedItem('checked')) {
+                } else if (node.nodeName === 'INPUT' && node.attributes.getNamedItem('type')?.value === 'checkbox' && (node as HTMLInputElement).checked) {
+                  // The "checked" attribute is not exported to HTML, so we need this workaround to know whether a checkbox is checked
                   node.setAttribute('data-checked', 'checked');
                 }
               }
@@ -159,9 +160,9 @@ if (!window.RENDERING_COMPLETED) {
         findings_medium,
         findings_high,
         findings_critical,
-        findings_stats,
+        finding_stats,
         // Provide libraries and utilities
-        chartJsPlugin: {
+        chartjsPlugins: {
           DataLabels: ChartJsPluginDataLabels,
         },
         lodash,

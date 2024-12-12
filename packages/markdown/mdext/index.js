@@ -7,19 +7,19 @@ import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { merge } from 'lodash-es';
 import 'highlight.js/styles/default.css';
 
-import { remarkFootnotes, remarkToRehypeHandlersFootnotes, remarkToRehypeHandersFootnotesPreview, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './mdext/footnotes.js';
-import { remarkStrikethrough, remarkTaskListItem } from './mdext/gfm.js';
-import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources, rehypeRewriteFileLinks, rehypeTemplates, rehypeRawFixSelfClosingTags, rehypeRawFixPassthroughStitches } from './mdext/rehypePlugins.js';
-import { remarkAttrs, remarkToRehypeAttrs } from './mdext/attrs.js';
-import { remarkFigure, remarkToRehypeHandlersFigure } from './mdext/image.js';
-import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './mdext/tables.js';
-import { rehypeReferenceLink, rehypeReferenceLinkPreview } from './mdext/reference.js';
-import { annotatedTextParse } from './editor/annotatedtext';
-import { remarkTemplateVariables, remarkToRehypeTemplateVariables, rehypeTemplateVariables } from './mdext/templates.js';
-import { remarkTodoMarker } from './mdext/todo.js';
-import { rehypeHighlightCode } from './mdext/codeHighlight.js';
-import { modifiedCommonmarkFeatures } from './mdext/modified-commonmark.js';
-import { rehypeStringify } from './mdext/stringify.js';
+import { remarkFootnotes, remarkToRehypeHandlersFootnotes, remarkToRehypeHandersFootnotesPreview, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './footnotes';
+import { remarkStrikethrough, remarkTaskListItem } from './gfm';
+import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources, rehypeRewriteFileLinks, rehypeTemplates, rehypeRawFixSelfClosingTags, rehypeRawFixPassthroughStitches } from './rehypePlugins';
+import { remarkAttrs, remarkToRehypeAttrs } from './attrs';
+import { remarkFigure, remarkToRehypeHandlersFigure } from './image';
+import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './tables';
+import { rehypeReferenceLink, rehypeReferenceLinkPreview } from './reference';
+import { annotatedTextParse } from '../editor/annotatedtext';
+import { remarkTemplateVariables, remarkToRehypeTemplateVariables, rehypeTemplateVariables } from './templates';
+import { remarkTodoMarker } from './todo';
+import { rehypeHighlightCode } from './codeHighlight';
+import { modifiedCommonmarkFeatures } from './modified-commonmark';
+import { rehypeStringify } from './stringify';
 
 const allClasses = ['className', /^.*$/];
 const rehypeSanitizeSchema = merge({}, defaultSchema, {
@@ -42,6 +42,7 @@ const rehypeSanitizeSchema = merge({}, defaultSchema, {
     'ol': [allClasses].concat(defaultSchema.attributes['ol']),
     'li': [allClasses].concat(defaultSchema.attributes['li']),
     'section': [allClasses].concat(defaultSchema.attributes['section']),
+    'input': ['checked'].concat(defaultSchema.attributes['input']),
     'ref': ['to', ':to'],
     'markdown': ['text', ':text'],
   }
