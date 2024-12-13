@@ -48,7 +48,10 @@
         </li>
         {% if not post.meta.pro %}
           <li class="md-meta__item">
-                  Community
+            <span class="twemoji" style="color:green;">
+              {% include ".icons/octicons/heart-fill-24.svg" %}
+            </span>
+            Community
             {#- Collapse whitespace -#}
           </li>
         {% endif %}
