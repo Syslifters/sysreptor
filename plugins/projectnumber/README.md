@@ -18,7 +18,7 @@ This pluign adds sequential project numbers to newly created projects. The proje
 ## Usage Instructions
 
 1. Add the report field "project_number" with data type "string" or "number".
-![Screenshot of Project Number Field](docs/img/project_number_field_screen.png)
+![Project Number Field](docs/img/project_number_field_screen.png)
 2. Use this Design to create a new project.
 3. You should now see the project number in the report field and as a project tag. 
 ![Project number as report field](docs/img/project_number_as_report_field.png)
