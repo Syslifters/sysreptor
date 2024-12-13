@@ -3,7 +3,7 @@
 :octicons-server-24: Self-Hosted
 
 * Ubuntu
-* 4GB RAM
+* 8GB RAM
 * Latest [Docker](https://docs.docker.com/engine/install/ubuntu/){ target=_blank } (with docker-compose-plugin)
 
 ### Client
