@@ -27,13 +27,13 @@
 </p>
 
 <p align="center">
-  <a href="https://cloud.sysreptor.com/demo">Playground</a> •
+  <a href="https://portal.sysreptor.com/demo">Playground</a> •
   <a href="https://github.com/Syslifters/sysreptor/discussions/categories/ideas">Ideas</a> •
   <a href="https://github.com/Syslifters/sysreptor/discussions/categories/q-a">Questions</a> •
   <a href="https://docs.sysreptor.com/">Documentation</a> •
   <a href="https://docs.sysreptor.com/features-and-pricing/">Features and Pricing</a> •
   <a href="https://docs.sysreptor.com/setup/installation/">Installation</a> •
-  <a href="https://cloud.sysreptor.com/order/">Buy SysReptor</a>
+  <a href="https://portal.sysreptor.com/order/">Buy SysReptor</a>
 </p>
 
 ---
@@ -51,13 +51,13 @@ SysReptor is a fully customizable pentest reporting platform designed for penetr
 
 
 ## SysReptor Cloud
-You just want to start pentest reporting and save yourself all the effort of setting up, configuring and maintaining a dedicated server? Then SysReptor Cloud is the right choice for you! Get to know SysReptor on our [Playground](https://cloud.sysreptor.com/demo) and if you like it, you can get your personal Cloud instance [here](https://cloud.sysreptor.com/order/).
+You just want to start pentest reporting and save yourself all the effort of setting up, configuring and maintaining a dedicated server? Then SysReptor Cloud is the right choice for you! Get to know SysReptor on our [Playground](https://portal.sysreptor.com/demo) and if you like it, you can get your personal Cloud instance [here](https://portal.sysreptor.com/order/).
 
 <h3 align="center">
-    <a href="https://cloud.sysreptor.com/demo"><img src="/docs/docs/assets/dino/sign_demo.svg" width="15%" alt="Demo"></a>
+    <a href="https://portal.sysreptor.com/demo"><img src="/docs/docs/assets/dino/sign_demo.svg" width="15%" alt="Demo"></a>
 </h3>
-<h3 align="center">🦖 Try demo <a class="md-button" href="https://cloud.sysreptor.com/demo/">here</a></h3>
-<h3 align="center">🚀 Sign up for SysReptor Cloud <a class="md-button" href="https://cloud.sysreptor.com/order/">here</a></h3>
+<h3 align="center">🦖 Try demo <a class="md-button" href="https://portal.sysreptor.com/demo/">here</a></h3>
+<h3 align="center">🚀 Sign up for SysReptor Cloud <a class="md-button" href="https://portal.sysreptor.com/order/">here</a></h3>
 
 <br>
 

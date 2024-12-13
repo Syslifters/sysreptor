@@ -270,7 +270,7 @@ release-prod:
     
     # Send notification for new release
     - >
-      curl https://cloud.sysreptor.com/api/v1/notifications/new/ \
+      curl https://portal.sysreptor.com/api/v1/notifications/new/ \
         -X POST \
         -H "Authorization: Bearer ${SAASPANEL_API_TOKEN}" \
         -H "Content-Type: application/json" \
