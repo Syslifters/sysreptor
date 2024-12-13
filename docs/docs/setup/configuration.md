@@ -197,7 +197,7 @@ GUEST_USERS_CAN_SEE_ALL_USERS=False
 ```
 
 ### S3 Storage
-Uploaded files and images can be stored in an S3 bucket. Files are stored on the filesystem in a docker volume by default. If data at rest encryption is configured files are encrypted (~~except images~~, images are also encrypted).
+Uploaded files and images can be stored in an S3 bucket. Files are stored on the filesystem in a docker volume by default. If data at rest encryption is configured, all uploaded files (incl. images) are encrypted.
 
 `DEFAULT_S3_*` settings to apply to all file storages. It is possible to configure different settings per storage.
 
