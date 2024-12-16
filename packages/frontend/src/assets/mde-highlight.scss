@@ -9,6 +9,10 @@
 .cm-focused .cm-selectionBackground { display: initial; background-color: rgba(var(--v-theme-codemirror-selection), 1) !important; }
 .cm-cursor { border-left-color: rgb(var(--v-theme-on-surface)); }
 
+.cm-gutters {
+  background-color: rgba(var(--v-theme-on-surface), 0.05);
+}
+
 
 /* inline markdown styles */
 .cm-content {

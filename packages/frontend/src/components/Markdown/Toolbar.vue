@@ -1,6 +1,6 @@
 <template>
   <v-toolbar ref="toolbarRef" density="compact" flat class="toolbar">
-    <template v-if="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW">
+    <template v-if="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW && mdAndUp">
       <markdown-toolbar-button @click="codemirrorAction(toggleStrong)" title="Bold (Ctrl+B)" icon="mdi-format-bold" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strong')" />
       <markdown-toolbar-button @click="codemirrorAction(toggleEmphasis)" title="Italic (Ctrl+I)" icon="mdi-format-italic" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'emphasis')" />
       <markdown-toolbar-button @click="codemirrorAction(toggleStrikethrough)" title="Strikethrough" icon="mdi-format-strikethrough" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strikethrough')" />
@@ -90,9 +90,31 @@
     </template>
 
     <v-spacer />
-    <markdown-toolbar-button v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN" @click="setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN_AND_PREVIEW)" title="Markdown" icon="mdi-language-markdown" :active="true" />
-    <markdown-toolbar-button v-else-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" @click="setMarkdownEditorMode(MarkdownEditorMode.PREVIEW)" title="Side-by-Side View" icon="mdi-view-split-vertical" :active="true" />
-    <markdown-toolbar-button v-else-if="props.markdownEditorMode === MarkdownEditorMode.PREVIEW" @click="setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN)" title="Preview" icon="mdi-image-filter-hdr" :active="true" />
+    <v-btn-toggle
+      :model-value="props.markdownEditorMode"
+      @update:model-value="setMarkdownEditorMode"
+      mandatory
+      variant="plain"
+      rounded="0"
+      class="toggle-mdemode"
+    >
+      <v-btn
+        :value="MarkdownEditorMode.MARKDOWN"
+        text="Write"
+        prepend-icon="mdi-language-markdown"
+      />
+      <v-btn
+        v-if="hasSplitMode"
+        :value="MarkdownEditorMode.MARKDOWN_AND_PREVIEW"
+        text="Split"
+        prepend-icon="mdi-view-split-vertical"
+      />
+      <v-btn
+        :value="MarkdownEditorMode.PREVIEW"
+        text="Preview"
+        prepend-icon="mdi-image-filter-hdr"
+      />
+    </v-btn-toggle>
   </v-toolbar>
 </template>
 
@@ -134,6 +156,7 @@ const props = defineProps<{
   collab?: CollabPropType;
   uploadFiles?: (files: FileList) => Promise<void>;
   fileUploadInProgress?: boolean;
+  hideSplitMode?: boolean;
 }>();
 const emit = defineEmits<{
   'update:spellcheckEnabled': [value: boolean];
@@ -143,6 +166,14 @@ const emit = defineEmits<{
 
 const apiSettings = useApiSettings();
 const slots = useSlots();
+const { mdAndUp, lgAndUp } = useDisplay();
+
+const hasSplitMode = computed(() => !props.hideSplitMode && lgAndUp.value);
+watch(hasSplitMode, () => {
+  if (!hasSplitMode.value && props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
+    setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN);
+  }
+}, { immediate: true });
 
 const spellcheckSupported = computed(() => {
   if (!props.spellcheckSupported) {
@@ -235,6 +266,7 @@ function emitCreateComment() {
 <style lang="scss" scoped>
 @use 'sass:map';
 @use "@base/assets/settings" as settings;
+@use "@base/assets/vuetify" as vuetify;
 
 @for $level from 1 through 5 {
   .finding-level-#{$level} {
@@ -248,6 +280,17 @@ function emitCreateComment() {
   position: sticky;
   top: 0;
   z-index: 1;
+
+  // MarkdownEditorMode tabs background
+  margin-bottom: 0;
+  :deep(.v-toolbar__content) {
+    background-color: rgba(var(--v-theme-on-surface), 0.05);
+    margin-bottom: -1px;
+    
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
 }
 
 .separator {
@@ -263,5 +306,26 @@ function emitCreateComment() {
 
 .finding-reference-list {
   max-height: 70vh;
+}
+
+.v-btn-toggle.toggle-mdemode {
+  flex-shrink: 0;
+
+  .v-btn {
+    text-transform: none;
+  }
+
+  & > .v-btn--active {
+    background-color: rgba(var(--v-theme-surface));
+    border: thin solid rgba(var(--v-theme-on-surface), calc(var(--v-border-opacity) * 2));
+    border-radius: vuetify.$field-border-radius;
+    border-bottom-color: transparent;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    
+    & > :deep(.v-btn__overlay) {
+      opacity: 0;
+    }
+  }
 }
 </style>

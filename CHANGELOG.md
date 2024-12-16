@@ -10,6 +10,7 @@
 * Shared notes: Default to markdown preview mode for readonly shares
 * Shared notes: Autofocus root note
 * UI: Hide markdown toolbar in preview mode
+* UI: Update UI to switch markdown editor view mode
 
 
 ## v2024.96 - 2024-12-04
