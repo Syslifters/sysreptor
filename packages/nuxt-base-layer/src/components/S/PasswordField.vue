@@ -5,20 +5,32 @@
       :model-value="modelValue" @update:model-value="passwordChanged"
       :type="showPassword ? 'text' : 'password'"
       :label="label"
-      :disabled="disabled"
+      :disabled="props.disabled"
       :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
       @click:append-inner="showPassword = !showPassword"
-      :loading="showStrength"
+      :loading="props.showStrength"
+      :variant="props.variant"
       autocomplete="off"
       spellcheck="false"
       class="mt-4"
     >
-      <template #loader>
+      <template #loader v-if="props.showStrength">
         <v-progress-linear
           v-model="passwordStrengthLevel"
           :color="passwordStrengthColor"
           height="7"
         />
+      </template>
+      <template #append v-if="props.generate">
+        <s-btn 
+          @click="generateNewPassword"
+          icon 
+          density="compact"
+          :disabled="props.disabled"
+        >
+          <v-icon icon="mdi-lock-reset" />
+          <s-tooltip activator="parent" text="Generate random password" />
+        </s-btn>
       </template>
     </s-text-field>
     <s-text-field
@@ -27,10 +39,11 @@
       v-model="passwordConfirmValue"
       :type="showPassword ? 'text' : 'password'"
       :label="label + ' (confirm)'"
-      :disabled="disabled"
+      :disabled="props.disabled"
       :append-innner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
       @click:append-inner="showPassword = !showPassword"
       :rules="rules.confirmMatches"
+      :variant="props.variant"
       autocomplete="off"
       spellcheck="false"
       class="mt-6"
@@ -42,47 +55,53 @@
 import type { VForm } from "vuetify/lib/components/index.mjs";
 import zxcvbn from 'zxcvbn';
 
+const modelValue = defineModel<string|null>();
 const props = withDefaults(defineProps<{
-  modelValue: string | null,
   label?: string,
+  variant?: string,
   disabled?: boolean,
   confirm?: boolean,
   showStrength?: boolean,
+  generate?: boolean,
 }>(), {
   label: 'Password',
+  variant: undefined,
   disabled: false,
   confirm: false,
   showStrength: false,
 });
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void,
-}>();
 
 const confirmField = ref<VForm|null>(null);
 async function passwordChanged(val: string) {
   if (props.confirm && confirmField.value) {
     await confirmField.value.validate();
   }
-  emit('update:modelValue', val);
+  modelValue.value = val;
 }
 
 const showPassword = ref(false);
 const passwordConfirmValue = ref('');
 const rules = {
-  confirmMatches: [(p: string) => p === props.modelValue || (!p && !props.modelValue) || 'Passwords do not match'],
+  confirmMatches: [(p: string) => p === modelValue.value || (!p && !modelValue.value) || 'Passwords do not match'],
 };
 
-const passwordStrengthCheckResult = computed(() => zxcvbn(props.modelValue || ''));
+const passwordStrengthCheckResult = computed(() => zxcvbn(modelValue.value || ''));
 const passwordStrengthLevel = computed(() => {
-  if (!props.modelValue) {
+  if (!modelValue.value) {
     return 0;
   }
   return [10, 30, 50, 80, 100][passwordStrengthCheckResult.value.score];
 });
 const passwordStrengthColor = computed(() => {
-  if (!props.modelValue) {
+  if (!modelValue.value) {
     return 'error';
   }
   return ['error', 'amber-darken-4', 'warning', 'lime-darken-1', 'success'][passwordStrengthCheckResult.value.score];
 });
+
+function generateNewPassword() {
+  modelValue.value = generateRandomPassword()
+  passwordConfirmValue.value = '';
+  showPassword.value = true;
+}
 </script>

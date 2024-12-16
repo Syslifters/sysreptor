@@ -47,7 +47,7 @@
             v-model="form.password"
             :error-messages="(localSettings.encryptPdfEnabled && form.password.length === 0) ? ['Password required'] : []"
             label="PDF password"
-            append-inner-icon="mdi-lock-reset" @click:append-inner="form.password = generateNewPassword()"
+            append-inner-icon="mdi-lock-reset" @click:append-inner="form.password = generateRandomPassword()"
             spellcheck="false"
             class="mt-4"
           />
@@ -106,8 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { sampleSize } from "lodash-es"
-import { fileDownload } from "@base/utils/helpers";
+import { fileDownload, generateRandomPassword } from "@base/utils/helpers";
 
 definePageMeta({
   title: 'Publish',
@@ -142,13 +141,8 @@ const allMessages = computed(() => {
 });
 const hasErrors = computed(() => allMessages.value.some(m => m.level === MessageLevel.ERROR));
 
-function generateNewPassword() {
-  // Charset does not contain similar-looking characters and numbers; removed: 0,O, 1,l,I
-  const charset = '23456789' + 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ' + '!#%&+-_';
-  return sampleSize(charset, 20).join('');
-}
 const form = ref({
-  password: generateNewPassword(),
+  password: generateRandomPassword(),
   filename: (project.value.name + '_report.pdf').replaceAll(/[\\/]/g, '').replaceAll(/\s+/g, ' '),
 });
 const rules = {

@@ -38,7 +38,7 @@
                   v-model="changePasswordWizard.password"
                   label="New Password"
                   :error-messages="changePasswordWizard.errors?.password"
-                  confirm show-strength
+                  confirm show-strength generate
                 />
               </v-card-text>
               <v-card-actions>

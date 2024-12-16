@@ -136,7 +136,7 @@
         <v-card-text>
           <s-password-field
             v-model="formChangePassword.password"
-            confirm show-strength
+            confirm show-strength generate
             label="New Password"
           />
 

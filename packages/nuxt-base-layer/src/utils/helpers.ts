@@ -1,4 +1,4 @@
-import { setWith, clone, cloneDeep } from "lodash-es";
+import { setWith, clone, cloneDeep, sampleSize } from "lodash-es";
 export { decode as base64decode, encode as base64encode } from 'base64-arraybuffer';
 export { default as fileDownload } from 'js-file-download';
 export { default as urlJoin } from 'url-join';
@@ -179,4 +179,10 @@ export function useAbortController<T>(performFetch: (fetchOptions: { signal: Abo
     abortController,
     pending,
   }
+}
+
+export function generateRandomPassword() {
+  // Charset does not contain similar-looking characters and numbers; removed: 0,O, 1,l,I
+  const charset = '23456789' + 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ' + '!#%&+-_';
+  return sampleSize(charset, 20).join('');
 }
