@@ -10,7 +10,7 @@
       v-model="form.password"
       label="New password"
       :error-messages="serverErrors?.password || []"
-      confirm show-strength
+      confirm show-strength generate
       :disabled="!canEdit"
     />
 

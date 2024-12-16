@@ -15,7 +15,7 @@
           <div v-if="apiSettings.isLocalUserAuthEnabled">
             <s-password-field
               v-model="userForm.password"
-              confirm show-strength
+              confirm show-strength generate
               :error-messages="serverErrors?.password || []"
             />
             <s-checkbox

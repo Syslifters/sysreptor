@@ -29,6 +29,7 @@
           :model-value="modelValue.password"
           @update:model-value="updateProp('password', $event)"
           label="Password (optional)"
+          generate
           :disabled="props.disabled"
           :error-messages="props.error?.password"
         />

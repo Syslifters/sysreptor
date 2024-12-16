@@ -6,6 +6,7 @@
 * Update and optimize designs: demo, HTB and OffSec designs
 * Add design for HTB CAPE certification
 * Warn about relative URLs in PDFs during rendering
+* Add button to generate random password to password fields
 
 
 ## v2024.96 - 2024-12-04
