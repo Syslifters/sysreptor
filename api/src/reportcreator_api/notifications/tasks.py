@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 
 import httpx
 from asgiref.sync import sync_to_async
@@ -6,6 +7,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 
 from reportcreator_api.notifications.serializers import NotificationSpecSerializer
+from reportcreator_api.tasks.models import periodic_task
 from reportcreator_api.utils import license
 
 
@@ -24,6 +26,7 @@ async def fetch_notifications_request():
         return res.json()
 
 
+@periodic_task(id='fetch_notifications', schedule=timedelta(days=1))
 async def fetch_notifications(task_info):
     if not settings.NOTIFICATION_IMPORT_URL:
         return

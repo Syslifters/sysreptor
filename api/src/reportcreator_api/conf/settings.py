@@ -572,51 +572,6 @@ SIMPLE_HISTORY_REVERT_DISABLED = True
 SIMPLE_HISTORY_CLEANUP_TIMEFRAME = timedelta(hours=2)
 
 
-# Periodic tasks
-PERIODIC_TASKS = [
-    {
-        'id': 'fetch_notifications',
-        'task': 'reportcreator_api.notifications.tasks.fetch_notifications',
-        'schedule': timedelta(days=1),
-    },
-    {
-        'id': 'clear_sessions',
-        'task': 'reportcreator_api.utils.tasks.clear_sessions',
-        'schedule': timedelta(days=1),
-    },
-    {
-        'id': 'cleanup_unreferenced_images_and_files',
-        'task': 'reportcreator_api.pentests.tasks.cleanup_unreferenced_images_and_files',
-        'schedule': timedelta(days=1),
-    },
-    {
-        'id': 'reset_stale_archive_restores',
-        'task': 'reportcreator_api.pentests.tasks.reset_stale_archive_restores',
-        'schedule': timedelta(days=1),
-    },
-    {
-        'id': 'automatically_archive_projects',
-        'task': 'reportcreator_api.pentests.tasks.automatically_archive_projects',
-        'schedule': timedelta(days=1),
-    },
-    {
-        'id': 'automatically_delete_archived_projects',
-        'task': 'reportcreator_api.pentests.tasks.automatically_delete_archived_projects',
-        'schedule': timedelta(days=1),
-    },
-    {
-        'id': 'cleanup_history',
-        'task': 'reportcreator_api.pentests.tasks.cleanup_history',
-        'schedule': timedelta(minutes=5),
-    },
-    {
-        'id': 'cleanup_collab_events',
-        'task': 'reportcreator_api.pentests.tasks.cleanup_collab_events',
-        'schedule': timedelta(hours=1),
-    },
-]
-
-
 # MAX_LOCK_TIME should not be less than 1.30min, because some browsers (Chromium) triggers timers only once per minute if the browser tab is inactive
 MAX_LOCK_TIME = timedelta(seconds=90)
 

@@ -1,3 +1,4 @@
+import contextlib
 from datetime import timedelta
 from unittest import mock
 from uuid import uuid4
@@ -18,7 +19,13 @@ from reportcreator_api.pentests.tasks import (
     cleanup_usernotebook_files,
     reset_stale_archive_restores,
 )
-from reportcreator_api.tasks.models import PeriodicTask, TaskStatus
+from reportcreator_api.tasks.models import (
+    PeriodicTask,
+    PeriodicTaskInfo,
+    PeriodicTaskSpec,
+    TaskStatus,
+    periodic_task_registry,
+)
 from reportcreator_api.tests.mock import (
     create_archived_project,
     create_project,
@@ -28,32 +35,26 @@ from reportcreator_api.tests.mock import (
 )
 
 
-def task_success():
-    pass
-
-
-def task_failure():
-    raise Exception('Failed task')
+@contextlib.contextmanager
+def override_periodic_tasks(tasks):
+    tasks_restore = periodic_task_registry.tasks
+    try:
+        periodic_task_registry.tasks = set(tasks)
+        yield
+    finally:
+        periodic_task_registry.tasks = tasks_restore
 
 
 @pytest.mark.django_db()
 class TestPeriodicTaskScheduling:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        with mock.patch('reportcreator_api.tests.test_periodic_tasks.task_success') as self.mock_task_success, \
-             mock.patch('reportcreator_api.tests.test_periodic_tasks.task_failure', side_effect=Exception) as self.mock_task_failure, \
-             override_settings(PERIODIC_TASKS=[
-                {
-                    'id': 'task_success',
-                    'task': 'reportcreator_api.tests.test_periodic_tasks.task_success',
-                    'schedule': timedelta(days=1),
-                },
-                {
-                    'id': 'task_failure',
-                    'task': 'reportcreator_api.tests.test_periodic_tasks.task_failure',
-
-                },
-             ]):
+        self.mock_task_success = mock.MagicMock()
+        self.mock_task_failure = mock.MagicMock(side_effect=Exception)
+        with override_periodic_tasks(tasks=[
+            PeriodicTaskSpec(id='task_success', schedule=timedelta(days=1), func=self.mock_task_success),
+            PeriodicTaskSpec(id='task_failure', schedule=timedelta(days=1), func=self.mock_task_failure),
+        ]):
             yield
 
     def run_tasks(self):
@@ -137,21 +138,24 @@ class TestCleanupUnreferencedFiles:
 
     def run_cleanup_project_files(self, num_queries, last_success=None):
         with assertNumQueries(num_queries):
-            async_to_sync(cleanup_project_files)(task_info={
-                'model': PeriodicTask(last_success=last_success),
-            })
+            async_to_sync(cleanup_project_files)(task_info=PeriodicTaskInfo(
+                spec=next(filter(lambda t: t.id == 'cleanup_unreferenced_images_and_files', periodic_task_registry.tasks)),
+                model=PeriodicTask(last_success=last_success),
+            ))
 
     def run_cleanup_user_files(self, num_queries, last_success=None):
         with assertNumQueries(num_queries):
-            async_to_sync(cleanup_usernotebook_files)(task_info={
-                'model': PeriodicTask(last_success=last_success),
-            })
+            async_to_sync(cleanup_usernotebook_files)(task_info=PeriodicTaskInfo(
+                spec=next(filter(lambda t: t.id == 'cleanup_unreferenced_images_and_files', periodic_task_registry.tasks)),
+                model=PeriodicTask(last_success=last_success),
+            ))
 
     def run_cleanup_template_files(self, num_queries, last_success=None):
         with assertNumQueries(num_queries):
-            async_to_sync(cleanup_template_files)(task_info={
-                'model': PeriodicTask(last_success=last_success),
-            })
+            async_to_sync(cleanup_template_files)(task_info=PeriodicTaskInfo(
+                spec=next(filter(lambda t: t.id == 'cleanup_unreferenced_images_and_files', periodic_task_registry.tasks)),
+                model=PeriodicTask(last_success=last_success),
+            ))
 
     def test_unreferenced_files_removed(self):
         with mock_time(before=timedelta(days=10)):
