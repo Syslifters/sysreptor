@@ -47,7 +47,7 @@
 
 <script setup lang="ts">
 import { urlJoin } from "@base/utils/helpers";
-import { collabSubpath } from '#imports';
+import { collabSubpath, type MarkdownEditorMode } from '#imports';
 
 definePageMeta({
   auth: false,
@@ -78,8 +78,8 @@ const inputFieldAttrs = computed(() => ({
   readonly: readonly.value,
   lang: 'auto',
   spellcheckSupported: false,
-  markdownEditorMode: localSettings.projectNoteMarkdownEditorMode,
-  'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { localSettings.projectNoteMarkdownEditorMode = val },
+  markdownEditorMode: localSettings.sharedNoteMarkdownEditorMode,
+  'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { localSettings.sharedNoteMarkdownEditorMode = val },
   uploadFile,
   rewriteFileUrl,
 }));
