@@ -7,17 +7,19 @@ from django.core.files.base import ContentFile
 from django.test import override_settings
 from rest_framework.exceptions import ValidationError
 
-from reportcreator_api.archive.import_export import (
+from reportcreator_api.pentests.collab.text_transformations import SelectionRange
+from reportcreator_api.pentests.customfields.types import serialize_field_definition_legacy
+from reportcreator_api.pentests.import_export import (
+    export_notes,
     export_project_types,
     export_projects,
     export_templates,
+    import_notes,
     import_project_types,
     import_projects,
     import_templates,
 )
-from reportcreator_api.archive.import_export.import_export import build_tarinfo, export_notes, import_notes
-from reportcreator_api.pentests.collab.text_transformations import SelectionRange
-from reportcreator_api.pentests.customfields.types import serialize_field_definition_legacy
+from reportcreator_api.pentests.import_export.import_export import build_tarinfo
 from reportcreator_api.pentests.models import (
     Language,
     PentestProject,

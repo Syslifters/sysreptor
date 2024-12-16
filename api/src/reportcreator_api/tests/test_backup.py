@@ -15,8 +15,6 @@ from django.urls import reverse
 
 from reportcreator_api.api_utils.backup_utils import destroy_database
 from reportcreator_api.api_utils.models import BackupLog, BackupLogType
-from reportcreator_api.archive import crypto
-from reportcreator_api.archive.crypto.base import EncryptionKey
 from reportcreator_api.management.commands import restorebackup
 from reportcreator_api.notifications.models import NotificationSpec
 from reportcreator_api.pentests.models import UploadedImage
@@ -33,6 +31,8 @@ from reportcreator_api.tests.mock import (
     create_template,
     create_user,
 )
+from reportcreator_api.utils import crypto
+from reportcreator_api.utils.crypto.base import EncryptionKey
 
 
 @pytest.mark.django_db()

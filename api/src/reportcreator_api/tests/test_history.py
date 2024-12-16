@@ -9,7 +9,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 
-from reportcreator_api.archive.import_export.import_export import (
+from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE, REPORT_FIELDS_CORE
+from reportcreator_api.pentests.customfields.types import FieldDefinition, StringField, serialize_field_definition
+from reportcreator_api.pentests.import_export import (
     export_project_types,
     export_projects,
     export_templates,
@@ -17,8 +19,6 @@ from reportcreator_api.archive.import_export.import_export import (
     import_projects,
     import_templates,
 )
-from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE, REPORT_FIELDS_CORE
-from reportcreator_api.pentests.customfields.types import FieldDefinition, StringField, serialize_field_definition
 from reportcreator_api.pentests.models import (
     FindingTemplate,
     FindingTemplateTranslation,

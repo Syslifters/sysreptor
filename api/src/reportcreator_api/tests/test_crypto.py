@@ -14,8 +14,6 @@ from django.db import connection
 from django.test import override_settings
 from django.urls import reverse
 
-from reportcreator_api.archive import crypto
-from reportcreator_api.archive.crypto import pgp
 from reportcreator_api.management.commands import encryptdata
 from reportcreator_api.pentests.models import (
     ArchivedProject,
@@ -35,6 +33,8 @@ from reportcreator_api.tests.mock import (
     create_template,
     create_user,
 )
+from reportcreator_api.utils import crypto
+from reportcreator_api.utils.crypto import pgp
 from reportcreator_api.utils.storages import EncryptedFileSystemStorage
 
 

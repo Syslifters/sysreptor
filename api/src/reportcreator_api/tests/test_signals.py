@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 
 from reportcreator_api import signals as sysreptor_signals
-from reportcreator_api.archive.import_export.import_export import (
+from reportcreator_api.pentests.import_export import (
     export_project_types,
     export_projects,
     export_templates,

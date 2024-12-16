@@ -6,8 +6,8 @@ import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
-import reportcreator_api.archive.crypto.fields
 import reportcreator_api.users.querysets
+import reportcreator_api.utils.crypto.fields
 import reportcreator_api.utils.models
 
 
@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('method_type', models.CharField(choices=[('totp', 'TOTP'), ('fido2', 'FIDO2'), ('backup', 'Backup codes')], max_length=255)),
                 ('is_primary', models.BooleanField(default=False)),
                 ('name', models.CharField(blank=True, default='', max_length=255)),
-                ('data', reportcreator_api.archive.crypto.fields.EncryptedField(base_field=models.JSONField(), editable=True)),
+                ('data', reportcreator_api.utils.crypto.fields.EncryptedField(base_field=models.JSONField(), editable=True)),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mfa_methods', to=settings.AUTH_USER_MODEL)),
             ],
             options={

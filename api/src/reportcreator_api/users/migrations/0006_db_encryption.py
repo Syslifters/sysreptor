@@ -2,8 +2,8 @@
 
 from django.db import migrations, models
 
-import reportcreator_api.archive.crypto.fields
 import reportcreator_api.users.querysets
+import reportcreator_api.utils.crypto.fields
 
 
 def migrate_to_encryption(apps, schema_editor):
@@ -35,8 +35,8 @@ class Migration(migrations.Migration):
             name='Session',
             fields=[
                 ('expire_date', models.DateTimeField(db_index=True, verbose_name='expire date')),
-                ('session_key', reportcreator_api.archive.crypto.fields.EncryptedField(base_field=models.CharField(max_length=40, verbose_name='session key'), editable=True)),
-                ('session_data', reportcreator_api.archive.crypto.fields.EncryptedField(base_field=models.TextField(verbose_name='session data'), editable=True)),
+                ('session_key', reportcreator_api.utils.crypto.fields.EncryptedField(base_field=models.CharField(max_length=40, verbose_name='session key'), editable=True)),
+                ('session_data', reportcreator_api.utils.crypto.fields.EncryptedField(base_field=models.TextField(verbose_name='session data'), editable=True)),
                 ('session_key_hash', models.BinaryField(max_length=32, primary_key=True, serialize=False)),
             ],
             options={
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='pentestuser',
             name='password_new',
-            field=reportcreator_api.archive.crypto.fields.EncryptedField(base_field=models.CharField(max_length=128, default='', verbose_name='password'), editable=True),
+            field=reportcreator_api.utils.crypto.fields.EncryptedField(base_field=models.CharField(max_length=128, default='', verbose_name='password'), editable=True),
             preserve_default=False,
         ),
         migrations.RunPython(code=migrate_to_encryption, reverse_code=reverse_migrate_from_encryption),
@@ -67,6 +67,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='pentestuser',
             name='password',
-            field=reportcreator_api.archive.crypto.fields.EncryptedField(base_field=models.CharField(max_length=128, verbose_name='password'), editable=True),
+            field=reportcreator_api.utils.crypto.fields.EncryptedField(base_field=models.CharField(max_length=128, verbose_name='password'), editable=True),
         ),
     ]

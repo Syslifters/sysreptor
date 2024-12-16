@@ -3,7 +3,7 @@ from pathlib import Path
 from django.core.files.storage import FileSystemStorage, InMemoryStorage
 from storages.backends.s3 import S3Storage
 
-from reportcreator_api.archive.crypto.storage import EncryptedStorageMixin
+from reportcreator_api.utils.crypto.storage import EncryptedStorageMixin
 
 
 class FileSystemOverwriteStorage(FileSystemStorage):

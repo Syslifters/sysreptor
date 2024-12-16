@@ -4,7 +4,7 @@ import json
 from django.core import checks
 from django.db import models
 
-from reportcreator_api.archive.crypto import base as crypto
+from reportcreator_api.utils.crypto import base as crypto
 
 
 class EncryptedField(models.BinaryField):

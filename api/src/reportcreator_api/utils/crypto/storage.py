@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from django.core.files import File
 
-from reportcreator_api.archive.crypto import base as crypto
+from reportcreator_api.utils.crypto import base as crypto
 from reportcreator_api.utils.utils import is_uuid
 
 

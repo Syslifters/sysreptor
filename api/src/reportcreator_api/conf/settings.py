@@ -588,9 +588,9 @@ COMPRESS_PDFS = config('COMPRESS_PDFS', cast=bool, default=True)
 REGEX_VALIDATION_TIMEOUT = timedelta(milliseconds=500)
 
 
-from reportcreator_api.archive.crypto import EncryptionKey  # noqa: E402
+from reportcreator_api.utils.crypto import EncryptionKey  # noqa: E402
 
-ENCRYPTION_KEYS = EncryptionKey.from_json_list(config('ENCRYPTION_KEYS', default=''))
+ENCRYPTION_KEYS = config('ENCRYPTION_KEYS', cast=EncryptionKey.from_json_list, default='')
 DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
 ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=bool, default=True)
 

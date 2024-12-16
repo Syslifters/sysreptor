@@ -16,8 +16,6 @@ from rest_framework.test import APIClient
 
 from reportcreator_api import signals as sysreptor_signals
 from reportcreator_api.api_utils.models import LanguageToolIgnoreWords
-from reportcreator_api.archive import crypto
-from reportcreator_api.archive.import_export.serializers import RelatedUserDataExportImportSerializer
 from reportcreator_api.conf.asgi import application
 from reportcreator_api.pentests.customfields.predefined_fields import (
     finding_fields_default,
@@ -28,6 +26,7 @@ from reportcreator_api.pentests.customfields.utils import (
     ensure_defined_structure,
     get_field_value_and_definition,
 )
+from reportcreator_api.pentests.import_export.serializers import RelatedUserDataExportImportSerializer
 from reportcreator_api.pentests.models import (
     ArchivedProject,
     ArchivedProjectKeyPart,
@@ -56,6 +55,7 @@ from reportcreator_api.pentests.models import (
 )
 from reportcreator_api.pentests.models.project import CommentAnswer, ReportSection
 from reportcreator_api.users.models import APIToken, MFAMethod, PentestUser
+from reportcreator_api.utils import crypto
 from reportcreator_api.utils.history import bulk_create_with_history, history_context
 
 

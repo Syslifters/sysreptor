@@ -4,8 +4,8 @@ from uuid import uuid4
 import pytest
 from django.urls import reverse
 
-from reportcreator_api.archive.import_export.import_export import export_project_types
 from reportcreator_api.pentests.cvss import CVSSLevel
+from reportcreator_api.pentests.import_export import export_project_types
 from reportcreator_api.pentests.models import (
     FindingTemplate,
     FindingTemplateTranslation,
