@@ -48,6 +48,21 @@ const shareInfo = await useAsyncDataE(async () => {
     if (shareInfo.password_required && !shareInfo.password_verified) {
       throw new Error('Password required');
     }
+
+    // Set markdown editor mode based on permissions
+    if (!shareInfo.permissions_write) {
+      localSettings.sharedNoteMarkdownEditorMode = MarkdownEditorMode.PREVIEW;
+    } else {
+      localSettings.sharedNoteMarkdownEditorMode = localSettings.sharedNoteMarkdownEditorMode === MarkdownEditorMode.PREVIEW ? 
+        MarkdownEditorMode.MARKDOWN_AND_PREVIEW : 
+        localSettings.sharedNoteMarkdownEditorMode;
+    }
+
+    // Select root note if no other note is selected
+    if (shareInfo && !route.params.noteId) {
+      await navigateTo(`/shared/${shareInfo.id}/notes/${shareInfo.note_id}`);
+    }
+
     return shareInfo;
   } catch {
     await navigateTo(`/shared/${route.params.shareInfoId}/`);

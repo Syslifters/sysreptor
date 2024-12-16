@@ -9,6 +9,7 @@ export const useLocalSettings = defineStore('settings', {
     userNoteMarkdownEditorMode: MarkdownEditorMode.MARKDOWN_AND_PREVIEW as MarkdownEditorMode,
     designMarkdownEditorMode: MarkdownEditorMode.MARKDOWN_AND_PREVIEW as MarkdownEditorMode,
     templateMarkdownEditorMode: MarkdownEditorMode.MARKDOWN_AND_PREVIEW as MarkdownEditorMode,
+    sharedNoteMarkdownEditorMode: MarkdownEditorMode.PREVIEW as MarkdownEditorMode,
     reportingSpellcheckEnabled: true,
     projectNoteSpellcheckEnabled: true,
     userNoteSpellcheckEnabled: true,

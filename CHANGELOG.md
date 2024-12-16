@@ -7,6 +7,8 @@
 * Add design for HTB CAPE certification
 * Warn about relative URLs in PDFs during rendering
 * Add button to generate random password to password fields
+* Shared notes: Default to markdown preview mode for readonly shares
+* Shared notes: Autofocus root note
 
 
 ## v2024.96 - 2024-12-04
