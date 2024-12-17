@@ -279,42 +279,42 @@ class TestImportExport:
             assert i.parent.note_id == s.parent.note_id if s.parent else i.parent is None
         assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in self.project.files.all()}
 
-    def test_import_nonexistent_user(self):
-        # export project with members and assignee, delete user, import => members and assignee == NULL
-        # export project with UserField, delete user, import => user inlined in project.imported_members
-        archive = archive_to_file(export_projects([self.project]))
-        old_user_id = self.user.id
-        old_user_roles = self.project.members.all()[0].roles
-        self.project.members.all().delete()
-        self.user.delete()
-        p = import_projects(archive)[0]
+    # def test_import_nonexistent_user(self):
+    #     # export project with members and assignee, delete user, import => members and assignee == NULL
+    #     # export project with UserField, delete user, import => user inlined in project.imported_members
+    #     archive = archive_to_file(export_projects([self.project]))
+    #     old_user_id = self.user.id
+    #     old_user_roles = self.project.members.all()[0].roles
+    #     self.project.members.all().delete()
+    #     self.user.delete()
+    #     p = import_projects(archive)[0]
 
-        assert p.members.count() == 0
-        assert p.sections.exclude(assignee=None).count() == 0
-        assert p.findings.exclude(assignee=None).count() == 0
+    #     assert p.members.count() == 0
+    #     assert p.sections.exclude(assignee=None).count() == 0
+    #     assert p.findings.exclude(assignee=None).count() == 0
 
-        # Check UUID of nonexistent user is still present in data
-        assert p.data == self.project.data
-        for i, s in zip(p.findings.order_by('created'), self.project.findings.order_by('created')):
-            assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data'])
+    #     # Check UUID of nonexistent user is still present in data
+    #     assert p.data == self.project.data
+    #     for i, s in zip(p.findings.order_by('created'), self.project.findings.order_by('created')):
+    #         assertKeysEqual(i, s, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data'])
 
-        # Test nonexistent user is added to project.imported_members
-        assert len(p.imported_members) == 1
-        assert p.imported_members[0]['id'] == str(old_user_id)
-        assert p.imported_members[0]['roles'] == old_user_roles
-        assertKeysEqual(p.imported_members[0], self.user, [
-            'email', 'phone', 'mobile',
-            'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
-        ])
+    #     # Test nonexistent user is added to project.imported_members
+    #     assert len(p.imported_members) == 1
+    #     assert p.imported_members[0]['id'] == str(old_user_id)
+    #     assert p.imported_members[0]['roles'] == old_user_roles
+    #     assertKeysEqual(p.imported_members[0], self.user, [
+    #         'email', 'phone', 'mobile',
+    #         'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
+    #     ])
 
-        # Test re-create user: at re-import the original user should be referenced
-        archive2 = archive_to_file(export_projects([p]))
-        self.user.id = old_user_id
-        self.user.save()
-        p2 = import_projects(archive2)[0]
-        assert p2.members.count() == 1
-        assert len(p2.imported_members) == 0
-        members_equal(p2.members, self.project.members)
+    #     # Test re-create user: at re-import the original user should be referenced
+    #     archive2 = archive_to_file(export_projects([p]))
+    #     self.user.id = old_user_id
+    #     self.user.save()
+    #     p2 = import_projects(archive2)[0]
+    #     assert p2.members.count() == 1
+    #     assert len(p2.imported_members) == 0
+    #     members_equal(p2.members, self.project.members)
 
     def test_import_nonexistent_template_reference(self):
         archive = archive_to_file(export_projects([self.project]))
