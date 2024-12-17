@@ -6,11 +6,12 @@ import pytest
 from asgiref.sync import async_to_sync
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from reportcreator_api.archive.import_export.import_export import (
+from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE, REPORT_FIELDS_CORE
+from reportcreator_api.pentests.customfields.types import FieldDefinition, StringField, serialize_field_definition
+from reportcreator_api.pentests.import_export import (
     export_project_types,
     export_projects,
     export_templates,
@@ -18,8 +19,6 @@ from reportcreator_api.archive.import_export.import_export import (
     import_projects,
     import_templates,
 )
-from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE, REPORT_FIELDS_CORE
-from reportcreator_api.pentests.customfields.types import FieldDefinition, StringField, serialize_field_definition
 from reportcreator_api.pentests.models import (
     FindingTemplate,
     FindingTemplateTranslation,
@@ -38,7 +37,7 @@ from reportcreator_api.pentests.models.project import (
     ReportSection,
 )
 from reportcreator_api.pentests.tasks import cleanup_history
-from reportcreator_api.tasks.models import PeriodicTask
+from reportcreator_api.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
 from reportcreator_api.tests.mock import (
     api_client,
     create_finding,
@@ -685,9 +684,6 @@ class TestHistoryCleanup:
         self.u1 = create_user()
         self.u2 = create_user()
 
-        with override_settings(SIMPLE_HISTORY_CLEANUP_TIMEFRAME=timedelta(hours=2)):
-            yield
-
     def assert_history_cleanup(self, history_entries, pad=False, before=None):
         if pad:
             history_entries = \
@@ -710,9 +706,10 @@ class TestHistoryCleanup:
                     **{f.attname: getattr(finding, f.attname) for f in PentestFinding.history.model.tracked_fields},
                 )
 
-        async_to_sync(cleanup_history)(task_info={
-            'model': PeriodicTask(last_success=None),
-        })
+        async_to_sync(cleanup_history)(task_info=PeriodicTaskInfo(
+            spec=next(filter(lambda t: t.id == 'cleanup_history', periodic_task_registry.tasks)),
+            model=PeriodicTask(last_success=None),
+        ))
 
         for h in history_entries:
             cleaned = not PentestFinding.history.filter(history_id=h['instance'].history_id).exists()

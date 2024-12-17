@@ -22,7 +22,6 @@ from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.loader import MigrationLoader
 
 from reportcreator_api.api_utils.models import BackupLog, BackupLogType
-from reportcreator_api.archive import crypto
 from reportcreator_api.pentests import storages
 from reportcreator_api.pentests.models import (
     ArchivedProject,
@@ -34,6 +33,7 @@ from reportcreator_api.pentests.models import (
     UploadedUserNotebookImage,
 )
 from reportcreator_api.pentests.models.project import ProjectMemberRole
+from reportcreator_api.utils import crypto
 
 
 def create_migration_info():

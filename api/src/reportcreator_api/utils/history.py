@@ -7,7 +7,7 @@ from simple_history import manager as history_manager
 from simple_history import models as history_models
 from simple_history import signals as history_signals
 
-from reportcreator_api.archive.crypto.fields import EncryptedField
+from reportcreator_api.utils.crypto.fields import EncryptedField
 
 
 class HistoricalRecordBase(models.Model):

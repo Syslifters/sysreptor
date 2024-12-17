@@ -14,8 +14,8 @@ from django.utils.functional import classproperty
 from rest_framework import exceptions, pagination, views
 from rest_framework.response import Response
 
-from reportcreator_api.archive.crypto import CryptoError
 from reportcreator_api.utils import license
+from reportcreator_api.utils.crypto import CryptoError
 
 
 class GenericAPIViewAsyncMixin:

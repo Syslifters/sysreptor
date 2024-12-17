@@ -4,8 +4,7 @@ import logging
 from django.core.management.base import BaseCommand, CommandError, CommandParser
 
 from reportcreator_api.api_utils.backup_utils import create_backup, encrypt_backup, to_chunks
-from reportcreator_api.archive import crypto
-from reportcreator_api.utils import license
+from reportcreator_api.utils import crypto, license
 
 
 def aes_key(val):

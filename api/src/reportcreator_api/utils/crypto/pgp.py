@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 import gnupg
 
-from reportcreator_api.archive.crypto.base import CryptoError
+from reportcreator_api.utils.crypto.base import CryptoError
 
 
 @contextmanager

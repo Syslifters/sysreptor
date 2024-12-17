@@ -14,7 +14,6 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from reportcreator_api.archive.import_export import export_notes
 from reportcreator_api.pentests.collab.text_transformations import (
     ChangeSet,
     CollabStr,
@@ -28,6 +27,7 @@ from reportcreator_api.pentests.customfields.utils import (
     get_value_at_path,
     set_value_at_path,
 )
+from reportcreator_api.pentests.import_export import export_notes
 from reportcreator_api.pentests.models import (
     CollabClientInfo,
     CollabEventType,

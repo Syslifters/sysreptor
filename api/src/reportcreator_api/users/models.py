@@ -16,9 +16,9 @@ from django.utils.translation import gettext_lazy as _
 from fido2.server import Fido2Server, _verify_origin_for_rp
 from fido2.webauthn import PublicKeyCredentialRpEntity
 
-from reportcreator_api.archive.crypto.fields import EncryptedField
 from reportcreator_api.users import querysets
 from reportcreator_api.utils import license
+from reportcreator_api.utils.crypto.fields import EncryptedField
 from reportcreator_api.utils.models import BaseModel
 
 
