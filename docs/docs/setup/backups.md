@@ -25,14 +25,14 @@ When [updating](updates.md) SysReptor, you can use the `--backup` switch, which 
 ## Create backups via web interface
 :octicons-cloud-24: Cloud · :octicons-server-24: Self-Hosted
 
-Users with [`superuser` permissions](../users/user-permissions.md#superuser) and access to the [`BACKUP_KEY`](../setup/configuration/#backup-key) can create backups using the web interface.
+Users with [`superuser` permissions](../users/user-permissions.md#superuser) and access to the [`BACKUP_KEY`](configuration.md#backup-key) can create backups using the web interface.
 
-If no [`BACKUP_KEY`](../setup/configuration/#backup-key) is configured, you cannot create backups via the web interface.
+If no [`BACKUP_KEY`](configuration.md#backup-key) is configured, you cannot create backups via the web interface.
 
 ## Create backups via API
 :octicons-cloud-24: Cloud · :octicons-server-24: Self-Hosted
 
-Users with [`superuser` permissions](../users/user-permissions.md#superuser) and [`system` users](../users/user-permissions.md#system) can [create backups via the API](https://demo.sysre.pt/api/public/utils/swagger-ui/#/v1/v1_utils_backup_create){ target=_blank } in combination with the configured [`BACKUP_KEY`](../setup/configuration/#backup-key).
+Users with [`superuser` permissions](../users/user-permissions.md#superuser) and [`system` users](../users/user-permissions.md#system) can [create backups via the API](https://demo.sysre.pt/api/public/utils/swagger-ui/#/v1/v1_utils_backup_create){ target=_blank } in combination with the configured [`BACKUP_KEY`](configuration.md#backup-key).
 
 If no `BACKUP_KEY` is configured, the backup API endpoint is disabled.
 
