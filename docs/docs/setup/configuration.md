@@ -257,7 +257,7 @@ ARCHIVED_FILE_LOCATION="archivedfiles"
 ### Backup Key
 <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
 
-API key used for creating backups via REST API. The key should be random and must have 20 or more characters. Find more information at https://docs.sysreptor.com/backups/.  
+The backup key is used for creating backups via the [web interface](../setup/backups/#create-backups-via-web-interface) or the [REST API](../setup/backups/#create-backups-via-api). The key should be random and must have 20 or more characters.  
 Make sure this key remains secret.
 
 ``` title="Generate random backup key:"
