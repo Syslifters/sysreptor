@@ -14,12 +14,10 @@
   "dependencies": {
     "@sysreptor/nuxt-base-layer": "../nuxt-base-layer",
     "@sysreptor/markdown": "../markdown",
-    
     "nuxt": "~3.14",
     "vuetify": "~3.7",
     "pinia": "^2.2.4",
     "sass-embedded": "^1.79.5",
-
     "@vueuse/nuxt": "^12.0.0",
     "monaco-editor": "^0.52.0",
     "vuedraggable": "^4.1.0",
@@ -27,7 +25,6 @@
     "@iconify/icons-fluent-emoji": "^1.2.10",
     "@github/webauthn-json": "^2.1.1",
     "@elastic/apm-rum-vue": "^2.1.5",
-
     "date-fns": "^4.1.0",
     "lodash-es": "^4.17.21",
     "dompurify": "^3.1.6"

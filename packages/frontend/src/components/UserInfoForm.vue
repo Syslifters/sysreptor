@@ -114,6 +114,7 @@
         <s-checkbox
           :model-value="user.is_template_editor" @update:model-value="updateField('is_template_editor', $event)"
           label="Template Editor"
+          data-testid="template-editor-checkbox"
           hint="Template Editors are allowed to create and edit finding templates."
           :error-messages="errors?.is_template_editor || []"
           :disabled="!canEditGeneralPermissions"
@@ -122,6 +123,7 @@
         <s-checkbox
           :model-value="user.is_designer" @update:model-value="updateField('is_designer', $event)"
           label="Designer"
+          data-testid="designer-checkbox"
           hint="Designers can create and edit report designs. Users without this permission can create and edit private designs."
           :error-messages="errors?.is_designer || []"
           :disabled="!canEditGeneralPermissions"
@@ -130,6 +132,7 @@
         <s-checkbox
           :model-value="user.is_user_manager" @update:model-value="updateField('is_user_manager', $event)"
           label="User Manager"
+          data-testid="user-manager-checkbox"
           hint="User Managers can create and update other users, assign permissions and reset passwords (except superusers)."
           :error-messages="errors?.is_user_manager || []"
           :disabled="!canEditGeneralPermissions"
@@ -146,6 +149,7 @@
         <s-checkbox
           :model-value="user.is_global_archiver" @update:model-value="updateField('is_global_archiver', $event)"
           label="Global Archiver"
+          data-testid="global-archiver-checkbox"
           hint="Global Archivers will be added to archives when archiving projects (besides project members) and are able to restore these projects. They need to have archiving public keys configured for this permission take effect."
           :error-messages="errors?.is_global_archiver || []"
           :disabled="!canEditGeneralPermissions || !apiSettings.settings!.features.archiving"
@@ -154,6 +158,7 @@
         <s-checkbox
           :model-value="user.is_project_admin" @update:model-value="updateField('is_project_admin', $event)"
           label="Project Admin"
+          data-testid="project-admin-checkbox"
           hint="Project Admins can access and manage all projects, regardless if they are members of the project or not."
           :error-messages="errors?.is_project_admin || []"
           :disabled="!canEditGeneralPermissions"

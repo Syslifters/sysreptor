@@ -73,6 +73,7 @@
         :id="fieldDefinition.id"
         :definition="fieldDefinition"
         v-bind="inputFieldAttrs"
+        :data-testid="fieldDefinition.id"
       />
     </v-container>
   </div>

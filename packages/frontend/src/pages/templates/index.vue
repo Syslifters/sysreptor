@@ -50,6 +50,7 @@
         />
         <btn-import 
           ref="importBtnRef"
+          data-testid="import-templates"
           :import="performImport"
           :disabled="!auth.permissions.value.template_editor"
         />

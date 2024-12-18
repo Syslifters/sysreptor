@@ -1,6 +1,7 @@
 <template>
   <s-btn-icon
     @click="emit('update:modelValue', !props.modelValue)"
+    data-testid="history-button"
   >
     <v-icon icon="mdi-history" />
 

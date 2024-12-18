@@ -2,10 +2,10 @@
 ARG TESTED_API_IMAGE=undefined_test_image_used_in_ci
 ARG PROD_API_IMAGE=undefined_prod_image_used_in_ci
 
-
-
 FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS frontend-dev
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Install curl
+RUN apk add --no-cache curl
 WORKDIR /app/packages/
 
 
@@ -167,6 +167,7 @@ ENV VERSION=dev \
 
 # Start server
 EXPOSE 8000
+COPY --chown=1000:1000 api/start.sh /app/api/
 CMD ["/bin/bash", "/app/api/start.sh"]
 
 
@@ -187,7 +188,6 @@ RUN mkdir -p /app/api/sysreptor_plugins/ && chmod 777 /app/api/sysreptor_plugins
 
 # Copy generated template rendering script
 COPY --from=rendering --chown=user:user /app/packages/rendering/dist /app/packages/rendering/dist/
-
 
 FROM --platform=$BUILDPLATFORM api-test AS api-statics
 # Generate static frontend files
@@ -225,8 +225,6 @@ USER 0
 RUN dpkg-query -W -f='${binary:Package}=${Version}\n' > /src/post_installed.txt \
     && bash /app/api/download_sources.sh
 USER 1000
-
-
 
 # Default stage
 FROM api

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="props.items.hasNextPage.value" class="text-center">
+  <div v-if="props.items.hasNextPage.value" class="text-center" data-testid="page-loader">
     <div v-if="!props.items.pending.value && !props.items.hasError.value" v-intersect="onIntersect" />
 
     <div v-if="props.items.hasError.value">

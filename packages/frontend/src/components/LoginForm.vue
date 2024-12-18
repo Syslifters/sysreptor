@@ -45,6 +45,7 @@
           <slot name="actions"></slot>
           <s-btn-primary
             type="submit"
+            data-testid="login-submit"
             text="Login"
           />
         </v-card-actions>
@@ -157,9 +158,9 @@
 </template>
 
 <script setup lang="ts">
+import { LoginResponseStatus, mfaMethodChoices, MfaMethodType } from '#imports';
 import { get as navigatorCredentialsGet, parseRequestOptionsFromJSON } from "@github/webauthn-json/browser-ponyfill";
 import type { VOtpInput } from "vuetify/components";
-import { LoginResponseStatus, mfaMethodChoices, MfaMethodType } from '#imports';
 
 const props = defineProps({
   username: {

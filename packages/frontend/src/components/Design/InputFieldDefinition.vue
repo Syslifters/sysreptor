@@ -248,6 +248,7 @@
         v-model:markdown-editor-mode="localSettings.designMarkdownEditorMode"
         :readonly="props.readonly"
         :disable-validation="true"
+        data-testid='default-value'
       />
 
       <!-- List Item -->

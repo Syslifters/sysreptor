@@ -11,7 +11,7 @@
     >
       <template #title>Designs</template>
       <template #actions>
-        <design-create-design-dialog :project-type-scope="ProjectTypeScope.PRIVATE" />
+        <design-create-design-dialog :project-type-scope="ProjectTypeScope.PRIVATE"/>
         <design-import-design-dialog ref="importBtnRef" :project-type-scope="ProjectTypeScope.PRIVATE" />
       </template>
       <template #tabs v-if="apiSettings.settings!.features.private_designs">

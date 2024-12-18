@@ -26,6 +26,27 @@ services:
       REDIS_PASSWORD: reportcreator
     expose:
       - 6379
+  integration-tests:
+    profiles: [test]
+    image: mcr.microsoft.com/playwright:v1.49.0-noble
+    working_dir: /app/packages/frontend/
+    environment:
+      DEBUG: pw:browser
+      # DISPLAY: :0 # for running with --ui in WSL 2 with XServer
+      FRONTEND_ADMIN_USER: "reptor"
+    env_file: ../deploy/app.env
+    volumes:
+      - type: bind
+        source: ../packages/
+        target: /app/packages/
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    command: npx playwright test # --ui
+    # depends_on:
+    #   frontend:
+    #     condition: service_healthy
+    #   api:
+    #     condition: service_healthy
   # rabbitmq:
   #   image: rabbitmq:3
   #   hostname: rabbitmq
@@ -172,6 +193,12 @@ services:
       # CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
       # CELERY_RESULT_BACKEND: reportcreator_api.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
     env_file: ../deploy/app.env
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "-so", "/dev/null", "http://localhost:8000/api/public/utils/healthcheck/"]
+    #   interval: 30s
+    #   timeout: 30s
+    #   retries: 5
+    #   start_period: 10s
     depends_on:
       db:
         condition: service_healthy
@@ -189,6 +216,12 @@ services:
       context: ..
       target: frontend-dev
     command: npm run --workspace=frontend dev
+    # healthcheck: 
+    #   test: ["CMD", "sh", "-c", "curl -s http://localhost:3000/ | grep __nuxt && exit 0 || exit 1"]
+    #   interval: 30s
+    #   timeout: 30s
+    #   retries: 5
+    #   start_period: 10s
     volumes:
       - type: bind
         source: ../packages/

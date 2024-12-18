@@ -90,6 +90,7 @@
             :action="props.createNote!"
             :disabled="!canCreate"
             :confirm="false"
+            data-testid="create-note"
             button-text="Add"
             button-icon="mdi-plus"
             tooltip-text="Add Note (Ctrl+J)"

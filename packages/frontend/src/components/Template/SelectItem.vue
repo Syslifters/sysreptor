@@ -1,5 +1,5 @@
 <template>
-  <v-list-item-title class="w-100 d-flex">
+  <v-list-item-title class="w-100 d-flex" :data-testid="'select-item-' + translation.data.title">
     <chip-cvss :risk-score="translation.risk_score" :risk-level="translation.risk_level" />
     <div class="pt-2 pb-2 flex-grow-1 wrap-content">
       {{ translation.data.title }}

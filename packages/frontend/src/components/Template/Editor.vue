@@ -55,6 +55,7 @@
           <dynamic-input-field
             :readonly="props.readonly"
             v-bind="fieldAttrs(translation, fieldDefinitionTitle)"
+            :data-testid="`title-${translation.language}`"
           />
 
           <s-status-selection
@@ -64,6 +65,7 @@
             variant="outlined"
             density="default"
             class="mt-4"
+            data-testid="template-status"
           />
           <s-tags
             :model-value="template.tags"
@@ -122,9 +124,9 @@
 </template>
 
 <script setup lang="ts">
-import { cloneDeep } from "lodash-es";
-import { uuidv4 } from "@base/utils/helpers";
 import type { MarkdownEditorMode } from "#imports";
+import { uuidv4 } from "@base/utils/helpers";
+import { cloneDeep } from "lodash-es";
 
 const props = withDefaults(defineProps<{
   modelValue: FindingTemplate;

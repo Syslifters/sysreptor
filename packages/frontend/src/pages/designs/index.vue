@@ -11,8 +11,8 @@
     >
       <template #title>Designs</template>
       <template #actions>
-        <design-create-design-dialog :project-type-scope="ProjectTypeScope.GLOBAL" />
-        <design-import-design-dialog ref="importBtnRef" :project-type-scope="ProjectTypeScope.GLOBAL" />
+        <design-create-design-dialog :project-type-scope="ProjectTypeScope.GLOBAL" data-testid="add-design-button"/>
+        <design-import-design-dialog ref="importBtnRef" :project-type-scope="ProjectTypeScope.GLOBAL" data-testid="import-design" />
       </template>
       <template #tabs v-if="apiSettings.settings!.features.private_designs">
         <v-tab :to="{ path: '/designs/', query: route.query }" exact prepend-icon="mdi-earth" text="Global" />

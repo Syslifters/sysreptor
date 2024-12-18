@@ -2,22 +2,22 @@
   <full-height-page>
     <s-sub-drawer>
       <template #default="{ isExpanded }" v-if="project">
-        <v-list-item :to="`/projects/${project.id}/`" exact prepend-icon="mdi-cogs" title="Settings">
+        <v-list-item :to="`/projects/${project.id}/`" exact prepend-icon="mdi-cogs" title="Settings" data-testid="project-settings-tab">
           <s-tooltip v-if="!isExpanded" activator="parent" text="Project Settings" />
         </v-list-item>
-        <v-list-item :to="`/projects/${project.id}/notes/`" prepend-icon="mdi-notebook" title="Notes">
+        <v-list-item :to="`/projects/${project.id}/notes/`" prepend-icon="mdi-notebook" title="Notes" data-testid="project-notes-tab">
           <s-tooltip v-if="!isExpanded" activator="parent" text="Notes" />
         </v-list-item>
-        <v-list-item :to="`/projects/${project.id}/reporting/`" prepend-icon="mdi-text" title="Reporting">
+        <v-list-item :to="`/projects/${project.id}/reporting/`" prepend-icon="mdi-text" title="Reporting" data-testid="project-reporting-tab">
           <s-tooltip v-if="!isExpanded" activator="parent" text="Reporting" />
         </v-list-item>
-        <v-list-item :to="`/projects/${project.id}/designer/`" v-if="projectType?.source === 'customized'" prepend-icon="mdi-pencil-ruler" title="Designer">
+        <v-list-item :to="`/projects/${project.id}/designer/`" v-if="projectType?.source === 'customized'" prepend-icon="mdi-pencil-ruler" title="Designer" data-testid="project-designer-tab">
           <s-tooltip v-if="!isExpanded" activator="parent" text="Designer" />
         </v-list-item>
-        <v-list-item :to="`/projects/${project.id}/publish/`" prepend-icon="mdi-earth" title="Publish">
+        <v-list-item :to="`/projects/${project.id}/publish/`" prepend-icon="mdi-earth" title="Publish" data-testid="project-publish-tab">
           <s-tooltip v-if="!isExpanded" activator="parent" text="Publish" />
         </v-list-item>
-        <v-list-item :to="`/projects/${project.id}/history/`" prepend-icon="mdi-history" title="History">
+        <v-list-item :to="`/projects/${project.id}/history/`" prepend-icon="mdi-history" title="History" data-testid="project-history-tab">
           <s-tooltip v-if="!isExpanded" activator="parent" text="History" />
         </v-list-item>
         
