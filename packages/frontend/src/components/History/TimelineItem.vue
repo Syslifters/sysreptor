@@ -6,6 +6,7 @@
     :class="{'timeline-item-link': !!to, 'nuxt-link-active': isExactActive}"
     @click="to ? navigate() : undefined"
     @auxclick="to ? openInNewTab($event) : undefined"
+    :data-testid="`timeline-item-${props.value.history_title}`"
   >
     <slot name="info">
       <chip-date :value="props.value.history_date" />
@@ -14,10 +15,10 @@
       <br>
     </slot>
 
-    <slot name="title">
-      <span v-if="props.value.history_change_reason">{{ props.value.history_change_reason }}</span>
-      <span v-else-if="props.value.history_type === '+'">Created</span>
-      <span v-else-if="props.value.history_type === '-'">Deleted</span>
+    <slot name="title" >
+      <span v-if="props.value.history_change_reason" :data-testid="`timeline-item-${props.value.history_title}`">{{ props.value.history_change_reason }}</span>
+      <span v-else-if="props.value.history_type === '+'" :data-testid="`timeline-item-${props.value.history_title}`">Created</span>
+      <span v-else-if="props.value.history_type === '-'" :data-testid="`timeline-item-${props.value.history_title}`">Deleted</span>
     </slot>
   </v-timeline-item>
 </template>

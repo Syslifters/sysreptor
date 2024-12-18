@@ -55,8 +55,8 @@
 </template>
 
 <script setup lang="ts">
-import type { VForm } from 'vuetify/components';
 import { ProjectTypeStatusItems, useProjectTypeLockEditOptions } from "#imports";
+import type { VForm } from 'vuetify/components';
 
 const auth = useAuth();
 const projectTypeStore = useProjectTypeStore();

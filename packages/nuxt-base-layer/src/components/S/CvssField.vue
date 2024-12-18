@@ -15,7 +15,7 @@
     </div>
 
     <div class="flex-grow-0">
-      <div class="cvss-score ml-2" :class="'level-' + scoreInfo.levelNumber">
+      <div class="cvss-score ml-2" :class="'level-' + scoreInfo.levelNumber" data-testid="cvss-score">
         <div class="cvss-score-header">{{ scoreInfo.scoreFormatted }}</div>
         <div class="cvss-score-label">{{ scoreInfo.levelName }}</div>
       </div>
@@ -62,6 +62,7 @@
         <s-btn-icon
           @click="applyDialog"
           :disabled="props.disabled || props.readonly"
+          data-testid="cvss-apply"
         >
           <v-icon size="x-large">mdi-check-bold</v-icon>
           <s-tooltip activator="parent" :disabled="props.disabled || props.readonly" text="Apply" />
@@ -123,10 +124,10 @@
 </template>
 
 <script setup lang="ts">
-import { isValidVector, scoreFromVector, levelNumberFromScore, levelNameFromScore, parseVector, stringifyVector } from "@base/utils/cvss";
+import { isValidVector, levelNameFromScore, levelNumberFromScore, parseVector, scoreFromVector, stringifyVector } from "@base/utils/cvss";
+import { CvssVersion } from "@base/utils/cvss/base";
 import { CVSS31_DEFINITION } from "@base/utils/cvss/cvss3";
 import { CVSS40_DEFINITION } from "@base/utils/cvss/cvss4";
-import { CvssVersion } from "@base/utils/cvss/base";
 
 const props = defineProps<{
   modelValue: string|null;

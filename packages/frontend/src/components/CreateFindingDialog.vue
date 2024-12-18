@@ -1,10 +1,11 @@
 <template>
-  <s-dialog v-model="dialogVisible" width="60%" max-width="60%">
+  <s-dialog v-model="dialogVisible" width="60%" max-width="60%" data-testid="create-finding-dialog">
     <template #activator>
       <btn-confirm
         :action="() => dialogVisible = true"
         :confirm="false"
         :disabled="project.readonly"
+        data-testid="create-finding-button"
         button-text="Add"
         button-icon="mdi-plus"
         tooltip-text="Add Finding (Ctrl+J)"
@@ -49,10 +50,10 @@
               </template>
 
               <template #no-data v-if="templates.data.value.length === 0 && templates.hasNextPage.value">
-                <page-loader :items="templates" />
+                <page-loader :items="templates" data-testid="page-loader" />
               </template>
               <template #append-item v-if="templates.data.value.length > 0">
-                <page-loader :items="templates" />
+                <page-loader :items="templates" data-testid="page-loader" />
               </template>
             </s-combobox>
           </v-col>

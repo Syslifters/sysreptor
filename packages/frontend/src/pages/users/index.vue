@@ -19,7 +19,7 @@
       <v-list-item :to="`/users/${user.id}/`">
         <v-row>
           <v-col md="3">
-            <v-list-item-title>
+            <v-list-item-title :data-testid="'test-'+user.username">
               {{ user.username }}
               <template v-if="user.name">
                 ({{ user.name }})

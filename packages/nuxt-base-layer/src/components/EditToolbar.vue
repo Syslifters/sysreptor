@@ -12,7 +12,7 @@
         @click="performSave"
       >
         <v-badge v-if="props.data !== undefined" dot :color="hasChanges? 'error' : 'success'">
-          <v-icon icon="mdi-content-save" />
+          <v-icon icon="mdi-content-save" data-testid="save-toolbar" />
         </v-badge>
         <v-icon v-else icon="mdi-content-save" />
         <template #loader>
@@ -27,12 +27,13 @@
         <s-tooltip
           activator="parent"
           location="bottom"
+          data-testid="save-tooltip"
           :text="hasChanges ? 'Save with Ctrl+S' : 'Everything saved'"
         />
       </s-btn-icon>
 
       <s-btn-icon v-if="(showSave && props.canAutoSave) || showDelete || slots['context-menu']">
-        <v-icon icon="mdi-dots-vertical" />
+        <v-icon icon="mdi-dots-vertical" data-testid="options-dots" />
 
         <v-menu activator="parent" :close-on-content-click="false" location="bottom left" class="context-menu">
           <v-list>
@@ -92,10 +93,10 @@
 </template>
 
 <script setup lang="ts" generic="T extends { id: string, lock_info?: LockInfo|null }">
-import { debounce, cloneDeep, isEqual } from 'lodash-es';
-import type { VForm } from "vuetify/lib/components/index.mjs";
-import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
 import { type LockInfo, EditMode } from '#imports';
+import { cloneDeep, debounce, isEqual } from 'lodash-es';
+import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
+import type { VForm } from "vuetify/lib/components/index.mjs";
 
 const props = withDefaults(defineProps<{
   data?: T|null,

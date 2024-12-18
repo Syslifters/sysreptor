@@ -72,7 +72,7 @@
       size="small"
       density="comfortable"
     >
-      <v-icon icon="mdi-dots-vertical" />
+      <v-icon icon="mdi-dots-vertical"/>
       <v-tooltip activator="parent" location="top" text="More actions" />
 
       <v-menu activator="parent">
@@ -95,30 +95,30 @@
 </template>
 
 <script setup lang="ts">
+import { MarkdownEditorMode, type ReferenceItem } from '#imports';
+import { levelNumberFromLevelName } from '@base/utils/cvss';
 import {
-  type EditorView,
   type EditorState,
+  type EditorView,
   insertCodeBlock,
   insertTable,
   insertText,
+  isTaskListInSelection,
+  isTypeInSelection,
   redo,
   redoDepth,
   toggleEmphasis,
+  toggleFootnote,
   toggleLink,
   toggleListOrdered,
   toggleListUnordered,
-  toggleTaskList,
   toggleStrikethrough,
   toggleStrong,
-  toggleFootnote,
+  toggleTaskList,
   undo,
   undoDepth,
-  isTypeInSelection,
-  isTaskListInSelection,
 } from '@sysreptor/markdown/editor';
 import type { VToolbar } from 'vuetify/lib/components/index.mjs';
-import { levelNumberFromLevelName } from '@base/utils/cvss';
-import { MarkdownEditorMode, type ReferenceItem } from '#imports';
 
 const props = defineProps<{
   editorView?: EditorView|null;

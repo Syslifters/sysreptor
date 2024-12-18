@@ -17,7 +17,8 @@
         <v-btn 
           v-for="c in metric.choices" 
           :key="metric.id + '_' + c.id" 
-          :value="c.id" 
+          :value="c.id"
+          :data-testid="`cvss-metric-${metric.id}-${c.id}`" 
           size="small" 
           class="metric-btn"
         >

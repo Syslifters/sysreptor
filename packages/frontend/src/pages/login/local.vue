@@ -36,6 +36,7 @@
             <v-card-actions>
               <v-spacer />
               <s-btn-other
+                data-testid="mfa-setup-skip"
                 text="Skip"
                 @click="auth.redirect()"
               />

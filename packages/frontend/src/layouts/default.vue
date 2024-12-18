@@ -34,7 +34,9 @@
         <v-icon icon="mdi-help-circle" />
         <s-tooltip activator="parent" location="bottom" text="Documentation" />
       </s-btn-icon>
-      <user-info-menu-item />
+      <user-info-menu-item 
+      data-testid="profile-button"
+      />
     </v-app-bar>
 
     <v-navigation-drawer v-if="auth.loggedIn.value" v-bind="naviagtionDrawerProps" color="drawer" class="menu-drawer">
@@ -43,10 +45,10 @@
         <span class="license-text">{{ licenseText }}</span>
       </div>
       <v-list class="pt-0 menu-drawer-body">
-        <v-list-item to="/projects/" title="Projects" prepend-icon="mdi-file-document" :active="route.path.startsWith('/projects')" />
-        <v-list-item to="/templates/" title="Templates" prepend-icon="mdi-view-compact" :active="route.path.startsWith('/templates')" />
-        <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" :active="route.path.startsWith('/designs')" />
-        <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" :active="route.path.startsWith('/notes')" />
+        <v-list-item to="/projects/" title="Projects" prepend-icon="mdi-file-document" :active="route.path.startsWith('/projects')" data-testid="projects-tab"/>
+        <v-list-item to="/templates/" title="Templates" prepend-icon="mdi-view-compact" :active="route.path.startsWith('/templates')" data-testid="templates-tab" />
+        <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" :active="route.path.startsWith('/designs')" data-testid="design-tab"/>
+        <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" :active="route.path.startsWith('/notes')" data-testid="notes-tab" />
         
         <template v-if="pluginMenuEntries.length > 0">
           <v-list-subheader title="Plugins" class="mt-4 pa-0" />
@@ -78,6 +80,7 @@
                   :to="{path: '/users/self/admin/enable/', query: { next: route.fullPath }}"
                   :disabled="!auth.user.value!.is_superuser" 
                   density="comfortable" 
+                  data-testid="enable-superuser"
                 >
                   <v-icon size="small" icon="mdi-account-arrow-up" />
                   <s-tooltip activator="parent" text="Enable Superuser Permissions" />
@@ -89,6 +92,7 @@
           <v-list-item 
             to="/users/" 
             title="Users" 
+            data-testid="users-tab"
             prepend-icon="mdi-account-multiple" 
             :active="route.path.startsWith('/users') && !route.path.startsWith('/users/self')"
             :disabled="!auth.permissions.value.user_manager" 

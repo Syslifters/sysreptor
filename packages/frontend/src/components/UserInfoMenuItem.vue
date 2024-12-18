@@ -2,7 +2,7 @@
   <s-btn-icon>
     <v-icon icon="mdi-account" />
 
-    <v-menu activator="parent" location="bottom">
+    <v-menu activator="parent" location="bottom" data-testid="profile-menu-modal">
       <v-list>
         <v-list-item
           v-if="auth.user.value"
@@ -20,6 +20,8 @@
           to="/users/self/"
           prepend-icon="mdi-account"
           title="Profile"
+          data-testid="profile-button"
+
         />
         <template v-if="auth.loggedIn.value && apiSettings.isProfessionalLicense">
           <v-list-item

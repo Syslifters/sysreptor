@@ -11,6 +11,7 @@
     <input
       ref="fileInput"
       type="file"
+      data-testid="import-input"
       accept=".tar.gz,application/gzip"
       @change="performImport(($event.target as HTMLInputElement)?.files)"
       class="d-none"

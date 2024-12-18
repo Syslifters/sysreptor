@@ -63,6 +63,7 @@
             density="compact"
             spellcheck="false"
             class="mt-2"
+            data-testid="confirm-input"
           />
         </template>
       </v-card-text>
@@ -80,6 +81,7 @@
           @click="performAction"
           :prepend-icon="props.buttonIcon"
           :text="props.buttonText"
+          data-testid="confirm-button"
         />
       </v-card-actions>
     </template>

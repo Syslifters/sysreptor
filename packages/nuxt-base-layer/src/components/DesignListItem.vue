@@ -1,5 +1,5 @@
 <template>
-  <v-list-item :to="`/designs/${item.id}/pdfdesigner/`" :title="title" lines="two">
+  <v-list-item :to="`/designs/${item.id}/pdfdesigner/`" :title="title" lines="two" :data-testid="`design-${item.id}`">
     <v-list-item-subtitle>
       <chip-review-status v-if="item.status" :value="item.status" />
       <chip-language v-if="item.language" :value="item.language" />
@@ -9,6 +9,10 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { formatProjectTypeTitle } from '~/composables/projecttype';
+import type { ProjectType } from '~/utils/types';
+
 const props = defineProps<{
   item: ProjectType;
   formatTitle?: boolean;

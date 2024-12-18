@@ -5,6 +5,7 @@
         <template #title>Create new Project</template>
         <template #default>
           <s-btn-primary 
+            data-testid="submit-project"
             type="submit"
             text="Create"
             prepend-icon="mdi-content-save"
@@ -23,6 +24,7 @@
         v-model="projectForm.project_type" 
         :error-messages="serverErrors?.project_type || []"
         class="mt-4" 
+        data-testid="project-type"
       />
       <s-member-selection 
         v-model="projectForm.members" 

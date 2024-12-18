@@ -36,3 +36,12 @@ coverage
 
 # Unit test output
 test-reports
+test-results
+
+test/e2e/state.json
+test/e2e/demodata/
+
+
+!src/public/static/pdfviewer/dist/
+src/public/static/pdfviewer/dist/**/*
+!src/public/static/pdfviewer/dist/.gitkeep

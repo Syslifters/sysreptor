@@ -72,6 +72,7 @@
                 :ripple="false"
                 density="compact"
                 :class="'finding-level-' + riskLevel(finding)"
+                :data-testid="'finding-' + finding.title"
               >
                 <template #prepend>
                   <div v-if="sortFindingsManual" class="draggable-handle mr-2">
@@ -116,8 +117,8 @@
 </template>
 
 <script setup lang="ts">
-import Draggable from "vuedraggable";
 import { collabSubpath, ReviewStatus } from '#imports';
+import Draggable from "vuedraggable";
 
 const route = useRoute();
 const router = useRouter();

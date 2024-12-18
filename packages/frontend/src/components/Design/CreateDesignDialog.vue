@@ -14,6 +14,7 @@
         <s-project-type-selection
           v-model="currentDesign"
           label="Copy Existing Design (optional)"
+          data-testid="copy-existing-design"
           return-object
           :required="false"
           autofocus
@@ -36,6 +37,7 @@
           v-else
           @click="createEmptyDesign"
           :loading="actionInProgress"
+          data-testid="submit-design"
           text="Create Empty Design"
         />
       </v-card-actions>

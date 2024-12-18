@@ -72,8 +72,8 @@
 </template>
 
 <script setup lang="ts">
-import Draggable from "vuedraggable";
 import { collabSubpath } from '#imports';
+import Draggable from "vuedraggable";
 
 const router = useRouter();
 const auth = useAuth();

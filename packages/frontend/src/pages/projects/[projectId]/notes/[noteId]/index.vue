@@ -28,6 +28,7 @@
               @collab="notesCollab.onCollabEvent"
               :readonly="readonly"
               :spellcheck-supported="true"
+              data-testid="note-title"
               v-bind="inputFieldAttrs"
               class="note-title"
             />
@@ -88,6 +89,7 @@
         :collab="collabSubpath(notesCollab.collabProps.value, 'text')"
         @collab="notesCollab.onCollabEvent"
         :readonly="readonly"
+        data-testid="note-text"
         v-bind="inputFieldAttrs"
       />
     </template>
@@ -95,8 +97,8 @@
 </template>
 
 <script setup lang="ts">
-import { urlJoin } from "@base/utils/helpers";
 import { collabSubpath } from '#imports';
+import { urlJoin } from "@base/utils/helpers";
 
 const route = useRoute();
 const localSettings = useLocalSettings();
