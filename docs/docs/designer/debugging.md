@@ -13,7 +13,7 @@ You can view the current data structure by dumping it in the PDF.
 <pre>{{ report }}</pre>
 
 <h1>Findings</h1>
-<pre>{{ findings }}</h1>
+<pre>{{ findings }}</pre>
 ```
 
 ## CSS Debugging
