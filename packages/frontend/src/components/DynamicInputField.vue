@@ -120,6 +120,7 @@
                   v-if="props.collab?.comments"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
+                  v-show="!mobile"
                 />
               </template>
             </v-card-item>
@@ -148,6 +149,7 @@
                   v-if="props.collab?.comments"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
+                  v-show="!mobile"
                 />
                 <s-btn-icon
                   v-if="definition.items!.type === 'string'"
@@ -235,8 +237,9 @@
                           <v-icon
                             size="x-large"
                             class="draggable-handle" 
-                            :disabled="props.disabled || props.readonly"
                             icon="mdi-drag-horizontal" 
+                            :disabled="props.disabled || props.readonly"
+                            v-show="!mobile"
                           />
                           <btn-delete
                             :delete="() => emitInputList('delete', entryIdx as number)"
@@ -269,6 +272,7 @@
         <comment-btn
           v-if="props.collab?.comments && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type as any)"
           v-bind="commentBtnAttrs"
+          v-show="!mobile"
         />
       </div>
     </template>
@@ -307,6 +311,10 @@ const emit = defineEmits<{
   'update:spellcheckEnabled': [value: boolean];
   'update:markdownEditorMode': [value: MarkdownEditorMode];
 }>();
+
+
+const { mobile } = useDisplay();
+
 
 function getInitialValue(fieldDef: FieldDefinition, useDefault = true): any {
   if (fieldDef.default && useDefault) {
