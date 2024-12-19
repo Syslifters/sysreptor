@@ -31,7 +31,7 @@ fi
 if
     test 0 -eq "$docker"
 then
-    echo "Follow the installation instructions at https://docs.docker.com/engine/install/ubuntu/"
+    echo 'Install Docker, e.g., using "curl -fsSL https://get.docker.com | sudo bash"'
     exit -1
 fi
 if

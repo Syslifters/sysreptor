@@ -4,12 +4,12 @@
 The functionality of SysReptor can be extended by plugins. 
 Plugins can hook into the SysReptor core and provide additional features both in the API and the web UI.
 
-All plugins are disabled by default. To enable a plugin, add it to the [`ENABLED_PLUGINS`](./configuration.md#plugins) setting.
+All plugins are disabled by default. To enable a plugin, add the [`ENABLED_PLUGINS`](./configuration.md#plugins) variable to your app.env (e.g., `ENABLED_PLUGINS=cyberchef,checkthehash`) and restart your container (`docker compose up -d` from the `deploy` directory).
 
 
 ## Official Plugins
 
-Official plugins are maintained by the SysReptor team and are included in official docker images.
+Official plugins are maintained by us and are shipped with our official docker images.
 
 | Plugin | Description |     |
 | ------ | ----------- | --- |

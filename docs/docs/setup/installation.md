@@ -2,9 +2,10 @@
 ### Server
 :octicons-server-24: Self-Hosted
 
-* Ubuntu
-* 4GB RAM
-* Latest [Docker](https://docs.docker.com/engine/install/ubuntu/){ target=_blank } (with docker-compose-plugin)
+* Ubuntu[^1]
+* 8GB RAM
+
+[^1]: It may also run on [Kali](https://emvee-nl.github.io/posts/SysReptor/){ target=_blank }, [MacOS](https://alive-club-f8d.notion.site/Sysreptor-Install-M2-Studio-12e1fd44f31080a28acae6de346c6a30){ target=_blank }, RHEL, and more as long as you take care of all dependencies. Our install and update procedures, however, focus on Ubuntu.
 
 ### Client
 :octicons-cloud-24: Cloud · :octicons-server-24: Self-Hosted
@@ -22,12 +23,17 @@
 
 === "Easy Script Installation"
     
-    Installation via script is the easiest option. You need (official) [Docker](https://docs.docker.com/engine/install/ubuntu/){ target=_blank }  installed.
+    Installation via script is the easiest option.
 
-    Install additional requirements:
+    Install additonal requirements:
     ```shell
     sudo apt update
     sudo apt install -y sed curl openssl uuid-runtime coreutils
+    ```
+
+    Install Docker:
+    ```shell
+    curl -fsSL https://get.docker.com | sudo bash
     ```
 
     The user running the installation script must have the permission to use docker.  
@@ -42,7 +48,10 @@
 
 === "Manual Installation"
 
-    You need (official) [Docker](https://docs.docker.com/engine/install/ubuntu/){ target=_blank }  installed.
+    Install Docker:
+    ```shell
+    curl -fsSL https://get.docker.com | sudo bash
+    ```
 
     Download and extract the latest SysReptor setup files:
     ```shell

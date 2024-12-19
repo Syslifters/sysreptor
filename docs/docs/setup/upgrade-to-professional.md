@@ -11,5 +11,5 @@
      - sysreptor/docker-compose.yml
      - languagetool/docker-compose.yml
    ```
-3. `cd` to `deploy/` and run `docker compose up -d`
+3. `cd` to `deploy` and run `docker compose up -d`
 4. Enjoy

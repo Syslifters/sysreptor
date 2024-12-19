@@ -197,7 +197,7 @@ GUEST_USERS_CAN_SEE_ALL_USERS=False
 ```
 
 ### S3 Storage
-Uploaded files and images can be stored in an S3 bucket. Files are stored on the filesystem in a docker volume by default. If data at rest encryption is configured files are encrypted (~~except images~~, images are also encrypted).
+Uploaded files and images can be stored in an S3 bucket. Files are stored on the filesystem in a docker volume by default. If data at rest encryption is configured, all uploaded files (incl. images) are encrypted.
 
 `DEFAULT_S3_*` settings to apply to all file storages. It is possible to configure different settings per storage.
 
@@ -257,7 +257,7 @@ ARCHIVED_FILE_LOCATION="archivedfiles"
 ### Backup Key
 <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
 
-API key used for creating backups via REST API. The key should be random and must have 20 or more characters. Find more information at https://docs.sysreptor.com/backups/.  
+The backup key is used for creating backups via the [web interface](backups.md#create-backups-via-web-interface) or the [REST API](backups.md#create-backups-via-api). The key should be random and must have 20 or more characters.  
 Make sure this key remains secret.
 
 ``` title="Generate random backup key:"

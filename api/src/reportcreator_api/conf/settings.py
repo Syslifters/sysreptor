@@ -629,7 +629,7 @@ HEALTH_CHECKS = {
 # Notifications
 VERSION = config('VERSION', default='dev')
 INSTANCE_TAGS = config('INSTANCE_TAGS', cast=Csv(delimiter=';', post_process=remove_empty_items), default='on-premise')
-NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://cloud.sysreptor.com/api/v1/notifications/')
+NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://portal.sysreptor.com/api/v1/notifications/')
 
 # License
 LICENSE = config('LICENSE', default=None)
