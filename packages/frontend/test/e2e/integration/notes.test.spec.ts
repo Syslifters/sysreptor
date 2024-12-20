@@ -34,7 +34,6 @@ test('A User can create, write and delete a Note', async ({ page }) => {
 });
 
 
-
 // test('ffasf', async ({ page }) => {
 //   await page.goto('/projects');
 //   await page.getByTestId('profile-button').click();
