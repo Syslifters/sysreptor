@@ -1,5 +1,5 @@
 <template>
-  <full-height-page class="mde">
+  <full-height-page class="mde" @click="focus()">
     <template #header>
       <markdown-toolbar v-if="editorView" v-bind="markdownToolbarAttrs" />
     </template>
