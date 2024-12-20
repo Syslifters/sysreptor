@@ -12,7 +12,7 @@ async function globalSetup(config: FullConfig) {
   const page = await browser.newPage();
   await integrationLogin(page, baseURL);
   await integrationSuperuser(page);
-  await selfPromotion(page, baseURL);
+  await selfPromotion(page);
   await downloadDemoData(page);
   await importDemoData(page);
   // Let the demo data import...

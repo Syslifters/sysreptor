@@ -1,6 +1,4 @@
-import { type FullConfig } from '@playwright/test';
-
-async function globalTeardown(config: FullConfig) {
+async function globalTeardown() {
 }
 
 export default globalTeardown;
