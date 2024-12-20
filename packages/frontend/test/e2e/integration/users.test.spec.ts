@@ -25,7 +25,7 @@ test('A Admin User can create a new User', async ({ page }) => {
   expect(await page.isVisible(`text=${userUsername}`)).toBeTruthy();
 });
 
-test('A created User can login', async ({ page }) => {
+test('A created User can login', async () => {
   const browser = await chromium.launch();
   // create temporary storage state (so we can login as the user and not loose the admin session)
   fs.writeFileSync('../state2.json', "{}");

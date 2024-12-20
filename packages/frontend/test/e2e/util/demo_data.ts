@@ -10,8 +10,7 @@ export class DemoDataState {
   designs: string[];
   templates: string[];
 
-  // Add an Id to the correct array
-  // and save json file
+  // Add an id to the list of ids for a given type
   addId(type: DemoDataType, id: string | undefined) {
     if (!id) {
       return;
@@ -19,17 +18,17 @@ export class DemoDataState {
     switch (type) {
       case DemoDataType.Project:
         this.projects.push(id);
+        fs.writeFileSync('/app/packages/frontend/test/e2e/demodata/projects.json', JSON.stringify(this.projects), 'utf8');
         break;
       case DemoDataType.Design:
         this.designs.push(id);
+        fs.writeFileSync('/app/packages/frontend/test/e2e/demodata/designs.json', JSON.stringify(this.designs), 'utf8');
         break;
       case DemoDataType.Template:
         this.templates.push(id);
+        fs.writeFileSync('/app/packages/frontend/test/e2e/demodata/templates.json', JSON.stringify(this.templates), 'utf8');
         break;
     };
-    fs.writeFileSync('/app/packages/frontend/test/e2e/demodata/projects.json', JSON.stringify(this.projects), 'utf8');
-    fs.writeFileSync('/app/packages/frontend/test/e2e/demodata/designs.json', JSON.stringify(this.designs), 'utf8');
-    fs.writeFileSync('/app/packages/frontend/test/e2e/demodata/templates.json', JSON.stringify(this.templates), 'utf8');
   }
 
   constructor() {
