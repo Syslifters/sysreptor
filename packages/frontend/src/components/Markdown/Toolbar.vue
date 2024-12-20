@@ -231,11 +231,13 @@ function getScrollParent(node?: HTMLElement|null) {
   }
 }
 async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
-  const scrollParent = getScrollParent(toolbarRef.value!.$el);
+  const scrollParent = getScrollParent(toolbarRef.value!.$el.parentElement);
   const { y: prevTop } = toolbarRef.value!.$el.getBoundingClientRect();
 
   // Update editor mode => changes view and potentially causes layout jump
   emit('update:markdownEditorMode', mode);
+  // Wait until CodeMirror is updated
+  await nextTick();
   await nextTick();
 
   // Restore position, such the toolbar is at the same position
