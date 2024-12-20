@@ -24,7 +24,6 @@
 </template>
 
 <script setup lang="ts">
-import type { ProjectTypeStatus, ReviewStatus } from "#imports";
 import { VSelect } from "vuetify/lib/components/index.mjs";
 import { type ReviewStatus, ReviewStatusItems, type ProjectTypeStatus, type ProjectTypeStatusItems } from "#imports";
 
