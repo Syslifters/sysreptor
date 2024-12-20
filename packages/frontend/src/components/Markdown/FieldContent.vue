@@ -13,7 +13,6 @@
           ref="editorRef"
           v-intersect="onIntersect"
           class="mde-editor"
-          :class="{'mde-editor-side': props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW}"
         />
       </v-col>
       <v-col 

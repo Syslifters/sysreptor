@@ -13,7 +13,7 @@
       <input ref="fileInput" type="file" multiple @change="e => onUploadFiles(e as InputEvent)" @click.stop :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
     </div>
     <v-spacer />
-    <div class="status-items">
+    <div class="status-items" v-if="!mobile">
       <span>lines: {{ lineCount }}</span>
       <span>words: {{ wordCount }}</span>
       <span>{{ currentLineNumber }}:{{ currentColNumber }}</span>
@@ -30,6 +30,8 @@ const props = defineProps<{
   fileUploadInProgress?: boolean;
   disabled?: boolean;
 }>();
+
+const { mobile } = useDisplay();
 
 const currentLineNumber = computed(() => props.editorState.doc.lineAt(props.editorState.selection.main.head).number);
 const currentColNumber = computed(() => {
@@ -74,6 +76,7 @@ async function onUploadFiles(event: InputEvent) {
   font-size: smaller;
   padding: 0.3em 1em;
   color: #959694;
+  overflow: hidden;
 
   .status-items {
     span {

@@ -10,8 +10,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { formatProjectTypeTitle } from '~/composables/projecttype';
-import type { ProjectType } from '~/utils/types';
+import { formatProjectTypeTitle } from '@base/composables/projecttype';
+import type { ProjectType } from '@base/utils/types';
 
 const props = defineProps<{
   item: ProjectType;

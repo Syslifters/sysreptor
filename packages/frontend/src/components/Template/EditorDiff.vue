@@ -164,12 +164,6 @@ function languageInfo(languageCode: string) {
 }
 
 const markdownEditorMode = ref(MarkdownEditorMode.MARKDOWN);
-watch(markdownEditorMode, (val) => { 
-  if (val === MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
-    markdownEditorMode.value = MarkdownEditorMode.PREVIEW;
-  }
-});
-
 const diffFieldAttrs = computed(() => (translationInfo: TranslationDiffInfo, definition: FieldDefinition) => {
   const commonProps = {
     definition,

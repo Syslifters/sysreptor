@@ -412,6 +412,14 @@ export function useMarkdownEditorBase(options: {
   });
   watch(spellcheckBrowserEnabled, val => editorActions.value.spellcheckBrowser?.(val));
   watch(theme.current, val => editorActions.value.darkTheme?.(val.dark));
+  watch(() => options.props.value.markdownEditorMode, async () => {
+    if (options.editorView.value) {
+      // Wait until container width is updated in DOM
+      await nextTick();
+      // Immediately update CodeMirror layout
+      (options.editorView.value as any)?.measure?.();
+    }
+  });
 
   watch([() => options.props.value.collab, () => options.editorView.value], (valueNew, valueOld) => {
     if (!options.editorView.value || !options.props.value.collab || isEqual(valueNew, valueOld)) {

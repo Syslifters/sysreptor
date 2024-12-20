@@ -71,6 +71,10 @@ export function useMarkdownDiff(options: {
     },
     fileUploadSupported: false,
   });
+  const markdownToolbarAttrs = computed(() => ({
+    ...mdBaseCurrent.markdownToolbarAttrs.value,
+    hideSplitMode: true,
+  }));
 
   function initializeMergeView() {
     mergeView.value = new MergeView({
@@ -97,7 +101,7 @@ export function useMarkdownDiff(options: {
 
   return {
     mergeView,
-    markdownToolbarAttrs: mdBaseCurrent.markdownToolbarAttrs,
+    markdownToolbarAttrs,
     markdownPreviewAttrsHistoric: mdBaseHistoric.markdownPreviewAttrs,
     markdownPreviewAttrsCurrent: mdBaseCurrent.markdownPreviewAttrs,
   }
@@ -174,12 +178,6 @@ export async function useProjectHistory<T>(options: {
   const dataCurrent = computedThrottled<T|null>(() => get(collab.data.value, trim(options.subresourceUrlPart.replaceAll('/', '.'), '.')) || null, { throttle: 500 });
 
   const markdownEditorMode = ref(MarkdownEditorMode.MARKDOWN);
-  watch(markdownEditorMode, (val) => {
-    // Skip side-by-side view. There is not much space for it.
-    if (val === MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
-      markdownEditorMode.value = MarkdownEditorMode.PREVIEW;
-    }
-  });
   const spellcheckEnabled = options.spellcheckEnabled || ref(false);
 
   const projectEditBaseHistoric = useProjectEditBase({

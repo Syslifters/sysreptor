@@ -17,14 +17,15 @@
       </v-list-item>
     </template>
     <template #selection="{item: { raw: statusInfo }}">
-      <v-icon start :class="'status-' + statusInfo.value" :icon="statusInfo.icon" :data-testid="'status-' +  statusInfo" /> {{ statusInfo.title }}
+      <v-icon start :class="'status-' + statusInfo.value" :icon="statusInfo.icon" :data-testid="'status-' +  statusInfo" /> 
+      {{ statusInfo.title }}
     </template>
   </v-select>
 </template>
 
 <script setup lang="ts">
-import type { ProjectTypeStatus, ReviewStatus } from "#imports";
 import { VSelect } from "vuetify/lib/components/index.mjs";
+import { type ReviewStatus, ReviewStatusItems, type ProjectTypeStatus, type ProjectTypeStatusItems } from "#imports";
 
 const props = withDefaults(defineProps<{
   modelValue?: ReviewStatus|ProjectTypeStatus|null;
@@ -44,6 +45,11 @@ const emit = defineEmits<{
 
 <style lang="scss" scoped>
 @use "@base/assets/settings" as settings;
+
+:deep(.v-select__selection) {
+  overflow: hidden;
+}
+
 
 .status-finished {
   color: settings.$status-color-finished !important;
