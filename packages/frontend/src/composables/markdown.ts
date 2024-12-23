@@ -255,7 +255,7 @@ export function useMarkdownEditorBase(options: {
         keymap.of([
           ...defaultKeymap, 
           ...historyKeymap,
-          { key: 'Ctrl-Alt-m', stopPropagation: true, run: createCommentShortcut },
+          { key: 'Ctrl-Alt-m', stopPropagation: true, preventDefault: true, run: createCommentShortcut },
         ]),
         tooltips({ parent: document.body }),
         EditorView.domEventHandlers({
