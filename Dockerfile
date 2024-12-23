@@ -2,7 +2,7 @@
 ARG TESTED_API_IMAGE=undefined_test_image_used_in_ci
 ARG PROD_API_IMAGE=undefined_prod_image_used_in_ci
 
-FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS frontend-dev
+FROM --platform=$BUILDPLATFORM node:22-alpine3.20 AS frontend-dev
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 # Install curl
 RUN apk add --no-cache curl

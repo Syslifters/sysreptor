@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { Page } from '@playwright/test';
 import FormData from 'form-data';
 import fs from 'fs';
@@ -39,7 +40,7 @@ const importFile = async (url: string, filePath: string, headers: any) => {
   }
 };
 
-export const downloadDemoData = async (page: Page) => {
+export const downloadDemoData = async () => {
   const urls = [
     'https://docs.sysreptor.com/assets/demo-projects.tar.gz',
     'https://docs.sysreptor.com/assets/demo-designs.tar.gz',
