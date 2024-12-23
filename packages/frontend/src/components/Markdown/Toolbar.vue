@@ -1,6 +1,6 @@
 <template>
   <v-toolbar ref="toolbarRef" density="compact" flat class="toolbar">
-    <template v-if="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW && mdAndUp">
+    <template v-if="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW && smAndUp">
       <markdown-toolbar-button @click="codemirrorAction(toggleStrong)" title="Bold (Ctrl+B)" icon="mdi-format-bold" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strong')" />
       <markdown-toolbar-button @click="codemirrorAction(toggleEmphasis)" title="Italic (Ctrl+I)" icon="mdi-format-italic" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'emphasis')" />
       <markdown-toolbar-button @click="codemirrorAction(toggleStrikethrough)" title="Strikethrough" icon="mdi-format-strikethrough" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strikethrough')" />
@@ -97,6 +97,7 @@
       variant="plain"
       rounded="0"
       class="toggle-mdemode"
+      :class="{ 'toggle-mdemode-icononly': sm }"
     >
       <v-btn
         :value="MarkdownEditorMode.MARKDOWN"
@@ -166,7 +167,7 @@ const emit = defineEmits<{
 
 const apiSettings = useApiSettings();
 const slots = useSlots();
-const { mdAndUp, lgAndUp } = useDisplay();
+const { smAndUp, sm, lgAndUp } = useDisplay();
 
 const hasSplitMode = computed(() => !props.hideSplitMode && lgAndUp.value);
 watch(hasSplitMode, () => {
@@ -329,5 +330,14 @@ function emitCreateComment() {
       opacity: 0;
     }
   }
+
+  &-icononly:deep() {
+    .v-btn__content {
+      display: none;
+    }
+    .v-btn__prepend {
+      margin: 0;
+    }
+  } 
 }
 </style>
