@@ -6,7 +6,7 @@ authors = []
 packages = [{include = "reportcreator_api", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "~3.12"
+python = "^3.12"
 django = { extras = ["argon2"], version = "~5.1" }
 djangorestframework = "~3.15.0"
 weasyprint = "~63.1"
@@ -22,7 +22,7 @@ adrf = "^0.1.6"
 
 psycopg = { extras = ["binary", "pool"], version = "^3.1.8" }
 gunicorn = "^23.0.0"
-uvicorn = { extras = ["standard"], version = "^0.32.0" }
+uvicorn = { extras = ["standard"], version = "^0.34.0" }
 whitenoise = "^6.4.0"
 brotli = "^1.0.9"
 channels = { "extras" = ["daphne"], version = "^4.1.0" }
@@ -55,7 +55,7 @@ django-debug-toolbar = "^4.4.5"
 debugpy = "^1.6.7"
 watchdog = "^6.0.0"
 pytest-django = "^4.5.2"
-pytest-asyncio = "^0.24.0"
+pytest-asyncio = "^0.25.0"
 pytest-xdist = "^3.2.1"
 pytest-cov = "^6.0.0"
 elastic-apm = "^6.20.0"

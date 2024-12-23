@@ -140,7 +140,7 @@ ENV PYTHONUNBUFFERED=on \
 
 WORKDIR /app/api/
 COPY api/pyproject.toml api/poetry.lock /app/api/
-RUN pip install --no-cache poetry==1.8.3 && \
+RUN pip install --no-cache poetry==1.8.5 && \
     poetry config virtualenvs.create false && \
     poetry install --no-cache --no-interaction --no-root
 
