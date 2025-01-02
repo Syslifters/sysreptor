@@ -2,7 +2,7 @@
 ARG TESTED_API_IMAGE=undefined_test_image_used_in_ci
 ARG PROD_API_IMAGE=undefined_prod_image_used_in_ci
 
-FROM --platform=$BUILDPLATFORM node:20-alpine3.19 AS frontend-dev
+FROM --platform=$BUILDPLATFORM node:22-alpine3.20 AS frontend-dev
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 # Install curl
 RUN apk add --no-cache curl
@@ -140,7 +140,7 @@ ENV PYTHONUNBUFFERED=on \
 
 WORKDIR /app/api/
 COPY api/pyproject.toml api/poetry.lock /app/api/
-RUN pip install --no-cache poetry==1.8.3 && \
+RUN pip install --no-cache poetry==1.8.5 && \
     poetry config virtualenvs.create false && \
     poetry install --no-cache --no-interaction --no-root
 

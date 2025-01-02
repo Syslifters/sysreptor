@@ -7,8 +7,6 @@
     "dependencies": "npm run generate-notice"
   },
   "devDependencies": {
-    "form-data": "^4.0.1",
-    "node-fetch": "^3.3.2",
     "license-checker-rseidelsohn": "^4.4.2",
     "typescript": "~5.6.3"
   }

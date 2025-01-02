@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 # Add custom CA certificates
 if [[ -n "$CA_CERTIFICATES" ]]; then
     echo "${CA_CERTIFICATES}" >> /usr/local/share/ca-certificates/custom-user-cert.crt

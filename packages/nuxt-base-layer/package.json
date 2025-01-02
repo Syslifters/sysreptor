@@ -34,7 +34,7 @@
     "nuxt": "~3.14",
     "vuetify": "~3.7",
     
-    "@types/node": "^20",
+    "@types/node": "^22",
     "@types/uuid": "^10.0.0",
     "@types/zxcvbn": "^4.4.2",
     "@types/lodash-es": "^4.17.12",
