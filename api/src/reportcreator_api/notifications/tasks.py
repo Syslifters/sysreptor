@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import timedelta
 
 import httpx
@@ -7,7 +8,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 
 from reportcreator_api.notifications.serializers import NotificationSpecSerializer
-from reportcreator_api.tasks.models import periodic_task
+from reportcreator_api.tasks.models import TaskStatus, periodic_task
 from reportcreator_api.utils import license
 
 
@@ -31,8 +32,13 @@ async def fetch_notifications(task_info):
     if not settings.NOTIFICATION_IMPORT_URL:
         return
 
-    data = await fetch_notifications_request()
-    serializer = NotificationSpecSerializer(data=data, many=True)
-    serializer.is_valid(raise_exception=True)
-    await sync_to_async(serializer.save)()
+    try:
+        data = await fetch_notifications_request()
+        serializer = NotificationSpecSerializer(data=data, many=True)
+        serializer.is_valid(raise_exception=True)
+        await sync_to_async(serializer.save)()
+        return TaskStatus.SUCCESS
+    except httpx.TransportError as ex:
+        logging.warning(f'Failed to fetch notifications: {ex}. Check your internet connection.')
+        return TaskStatus.FAILED
 

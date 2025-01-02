@@ -61,7 +61,7 @@ periodic_task_registry = PeriodicTaskRegistry()
 
 def periodic_task(schedule: timedelta, id: str|None = None):
     def inner(func):
-        periodic_task_registry.register( PeriodicTaskSpec(
+        periodic_task_registry.register(PeriodicTaskSpec(
             id=id or f'{func.__module__}.{func.__name__}',
             schedule=schedule,
             func=func,
