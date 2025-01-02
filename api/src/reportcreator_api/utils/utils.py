@@ -1,9 +1,12 @@
 import asyncio
+import logging
 import uuid
 from datetime import date
 from itertools import groupby
 from typing import Any, Iterable, OrderedDict
 
+from asgiref.sync import sync_to_async
+from django.db import close_old_connections, connections
 from django.utils import dateparse, timezone
 
 
@@ -137,8 +140,22 @@ def groupby_to_dict(data: dict, key) -> dict:
 
 
 _background_tasks = set()
-def run_in_background(coro):
-    task = asyncio.create_task(coro)
-    _background_tasks.add(task)
-    task.add_done_callback(_background_tasks.discard)
+def run_in_background(func):
+    def inner(*args, **kwargs):
+        @sync_to_async()
+        def task_finished():
+            if not connections['default'].in_atomic_block:
+                close_old_connections()
 
+        async def wrapper():
+            try:
+                await func(*args, **kwargs)
+            except Exception:
+                logging.exception(f'Error while running run_in_background({func.__name__})')
+            finally:
+                await task_finished()
+
+        task = asyncio.create_task(wrapper())
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
+    return inner

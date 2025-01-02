@@ -63,16 +63,19 @@ class PeriodicTaskManager(models.Manager.from_queryset(PeriodicTaskQuerySet)):
         try:
             async with elasticapm.async_capture_span(task_info.id):
                 if iscoroutinefunction(task_info.spec.func):
-                    await task_info.spec.func(task_info)
+                    res = await task_info.spec.func(task_info)
                 else:
-                    await sync_to_async(task_info.spec.func)(task_info)
-            task_info.model.status = TaskStatus.SUCCESS
-            task_info.model.last_success = timezone.now()
-            task_info.model.completed = task_info.model.last_success
+                    res = await sync_to_async(task_info.spec.func)(task_info)
+            task_info.model.status = res if isinstance(res, TaskStatus) else TaskStatus.SUCCESS
         except Exception:
             logging.exception(f'Error while running periodic task "{task_info.id}"')
             task_info.model.status = TaskStatus.FAILED
-            task_info.model.completed = timezone.now()
+
+        # Set completed time
+        task_info.model.completed = timezone.now()
+        if task_info.model.status == TaskStatus.SUCCESS:
+            task_info.model.last_success = task_info.model.completed
+
         log.info(f'Completed periodic task "{task_info.id}" with status "{task_info.model.status}"')
 
         await task_info.model.asave()

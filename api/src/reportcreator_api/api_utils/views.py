@@ -215,7 +215,7 @@ class HealthcheckApiView(APIViewAsync):
 
         if res.status_code == 200:
             # Run periodic tasks
-            run_in_background(PeriodicTask.objects.run_all_pending_tasks())
+            run_in_background(PeriodicTask.objects.run_all_pending_tasks)()
 
             # Memory cleanup of worker process
             gc.collect()
