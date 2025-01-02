@@ -7567,7 +7567,7 @@ MIT
 MIT
 
 
-@playwright/test 1.49.0
+@playwright/test 1.49.1
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004
@@ -8493,6 +8493,13 @@ MIT
 # `@rollup/rollup-linux-x64-gnu`
 
 This is the **x86_64-unknown-linux-gnu** binary for `rollup`
+
+
+@rollup/rollup-linux-x64-musl 4.29.1
+MIT
+# `@rollup/rollup-linux-x64-musl`
+
+This is the **x86_64-unknown-linux-musl** binary for `rollup`
 
 
 @sindresorhus/merge-streams 2.3.0
@@ -34312,7 +34319,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-playwright-core 1.49.0
+playwright-core 1.49.1
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004
@@ -34518,7 +34525,7 @@ Apache-2.0
    limitations under the License.
 
 
-playwright 1.49.0
+playwright 1.49.1
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004

@@ -31,7 +31,6 @@ services:
     image: mcr.microsoft.com/playwright:v1.49.0-noble
     working_dir: /app/packages/frontend/
     environment:
-      DEBUG: pw:browser
       # DISPLAY: :0 # for running with --ui in WSL 2 with XServer
       FRONTEND_ADMIN_USER: "reptor"
     env_file: ../deploy/app.env
