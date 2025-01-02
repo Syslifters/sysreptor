@@ -66,7 +66,7 @@ class PeriodicTaskManager(models.Manager.from_queryset(PeriodicTaskQuerySet)):
                     res = await task_info.spec.func(task_info)
                 else:
                     res = await sync_to_async(task_info.spec.func)(task_info)
-            task_info.model.status = res or TaskStatus.SUCCESS
+            task_info.model.status = res if isinstance(res, TaskStatus) else TaskStatus.SUCCESS
         except Exception:
             logging.exception(f'Error while running periodic task "{task_info.id}"')
             task_info.model.status = TaskStatus.FAILED
@@ -74,7 +74,7 @@ class PeriodicTaskManager(models.Manager.from_queryset(PeriodicTaskQuerySet)):
         # Set completed time
         task_info.model.completed = timezone.now()
         if task_info.model.status == TaskStatus.SUCCESS:
-            task_info.model.completed = task_info.model.last_success
+            task_info.model.last_success = task_info.model.completed
 
         log.info(f'Completed periodic task "{task_info.id}" with status "{task_info.model.status}"')
 

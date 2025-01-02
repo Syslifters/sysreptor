@@ -43,5 +43,5 @@ async def send_webhooks(event_type: WebhookEventType, data):
 
     webhooks_to_send = list(filter(lambda w: event_type in w.get('events', []), webhook_settings))
     if webhooks_to_send:
-        run_in_background(send_webhook_requests(data | {'event': event_type.value}, webhooks_to_send))
+        run_in_background(send_webhook_requests)(data | {'event': event_type.value}, webhooks_to_send)
 

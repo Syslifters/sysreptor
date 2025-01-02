@@ -38,11 +38,11 @@ async def weasyprint_start_process():
 
 @log_timing(log_start=True)
 async def weasyprint_render_to_pdf(proc, **kwargs) -> RenderStageResult:
-    @sync_to_async
+    @sync_to_async()
     def encode_data():
         return json.dumps(kwargs, cls=DjangoJSONEncoder).encode()
 
-    @sync_to_async
+    @sync_to_async()
     def decode_data(stdout):
         return RenderStageResult.from_dict(json.loads(stdout.decode()))
 

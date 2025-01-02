@@ -63,7 +63,7 @@ class TestDemoPluginApi:
 class TestDemoPluginWebsocketConsumer:
     @pytest_asyncio.fixture(autouse=True)
     async def setUp(self):
-        @sync_to_async
+        @sync_to_async()
         def setup_db():
             self.user1 = create_user()
             self.user2 = create_user()
