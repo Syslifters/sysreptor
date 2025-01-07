@@ -23,7 +23,7 @@ mermaid.initialize({
 <script setup lang="ts">
 const props = defineProps<{
   value?: string|null;
-  rewriteFileUrl?: (fileSrc: string) => string;
+  rewriteFileUrlMap?: Record<string, string>;
   referenceItems?: ReferenceItem[];
   cacheBuster?: string;
 }>();
@@ -37,21 +37,12 @@ watchThrottled(() => props.value, async () => {
   renderedMarkdown.value = await renderMarkdownToHtmlInWorker({
     text: mdText,
     preview: true,
-    rewriteFileSource,
     referenceItems: props.referenceItems,
+    rewriteFileUrlMap: props.rewriteFileUrlMap,
+    cacheBuster: cacheBuster.value,
   });
   renderedMarkdownText.value = mdText;
 }, { throttle: 500, leading: true, immediate: true });
-
-function rewriteFileSource(imgSrc: string) {
-  // Rewrite image source to handle image fetching from markdown.
-  // Images in markdown are referenced with a URL relative to the parent resource (e.g. "/images/name/image.png").
-  if (!props.rewriteFileUrl || !imgSrc.startsWith('/')) {
-    return imgSrc;
-  }
-
-  return absoluteApiUrl(props.rewriteFileUrl(`${imgSrc}?c=${cacheBuster.value}`));
-}
 
 const previewRef = ref<HTMLDivElement>();
 async function postProcessRenderedHtml() {

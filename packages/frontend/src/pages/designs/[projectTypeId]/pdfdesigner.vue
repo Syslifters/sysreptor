@@ -67,7 +67,7 @@
                 v-model="projectType.report_preview_data"
                 :project-type="projectType"
                 :upload-file="uploadFile"
-                :rewrite-file-url="rewriteFileUrl"
+                :rewrite-file-url-map="rewriteFileUrlMap"
                 :readonly="readonly"
               />
             </v-window-item>
@@ -115,7 +115,6 @@
 </template>
 
 <script setup lang="ts">
-import { urlJoin } from "@base/utils/helpers";
 import { initialCss } from '~/components/Design/designer-components';
 import { formatProjectTypeTitle, uploadFileHelper, PdfDesignerTab } from "#imports";
 
@@ -153,9 +152,9 @@ async function uploadFile(file: File) {
   const img = await uploadFileHelper<UploadedFileInfo>(`/api/v1/projecttypes/${projectType.value.id}/assets/`, file);
   return `![](/assets/name/${img.name}){width="auto"}`;
 }
-function rewriteFileUrl(imgSrc: string) {
-  return urlJoin(`/api/v1/projecttypes/${projectType.value.id}/`, imgSrc);
-}
+const rewriteFileUrlMap = computed(() => ({
+  '/assets/': `/api/v1/projecttypes/${projectType.value.id}/assets/`,
+}));
 
 const showStartDialog = ref(!projectType.value.report_template && !projectType.value.report_styles && !readonly.value);
 function startDesigning() {

@@ -35,7 +35,6 @@ export function rehypeReferenceLinkPreview({ referenceItems = undefined }) {
 
         let refPreview = null;
         // Known reference target (e.g. other finding)
-        // TODO: refactor
         if (!refPreview && referenceItems) {
           refPreview = referenceItems.find(item => item.id === refId);
         }
@@ -46,12 +45,12 @@ export function rehypeReferenceLinkPreview({ referenceItems = undefined }) {
               refTargets[refId].parent.tagName === 'figure' && 
               refTargets[refId].parent.children.some(cn => cn.tagName === 'figcaption')) {
             refPreview = {
-              title: `[Figure #${refId}]`,
+              label: `[Figure #${refId}]`,
             };
           }
           if (refTargets[refId].node.tagName === 'caption') {
             refPreview = {
-              title: `[Table #${refId}]`,
+              label: `[Table #${refId}]`,
             };
           }
         }
@@ -59,7 +58,7 @@ export function rehypeReferenceLinkPreview({ referenceItems = undefined }) {
         // Unknown reference target
         if (!refPreview) {
           refPreview = {
-            title: `[Reference to #${refId}]`,
+            label: `[Reference to #${refId}]`,
           };
         }
 
@@ -68,8 +67,8 @@ export function rehypeReferenceLinkPreview({ referenceItems = undefined }) {
         if (refPreview.href) {
           node.properties.href = refPreview.href;
         }
-        if (refPreview.title && node.children.length === 0) {
-          node.children.push({type: 'text', value: refPreview.title});
+        if (refPreview.label && node.children.length === 0) {
+          node.children.push({type: 'text', value: refPreview.label});
         }
       }
     }

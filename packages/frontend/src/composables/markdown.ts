@@ -43,7 +43,7 @@ export type MarkdownProps = {
   referenceItems?: ReferenceItem[];
   collab?: CollabPropType;
   uploadFile?: (file: File) => Promise<string>;
-  rewriteFileUrl?: (fileSrc: string) => string;
+  rewriteFileUrlMap?: Record<string, string>;
 }
 
 export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean } = { spellcheckSupportedDefault: true }) {
@@ -80,16 +80,16 @@ export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean
       type: Array as PropType<ReferenceItem[]>,
       default: undefined,
     },
+    rewriteFileUrlMap: {
+      type: Object as PropType<MarkdownProps['rewriteFileUrlMap']>,
+      default: undefined,
+    },
     collab: {
       type: Object as PropType<CollabPropType>,
       default: undefined,
     },
     uploadFile: {
       type: Function as PropType<MarkdownProps['uploadFile']>,
-      default: undefined,
-    },
-    rewriteFileUrl: {
-      type: Function as PropType<MarkdownProps['rewriteFileUrl']>,
       default: undefined,
     },
   }
@@ -494,8 +494,8 @@ export function useMarkdownEditorBase(options: {
   }));
   const markdownPreviewAttrs = computed(() => ({
     value: editorState.value?.doc.toString() ?? options.props.value.modelValue,
-    rewriteFileUrl: options.props.value.rewriteFileUrl,
     referenceItems: options.props.value.referenceItems,
+    rewriteFileUrlMap: options.props.value.rewriteFileUrlMap,
     cacheBuster: previewCacheBuster,
   }));
 

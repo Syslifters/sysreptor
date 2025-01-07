@@ -199,7 +199,7 @@ const emit = defineEmits<{
 const localSettings = useLocalSettings();
 
 const markdownProps = computed(() => ({
-  ...pick(props, ['disabled', 'lang', 'uploadFile', 'rewriteFileUrl', 'referenceItems']),
+  ...pick(props, ['disabled', 'lang', 'uploadFile', 'rewriteFileUrlMap', 'referenceItems']),
   spellcheckEnabled: localSettings.designSpellcheckEnabled,
   'onUpdate:spellcheckEnabled': (value: boolean) => { localSettings.designSpellcheckEnabled = value },
   markdownEditorMode: localSettings.designMarkdownEditorMode,

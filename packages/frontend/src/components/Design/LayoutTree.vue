@@ -85,7 +85,7 @@ const emit = defineEmits<{
   jumpToCode: [{ tab: PdfDesignerTab, position: DocumentSelectionPosition }];
 }>();
 
-const markdownProps = computed(() => pick(props, ['disabled', 'lang', 'uploadFile', 'rewriteFileUrl', 'referenceItems']));
+const markdownProps = computed(() => pick(props, ['disabled', 'lang', 'uploadFile', 'rewriteFileUrlMap', 'referenceItems']));
 
 function onChange(e: any) {
   if (e.moved) {

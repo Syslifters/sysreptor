@@ -103,9 +103,10 @@ async function uploadFile(file: File) {
     return `![${obj.name}](/images/name/${obj.name}){width="auto"}`;
   }
 }
-function rewriteFileUrl(imgSrc: string) {
-  return urlJoin('/api/v1/pentestusers/self/notes/', imgSrc);
-}
+const rewriteFileUrlMap = computed(() => ({
+  '/images/': '/api/v1/pentestusers/self/notes/images/',
+  '/files/': '/api/v1/pentestusers/self/notes/files/',
+}))
 const inputFieldAttrs = computed(() => ({
   readonly: notesCollab.readonly.value,
   lang: 'auto',
@@ -115,7 +116,7 @@ const inputFieldAttrs = computed(() => ({
   markdownEditorMode: localSettings.userNoteMarkdownEditorMode,
   'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { localSettings.userNoteMarkdownEditorMode = val },
   uploadFile,
-  rewriteFileUrl,
+  rewriteFileUrlMap: rewriteFileUrlMap.value,
 }));
 
 // Autofocus input

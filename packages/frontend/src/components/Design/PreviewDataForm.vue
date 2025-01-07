@@ -153,7 +153,7 @@ const props = defineProps<{
   projectType: ProjectType;
   readonly?: boolean;
   uploadFile?: (file: File) => Promise<string>;
-  rewriteFileUrl?: (fileSrc: string) => string;
+  rewriteFileUrlMap?: Record<string, string>;
 }>();
 const emit = defineEmits<{
   'update:modelValue': [any];
@@ -260,7 +260,7 @@ function riskLevel(finding: any) {
 const fieldAttrs = computed(() => ({
   showFieldIds: true,
   uploadFile: props.uploadFile,
-  rewriteFileUrl: props.rewriteFileUrl,
+  rewriteFileUrlMap: props.rewriteFileUrlMap,
   selectableUsers: [auth.user.value!],
   lang: props.projectType.language,
   readonly: props.readonly,

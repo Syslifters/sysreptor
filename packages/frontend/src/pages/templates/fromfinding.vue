@@ -10,7 +10,7 @@
           v-if="template"
           v-model="template"
           :toolbar-attrs="toolbarAttrs"
-          :rewrite-file-url="rewriteFileUrl"
+          :rewrite-file-url-map="rewriteFileUrlMap"
         />
 
         <s-dialog v-model="saveWarningDialogVisible">
@@ -128,8 +128,9 @@ async function performCreate() {
   await navigateTo(`/templates/${obj.id}/`);
 }
 
-function rewriteFileUrl(imgSrc: string) {
-  return urlJoin(`/api/v1/pentestprojects/${project.value!.id}/`, imgSrc);
-}
+const rewriteFileUrlMap = computed(() => ({
+  '/images/': `/api/v1/pentestprojects/${project.value!.id}/images/`,
+  '/files/': `/api/v1/pentestprojects/${project.value!.id}/files/`,
+}));
 
 </script>

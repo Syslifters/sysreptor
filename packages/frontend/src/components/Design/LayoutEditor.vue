@@ -85,7 +85,7 @@ const markdownProps = computed(() => ({
   disabled: props.disabled,
   lang: props.lang || props.projectType.language,
   uploadFile: props.uploadFile,
-  rewriteFileUrl: props.rewriteFileUrl,
+  rewriteFileUrlMap: props.rewriteFileUrlMap,
   referenceItems: props.referenceItems,
 }));
 

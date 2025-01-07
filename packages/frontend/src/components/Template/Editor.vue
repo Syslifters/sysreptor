@@ -135,7 +135,7 @@ const props = withDefaults(defineProps<{
   readonly?: boolean;
   toolbarAttrs?: object;
   uploadFile?: (file: File) => Promise<string>;
-  rewriteFileUrl?: (fileSrc: string) => string;
+  rewriteFileUrlMap?: Record<string, string>;
   history?: boolean;
   
 }>(), {
@@ -143,7 +143,7 @@ const props = withDefaults(defineProps<{
   fieldDefinitionList: undefined,
   toolbarAttrs: () => ({}),
   uploadFile: undefined,
-  rewriteFileUrl: undefined,
+  rewriteFileUrlMap: undefined,
   readonly: false,
   history: false,
 });
@@ -253,7 +253,7 @@ const fieldAttrs = computed(() => (translation: FindingTemplateTranslation, defi
   markdownEditorMode: localSettings.templateMarkdownEditorMode,
   'onUpdate:markdownEditorMode': (value: MarkdownEditorMode) => { localSettings.templateMarkdownEditorMode = value },
   uploadFile: props.uploadFile,
-  rewriteFileUrl: props.rewriteFileUrl,
+  rewriteFileUrlMap: props.rewriteFileUrlMap,
 }))
 
 defineExpose({

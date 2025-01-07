@@ -67,19 +67,27 @@ export function removeClass(node, className) {
 }
 
 
-export function rehypeRewriteImageSources({ rewriteImageSource }) {
+/**
+ * Rewrite image source to handle image fetching from markdown.
+ * Images in markdown are referenced with a URL relative to the parent resource (e.g. "/images/name/image.png").
+ */
+export function rehypeRewriteFileUrls({ rewriteFileUrlMap, cacheBuster }) {
+  function rewriteFileUrl(src) {
+    for (const [oldPrefix, newPrefix] of Object.entries(rewriteFileUrlMap)) {
+      if (src.startsWith(oldPrefix)) {
+        return newPrefix + src.slice(oldPrefix.length) + (cacheBuster ? '?c=' + cacheBuster : '');
+      }
+    }
+    return src;
+  }
+
   return tree => visit(tree, 'element', node => {
-    if (node.tagName === 'img' && node.properties.src && rewriteImageSource) {
-      node.properties.src = rewriteImageSource(node.properties.src);
+    if (node.tagName === 'img' && node.properties.src) {
+      node.properties.src = rewriteFileUrl(node.properties.src);
       node.properties.loading = 'lazy';
     }
-  });
-}
 
-
-export function rehypeRewriteFileLinks({ rewriteFileUrl }) {
-  return tree => visit(tree, 'element', node => {
-    if (node.tagName === 'a' && node.properties?.href?.startsWith('/files/') && rewriteFileUrl) {
+    if (node.tagName === 'a' && node.properties.href) {
       node.properties.href = rewriteFileUrl(node.properties.href);
       node.properties.download = true;
       addClass(node, ['file-download-preview']);

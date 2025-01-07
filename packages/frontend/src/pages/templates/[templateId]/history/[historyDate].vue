@@ -56,12 +56,14 @@ const fieldDefinitionList = computed(() => {
   return sortBy(fieldDefinitionList, [d => d.visible ? 0 : 1]);
 });
 
-function rewriteFileUrlHistoric(imgSrc: string) {
-  return urlJoin(baseUrlHistoric.value, imgSrc);
-}
-function rewriteFileUrlCurrent(imgSrc: string) {
-  return urlJoin(baseUrlCurrent.value, imgSrc);
-}
+const rewriteFileUrlMapHistoric = computed(() => ({
+  '/images/': urlJoin(baseUrlHistoric.value, '/images/'),
+  '/files/': urlJoin(baseUrlHistoric.value, '/files/'),
+}))
+const rewriteFileUrlMapCurrent = computed(() => ({
+  '/images/': urlJoin(baseUrlCurrent.value, '/images/'),
+  '/files/': urlJoin(baseUrlCurrent.value, '/files/'),
+}))
 
 const fetchLoaderAttrs = computed(() => ({
   fetchState: {
@@ -73,11 +75,11 @@ const fetchLoaderAttrs = computed(() => ({
 const editorDiffAttrs = computed(() => ({
   historic: {
     value: fetchState.data.value?.templateHistoric as FindingTemplate,
-    rewriteFileUrl: rewriteFileUrlHistoric,
+    rewriteFileUrlMapHistoric: rewriteFileUrlMapHistoric.value,
   },
   current: {
     value: fetchState.data.value?.templateCurrent as FindingTemplate,
-    rewriteFileUrl: rewriteFileUrlCurrent,
+    rewriteFileUrlMapCurrent: rewriteFileUrlMapCurrent.value,
   },
   initialLanguage: route.query?.language as string,
   toolbarAttrs: {

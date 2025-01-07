@@ -71,9 +71,10 @@ async function uploadFile(file: File) {
     return `![${obj.name}](/images/name/${obj.name}){width="auto"}`;
   }
 }
-function rewriteFileUrl(imgSrc: string) {
-  return urlJoin(`/api/public/shareinfos/${shareInfo.value!.id}/notes/`, imgSrc);
-}
+const rewriteFileUrlMap = computed(() => ({
+  '/images/': `/api/public/shareinfos/${shareInfo.value!.id}/notes/images/`,
+  '/files/': `/api/public/shareinfos/${shareInfo.value!.id}/notes/files/`,
+}))
 const inputFieldAttrs = computed(() => ({
   readonly: readonly.value,
   lang: 'auto',
@@ -81,7 +82,7 @@ const inputFieldAttrs = computed(() => ({
   markdownEditorMode: localSettings.sharedNoteMarkdownEditorMode,
   'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { localSettings.sharedNoteMarkdownEditorMode = val },
   uploadFile,
-  rewriteFileUrl,
+  rewriteFileUrlMap: rewriteFileUrlMap.value,
 }));
 const toolbarAttrs = computed(() => ({
   data: note.value,

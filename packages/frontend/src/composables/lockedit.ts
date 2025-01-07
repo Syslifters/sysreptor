@@ -135,14 +135,12 @@ export function useProjectEditBase(options: {
       return `[${res.name}](/files/name/${res.name})`;
     }
   }
-  function rewriteFileUrl(fileSrc: string) {
-    if (fileSrc.startsWith('/assets/')) {
-      return urlJoin(projectTypeUrl.value || '', fileSrc)
-    } else {
-      return urlJoin(projectUrl.value, fileSrc);
-    }
-  }
 
+  const rewriteFileUrlMap = computed(() => ({
+    '/assets/': urlJoin(projectTypeUrl.value || '', '/assets/'),
+    '/images/': urlJoin(projectUrl.value, '/images/'),
+    '/files/': urlJoin(projectUrl.value, '/files/'),
+  }));
   const referenceItems = computed<ReferenceItem[]>(() => {
     return projectStore.findings(options.project.value?.id || '', { projectType: options.projectType?.value })
       .map(f => ({
@@ -168,12 +166,12 @@ export function useProjectEditBase(options: {
     lang: options.project.value?.language || 'en-US',
     selectableUsers: [...(options.project.value?.members || []), ...(options.project.value?.imported_members || [])],
     referenceItems: referenceItems.value,
+    rewriteFileUrlMap: rewriteFileUrlMap.value,
     spellcheckEnabled: spellcheckEnabled.value,
     'onUpdate:spellcheckEnabled': (val: boolean) => { spellcheckEnabled.value = val; },
     markdownEditorMode: markdownEditorMode.value,
     'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { markdownEditorMode.value = val; },
     uploadFile,
-    rewriteFileUrl,
   }));
 
   return {

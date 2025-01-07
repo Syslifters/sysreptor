@@ -9,7 +9,7 @@ import 'highlight.js/styles/default.css';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, remarkToRehypeHandersFootnotesPreview, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './footnotes';
 import { remarkStrikethrough, remarkTaskListItem } from './gfm';
-import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources, rehypeRewriteFileLinks, rehypeTemplates, rehypeRawFixSelfClosingTags, rehypeRawFixPassthroughStitches } from './rehypePlugins';
+import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteFileUrls, rehypeTemplates, rehypeRawFixSelfClosingTags, rehypeRawFixPassthroughStitches } from './rehypePlugins';
 import { remarkAttrs, remarkToRehypeAttrs } from './attrs';
 import { remarkFigure, remarkToRehypeHandlersFigure } from './image';
 import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './tables';
@@ -84,11 +84,10 @@ export function formatMarkdown(text) {
 
 /**
  * Render markdown text to HTML
- * @param {{text: string, preview?: boolean, rewriteFileSource?, referenceItems?: {id: string, href: string, label: string}[]}} options 
+ * @param {{text: string, preview?: boolean, referenceItems?: {id: string, href?: string, label?: string}[], rewriteFileUrlMap?: Record<string, string>, cacheBuster?: string}} options 
  * @returns {string}
  */
-export function renderMarkdownToHtml({ text = '', preview = false, rewriteFileSource = undefined, referenceItems = undefined} = {}) {
-  // TODO: rewriteFileSource: dict instead of function, cache buster (optional)
+export function renderMarkdownToHtml({ text = '', preview = false, referenceItems = undefined, rewriteFileUrlMap = undefined, cacheBuster = undefined} = {}) {
   let md = markdownParser()
       .use(remarkParse)
       .use(remarkRehype, { 
@@ -112,9 +111,10 @@ export function renderMarkdownToHtml({ text = '', preview = false, rewriteFileSo
       .use(rehypeConvertAttrsToStyle)
       .use(preview ? rehypeFootnoteSeparatorPreview : rehypeFootnoteSeparator)
       .use(preview ? rehypeReferenceLinkPreview : rehypeReferenceLink, { referenceItems })
-      .use(rehypeRewriteImageSources, {rewriteImageSource: rewriteFileSource})
-      .use(rehypeRewriteFileLinks, {rewriteFileUrl: rewriteFileSource})
-      .use(rehypeLinkTargetBlank);
+    if (rewriteFileUrlMap) {
+      md = md.use(rehypeRewriteFileUrls, { rewriteFileUrlMap, cacheBuster });
+    }
+    md = md.use(rehypeLinkTargetBlank)
     if (preview) {
       md = md.use(rehypeSanitize, rehypeSanitizeSchema);
     }
