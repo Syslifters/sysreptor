@@ -87,7 +87,7 @@ export function rehypeRewriteFileUrls({ rewriteFileUrlMap, cacheBuster }) {
       node.properties.loading = 'lazy';
     }
 
-    if (node.tagName === 'a' && node.properties.href) {
+    if (node.tagName === 'a' && node.properties.href && node.properties.href.startsWith('/files/')) {
       node.properties.href = rewriteFileUrl(node.properties.href);
       node.properties.download = true;
       addClass(node, ['file-download-preview']);

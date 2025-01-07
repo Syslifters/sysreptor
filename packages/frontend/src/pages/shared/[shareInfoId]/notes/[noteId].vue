@@ -46,7 +46,6 @@
 </template>
 
 <script setup lang="ts">
-import { urlJoin } from "@base/utils/helpers";
 import { collabSubpath, type MarkdownEditorMode } from '#imports';
 
 definePageMeta({

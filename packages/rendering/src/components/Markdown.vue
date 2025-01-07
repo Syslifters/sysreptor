@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, h } from 'vue';
 import { renderMarkdownToHtml } from '@sysreptor/markdown';
+import 'highlight.js/styles/default.css';
 
 export default {
   name: 'markdown',

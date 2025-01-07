@@ -55,8 +55,6 @@
 </template>
 
 <script setup lang="ts">
-import { urlJoin, uuidv4 } from "@base/utils/helpers";
-
 const route = useRoute();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();

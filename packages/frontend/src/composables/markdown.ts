@@ -603,6 +603,7 @@ export function markdownEditorPageExtensions() {
 export async function renderMarkdownToHtmlInWorker(options: Parameters<typeof renderMarkdownToHtml>[0]): Promise<string> {
   // Global worker instance reused for all components
   const worker = useState('markdownWorker', () => new Worker(workerUrlPolicy.createScriptURL!(markdownWorkerUrl) as string, { type: 'module' }));
+
   // Render markdown in worker
   return new Promise((resolve, reject) => {
     const messageId = uuidv4();

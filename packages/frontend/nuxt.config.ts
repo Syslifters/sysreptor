@@ -44,6 +44,9 @@ export default defineNuxtConfig({
     port: 3000,
   },
   vite: {
+    resolve: {
+      conditions: ['module', 'worker', 'browser', 'development|production'],
+    },
     optimizeDeps: {
       include: ['vuedraggable', 'monaco-editor', '@github/webauthn-json/browser-ponyfill'],
     },

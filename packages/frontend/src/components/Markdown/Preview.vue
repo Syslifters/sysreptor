@@ -10,8 +10,8 @@
 <script lang="ts">
 import { mermaid } from '@sysreptor/markdown';
 import { uuidv4 } from "@base/utils/helpers";
-import { absoluteApiUrl } from '#imports';
 import { renderMarkdownToHtmlInWorker, type ReferenceItem } from '~/composables/markdown';
+import 'highlight.js/styles/default.css';
 
 mermaid.initialize({
   startOnLoad: false,
