@@ -24,6 +24,9 @@ import {
 } from "@sysreptor/markdown/editor/index";
 import { uuidv4 } from "@base/utils/helpers";
 import { MarkdownEditorMode } from '#imports';
+import type { renderMarkdownToHtml } from "@sysreptor/markdown";
+import { workerUrlPolicy } from "~/plugins/trustedtypes";
+import markdownWorkerUrl from "~/workers/markdownWorker?worker&url"
 
 export type ReferenceItem = {
   id: string;
@@ -597,4 +600,26 @@ export function markdownEditorPageExtensions() {
     ...markdownEditorDefaultExtensions(),
     scrollPastEnd(),
   ] as Extension[];
+}
+
+
+export async function renderMarkdownToHtmlInWorker(options: Parameters<typeof renderMarkdownToHtml>[0]): Promise<string> {
+  // Global worker instance reused for all components
+  const worker = useState('markdownWorker', () => new Worker(workerUrlPolicy.createScriptURL!(markdownWorkerUrl) as string, { type: 'module' }));
+  // Render markdown in worker
+  return new Promise((resolve, reject) => {
+    const messageId = uuidv4();
+    function onMessage(e: MessageEvent<{ messageId: string, status: 'success'|'error', error?: any, result?: string }>) {
+      if (e.data.messageId === messageId) {
+        worker.value.removeEventListener('message', onMessage);
+        if (e.data.status === 'success') {
+          resolve(e.data.result!);
+        } else {
+          reject(e.data.error);
+        }
+      }
+    }
+    worker.value.addEventListener('message', onMessage);
+    worker.value.postMessage({ messageId, options });
+  });
 }

@@ -8,9 +8,10 @@
 </template>
 
 <script lang="ts">
-import { renderMarkdownToHtml, mermaid } from '@sysreptor/markdown';
+import { mermaid } from '@sysreptor/markdown';
 import { uuidv4 } from "@base/utils/helpers";
 import { absoluteApiUrl } from '#imports';
+import { renderMarkdownToHtmlInWorker, type ReferenceItem } from '~/composables/markdown';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -31,9 +32,10 @@ const cacheBusterFallback = uuidv4();
 const cacheBuster = computed(() => props.cacheBuster || cacheBusterFallback);
 const renderedMarkdown = ref('');
 const renderedMarkdownText = ref('');
-watchThrottled(() => props.value, () => {
+watchThrottled(() => props.value, async () => {
   const mdText = props.value || '';
-  renderedMarkdown.value = renderMarkdownToHtml(mdText, {
+  renderedMarkdown.value = await renderMarkdownToHtmlInWorker({
+    text: mdText,
     preview: true,
     rewriteFileSource,
     rewriteReferenceLink: props.rewriteReferenceLink,
