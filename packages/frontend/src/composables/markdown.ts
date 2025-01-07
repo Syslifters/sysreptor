@@ -31,6 +31,8 @@ import markdownWorkerUrl from "~/workers/markdownWorker?worker&url"
 export type ReferenceItem = {
   id: string;
   title: string;
+  href: string;
+  label?: string;
   severity?: string;
 }
 
@@ -42,7 +44,6 @@ export type MarkdownProps = {
   collab?: CollabPropType;
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrl?: (fileSrc: string) => string;
-  rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
 }
 
 export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean } = { spellcheckSupportedDefault: true }) {
@@ -89,10 +90,6 @@ export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean
     },
     rewriteFileUrl: {
       type: Function as PropType<MarkdownProps['rewriteFileUrl']>,
-      default: undefined,
-    },
-    rewriteReferenceLink: {
-      type: Function as PropType<MarkdownProps['rewriteReferenceLink']>,
       default: undefined,
     },
   }
@@ -498,7 +495,7 @@ export function useMarkdownEditorBase(options: {
   const markdownPreviewAttrs = computed(() => ({
     value: editorState.value?.doc.toString() ?? options.props.value.modelValue,
     rewriteFileUrl: options.props.value.rewriteFileUrl,
-    rewriteReferenceLink: options.props.value.rewriteReferenceLink,
+    referenceItems: options.props.value.referenceItems,
     cacheBuster: previewCacheBuster,
   }));
 

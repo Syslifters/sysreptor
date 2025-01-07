@@ -83,12 +83,12 @@ export function formatMarkdown(text) {
 }
 
 /**
- * 
- * @param {string} text 
- * @param {*} options 
+ * Render markdown text to HTML
+ * @param {{text: string, preview?: boolean, rewriteFileSource?, referenceItems?: {id: string, href: string, label: string}[]}} options 
  * @returns {string}
  */
-export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource = null, rewriteReferenceLink = null} = {}) {
+export function renderMarkdownToHtml({ text = '', preview = false, rewriteFileSource = undefined, referenceItems = undefined} = {}) {
+  // TODO: rewriteFileSource: dict instead of function, cache buster (optional)
   let md = markdownParser()
       .use(remarkParse)
       .use(remarkRehype, { 
@@ -111,7 +111,7 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource =
       .use(rehypeTemplateVariables, { preview })
       .use(rehypeConvertAttrsToStyle)
       .use(preview ? rehypeFootnoteSeparatorPreview : rehypeFootnoteSeparator)
-      .use(preview ? rehypeReferenceLinkPreview : rehypeReferenceLink, { rewriteReferenceLink })
+      .use(preview ? rehypeReferenceLinkPreview : rehypeReferenceLink, { referenceItems })
       .use(rehypeRewriteImageSources, {rewriteImageSource: rewriteFileSource})
       .use(rehypeRewriteFileLinks, {rewriteFileUrl: rewriteFileSource})
       .use(rehypeLinkTargetBlank);

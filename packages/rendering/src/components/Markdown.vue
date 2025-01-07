@@ -12,7 +12,7 @@ export default {
   },
   methods: {
     compileMarkdown(text: string) {
-      return renderMarkdownToHtml(text, { preview: false });
+      return renderMarkdownToHtml({ text, preview: false });
     },
   },
   render() {

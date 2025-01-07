@@ -86,7 +86,7 @@ const markdownProps = computed(() => ({
   lang: props.lang || props.projectType.language,
   uploadFile: props.uploadFile,
   rewriteFileUrl: props.rewriteFileUrl,
-  rewriteReferenceLink: props.rewriteReferenceLink,
+  referenceItems: props.referenceItems,
 }));
 
 const isVisible = ref(true);

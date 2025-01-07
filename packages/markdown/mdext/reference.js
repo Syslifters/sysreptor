@@ -13,7 +13,7 @@ export function rehypeReferenceLink() {
 }
 
 
-export function rehypeReferenceLinkPreview({ rewriteReferenceLink = null }) {
+export function rehypeReferenceLinkPreview({ referenceItems = undefined }) {
   return tree => {
     let refNodes = [];
     let refTargets = {};
@@ -35,8 +35,9 @@ export function rehypeReferenceLinkPreview({ rewriteReferenceLink = null }) {
 
         let refPreview = null;
         // Known reference target (e.g. other finding)
-        if (!refPreview && rewriteReferenceLink) {
-          refPreview = rewriteReferenceLink(refId);
+        // TODO: refactor
+        if (!refPreview && referenceItems) {
+          refPreview = referenceItems.find(item => item.id === refId);
         }
 
         // Local reference target (e.g. figure in same markdown field)

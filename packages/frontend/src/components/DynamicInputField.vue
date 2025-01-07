@@ -527,7 +527,7 @@ const fieldAttrs = computed(() => ({
   label: label.value,
   ...pick(props, [
     'disabled', 'readonly', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
-    'referenceItems', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink'
+    'referenceItems', 'uploadFile', 'rewriteFileUrl',
   ]),
   onCollab: (v: any) => emit('collab', v),
   onComment: (v: any) => emit('comment', v),

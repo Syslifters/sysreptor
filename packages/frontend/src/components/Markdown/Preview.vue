@@ -24,7 +24,7 @@ mermaid.initialize({
 const props = defineProps<{
   value?: string|null;
   rewriteFileUrl?: (fileSrc: string) => string;
-  rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
+  referenceItems?: ReferenceItem[];
   cacheBuster?: string;
 }>();
 
@@ -38,7 +38,7 @@ watchThrottled(() => props.value, async () => {
     text: mdText,
     preview: true,
     rewriteFileSource,
-    rewriteReferenceLink: props.rewriteReferenceLink,
+    referenceItems: props.referenceItems,
   });
   renderedMarkdownText.value = mdText;
 }, { throttle: 500, leading: true, immediate: true });

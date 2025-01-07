@@ -7,6 +7,7 @@ import {
   type MarkdownEditorMode,
   type PentestProject,
   type ProjectType,
+  type ReferenceItem,
   type UploadedFileInfo,
 } from "#imports";
 
@@ -142,26 +143,18 @@ export function useProjectEditBase(options: {
     }
   }
 
-  const referenceItems = computed(() => {
+  const referenceItems = computed<ReferenceItem[]>(() => {
     return projectStore.findings(options.project.value?.id || '', { projectType: options.projectType?.value })
       .map(f => ({
         id: f.id, 
         title: f.data.title,
+        label: `[Finding ${f.data.title}]`,
+        href: `/projects/${options.project.value!.id}/reporting/findings/${f.data.id}/`,
         severity: options.projectType?.value ? 
-        levelNameFromLevelNumber(getFindingRiskLevel({ finding: f, projectType: options.projectType?.value }) as any)?.toLowerCase() : 
+          levelNameFromLevelNumber(getFindingRiskLevel({ finding: f, projectType: options.projectType?.value }) as any)?.toLowerCase() : 
           undefined,
       }))
   });
-  function rewriteReferenceLink(refId: string) {
-    const findingRef = referenceItems.value.find(f => f.id === refId);
-    if (findingRef) {
-      return {
-        href: `/projects/${options.project.value!.id}/reporting/findings/${findingRef.id}/`,
-        title: `[Finding ${findingRef.title}]`,
-      };
-    }
-    return null;
-  }
 
   const spellcheckEnabled = options.spellcheckEnabled || computed({ 
     get: () => localSettings.reportingSpellcheckEnabled && !options.historyDate,
@@ -181,7 +174,6 @@ export function useProjectEditBase(options: {
     'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { markdownEditorMode.value = val; },
     uploadFile,
     rewriteFileUrl,
-    rewriteReferenceLink,
   }));
 
   return {

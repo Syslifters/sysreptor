@@ -44,7 +44,7 @@ export function useMarkdownDiff(options: {
       modelValue: options.props.value.current.value,
       ...pick(options.props.value.current, [
         'collab', 'lang', 'readonly', 'disabled', 'markdownEditorMode', 'spellcheckSupported', 'spellcheckEnabled', 
-        'referenceItems', 'uploadFile', 'rewriteFileUrl', 'rewriteReferenceLink',
+        'referenceItems', 'uploadFile', 'rewriteFileUrl',
       ]),
     })),
     emit: (name: string, value: any) => {
@@ -61,7 +61,7 @@ export function useMarkdownDiff(options: {
     props: computed(() => ({
       modelValue: options.props.value.historic.value,
       readonly: true,
-      ...pick(options.props.value.historic, ['lang', 'markdownEditorMode', 'rewriteFileUrl', 'rewriteReferenceLink']),
+      ...pick(options.props.value.historic, ['lang', 'markdownEditorMode', 'rewriteFileUrl', 'referenceItems']),
     })),
     emit: (name: string, value: any) => {
       const emit = (options.props.value.historic as any)['on' + name.charAt(0).toUpperCase() + name.slice(1)];
