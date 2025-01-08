@@ -173,11 +173,13 @@ DATABASES = {
         'DISABLE_SERVER_SIDE_CURSORS': True,
         'OPTIONS': {
             'prepare_threshold': None,
-            'pool': True,
+            'pool': {
+                'min_size': 4,
+                'max_size': 8,
+            },
         },
     },
 }
-
 
 
 # Websockets
