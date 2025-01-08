@@ -1,5 +1,4 @@
 import logging
-from datetime import timedelta
 
 import elasticapm
 from asgiref.sync import iscoroutinefunction, sync_to_async
@@ -19,8 +18,8 @@ class PeriodicTaskQuerySet(models.QuerySet):
             model = task_models.get(t_id)
             # Remove non-pending tasks
             if model and (
-                (model.status == TaskStatus.RUNNING and model.started > timezone.now() - timedelta(minutes=10)) or \
-                (model.status == TaskStatus.FAILED and model.started > timezone.now() - timedelta(minutes=10)) or \
+                (model.status == TaskStatus.RUNNING and model.started > timezone.now() - spec.max_runtime) or \
+                (model.status == TaskStatus.FAILED and model.started > timezone.now() - spec.retry) or \
                 (model.status == TaskStatus.SUCCESS and model.started > timezone.now() - spec.schedule)
             ):
                 continue

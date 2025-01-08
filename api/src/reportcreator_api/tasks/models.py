@@ -29,6 +29,8 @@ class PeriodicTaskSpec:
     id: str
     schedule: timedelta
     func: callable
+    retry: timedelta = timedelta(minutes=10)
+    max_runtime: timedelta = timedelta(minutes=10)
 
 
 @dataclasses.dataclass()
@@ -59,11 +61,12 @@ class PeriodicTaskRegistry:
 periodic_task_registry = PeriodicTaskRegistry()
 
 
-def periodic_task(schedule: timedelta, id: str|None = None):
+def periodic_task(schedule: timedelta, id: str|None = None, retry: timedelta|None = None):
     def inner(func):
         periodic_task_registry.register(PeriodicTaskSpec(
             id=id or f'{func.__module__}.{func.__name__}',
             schedule=schedule,
+            retry=retry or (schedule / 10),
             func=func,
         ))
         return func
