@@ -23,6 +23,7 @@
       <s-project-type-selection 
         v-model="projectForm.project_type" 
         :error-messages="serverErrors?.project_type || []"
+        :required="true"
         class="mt-4" 
         data-testid="project-type"
       />

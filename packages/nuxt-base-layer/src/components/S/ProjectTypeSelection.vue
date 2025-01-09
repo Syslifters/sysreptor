@@ -101,6 +101,19 @@ useLazyAsyncData(async () => {
       emit('update:modelValue', initialProjectType.value);
     }
   }
+
+  if (props.required && !props.modelValue) {
+    if (props.additionalItems.length === 0) {
+      await items.fetchNextPage();
+    }
+    if (allItems.value.length > 0) {
+      if (props.returnObject) {
+        emit('update:modelValue', allItems.value[0]!);
+      } else {
+        emit('update:modelValue', allItems.value[0]!.id);
+      }
+    }
+  }
 });
 
 const allItems = computed(() => {
