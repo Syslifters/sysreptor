@@ -393,7 +393,7 @@ class TestProjectTypeHistory:
         for h in history:
             res_pt = self.client.get(reverse('projecttypehistory-detail', kwargs={'projecttype_pk': pt.id, 'history_date': h['history_date'].isoformat()}))
             assert res_pt.status_code == 200
-            assert omit_keys(res_pt.data, ['updated', 'lock_info']) == omit_keys(h['instance'], ['updated', 'lock_info'])
+            assert omit_keys(res_pt.data, ['updated', 'lock_info', 'usage_count']) == omit_keys(h['instance'], ['updated', 'lock_info', 'usage_count'])
             for name, content in h['assets'].items():
                 res_i = self.client.get(reverse('projecttypehistory-asset-by-name', kwargs={'projecttype_pk': pt.id, 'history_date': h['history_date'].isoformat(), 'filename': name}))
                 assert res_i.status_code == 200
@@ -577,7 +577,7 @@ class TestProjectHistory:
             assert {f['id']: omit_keys(f, ['updated']) for f in res_p.data['findings']} == {f['id']: omit_keys(f, ['updated']) for f in h['project']['findings']}
 
             res_pt = self.client.get(reverse('projecttypehistory-detail', kwargs={'projecttype_pk': h['project_type']['id'], 'history_date': h['history_date']}))
-            assert omit_keys(res_pt.data, ['updated', 'lock_info']) == omit_keys(h['project_type'], ['updated', 'lock_info'])
+            assert omit_keys(res_pt.data, ['updated', 'lock_info', 'usage_count']) == omit_keys(h['project_type'], ['updated', 'lock_info', 'usage_count'])
 
             for fh in h['findings']:
                 res_f = self.client.get(reverse('pentestprojecthistory-finding', kwargs=url_kwargs | {'id': fh['id']}))

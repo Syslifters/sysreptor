@@ -82,7 +82,8 @@ extend-select = [
 ignore = [
   "E741",  # Ambiguous variable name: `l`
   "DJ001",  # Avoid using null=True on string-based fields in django models
-  "PT004",  # Fixture setUp does not return anything, add leading underscore
   "S101",  # Use of `assert` detected
 ]
 
+[tool.ruff.lint.flake8-pytest-style]
+mark-parentheses = true

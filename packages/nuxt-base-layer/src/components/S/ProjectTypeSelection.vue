@@ -66,7 +66,7 @@ const emit = defineEmits<{
 const items = useSearchableCursorPaginationFetcher<ProjectType>({
   baseURL: '/api/v1/projecttypes/',
   query: {
-    ordering: 'status,scope,name,-created',
+    ordering: 'status,scope,-usage,name,-created',
     scope: [ProjectTypeScope.GLOBAL, ProjectTypeScope.PRIVATE],
     ...props.queryFilters
   }

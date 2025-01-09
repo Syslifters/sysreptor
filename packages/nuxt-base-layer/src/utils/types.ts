@@ -486,6 +486,7 @@ export type ReportSectionDefinition = {
 export type ProjectType = BaseModel & Lockable & {
   readonly source: SourceEnum;
   readonly scope: ProjectTypeScope;
+  readonly usage_count: number;
   readonly copy_of: string|null;
 
   name: string;

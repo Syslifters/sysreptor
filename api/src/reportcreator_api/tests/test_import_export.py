@@ -558,6 +558,7 @@ class TestCopyModel:
         self.assert_project_type_copy_equal(p.project_type, cp.project_type, exclude_fields=['source', 'linked_project'])
         assert cp.project_type.source == SourceEnum.SNAPSHOT
         assert cp.project_type.linked_project == cp
+        assert cp.project_type.usage_count == 1
         assert members_equal(p.members, cp.members)
 
         assert set(p.images.values_list('id', flat=True)).intersection(cp.images.values_list('id', flat=True)) == set()
@@ -593,6 +594,7 @@ class TestCopyModel:
         cp = pt.copy()
 
         self.assert_project_type_copy_equal(pt, cp)
+        assert cp.usage_count == 0
 
     def test_copy_template(self):
         user = create_user()
