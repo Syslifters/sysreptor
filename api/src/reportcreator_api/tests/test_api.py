@@ -508,7 +508,8 @@ def test_api_requests(username, name, perform_request, options, expected):
                     'label': 'Dummy',
                 },
             },
-        ), mock.patch('reportcreator_api.tasks.rendering.render.render_pdf_impl', mock_render_pdf):
+        ), mock.patch('reportcreator_api.tasks.rendering.render.render_pdf_impl', mock_render_pdf), \
+        mock.patch('reportcreator_api.tasks.tasks.activate_license', return_value=None):
         user_map = {
             'public': lambda: None,
             'guest': lambda: ApiRequestsAndPermissionsTestData.create_user(is_guest=True),

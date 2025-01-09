@@ -30,7 +30,7 @@ def update(obj, **kwargs):
     return obj
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestWebhooksCalled:
     @pytest.fixture(autouse=True)
     def setUp(self):

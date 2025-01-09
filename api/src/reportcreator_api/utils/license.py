@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import logging
 
@@ -123,6 +124,15 @@ def decode_and_validate_license(license, skip_db_checks=False, skip_limit_valida
         }
 
 
+def get_license_hash():
+    if not settings.LICENSE:
+        return None
+    try:
+        return 'sha3_256$$' + hashlib.sha3_256(base64.b64decode(settings.LICENSE)).hexdigest()
+    except Exception:
+        return None
+
+
 @cache('license.license_info', timeout=10 * 60)
 def check_license(**kwargs):
     return decode_and_validate_license(license=settings.LICENSE, **kwargs)
@@ -134,14 +144,22 @@ async def acheck_license(**kwargs):
 
 def get_license_info():
     from reportcreator_api.conf import plugins
+    from reportcreator_api.tasks.models import LicenseActivationInfo
     from reportcreator_api.users.models import PentestUser
 
+    activation_info = LicenseActivationInfo.objects.current()
     return check_license() | {
+        'license_hash': get_license_hash(),
         'active_users': PentestUser.objects.get_licensed_user_count(),
         'total_users': PentestUser.objects.get_total_user_count(),
         'installation_id': settings.INSTALLATION_ID,
         'software_version': settings.VERSION,
         'plugins': [p.name.split('.')[-1] for p in plugins.enabled_plugins],
+        'activation_info': {
+            'created': activation_info.created,
+            'license_hash': activation_info.license_hash,
+            'last_activation_time': activation_info.last_activation_time,
+        },
     }
 
 async def aget_license_info():

@@ -5,6 +5,8 @@ from asgiref.sync import iscoroutinefunction, sync_to_async
 from django.db import IntegrityError, models
 from django.utils import timezone
 
+from reportcreator_api.utils import license
+
 log = logging.getLogger(__name__)
 
 
@@ -82,3 +84,19 @@ class PeriodicTaskManager(models.Manager.from_queryset(PeriodicTaskQuerySet)):
     async def run_all_pending_tasks(self):
         for t in await self.get_pending_tasks():
             await self.run_task(t)
+
+
+class LicenseActivationInfoManager(models.Manager.from_queryset(models.QuerySet)):
+    def current(self):
+        obj = self.order_by('-created').first()
+
+        if not license.is_professional():
+            if not obj or obj.license_type != license.LicenseType.COMMUNITY:
+                obj = self.create(license_type=license.LicenseType.COMMUNITY)
+        else:
+            if not obj or obj.license_type != license.LicenseType.PROFESSIONAL or obj.license_hash != license.get_license_hash():
+                obj = self.create(
+                    license_type=license.LicenseType.PROFESSIONAL,
+                    license_hash=license.get_license_hash(),
+                )
+        return obj
