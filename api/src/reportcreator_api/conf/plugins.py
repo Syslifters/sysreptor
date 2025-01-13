@@ -147,8 +147,16 @@ def remove_entry(path: Path):
 
 def can_load_professional_plugins():
     license_text = getattr(settings, 'LICENSE', config('LICENSE', default=None))
-    return license.decode_and_validate_license(license=license_text, skip_db_checks=True) \
-        .get('type') == license.LicenseType.PROFESSIONAL
+    if license.decode_and_validate_license(license=license_text, skip_db_checks=True) \
+        .get('type') == license.LicenseType.PROFESSIONAL:
+        return True
+    elif len(sys.argv) >= 2 and sys.argv[0] == 'manage.py' and sys.argv[1] in [
+        'collectstatic', 'findstatic',
+        'makemigrations', 'migrate', 'optimizemigrations', 'showmigrations', 'squashmigrations', 'sqlflush', 'sqlmigrate', 'sqlsequencereset',
+        'check', 'spectacular',
+    ]:
+        return True
+    return False
 
 
 def collect_plugins(dst: Path, srcs: list[Path]):
