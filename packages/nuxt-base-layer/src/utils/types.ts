@@ -204,6 +204,7 @@ export type LoginResponse = {
   status: LoginResponseStatus,
   first_login?: boolean,
   mfa?: MfaMethod[],
+  license?: LicenseInfoDetails,
 }
 
 export type UserNotification = BaseModel & {

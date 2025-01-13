@@ -428,7 +428,7 @@ CONTENT_SECURITY_POLICY = {
         'img-src': [SELF, 'data:'],
         'font-src': [SELF],
         'worker-src': [SELF],
-        'connect-src': [SELF, 'data:'],
+        'connect-src': [SELF, 'data:', 'https://portal.sysreptor.com'],
         'frame-src': [SELF],
         'frame-ancestors': [SELF],
         'form-action': [SELF],

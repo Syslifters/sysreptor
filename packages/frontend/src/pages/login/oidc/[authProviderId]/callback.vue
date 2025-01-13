@@ -44,11 +44,11 @@ const route = useRoute();
 const auth = useAuth();
 const { error } = useAsyncData(async () => {
   try {
-    await $fetch(`/api/v1/auth/login/oidc/${route.params.authProviderId}/complete/`, {
+    const res = await $fetch<LoginResponse>(`/api/v1/auth/login/oidc/${route.params.authProviderId}/complete/`, {
       method: 'GET',
       params: route.query,
     });
-    await auth.fetchUser();
+    await auth.finishLogin(res);
     await auth.redirect();
   } catch (error: any) {
     if (error?.data?.detail) {

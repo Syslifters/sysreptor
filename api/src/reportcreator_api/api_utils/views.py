@@ -16,7 +16,7 @@ from rest_framework.settings import api_settings
 from reportcreator_api.api_utils import backup_utils
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.models import BackupLog
-from reportcreator_api.api_utils.permissions import IsAdminOrSystem, IsUserManagerOrSuperuserOrSystem
+from reportcreator_api.api_utils.permissions import IsAdminOrSystem
 from reportcreator_api.api_utils.serializers import (
     BackupLogSerializer,
     BackupSerializer,
@@ -115,7 +115,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         return self.get_paginated_response(serializer.data)
 
     @extend_schema(responses=OpenApiTypes.OBJECT)
-    @action(detail=False, url_name='license', url_path='license', methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsUserManagerOrSuperuserOrSystem])
+    @action(detail=False, url_name='license', url_path='license', methods=['get'])
     async def license_info(self, request, *args, **kwargs):
         return Response(data=await license.aget_license_info())
 

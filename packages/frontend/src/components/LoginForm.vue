@@ -211,7 +211,7 @@ async function loginStep(fn: () => Promise<LoginResponse|null>) {
 
     if (res.status === LoginResponseStatus.SUCCESS) {
       // trigger login in nuxt-auth
-      await auth.fetchUser();
+      await auth.finishLogin(res);
       emit('login', res);
     } else if (res.status === LoginResponseStatus.MFA_REQUIRED) {
       mfaMethods.value = res.mfa!;

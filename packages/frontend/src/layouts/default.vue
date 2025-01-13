@@ -62,51 +62,47 @@
           />
         </template>
 
-        <template v-if="auth.permissions.value.superuser || auth.permissions.value.user_manager || auth.permissions.value.view_license">
-          <v-list-item class="mt-4 pa-0" min-height="0">
-            <v-list-subheader title="Administration" />
-            <template #append>
-              <template v-if="apiSettings.isProfessionalLicense">
-                <s-btn-icon
-                  v-if="auth.permissions.value.admin"
-                  :to="{path: '/users/self/admin/disable/', query: { next: route.fullPath }}"
-                  density="comfortable"
-                >
-                  <v-icon size="small" color="primary" icon="mdi-account-arrow-down" />
-                  <s-tooltip activator="parent" text="Disable Superuser Permissions" />
-                </s-btn-icon>
-                <s-btn-icon
-                  v-else
-                  :to="{path: '/users/self/admin/enable/', query: { next: route.fullPath }}"
-                  :disabled="!auth.user.value!.is_superuser" 
-                  density="comfortable" 
-                  data-testid="enable-superuser"
-                >
-                  <v-icon size="small" icon="mdi-account-arrow-up" />
-                  <s-tooltip activator="parent" text="Enable Superuser Permissions" />
-                </s-btn-icon>
-              </template>
-            </template>
-          </v-list-item>
+        <v-list-item class="mt-4 pa-0" min-height="0">
+          <v-list-subheader title="Administration" />
+          <template #append v-if="apiSettings.isProfessionalLicense && auth.permissions.value.superuser">
+            <s-btn-icon
+              v-if="auth.permissions.value.admin"
+              :to="{path: '/users/self/admin/disable/', query: { next: route.fullPath }}"
+              density="comfortable"
+            >
+              <v-icon size="small" color="primary" icon="mdi-account-arrow-down" />
+              <s-tooltip activator="parent" text="Disable Superuser Permissions" />
+            </s-btn-icon>
+            <s-btn-icon
+              v-else
+              :to="{path: '/users/self/admin/enable/', query: { next: route.fullPath }}"
+              :disabled="!auth.user.value!.is_superuser" 
+              density="comfortable" 
+              data-testid="enable-superuser"
+            >
+              <v-icon size="small" icon="mdi-account-arrow-up" />
+              <s-tooltip activator="parent" text="Enable Superuser Permissions" />
+            </s-btn-icon>
+          </template>
+        </v-list-item>
 
-          <v-list-item 
-            to="/users/" 
-            data-testid="users-tab"
-            prepend-icon="mdi-account-multiple" 
-            :active="route.path.startsWith('/users') && !route.path.startsWith('/users/self')"
-            :disabled="!auth.permissions.value.user_manager" 
-          >
-            <template #title><permission-info :value="auth.permissions.value.user_manager" permission-name="User Manager">Users</permission-info></template>
-          </v-list-item>
-          <v-list-item
-            to="/backups/"
-            prepend-icon="mdi-tools"
-            :disabled="!auth.permissions.value.view_backup"
-          >
-            <template #title><pro-info><permission-info :value="auth.permissions.value.view_backup || !apiSettings.isProfessionalLicense" permission-name="Superuser">Backups</permission-info></pro-info></template>
-          </v-list-item>
-          <license-info-menu-item />
-        </template>
+        <v-list-item 
+          to="/users/" 
+          data-testid="users-tab"
+          prepend-icon="mdi-account-multiple" 
+          :active="route.path.startsWith('/users') && !route.path.startsWith('/users/self')"
+          :disabled="!auth.permissions.value.user_manager" 
+        >
+          <template #title><permission-info :value="auth.permissions.value.user_manager" permission-name="User Manager">Users</permission-info></template>
+        </v-list-item>
+        <v-list-item
+          to="/backups/"
+          prepend-icon="mdi-tools"
+          :disabled="!auth.permissions.value.view_backup"
+        >
+          <template #title><pro-info><permission-info :value="auth.permissions.value.view_backup || !apiSettings.isProfessionalLicense" permission-name="Superuser">Backups</permission-info></pro-info></template>
+        </v-list-item>
+        <license-info-menu-item />
       </v-list>
     </v-navigation-drawer>
 

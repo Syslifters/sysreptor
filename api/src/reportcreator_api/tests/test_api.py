@@ -218,6 +218,7 @@ def guest_urls():
     return [
         ('utils list', lambda s, c: c.get(reverse('utils-list'))),
         ('utils cwes', lambda s, c: c.get(reverse('utils-cwes'))),
+        ('utils-license', lambda s, c: c.get(reverse('utils-license'))),
 
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': 'self'}, retrieve=True, update=True, update_partial=True),
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {}, list=True),
@@ -304,7 +305,6 @@ def user_manager_urls():
         *viewset_urls('authidentity', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.auth_identities.first().pk} if detail else {}), list=True, retrieve=True, create=True, create_data={'identifier': 'other.identifier'}, update=True, update_partial=True, destroy=True),
         *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.api_tokens.first().pk} if detail else {}), list=True, retrieve=True, destroy=True),
         *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), list=True, retrieve=True),
-        ('utils-license', lambda s, c: c.get(reverse('utils-license'))),
     ]
 
 
