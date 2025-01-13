@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { DemoDataState, DemoDataType } from '../util/demo_data';
+import { createProject } from '../util/helpers';
 
 const designName = 'My Test Design';
 test('A User can create an Design with a Name', async ({ page }) => {
@@ -45,16 +46,8 @@ test('A User can create an Design with a Name', async ({ page }) => {
 
 test('Design Settings are reflected in a Project', async ({ page }) => {
   const testState = new DemoDataState();
-  await page.goto('/projects');
-  await page.waitForSelector('text=Projects');
-  await page.getByTestId('create-button').click();
-  await page.getByLabel('Name').fill('My Design Test Project');
-  await page.getByTestId('project-type').getByRole('textbox').fill(designName);
-  await page.getByTestId('page-loader').waitFor({ state: 'hidden' });
-  await page.getByText('No data found').waitFor({ state: 'hidden' });
-  const designId = testState.designs.at(testState.designs.length - 1);
-  await page.getByTestId(`design-${designId}`).click();
-  await page.getByTestId('submit-project').click();
+  await createProject(page, { projectName: 'My Design Test Project', designId: testState.designs.at(testState.designs.length - 1)!, designName: designName });
+  
   await page.getByRole('link', { name: 'Executive Summary' }).click();
   await page.getByLabel('Assignee', { exact: true }).waitFor();
   expect(await page.getByRole('textbox').getByText('This is a test executive summary').isVisible()).toBeTruthy();
