@@ -1,10 +1,12 @@
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 
+from reportcreator_api.pentests.models.notes import ShareInfo
 from reportcreator_api.tests.mock import api_client, create_project, create_projectnotebookpage, create_shareinfo
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestSharedPermissions:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -92,7 +94,7 @@ class TestSharedPermissions:
         assert res.status_code == (200 if expected else 403)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestSharePasswordAuth:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -128,3 +130,26 @@ class TestSharePasswordAuth:
         share_info_other = create_shareinfo(note=self.note, password=self.password + 'other')
         res = self.client.get(reverse('sharednote-detail', kwargs={'shareinfo_pk': share_info_other.id, 'id': self.note.note_id}))
         assert res.status_code == 403
+
+    def test_password_brute_force_protection(self):
+        with override_settings(SHARING_MAX_FAILED_PASSWORD_ATTEMPTS=1):
+            res = self.client.post(reverse('publicshareinfo-auth', kwargs={'pk': self.share_info.id}), data={'password': 'invalid'})
+            assert res.status_code == 400
+
+            # Locked
+            self.share_info.refresh_from_db()
+            assert self.share_info.failed_password_attempts == 1
+            assert self.share_info.is_revoked
+            assert not self.share_info.is_active
+
+            res = self.client.post(reverse('publicshareinfo-auth', kwargs={'pk': self.share_info.id}), data={'password': self.password})
+            assert res.status_code == 404
+
+            # Unlock
+            self.share_info = ShareInfo.objects.get(id=self.share_info.id)
+            self.share_info.is_revoked = False
+            self.share_info.save()
+
+            assert self.share_info.failed_password_attempts == 0
+            res = self.client.post(reverse('publicshareinfo-auth', kwargs={'pk': self.share_info.id}), data={'password': self.password})
+            assert res.status_code == 200
