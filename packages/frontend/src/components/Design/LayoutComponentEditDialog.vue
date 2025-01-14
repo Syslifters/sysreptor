@@ -19,8 +19,8 @@
           v-model="form"
           :lang="item.context.projectType.language"
           :upload-file="uploadFile"
-          :rewrite-file-url="rewriteFileUrl"
-          :disabled="disabled"
+          :rewrite-file-url-map="props.rewriteFileUrlMap"
+          :disabled="props.disabled"
         />
       </v-card-text>
       <v-card-actions>

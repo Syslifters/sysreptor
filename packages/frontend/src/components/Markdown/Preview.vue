@@ -8,9 +8,10 @@
 </template>
 
 <script lang="ts">
-import { renderMarkdownToHtml, mermaid } from '@sysreptor/markdown';
+import { mermaid } from '@sysreptor/markdown';
 import { uuidv4 } from "@base/utils/helpers";
-import { absoluteApiUrl } from '#imports';
+import { renderMarkdownToHtmlInWorker, type ReferenceItem } from '~/composables/markdown';
+import 'highlight.js/styles/default.css';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -22,8 +23,8 @@ mermaid.initialize({
 <script setup lang="ts">
 const props = defineProps<{
   value?: string|null;
-  rewriteFileUrl?: (fileSrc: string) => string;
-  rewriteReferenceLink?: (src: string) => {href: string, title: string}|null;
+  rewriteFileUrlMap?: Record<string, string>;
+  referenceItems?: ReferenceItem[];
   cacheBuster?: string;
 }>();
 
@@ -31,25 +32,17 @@ const cacheBusterFallback = uuidv4();
 const cacheBuster = computed(() => props.cacheBuster || cacheBusterFallback);
 const renderedMarkdown = ref('');
 const renderedMarkdownText = ref('');
-watchThrottled(() => props.value, () => {
+watchThrottled(() => props.value, async () => {
   const mdText = props.value || '';
-  renderedMarkdown.value = renderMarkdownToHtml(mdText, {
+  renderedMarkdown.value = await renderMarkdownToHtmlInWorker({
+    text: mdText,
     preview: true,
-    rewriteFileSource,
-    rewriteReferenceLink: props.rewriteReferenceLink,
+    referenceItems: props.referenceItems,
+    rewriteFileUrlMap: props.rewriteFileUrlMap,
+    cacheBuster: cacheBuster.value,
   });
   renderedMarkdownText.value = mdText;
 }, { throttle: 500, leading: true, immediate: true });
-
-function rewriteFileSource(imgSrc: string) {
-  // Rewrite image source to handle image fetching from markdown.
-  // Images in markdown are referenced with a URL relative to the parent resource (e.g. "/images/name/image.png").
-  if (!props.rewriteFileUrl || !imgSrc.startsWith('/')) {
-    return imgSrc;
-  }
-
-  return absoluteApiUrl(props.rewriteFileUrl(`${imgSrc}?c=${cacheBuster.value}`));
-}
 
 const previewRef = ref<HTMLDivElement>();
 async function postProcessRenderedHtml() {

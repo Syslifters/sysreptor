@@ -106,11 +106,11 @@ import { MarkdownEditorMode } from "#imports";
 const props = defineProps<{
   historic: {
     value: FindingTemplate;
-    rewriteFileUrl?: (fileSrc: string) => string;
+    rewriteFileUrlMap?: Record<string, string>;
   },
   current: {
     value: FindingTemplate;
-    rewriteFileUrl?: (fileSrc: string) => string;
+    rewriteFileUrlMap?: Record<string, string>;
   }
   initialLanguage?: string|null;
   toolbarAttrs?: object;
@@ -182,7 +182,7 @@ const diffFieldAttrs = computed(() => (translationInfo: TranslationDiffInfo, def
           mainTranslation.value.data[definition.id]) :
         null,
       lang: translationInfo.historic?.language,
-      rewriteFileUrl: props.historic.rewriteFileUrl,
+      rewriteFileUrlMap: props.historic.rewriteFileUrlMap,
       ...commonProps
     },
     current: {
@@ -192,7 +192,7 @@ const diffFieldAttrs = computed(() => (translationInfo: TranslationDiffInfo, def
           mainTranslationCurrent!.data[definition.id]) :
         null,
       lang: translationInfo.current?.language,
-      rewriteFileUrl: props.current.rewriteFileUrl,
+      rewriteFileUrlMap: props.current.rewriteFileUrlMap,
       ...commonProps,
     },
   };

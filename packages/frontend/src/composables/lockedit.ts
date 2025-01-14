@@ -7,6 +7,7 @@ import {
   type MarkdownEditorMode,
   type PentestProject,
   type ProjectType,
+  type ReferenceItem,
   type UploadedFileInfo,
 } from "#imports";
 
@@ -134,34 +135,24 @@ export function useProjectEditBase(options: {
       return `[${res.name}](/files/name/${res.name})`;
     }
   }
-  function rewriteFileUrl(fileSrc: string) {
-    if (fileSrc.startsWith('/assets/')) {
-      return urlJoin(projectTypeUrl.value || '', fileSrc)
-    } else {
-      return urlJoin(projectUrl.value, fileSrc);
-    }
-  }
 
-  const referenceItems = computed(() => {
+  const rewriteFileUrlMap = computed(() => ({
+    '/assets/': urlJoin(projectTypeUrl.value || '', '/assets/'),
+    '/images/': urlJoin(projectUrl.value, '/images/'),
+    '/files/': urlJoin(projectUrl.value, '/files/'),
+  }));
+  const referenceItems = computed<ReferenceItem[]>(() => {
     return projectStore.findings(options.project.value?.id || '', { projectType: options.projectType?.value })
       .map(f => ({
         id: f.id, 
         title: f.data.title,
+        label: `[Finding ${f.data.title}]`,
+        href: `/projects/${options.project.value!.id}/reporting/findings/${f.data.id}/`,
         severity: options.projectType?.value ? 
-        levelNameFromLevelNumber(getFindingRiskLevel({ finding: f, projectType: options.projectType?.value }) as any)?.toLowerCase() : 
+          levelNameFromLevelNumber(getFindingRiskLevel({ finding: f, projectType: options.projectType?.value }) as any)?.toLowerCase() : 
           undefined,
       }))
   });
-  function rewriteReferenceLink(refId: string) {
-    const findingRef = referenceItems.value.find(f => f.id === refId);
-    if (findingRef) {
-      return {
-        href: `/projects/${options.project.value!.id}/reporting/findings/${findingRef.id}/`,
-        title: `[Finding ${findingRef.title}]`,
-      };
-    }
-    return null;
-  }
 
   const spellcheckEnabled = options.spellcheckEnabled || computed({ 
     get: () => localSettings.reportingSpellcheckEnabled && !options.historyDate,
@@ -175,13 +166,12 @@ export function useProjectEditBase(options: {
     lang: options.project.value?.language || 'en-US',
     selectableUsers: [...(options.project.value?.members || []), ...(options.project.value?.imported_members || [])],
     referenceItems: referenceItems.value,
+    rewriteFileUrlMap: rewriteFileUrlMap.value,
     spellcheckEnabled: spellcheckEnabled.value,
     'onUpdate:spellcheckEnabled': (val: boolean) => { spellcheckEnabled.value = val; },
     markdownEditorMode: markdownEditorMode.value,
     'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { markdownEditorMode.value = val; },
     uploadFile,
-    rewriteFileUrl,
-    rewriteReferenceLink,
   }));
 
   return {

@@ -87,7 +87,7 @@ describe('Markdown extensions', () => {
     '```\n\\# \\{\\{ text \\}\\}\n```': codeBlock('\\# \\&#x7B;\\&#x7B; text \\&#x7D;\\&#x7D;'),
   }).map(([md, expected]) => [md, typeof expected === 'string' ? { html: expected, formatted: md } : expected]) as [string, { html: string, formatted: string }][]) {
     test(md, () => {
-      const html = renderMarkdownToHtml(md).replaceAll(/ data-position=".*?"/g, '').trim()
+      const html = renderMarkdownToHtml({ text: md }).replaceAll(/ data-position=".*?"/g, '').trim()
       expect(html).toBe(expected.html);
       const formattedMd = formatMarkdown(md).trim();
       expect(formattedMd).toBe(expected.formatted);

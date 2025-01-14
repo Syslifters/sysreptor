@@ -13,7 +13,7 @@ async function globalSetup(config: FullConfig) {
   await integrationLogin(page, baseURL);
   await integrationSuperuser(page);
   await selfPromotion(page);
-  await downloadDemoData(page);
+  await downloadDemoData();
   await importDemoData(page);
   // Let the demo data import...
   await page.context().storageState({ path: storageState as string });

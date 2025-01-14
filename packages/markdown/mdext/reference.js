@@ -13,7 +13,7 @@ export function rehypeReferenceLink() {
 }
 
 
-export function rehypeReferenceLinkPreview({ rewriteReferenceLink = null }) {
+export function rehypeReferenceLinkPreview({ referenceItems = undefined }) {
   return tree => {
     let refNodes = [];
     let refTargets = {};
@@ -35,8 +35,8 @@ export function rehypeReferenceLinkPreview({ rewriteReferenceLink = null }) {
 
         let refPreview = null;
         // Known reference target (e.g. other finding)
-        if (!refPreview && rewriteReferenceLink) {
-          refPreview = rewriteReferenceLink(refId);
+        if (!refPreview && referenceItems) {
+          refPreview = referenceItems.find(item => item.id === refId);
         }
 
         // Local reference target (e.g. figure in same markdown field)
@@ -45,12 +45,12 @@ export function rehypeReferenceLinkPreview({ rewriteReferenceLink = null }) {
               refTargets[refId].parent.tagName === 'figure' && 
               refTargets[refId].parent.children.some(cn => cn.tagName === 'figcaption')) {
             refPreview = {
-              title: `[Figure #${refId}]`,
+              label: `[Figure #${refId}]`,
             };
           }
           if (refTargets[refId].node.tagName === 'caption') {
             refPreview = {
-              title: `[Table #${refId}]`,
+              label: `[Table #${refId}]`,
             };
           }
         }
@@ -58,7 +58,7 @@ export function rehypeReferenceLinkPreview({ rewriteReferenceLink = null }) {
         // Unknown reference target
         if (!refPreview) {
           refPreview = {
-            title: `[Reference to #${refId}]`,
+            label: `[Reference to #${refId}]`,
           };
         }
 
@@ -67,8 +67,8 @@ export function rehypeReferenceLinkPreview({ rewriteReferenceLink = null }) {
         if (refPreview.href) {
           node.properties.href = refPreview.href;
         }
-        if (refPreview.title && node.children.length === 0) {
-          node.children.push({type: 'text', value: refPreview.title});
+        if (refPreview.label && node.children.length === 0) {
+          node.children.push({type: 'text', value: refPreview.label});
         }
       }
     }

@@ -257,10 +257,3 @@ defineExpose({
   min-height: 0;
 }
 </style>
-
-<!-- TODO: comment improvements
-* [x] change icon for resolve: mdi-check-marked-circle
-* [x] allow un-resolving comments
-* [x] save comment/answer with Ctrl+Enter
-* [x] add comment in markdown for selected text with Ctrl+Alt+M 
--->

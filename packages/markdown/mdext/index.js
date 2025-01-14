@@ -5,11 +5,10 @@ import remarkStringify from 'remark-stringify';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { merge } from 'lodash-es';
-import 'highlight.js/styles/default.css';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, remarkToRehypeHandersFootnotesPreview, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './footnotes';
 import { remarkStrikethrough, remarkTaskListItem } from './gfm';
-import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteImageSources, rehypeRewriteFileLinks, rehypeTemplates, rehypeRawFixSelfClosingTags, rehypeRawFixPassthroughStitches } from './rehypePlugins';
+import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteFileUrls, rehypeTemplates, rehypeRawFixSelfClosingTags, rehypeRawFixPassthroughStitches } from './rehypePlugins';
 import { remarkAttrs, remarkToRehypeAttrs } from './attrs';
 import { remarkFigure, remarkToRehypeHandlersFigure } from './image';
 import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './tables';
@@ -83,12 +82,11 @@ export function formatMarkdown(text) {
 }
 
 /**
- * 
- * @param {string} text 
- * @param {*} options 
+ * Render markdown text to HTML
+ * @param {{text: string, preview?: boolean, referenceItems?: {id: string, href?: string, label?: string}[], rewriteFileUrlMap?: Record<string, string>, cacheBuster?: string}} options 
  * @returns {string}
  */
-export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource = null, rewriteReferenceLink = null} = {}) {
+export function renderMarkdownToHtml({ text = '', preview = false, referenceItems = undefined, rewriteFileUrlMap = undefined, cacheBuster = undefined} = {}) {
   let md = markdownParser()
       .use(remarkParse)
       .use(remarkRehype, { 
@@ -111,10 +109,11 @@ export function renderMarkdownToHtml(text, {preview = false, rewriteFileSource =
       .use(rehypeTemplateVariables, { preview })
       .use(rehypeConvertAttrsToStyle)
       .use(preview ? rehypeFootnoteSeparatorPreview : rehypeFootnoteSeparator)
-      .use(preview ? rehypeReferenceLinkPreview : rehypeReferenceLink, { rewriteReferenceLink })
-      .use(rehypeRewriteImageSources, {rewriteImageSource: rewriteFileSource})
-      .use(rehypeRewriteFileLinks, {rewriteFileUrl: rewriteFileSource})
-      .use(rehypeLinkTargetBlank);
+      .use(preview ? rehypeReferenceLinkPreview : rehypeReferenceLink, { referenceItems })
+    if (rewriteFileUrlMap) {
+      md = md.use(rehypeRewriteFileUrls, { rewriteFileUrlMap, cacheBuster });
+    }
+    md = md.use(rehypeLinkTargetBlank)
     if (preview) {
       md = md.use(rehypeSanitize, rehypeSanitizeSchema);
     }

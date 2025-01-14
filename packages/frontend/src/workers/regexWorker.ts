@@ -1,5 +1,4 @@
-onmessage = (e: MessageEvent) => {
-  const { pattern, value }: { pattern: RegExp, value: string } = e.data;
-  const res = pattern.test(value);
+onmessage = (e: MessageEvent<{ pattern: RegExp, value: string }>) => {
+  const res = e.data.pattern.test(e.data.value);
   postMessage(res);
 };

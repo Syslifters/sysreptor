@@ -12,7 +12,7 @@
           v-model="template"
           :toolbar-attrs="{...toolbarAttrs, canAutoSave: true}"
           :upload-file="uploadFile"
-          :rewrite-file-url="rewriteFileUrl"
+          :rewrite-file-url-map="rewriteFileUrlMap"
           :readonly="readonly"
           :initial-language="template!.translations.find(tr => tr.id === route.query?.translation_id)?.language || (route.query?.language as string|undefined)"
           :history="true"
@@ -97,9 +97,9 @@ async function uploadFile(file: File) {
   const img = await uploadFileHelper<UploadedFileInfo>(urlJoin(baseUrl.value, '/images/'), file);
   return `![](/images/name/${img.name}){width="auto"}`;
 }
-function rewriteFileUrl(imgSrc: string) {
-  return urlJoin(baseUrl.value, imgSrc);
-}
+const rewriteFileUrlMap = computed(() => ({
+  '/images/': urlJoin(baseUrl.value, '/images/'),
+}));
 
 async function performCopy() {
   if (!template.value) {
