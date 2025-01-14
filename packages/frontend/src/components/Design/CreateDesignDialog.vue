@@ -1,11 +1,13 @@
 <template>
   <s-dialog v-model="dialogVisible">
     <template #activator="{ props: dialogProps }">
-      <btn-create 
-        :loading="actionInProgress"
-        :disabled="!canCreate"
-        v-bind="dialogProps"
-      />
+      <permission-info :value="canCreate" :permission-name="props.projectTypeScope === ProjectTypeScope.GLOBAL ? 'Designer' : undefined">
+        <btn-create 
+          :loading="actionInProgress"
+          :disabled="!canCreate"
+          v-bind="dialogProps"
+        />
+      </permission-info>
     </template>
     <template #title>New Design</template>
 

@@ -5,9 +5,10 @@
         <v-list-item
           :to="{path: '/templates/fromfinding/', query: {project: project.id, finding: finding.id}}"
           prepend-icon="mdi-view-compact"
-          title="Save as template"
           :disabled="!auth.permissions.value.template_editor"
-        />
+        >
+          <template #title><permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">Save as template</permission-info></template>
+        </v-list-item>
         <btn-copy 
           :copy="performCopy"
           :disabled="project.readonly"

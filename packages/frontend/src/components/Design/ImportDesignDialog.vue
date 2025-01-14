@@ -1,9 +1,11 @@
 <template>
-  <btn-import 
-    ref="importBtnRef"
-    :import="performImport" 
-    :disabled="!canImport"
-  />
+  <permission-info :value="canImport" :permission-name="props.projectTypeScope === ProjectTypeScope.GLOBAL ? 'Designer' : undefined">
+    <btn-import 
+      ref="importBtnRef"
+      :import="performImport" 
+      :disabled="!canImport"
+    />
+  </permission-info>
 </template>
 
 <script setup lang="ts">

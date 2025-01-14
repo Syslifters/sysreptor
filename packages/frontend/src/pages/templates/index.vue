@@ -43,17 +43,21 @@
         </v-row>
       </template>
       <template #actions>
-        <btn-create 
-          @click="performCreate"
-          :disabled="!auth.permissions.value.template_editor"
-          :loading="performCreateInProgress"
-        />
-        <btn-import 
-          ref="importBtnRef"
-          data-testid="import-templates"
-          :import="performImport"
-          :disabled="!auth.permissions.value.template_editor"
-        />
+        <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
+          <btn-create 
+            @click="performCreate"
+            :disabled="!auth.permissions.value.template_editor"
+            :loading="performCreateInProgress"
+          />
+        </permission-info>
+        <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
+          <btn-import 
+            ref="importBtnRef"
+            data-testid="import-templates"
+            :import="performImport"
+            :disabled="!auth.permissions.value.template_editor"
+          />
+        </permission-info>
       </template>
       <template #item="{item}: {item: FindingTemplate}">
         <template-list-item

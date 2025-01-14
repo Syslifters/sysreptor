@@ -91,18 +91,19 @@
 
           <v-list-item 
             to="/users/" 
-            title="Users" 
             data-testid="users-tab"
             prepend-icon="mdi-account-multiple" 
             :active="route.path.startsWith('/users') && !route.path.startsWith('/users/self')"
             :disabled="!auth.permissions.value.user_manager" 
-          />
+          >
+            <template #title><permission-info :value="auth.permissions.value.user_manager" permission-name="User Manager">Users</permission-info></template>
+          </v-list-item>
           <v-list-item
             to="/backups/"
             prepend-icon="mdi-tools"
             :disabled="!auth.permissions.value.view_backup"
           >
-            <template #title><pro-info>Backups</pro-info></template>
+            <template #title><pro-info><permission-info :value="auth.permissions.value.view_backup || !apiSettings.isProfessionalLicense" permission-name="Superuser">Backups</permission-info></pro-info></template>
           </v-list-item>
           <license-info-menu-item />
         </template>
