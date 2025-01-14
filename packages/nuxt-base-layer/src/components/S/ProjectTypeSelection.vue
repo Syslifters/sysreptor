@@ -66,7 +66,7 @@ const emit = defineEmits<{
 const items = useSearchableCursorPaginationFetcher<ProjectType>({
   baseURL: '/api/v1/projecttypes/',
   query: {
-    ordering: 'status,scope,name,-created',
+    ordering: 'status,scope,-usage,name,-created',
     scope: [ProjectTypeScope.GLOBAL, ProjectTypeScope.PRIVATE],
     ...props.queryFilters
   }
@@ -99,6 +99,19 @@ useLazyAsyncData(async () => {
     initialProjectType.value = props.additionalItems.find(pt => pt.id === props.modelValue) || null;
     if (initialProjectType.value) {
       emit('update:modelValue', initialProjectType.value);
+    }
+  }
+
+  if (props.required && !props.modelValue) {
+    if (props.additionalItems.length === 0) {
+      await items.fetchNextPage();
+    }
+    if (allItems.value.length > 0) {
+      if (props.returnObject) {
+        emit('update:modelValue', allItems.value[0]!);
+      } else {
+        emit('update:modelValue', allItems.value[0]!.id);
+      }
     }
   }
 });

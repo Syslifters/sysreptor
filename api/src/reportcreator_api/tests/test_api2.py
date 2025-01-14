@@ -49,6 +49,9 @@ class TestProjectApi:
         # ProjectType copied on create
         assert p['project_type'] != str(self.project_type.id)
         assert self.client.get(reverse('projecttype-detail', kwargs={'pk': p['project_type']})).json()['source'] == SourceEnum.SNAPSHOT
+        # ProjectType.usage_count incremented
+        self.project_type.refresh_from_db()
+        assert self.project_type.usage_count == 1
 
     def test_copy_project(self):
         project = create_project(project_type=self.project_type, members=[self.user])
@@ -80,6 +83,10 @@ class TestProjectApi:
         pt = ProjectType.objects.get(id=p['project_type'])
         assert pt.source == SourceEnum.SNAPSHOT
         assert pt.linked_project == project
+
+        # ProjectType.usage_count incremented
+        self.project_type.refresh_from_db()
+        assert self.project_type.usage_count == 1
 
     def test_change_imported_members(self):
         project = create_project(members=[self.user], imported_members=[{
@@ -317,6 +324,10 @@ class TestTemplateApi:
         assert f2.status_code == 201
         assert f2.data['data']['title'] == 'title translation'
         assert f2.data['data']['description'] == 'description main'
+
+        # Template.usage_count incremented
+        self.template.refresh_from_db()
+        assert self.template.usage_count == 2
 
     def test_create_finding_from_template_images(self):
         template = create_template(data={'description': '![image](/images/name/image.png)'}, images_kwargs=[{'name': 'image.png'}])

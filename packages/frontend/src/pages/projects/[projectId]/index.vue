@@ -73,6 +73,7 @@
         :error-messages="serverErrors?.project_type || []"
         :readonly="readonly"
         :append-link="true"
+        :required="true"
         return-object
         class="mt-4"
       >
@@ -146,6 +147,7 @@ import { ProjectTypeScope } from '#imports';
 const route = useRoute();
 const auth = useAuth();
 const projectStore = useProjectStore();
+const projectTypeStore = useProjectTypeStore();
 
 const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${route.params.projectId}/`, { method: 'GET', key: 'projectSettings:project', deep: true });
 const serverErrors = ref<any|null>(null);
@@ -179,6 +181,7 @@ const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
       project.value = await projectStore.partialUpdateProject(project.value,
         ['name', 'project_type', 'force_change_project_type', 'language', 'tags', 'members', 'imported_members']);
       serverErrors.value = null;
+      projectType.value = await projectTypeStore.getById(project.value.project_type);
     } catch (error: any) {
       if (error?.status === 400 && error?.data) {
         serverErrors.value = error.data;
