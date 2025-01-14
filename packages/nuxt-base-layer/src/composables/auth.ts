@@ -1,6 +1,6 @@
 import type { NavigateToOptions } from '#app/composables/router'
 import type { LocationQueryValue } from "#vue-router";
-import { AuthProviderType, type AuthProvider, type User, useApiSettings  } from "#imports";
+import { AuthProviderType, type AuthProvider, type User, useApiSettings, type LoginResponse, LoginResponseStatus  } from "#imports";
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -24,7 +24,6 @@ export const useAuthStore = defineStore('auth', {
         edit_projects: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.guest_permissions.edit_projects))) || false,
         share_notes: (apiSettings.settings?.features.sharing && state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.guest_permissions.share_notes))) || false,
         archive_projects: (apiSettings.settings?.features.archiving && state.user && (!state.user.is_guest || state.user.scope.includes('admin') || (state.user.is_guest && apiSettings.settings?.guest_permissions.update_project_settings))) || false,
-        view_license: state.user?.is_superuser || state.user?.is_user_manager || state.user?.is_system_user || false,
         view_backup: (apiSettings.isProfessionalLicense && state.user?.scope.includes('admin')) || false,
       };
     },
@@ -100,16 +99,26 @@ export function useAuth() {
     store.user = null;
   }
 
+  async function finishLogin(response: LoginResponse) {
+    if (response.status !== LoginResponseStatus.SUCCESS) {
+      throw new Error('Login failed');
+    }
+    const apiSettings = useApiSettings();
+    apiSettings.licenseInfo = response.license!;
+
+    return await fetchUser();
+  }
+
   async function authProviderLoginBegin(authProvider: AuthProvider, options = { reauth: false }) {
     if (authProvider.type === AuthProviderType.LOCAL) {
       await navigateTo('/login/local/');
     } else if (authProvider.type === AuthProviderType.REMOTEUSER) {
       try {
-        await $fetch('/api/v1/auth/login/remoteuser/', {
+        const res = await $fetch<LoginResponse>('/api/v1/auth/login/remoteuser/', {
           method: 'POST',
           body: {}
         });
-        await fetchUser();
+        await finishLogin(res);
         await redirect();
       } catch (error) {
         requestErrorToast({ error, message: 'Login failed' });
@@ -133,5 +142,6 @@ export function useAuth() {
     redirectToReAuth,
     fetchUser,
     authProviderLoginBegin,
+    finishLogin,
   };
 }

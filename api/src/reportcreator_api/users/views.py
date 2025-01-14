@@ -413,6 +413,7 @@ class AuthViewSet(viewsets.ViewSet):
         return Response({
             'status': 'success',
             'first_login': first_login,
+            'license': license.get_license_info(),
         }, status=status.HTTP_200_OK)
 
     @action(detail=False, url_path='login/oidc/(?P<oidc_provider>[a-zA-Z0-9]+)/begin', methods=['get'], permission_classes=[license.ProfessionalLicenseRequired])

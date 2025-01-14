@@ -1,4 +1,4 @@
-import { type ApiSettings, type AuthProvider, type CWE, AuthProviderType } from '#imports';
+import { type ApiSettings, type AuthProvider, type CWE, type LicenseInfoDetails, AuthProviderType } from '#imports';
 
 export const useApiSettings = defineStore('apisettings', {
   state: () => ({
@@ -6,6 +6,8 @@ export const useApiSettings = defineStore('apisettings', {
     getSettingsSync: null as Promise<ApiSettings> | null,
     cwes: null as CWE[]|null,
     getCwesSync: null as Promise<CWE[]>|null,
+    licenseInfo: null as LicenseInfoDetails|null,
+    getLicenseInfoSync: null as Promise<LicenseInfoDetails>|null,
   }),
   actions: {
     async fetchSettings() : Promise<ApiSettings> {
@@ -47,6 +49,25 @@ export const useApiSettings = defineStore('apisettings', {
           this.getCwesSync = null;
         }
       }
+    },
+    async fetchLicenseInfo(): Promise<LicenseInfoDetails> {
+      this.licenseInfo = await $fetch<LicenseInfoDetails>('/api/v1/utils/license/', { method: 'GET' });
+      return this.licenseInfo!;
+    },
+    async getLicenseInfo(): Promise<LicenseInfoDetails> {
+      if (this.licenseInfo) {
+        return this.licenseInfo;
+      } else if (this.getLicenseInfoSync) {
+        return await this.getLicenseInfoSync;
+      } else {
+        try {
+          this.getLicenseInfoSync = this.fetchLicenseInfo();
+          return await this.getLicenseInfoSync;
+        } finally {
+          this.getLicenseInfoSync = null;
+        }
+      }
+
     }
   },
   getters: {

@@ -5,6 +5,7 @@ from unittest import mock
 from uuid import uuid4
 
 import pytest
+from asgiref.sync import async_to_sync
 from Cryptodome.Hash import SHA512
 from Cryptodome.PublicKey import ECC
 from Cryptodome.Signature import eddsa
@@ -16,6 +17,8 @@ from django.utils.crypto import get_random_string
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from reportcreator_api.tasks.models import LicenseActivationInfo
+from reportcreator_api.tasks.tasks import activate_license
 from reportcreator_api.tests.mock import (
     api_client,
     create_project,
@@ -31,6 +34,42 @@ from reportcreator_api.utils import license
 def assert_api_license_error(res):
     assert res.status_code == status.HTTP_403_FORBIDDEN
     assert res.data['code'] == 'license'
+
+
+def generate_signing_key():
+    private_key = ECC.generate(curve='ed25519')
+    public_key = {
+        'id': str(uuid4()),
+        'algorithm': 'ed25519',
+        'key': b64encode(private_key.public_key().export_key(format='DER')).decode(),
+    }
+    return private_key, public_key
+
+
+def sign_license_data(license_data_str: str, public_key: dict, private_key):
+    signer = eddsa.new(key=private_key, mode='rfc8032')
+    signature = signer.sign(SHA512.new(license_data_str.encode()))
+    return {
+        'key_id': public_key['id'],
+        'algorithm': public_key['algorithm'],
+        'signature': b64encode(signature).decode(),
+    }
+
+
+def sign_license(license_data, keys):
+    license_data_str = json.dumps(license_data)
+    return b64encode(json.dumps({
+        'data': license_data_str,
+        'signatures': [sign_license_data(license_data_str, k[0], k[1]) for k in keys],
+    }).encode()).decode()
+
+
+def signed_license(keys, **kwargs):
+    return sign_license({
+        'users': 10,
+        'valid_from': (timezone.now() - timedelta(days=30)).date().isoformat(),
+        'valid_until': (timezone.now() + timedelta(days=30)).date().isoformat(),
+    } | kwargs, keys)
 
 
 @pytest.mark.django_db()
@@ -235,41 +274,12 @@ class TestProfessionalLicenseRestrictions:
 class TestLicenseValidation:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.license_private_key, self.license_public_key = self.generate_signing_key()
+        self.license_private_key, self.license_public_key = generate_signing_key()
         with mock.patch('reportcreator_api.utils.license.LICENSE_VALIDATION_KEYS', new=[self.license_public_key]):
             yield
 
-    def generate_signing_key(self):
-        private_key = ECC.generate(curve='ed25519')
-        public_key = {
-            'id': str(uuid4()),
-            'algorithm': 'ed25519',
-            'key': b64encode(private_key.public_key().export_key(format='DER')).decode(),
-        }
-        return private_key, public_key
-
-    def sign_license_data(self, license_data_str: str, public_key: dict, private_key):
-        signer = eddsa.new(key=private_key, mode='rfc8032')
-        signature = signer.sign(SHA512.new(license_data_str.encode()))
-        return {
-            'key_id': public_key['id'],
-            'algorithm': public_key['algorithm'],
-            'signature': b64encode(signature).decode(),
-        }
-
-    def sign_license(self, license_data, keys):
-        license_data_str = json.dumps(license_data)
-        return b64encode(json.dumps({
-            'data': license_data_str,
-            'signatures': [self.sign_license_data(license_data_str, k[0], k[1]) for k in keys],
-        }).encode()).decode()
-
     def signed_license(self, **kwargs):
-        return self.sign_license({
-            'users': 10,
-            'valid_from': (timezone.now() - timedelta(days=30)).date().isoformat(),
-            'valid_until': (timezone.now() + timedelta(days=30)).date().isoformat(),
-        } | kwargs, [(self.license_public_key, self.license_private_key)])
+        return signed_license(keys=[(self.license_public_key, self.license_private_key)], **kwargs)
 
     @pytest.mark.parametrize(('license_str', 'error'), [
         (None, None),
@@ -339,3 +349,38 @@ class TestLicenseValidation:
         license_2 = b64encode(json.dumps(license_content).encode())
         license_info = license.decode_and_validate_license(license_2)
         assert license_info['type'] == license.LicenseType.PROFESSIONAL
+
+
+@pytest.mark.django_db()
+class TestLicenseActivationInfo:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.license_private_key, self.license_public_key = generate_signing_key()
+        self.license_community = None
+        self.license_invalid = 'invalid license string'
+        self.license_professional = signed_license(keys=[(self.license_public_key, self.license_private_key)])
+        self.license_professional2 = signed_license(keys=[(self.license_public_key, self.license_private_key)], users=20)
+        self.license_expired = signed_license(keys=[(self.license_public_key, self.license_private_key)], valid_until=(timezone.now() - timedelta(days=1)).date().isoformat())
+
+        with mock.patch('reportcreator_api.utils.license.LICENSE_VALIDATION_KEYS', new=[self.license_public_key]), \
+             mock.patch('reportcreator_api.utils.license.check_license', new=lambda: license.decode_and_validate_license(settings.LICENSE)), \
+             mock.patch('reportcreator_api.tasks.tasks.activate_license_request', return_value={'status': 'ok', 'license_info': {'last_activation_time': timezone.now().isoformat()}}):
+            yield
+
+    @pytest.mark.parametrize(('name_old', 'name_new', 'created'), [
+        ('license_community', 'license_community', False),
+        ('license_community', 'license_invalid', False),
+        ('license_community', 'license_professional', True),
+        ('license_professional', 'license_professional', False),
+        ('license_professional', 'license_professional2', True),
+        ('license_professional', 'license_community', True),
+        ('license_professional', 'license_expired', True),
+    ])
+    def test_license_activation_info_created(self, name_old, name_new, created):
+        with override_settings(LICENSE=getattr(self, name_old)):
+            activation_info_old = LicenseActivationInfo.objects.current()
+        with override_settings(LICENSE=getattr(self, name_new)):
+            async_to_sync(activate_license)(None)
+            activation_info_new = LicenseActivationInfo.objects.order_by('-created').first()
+
+        assert (activation_info_old != activation_info_new) == created

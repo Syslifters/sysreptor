@@ -5,6 +5,7 @@ from django.db import models
 from django.utils import timezone
 
 from reportcreator_api.tasks import querysets
+from reportcreator_api.utils import license
 from reportcreator_api.utils.models import BaseModel
 
 
@@ -29,6 +30,8 @@ class PeriodicTaskSpec:
     id: str
     schedule: timedelta
     func: callable
+    retry: timedelta = timedelta(minutes=10)
+    max_runtime: timedelta = timedelta(minutes=10)
 
 
 @dataclasses.dataclass()
@@ -59,12 +62,21 @@ class PeriodicTaskRegistry:
 periodic_task_registry = PeriodicTaskRegistry()
 
 
-def periodic_task(schedule: timedelta, id: str|None = None):
+def periodic_task(schedule: timedelta, id: str|None = None, retry: timedelta|None = None):
     def inner(func):
         periodic_task_registry.register(PeriodicTaskSpec(
             id=id or f'{func.__module__}.{func.__name__}',
             schedule=schedule,
+            retry=retry or (schedule / 10),
             func=func,
         ))
         return func
     return inner
+
+
+class LicenseActivationInfo(BaseModel):
+    license_type = models.CharField(max_length=255, choices=license.LicenseType.choices)
+    license_hash = models.CharField(max_length=255, null=True)
+    last_activation_time = models.DateTimeField(null=True, blank=True)
+
+    objects = querysets.LicenseActivationInfoManager()

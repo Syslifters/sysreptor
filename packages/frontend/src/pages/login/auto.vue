@@ -55,7 +55,7 @@ const { error } = useAsyncData(async () => {
     } else if (res.status !== LoginResponseStatus.SUCCESS) {
       throw new Error(`Login failed: ${res.status}`);
     }
-    await auth.fetchUser();
+    await auth.finishLogin(res);
     await auth.redirect();
   } catch (error: any) {
     if (error?.data?.detail) {
