@@ -29,6 +29,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, username, password, is_superuser, is_system_user, is_initial_saas_user, *args, **kwargs):
+        username = username or os.environ.get('DJANGO_SUPERUSER_USERNAME')
         password = password or os.environ.get('DJANGO_SUPERUSER_PASSWORD')
 
         if not password or not username:
