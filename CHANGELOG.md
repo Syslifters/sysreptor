@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.4 - 2025-01-14
 * Plugin projectnumber: Add manage.py command to reset projectnumber
 * Add plugin: renderfindings - Render single finding to PDF
 * Update and optimize designs: demo, HTB and OffSec designs
@@ -9,6 +9,8 @@
 * Add button to generate random password to password fields
 * Shared notes: Default to markdown preview mode for readonly shares
 * Shared notes: Autofocus root note
+* Fix DB connection cleaned up in background tasks
+* Increase DB connection pool size
 * UI: Hide markdown toolbar in preview mode
 * UI: Update UI to switch markdown editor view mode
 
