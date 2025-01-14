@@ -11,8 +11,12 @@
     >
       <template #title>Projects</template>
       <template #actions>
-        <btn-create to="/projects/new/" :disabled="!auth.permissions.value.create_projects" />
-        <btn-import ref="importBtn" :import="performImport" :disabled="!auth.permissions.value.import_projects" />
+        <permission-info :value="auth.permissions.value.create_projects">
+          <btn-create to="/projects/new/" :disabled="!auth.permissions.value.create_projects" />
+        </permission-info>
+        <permission-info :value="auth.permissions.value.import_projects">
+          <btn-import ref="importBtn" :import="performImport" :disabled="!auth.permissions.value.import_projects" />
+        </permission-info>
       </template>
       <template #tabs>
         <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active" />

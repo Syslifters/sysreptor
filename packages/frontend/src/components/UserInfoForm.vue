@@ -171,7 +171,9 @@
           :error-messages="errors?.is_superuser || []"
           :disabled="!canEditSuperuserPermissions"
           density="compact"
-        />
+        >
+          <template #label><permission-info :value="canEditSuperuserPermissions" permission-name="Superuser">Superuser</permission-info></template>
+        </s-checkbox>
         <s-checkbox
           v-if="user.is_system_user"
           :model-value="user.is_system_user"
