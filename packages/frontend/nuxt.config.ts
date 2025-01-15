@@ -50,6 +50,9 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: ['vuedraggable', 'monaco-editor', '@github/webauthn-json/browser-ponyfill'],
     },
+    worker: {
+      format: 'es',
+    },
     server: {
       proxy: {
         '/api': {
