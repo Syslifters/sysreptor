@@ -429,9 +429,10 @@ CONTENT_SECURITY_POLICY = {
         'font-src': [SELF],
         'worker-src': [SELF],
         'connect-src': [SELF, 'data:', 'https://portal.sysreptor.com'],
-        'frame-src': [SELF],
         'frame-ancestors': [SELF],
         'form-action': [SELF],
+        # PDF.js in Firefox requires "blob:" for saving/downloading PDFs
+        'frame-src': [SELF, 'blob:'],
         # nuxt, vuetify and markdown preview use inline styles
         'style-src': [SELF, UNSAFE_INLINE],
         'script-src': [
