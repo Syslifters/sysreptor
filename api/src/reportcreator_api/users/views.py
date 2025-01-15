@@ -463,7 +463,7 @@ class AuthViewSet(viewsets.ViewSet):
             can_reauth = (timezone.now() - timezone.make_aware(datetime.fromtimestamp(auth_time))) < timedelta(minutes=1)
         res = self.perform_login(request, identity.user, can_reauth=can_reauth)
         request.session['authentication_info'] |= {
-            f'oidc_{oidc_provider}_login_hint': token['userinfo'].get('login_hint'),
+            f'oidc_{oidc_provider}_login_hint': token['userinfo'].get('preferred_username') or token['userinfo'].get('login_hint'),
         }
         return res
 

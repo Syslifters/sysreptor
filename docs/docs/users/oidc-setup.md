@@ -2,7 +2,7 @@
 <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
 
 1. Configure your Identity Provider (IDP) and add configuration details to your `app.env`
-    * [Azure Active Directory](../users/oidc-azure-active-directory.md)
+    * [Microsoft Entra ID](../users/oidc-entra-id.md)
     * [Google Workplace/Google Identity](../users/oidc-google.md)
     * [Keycloak](../users/oidc-keycloak.md)
     * [Generic OIDC setup](../users/oidc-generic.md)

@@ -26,14 +26,15 @@ const auth = useAuth();
 const apiSettings = useApiSettings();
 
 useLazyAsyncData(async () => {
-  // Do not auto-login after logout
-  if (!route.query?.logout) {
-    const authProviders = apiSettings.settings!.auth_providers;
-    let defaultAuthProvider = authProviders.find(p => p.id === apiSettings.settings!.default_auth_provider);
-    if (!defaultAuthProvider && authProviders.length === 1) {
-      defaultAuthProvider = authProviders[0];
-    }
-    if (defaultAuthProvider) {
+  const authProviders = apiSettings.settings!.auth_providers;
+  let defaultAuthProvider = authProviders.find(p => p.id === apiSettings.settings!.default_auth_provider);
+  if (!defaultAuthProvider && authProviders.length === 1) {
+    defaultAuthProvider = authProviders[0];
+  }
+
+  if (defaultAuthProvider) {
+    // Do not auto-login after logout
+    if (!route.query?.logout || (authProviders.length === 1 && defaultAuthProvider.type === AuthProviderType.LOCAL)) {
       await auth.authProviderLoginBegin(defaultAuthProvider);
     }
   }

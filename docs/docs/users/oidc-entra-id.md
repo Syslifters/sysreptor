@@ -1,10 +1,10 @@
 ---
-title: Azure Active Directory OIDC Configuration
+title: Microsoft Entra ID OIDC Configuration
 ---
-# Azure Active Directory OIDC Configuration
+# Microsoft Entra ID OIDC Configuration
 <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
 
-## Configuration in Azure AD
+## Configuration in Microsoft Entra ID
 1. Open [Microsoft Entra Admin Center](https://entra.microsoft.com){ target=_blank }
 2. Select Applications -> App registrations -> New registration
 3. In following menu: 
@@ -30,7 +30,7 @@ You should now have the following values:
 
 * Client ID
 * Client secret
-* Azure tendant ID
+* Entra tendant ID
 
 
 ## Cloud Setup
@@ -45,12 +45,12 @@ You are lucky. Just send the values from the previous steps to us and we'll take
 The values from the previous steps need to be passed as environment variables to the SysReptor docker container.
 You can add them to `<sysreptor-repository>/deploy/app.env`:
 ```env
-OIDC_AZURE_TENANT_ID=<azure tenant id>
-OIDC_AZURE_CLIENT_ID=<azure client id>
-OIDC_AZURE_CLIENT_SECRET=<azure client secret>
+OIDC_AZURE_TENANT_ID=<entra tenant id>
+OIDC_AZURE_CLIENT_ID=<entra client id>
+OIDC_AZURE_CLIENT_SECRET=<entra client secret>
 ```
 
-The OIDC client needs to be able to establish a network connection to Azure AD.
+The OIDC client needs to be able to establish a network connection to Microsoft Entra ID.
 Make sure to not block outgoing traffic.
 
 Restart the docker container by going to `sysreptor/deploy` and:

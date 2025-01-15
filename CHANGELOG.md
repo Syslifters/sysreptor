@@ -1,5 +1,10 @@
 # Changelog
 
+## Upcoming
+* Do not automatically log in (e.g. via OIDC) after logout
+* OIDC: use preferred_username as login_hint for re-authentication
+
+
 ## v2025.4 - 2025-01-14
 * Plugin projectnumber: Add manage.py command to reset projectnumber
 * Add plugin: renderfindings - Render single finding to PDF

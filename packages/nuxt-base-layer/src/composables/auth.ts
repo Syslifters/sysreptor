@@ -95,7 +95,7 @@ export function useAuth() {
     } catch {
       // Ignore errors
     }
-    await navigateTo('/login/');
+    await navigateTo('/login/?logout=true');
     store.user = null;
   }
 
