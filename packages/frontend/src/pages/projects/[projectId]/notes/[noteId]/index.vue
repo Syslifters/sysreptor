@@ -146,9 +146,13 @@ const hasChildNotes = computed(() => {
     .some(n => n.parent === note.value!.id && n.id !== note.value!.id);
 });
 
-useAutofocus(note, 'text');
-
 const shareDialogVisible = ref(false);
+useAutofocus(note, 'text', (id?: string) => {
+  if (id === '#shareinfo') {
+    shareDialogVisible.value = true;
+  }
+});
+
 </script>
 
 <style lang="scss" scoped>

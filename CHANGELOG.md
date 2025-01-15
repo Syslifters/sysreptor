@@ -3,6 +3,11 @@
 ## Upcoming
 * Do not automatically log in (e.g. via OIDC) after logout
 * OIDC: use preferred_username as login_hint for re-authentication
+* Accept username from env variable in createorupdateuser command
+* Render markdown preview in web worker
+* Show tooltips on list actions for missing permissions
+* Project Design selection improvements: order by usage count
+* Improvements of sharing notes and reports
 
 
 ## v2025.4 - 2025-01-14

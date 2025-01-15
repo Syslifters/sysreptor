@@ -69,6 +69,7 @@
                 v-model="createShareInfoForm.data"
                 :disabled="createShareInfoForm.saveInProgress || !canShare"
                 :error="createShareInfoForm.error"
+                :hidden-fields="['is_revoked']"
               />
               <btn-confirm
                 :action="createShareInfo"

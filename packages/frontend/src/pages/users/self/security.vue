@@ -39,6 +39,7 @@
                   label="New Password"
                   :error-messages="changePasswordWizard.errors?.password"
                   confirm show-strength generate
+                  class="mt-4"
                 />
               </v-card-text>
               <v-card-actions>
