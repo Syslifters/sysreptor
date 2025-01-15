@@ -47,7 +47,7 @@ services:
     #   api:
     #     condition: service_healthy
   # rabbitmq:
-  #   image: rabbitmq:3
+  #   image: rabbitmq:4
   #   hostname: rabbitmq
   #   environment:
   #     RABBITMQ_DEFAULT_USER: reportcreator
