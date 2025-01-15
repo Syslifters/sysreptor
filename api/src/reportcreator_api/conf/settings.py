@@ -269,7 +269,7 @@ OIDC_AZURE_TENANT_ID = config('OIDC_AZURE_TENANT_ID', default=None)
 if OIDC_AZURE_CLIENT_ID and OIDC_AZURE_CLIENT_SECRET and OIDC_AZURE_TENANT_ID:
     AUTHLIB_OAUTH_CLIENTS |= {
         'azure': {
-            'label': 'Azure AD',
+            'label': 'Microsoft Entra ID',
             'client_id': OIDC_AZURE_CLIENT_ID,
             'client_secret': OIDC_AZURE_CLIENT_SECRET,
             'server_metadata_url': f'https://login.microsoftonline.com/{OIDC_AZURE_TENANT_ID}/v2.0/.well-known/openid-configuration',

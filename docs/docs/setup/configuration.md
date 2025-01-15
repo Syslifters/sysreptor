@@ -103,7 +103,7 @@ Make sure all users have SSO identities configured before enabling this option. 
 LOCAL_USER_AUTH_ENABLED=false
 ```
 
-Configuration of the default authentication provider when multiple authentication providers are enabled (e.g. OIDC via Azure AD and username/password).
+Configuration of the default authentication provider when multiple authentication providers are enabled (e.g. OIDC via Microsoft Entra ID and username/password).
 This setting will redirect users to the default authentication provider, skipping the selection. Other authentication providers can still be used if login via the default provider fails.
 
 Possible values: `azure`, `google`, `remoteuser`, `local` (username/password authentication)

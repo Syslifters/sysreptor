@@ -40,7 +40,7 @@ nav:
       - Single Sign-On:
           - SSO Setup: users/oidc-setup.md
           - Keycloak: users/oidc-keycloak.md
-          - Azure AD: users/oidc-azure-active-directory.md
+          - Microsoft Entra ID: users/oidc-azure-active-directory.md
           - Google: users/oidc-google.md
           - Generic: users/oidc-generic.md
       - Forgot Password: users/forgot-password.md
@@ -139,7 +139,8 @@ plugins:
         "setup/user-permissions.md": "users/user-permissions.md"
         "setup/oidc-setup.md": "users/oidc-setup.md"
         "setup/oidc-keycloak.md": "users/oidc-keycloak.md"
-        "setup/oidc-azure-active-directory.md": "users/oidc-azure-active-directory.md"
+        "setup/oidc-azure-active-directory.md": "users/oidc-entra-id.md"
+        "users/oidc-azure-active-directory.md": "users/oidc-entra-id.md"
         "setup/oidc-google.md": "users/oidc-google.md"
         "setup/oidc-generic.md": "users/oidc-generic.md"
         "setup/proxy.md": "setup/configuration.md"
