@@ -12,7 +12,6 @@
       :variant="props.variant"
       autocomplete="off"
       spellcheck="false"
-      class="mt-4"
     >
       <template #loader v-if="props.showStrength">
         <v-progress-linear

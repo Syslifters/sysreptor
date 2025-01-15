@@ -17,6 +17,7 @@
               v-model="userForm.password"
               confirm show-strength generate
               :error-messages="serverErrors?.password || []"
+              class="mt-4"
             />
             <s-checkbox
               v-model="userForm.must_change_password"

@@ -1,4 +1,4 @@
-export async function uploadFileHelper<T>(url: string, file: File, data: object = {}) {
+export async function uploadFileHelper<T>(url: string, file: File, data: object = {}, fetchOptions?: object) {
   const form = new FormData();
   form.append('file', file);
   for (const [k, v] of Object.entries(data)) {
@@ -8,5 +8,6 @@ export async function uploadFileHelper<T>(url: string, file: File, data: object 
   return await $fetch<T>(url, {
     method: 'POST',
     body: form,
+    ...fetchOptions,
   });
 }

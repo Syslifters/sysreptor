@@ -44,10 +44,10 @@
           <s-checkbox v-model="localSettings.encryptPdfEnabled" label="Encrypt report PDF" />
           <s-text-field
             v-if="localSettings.encryptPdfEnabled"
-            v-model="form.password"
-            :error-messages="(localSettings.encryptPdfEnabled && form.password.length === 0) ? ['Password required'] : []"
+            v-model="generatePdfForm.password"
+            :error-messages="(localSettings.encryptPdfEnabled && generatePdfForm.password.length === 0) ? ['Password required'] : []"
             label="PDF password"
-            append-inner-icon="mdi-lock-reset" @click:append-inner="form.password = generateRandomPassword()"
+            append-inner-icon="mdi-lock-reset" @click:append-inner="generatePdfForm.password = generateRandomPassword()"
             spellcheck="false"
             class="mt-4"
           />
@@ -56,7 +56,7 @@
         <!-- Filename -->
         <div>
           <s-text-field
-            v-model="form.filename"
+            v-model="generatePdfForm.filename"
             label="Filename"
             :rules="rules.filename"
             spellcheck="false"
@@ -73,6 +73,65 @@
             button-icon="mdi-download"
             button-color="primary"
           />
+          <s-dialog
+            v-model="shareReportForm.dialogVisible"
+            :min-width="mdAndDown ? '90vw' : '60vw'"
+            min-height="50vh"
+          >
+            <template #activator="{ props: dialogProps }">
+              <s-btn-primary
+                prepend-icon="mdi-share-variant"
+                text="Share by Link"
+                :disabled="!canGenerateFinalReport || !auth.permissions.value.share_notes || !auth.permissions.value.edit_projects"
+                :loading="shareReport.pending.value"
+                class="ml-2"
+                v-bind="dialogProps"
+              />
+            </template>
+            <template #title>Share Report by Link</template>
+            <template #default>
+              <v-card-text>
+                <notes-share-info-form
+                  v-model="shareReportForm.data"
+                  :error="shareReportForm.error"
+                  :hidden-fields="['permissions_write', 'is_revoked']"
+                >
+                  <template #header>
+                    <p>Share report to allow public access via a share link.</p>
+                  </template>
+                  <template #append-fields>
+                    <!-- Set password for encrypting report -->
+                    <v-col cols="6">
+                      <s-checkbox v-model="localSettings.encryptPdfEnabled" label="Encrypt report PDF" />
+                      <s-text-field
+                        v-if="localSettings.encryptPdfEnabled"
+                        v-model="generatePdfForm.password"
+                        :error-messages="(localSettings.encryptPdfEnabled && generatePdfForm.password.length === 0) ? ['Password required'] : []"
+                        label="PDF password"
+                        append-inner-icon="mdi-lock-reset" @click:append-inner="generatePdfForm.password = generateRandomPassword()"
+                        spellcheck="false"
+                        class="mt-4"
+                      />
+                    </v-col>
+                  </template>
+                </notes-share-info-form>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer />
+                <s-btn-other
+                  @click="shareReportForm.dialogVisible = false"
+                  text="Cancel"
+                />
+                <btn-confirm
+                  :action="shareReport.run"
+                  :confirm="false"
+                  button-icon="mdi-share-variant"
+                  button-text="Share"
+                  button-color="primary"
+                />
+              </v-card-actions>
+            </template>
+          </s-dialog>
         </div>
         <div class="mt-4">
           <btn-readonly
@@ -107,6 +166,7 @@
 
 <script setup lang="ts">
 import { fileDownload, generateRandomPassword } from "@base/utils/helpers";
+import { addDays, formatISO9075 } from "date-fns";
 
 definePageMeta({
   title: 'Publish',
@@ -117,6 +177,7 @@ const auth = useAuth();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
+const { mdAndDown } = useDisplay();
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'publish:project' });
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'publish:projecttype' });
@@ -141,10 +202,19 @@ const allMessages = computed(() => {
 });
 const hasErrors = computed(() => allMessages.value.some(m => m.level === MessageLevel.ERROR));
 
-const form = ref({
+const generatePdfForm = ref({
   password: generateRandomPassword(),
   filename: (project.value.name + '_report.pdf').replaceAll(/[\\/]/g, '').replaceAll(/\s+/g, ' '),
 });
+const shareReportForm = ref({
+  data: {
+    expire_date: formatISO9075(addDays(new Date(), 14), { representation: 'date' }),
+    permissions_write: false,
+    is_revoked: false,
+  } as ShareInfo,
+  error: null as any|null,
+  dialogVisible: false,
+})
 const rules = {
   filename: [(v: string) => (Boolean(v) && /^[^/\\]+$/.test(v)) || 'Invalid filename'],
 }
@@ -155,7 +225,7 @@ const canGenerateFinalReport = computed(() => {
   return !hasErrors.value &&
         !checksOrPreviewInProgress.value &&
         pdfPreviewRef.value?.pdfData !== null &&
-        (localSettings.encryptPdfEnabled ? form.value.password.length > 0 : true);
+        (localSettings.encryptPdfEnabled ? generatePdfForm.value.password.length > 0 : true);
 });
 
 function refreshPreviewAndChecks() {
@@ -174,17 +244,43 @@ async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }) {
   });
 }
 
-const generateFinalReport = useAbortController(async (fetchOptions: { signal: AbortSignal }) => {
-  const res = await $fetch<Blob>(`/api/v1/pentestprojects/${project.value.id}/generate/`, {
+async function generatePdfRequest(fetchOptions: { signal: AbortSignal }) {
+  return await $fetch<Blob>(`/api/v1/pentestprojects/${project.value.id}/generate/`, {
     method: 'POST',
     body: {
-      password: localSettings.encryptPdfEnabled ? form.value.password : null,
+      password: localSettings.encryptPdfEnabled ? generatePdfForm.value.password : null,
     },
-    responseType: "blob",
+    responseType: 'blob',
     ...fetchOptions,
   });
-  fileDownload(res, form.value.filename + (form.value.filename.endsWith('.pdf') ? '' : '.pdf'));
+}
+const generateFinalReport = useAbortController(async (fetchOptions: { signal: AbortSignal }) => {
+  const res = await generatePdfRequest(fetchOptions);
+  fileDownload(res, generatePdfForm.value.filename + (generatePdfForm.value.filename.endsWith('.pdf') ? '' : '.pdf'));
 });
+const shareReport = useAbortController(async (fetchOptions: { signal: AbortSignal }) => {
+  try {
+    const reportPdf = await generatePdfRequest(fetchOptions);
+    const filename = generatePdfForm.value.filename + (generatePdfForm.value.filename.endsWith('.pdf') ? '' : '.pdf')
+    const uploadedFile = await uploadFileHelper<UploadedFileInfo>(`/api/v1/pentestprojects/${project.value.id}/upload/`, new File([reportPdf], filename), {}, fetchOptions);
+    const note = await projectStore.createNote(project.value, {
+      title: 'Report',
+      icon_emoji: '📄',
+      text: `[${uploadedFile.name}](/files/name/${uploadedFile.name})`,
+      parent: null,
+      order: 1,
+    });
+    await $fetch(`/api/v1/pentestprojects/${project.value.id}/notes/${note.id}/shareinfos/`, {
+      method: 'POST',
+      body: shareReportForm.value.data,
+    });
+    await navigateTo(`/projects/${project.value.id}/notes/${note.id}/#shareinfo`);
+  } catch (error: any) {
+    requestErrorToast({ error });
+  }
+})
+
+
 async function setReadonly() {
   await projectStore.setReadonly(project.value, true);
 }
@@ -217,3 +313,26 @@ function onBeforeOpenMessageLocationUrl(msg: ErrorMessage) {
 }
 
 </script>
+
+<!--
+TODO: share by link
+* [ ] permissions: permissions.edit_projects + permissions.share_project + settings.SHARING_ENABLED
+* [ ] frontend:
+  * [ ] publish: button "Share by Link"
+* [ ] share by link process
+  * [ ] open share dialog
+  * [ ] user configures share options (+ filename, PDF password ???)
+  * [ ] user clicks "Share" button
+  * [ ] API request OR multiple API requests from frontend
+    * [ ] generate PDF
+    * [ ] upload report as project file
+    * [ ] create note: title="Report" icon="📄" text="[${file.name}.pdf](/file/name/${file.name})" parent="None" order="1"
+    * [ ] update sorting: move other notes down
+  * [ ] redirect to shared note: open share dialog
+  * [ ] user copies share link from dialog and sends it to customer
+* [ ] ensure collab events are correctly sent
+* [ ] tests
+  * [ ] test note created
+  * [ ] test file referenced in note
+  * [ ] test permissions
+-->

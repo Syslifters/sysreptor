@@ -120,7 +120,7 @@ export function focusElement(id?: string, options?: { scroll?: ScrollIntoViewOpt
   }
 }
 
-export function useAutofocus(ready: Ref<any>|(() => any), fallbackId?: string) {
+export function useAutofocus(ready: Ref<any>|(() => any), fallbackId?: string, onAutofocus?: (id?: string) => void) {
   const route = useRoute();
 
   const isMounted = ref(false);
@@ -135,7 +135,9 @@ export function useAutofocus(ready: Ref<any>|(() => any), fallbackId?: string) {
 
   whenever(isLoaded, async () => {
     await nextTick();
+    const id = route.hash || fallbackId;
     focusElement(route.hash || fallbackId);
+    onAutofocus?.(id);
   }, { immediate: true, once: true });
 }
 

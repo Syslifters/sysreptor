@@ -12,6 +12,7 @@
       :error-messages="serverErrors?.password || []"
       confirm show-strength generate
       :disabled="!canEdit"
+      class="mt-4"
     />
 
     <s-checkbox

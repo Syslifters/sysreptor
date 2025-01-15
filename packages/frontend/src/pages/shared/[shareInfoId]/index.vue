@@ -25,6 +25,7 @@
                 :error-messages="passwordForm.error"
                 label="Password"
                 required
+                class="mt-4"
               />
             </v-card-text>
             <v-card-actions>
