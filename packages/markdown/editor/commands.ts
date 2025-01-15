@@ -208,7 +208,9 @@ function nonTightList(node: SyntaxNode, doc: Text) {
 function blankLine(context: Context[], state: EditorState, line: Line) {
   let insert = ""
   for (let i = 0, e = context.length - 2; i <= e; i++) {
-    insert += context[i]!.blank(i < e ? countColumn(line.text, 4, context[i + 1]!.from) - insert.length : null, i < e)
+    insert += context[i]!.blank(i < e 
+      ? countColumn(line.text, 4, context[i + 1]!.from) - insert.length
+      : null, i < e)
   }
   return normalizeIndent(insert, state)
 }

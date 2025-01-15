@@ -69,7 +69,7 @@
         <span class="separator" />
       </template>
       <s-btn-icon 
-        v-if="slots['context-menu']"
+        v-if="$slots['context-menu']"
         size="small"
         density="comfortable"
       >
@@ -166,7 +166,6 @@ const emit = defineEmits<{
 }>();
 
 const apiSettings = useApiSettings();
-const slots = useSlots();
 const { smAndUp, sm, lgAndUp } = useDisplay();
 
 const hasSplitMode = computed(() => !props.hideSplitMode && lgAndUp.value);

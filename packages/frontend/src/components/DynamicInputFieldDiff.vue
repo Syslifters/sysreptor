@@ -93,6 +93,7 @@ import { pick, merge, omit } from 'lodash-es';
 import { FieldDataType, type DynamicInputFieldDiffProps } from '#imports';
 
 const props = defineProps<DynamicInputFieldDiffProps>();
+defineSlots();
 
 const attrs = useAttrs();
 const inheritedDiffAttrs = computed(() => {

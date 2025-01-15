@@ -311,6 +311,7 @@ const emit = defineEmits<{
   'update:spellcheckEnabled': [value: boolean];
   'update:markdownEditorMode': [value: MarkdownEditorMode];
 }>();
+defineSlots();
 
 
 const { mobile } = useDisplay();

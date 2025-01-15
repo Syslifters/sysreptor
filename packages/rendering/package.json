@@ -24,7 +24,7 @@
     "vite-plugin-css-injected-by-js": "^3.3.1",
     "vite-plugin-static-copy": "^2.0.0",
 
-    "vue-tsc": "^2.1.10",
+    "vue-tsc": "^2.2.0",
     "@vue/tsconfig": "^0.7.0"
   }
 }

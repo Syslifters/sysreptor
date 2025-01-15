@@ -19,6 +19,7 @@ const props = withDefaults(defineProps<{
   and: ' and ',
 });
 
+defineSlots();
 const slots = useSlots();
 const slotNames = computed(() => Object.keys(slots));
 </script>

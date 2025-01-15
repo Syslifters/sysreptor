@@ -7,7 +7,6 @@
     "dependencies": "npm run generate-notice"
   },
   "devDependencies": {
-    "license-checker-rseidelsohn": "^4.4.2",
-    "typescript": "~5.6.3"
+    "license-checker-rseidelsohn": "^4.4.2"
   }
 }
