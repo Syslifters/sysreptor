@@ -28,7 +28,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'created', 'updated', 'last_login', 'is_active',
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
-            'email', 'phone', 'mobile', 'must_change_password',
+            'email', 'phone', 'mobile', 'color', 'must_change_password',
             'scope', 'is_superuser', 'is_project_admin', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user', 'is_global_archiver',
             'is_mfa_enabled', 'can_login_local', 'can_login_sso',
         ]

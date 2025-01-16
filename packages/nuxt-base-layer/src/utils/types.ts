@@ -40,6 +40,8 @@ export type User = UserShortInfo & BaseModel & {
   phone: string|null;
   mobile: string|null;
 
+  color: string|null;
+
   is_superuser: boolean;
   is_project_admin: boolean;
   is_user_manager: boolean;

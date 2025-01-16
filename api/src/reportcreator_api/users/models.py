@@ -11,6 +11,7 @@ import qrcode.image.pil
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.sessions.base_session import AbstractBaseSession
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from fido2.server import Fido2Server, _verify_origin_for_rp
@@ -33,6 +34,8 @@ class PentestUser(BaseModel, AbstractUser):
     email = models.EmailField(_("Email address"), null=True, blank=True)
     phone = models.CharField(_('Phone number'), max_length=255, null=True, blank=True)
     mobile = models.CharField(_('Phone number (mobile)'), max_length=255, null=True, blank=True)
+
+    color = models.CharField(max_length=7, validators=[RegexValidator(r'^#[0-9a-fA-F]{6}$')], null=True, blank=True)
 
     is_designer = models.BooleanField(default=False, db_index=True)
     is_template_editor = models.BooleanField(default=False, db_index=True)
@@ -201,3 +204,18 @@ class MFAMethod(BaseModel):
         )
 
 
+# TODO: configure user colors
+# * [x] model
+#   * [x] User: color field
+#   * [x] color validation: valid hex number
+# * [x] migration
+#   * [x] generate random color
+# * [x] collab
+#   * [x] set client_color = user.color or randomcolor (for anonymous users or fallback)
+# * [x] API
+#   * [x] serializer: add user.color to detail serializer
+# * [x] export/import: no
+# * [x] frontend
+#   * [x] UserInfoForm
+#       * [x] preview user avatar circle
+#       * [x] color picker
