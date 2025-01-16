@@ -25,7 +25,7 @@ DEMOPLUGIN_APPLABEL = 'plugin_db365aa0ed364e9093b6a28effc4ed47'
 def enable_demoplugin():
     # Import config to check if plugin exists
     try:
-        from sysreptor_plugins.demoplugin.app import DemoPluginConfig  # type: ignore
+        from sysreptor_plugins.demoplugin.apps import DemoPluginConfig  # type: ignore
     except ImportError:
         pytest.skip('DemoPlugin not found')
 
@@ -45,7 +45,7 @@ def enable_demoplugin():
 def disable_demoplugin():
     with override_settings(
         ENABLED_PLUGINS=[plugin for plugin in settings.ENABLED_PLUGINS if plugin not in ['demoplugin', DEMOPLUGIN_ID]],
-        INSTALLED_APPS=[app for app in settings.INSTALLED_APPS if app != 'sysreptor_plugins.demoplugin.app.DemoPluginConfig'],
+        INSTALLED_APPS=[app for app in settings.INSTALLED_APPS if app != 'sysreptor_plugins.demoplugin.apps.DemoPluginConfig'],
     ):
         yield
 
@@ -89,7 +89,7 @@ class TestPluginLoading:
         assert omit_keys(demoplugin_config, ['frontend_entry']) == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_settings': {}}
 
     def test_load_professional_only(self):
-        from sysreptor_plugins.demoplugin.app import DemoPluginConfig  # type: ignore
+        from sysreptor_plugins.demoplugin.apps import DemoPluginConfig  # type: ignore
 
         try:
             DemoPluginConfig.professional_only = True
