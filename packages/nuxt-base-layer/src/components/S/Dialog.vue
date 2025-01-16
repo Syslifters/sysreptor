@@ -5,7 +5,7 @@
     :max-width="props.maxWidth"
     :retain-focus="false"
   >
-    <template v-if="slots.activator" #activator="{props: dialogProps}"><slot name="activator" v-bind="{props: dialogProps}" /></template>
+    <template v-if="$slots.activator" #activator="{props: dialogProps}"><slot name="activator" v-bind="{props: dialogProps}" /></template>
     <template #default>
       <v-card variant="elevated" :density="props.density" v-bind="props.cardProps">
         <v-card-title>
@@ -43,5 +43,4 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void,
 }>();
-const slots = useSlots();
 </script>

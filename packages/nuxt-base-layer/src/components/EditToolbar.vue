@@ -32,7 +32,7 @@
         />
       </s-btn-icon>
 
-      <s-btn-icon v-if="(showSave && props.canAutoSave) || showDelete || slots['context-menu']">
+      <s-btn-icon v-if="(showSave && props.canAutoSave) || showDelete || $slots['context-menu']">
         <v-icon icon="mdi-dots-vertical" data-testid="options-dots" />
 
         <v-menu activator="parent" :close-on-content-click="false" location="bottom left" class="context-menu">
@@ -130,7 +130,6 @@ const emit = defineEmits<{
   (e: 'update:editMode', value: EditMode): void;
   (e: 'update:lockedData', value: any): void;
 }>();
-const slots = useSlots();
 
 const auth = useAuth();
 const localSettings = useLocalSettings();

@@ -51,7 +51,7 @@ playwright = "^1.32.1"
 pikepdf = "^9.0.0"
 celery = "^5.3.6"
 
-django-debug-toolbar = "^4.4.5"
+django-debug-toolbar = "^5.0.1"
 debugpy = "^1.6.7"
 watchdog = "^6.0.0"
 pytest-django = "^4.5.2"
