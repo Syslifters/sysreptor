@@ -19,7 +19,7 @@ from reportcreator_api.tests.mock import (
     create_user,
 )
 
-from ..app import ProjectNumberPluginConfig
+from ..apps import ProjectNumberPluginConfig
 from ..management.commands import resetprojectnumber
 from ..models import ProjectNumber
 

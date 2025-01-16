@@ -15,7 +15,7 @@ from reportcreator_api.tests.mock import (
     create_user,
 )
 
-from ..app import RenderFindingsPluginConfig
+from ..apps import RenderFindingsPluginConfig
 
 URL_NAMESPACE = RenderFindingsPluginConfig.label
 

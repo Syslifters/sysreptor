@@ -13,7 +13,7 @@ from reportcreator_api.pentests.models.project import (
     ReportSection,
 )
 
-from .app import ProjectNumberPluginConfig
+from .apps import ProjectNumberPluginConfig
 from .models import ProjectNumber
 
 log = logging.getLogger(__name__)

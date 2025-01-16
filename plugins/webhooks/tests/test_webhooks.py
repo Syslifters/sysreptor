@@ -8,7 +8,7 @@ from reportcreator_api.pentests.models import ArchivedProject
 from reportcreator_api.tests.mock import create_finding, create_project, create_user
 from reportcreator_api.utils import utils
 
-from ..app import WebhooksPluginConfig
+from ..apps import WebhooksPluginConfig
 from ..models import WebhookEventType
 
 

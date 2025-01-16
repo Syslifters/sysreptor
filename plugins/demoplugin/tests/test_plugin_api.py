@@ -19,7 +19,7 @@ from reportcreator_api.tests.mock import (
     websocket_client,
 )
 
-from ..app import DemoPluginConfig
+from ..apps import DemoPluginConfig
 from ..models import DemoPluginModel
 
 PLUGIN_ID = DemoPluginConfig.plugin_id

@@ -225,13 +225,13 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
             continue
 
         init_file = module_dir / '__init__.py'
-        app_file = module_dir / 'app.py'
-        if not init_file.is_file() or not app_file.is_file():
+        apps_file = module_dir / 'apps.py'
+        if not init_file.is_file() or not apps_file.is_file():
             continue
 
         module_name = f"sysreptor_plugins.{module_dir.name}"
         try:
-            plugin_app_module = import_module(module_name + '.app')
+            plugin_app_module = import_module(module_name + '.apps')
         except ImportError:
             continue
         plugin_config_class = next(filter(lambda c: issubclass(c, PluginConfig) and c != PluginConfig, map(lambda c: getattr(plugin_app_module, c), dir(plugin_app_module))), None)

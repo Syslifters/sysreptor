@@ -6,7 +6,7 @@ import tenacity
 from django.apps import apps
 from reportcreator_api.utils.utils import run_in_background
 
-from .app import WebhooksPluginConfig
+from .apps import WebhooksPluginConfig
 from .models import WebhookEventType
 
 
