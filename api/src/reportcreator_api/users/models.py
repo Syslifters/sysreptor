@@ -203,19 +203,3 @@ class MFAMethod(BaseModel):
             verify_origin=verify_origin,
         )
 
-
-# TODO: configure user colors
-# * [x] model
-#   * [x] User: color field
-#   * [x] color validation: valid hex number
-# * [x] migration
-#   * [x] generate random color
-# * [x] collab
-#   * [x] set client_color = user.color or randomcolor (for anonymous users or fallback)
-# * [x] API
-#   * [x] serializer: add user.color to detail serializer
-# * [x] export/import: no
-# * [x] frontend
-#   * [x] UserInfoForm
-#       * [x] preview user avatar circle
-#       * [x] color picker

@@ -8,6 +8,7 @@
 * Show tooltips on list actions for missing permissions
 * Project Design selection improvements: order by usage count
 * Improvements of sharing notes and reports
+* Configure user profile colors
 
 
 ## v2025.4 - 2025-01-14

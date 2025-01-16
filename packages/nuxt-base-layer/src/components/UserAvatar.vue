@@ -5,8 +5,7 @@
     class="collab-avatar-item"
     :style="{'--avatar-border-color': avatarColor}"
   >
-    {{ avatarText }}
-    <slot name="default" />
+    {{ avatarText }}<slot name="default" />
   </v-avatar>
 </template>
 
@@ -15,7 +14,7 @@ const props = withDefaults(defineProps<{
   user?: (UserShortInfo & { color?: string|null })|null;
   text?: string;
   color?: string;
-  size?: 'small'|'large';
+  size?: 'small'|'default'|'large';
 }>(), {
   user: null,
   text: undefined,
@@ -45,6 +44,10 @@ const avatarColor = computed(() => {
 .v-avatar--size-small {
   font-size: small;
   border-width: 3px;
+}
+.v-avatar--size-default {
+  font-size: 1.1em;
+  border-width: 4px;
 }
 .v-avatar--size-large {
   font-size: 1.5em;

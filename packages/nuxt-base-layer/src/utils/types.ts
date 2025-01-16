@@ -18,6 +18,7 @@ export type UserShortInfo = {
   is_active: boolean;
 
   username: string;
+  color: string|null;
   title_before: string | null;
   first_name: string | null;
   middle_name: string | null;
@@ -39,8 +40,6 @@ export type User = UserShortInfo & BaseModel & {
   email: string|null;
   phone: string|null;
   mobile: string|null;
-
-  color: string|null;
 
   is_superuser: boolean;
   is_project_admin: boolean;

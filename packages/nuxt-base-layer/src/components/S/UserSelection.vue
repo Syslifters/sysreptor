@@ -6,6 +6,13 @@
     <template #no-data v-if="!props.selectableUsers && allItems.length === 0 && items.hasNextPage.value">
       <page-loader :items="items" />
     </template>
+    <template #item="{ item: { raw: user }, props: itemProps }">
+      <v-list-item v-bind="itemProps">
+        <template #prepend v-if="isObject(user)">
+          <user-avatar :user="user" />
+        </template>
+      </v-list-item>
+    </template>
     <template v-if="props.multiple" #chip="chipSlotData">
       <slot name="chip" v-bind="chipSlotData">
         <v-chip v-bind="chipSlotData.props" :disabled="false" />

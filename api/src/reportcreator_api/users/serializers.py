@@ -17,7 +17,7 @@ from reportcreator_api.utils import license
 class PentestUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = PentestUser
-        fields = ['id', 'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after', 'is_active']
+        fields = ['id', 'username', 'name', 'color', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after', 'is_active']
 
 
 class PentestUserDetailSerializer(serializers.ModelSerializer):
