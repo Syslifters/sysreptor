@@ -1,5 +1,10 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+
+set -o errexit
+set -o errtrace
+set -o nounset
+set -o pipefail
+
 # Any subsequent(*) commands which fail will cause the shell script to exit immediately
 
 allow_only="MIT"
