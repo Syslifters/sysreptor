@@ -3,17 +3,37 @@
     <s-card class="mt-4">
       <v-card-title>Login information</v-card-title>
       <v-card-text>
-        <s-text-field
-          :model-value="user.username" @update:model-value="updateField('username', $event)"
-          label="Username"
-          hint="Use this name for logging in"
-          autocomplete="off"
-          :rules="rules.required"
-          :error-messages="errors?.username || []"
-          required
-          :disabled="!canEdit || !canEditUsername"
-          spellcheck="false"
-        />
+        <v-row>
+          <v-col>
+            <s-text-field
+              :model-value="user.username" @update:model-value="updateField('username', $event)"
+              label="Username"
+              hint="Use this name for logging in"
+              autocomplete="off"
+              :rules="rules.required"
+              :error-messages="errors?.username || []"
+              required
+              :disabled="!canEdit || !canEditUsername"
+              spellcheck="false"
+            />
+          </v-col>
+          <v-col cols="auto">
+            <s-color-picker
+              :model-value="user.color"
+              @update:model-value="updateField('color', $event)"
+              :disabled="!canEdit"
+            >
+              <template #activator="{ props: colorPickerProps }">
+                <user-avatar 
+                  :user="user" 
+                  size="large" 
+                  class="cursor-pointer mt-1"
+                  v-bind="colorPickerProps"
+                />
+              </template>
+            </s-color-picker>
+          </v-col>
+        </v-row>
         <slot name="login-information" />
       </v-card-text>
     </s-card>
@@ -188,6 +208,7 @@
 </template>
 
 <script setup lang="ts">
+const user = defineModel<User>({ required: true });
 const props = withDefaults(defineProps<{
   modelValue: User,
   errors?: any,
@@ -198,8 +219,6 @@ const props = withDefaults(defineProps<{
   canEditPermissions: false,
   canEditUsername: false,
 });
-const emit = defineEmits<{(e: 'update:modelValue', modelValue: User): void }>();
-const user = computed(() => props.modelValue);
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
@@ -215,7 +234,7 @@ function updateField(fieldName: keyof User, val: any) {
   const newUser = Object.assign({}, user.value);
   // @ts-expect-error no readonly fields are updated
   newUser[fieldName] = val;
-  emit('update:modelValue', newUser);
+  user.value = newUser;
 }
 
 </script>

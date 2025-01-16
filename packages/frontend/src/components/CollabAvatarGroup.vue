@@ -1,38 +1,30 @@
 <template>
   <div v-if="clientsAll.length > 0" class="avatar-group">
-    <v-avatar 
+    <user-avatar
       v-for="c in clientsVisible" 
       :key="c.client_id"
-      size="small"
-      density="compact"
+      :user="c.user"
+      :color="c.client_color"
       class="avatar-group-item"
-      :style="{'--avatar-border-color': c.client_color}"
     >
-      {{ userLetter(c) }}
       <s-tooltip activator="parent">
-        <v-avatar size="small" density="compact" class="avatar-group-item avatar-colored" :style="{'--avatar-border-color': c.client_color}"> 
-          {{ userLetter(c) }}
-        </v-avatar>
+        <user-avatar :user="c.user" :color="c.client_color" />
         {{ userFullName(c) }}
       </s-tooltip>
-    </v-avatar>
-    <v-avatar 
+    </user-avatar>
+    <user-avatar
       v-if="clientsHidden.length > 0"
-      size="small"
-      density="compact"
+      :text="`+${clientsHidden.length}`"
       class="avatar-group-item"
-      :style="{'--avatar-border-color': 'var(--v-theme-on-secondary)'}"
     >
-      +{{ clientsHidden.length }}
       <s-tooltip activator="parent">
         <span v-for="c in clientsHidden" :key="c.client_id">
-          <v-avatar size="small" density="compact" class="avatar-group-item avatar-colored" :style="{'--avatar-border-color': c.client_color}"> 
-            {{ userLetter(c) }}
-          </v-avatar>
-          {{ userFullName(c) }}<br>
+          <user-avatar :user="c.user" :color="c.client_color" />
+          {{ userFullName(c) }}
+          <br />
         </span>
       </s-tooltip>
-    </v-avatar>
+    </user-avatar>
   </div>
 </template>
 
@@ -47,9 +39,6 @@ const clientsAll = computed(() => props.collab.clients);
 const clientsVisible = computed(() => clientsAll.value.slice(0, clientsAll.value.length > props.limit ? props.limit - 1 : undefined));
 const clientsHidden = computed(() => clientsAll.value.length > props.limit ? clientsAll.value.slice(props.limit - 1) : []);
 
-function userLetter(client: CollabPropType['clients'][0]) {
-  return (client.user?.username[0] || 'a').toLowerCase();
-}
 function userFullName(client: CollabPropType['clients'][0]) {
   if (client.user) {
     return client.user.username + (client.user.name ? ` (${client.user.name})` : '');
@@ -66,11 +55,6 @@ function userFullName(client: CollabPropType['clients'][0]) {
   flex-direction: row;
 }
 .avatar-group-item {
-  font-size: small;
-  background-color: rgb(var(--v-theme-secondary));
-  color: rgb(var(--v-theme-on-secondary));
-  border: 3px solid var(--avatar-border-color);
-
   /* overlap */
   & {
     margin-right: -6px;
