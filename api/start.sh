@@ -1,5 +1,9 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+
+set -o errexit
+set -o errtrace
+set -o nounset
+set -o pipefail
 
 # Add custom CA certificates
 if [[ -n "$CA_CERTIFICATES" ]]; then
