@@ -121,8 +121,8 @@ const createNoteBtnRef = ref();
 const canCreate = computed(() => !props.readonly && !!props.createNote);
 
 const isInSearchMode = ref(false);
-function showSearch() {
-  search.value = '';
+function showSearch(text?: string) {
+  search.value = text || '';
   isInSearchMode.value = true;
 }
 function hideSearch() {
