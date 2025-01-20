@@ -56,6 +56,7 @@
   </v-container>
 </template>
 <script setup lang="ts">
+import randomColor from 'randomcolor';
 import type { VForm } from "vuetify/lib/components/index.mjs";
 
 useHeadExtended({
@@ -75,7 +76,7 @@ const userForm = ref<User & { password: string|null }>({
   email: null,
   phone: null,
   mobile: null,
-  color: null,  // TODO: generate a random color
+  color: randomColor({ luminosity: 'bright' }),
   must_change_password: apiSettings.isProfessionalLicense,
   is_superuser: !apiSettings.isProfessionalLicense,
   is_project_admin: false,

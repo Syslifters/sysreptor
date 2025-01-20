@@ -48,7 +48,7 @@ export default defineNuxtConfig({
       conditions: ['module', 'worker', 'browser', 'development|production'],
     },
     optimizeDeps: {
-      include: ['vuedraggable', 'monaco-editor', '@github/webauthn-json/browser-ponyfill'],
+      include: ['vuedraggable', 'monaco-editor', '@github/webauthn-json/browser-ponyfill', 'randomcolor'],
     },
     worker: {
       format: 'es',

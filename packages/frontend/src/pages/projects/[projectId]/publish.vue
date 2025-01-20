@@ -314,25 +314,3 @@ function onBeforeOpenMessageLocationUrl(msg: ErrorMessage) {
 
 </script>
 
-<!--
-TODO: share by link
-* [ ] permissions: permissions.edit_projects + permissions.share_project + settings.SHARING_ENABLED
-* [ ] frontend:
-  * [ ] publish: button "Share by Link"
-* [ ] share by link process
-  * [ ] open share dialog
-  * [ ] user configures share options (+ filename, PDF password ???)
-  * [ ] user clicks "Share" button
-  * [ ] API request OR multiple API requests from frontend
-    * [ ] generate PDF
-    * [ ] upload report as project file
-    * [ ] create note: title="Report" icon="📄" text="[${file.name}.pdf](/file/name/${file.name})" parent="None" order="1"
-    * [ ] update sorting: move other notes down
-  * [ ] redirect to shared note: open share dialog
-  * [ ] user copies share link from dialog and sends it to customer
-* [ ] ensure collab events are correctly sent
-* [ ] tests
-  * [ ] test note created
-  * [ ] test file referenced in note
-  * [ ] test permissions
--->
