@@ -110,7 +110,7 @@ export type CollabStoreState<T> = {
   },
   version: number;
   clientID: string;
-  search: string;
+  search: string|null;
 }
 
 export function makeCollabStoreState<T>(options: {

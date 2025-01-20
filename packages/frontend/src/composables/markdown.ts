@@ -18,6 +18,7 @@ import {
   SearchQuery,
   setSearchGlobalQuery,
   searchGlobalExtensions,
+  search,
 } from "@sysreptor/markdown/editor/index";
 import { uuidv4 } from "@base/utils/helpers";
 import { MarkdownEditorMode } from '#imports';
@@ -200,6 +201,13 @@ export function useMarkdownEditorBase(options: {
 
     return true;
   }
+
+  function searchGlobalShortcut(view: EditorView) {
+    const sel = view.state.selection.main
+    const selText = (sel.empty || sel.to > sel.from + 100) ? null : view.state.sliceDoc(sel.from, sel.to)
+    options.emit('search', selText || options.props.value.collab?.search || '');
+    return true;
+  }
   
   function onBeforeApplyRemoteTextChange(event: any) {
     if (options.editorView.value && event.path === options.props.value.collab?.path) {
@@ -246,6 +254,7 @@ export function useMarkdownEditorBase(options: {
           ...historyKeymap,
           { key: 'Ctrl-Alt-m', stopPropagation: true, preventDefault: true, run: createCommentShortcut },
           { key: 'Ctrl-Alt-Shift-m', stopPropagation: true, preventDefault: true, run: createCommentShortcut },
+          { key: 'Ctrl-Shift-f', stopPropagation: true, preventDefault: true, run: searchGlobalShortcut,  },
         ]),
         tooltips({ parent: document.body }),
         EditorView.domEventHandlers({
@@ -433,10 +442,10 @@ export function useMarkdownEditorBase(options: {
       effects: [
         setRemoteClients.of(remoteClients),
         setComments.of(comments),
-        setSearchGlobalQuery.of(new SearchQuery({
-          search: options.props.value.collab.search || '',
+        setSearchGlobalQuery.of(options.props.value.collab.search ? new SearchQuery({
+          search: options.props.value.collab.search,
           literal: true,
-        })),
+        }) : null),
       ]
     })
   });
@@ -547,6 +556,9 @@ export function markdownEditorDefaultExtensions() {
     syntaxHighlighting(markdownHighlightStyle),
     markdownHighlightCodeBlocks,
     commentsExtension(),
+    search({
+      literal: true,
+    })
   ];
 }
 
@@ -604,3 +616,12 @@ export async function renderMarkdownToHtmlInWorker(options: Parameters<typeof re
     worker.value.postMessage({ messageId, options });
   });
 }
+
+
+// TODO: global search refactor
+// * [x] refactor note search
+// * [x] Ctrl+Shift+F => open global search with selection
+// * [ ] enable CodeMirror search/replace
+// * [ ] search/replace highlight style
+// * [ ] CodeMirror search panel style
+// * [ ] Search in findings and sections

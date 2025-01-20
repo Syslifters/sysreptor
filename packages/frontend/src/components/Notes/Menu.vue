@@ -105,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-const search = defineModel<string>('search');
+const search = defineModel<string|null>('search');
 const props = defineProps<{
   title?: string;
   readonly?: boolean;
@@ -119,15 +119,13 @@ const importBtnRef = ref();
 
 const createNoteBtnRef = ref();
 const canCreate = computed(() => !props.readonly && !!props.createNote);
+const isInSearchMode = computed(() => search.value !== null);
 
-const isInSearchMode = ref(false);
-function showSearch(text?: string) {
-  search.value = text || '';
-  isInSearchMode.value = true;
+function showSearch() {
+  search.value = '';
 }
 function hideSearch() {
-  isInSearchMode.value = false;
-  search.value = '';
+  search.value = null;
 }
 
 useKeyboardShortcut('ctrl+shift+f', () => showSearch());

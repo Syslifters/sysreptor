@@ -102,7 +102,7 @@ const inheritedDiffAttrs = computed(() => {
     'uploadFile', 'selectableUsers', 'referenceItems', 'rewriteFileUrlMap',
     'fieldValueSuggestions',
     'onUpdate:markdownEditorMode', 'onUpdate:spellcheckEnabled', 
-    'collab', 'onCollab', 'onComment',
+    'collab', 'onCollab', 'onComment', 'onSearch',
   ];
   return {
     ...attrs,
