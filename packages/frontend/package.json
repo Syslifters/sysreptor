@@ -27,12 +27,14 @@
     "@elastic/apm-rum-vue": "^2.1.5",
     "date-fns": "^4.1.0",
     "lodash-es": "^4.17.21",
-    "dompurify": "^3.1.6"
+    "dompurify": "^3.1.6",
+    "randomcolor": "^0.6.2"
   },
   "devDependencies": {
     "@nuxt/test-utils": "^3.10.0",
     "@types/lodash-es": "^4.17.0",
     "@types/dompurify": "^3.0.5",
+    "@types/randomcolor": "^0.5.9",
     "eslint": "^9.0.0",
     "vitest": "^2.0.4",
     "happy-dom": "^16.0.0",

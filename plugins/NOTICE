@@ -3920,14 +3920,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@rollup/rollup-linux-x64-gnu 4.30.1
+@rollup/rollup-linux-x64-gnu 4.31.0
 MIT
 # `@rollup/rollup-linux-x64-gnu`
 
 This is the **x86_64-unknown-linux-gnu** binary for `rollup`
 
 
-@rollup/rollup-linux-x64-musl 4.30.1
+@rollup/rollup-linux-x64-musl 4.31.0
 MIT
 # `@rollup/rollup-linux-x64-musl`
 
@@ -4016,7 +4016,7 @@ MIT
     SOFTWARE
 
 
-@types/node 22.10.6
+@types/node 22.10.7
 MIT
     MIT License
 
@@ -4551,7 +4551,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vue-macros/common 1.15.1
+@vue-macros/common 1.16.1
 MIT
 MIT License
 
@@ -5572,7 +5572,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-ast-kit 1.3.2
+ast-kit 1.4.0
 MIT
 The MIT License (MIT)
 
@@ -6528,7 +6528,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-caniuse-lite 1.0.30001692
+caniuse-lite 1.0.30001695
 CC-BY-4.0
 Attribution 4.0 International
 
@@ -9724,7 +9724,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-electron-to-chromium 1.5.82
+electron-to-chromium 1.5.83
 ISC
 Copyright 2018 Kilian Valkhof
 
@@ -10768,7 +10768,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-fdir 6.4.2
+fdir 6.4.3
 MIT
 Copyright 2023 Abdullah Atta
 
@@ -10928,11 +10928,11 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-fs-extra 11.2.0
+fs-extra 11.3.0
 MIT
 (The MIT License)
 
-Copyright (c) 2011-2017 JP Richardson
+Copyright (c) 2011-2024 JP Richardson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
 (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -14178,7 +14178,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-magic-string-ast 0.6.3
+magic-string-ast 0.7.0
 MIT
 The MIT License (MIT)
 
@@ -16899,7 +16899,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-pathe 2.0.1
+pathe 2.0.2
 MIT
 MIT License
 
@@ -19109,7 +19109,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-rollup 4.30.1
+rollup 4.31.0
 MIT
 # Rollup core license
 Rollup is released under the MIT license:

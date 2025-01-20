@@ -9,7 +9,11 @@
           lines="two"
           :title="auth.user.value.username"
           :subtitle="auth.user.value.name || ''"
-        />
+        >
+          <template #prepend>
+            <user-avatar :user="auth.user.value" />
+          </template>
+        </v-list-item>
         <v-list-item
           v-else
           title="Logged out"

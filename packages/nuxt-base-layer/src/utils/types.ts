@@ -18,6 +18,7 @@ export type UserShortInfo = {
   is_active: boolean;
 
   username: string;
+  color: string|null;
   title_before: string | null;
   first_name: string | null;
   middle_name: string | null;

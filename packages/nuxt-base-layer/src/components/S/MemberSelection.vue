@@ -1,7 +1,7 @@
 <template>
   <s-user-selection
     :model-value="modelValue"
-    @update:model-value="members => updateMembers(members as unknown as ProjectMember[])"
+    @update:model-value="updateMembers($event as ProjectMember[])"
     label="Members"
     :multiple="true"
     :disabled="props.disabled"
@@ -16,6 +16,9 @@
         lines="two"
         density="compact"
       >
+        <template #prepend>
+          <user-avatar :user="user" size="default" />
+        </template>
         <v-list-item-title>{{ title }}</v-list-item-title>
 
         <s-member-role-selection
@@ -49,21 +52,18 @@
 <script setup lang="ts">
 import { cloneDeep, uniq } from "lodash-es";
 
+const modelValue = defineModel<ProjectMember[]>({ required: true });
 const props = withDefaults(defineProps<{
-  modelValue: ProjectMember[],
   disabled?: boolean,
   readonly?: boolean,
   disableAdd?: boolean,
   preventUnselectingSelf?: boolean,
 }>(), {});
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: ProjectMember[]): void,
-}>();
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
 
-const rolesCache = ref(Object.fromEntries(props.modelValue.filter(m => Array.isArray(m.roles)).map(m => [m.id, m.roles])));
+const rolesCache = ref(Object.fromEntries(modelValue.value.filter(m => Array.isArray(m.roles)).map(m => [m.id, m.roles])));
 const allRoles = computed(() =>
   uniq(apiSettings.settings!.project_member_roles.map(r => r.role)
     .concat(Object.values(rolesCache.value).flat()))
@@ -78,22 +78,22 @@ function updateMembers(members: ProjectMember[]) {
       rolesCache.value[m.id] = m.roles;
     }
   }
-  emit('update:modelValue', members);
+  modelValue.value = members;
 }
 function removeMember(member: ProjectMember) {
-  emit('update:modelValue', props.modelValue.filter(m => m.id !== member.id));
+  modelValue.value = modelValue.value.filter(m => m.id !== member.id);
 }
 function getRoles(user: ProjectMember|null) {
-  return cloneDeep(props.modelValue.find(m => m.id === user?.id)?.roles || []);
+  return cloneDeep(modelValue.value.find(m => m.id === user?.id)?.roles || []);
 }
 function setRoles(user: ProjectMember, roles: string[]) {
-  emit('update:modelValue', props.modelValue.map((m) => {
+  modelValue.value = modelValue.value.map((m) => {
     if (m.id === user.id) {
       m = { ...m, roles };
       rolesCache.value[m.id] = m.roles;
     }
     return m;
-  }));
+  });
 }
 </script>
 
