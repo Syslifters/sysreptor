@@ -75,6 +75,7 @@ const userForm = ref<User & { password: string|null }>({
   email: null,
   phone: null,
   mobile: null,
+  color: null,  // TODO: generate a random color
   must_change_password: apiSettings.isProfessionalLicense,
   is_superuser: !apiSettings.isProfessionalLicense,
   is_project_admin: false,

@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
-  user?: (UserShortInfo & { color?: string|null })|null;
+  user?: UserShortInfo|null;
   text?: string;
   color?: string;
   size?: 'small'|'default'|'large';
@@ -26,7 +26,7 @@ const avatarText = computed(() => {
   if (props.text) {
     return props.text;
   } else {
-    return (props.user?.username[0] || 'a').toLowerCase();
+    return (props.user?.username?.[0] || 'a').toLowerCase();
   }
 });
 const avatarColor = computed(() => {

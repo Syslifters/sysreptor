@@ -1,7 +1,7 @@
 <template>
   <s-user-selection
     :model-value="modelValue"
-    @update:model-value="updateMembers"
+    @update:model-value="updateMembers($event as ProjectMember[])"
     label="Members"
     :multiple="true"
     :disabled="props.disabled"

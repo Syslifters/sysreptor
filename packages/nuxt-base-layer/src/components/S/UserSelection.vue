@@ -9,7 +9,7 @@
     <template #item="{ item: { raw: user }, props: itemProps }">
       <v-list-item v-bind="itemProps">
         <template #prepend v-if="isObject(user)">
-          <user-avatar :user="user" />
+          <user-avatar :user="user as UserShortInfo" />
         </template>
       </v-list-item>
     </template>
