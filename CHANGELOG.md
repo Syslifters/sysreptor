@@ -9,6 +9,7 @@
 * Project Design selection improvements: order by usage count
 * Improvements of sharing notes and reports
 * Configure user profile colors
+* Plugin projectnumber: Fix different projectnumber generated for tag and field
 
 
 ## v2025.4 - 2025-01-14
