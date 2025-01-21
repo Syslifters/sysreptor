@@ -21,6 +21,7 @@ from reportcreator_api.users import querysets
 from reportcreator_api.utils import license
 from reportcreator_api.utils.crypto.fields import EncryptedField
 from reportcreator_api.utils.models import BaseModel
+from reportcreator_api.utils.utils import get_random_color
 
 
 class PentestUser(BaseModel, AbstractUser):
@@ -35,7 +36,7 @@ class PentestUser(BaseModel, AbstractUser):
     phone = models.CharField(_('Phone number'), max_length=255, null=True, blank=True)
     mobile = models.CharField(_('Phone number (mobile)'), max_length=255, null=True, blank=True)
 
-    color = models.CharField(max_length=7, validators=[RegexValidator(r'^#[0-9a-fA-F]{6}$')], null=True, blank=True)
+    color = models.CharField(max_length=7, default=get_random_color, validators=[RegexValidator(r'^#[0-9a-fA-F]{6}$')])
 
     is_designer = models.BooleanField(default=False, db_index=True)
     is_template_editor = models.BooleanField(default=False, db_index=True)
