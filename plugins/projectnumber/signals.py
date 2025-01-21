@@ -43,24 +43,20 @@ def on_project_saved(sender, instance: PentestProject, created, **kwargs):
         counter.current_id += 1
         counter.save()
         
-        settings = apps.get_app_config(ProjectNumberPluginConfig.label).settings.get('PLUGIN_PROJECTNUMBER_TEMPLATE', '')
-        template = custom_engine.from_string(settings)
-        context = Context({
+        # Fromat project number using the configured template from plugin settings
+        projectnumber_str = custom_engine.from_string(
+            apps.get_app_config(ProjectNumberPluginConfig.label).settings.get('PLUGIN_PROJECTNUMBER_TEMPLATE', '{{ project_number }}')
+        ).render(context=Context({
             'project_number': counter.current_id,
-        })
+        }))
         
         # Add tag
-        instance.tags = [template.render(context)]
+        instance.tags = [projectnumber_str]
         instance.save()
         
         # Search through sections to find the correct one
         for section in instance.sections.all():
             section: ReportSection
-            if field_id in section.section_fields:
-                if section.field_definition[field_id].type == FieldDataType.STRING:
-                    # Get template and render value into found field. 
-                    report_data = {
-                        field_id: template.render(context),
-                    }
-                    section.update_data(report_data)
-                    section.save()
+            if field_id in section.section_fields and section.field_definition[field_id].type == FieldDataType.STRING:
+                section.update_data({ field_id: projectnumber_str })
+                section.save()
