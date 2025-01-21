@@ -1,13 +1,17 @@
 import asyncio
 import logging
 import uuid
+from collections import OrderedDict
+from collections.abc import Iterable
 from datetime import date
 from itertools import groupby
-from typing import Any, Iterable, OrderedDict
+from typing import Any
 
 from asgiref.sync import sync_to_async
 from django.db import close_old_connections, connections
 from django.utils import dateparse, timezone
+from django.utils.crypto import get_random_string
+from randomcolor import RandomColor
 
 
 def remove_duplicates(lst: list) -> list:
@@ -137,6 +141,10 @@ def merge(*args):
 
 def groupby_to_dict(data: dict, key) -> dict:
     return dict(map(lambda t: (t[0], list(t[1])), groupby(sorted(data, key=key), key=key)))
+
+
+def get_random_color() -> str:
+    return RandomColor(seed=get_random_string(8)).generate(luminosity='bright')[0]
 
 
 _background_tasks = set()
