@@ -19,6 +19,8 @@ import {
   setSearchGlobalQuery,
   searchGlobalExtensions,
   search,
+  searchKeymap,
+  CustomizedSearchPanel,
 } from "@sysreptor/markdown/editor/index";
 import { uuidv4 } from "@base/utils/helpers";
 import { MarkdownEditorMode } from '#imports';
@@ -550,7 +552,10 @@ export function markdownEditorDefaultExtensions() {
     EditorView.lineWrapping,
     EditorState.tabSize.of(4),
     indentUnit.of('    '),
-    keymap.of([indentWithTab]),
+    keymap.of([
+      ...searchKeymap,
+      indentWithTab,
+    ]),
     closeBrackets(),
     markdown(),
     syntaxHighlighting(markdownHighlightStyle),
@@ -558,6 +563,7 @@ export function markdownEditorDefaultExtensions() {
     commentsExtension(),
     search({
       literal: true,
+      createPanel: (view) => new CustomizedSearchPanel(view),
     })
   ];
 }
@@ -621,7 +627,10 @@ export async function renderMarkdownToHtmlInWorker(options: Parameters<typeof re
 // TODO: global search refactor
 // * [x] refactor note search
 // * [x] Ctrl+Shift+F => open global search with selection
-// * [ ] enable CodeMirror search/replace
-// * [ ] search/replace highlight style
-// * [ ] CodeMirror search panel style
+// * [x] enable CodeMirror search/replace
+// * [x] search/replace highlight style
+// * [x] CodeMirror search panel style
+// * [x] focus lost on click inside search panel
 // * [ ] Search in findings and sections
+// * [ ] reporting menu: search bar, similar to note search
+// * [ ] result list: how to differentiate between findings and sections ???

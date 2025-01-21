@@ -46,6 +46,10 @@ body {
 
 
 // CodeMirror overrides
+.cm-searchMatch {
+  background-color: rgba(var(--v-theme-search-match), 0.3) !important;
+  color: rgb(var(--v-theme-on-search-match)) !important;
+}
 .cm-searchGlobalMatch {
   background-color: rgb(var(--v-theme-search-match)) !important;
   color: rgb(var(--v-theme-on-search-match)) !important;
