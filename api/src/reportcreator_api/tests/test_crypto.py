@@ -337,7 +337,8 @@ class TestEncryptDataCommand:
 class TestProjectArchivingEncryption:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        with pgp.create_gpg() as self.gpg:
+        with override_settings(PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=True), \
+             pgp.create_gpg() as self.gpg:
             yield
 
     def create_user_with_private_key(self, **kwargs):
@@ -456,6 +457,24 @@ class TestProjectArchivingEncryption:
 
         project_restored = PentestProject.objects.get(id=res_d2.data['project_id'])
         assert project_restored.name == project.name
+
+    @override_settings(ARCHIVING_THRESHOLD=1, PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=False)
+    def test_archiving_disabled_for_project_members(self):
+        user_regular = create_user(public_key=True)
+        user_archiver = create_user(public_key=True, is_global_archiver=True)
+        project = create_project(members=[user_regular, user_archiver], readonly=True)
+
+        # Project member cannot archive
+        res = api_client(user_regular).post(reverse('pentestproject-archive', kwargs={'pk': project.pk}))
+        assert res.status_code == 403
+
+        # Global archiver can
+        res = api_client(user_archiver).post(reverse('pentestproject-archive', kwargs={'pk': project.pk}))
+        assert res.status_code == 201
+
+        archive = ArchivedProject.objects.get(id=res.data['id'])
+        assert archive.key_parts.count() == 1
+        assert archive.key_parts.first().user == user_archiver
 
     def test_decrypt_wrong_key(self):
         user = create_user(public_key=True)

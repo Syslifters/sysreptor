@@ -185,14 +185,15 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'websockets': not settings.DISABLE_WEBSOCKETS,
                 'sharing': not settings.DISABLE_SHARING,
             },
-            'guest_permissions': {
-                'import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,
-                'create_projects': settings.GUEST_USERS_CAN_CREATE_PROJECTS,
-                'delete_projects': settings.GUEST_USERS_CAN_DELETE_PROJECTS,
-                'update_project_settings': settings.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
-                'edit_projects': settings.GUEST_USERS_CAN_EDIT_PROJECTS,
-                'share_notes': settings.GUEST_USERS_CAN_SHARE_NOTES,
-                'see_all_users': settings.GUEST_USERS_CAN_SEE_ALL_USERS,
+            'permissions': {
+                'guest_users_can_import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,
+                'guest_users_can_create_projects': settings.GUEST_USERS_CAN_CREATE_PROJECTS,
+                'guest_users_can_delete_projects': settings.GUEST_USERS_CAN_DELETE_PROJECTS,
+                'guest_users_can_update_project_settings': settings.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
+                'guest_users_can_edit_projects': settings.GUEST_USERS_CAN_EDIT_PROJECTS,
+                'guest_users_can_share_notes': settings.GUEST_USERS_CAN_SHARE_NOTES,
+                'guest_users_can_see_all_users': settings.GUEST_USERS_CAN_SEE_ALL_USERS,
+                'project_members_can_archive_projects': settings.PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS,
             },
             'plugins': [
                 {

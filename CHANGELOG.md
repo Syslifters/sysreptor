@@ -13,6 +13,7 @@
 * Allow searching in findings and sections
 * Plugin projectnumber: Fix different projectnumber generated for tag and field
 * Command `importdemodata`: Handle `--add-member` option unset
+* Add option to disable archiving for project members
 
 
 ## v2025.4 - 2025-01-14
