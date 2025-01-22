@@ -10,6 +10,7 @@
 * Improvements of sharing notes and reports
 * Configure user profile colors
 * Plugin projectnumber: Fix different projectnumber generated for tag and field
+* Command `importdemodata`: Handle `--add-member` option unset
 
 
 ## v2025.4 - 2025-01-14
