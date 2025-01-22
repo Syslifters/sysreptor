@@ -166,6 +166,14 @@ Changing this setting does not affect previously archived projects.
 ARCHIVING_THRESHOLD=2
 ```
 
+If `PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS` is set to `true` (default), every project member can archive/restore a project.
+Otherwise, only users with global archiver permission can archive/restore projects.
+This means that encryption happens with fewer encryption keys and it will be more difficult to keep up the quorum (`ARCHIVING_THRESHOLD`) for restoring projects (this could lead to availability problems).
+
+``` title="Example:"
+PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=false
+```
+
 The process of archiving finished projects and deleting old archives can be automated by following settings. The values are time spans in days.
 
 ``` title="Example:"

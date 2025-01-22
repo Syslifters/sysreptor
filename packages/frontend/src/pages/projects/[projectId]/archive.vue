@@ -27,13 +27,17 @@
             {{ user.username }}<template v-if="user.name"> ({{ user.name }})</template>
           </td>
           <td>
-            <v-chip v-if="user.is_project_member" size="small">Project Member</v-chip>
-            <v-chip v-else-if="user.is_global_archiver" size="small">Global Archiver</v-chip>
+            <v-chip v-if="user.is_global_archiver" size="small">Global Archiver</v-chip>
+            <v-chip v-else-if="user.is_project_member" size="small">Project Member</v-chip>
           </td>
           <td>
             <p v-if="user.can_restore" class="ma-0">
               <v-icon color="green" icon="mdi-checkbox-marked" />
               User will be added as archiver.
+            </p>
+            <p v-if="!user.has_permissions" class="ma-0">
+              <v-icon color="warning" icon="mdi-alert" />
+              User does not have Global Archiver permissions.
             </p>
             <p v-if="!user.has_public_keys" class="ma-0">
               <v-icon color="warning" icon="mdi-alert" />
@@ -99,12 +103,6 @@ const warnings = computed(() => {
       message: 'All archivers are required to restore the archive. If one user loses their key, the archive is lost forever. Consider adding more users before archiving.',
     });
   }
-  // else if (threshold.value > 1 && threshold.value > archiverUsers.value.length * 0.55) {
-  //   out.push({
-  //     level: 'warning',
-  //     message: 'Too many users are required to restore the archive. Consider adding more users before archiving.'
-  //   });
-  // }
   return out;
 });
 

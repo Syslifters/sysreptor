@@ -10,15 +10,17 @@
             :disabled="!auth.permissions.value.update_project_settings"
             class="ml-1 mr-1" 
           />
-          <s-btn-secondary
-            v-if="project.readonly"
-            :disabled="!auth.permissions.value.archive_projects"
-            :to="`/projects/${project.id}/archive/`"
-            class="mr-1"
-            prepend-icon="mdi-folder-lock-outline"
-          >
-            <pro-info>Archive</pro-info>
-          </s-btn-secondary>
+          <permission-info :value="auth.permissions.value.archive_projects || !apiSettings.isProfessionalLicense" permission-name="Global Archiver">
+            <s-btn-secondary
+              v-if="project.readonly"
+              :disabled="!auth.permissions.value.archive_projects"
+              :to="`/projects/${project.id}/archive/`"
+              class="mr-1"
+              prepend-icon="mdi-folder-lock-outline"
+            >
+              <pro-info>Archive</pro-info>
+            </s-btn-secondary>
+          </permission-info>
           <btn-history v-model="historyVisible" />
         </template>
         <template #context-menu>
@@ -146,6 +148,7 @@ import { ProjectTypeScope } from '#imports';
 
 const route = useRoute();
 const auth = useAuth();
+const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
 

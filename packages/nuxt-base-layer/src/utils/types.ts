@@ -138,14 +138,15 @@ export type ApiSettings = {
         readonly websockets: boolean;
         readonly sharing: boolean;
     };
-    readonly guest_permissions: {
-      readonly import_projects: boolean;
-      readonly create_projects: boolean;
-      readonly delete_projects: boolean;
-      readonly update_project_settings: boolean;
-      readonly edit_projects: boolean;
-      readonly share_notes: boolean;
-      readonly see_all_users: boolean;
+    readonly permissions: {
+      readonly guest_users_can_import_projects: boolean;
+      readonly guest_users_can_create_projects: boolean;
+      readonly guest_users_can_delete_projects: boolean;
+      readonly guest_users_can_update_project_settings: boolean;
+      readonly guest_users_can_edit_projects: boolean;
+      readonly guest_users_can_share_notes: boolean;
+      readonly guest_users_can_see_all_users: boolean;
+      readonly project_members_can_archive_projects: boolean;
     };
     readonly plugins: PluginConfig[];
 }
@@ -383,6 +384,7 @@ export type ArchiveCheckResult = {
     readonly is_project_member: boolean;
     readonly is_global_archiver: boolean;
     readonly has_public_keys: boolean;
+    readonly has_permissions: boolean;
     readonly can_restore: boolean;
     readonly warnings: string[];
   })[];
