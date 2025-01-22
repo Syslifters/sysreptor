@@ -11,14 +11,20 @@ export type SearchResultMatch = {
   previewTo: number;
 };
 
-export type NoteSearchResults<T extends NoteBase> = {
-  note: T;
+export type SearchResult<T> = {
+  item: T;
   matches: SearchResultMatch[];
-  children: NoteSearchResults<T>;
-}[];
+};
+export type NoteSearchResults<T extends NoteBase> = (SearchResult<T> & { children: NoteSearchResults<T> })[];
 
-function searchField(note: NoteBase, search: string, field: string): SearchResultMatch[] {
-  const text = Text.of(get(note, field).split(/\r?\n/));
+
+function searchField(obj: any, search: string, field?: string): SearchResultMatch[] {
+  const fieldValue = field ? get(obj, field) : obj;
+  if (typeof fieldValue !== 'string') {
+    return [];
+  }
+
+  const text = Text.of(fieldValue.split(/\r?\n/));
   return Array.from(new SearchCursor(text, search, undefined, undefined, x => x.toLowerCase()))
     .map((m) => {
       const matchingText = text.sliceString(m.from, m.to);
@@ -32,7 +38,7 @@ function searchField(note: NoteBase, search: string, field: string): SearchResul
 
       return {
         ...m,
-        field,
+        field: field || '',
         matchingText,
         previewText,
         previewFrom: Math.min(lineFrom, 20),
@@ -41,23 +47,71 @@ function searchField(note: NoteBase, search: string, field: string): SearchResul
     });
 }
 
-export function searchNotes<T extends NoteBase>(notes: T[], search?: string): NoteSearchResults<T> {
+export function searchNotes<T extends NoteBase>(notes: T[], search?: string|null): NoteSearchResults<T> {
   if (!search || search.length < 3) {
     return [];
   }
 
   // perform search
   const resultList = notes.map(note => ({
-    note,
+    item: note,
     matches: searchField(note, search, 'title').concat(searchField(note, search, 'text')),
   }));
 
   // group results
-  const groups = groupBy(resultList, 'note.parent');
+  const groups = groupBy(resultList, 'item.parent');
   function collectChildren(parentId: string|null): NoteSearchResults<T> {
     return sortBy(groups[parentId as any] || [], 'order')
-      .map(r => ({ ...r, children: collectChildren(r.note.id) }))
+      .map(r => ({ ...r, children: collectChildren(r.item.id) }))
       .filter(r => r.matches.length > 0 || r.children.length > 0)
   }
   return collectChildren(null);
+}
+
+
+export function searchByDefinition(data: Record<string, any>, definition: FieldDefinition[], search?: string|null, path?: string) {
+  if (!search || search.length < 3) {
+    return [];
+  }
+
+  const results = [] as SearchResultMatch[];
+  for (const fd of definition) {
+    const fPath = (path || '') + ((!path || fd.id.startsWith('[')) ? '' : '.') + fd.id;
+    if ([FieldDataType.STRING, FieldDataType.MARKDOWN, FieldDataType.COMBOBOX, FieldDataType.CVSS, FieldDataType.CWE].includes(fd.type)) {
+      results.push(...searchField(data, search, fPath));
+    } else if (fd.type === FieldDataType.LIST) {
+      const list = get(data, fPath) as any[];
+      if (Array.isArray(list)) {
+        for (let i = 0; i < list.length; i++) {
+          results.push(...searchByDefinition(data, [{...fd.items!, id: `[${i}]`}], search, fPath));
+        }
+      }
+    } else if (fd.type === FieldDataType.OBJECT) {
+      results.push(...searchByDefinition(data, fd.properties!, search, fPath));
+    }
+  }
+
+  return results;
+}
+
+
+export function searchFindings(findings: PentestFinding[], projectType: ProjectType, search?: string|null): SearchResult<PentestFinding>[] {
+  return findings.map(f => ({
+    item: f,
+    matches: searchByDefinition(f.data, projectType.finding_fields, search),
+  })).filter(r => r.matches.length > 0);
+}
+
+
+export function searchSections(sections: ReportSection[], projectType: ProjectType, search?: string|null): SearchResult<ReportSection>[] {
+  return projectType.report_sections.map(sd => {
+    const section = sections.find(s => s.id === sd.id);
+    if (!section) {
+      return null;
+    }
+    return {
+      item: section,
+      matches: searchByDefinition(section.data, sd.fields, search),
+    };
+  }).filter(r => r && r.matches.length > 0) as SearchResult<ReportSection>[];
 }

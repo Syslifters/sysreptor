@@ -308,6 +308,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: any];
   'collab': [value: any];
   'comment': [value: any];
+  'search': [value: string];
   'update:spellcheckEnabled': [value: boolean];
   'update:markdownEditorMode': [value: MarkdownEditorMode];
 }>();
@@ -532,6 +533,7 @@ const fieldAttrs = computed(() => ({
   ]),
   onCollab: (v: any) => emit('collab', v),
   onComment: (v: any) => emit('comment', v),
+  onSearch: (v: any) => emit('search', v),
   'onUpdate:spellcheckEnabled': (v: boolean) => emit('update:spellcheckEnabled', v),
   'onUpdate:markdownEditorMode': (v: MarkdownEditorMode) => emit('update:markdownEditorMode', v),
 }))

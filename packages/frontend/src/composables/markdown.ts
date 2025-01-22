@@ -15,12 +15,12 @@ import {
   commentsExtension, setComments,
   type Extension,
   SelectionRange,
-  search,
-  setSearchQuery,
   SearchQuery,
-  openSearchPanel,
-  closeSearchPanel,
-  searchPanelOpen,
+  setSearchGlobalQuery,
+  searchGlobalExtensions,
+  search,
+  searchKeymap,
+  CustomizedSearchPanel,
 } from "@sysreptor/markdown/editor/index";
 import { uuidv4 } from "@base/utils/helpers";
 import { MarkdownEditorMode } from '#imports';
@@ -203,6 +203,13 @@ export function useMarkdownEditorBase(options: {
 
     return true;
   }
+
+  function searchGlobalShortcut(view: EditorView) {
+    const sel = view.state.selection.main
+    const selText = (sel.empty || sel.to > sel.from + 100) ? null : view.state.sliceDoc(sel.from, sel.to)
+    options.emit('search', selText || options.props.value.collab?.search || '');
+    return true;
+  }
   
   function onBeforeApplyRemoteTextChange(event: any) {
     if (options.editorView.value && event.path === options.props.value.collab?.path) {
@@ -243,20 +250,13 @@ export function useMarkdownEditorBase(options: {
       extensions: [
         ...options.extensions,
         history(),
-        search({ 
-          literal: true,
-          createPanel: () => {
-            // Hidden search panel
-            const dom = document.createElement('div');
-            dom.style.display = 'none';
-            return { dom };
-          },
-        }),
+        searchGlobalExtensions,
         keymap.of([
           ...defaultKeymap, 
           ...historyKeymap,
           { key: 'Ctrl-Alt-m', stopPropagation: true, preventDefault: true, run: createCommentShortcut },
           { key: 'Ctrl-Alt-Shift-m', stopPropagation: true, preventDefault: true, run: createCommentShortcut },
+          { key: 'Ctrl-Shift-f', stopPropagation: true, preventDefault: true, run: searchGlobalShortcut,  },
         ]),
         tooltips({ parent: document.body }),
         EditorView.domEventHandlers({
@@ -440,20 +440,14 @@ export function useMarkdownEditorBase(options: {
       .filter(c => c.collabPath === options.props.value.collab!.path && c.text_range)
       .map(c => ({ id: c.id, text_range: SelectionRange.fromJSON({ anchor: c.text_range!.from, head: c.text_range!.to }) }));
     
-    if (options.props.value.collab.search && !searchPanelOpen(options.editorView.value.state)) {
-      openSearchPanel(options.editorView.value);
-    } else if (!options.props.value.collab.search && searchPanelOpen(options.editorView.value.state)) {
-      closeSearchPanel(options.editorView.value);
-    }
-
     options.editorView.value.dispatch({
       effects: [
         setRemoteClients.of(remoteClients),
         setComments.of(comments),
-        setSearchQuery.of(new SearchQuery({
-          search: options.props.value.collab.search || '',
+        setSearchGlobalQuery.of(options.props.value.collab.search ? new SearchQuery({
+          search: options.props.value.collab.search,
           literal: true,
-        })),
+        }) : null),
       ]
     })
   });
@@ -558,12 +552,19 @@ export function markdownEditorDefaultExtensions() {
     EditorView.lineWrapping,
     EditorState.tabSize.of(4),
     indentUnit.of('    '),
-    keymap.of([indentWithTab]),
+    keymap.of([
+      ...searchKeymap,
+      indentWithTab,
+    ]),
     closeBrackets(),
     markdown(),
     syntaxHighlighting(markdownHighlightStyle),
     markdownHighlightCodeBlocks,
     commentsExtension(),
+    search({
+      literal: true,
+      createPanel: (view) => new CustomizedSearchPanel(view),
+    })
   ];
 }
 
@@ -621,3 +622,5 @@ export async function renderMarkdownToHtmlInWorker(options: Parameters<typeof re
     worker.value.postMessage({ messageId, options });
   });
 }
+
+

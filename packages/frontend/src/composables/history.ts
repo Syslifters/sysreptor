@@ -15,6 +15,7 @@ export type DiffFieldProps = {
   'onUpdate:spellcheckEnabled'?: (val: boolean) => void;
   'onCollab'?: (val: any) => void;
   'onComment'?: (val: any) => void;
+  'onSearch'?: (val: string) => void;
 } & MarkdownProps;
 
 export type DynamicInputFieldDiffProps = {
@@ -199,6 +200,7 @@ export async function useProjectHistory<T>(options: {
     readonly: collab.readonly.value || !dataCurrent.value, // no edit permission or viewing deleted object
     collab: collab.collabProps.value,
     onCollab: collab.onCollabEvent,
+    onSearch: (value: string) => { collab.search.value = value },
   }));
   const fieldAttrsHistoric = computed(() => ({
     ...projectEditBaseHistoric.inputFieldAttrs.value,

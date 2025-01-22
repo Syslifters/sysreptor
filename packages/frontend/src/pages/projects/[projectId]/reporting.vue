@@ -2,13 +2,45 @@
   <split-menu v-model="localSettings.reportInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
       <v-list density="compact" class="pb-0 pt-0 h-100 d-flex flex-column">
-        <div class="flex-grow-1 overflow-y-auto">
-          <v-list-subheader title="Sections" class="mt-0" />
+        <v-list-subheader v-if="isInSearchMode" class="mt-0 pr-2">
+          <s-text-field 
+            v-model="reportingCollab.search.value"
+            placeholder="Search..."
+            density="compact"
+            variant="underlined"
+            prepend-inner-icon="mdi-magnify"
+            append-inner-icon="$clear"
+            @click:append-inner="hideSearch"
+            autofocus
+            autocomplete="off"
+            spellcheck="false"
+          >
+            <template #prepend-inner-icon>
+              <v-icon icon="mdi-magnify" size="small" />
+            </template>
+            <template #append-inner-icon>
+              <v-icon icon="mdi-close" size="small" />
+            </template>
+          </s-text-field>
+        </v-list-subheader>
+        <div v-if="!(isInSearchMode && (reportingCollab.search.value?.length || 0) >= 3)" class="flex-grow-1 overflow-y-auto">
+          <v-list-subheader class="mt-0 pr-2">
+            <span>Sections</span>
+            <v-spacer />
+            <s-btn-icon
+              v-if="!isInSearchMode"
+              @click="showSearch"
+              icon="mdi-magnify"
+              size="small"
+              density="compact"
+              class="ml-2"
+            />
+          </v-list-subheader>
           <v-list-item
             v-for="section in sections"
             :key="section.id"
-            :to="`/projects/${route.params.projectId}/reporting/sections/${section.id}/`"
-            :active="router.currentRoute.value.path.startsWith(`/projects/${route.params.projectId}/reporting/sections/${section.id}/`)"
+            :to="sectionUrl(section)"
+            :active="router.currentRoute.value.path.startsWith(sectionUrl(section))"
             density="compact"
           >
             <template #default>
@@ -67,8 +99,8 @@
           >
             <template #item="{element: finding}">
               <v-list-item
-                :to="`/projects/${route.params.projectId}/reporting/findings/${finding.id}/`"
-                :active="router.currentRoute.value.path.startsWith(`/projects/${route.params.projectId}/reporting/findings/${finding.id}/`)"
+                :to="findingUrl(finding)"
+                :active="router.currentRoute.value.path.startsWith(findingUrl(finding))"
                 :ripple="false"
                 density="compact"
                 :class="'finding-level-' + riskLevel(finding)"
@@ -99,7 +131,57 @@
           </draggable>
         </div>
 
-        <div>
+        <div v-else>
+          <!-- Search result list -->
+          <template v-if="searchResultsSections.length > 0">
+            <v-list-subheader title="Sections" class="mt-0 pr-2" />
+            <div
+              v-for="result in searchResultsSections"
+              :key="result.item.id"
+            >
+              <v-list-item
+                :to="sectionUrl(result.item)"
+                :active="router.currentRoute.value.path.startsWith(sectionUrl(result.item))"
+                density="compact"
+              >
+                <template #default>
+                  <v-list-item-title class="text-body-2">{{ result.item.label }}</v-list-item-title>
+                </template>
+              </v-list-item>
+              <search-match-list 
+                :result="result"
+                :to-prefix="sectionUrl(result.item)"
+                class="match-list"
+              />
+            </div>
+          </template>
+
+          <template v-if="searchResultsFindings.length > 0">
+            <v-list-subheader title="Findings" />
+            <div
+              v-for="result in searchResultsFindings"
+              :key="result.item.id"
+            >
+              <v-list-item
+                :to="findingUrl(result.item)"
+                :active="router.currentRoute.value.path.startsWith(findingUrl(result.item))"
+                density="compact"
+                :class="'finding-level-' + riskLevel(result.item)"
+              >
+                <template #default>
+                  <v-list-item-title class="text-body-2">{{ result.item.data.title }}</v-list-item-title>
+                </template>
+              </v-list-item>
+              <search-match-list 
+                :result="result"
+                :to-prefix="findingUrl(result.item)"
+                class="match-list"
+              />
+            </div>
+          </template>
+        </div>
+
+        <div v-if="!isInSearchMode">
           <v-divider class="mb-1" />
           <v-list-item>
             <create-finding-dialog ref="createFindingDialogRef" :project="project" />
@@ -117,7 +199,7 @@
 </template>
 
 <script setup lang="ts">
-import { collabSubpath, ReviewStatus } from '#imports';
+import { collabSubpath, ReviewStatus, type PentestFinding, type ReportSection } from '#imports';
 import Draggable from "vuedraggable";
 
 const route = useRoute();
@@ -156,6 +238,14 @@ function collabAwarenessSendNavigate() {
   });
 }
 
+function sectionUrl(section: ReportSection) {
+  return `/projects/${route.params.projectId}/reporting/sections/${section.id}/`;
+}
+function findingUrl(finding: PentestFinding) {
+  return `/projects/${route.params.projectId}/reporting/findings/${finding.id}/`;
+}
+
+
 // Sort findings
 const wasOverrideFindingOrder = ref(false);
 watch(sortFindingsManual, () => {
@@ -180,6 +270,21 @@ async function toggleOverrideFindingOrder() {
 function riskLevel(finding: PentestFinding) {
   return getFindingRiskLevel({ finding, projectType: projectType.value });
 }
+
+
+// Search
+const isInSearchMode = computed(() => reportingCollab.search.value !== null);
+const searchResultsSections = computed(() => searchSections(sections.value, projectType.value, reportingCollab.search.value));
+const searchResultsFindings = computed(() => searchFindings(findings.value, projectType.value, reportingCollab.search.value));
+function showSearch() {
+  reportingCollab.search.value = '';
+}
+function hideSearch() {
+  reportingCollab.search.value = null;
+}
+useKeyboardShortcut('ctrl+shift+f', () => showSearch());
+
+
 </script>
 
 <style lang="scss" scoped>
@@ -213,5 +318,9 @@ function riskLevel(finding: PentestFinding) {
     flex-direction: row;
     width: 100%;
   }
+}
+
+.match-list {
+  padding-left: 0.75rem;
 }
 </style>

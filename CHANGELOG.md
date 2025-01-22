@@ -9,6 +9,8 @@
 * Project Design selection improvements: order by usage count
 * Improvements of sharing notes and reports
 * Configure user profile colors
+* Find and replace in markdown fields
+* Allow searching in findings and sections
 * Plugin projectnumber: Fix different projectnumber generated for tag and field
 * Command `importdemodata`: Handle `--add-member` option unset
 

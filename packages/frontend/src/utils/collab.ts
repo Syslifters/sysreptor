@@ -110,7 +110,7 @@ export type CollabStoreState<T> = {
   },
   version: number;
   clientID: string;
-  search: string;
+  search: string|null;
 }
 
 export function makeCollabStoreState<T>(options: {
@@ -139,7 +139,7 @@ export function makeCollabStoreState<T>(options: {
     },
     version: 0,
     clientID: '',
-    search: '',
+    search: null,
   }
 }
 
@@ -1068,7 +1068,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     }), { throttle: 1000 }),
     search: computed({
       get: () => storeState.search,
-      set: (v: string) => { storeState.search = v; }, 
+      set: (v: string|null) => { storeState.search = v; }, 
     }),
   }
 }
@@ -1084,7 +1084,7 @@ export type CollabPropType = {
     isSelf: boolean;
   }[];
   comments?: Comment[];
-  search?: string;
+  search?: string|null;
 };
 
 export function collabSubpath(collab: CollabPropType, subPath: string|null) {

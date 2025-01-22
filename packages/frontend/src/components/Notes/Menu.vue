@@ -5,7 +5,7 @@
     class="h-100"
   >
     <v-list density="compact" class="pb-0 pt-0 h-100 d-flex flex-column">
-      <v-list-subheader v-if="!isInSearchMode">
+      <v-list-subheader v-if="!isInSearchMode" class="pr-2">
         <span>{{ props.title || 'Notes' }}</span>
         <s-btn-icon
           @click="createNoteBtnRef?.click()"
@@ -50,7 +50,7 @@
           </v-menu>
         </s-btn-icon>
       </v-list-subheader>
-      <v-list-subheader v-else class="mt-0">
+      <v-list-subheader v-else class="mt-0 pr-2">
         <s-text-field 
           v-model="search"
           placeholder="Search..."
@@ -60,6 +60,8 @@
           append-inner-icon="$clear"
           @click:append-inner="hideSearch"
           autofocus
+          autocomplete="off"
+          spellcheck="false"
         >
           <template #prepend-inner-icon>
             <v-icon icon="mdi-magnify" size="small" />
@@ -105,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-const search = defineModel<string>('search');
+const search = defineModel<string|null>('search');
 const props = defineProps<{
   title?: string;
   readonly?: boolean;
@@ -119,15 +121,13 @@ const importBtnRef = ref();
 
 const createNoteBtnRef = ref();
 const canCreate = computed(() => !props.readonly && !!props.createNote);
+const isInSearchMode = computed(() => search.value !== null);
 
-const isInSearchMode = ref(false);
 function showSearch() {
   search.value = '';
-  isInSearchMode.value = true;
 }
 function hideSearch() {
-  isInSearchMode.value = false;
-  search.value = '';
+  search.value = null;
 }
 
 useKeyboardShortcut('ctrl+shift+f', () => showSearch());
