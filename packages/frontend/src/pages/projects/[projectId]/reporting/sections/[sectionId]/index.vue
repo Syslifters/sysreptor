@@ -46,6 +46,7 @@
         :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldDefinition.id}`)"
         @collab="reportingCollab.onCollabEvent"
         @comment="commentSidebarRef?.onCommentEvent"
+        @search="reportingCollab.search.value = $event"
         :readonly="readonly"
         :id="fieldDefinition.id"
         :definition="fieldDefinition"

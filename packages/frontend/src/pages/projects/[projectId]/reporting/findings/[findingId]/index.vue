@@ -69,6 +69,7 @@
         :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldDefinition.id}`)"
         @collab="reportingCollab.onCollabEvent"
         @comment="commentSidebarRef?.onCommentEvent"
+        @search="reportingCollab.search.value = $event"
         :field-value-suggestions="findingFieldValueSuggestions"
         :readonly="readonly"
         :id="fieldDefinition.id"

@@ -624,13 +624,3 @@ export async function renderMarkdownToHtmlInWorker(options: Parameters<typeof re
 }
 
 
-// TODO: global search refactor
-// * [x] refactor note search
-// * [x] Ctrl+Shift+F => open global search with selection
-// * [x] enable CodeMirror search/replace
-// * [x] search/replace highlight style
-// * [x] CodeMirror search panel style
-// * [x] focus lost on click inside search panel
-// * [ ] Search in findings and sections
-// * [ ] reporting menu: search bar, similar to note search
-// * [ ] result list: how to differentiate between findings and sections ???

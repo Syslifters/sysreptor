@@ -5,7 +5,7 @@
     class="h-100"
   >
     <v-list density="compact" class="pb-0 pt-0 h-100 d-flex flex-column">
-      <v-list-subheader v-if="!isInSearchMode">
+      <v-list-subheader v-if="!isInSearchMode" class="pr-2">
         <span>{{ props.title || 'Notes' }}</span>
         <s-btn-icon
           @click="createNoteBtnRef?.click()"
@@ -50,7 +50,7 @@
           </v-menu>
         </s-btn-icon>
       </v-list-subheader>
-      <v-list-subheader v-else class="mt-0">
+      <v-list-subheader v-else class="mt-0 pr-2">
         <s-text-field 
           v-model="search"
           placeholder="Search..."
@@ -60,6 +60,8 @@
           append-inner-icon="$clear"
           @click:append-inner="hideSearch"
           autofocus
+          autocomplete="off"
+          spellcheck="false"
         >
           <template #prepend-inner-icon>
             <v-icon icon="mdi-magnify" size="small" />
