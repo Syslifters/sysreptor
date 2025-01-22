@@ -41,7 +41,7 @@ class Command(BaseCommand):
             log.root.setLevel(logging.DEBUG)
 
         if type == 'project':
-            add_member = list(map(self.get_user, add_member))
+            add_member = list(map(self.get_user, add_member or []))
 
         import_func = {
             'design': import_project_types,
