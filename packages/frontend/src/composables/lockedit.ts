@@ -92,6 +92,7 @@ export function useProjectEditBase(options: {
   projectType?: ComputedRef<ProjectType|undefined|null>|Ref<ProjectType|undefined|null>,
   historyDate?: string,
   canUploadFiles?: boolean,
+  noReferenceItems?: boolean,
   spellcheckEnabled?: Ref<boolean>;
   markdownEditorMode?: Ref<MarkdownEditorMode>;
 }) {
@@ -165,7 +166,7 @@ export function useProjectEditBase(options: {
   const inputFieldAttrs = computed(() => ({
     lang: options.project.value?.language || 'en-US',
     selectableUsers: [...(options.project.value?.members || []), ...(options.project.value?.imported_members || [])],
-    referenceItems: referenceItems.value,
+    referenceItems: options.noReferenceItems ? undefined : referenceItems.value,
     rewriteFileUrlMap: rewriteFileUrlMap.value,
     spellcheckEnabled: spellcheckEnabled.value,
     'onUpdate:spellcheckEnabled': (val: boolean) => { spellcheckEnabled.value = val; },
