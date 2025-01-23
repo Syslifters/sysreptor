@@ -14,6 +14,7 @@
 * Plugin projectnumber: Fix different projectnumber generated for tag and field
 * Command `importdemodata`: Handle `--add-member` option unset
 * Add option to disable archiving for project members
+* Fix setting loading for `DEFAULT_STORAGE`
 
 
 ## v2025.4 - 2025-01-14
