@@ -36,6 +36,7 @@ class Command(BaseCommand):
         path = settings.MEDIA_ROOT / (storage_name.replace('_', ''))
         if not path.is_dir():
             logging.warning(f'Storage "{storage_name}": Directory "{path.absolute()}" does not exist on filesystem. Skipping.')
+            return
 
         logging.info(f'Storage "{storage_name}": Moving files to S3...')
         for file in walk_filesystem(path):
