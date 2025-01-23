@@ -20,6 +20,7 @@ Official plugins are maintained by us and are shipped with our official docker i
 | [demoplugin](https://github.com/Syslifters/sysreptor/tree/main/plugins/demoplugin) | A demo plugin that demonstrates the plugin system | |
 | [projectnumber](https://github.com/Syslifters/sysreptor/tree/main/plugins/projectnumber) | Automatically adds an incremental project number to new projects | |
 | [webhooks](https://github.com/Syslifters/sysreptor/tree/main/plugins/webhooks) | Send webhooks on certain events | <span style="color:red;">:octicons-heart-fill-24: Pro only</span> |
+| [renderfindings](https://github.com/Syslifters/sysreptor/tree/main/plugins/renderfindings) | Render selected findings to pdf | <span style="color:red;">:octicons-heart-fill-24: Pro only</span> |
 
 
 <!--
