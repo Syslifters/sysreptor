@@ -297,14 +297,14 @@ class TestEncryptDataCommand:
                 DEFAULT_ENCRYPTION_KEY_ID=None,
                 ENCRYPTION_PLAINTEXT_FALLBACK=True,
                 STORAGES=settings.STORAGES | {
-                    'uploaded_images': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedimages'}},
-                    'uploaded_assets': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedassets'}},
-                    'uploaded_files': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedfiles'}},
+                    'uploadedimages': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedimages'}},
+                    'uploadedassets': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedassets'}},
+                    'uploadedfiles': {'BACKEND': 'reportcreator_api.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedfiles'}},
                 },
             ):
-                UploadedImage.file.field.storage = storages['uploaded_images']
-                UploadedAsset.file.field.storage = storages['uploaded_assets']
-                UploadedProjectFile.file.field.storage = storages['uploaded_files']
+                UploadedImage.file.field.storage = storages['uploadedimages']
+                UploadedAsset.file.field.storage = storages['uploadedassets']
+                UploadedProjectFile.file.field.storage = storages['uploadedfiles']
                 self.project = create_project()
                 yield
 
