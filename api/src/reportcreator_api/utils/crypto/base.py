@@ -52,7 +52,7 @@ class ReadIntoAdapter(FileProxyMixin):
 
 
 def open(fileobj, mode='r', **kwargs):
-    plaintext_fallback = kwargs.get('plaintext_fallback', settings.ENCRYPTION_PLAINTEXT_FALLBACK)
+    plaintext_fallback = kwargs.pop('plaintext_fallback', settings.ENCRYPTION_PLAINTEXT_FALLBACK)
 
     if mode in ['r', 'rb']:
         key = kwargs.pop('key', None)
