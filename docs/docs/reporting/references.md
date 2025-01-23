@@ -30,10 +30,11 @@ As you see in <ref to="sqli" /> (e.g. rendered as "Figure 3")
 ```
 
 ## Reference Findings
-You need the finding ID of the finding you want to reference.
+You need the finding ID of the finding you want to reference. 
+The markdown editor toolbar in projects provides a button to insert finding references.
 
- 1. Open the other finding that should be linked
- 2. Copy the last UUID from the URL ![Grab the finding ID](../images/finding_id.png)
+![Insert findng reference](../images/finding_reference.png)
+
 
 ```md title="Markdown"
 See [](#00000000-0000-0000-0000-000000000000)... (e.g. rendered as "1.3 SQL injection")

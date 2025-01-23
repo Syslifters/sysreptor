@@ -76,10 +76,12 @@ const markdownPageAttrs = computed(() => ({
   historic: {
     ...fieldAttrsHistoric.value,
     value: fetchState.value.dataHistoric?.text,
+    referenceItems: undefined,
   },
   current: {
     ...fieldAttrsCurrent.value,
     value: fetchState.value.dataCurrent?.text,
+    referenceItems: undefined,
     collab: collabSubpath(fieldAttrsCurrent.value.collab, 'text'),
   },
 }))

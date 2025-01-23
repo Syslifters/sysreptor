@@ -115,6 +115,7 @@ const readonly = computed(() => notesCollab.readonly.value);
 const { inputFieldAttrs, errorMessage } = useProjectEditBase({
   project: computed(() => project.value),
   canUploadFiles: true,
+  noReferenceItems: true,
   spellcheckEnabled: computed({ get: () => localSettings.projectNoteSpellcheckEnabled, set: (val) => { localSettings.projectNoteSpellcheckEnabled = val } }),
   markdownEditorMode: computed({ get: () => localSettings.projectNoteMarkdownEditorMode, set: (val) => { localSettings.projectNoteMarkdownEditorMode = val } }),
 });
