@@ -363,7 +363,7 @@ STORAGES = {
     'staticfiles': {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
-    'uploaded_images': {
+    'uploadedimages': {
         'BACKEND': UPLOADED_IMAGE_STORAGE,
         'OPTIONS': {
             'location': config('UPLOADED_IMAGE_LOCATION', default=(MEDIA_ROOT if 'filesystem' in UPLOADED_IMAGE_STORAGE.lower() else Path()) / 'uploadedimages', cast=Path),
@@ -374,7 +374,7 @@ STORAGES = {
             'endpoint_url': config('UPLOADED_IMAGE_S3_ENDPOINT_URL', default=DEFAULT_S3_ENDPOINT_URL),
         },
     },
-    'uploaded_assets': {
+    'uploadedassets': {
         'BACKEND': UPLOADED_ASSET_STORAGE,
         'OPTIONS': {
             'location': config('UPLOADED_ASSET_LOCATION', default=(MEDIA_ROOT if 'filesystem' in UPLOADED_ASSET_STORAGE.lower() else Path()) / 'uploadedassets', cast=Path),
@@ -385,7 +385,7 @@ STORAGES = {
             'endpoint_url': config('UPLOADED_ASSET_S3_ENDPOINT_URL', default=DEFAULT_S3_ENDPOINT_URL),
         },
     },
-    'uploaded_files': {
+    'uploadedfiles': {
         'BACKEND': UPLOADED_FILE_STORAGE,
         'OPTIONS': {
             'location': config('UPLOADED_FILE_LOCATION', default=(MEDIA_ROOT if 'filesystem' in UPLOADED_FILE_STORAGE.lower() else Path()) / 'uploadedfiles', cast=Path),
@@ -396,7 +396,7 @@ STORAGES = {
             'endpoint_url': config('UPLOADED_FILE_S3_ENDPOINT_URL', default=DEFAULT_S3_ENDPOINT_URL),
         },
     },
-    'archived_files': {
+    'archivedfiles': {
         'BACKEND': ARCHIVED_FILE_STORAGE,
         'OPTIONS': {
             'location': config('ARCHIVED_FILE_LOCATION', default=(MEDIA_ROOT if 'filesystem' in UPLOADED_FILE_STORAGE.lower() else Path()) / 'archivedfiles', cast=Path),

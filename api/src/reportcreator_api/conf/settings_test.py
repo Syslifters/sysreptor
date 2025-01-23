@@ -9,10 +9,10 @@ from reportcreator_api.conf.settings import (
 )
 
 STORAGES = STORAGES | {
-    'uploaded_images': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
-    'uploaded_assets': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
-    'uploaded_files': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
-    'archived_files': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
+    'uploadedimages': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
+    'uploadedassets': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
+    'uploadedfiles': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
+    'archivedfiles': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
 }
 CACHES = {
     'default': {

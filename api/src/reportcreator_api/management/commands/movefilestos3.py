@@ -1,4 +1,3 @@
-
 import logging
 from collections.abc import Iterable
 from pathlib import Path
@@ -7,6 +6,9 @@ from django.conf import settings
 from django.core.files.storage import storages
 from django.core.management.base import BaseCommand
 from storages.backends.s3 import S3Storage
+
+from reportcreator_api.utils import crypto
+from reportcreator_api.utils.crypto.storage import EncryptedStorageMixin
 
 
 def walk_filesystem(path: Path) -> Iterable[Path]:
@@ -46,8 +48,11 @@ class Command(BaseCommand):
                     logging.info(f'    File "{file}" already exists on S3. Skipping.')
                     continue
 
-                with file.open('rb') as f:
-                    storage.save(filename, f)
+                try:
+                    with crypto.open(file.open('rb'), mode='r', plaintext_fallback=True) if isinstance(storage, EncryptedStorageMixin) else file.open('rb') as f:
+                        storage.save(filename, f)
+                except crypto.CryptoError as ex:
+                    logging.error(f'    File "{file}": {ex}')
             except Exception as ex:
                 logging.error(f'    Error moving file "{file}" to S3: {ex}')
 
