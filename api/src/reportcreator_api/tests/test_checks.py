@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 
 import pytest
@@ -8,6 +9,7 @@ from reportcreator_api.pentests.customfields.types import (
     CvssField,
     CvssVersion,
     FieldDefinition,
+    JsonField,
     StringField,
     serialize_field_definition,
 )
@@ -291,6 +293,31 @@ def test_regex_timeout():
         ErrorMessage(level=MessageLevel.ERROR, message='Regex timeout', location=MessageLocationInfo(
             type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex')),
     ])
+
+
+@pytest.mark.parametrize(('schema', 'value', 'message'), [
+    (None, {'key': 'value'}, None),
+    (None, '{"invalid": "json', 'Invalid JSON'),
+    ({'type': 'unknown'}, {'key': 'value'}, 'Invalid JSON schema'),
+    ({'type': 'object', 'properties': 'invalid'}, {'key': 'value'}, 'Invalid JSON schema'),
+    ({'type': 'object', 'properties': {'key': {'type': 'string'}}}, {'key': None}, 'JSON data does not match schema'),
+])
+def test_check_json_field(schema, value, message):
+    if isinstance(value, dict):
+        value = json.dumps(value)
+
+    p = create_project(project_type=create_project_type(finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
+        JsonField(id='field_json', schema=schema),
+    ]))), findings_kwargs=[])
+    f = create_finding(project=p, data={'field_json': value})
+
+    check_res = p.perform_checks()
+    msg = ErrorMessage(level=MessageLevel.WARNING, message=message, location=MessageLocationInfo(
+                type=MessageLocationType.FINDING, id=f.finding_id, path='field_json'))
+    if message:
+        assertContainsCheckResults(check_res, [msg])
+    else:
+        assertNotContainsCheckResults(check_res, [msg])
 
 
 def test_comments():

@@ -1,5 +1,6 @@
 import copy
 import itertools
+import json
 from datetime import timedelta
 from uuid import uuid4
 
@@ -17,6 +18,7 @@ from reportcreator_api.pentests.customfields.predefined_fields import (
     finding_fields_default,
     report_sections_default,
 )
+from reportcreator_api.pentests.customfields.serializers import serializer_from_definition
 from reportcreator_api.pentests.customfields.sort import sort_findings
 from reportcreator_api.pentests.customfields.types import (
     FieldDataType,
@@ -135,6 +137,7 @@ def test_legacy_definition_format(definition_old, definition_new):
             {'id': 'field_markdown', 'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
             {'id': 'field_cvss', 'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
             {'id': 'field_cwe', 'type': 'cwe', 'label': 'CWE Field', 'default': None},
+            {'id': 'field_json', 'type': 'json', 'label': 'JSON Field', 'default': None},
             {'id': 'field_date', 'type': 'date', 'label': 'Date Field', 'default': '2022-01-01'},
             {'id': 'field_int', 'type': 'number', 'label': 'Number Field', 'default': 10},
             {'id': 'field_bool', 'type': 'boolean', 'label': 'Boolean Field', 'default': False},
@@ -149,6 +152,7 @@ def test_legacy_definition_format(definition_old, definition_new):
             'field_markdown': 'Some **markdown**\n* String\n*List',
             'field_cvss': 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:H/A:H',
             'field_cwe': 'CWE-89',
+            'field_json': json.dumps({'key': 'value', 'custom': ['prop']}),
             'field_date': '2022-01-01',
             'field_int': 17,
             'field_bool': True,
@@ -237,6 +241,19 @@ def test_api_serializer_user():
     assert_valid_user_field_value(str(user.id), True)  # Project member
     assert_valid_user_field_value(user_imported['id'], True)  # Imported member
     assert_valid_user_field_value(str(uuid4()), False)  # Nonexistent user
+
+
+@pytest.mark.parametrize(('definition', 'value', 'expected'), [
+    ([{'id': 'f', 'type': 'string', 'required': True}], {'f': None}, False),
+    ([{'id': 'f', 'type': 'string', 'pattern': '^[0-9a-f]+$'}], {'f': 'abc123'}, True),
+    ([{'id': 'f', 'type': 'string', 'pattern': '^[0-9a-f]+$'}], {'f': 'not hex'}, False),
+    ([{'id': 'f', 'type': 'json', 'schema': {'type': 'object', 'properties': {'prop': {'type': 'string'}}}}], {'f': '{"prop": "test"}'}, True),
+    ([{'id': 'f', 'type': 'json', 'schema': {'type': 'object', 'properties': {'prop': {'type': 'string'}}}}], {'f': '["invalid", "schema"]'}, False),
+    ([{'id': 'f', 'type': 'json', 'schema': {'type': 'object', 'properties': {'prop': {'type': 'string'}}}}], {'f': 'invalid JSON'}, False),
+])
+def test_api_serializer_validation(definition, value, expected):
+    actual = serializer_from_definition(definition=parse_field_definition(definition), validate_values=True, data=value).is_valid(raise_exception=False)
+    assert actual is expected
 
 
 class CustomFieldsTestModel(CustomFieldsMixin):

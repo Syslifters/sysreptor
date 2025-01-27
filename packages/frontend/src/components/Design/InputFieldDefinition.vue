@@ -19,7 +19,7 @@
           <s-select
             :model-value="props.modelValue.type"
             @update:model-value="updateType($event)"
-            :items="Object.values(FieldDataType)"
+            :items="Object.values(FieldDataType).filter(t => ![FieldDataType.JSON].includes(t))"
             :disabled="!props.canChangeStructure"
             :readonly="props.readonly"
             label="Data Type"

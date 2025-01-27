@@ -111,6 +111,15 @@
             v-bind="fieldAttrs"
           />
 
+          <!-- JSON -->
+          <s-codeblock-field
+            v-else-if="definition.type === FieldDataType.JSON"
+            :model-value="formValue"
+            @update:model-value="emitUpdate($event)"
+            @focus="collabFocus"
+            v-bind="fieldAttrs"
+          />
+
           <!-- Object -->
           <s-card v-else-if="definition.type === 'object'">
             <v-card-item class="pb-0">

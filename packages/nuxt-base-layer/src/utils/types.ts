@@ -434,6 +434,7 @@ export enum FieldDataType {
   BOOLEAN = 'boolean',
   ENUM = 'enum',
   COMBOBOX = 'combobox',
+  JSON = 'json',
   USER = 'user',
   OBJECT = 'object',
   LIST = 'list',

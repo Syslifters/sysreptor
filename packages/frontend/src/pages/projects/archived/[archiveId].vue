@@ -38,12 +38,9 @@
                   and copy the decrypted data into the text field below.
                 </p>
                 <p><s-code>gpg --decrypt message.txt</s-code></p>
-                <v-textarea
+                <s-codeblock-field
                   v-model="restoreWizard.selectedParts[0]!.encrypted_data"
-                  auto-grow
                   readonly
-                  spellcheck="false"
-                  class="textarea-codeblock pt-0"
                 />
 
                 <s-text-field
@@ -176,17 +173,3 @@ async function decryptKeyPart() {
 }
 
 </script>
-
-<style lang="scss" scoped>
-@use "@base/assets/vuetify.scss" as vuetify;
-
-.textarea-codeblock {
-  :deep(textarea) {
-    font-family: monospace;
-    line-height: 1.2em;
-    font-size: medium;
-    background-color: vuetify.$code-background-color;
-    color: vuetify.$code-color;
-  }
-}
-</style>

@@ -108,6 +108,11 @@ def format_template_field(value: Any, definition: BaseField, members: Optional[l
             'description': None,
             'value': value,
         } | cwe_definition
+    elif value_type == FieldDataType.JSON:
+        try:
+            return json.loads(value)
+        except (TypeError, json.JSONDecodeError):
+            return None
     elif value_type == FieldDataType.USER:
         return format_template_field_user(value, members=members)
     elif value_type == FieldDataType.LIST:
