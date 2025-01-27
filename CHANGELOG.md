@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.12 - 2025-01-27
 * Do not automatically log in (e.g. via OIDC) after logout
 * OIDC: use preferred_username as login_hint for re-authentication
 * Accept username from env variable in createorupdateuser command
