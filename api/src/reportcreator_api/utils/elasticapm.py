@@ -2,6 +2,7 @@ import contextlib
 from urllib.parse import urlparse
 
 import elasticapm
+from channels.exceptions import StopConsumer
 from django.apps import apps
 from django.conf import settings
 from django.urls import Resolver404, resolve
@@ -10,6 +11,7 @@ from elasticapm.contrib.asgi import ASGITracingMiddleware
 from elasticapm.contrib.asyncio.traces import set_context
 from elasticapm.contrib.django.client import get_client
 from elasticapm.utils.disttracing import TraceParent
+from uvicorn.protocols.utils import ClientDisconnected
 
 
 def get_elasticapm_django_client():
@@ -100,6 +102,8 @@ async def elasticapm_capture_websocket_transaction(scope, event=None):
         await set_context(get_data_from_request(scope, constants.TRANSACTION, event), key="request")
         await set_context(get_user_from_request(scope), key='user')
         yield
+        elasticapm.set_transaction_outcome(constants.OUTCOME.SUCCESS, override=False)
+    except (StopConsumer, ClientDisconnected):
         elasticapm.set_transaction_outcome(constants.OUTCOME.SUCCESS, override=False)
     except Exception:
         client.capture_exception()
