@@ -465,6 +465,8 @@ export type FieldDefinition = {
   choices?: EnumFieldChoiceDefinition[];
   properties?: FieldDefinition[];
   items?: FieldDefinition;
+  minimum?: number|null;
+  maximum?: number|null;
 }
 
 export type TemplateFieldDefinition = FieldDefinition & { 

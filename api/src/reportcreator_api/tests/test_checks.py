@@ -10,6 +10,7 @@ from reportcreator_api.pentests.customfields.types import (
     CvssVersion,
     FieldDefinition,
     JsonField,
+    NumberField,
     StringField,
     serialize_field_definition,
 )
@@ -35,7 +36,7 @@ pytestmark = pytest.mark.django_db
 def assertContainsCheckResults(actual, expected):
     for e in expected:
         for a in actual:
-            if e.message == a.message and e.location.type == a.location.type and e.location.id == a.location.id and e.location.path == a.location.path:
+            if (not e.message or e.message == a.message) and e.location.type == a.location.type and e.location.id == a.location.id and e.location.path == a.location.path:
                 break
         else:
             pytest.fail(f'{e} not in check results')
@@ -44,7 +45,7 @@ def assertContainsCheckResults(actual, expected):
 def assertNotContainsCheckResults(actual, expected):
     for e in expected:
         for a in actual:
-            if e.message == a.message and e.location.type == a.location.type and e.location.id == a.location.id and e.location.path == a.location.path:
+            if (not e.message or e.message == a.message) and e.location.type == a.location.type and e.location.id == a.location.id and e.location.path == a.location.path:
                 pytest.fail(f'{e} in check results')
 
 
@@ -293,6 +294,31 @@ def test_regex_timeout():
         ErrorMessage(level=MessageLevel.ERROR, message='Regex timeout', location=MessageLocationInfo(
             type=MessageLocationType.FINDING, id=f.finding_id, path='field_regex')),
     ])
+
+
+@pytest.mark.parametrize(('kwargs', 'value', 'expected'), [
+    ({'minimum': None, 'maximum': None}, 0, True),
+    ({'minimum': None, 'maximum': None}, -1, True),
+    ({'minimum': None, 'maximum': None}, 1, True),
+    ({'minimum': 1, 'maximum': None}, 1, True),
+    ({'minimum': 1, 'maximum': None}, 0, False),
+    ({'minimum': None, 'maximum': 2}, 1, True),
+    ({'minimum': None, 'maximum': 2}, 3, False),
+    ({'minimum': 1, 'maximum': 5}, 3, True),
+])
+def test_check_number_range(kwargs, value, expected):
+    p = create_project(project_type=create_project_type(finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
+        NumberField(id='field_number', **kwargs),
+    ]))), findings_kwargs=[])
+    f = create_finding(project=p, data={'field_number': value})
+
+    check_res = p.perform_checks()
+    msg = ErrorMessage(level=MessageLevel.WARNING, message='Number out of range', location=MessageLocationInfo(
+        type=MessageLocationType.FINDING, id=f.finding_id, path='field_number'))
+    if expected:
+        assertNotContainsCheckResults(check_res, [msg])
+    else:
+        assertContainsCheckResults(check_res, [msg])
 
 
 @pytest.mark.parametrize(('schema', 'value', 'message'), [

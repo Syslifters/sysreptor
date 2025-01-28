@@ -5,7 +5,7 @@
         <div class="flex-grow-width">
           <!-- String -->
           <markdown-text-field
-            v-if="definition.type === 'string'"
+            v-if="definition.type === FieldDataType.STRING"
             v-model="formValue"
             :collab="props.collab"
             validate-on="input lazy"
@@ -16,7 +16,7 @@
 
           <!-- Markdown -->
           <markdown-field
-            v-else-if="definition.type === 'markdown'"
+            v-else-if="definition.type === FieldDataType.MARKDOWN"
             v-model="formValue"
             :collab="props.collab"
             v-bind="fieldAttrs"
@@ -34,7 +34,7 @@
 
           <!-- Date -->
           <s-date-picker
-            v-else-if="definition.type === 'date'"
+            v-else-if="definition.type === FieldDataType.DATE"
             v-model="formValue"
             :locale="props.lang || undefined"
             @focus="collabFocus"
@@ -43,7 +43,7 @@
 
           <!-- Enum -->
           <s-autocomplete
-            v-else-if="definition.type === 'enum'"
+            v-else-if="definition.type === FieldDataType.ENUM"
             v-model="formValue"
             :items="[{value: null as string|null, label: '---'}].concat(definition.choices!)"
             item-title="label"
@@ -56,7 +56,7 @@
 
           <!-- Combobox -->
           <s-combobox
-            v-else-if="definition.type === 'combobox'"
+            v-else-if="definition.type === FieldDataType.COMBOBOX"
             v-model="formValue"
             :items="comboboxSuggestions"
             :clearable="!props.readonly"
@@ -66,18 +66,25 @@
           />
 
           <!-- Number -->
-          <s-text-field
-            v-else-if="definition.type === 'number'"
+          <v-number-input
+            v-else-if="definition.type === FieldDataType.NUMBER"
             :model-value="formValue"
-            @update:model-value="emitUpdate(parseFloat($event))"
-            type="number"
+            @update:model-value="emitUpdate($event)"
+            :min="definition.minimum ?? Number.MIN_SAFE_INTEGER"
+            :max="definition.maximum ?? Number.MAX_SAFE_INTEGER"
+            :persistent-hint="true"
+            hide-details="auto"
+            :max-errors="100"
+            variant="outlined"
+            control-variant="stacked"
+            clearable
             @focus="collabFocus"
             v-bind="fieldAttrs"
           />
 
           <!-- Boolean -->
           <s-checkbox
-            v-else-if="definition.type === 'boolean'"
+            v-else-if="definition.type === FieldDataType.BOOLEAN"
             :model-value="formValue || false"
             @update:model-value="emitUpdate($event)"
             v-bind="fieldAttrs"
@@ -85,7 +92,7 @@
 
           <!-- CVSS -->
           <s-cvss-field
-            v-else-if="definition.type === 'cvss'"
+            v-else-if="definition.type === FieldDataType.CVSS"
             v-model="formValue"
             :cvss-version="definition.cvss_version"
             :disable-validation="props.disableValidation"
@@ -95,7 +102,7 @@
 
           <!-- CWE -->
           <s-cwe-field
-            v-else-if="definition.type === 'cwe'"
+            v-else-if="definition.type === FieldDataType.CWE"
             v-model="formValue"
             @focus="collabFocus"
             v-bind="fieldAttrs"
@@ -103,7 +110,7 @@
 
           <!-- User -->
           <s-user-selection
-            v-else-if="definition.type === 'user'"
+            v-else-if="definition.type === FieldDataType.USER"
             :model-value="formValue"
             @update:model-value="emitUpdate(($event as UserShortInfo|null)?.id || null)"
             :selectable-users="selectableUsers"
@@ -121,7 +128,7 @@
           />
 
           <!-- Object -->
-          <s-card v-else-if="definition.type === 'object'">
+          <s-card v-else-if="definition.type === FieldDataType.OBJECT">
             <v-card-item class="pb-0">
               <v-card-title class="text-body-1">{{ label }}</v-card-title>
               <template #append>
@@ -150,7 +157,7 @@
           </s-card>
 
           <!-- List -->
-          <s-card v-else-if="definition.type === 'list'">
+          <s-card v-else-if="definition.type === FieldDataType.LIST">
             <v-card-item class="pb-0">
               <v-card-title class="text-body-1">{{ label }}</v-card-title>
               <template #append>
@@ -161,7 +168,7 @@
                   v-show="!mobile"
                 />
                 <s-btn-icon
-                  v-if="definition.items!.type === 'string'"
+                  v-if="definition.items!.type === FieldDataType.STRING"
                   @click="bulkEditList = !bulkEditList"
                   density="comfortable"
                 >
@@ -178,7 +185,7 @@
             <v-card-text>
               <!-- Bulk edit list items of list[string] -->
               <v-textarea
-                v-if="definition.items!.type === 'string' && bulkEditList"
+                v-if="definition.items!.type === FieldDataType.STRING && bulkEditList"
                 :model-value="(formValue || []).join('\n')"
                 @update:model-value="emitInputStringList"
                 auto-grow
