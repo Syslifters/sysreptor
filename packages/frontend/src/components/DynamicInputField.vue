@@ -123,6 +123,7 @@
             v-else-if="definition.type === FieldDataType.JSON"
             :model-value="formValue"
             @update:model-value="emitUpdate($event)"
+            :rules="[(v: string) => validateJson(v)]"
             @focus="collabFocus"
             v-bind="fieldAttrs"
           />
@@ -452,6 +453,7 @@ function isEmptyOrDefault(value: any, definition: FieldDefinition): boolean {
   }
 }
 
+// Regex validation
 // Global worker instance reused for all components
 const regexWorker = useState<Worker|null>('regexWorker', () => null);
 async function validateRegexPattern(value: string) {
@@ -494,6 +496,21 @@ onBeforeUnmount(async () => {
     regexWorker.value = null;
   }
 })
+
+// JSON validation
+function validateJson(v: string) {
+  if (props.definition.type !== FieldDataType.JSON || !v) {
+    return true;
+  }
+
+  try {
+    JSON.parse(v);
+  } catch (e: any) {
+    return `Invalid JSON: ${e.message}`;
+  }
+
+  return true;
+}
 
 const bulkEditList = ref(false);
 function emitInputStringList(valuesListString?: string) {

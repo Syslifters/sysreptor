@@ -463,10 +463,11 @@ export type FieldDefinition = {
   cvss_version?: CvssVersion;
   suggestions?: string[];
   choices?: EnumFieldChoiceDefinition[];
-  properties?: FieldDefinition[];
-  items?: FieldDefinition;
   minimum?: number|null;
   maximum?: number|null;
+  schema?: any|null;
+  properties?: FieldDefinition[];
+  items?: FieldDefinition;
 }
 
 export type TemplateFieldDefinition = FieldDefinition & { 
