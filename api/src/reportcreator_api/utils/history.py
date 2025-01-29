@@ -30,9 +30,6 @@ class HistoricalRecords(history_models.HistoricalRecords):
         )
 
     def post_save(self, instance, created, using=None, **kwargs):
-        if getattr(instance, 'skip_history_when_saving', False):
-            # Allow skip_history_when_saving also for create
-            return
         if not created and not set(instance.changed_fields).intersection(map(lambda f: f.attname, instance.history.model.tracked_fields)):
             # Skip history when there were no changes
             return
@@ -95,13 +92,9 @@ class HistoryManager(history_manager.HistoryManager):
             # historical records are sorted in reverse chronological order
             history_obj = queryset[0]
         except IndexError as ex:
-            raise self.instance.DoesNotExist(
-                "%s had not yet been created." % self.instance._meta.object_name,
-            ) from ex
+            raise self.instance.DoesNotExist(f"{self.instance._meta.object_name} had not yet been created.") from ex
         if history_obj.history_type == "-" and history_obj.history_date != date:
-            raise self.instance.DoesNotExist(
-                "%s had already been deleted." % self.instance._meta.object_name,
-            )
+            raise self.instance.DoesNotExist(f"{self.instance._meta.object_name} had already been deleted.")
         result = history_obj.instance
         historic = getattr(result, history_manager.SIMPLE_HISTORY_REVERSE_ATTR_NAME)
         historic._as_of = date
