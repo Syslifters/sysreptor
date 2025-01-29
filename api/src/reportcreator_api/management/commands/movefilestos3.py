@@ -49,8 +49,10 @@ class Command(BaseCommand):
                     continue
 
                 try:
-                    with crypto.open(file.open('rb'), mode='r', plaintext_fallback=True) if isinstance(storage, EncryptedStorageMixin) else file.open('rb') as f:
-                        storage.save(filename, f)
+                    with crypto.open(file.open('rb'), mode='r', plaintext_fallback=True) if isinstance(storage, EncryptedStorageMixin) else file.open('rb') as f_src:
+                        with storage.open(filename, 'wb') as f_dest:
+                            for chunk in f_src.chunks():
+                                f_dest.write(chunk)
                 except crypto.CryptoError as ex:
                     logging.error(f'    File "{file}": {ex}')
             except Exception as ex:
