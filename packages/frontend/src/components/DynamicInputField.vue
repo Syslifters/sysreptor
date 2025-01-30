@@ -432,7 +432,7 @@ const formValue = computed({
   }),
 });
 const label = computed(() => {
-  let out = props.definition.label || '';
+  let out = props.definition.label || props.definition.id || '';
   if (props.showFieldIds && props.id) {
     if (out) {
       out += ' (' + props.id + ')';
