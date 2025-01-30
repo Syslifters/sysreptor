@@ -24,7 +24,6 @@
 |                                                                                               | [:fire: Get Started](setup/installation.md){ .md-button target="_blank" }                                      | [:rocket: Buy](https://portal.sysreptor.com/order/){ .md-button target="_blank"}                                                                                       |
 |                                                                                               | [:material-phone: Contact Us](contact-us.md){ .md-button style="align:center;" }                               | [:sauropod: Book a Demo](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ .md-button style="align:center;" target=_blank } |
 
-<br><br>
-__*Additional currencies accepted__: USD, AUD, CHF, DKK, GBP, NOK, SEK 
-__**Spell Check support__: English, German, Spanish, French, Portuguese, Dutch  
+__\*Additional currencies accepted__: USD, AUD, CHF, DKK, GBP, NOK, SEK  
+__\*\*Spell Check support__: English, German, Spanish, French, Portuguese, Dutch  
 __Limited Spell Check support__: Italian, Danish, Polish, Ukrainian, Romanian, Slovak, Slovenian, Greek, Swedish
