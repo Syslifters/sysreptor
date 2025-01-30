@@ -125,6 +125,7 @@
             @update:model-value="emitUpdate($event)"
             :rules="[(v: string) => validateJson(v)]"
             @focus="collabFocus"
+            variant="outlined"
             v-bind="fieldAttrs"
           />
 
@@ -132,6 +133,7 @@
           <s-card v-else-if="definition.type === FieldDataType.OBJECT">
             <v-card-item class="pb-0">
               <v-card-title class="text-body-1">{{ label }}</v-card-title>
+              <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
               <template #append>
                 <comment-btn
                   v-if="props.collab?.comments"
@@ -161,6 +163,7 @@
           <s-card v-else-if="definition.type === FieldDataType.LIST">
             <v-card-item class="pb-0">
               <v-card-title class="text-body-1">{{ label }}</v-card-title>
+              <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
               <template #append>
                 <comment-btn
                   v-if="props.collab?.comments"
@@ -444,9 +447,9 @@ const label = computed(() => {
 })
 
 function isEmptyOrDefault(value: any, definition: FieldDefinition): boolean {
-  if (definition.type === 'list') {
+  if (definition.type === FieldDataType.LIST) {
     return value.length === 0 || value.every((v: any) => isEmptyOrDefault(v, definition.items!));
-  } else if (definition.type === 'object') {
+  } else if (definition.type === FieldDataType.OBJECT) {
     return !value || definition.properties!.every(d => isEmptyOrDefault(value[d.id], d));
   } else {
     return !value || value === definition.default;
@@ -560,6 +563,7 @@ const attrs = useAttrs();
 const fieldAttrs = computed(() => ({
   ...attrs,
   label: label.value,
+  hint: props.definition.help_text || undefined,
   ...pick(props, [
     'disabled', 'readonly', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
     'referenceItems', 'rewriteFileUrlMap', 'uploadFile',
