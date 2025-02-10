@@ -1,5 +1,10 @@
 # Changelog
 
+## Upcoming
+* Fix corrupt backup.zip because output file is not closed in backup CLI command
+* Add log message when backup is finished
+
+
 ## v2025.12 - 2025-01-27
 * Do not automatically log in (e.g. via OIDC) after logout
 * OIDC: use preferred_username as login_hint for re-authentication
