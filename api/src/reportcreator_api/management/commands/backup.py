@@ -32,6 +32,6 @@ class Command(BaseCommand):
             z = encrypt_backup(z, key.key)
 
         # Write backup to file
-        for c in to_chunks(z):
-            file.write(c)
-
+        with file:
+            for c in to_chunks(z):
+                file.write(c)

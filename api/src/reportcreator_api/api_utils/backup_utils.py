@@ -20,6 +20,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, transaction
 from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.loader import MigrationLoader
+from django.utils import timezone
 
 from reportcreator_api.api_utils.models import BackupLog, BackupLogType
 from reportcreator_api.pentests import storages
@@ -108,8 +109,23 @@ def backup_files(z, path, storage, models):
         z.add(arcname=str(Path(path) / f), data=file_chunks(f))
 
 
+def create_finished_info(start_time):
+    """
+    Dummy file that is added last to the backup.zip to signal that the backup is finished.
+    This iterator is consumed just before the backup is finished.
+    The log message is therefore not generated immediately when the funtion is called, but when the iterator is consumed.
+    """
+    yield json.dumps({
+        'start_time': start_time,
+        'end_time': timezone.now(),
+    }, cls=DjangoJSONEncoder).encode()
+    logging.info('Backup finished')
+
+
 def create_backup(user=None):
     logging.info('Backup requested')
+    start_time = timezone.now()
+
     z = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
     z.add(arcname='VERSION', data=settings.VERSION.encode())
     z.add(arcname='migrations.json', data=json.dumps(create_migration_info()).encode())
@@ -119,6 +135,8 @@ def create_backup(user=None):
     backup_files(z, 'uploadedassets', storages.get_uploaded_asset_storage(), [UploadedAsset])
     backup_files(z, 'uploadedfiles', storages.get_uploaded_file_storage(), [UploadedProjectFile, UploadedUserNotebookFile])
     backup_files(z, 'archivedfiles', storages.get_archive_file_storage(), [ArchivedProject])
+
+    z.add(arcname='finished.json', data=create_finished_info(start_time=start_time))
 
     BackupLog.objects.create(type=BackupLogType.BACKUP, user=user)
 
