@@ -9,7 +9,7 @@ packages = [{include = "reportcreator_api", from = "src"}]
 python = "^3.12"
 django = { extras = ["argon2"], version = "~5.1" }
 djangorestframework = "~3.15.0"
-weasyprint = "~63.1"
+weasyprint = "~64"
 
 django-phonenumber-field = { version = "^8.0.0", extras = ["phonenumberslite"] }
 django-csp = "^4.0b2"
