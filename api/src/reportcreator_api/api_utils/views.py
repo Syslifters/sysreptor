@@ -88,12 +88,14 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
 
         if s3_params := data.get('s3_params'):
             backup_utils.upload_to_s3_bucket(z, s3_params)
+            logging.info('Backup finished')
             gc.collect()
             return Response(status=200)
         else:
             def backup_chunks():
                 yield from backup_utils.to_chunks(z, allow_small_first_chunk=True)
 
+                logging.info('Backup finished')
                 # Memory cleanup
                 gc.collect()
 

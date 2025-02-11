@@ -35,3 +35,5 @@ class Command(BaseCommand):
         with file:
             for c in to_chunks(z):
                 file.write(c)
+
+        logging.info('Backup finished')
