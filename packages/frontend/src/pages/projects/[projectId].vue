@@ -28,7 +28,7 @@
           <v-list-item
             v-for="pluginMenuEntry, idx in pluginMenuEntries"
             :key="idx"
-            :to="router.resolve({...pluginMenuEntry.to, params: { projectId: route.params.projectId}}).href"
+            :to="pluginUrl(pluginMenuEntry, { projectId: route.params.projectId })"
             :title="pluginMenuEntry.title"
             :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
             v-bind="pluginMenuEntry.attrs"
