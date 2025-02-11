@@ -11,6 +11,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
 from reportcreator_api.api_utils.views import (
+    ConfigurationViewSet,
     HealthcheckApiView,
     PluginApiView,
     PublicAPIRootView,
@@ -72,6 +73,7 @@ router.register('pentestprojects', PentestProjectViewSet, basename='pentestproje
 router.register('archivedprojects', ArchivedProjectViewSet, basename='archivedproject')
 router.register('findingtemplates', FindingTemplateViewSet, basename='findingtemplate')
 router.register('utils', UtilsViewSet, basename='utils')
+router.register('utils/configuration', ConfigurationViewSet, basename='configuration')
 router.register('auth', AuthViewSet, basename='auth')
 
 user_router = NestedSimpleRouter(router, 'pentestusers', lookup='pentestuser')

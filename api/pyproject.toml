@@ -50,6 +50,7 @@ boto3 = "^1.26.5"
 playwright = "^1.32.1"
 pikepdf = "^9.0.0"
 celery = "^5.3.6"
+psutil = "^6.1.1"
 
 django-debug-toolbar = "^5.0.1"
 debugpy = "^1.6.7"

@@ -16,7 +16,7 @@ from rest_framework.settings import api_settings
 from reportcreator_api.api_utils import backup_utils
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.models import BackupLog
-from reportcreator_api.api_utils.permissions import IsAdminOrSystem
+from reportcreator_api.api_utils.permissions import IsAdmin, IsAdminOrSystem
 from reportcreator_api.api_utils.serializers import (
     BackupLogSerializer,
     BackupSerializer,
@@ -25,12 +25,17 @@ from reportcreator_api.api_utils.serializers import (
     LanguageToolSerializer,
 )
 from reportcreator_api.conf import plugins
-from reportcreator_api.pentests.customfields.types import CweField
+from reportcreator_api.pentests.customfields.serializers import (
+    DynamicObjectSerializer,
+    serializer_from_field,
+)
+from reportcreator_api.pentests.customfields.types import CweField, FieldDefinition, serialize_field_definition
 from reportcreator_api.pentests.models import Language, ProjectMemberRole
 from reportcreator_api.tasks.models import PeriodicTask
 from reportcreator_api.users.models import AuthIdentity
 from reportcreator_api.utils import license
 from reportcreator_api.utils.api import StreamingHttpResponseAsync, ViewSetAsync
+from reportcreator_api.utils.configuration import configuration, reload_server
 from reportcreator_api.utils.utils import copy_keys, remove_duplicates, run_in_background
 
 log = logging.getLogger(__name__)
@@ -242,3 +247,46 @@ class PluginApiView(views.APIView):
 class PublicAPIRootView(routers.APIRootView):
     authentication_classes = []
     permission_classes = []
+
+
+class ConfigurationViewSet(viewsets.ViewSet):
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [IsAdmin]
+
+    def get_serializer(self, **kwargs):
+        instance = kwargs.pop('instance', {d.id: configuration.get(d.id) for d in configuration.definition.fields})
+        return DynamicObjectSerializer(
+            fields={f.id: serializer_from_field(f, validate_values=True, read_only=f.extra_info.get('set_in_env', False)) for f in configuration.definition.fields},
+            instance=instance,
+            **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer()
+        return Response(data=serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        configuration.update(serializer.validated_data)
+        reload_server()
+
+        return self.list(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    @action(detail=False, methods=['get'])
+    def definition(self, request, *args, **kwargs):
+        return Response(data={
+            'core': self.serialize_settings_definition(settings.CONFIGURATION_DEFINITION_CORE),
+            'plugins': [{
+                'id': p.plugin_id,
+                'name': p.name.split('.')[-1],
+                'professional_only': p.professional_only,
+                'enabled': any(p.plugin_id == ep.plugin_id for ep in plugins.enabled_plugins),
+                'fields': self.serialize_settings_definition(p.configuration_definition or FieldDefinition()),
+            } for p in plugins.available_plugins],
+        })
+
+    def serialize_settings_definition(self, definition):
+        return serialize_field_definition(definition, extra_info=['group', 'set_in_env', 'professional_only'])

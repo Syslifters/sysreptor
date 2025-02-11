@@ -56,6 +56,7 @@ from reportcreator_api.pentests.models import (
 from reportcreator_api.pentests.models.project import CommentAnswer, ReportSection
 from reportcreator_api.users.models import APIToken, MFAMethod, PentestUser
 from reportcreator_api.utils import crypto
+from reportcreator_api.utils.configuration import configuration
 from reportcreator_api.utils.history import bulk_create_with_history, history_context
 
 
@@ -468,3 +469,15 @@ async def websocket_client(path, user, connect=True):
         yield consumer
     finally:
         await consumer.disconnect()
+
+
+@contextlib.contextmanager
+def override_configuration(**kwargs):
+    restore_map = configuration._force_override.copy()
+    try:
+        configuration._force_override |= kwargs
+        configuration.refresh_from_db()
+        yield
+    finally:
+        configuration._force_override = restore_map
+        configuration.refresh_from_db()
