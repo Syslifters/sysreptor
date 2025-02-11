@@ -1,7 +1,7 @@
 # Customize Theme
 
 This plugin allows to customize the theme of the SysReptor frontend.
-It allows to change settings of light and dark globally per instance.
+It allows to change settings of light and dark themes globally per instance.
 
 
 

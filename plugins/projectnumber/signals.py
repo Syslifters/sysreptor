@@ -4,7 +4,6 @@ import logging
 from django.apps import apps
 from django.db.models import signals
 from django.dispatch import receiver
-from django.template import Context, Engine
 from reportcreator_api.pentests.customfields.types import FieldDataType
 from reportcreator_api.pentests.models.common import SourceEnum
 from reportcreator_api.pentests.models.project import (
@@ -15,17 +14,11 @@ from reportcreator_api.pentests.models.project import (
 
 from .apps import ProjectNumberPluginConfig
 from .models import ProjectNumber
+from .utils import format_project_number
 
 log = logging.getLogger(__name__)
 
-custom_engine = Engine(
-    builtins=['sysreptor_plugins.projectnumber.templatetags.random_number'], 
-)
 
-class Default(dict):
-    def __missing__(self, key): 
-        return key.join("{}")
-    
 @receiver(signals.post_save, sender=PentestProject)
 def on_project_saved(sender, instance: PentestProject, created, **kwargs):
     """
@@ -44,11 +37,10 @@ def on_project_saved(sender, instance: PentestProject, created, **kwargs):
         counter.save()
         
         # Fromat project number using the configured template from plugin settings
-        projectnumber_str = custom_engine.from_string(
-            apps.get_app_config(ProjectNumberPluginConfig.label).settings.get('PLUGIN_PROJECTNUMBER_TEMPLATE', '{{ project_number }}')
-        ).render(context=Context({
-            'project_number': counter.current_id,
-        }))
+        projectnumber_str = format_project_number(
+            template=apps.get_app_config(ProjectNumberPluginConfig.label).settings.get('PLUGIN_PROJECTNUMBER_TEMPLATE', '{{ project_number }}'),
+            project_number=counter.current_id,
+        )
         
         # Add tag
         instance.tags = [projectnumber_str]

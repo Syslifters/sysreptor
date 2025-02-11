@@ -24,6 +24,17 @@ from decouple import Csv, config
 from kombu import Queue
 
 from reportcreator_api.conf.plugins import load_plugins
+from reportcreator_api.pentests.customfields.types import (
+    BooleanField,
+    EnumChoice,
+    EnumField,
+    FieldDefinition,
+    JsonField,
+    ListField,
+    NumberField,
+    StringField,
+)
+from reportcreator_api.utils.language import Language
 
 
 def remove_empty_items(lst=None):
@@ -597,6 +608,7 @@ ENCRYPTION_KEYS = config('ENCRYPTION_KEYS', cast=EncryptionKey.from_json_list, d
 DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
 ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=bool, default=True)
 
+# TODO: migrate settings to db_settings
 GUEST_USERS_CAN_EDIT_PROJECTS = config('GUEST_USERS_CAN_EDIT_PROJECTS', cast=bool, default=True)
 GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS = config('GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS', cast=bool, default=GUEST_USERS_CAN_EDIT_PROJECTS)
 GUEST_USERS_CAN_CREATE_PROJECTS = config('GUEST_USERS_CAN_CREATE_PROJECTS', cast=bool, default=GUEST_USERS_CAN_EDIT_PROJECTS)
@@ -757,3 +769,203 @@ LOGGING = {
         },
     },
 }
+
+
+CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
+    BooleanField(
+        id='ENABLE_PRIVATE_DESIGNS',
+        default=False,
+        extra_info={'group': 'other', 'professional_only': False},
+        help_text='Users without Designer permission can create and edit private designs that cannot be read or used by other users. '
+                  'If a project is created using a private design, a copy of the private design becomes accessible to project members.'),
+    BooleanField(
+        id='COMPRESS_IMAGES',
+        default=True,
+        extra_info={'group': 'other', 'professional_only': False},
+        help_text='Uploaded images are compressed to reduce file size, but to retain quality suitable for PDF rendering.'),
+    BooleanField(
+        id='COMPRESS_PDFS',
+        default=True,
+        extra_info={'group': 'other', 'professional_only': False},
+        help_text='PDFs are compressed via ghostscript when generating the final report (not in previews). '
+                  'PDF compression reduces the file size, but can lead to quality loss of images and differences between the preview and the final PDF.'),
+
+    BooleanField(
+        id='DISABLE_SHARING',
+        default=False,
+        extra_info={'group': 'sharing', 'professional_only': False},
+        help_text='Disable sharing of project notes'),
+    BooleanField(
+        id='SHARING_PASSWORD_REQUIRED',
+        default=False,
+        extra_info={'group': 'sharing', 'professional_only': False},
+        help_text='Require passwords to be set for shared notes'),
+    BooleanField(
+        id='SHARING_READONLY_REQUIRED',
+        default=False,
+        extra_info={'group': 'sharing', 'professional_only': False},
+        help_text='Require shared notes to be read-only. Disables public writeable shared notes.'),
+
+
+    ListField(
+        id='PREFERRED_LANGUAGES',
+        items=EnumField(choices=[EnumChoice(value=l[0], label=l[1]) for l in Language.choices]),
+        required=False,
+        extra_info={'group': 'language', 'professional_only': False, 'load_from_env': Csv(post_process=remove_empty_items)},
+        help_text='Configure which languages are available in the language selection. '
+                  'This setting also defines the order of languages in the selection. The first language is used as default.'),
+    BooleanField(
+        id='SPELLCHECK_DICTIONARY_PER_USER',
+        default=False,
+        extra_info={'group': 'language', 'professional_only': True},
+        help_text='Words are added to a global spell check dictionary by default, which is available to all users. '
+                  'Enable this setting to store words to user\'s personal spell check dictionaries.'
+                  'Using both global and personal dictionaries at the same time is not possible. '
+                  'Words of personal dictionaries are not shared between users. '
+                  'If one user adds an unknown word to their personal dictionary, the spell checker will still detect an error for other users, '
+                  'even when they are working in the same project or finding.'),
+    BooleanField(
+        id='SPELLCHECK_MODE_PICKY',
+        default=False,
+        extra_info={'group': 'language', 'professional_only': True},
+        help_text='The picky mode enables additional spell check rules.'),
+    JsonField(
+        id='SPELLCHECK_LANGUAGETOOL_CONFIG',
+        default=json.dumps({'disabledRules': 'TODO,TO_DO_HYPHEN'}),
+        schema={'type': 'object'},
+        extra_info={'group': 'language', 'professional_only': True},
+        help_text='Selectively enable and disable rules or rule-categories by passing a LanguageTool configuration as JSON. '
+                  'See https://languagetool.org/http-api/ for available options on the /check request. '
+                  'See https://community.languagetool.org/rule/list for available rules (note: rule IDs might differ for languages).'),
+
+        NumberField(
+        id='ARCHIVING_THRESHOLD',
+        default=2,
+        minimum=1,
+        extra_info={'group': 'archiving', 'professional_only': True},
+        help_text='Archived projects require at least ARCHIVING_THRESHOLD number of users to restore the archive (see https://docs.sysreptor.com/reporting/archiving/). '
+                  'By default two users are required, enforcing a 4-eye principle. '
+                  'If ARCHIVING_THRESHOLD=1 every user is able to restore archived projects on their own, disabling the 4-eye principle. '
+                  'Changing this setting does not affect previously archived projects.'),
+    BooleanField(
+        id='PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS',
+        default=True,
+        extra_info={'group': 'archiving', 'professional_only': True},
+        help_text='If PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS is set to true (default), every project member can archive/restore a project. '
+                  'Otherwise, only users with global archiver permission can archive/restore projects. '
+                  'This means that encryption happens with fewer encryption keys and it will be more difficult '
+                  'to keep up the quorum (ARCHIVING_THRESHOLD) for restoring projects (this could lead to availability problems).'),
+    NumberField(
+        id='AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER',
+        default=None,
+        minimum=1,
+        required=False,
+        extra_info={'group': 'archiving', 'professional_only': True},
+        help_text='Automatically archive finished projects after X days'),
+    NumberField(
+        id='AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER',
+        default=None,
+        minimum=1,
+        required=False,
+        extra_info={'group': 'archiving', 'professional_only': True},
+        help_text='Automatically delete archived projects after X days'),
+
+
+    BooleanField(
+        id='GUEST_USERS_CAN_EDIT_PROJECTS',
+        default=True,
+        extra_info={'group': 'permissions', 'professional_only': True}),
+    BooleanField(
+        id='GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS',
+        default=True,
+        extra_info={'group': 'permissions', 'professional_only': True}),
+    BooleanField(
+        id='GUEST_USERS_CAN_CREATE_PROJECTS',
+        default=True,
+        extra_info={'group': 'permissions', 'professional_only': True}),
+    BooleanField(
+        id='GUEST_USERS_CAN_DELETE_PROJECTS',
+        default=True,
+        extra_info={'group': 'permissions', 'professional_only': True}),
+    BooleanField(
+        id='GUEST_USERS_CAN_IMPORT_PROJECTS',
+        default=False,
+        extra_info={'group': 'permissions', 'professional_only': True}),
+    BooleanField(
+        id='GUEST_USERS_CAN_SEE_ALL_USERS',
+        default=False,
+        extra_info={'group': 'permissions', 'professional_only': True}),
+    BooleanField(
+        id='GUEST_USERS_CAN_SHARE_NOTES',
+        default=False,
+        extra_info={'group': 'permissions', 'professional_only': True}),
+
+
+    # TODO: SSO and auth settings in danger zone
+    StringField(
+        id='DEFAULT_AUTH_PROVIDER',
+        default=None,
+        required=False,
+        extra_info={'group': 'auth', 'professional_only': True},
+        help_text='Configuration of the default authentication provider when multiple authentication providers are enabled (e.g. OIDC via Microsoft Entra ID and username/password). '
+                  'This setting will redirect users to the default authentication provider, skipping the selection. '
+                  'Other authentication providers can still be used if login via the default provider fails.'),
+    StringField(
+        id='DEFAULT_REAUTH_PROVIDER',
+        default=None,
+        required=False,
+        extra_info={'group': 'auth', 'professional_only': True}),
+    StringField(
+        id='OIDC_AZURE_CLIENT_ID',
+        default=None,
+        required=False,
+        extra_info={'group': 'auth', 'professional_only': True}),
+    StringField(
+        id='OIDC_AZURE_CLIENT_SECRET',
+        default=None,
+        required=False,
+        extra_info={'group': 'auth', 'professional_only': True}),
+    StringField(
+        id='OIDC_AZURE_TENANT_ID',
+        default=None,
+        required=False,
+        extra_info={'group': 'auth', 'professional_only': True}),
+    StringField(
+        id='OIDC_GOOGLE_CLIENT_ID',
+        default=None,
+        required=False,
+        extra_info={'group': 'auth', 'professional_only': True}),
+    StringField(
+        id='OIDC_GOOGLE_CLIENT_SECRET',
+        default=None,
+        required=False,
+        extra_info={'group': 'auth', 'professional_only': True}),
+    JsonField(
+        id='OIDC_AUTHLIB_OAUTH_CLIENTS',
+        default=None,
+        required=False,
+        schema={
+            'type': 'object',
+            'patternProperties': {'^.*$': {
+                'type': 'object',
+                'properties': {
+                    'label': {'type': 'string'},
+                    'client_id': {'type': 'string'},
+                    'client_secret': {'type': 'string'},
+                    'server_metadata_url': {'type': 'string', 'format': 'uri'},
+                },
+                'required': ['label', 'client_id', 'client_secret'],
+                'additoinalProperties': True,
+            }},
+        },
+        extra_info={'group': 'auth', 'professional_only': True}),
+    BooleanField(
+        id='REMOTE_USER_AUTH_ENABLED',
+        default=False,
+        extra_info={'group': 'auth', 'professional_only': True}),
+    StringField(
+        id='REMOTE_USER_AUTH_HEADER',
+        default='Remote-User',
+        extra_info={'group': 'auth', 'professional_only': True}),
+])
+

@@ -1,6 +1,7 @@
 import gc
 import logging
 from base64 import b64decode
+from inspect import cleandoc
 
 from adrf.views import APIView as APIViewAsync
 from asgiref.sync import sync_to_async
@@ -282,6 +283,7 @@ class ConfigurationViewSet(viewsets.ViewSet):
             'plugins': [{
                 'id': p.plugin_id,
                 'name': p.name.split('.')[-1],
+                'description': cleandoc(p.__doc__) if p.__doc__ else None,
                 'professional_only': p.professional_only,
                 'enabled': any(p.plugin_id == ep.plugin_id for ep in plugins.enabled_plugins),
                 'fields': self.serialize_settings_definition(p.configuration_definition or FieldDefinition()),
