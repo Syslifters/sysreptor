@@ -1,5 +1,6 @@
 <template>
   <s-autocomplete v-bind="autocompleteAttrs">
+    <template #label v-if="$slots.label"><slot name="label" /></template>
     <template #append-item v-if="!props.selectableUsers && allItems.length > 0">
       <page-loader :items="items" />
     </template>

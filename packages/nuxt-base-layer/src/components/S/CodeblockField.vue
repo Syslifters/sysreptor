@@ -7,7 +7,9 @@
     spellcheck="false"
     autocomplete="off"
     class="textarea-codeblock"
-  />
+  >
+    <template #label v-if="$slots.label"><slot name="label" /></template>
+  </v-textarea>
 </template>
 
 <style lang="scss" scoped>

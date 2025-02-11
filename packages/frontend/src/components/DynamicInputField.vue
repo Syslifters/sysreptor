@@ -12,7 +12,9 @@
             :spellcheck-supported="definition.spellcheck"
             :rules="[(v: string) => validateRegexPattern(v)]"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </markdown-text-field>
 
           <!-- Markdown -->
           <markdown-field
@@ -21,6 +23,7 @@
             :collab="props.collab"
             v-bind="fieldAttrs"
           >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
             <template v-if="$slots['markdown-context-menu']" #context-menu="slotData">
               <slot 
                 name="markdown-context-menu"
@@ -39,7 +42,9 @@
             :locale="props.lang || undefined"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-date-picker>
 
           <!-- Enum -->
           <s-autocomplete
@@ -52,7 +57,9 @@
             spellcheck="false"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-autocomplete>
 
           <!-- Combobox -->
           <s-combobox
@@ -63,7 +70,9 @@
             spellcheck="false"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-combobox>
 
           <!-- Number -->
           <v-number-input
@@ -80,7 +89,9 @@
             clearable
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </v-number-input>
 
           <!-- Boolean -->
           <s-checkbox
@@ -88,7 +99,9 @@
             :model-value="formValue || false"
             @update:model-value="emitUpdate($event)"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-checkbox>
 
           <!-- CVSS -->
           <s-cvss-field
@@ -98,7 +111,9 @@
             :disable-validation="props.disableValidation"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-cvss-field>
 
           <!-- CWE -->
           <s-cwe-field
@@ -106,7 +121,9 @@
             v-model="formValue"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-cwe-field>
 
           <!-- User -->
           <s-user-selection
@@ -116,7 +133,9 @@
             :selectable-users="selectableUsers"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-user-selection>
 
           <!-- JSON -->
           <s-codeblock-field
@@ -127,12 +146,14 @@
             @focus="collabFocus"
             variant="outlined"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-codeblock-field>
 
           <!-- Object -->
           <s-card v-else-if="definition.type === FieldDataType.OBJECT">
             <v-card-item class="pb-0">
-              <v-card-title class="text-body-1">{{ label }}</v-card-title>
+              <v-card-title class="text-body-1"><slot name="label">{{ label }}</slot></v-card-title>
               <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
               <template #append>
                 <comment-btn
@@ -163,7 +184,7 @@
           <!-- List -->
           <s-card v-else-if="definition.type === FieldDataType.LIST">
             <v-card-item class="pb-0">
-              <v-card-title class="text-body-1">{{ label }}</v-card-title>
+              <v-card-title class="text-body-1"><slot name="label">{{ label }}</slot></v-card-title>
               <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
               <v-alert v-if="Array.isArray(props.errorMessages) && props.errorMessages.length > 0" color="error">
                 <ul>
@@ -308,7 +329,7 @@
 
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
-import { isObject, omit, pick, uniq } from 'lodash-es';
+import { omit, pick, uniq } from 'lodash-es';
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo } from '#imports';
 import { workerUrlPolicy } from '~/plugins/trustedtypes';
