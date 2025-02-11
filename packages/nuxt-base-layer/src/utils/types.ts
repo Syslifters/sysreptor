@@ -456,6 +456,7 @@ export type FieldDefinition = {
   type: FieldDataType;
   label: string;
   origin: FieldOrigin;
+  help_text?: string|null;
   default?: any|null;
   required?: boolean;
   spellcheck?: boolean;

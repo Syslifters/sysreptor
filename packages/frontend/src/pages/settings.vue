@@ -1,0 +1,213 @@
+<template>
+  <full-height-page>
+    <v-container class="pt-0">
+      <v-form ref="form" class="h-100">
+        <edit-toolbar 
+          :data="configurationValues as any"
+          :form="$refs.form as VForm"
+          :save="performSave" 
+        />
+
+        <s-card v-for="group in coreConfigGroups" :key="group.title" class="mt-4">
+          <v-card-title>
+            <pro-info v-if="group.professional_only">{{ group.title }}</pro-info>
+            <span v-else>{{ group.title }}</span>
+          </v-card-title>
+          <v-card-text>
+            <div v-for="field in group.fields" :key="field.id">
+              <dynamic-input-field 
+                v-model="configurationValues[field.id]"
+                :definition="field"
+                :disabled="field.set_in_env || (field.professional_only && !apiSettings.isProfessionalLicense)"
+                :error-message="errorMessages?.[field.id]"
+              >
+                <template #label>
+                  <s-tooltip :disabled="!field.set_in_env">
+                    <template #activator="{props: tooltipProps}">
+                      <span v-bind="tooltipProps" :class="{'info-env': field.set_in_env}">
+                        <pro-info v-if="field.professional_only">{{ field.id }}</pro-info>
+                        <span v-else>{{ field.id }}</span>
+                        <span v-if="configurationFieldDefault(field)" class="text-caption ml-2">{{ configurationFieldDefault(field) }}</span>
+                        <v-icon v-if="field.set_in_env" end icon="mdi-cog-off" />
+                      </span>
+                    </template>
+                    <template #default>
+                      This setting is configured as environment variable.<br>
+                      Update the value of the environment variable <v-code>{{ field.id }}</v-code> in <v-code>app.env</v-code><br>
+                      or remove it from <v-code>app.env</v-code> to be able to change it here.
+                    </template>
+                  </s-tooltip>
+                </template>
+              </dynamic-input-field>
+            </div>
+          </v-card-text>  
+        </s-card>
+
+        <s-card v-for="plugin in configurationDefinition.plugins" :key="plugin.plugin_id" class="mt-4">
+          <v-card-title>
+            Plugin {{ plugin.name }}
+            <pro-info v-if="plugin.professional_only" />
+          </v-card-title>
+          <v-card-text v-if="plugin.description" class="pb-0">
+            <markdown-preview :value="plugin.description" />
+          </v-card-text>
+          <v-card-text>
+            <s-checkbox 
+              v-model="plugin.enabled"
+              label="Is plugin enabled?"
+              disabled
+            >
+              <template #label>
+                <s-tooltip>
+                  <template #activator="{props: tooltipProps}">
+                    <span class="info-env" v-bind="tooltipProps">
+                      Is plugin enabled?
+                      <v-icon end icon="mdi-cog-off" />
+                    </span>
+                  </template>
+                  <template #default>
+                    Plugins can be enabled by configuring the environment variable `ENABLED_PLUGINS` in <v-code>app.env</v-code>.<br>
+                    Add the plugin name to the environment variable: e.g. <v-code>ENABLED_PLUGINS="{{ plugin.name }},other-plugin,..."</v-code>
+                  </template>
+                </s-tooltip>
+              </template>
+            </s-checkbox>
+            <div v-for="field in plugin.fields" :key="field.id">
+              <dynamic-input-field 
+                v-model="configurationValues[field.id]"
+                :definition="field"
+                :disabled="field.set_in_env || (plugin.professional_only && !apiSettings.isProfessionalLicense)"
+                :error-messages="errorMessages?.[field.id]"
+              >
+                <template #label>
+                  <s-tooltip :disabled="!field.set_in_env">
+                    <template #activator="{props: tooltipProps}">
+                      <span v-bind="tooltipProps" :class="{'info-env': field.set_in_env}">
+                        <pro-info v-if="plugin.professional_only || field.professional_only">{{ field.id }}</pro-info>
+                        <span v-else>{{ field.id }}</span>
+                        <span v-if="configurationFieldDefault(field)" class="text-caption ml-2">{{ configurationFieldDefault(field) }}</span>
+                        <v-icon v-if="field.set_in_env" end icon="mdi-cog-off" />
+                      </span>
+                    </template>
+                    <template #default>
+                      This setting is configured as environment variable.<br>
+                      Update the value of the environment variable <v-code>{{ field.id }}</v-code> in <v-code>app.env</v-code><br>
+                      or remove it from <v-code>app.env</v-code> to be able to change it here.
+                    </template>
+                  </s-tooltip>
+                </template>
+              </dynamic-input-field>
+            </div>
+          </v-card-text>
+        </s-card>
+
+      </v-form>
+    </v-container>
+  </full-height-page>
+</template>
+
+<script setup lang="ts">
+import type { VForm } from 'vuetify/components';
+
+export type ConfigurationFieldDefinition = FieldDefinition & {
+  group?: string;
+  set_in_env?: boolean;
+  professional_only?: boolean;
+}
+
+export type ConfigurationDefinition = {
+  core: ConfigurationFieldDefinition[];
+  plugins: {
+    plugin_id: string;
+    name: string;
+    description?: string|null;
+    professional_only: boolean;
+    enabled: boolean;
+    fields: ConfigurationFieldDefinition[];
+  }[];
+}
+
+definePageMeta({
+  title: 'Settings',
+  toplevel: true,
+});
+useHeadExtended({
+  breadcrumbs: () => [{ title: 'Settings', to: '/settings/' }],
+});
+
+const apiSettings = useApiSettings();
+
+const configurationDefinition = await useFetchE<ConfigurationDefinition>('/api/v1/utils/configuration/definition/', { method: 'GET' });
+const configurationValues = await useFetchE<Record<string, any>>('/api/v1/utils/configuration/', { method: 'GET', deep: true });
+const coreConfigGroups = computed(() => {
+  const coreGroups = [
+    {
+      group: 'other',
+      title: 'Application Settings',
+      professional_only: false,
+    },
+    {
+      group: 'sharing',
+      title: 'Sharing Settings',
+      professional_only: false,
+    },
+    {
+      group: 'language',
+      title: 'Language and Spellcheck Settings',
+    },
+    {
+      group: 'archiving',
+      title: 'Archiving Settings',
+      professional_only: true,
+    },
+    {
+      group: 'auth',
+      title: 'Authentication Settings',
+      professional_only: true,
+    },
+    {
+      group: 'permissions',
+      title: 'Permission Settings',
+      professional_only: true,
+    },
+  ]
+
+  return coreGroups.map(group => ({
+    ...group,
+    fields: configurationDefinition.value.core.filter(d => d.group === group.group || (group.group === 'general' && !d.group)),
+  })).filter(group => group.fields.length > 0);
+});
+
+const errorMessages = ref<any|null>(null);
+async function performSave(data: Record<string, any>) {
+  try {
+    await $fetch('/api/v1/utils/configuration/', {
+      method: 'PATCH',
+      body: data,
+    });
+    errorMessages.value = null;
+
+    // Reload frontend settings
+    await apiSettings.fetchSettings();
+  } catch (error: any) {
+    errorMessages.value = error?.data
+    throw error;
+  }
+}
+
+
+function configurationFieldDefault(field: FieldDefinition) {
+  if ([FieldDataType.BOOLEAN, FieldDataType.NUMBER].includes(field.type) || (field.type === FieldDataType.STRING && field.default === null)) {
+    return `(default: ${field.default})`;
+  } else if ([FieldDataType.STRING].includes(field.type)) {
+    return `(default: "${field.default}")`;
+  }
+  return null;
+}
+</script>
+
+<style lang="scss" scoped>
+.info-env {
+  pointer-events: all;
+}
+</style>

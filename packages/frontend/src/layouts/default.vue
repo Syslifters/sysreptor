@@ -96,6 +96,13 @@
           <template #title><permission-info :value="auth.permissions.value.user_manager" permission-name="User Manager">Users</permission-info></template>
         </v-list-item>
         <v-list-item
+          to="/settings/"
+          prepend-icon="mdi-cog"
+          :disabled="!auth.permissions.value.admin"
+        >
+          <template #title><permission-info :value="auth.permissions.value.admin" permission-name="Superuser">Settings</permission-info></template>
+        </v-list-item>
+        <v-list-item
           to="/backups/"
           prepend-icon="mdi-tools"
           :disabled="!auth.permissions.value.view_backup"
