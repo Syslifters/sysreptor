@@ -152,6 +152,7 @@
                 @update:model-value="emitInputObject(objectField.id as string, $event)"
                 :collab="props.collab ? collabSubpath(props.collab, objectField.id) : undefined"
                 :id="props.id ? (props.id + '.' + objectField.id) : undefined"
+                :error-messages="props.errorMessages?.[objectField.id]"
                 v-bind="inheritedAttrs(objectField)"
               >
                 <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
@@ -164,6 +165,11 @@
             <v-card-item class="pb-0">
               <v-card-title class="text-body-1">{{ label }}</v-card-title>
               <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
+              <v-alert v-if="Array.isArray(props.errorMessages) && props.errorMessages.length > 0" color="error">
+                <ul>
+                  <li v-for="e in props.errorMessages" :key="e">{{ e }}</li>
+                </ul>
+              </v-alert>
               <template #append>
                 <comment-btn
                   v-if="props.collab?.comments"
@@ -217,6 +223,7 @@
                           :collab="props.collab ? collabSubpath(props.collab, `[${entryIdx}]`) : undefined"
                           @keydown="onListKeyDown"
                           :id="id ? `${id}[${entryIdx}]` : undefined"
+                          :error-messages="props.errorMessages?.[entryIdx]"
                           v-bind="inheritedAttrs(props.definition.items!)"
                         >
                           <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
@@ -301,7 +308,7 @@
 
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
-import { pick, uniq } from 'lodash-es';
+import { isObject, omit, pick, uniq } from 'lodash-es';
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo } from '#imports';
 import { workerUrlPolicy } from '~/plugins/trustedtypes';
@@ -323,6 +330,7 @@ const props = defineProps<MarkdownProps & {
   autofocus?: boolean;
   disableValidation?: boolean;
   nestingLevel?: number;
+  errorMessages?: any;
 }>();
 const emit = defineEmits<{
   'update:modelValue': [value: any];
@@ -565,7 +573,7 @@ const fieldAttrs = computed(() => ({
   label: label.value,
   hint: props.definition.help_text || undefined,
   ...pick(props, [
-    'disabled', 'readonly', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
+    'disabled', 'readonly', 'errorMessages', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
     'referenceItems', 'rewriteFileUrlMap', 'uploadFile',
   ]),
   onCollab: (v: any) => emit('collab', v),
@@ -577,7 +585,7 @@ const fieldAttrs = computed(() => ({
 const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
   const nextNestingLevel = (props.nestingLevel || 0) + 1;
   return {
-    ...fieldAttrs.value,
+    ...omit(fieldAttrs.value, ['errorMessages']),
     ...pick(props, ['selectableUsers', 'disableValidation', 'showFieldIds', 'fieldValueSuggestions']),
     definition: nestedDefinition,
     nestingLevel: nextNestingLevel,
