@@ -1,5 +1,6 @@
 from datetime import timedelta
 from functools import cached_property
+import json
 from typing import Optional
 from unittest import mock
 from uuid import uuid4
@@ -7,7 +8,6 @@ from uuid import uuid4
 import pytest
 from django.core.files.base import ContentFile
 from django.http import FileResponse, StreamingHttpResponse
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -39,6 +39,7 @@ from reportcreator_api.tests.mock import (
     create_shareinfo,
     create_template,
     create_user,
+    override_configuration,
 )
 from reportcreator_api.users.models import AuthIdentity, PentestUser
 
@@ -488,13 +489,14 @@ class ApiRequestsAndPermissionsTestData:
         return (timezone.now() + timedelta(days=1)).isoformat()
 
 
+# TODO: debug only
 @pytest.mark.django_db()
 @pytest.mark.parametrize(('username', 'name', 'perform_request', 'options', 'expected'), sorted(build_test_parameters(), key=lambda t: (t[0], t[1], t[4])))
 def test_api_requests(username, name, perform_request, options, expected):
     async def mock_render_pdf(*args, output=None, **kwargs):
         return RenderStageResult(pdf=b'<html><head></head><body><div></div></body></html>' if output == 'html' else b'%PDF-1.3')
 
-    with override_settings(
+    with override_configuration(
             GUEST_USERS_CAN_IMPORT_PROJECTS=False,
             GUEST_USERS_CAN_CREATE_PROJECTS=False,
             GUEST_USERS_CAN_DELETE_PROJECTS=False,
@@ -503,11 +505,13 @@ def test_api_requests(username, name, perform_request, options, expected):
             GUEST_USERS_CAN_SHARE_NOTES=False,
             GUEST_USERS_CAN_SEE_ALL_USERS=False,
             ARCHIVING_THRESHOLD=1,
-            AUTHLIB_OAUTH_CLIENTS={
+            OIDC_AUTHLIB_OAUTH_CLIENTS=json.dumps({
                 'dummy': {
                     'label': 'Dummy',
+                    'client_id': 'dummy',
+                    'client_secret': 'dummy',
                 },
-            },
+            }),
         ), mock.patch('reportcreator_api.tasks.rendering.render.render_pdf_impl', mock_render_pdf), \
         mock.patch('reportcreator_api.tasks.tasks.activate_license', return_value=None):
         user_map = {

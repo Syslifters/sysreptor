@@ -7,6 +7,7 @@ from rest_framework import authentication, exceptions, permissions
 from reportcreator_api.users.auth import forbidden_with_apitoken_auth
 from reportcreator_api.users.models import PentestUser
 from reportcreator_api.utils import license
+from reportcreator_api.utils.configuration import configuration
 
 
 def check_sensitive_operation_timeout(request):
@@ -31,7 +32,7 @@ class UserViewSetPermissions(permissions.BasePermission):
         elif view.action == 'self':
             # Allow updating your own user
             return True
-        elif view.action == 'change_password' and (settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional()):
+        elif view.action == 'change_password' and (configuration.LOCAL_USER_AUTH_ENABLED or not license.is_professional()):
             forbidden_with_apitoken_auth(request)
             return check_sensitive_operation_timeout(request)
         elif view.action == 'enable_admin_permissions':
@@ -61,7 +62,7 @@ class UserViewSetPermissions(permissions.BasePermission):
 class MFAMethodViewSetPermissons(permissions.BasePermission):
     def has_permission(self, request, view):
         forbidden_with_apitoken_auth(request)
-        if not settings.LOCAL_USER_AUTH_ENABLED and license.is_professional():
+        if not configuration.LOCAL_USER_AUTH_ENABLED and license.is_professional():
             return False
 
         user = view.get_user()
@@ -117,12 +118,12 @@ class MFALoginInProgressAuthentication(authentication.BaseAuthentication):
 
 class RemoteUserAuthPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
-        return settings.REMOTE_USER_AUTH_ENABLED and license.ProfessionalLicenseRequired().has_permission(request, view)
+        return configuration.REMOTE_USER_AUTH_ENABLED and license.ProfessionalLicenseRequired().has_permission(request, view)
 
 
 class LocalUserAuthPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
-        return settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional()
+        return configuration.LOCAL_USER_AUTH_ENABLED or not license.is_professional()
 
 
 class UserNotebookPermissions(permissions.BasePermission):

@@ -1,7 +1,10 @@
+import functools
+import json
+import logging
 from collections import OrderedDict
 from uuid import UUID
 
-from django.conf import settings
+from authlib.integrations.django_client import OAuth
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ObjectDoesNotExist
@@ -12,6 +15,51 @@ from rest_framework import serializers
 
 from reportcreator_api.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
 from reportcreator_api.utils import license
+from reportcreator_api.utils.configuration import configuration
+
+
+@functools.cache
+def get_oauth():
+    authlib_oauth_clients = {}
+    if configuration.OIDC_AZURE_CLIENT_ID and configuration.OIDC_AZURE_CLIENT_SECRET and configuration.OIDC_AZURE_TENANT_ID:
+        authlib_oauth_clients |= {
+            'azure': {
+                'label': 'Microsoft Entra ID',
+                'client_id': configuration.OIDC_AZURE_CLIENT_ID,
+                'client_secret': configuration.OIDC_AZURE_CLIENT_SECRET,
+                'server_metadata_url': f'https://login.microsoftonline.com/{configuration.OIDC_AZURE_TENANT_ID}/v2.0/.well-known/openid-configuration',
+                'client_kwargs': {
+                    'scope': 'openid email profile',
+                    'code_challenge_method': 'S256',
+                },
+                'reauth_supported': True,
+            },
+        }
+
+    if configuration.OIDC_GOOGLE_CLIENT_ID and configuration.OIDC_GOOGLE_CLIENT_SECRET:
+        authlib_oauth_clients |= {
+            'google': {
+                'label': 'Google',
+                'client_id': configuration.OIDC_GOOGLE_CLIENT_ID,
+                'client_secret': configuration.OIDC_GOOGLE_CLIENT_SECRET,
+                'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration',
+                'client_kwargs': {
+                    'scope': 'openid email profile',
+                    'code_challenge_method': 'S256',
+                },
+                'reauth_supported': False,
+            },
+        }
+
+    authlib_oauth_clients |= json.loads(configuration.OIDC_AUTHLIB_OAUTH_CLIENTS or '{}')
+
+    oauth = OAuth()
+    for name, config in authlib_oauth_clients.items():
+        try:
+            oauth.register(name, **config)
+        except Exception:
+            logging.exception(f'Failed to register OAuth client {name}')
+    return oauth
 
 
 class PentestUserSerializer(serializers.ModelSerializer):
@@ -72,8 +120,10 @@ class CreateUserSerializer(PentestUserDetailSerializer):
         return super().get_extra_kwargs() | {
             'password':
                 {'required': False, 'allow_null': True, 'default': None}
-                if license.is_professional() and (not settings.LOCAL_USER_AUTH_ENABLED or settings.REMOTE_USER_AUTH_ENABLED or settings.AUTHLIB_OAUTH_CLIENTS) else
-                {},
+                if (
+                    license.is_professional() and
+                    (not configuration.LOCAL_USER_AUTH_ENABLED or configuration.REMOTE_USER_AUTH_ENABLED or len(get_oauth()._registry) > 0)
+                ) else {},
         }
 
     def validate_password(self, value):

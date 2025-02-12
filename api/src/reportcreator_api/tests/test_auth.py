@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from reportcreator_api.management.commands import createapitoken
-from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time
+from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time, override_configuration
 from reportcreator_api.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType
 from reportcreator_api.utils.utils import omit_keys
 
@@ -156,7 +156,7 @@ class TestLogin:
         self.user.refresh_from_db()
         assert not self.user.must_change_password
 
-    @override_settings(REMOTE_USER_AUTH_ENABLED=True, REMOTE_USER_AUTH_HEADER='Remote-User')
+    @override_configuration(REMOTE_USER_AUTH_ENABLED=True, REMOTE_USER_AUTH_HEADER='Remote-User')
     def test_login_remoteuser(self):
         AuthIdentity.objects.create(user=self.user_mfa, provider=AuthIdentity.PROVIDER_REMOTE_USER, identifier='remoteuser@example.com')
         res = self.client.post(reverse('auth-login-remoteuser'), HTTP_REMOTE_USER='remoteuser@example.com')
@@ -164,7 +164,7 @@ class TestLogin:
         assert res.data['status'] == 'success'
         self.assert_api_access(True)
 
-    @override_settings(REMOTE_USER_AUTH_ENABLED=True, REMOTE_USER_AUTH_HEADER='Remote-User')
+    @override_configuration(REMOTE_USER_AUTH_ENABLED=True, REMOTE_USER_AUTH_HEADER='Remote-User')
     def test_login_remoteuser_failure(self):
         AuthIdentity.objects.create(user=self.user_mfa, provider=AuthIdentity.PROVIDER_REMOTE_USER, identifier='remoteuser@example.com')
         res_no_header = self.client.post(reverse('auth-login-remoteuser'))
@@ -176,7 +176,7 @@ class TestLogin:
         assert res_no_identity.status_code == 403
         self.assert_api_access(False)
 
-    @override_settings(LOCAL_USER_AUTH_ENABLED=False)
+    @override_configuration(LOCAL_USER_AUTH_ENABLED=False)
     def test_local_login_disabled(self):
         self.assert_login(self.user, success=False)
         self.assert_api_access(False)

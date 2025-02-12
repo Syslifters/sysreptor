@@ -108,20 +108,20 @@ def test_definition_formats(valid, definition):
 
 @pytest.mark.parametrize(('definition_old', 'definition_new'), [
     (
-        {'f': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}},
-        [{'id': 'f', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}],
+        {'f': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}},
+        [{'id': 'f', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}],
     ),
     (
-        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'type': 'string', 'label': 'Item', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}},
-        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'id': '', 'type': 'string', 'label': 'Item', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}],
+        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'type': 'string', 'label': 'Item', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}},
+        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'id': '', 'type': 'string', 'label': 'Item', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}],
     ),
     (
-        {'f': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}},
-        [{'id': 'f', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}],
+        {'f': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}},
+        [{'id': 'f', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}],
     ),
     (
-        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}}},
-        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'id': '', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}}],
+        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}}},
+        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'id': '', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}}],
     ),
 ])
 def test_legacy_definition_format(definition_old, definition_new):

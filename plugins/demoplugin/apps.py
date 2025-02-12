@@ -2,6 +2,7 @@ import logging
 
 from reportcreator_api.conf.plugins import PluginConfig
 from reportcreator_api.pentests.customfields.types import FieldDefinition, StringField
+from reportcreator_api.utils.configuration import configuration
 
 log = logging.getLogger(__name__)
 

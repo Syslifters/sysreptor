@@ -49,6 +49,7 @@ from reportcreator_api.tasks.rendering.error_messages import (
 )
 from reportcreator_api.tasks.rendering.render_utils import RenderStageResult
 from reportcreator_api.users.models import PentestUser
+from reportcreator_api.utils.configuration import configuration
 from reportcreator_api.utils.logging import log_timing
 from reportcreator_api.utils.utils import copy_keys, get_key_or_attr, merge
 
@@ -260,7 +261,7 @@ async def render_pdf_task(
             data=data,
             language=project.language if project else project_type.language,
             password=password,
-            compress_pdf=can_compress_pdf and settings.COMPRESS_PDFS,
+            compress_pdf=can_compress_pdf and (await configuration.aget('COMPRESS_PDFS')),
             output=output,
             html=html,
             resources=resources,

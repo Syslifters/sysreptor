@@ -34,6 +34,7 @@ from reportcreator_api.pentests.customfields.types import CweField, FieldDefinit
 from reportcreator_api.pentests.models import Language, ProjectMemberRole
 from reportcreator_api.tasks.models import PeriodicTask
 from reportcreator_api.users.models import AuthIdentity
+from reportcreator_api.users.serializers import get_oauth
 from reportcreator_api.utils import license
 from reportcreator_api.utils.api import StreamingHttpResponseAsync, ViewSetAsync
 from reportcreator_api.utils.configuration import configuration, reload_server
@@ -146,7 +147,6 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         return Response(data=CweField.cwe_definitions())
 
 
-
 class PublicUtilsViewSet(viewsets.GenericViewSet):
     authentication_classes = []
     permission_classes = []
@@ -167,41 +167,41 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
             'code': l.value,
             'name': l.label,
             'spellcheck': l.spellcheck,
-            'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES,
-        } for l in remove_duplicates(list(map(Language, settings.PREFERRED_LANGUAGES)) + list(Language))]
+            'enabled': not configuration.PREFERRED_LANGUAGES or l.value in configuration.PREFERRED_LANGUAGES,
+        } for l in remove_duplicates(list(map(Language, configuration.PREFERRED_LANGUAGES or [])) + list(Language))]
 
         auth_providers = \
-            ([{'type': 'local', 'id': 'local', 'name': 'Local User'}] if settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional() else []) + \
-            ([{'type': AuthIdentity.PROVIDER_REMOTE_USER, 'id': AuthIdentity.PROVIDER_REMOTE_USER, 'name': 'Remote User'}] if settings.REMOTE_USER_AUTH_ENABLED and license.is_professional() else []) + \
-            ([{'type': 'oidc', 'id': k, 'name': v.get('label', k)} for k, v in settings.AUTHLIB_OAUTH_CLIENTS.items()] if license.is_professional() else [])
+            ([{'type': 'local', 'id': 'local', 'name': 'Local User'}] if configuration.LOCAL_USER_AUTH_ENABLED or not license.is_professional() else []) + \
+            ([{'type': AuthIdentity.PROVIDER_REMOTE_USER, 'id': AuthIdentity.PROVIDER_REMOTE_USER, 'name': 'Remote User'}] if configuration.REMOTE_USER_AUTH_ENABLED and license.is_professional() else []) + \
+            ([{'type': 'oidc', 'id': k, 'name': v[1].get('label', k)} for k, v in (get_oauth()._registry or {}).items()] if license.is_professional() else [])
 
         return Response({
             'languages': languages,
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
             'auth_providers': auth_providers,
-            'default_auth_provider': settings.DEFAULT_AUTH_PROVIDER,
-            'default_reauth_provider': settings.DEFAULT_REAUTH_PROVIDER,
+            'default_auth_provider': configuration.DEFAULT_AUTH_PROVIDER,
+            'default_reauth_provider': configuration.DEFAULT_REAUTH_PROVIDER,
             'elastic_apm_rum_config': settings.ELASTIC_APM_RUM_CONFIG if settings.ELASTIC_APM_RUM_ENABLED else None,
-            'archiving_threshold': settings.ARCHIVING_THRESHOLD,
+            'archiving_threshold': int(configuration.ARCHIVING_THRESHOLD),
             'license': copy_keys(license.check_license(), ['type', 'error']),
             'features': {
-                'private_designs': settings.ENABLE_PRIVATE_DESIGNS,
+                'private_designs': configuration.ENABLE_PRIVATE_DESIGNS,
                 'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
                 'archiving': license.is_professional(),
                 'permissions': license.is_professional(),
                 'backup': bool(settings.BACKUP_KEY and license.is_professional()),
                 'websockets': not settings.DISABLE_WEBSOCKETS,
-                'sharing': not settings.DISABLE_SHARING,
+                'sharing': not configuration.DISABLE_SHARING,
             },
             'permissions': {
-                'guest_users_can_import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,
-                'guest_users_can_create_projects': settings.GUEST_USERS_CAN_CREATE_PROJECTS,
-                'guest_users_can_delete_projects': settings.GUEST_USERS_CAN_DELETE_PROJECTS,
-                'guest_users_can_update_project_settings': settings.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
-                'guest_users_can_edit_projects': settings.GUEST_USERS_CAN_EDIT_PROJECTS,
-                'guest_users_can_share_notes': settings.GUEST_USERS_CAN_SHARE_NOTES,
-                'guest_users_can_see_all_users': settings.GUEST_USERS_CAN_SEE_ALL_USERS,
-                'project_members_can_archive_projects': settings.PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS,
+                'guest_users_can_import_projects': configuration.GUEST_USERS_CAN_IMPORT_PROJECTS,
+                'guest_users_can_create_projects': configuration.GUEST_USERS_CAN_CREATE_PROJECTS,
+                'guest_users_can_delete_projects': configuration.GUEST_USERS_CAN_DELETE_PROJECTS,
+                'guest_users_can_update_project_settings': configuration.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
+                'guest_users_can_edit_projects': configuration.GUEST_USERS_CAN_EDIT_PROJECTS,
+                'guest_users_can_share_notes': configuration.GUEST_USERS_CAN_SHARE_NOTES,
+                'guest_users_can_see_all_users': configuration.GUEST_USERS_CAN_SEE_ALL_USERS,
+                'project_members_can_archive_projects': configuration.PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS,
             },
             'plugins': [
                 {

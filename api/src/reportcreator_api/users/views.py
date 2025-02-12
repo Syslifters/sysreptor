@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 from uuid import UUID
 
-from authlib.integrations.django_client import OAuth, OAuthError
+from authlib.integrations.django_client import OAuthError
 from django.conf import settings
 from django.contrib.auth import SESSION_KEY, login, logout
 from django.core.serializers.json import DjangoJSONEncoder
@@ -44,12 +44,10 @@ from reportcreator_api.users.serializers import (
     PentestUserDetailSerializer,
     PentestUserSerializer,
     ResetPasswordSerializer,
+    get_oauth,
 )
 from reportcreator_api.utils import license
-
-oauth = OAuth()
-for name, config in settings.AUTHLIB_OAUTH_CLIENTS.items():
-    oauth.register(name, **config)
+from reportcreator_api.utils.configuration import configuration
 
 
 class APIBadRequestError(exceptions.APIException):
@@ -418,7 +416,8 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, url_path='login/oidc/(?P<oidc_provider>[a-zA-Z0-9]+)/begin', methods=['get'], permission_classes=[license.ProfessionalLicenseRequired])
     def login_oidc_begin(self, request, oidc_provider, *args, **kwargs):
-        if oidc_provider not in settings.AUTHLIB_OAUTH_CLIENTS:
+        oauth = get_oauth()
+        if oidc_provider not in oauth._registry:
             raise APIBadRequestError(f'OIDC provider "{oidc_provider}" not supported')
 
         request.session['login_state'] = {
@@ -427,7 +426,7 @@ class AuthViewSet(viewsets.ViewSet):
         }
         redirect_uri = request.build_absolute_uri(f'/login/oidc/{oidc_provider}/callback')
         redirect_kwargs = {}
-        if request.GET.get('reauth') and settings.AUTHLIB_OAUTH_CLIENTS[oidc_provider].get('reauth_supported', False):
+        if request.GET.get('reauth') and oauth._registry[oidc_provider][1].get('reauth_supported', False):
             redirect_kwargs |= {
                 'prompt': 'login',
                 'max_age': 0,
@@ -442,6 +441,7 @@ class AuthViewSet(viewsets.ViewSet):
         if not request.session.get('login_state', {}).get('status') == 'oidc-callback-required':
             raise APIBadRequestError('No OIDC login in progress for session')
 
+        oauth = get_oauth()
         try:
             token = oauth.create_client(oidc_provider).authorize_access_token(request)
         except OAuthError as ex:
@@ -457,7 +457,7 @@ class AuthViewSet(viewsets.ViewSet):
             raise exceptions.AuthenticationFailed(detail=f'Auth identity not configured for any user: SSO provider "{oidc_provider}" identifier "{email}" ')
 
         can_reauth = False
-        if not settings.AUTHLIB_OAUTH_CLIENTS[oidc_provider].get('reauth_supported', False):
+        if not oauth._registry[oidc_provider][1].get('reauth_supported', False):
             can_reauth = True
         elif (auth_time := token['userinfo'].get('auth_time')):
             can_reauth = (timezone.now() - timezone.make_aware(datetime.fromtimestamp(auth_time))) < timedelta(minutes=1)
@@ -469,7 +469,7 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, url_path='login/remoteuser', methods=['post'], permission_classes=[RemoteUserAuthPermissions])
     def login_remoteuser(self, request, *args, **kwargs):
-        remote_user_identifier = request.META.get('HTTP_' + settings.REMOTE_USER_AUTH_HEADER.upper().replace('-', '_'))
+        remote_user_identifier = request.META.get('HTTP_' + (configuration.REMOTE_USER_AUTH_HEADER or '').upper().replace('-', '_'))
 
         identity = AuthIdentity.objects \
             .select_related('user') \

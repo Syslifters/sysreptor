@@ -10,6 +10,7 @@ from rest_framework import exceptions, serializers
 
 from reportcreator_api.api_utils.models import BackupLog
 from reportcreator_api.pentests.models import Language
+from reportcreator_api.utils.configuration import configuration
 
 log = logging.getLogger(__name__)
 
@@ -31,11 +32,11 @@ class TextDataField(serializers.Serializer):
 
 
 class LanguageToolSerializerBase(serializers.Serializer):
-    def languagetool_auth(self):
+    async def languagetool_auth(self):
         return {
             'username': str(self.context['request'].user.id),
             'apiKey': str(self.context['request'].user.id),
-        } if settings.SPELLCHECK_DICTIONARY_PER_USER else {
+        } if await configuration.aget('SPELLCHECK_DICTIONARY_PER_USER') else {
             'username': 'languagetool',
             'apiKey': 'languagetool',
         }
@@ -48,7 +49,7 @@ class LanguageToolSerializerBase(serializers.Serializer):
             async with httpx.AsyncClient(timeout=10) as client:
                 res = await client.post(
                     url=urljoin(settings.SPELLCHECK_URL, path),
-                    data=self.languagetool_auth() | data,
+                    data=(await self.languagetool_auth()) | data,
                 )
                 if res.status_code != 200:
                     raise exceptions.APIException(detail='Spellcheck error', code='spellcheck')
@@ -64,7 +65,7 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
 
     @cached_property
     def spellcheck_languages(self):
-        return [l for l in Language if l.spellcheck and (not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES)]
+        return [l for l in Language if l.spellcheck and (not configuration.PREFERRED_LANGUAGES or l.value in configuration.PREFERRED_LANGUAGES)]
 
     def validate_language(self, value):
         if value not in self.spellcheck_languages and value != 'auto':
@@ -73,10 +74,10 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
 
     async def spellcheck(self):
         data = self.validated_data
-        return await self.languagetool_request('/v2/check', settings.SPELLCHECK_LANGUAGETOOL_CONFIG | {
+        return await self.languagetool_request('/v2/check', json.loads(configuration.SPELLCHECK_LANGUAGETOOL_CONFIG or '{}') | {
             'language': data['language'],
             'data': json.dumps(data['data'], ensure_ascii=False),
-            'level': 'picky' if settings.SPELLCHECK_MODE_PICKY else 'default',
+            'level': 'picky' if configuration.SPELLCHECK_MODE_PICKY else 'default',
             **({
                 'preferredVariants': ','.join(self.spellcheck_languages),
             } if data['language'] == 'auto' else {}),

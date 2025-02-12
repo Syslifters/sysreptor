@@ -1,6 +1,5 @@
 import json
 
-from decouple import config
 from reportcreator_api.conf.plugins import PluginConfig
 from reportcreator_api.pentests.customfields.types import (
     EnumChoice,
@@ -12,7 +11,6 @@ from reportcreator_api.pentests.customfields.types import (
 )
 
 from .models import WebhookEventType
-from .serializers import WebhookConfigSerializer
 
 
 def webhooks_load_from_env(value):
@@ -23,7 +21,6 @@ def webhooks_load_from_env(value):
             if isinstance(item, dict) and isinstance(item.get('headers'), dict):
                 item['headers'] = [{'name': k, 'value': v} for k, v in item['headers'].items()]
     return value
-
 
 
 class WebhooksPluginConfig(PluginConfig):
@@ -43,23 +40,12 @@ class WebhooksPluginConfig(PluginConfig):
                     StringField(id='name'),
                     StringField(id='value'),
                 ]), required=False),
-                ListField(id='events', items=EnumField(choices=[EnumChoice(value=t) for t in list(WebhookEventType)])),
+                ListField(id='events', items=EnumField(choices=[EnumChoice(value=t) for t in list(WebhookEventType)], required=False), required=False),
             ]), 
             required=False, 
             extra_info={'load_from_env': webhooks_load_from_env}),
     ])
 
-    # TODO: refactor settins handling
     def ready(self) -> None:
-        self.settings = self.load_settings()
-
         from . import signals  # noqa
 
-    def load_settings(self):
-        webhook_configs = config('WEBHOOKS', cast=json.loads, default='[]')
-        serializer = WebhookConfigSerializer(data=webhook_configs, many=True)
-        serializer.is_valid(raise_exception=True)
-        return {
-            'WEBHOOKS': serializer.data
-        }
-        

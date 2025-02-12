@@ -272,56 +272,6 @@ ALLOWED_HOSTS += ['localhost', '127.0.0.1', '[::1]']
 CSRF_TRUSTED_ORIGINS = list(itertools.chain(*map(lambda h: [f'https://{h}', f'http://{h}'], ALLOWED_HOSTS)))
 
 
-# Authentication and OIDC settings
-AUTHLIB_OAUTH_CLIENTS = {}
-OIDC_AZURE_CLIENT_ID = config('OIDC_AZURE_CLIENT_ID', default=None)
-OIDC_AZURE_CLIENT_SECRET = config('OIDC_AZURE_CLIENT_SECRET', default=None)
-OIDC_AZURE_TENANT_ID = config('OIDC_AZURE_TENANT_ID', default=None)
-if OIDC_AZURE_CLIENT_ID and OIDC_AZURE_CLIENT_SECRET and OIDC_AZURE_TENANT_ID:
-    AUTHLIB_OAUTH_CLIENTS |= {
-        'azure': {
-            'label': 'Microsoft Entra ID',
-            'client_id': OIDC_AZURE_CLIENT_ID,
-            'client_secret': OIDC_AZURE_CLIENT_SECRET,
-            'server_metadata_url': f'https://login.microsoftonline.com/{OIDC_AZURE_TENANT_ID}/v2.0/.well-known/openid-configuration',
-            'client_kwargs': {
-                'scope': 'openid email profile',
-                'code_challenge_method': 'S256',
-            },
-            'reauth_supported': True,
-        },
-    }
-
-OIDC_GOOGLE_CLIENT_ID = config('OIDC_GOOGLE_CLIENT_ID', default=None)
-OIDC_GOOGLE_CLIENT_SECRET = config('OIDC_GOOGLE_CLIENT_SECRET', default=None)
-if OIDC_GOOGLE_CLIENT_ID and OIDC_GOOGLE_CLIENT_SECRET:
-    AUTHLIB_OAUTH_CLIENTS |= {
-        'google': {
-            'label': 'Google',
-            'client_id': OIDC_GOOGLE_CLIENT_ID,
-            'client_secret': OIDC_GOOGLE_CLIENT_SECRET,
-            'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration',
-            'client_kwargs': {
-                'scope': 'openid email profile',
-                'code_challenge_method': 'S256',
-            },
-            'reauth_supported': False,
-        },
-    }
-
-if oidc_config := config('OIDC_AUTHLIB_OAUTH_CLIENTS', cast=json.loads, default="{}"):
-    AUTHLIB_OAUTH_CLIENTS |= oidc_config
-
-
-REMOTE_USER_AUTH_ENABLED = config('REMOTE_USER_AUTH_ENABLED', cast=bool, default=False)
-REMOTE_USER_AUTH_HEADER = config('REMOTE_USER_AUTH_HEADER', default='Remote-User')
-
-LOCAL_USER_AUTH_ENABLED = config('LOCAL_USER_AUTH_ENABLED', cast=bool, default=True)
-
-DEFAULT_AUTH_PROVIDER = config('DEFAULT_AUTH_PROVIDER', default=None)
-DEFAULT_REAUTH_PROVIDER = config('DEFAULT_REAUTH_PROVIDER', default=DEFAULT_AUTH_PROVIDER)
-
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
@@ -585,21 +535,16 @@ SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
 SIMPLE_HISTORY_REVERT_DISABLED = True
 SIMPLE_HISTORY_CLEANUP_TIMEFRAME = timedelta(hours=2)
 
-
+# Static application settings
+SHARING_MAX_FAILED_PASSWORD_ATTEMPTS = 100
+AUTOMATICALLY_RESET_STALE_ARCHIVE_RESTORES_AFTER = timedelta(days=3)
+REGEX_VALIDATION_TIMEOUT = timedelta(milliseconds=500)
 # MAX_LOCK_TIME should not be less than 1.30min, because some browsers (Chromium) triggers timers only once per minute if the browser tab is inactive
 MAX_LOCK_TIME = timedelta(seconds=90)
 
 SPELLCHECK_URL = config('SPELLCHECK_URL', default=None)
-SPELLCHECK_DICTIONARY_PER_USER = config('SPELLCHECK_DICTIONARY_PER_USER', cast=bool, default=False)
-SPELLCHECK_MODE_PICKY = config('SPELLCHECK_MODE_PICKY', cast=bool, default=False)
-SPELLCHECK_LANGUAGETOOL_CONFIG = config('SPELLCHECK_LANGUAGETOOL_CONFIG', cast=json.loads, default='{"disabledRules": "TODO,TO_DO_HYPHEN"}')
 
 BACKUP_KEY = config('BACKUP_KEY', default=None)
-
-COMPRESS_IMAGES = config('COMPRESS_IMAGES', cast=bool, default=True)
-COMPRESS_PDFS = config('COMPRESS_PDFS', cast=bool, default=True)
-
-REGEX_VALIDATION_TIMEOUT = timedelta(milliseconds=500)
 
 
 from reportcreator_api.utils.crypto import EncryptionKey  # noqa: E402
@@ -607,33 +552,6 @@ from reportcreator_api.utils.crypto import EncryptionKey  # noqa: E402
 ENCRYPTION_KEYS = config('ENCRYPTION_KEYS', cast=EncryptionKey.from_json_list, default='')
 DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
 ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=bool, default=True)
-
-# TODO: migrate settings to db_settings
-GUEST_USERS_CAN_EDIT_PROJECTS = config('GUEST_USERS_CAN_EDIT_PROJECTS', cast=bool, default=True)
-GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS = config('GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS', cast=bool, default=GUEST_USERS_CAN_EDIT_PROJECTS)
-GUEST_USERS_CAN_CREATE_PROJECTS = config('GUEST_USERS_CAN_CREATE_PROJECTS', cast=bool, default=GUEST_USERS_CAN_EDIT_PROJECTS)
-GUEST_USERS_CAN_DELETE_PROJECTS = config('GUEST_USERS_CAN_DELETE_PROJECTS', cast=bool, default=GUEST_USERS_CAN_EDIT_PROJECTS)
-GUEST_USERS_CAN_IMPORT_PROJECTS = config('GUEST_USERS_CAN_IMPORT_PROJECTS', cast=bool, default=False)
-GUEST_USERS_CAN_SEE_ALL_USERS = config('GUEST_USERS_CAN_SEE_ALL_USERS', cast=bool, default=False)
-GUEST_USERS_CAN_SHARE_NOTES = config('GUEST_USERS_CAN_SHARE_NOTES', cast=bool, default=False)
-PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS = config('PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS', cast=bool, default=True)
-
-
-DISABLE_SHARING = config('DISABLE_SHARING', cast=bool, default=False)
-SHARING_PASSWORD_REQUIRED = config('SHARING_PASSWORD_REQUIRED', cast=bool, default=False)
-SHARING_READONLY_REQUIRED = config('SHARING_READONLY_REQUIRED', cast=bool, default=False)
-SHARING_MAX_FAILED_PASSWORD_ATTEMPTS = 100
-
-
-ENABLE_PRIVATE_DESIGNS = config('ENABLE_PRIVATE_DESIGNS', cast=bool, default=False)
-
-ARCHIVING_THRESHOLD = config('ARCHIVING_THRESHOLD', cast=int, default=2)
-assert ARCHIVING_THRESHOLD > 0
-AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER = config('AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER', cast=int, default=0)
-AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER = timedelta(days=AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER) if AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER else None
-AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER = config('AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER', cast=int, default=0)
-AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER = timedelta(days=AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER) if AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER else None
-AUTOMATICALLY_RESET_STALE_ARCHIVE_RESTORES_AFTER = timedelta(days=3)
 
 
 # Health checks
@@ -646,6 +564,7 @@ HEALTH_CHECKS = {
 # Notifications
 VERSION = config('VERSION', default='dev')
 INSTANCE_TAGS = config('INSTANCE_TAGS', cast=Csv(delimiter=';', post_process=remove_empty_items), default='on-premise')
+# TODO: hardcoded NOTIFICATION_IMPORT_URL
 NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://portal.sysreptor.com/api/v1/notifications/')
 
 # License
@@ -655,10 +574,6 @@ INSTALLATION_ID_PATH = MEDIA_ROOT / 'installation_id'
 if not INSTALLATION_ID_PATH.exists():
     INSTALLATION_ID_PATH.write_text(str(uuid.uuid4()))
 INSTALLATION_ID = INSTALLATION_ID_PATH.read_text().strip()
-
-
-# Languages
-PREFERRED_LANGUAGES = config('PREFERRED_LANGUAGES', cast=Csv(post_process=remove_empty_items), default=None)
 
 
 # Plugins
@@ -838,11 +753,12 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
                   'See https://languagetool.org/http-api/ for available options on the /check request. '
                   'See https://community.languagetool.org/rule/list for available rules (note: rule IDs might differ for languages).'),
 
-        NumberField(
+
+    NumberField(
         id='ARCHIVING_THRESHOLD',
         default=2,
         minimum=1,
-        extra_info={'group': 'archiving', 'professional_only': True},
+        extra_info={'group': 'archiving', 'professional_only': True, 'validate': lambda v: v.is_integer()},
         help_text='Archived projects require at least ARCHIVING_THRESHOLD number of users to restore the archive (see https://docs.sysreptor.com/reporting/archiving/). '
                   'By default two users are required, enforcing a 4-eye principle. '
                   'If ARCHIVING_THRESHOLD=1 every user is able to restore archived projects on their own, disabling the 4-eye principle. '
@@ -967,5 +883,13 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         id='REMOTE_USER_AUTH_HEADER',
         default='Remote-User',
         extra_info={'group': 'auth', 'professional_only': True}),
+    BooleanField(
+        id='LOCAL_USER_AUTH_ENABLED',
+        default=True,
+        extra_info={'group': 'auth', 'professional_only': True},
+        help_text='Enable/disable login via username/password. '
+                  'If enabled, users can decide whether they want to log in via SSO or username/password.'
+                  'Make sure all users have SSO identities configured before enabling this option. Else they will not be able to log in anymore.'),
 ])
-
+LOAD_CONFIGURATIONS_FROM_ENV = True
+LOAD_CONFIGURATIONS_FROM_DB = True
