@@ -1,26 +1,17 @@
-import contextlib
 from unittest import mock
 
 import pytest
 from asgiref.sync import async_to_sync
-from django.apps import apps
 from reportcreator_api.pentests.models import ArchivedProject
-from reportcreator_api.tests.mock import create_finding, create_project, create_user
+from reportcreator_api.tests.mock import (
+    create_finding,
+    create_project,
+    create_user,
+    override_configuration,
+)
 from reportcreator_api.utils import utils
 
-from ..apps import WebhooksPluginConfig
 from ..models import WebhookEventType
-
-
-@contextlib.contextmanager
-def override_webhook_settings(**kwargs):
-    app = apps.get_app_config(WebhooksPluginConfig.label)
-    old_settings = app.settings
-    try:
-        app.settings |= kwargs
-        yield
-    finally:
-        app.settings = old_settings
 
 
 def update(obj, **kwargs):
@@ -54,16 +45,16 @@ class TestWebhooksCalled:
     ])
     def test_webhooks_called(self, event, trigger):
         webhook_config = {'url': 'https://example.com/webhook1', 'events': [event]}
-        with override_webhook_settings(WEBHOOKS=[webhook_config, {'url': 'https://example.com/other', 'events': ['other']}]):
+        with override_configuration(WEBHOOKS=[webhook_config, {'url': 'https://example.com/other', 'events': ['other']}]):
             self.mock.assert_not_called()
             trigger(self)
             self.wait_for_background_tasks()
             self.mock.assert_called_once()
             call_args = self.mock.call_args[1]
-            assert call_args['webhook'] == webhook_config
+            assert call_args['webhook'] == webhook_config | {'headers': []}
             assert call_args['data']['event'] == event
     
-    @override_webhook_settings(WEBHOOKS=[{'url': 'https://example.com/webhook1', 'events': [WebhookEventType.PROJECT_CREATED]}])
+    @override_configuration(WEBHOOKS=[{'url': 'https://example.com/webhook1', 'events': [WebhookEventType.PROJECT_CREATED]}])
     def test_event_filter(self):
         # Not subscribed to event
         self.mock.assert_not_called()
@@ -76,7 +67,7 @@ class TestWebhooksCalled:
         self.wait_for_background_tasks()
         self.mock.assert_called_once()
 
-    @override_webhook_settings(WEBHOOKS=[
+    @override_configuration(WEBHOOKS=[
         {'url': 'https://example.com/webhook1', 'events': [WebhookEventType.PROJECT_CREATED]}, 
         {'url': 'https://example.com/webhook2', 'events': [WebhookEventType.PROJECT_CREATED]}
     ])

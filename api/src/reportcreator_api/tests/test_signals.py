@@ -2,6 +2,7 @@ import contextlib
 
 import pytest
 from django.urls import reverse
+from django.utils.crypto import get_random_string
 
 from reportcreator_api import signals as sysreptor_signals
 from reportcreator_api.pentests.import_export import (
@@ -164,7 +165,7 @@ class TestSignalsSent:
         with self.assert_post_create_signal(sender=PentestUser):
             PentestUser.objects.create(username='new1')
         with self.assert_post_create_signal(sender=PentestUser):
-            res = self.client.post(reverse('pentestuser-list'), data={'username': 'new2'})
+            res = self.client.post(reverse('pentestuser-list'), data={'username': 'new2', 'password': get_random_string(32)})
             assert res.status_code == 201, res.data
 
     def test_post_archive(self):

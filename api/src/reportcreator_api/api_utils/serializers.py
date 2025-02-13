@@ -74,10 +74,10 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
 
     async def spellcheck(self):
         data = self.validated_data
-        return await self.languagetool_request('/v2/check', json.loads(configuration.SPELLCHECK_LANGUAGETOOL_CONFIG or '{}') | {
+        return await self.languagetool_request('/v2/check', json.loads(await configuration.aget('SPELLCHECK_LANGUAGETOOL_CONFIG') or '{}') | {
             'language': data['language'],
             'data': json.dumps(data['data'], ensure_ascii=False),
-            'level': 'picky' if configuration.SPELLCHECK_MODE_PICKY else 'default',
+            'level': 'picky' if (await configuration.aget('SPELLCHECK_MODE_PICKY')) else 'default',
             **({
                 'preferredVariants': ','.join(self.spellcheck_languages),
             } if data['language'] == 'auto' else {}),

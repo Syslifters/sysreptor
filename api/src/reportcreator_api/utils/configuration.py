@@ -5,6 +5,7 @@ import os
 import signal
 
 import psutil
+from asgiref.sync import sync_to_async
 from decouple import strtobool
 from django.conf import settings
 from django.db import transaction
@@ -15,6 +16,12 @@ from reportcreator_api.pentests.customfields.types import (
     FieldDefinition,
 )
 from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+
+
+@functools.cache
+def get_db_configuration_entries():
+    from reportcreator_api.api_utils.models import DbConfigurationEntry
+    return dict(DbConfigurationEntry.objects.values_list('name', 'value'))
 
 
 class Configuration:
@@ -33,26 +40,8 @@ class Configuration:
         # Add info whether settings are set as environment variables
         for f in out.fields:
             f.extra_info |= {
-                'set_in_env': f.id in os.environ,
+                'set_in_env': settings.LOAD_CONFIGURATIONS_FROM_ENV and f.id in os.environ,
             }
-        return out
-
-    @functools.cached_property
-    def all_configurations(self) -> dict:
-        from reportcreator_api.api_utils.models import DbConfigurationEntry
-
-        definition = self.definition
-        db_values = dict(DbConfigurationEntry.objects.filter(name__in=definition.keys()).values_list('name', 'value'))
-
-        out = {}
-        for f in definition.fields:
-            if f.id in self._force_override:
-                value = self._force_override[f.id]
-            elif f.id in os.environ:
-                value = self._load_env_value(definition=f, value=os.environ[f.id])
-            else:
-                value = self._decode_json_value(value=db_values.get(f.id))
-            out[f.id] = self._validate_configuration_value(definition=f, value=value)
         return out
 
     def _decode_json_value(self, value):
@@ -88,18 +77,37 @@ class Configuration:
             return serializer.validated_data[definition.id]
         return getattr(definition, 'default', None)
 
-    def refresh_from_db(self):
+    def clear_cache(self):
         # Clear cached_property
-        self.__dict__.pop('all_configurations', None)
-        return self.all_configurations
+        get_db_configuration_entries.cache_clear()
 
-    def get(self, name):
-        if name not in self.all_configurations:
+    def is_cached(self):
+        return get_db_configuration_entries.cache_info().currsize > 0 or not settings.LOAD_CONFIGURATIONS_FROM_DB
+
+    def get(self, name, skip_db_query=False):
+        f = self.definition.get(name)
+        if not f:
             raise KeyError(f'Unknown setting: {name}')
-        return self.all_configurations[name]
+
+        if f.id in self._force_override:
+            value = self._force_override[f.id]
+        elif settings.LOAD_CONFIGURATIONS_FROM_ENV and f.id in os.environ:
+            value = self._load_env_value(definition=f, value=os.environ[f.id])
+        elif settings.LOAD_CONFIGURATIONS_FROM_DB:
+            db_values = get_db_configuration_entries() if (not skip_db_query or self.is_cached()) else {}
+            value = self._decode_json_value(value=db_values.get(f.id))
+        else:
+            value = None
+        return self._validate_configuration_value(definition=f, value=value)
+
+    async def aget(self, name):
+        if self.is_cached():
+            return self.get(name)
+        else:
+            return await sync_to_async(self.get)(name)
 
     def __getattr__(self, name):
-        if name in ['definition', 'all_configurations']:
+        if name in ['definition']:
             return getattr(self.__class__, name).__get__(self)
         return self.get(name)
 
@@ -108,7 +116,6 @@ class Configuration:
         from reportcreator_api.api_utils.models import DbConfigurationEntry
 
         definition = self.definition
-
         settings_to_update = []
         for name, value in settings.items():
             if configuration.get(name) != value and not definition[name].extra_info.get('set_in_env'):
@@ -119,9 +126,7 @@ class Configuration:
 
         DbConfigurationEntry.objects.filter(name__in=[s.name for s in settings_to_update]).delete()
         DbConfigurationEntry.objects.bulk_create(settings_to_update)
-
-        # Reload cache
-        return self.refresh_from_db()
+        self.clear_cache()
 
 
 configuration = Configuration()
@@ -132,7 +137,7 @@ def reload_server():
     if server_proc.name() == 'gunicorn':
         # Reload guincorn application. Restart all worker processes.
         # https://docs.gunicorn.org/en/latest/faq.html#how-do-i-reload-my-application-in-gunicorn
-        # TODO: test server reload; test for downtimes
+        logging.info('Reloading gunicorn worker processes')
         os.kill(server_proc.pid, signal.SIGHUP)
     else:
         logging.warning('Server reload not supported')
@@ -148,22 +153,26 @@ def reload_server():
 # * [x] migrations
 #   * [x] create DB table
 #   * [x] migrate settings from env variables => no when env loading is implemented
-# * [ ] settings definition
+# * [x] settings definition
 #   * [x] data types
 #   * [x] validation
 #   * [x] help text
 #   * [x] custom env loader
 #   * [x] pro only / community
 # * [ ] refactor settings usage
-#   * [ ] application settings
+#   * [x] application settings
+#   * [x] refactor settings usage
+#   * [x] refactor plugin settings usage
+#   * [x] settings_test: set default settings
+#   * [ ] ProjectMemberRole: move from DB table to settings
 #   * [ ] enabled plugins
-#   * [ ] refactor settings usage
-#   * [ ] refactor plugin settings usage
-# * [ ] API
+# * [x] API
 #   * [x] get/set settings
 #   * [x] get definition
 #   * [x] pass some extra_info keys to frontend
-#   * [ ] reload gunicorn on save
+#   * [x] reload gunicorn on save
+# * [ ] other
+#   * [ ] move customfield from pentests module to utils
 # * [ ] refactor plugin loading
 #   * [ ] enabled_plugins from DB
 #   * [ ] how to handle commands: migrate, backup, restore, collectstatic, etc.
@@ -178,13 +187,13 @@ def reload_server():
 #       * [x] show id on label missing
 #       * [x] help-text (top-level only)
 #       * [x] show errors
-# * [ ] tests
-#   * [ ] test_api
-#   * [ ] test_settings
-#   * [ ] test_plugins: setting definition, setting available, setting access, settings of availalbe_plugins shown, test enable/disable plugin
+# * [x] tests
+#   * [x] test_api
+#   * [x] test_configuration
+#   * [x] test_plugins: setting definition, setting available, setting access, settings of availalbe_plugins shown
 #   * [x] test priority: override > env > db > default
-#   * [ ] test set_in_env: cannot change value via API
-#   * [ ] override_configuration usage
+#   * [x] test set_in_env: cannot change value via API
+#   * [x] override_configuration usage
 # * [ ] docs
 #   * [ ] rewrite setup/configuration
 #   * [ ] settings loading: env > db > default

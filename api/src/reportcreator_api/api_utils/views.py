@@ -264,7 +264,10 @@ class ConfigurationViewSet(viewsets.ViewSet):
         serializer = self.get_serializer()
         return Response(data=serializer.data)
 
-    def create(self, request, *args, **kwargs):
+    def create(self, *args, **kwargs):
+        return self.patch(*args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
@@ -272,9 +275,6 @@ class ConfigurationViewSet(viewsets.ViewSet):
         reload_server()
 
         return self.list(request, *args, **kwargs)
-
-    def patch(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
     def definition(self, request, *args, **kwargs):

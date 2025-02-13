@@ -476,8 +476,8 @@ def override_configuration(**kwargs):
     restore_map = configuration._force_override.copy()
     try:
         configuration._force_override |= kwargs
-        configuration.refresh_from_db()
+        configuration.clear_cache()
         yield
     finally:
         configuration._force_override = restore_map
-        configuration.refresh_from_db()
+        configuration.clear_cache()
