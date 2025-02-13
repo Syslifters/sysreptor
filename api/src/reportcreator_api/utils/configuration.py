@@ -171,9 +171,10 @@ def reload_server():
 #   * [x] get definition
 #   * [x] pass some extra_info keys to frontend
 #   * [x] reload gunicorn on save
-# * [ ] other
-#   * [ ] move customfield from pentests module to utils
-#   * [ ] update cwe script
+# * [x] other
+#   * [x] move customfield from pentests module to utils
+#   * [x] update cwe script
+#   * [ ] frontend: spellcheck suggestion font color in light mode
 # * [ ] refactor plugin loading
 #   * [ ] enabled_plugins from DB
 #   * [ ] how to handle commands: migrate, backup, restore, collectstatic, etc.

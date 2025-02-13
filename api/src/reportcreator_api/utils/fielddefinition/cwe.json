@@ -440,7 +440,7 @@
   {
     "id": 89,
     "name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
-    "description": "The product constructs all or part of an SQL command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended SQL command when it is sent to a downstream component.",
+    "description": "The product constructs all or part of an SQL command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended SQL command when it is sent to a downstream component. Without sufficient removal or quoting of SQL syntax in user-controllable inputs, the generated SQL query can cause those inputs to be interpreted as SQL instead of ordinary user data.",
     "parent": 943
   },
   {
@@ -602,7 +602,7 @@
   {
     "id": 119,
     "name": "Improper Restriction of Operations within the Bounds of a Memory Buffer",
-    "description": "The product performs operations on a memory buffer, but it can read from or write to a memory location that is outside of the intended boundary of the buffer.",
+    "description": "The product performs operations on a memory buffer, but it reads from or writes to a memory location outside the buffer's intended boundary. This may result in read or write operations on unexpected memory locations that could be linked to other variables, data structures, or internal program data.",
     "parent": 118
   },
   {
@@ -950,7 +950,7 @@
   {
     "id": 184,
     "name": "Incomplete List of Disallowed Inputs",
-    "description": "The product implements a protection mechanism that relies on a list of inputs (or properties of inputs) that are not allowed by policy or otherwise require other action to neutralize before additional processing takes place, but the list is incomplete, leading to resultant weaknesses.",
+    "description": "The product implements a protection mechanism that relies on a list of inputs (or properties of inputs) that are not allowed by policy or otherwise require other action to neutralize before additional processing takes place, but the list is incomplete.",
     "parent": 693
   },
   {
@@ -980,7 +980,7 @@
   {
     "id": 190,
     "name": "Integer Overflow or Wraparound",
-    "description": "The product performs a calculation that can produce an integer overflow or wraparound, when the logic assumes that the resulting value will always be larger than the original value. This can introduce other weaknesses when the calculation is used for resource management or execution control.",
+    "description": "The product performs a calculation that can\n         produce an integer overflow or wraparound when the logic\n         assumes that the resulting value will always be larger than\n         the original value. This occurs when an integer value is\n         incremented to a value that is too large to store in the\n         associated representation. When this occurs, the value may\n         become a very small or negative number.",
     "parent": 682
   },
   {
@@ -1484,7 +1484,7 @@
   {
     "id": 288,
     "name": "Authentication Bypass Using an Alternate Path or Channel",
-    "description": "A product requires authentication, but the product has an alternate path or channel that does not require authentication.",
+    "description": "The product requires authentication, but the product has an alternate path or channel that does not require authentication.",
     "parent": 306
   },
   {
@@ -1592,7 +1592,7 @@
   {
     "id": 307,
     "name": "Improper Restriction of Excessive Authentication Attempts",
-    "description": "The product does not implement sufficient measures to prevent multiple failed authentication attempts within a short time frame, making it more susceptible to brute force attacks.",
+    "description": "The product does not implement sufficient measures to prevent multiple failed authentication attempts within a short time frame.",
     "parent": 1390
   },
   {
@@ -1898,7 +1898,7 @@
   {
     "id": 362,
     "name": "Concurrent Execution using Shared Resource with Improper Synchronization ('Race Condition')",
-    "description": "The product contains a code sequence that can run concurrently with other code, and the code sequence requires temporary, exclusive access to a shared resource, but a timing window exists in which the shared resource can be modified by another code sequence that is operating concurrently.",
+    "description": "The product contains a concurrent code sequence that requires temporary, exclusive access to a shared resource, but a timing window exists in which the shared resource can be modified by another code sequence operating concurrently.",
     "parent": 691
   },
   {
@@ -2150,7 +2150,7 @@
   {
     "id": 416,
     "name": "Use After Free",
-    "description": "Referencing memory after it has been freed can cause a program to crash, use unexpected values, or execute code.",
+    "description": "The product reuses or references memory after it has been freed. At some point afterward, the memory may be allocated again and saved in another pointer, while the original pointer references a location somewhere within the new allocation. Any operations using the original pointer are no longer valid because the memory \"belongs\" to the code that operates on the new pointer.",
     "parent": 825
   },
   {
@@ -2234,7 +2234,7 @@
   {
     "id": 434,
     "name": "Unrestricted Upload of File with Dangerous Type",
-    "description": "The product allows the attacker to upload or transfer files of dangerous types that can be automatically processed within the product's environment.",
+    "description": "The product allows the upload or transfer of dangerous file types that are automatically processed within its environment.",
     "parent": 669
   },
   {
@@ -2384,7 +2384,7 @@
   {
     "id": 467,
     "name": "Use of sizeof() on a Pointer Type",
-    "description": "The code calls sizeof() on a malloced pointer type, which always returns the wordsize/8. This can produce an unexpected result if the programmer intended to determine how much memory has been allocated.",
+    "description": "The code calls sizeof() on a pointer type, which can be an incorrect calculation if the programmer intended to determine the size of the data that is being pointed to.",
     "parent": 131
   },
   {
@@ -2438,7 +2438,7 @@
   {
     "id": 476,
     "name": "NULL Pointer Dereference",
-    "description": "A NULL pointer dereference occurs when the application dereferences a pointer that it expects to be valid, but is NULL, typically causing a crash or exit.",
+    "description": "The product dereferences a pointer that it expects to be valid but is NULL.",
     "parent": 710
   },
   {
@@ -2582,7 +2582,7 @@
   {
     "id": 502,
     "name": "Deserialization of Untrusted Data",
-    "description": "The product deserializes untrusted data without sufficiently verifying that the resulting data will be valid.",
+    "description": "The product deserializes untrusted data without sufficiently ensuring that the resulting data will be valid.",
     "parent": 913
   },
   {
@@ -2714,7 +2714,7 @@
   {
     "id": 532,
     "name": "Insertion of Sensitive Information into Log File",
-    "description": "Information written to log files can be of a sensitive nature and give valuable guidance to an attacker or expose sensitive user information.",
+    "description": "The product writes sensitive information to a log file.",
     "parent": 538
   },
   {
@@ -3074,7 +3074,7 @@
   {
     "id": 601,
     "name": "URL Redirection to Untrusted Site ('Open Redirect')",
-    "description": "A web application accepts a user-controlled input that specifies a link to an external site, and uses that link in a Redirect. This simplifies phishing attacks.",
+    "description": "The web application accepts a user-controlled input that specifies a link to an external site, and uses that link in a redirect.",
     "parent": 610
   },
   {
@@ -3890,7 +3890,7 @@
   {
     "id": 798,
     "name": "Use of Hard-coded Credentials",
-    "description": "The product contains hard-coded credentials, such as a password or cryptographic key, which it uses for its own inbound authentication, outbound communication to external components, or encryption of internal data.",
+    "description": "The product contains hard-coded credentials, such as a password or cryptographic key.",
     "parent": 1391
   },
   {
@@ -4070,7 +4070,7 @@
   {
     "id": 863,
     "name": "Incorrect Authorization",
-    "description": "The product performs an authorization check when an actor attempts to access a resource or perform an action, but it does not correctly perform the check. This allows attackers to bypass intended access restrictions.",
+    "description": "The product performs an authorization check when an actor attempts to access a resource or perform an action, but it does not correctly perform the check.",
     "parent": 285
   },
   {
@@ -5626,5 +5626,17 @@
     "name": "Exposure of Sensitive Information caused by Shared Microarchitectural Predictor State that Influences Transient Execution",
     "description": "Shared microarchitectural predictor state may allow code to influence\n\t\t\t\ttransient execution across a hardware boundary, potentially exposing\n\t\t\t\tdata that is accessible beyond the boundary over a covert channel.\n\t\t\t",
     "parent": 1420
+  },
+  {
+    "id": 1426,
+    "name": "Improper Validation of Generative AI Output",
+    "description": "The product invokes a generative AI/ML\n\t\t\tcomponent whose behaviors and outputs cannot be directly\n\t\t\tcontrolled, but the product does not validate or\n\t\t\tinsufficiently validates the outputs to ensure that they\n\t\t\talign with the intended security, content, or privacy\n\t\t\tpolicy.",
+    "parent": 707
+  },
+  {
+    "id": 1427,
+    "name": "Improper Neutralization of Input Used for LLM Prompting",
+    "description": "The product uses externally-provided data to build prompts provided to\nlarge language models (LLMs), but the way these prompts are constructed\ncauses the LLM to fail to distinguish between user-supplied inputs and\ndeveloper provided system directives.",
+    "parent": 77
   }
 ]
