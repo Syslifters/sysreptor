@@ -10,12 +10,12 @@ from decouple import strtobool
 from django.conf import settings
 from django.db import transaction
 
-from reportcreator_api.pentests.customfields.serializers import serializer_from_definition
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.utils.fielddefinition.serializers import serializer_from_definition
+from reportcreator_api.utils.fielddefinition.types import (
     FieldDataType,
     FieldDefinition,
 )
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from reportcreator_api.utils.fielddefinition.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
 
 @functools.cache
@@ -173,6 +173,7 @@ def reload_server():
 #   * [x] reload gunicorn on save
 # * [ ] other
 #   * [ ] move customfield from pentests module to utils
+#   * [ ] update cwe script
 # * [ ] refactor plugin loading
 #   * [ ] enabled_plugins from DB
 #   * [ ] how to handle commands: migrate, backup, restore, collectstatic, etc.

@@ -1,7 +1,7 @@
 import json
 
 from reportcreator_api.conf.plugins import PluginConfig
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.utils.fielddefinition.types import (
     EnumChoice,
     EnumField,
     FieldDefinition,

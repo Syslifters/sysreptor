@@ -21,11 +21,6 @@ from reportcreator_api.pentests.collab.text_transformations import (
     Update,
     rebase_updates,
 )
-from reportcreator_api.pentests.customfields.utils import (
-    ensure_defined_structure,
-    get_value_at_path,
-    set_value_at_path,
-)
 from reportcreator_api.pentests.import_export import export_notes
 from reportcreator_api.pentests.models import (
     CollabClientInfo,
@@ -47,6 +42,11 @@ from reportcreator_api.tests.mock import (
     mock_time,
     override_configuration,
     websocket_client,
+)
+from reportcreator_api.utils.fielddefinition.utils import (
+    ensure_defined_structure,
+    get_value_at_path,
+    set_value_at_path,
 )
 from reportcreator_api.utils.utils import copy_keys
 

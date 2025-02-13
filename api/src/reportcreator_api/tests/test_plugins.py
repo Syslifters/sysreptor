@@ -60,6 +60,10 @@ def create_demopluginmodel(**kwargs):
 class TestPluginLoading:
     @enable_demoplugin()
     def test_plugin_loading(self):
+        user = create_user(is_superuser=True)
+        user.admin_permissions_enabled = True
+        client_admin = api_client(user)
+
         # Test django app of plugin is installed
         assert apps.is_installed('sysreptor_plugins.demoplugin')
         app_config = apps.get_app_config(DEMOPLUGIN_APPLABEL)
@@ -88,18 +92,16 @@ class TestPluginLoading:
         res = api_client().get(reverse('publicutils-settings'))
         assert res.status_code == 200
         demoplugin_config = next(filter(lambda p: p['id'] == DEMOPLUGIN_ID, res.data['plugins']))
-        assert omit_keys(demoplugin_config, ['frontend_entry']) == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_settings': {}}
+        assert omit_keys(demoplugin_config, ['frontend_entry']) == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_settings': {
+            'setting_value': configuration.PLUGIN_DEMOPLUGIN_SETTING,
+        }}
 
         # Plugin settings regsitered
         configuration.clear_cache()
         assert configuration.PLUGIN_DEMOPLUGIN_SETTING == app_config.configuration_definition['PLUGIN_DEMOPLUGIN_SETTING'].default
-
-        user = create_user(is_superuser=True)
-        user.admin_permissions_enabled = True
-        client = api_client(user)
-        res = client.get(reverse('configuration-definition'))
+        res = client_admin.get(reverse('configuration-definition'))
         assert any(d['id'] == 'PLUGIN_DEMOPLUGIN_SETTING' for d in next(filter(lambda p: p['id'] == DEMOPLUGIN_ID, res.data['plugins']))['fields'])
-        assert client.get(reverse('configuration-list')).data['PLUGIN_DEMOPLUGIN_SETTING'] == configuration.PLUGIN_DEMOPLUGIN_SETTING
+        assert client_admin.get(reverse('configuration-list')).data['PLUGIN_DEMOPLUGIN_SETTING'] == configuration.PLUGIN_DEMOPLUGIN_SETTING
 
 
     def test_load_professional_only(self):

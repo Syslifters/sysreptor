@@ -8,7 +8,6 @@ from django.test import override_settings
 from rest_framework.exceptions import ValidationError
 
 from reportcreator_api.pentests.collab.text_transformations import SelectionRange
-from reportcreator_api.pentests.customfields.types import serialize_field_definition_legacy
 from reportcreator_api.pentests.import_export import (
     export_notes,
     export_project_types,
@@ -41,6 +40,7 @@ from reportcreator_api.tests.mock import (
     override_configuration,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
+from reportcreator_api.utils.fielddefinition.types import serialize_field_definition_legacy
 from reportcreator_api.utils.utils import copy_keys
 
 

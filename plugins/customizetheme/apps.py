@@ -1,8 +1,8 @@
 import json
 
 from reportcreator_api.conf.plugins import PluginConfig
-from reportcreator_api.pentests.customfields.types import FieldDefinition, JsonField
 from reportcreator_api.utils.configuration import configuration
+from reportcreator_api.utils.fielddefinition.types import FieldDefinition, JsonField
 
 
 class CustomThemePluginConfig(PluginConfig):

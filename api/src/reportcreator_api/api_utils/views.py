@@ -26,11 +26,6 @@ from reportcreator_api.api_utils.serializers import (
     LanguageToolSerializer,
 )
 from reportcreator_api.conf import plugins
-from reportcreator_api.pentests.customfields.serializers import (
-    DynamicObjectSerializer,
-    serializer_from_field,
-)
-from reportcreator_api.pentests.customfields.types import CweField, FieldDefinition, serialize_field_definition
 from reportcreator_api.pentests.models import Language, ProjectMemberRole
 from reportcreator_api.tasks.models import PeriodicTask
 from reportcreator_api.users.models import AuthIdentity
@@ -38,6 +33,11 @@ from reportcreator_api.users.serializers import get_oauth
 from reportcreator_api.utils import license
 from reportcreator_api.utils.api import StreamingHttpResponseAsync, ViewSetAsync
 from reportcreator_api.utils.configuration import configuration, reload_server
+from reportcreator_api.utils.fielddefinition.serializers import (
+    DynamicObjectSerializer,
+    serializer_from_field,
+)
+from reportcreator_api.utils.fielddefinition.types import CweField, FieldDefinition, serialize_field_definition
 from reportcreator_api.utils.utils import copy_keys, remove_duplicates, run_in_background
 
 log = logging.getLogger(__name__)

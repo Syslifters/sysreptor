@@ -6,14 +6,14 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.utils.fielddefinition.types import (
     BaseField,
     CweField,
     FieldDataType,
     FieldDefinition,
     ObjectField,
 )
-from reportcreator_api.pentests.customfields.validators import (
+from reportcreator_api.utils.fielddefinition.validators import (
     BooleanValidatorWrapper,
     JsonSchemaValidator,
     JsonStringValidator,

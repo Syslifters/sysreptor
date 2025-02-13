@@ -1,7 +1,5 @@
-from decouple import config
 from reportcreator_api.conf.plugins import PluginConfig
-from reportcreator_api.pentests.customfields.types import FieldDefinition, StringField
-from reportcreator_api.utils.configuration import configuration
+from reportcreator_api.utils.fielddefinition.types import FieldDefinition, StringField
 
 from .utils import validate_template
 

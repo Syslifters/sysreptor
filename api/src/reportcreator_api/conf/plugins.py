@@ -16,8 +16,8 @@ from django.core.files.storage import FileSystemStorage, storages
 from django.utils.functional import classproperty
 from django.utils.module_loading import module_has_submodule
 
-from reportcreator_api.pentests.customfields.types import FieldDefinition
 from reportcreator_api.utils import license
+from reportcreator_api.utils.fielddefinition.types import FieldDefinition
 
 available_plugins = []
 enabled_plugins = []

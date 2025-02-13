@@ -4,17 +4,7 @@ from datetime import timedelta
 import pytest
 from django.test import override_settings
 
-from reportcreator_api.pentests.customfields.predefined_fields import FINDING_FIELDS_CORE
-from reportcreator_api.pentests.customfields.types import (
-    CvssField,
-    CvssVersion,
-    FieldDefinition,
-    JsonField,
-    NumberField,
-    StringField,
-    serialize_field_definition,
-)
-from reportcreator_api.pentests.customfields.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from reportcreator_api.pentests.fielddefinition.predefined_fields import FINDING_FIELDS_CORE
 from reportcreator_api.pentests.models import CommentStatus, ReviewStatus
 from reportcreator_api.tasks.rendering.error_messages import (
     ErrorMessage,
@@ -29,6 +19,16 @@ from reportcreator_api.tests.mock import (
     create_project_type,
     create_user,
 )
+from reportcreator_api.utils.fielddefinition.types import (
+    CvssField,
+    CvssVersion,
+    FieldDefinition,
+    JsonField,
+    NumberField,
+    StringField,
+    serialize_field_definition,
+)
+from reportcreator_api.utils.fielddefinition.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
 
 pytestmark = pytest.mark.django_db
 

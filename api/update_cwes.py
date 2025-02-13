@@ -29,7 +29,7 @@ def main():
         })
 
     cwes = sorted(cwes, key=lambda cwe: cwe['id'])
-    out_path = Path(__file__).parent / 'src/reportcreator_api/pentests/customfields/cwe.json'
+    out_path = Path(__file__).parent / 'src/reportcreator_api/utils/fielddefinition/cwe.json'
     out_path.write_text(json.dumps(cwes, indent=2))
 
 

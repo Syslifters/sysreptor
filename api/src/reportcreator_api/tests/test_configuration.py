@@ -7,15 +7,15 @@ from django.test import override_settings
 from django.urls import reverse
 
 from reportcreator_api.api_utils.models import DbConfigurationEntry
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.tests.mock import api_client, create_user, override_configuration
+from reportcreator_api.utils.configuration import configuration
+from reportcreator_api.utils.fielddefinition.types import (
     BooleanField,
     FieldDefinition,
     JsonField,
     ListField,
     StringField,
 )
-from reportcreator_api.tests.mock import api_client, create_user, override_configuration
-from reportcreator_api.utils.configuration import configuration
 from reportcreator_api.utils.utils import copy_keys
 
 

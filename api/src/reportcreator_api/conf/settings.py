@@ -24,7 +24,7 @@ from decouple import Csv, config
 from kombu import Queue
 
 from reportcreator_api.conf.plugins import load_plugins
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.utils.fielddefinition.types import (
     BooleanField,
     EnumChoice,
     EnumField,

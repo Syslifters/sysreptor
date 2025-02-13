@@ -7,7 +7,8 @@ from typing import Any, Optional, Union
 from django.utils import timezone
 from lorem_text import lorem
 
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.tasks.rendering.error_messages import format_path
+from reportcreator_api.utils.fielddefinition.types import (
     BaseField,
     CweField,
     FieldDataType,
@@ -15,7 +16,6 @@ from reportcreator_api.pentests.customfields.types import (
     FieldOrigin,
     ObjectField,
 )
-from reportcreator_api.tasks.rendering.error_messages import format_path
 from reportcreator_api.utils.utils import is_date_string, is_uuid
 
 

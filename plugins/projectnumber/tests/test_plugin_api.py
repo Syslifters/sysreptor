@@ -5,7 +5,7 @@ from django.core.management import call_command
 from django.template.defaultfilters import date
 from django.template.defaulttags import NowNode
 from django.utils import dateparse
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.utils.fielddefinition.types import (
     FieldDefinition,
     StringField,
     serialize_field_definition,

@@ -3,7 +3,6 @@ import logging
 
 from django.db.models import signals
 from django.dispatch import receiver
-from reportcreator_api.pentests.customfields.types import FieldDataType
 from reportcreator_api.pentests.models.common import SourceEnum
 from reportcreator_api.pentests.models.project import (
     PentestProject,
@@ -11,6 +10,7 @@ from reportcreator_api.pentests.models.project import (
     ReportSection,
 )
 from reportcreator_api.utils.configuration import configuration
+from reportcreator_api.utils.fielddefinition.types import FieldDataType
 
 from .models import ProjectNumber
 from .utils import format_project_number

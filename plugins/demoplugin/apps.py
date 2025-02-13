@@ -1,8 +1,8 @@
 import logging
 
 from reportcreator_api.conf.plugins import PluginConfig
-from reportcreator_api.pentests.customfields.types import FieldDefinition, StringField
 from reportcreator_api.utils.configuration import configuration
+from reportcreator_api.utils.fielddefinition.types import FieldDefinition, StringField
 
 log = logging.getLogger(__name__)
 
@@ -32,3 +32,10 @@ class DemoPluginConfig(PluginConfig):
         log.info('Loading DemoPlugin...')
 
         from . import signals  # noqa
+
+    def get_frontend_settings(self, request):
+        # Pass settings to JavaScript frontend.
+        # Use the value of the setting defined in configuration_definition.
+        return {
+            'setting_value': configuration.PLUGIN_DEMOPLUGIN_SETTING,
+        }

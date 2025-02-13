@@ -10,32 +10,14 @@ from django.urls import reverse
 from django.utils import timezone
 
 from reportcreator_api.pentests.collab.text_transformations import SelectionRange
-from reportcreator_api.pentests.customfields.mixins import CustomFieldsMixin
-from reportcreator_api.pentests.customfields.predefined_fields import (
+from reportcreator_api.pentests.fielddefinition.predefined_fields import (
     FINDING_FIELDS_CORE,
     FINDING_FIELDS_PREDEFINED,
     REPORT_FIELDS_CORE,
     finding_fields_default,
     report_sections_default,
 )
-from reportcreator_api.pentests.customfields.serializers import serializer_from_definition
-from reportcreator_api.pentests.customfields.sort import sort_findings
-from reportcreator_api.pentests.customfields.types import (
-    FieldDataType,
-    FieldDefinition,
-    ListField,
-    StringField,
-    parse_field_definition,
-    parse_field_definition_legacy,
-    serialize_field_definition,
-    serialize_field_definition_legacy,
-)
-from reportcreator_api.pentests.customfields.utils import (
-    HandleUndefinedFieldsOptions,
-    check_definitions_compatible,
-    ensure_defined_structure,
-)
-from reportcreator_api.pentests.customfields.validators import FieldDefinitionValidator, FieldValuesValidator
+from reportcreator_api.pentests.fielddefinition.sort import sort_findings
 from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, Language
 from reportcreator_api.pentests.models.project import Comment
 from reportcreator_api.tasks.rendering.entry import format_template_field_object
@@ -49,6 +31,24 @@ from reportcreator_api.tests.mock import (
     create_user,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
+from reportcreator_api.utils.fielddefinition.mixins import CustomFieldsMixin
+from reportcreator_api.utils.fielddefinition.serializers import serializer_from_definition
+from reportcreator_api.utils.fielddefinition.types import (
+    FieldDataType,
+    FieldDefinition,
+    ListField,
+    StringField,
+    parse_field_definition,
+    parse_field_definition_legacy,
+    serialize_field_definition,
+    serialize_field_definition_legacy,
+)
+from reportcreator_api.utils.fielddefinition.utils import (
+    HandleUndefinedFieldsOptions,
+    check_definitions_compatible,
+    ensure_defined_structure,
+)
+from reportcreator_api.utils.fielddefinition.validators import FieldDefinitionValidator, FieldValuesValidator
 
 
 @pytest.mark.parametrize(('valid', 'definition'), [
