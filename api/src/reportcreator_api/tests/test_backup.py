@@ -1,5 +1,6 @@
 import base64
 import io
+import json
 import zipfile
 from datetime import datetime
 
@@ -14,7 +15,7 @@ from django.test import override_settings
 from django.urls import reverse
 
 from reportcreator_api.api_utils.backup_utils import destroy_database
-from reportcreator_api.api_utils.models import BackupLog, BackupLogType
+from reportcreator_api.api_utils.models import BackupLog, BackupLogType, DbConfigurationEntry
 from reportcreator_api.management.commands import restorebackup
 from reportcreator_api.notifications.models import NotificationSpec
 from reportcreator_api.pentests.models import UploadedImage
@@ -30,9 +31,11 @@ from reportcreator_api.tests.mock import (
     create_project_type,
     create_template,
     create_user,
+    override_configuration,
 )
 from reportcreator_api.utils import crypto
 from reportcreator_api.utils.crypto.base import EncryptionKey
+from reportcreator_api.utils.fielddefinition.types import FieldDefinition, StringField
 
 
 @pytest.mark.django_db()
@@ -40,12 +43,14 @@ class TestBackup:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.backup_key = 'a' * 30
+        self.configuration_value = 'b' * 30
         with override_settings(
             BACKUP_KEY=self.backup_key,
             ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},
             DEFAULT_ENCRYPTION_KEY_ID='test-key',
             ENCRYPTION_PLAINTEXT_FALLBACK=False,
-        ):
+            CONFIGURATION_DEFINITION_CORE=settings.CONFIGURATION_DEFINITION_CORE | FieldDefinition(fields=[StringField(id='DUMMY_SETTING', default='default')]),
+        ), override_configuration(DUMMY_SETTING=self.configuration_value):
             self.user_system = create_user(is_system_user=True)
 
             # Data to be backed up
@@ -85,6 +90,11 @@ class TestBackup:
         with zipfile.ZipFile(io.BytesIO(content), mode='r') as z:
             assert zipfile.Path(z, 'VERSION').read_text() == settings.VERSION
             assert zipfile.Path(z, 'migrations.json').exists()
+
+            # Test that applications settings are backed up
+            backup_configurations = json.loads(zipfile.Path(z, 'configurations.json').read_text())
+            configuration_entry = next(filter(lambda e: e['name'] == 'DUMMY_SETTING', backup_configurations['configurations']))
+            assert configuration_entry['value'] == self.configuration_value
 
             # Test that data is not encrypted in backup
             assert crypto.MAGIC not in z.read('backup.jsonl')
@@ -164,12 +174,14 @@ class TestBackupRestore:
     def setUp(self):
         self.backup_key = 'a' * 30
         self.backup_encryption_key = b'b' * 32
+        self.configuration_value = 'c' * 30
         with override_settings(
             BACKUP_KEY=self.backup_key,
             ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},
             DEFAULT_ENCRYPTION_KEY_ID='test-key',
             ENCRYPTION_PLAINTEXT_FALLBACK=False,
-        ):
+            CONFIGURATION_DEFINITION_CORE=settings.CONFIGURATION_DEFINITION_CORE | FieldDefinition(fields=[StringField(id='DUMMY_SETTING', default='default')]),
+        ), override_configuration(DUMMY_SETTING=self.configuration_value):
             self.user_system = create_user(is_system_user=True)
 
             # Data to be backed up
@@ -236,6 +248,9 @@ class TestBackupRestore:
         assert CollabEvent.objects.count() == 0
         assert CollabClientInfo.objects.count() == 0
         assert LockInfo.objects.count() == 0
+
+        # Settings restored to DB
+        assert DbConfigurationEntry.objects.get(name='DUMMY_SETTING').value == json.dumps(self.configuration_value)
 
         # BackupLog entry created
         assert list(BackupLog.objects.values_list('type', flat=True)) == [BackupLogType.RESTORE, BackupLogType.BACKUP, BackupLogType.SETUP]
