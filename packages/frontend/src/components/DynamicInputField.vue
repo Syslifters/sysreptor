@@ -333,6 +333,7 @@ import { omit, pick, uniq } from 'lodash-es';
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo } from '#imports';
 import { workerUrlPolicy } from '~/plugins/trustedtypes';
+import { wait } from '@base/utils/helpers';
 
 defineOptions({
   inheritAttrs: false,
@@ -504,7 +505,10 @@ async function validateRegexPattern(value: string) {
       regexWorker.value!.addEventListener('message', (e: MessageEvent) => resolve(e.data), { once: true });
       regexWorker.value!.postMessage({ pattern, value }); // Send the string and regex to the worker
     });
-    const timeoutReject = (timeoutMs: number) => new Promise((_resolve, reject) => setTimeout(() => reject(new Error("RegEx timeout")), timeoutMs));
+    async function timeoutReject(timeoutMs: number) {
+      await wait(timeoutMs);
+      throw new Error("RegEx timeout");
+    }
     try {
       // Execute regex in a web worker with timeout to prevent RegEx DoS
       const res = await Promise.race([threadedRegexMatch, timeoutReject(500)]);

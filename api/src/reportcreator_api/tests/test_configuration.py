@@ -125,6 +125,12 @@ class TestConfiguration:
     @override_settings(LOAD_CONFIGURATIONS_FROM_ENV=True, LOAD_CONFIGURATIONS_FROM_DB=True)
     @mock.patch.dict(os.environ, {'FIELD_STRING': 'env'})
     def test_cannot_update_env_settings(self):
+        assert configuration.definition['FIELD_STRING'].extra_info['set_in_env'] is True
+
+        res = self.client.get(reverse('configuration-definition'))
+        definition_field_string = next(f for f in res.data['core'] if f['id'] == 'FIELD_STRING')
+        assert definition_field_string['set_in_env'] is True
+
         res = self.client.patch(reverse('configuration-list'), data={'FIELD_STRING': 'api'})
         assert res.data['FIELD_STRING'] == 'env'
         assert configuration.FIELD_STRING == 'env'

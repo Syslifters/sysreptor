@@ -892,4 +892,4 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
                   'Make sure all users have SSO identities configured before enabling this option. Else they will not be able to log in anymore.'),
 ])
 LOAD_CONFIGURATIONS_FROM_ENV = True
-LOAD_CONFIGURATIONS_FROM_DB = True
+LOAD_CONFIGURATIONS_FROM_DB = config('LOAD_CONFIGURATIONS_FROM_DB', cast=bool, default=True)

@@ -1,5 +1,5 @@
 import { get, set, unset, throttle, trimStart, sortBy, cloneDeep } from "lodash-es";
-import { urlJoin } from "@base/utils/helpers";
+import { urlJoin, wait } from "@base/utils/helpers";
 import { ChangeSet, EditorSelection, SelectionRange, Text } from "@sysreptor/markdown/editor"
 import { CommentStatus, type Comment, type UserShortInfo } from "#imports"
 
@@ -447,7 +447,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
 
             // Backoff time for reconnecting
             if (i === 0) {
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await wait(500);
             }
           }
         }

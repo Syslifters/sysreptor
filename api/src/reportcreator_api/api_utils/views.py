@@ -272,6 +272,9 @@ class ConfigurationViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         configuration.update(serializer.validated_data)
+
+        # Reload server to ensure that the new settings are applied
+        # TODO: How to signal the other containers to reload settings when multiple server containers are used for load balancing?
         reload_server()
 
         return self.list(request, *args, **kwargs)
@@ -279,16 +282,17 @@ class ConfigurationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def definition(self, request, *args, **kwargs):
         return Response(data={
-            'core': self.serialize_settings_definition(settings.CONFIGURATION_DEFINITION_CORE),
+            'core': self.serialize_settings_definition(settings.CONFIGURATION_DEFINITION_CORE.keys()),
             'plugins': [{
                 'id': p.plugin_id,
                 'name': p.name.split('.')[-1],
                 'description': cleandoc(p.__doc__) if p.__doc__ else None,
                 'professional_only': p.professional_only,
                 'enabled': any(p.plugin_id == ep.plugin_id for ep in plugins.enabled_plugins),
-                'fields': self.serialize_settings_definition(p.configuration_definition or FieldDefinition()),
+                'fields': self.serialize_settings_definition((p.configuration_definition or FieldDefinition()).keys()),
             } for p in plugins.available_plugins],
         })
 
-    def serialize_settings_definition(self, definition):
+    def serialize_settings_definition(self, fields):
+        definition = FieldDefinition(fields=[f for f in configuration.definition.fields if f.id in fields])
         return serialize_field_definition(definition, extra_info=['group', 'set_in_env', 'professional_only'])

@@ -10,10 +10,21 @@
 
         <s-card v-for="group in coreConfigGroups" :key="group.title" class="mt-4">
           <v-card-title>
-            <pro-info v-if="group.professional_only">{{ group.title }}</pro-info>
-            <span v-else>{{ group.title }}</span>
+            <component :is="group.professional_only ? ProInfo : 'span'">
+              <v-icon start :icon="group.icon || 'mdi-cog'" />
+              {{ group.title }}
+            </component>
           </v-card-title>
           <v-card-text>
+            <v-alert 
+              v-if="group.danger"
+              type="warning"
+              title="Danger Zone"
+              text="Changing these settings might prevent users from accessing the application."
+              density="compact"
+              class="mb-6"
+            />
+
             <div v-for="field in group.fields" :key="field.id">
               <dynamic-input-field 
                 v-model="configurationValues[field.id]"
@@ -43,10 +54,14 @@
           </v-card-text>  
         </s-card>
 
+        <v-divider class="mt-8 mb-8" />
+
         <s-card v-for="plugin in configurationDefinition.plugins" :key="plugin.plugin_id" class="mt-4">
           <v-card-title>
-            Plugin {{ plugin.name }}
-            <pro-info v-if="plugin.professional_only" />
+            <component :is="plugin.professional_only ? ProInfo : 'span'">
+              <v-icon start icon="mdi-puzzle" />
+              Plugin {{ plugin.name }}
+            </component>
           </v-card-title>
           <v-card-text v-if="plugin.description" class="pb-0">
             <markdown-preview :value="plugin.description" />
@@ -108,6 +123,8 @@
 
 <script setup lang="ts">
 import type { VForm } from 'vuetify/components';
+import ProInfo from '@base/components/ProInfo.vue';
+import { wait } from '@base/utils/helpers';
 
 export type ConfigurationFieldDefinition = FieldDefinition & {
   group?: string;
@@ -149,21 +166,27 @@ const coreConfigGroups = computed(() => {
     {
       group: 'sharing',
       title: 'Sharing Settings',
+      icon: 'mdi-share-variant',
       professional_only: false,
     },
     {
       group: 'language',
       title: 'Language and Spellcheck Settings',
+      icon: 'mdi-translate',
+      professional_only: false,
     },
     {
       group: 'archiving',
       title: 'Archiving Settings',
+      icon: 'mdi-folder-lock',
       professional_only: true,
     },
     {
       group: 'auth',
       title: 'Authentication Settings',
+      icon: 'mdi-account',
       professional_only: true,
+      danger: true,
     },
     {
       group: 'permissions',
@@ -181,12 +204,14 @@ const coreConfigGroups = computed(() => {
 const errorMessages = ref<any|null>(null);
 async function performSave(data: Record<string, any>) {
   try {
-    await $fetch('/api/v1/utils/configuration/', {
+    configurationValues.value = await $fetch('/api/v1/utils/configuration/', {
       method: 'PATCH',
       body: data,
     });
     errorMessages.value = null;
 
+    // Wait some time to ensure server worker processes began restarting
+    await wait(2000);
     // Reload frontend settings
     await apiSettings.fetchSettings();
   } catch (error: any) {

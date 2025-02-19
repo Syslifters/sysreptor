@@ -164,7 +164,7 @@ def reload_server():
 #   * [x] refactor settings usage
 #   * [x] refactor plugin settings usage
 #   * [x] settings_test: set default settings
-#   * [ ] ProjectMemberRole: move from DB table to settings
+#   * [ ] ProjectMemberRole: move from DB table to settings ?
 #   * [ ] enabled plugins
 # * [x] API
 #   * [x] get/set settings
