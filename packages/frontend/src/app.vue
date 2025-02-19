@@ -40,6 +40,10 @@ const theme = computed(() => {
     return baseTheme;
   }
 });
+watch(theme, () => {
+  document.documentElement.style.setProperty('color-scheme', (theme.value.toLowerCase().includes('dark') ? 'dark' : 'light'));
+}, { immediate: true });
+
 
 const router = useRouter();
 watch(router.currentRoute, () => {
