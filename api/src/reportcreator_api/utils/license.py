@@ -175,8 +175,6 @@ async def ais_professional(**kwargs):
 
 
 def validate_login_allowed(user):
-    if not is_professional() and not user.is_superuser:
+    if not is_professional() and not (user.is_superuser or user.is_system_user):
         raise LicenseError('Only superusers are allowed to login. A Professional license is required to enable user roles.')
-    elif not is_professional() and user.is_system_user:
-        raise LicenseError('System users are disabled. A Professional license is required to use system users.')
     return True
