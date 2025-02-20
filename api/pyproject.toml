@@ -15,7 +15,7 @@ django-phonenumber-field = { version = "^8.0.0", extras = ["phonenumberslite"] }
 django-csp = "^4.0b2"
 django-storages = "^1.13.2"
 drf-nested-routers = "^0.94.1"
-django-filter = "^24.1"
+django-filter = "^25.1"
 drf-spectacular = { extras = ["sidecar"], version = "^0.28.0" }
 django-simple-history = "^3.5.0"
 adrf = "^0.1.6"
@@ -50,7 +50,7 @@ boto3 = "^1.26.5"
 playwright = "^1.32.1"
 pikepdf = "^9.0.0"
 celery = "^5.3.6"
-psutil = "^6.1.1"
+psutil = "^7.0.0"
 
 django-debug-toolbar = "^5.0.1"
 debugpy = "^1.6.7"
