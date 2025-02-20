@@ -162,6 +162,9 @@ async def format_project_template_data(project: PentestProject, project_type: Op
     data = {
         'report': {
             'id': str(project.id),
+            'created': project.created.isoformat(),
+            'language': project.language,
+            'tags': project.tags,
             **await sync_to_async(lambda: project.data)(),
         },
         'findings': [{
