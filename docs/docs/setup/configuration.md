@@ -1,5 +1,7 @@
 # Configuration
-`app.env` (located in `deploy` directory) controls the behaviour of your SysReptor installation.  
+`app.env` (located in `deploy` directory) controls the behaviour of your SysReptor installation.
+[Server settings](#server-settings) are defined in `app.env` and passed as environment variables to the SysReptor docker container.
+[Application settings](#application-settings) can be configured in `app.env` or via the settings page in the web interface.
 
 After making changes, go to `sysreptor/deploy` and restart the containers:
 
@@ -7,10 +9,10 @@ After making changes, go to `sysreptor/deploy` and restart the containers:
 docker compose up -d
 ```
 
-:octicons-cloud-24: Cloud · We take care of all configurations. If you want to change anything, please [contact us](../contact-us.md){ target=_blank }.
 
-## Avaliable Options
+## Server Settings
 :octicons-server-24: Self-Hosted
+
 
 ### Django Secret Key
 Django server secret key (see https://docs.djangoproject.com/en/4.1/ref/settings/#std-setting-SECRET_KEY).
@@ -23,6 +25,7 @@ printf "SECRET_KEY=$(openssl rand -base64 64 | tr -d '\n=')\n"
 ``` title="Example (regenerate this value!):"
 SECRET_KEY="TODO-change-me-Z6cuMithzO0fMn3ZqJ7nTg0YJznoHiJXoJCNngQM4Kqzzd3fiYKdVx9ZidvTzqsm"
 ```
+
 
 ### Data Encryption at Rest
 Encrypt data at rest by configuring an encryption key. This will encrypt sensitive data in your database and files uploaded in your notes (~~except images~~, images are also encrypted).
@@ -42,6 +45,7 @@ KEY_ID=$(uuidgen) && printf "ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \
 ENCRYPTION_KEYS='[{"id": "TODO-change-me-unique-key-id-5cdda4c0-a16c-4ae2-8a16-aa2ff258530d", "key": "256 bit (32 byte) base64 encoded AES key", "cipher": "AES-GCM", "revoked": false}]'
 DEFAULT_ENCRYPTION_KEY_ID="TODO-change-me-unique-key-id-5cdda4c0-a16c-4ae2-8a16-aa2ff258530d"
 ```
+
 
 ### Debug mode
 Debug mode enables Django's debug toolbar and stack traces. Do not use debug mode in production environments.
@@ -66,6 +70,7 @@ If you want to use FIDO2/WebAuthn for MFA, you have to define the hostname ([Web
 MFA_FIDO2_RP_ID="sysreptor.example.com"
 ```
 
+
 ### License Key
 <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
 
@@ -75,134 +80,6 @@ License key for SysReptor Professional.
 LICENSE="your-license-key"
 ```
 
-### Single Sign-On (SSO)
-<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
-
-Configuration for SSO via OIDC. Find detailed instructions at https://docs.sysreptor.com/setup/oidc-setup/.
-
-``` title="OIDC example:"
-OIDC_AZURE_TENANT_ID="azure-tenant-id"
-OIDC_AZURE_CLIENT_ID="azure-client-id"
-OIDC_AZURE_CLIENT_SECRET="azure-client-secret"
-
-OIDC_GOOGLE_CLIENT_ID="google-client-id"
-OIDC_GOOGLE_CLIENT_SECRET="google-client-secret"
-```
-
-If your reverse proxy enforces authentication and provides the username via a HTTP-Header, use following settings to enable SSO.
-
-``` title="Remote-User example"
-REMOTE_USER_AUTH_ENABLED=true
-REMOTE_USER_AUTH_HEADER="Remote-User"
-```
-
-By default users can decide whether they want to log in via SSO or username/password. It is possible to disable login via username/password.
-Make sure all users have SSO identities configured before enabling this option. Else they will not be able to log in anymore.
-
-``` title="Disable username/password authentication example"
-LOCAL_USER_AUTH_ENABLED=false
-```
-
-Configuration of the default authentication provider when multiple authentication providers are enabled (e.g. OIDC via Microsoft Entra ID and username/password).
-This setting will redirect users to the default authentication provider, skipping the selection. Other authentication providers can still be used if login via the default provider fails.
-
-Possible values: `azure`, `google`, `remoteuser`, `local` (username/password authentication)
-
-``` title="Default authentication provider example"
-DEFAULT_AUTH_PROVIDER="azure"
-DEFAULT_REAUTH_PROVIDER="local"
-```
-
-
-
-### Spell Check
-<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
-
-You can add words to the spell check dictionary in the markdown editor (see https://docs.sysreptor.com/reporting/spell-check/).
-
-Words are added to a global spell check dictionary by default, which is available to all users. If words should be added to user's personal spell check dictionaries, set this setting to `true`. 
-
-Using both global and personal dictionaries at the same time is not possible. Words of personal dictionaries are not shared between users. If one user adds an unknown word to their personal dictionary, the spell checker will still detect an error for other users, even when they are working in the same project or finding.
-
-
-``` title="Spell check dictionary configuration"
-SPELLCHECK_DICTIONARY_PER_USER=false
-```
-
-The picky mode enables additional spell check rules. 
-
-It is also possible to selectively enable and disable rules or rule-categories by passing a LanguageTool configuration as JSON. 
-See https://languagetool.org/http-api/ for available options on the `/check` request.
-See https://community.languagetool.org/rule/list for available rules (note: rule IDs might differ for languages).
-
-``` title="Spell check rule configuration"
-SPELLCHECK_MODE_PICKY=true
-SPELLCHECK_LANGUAGETOOL_CONFIG='{"disabledRules": "TODO,TO_DO_HYPHEN,PASSIVE_VOICE,PASSIVE_SENTENCE_DE"}'
-```
-
-### Languages
-Configure which languages are available in the language selection.
-By default all languages are shown.
-When this setting is configured, only selected languages are shown.
-All other languages are hidden.
-
-This setting also defines the order of languages in the selection.
-The first language is used as default.
-
-``` title="Example:"
-PREFERRED_LANGUAGES="de-DE,en-US"
-```
-
-
-### Archiving
-<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
-
-Archived projects require at least `ARCHIVING_THRESHOLD` number of users to restore the archive (see https://docs.sysreptor.com/reporting/archiving/). 
-By default two users are required, enforcing a 4-eye principle.
-If `ARCHIVING_THRESHOLD=1` every user is able to restore archived projects on their own, disabling the 4-eye principle.
-Changing this setting does not affect previously archived projects. 
-
-``` title="Example:"
-ARCHIVING_THRESHOLD=2
-```
-
-If `PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS` is set to `true` (default), every project member can archive/restore a project.
-Otherwise, only users with global archiver permission can archive/restore projects.
-This means that encryption happens with fewer encryption keys and it will be more difficult to keep up the quorum (`ARCHIVING_THRESHOLD`) for restoring projects (this could lead to availability problems).
-
-``` title="Example:"
-PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=false
-```
-
-The process of archiving finished projects and deleting old archives can be automated by following settings. The values are time spans in days.
-
-``` title="Example:"
-# Automatically archive finished projects after 3 months
-AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=90
-# Automatically delete archived projects after 2 years
-AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=730
-```
-
-
-
-### Private Designs
-Users without Designer permission can create and edit private designs that cannot be read or used by other users. If a pentest project is created using a private design, a copy of the private design becomes accessible by project members. Use this setting to enable private designs.
-
-``` title="Example:"
-ENABLE_PRIVATE_DESIGNS=true
-```
-
-### Guest Users
-Restrict capabilities of guest users.
-
-``` title="Example:"
-GUEST_USERS_CAN_CREATE_PROJECTS=True
-GUEST_USERS_CAN_IMPORT_PROJECTS=False
-GUEST_USERS_CAN_EDIT_PROJECTS=True
-GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=True
-GUEST_USERS_CAN_DELETE_PROJECTS=True
-GUEST_USERS_CAN_SEE_ALL_USERS=False
-```
 
 ### S3 Storage
 Uploaded files and images can be stored in an S3 bucket. Files are stored on the filesystem in a docker volume by default. If data at rest encryption is configured, all uploaded files (incl. images) are encrypted.
@@ -276,29 +153,6 @@ printf "BACKUP_KEY=$(openssl rand -base64 25 | tr -d '\n=')\n"
 BACKUP_KEY="WfyqYzRVZAOFbCtltYEFN36XBzRz6Ys6ZA"
 ```
 
-### Compress Images
-Uploaded images are compressed to reduce file size, but to retain quality suitable for PDF files. Disable image compression using this setting.
-
-``` title="Example:"
-COMPRESS_IMAGES=false
-```
-
-### PDF Rendering
-PDFs are compressed via `ghostscript` when generating the final report (not in previews). 
-PDF compression reduces the file size, but can lead to quality loss of images and differences between the preview and the final PDF.
-PDF compression is enabled by default. Disable PDF compression using this setting.
-
-``` title="Example:"
-COMPRESS_PDFS=false
-```
-
-SysReptor limits the rendering time a PDF can take. If the rendering time exceeds the limit, the PDF render task is aborted. The default limit is 300 seconds (5 minutes).
-If you experience slow PDF rendering, try to [optimize your design](../designer/debugging.md#slow-pdf-rendering) before increasing the limit.
-
-``` title="Example:"
-PDF_RENDERING_TIME_LIMIT=300
-```
-
 
 ### Reverse Proxy
 Interpret `X-Forwarded-*` headers when SysReptor is behind a reverse proxy. 
@@ -353,5 +207,174 @@ Extend the functionality of SysReptor by enabling plugins. Plugins are disabled 
 ENABLED_PLUGINS="cyberchef,graphqlvoyager,checkthehash"
 ```
 
-Some plugins require additional configuration. These plugin settings are configured as separate entries in `app.env`.
+Some plugins require additional configuration. These plugin settings are configured as separate entries in `app.env` or via the settings page in the web interface.
 Please refer to the plugin documentation for more information on available plugin setting.
+
+
+
+
+
+
+## Application Settings
+
+:octicons-server-24: Self-Hosted :octicons-cloud-24: Cloud
+
+Application settings can be configured in `app.env` or via the settings page in the web interface (stored in the database).
+When a setting is configured both in `app.env` (environment varaible) and via the settings page (database), the value from `app.env` takes precedence.
+Settings configured in `app.env` cannot be changed or overwridden via the web interface.
+
+
+### Private Designs
+Users without Designer permission can create and edit private designs that cannot be read or used by other users. If a pentest project is created using a private design, a copy of the private design becomes accessible by project members. Use this setting to enable private designs.
+
+``` title="Example:"
+ENABLE_PRIVATE_DESIGNS=true
+```
+
+
+### Compress Images
+Uploaded images are compressed to reduce file size, but to retain quality suitable for PDF files. Disable image compression using this setting.
+
+``` title="Example:"
+COMPRESS_IMAGES=false
+```
+
+
+### PDF Rendering
+PDFs are compressed via `ghostscript` when generating the final report (not in previews). 
+PDF compression reduces the file size, but can lead to quality loss of images and differences between the preview and the final PDF.
+PDF compression is enabled by default. Disable PDF compression using this setting.
+
+``` title="Example:"
+COMPRESS_PDFS=false
+```
+
+SysReptor limits the rendering time a PDF can take. If the rendering time exceeds the limit, the PDF render task is aborted. The default limit is 300 seconds (5 minutes).
+If you experience slow PDF rendering, try to [optimize your design](../designer/debugging.md#slow-pdf-rendering) before increasing the limit.
+
+``` title="Example:"
+PDF_RENDERING_TIME_LIMIT=300
+```
+
+
+### Languages
+Configure which languages are available in the language selection.
+By default all languages are shown.
+When this setting is configured, only selected languages are shown.
+All other languages are hidden.
+
+This setting also defines the order of languages in the selection.
+The first language is used as default.
+
+``` title="Example:"
+PREFERRED_LANGUAGES="de-DE,en-US"
+```
+
+
+### Spell Check
+<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+
+You can add words to the spell check dictionary in the markdown editor (see https://docs.sysreptor.com/reporting/spell-check/).
+
+Words are added to a global spell check dictionary by default, which is available to all users. If words should be added to user's personal spell check dictionaries, set this setting to `true`. 
+
+Using both global and personal dictionaries at the same time is not possible. Words of personal dictionaries are not shared between users. If one user adds an unknown word to their personal dictionary, the spell checker will still detect an error for other users, even when they are working in the same project or finding.
+
+
+``` title="Spell check dictionary configuration"
+SPELLCHECK_DICTIONARY_PER_USER=false
+```
+
+The picky mode enables additional spell check rules. 
+
+It is also possible to selectively enable and disable rules or rule-categories by passing a LanguageTool configuration as JSON. 
+See https://languagetool.org/http-api/ for available options on the `/check` request.
+See https://community.languagetool.org/rule/list for available rules (note: rule IDs might differ for languages).
+
+``` title="Spell check rule configuration"
+SPELLCHECK_MODE_PICKY=true
+SPELLCHECK_LANGUAGETOOL_CONFIG='{"disabledRules": "TODO,TO_DO_HYPHEN,PASSIVE_VOICE,PASSIVE_SENTENCE_DE"}'
+```
+
+
+### Archiving
+<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+
+Archived projects require at least `ARCHIVING_THRESHOLD` number of users to restore the archive (see https://docs.sysreptor.com/reporting/archiving/). 
+By default two users are required, enforcing a 4-eye principle.
+If `ARCHIVING_THRESHOLD=1` every user is able to restore archived projects on their own, disabling the 4-eye principle.
+Changing this setting does not affect previously archived projects. 
+
+``` title="Example:"
+ARCHIVING_THRESHOLD=2
+```
+
+If `PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS` is set to `true` (default), every project member can archive/restore a project.
+Otherwise, only users with global archiver permission can archive/restore projects.
+This means that encryption happens with fewer encryption keys and it will be more difficult to keep up the quorum (`ARCHIVING_THRESHOLD`) for restoring projects (this could lead to availability problems).
+
+``` title="Example:"
+PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=false
+```
+
+The process of archiving finished projects and deleting old archives can be automated by following settings. The values are time spans in days.
+
+``` title="Example:"
+# Automatically archive finished projects after 3 months
+AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=90
+# Automatically delete archived projects after 2 years
+AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=730
+```
+
+
+### Single Sign-On (SSO)
+<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+
+Configuration for SSO via OIDC. Find detailed instructions at https://docs.sysreptor.com/setup/oidc-setup/.
+
+``` title="OIDC example:"
+OIDC_AZURE_TENANT_ID="azure-tenant-id"
+OIDC_AZURE_CLIENT_ID="azure-client-id"
+OIDC_AZURE_CLIENT_SECRET="azure-client-secret"
+
+OIDC_GOOGLE_CLIENT_ID="google-client-id"
+OIDC_GOOGLE_CLIENT_SECRET="google-client-secret"
+```
+
+If your reverse proxy enforces authentication and provides the username via a HTTP-Header, use following settings to enable SSO.
+
+``` title="Remote-User example"
+REMOTE_USER_AUTH_ENABLED=true
+REMOTE_USER_AUTH_HEADER="Remote-User"
+```
+
+By default users can decide whether they want to log in via SSO or username/password. It is possible to disable login via username/password.
+Make sure all users have SSO identities configured before enabling this option. Else they will not be able to log in anymore.
+
+``` title="Disable username/password authentication example"
+LOCAL_USER_AUTH_ENABLED=false
+```
+
+Configuration of the default authentication provider when multiple authentication providers are enabled (e.g. OIDC via Microsoft Entra ID and username/password).
+This setting will redirect users to the default authentication provider, skipping the selection. Other authentication providers can still be used if login via the default provider fails.
+
+Possible values: `azure`, `google`, `remoteuser`, `local` (username/password authentication)
+
+``` title="Default authentication provider example"
+DEFAULT_AUTH_PROVIDER="azure"
+DEFAULT_REAUTH_PROVIDER="local"
+```
+
+
+### Guest User Permissions
+Restrict capabilities of guest users.
+
+``` title="Example:"
+GUEST_USERS_CAN_CREATE_PROJECTS=True
+GUEST_USERS_CAN_IMPORT_PROJECTS=False
+GUEST_USERS_CAN_EDIT_PROJECTS=True
+GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=True
+GUEST_USERS_CAN_DELETE_PROJECTS=True
+GUEST_USERS_CAN_SEE_ALL_USERS=False
+```
+

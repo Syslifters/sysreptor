@@ -5,6 +5,10 @@
 * Add log message when backup is finished
 * Add command `createapitoken`
 * Restrict system users: prevent access to projects, templates, designs
+* Configure minium and maximum value for number fields
+* Refactor application setting loading
+* View and edit application settings in the web UI
+* View and edit plugin settings in the web UIk
 
 
 ## v2025.12 - 2025-01-27

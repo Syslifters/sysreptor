@@ -112,13 +112,13 @@ class Configuration:
         return self.get(name)
 
     @transaction.atomic
-    def update(self, settings: dict):
+    def update(self, settings: dict, only_changed=True):
         from reportcreator_api.api_utils.models import DbConfigurationEntry
 
         definition = self.definition
         settings_to_update = []
         for name, value in settings.items():
-            if configuration.get(name) != value and not definition[name].extra_info.get('set_in_env'):
+            if not only_changed or (configuration.get(name) != value and not definition[name].extra_info.get('set_in_env')):
                 settings_to_update.append(DbConfigurationEntry(
                     name=name,
                     value=self._encode_json_value(value=value),
@@ -142,64 +142,3 @@ def reload_server():
     else:
         logging.warning('Server reload not supported')
 
-
-
-# TODO: move settings to UI
-# * [x] model
-#   * [x] DbConfigurationEntry
-#   * [x] cache in memory to reduce DB queries
-#   * [x] env overrides db
-#   * [x] rename dbsettings to configuration
-# * [x] migrations
-#   * [x] create DB table
-#   * [x] migrate settings from env variables => no when env loading is implemented
-# * [x] settings definition
-#   * [x] data types
-#   * [x] validation
-#   * [x] help text
-#   * [x] custom env loader
-#   * [x] pro only / community
-# * [ ] refactor settings usage
-#   * [x] application settings
-#   * [x] refactor settings usage
-#   * [x] refactor plugin settings usage
-#   * [x] settings_test: set default settings
-#   * [ ] ProjectMemberRole: move from DB table to settings ?
-#   * [ ] enabled plugins
-# * [x] API
-#   * [x] get/set settings
-#   * [x] get definition
-#   * [x] pass some extra_info keys to frontend
-#   * [x] reload gunicorn on save
-# * [x] other
-#   * [x] move customfield from pentests module to utils
-#   * [x] update cwe script
-#   * [ ] frontend: spellcheck suggestion font color in light mode
-# * [ ] refactor plugin loading
-#   * [ ] enabled_plugins from DB
-#   * [ ] how to handle commands: migrate, backup, restore, collectstatic, etc.
-# * [ ] frontend
-#   * [x] add menu entry to admin section
-#   * [x] view/edit settings
-#   * [x] help-text
-#   * [x] disable env settings + user infp
-#   * [x] show enabled plugins (read-only)
-#   * [ ] warning before saving (only first time?): server restart + reload frontend
-#   * [x] DynamicInputField
-#       * [x] show id on label missing
-#       * [x] help-text (top-level only)
-#       * [x] show errors
-# * [x] tests
-#   * [x] test_api
-#   * [x] test_configuration
-#   * [x] test_plugins: setting definition, setting available, setting access, settings of availalbe_plugins shown
-#   * [x] test priority: override > env > db > default
-#   * [x] test set_in_env: cannot change value via API
-#   * [x] override_configuration usage
-# * [ ] docs
-#   * [ ] rewrite setup/configuration
-#   * [ ] settings loading: env > db > default
-# * [ ] changelog
-#   * [ ] number field: minimum, maximum
-#   * [ ] application settings in UI
-#   * [ ] plugin settings in UI
