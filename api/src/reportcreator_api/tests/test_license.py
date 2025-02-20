@@ -154,11 +154,9 @@ class TestCommunityLicenseRestrictions:
             'password': self.password,
         }))
 
-    def test_prevent_login_of_system_users(self):
-        assert_api_license_error(self.client.post(reverse('auth-login'), data={
-            'username': self.user_system.username,
-            'password': self.password,
-        }))
+    def test_system_users_api_access_allowed(self):
+        api_token = APIToken.objects.create(user=self.user_system)
+        assert api_client().get(reverse('utils-license'), HTTP_AUTHORIZATION='Bearer ' + api_token.token_formatted).status_code == 200
 
     def test_ignore_must_change_password(self):
         self.user.must_change_password = True

@@ -3,6 +3,8 @@
 ## Upcoming
 * Fix corrupt backup.zip because output file is not closed in backup CLI command
 * Add log message when backup is finished
+* Add command `createapitoken`
+* Restrict system users: prevent access to projects, templates, designs
 
 
 ## v2025.12 - 2025-01-27

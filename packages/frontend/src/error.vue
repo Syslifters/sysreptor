@@ -20,7 +20,7 @@
             {{ errorMessage }}<br />
             <div v-if="![401, 403].includes(props.error.statusCode)">
               This should not have happened.<br />
-              If you think this is a vulnerability, please <a href="https://docs.syslifters.com/vulnerability-disclosure/" target="_blank">disclose responsibly</a>.<br />
+              If you think this is a vulnerability, please <a href="https://docs.syslifters.com/vulnerability-disclosure/" target="_blank" class="text-primary">disclose responsibly</a>.<br />
             </div>
           </div>
         </template>
