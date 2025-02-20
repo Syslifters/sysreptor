@@ -120,7 +120,7 @@ const props = withDefaults(defineProps<{
   confirmInput: undefined,
   keyboardShortcut: undefined,
 });
-const attrs = useAttrs();
+const attrs = useAttrs() as any;
 
 const confirmDialogVisible = ref(false);
 const confirmUserInput = ref('');

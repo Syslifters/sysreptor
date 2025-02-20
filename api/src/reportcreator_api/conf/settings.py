@@ -564,7 +564,6 @@ HEALTH_CHECKS = {
 # Notifications
 VERSION = config('VERSION', default='dev')
 INSTANCE_TAGS = config('INSTANCE_TAGS', cast=Csv(delimiter=';', post_process=remove_empty_items), default='on-premise')
-# TODO: hardcoded NOTIFICATION_IMPORT_URL
 NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://portal.sysreptor.com/api/v1/notifications/')
 
 # License
@@ -817,7 +816,6 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         extra_info={'group': 'permissions', 'professional_only': True}),
 
 
-    # TODO: SSO and auth settings in danger zone
     StringField(
         id='DEFAULT_AUTH_PROVIDER',
         default=None,

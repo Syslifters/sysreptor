@@ -10,7 +10,6 @@
       colorScheme: theme.current.value.dark ? 'dark': 'light',
     }"
     @load="onIframeLoaded"
-    v-bind="attrs"
   />
 </template>
 
@@ -22,7 +21,6 @@ const props = defineProps<{
 const router = useRouter();
 const route = useRoute();
 const theme = useTheme();
-const attrs = useAttrs();
 const loadingIndicator = useLoadingIndicator();
 loadingIndicator.start();
 

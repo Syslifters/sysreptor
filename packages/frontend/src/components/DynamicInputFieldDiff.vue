@@ -95,7 +95,7 @@ import { FieldDataType, type DynamicInputFieldDiffProps } from '#imports';
 const props = defineProps<DynamicInputFieldDiffProps>();
 defineSlots();
 
-const attrs = useAttrs();
+const attrs = useAttrs() as any;
 const inheritedDiffAttrs = computed(() => {
   const copyFields = [
     'disabled', 'readonly', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 

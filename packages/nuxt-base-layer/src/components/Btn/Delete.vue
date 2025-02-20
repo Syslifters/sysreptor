@@ -5,10 +5,10 @@
     button-color="error"
     dialog-title="Confirm Delete?"
     dialog-text="Do you really want to delete this item? This action is not reversible!"
-    :color="buttonVariant !== 'icon' ? 'error' : ($attrs.color || 'default')"
-    :button-variant="buttonVariant"
-    :confirm="confirm"
-    :confirm-input="confirmInput"
+    :color="props.buttonVariant !== 'icon' ? 'error' : ($attrs.color || 'default')"
+    :button-variant="props.buttonVariant"
+    :confirm="props.confirm"
+    :confirm-input="props.confirmInput"
     :action="props.delete"
   />
 </template>

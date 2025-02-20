@@ -176,7 +176,7 @@
                 :error-messages="props.errorMessages?.[objectField.id]"
                 v-bind="inheritedAttrs(objectField)"
               >
-                <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+                <template v-for="name in inheritedSlots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
               </dynamic-input-field>
             </v-card-text>
           </s-card>
@@ -247,7 +247,7 @@
                           :error-messages="props.errorMessages?.[entryIdx]"
                           v-bind="inheritedAttrs(props.definition.items!)"
                         >
-                          <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+                          <template v-for="(_, name) in inheritedSlots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
                         </dynamic-input-field>
                       </template>
                       <template #append>
@@ -592,7 +592,7 @@ const nestedClass = computed(() => {
   return undefined;
 });
 
-const attrs = useAttrs();
+const attrs = useAttrs() as any;
 const fieldAttrs = computed(() => ({
   ...attrs,
   label: label.value,
@@ -616,6 +616,8 @@ const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
     nestingLevel: nextNestingLevel,
   };
 });
+const slots = useSlots() as any;
+const inheritedSlots = computed(() => Object.keys(slots).filter(name => !['label'].includes(name)));
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({

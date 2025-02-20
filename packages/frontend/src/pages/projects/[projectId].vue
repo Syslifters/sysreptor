@@ -47,7 +47,6 @@
 import { projectTitleTemplate } from "#imports";
 
 const route = useRoute();
-const router = useRouter();
 const pluginStore = usePluginStore();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
