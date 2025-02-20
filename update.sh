@@ -20,9 +20,10 @@ error_cleanup() {
     exit -4
 }
 filename_date=$(date -Iseconds)
-sysreptor_directory=${PWD##*/}
-backup_copy="$sysreptor_directory-backup-$filename_date"
 script_location="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+sysreptor_directory=${script_location##*/}
+backup_copy="$sysreptor_directory-backup-$filename_date"
+
 trap 'error_cleanup' ERR INT
 echo "Easy update of SysReptor"
 echo ""
