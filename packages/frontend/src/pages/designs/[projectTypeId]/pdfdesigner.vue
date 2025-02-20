@@ -95,8 +95,8 @@
           <ol class="ml-6 mt-2">
             <li>
               Before starting to design, define your
-              <nuxt-link :to="`/designs/${projectType.id}/reportfields/`">report fields</nuxt-link> and
-              <nuxt-link :to="`/designs/${projectType.id}/findingfields/`">finding fields</nuxt-link>
+              <nuxt-link :to="`/designs/${projectType.id}/reportfields/`" class="text-primary">report fields</nuxt-link> and
+              <nuxt-link :to="`/designs/${projectType.id}/findingfields/`" class="text-primary">finding fields</nuxt-link>
             </li>
             <li>Include base styles (click "Start Designing" below to add them)</li>
             <li>Define the report structure in "Layout"</li>

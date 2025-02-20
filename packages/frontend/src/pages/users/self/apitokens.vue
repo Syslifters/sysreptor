@@ -23,7 +23,12 @@
     <s-card class="mt-4">
       <v-card-title>API Tokens</v-card-title>
       <v-card-text>
-        <p>Use the <a href="https://docs.sysreptor.com/cli/getting-started/" target=_blank>reptor</a>, or the <a href="/api/public/utils/swagger-ui/" target="_blank">SysReptor REST API</a> (unstable).</p>
+        <p>
+          Use the <a href="https://docs.sysreptor.com/cli/getting-started/" target="_blank" class="text-primary">reptor CLI</a>, 
+          or the <a href="/api/public/utils/swagger-ui/" target="_blank" class="text-primary">SysReptor REST API</a> (unstable).
+        </p>
+        <pre class="token-preview mt-2"><s-code>Authorization: Bearer &lt;api_token&gt;</s-code></pre>
+
         <v-list>
           <v-list-item
             v-for="apiToken in apiTokens" :key="apiToken.id"
