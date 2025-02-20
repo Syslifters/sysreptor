@@ -79,26 +79,64 @@ French: <comma-and-join and=" et ">...</comma-and-join>
 ```
 
 
-## Helper Functions
+## Helper Functions and Variables
 It is possible to define helper functions and variables inside the Vue template language to reuse logic.
-Setting variables only works for native DOM tag (e.g. `<div>`, `<span>`, etc.), but not for Vue components (e.g. `<template>`, `<table-of-contents>`, etc.).
-The name of the `:set` attributes does not matter, but they have to be unique per tag.
+Defining variables and helper functions works by assigning a value to a variable in an inline JavaScript expression.
 Helper functions are defined at the start of the template, they can be used by following template elements.
 
 ```html
-<div 
-  v-show="false" 
-  :set1="helperFunction = function() {
+<div v-show="false"> 
+  <!-- Simple helper functions -->
+  {{ helperFunction = function() {
     return report.title + ' processed by helper function';
-  }"
-  :set3="calculateCustomScore = (finding) => finding.exploitability * finding.impact"
-  :set2="computedProperty = computed(() => report.title + ' processed by computed property')"
-  
-/>
+  } }}
+  {{ calculateCustomScore = (finding) => finding.exploitability * finding.impact }}
+
+  <!-- Variables and computed properties -->
+  {{ helperVariable = 'Helper variable' }}
+  {{ computedProperty = computed(() => report.title + ' processed by computed property') }}
+
+  <!-- Complex helper function for translation in multi-language designs -->
+  {{ tr = function (label, options = undefined) {
+    // Define your translation table here
+    const translations = {
+      'en': {
+        example: 'Example',
+        fallback: 'Fallback value'
+      },
+      'de': {
+        example: 'Beispiel',
+      },
+      'fr': {
+        example: 'exemple',
+      },
+    };
+    // Use "en" as fallback language. Warnings are still generated when a fallback value is used.
+    const translationFallback = translations['en'];
+
+    // Get the current report language (configured in project settings)
+    // Remove country postfix from language string e.g. "de-DE", "de-AT" and "de-CH" all use "de" translations
+    const lang = (options?.lang || document.documentElement.getAttribute('lang'))?.split('-')?.[0];
+
+    // Check if a translation exists. If not generate a warning message.
+    // The warning is displayed in the PDF preview and the project warning list before generating/publishing the final DF.
+    if (!lang || !translations[lang]) {
+      const msg = `Language "${lang}" not defined in the design's translation table`
+      console.warn(msg, { message: 'Translation not defined', details: msg });
+    } else if (!(label in translations[lang])) {
+      const msg = `Translation for "${label}" is not defined in translation table for language "${lang}"`
+      console.warn(msg, { message: 'Translation not defined', details: msg });
+    }
+
+    return translations[lang]?.[label] ?? translationFallback[label] ?? '';
+  } }}
+</div>
 <div>
   Call helper function (without arguments): {{ helperFunction() }}<br>
   Call helper function (with arguments): {{ calculateCustomScore(report.findings[0]) }}<br>
+  Use helper variable: {{ helperVariable }}<br>
   Use computed property: {{ computedProperty.value }}<br>
+  Call translation function: {{ tr('example') }}<br>
 </div>
 ```
 
