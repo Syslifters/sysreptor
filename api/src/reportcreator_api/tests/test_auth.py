@@ -1,13 +1,16 @@
 from datetime import timedelta
+import io
 
 import pyotp
 import pytest
 from django.conf import settings
+from django.core.management import call_command
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
+from reportcreator_api.management.commands import createapitoken
 from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time
 from reportcreator_api.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType
 from reportcreator_api.utils.utils import omit_keys
@@ -295,14 +298,19 @@ class TestAPITokenAuth:
         self.api_token = APIToken.objects.create(user=self.user)
         self.client = api_client()
 
-    def assert_api_access(self, url, expected):
-        res = self.client.get(url, HTTP_AUTHORIZATION='Bearer ' + self.api_token.token_formatted)
+    def assert_api_access(self, url, expected, api_token=None):
+        res = self.client.get(url, HTTP_AUTHORIZATION='Bearer ' + (api_token or self.api_token.token_formatted))
         assert (res.status_code == 200) == expected
         return res
 
     def test_api_token_auth(self):
         res = self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), True)
         assert res.data['id'] == str(self.user.id)
+
+    def test_createapitoken_command(self):
+        stdout = io.StringIO()
+        call_command(createapitoken.Command(stdout=stdout), self.user.username)
+        self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), True, api_token=stdout.getvalue().strip())
 
     def test_update_last_used_date(self):
         assert self.api_token.last_used is None
