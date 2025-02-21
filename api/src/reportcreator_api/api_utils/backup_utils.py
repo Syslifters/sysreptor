@@ -35,6 +35,7 @@ from reportcreator_api.pentests.models import (
 )
 from reportcreator_api.pentests.models.project import ProjectMemberRole
 from reportcreator_api.utils import crypto
+from reportcreator_api.utils.configuration import configuration
 
 
 def create_migration_info():
@@ -64,12 +65,25 @@ def create_migration_info():
     return out
 
 
+def create_configurations_backup():
+    out = {
+        'format': 'configurations/v1',
+        'configurations': [],
+    }
+    for f in configuration.definition.fields:
+        out['configurations'].append({
+            'name': f.id,
+            'value': configuration.get(f.id),
+        })
+    return out
+
+
 def create_database_dump():
     """
     Return a database dump of django models. It uses the same format as "manage.py dumpdata --format=jsonl".
     """
     exclude_models = ['contenttypes.ContentType', 'sessions.Session', 'users.Session', 'admin.LogEntry', 'auth.Permission', 'auth.Group',
-                      'pentests.LockInfo', 'pentests.CollabEvent', 'pentests.CollabClientInfo']
+                      'pentests.LockInfo', 'pentests.CollabEvent', 'pentests.CollabClientInfo', 'api_utils.DbConfigurationEntry']
     try:
         app_list = [app_config for app_config in apps.get_app_configs() if app_config.models_module is not None]
         models = list(itertools.chain(*map(lambda a: a.get_models(), app_list)))
@@ -115,6 +129,7 @@ def create_backup(user=None):
     z = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
     z.add(arcname='VERSION', data=settings.VERSION.encode())
     z.add(arcname='migrations.json', data=json.dumps(create_migration_info()).encode())
+    z.add(arcname='configurations.json', data=json.dumps(create_configurations_backup()).encode())
     z.add(arcname='backup.jsonl', data=create_database_dump())
 
     backup_files(z, 'uploadedimages', storages.get_uploaded_image_storage(), [UploadedImage, UploadedUserNotebookImage, UploadedTemplateImage])
@@ -311,6 +326,18 @@ def restore_files(z):
                     storage.save(name=f.at[len(d.at):], content=fp)
 
 
+def restore_configurations(z):
+    configurations_file = zipfile.Path(z, 'configurations.json')
+    if not configurations_file.exists():
+        logging.info('No saved configurations in backup')
+
+    configurations_data = json.loads(configurations_file.read_text())
+    if isinstance(configurations_data, dict) and configurations_data.get('format') == 'configurations/v1':
+        configuration.update({c['name']: c['value'] for c in configurations_data.get('configurations', [])}, only_changed=False)
+    else:
+        logging.warning('Unknown format in configurations.json')
+
+
 @transaction.atomic
 def restore_backup(z, keepfiles=True):
     logging.info('Begin restoring backup')
@@ -325,9 +352,9 @@ def restore_backup(z, keepfiles=True):
 
     # Load migrations
     migrations = None
-    migrations_file = zipfile.Path(z, 'migrations.json')
-    if migrations_file.exists():
-        migrations_info = json.loads(migrations_file.read_text())
+    configurations_file = zipfile.Path(z, 'migrations.json')
+    if configurations_file.exists():
+        migrations_info = json.loads(configurations_file.read_text())
         assert migrations_info.get('format') == 'migrations/v1'
         migrations = migrations_info.get('current', [])
 
@@ -377,6 +404,11 @@ def restore_backup(z, keepfiles=True):
     with constraint_checks_immediate():
         call_command('migrate', interactive=False, verbosity=0)
     logging.info('Finished running new migrations')
+
+    # Restore configurations
+    logging.info('Begin restoring configurations')
+    restore_configurations(z)
+    logging.info('Finished restoring configurations')
 
     logging.info('Finished backup restore')
     BackupLog.objects.create(type=BackupLogType.RESTORE, user=None)

@@ -19,6 +19,7 @@ from fido2.webauthn import PublicKeyCredentialRpEntity
 
 from reportcreator_api.users import querysets
 from reportcreator_api.utils import license
+from reportcreator_api.utils.configuration import configuration
 from reportcreator_api.utils.crypto.fields import EncryptedField
 from reportcreator_api.utils.models import BaseModel
 from reportcreator_api.utils.utils import get_random_color
@@ -70,7 +71,7 @@ class PentestUser(BaseModel, AbstractUser):
 
     @property
     def can_login_local(self) -> bool:
-        return (settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional(skip_db_checks=True)) and self.password and self.has_usable_password()
+        return (configuration.LOCAL_USER_AUTH_ENABLED or not license.is_professional(skip_db_checks=True)) and self.password and self.has_usable_password()
 
     @functools.cached_property
     def can_login_sso(self) -> bool:

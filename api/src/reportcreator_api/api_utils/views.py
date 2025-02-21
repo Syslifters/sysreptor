@@ -1,6 +1,7 @@
 import gc
 import logging
 from base64 import b64decode
+from inspect import cleandoc
 
 from adrf.views import APIView as APIViewAsync
 from asgiref.sync import sync_to_async
@@ -16,7 +17,7 @@ from rest_framework.settings import api_settings
 from reportcreator_api.api_utils import backup_utils
 from reportcreator_api.api_utils.healthchecks import run_healthchecks
 from reportcreator_api.api_utils.models import BackupLog
-from reportcreator_api.api_utils.permissions import IsAdminOrSystem
+from reportcreator_api.api_utils.permissions import IsAdmin, IsAdminOrSystem
 from reportcreator_api.api_utils.serializers import (
     BackupLogSerializer,
     BackupSerializer,
@@ -25,12 +26,18 @@ from reportcreator_api.api_utils.serializers import (
     LanguageToolSerializer,
 )
 from reportcreator_api.conf import plugins
-from reportcreator_api.pentests.customfields.types import CweField
 from reportcreator_api.pentests.models import Language, ProjectMemberRole
 from reportcreator_api.tasks.models import PeriodicTask
 from reportcreator_api.users.models import AuthIdentity
+from reportcreator_api.users.serializers import get_oauth
 from reportcreator_api.utils import license
 from reportcreator_api.utils.api import StreamingHttpResponseAsync, ViewSetAsync
+from reportcreator_api.utils.configuration import configuration, reload_server
+from reportcreator_api.utils.fielddefinition.serializers import (
+    DynamicObjectSerializer,
+    serializer_from_field,
+)
+from reportcreator_api.utils.fielddefinition.types import CweField, FieldDefinition, serialize_field_definition
 from reportcreator_api.utils.utils import copy_keys, remove_duplicates, run_in_background
 
 log = logging.getLogger(__name__)
@@ -140,7 +147,6 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         return Response(data=CweField.cwe_definitions())
 
 
-
 class PublicUtilsViewSet(viewsets.GenericViewSet):
     authentication_classes = []
     permission_classes = []
@@ -161,41 +167,41 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
             'code': l.value,
             'name': l.label,
             'spellcheck': l.spellcheck,
-            'enabled': not settings.PREFERRED_LANGUAGES or l.value in settings.PREFERRED_LANGUAGES,
-        } for l in remove_duplicates(list(map(Language, settings.PREFERRED_LANGUAGES)) + list(Language))]
+            'enabled': not configuration.PREFERRED_LANGUAGES or l.value in configuration.PREFERRED_LANGUAGES,
+        } for l in remove_duplicates(list(map(Language, configuration.PREFERRED_LANGUAGES or [])) + list(Language))]
 
         auth_providers = \
-            ([{'type': 'local', 'id': 'local', 'name': 'Local User'}] if settings.LOCAL_USER_AUTH_ENABLED or not license.is_professional() else []) + \
-            ([{'type': AuthIdentity.PROVIDER_REMOTE_USER, 'id': AuthIdentity.PROVIDER_REMOTE_USER, 'name': 'Remote User'}] if settings.REMOTE_USER_AUTH_ENABLED and license.is_professional() else []) + \
-            ([{'type': 'oidc', 'id': k, 'name': v.get('label', k)} for k, v in settings.AUTHLIB_OAUTH_CLIENTS.items()] if license.is_professional() else [])
+            ([{'type': 'local', 'id': 'local', 'name': 'Local User'}] if configuration.LOCAL_USER_AUTH_ENABLED or not license.is_professional() else []) + \
+            ([{'type': AuthIdentity.PROVIDER_REMOTE_USER, 'id': AuthIdentity.PROVIDER_REMOTE_USER, 'name': 'Remote User'}] if configuration.REMOTE_USER_AUTH_ENABLED and license.is_professional() else []) + \
+            ([{'type': 'oidc', 'id': k, 'name': v[1].get('label', k)} for k, v in (get_oauth()._registry or {}).items()] if license.is_professional() else [])
 
         return Response({
             'languages': languages,
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
             'auth_providers': auth_providers,
-            'default_auth_provider': settings.DEFAULT_AUTH_PROVIDER,
-            'default_reauth_provider': settings.DEFAULT_REAUTH_PROVIDER,
+            'default_auth_provider': configuration.DEFAULT_AUTH_PROVIDER,
+            'default_reauth_provider': configuration.DEFAULT_REAUTH_PROVIDER,
             'elastic_apm_rum_config': settings.ELASTIC_APM_RUM_CONFIG if settings.ELASTIC_APM_RUM_ENABLED else None,
-            'archiving_threshold': settings.ARCHIVING_THRESHOLD,
+            'archiving_threshold': int(configuration.ARCHIVING_THRESHOLD),
             'license': copy_keys(license.check_license(), ['type', 'error']),
             'features': {
-                'private_designs': settings.ENABLE_PRIVATE_DESIGNS,
+                'private_designs': configuration.ENABLE_PRIVATE_DESIGNS,
                 'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
                 'archiving': license.is_professional(),
                 'permissions': license.is_professional(),
                 'backup': bool(settings.BACKUP_KEY and license.is_professional()),
                 'websockets': not settings.DISABLE_WEBSOCKETS,
-                'sharing': not settings.DISABLE_SHARING,
+                'sharing': not configuration.DISABLE_SHARING,
             },
             'permissions': {
-                'guest_users_can_import_projects': settings.GUEST_USERS_CAN_IMPORT_PROJECTS,
-                'guest_users_can_create_projects': settings.GUEST_USERS_CAN_CREATE_PROJECTS,
-                'guest_users_can_delete_projects': settings.GUEST_USERS_CAN_DELETE_PROJECTS,
-                'guest_users_can_update_project_settings': settings.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
-                'guest_users_can_edit_projects': settings.GUEST_USERS_CAN_EDIT_PROJECTS,
-                'guest_users_can_share_notes': settings.GUEST_USERS_CAN_SHARE_NOTES,
-                'guest_users_can_see_all_users': settings.GUEST_USERS_CAN_SEE_ALL_USERS,
-                'project_members_can_archive_projects': settings.PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS,
+                'guest_users_can_import_projects': configuration.GUEST_USERS_CAN_IMPORT_PROJECTS,
+                'guest_users_can_create_projects': configuration.GUEST_USERS_CAN_CREATE_PROJECTS,
+                'guest_users_can_delete_projects': configuration.GUEST_USERS_CAN_DELETE_PROJECTS,
+                'guest_users_can_update_project_settings': configuration.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
+                'guest_users_can_edit_projects': configuration.GUEST_USERS_CAN_EDIT_PROJECTS,
+                'guest_users_can_share_notes': configuration.GUEST_USERS_CAN_SHARE_NOTES,
+                'guest_users_can_see_all_users': configuration.GUEST_USERS_CAN_SEE_ALL_USERS,
+                'project_members_can_archive_projects': configuration.PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS,
             },
             'plugins': [
                 {
@@ -242,3 +248,51 @@ class PluginApiView(views.APIView):
 class PublicAPIRootView(routers.APIRootView):
     authentication_classes = []
     permission_classes = []
+
+
+class ConfigurationViewSet(viewsets.ViewSet):
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [IsAdmin]
+
+    def get_serializer(self, **kwargs):
+        instance = kwargs.pop('instance', {d.id: configuration.get(d.id) for d in configuration.definition.fields})
+        return DynamicObjectSerializer(
+            fields={f.id: serializer_from_field(f, validate_values=True, read_only=f.extra_info.get('set_in_env', False)) for f in configuration.definition.fields},
+            instance=instance,
+            **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer()
+        return Response(data=serializer.data)
+
+    def create(self, *args, **kwargs):
+        return self.patch(*args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        configuration.update(serializer.validated_data)
+
+        # Reload server to ensure that the new settings are applied
+        # TODO: How to signal the other containers to reload settings when multiple server containers are used for load balancing?
+        reload_server()
+
+        return self.list(request, *args, **kwargs)
+
+    @action(detail=False, methods=['get'])
+    def definition(self, request, *args, **kwargs):
+        return Response(data={
+            'core': self.serialize_settings_definition(settings.CONFIGURATION_DEFINITION_CORE.keys()),
+            'plugins': [{
+                'id': p.plugin_id,
+                'name': p.name.split('.')[-1],
+                'description': cleandoc(p.__doc__) if p.__doc__ else None,
+                'professional_only': p.professional_only,
+                'enabled': any(p.plugin_id == ep.plugin_id for ep in plugins.enabled_plugins),
+                'fields': self.serialize_settings_definition((p.configuration_definition or FieldDefinition()).keys()),
+            } for p in plugins.available_plugins],
+        })
+
+    def serialize_settings_definition(self, fields):
+        definition = FieldDefinition(fields=[f for f in configuration.definition.fields if f.id in fields])
+        return serialize_field_definition(definition, extra_info=['group', 'set_in_env', 'professional_only'])

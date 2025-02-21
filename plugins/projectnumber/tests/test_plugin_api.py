@@ -1,13 +1,11 @@
-import contextlib
 from unittest import mock
 
 import pytest
-from django.apps import apps
 from django.core.management import call_command
 from django.template.defaultfilters import date
 from django.template.defaulttags import NowNode
 from django.utils import dateparse
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.utils.fielddefinition.types import (
     FieldDefinition,
     StringField,
     serialize_field_definition,
@@ -17,23 +15,11 @@ from reportcreator_api.tests.mock import (
     create_project,
     create_project_type,
     create_user,
+    override_configuration,
 )
 
-from ..apps import ProjectNumberPluginConfig
 from ..management.commands import resetprojectnumber
 from ..models import ProjectNumber
-
-
-@contextlib.contextmanager
-def override_projectnumber_settings(**kwargs):
-    app = apps.get_app_config(ProjectNumberPluginConfig.label)
-    old_settings = app.settings
-    print(kwargs)
-    try:
-        app.settings |= kwargs
-        yield
-    finally:
-        app.settings = old_settings
 
 
 class MockNowNode(NowNode):
@@ -63,7 +49,7 @@ class TestProjectNumberPlugin:
     )
     def test_on_project_saved(self, template, expected):
         # Override settings to use the custom template
-        with override_projectnumber_settings(PLUGIN_PROJECTNUMBER_TEMPLATE=template), \
+        with override_configuration(PLUGIN_PROJECTNUMBER_TEMPLATE=template), \
             mock.patch('django.template.defaulttags.NowNode', new=MockNowNode), \
             mock.patch('random.randint', return_value=17):
              

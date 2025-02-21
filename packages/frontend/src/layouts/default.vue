@@ -55,7 +55,7 @@
           <v-list-item
             v-for="pluginMenuEntry, idx in pluginMenuEntries"
             :key="idx"
-            :to="router.resolve(pluginMenuEntry.to).href"
+            :to="pluginUrl(pluginMenuEntry)"
             :title="pluginMenuEntry.title"
             :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
             v-bind="pluginMenuEntry.attrs"
@@ -96,6 +96,13 @@
           <template #title><permission-info :value="auth.permissions.value.user_manager" permission-name="User Manager">Users</permission-info></template>
         </v-list-item>
         <v-list-item
+          to="/settings/"
+          prepend-icon="mdi-cog"
+          :disabled="!auth.permissions.value.admin"
+        >
+          <template #title><permission-info :value="auth.permissions.value.admin" permission-name="Superuser">Settings</permission-info></template>
+        </v-list-item>
+        <v-list-item
           to="/backups/"
           prepend-icon="mdi-tools"
           :disabled="!auth.permissions.value.view_backup"
@@ -119,7 +126,6 @@ const auth = useAuth();
 const apiSettings = useApiSettings();
 const pluginStore = usePluginStore();
 const route = useRoute();
-const router = useRouter();
 const display = useDisplay();
 
 const pluginMenuEntries = computed(() => pluginStore.menuEntriesForScope(PluginRouteScope.MAIN));

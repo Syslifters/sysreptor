@@ -188,3 +188,8 @@ export function generateRandomPassword() {
   const charset = '23456789' + 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ' + '!#%&+-_';
   return sampleSize(charset, 20).join('');
 }
+
+
+export async function wait(ms: number) {
+  await new Promise(resolve => setTimeout(resolve, ms));
+}

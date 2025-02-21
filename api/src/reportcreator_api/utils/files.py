@@ -3,10 +3,10 @@ import logging
 import string
 from pathlib import Path
 
-from django.conf import settings
 from django.core.files.base import ContentFile, File
 from PIL import Image, ImageOps, UnidentifiedImageError
 
+from reportcreator_api.utils.configuration import configuration
 from reportcreator_api.utils.logging import log_timing
 
 log = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ def compress_image(file, name=None):
     Compress image files and convert the to JPEG.
     If the file is not an image or a SVG file, return it as-is without compressing or converting it.
     """
-    if not settings.COMPRESS_IMAGES:
+    if not configuration.COMPRESS_IMAGES:
         return file, name
 
     try:

@@ -1,5 +1,6 @@
 import copy
 import itertools
+import json
 from datetime import timedelta
 from uuid import uuid4
 
@@ -9,31 +10,14 @@ from django.urls import reverse
 from django.utils import timezone
 
 from reportcreator_api.pentests.collab.text_transformations import SelectionRange
-from reportcreator_api.pentests.customfields.mixins import CustomFieldsMixin
-from reportcreator_api.pentests.customfields.predefined_fields import (
+from reportcreator_api.pentests.fielddefinition.predefined_fields import (
     FINDING_FIELDS_CORE,
     FINDING_FIELDS_PREDEFINED,
     REPORT_FIELDS_CORE,
     finding_fields_default,
     report_sections_default,
 )
-from reportcreator_api.pentests.customfields.sort import sort_findings
-from reportcreator_api.pentests.customfields.types import (
-    FieldDataType,
-    FieldDefinition,
-    ListField,
-    StringField,
-    parse_field_definition,
-    parse_field_definition_legacy,
-    serialize_field_definition,
-    serialize_field_definition_legacy,
-)
-from reportcreator_api.pentests.customfields.utils import (
-    HandleUndefinedFieldsOptions,
-    check_definitions_compatible,
-    ensure_defined_structure,
-)
-from reportcreator_api.pentests.customfields.validators import FieldDefinitionValidator, FieldValuesValidator
+from reportcreator_api.pentests.fielddefinition.sort import sort_findings
 from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, Language
 from reportcreator_api.pentests.models.project import Comment
 from reportcreator_api.tasks.rendering.entry import format_template_field_object
@@ -47,6 +31,24 @@ from reportcreator_api.tests.mock import (
     create_user,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
+from reportcreator_api.utils.fielddefinition.mixins import CustomFieldsMixin
+from reportcreator_api.utils.fielddefinition.serializers import serializer_from_definition
+from reportcreator_api.utils.fielddefinition.types import (
+    FieldDataType,
+    FieldDefinition,
+    ListField,
+    StringField,
+    parse_field_definition,
+    parse_field_definition_legacy,
+    serialize_field_definition,
+    serialize_field_definition_legacy,
+)
+from reportcreator_api.utils.fielddefinition.utils import (
+    HandleUndefinedFieldsOptions,
+    check_definitions_compatible,
+    ensure_defined_structure,
+)
+from reportcreator_api.utils.fielddefinition.validators import FieldDefinitionValidator, FieldValuesValidator
 
 
 @pytest.mark.parametrize(('valid', 'definition'), [
@@ -106,20 +108,20 @@ def test_definition_formats(valid, definition):
 
 @pytest.mark.parametrize(('definition_old', 'definition_new'), [
     (
-        {'f': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}},
-        [{'id': 'f', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}],
+        {'f': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}},
+        [{'id': 'f', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}],
     ),
     (
-        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'type': 'string', 'label': 'Item', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}},
-        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'id': '', 'type': 'string', 'label': 'Item', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}],
+        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'type': 'string', 'label': 'Item', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}},
+        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'id': '', 'type': 'string', 'label': 'Item', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}],
     ),
     (
-        {'f': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}},
-        [{'id': 'f', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}],
+        {'f': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}},
+        [{'id': 'f', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}],
     ),
     (
-        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}}},
-        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'required': False, 'items': {'id': '', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}}],
+        {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}}},
+        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'id': '', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}}],
     ),
 ])
 def test_legacy_definition_format(definition_old, definition_new):
@@ -135,6 +137,7 @@ def test_legacy_definition_format(definition_old, definition_new):
             {'id': 'field_markdown', 'type': 'markdown', 'label': 'Markdown Field', 'default': '# test\nmarkdown'},
             {'id': 'field_cvss', 'type': 'cvss', 'label': 'CVSS Field', 'default': 'n/a'},
             {'id': 'field_cwe', 'type': 'cwe', 'label': 'CWE Field', 'default': None},
+            {'id': 'field_json', 'type': 'json', 'label': 'JSON Field', 'default': None},
             {'id': 'field_date', 'type': 'date', 'label': 'Date Field', 'default': '2022-01-01'},
             {'id': 'field_int', 'type': 'number', 'label': 'Number Field', 'default': 10},
             {'id': 'field_bool', 'type': 'boolean', 'label': 'Boolean Field', 'default': False},
@@ -149,6 +152,7 @@ def test_legacy_definition_format(definition_old, definition_new):
             'field_markdown': 'Some **markdown**\n* String\n*List',
             'field_cvss': 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:H/A:H',
             'field_cwe': 'CWE-89',
+            'field_json': json.dumps({'key': 'value', 'custom': ['prop']}),
             'field_date': '2022-01-01',
             'field_int': 17,
             'field_bool': True,
@@ -237,6 +241,22 @@ def test_api_serializer_user():
     assert_valid_user_field_value(str(user.id), True)  # Project member
     assert_valid_user_field_value(user_imported['id'], True)  # Imported member
     assert_valid_user_field_value(str(uuid4()), False)  # Nonexistent user
+
+
+@pytest.mark.parametrize(('definition', 'value', 'expected'), [
+    ([{'id': 'f', 'type': 'string', 'required': True}], {'f': None}, False),
+    ([{'id': 'f', 'type': 'string', 'pattern': '^[0-9a-f]+$'}], {'f': 'abc123'}, True),
+    ([{'id': 'f', 'type': 'string', 'pattern': '^[0-9a-f]+$'}], {'f': 'not hex'}, False),
+    ([{'id': 'f', 'type': 'number', 'minimum': 1}], {'f': 0}, False),
+    ([{'id': 'f', 'type': 'number', 'maximum': 5}], {'f': 7}, False),
+    ([{'id': 'f', 'type': 'number', 'minimum': 1, 'maximum': 5}], {'f': 3}, True),
+    ([{'id': 'f', 'type': 'json', 'schema': {'type': 'object', 'properties': {'prop': {'type': 'string'}}}}], {'f': '{"prop": "test"}'}, True),
+    ([{'id': 'f', 'type': 'json', 'schema': {'type': 'object', 'properties': {'prop': {'type': 'string'}}}}], {'f': '["invalid", "schema"]'}, False),
+    ([{'id': 'f', 'type': 'json', 'schema': {'type': 'object', 'properties': {'prop': {'type': 'string'}}}}], {'f': 'invalid JSON'}, False),
+])
+def test_api_serializer_validation(definition, value, expected):
+    actual = serializer_from_definition(definition=parse_field_definition(definition), validate_values=True, data=value).is_valid(raise_exception=False)
+    assert actual is expected
 
 
 class CustomFieldsTestModel(CustomFieldsMixin):

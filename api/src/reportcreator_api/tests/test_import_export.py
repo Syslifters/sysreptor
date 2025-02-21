@@ -8,7 +8,6 @@ from django.test import override_settings
 from rest_framework.exceptions import ValidationError
 
 from reportcreator_api.pentests.collab.text_transformations import SelectionRange
-from reportcreator_api.pentests.customfields.types import serialize_field_definition_legacy
 from reportcreator_api.pentests.import_export import (
     export_notes,
     export_project_types,
@@ -38,8 +37,10 @@ from reportcreator_api.tests.mock import (
     create_template,
     create_user,
     create_usernotebookpage,
+    override_configuration,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
+from reportcreator_api.utils.fielddefinition.types import serialize_field_definition_legacy
 from reportcreator_api.utils.utils import copy_keys
 
 
@@ -112,7 +113,7 @@ class TestImportExport:
         self.p_note1_1 = create_projectnotebookpage(project=self.project, parent=self.p_note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
         self.p_note2 = create_projectnotebookpage(project=self.project, order=2, title='Note 2', text='Note text 2')
 
-        with override_settings(COMPRESS_IMAGES=False):
+        with override_configuration(COMPRESS_IMAGES=False):
             yield
 
     def update_references(self, text, files_original, files_updated):

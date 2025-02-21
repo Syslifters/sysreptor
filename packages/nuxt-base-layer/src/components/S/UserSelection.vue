@@ -1,5 +1,6 @@
 <template>
   <s-autocomplete v-bind="autocompleteAttrs">
+    <template #label v-if="$slots.label"><slot name="label" /></template>
     <template #append-item v-if="!props.selectableUsers && allItems.length > 0">
       <page-loader :items="items" />
     </template>
@@ -89,7 +90,7 @@ const allItems = computed(() => {
   return uniqBy(initialUsers.value.concat(items.data.value), 'id');
 })
 
-const attrs = useAttrs();
+const attrs = useAttrs() as any;
 const autocompleteAttrs = computed(() =>
   Object.assign({}, attrs, {
     modelValue: typeof props.modelValue === 'string' ? (allItems.value.find(u => u.id === props.modelValue) || { id: props.modelValue }) : props.modelValue,

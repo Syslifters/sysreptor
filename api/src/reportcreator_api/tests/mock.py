@@ -17,14 +17,9 @@ from rest_framework.test import APIClient
 from reportcreator_api import signals as sysreptor_signals
 from reportcreator_api.api_utils.models import LanguageToolIgnoreWords
 from reportcreator_api.conf.asgi import application
-from reportcreator_api.pentests.customfields.predefined_fields import (
+from reportcreator_api.pentests.fielddefinition.predefined_fields import (
     finding_fields_default,
     report_sections_default,
-)
-from reportcreator_api.pentests.customfields.utils import (
-    HandleUndefinedFieldsOptions,
-    ensure_defined_structure,
-    get_field_value_and_definition,
 )
 from reportcreator_api.pentests.import_export.serializers import RelatedUserDataExportImportSerializer
 from reportcreator_api.pentests.models import (
@@ -56,6 +51,12 @@ from reportcreator_api.pentests.models import (
 from reportcreator_api.pentests.models.project import CommentAnswer, ReportSection
 from reportcreator_api.users.models import APIToken, MFAMethod, PentestUser
 from reportcreator_api.utils import crypto
+from reportcreator_api.utils.configuration import configuration
+from reportcreator_api.utils.fielddefinition.utils import (
+    HandleUndefinedFieldsOptions,
+    ensure_defined_structure,
+    get_field_value_and_definition,
+)
 from reportcreator_api.utils.history import bulk_create_with_history, history_context
 
 
@@ -468,3 +469,15 @@ async def websocket_client(path, user, connect=True):
         yield consumer
     finally:
         await consumer.disconnect()
+
+
+@contextlib.contextmanager
+def override_configuration(**kwargs):
+    restore_map = configuration._force_override.copy()
+    try:
+        configuration._force_override |= kwargs
+        configuration.clear_cache()
+        yield
+    finally:
+        configuration._force_override = restore_map
+        configuration.clear_cache()

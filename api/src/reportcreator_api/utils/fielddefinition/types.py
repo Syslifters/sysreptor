@@ -6,13 +6,13 @@ from datetime import date
 from inspect import isclass
 from pathlib import Path
 from types import GenericAlias
-from typing import Any, Optional, Union
+from typing import Any
 
 from django.utils.deconstruct import deconstructible
 from frozendict import frozendict
 
 from reportcreator_api.utils.decorators import freeze_args
-from reportcreator_api.utils.utils import is_date_string
+from reportcreator_api.utils.utils import copy_keys, is_date_string
 
 
 @enum.unique
@@ -27,6 +27,7 @@ class FieldDataType(enum.Enum):
     ENUM = 'enum'
     COMBOBOX = 'combobox'
     USER = 'user'
+    JSON = 'json'
     OBJECT = 'object'
     LIST = 'list'
 
@@ -51,6 +52,7 @@ class BaseField:
     id: str = ''
     type: FieldDataType = None
     label: str = ''
+    help_text: str|None = None
     origin: FieldOrigin = FieldOrigin.CUSTOM
     extra_info: dict[str, Any] = dataclasses.field(default_factory=dict)
 
@@ -58,7 +60,7 @@ class BaseField:
 @deconstructible
 @dataclasses.dataclass
 class BaseStringField(BaseField):
-    default: Optional[str] = None
+    default: str|None = None
     required: bool = True
 
 
@@ -66,7 +68,7 @@ class BaseStringField(BaseField):
 @dataclasses.dataclass
 class StringField(BaseStringField):
     spellcheck: bool = False
-    pattern: Optional[str] = None
+    pattern: str|None = None
     type: FieldDataType = FieldDataType.STRING
 
 
@@ -92,8 +94,8 @@ class ComboboxField(BaseStringField):
 
 @deconstructible
 @dataclasses.dataclass
-class DateField(BaseField):
-    default: Optional[str] = None
+class DateField(BaseStringField):
+    default: str|None = None
     required: bool = True
     type: FieldDataType = FieldDataType.DATE
 
@@ -116,7 +118,7 @@ class EnumChoice:
 @dataclasses.dataclass
 class EnumField(BaseField):
     choices: list[EnumChoice] = dataclasses.field(default_factory=list)
-    default: Optional[str] = None
+    default: str|None = None
     required: bool = True
     type: FieldDataType = FieldDataType.ENUM
 
@@ -148,16 +150,25 @@ class CweField(BaseStringField):
 
 @deconstructible
 @dataclasses.dataclass
+class JsonField(BaseStringField):
+    type: FieldDataType = FieldDataType.JSON
+    schema: dict|None = None
+
+
+@deconstructible
+@dataclasses.dataclass
 class NumberField(BaseField):
-    default: Optional[Union[float, int]] = None
+    default: float|int|None = None
     required: bool = True
     type: FieldDataType = FieldDataType.NUMBER
+    minimum: float|int|None = None
+    maximum: float|int|None = None
 
 
 @deconstructible
 @dataclasses.dataclass
 class BooleanField(BaseField):
-    default: Optional[bool] = None
+    default: bool|None = None
     type: FieldDataType = FieldDataType.BOOLEAN
 
 
@@ -239,6 +250,7 @@ _FIELD_DATA_TYPE_CLASSES_MAPPING = {
     FieldDataType.ENUM: EnumField,
     FieldDataType.COMBOBOX: ComboboxField,
     FieldDataType.USER: UserField,
+    FieldDataType.JSON: JsonField,
     FieldDataType.OBJECT: ObjectField,
     FieldDataType.LIST: ListField,
 }
@@ -250,7 +262,7 @@ class FieldDefinition(FieldLookupMixin):
     fields: list[BaseField] = dataclasses.field(default_factory=list)
 
 
-def _field_from_dict(t: type, v: Union[dict, str, Any], additional_dataclass_args=None):
+def _field_from_dict(t: type, v: dict|str|Any, additional_dataclass_args=None):
     additional_dataclass_args = additional_dataclass_args or {}
     if isinstance(t, GenericAlias):
         if t.__origin__ is list and isinstance(v, (list, tuple)):
@@ -296,7 +308,7 @@ def parse_field_definition(definition: list[dict]) -> FieldDefinition:
     return FieldDefinition(fields=[_parse_field_definition_entry(d) for d in definition])
 
 
-def _serialize_field_definition_entry(definition: list[BaseField]|Any, extra_info=False):
+def _serialize_field_definition_entry(definition: list[BaseField]|Any, extra_info: bool|list[str] = False):
     if isinstance(definition, (dict, frozendict)):
         return {k: _serialize_field_definition_entry(v, extra_info=extra_info) for k, v in definition.items()}
     elif isinstance(definition, (list, tuple)):
@@ -308,7 +320,9 @@ def _serialize_field_definition_entry(definition: list[BaseField]|Any, extra_inf
         elif isinstance(definition, ObjectField):
             d['properties'] = _serialize_field_definition_entry(definition.properties, extra_info=extra_info)
         d_extra_info = d.pop('extra_info', {})
-        if extra_info:
+        if isinstance(extra_info, (list, tuple)):
+            d |= copy_keys(d_extra_info, extra_info)
+        elif extra_info:
             d |= d_extra_info
         return _serialize_field_definition_entry(d, extra_info=extra_info)
     elif isinstance(definition, enum.Enum):
@@ -358,3 +372,4 @@ def serialize_field_definition_legacy(definition: FieldDefinition) -> dict:
             field_data['items'] = serialize_field_definition_legacy(definition=FieldDefinition(fields=[f.items]))[f.items.id]
         field_dict[f.id] = field_data
     return field_dict
+

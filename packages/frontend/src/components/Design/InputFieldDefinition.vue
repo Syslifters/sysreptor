@@ -19,7 +19,7 @@
           <s-select
             :model-value="props.modelValue.type"
             @update:model-value="updateType($event)"
-            :items="Object.values(FieldDataType)"
+            :items="Object.values(FieldDataType).filter(t => !([FieldDataType.JSON] as FieldDataType[]).includes(t))"
             :disabled="!props.canChangeStructure"
             :readonly="props.readonly"
             label="Data Type"
@@ -95,6 +95,38 @@
                 />
               </template>
             </s-combobox>
+          </v-col>
+        </template>
+
+        <!-- Number options -->
+        <template v-if="props.modelValue.type === FieldDataType.NUMBER">
+          <v-col class="mt-2 pt-0">
+            <v-number-input
+              :model-value="props.modelValue.minimum || null"
+              @update:model-value="updateProperty('minimum', $event)"
+              label="Minimum"
+              :rules="rules.minimum"
+              :persistent-hint="true"
+              hide-details="auto"
+              :max-errors="100"
+              variant="outlined"
+              control-variant="stacked"
+              clearable
+            />
+          </v-col>
+          <v-col class="mt-2 pt-0">
+            <v-number-input
+              :model-value="props.modelValue.maximum || null"
+              @update:model-value="updateProperty('maximum', $event)"
+              label="Maximum"
+              :rules="rules.maximum"
+              :persistent-hint="true"
+              hide-details="auto"
+              :max-errors="100"
+              variant="outlined"
+              control-variant="stacked"
+              clearable
+            />
           </v-col>
         </template>
 
@@ -363,6 +395,12 @@ const rules = {
         return e.message || 'Invalid regular expression';
       }
     },
+  ],
+  minimum: [
+    (v: number) => v === null || v <= (props.modelValue.maximum ?? Number.MAX_SAFE_INTEGER) || 'Minimum must be smaller than maximum',
+  ],
+  maximum: [
+    (v: number) => v === null || v >= (props.modelValue.minimum ?? Number.MIN_SAFE_INTEGER) || 'Maximum must be larger than minimum',
   ]
 };
 

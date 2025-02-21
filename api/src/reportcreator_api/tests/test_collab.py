@@ -10,7 +10,6 @@ from asgiref.sync import sync_to_async
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
 from django.core.serializers.json import DjangoJSONEncoder
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -21,11 +20,6 @@ from reportcreator_api.pentests.collab.text_transformations import (
     SelectionRange,
     Update,
     rebase_updates,
-)
-from reportcreator_api.pentests.customfields.utils import (
-    ensure_defined_structure,
-    get_value_at_path,
-    set_value_at_path,
 )
 from reportcreator_api.pentests.import_export import export_notes
 from reportcreator_api.pentests.models import (
@@ -46,7 +40,13 @@ from reportcreator_api.tests.mock import (
     create_shareinfo,
     create_user,
     mock_time,
+    override_configuration,
     websocket_client,
+)
+from reportcreator_api.utils.fielddefinition.utils import (
+    ensure_defined_structure,
+    get_value_at_path,
+    set_value_at_path,
 )
 from reportcreator_api.utils.utils import copy_keys
 
@@ -1120,7 +1120,7 @@ class TestConsumerPermissions:
                 'readonly': create_project(members=[user_member, user_guest], readonly=True),
             }
             return user, projects[project_name]
-        with override_settings(GUEST_USERS_CAN_EDIT_PROJECTS=False):
+        with override_configuration(GUEST_USERS_CAN_EDIT_PROJECTS=False):
             user, project = await sync_to_async(setup_db)()
             assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
             assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)

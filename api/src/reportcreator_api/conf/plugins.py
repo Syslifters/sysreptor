@@ -17,7 +17,9 @@ from django.utils.functional import classproperty
 from django.utils.module_loading import module_has_submodule
 
 from reportcreator_api.utils import license
+from reportcreator_api.utils.fielddefinition.types import FieldDefinition
 
+available_plugins = []
 enabled_plugins = []
 
 
@@ -39,7 +41,10 @@ class PluginConfig(AppConfig):
     Indicates whether the plugin is only available in SysReptor professional or also in SysReptor community edition.
     """
 
-    frontend_settings = {}
+    configuration_definition: FieldDefinition|None = None
+    """
+    Definition of the plugin's configurations. Settings are loaded from env variables or from the database and can be edited via the settings page in the UI.
+    """
 
     def __init__(self, *args, **kwargs) -> None:
         if not self.plugin_id:
@@ -95,7 +100,7 @@ class PluginConfig(AppConfig):
         """
         Dictionary with settings passed to the plugin's frontend implementation
         """
-        return self.frontend_settings
+        return {}
 
 
 class AppDirectoriesFinderWithoutPluginApps(AppDirectoriesFinder):
@@ -248,6 +253,8 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
             continue
 
         available_plugin_configs.append(plugin_config_class)
+    available_plugins.clear()
+    available_plugins.extend(available_plugin_configs)
 
     # Determine enabled plugins
     installed_apps = []

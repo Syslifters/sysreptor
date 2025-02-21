@@ -434,6 +434,7 @@ export enum FieldDataType {
   BOOLEAN = 'boolean',
   ENUM = 'enum',
   COMBOBOX = 'combobox',
+  JSON = 'json',
   USER = 'user',
   OBJECT = 'object',
   LIST = 'list',
@@ -455,6 +456,7 @@ export type FieldDefinition = {
   type: FieldDataType;
   label: string;
   origin: FieldOrigin;
+  help_text?: string|null;
   default?: any|null;
   required?: boolean;
   spellcheck?: boolean;
@@ -462,6 +464,9 @@ export type FieldDefinition = {
   cvss_version?: CvssVersion;
   suggestions?: string[];
   choices?: EnumFieldChoiceDefinition[];
+  minimum?: number|null;
+  maximum?: number|null;
+  schema?: any|null;
   properties?: FieldDefinition[];
   items?: FieldDefinition;
 }

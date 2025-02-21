@@ -32,6 +32,7 @@ from reportcreator_api.tests.mock import (
     create_public_key,
     create_template,
     create_user,
+    override_configuration,
 )
 from reportcreator_api.utils import crypto
 from reportcreator_api.utils.crypto import pgp
@@ -337,7 +338,7 @@ class TestEncryptDataCommand:
 class TestProjectArchivingEncryption:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        with override_settings(PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=True), \
+        with override_configuration(PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=True), \
              pgp.create_gpg() as self.gpg:
             yield
 
@@ -402,14 +403,14 @@ class TestProjectArchivingEncryption:
         (True, 2, 3, 1),
     ])
     def test_archiving_validation(self, expected, threshold, num_users_with_key, num_users_without_key):
-        with override_settings(ARCHIVING_THRESHOLD=threshold):
+        with override_configuration(ARCHIVING_THRESHOLD=threshold):
             users = [create_user(public_key=True) for _ in range(num_users_with_key)] + \
                     [create_user(public_key=False) for _ in range(num_users_without_key)]
             project = create_project(members=users, readonly=True)
             res = api_client(users[0]).post(reverse('pentestproject-archive', kwargs={'pk': project.pk}))
             assert (res.status_code == 201) == expected
 
-    @override_settings(ARCHIVING_THRESHOLD=2)
+    @override_configuration(ARCHIVING_THRESHOLD=2)
     def test_archiving_dearchiving(self):
         user_regular = self.create_user_with_private_key()
         user_archiver1 = self.create_user_with_private_key(is_global_archiver=True)
@@ -458,7 +459,7 @@ class TestProjectArchivingEncryption:
         project_restored = PentestProject.objects.get(id=res_d2.data['project_id'])
         assert project_restored.name == project.name
 
-    @override_settings(ARCHIVING_THRESHOLD=1, PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=False)
+    @override_configuration(ARCHIVING_THRESHOLD=1, PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=False)
     def test_archiving_disabled_for_project_members(self):
         user_regular = create_user(public_key=True)
         user_archiver = create_user(public_key=True, is_global_archiver=True)

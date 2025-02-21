@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import uuid
 from collections import OrderedDict
@@ -89,6 +90,14 @@ def is_uuid(val) -> bool:
         uuid.UUID(val)
         return True
     except (ValueError, TypeError, AttributeError):
+        return False
+
+
+def is_json_string(val: str) -> bool:
+    try:
+        json.loads(val)
+        return True
+    except (TypeError, json.JSONDecodeError):
         return False
 
 

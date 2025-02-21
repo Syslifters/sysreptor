@@ -12,9 +12,10 @@ from django.db import ProgrammingError
 from django.test import override_settings
 from django.urls import reverse
 
-from reportcreator_api.conf.plugins import load_plugins
+from reportcreator_api.conf.plugins import available_plugins, load_plugins
 from reportcreator_api.management.commands import restorebackup
 from reportcreator_api.tests.mock import api_client, create_user
+from reportcreator_api.utils.configuration import configuration
 from reportcreator_api.utils.utils import omit_keys
 
 DEMOPLUGIN_ID = 'db365aa0-ed36-4e90-93b6-a28effc4ed47'
@@ -59,9 +60,14 @@ def create_demopluginmodel(**kwargs):
 class TestPluginLoading:
     @enable_demoplugin()
     def test_plugin_loading(self):
+        user = create_user(is_superuser=True)
+        user.admin_permissions_enabled = True
+        client_admin = api_client(user)
+
         # Test django app of plugin is installed
         assert apps.is_installed('sysreptor_plugins.demoplugin')
-        assert apps.get_app_config(DEMOPLUGIN_APPLABEL) is not None
+        app_config = apps.get_app_config(DEMOPLUGIN_APPLABEL)
+        assert app_config is not None
 
         # Models registered
         model = apps.get_model(DEMOPLUGIN_APPLABEL, 'DemoPluginModel')
@@ -82,11 +88,21 @@ class TestPluginLoading:
         # URLs registered
         assert api_client().get(reverse(f'{DEMOPLUGIN_APPLABEL}:helloworld')).status_code == 200
 
-        # Plugin config in api settings
+        # Plugin frontend_config in api settings
         res = api_client().get(reverse('publicutils-settings'))
         assert res.status_code == 200
         demoplugin_config = next(filter(lambda p: p['id'] == DEMOPLUGIN_ID, res.data['plugins']))
-        assert omit_keys(demoplugin_config, ['frontend_entry']) == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_settings': {}}
+        assert omit_keys(demoplugin_config, ['frontend_entry']) == {'id': DEMOPLUGIN_ID, 'name': 'demoplugin', 'frontend_settings': {
+            'setting_value': configuration.PLUGIN_DEMOPLUGIN_SETTING,
+        }}
+
+        # Plugin settings regsitered
+        configuration.clear_cache()
+        assert configuration.PLUGIN_DEMOPLUGIN_SETTING == app_config.configuration_definition['PLUGIN_DEMOPLUGIN_SETTING'].default
+        res = client_admin.get(reverse('configuration-definition'))
+        assert any(d['id'] == 'PLUGIN_DEMOPLUGIN_SETTING' for d in next(filter(lambda p: p['id'] == DEMOPLUGIN_ID, res.data['plugins']))['fields'])
+        assert client_admin.get(reverse('configuration-list')).data['PLUGIN_DEMOPLUGIN_SETTING'] == configuration.PLUGIN_DEMOPLUGIN_SETTING
+
 
     def test_load_professional_only(self):
         from sysreptor_plugins.demoplugin.apps import DemoPluginConfig  # type: ignore
@@ -97,6 +113,13 @@ class TestPluginLoading:
                 assert load_plugins(plugin_dirs=settings.PLUGIN_DIRS, enabled_plugins=['demoplugin']) == []
         finally:
             DemoPluginConfig.professional_only = False
+
+    @disable_demoplugin()
+    def test_load_settings_of_disabled_plugins(self):
+        assert not apps.is_installed(DEMOPLUGIN_APPLABEL)
+        config = next(filter(lambda p: p.plugin_id == DEMOPLUGIN_ID, available_plugins))
+        assert configuration.PLUGIN_DEMOPLUGIN_SETTING == config.configuration_definition['PLUGIN_DEMOPLUGIN_SETTING'].default
+
 
 @pytest.mark.django_db()
 class TestPluginBackupRestore:

@@ -10,6 +10,7 @@
     :clearable="true"
     spellcheck="false"
   >
+    <template #label v-if="$slots.label"><slot name="label" /></template>
     <template #item="{ item: { raw: cwe }, props: itemProps}">
       <v-list-item v-bind="itemProps" density="compact">
         <template #prepend>

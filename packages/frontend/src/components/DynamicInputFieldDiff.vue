@@ -27,7 +27,7 @@
         </s-card>
         <s-card v-else-if="props.current.definition?.type === 'list'">
           <v-card-item class="pb-0">
-            <v-card-title class="text-body-1">{{ props.current.definition.label }}</v-card-title>
+            <v-card-title class="text-body-1">{{ props.current.definition.label || props.current.definition.id }}</v-card-title>
             <template #append>
               <comment-btn
                 v-if="props.current.collab?.comments"
@@ -52,7 +52,7 @@
   </v-hover>
   <div v-else-if="props.historic.definition?.type === FieldDataType.MARKDOWN && props.current.definition?.type === FieldDataType.MARKDOWN" class="mt-4">
     <markdown-diff-field
-      :label="props.current.definition!.label"
+      :label="props.current.definition!.label || props.current.definition.id"
       v-bind="markdownDiffAttrs"
       :class="{'diff-highlight-changed': hasChanged}"
     />
@@ -95,7 +95,7 @@ import { FieldDataType, type DynamicInputFieldDiffProps } from '#imports';
 const props = defineProps<DynamicInputFieldDiffProps>();
 defineSlots();
 
-const attrs = useAttrs();
+const attrs = useAttrs() as any;
 const inheritedDiffAttrs = computed(() => {
   const copyFields = [
     'disabled', 'readonly', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 

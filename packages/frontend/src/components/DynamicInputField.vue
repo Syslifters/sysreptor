@@ -5,22 +5,25 @@
         <div class="flex-grow-width">
           <!-- String -->
           <markdown-text-field
-            v-if="definition.type === 'string'"
+            v-if="definition.type === FieldDataType.STRING"
             v-model="formValue"
             :collab="props.collab"
             validate-on="input lazy"
             :spellcheck-supported="definition.spellcheck"
             :rules="[(v: string) => validateRegexPattern(v)]"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </markdown-text-field>
 
           <!-- Markdown -->
           <markdown-field
-            v-else-if="definition.type === 'markdown'"
+            v-else-if="definition.type === FieldDataType.MARKDOWN"
             v-model="formValue"
             :collab="props.collab"
             v-bind="fieldAttrs"
           >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
             <template v-if="$slots['markdown-context-menu']" #context-menu="slotData">
               <slot 
                 name="markdown-context-menu"
@@ -34,16 +37,18 @@
 
           <!-- Date -->
           <s-date-picker
-            v-else-if="definition.type === 'date'"
+            v-else-if="definition.type === FieldDataType.DATE"
             v-model="formValue"
             :locale="props.lang || undefined"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-date-picker>
 
           <!-- Enum -->
           <s-autocomplete
-            v-else-if="definition.type === 'enum'"
+            v-else-if="definition.type === FieldDataType.ENUM"
             v-model="formValue"
             :items="[{value: null as string|null, label: '---'}].concat(definition.choices!)"
             item-title="label"
@@ -52,69 +57,104 @@
             spellcheck="false"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-autocomplete>
 
           <!-- Combobox -->
           <s-combobox
-            v-else-if="definition.type === 'combobox'"
+            v-else-if="definition.type === FieldDataType.COMBOBOX"
             v-model="formValue"
             :items="comboboxSuggestions"
             :clearable="!props.readonly"
             spellcheck="false"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-combobox>
 
           <!-- Number -->
-          <s-text-field
-            v-else-if="definition.type === 'number'"
+          <v-number-input
+            v-else-if="definition.type === FieldDataType.NUMBER"
             :model-value="formValue"
-            @update:model-value="emitUpdate(parseFloat($event))"
-            type="number"
+            @update:model-value="emitUpdate($event)"
+            :min="definition.minimum ?? Number.MIN_SAFE_INTEGER"
+            :max="definition.maximum ?? Number.MAX_SAFE_INTEGER"
+            :persistent-hint="true"
+            hide-details="auto"
+            :max-errors="100"
+            variant="outlined"
+            control-variant="stacked"
+            clearable
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </v-number-input>
 
           <!-- Boolean -->
           <s-checkbox
-            v-else-if="definition.type === 'boolean'"
+            v-else-if="definition.type === FieldDataType.BOOLEAN"
             :model-value="formValue || false"
             @update:model-value="emitUpdate($event)"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-checkbox>
 
           <!-- CVSS -->
           <s-cvss-field
-            v-else-if="definition.type === 'cvss'"
+            v-else-if="definition.type === FieldDataType.CVSS"
             v-model="formValue"
             :cvss-version="definition.cvss_version"
             :disable-validation="props.disableValidation"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-cvss-field>
 
           <!-- CWE -->
           <s-cwe-field
-            v-else-if="definition.type === 'cwe'"
+            v-else-if="definition.type === FieldDataType.CWE"
             v-model="formValue"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-cwe-field>
 
           <!-- User -->
           <s-user-selection
-            v-else-if="definition.type === 'user'"
+            v-else-if="definition.type === FieldDataType.USER"
             :model-value="formValue"
             @update:model-value="emitUpdate(($event as UserShortInfo|null)?.id || null)"
             :selectable-users="selectableUsers"
             @focus="collabFocus"
             v-bind="fieldAttrs"
-          />
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-user-selection>
+
+          <!-- JSON -->
+          <s-codeblock-field
+            v-else-if="definition.type === FieldDataType.JSON"
+            :model-value="formValue"
+            @update:model-value="emitUpdate($event)"
+            :rules="[(v: string) => validateJson(v)]"
+            @focus="collabFocus"
+            variant="outlined"
+            v-bind="fieldAttrs"
+          >
+            <template #label v-if="$slots.label"><slot name="label" /></template>
+          </s-codeblock-field>
 
           <!-- Object -->
-          <s-card v-else-if="definition.type === 'object'">
+          <s-card v-else-if="definition.type === FieldDataType.OBJECT">
             <v-card-item class="pb-0">
-              <v-card-title class="text-body-1">{{ label }}</v-card-title>
+              <v-card-title class="text-body-1"><slot name="label">{{ label }}</slot></v-card-title>
+              <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
               <template #append>
                 <comment-btn
                   v-if="props.collab?.comments"
@@ -133,17 +173,24 @@
                 @update:model-value="emitInputObject(objectField.id as string, $event)"
                 :collab="props.collab ? collabSubpath(props.collab, objectField.id) : undefined"
                 :id="props.id ? (props.id + '.' + objectField.id) : undefined"
+                :error-messages="props.errorMessages?.[objectField.id]"
                 v-bind="inheritedAttrs(objectField)"
               >
-                <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+                <template v-for="name in inheritedSlots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
               </dynamic-input-field>
             </v-card-text>
           </s-card>
 
           <!-- List -->
-          <s-card v-else-if="definition.type === 'list'">
+          <s-card v-else-if="definition.type === FieldDataType.LIST">
             <v-card-item class="pb-0">
-              <v-card-title class="text-body-1">{{ label }}</v-card-title>
+              <v-card-title class="text-body-1"><slot name="label">{{ label }}</slot></v-card-title>
+              <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
+              <v-alert v-if="Array.isArray(props.errorMessages) && props.errorMessages.length > 0" color="error">
+                <ul>
+                  <li v-for="e in props.errorMessages" :key="e">{{ e }}</li>
+                </ul>
+              </v-alert>
               <template #append>
                 <comment-btn
                   v-if="props.collab?.comments"
@@ -152,7 +199,7 @@
                   v-show="!mobile"
                 />
                 <s-btn-icon
-                  v-if="definition.items!.type === 'string'"
+                  v-if="definition.items!.type === FieldDataType.STRING"
                   @click="bulkEditList = !bulkEditList"
                   density="comfortable"
                 >
@@ -169,7 +216,7 @@
             <v-card-text>
               <!-- Bulk edit list items of list[string] -->
               <v-textarea
-                v-if="definition.items!.type === 'string' && bulkEditList"
+                v-if="definition.items!.type === FieldDataType.STRING && bulkEditList"
                 :model-value="(formValue || []).join('\n')"
                 @update:model-value="emitInputStringList"
                 auto-grow
@@ -197,9 +244,10 @@
                           :collab="props.collab ? collabSubpath(props.collab, `[${entryIdx}]`) : undefined"
                           @keydown="onListKeyDown"
                           :id="id ? `${id}[${entryIdx}]` : undefined"
+                          :error-messages="props.errorMessages?.[entryIdx]"
                           v-bind="inheritedAttrs(props.definition.items!)"
                         >
-                          <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+                          <template v-for="(_, name) in inheritedSlots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
                         </dynamic-input-field>
                       </template>
                       <template #append>
@@ -281,10 +329,11 @@
 
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
-import { pick, uniq } from 'lodash-es';
+import { omit, pick, uniq } from 'lodash-es';
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo } from '#imports';
 import { workerUrlPolicy } from '~/plugins/trustedtypes';
+import { wait } from '@base/utils/helpers';
 
 defineOptions({
   inheritAttrs: false,
@@ -303,6 +352,7 @@ const props = defineProps<MarkdownProps & {
   autofocus?: boolean;
   disableValidation?: boolean;
   nestingLevel?: number;
+  errorMessages?: any;
 }>();
 const emit = defineEmits<{
   'update:modelValue': [value: any];
@@ -415,7 +465,7 @@ const formValue = computed({
   }),
 });
 const label = computed(() => {
-  let out = props.definition.label || '';
+  let out = props.definition.label || props.definition.id || '';
   if (props.showFieldIds && props.id) {
     if (out) {
       out += ' (' + props.id + ')';
@@ -427,15 +477,16 @@ const label = computed(() => {
 })
 
 function isEmptyOrDefault(value: any, definition: FieldDefinition): boolean {
-  if (definition.type === 'list') {
+  if (definition.type === FieldDataType.LIST) {
     return value.length === 0 || value.every((v: any) => isEmptyOrDefault(v, definition.items!));
-  } else if (definition.type === 'object') {
+  } else if (definition.type === FieldDataType.OBJECT) {
     return !value || definition.properties!.every(d => isEmptyOrDefault(value[d.id], d));
   } else {
     return !value || value === definition.default;
   }
 }
 
+// Regex validation
 // Global worker instance reused for all components
 const regexWorker = useState<Worker|null>('regexWorker', () => null);
 async function validateRegexPattern(value: string) {
@@ -454,7 +505,10 @@ async function validateRegexPattern(value: string) {
       regexWorker.value!.addEventListener('message', (e: MessageEvent) => resolve(e.data), { once: true });
       regexWorker.value!.postMessage({ pattern, value }); // Send the string and regex to the worker
     });
-    const timeoutReject = (timeoutMs: number) => new Promise((_resolve, reject) => setTimeout(() => reject(new Error("RegEx timeout")), timeoutMs));
+    async function timeoutReject(timeoutMs: number) {
+      await wait(timeoutMs);
+      throw new Error("RegEx timeout");
+    }
     try {
       // Execute regex in a web worker with timeout to prevent RegEx DoS
       const res = await Promise.race([threadedRegexMatch, timeoutReject(500)]);
@@ -478,6 +532,21 @@ onBeforeUnmount(async () => {
     regexWorker.value = null;
   }
 })
+
+// JSON validation
+function validateJson(v: string) {
+  if (props.definition.type !== FieldDataType.JSON || !v) {
+    return true;
+  }
+
+  try {
+    JSON.parse(v);
+  } catch (e: any) {
+    return `Invalid JSON: ${e.message}`;
+  }
+
+  return true;
+}
 
 const bulkEditList = ref(false);
 function emitInputStringList(valuesListString?: string) {
@@ -523,12 +592,13 @@ const nestedClass = computed(() => {
   return undefined;
 });
 
-const attrs = useAttrs();
+const attrs = useAttrs() as any;
 const fieldAttrs = computed(() => ({
   ...attrs,
   label: label.value,
+  hint: props.definition.help_text || undefined,
   ...pick(props, [
-    'disabled', 'readonly', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
+    'disabled', 'readonly', 'errorMessages', 'autofocus', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
     'referenceItems', 'rewriteFileUrlMap', 'uploadFile',
   ]),
   onCollab: (v: any) => emit('collab', v),
@@ -540,12 +610,14 @@ const fieldAttrs = computed(() => ({
 const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
   const nextNestingLevel = (props.nestingLevel || 0) + 1;
   return {
-    ...fieldAttrs.value,
+    ...omit(fieldAttrs.value, ['errorMessages']),
     ...pick(props, ['selectableUsers', 'disableValidation', 'showFieldIds', 'fieldValueSuggestions']),
     definition: nestedDefinition,
     nestingLevel: nextNestingLevel,
   };
 });
+const slots = useSlots() as any;
+const inheritedSlots = computed(() => Object.keys(slots).filter(name => !['label'].includes(name)));
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({

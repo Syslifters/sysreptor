@@ -1,13 +1,14 @@
 import functools
-import itertools
 import json
 from pathlib import Path
 
 import jsonschema
+import regex
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.deconstruct import deconstructible
 
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.utils.fielddefinition.types import (
     BaseField,
     CweField,
     FieldDataType,
@@ -15,26 +16,12 @@ from reportcreator_api.pentests.customfields.types import (
     ObjectField,
     parse_field_definition,
 )
+from reportcreator_api.utils.utils import is_json_string
 
 
 @functools.cache
 def get_field_definition_schema():
     return jsonschema.Draft202012Validator(schema=json.loads((Path(__file__).parent / 'fielddefinition.schema.json').read_text()))
-
-
-@functools.cache
-def get_section_definition_schema():
-    return jsonschema.Draft202012Validator(schema=json.loads((Path(__file__).parent / 'sectiondefinition.schema.json').read_text()))
-
-
-@functools.cache
-def get_finding_ordering_schema():
-    return jsonschema.Draft202012Validator(schema=json.loads((Path(__file__).parent / 'findingordering.schema.json').read_text()))
-
-
-@functools.cache
-def get_defaultnotes_schema():
-    return jsonschema.Draft202012Validator(schema=json.loads((Path(__file__).parent / 'defaultnotes.schema.json').read_text()))
 
 
 @deconstructible
@@ -107,7 +94,7 @@ class FieldValuesValidator:
 
     def compile_field(self, definition: BaseField):
         field_type = definition.type
-        if field_type in [FieldDataType.STRING, FieldDataType.MARKDOWN, FieldDataType.CVSS, FieldDataType.COMBOBOX]:
+        if field_type in [FieldDataType.STRING, FieldDataType.MARKDOWN, FieldDataType.CVSS, FieldDataType.COMBOBOX, FieldDataType.JSON]:
             return {'type': ['string', 'null']}
         elif field_type == FieldDataType.DATE:
             return {'type': ['string', 'null'], 'format': 'date'}
@@ -146,54 +133,59 @@ class FieldValuesValidator:
 
 
 @deconstructible
-class SectionDefinitionValidator:
-    def __init__(self, core_fields: FieldDefinition|None = None, predefined_fields: FieldDefinition|None = None) -> None:
-        self.core_fields = core_fields
+class JsonSchemaValidator:
+    def __init__(self, schema: dict):
+        self.schema = schema
 
-    def __call__(self, value: list[dict]):
+    def __call__(self, value: dict|str):
+        if not isinstance(value, dict):
+            try:
+                value = json.loads(value)
+            except (json.JSONDecodeError, TypeError) as ex:
+                raise ValidationError('Invalid data: Not a valid JSON object') from ex
+
         try:
-            get_section_definition_schema().validate(value)
+            jsonschema.validate(value, self.schema)
         except jsonschema.ValidationError as ex:
-            raise ValidationError('Invalid section definition') from ex
-
-        # validate unique section IDs
-        section_ids = [s['id'] for s in value]
-        duplicate_ids = set([f for f in section_ids if section_ids.count(f) > 1])
-        if duplicate_ids:
-            raise ValidationError(f'Invalid section definition: Section IDs are not unique. Duplicate IDs: {", ".join(duplicate_ids)}')
-
-        # validate field definition and unique field IDs across all sections
-        all_fields = list(itertools.chain(*map(lambda s: s['fields'], value)))
-        FieldDefinitionValidator(core_fields=self.core_fields)(all_fields)
+            raise ValidationError(f'Invalid data: does not match JSON schema: {ex}') from ex
+        except (jsonschema.SchemaError, Exception) as ex:
+            raise ValidationError(f'Invalid JSON schema: {ex}') from ex
 
 
 @deconstructible
-class FindingOrderingValidator:
-    def __call__(self, value: list[dict]):
+class RegexPatternValidator:
+    def __init__(self, pattern: str):
+        self.pattern = pattern
+
+    def __call__(self, data: str):
         try:
-            get_finding_ordering_schema().validate(value)
-        except jsonschema.ValidationError as ex:
-            raise ValidationError('Invalid finding ordering') from ex
+            res = regex.match(pattern=self.pattern, string=data, timeout=settings.REGEX_VALIDATION_TIMEOUT.total_seconds())
+            if not res:
+                raise ValidationError(f'Invalid format: Value does not match pattern /{self.pattern}/')
+        except TimeoutError as ex:
+            raise ValidationError('Regex timeout') from ex
+        except regex.error as ex:
+            raise ValidationError('Invalid regex pattern') from ex
 
 
 @deconstructible
-class DefaultNotesValidator:
-    def __call__(self, value: list[dict]):
+class JsonStringValidator:
+    def __call__(self, data):
+        if not is_json_string(data):
+            raise ValidationError('Invalid data: Not a valid JSON string')
+
+
+@deconstructible
+class BooleanValidatorWrapper:
+    def __init__(self, validator_fn):
+        self.validator_fn = validator_fn
+
+    def __call__(self, data):
         try:
-            get_defaultnotes_schema().validate(value)
-        except jsonschema.ValidationError as ex:
-            raise ValidationError('Invalid default notes') from ex
-
-        # Validate unique note IDs
-        note_ids = set(map(lambda n: n['id'], value))
-        if len(value) != len(note_ids):
-            raise ValidationError('Invalid default notes: Note IDs are not unique')
-
-        # Validate parent ID exists
-        for note in value:
-            if note['parent'] is not None and note['parent'] not in note_ids:
-                raise ValidationError(f'Invalid default notes: Parent ID "{note["parent"]}" does not exist')
-
-        # Validate parent-child relationships form a valid tree
-        from reportcreator_api.pentests.querysets import NotebookPageManagerBase
-        NotebookPageManagerBase().check_parent_and_order(instances=value)
+            res = self.validator_fn(data)
+            if res is False:
+                raise ValidationError('Invalid value')
+        except ValidationError:
+            raise
+        except Exception as ex:
+            raise ValidationError() from ex

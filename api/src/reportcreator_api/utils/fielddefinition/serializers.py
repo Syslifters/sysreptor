@@ -6,15 +6,19 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.utils.fielddefinition.types import (
     BaseField,
     CweField,
     FieldDataType,
     FieldDefinition,
     ObjectField,
 )
-from reportcreator_api.pentests.models import ProjectMemberInfo
-from reportcreator_api.users.models import PentestUser
+from reportcreator_api.utils.fielddefinition.validators import (
+    BooleanValidatorWrapper,
+    JsonSchemaValidator,
+    JsonStringValidator,
+    RegexPatternValidator,
+)
 
 
 @extend_schema_field(OpenApiTypes.OBJECT)
@@ -42,9 +46,14 @@ class CweFieldSerializer(serializers.CharField):
 
 
 class UserField(serializers.PrimaryKeyRelatedField):
-    queryset = PentestUser.objects.all()
+    def get_queryset(self):
+        from reportcreator_api.users.models import PentestUser
+        return PentestUser.objects.all()
 
     def to_internal_value(self, data):
+        from reportcreator_api.pentests.models import ProjectMemberInfo
+        from reportcreator_api.users.models import PentestUser
+
         if isinstance(data, (str, UUID)) and (project := self.context.get('project')):
             if not getattr(project, '_prefetched_objects_cache', {}).get('members'):
                 # Prefetch members to avoid N+1 queries
@@ -64,27 +73,47 @@ class UserField(serializers.PrimaryKeyRelatedField):
         return super().to_representation(value)
 
 
-def serializer_from_definition(definition: FieldDefinition|ObjectField, **kwargs):
+def serializer_from_definition(definition: FieldDefinition|ObjectField, validate_values=False, **kwargs):
     return DynamicObjectSerializer(
-        fields=dict(filter(lambda t: t[1] is not None, map(lambda t: (t.id, serializer_from_field(t)), definition.fields))),
+        fields={f.id: serializer_from_field(f, validate_values=validate_values) for f in definition.fields},
         **kwargs)
 
 
-def serializer_from_field(definition: BaseField):
-    field_kwargs = {
-        'label': definition.label,
+def serializer_from_field(definition: BaseField, validate_values=False, **kwargs):
+    field_kwargs = kwargs | {
+        'label': definition.label or definition.id,
         'required': False,
     }
     value_field_kwargs = field_kwargs | {
         'allow_null': True,
-        # 'default': getattr(definition, 'default', None),
     }
+    validators = []
+    allow_blank = True
+
+    if validate_values:
+        field_kwargs |= {'validators': validators}
+        value_field_kwargs |= {'validators': validators}
+
+        if getattr(definition, 'required', False) and not field_kwargs.get('read_only'):
+            field_kwargs |= {'required': True}
+            value_field_kwargs |= {'required': True, 'allow_null': False}
+            allow_blank = False
+    if validate_values and (validator_fn := definition.extra_info.get('validate')):
+        validators.append(BooleanValidatorWrapper(validator_fn))
+
     field_type = definition.type
     if field_type in [FieldDataType.STRING, FieldDataType.MARKDOWN, FieldDataType.CVSS, FieldDataType.COMBOBOX]:
-        return serializers.CharField(trim_whitespace=False, allow_blank=True, **value_field_kwargs)
+        if validate_values and field_type == FieldDataType.STRING and definition.pattern:
+            validators.append(RegexPatternValidator(definition.pattern))
+        return serializers.CharField(trim_whitespace=False, allow_blank=allow_blank, **value_field_kwargs)
     elif field_type == FieldDataType.DATE:
         return DateFieldSerializer(**value_field_kwargs)
     elif field_type == FieldDataType.NUMBER:
+        if validate_values:
+            value_field_kwargs |= {
+                'min_value': definition.minimum,
+                'max_value': definition.maximum,
+            }
         return serializers.FloatField(**value_field_kwargs)
     elif field_type == FieldDataType.BOOLEAN:
         return serializers.BooleanField(**value_field_kwargs)
@@ -94,9 +123,15 @@ def serializer_from_field(definition: BaseField):
         return CweFieldSerializer(**value_field_kwargs)
     elif field_type == FieldDataType.USER:
         return UserField(**value_field_kwargs)
+    elif field_type == FieldDataType.JSON:
+        if validate_values:
+            validators.append(JsonStringValidator())
+            if definition.schema:
+                validators.append(JsonSchemaValidator(schema=definition.schema or {}))
+        return serializers.CharField(allow_blank=allow_blank, **value_field_kwargs)
     elif field_type == FieldDataType.OBJECT:
-        return serializer_from_definition(definition, **field_kwargs)
+        return serializer_from_definition(definition, validate_values=validate_values, **field_kwargs)
     elif field_type == FieldDataType.LIST:
-        return serializers.ListField(child=serializer_from_field(definition.items), allow_empty=True, **field_kwargs)
+        return serializers.ListField(child=serializer_from_field(definition.items, validate_values=validate_values), allow_empty=allow_blank, **field_kwargs)
     else:
         raise ValueError(f'Encountered unsupported type in field definition: "{field_type}"')

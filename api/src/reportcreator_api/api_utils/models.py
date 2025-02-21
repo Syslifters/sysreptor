@@ -28,3 +28,10 @@ class BackupLog(BaseModel):
     type = models.CharField(choices=BackupLogType.choices, max_length=20)
     user = models.ForeignKey(PentestUser, on_delete=models.SET_NULL, null=True, blank=True)
 
+
+class DbConfigurationEntry(models.Model):
+    name = models.CharField(max_length=255, primary_key=True)
+    value = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name

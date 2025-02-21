@@ -1,5 +1,5 @@
 <template>
-  <history-timeline :model-value="props.modelValue" @update:model-value="emit('update:modelValue', $event)" :url="historyTimelineUrl">
+  <history-timeline :model-value="props.modelValue" @update:model-value="emit('update:modelValue', $event as boolean)" :url="historyTimelineUrl">
     <template #item="{item}">
       <history-timeline-item-project :item="item" :project="project" /> 
     </template>

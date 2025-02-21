@@ -1,12 +1,14 @@
 import dataclasses
 import enum
 import random
-from typing import Any, Iterable, Optional, Union
+from collections.abc import Iterable
+from typing import Any, Optional, Union
 
 from django.utils import timezone
 from lorem_text import lorem
 
-from reportcreator_api.pentests.customfields.types import (
+from reportcreator_api.tasks.rendering.error_messages import format_path
+from reportcreator_api.utils.fielddefinition.types import (
     BaseField,
     CweField,
     FieldDataType,
@@ -14,7 +16,6 @@ from reportcreator_api.pentests.customfields.types import (
     FieldOrigin,
     ObjectField,
 )
-from reportcreator_api.tasks.rendering.error_messages import format_path
 from reportcreator_api.utils.utils import is_date_string, is_uuid
 
 
@@ -118,7 +119,9 @@ def ensure_defined_structure(value, definition: FieldDefinition|BaseField, handl
             return _default_or_demo_data(definition, random.randint(1, 10), handle_undefined=handle_undefined)  # noqa: S311
         elif definition.type == FieldDataType.BOOLEAN and not isinstance(value, bool):
             return _default_or_demo_data(definition, random.choice([True, False]), handle_undefined=handle_undefined)  # noqa: S311
-        elif definition.type == FieldDataType.USER and not (isinstance(value, str) or is_uuid(value)):
+        elif definition.type == FieldDataType.JSON and not isinstance(value, str):
+            return _default_or_demo_data(definition, None, handle_undefined=handle_undefined)
+        elif definition.type == FieldDataType.USER and not is_uuid(value):
             return None
         else:
             return value

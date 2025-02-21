@@ -32,6 +32,7 @@ from reportcreator_api.tests.mock import (
     create_template,
     create_user,
     mock_time,
+    override_configuration,
 )
 
 
@@ -407,8 +408,8 @@ class TestAutoProjectArchiving:
         self.user = create_user(public_key=True)
         self.project = create_project(readonly=True, members=[self.user])
 
-        with override_settings(
-            AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=timedelta(days=30),
+        with override_configuration(
+            AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=30,
             ARCHIVING_THRESHOLD=1,
         ):
             yield
@@ -423,7 +424,7 @@ class TestAutoProjectArchiving:
             assert not PentestProject.objects.filter(id=self.project.id).exists()
             assert PentestProject.objects.filter(id=project_active.id).exists()
 
-    @override_settings(AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=None)
+    @override_configuration(AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=None)
     def test_auto_archiving_disabled(self):
         with mock_time(after=timedelta(days=60)):
             async_to_sync(automatically_archive_projects)(None)
@@ -456,7 +457,7 @@ class TestAutoArchiveDeletion:
     def setUp(self):
         self.archive = create_archived_project()
 
-        with override_settings(AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=timedelta(days=30)):
+        with override_configuration(AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=30):
             yield
 
     def test_delete(self):
@@ -469,7 +470,7 @@ class TestAutoArchiveDeletion:
             async_to_sync(automatically_delete_archived_projects)(None)
             assert ArchivedProject.objects.filter(id=self.archive.id).exists()
 
-    @override_settings(AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=None)
+    @override_configuration(AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=None)
     def test_auto_archive_disabled(self):
         with mock_time(after=timedelta(days=60)):
             async_to_sync(automatically_delete_archived_projects)(None)

@@ -26,6 +26,7 @@ from reportcreator_api.tests.mock import (
     create_public_key,
     create_template,
     create_user,
+    override_configuration,
 )
 from reportcreator_api.users.models import APIToken
 from reportcreator_api.utils import license
@@ -185,12 +186,13 @@ class TestCommunityLicenseRestrictions:
             'is_superuser': True,
         }).status_code == 201
 
-    @override_settings(LOCAL_USER_AUTH_ENABLED=False)
+    @override_configuration(LOCAL_USER_AUTH_ENABLED=False)
     def test_local_auth_always_enabled(self):
         self.client.logout()
         res = self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
         assert res.status_code == 200
 
+    @override_configuration(REMOTE_USER_AUTH_ENABLED=True)
     def test_prevent_login_remoteuser(self):
         self.client.logout()
         assert_api_license_error(self.client.post(reverse('auth-login-remoteuser')))

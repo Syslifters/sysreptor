@@ -17,21 +17,7 @@ from django.utils import dateparse, timezone
 from lxml import etree
 
 from reportcreator_api.pentests import cvss
-from reportcreator_api.pentests.customfields.sort import sort_findings
-from reportcreator_api.pentests.customfields.types import (
-    BaseField,
-    CweField,
-    EnumChoice,
-    FieldDataType,
-    FieldDefinition,
-    ObjectField,
-)
-from reportcreator_api.pentests.customfields.utils import (
-    HandleUndefinedFieldsOptions,
-    ensure_defined_structure,
-    iterate_fields,
-    set_value_at_path,
-)
+from reportcreator_api.pentests.fielddefinition.sort import sort_findings
 from reportcreator_api.pentests.models import (
     Language,
     PentestProject,
@@ -49,6 +35,21 @@ from reportcreator_api.tasks.rendering.error_messages import (
 )
 from reportcreator_api.tasks.rendering.render_utils import RenderStageResult
 from reportcreator_api.users.models import PentestUser
+from reportcreator_api.utils.configuration import configuration
+from reportcreator_api.utils.fielddefinition.types import (
+    BaseField,
+    CweField,
+    EnumChoice,
+    FieldDataType,
+    FieldDefinition,
+    ObjectField,
+)
+from reportcreator_api.utils.fielddefinition.utils import (
+    HandleUndefinedFieldsOptions,
+    ensure_defined_structure,
+    iterate_fields,
+    set_value_at_path,
+)
 from reportcreator_api.utils.logging import log_timing
 from reportcreator_api.utils.utils import copy_keys, get_key_or_attr, merge
 
@@ -108,6 +109,11 @@ def format_template_field(value: Any, definition: BaseField, members: Optional[l
             'description': None,
             'value': value,
         } | cwe_definition
+    elif value_type == FieldDataType.JSON:
+        try:
+            return json.loads(value)
+        except (TypeError, json.JSONDecodeError):
+            return None
     elif value_type == FieldDataType.USER:
         return format_template_field_user(value, members=members)
     elif value_type == FieldDataType.LIST:
@@ -255,7 +261,7 @@ async def render_pdf_task(
             data=data,
             language=project.language if project else project_type.language,
             password=password,
-            compress_pdf=can_compress_pdf and settings.COMPRESS_PDFS,
+            compress_pdf=can_compress_pdf and (await configuration.aget('COMPRESS_PDFS')),
             output=output,
             html=html,
             resources=resources,

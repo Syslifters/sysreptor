@@ -40,12 +40,9 @@
                     <v-chip size="small" v-else-if="encryptionKeyInfo.algo === '16'">ElGamal {{ encryptionKeyInfo.length }} bit</v-chip>
                     <v-chip size="small" v-else-if="encryptionKeyInfo.algo === '18'">ECDH {{ encryptionKeyInfo.curve }}</v-chip>
                   </div>
-                  <v-textarea
+                  <s-codeblock-field
                     v-model="editWizard.publicKey!.public_key"
                     readonly
-                    auto-grow
-                    spellcheck="false"
-                    class="textarea-codeblock pt-0"
                   />
                 </v-card-text>
                 <v-card-actions>
@@ -255,14 +252,12 @@
                     </v-window-item>
                   </v-window>
 
-                  <v-textarea
+                  <s-codeblock-field
                     v-model="setupWizard.form.public_key"
                     label="Public Key"
                     hint="OpenPGP public key for encryption. It does not has to be publicly trusted and can be a key only used for archiving."
-                    persistent-hint
                     :error-messages="error || []"
-                    spellcheck="false"
-                    class="mt-4 textarea-codeblock"
+                    class="mt-4"
                   />
                 </v-card-text>
                 <v-card-actions>
@@ -283,12 +278,9 @@
                     Copy the decrypted verification code below.
                   </p>
                   <p class="mb-0"><s-code>gpg --decrypt message.txt</s-code></p>
-                  <v-textarea
+                  <s-codeblock-field
                     v-model="setupWizard.data.verification"
                     readonly
-                    auto-grow
-                    spellcheck="false"
-                    class="textarea-codeblock"
                   />
 
                   <s-text-field
@@ -473,18 +465,6 @@ async function deletePublicKey(publicKey: UserPublicKey) {
 </script>
 
 <style lang="scss" scoped>
-@use "@base/assets/vuetify" as vuetify;
-
-.textarea-codeblock {
-  :deep(textarea) {
-    font-family: monospace;
-    line-height: 1.2em;
-    font-size: medium;
-    background-color: vuetify.$code-background-color;
-    color: vuetify.$code-color;
-  }
-}
-
 .code-snippet {
   display: block;
   padding: 0.5em;

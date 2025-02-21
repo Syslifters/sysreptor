@@ -8,10 +8,13 @@
         @blur="emit('blur')"
         :rules="rules.validCvssVector"
         :label="props.label"
+        :hint="props.hint"
         :disabled="props.disabled"
         :readonly="props.readonly"
         spellcheck="false"
-      />
+      >
+        <template #label v-if="$slots.label"><slot name="label" /></template>
+      </s-text-field>
     </div>
 
     <div class="flex-grow-0">
@@ -134,6 +137,7 @@ const props = defineProps<{
   label?: string;
   disabled?: boolean;
   readonly?: boolean;
+  hint?: string;
   cvssVersion?: CvssVersion|null;
   disableValidation?: boolean;
 }>();

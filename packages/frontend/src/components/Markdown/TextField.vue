@@ -12,6 +12,7 @@
         :error="isValid.value === false"
         @click="onControlClick"
       >
+        <template #label v-if="$slots.label"><slot name="label" /></template>
         <template #default="{ props: fieldProps, focus, blur }">
           <markdown-text-field-content
             ref="markdownRef"
