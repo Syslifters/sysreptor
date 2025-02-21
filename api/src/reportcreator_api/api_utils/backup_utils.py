@@ -279,6 +279,8 @@ def walk_storage_dir(storage, base_dir=None):
         dirs, files = storage.listdir(base_dir)
     except FileNotFoundError:
         return
+    except Exception as ex:
+        raise Exception(f'Could not do listdir with base_dir "{base_dir}" and storage location "{storage.location}"') from ex
     for f in files:
         yield os.path.join(base_dir, f)
     for d in dirs:
