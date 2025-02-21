@@ -20,7 +20,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, transaction
 from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.loader import MigrationLoader
-from django.utils import timezone
 
 from reportcreator_api.api_utils.models import BackupLog, BackupLogType
 from reportcreator_api.pentests import storages
@@ -71,10 +70,11 @@ def create_configurations_backup():
         'configurations': [],
     }
     for f in configuration.definition.fields:
-        out['configurations'].append({
-            'name': f.id,
-            'value': configuration.get(f.id),
-        })
+        if not f.extra_info.get('internal'):
+            out['configurations'].append({
+                'name': f.id,
+                'value': configuration.get(f.id),
+            })
     return out
 
 

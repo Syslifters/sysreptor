@@ -2,6 +2,8 @@ import base64
 import hashlib
 import json
 import logging
+from pathlib import Path
+from uuid import uuid4
 
 from asgiref.sync import sync_to_async
 from Cryptodome.Hash import SHA512
@@ -12,6 +14,7 @@ from django.db import models
 from django.utils import dateparse, timezone
 from rest_framework import permissions
 
+from reportcreator_api.utils.configuration import configuration
 from reportcreator_api.utils.decorators import cache
 
 LICENSE_VALIDATION_KEYS = [
@@ -142,6 +145,24 @@ async def acheck_license(**kwargs):
     return await sync_to_async(check_license)(**kwargs)
 
 
+def get_installation_id():
+    value = configuration.INSTALLATION_ID
+
+    if not value:
+        # initialize from file
+        installation_id_path: Path = settings.MEDIA_ROOT / 'installation_id'
+        if installation_id_path.exists():
+            value = installation_id_path.read_text().strip()
+        if not value:
+            value = str(uuid4())
+        configuration.update({'INSTALLATION_ID': value})
+        try:
+            installation_id_path.unlink(missing_ok=True)
+        except Exception:  # noqa: S110
+            pass
+    return value
+
+
 def get_license_info():
     from reportcreator_api.conf import plugins
     from reportcreator_api.tasks.models import LicenseActivationInfo
@@ -152,7 +173,7 @@ def get_license_info():
         'license_hash': get_license_hash(),
         'active_users': PentestUser.objects.get_licensed_user_count(),
         'total_users': PentestUser.objects.get_total_user_count(),
-        'installation_id': settings.INSTALLATION_ID,
+        'installation_id': get_installation_id(),
         'software_version': settings.VERSION,
         'plugins': [p.name.split('.')[-1] for p in plugins.enabled_plugins],
         'activation_info': {

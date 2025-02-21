@@ -46,7 +46,6 @@ CELERY_TASK_ALWAYS_EAGER = True
 NOTIFICATION_IMPORT_URL = None
 SPELLCHECK_URL = None
 
-INSTALLATION_ID = 'dummy-installation-id-used-in-unit-test'
 BACKUP_KEY = 'dummy-backup-key-used-in-unit-test'
 
 
@@ -56,6 +55,7 @@ LOAD_CONFIGURATIONS_FROM_DB = True
 # Override default values for tests
 CONFIGURATION_DEFINITION_CORE['ENABLE_PRIVATE_DESIGNS'].default = True
 CONFIGURATION_DEFINITION_CORE['ARCHIVING_THRESHOLD'].default = 1
+CONFIGURATION_DEFINITION_CORE['INSTALLATION_ID'].default = 'dummy-installation-id-used-in-unit-test'
 
 
 # Disable license check

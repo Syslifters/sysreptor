@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import itertools
 import json
 import socket
-import uuid
 from datetime import timedelta
 from pathlib import Path
 
@@ -569,12 +568,6 @@ NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://por
 # License
 LICENSE = config('LICENSE', default=None)
 
-INSTALLATION_ID_PATH = MEDIA_ROOT / 'installation_id'
-if not INSTALLATION_ID_PATH.exists():
-    INSTALLATION_ID_PATH.write_text(str(uuid.uuid4()))
-INSTALLATION_ID = INSTALLATION_ID_PATH.read_text().strip()
-
-
 # Plugins
 PLUGIN_DIRS = config('PLUGIN_DIRS', cast=Csv(cast=Path, post_process=remove_empty_items), default='')
 ENABLED_PLUGINS = config('ENABLED_PLUGINS', cast=Csv(post_process=remove_empty_items), default='')
@@ -888,6 +881,13 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         help_text='Enable/disable login via username/password. '
                   'If enabled, users can decide whether they want to log in via SSO or username/password.'
                   'Make sure all users have SSO identities configured before enabling this option. Else they will not be able to log in anymore.'),
+
+
+    StringField(
+        id='INSTALLATION_ID',
+        required=False,
+        extra_info={'internal': True, 'professional_only': False},
+    ),
 ])
 LOAD_CONFIGURATIONS_FROM_ENV = True
 LOAD_CONFIGURATIONS_FROM_DB = config('LOAD_CONFIGURATIONS_FROM_DB', cast=bool, default=True)

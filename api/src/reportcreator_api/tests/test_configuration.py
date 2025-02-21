@@ -32,6 +32,7 @@ class TestConfiguration:
             StringField(id='FIELD_STRING', default='default value', required=True),
             JsonField(id='FIELD_JSON', default=json.dumps({'value': 'default'}), required=False),
             ListField(id='FIELD_LIST', items=StringField(), required=True),
+            StringField(id='FIELD_INTERNAL', default='default', extra_info={'internal': True}),
         ])), mock.patch('reportcreator_api.conf.plugins.available_plugins', new=[]):
             configuration.clear_cache()
             yield
@@ -135,4 +136,28 @@ class TestConfiguration:
         assert res.data['FIELD_STRING'] == 'env'
         assert configuration.FIELD_STRING == 'env'
         assert not DbConfigurationEntry.objects.filter(name='FIELD_STRING').exists()
+
+    @override_settings(LOAD_CONFIGURATIONS_FROM_ENV=True, LOAD_CONFIGURATIONS_FROM_DB=True)
+    @mock.patch.dict(os.environ, {'FIELD_STRING': 'env'})
+    def test_internal_configuration(self):
+        # Not loaded from env
+        assert configuration.FIELD_INTERNAL == 'default'
+        assert not configuration.definition['FIELD_INTERNAL'].extra_info.get('set_in_env')
+
+        # Loaded from DB
+        DbConfigurationEntry.objects.create(name='FIELD_INTERNAL', value='"db"')
+        configuration.clear_cache()
+        assert configuration.FIELD_INTERNAL == 'db'
+
+        # Can update
+        configuration.update({'FIELD_INTERNAL': 'updated'})
+        assert configuration.FIELD_INTERNAL == 'updated'
+
+        # Not in definition API response
+        res = self.client.get(reverse('configuration-definition'))
+        assert 'FIELD_INTERNAL' not in [f['id'] for f in res.data['core']]
+
+        # Not in values API response
+        res = self.client.get(reverse('configuration-list'))
+        assert 'FIELD_INTERNAL' not in res.data
 
