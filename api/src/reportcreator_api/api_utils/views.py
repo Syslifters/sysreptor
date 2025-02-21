@@ -254,9 +254,9 @@ class ConfigurationViewSet(viewsets.ViewSet):
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [IsAdmin]
 
     def get_serializer(self, **kwargs):
-        instance = kwargs.pop('instance', {d.id: configuration.get(d.id) for d in configuration.definition.fields})
+        instance = kwargs.pop('instance', {d.id: configuration.get(d.id) for d in configuration.definition.fields if not d.extra_info.get('internal')})
         return DynamicObjectSerializer(
-            fields={f.id: serializer_from_field(f, validate_values=True, read_only=f.extra_info.get('set_in_env', False)) for f in configuration.definition.fields},
+            fields={f.id: serializer_from_field(f, validate_values=True, read_only=f.extra_info.get('set_in_env', False)) for f in configuration.definition.fields if not f.extra_info.get('internal')},
             instance=instance,
             **kwargs)
 
@@ -294,5 +294,5 @@ class ConfigurationViewSet(viewsets.ViewSet):
         })
 
     def serialize_settings_definition(self, fields):
-        definition = FieldDefinition(fields=[f for f in configuration.definition.fields if f.id in fields])
+        definition = FieldDefinition(fields=[f for f in configuration.definition.fields if f.id in fields and not f.extra_info.get('internal')])
         return serialize_field_definition(definition, extra_info=['group', 'set_in_env', 'professional_only'])

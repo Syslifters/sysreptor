@@ -40,7 +40,7 @@ class Configuration:
         # Add info whether settings are set as environment variables
         for f in out.fields:
             f.extra_info |= {
-                'set_in_env': settings.LOAD_CONFIGURATIONS_FROM_ENV and f.id in os.environ,
+                'set_in_env': settings.LOAD_CONFIGURATIONS_FROM_ENV and f.id in os.environ and not f.extra_info.get('internal'),
             }
         return out
 
@@ -91,8 +91,8 @@ class Configuration:
 
         if f.id in self._force_override:
             value = self._force_override[f.id]
-        elif settings.LOAD_CONFIGURATIONS_FROM_ENV and f.id in os.environ:
-            value = self._load_env_value(definition=f, value=os.environ[f.id])
+        elif settings.LOAD_CONFIGURATIONS_FROM_ENV and f.extra_info.get('set_in_env'):
+            value = self._load_env_value(definition=f, value=os.environ.get(f.id, ''))
         elif settings.LOAD_CONFIGURATIONS_FROM_DB:
             db_values = get_db_configuration_entries() if (not skip_db_query or self.is_cached()) else {}
             value = self._decode_json_value(value=db_values.get(f.id))
