@@ -33,7 +33,7 @@ As you see in <ref to="sqli" /> (e.g. rendered as "Figure 3")
 You need the finding ID of the finding you want to reference. 
 The markdown editor toolbar in projects provides a button to insert finding references.
 
-![Insert findng reference](../images/finding_reference.png)
+![Insert finding reference](../images/reference-finding.png)
 
 
 ```md title="Markdown"

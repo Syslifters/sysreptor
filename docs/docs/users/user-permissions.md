@@ -53,7 +53,8 @@ GUEST_USERS_CAN_SEE_ALL_USERS=False
 ```
 
 ## System
-System is a special privilege that allows users to create backups via API. This privilege can only be set via the Django interface:
+System is a special privilege that allows users to create backups via API. System users cannot be used in projects, templates and designs. 
+This privilege can only be set via the Django interface:
 
 1. Log in with superuser permissions
 2. Elevate your privileges using the "sudo" button
