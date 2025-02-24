@@ -12,28 +12,40 @@
       <div class="h-100 d-flex flex-column">
         <div class="pa-2">
           <h1>{{ project.name }}</h1>
-          <div>
-            <s-btn-secondary
-              :loading="renderingInProgress"
-              :disabled="renderingInProgress"
-              @click="refreshPdfPreview"
-              prepend-icon="mdi-cached"
-              text="Refresh PDF"
-              class="mr-1 mb-1"
-            >
-              <template #loader>
-                <s-saving-loader-spinner />
-                Refresh PDF
-              </template>
-            </s-btn-secondary>
-            <s-btn-secondary
-              @click="downloadPdf"
-              :disabled="!pdfPreviewRef?.pdfData"
-              prepend-icon="mdi-download"
-              text="Download"
-              class="mr-1 mb-1"
-            />
-          </div>
+          <v-row>
+            <v-col cols="auto">
+              <s-btn-secondary
+                :loading="renderingInProgress"
+                :disabled="renderingInProgress"
+                @click="refreshPdfPreview"
+                prepend-icon="mdi-cached"
+                text="Refresh PDF"
+              >
+                <template #loader>
+                  <s-saving-loader-spinner />
+                  Refresh PDF
+                </template>
+              </s-btn-secondary>
+            </v-col>
+            <v-col cols="auto">
+              <s-btn-secondary
+                @click="downloadPdf"
+                :disabled="!pdfPreviewRef?.pdfData"
+                prepend-icon="mdi-download"
+                text="Download"
+              />
+            </v-col>
+            <v-col cols="auto" class="flex-grow-1">
+              <s-select
+                v-model="renderMode"
+                label="Render mode"
+                :items="[
+                  { value: RenderFindingsMode.COMBINED, title: 'Combined (all findings in one PDF)'}, 
+                  { value: RenderFindingsMode.SEPARATE, title: 'Separate (each finding in a separate PDF)' }
+                ]"
+              />
+            </v-col>
+          </v-row>
           <div>
             <v-btn 
               href="https://github.com/Syslifters/sysreptor/tree/main/plugins/renderfindings/README.md" 
@@ -84,9 +96,14 @@
 </template>
 
 <script setup lang="ts">
-import { useFetchE, type PentestProject, type PentestFinding, type PdfResponse, MessageLevel, type ProjectType } from '#imports';
+import { useFetchE, type PentestProject, type PentestFinding, type PdfResponse, MessageLevel, type ProjectType, type ErrorMessage } from '#imports';
 import { getFindingRiskLevel, sortFindings } from '@base/utils/project';
 import { base64decode, fileDownload } from '@base/utils/helpers';
+
+enum RenderFindingsMode {
+  COMBINED = 'combined',
+  SEPARATE = 'separate',
+}
 
 const route = useRoute();
 const appConfig = useAppConfig();
@@ -99,6 +116,7 @@ const findings = computed(() => sortFindings({
   overrideFindingOrder: project.value.override_finding_order,
 }));
 const selectedFindings = ref<PentestFinding[]>([]);
+const renderMode = ref<RenderFindingsMode>(RenderFindingsMode.COMBINED);
 
 const menuSize = ref(50);
 const pdfPreviewRef = ref();
@@ -112,7 +130,8 @@ function refreshPdfPreview() {
 }
 
 async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }): Promise<PdfResponse> {
-  if (selectedFindings.value.length === 0) {
+  let findingIds = selectedFindings.value.map(f => f.id);
+  if (findingIds.length === 0) {
     return {
       pdf: null,
       messages: [{
@@ -126,26 +145,54 @@ async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }): Promise<P
   const res = await $fetch<PdfResponse>(`/api/plugins/${appConfig.pluginId}/api/projects/${project.value.id}/renderfindings/`, {
     method: 'POST',
     body: {
-      finding_ids: selectedFindings.value.map(f => f.id),
+      finding_ids: renderMode.value == RenderFindingsMode.SEPARATE ? [findingIds[0]] : findingIds,
     },
     ...fetchOptions,
   });
 
   if (res.pdf) {
     // close warnings panel on successfuly render
-    console.log(pdfPreviewRef.value);
     pdfPreviewRef.value.showMessages = false;
   }
 
   return res;
 }
 
-function downloadPdf() {
-  if (!pdfPreviewRef.value?.pdfData) {
-    return;
-  }
+async function downloadPdf() {
+  if (renderMode.value === RenderFindingsMode.COMBINED) {
+    if (!pdfPreviewRef.value?.pdfData) {
+      return;
+    }
 
-  fileDownload(base64decode(pdfPreviewRef.value.pdfData), 'finding.pdf');
+    fileDownload(base64decode(pdfPreviewRef.value.pdfData), 'finding.pdf');
+  } else {
+    // Get findings in order of list
+    const findingsToRender = findings.value.filter(f => selectedFindings.value.includes(f));
+    for (let i = 0; i < findingsToRender.length; i++) {
+      selectedFindings.value = [findingsToRender[i]!];
+      pdfPreviewRef.value.reloadImmediate();
+      
+      // wait until rendered
+      while (renderingInProgress.value) {
+        await wait(200);
+      }
+      
+      const rateLimitMessage = (pdfPreviewRef.value?.messages || []).find((m: ErrorMessage) => m.details?.startsWith('Request was throttled'));
+      const waitTime = rateLimitMessage?.details?.match(/available in (\d+) seconds/)?.[1];
+      if (pdfPreviewRef.value) {
+        // download PDF
+        fileDownload(base64decode(pdfPreviewRef.value.pdfData), `finding-${i + 1}.pdf`);
+      } else if (Number.isInteger(waitTime)) {
+        // handle rate limit
+        await wait((waitTime + 1) * 1000);
+        i--;
+      } else if (!pdfPreviewRef.value?.pdfData) {
+        // rendering error
+        errorToast(`Failed to render PDF for finding ${i + 1} "${findingsToRender[i]!.data.title}"`);
+      }
+    }
+    selectedFindings.value = findingsToRender;
+  }
 }
 
 function riskLevel(finding: PentestFinding) {
