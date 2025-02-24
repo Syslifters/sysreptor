@@ -10,6 +10,7 @@
 * View and edit application settings in the web UI
 * View and edit plugin settings in the web UI
 * UI: fix theme color in spellcheck tooltips
+* Plugin `renderfindings`: Add option to render findings to separate PDFs
 
 
 ## v2025.12 - 2025-01-27
