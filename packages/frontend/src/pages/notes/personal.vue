@@ -10,7 +10,7 @@
         :export-name="'notes-' + auth.user.value!.username"
         :readonly="notesCollab.readonly.value"
       >
-        <notes-sortable-list
+        <notes-sortable-tree
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
           @update:checked="updateNoteChecked"
@@ -18,8 +18,8 @@
           to-prefix="/notes/personal/"
         />
         <template #search>
-          <notes-search-result-list
-            :result-group="noteSearchResults"
+          <notes-search-result-tree
+            :model-value="noteSearchResults"
             to-prefix="/notes/personal/"
           />
         </template>

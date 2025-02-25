@@ -13,8 +13,6 @@
     :keep-placeholder="true"
     :indent="20"
   >
-    <!-- TODO: search results: disable sort, show search results, hide some icons/... -->
-    <!-- TODO: remove notes-sortable-list -->
     <template #default="{ node: { note }, stat }">
       <!-- 
         The random URL parameter "?c" is required to prevent "Vuetify error: multiple nodes with the same ID". 

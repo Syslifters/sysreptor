@@ -10,6 +10,7 @@
 * View and edit application settings in the web UI
 * View and edit plugin settings in the web UI
 * UI: fix theme color in spellcheck tooltips
+* UI: improve note tree sorting via drag-and-drop
 * Plugin `renderfindings`: Add option to render findings to separate PDFs
 
 

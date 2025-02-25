@@ -7,7 +7,7 @@
         :create-note="createNote"
         :readonly="notesCollab.readonly.value"
       >
-        <notes-sortable-list
+        <notes-sortable-tree
           :model-value="noteGroups"
           @update:checked="updateNoteChecked"
           :disabled="true"
@@ -15,8 +15,8 @@
           :collab="notesCollab.collabProps.value"
         />
         <template #search>
-          <notes-search-result-list
-            :result-group="noteSearchResults"
+          <notes-search-result-tree
+            :model-value="noteSearchResults"
             :to-prefix="`/shared/${route.params.projectId}/notes/`"
           />
         </template>

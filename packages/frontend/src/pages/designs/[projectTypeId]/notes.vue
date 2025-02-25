@@ -7,7 +7,7 @@
           :create-note="createNote"
           :readonly="readonly"
         >
-          <notes-sortable-list
+          <notes-sortable-tree
             v-model="noteGroups"
             :selected="currentNote"
             @update:selected="selectNote"
