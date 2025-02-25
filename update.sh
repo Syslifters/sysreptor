@@ -174,7 +174,6 @@ if
     ! docker compose up -d
 then
     echo "Ups. Something did not work while building and launching your containers."
-    error_cleanup
 fi
 
 echo "Cleaning up your old docker images..."
