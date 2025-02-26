@@ -2,8 +2,8 @@
   <Draggable
     :model-value="props.modelValue"
     @update:model-value="emit('update:modelValue', $event)"
-    @open:node="setExpanded($event.data.note, true)"
-    @close:node="setExpanded($event.data.note, false)"
+    @open:node="setExpanded($event.data?.note, true)"
+    @close:node="setExpanded($event.data?.note, false)"
     :stat-handler="statHandler"
     :disable-drag="props.disabled"
     :disable-drop="props.disabled"
@@ -21,6 +21,7 @@
         The random suffix gets re-generated on every move/update of the tree, which results in two different URLs for the same note list item.
       -->
       <v-list-item
+        v-if="note"
         :to="(props.toPrefix) ? `${props.toPrefix}${note.id}/?c=${uuidv4()}` : undefined"
         @click="emit('update:selected', note)"
         link
@@ -92,11 +93,14 @@ function statHandler(stat: any) {
   stat.open = localSettings.isNoteExpanded(stat.data.note.id);
   return stat;
 }
-function setExpanded(note: NoteBase, value: boolean) {
+function setExpanded(note: NoteBase|undefined, value: boolean) {
+  if (!note) {
+    return;
+  }
   localSettings.setNoteExpandState({ noteId: note.id, isExpanded: value });
 }
 function updateChecked(note: NoteBase, checked: boolean) {
-  if (props.disabled) {
+  if (props.disabled || !note) {
     return;
   }
   emit('update:checked', { ...note, checked });
