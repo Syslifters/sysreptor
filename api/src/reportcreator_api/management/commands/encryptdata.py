@@ -9,11 +9,17 @@ from reportcreator_api.pentests.models import (
     ArchivedProjectKeyPart,
     ArchivedProjectPublicKeyEncryptedKeyPart,
     CollabEvent,
+    Comment,
+    CommentAnswer,
+    FindingTemplate,
+    FindingTemplateTranslation,
     PentestFinding,
     PentestProject,
+    ProjectMemberInfo,
     ProjectNotebookPage,
     ProjectType,
     ReportSection,
+    ShareInfo,
     UploadedAsset,
     UploadedImage,
     UploadedProjectFile,
@@ -23,8 +29,6 @@ from reportcreator_api.pentests.models import (
     UserNotebookPage,
     UserPublicKey,
 )
-from reportcreator_api.pentests.models.project import ProjectMemberInfo
-from reportcreator_api.pentests.models.template import FindingTemplate, FindingTemplateTranslation
 from reportcreator_api.users.models import MFAMethod, PentestUser, Session
 
 
@@ -60,9 +64,12 @@ class Command(BaseCommand):
         self.encrypt_db_fields(PentestProject, ['unknown_custom_fields'])
         self.encrypt_db_fields(ReportSection, ['custom_fields'])
         self.encrypt_db_fields(PentestFinding, ['custom_fields', 'template_id'])
+        self.encrypt_db_fields(Comment, ['text', 'text_original'])
+        self.encrypt_db_fields(CommentAnswer, ['text'])
         self.encrypt_db_fields(ProjectType, ['report_template', 'report_styles', 'report_preview_data'])
         self.encrypt_db_fields(ProjectNotebookPage, ['title', 'text'])
         self.encrypt_db_fields(UserNotebookPage, ['title', 'text'])
+        self.encrypt_db_fields(ShareInfo, ['password'])
         self.encrypt_db_fields(PentestUser, ['password'])
         self.encrypt_db_fields(Session, ['session_key', 'session_data'])
         self.encrypt_db_fields(MFAMethod, ['data'])
