@@ -194,14 +194,14 @@ DATABASES = {
 
 # Websockets
 REDIS_URL = config('REDIS_URL', default=None)
-DISABLE_WEBSOCKETS = config('DISABLE_WEBSOCKETS', cast=bool, default=False) or (not REDIS_URL)
+REDIS_CONNECTION_CONFIG = config('REDIS_CONNECTION_CONFIG', cast=json.loads, default='null')
+DISABLE_WEBSOCKETS = config('DISABLE_WEBSOCKETS', cast=bool, default=False) or (not REDIS_URL and not REDIS_CONNECTION_CONFIG)
 if not DISABLE_WEBSOCKETS:
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
             'CONFIG': {
                 'hosts': [{
-                    'address': REDIS_URL,
                     'socket_keepalive': True,
                     'socket_keepalive_options': {
                         socket.TCP_KEEPIDLE: 2,
@@ -210,7 +210,7 @@ if not DISABLE_WEBSOCKETS:
                     },
                     'retry_on_timeout': True,
                     'retry_on_error': [redis.ConnectionError],
-                }],
+                } | ( REDIS_CONNECTION_CONFIG or {'address': REDIS_URL})],
             },
         },
     }
