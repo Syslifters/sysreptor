@@ -23,7 +23,7 @@ from reportcreator_api.utils.utils import copy_keys, merge
 
 
 def html_load_script(src):
-    return f"""<component :is="{{ template: '<div />', mounted() {{ const script = document.createElement('script'); script.type = 'text/javascript'; script.src='{src}'; document.head.appendChild(script); }} }}" />"""
+    return f"""<teleport to="head"><component is="script" src="{src}" type="text/javascript" /></teleport>"""
 
 
 @pytest.mark.xdist_group('rendering')
@@ -100,8 +100,8 @@ class TestHtmlRendering:
         ("{{ formatDate('2022-09-21', 'long', 'en-US') }}", "September 21, 2022"),
         ("{{ formatDate('2022-09-21', 'full', 'en-US') }}", "Wednesday, September 21, 2022"),
         ("{{ formatDate('2022-09-21', {year: '2-digit', month: 'narrow', day: '2-digit', numberingSystem: 'latn'}, 'en-US') }}", "S 21, 22"),
-        ("""<div :set="helperFunction = function () { return report.title + ' function'; }">{{ helperFunction() }}</div>""", lambda self: f"<div set=\"function () {{ return report.title + ' function'; }}\">{self.project.data['title']} function</div>"),
-        ("""<div :set="computedVar = computed(() => report.title + ' computed')">{{ computedVar.value }}</div>""", lambda self: f"<div set=\"[object Object]\">{self.project.data['title']} computed</div>"),
+        ("""{{ (helperFunction = function () { return report.title + ' function'; }, null) }}{{ helperFunction() }}""", lambda self: f"{self.project.data['title']} function"),
+        ("""{{ (computedVar = computed(() => report.title + ' computed'), null) }}{{ computedVar.value }}""", lambda self: f"{self.project.data['title']} computed"),
     ])
     def test_variables_rendering(self, template, html):
         if callable(html):
