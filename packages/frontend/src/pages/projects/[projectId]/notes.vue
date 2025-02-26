@@ -10,7 +10,7 @@
         :export-name="'notes-' + project.name"
         :readonly="notesCollab.readonly.value"
       >
-        <notes-sortable-list
+        <notes-sortable-tree
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
           @update:checked="updateNoteChecked"
@@ -19,8 +19,8 @@
           :collab="notesCollab.collabProps.value"
         />
         <template #search>
-          <notes-search-result-list
-            :result-group="noteSearchResults"
+          <notes-search-result-tree
+            :model-value="noteSearchResults"
             :to-prefix="`/projects/${route.params.projectId}/notes/`"
           />
         </template>
