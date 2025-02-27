@@ -192,6 +192,10 @@ async function selectComment(comment: Comment|null, options?: { focus?: string }
 }
 
 async function createComment(comment: Partial<Comment>) {
+  if (props.readonly || !apiSettings.isProfessionalLicense) {
+    return null;
+  }
+
   const path = comment.path || comment.collabPath?.split('/').at(-1)
 
   const commentCreated = new Promise<Comment>(resolve => {
@@ -224,7 +228,7 @@ async function onCommentEvent(event: any) {
     await nextTick();
   }
 
-  if (event.type === 'create' && !props.readonly) {
+  if (event.type === 'create' && !props.readonly && apiSettings.isProfessionalLicense) {
     try {
       commentNew.value = await createComment(event.comment);
       await selectComment(commentNew.value, { focus: 'comment' });

@@ -40,7 +40,7 @@ function createComment() {
   if (props.disabled) {
     return;
   }
-  emit('comment', {type: 'create', comment: { collabPath: props.collabPath}})
+  emit('comment', {type: 'create', comment: { collabPath: props.collabPath }})
 }
 
 const btnRef = ref();
