@@ -153,6 +153,12 @@ printf "BACKUP_KEY=$(openssl rand -base64 25 | tr -d '\n=')\n"
 BACKUP_KEY="WfyqYzRVZAOFbCtltYEFN36XBzRz6Ys6ZA"
 ```
 
+Backup requests via the web interface or the REST API are long running requests that need to download a large backup file. These requests might be aborted when `gunicorn` server worker processes are restarted and the backup request exceeds the restart timeout. This timeout can be increased by setting the following value.
+
+``` title="Example:"
+SERVER_WORKER_RESTART_TIMEOUT=3600  # 1 hour
+```
+
 
 ### Reverse Proxy
 Interpret `X-Forwarded-*` headers when SysReptor is behind a reverse proxy. 
