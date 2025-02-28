@@ -54,7 +54,7 @@ class UserField(serializers.PrimaryKeyRelatedField):
         from reportcreator_api.pentests.models import ProjectMemberInfo
         from reportcreator_api.users.models import PentestUser
 
-        if isinstance(data, (str, UUID)) and (project := self.context.get('project')):
+        if isinstance(data, str|UUID) and (project := self.context.get('project')):
             if not getattr(project, '_prefetched_objects_cache', {}).get('members'):
                 # Prefetch members to avoid N+1 queries
                 prefetch_related_objects([project], Prefetch('members', ProjectMemberInfo.objects.select_related('user')))
@@ -68,7 +68,7 @@ class UserField(serializers.PrimaryKeyRelatedField):
         return str(user.id) if isinstance(user, PentestUser) else user
 
     def to_representation(self, value):
-        if isinstance(value, (str, UUID)):
+        if isinstance(value, str|UUID):
             return value
         return super().to_representation(value)
 

@@ -25,7 +25,7 @@ def webhooks_load_from_env(value):
 
 class WebhooksPluginConfig(PluginConfig):
     """
-    This plugin adds webhooks to SysReptor. 
+    This plugin adds webhooks to SysReptor.
     HTTP requests are sent to the configured webhooks URL when certain events occur.
     """
 
@@ -33,7 +33,7 @@ class WebhooksPluginConfig(PluginConfig):
     professional_only = True
     configuration_definition = FieldDefinition(fields=[
         ListField(
-            id='WEBHOOKS', 
+            id='WEBHOOKS',
             items=ObjectField(properties=[
                 StringField(id='url', pattern='^https?://.*$'),
                 ListField(id='headers', items=ObjectField(properties=[
@@ -41,8 +41,8 @@ class WebhooksPluginConfig(PluginConfig):
                     StringField(id='value'),
                 ]), required=False),
                 ListField(id='events', items=EnumField(choices=[EnumChoice(value=t) for t in list(WebhookEventType)], required=False), required=False),
-            ]), 
-            required=False, 
+            ]),
+            required=False,
             extra_info={'load_from_env': webhooks_load_from_env}),
     ])
 

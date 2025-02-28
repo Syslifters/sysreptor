@@ -53,16 +53,16 @@ class TestRenderSingleFindingPdf:
 
         with mock.patch('reportcreator_api.tasks.rendering.render.render_pdf_impl', render_only_html):
             res = self.client.post(reverse(f'{URL_NAMESPACE}:renderfindings', kwargs={'project_pk': self.project.id}), data={
-                'finding_ids': [f.finding_id for f in findings]
+                'finding_ids': [f.finding_id for f in findings],
             })
             assert res.status_code == 200
             assert not res.data['messages']
             html = RenderStageResult.from_dict(res.data).pdf.decode()
             return etree.tostring(etree.HTML(html).find('body/div')).decode()[5:-6]
-    
+
     def test_render_pdf(self):
         res = self.client.post(reverse(f'{URL_NAMESPACE}:renderfindings', kwargs={'project_pk': self.project.id}), data={
-            'finding_ids': [self.finding1.finding_id]
+            'finding_ids': [self.finding1.finding_id],
         })
         assert res.status_code == 200
         assert res.data['pdf'] is not None
@@ -73,14 +73,14 @@ class TestRenderSingleFindingPdf:
         assert self.finding1.title in html
         assert self.finding2.title not in html
         assert self.finding3.title not in html
-    
+
     def test_render_multiple_findings(self):
         html = self.render_html(findings=[self.finding1, self.finding2])
         assert self.finding1.title in html
         assert self.finding2.title in html
         assert self.finding3.title not in html
 
-    @pytest.mark.parametrize(['template', 'expected'], [
+    @pytest.mark.parametrize(('template', 'expected'), [
         ('<div id="header">include</div><div>exclude</div>', '<div id="header">include</div>'),
         ('<div id="footer">include</div><div>exclude</div>', '<div id="footer">include</div>'),
         ('<div data-sysreptor-generated="page-header">include</div><div>exclude</div>', '<div data-sysreptor-generated="page-header">include</div>'),
@@ -105,7 +105,7 @@ class TestPluginApiPermissions:
         self.user = create_user()
         self.user_other = create_user()
         self.project = create_project(members=[self.user])
-        
+
     def test_permissions(self):
         url = reverse(f'{URL_NAMESPACE}:renderfindings', kwargs={'project_pk': self.project.id})
         assert api_client(self.user).post(url, data={}).status_code == 400  # Allowed, but no findings selected

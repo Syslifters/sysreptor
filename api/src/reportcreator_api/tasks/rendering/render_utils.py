@@ -5,7 +5,7 @@ import time
 from base64 import b64decode, b64encode
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from weasyprint.urls import URLFetchingError
 
@@ -17,7 +17,7 @@ FAKE_BASE_URL = 'https://pdf.sysreptor.com'
 
 @dataclasses.dataclass()
 class RenderStageResult:
-    pdf: Optional[bytes] = None
+    pdf: bytes | None = None
     messages: list[ErrorMessage] = dataclasses.field(default_factory=list)
     timings: dict[str, float] = dataclasses.field(default_factory=dict)
     other: dict[str, Any] = dataclasses.field(default_factory=dict)
@@ -58,7 +58,7 @@ class RenderStageResult:
             self.timings[name] = self.timings.get(name, 0) + elapsed
 
 
-def get_location_info(content: str, objs: list[dict], type: MessageLocationType, get_name=None) -> Optional[MessageLocationInfo]:
+def get_location_info(content: str, objs: list[dict], type: MessageLocationType, get_name=None) -> MessageLocationInfo | None:
     def check_field(val, path, **kwargs):
         if isinstance(val, dict):
             return check_obj(val, path, **kwargs)

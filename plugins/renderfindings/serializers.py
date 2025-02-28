@@ -12,5 +12,5 @@ class RenderFindingsSerializer(serializers.Serializer):
             if not finding:
                 raise serializers.ValidationError(f'Finding with id="{finding_id}" not found')
         return value
-    
+
 

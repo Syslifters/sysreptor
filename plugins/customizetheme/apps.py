@@ -15,15 +15,15 @@ class CustomThemePluginConfig(PluginConfig):
 
     configuration_definition = FieldDefinition(fields=[
         JsonField(
-            id='PLUGIN_CUSTOMIZETHEME_CONFIG', 
+            id='PLUGIN_CUSTOMIZETHEME_CONFIG',
             schema={
-                'type': 'object', 
+                'type': 'object',
                 'properties': {
                     'all': {'type': 'object'},
                     'light': {'type': 'object'},
                     'dark': {'type': 'object'},
-                }, 
-                'required': []
+                },
+                'required': [],
             },
             default=json.dumps({
                 # applied to all themes
@@ -38,7 +38,7 @@ class CustomThemePluginConfig(PluginConfig):
                         'risk-medium': '#f0d400',
                         'risk-low': '#009dff',
                         'risk-info': '#00bc00',
-                    }
+                    },
                 },
                 # settings for specific themes
                 'dark': {
@@ -55,14 +55,14 @@ class CustomThemePluginConfig(PluginConfig):
                         'header': '#39ff14',
                         'background': '#f3f9dc',
                         'surface': '#f3f9dc',
-                    }
+                    },
                 },
             }),
             help_text='JSON object with theme configs to override the default theme configs.'
                       'All theme configurations provided by Vuetify are supported. '
                       'See the Vuetify documentation (https://vuetifyjs.com/en/features/theme/) for more information.'
-                      'Options in `all` apply to both light and dark mode. Options in `light` and `dark` apply to the respective mode only.'
-        )
+                      'Options in `all` apply to both light and dark mode. Options in `light` and `dark` apply to the respective mode only.',
+        ),
     ])
 
     def get_frontend_settings(self, request) -> dict:

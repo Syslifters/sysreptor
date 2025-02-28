@@ -1,5 +1,6 @@
 from reportcreator_api.conf.plugins import PluginConfig
 
+
 class CheckTheHashConfig(PluginConfig):
     """
     Identify possible hash types of a string.

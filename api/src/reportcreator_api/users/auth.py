@@ -25,7 +25,7 @@ class UnsaltedSHA3_256PasswordHasher(BasePasswordHasher):
         if salt != "":
             raise ValueError("salt must be empty.")
         hash = hashlib.sha3_256(password.encode()).hexdigest()
-        return "sha3_256$$%s" % hash
+        return f"sha3_256$${hash}"
 
     def decode(self, encoded):
         assert encoded.startswith("sha3_256$$")

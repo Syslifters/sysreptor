@@ -10,9 +10,9 @@ from .models import WebhookEventType
 
 
 @tenacity.retry(
-    retry=tenacity.retry_if_exception_type((httpx.ConnectError, httpx.ConnectTimeout)), 
-    stop=tenacity.stop_after_attempt(3), 
-    wait=tenacity.wait_fixed(1)
+    retry=tenacity.retry_if_exception_type((httpx.ConnectError, httpx.ConnectTimeout)),
+    stop=tenacity.stop_after_attempt(3),
+    wait=tenacity.wait_fixed(1),
 )
 async def send_webhook_request(client: httpx.AsyncClient, webhook, data):
     logging.info(f'Sending webhook url={webhook["url"]} {data=}')
@@ -32,7 +32,7 @@ async def send_webhook_requests(data, webhooks_to_send):
             res = await asyncio.gather(*request_tasks, return_exceptions=True)
             exceptions = [r for r in res if isinstance(r, Exception)]
             if exceptions:
-                raise ExceptionGroup('Webhook errors', exceptions)
+                raise ExceptionGroup('Webhook errors', exceptions)  # noqa: F821
     except Exception as ex:
         logging.exception(ex)
 

@@ -42,7 +42,7 @@ class EncryptedField(models.BinaryField):
                 )
                 errors.append(
                     checks.Error(
-                        "Base field for EncryptedField has errors:\n    %s" % messages,
+                        f"Base field for EncryptedField has errors:\n    {messages}",
                         obj=self,
                     ),
                 )
@@ -90,7 +90,7 @@ class EncryptedField(models.BinaryField):
     def from_db_value(self, value, expression, connection):
         value = super().to_python(value)
 
-        if isinstance(value, (bytes, memoryview)):
+        if isinstance(value, bytes|memoryview):
             with crypto.open(fileobj=io.BytesIO(value), mode='rb') as c:
                 value = crypto.readall(c)
             if not isinstance(self.base_field, models.BinaryField):

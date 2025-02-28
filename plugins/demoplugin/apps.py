@@ -19,7 +19,7 @@ class DemoPluginConfig(PluginConfig):
 
     configuration_definition = FieldDefinition(fields=[
         StringField(
-            id='PLUGIN_DEMOPLUGIN_SETTING', 
+            id='PLUGIN_DEMOPLUGIN_SETTING',
             default='default value',
             help_text='Here you can define available plugin settings. '
             'Settings can be configured as environment variables or via the API (stored in database). '

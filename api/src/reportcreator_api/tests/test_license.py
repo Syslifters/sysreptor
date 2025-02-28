@@ -362,8 +362,11 @@ class TestLicenseActivationInfo:
         self.license_professional2 = signed_license(keys=[(self.license_public_key, self.license_private_key)], users=20)
         self.license_expired = signed_license(keys=[(self.license_public_key, self.license_private_key)], valid_until=(timezone.now() - timedelta(days=1)).date().isoformat())
 
+        def real_check_license():
+            return license.decode_and_validate_license(settings.LICENSE)
+
         with mock.patch('reportcreator_api.utils.license.LICENSE_VALIDATION_KEYS', new=[self.license_public_key]), \
-             mock.patch('reportcreator_api.utils.license.check_license', new=lambda: license.decode_and_validate_license(settings.LICENSE)), \
+             mock.patch('reportcreator_api.utils.license.check_license', new=real_check_license), \
              mock.patch('reportcreator_api.tasks.tasks.activate_license_request', return_value={'status': 'ok', 'license_info': {'last_activation_time': timezone.now().isoformat()}}):
             yield
 

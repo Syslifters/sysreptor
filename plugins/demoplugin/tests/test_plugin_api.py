@@ -33,19 +33,19 @@ class TestDemoPluginApi:
         self.user = create_user()
         self.client = api_client(self.user)
         self.demopluginmodel = DemoPluginModel.objects.create(name='Test')
-    
+
     def test_retrieve(self):
         res = self.client.get(reverse(URL_NAMESPACE + ':demopluginmodel-detail', kwargs={'pk': self.demopluginmodel.id}))
         assert res.status_code == 200
         assert res.data['id'] == str(self.demopluginmodel.id)
         assert res.data['name'] == self.demopluginmodel.name
-    
+
     def test_create(self):
         res = self.client.post(reverse(URL_NAMESPACE + ':demopluginmodel-list'), data={'name': 'New'})
         assert res.status_code == 201
         obj = DemoPluginModel.objects.get(id=res.data['id'])
         assert obj.name == 'New'
-    
+
     def test_update(self):
         res = self.client.patch(reverse(URL_NAMESPACE + ':demopluginmodel-detail', kwargs={'pk': self.demopluginmodel.id}), data={'name': 'Updated'})
         assert res.status_code == 200

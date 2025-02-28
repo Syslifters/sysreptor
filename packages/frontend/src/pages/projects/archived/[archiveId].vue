@@ -48,6 +48,7 @@
                   label="Decrypted data"
                   :error-messages="restoreWizard.error || []"
                   spellcheck="false"
+                  class="mt-4"
                 />
                 <btn-confirm
                   :action="decryptKeyPart"

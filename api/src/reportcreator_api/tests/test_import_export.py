@@ -133,7 +133,7 @@ class TestImportExport:
         assert set(t.tags) == set(self.template.tags)
         assert t.source == SourceEnum.IMPORTED
 
-        for i, o in zip(t.translations.all(), self.template.translations.all()):
+        for i, o in zip(t.translations.all(), self.template.translations.all(), strict=False):
             assertKeysEqual(i, o, ['created', 'is_main', 'language', 'status', 'data', 'data_all', 'title', 'custom_fields'])
         assert t.main_translation in set(t.translations.all())
 
@@ -223,10 +223,10 @@ class TestImportExport:
         assert t.assets.all().count() == 0
 
     def assert_export_import_comments(self, obj_original, obj_imported):
-        for i_c, o_c in zip(obj_imported.comments.order_by('created'), obj_original.comments.order_by('created')):
+        for i_c, o_c in zip(obj_imported.comments.order_by('created'), obj_original.comments.order_by('created'), strict=False):
             assertKeysEqual(i_c, o_c, ['created', 'user', 'text', 'path', 'text_range', 'text_original'])
 
-            for i_ca, o_ca in zip(i_c.answers.order_by('created'), o_c.answers.order_by('created')):
+            for i_ca, o_ca in zip(i_c.answers.order_by('created'), o_c.answers.order_by('created'), strict=False):
                 assertKeysEqual(i_ca, o_ca, ['created', 'user', 'text'])
 
     def assert_export_import_project(self, project, p):
@@ -235,12 +235,12 @@ class TestImportExport:
         assert p.source == SourceEnum.IMPORTED
 
         assert p.sections.count() == project.sections.count()
-        for i, s in zip(p.sections.order_by('section_id'), project.sections.order_by('section_id')):
+        for i, s in zip(p.sections.order_by('section_id'), project.sections.order_by('section_id'), strict=False):
             assertKeysEqual(i, s, ['section_id', 'created', 'assignee', 'status', 'data'])
             self.assert_export_import_comments(i, s)
 
         assert p.findings.count() == project.findings.count()
-        for i, f in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id')):
+        for i, f in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id'), strict=False):
             assertKeysEqual(i, f, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data'])
             self.assert_export_import_comments(i, f)
 
@@ -275,7 +275,7 @@ class TestImportExport:
         assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in self.project.images.all()}
 
         assert p.notes.count() == self.project.notes.count()
-        for i, s in zip(p.notes.order_by('note_id'), self.project.notes.order_by('note_id')):
+        for i, s in zip(p.notes.order_by('note_id'), self.project.notes.order_by('note_id'), strict=False):
             assertKeysEqual(i, s, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
             assert i.parent.note_id == s.parent.note_id if s.parent else i.parent is None
         assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in self.project.files.all()}
@@ -342,7 +342,7 @@ class TestImportExport:
         # Import notes
         imported = import_notes(archive, context={'project': self.project})
         assert len(imported) == len(notes)
-        for i, n in zip(sorted(imported, key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
+        for i, n in zip(sorted(imported, key=lambda n: n.title), sorted(notes, key=lambda n: n.title), strict=False):
             assertKeysEqual(i, n, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
             assert (i.parent.note_id if i.parent else None) == (n.parent.note_id if n.parent else None)
         assert {(i.name, i.file.read()) for i in self.project.images.all()} == images
@@ -352,7 +352,7 @@ class TestImportExport:
         archive.seek(0)
         imported2 = import_notes(archive, context={'project': self.project})
         assert len(imported2) == len(notes)
-        for i, n in zip(sorted(imported2, key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
+        for i, n in zip(sorted(imported2, key=lambda n: n.title), sorted(notes, key=lambda n: n.title), strict=False):
             assertKeysEqual(i, n, ['title', 'checked', 'icon_emoji'])
             assert i.text == self.update_references(n.text, images.union(files), list(self.project.images.all()) + list(self.project.files.all()))
             assert i.note_id != n.note_id
@@ -375,7 +375,7 @@ class TestImportExport:
         # Import notes
         imported = import_notes(archive, context={'user': self.user})
         assert len(imported) == len(notes)
-        for i, n in zip(sorted(imported, key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
+        for i, n in zip(sorted(imported, key=lambda n: n.title), sorted(notes, key=lambda n: n.title), strict=False):
             assertKeysEqual(i, n, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
             assert (i.parent.note_id if i.parent else None) == (n.parent.note_id if n.parent else None)
         assert {(i.name, i.file.read()) for i in self.user.images.all()} == images
@@ -385,7 +385,7 @@ class TestImportExport:
         archive.seek(0)
         imported2 = import_notes(archive, context={'user': self.user})
         assert len(imported2) == len(notes)
-        for i, n in zip(sorted(imported2, key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
+        for i, n in zip(sorted(imported2, key=lambda n: n.title), sorted(notes, key=lambda n: n.title), strict=False):
             assertKeysEqual(i, n, ['title', 'checked', 'icon_emoji'])
             assert i.text == self.update_references(n.text, images.union(files), list(self.user.images.all()) + list(self.user.files.all()))
             assert i.note_id != n.note_id
@@ -408,7 +408,7 @@ class TestImportExport:
         # Import notes
         imported = import_notes(archive, context={'project': self.project})
         assert len(imported) == len(notes)
-        for i, n in zip(sorted(imported, key=lambda n: n.title), sorted(notes, key=lambda n: n.title)):
+        for i, n in zip(sorted(imported, key=lambda n: n.title), sorted(notes, key=lambda n: n.title), strict=False):
             assertKeysEqual(i, n, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
             assert (i.parent.note_id if i.parent else None) == (n.parent.note_id if n.parent else None)
         assert {(i.name, i.file.read()) for i in self.project.images.all()} == images
@@ -500,7 +500,7 @@ class TestFileDelete:
         p2 = p.copy()
 
         images = list(p.images.order_by('name_hash'))
-        for o, c in zip(images, p2.images.order_by('name_hash')):
+        for o, c in zip(images, p2.images.order_by('name_hash'), strict=False):
             assert o.file == c.file
         p.delete()
         for i in images:
@@ -511,7 +511,7 @@ class TestFileDelete:
         t2 = t.copy()
 
         assets = list(t.assets.order_by('name_hash'))
-        for o, c in zip(assets, t2.assets.order_by('name_hash')):
+        for o, c in zip(assets, t2.assets.order_by('name_hash'), strict=False):
             assert o.file == c.file
         t.delete()
         for a in assets:
@@ -535,11 +535,11 @@ class TestCopyModel:
         assert {(a.name, a.file.read()) for a in pt.assets.all()} == {(a.name, a.file.read()) for a in cp.assets.all()}
 
     def assert_comments_copy_equal(self, p, cp):
-        for p_c, cp_c in zip(p.comments.order_by('created'), cp.comments.order_by('created')):
+        for p_c, cp_c in zip(p.comments.order_by('created'), cp.comments.order_by('created'), strict=False):
             assert p_c != cp_c
             assertKeysEqual(p_c, cp_c, ['user', 'text', 'path', 'text_range', 'text_original'])
 
-            for p_ca, cp_ca in zip(p_c.answers.order_by('created'), cp_c.answers.order_by('created')):
+            for p_ca, cp_ca in zip(p_c.answers.order_by('created'), cp_c.answers.order_by('created'), strict=False):
                 assert p_ca != cp_ca
                 assertKeysEqual(p_ca, cp_ca, ['user', 'text'])
 
@@ -568,17 +568,17 @@ class TestCopyModel:
         assert set(p.files.values_list('id', flat=True)).intersection(cp.files.values_list('id', flat=True)) == set()
         assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in cp.files.all()}
 
-        for p_s, cp_s in zip(p.sections.order_by('section_id'), cp.sections.order_by('section_id')):
+        for p_s, cp_s in zip(p.sections.order_by('section_id'), cp.sections.order_by('section_id'), strict=False):
             assert p_s != cp_s
             assertKeysEqual(p_s, cp_s, ['section_id', 'assignee', 'status', 'data'])
             self.assert_comments_copy_equal(p_s, cp_s)
 
-        for p_f, cp_f in zip(p.findings.order_by('finding_id'), cp.findings.order_by('finding_id')):
+        for p_f, cp_f in zip(p.findings.order_by('finding_id'), cp.findings.order_by('finding_id'), strict=False):
             assert p_f != cp_f
             assertKeysEqual(p_f, cp_f, ['finding_id', 'assignee', 'status', 'order', 'data', 'template'])
             self.assert_comments_copy_equal(p_f, cp_f)
 
-        for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id')):
+        for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id'), strict=False):
             assert p_n != cp_n
             assertKeysEqual(p_n, cp_n, ['note_id', 'title', 'text', 'checked', 'icon_emoji', 'order'])
             if p_n.parent:
@@ -613,7 +613,7 @@ class TestCopyModel:
         assert set(t.images.values_list('id', flat=True)).intersection(cp.images.values_list('id', flat=True)) == set()
         assert {(i.name, i.file.read()) for i in t.images.all()} == {(i.name, i.file.read()) for i in cp.images.all()}
 
-        for t_tr, cp_tr in zip(t.translations.order_by('language'), cp.translations.order_by('language')):
+        for t_tr, cp_tr in zip(t.translations.order_by('language'), cp.translations.order_by('language'), strict=False):
             assert t_tr != cp_tr
             assertKeysEqual(t_tr, cp_tr, ['language', 'status', 'is_main', 'risk_score', 'risk_level', 'title', 'data_all'])
 

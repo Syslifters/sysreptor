@@ -64,7 +64,7 @@ class ModelDiffMixin(models.Model):
         for f in itertools.chain(self._meta.concrete_fields, self._meta.private_fields, self._meta.many_to_many):
             if getattr(f, 'attname', None) in diff_fields:
                 v = f.value_from_object(self)
-                if isinstance(v, (dict, list)):
+                if isinstance(v, dict|list):
                     v = v.copy()
                 out[f.attname] = v
         return out

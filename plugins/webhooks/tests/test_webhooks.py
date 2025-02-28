@@ -34,8 +34,8 @@ class TestWebhooksCalled:
     async def wait_for_background_tasks(self):
         for t in utils._background_tasks:
             await t
-    
-    @pytest.mark.parametrize(['event', 'trigger'], [
+
+    @pytest.mark.parametrize(('event', 'trigger'), [
         (WebhookEventType.PROJECT_CREATED, lambda s: create_project()),
         (WebhookEventType.PROJECT_FINISHED, lambda s: update(s.project, readonly=True)),
         (WebhookEventType.PROJECT_ARCHIVED, lambda s: ArchivedProject.objects.create_from_project(s.project)),
@@ -53,7 +53,7 @@ class TestWebhooksCalled:
             call_args = self.mock.call_args[1]
             assert call_args['webhook'] == webhook_config | {'headers': []}
             assert call_args['data']['event'] == event
-    
+
     @override_configuration(WEBHOOKS=[{'url': 'https://example.com/webhook1', 'events': [WebhookEventType.PROJECT_CREATED]}])
     def test_event_filter(self):
         # Not subscribed to event
@@ -68,8 +68,8 @@ class TestWebhooksCalled:
         self.mock.assert_called_once()
 
     @override_configuration(WEBHOOKS=[
-        {'url': 'https://example.com/webhook1', 'events': [WebhookEventType.PROJECT_CREATED]}, 
-        {'url': 'https://example.com/webhook2', 'events': [WebhookEventType.PROJECT_CREATED]}
+        {'url': 'https://example.com/webhook1', 'events': [WebhookEventType.PROJECT_CREATED]},
+        {'url': 'https://example.com/webhook2', 'events': [WebhookEventType.PROJECT_CREATED]},
     ])
     def test_error_handling(self):
         self.mock.side_effect = [Exception('Request failed'), mock.DEFAULT]

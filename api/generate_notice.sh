@@ -33,8 +33,6 @@ ignore="$ignore randomcolor"
 ignore="$ignore attrs"
 ignore="$ignore referencing"
 
-export PATH="/home/user/.local/bin:$PATH"
-pip3 install pip-licenses
 pip-licenses --allow-only "$allow_only" --ignore-packages $ignore >/dev/null
 pip-licenses -l --no-license-path -f plain-vertical --no-version --ignore-packages $ignore > NOTICE
 
