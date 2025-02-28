@@ -32,8 +32,11 @@ class RenderFindingsView(ProjectSubresourceMixin, GenericAPIViewAsync):
         for elem in list(html_toplevel):
             # Only include top-level sections matching include_selectors
             for selector in include_selectors:
-                if selector(elem):
-                    break
+                try:
+                    if selector(elem):
+                        break
+                except (ValueError, etree.XPathEvalError):
+                    pass
             else:
                 html_toplevel.remove(elem)
                 elem.getparent().remove(elem)
