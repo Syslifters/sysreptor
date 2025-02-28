@@ -3,7 +3,6 @@ import dataclasses
 import enum
 import io
 import json
-from typing import Optional
 
 from Cryptodome.Cipher import AES
 from Cryptodome.Cipher._mode_gcm import _GHASH, _ghash_clmul, _ghash_portable
@@ -179,7 +178,7 @@ class EncryptionStream(io.RawIOBase):
 
 
 class DecryptionStream(io.RawIOBase):
-    def __init__(self, fileobj, key: Optional[EncryptionKey] = None, keys: Optional[dict[str, EncryptionKey]] = None) -> None:
+    def __init__(self, fileobj, key: EncryptionKey | None = None, keys: dict[str, EncryptionKey] | None = None) -> None:
         self.fileobj = fileobj
         self.metdata = None
         self.cipher = None

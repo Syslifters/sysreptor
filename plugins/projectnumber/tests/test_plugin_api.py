@@ -5,17 +5,17 @@ from django.core.management import call_command
 from django.template.defaultfilters import date
 from django.template.defaulttags import NowNode
 from django.utils import dateparse
-from reportcreator_api.utils.fielddefinition.types import (
-    FieldDefinition,
-    StringField,
-    serialize_field_definition,
-)
 from reportcreator_api.tests.mock import (
     api_client,
     create_project,
     create_project_type,
     create_user,
     override_configuration,
+)
+from reportcreator_api.utils.fielddefinition.types import (
+    FieldDefinition,
+    StringField,
+    serialize_field_definition,
 )
 
 from ..management.commands import resetprojectnumber
@@ -28,31 +28,28 @@ class MockNowNode(NowNode):
         return date(now, self.format_string)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestProjectNumberPlugin:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user = create_user()
         self.client = api_client(self.user)
 
-    @pytest.mark.parametrize(
-        "template, expected",
-        [
-            ("{{ project_number }}", "1"),
-            ("Project No: {{ project_number }}", "Project No: 1"),
-            ("R{% now 'y' %}-{{project_number|stringformat:'04d'}}", "R24-0001"),
-            ("{% now 'Y' %}-{{project_number|stringformat:'04d'}}", "2024-0001"),
-            ("Prefix-{% now 'y' %}{% now 'm' %}{{project_number|stringformat:'04d'}}-Suffix", "Prefix-24110001-Suffix"),
-            ("{{ 1000|add:project_number }}", "1001"),
-            ("P{{ project_number|stringformat:'04d' }}{% random_number 5 23|stringformat:'02d' %}", "P000117"),
-        ]
-    )
+    @pytest.mark.parametrize(('template', 'expected'), [
+        ("{{ project_number }}", "1"),
+        ("Project No: {{ project_number }}", "Project No: 1"),
+        ("R{% now 'y' %}-{{project_number|stringformat:'04d'}}", "R24-0001"),
+        ("{% now 'Y' %}-{{project_number|stringformat:'04d'}}", "2024-0001"),
+        ("Prefix-{% now 'y' %}{% now 'm' %}{{project_number|stringformat:'04d'}}-Suffix", "Prefix-24110001-Suffix"),
+        ("{{ 1000|add:project_number }}", "1001"),
+        ("P{{ project_number|stringformat:'04d' }}{% random_number 5 23|stringformat:'02d' %}", "P000117"),
+    ])
     def test_on_project_saved(self, template, expected):
         # Override settings to use the custom template
         with override_configuration(PLUGIN_PROJECTNUMBER_TEMPLATE=template), \
             mock.patch('django.template.defaulttags.NowNode', new=MockNowNode), \
             mock.patch('random.randint', return_value=17):
-             
+
             # Initialize project counter
             counter, _ = ProjectNumber.objects.get_or_create(pk=1)
             assert counter.current_id == 0
@@ -71,11 +68,11 @@ class TestProjectNumberPlugin:
                                         label='Project Counter',
                                         required=True,
                                     ),
-                                ]
-                            )
+                                ],
+                            ),
                         ),
-                    }
-                ]
+                    },
+                ],
             )
 
             # Create project

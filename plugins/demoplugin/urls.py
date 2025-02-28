@@ -15,7 +15,7 @@ Accessible at /api/plugins/<plugin_id>/api/...
 """
 urlpatterns = [
     path('helloworld/', lambda *args, **kwargs: HttpResponse("Hello world", content_type="text/plain"), name='helloworld'),
-    path('', include(router.urls))
+    path('', include(router.urls)),
 ]
 
 

@@ -265,9 +265,9 @@ class FieldDefinition(FieldLookupMixin):
 def _field_from_dict(t: type, v: dict|str|Any, additional_dataclass_args=None):
     additional_dataclass_args = additional_dataclass_args or {}
     if isinstance(t, GenericAlias):
-        if t.__origin__ is list and isinstance(v, (list, tuple)):
+        if t.__origin__ is list and isinstance(v, list|tuple):
             return [_field_from_dict(t.__args__[0], e) for e in v]
-        elif t.__origin__ is dict and isinstance(v, (dict, frozendict)):
+        elif t.__origin__ is dict and isinstance(v, dict|frozendict):
             return {_field_from_dict(t.__args__[0], k): _field_from_dict(t.__args__[1], e) for k, e in v.items()}
     elif isinstance(v, t):
         return v
@@ -275,7 +275,7 @@ def _field_from_dict(t: type, v: dict|str|Any, additional_dataclass_args=None):
         return t(v)
     elif isinstance(t, date) and isinstance(v, str):
         return date.fromisoformat(v)
-    elif dataclasses.is_dataclass(t) and isinstance(v, (dict, frozendict)):
+    elif dataclasses.is_dataclass(t) and isinstance(v, dict|frozendict):
         field_types = {f.name: f.type for f in dataclasses.fields(t)}
         dataclass_args = {f: _field_from_dict(field_types[f], v[f]) for f in field_types if f in v} | additional_dataclass_args
         try:
@@ -309,9 +309,9 @@ def parse_field_definition(definition: list[dict]) -> FieldDefinition:
 
 
 def _serialize_field_definition_entry(definition: list[BaseField]|Any, extra_info: bool|list[str] = False):
-    if isinstance(definition, (dict, frozendict)):
+    if isinstance(definition, dict|frozendict):
         return {k: _serialize_field_definition_entry(v, extra_info=extra_info) for k, v in definition.items()}
-    elif isinstance(definition, (list, tuple)):
+    elif isinstance(definition, list|tuple):
         return [_serialize_field_definition_entry(e, extra_info=extra_info) for e in definition]
     elif dataclasses.is_dataclass(definition):
         d = dataclasses.asdict(definition)
@@ -320,7 +320,7 @@ def _serialize_field_definition_entry(definition: list[BaseField]|Any, extra_inf
         elif isinstance(definition, ObjectField):
             d['properties'] = _serialize_field_definition_entry(definition.properties, extra_info=extra_info)
         d_extra_info = d.pop('extra_info', {})
-        if isinstance(extra_info, (list, tuple)):
+        if isinstance(extra_info, list|tuple):
             d |= copy_keys(d_extra_info, extra_info)
         elif extra_info:
             d |= d_extra_info

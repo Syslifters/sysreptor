@@ -14,10 +14,10 @@ class Command(BaseCommand):
     def handle(self, *args: Any, value=0, **options: Any) -> str | None:
         if value < 0:
             raise CommandError('Project number counter must be a non-negative integer')
-        
+
         counter, _ = ProjectNumber.objects.update_or_create(
             pk=1,
             defaults={'current_id': value},
             create_defaults={'current_id': value},
         )
-        print(f'Project number was reset to {counter.current_id}')
+        print(f'Project number was reset to {counter.current_id}')  # noqa: T201

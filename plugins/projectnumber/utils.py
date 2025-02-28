@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.template import Context, Engine, TemplateSyntaxError
 
 custom_engine = Engine(
-    builtins=['sysreptor_plugins.projectnumber.templatetags.random_number'], 
+    builtins=['sysreptor_plugins.projectnumber.templatetags.random_number'],
 )
 
 

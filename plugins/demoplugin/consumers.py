@@ -5,7 +5,7 @@ from reportcreator_api.pentests.models import PentestProject
 class DemoPluginConsumer(WebsocketConsumerBase):
     async def get_related_id(self):
         return self.scope['url_route']['kwargs']['project_pk']
-    
+
     @property
     def group_name(self):
         return f'hellowebsocket_{self.related_id}'
@@ -31,7 +31,7 @@ class DemoPluginConsumer(WebsocketConsumerBase):
             'client_id': self.client_id,
             'message': 'You successfully connected to the websocket consumer',
         })
-    
+
     async def receive_json(self, content, **kwargs):
         match content.get('type'):
             case 'echo':

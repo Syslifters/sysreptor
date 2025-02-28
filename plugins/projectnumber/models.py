@@ -7,4 +7,3 @@ class ProjectNumber(BaseModel):
     Model to store the continuous counting number for PentestProject.
     """
     current_id = models.PositiveIntegerField(default=0)
-    

@@ -8,4 +8,4 @@ register = template.Library()
 def random_number(a, b=None):
     if b is None:
         a, b = 0, a
-    return random.randint(int(a), int(b))
+    return random.randint(int(a), int(b))  # noqa: S311

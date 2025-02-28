@@ -1,6 +1,5 @@
 import dataclasses
 import enum
-from typing import Optional, Union
 
 
 class MessageLevel(enum.Enum):
@@ -18,9 +17,9 @@ class MessageLocationType(enum.Enum):
     OTHER = 'other'
 
 
-def format_path(path: Union[None, str, tuple[str], list[str]]):
+def format_path(path: None | str | tuple[str] | list[str]):
     path_str = path
-    if isinstance(path, (tuple, list)):
+    if isinstance(path, tuple|list):
         path_str = '.'.join(path)
     if path_str:
         path_str = path_str.replace('.[', '[')
@@ -30,9 +29,9 @@ def format_path(path: Union[None, str, tuple[str], list[str]]):
 @dataclasses.dataclass(eq=True, frozen=True)
 class MessageLocationInfo:
     type: MessageLocationType
-    id: Optional[str] = None
-    name: Optional[str] = None
-    path: Optional[str] = None
+    id: str | None = None
+    name: str | None = None
+    path: str | None = None
 
     def sub_path(self, sub_path: str):
         path = self.path or ''
@@ -42,7 +41,7 @@ class MessageLocationInfo:
             path += '.' + sub_path
         return MessageLocationInfo(**(dataclasses.asdict(self) | {'path': path}))
 
-    def for_path(self, path: Union[None, str, tuple[str], list[str]]):
+    def for_path(self, path: None | str | tuple[str] | list[str]):
         return MessageLocationInfo(**(dataclasses.asdict(self)  |{'path': format_path(path)}))
 
     def to_dict(self):
@@ -55,8 +54,8 @@ class MessageLocationInfo:
 class ErrorMessage:
     level: MessageLevel
     message: str
-    details: Optional[str] = None
-    location: Optional[MessageLocationInfo] = None
+    details: str | None = None
+    location: MessageLocationInfo | None = None
 
     def to_dict(self):
         return dataclasses.asdict(self) | {

@@ -1,7 +1,6 @@
 import json
 from datetime import timedelta
 from functools import cached_property
-from typing import Optional
 from unittest import mock
 from uuid import uuid4
 
@@ -404,7 +403,7 @@ def build_test_parameters():
 
 
 class ApiRequestsAndPermissionsTestData:
-    def __init__(self, current_user: Optional[PentestUser]) -> None:
+    def __init__(self, current_user: PentestUser | None) -> None:
         self.current_user = current_user
 
     @classmethod
@@ -550,7 +549,7 @@ def test_api_requests(username, name, perform_request, options, expected):
         if initialize_dependencies := (options or {}).get('initialize_dependencies'):
             initialize_dependencies(data)
         res = perform_request(data, client)
-        info = res.data if not isinstance(res, (FileResponse, StreamingHttpResponse)) else res
+        info = res.data if not isinstance(res, FileResponse|StreamingHttpResponse) else res
         if expected:
             assert 200 <= res.status_code < 300, {'message': 'API request failed, but should have succeeded', 'info': info}
         else:

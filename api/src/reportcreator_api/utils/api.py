@@ -1,7 +1,6 @@
 import json
 import operator
 from functools import reduce
-from types import NoneType
 
 from adrf.generics import GenericAPIView as AdrfAsyncGenericAPIView
 from adrf.viewsets import GenericViewSet as AdrfAsyncGenericViewSet
@@ -124,7 +123,7 @@ class CursorMultiPagination(pagination.CursorPagination):
                     field_value = field_value[k]
                 else:
                     field_value = getattr(field_value, k)
-            out.append(field_value if isinstance(field_value, (str, bool, int, float, NoneType)) else str(field_value))
+            out.append(field_value if isinstance(field_value, str|bool|int|float|None) else str(field_value))
         return json.dumps(out)
 
     def paginate_queryset(self, queryset, request, view=None):
@@ -154,7 +153,7 @@ class CursorMultiPagination(pagination.CursorPagination):
             q_objects_equals = {}
             q_objects_compare = {}
 
-            for order, position in zip(self.ordering, current_position_list):
+            for order, position in zip(self.ordering, current_position_list, strict=False):
                 if isinstance(order, OrderBy):
                     is_reversed = order.descending
                     order_attr = order.expression.name
@@ -254,9 +253,9 @@ def exception_handler(exc, context):
         if getattr(exc, 'auth_header', None):
             headers['WWW-Authenticate'] = exc.auth_header
         if getattr(exc, 'wait', None):
-            headers['Retry-After'] = '%d' % exc.wait
+            headers['Retry-After'] = str(exc.wait)
 
-        if isinstance(exc.detail, (list, dict)):
+        if isinstance(exc.detail, list|dict):
             data = exc.detail
         else:
             data = {'detail': exc.detail, 'code': exc.detail.code}

@@ -2,7 +2,7 @@ import dataclasses
 import enum
 import random
 from collections.abc import Iterable
-from typing import Any, Optional, Union
+from typing import Any
 
 from django.utils import timezone
 from lorem_text import lorem
@@ -35,7 +35,7 @@ def contains(a: dict, b: dict) -> bool:
         if isinstance(v, dict):
             if not contains(a[k], v):
                 return False
-        elif isinstance(v, (list, tuple)):
+        elif isinstance(v, list|tuple):
             raise ValueError('Cannot diff lists')
         elif v != b[k]:
             return False
@@ -87,7 +87,7 @@ def ensure_defined_structure(value, definition: FieldDefinition|BaseField, handl
     Recursively check for undefined fields and set a value.
     Returns only data of defined fields, if value contains undefined fields, this data is not returned.
     """
-    if isinstance(definition, (FieldDefinition, ObjectField)):
+    if isinstance(definition, FieldDefinition|ObjectField):
         out = value.copy() if include_unknown else {}
         for f in definition.fields:
             out[f.id] = ensure_defined_structure(value=(value if isinstance(value, dict) else {}).get(f.id), definition=f, handle_undefined=handle_undefined)
@@ -115,7 +115,7 @@ def ensure_defined_structure(value, definition: FieldDefinition|BaseField, handl
             return _default_or_demo_data(definition, next(iter(definition.suggestions), None), handle_undefined=handle_undefined)
         elif definition.type == FieldDataType.DATE and not (isinstance(value, str) and is_date_string(value)):
             return _default_or_demo_data(definition, timezone.now().date().isoformat(), handle_undefined=handle_undefined)
-        elif definition.type == FieldDataType.NUMBER and not isinstance(value, (int, float)):
+        elif definition.type == FieldDataType.NUMBER and not isinstance(value, int|float):
             return _default_or_demo_data(definition, random.randint(1, 10), handle_undefined=handle_undefined)  # noqa: S311
         elif definition.type == FieldDataType.BOOLEAN and not isinstance(value, bool):
             return _default_or_demo_data(definition, random.choice([True, False]), handle_undefined=handle_undefined)  # noqa: S311
@@ -127,14 +127,14 @@ def ensure_defined_structure(value, definition: FieldDefinition|BaseField, handl
             return value
 
 
-def check_definitions_compatible(a: FieldDefinition|BaseField, b: FieldDefinition|BaseField, path: Optional[tuple[str]] = None) -> tuple[bool, list[str]]:
+def check_definitions_compatible(a: FieldDefinition|BaseField, b: FieldDefinition|BaseField, path: tuple[str] | None = None) -> tuple[bool, list[str]]:
     """
     Check if definitions are compatible and values can be converted without data loss.
     """
     path = path or tuple()
     valid = True
     errors = []
-    if isinstance(a, (FieldDefinition, ObjectField)) and isinstance(b, (FieldDefinition, ObjectField)):
+    if isinstance(a, FieldDefinition|ObjectField) and isinstance(b, FieldDefinition|ObjectField):
         a_fields = a.field_dict
         b_fields = b.field_dict
         for k in set(a_fields.keys()).intersection(b_fields.keys()):
@@ -180,7 +180,7 @@ def set_field_origin(definition: FieldDefinition|BaseField, predefined_fields: F
         return out
 
 
-def iterate_fields(value: Union[dict, Any], definition: FieldDefinition|BaseField, path: Optional[tuple[str]] = None) -> Iterable[tuple[tuple[str], Any, BaseField]]:
+def iterate_fields(value: dict | Any, definition: FieldDefinition|BaseField, path: tuple[str] | None = None) -> Iterable[tuple[tuple[str], Any, BaseField]]:
     """
     Recursively iterate over all defined fields
     """
@@ -193,7 +193,7 @@ def iterate_fields(value: Union[dict, Any], definition: FieldDefinition|BaseFiel
         yield path, value, definition
 
     # Nested structures
-    if isinstance(definition, (FieldDefinition, ObjectField)):
+    if isinstance(definition, FieldDefinition|ObjectField):
         for f in definition.fields:
             yield from iterate_fields(value=(value if isinstance(value, dict) else {}).get(f.id), definition=f, path=path + tuple([f.id]))
     elif definition.type == FieldDataType.LIST:
@@ -222,7 +222,7 @@ def get_value_at_path(obj: dict, path: tuple[str]):
     """
     value = obj
     for p in path:
-        if isinstance(value, (list, tuple)) and p.startswith('[') and p.endswith(']') and p[1:-1].isdigit():
+        if isinstance(value, list|tuple) and p.startswith('[') and p.endswith(']') and p[1:-1].isdigit():
             idx = int(p[1:-1])
             if not (0 <= idx < len(value)):
                 return None

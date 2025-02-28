@@ -6,7 +6,7 @@ from reportcreator_api.pentests.models.notes import ShareInfo
 from reportcreator_api.tests.mock import api_client, create_project, create_projectnotebookpage, create_shareinfo
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestSharedPermissions:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -94,7 +94,7 @@ class TestSharedPermissions:
         assert res.status_code == (200 if expected else 403)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db()
 class TestSharePasswordAuth:
     @pytest.fixture(autouse=True)
     def setUp(self):

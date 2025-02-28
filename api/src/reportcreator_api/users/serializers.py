@@ -153,7 +153,7 @@ class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
         try:
             if isinstance(data, dict) and 'id' in data:
                 return self.get_queryset().get(pk=data['id'])
-            elif isinstance(data, (str, UUID)):
+            elif isinstance(data, str|UUID):
                 return self.get_queryset().get(pk=data)
             else:
                 return data

@@ -1,12 +1,12 @@
 import asyncio
+import asyncio.timeouts
 import dataclasses
 import json
 import logging
 import uuid
 from base64 import b64encode
 from datetime import timedelta
-from types import NoneType
-from typing import Any, Optional, Union
+from typing import Any
 
 import elasticapm
 from asgiref.sync import sync_to_async
@@ -56,7 +56,7 @@ from reportcreator_api.utils.utils import copy_keys, get_key_or_attr, merge
 log = logging.getLogger(__name__)
 
 
-def format_template_field_object(value: dict, definition: FieldDefinition|ObjectField, members: Optional[list[dict | ProjectMemberInfo]] = None, require_id=False):
+def format_template_field_object(value: dict, definition: FieldDefinition|ObjectField, members: list[dict | ProjectMemberInfo] | None = None, require_id=False):
     out = value | ensure_defined_structure(value=value, definition=definition)
     for f in definition.fields:
         out[f.id] = format_template_field(value=out.get(f.id), definition=f, members=members)
@@ -66,8 +66,8 @@ def format_template_field_object(value: dict, definition: FieldDefinition|Object
     return out
 
 
-def format_template_field_user(value: Union[ProjectMemberInfo, str, uuid.UUID, None], members: Optional[list[dict | ProjectMemberInfo | PentestUser]] = None):
-    def format_user(u: Union[ProjectMemberInfo, dict, None]):
+def format_template_field_user(value: ProjectMemberInfo | str | uuid.UUID | None, members: list[dict | ProjectMemberInfo | PentestUser] | None = None):
+    def format_user(u: ProjectMemberInfo | dict | None):
         if not u:
             return None
         return copy_keys(
@@ -76,11 +76,11 @@ def format_template_field_user(value: Union[ProjectMemberInfo, str, uuid.UUID, N
             {'roles': sorted(set(filter(None, get_key_or_attr(u, 'roles', []))), key=lambda r: {
                              'lead': 0, 'pentester': 1, 'reviewer': 2}.get(r, 10))}
 
-    if isinstance(value, (ProjectMemberInfo, PentestUser, dict, NoneType)):
+    if isinstance(value, ProjectMemberInfo|PentestUser|dict|None):
         return format_user(value)
-    elif isinstance(value, (str, uuid.UUID)) and (u := next(filter(lambda i: str(get_key_or_attr(i, 'id')) == str(value), members or []), None)):
+    elif isinstance(value, str|uuid.UUID) and (u := next(filter(lambda i: str(get_key_or_attr(i, 'id')) == str(value), members or []), None)):
         return format_user(u)
-    elif isinstance(value, (str, uuid.UUID)):
+    elif isinstance(value, str|uuid.UUID):
         try:
             return format_user(ProjectMemberInfo(user=PentestUser.objects.get(id=value), roles=[]))
         except (PentestUser.DoesNotExist, ValidationError):
@@ -89,7 +89,7 @@ def format_template_field_user(value: Union[ProjectMemberInfo, str, uuid.UUID, N
         return None
 
 
-def format_template_field(value: Any, definition: BaseField, members: Optional[list[dict | ProjectMemberInfo]] = None):
+def format_template_field(value: Any, definition: BaseField, members: list[dict | ProjectMemberInfo] | None = None):
     value_type = definition.type
     if value_type == FieldDataType.ENUM:
         return dataclasses.asdict(next(filter(lambda c: c.value == value, definition.choices), EnumChoice(value='', label='')))
@@ -125,7 +125,7 @@ def format_template_field(value: Any, definition: BaseField, members: Optional[l
 
 
 def format_template_data(
-        data: dict, project_type: ProjectType, imported_members: Optional[list[dict]] = None,
+        data: dict, project_type: ProjectType, imported_members: list[dict] | None = None,
         override_finding_order=False, additonal_data: dict|None = None,
 ):
     members = [format_template_field_user(u, members=imported_members) for u in data.get(
@@ -162,7 +162,7 @@ def format_template_data(
     return data
 
 
-async def format_project_template_data(project: PentestProject, project_type: Optional[ProjectType] = None, additonal_data: dict|None = None):
+async def format_project_template_data(project: PentestProject, project_type: ProjectType | None = None, additonal_data: dict|None = None):
     if not project_type:
         project_type = project.project_type
     data = {
@@ -190,12 +190,10 @@ async def format_project_template_data(project: PentestProject, project_type: Op
     )
 
 
-async def get_celery_result_async(task, timeout=None):
+async def get_celery_result_async(task):
     try:
-        start_time = timezone.now()
-        while not task.ready():
-            if timeout and timezone.now() > start_time + timeout:
-                raise TimeoutError()
+        task.on_ready.then(print)
+        while not task.ready():  # noqa: ASYNC110
             await asyncio.sleep(0.1)
         if isinstance(task.result, Exception):
             raise task.result
@@ -208,20 +206,20 @@ async def get_celery_result_async(task, timeout=None):
         raise
 
 
-async def _render_pdf_task_async(timeout=None, **kwargs):
-    if not timeout and settings.PDF_RENDERING_TIME_LIMIT:
-        timeout = timedelta(seconds=settings.PDF_RENDERING_TIME_LIMIT + 5)
+async def _render_pdf_task_async(**kwargs):
+    timeout = timedelta(seconds=settings.PDF_RENDERING_TIME_LIMIT + 5).total_seconds() if settings.PDF_RENDERING_TIME_LIMIT else None
 
     try:
-        if settings.CELERY_TASK_ALWAYS_EAGER:
-            # Do not use celery when tasks are executed eagerly in the same process
-            # Use async instead to be able to cancel tasks.
-            # sync_to_async functions are not cancelled because the ThreadPoolExecutor does not support cancellation.
-            # Tasks continue running in background, even when the asyncio coroutine is already cancelled.
-            res = await asyncio.wait_for(tasks.render_pdf_task_async(**kwargs), timeout=timeout.total_seconds())
-        else:
-            task = await sync_to_async(tasks.render_pdf_task_celery.delay)(**kwargs)
-            res = await get_celery_result_async(task, timeout=timeout)
+        async with asyncio.timeout(timeout):
+            if settings.CELERY_TASK_ALWAYS_EAGER:
+                # Do not use celery when tasks are executed eagerly in the same process
+                # Use async instead to be able to cancel tasks.
+                # sync_to_async functions are not cancelled because the ThreadPoolExecutor does not support cancellation.
+                # Tasks continue running in background, even when the asyncio coroutine is already cancelled.
+                res = await tasks.render_pdf_task_async(**kwargs)
+            else:
+                task = await sync_to_async(tasks.render_pdf_task_celery.delay)(**kwargs)
+                res = await get_celery_result_async(task)
         return RenderStageResult.from_dict(res)
     except asyncio.CancelledError:
         logging.info('PDF rendering task cancelled')
@@ -235,7 +233,7 @@ async def _render_pdf_task_async(timeout=None, **kwargs):
 @log_timing(log_start=True, log_detailed_timings=True)
 async def render_pdf_task(
     project_type: ProjectType, report_template: str, report_styles: str, data: dict,
-    password: Optional[str] = None, can_compress_pdf: bool = False, project: Optional[PentestProject] = None,
+    password: str | None = None, can_compress_pdf: bool = False, project: PentestProject | None = None,
     output=None, html=None, timings=None,
 ) -> RenderStageResult:
     res = RenderStageResult(timings=timings or {})
@@ -353,7 +351,7 @@ async def render_project_markdown_fields_to_html(project: PentestProject, reques
 
 
 @elasticapm.async_capture_span()
-async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage], request=None) -> RenderStageResult:
+async def render_note_to_pdf(note: ProjectNotebookPage | UserNotebookPage, request=None) -> RenderStageResult:
     is_project_note = isinstance(note, ProjectNotebookPage)
     parent_obj = note.project if is_project_note else note.user
 
@@ -393,10 +391,10 @@ async def render_note_to_pdf(note: Union[ProjectNotebookPage, UserNotebookPage],
 
 
 async def render_pdf(
-    project: PentestProject, project_type: Optional[ProjectType] = None,
-    report_template: Optional[str] = None, report_styles: Optional[str] = None,
-    additonal_data: Optional[dict] =None,
-    password: Optional[str] = None, can_compress_pdf: bool = False, output: Optional[str] = None,
+    project: PentestProject, project_type: ProjectType | None = None,
+    report_template: str | None = None, report_styles: str | None = None,
+    additonal_data: dict | None =None,
+    password: str | None = None, can_compress_pdf: bool = False, output: str | None = None,
 ) -> RenderStageResult:
     if not project_type:
         project_type = project.project_type

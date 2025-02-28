@@ -49,7 +49,7 @@ def freeze_args(func):
 
     @functools.wraps(func)
     def wrapped(*args, **kwargs):
-        args = tuple([recursive_freeze(arg) if isinstance(arg, (dict, list)) else arg for arg in args])
-        kwargs = {k: recursive_freeze(v) if isinstance(v, (dict, list)) else v for k, v in kwargs.items()}
+        args = tuple([recursive_freeze(arg) if isinstance(arg, dict|list) else arg for arg in args])
+        kwargs = {k: recursive_freeze(v) if isinstance(v, dict|list) else v for k, v in kwargs.items()}
         return func(*args, **kwargs)
     return wrapped

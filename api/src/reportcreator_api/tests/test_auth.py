@@ -1,11 +1,10 @@
-from datetime import timedelta
 import io
+from datetime import timedelta
 
 import pyotp
 import pytest
 from django.conf import settings
 from django.core.management import call_command
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string

@@ -45,11 +45,11 @@ def find_index(lst: list, idx: int, default=-1):
 
 
 def get_key_or_attr(d: dict|object, k: str, default=None):
-    return d.get(k, default) if isinstance(d, (dict, OrderedDict)) else getattr(d, k, default)
+    return d.get(k, default) if isinstance(d, dict|OrderedDict) else getattr(d, k, default)
 
 
 def set_key_or_attr(d: dict|object, k: str, value: Any):
-    if isinstance(d, (dict, OrderedDict)):
+    if isinstance(d, dict|OrderedDict):
         d[k] = value
     else:
         setattr(d, k, value)
@@ -59,7 +59,7 @@ def copy_keys(d: dict|object, keys: Iterable[str]) -> dict:
     keys = set(keys)
     out = {}
     for k in keys:
-        if isinstance(d, (dict, OrderedDict)):
+        if isinstance(d, dict|OrderedDict):
             if k in d:
                 out[k] = d[k]
         else:
@@ -129,7 +129,7 @@ def merge(*args):
     """
     out = {}
     for d in args:
-        if isinstance(d, (dict, OrderedDict)) and isinstance(out, (dict, OrderedDict)):
+        if isinstance(d, dict|OrderedDict) and isinstance(out, dict|OrderedDict):
             for k, v in d.items():
                 if k not in out:
                     out[k] = v

@@ -18,7 +18,7 @@ class RenderFindingsView(ProjectSubresourceMixin, GenericAPIViewAsync):
         html_tree = etree.HTML(html)
         # Get top-level sections
         html_toplevel = html_tree.find('body/div').getchildren()
-        
+
         include_selectors = [
             # Explicitely included elements
             etree.XPath('.//@data-sysreptor-renderfindings="include"'),
@@ -32,15 +32,12 @@ class RenderFindingsView(ProjectSubresourceMixin, GenericAPIViewAsync):
         for elem in list(html_toplevel):
             # Only include top-level sections matching include_selectors
             for selector in include_selectors:
-                try:
-                    if selector(elem):
-                        break
-                except Exception:
-                    pass
+                if selector(elem):
+                    break
             else:
                 html_toplevel.remove(elem)
                 elem.getparent().remove(elem)
-        
+
         return etree.tostring(html_tree, method="html", pretty_print=True)
 
     async def post(self, request, *args, **kwargs):
@@ -66,6 +63,6 @@ class RenderFindingsView(ProjectSubresourceMixin, GenericAPIViewAsync):
                 report_template='',
                 report_styles=project.project_type.report_styles,
                 html=res.pdf.decode())
-        
+
         return Response(data=res.to_dict())
 

@@ -5,7 +5,6 @@ import sys
 import tempfile
 from io import BytesIO
 from pathlib import Path
-from typing import Optional
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
@@ -117,7 +116,7 @@ async def compress_pdf(pdf_data: bytes) -> RenderStageResult:
 
 @log_timing()
 @sync_to_async()
-def encrypt_pdf(pdf_data: bytes, password: Optional[str]) -> RenderStageResult:
+def encrypt_pdf(pdf_data: bytes, password: str | None) -> RenderStageResult:
     out = RenderStageResult(pdf=pdf_data)
     if not password:
         return out
@@ -136,8 +135,8 @@ def encrypt_pdf(pdf_data: bytes, password: Optional[str]) -> RenderStageResult:
 
 async def render_pdf_impl(
     template: str, styles: str, data: dict, resources: dict, language: str,
-    password: Optional[str] = None, should_compress_pdf: bool = False,
-    html: Optional[str] = None, output=None,
+    password: str | None = None, should_compress_pdf: bool = False,
+    html: str | None = None, output=None,
 ) -> RenderStageResult:
     out = RenderStageResult(other={'task_start_time': timezone.now().isoformat()})
 
