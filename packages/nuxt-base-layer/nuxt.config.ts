@@ -40,8 +40,8 @@ export default defineNuxtConfig({
     '@mdi/font/css/materialdesignicons.css',
   ],
 
-  piniaPersistedstate: {
-    storage: 'localStorage'
+  piniaPluginPersistedstate: {
+    storage: 'localStorage',
   },
 
   vuetify: {

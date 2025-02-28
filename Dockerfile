@@ -133,16 +133,17 @@ ENV PYTHONUNBUFFERED=on \
     PYTHONDONTWRITEBYTECODE=on \
     CHROMIUM_EXECUTABLE=/usr/lib/chromium/chromium \
     GHOSTSCRIPT_EXECUTABLE=/usr/bin/gs \
-    PATH=$PATH:/root/.local/bin \
     REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 
 WORKDIR /app/api/
 COPY api/pyproject.toml api/poetry.lock /app/api/
-RUN pip install --no-cache poetry==1.8.5 && \
-    poetry config virtualenvs.create false && \
-    poetry install --no-cache --no-interaction --no-root
+RUN python3 -m venv /opt/poetry \
+    && /opt/poetry/bin/pip install --no-cache poetry==2.1.1 \ 
+    && /opt/poetry/bin/poetry config virtualenvs.create false \
+    && /opt/poetry/bin/poetry install --no-cache --no-interaction --no-root \
+    && rm -rf /opt/poetry
 
 # Unprivileged user
 RUN useradd --uid=1000 --create-home --shell=/bin/bash user \
