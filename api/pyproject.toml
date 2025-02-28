@@ -11,7 +11,7 @@ dependencies = [
   "weasyprint (==64.1)",
 
   "django-csp (>=4.0b2,<5)",
-  "django-storages (~=1.13)",
+  "django-storages[s3] (~=1.13)",
   "drf-nested-routers (~=0.94)",
   "django-filter (~=25.1)",
   "drf-spectacular[sidecar] (~=0.28)",
@@ -42,7 +42,6 @@ dependencies = [
   "lorem-text (~=2.1)",
   "randomcolor (~=0.4)",
   "zipstream-ng (~=1.6)",
-  "boto3 (~=1.26)",
   "playwright (~=1.32)",
   "pikepdf (~=9.0)",
   "celery (~=5.3)",

@@ -1119,6 +1119,7 @@ files = [
 ]
 
 [package.dependencies]
+boto3 = {version = ">=1.4.4", optional = true, markers = "extra == \"s3\""}
 Django = ">=3.2"
 
 [package.extras]
@@ -3998,4 +3999,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "9cd4db51102087375948b63ba238e9ccde33166cb9e0c002be440a54e2e2aef8"
+content-hash = "e199a8466c53df55c7fef9268e3983d903175499587889fa1de6ebee9c552c5c"
