@@ -101,4 +101,8 @@ const updateNoteOrder = debounce(async (notes: NoteGroup<NoteBase>) => {
     requestErrorToast({ error });
   }
 }, 0);
+
+useHeadExtended({
+  syncState: notesCollab.syncState,
+});
 </script>

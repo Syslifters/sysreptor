@@ -1,15 +1,14 @@
 <template>
-  <span class="loader-spinner">
-    <v-icon icon="mdi-cached" />
+  <span>
+    <v-icon icon="mdi-sync" class="animation-rotate" />
   </span>
 </template>
 
 <style scoped lang="scss">
-  .loader-spinner {
-    animation: loader 1s infinite;
-    display: inline-flex;
+  .animation-rotate {
+    animation: rotate 1s infinite;
   }
-  @keyframes loader {
+  @keyframes rotate {
     from {
       transform: rotate(0);
     }

@@ -19,6 +19,7 @@
           </v-breadcrumbs-item>
         </template>
       </v-breadcrumbs>
+      <sync-indicator :model-value="syncState" />
       <v-spacer />
 
       <s-btn-icon
@@ -120,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { PluginRouteScope } from '#imports';
+import { PluginRouteScope, type SyncState } from '#imports';
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
@@ -153,9 +154,11 @@ const licenseText = computed(() => {
 
 // Breadcrumbs
 const breadcrumbs = ref<Breadcrumbs>();
+const syncState = ref<SyncState|undefined>();
 const nuxtApp = useNuxtApp();
 const head = nuxtApp.vueApp._context.provides.usehead
 function syncBreadcrumbs() {
+  // Breadcrumbs
   const bc = head.headEntries()
     .filter((e: any) => e.input?.breadcrumbs)
     .reverse()
@@ -168,6 +171,12 @@ function syncBreadcrumbs() {
   } else {
     breadcrumbs.value = undefined;
   }
+
+  // Save indicator
+  syncState.value = head.headEntries()
+    .filter((e: any) => e.input?.syncState)
+    .reverse()
+    .map((e: any) => e.input.syncState)[0];
 }
 head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
 </script>
