@@ -8,17 +8,11 @@ from reportcreator_api.tests.mock import (
     create_project,
     create_user,
     override_configuration,
+    update,
 )
 from reportcreator_api.utils import utils
 
 from ..models import WebhookEventType
-
-
-def update(obj, **kwargs):
-    for k, v in kwargs.items():
-        setattr(obj, k, v)
-    obj.save()
-    return obj
 
 
 @pytest.mark.django_db()

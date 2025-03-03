@@ -481,3 +481,13 @@ def override_configuration(**kwargs):
     finally:
         configuration._force_override = restore_map
         configuration.clear_cache()
+
+
+def update(obj, **kwargs):
+    for k, v in kwargs.items():
+        if k == 'data' and hasattr(obj, 'update_data'):
+            obj.update_data(v)
+        else:
+            setattr(obj, k, v)
+    obj.save()
+    return obj

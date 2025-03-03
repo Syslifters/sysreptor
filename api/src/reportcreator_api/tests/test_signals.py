@@ -28,6 +28,7 @@ from reportcreator_api.tests.mock import (
     create_project_type,
     create_template,
     create_user,
+    update,
 )
 from reportcreator_api.tests.test_import_export import archive_to_file
 from reportcreator_api.users.models import PentestUser
@@ -94,8 +95,7 @@ class TestSignalsSent:
         with self.assert_post_create_signal(sender=PentestProject, expected_subresources={'sections': len(p.project_type.report_sections), 'notes': len(p.project_type.default_notes)}):
             PentestProject.objects.create(project_type=p.project_type)
         with self.assert_post_create_signal(sender=PentestProject, expected_call_count=0):
-            p.name = 'other'
-            p.save()
+            update(p, name='other')
 
     def test_post_create_projecttype(self):
         pt = create_project_type()
@@ -115,8 +115,7 @@ class TestSignalsSent:
         with self.assert_post_create_signal(sender=ProjectType):
             ProjectType.objects.create()
         with self.assert_post_create_signal(sender=ProjectType, expected_call_count=0):
-            pt.name = 'other'
-            pt.save()
+            update(pt, name='other')
 
     def test_post_create_template(self):
         t = create_template()
@@ -137,8 +136,7 @@ class TestSignalsSent:
         with self.assert_post_create_signal(sender=FindingTemplate):
             FindingTemplate.objects.create()
         with self.assert_post_create_signal(sender=FindingTemplate, expected_call_count=0):
-            t.tags += ['other']
-            t.save()
+            update(t, tags=['other'])
 
     def test_post_create_finding(self):
         p = create_project(members=[self.user])
@@ -156,8 +154,7 @@ class TestSignalsSent:
         with self.assert_post_create_signal(sender=PentestFinding, expected_call_count=p.findings.count()):
             import_projects(archive_to_file(export_projects([p])))
         with self.assert_post_create_signal(sender=PentestFinding, expected_call_count=0):
-            f.update_data({'title': 'other'})
-            f.save()
+            update(f, data={'title': 'other'})
 
     def test_post_create_user(self):
         with self.assert_post_create_signal(sender=PentestUser):
@@ -182,12 +179,10 @@ class TestSignalsSent:
         p = create_project(members=[self.user])
 
         with self.assert_post_finish_signal():
-            p.readonly = True
-            p.save()
+            update(p, readonly=True)
 
         with self.assert_post_finish_signal(expected_call_count=0):
-            p.readonly = False
-            p.save()
+            update(p, readonly=False)
 
         with self.assert_post_finish_signal(expected_call_count=0):
             create_project(readonly=True)

@@ -33,6 +33,7 @@ from reportcreator_api.tests.mock import (
     create_template,
     create_user,
     override_configuration,
+    update,
 )
 from reportcreator_api.utils import crypto
 from reportcreator_api.utils.crypto import pgp
@@ -259,9 +260,7 @@ class TestEncryptedDbField:
     def test_transparent_encryption(self):
         # Test transparent encryption/decryption. No encrypted data should be returned to caller
         data_dict = {'test': 'content'}
-        self.finding.custom_fields = data_dict
-        self.finding.template_id = self.template.id
-        self.finding.save()
+        update(self.finding, custom_fields=data_dict, template_id=self.template.id)
         self.user.set_password('pwd')
         self.user.save()
 
@@ -273,18 +272,12 @@ class TestEncryptedDbField:
         assert self.user.check_password('pwd')
 
     def test_data_stored_encrypted(self):
-        self.finding.custom_fields = {'test': 'content'}
-        self.finding.template_id = self.template.id
-        self.finding.save()
-
+        update(self.finding, custom_fields={'test': 'content'}, template_id=self.template.id)
         assert_db_field_encrypted(PentestFinding.objects.filter(id=self.finding.id).values('custom_fields'), True)
 
     @override_settings(DEFAULT_ENCRYPTION_KEY_ID=None)
     def test_db_encryption_disabled(self):
-        self.finding.custom_fields = {'test': 'content'}
-        self.finding.template_id = self.template.id
-        self.finding.save()
-
+        update(self.finding, custom_fields={'test': 'content'}, template_id=self.template.id)
         assert_db_field_encrypted(PentestFinding.objects.filter(id=self.finding.id).values('custom_fields'), False)
 
 

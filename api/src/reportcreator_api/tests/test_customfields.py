@@ -29,6 +29,7 @@ from reportcreator_api.tests.mock import (
     create_project_type,
     create_template,
     create_user,
+    update,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.utils.fielddefinition.mixins import CustomFieldsMixin
@@ -499,8 +500,7 @@ class TestUpdateFieldDefinition:
         project_type_new = create_project_type(report_sections=[{'id': 'other', 'label': 'Other', 'fields': serialize_field_definition(REPORT_FIELDS_CORE | FieldDefinition(fields=[
             StringField(id='field_new', default='default', label='New field'),
         ]))}])
-        self.project.project_type = project_type_new
-        self.project.save()
+        update(self.project, project_type=project_type_new)
         self.refresh_data()
 
         assert 'field_string' not in self.project.data
@@ -512,8 +512,7 @@ class TestUpdateFieldDefinition:
         project_type_new = create_project_type(finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
             StringField(id='field_new', default='default', label='New field'),
         ])))
-        self.project.project_type = project_type_new
-        self.project.save()
+        update(self.project, project_type=project_type_new)
         self.refresh_data()
 
         assert 'field_string' not in self.finding.data
@@ -560,19 +559,13 @@ class TestUpdateFieldDefinitionSyncComments:
             create_comment(section=self.section, path=p, text_range=SelectionRange(anchor=0, head=10) if 'field_markdown' in p else None)
 
     def test_update_projecttype_delete_fields(self):
-        self.project_type.finding_fields = finding_fields_default()
-        self.project_type.report_sections = report_sections_default()
-        self.project_type.save()
-
+        update(self.project_type, finding_fields=finding_fields_default(), report_sections=report_sections_default())
         assert Comment.objects.filter_project(self.project).count() == 0
 
     def test_change_projecttype_delete_fields(self):
         pt2 = create_project_type()
-        pt2.finding_fields = finding_fields_default()
-        pt2.report_sections = report_sections_default()
-        pt2.save()
-        self.project.project_type = pt2
-        self.project.save()
+        update(pt2, finding_fields=finding_fields_default(), report_sections=report_sections_default())
+        update(self.project, project_type=pt2)
 
         assert Comment.objects.filter_project(self.project).count() == 0
 
@@ -675,8 +668,7 @@ class TestTemplateFieldDefinition:
             ])),
         )
         project_hidden = create_project(project_type=self.project_type_hidden)
-        self.project_type_hidden.linked_project = project_hidden
-        self.project_type_hidden.save()
+        update(self.project_type_hidden, linked_project=project_hidden)
 
         self.template = create_template(data={'title': 'test', 'field1': 'f1 value', 'field2': 'f2 value'})
 
@@ -688,8 +680,7 @@ class TestTemplateFieldDefinition:
 
     def test_delete_field_definition(self):
         old_value = self.template.main_translation.data['field1']
-        self.project_type1.finding_fields = [f for f in self.project_type1.finding_fields if f['id'] != 'field1']
-        self.project_type1.save()
+        update(self.project_type1, finding_fields=[f for f in self.project_type1.finding_fields if f['id'] != 'field1'])
         self.template.main_translation.refresh_from_db()
 
         assert 'field1' not in FindingTemplate.field_definition
@@ -773,8 +764,7 @@ class TestTemplateTranslation:
         self.trans = FindingTemplateTranslation.objects.create(template=self.template, language=Language.GERMAN_DE, title='Title translation')
 
     def test_template_translation_inheritance(self):
-        self.trans.update_data({'title': 'Title translation', 'description': 'Description translation'})
-        self.trans.save()
+        update(self.trans, data={'title': 'Title translation', 'description': 'Description translation'})
 
         data_inherited = self.trans.get_data(inherit_main=True)
         assert data_inherited['title'] == self.trans.title == 'Title translation'
@@ -784,31 +774,28 @@ class TestTemplateTranslation:
         assert 'field_list' not in self.trans.data
 
     def test_template_formatting(self):
-        self.trans.custom_fields = {
+        update(self.trans, custom_fields={
             'recommendation': {'value': 'invalid format'},
             'field_list': ['first', {'value': 'invalid format'}],
             'field_object': {},
-        }
-        self.trans.save()
+        })
         assert 'description' not in self.trans.data
         assert self.trans.data['recommendation'] is None
         assert self.trans.data['field_list'] == ['first', None]
         assert self.trans.data['field_object']['nested1'] is None
 
     def test_undefined_in_main(self):
-        self.main.custom_fields = {}
-        self.main.save()
+        update(self.main, custom_fields={})
         data_inherited = self.trans.get_data(inherit_main=True)
         assert 'description' not in data_inherited
         assert 'field_list' not in data_inherited
         assert 'field_object' not in data_inherited
 
     def test_update_data(self):
-        self.main.update_data({
+        update(self.main, data={
             'title': 'new',
             'description': 'new',
         })
-        self.main.save()
         data_inherited = self.trans.get_data(inherit_main=True)
         assert data_inherited['title'] != 'new'
         assert data_inherited['description'] == 'new'

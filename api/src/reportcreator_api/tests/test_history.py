@@ -47,6 +47,7 @@ from reportcreator_api.tests.mock import (
     create_template_translation,
     create_user,
     mock_time,
+    update,
 )
 from reportcreator_api.tests.test_import_export import archive_to_file
 from reportcreator_api.utils.fielddefinition.types import FieldDefinition, StringField, serialize_field_definition
@@ -133,12 +134,7 @@ class TestTemplateHistory:
 
         # Signal
         reset_state()
-        for k, v in changes.items():
-            if k == 'data':
-                tr.update_data(v)
-            else:
-                setattr(tr, k, v)
-        tr.save()
+        update(tr, **changes)
         assert_history_update(api=False)
 
         # API translation detail
@@ -268,18 +264,15 @@ class TestTemplateHistory:
         tr2 = create_template_translation(template=t, language=Language.GERMAN_DE, data={'title': 'title 2'})
         add_history_test()
         # Update template and translation
-        t.tags = ['tag2']
-        t.save()
-        tr1.update_data({'title': 'title 1 updated'})
-        tr1.save()
+        update(t, tags=['tag2'])
+        update(tr1, data={'title': 'title 1 updated'})
         add_history_test()
         # Replace image
         ti1.delete()
         UploadedTemplateImage.objects.create(linked_object=t, name='file-new2.png', file=SimpleUploadedFile(name='file-new2.png', content=b'file-new2'))
         add_history_test()
         # Change main translation
-        t.main_translation = tr2
-        t.save()
+        update(t, main_translation=tr2)
         tr1.delete()
         add_history_test()
 
@@ -375,16 +368,13 @@ class TestProjectTypeHistory:
         a1 = UploadedAsset.objects.create(linked_object=pt, name='file-new.png', file=SimpleUploadedFile(name='file-new.png', content=b'file-new'))
         add_history_test()
         # Update fields
-        pt.finding_fields = [f for f in pt.finding_fields if f['id'] not in ['cvss']]
-        pt.save()
+        update(pt, finding_fields=[f for f in pt.finding_fields if f['id'] not in ['cvss']])
         add_history_test()
         # Delete asset
         a1.delete()
         add_history_test()
         # Update HTML and CSS
-        pt.report_template = '<h1>{{ report.title}}</h1>'
-        pt.report_styles = 'h1 { color: red; }'
-        pt.save()
+        update(pt, report_template='<h1>{{ report.title}}</h1>', report_styles='h1 { color: red; }')
         add_history_test()
 
         assert self.client.get(reverse('projecttype-history-timeline', kwargs={'pk': pt.id})).status_code == 200
@@ -455,13 +445,12 @@ class TestProjectHistory:
         p = create_project(members=[self.user])
         sections_prev = list(p.sections.all())
 
-        p.project_type = create_project_type(
+        update(p, project_type=create_project_type(
             finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields= [
                 StringField(id='field_new'),
             ])),
             report_sections=[{'id': 'new', 'label': 'New', 'fields': serialize_field_definition(REPORT_FIELDS_CORE)}],
-        )
-        p.save()
+        ))
 
         assert_history(p, history_count=2, history_type='~', history_change_reason='Design changed')
         assert_history(p.sections.get(section_id='new'), history_count=1, history_type='+', history_change_reason='Design changed')
@@ -473,11 +462,13 @@ class TestProjectHistory:
     def test_update_project_type_fields(self):
         p = create_project(members=[self.user])
         sections_prev = list(p.sections.all())
-        p.project_type.finding_fields = serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
-            StringField(id='field_new'),
-        ]))
-        p.project_type.report_sections = [{'id': 'new', 'label': 'New', 'fields': serialize_field_definition(REPORT_FIELDS_CORE)}]
-        p.project_type.save()
+        update(
+            obj=p.project_type,
+            finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
+                StringField(id='field_new'),
+            ])),
+            report_sections=[{'id': 'new', 'label': 'New', 'fields': serialize_field_definition(REPORT_FIELDS_CORE)}],
+        )
 
         assert_history(p, history_count=2, history_type='~', history_change_reason='Field definition changed')
         assert_history(p.sections.get(section_id='new'), history_count=1, history_type='+', history_change_reason='Field definition changed')
@@ -510,26 +501,21 @@ class TestProjectHistory:
         f = create_finding(project=p)
         add_history_test()
         # Update finding
-        f.update_data({'title': 'new title'})
-        f.save()
+        update(f, data={'title': 'new title'})
         add_history_test()
         # Delete finding
         f.delete()
         add_history_test()
 
         # Update section
-        s = p.sections.get(section_id='executive_summary')
-        s.update_data({'executive_summary': 'new content'})
-        s.save()
+        s = update(p.sections.get(section_id='executive_summary'), data={'executive_summary': 'new content'})
         add_history_test()
 
         # Create note
         n = create_projectnotebookpage(project=p, title='title', text='text')
         add_history_test()
         # Update note
-        n.title = 'new title'
-        n.assignee = self.user
-        n.save()
+        update(n, title='new title', assignee=self.user)
         add_history_test()
         # Delete note
         n.delete()
@@ -540,19 +526,17 @@ class TestProjectHistory:
         m = ProjectMemberInfo.objects.create(project=p, user=u2, roles=['pentester'])
         add_history_test()
         # Update role
-        m.roles = ['pentester', 'reviewer']
-        m.save()
+        update(m, roles=['pentester', 'reviewer'])
         add_history_test()
         # Remove member
         m.delete()
         add_history_test()
 
         # Change project_type
-        p.project_type = create_project_type(
+        update(p, project_type=create_project_type(
             finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[StringField(id='field_new')])),
             report_sections=[{'id': 'new', 'label': 'New', 'fields': serialize_field_definition(REPORT_FIELDS_CORE)}],
-        )
-        p.save()
+        ))
         add_history_test()
 
         # Update project_type fields
@@ -602,8 +586,7 @@ class TestProjectHistory:
         n = p.notes.first()
         s = p.sections.first()
         api_client(u).patch(reverse('section-detail', kwargs={'project_pk': p.id, 'id': s.section_id}), data={'assignee': {'id': u.id}})
-        s.assignee = u
-        s.save()
+        update(s, assignee=u)
 
         history_date = timezone.now()
         p.members.get(user=u).delete()

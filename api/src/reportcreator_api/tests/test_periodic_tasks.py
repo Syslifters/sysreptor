@@ -33,6 +33,7 @@ from reportcreator_api.tests.mock import (
     create_user,
     mock_time,
     override_configuration,
+    update,
 )
 
 
@@ -279,9 +280,9 @@ class TestCleanupUnreferencedFiles:
                 report_data={'field_markdown': 'not referenced'},
             )
             project_referenced = project_unreferenced.copy(name='referenced')
-            section_referenced = project_referenced.sections.filter(section_id='other').get()
-            section_referenced.update_data({'field_markdown': '![](/images/name/image.png)\n[](/files/name/file.pdf)'})
-            section_referenced.save()
+            update(
+                obj=project_referenced.sections.filter(section_id='other').get(),
+                data={'field_markdown': '![](/images/name/image.png)\n[](/files/name/file.pdf)'})
         self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 2 + 2 * 1)
 
         # Files deleted for unreferenced project
@@ -345,10 +346,10 @@ class TestResetStaleArchiveRestore:
     def test_reset_stale(self):
         with mock_time(before=timedelta(days=10)):
             archive = create_archived_project(project=create_project(members=[create_user(public_key=True) for _ in range(2)]))
-            keypart = archive.key_parts.first()
-            keypart.decrypted_at = timezone.now()
-            keypart.key_part = {'key_id': 'shamir-key-id', 'key': 'dummy-key'}
-            keypart.save()
+            keypart = update(
+                obj=archive.key_parts.first(),
+                decrypted_at=timezone.now(),
+                key_part={'key_id': 'shamir-key-id', 'key': 'dummy-key'})
 
         async_to_sync(reset_stale_archive_restores)(None)
 
@@ -360,15 +361,15 @@ class TestResetStaleArchiveRestore:
     def test_reset_not_stale(self):
         with mock_time(before=timedelta(days=10)):
             archive = create_archived_project(project=create_project(members=[create_user(public_key=True) for _ in range(3)]))
-            keypart1 = archive.key_parts.first()
-            keypart1.decrypted_at = timezone.now()
-            keypart1.key_part = {'key_id': 'shamir-key-id', 'key': 'dummy-key'}
-            keypart1.save()
+            keypart1 = update(
+                obj=archive.key_parts.first(),
+                decrypted_at=timezone.now(),
+                key_part={'key_id': 'shamir-key-id', 'key': 'dummy-key'})
 
-        keypart2 = archive.key_parts.exclude(pk=keypart1.pk).first()
-        keypart2.decrypted_at = timezone.now()
-        keypart2.key_part = {'key_id': 'shamir-key-id-2', 'key': 'dummy-key2'}
-        keypart2.save()
+        keypart2 = update(
+            obj=archive.key_parts.exclude(pk=keypart1.pk).first(),
+            decrypted_at=timezone.now(),
+            key_part={'key_id': 'shamir-key-id-2', 'key': 'dummy-key2'})
 
         async_to_sync(reset_stale_archive_restores)(None)
 
@@ -383,15 +384,15 @@ class TestResetStaleArchiveRestore:
 
     def test_reset_one_but_not_other(self):
         with mock_time(before=timedelta(days=10)):
-            keypart1 = create_archived_project(project=create_project(members=[create_user(public_key=True) for _ in range(2)])).key_parts.first()
-            keypart1.decrypted_at = timezone.now()
-            keypart1.key_part = {'key_id': 'shamir-key-id', 'key': 'dummy-key'}
-            keypart1.save()
+            keypart1 = update(
+                obj=create_archived_project(project=create_project(members=[create_user(public_key=True) for _ in range(2)])).key_parts.first(),
+                decrypted_at=timezone.now(),
+                key_part={'key_id': 'shamir-key-id', 'key': 'dummy-key'})
 
-        keypart2 = create_archived_project(project=create_project(members=[create_user(public_key=True) for _ in range(2)])).key_parts.first()
-        keypart2.decrypted_at = timezone.now()
-        keypart2.key_part = {'key_id': 'shamir-key-id', 'key': 'dummy-key'}
-        keypart2.save()
+        keypart2 = update(
+            obj=create_archived_project(project=create_project(members=[create_user(public_key=True) for _ in range(2)])).key_parts.first(),
+            decrypted_at=timezone.now(),
+            key_part={'key_id': 'shamir-key-id', 'key': 'dummy-key'})
 
         async_to_sync(reset_stale_archive_restores)(None)
 
@@ -437,11 +438,9 @@ class TestAutoProjectArchiving:
 
     def test_counter_reset_on_unfinished(self):
         with mock_time(after=timedelta(days=20)):
-            self.project.readonly = False
-            self.project.save()
+            update(self.project, readonly=False)
         with mock_time(after=timedelta(days=21)):
-            self.project.readonly = True
-            self.project.save()
+            update(self.project, readonly=True)
         with mock_time(after=timedelta(days=40)):
             async_to_sync(automatically_archive_projects)(None)
             assert PentestProject.objects.filter(id=self.project.id).exists()

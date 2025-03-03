@@ -18,6 +18,7 @@ from reportcreator_api.tests.mock import (
     create_project,
     create_project_type,
     create_user,
+    update,
 )
 from reportcreator_api.utils.utils import copy_keys, merge
 
@@ -375,13 +376,8 @@ class TestHtmlRendering:
         md = '# headline\ntext _with_ **markdown** `code`'
         html = '<h1>headline</h1>\n<p>text <em>with</em> <strong>markdown</strong> <code class="code-inline">code</code></p>'
 
-        section = self.project.sections.get(section_id='other')
-        section.update_data({'field_markdown': md})
-        section.save()
-
-        finding = self.project.findings.first()
-        finding.update_data({'field_markdown': md})
-        finding.save()
+        section = update(self.project.sections.get(section_id='other'), data={'field_markdown': md})
+        finding = update(self.project.findings.first(), data={'field_markdown': md})
 
         res = async_to_sync(render_project_markdown_fields_to_html)(project=self.project, request=None)
 

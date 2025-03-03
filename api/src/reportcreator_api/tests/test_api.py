@@ -39,6 +39,7 @@ from reportcreator_api.tests.mock import (
     create_template,
     create_user,
     override_configuration,
+    update,
 )
 from reportcreator_api.users.models import AuthIdentity, PentestUser
 
@@ -430,9 +431,7 @@ class ApiRequestsAndPermissionsTestData:
         p = create_project(members=members, comments=True, **kwargs)
         image_name = p.images.all().first().name
         file_name = p.files.all().first().name
-        note = p.notes.all().first()
-        note.text = f'![](/images/name/{image_name})\n![](/files/name/{file_name})'
-        note.save()
+        note = update(p.notes.all().first(), text=f'![](/images/name/{image_name})\n![](/files/name/{file_name})')
         create_shareinfo(note=note)
         return p
 
