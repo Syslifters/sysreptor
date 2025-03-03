@@ -2,13 +2,13 @@ import json
 
 from reportcreator_api.conf.plugins import PluginConfig
 from reportcreator_api.utils.fielddefinition.types import (
-    EnumChoice,
-    EnumField,
+    ComboboxField,
     FieldDefinition,
     ListField,
     ObjectField,
     StringField,
 )
+from reportcreator_api.utils.utils import omit_items
 
 from .models import WebhookEventType
 
@@ -40,7 +40,15 @@ class WebhooksPluginConfig(PluginConfig):
                     StringField(id='name'),
                     StringField(id='value'),
                 ]), required=False),
-                ListField(id='events', items=EnumField(choices=[EnumChoice(value=t) for t in list(WebhookEventType)], required=False), required=False),
+                ListField(id='events', items=ComboboxField(
+                    suggestions=omit_items(list(WebhookEventType), [WebhookEventType.FINDING_UPDATED, WebhookEventType.SECTION_UPDATED]) + [
+                        WebhookEventType.FINDING_UPDATED + ':status',
+                        WebhookEventType.FINDING_UPDATED + ':data.custom_field_id',
+                        WebhookEventType.SECTION_UPDATED + ':status',
+                        WebhookEventType.SECTION_UPDATED + ':data.custom_field_id',
+                    ],
+                    required=False), 
+                    required=False),
             ]),
             required=False,
             extra_info={'load_from_env': webhooks_load_from_env}),

@@ -5,4 +5,4 @@ post_create = Signal()
 post_finish = Signal()
 post_archive = Signal()
 post_delete = django_post_delete
-
+post_update = Signal()
