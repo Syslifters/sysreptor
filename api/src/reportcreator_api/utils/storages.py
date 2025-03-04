@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from django.conf import settings
 from django.core.files.storage import FileSystemStorage, InMemoryStorage
 from storages.backends.s3 import S3Storage
 
@@ -36,6 +37,8 @@ class EncryptedFileSystemStorage(EncryptedStorageMixin, UnencryptedFileSystemSto
 
 
 class UnencryptedS3Storage(S3Storage):
+    max_memory_size = settings.FILE_UPLOAD_MAX_MEMORY_SIZE
+
     def __init__(self, access_key=None, secret_key=None, security_token=None, bucket_name=None, endpoint_url=None, location=None, **kwargs) -> None:
         super().__init__(
             access_key=access_key,
