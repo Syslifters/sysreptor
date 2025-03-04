@@ -344,7 +344,7 @@ class DecryptionStream(io.RawIOBase):
 
         try:
             # Read everything to update the internal auth tag calculation
-            while _ := self.read():
+            while _ := self.read(size=settings.FILE_UPLOAD_MAX_MEMORY_SIZE):
                 pass
 
             self.cipher.verify(self.auth_tag_buffer)
@@ -353,9 +353,12 @@ class DecryptionStream(io.RawIOBase):
             raise CryptoError('Cannot decrypt data: Auth tag verification failed') from ex
 
     def close(self):
+        if self.closed:
+            return
         try:
             self._verify_auth_tag()
         finally:
+            self.fileobj.close()
             super().close()
 
 
