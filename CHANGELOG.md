@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Plugin `renderfindings`: allow rendering finished projects
+* Plugin `webhooks`: webhooks on update
 
 
 ## v2025.20 - 2025-03-05
