@@ -115,4 +115,9 @@ function updateNoteChecked(note: NoteBase) {
     value: note.checked,
   });
 }
+
+useHeadExtended({
+  syncState: notesCollab.syncState,
+});
+
 </script>

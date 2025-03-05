@@ -43,14 +43,15 @@ const auth = useAuth();
 const localSettings = useLocalSettings();
 const userNotesStore = useUserNotesStore();
 
-useHeadExtended({
-  titleTemplate: (title?: string|null) => userNotesTitleTemplate(title, route),
-  breadcrumbs: () => [{ title: 'Personal Notes', to: '/notes/personal/' }],
-});
-
 const notesCollab = userNotesStore.useNotesCollab();
 const noteGroups = computed(() => userNotesStore.noteGroups);
 const noteSearchResults = computed(() => searchNotes(userNotesStore.notes, notesCollab.collabProps.value.search));
+
+useHeadExtended({
+  titleTemplate: (title?: string|null) => userNotesTitleTemplate(title, route),
+  breadcrumbs: () => [{ title: 'Personal Notes', to: '/notes/personal/' }],
+  syncState: notesCollab.syncState,
+});
 
 onMounted(async () => {
   await notesCollab.connect();

@@ -582,6 +582,13 @@ export type Breadcrumb = {
 };
 export type Breadcrumbs = Breadcrumb[];
 
+export enum SyncState {
+  SYNCING = 'syncing',
+  SAVED = 'saved',
+  DISCONNECTED = 'disconnected',
+};
+
+
 export type PreviewImage = {
   src: string;
   caption?: string|null;

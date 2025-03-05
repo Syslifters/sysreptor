@@ -1,7 +1,7 @@
 import { get, set, unset, throttle, trimStart, sortBy, cloneDeep } from "lodash-es";
 import { urlJoin, wait } from "@base/utils/helpers";
 import { ChangeSet, EditorSelection, SelectionRange, Text } from "@sysreptor/markdown/editor"
-import { CommentStatus, type Comment, type UserShortInfo } from "#imports"
+import { CommentStatus, SyncState, type Comment, type UserShortInfo } from "#imports";
 
 const WS_THROTTLE_INTERVAL = 1_000;
 const WS_RESPONSE_TIMEOUT = 7_000;
@@ -1046,6 +1046,22 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     data: computed(() => storeState.data),
     readonly: computed(() => storeState.connection?.connectionState !== CollabConnectionState.OPEN || !storeState.permissions.write),
     connection: computed(() => storeState.connection),
+    syncState: computed(() => {
+      if (!storeState.connection || storeState.connection?.connectionState === CollabConnectionState.CLOSED) {
+        return SyncState.DISCONNECTED;
+      } else if (storeState.connection.connectionState === CollabConnectionState.CONNECTING) {
+        return SyncState.SYNCING;
+      } else if (Array.from(storeState.perPathState.values()).some(s => 
+          s.unconfirmedTextUpdates.length > 0 || s.pendingEvents.filter(e => [
+            CollabEventType.CREATE, CollabEventType.DELETE, CollabEventType.SORT, 
+            CollabEventType.UPDATE_KEY, CollabEventType.UPDATE_TEXT
+          ].includes(e.type)).length > 0)
+      ) {
+        return SyncState.SYNCING;
+      } else {
+        return SyncState.SAVED;
+      }
+    }),
     collabProps: computedThrottled(() => ({
       path: storeState.apiPath,
       clients: storeState.awareness.clients.map((c) => {

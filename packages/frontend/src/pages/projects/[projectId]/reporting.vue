@@ -285,6 +285,10 @@ function hideSearch() {
 useKeyboardShortcut('ctrl+shift+f', () => showSearch());
 
 
+useHeadExtended({
+  syncState: reportingCollab.syncState,
+});
+
 </script>
 
 <style lang="scss" scoped>
