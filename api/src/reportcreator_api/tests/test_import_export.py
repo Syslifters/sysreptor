@@ -182,7 +182,7 @@ class TestImportExport:
 
         assertKeysEqual(t, self.project_type, [
             'created', 'name', 'language', 'status', 'tags',
-            'report_sections', 'finding_fields', 'finding_ordering',
+            'report_sections', 'finding_fields', 'finding_ordering', 'finding_grouping',
             'default_notes',
             'report_template', 'report_styles', 'report_preview_data'])
         assert t.source == SourceEnum.IMPORTED
@@ -247,7 +247,7 @@ class TestImportExport:
 
         assertKeysEqual(p.project_type, project.project_type, [
             'created', 'name', 'language',
-            'report_sections', 'finding_fields', 'finding_ordering',
+            'report_sections', 'finding_fields', 'finding_ordering', 'finding_grouping',
             'default_notes',
             'report_template', 'report_styles', 'report_preview_data'])
         assert p.project_type.source == SourceEnum.IMPORTED_DEPENDENCY
@@ -527,7 +527,7 @@ class TestCopyModel:
         assertKeysEqual(pt, cp, {
             'name', 'language', 'status', 'tags', 'linked_project',
             'report_template', 'report_styles', 'report_preview_data',
-            'report_sections', 'finding_fields', 'finding_ordering',
+            'report_sections', 'finding_fields', 'finding_ordering', 'finding_grouping',
             'default_notes',
         } - set(exclude_fields or []))
 

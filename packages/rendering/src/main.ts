@@ -17,6 +17,9 @@ import { callForTicks, getChildElementsRecursive } from './utils';
 
 export type Report = {
   id: string;
+  created: string;
+  language: string;
+  tags: string[];
   [key: string]: any;
 };
 
@@ -29,7 +32,7 @@ export type Finding = {
 
 export type ReportData = {
   report: Report;
-  findings: Finding[];
+  finding_groups: {label: string; findings: Finding[]}[];
   pentesters: {
     id: string;
     name: string;
@@ -56,7 +59,7 @@ declare global {
 
 // injected as global variables
 const REPORT_TEMPLATE = '<div>' + (window.REPORT_TEMPLATE || '') + '</div>';
-const REPORT_DATA = window.REPORT_DATA || { report: {}, findings: [] };
+const REPORT_DATA = window.REPORT_DATA || { report: {}, finding_groups: [], pentesters: [] };
 
 
 const templateCompilerOptions: CompilerOptions & RuntimeCompilerOptions = {
@@ -90,7 +93,8 @@ if (!window.RENDERING_COMPLETED) {
     setup() {
       // Data
       const data = REPORT_DATA;
-      const findings = computed(() => data.findings);
+      const finding_groups = computed(() => data.finding_groups);
+      const findings = computed(() => lodash.sortBy(finding_groups.value.flatMap(g => g.findings), ['order']));
       const pentesters = computed(() => data.pentesters);
       const report = computed(() => ({ ...data.report, findings: findings.value }));
 
@@ -152,6 +156,7 @@ if (!window.RENDERING_COMPLETED) {
 
       return {
         data,
+        finding_groups,
         findings,
         pentesters,
         report,
