@@ -3,6 +3,7 @@ from reportcreator_api import signals as sysreptor_signals
 from reportcreator_api.pentests.models import (
     PentestFinding,
     PentestProject,
+    ReportSection,
 )
 
 from .models import WebhookEventType
@@ -38,3 +39,16 @@ async def on_finding_created(sender, instance, *args, **kwargs):
 async def on_finding_deleted(sender, instance, *args, **kwargs):
     await send_webhooks(WebhookEventType.FINDING_DELETED, {'project_id': str(instance.project_id), 'finding_id': str(instance.finding_id)})
 
+
+@receiver(sysreptor_signals.post_update, sender=PentestFinding)
+async def on_finding_updated(sender, instance, changed_fields, *args, **kwargs):
+    changed_fields -= {'created', 'updated', 'order', 'custom_fields', 'data'}
+    if changed_fields:
+        await send_webhooks(WebhookEventType.FINDING_UPDATED, {'project_id': str(instance.project_id), 'finding_id': str(instance.finding_id), 'fields': changed_fields})
+
+
+@receiver(sysreptor_signals.post_update, sender=ReportSection)
+async def on_section_updated(sender, instance, changed_fields, *args, **kwargs):
+    changed_fields -= {'created', 'updated', 'custom_fields', 'data'}
+    if changed_fields:
+        await send_webhooks(WebhookEventType.SECTION_UPDATED, {'project_id': str(instance.project_id), 'section_id': str(instance.section_id), 'fields': changed_fields})

@@ -39,7 +39,20 @@ async def send_webhook_requests(data, webhooks_to_send):
 
 async def send_webhooks(event_type: WebhookEventType, data):
     webhook_settings = await configuration.aget('WEBHOOKS') or []
-    webhooks_to_send = list(filter(lambda w: event_type in w.get('events', []), webhook_settings))
+    webhooks_to_send = []
+    for webhook in webhook_settings:
+        for e in webhook.get('events', []):
+            s = e.split(':', 1)
+            e_type = s[0]
+            e_field = s[1] if len(s) > 1 else None
+            fields = data.get('fields', [])
+            if e_type == event_type and (
+                not e_field or 
+                any(f == e_field or f.startswith(e_field + '.') for f in fields)
+            ):
+                webhooks_to_send.append(webhook)
+                break
+
     if webhooks_to_send:
         run_in_background(send_webhook_requests)(data | {'event': event_type.value}, webhooks_to_send)
 

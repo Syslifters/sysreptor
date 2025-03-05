@@ -3,7 +3,7 @@ from django.test import override_settings
 from django.urls import reverse
 
 from reportcreator_api.pentests.models.notes import ShareInfo
-from reportcreator_api.tests.mock import api_client, create_project, create_projectnotebookpage, create_shareinfo
+from reportcreator_api.tests.mock import api_client, create_project, create_projectnotebookpage, create_shareinfo, update
 
 
 @pytest.mark.django_db()
@@ -72,8 +72,7 @@ class TestSharedPermissions:
         assert set([n['id'] for n in res.data]) == {str(self.note_shared.note_id), str(self.childnote_shared.note_id)}
 
     def test_shared_childnote(self):
-        self.note_shared.parent = self.note_not_shared
-        self.note_shared.save()
+        update(self.note_shared, parent=self.note_not_shared)
 
         res = self.client.get(reverse('sharednote-list', kwargs={'shareinfo_pk': self.share_info.id}))
         assert set([n['id'] for n in res.data]) == {str(self.note_shared.note_id), str(self.childnote_shared.note_id)}
@@ -146,9 +145,8 @@ class TestSharePasswordAuth:
             assert res.status_code == 404
 
             # Unlock
-            self.share_info = ShareInfo.objects.get(id=self.share_info.id)
-            self.share_info.is_revoked = False
-            self.share_info.save()
+            self.share_info.clear_changed_fields()
+            self.share_info = update(self.share_info, is_revoked=False)
 
             assert self.share_info.failed_password_attempts == 0
             res = self.client.post(reverse('publicshareinfo-auth', kwargs={'pk': self.share_info.id}), data={'password': self.password})

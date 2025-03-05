@@ -9,6 +9,7 @@ from reportcreator_api.pentests.models.project import (
     ProjectType,
     ReportSection,
 )
+from reportcreator_api import signals as sysreptor_signals
 from reportcreator_api.utils.configuration import configuration
 from reportcreator_api.utils.fielddefinition.types import FieldDataType
 
@@ -18,14 +19,14 @@ from .utils import format_project_number
 log = logging.getLogger(__name__)
 
 
-@receiver(signals.post_save, sender=PentestProject)
-def on_project_saved(sender, instance: PentestProject, created, **kwargs):
+@receiver(sysreptor_signals.post_create, sender=PentestProject)
+def on_project_saved(sender, instance: PentestProject, *args, **kwargs):
     """
     Signal handler for project save event.
     """
     p: ProjectType = instance.project_type
     field_id = configuration.PLUGIN_PROJECTNUMBER_FIELD_ID or 'project_number'
-    if created and instance.source == SourceEnum.CREATED and not instance.copy_of_id and \
+    if instance.source == SourceEnum.CREATED and not instance.copy_of_id and \
        field_id in p.all_report_fields_obj and \
        p.all_report_fields_obj[field_id].type == FieldDataType.STRING and \
        instance.data.get(field_id) in [None, p.all_report_fields_obj[field_id].default]:

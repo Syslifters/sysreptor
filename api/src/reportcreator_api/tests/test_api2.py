@@ -22,6 +22,7 @@ from reportcreator_api.tests.mock import (
     create_template,
     create_user,
     create_usernotebookpage,
+    update,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
 
@@ -65,8 +66,7 @@ class TestProjectApi:
 
     def test_change_design(self):
         project = create_project(members=[self.user])
-        project.project_type.linked_project = project
-        project.project_type.save()
+        update(project.project_type, linked_project=project)
 
         # ProjectType not changed
         u = self.client.patch(reverse('pentestproject-detail', kwargs={'pk': project.id}), data={
@@ -295,8 +295,7 @@ class TestTemplateApi:
     def test_create_finding_from_template(self):
         project = create_project(members=[self.user], images_kwargs=[])
         # Override field from main
-        self.trans_en.update_data({'title': 'title main', 'description': 'description main'})
-        self.trans_en.save()
+        update(self.trans_en, data={'title': 'title main', 'description': 'description main'})
         assert self.client.patch(reverse('findingtemplatetranslation-detail', kwargs={'template_pk': self.template.id, 'pk': self.trans_de.id}), {
             'data': {
                 'title': 'title translation',

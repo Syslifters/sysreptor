@@ -38,6 +38,7 @@ from reportcreator_api.tests.mock import (
     create_user,
     create_usernotebookpage,
     override_configuration,
+    update,
 )
 from reportcreator_api.tests.utils import assertKeysEqual
 from reportcreator_api.utils.fielddefinition.types import serialize_field_definition_legacy
@@ -434,8 +435,7 @@ class TestLinkedProject:
     def setUp(self):
         self.project_type = create_project_type(source=SourceEnum.IMPORTED_DEPENDENCY)
         self.project = create_project(project_type=self.project_type, source=SourceEnum.IMPORTED)
-        self.project_type.linked_project = self.project
-        self.project_type.save()
+        update(self.project_type, linked_project=self.project)
 
     def test_delete_linked_project(self):
         # On delete linked_project: project_type should also be deleted

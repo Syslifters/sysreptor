@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from reportcreator_api.management.commands import createapitoken
-from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time, override_configuration
+from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time, override_configuration, update
 from reportcreator_api.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType
 from reportcreator_api.utils.utils import omit_keys
 
@@ -130,8 +130,7 @@ class TestLogin:
         self.assert_mfa_login(user=self.user_mfa, mfa_method=other_mfa, success=False)
 
     def test_must_change_password(self):
-        self.user.must_change_password = True
-        self.user.save()
+        update(self.user, must_change_password=True)
 
         self.assert_login(self.user, status='password-change-required')
         self.assert_api_access(False)
@@ -144,8 +143,7 @@ class TestLogin:
         assert not self.user.must_change_password
 
     def test_must_change_password_mfa(self):
-        self.user_mfa.must_change_password = True
-        self.user_mfa.save()
+        update(self.user_mfa, must_change_password=True)
 
         self.assert_mfa_login(mfa_method=self.mfa_totp, user=self.user_mfa, status='password-change-required')
         self.assert_api_access(False)
@@ -322,11 +320,9 @@ class TestAPITokenAuth:
         self.assert_api_access(reverse('pentestproject-detail', kwargs={'pk': project_not_member.pk}), True)
 
     def test_user_inactive(self):
-        self.user.is_active = False
-        self.user.save()
+        update(self.user, is_active=False)
         self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), False)
 
     def test_token_expired(self):
-        self.api_token.expire_date = (timezone.now() - timedelta(days=10)).date()
-        self.api_token.save()
+        update(self.api_token, expire_date=(timezone.now() - timedelta(days=10)).date())
         self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), False)

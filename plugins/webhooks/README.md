@@ -12,6 +12,9 @@ WEBHOOKS='[{"url": "https://example.com/webhook", "headers": [{"name": "Authoriz
 
 The `events` option configures a list of events that should trigger the webhook. See [WebhookEventType in models.py](./models.py) for available events.
 
+The `finding_updated` and `section_updated` events allow specifiying a field filter expression to only trigger the webhook if the specified field was updated. Configure the event as `<event-type>:<field-path>` e.g. `finding_updated:status`, `section_updated:data.custom_field_id`.  
+Warning: Omitting the field filter, using a broad field filter (e.g. `data`) or filtering for markdown/string fields (e.g. `data.description`) is not recommended, because webhooks are triggered on every change (i.e. while typing in markdown fields).
+
 
 ## Requests
 Webhook HTTP requests are always set as `POST` requests with a JSON body. 

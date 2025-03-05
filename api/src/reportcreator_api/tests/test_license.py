@@ -27,6 +27,7 @@ from reportcreator_api.tests.mock import (
     create_template,
     create_user,
     override_configuration,
+    update,
 )
 from reportcreator_api.users.models import APIToken
 from reportcreator_api.utils import license
@@ -160,8 +161,7 @@ class TestCommunityLicenseRestrictions:
         assert api_client().get(reverse('utils-license'), HTTP_AUTHORIZATION='Bearer ' + api_token.token_formatted).status_code == 200
 
     def test_ignore_must_change_password(self):
-        self.user.must_change_password = True
-        self.user.save()
+        update(self.user, must_change_password=True)
 
         self.client.force_authenticate(None)
         res = self.client.post(reverse('auth-login'), data={
@@ -217,20 +217,16 @@ class TestCommunityLicenseRestrictions:
         }))
 
         # Update is_superuser: Try to exceed limit by making existing users superusers
-        self.user_regular.is_superuser = True
         with pytest.raises(license.LicenseError):
-            self.user_regular.save()
+            update(self.user_regular, is_superuser=True)
         assert_api_license_error(self.client.patch(reverse('pentestuser-detail', kwargs={'pk': self.user_regular.pk}), data={'is_superuser': True}))
 
         # Disable user: should be allowed
-        self.user_regular.is_active = False
-        self.user_regular.is_superuser = True
-        self.user_regular.save()
+        update(self.user_regular, is_active=False, is_superuser=True)
 
         # Update is_active: Try to exceed limit by enabling disabled superusers
-        self.user_regular.is_active = True
         with pytest.raises(license.LicenseError):
-            self.user_regular.save()
+            update(self.user_regular, is_active=True)
 
     def test_apitoken_limit(self):
         res1 = self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test'})

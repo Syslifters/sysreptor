@@ -18,6 +18,7 @@ from reportcreator_api.tests.mock import (
     create_project,
     create_project_type,
     create_user,
+    update,
 )
 from reportcreator_api.utils.fielddefinition.types import (
     CvssField,
@@ -229,21 +230,13 @@ def test_invalid_cvss_version(expected, cvss_version, cvss_vector):
 
 def test_review_status():
     project = create_project()
-    finding_valid = create_finding(
-        project=project, status=ReviewStatus.FINISHED)
-    finding_invalid1 = create_finding(
-        project=project, status=ReviewStatus.IN_PROGRESS)
-    finding_invalid2 = create_finding(
-        project=project, status=ReviewStatus.READY_FOR_REVIEW)
-    finding_invalid3 = create_finding(
-        project=project, status=ReviewStatus.NEEDS_IMPROVEMENT)
+    finding_valid = create_finding(project=project, status=ReviewStatus.FINISHED)
+    finding_invalid1 = create_finding(project=project, status=ReviewStatus.IN_PROGRESS)
+    finding_invalid2 = create_finding(project=project, status=ReviewStatus.READY_FOR_REVIEW)
+    finding_invalid3 = create_finding(project=project, status=ReviewStatus.NEEDS_IMPROVEMENT)
 
-    section_valid = project.sections.first()
-    section_valid.status = ReviewStatus.FINISHED
-    section_valid.save()
-    section_invalid = project.sections.exclude(id=section_valid.id).first()
-    section_invalid.status = ReviewStatus.IN_PROGRESS
-    section_invalid.save()
+    section_valid = update(project.sections.first(), status=ReviewStatus.FINISHED)
+    section_invalid = update(project.sections.exclude(id=section_valid.id).first(), status=ReviewStatus.IN_PROGRESS)
 
     assertContainsCheckResults(project.perform_checks(), [
         ErrorMessage(level=MessageLevel.WARNING, message='Status is not "finished"',
