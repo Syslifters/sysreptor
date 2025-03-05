@@ -4,6 +4,7 @@
 * Plugin `renderfindings`: allow rendering finished projects
 * Plugin `webhooks`: webhooks on update
 * UI: Add sync indicator
+* API: make `version` parameter optional for creating comments with `text_range`
 
 
 ## v2025.20 - 2025-03-05
