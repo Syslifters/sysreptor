@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.20 - 2025-03-05
 * Fix corrupt backup.zip because output file is not closed in backup CLI command
 * Add log message when backup is finished
 * Increase gunicorn worker restart timeout to prevent aborted backup requests
