@@ -869,7 +869,6 @@ class TestFindingGrouping:
         project = create_project(
             project_type=create_project_type(finding_grouping=finding_grouping, finding_ordering=finding_ordering or []),
             findings_kwargs=findings_kwargs)
-        # import pdb; pdb.set_trace()
         groups = group_findings(
             findings=[format_template_field_object(
                     {'id': str(f.id), 'created': str(f.created), 'order': f.order, **f.data},
