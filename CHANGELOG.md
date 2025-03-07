@@ -6,6 +6,7 @@
 * UI: Add sync indicator
 * API: allow setting `text_range` when creating comments via API
 * Fix duplicate entries in template search results
+* Allow searching for member usernames in project list
 
 
 ## v2025.20 - 2025-03-05
