@@ -32,7 +32,8 @@ export type Finding = {
 
 export type ReportData = {
   report: Report;
-  finding_groups: {label: string; findings: Finding[]}[];
+  findings?: Finding[];
+  finding_groups?: {label: string; findings: Finding[]}[];
   pentesters: {
     id: string;
     name: string;
@@ -93,7 +94,7 @@ if (!window.RENDERING_COMPLETED) {
     setup() {
       // Data
       const data = REPORT_DATA;
-      const finding_groups = computed(() => data.finding_groups);
+      const finding_groups = computed(() => data.finding_groups || [{label: '', findings: data.findings || []}]);
       const findings = computed(() => lodash.sortBy(finding_groups.value.flatMap(g => g.findings), ['order']));
       const pentesters = computed(() => data.pentesters);
       const report = computed(() => ({ ...data.report, findings: findings.value }));

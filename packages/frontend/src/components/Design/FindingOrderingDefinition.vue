@@ -8,8 +8,7 @@
 
       <v-list density="compact" class="pa-0">
         <draggable
-          :model-value="props.modelValue"
-          @update:model-value="emit('update:modelValue', $event)"
+          v-model="modelValue"
           item-key="field"
           :disabled="props.readonly"
           handle=".draggable-handle"
@@ -75,15 +74,12 @@
 
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
-import { SortOrder } from '#imports';
+import { SortOrder, type FindingOrderingDefinition } from '#imports';
 
+const modelValue = defineModel<FindingOrderingDefinition[]>({ required: true });
 const props = defineProps<{
-  modelValue: FindingOrderingDefinition[];
   projectType: ProjectType;
   readonly?: boolean;
-}>();
-const emit = defineEmits<{
-  'update:modelValue': [FindingOrderingDefinition[]];
 }>();
 
 const findingFields = computed(() => {
@@ -91,24 +87,24 @@ const findingFields = computed(() => {
     .filter(f => ![FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER].includes(f.type));
 });
 const availableFindingFields = computed(() => {
-  return findingFields.value.filter(f => !props.modelValue.map(o => o.field).includes(f.id));
+  return findingFields.value.filter(f => !modelValue.value.map(o => o.field).includes(f.id));
 });
 
 function addField() {
-  emit('update:modelValue', [...props.modelValue, { field: availableFindingFields.value[0]!.id, order: SortOrder.ASC }]);
+  modelValue.value = [...modelValue.value, { field: availableFindingFields.value[0]!.id, order: SortOrder.ASC }];
 }
 function deleteOrderConfig(orderConfig: FindingOrderingDefinition) {
-  emit('update:modelValue', props.modelValue.filter(o => o !== orderConfig));
+  modelValue.value = modelValue.value.filter(o => o !== orderConfig);
 }
 function updateField(idx: number, orderConfig: FindingOrderingDefinition, field: string) {
-  const newOrderConfig = [...props.modelValue];
+  const newOrderConfig = [...modelValue.value];
   newOrderConfig[idx] = { ...orderConfig, field };
-  emit('update:modelValue', newOrderConfig);
+  modelValue.value = newOrderConfig;
 }
 function updateOrder(idx: number, orderConfig: FindingOrderingDefinition, order: SortOrder) {
-  const newOrderConfig = [...props.modelValue];
+  const newOrderConfig = [...modelValue.value];
   newOrderConfig[idx] = { ...orderConfig, order };
-  emit('update:modelValue', newOrderConfig);
+  modelValue.value = newOrderConfig;
 }
 </script>
 

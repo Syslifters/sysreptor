@@ -99,6 +99,11 @@
                 :project-type="projectType"
                 :readonly="readonly"
               />
+              <design-finding-grouping-definition
+                v-model="projectType.finding_grouping"
+                :project-type="projectType"
+                :readonly="readonly"
+              />
 
               <design-input-field-definition
                 v-for="f, idx in findingFields" :key="idx"
