@@ -27,6 +27,16 @@ monaco.languages.html.htmlDefaults.setOptions({
     wrapLineLength: 100000000, // Disable max line length
   } as any
 });
+monaco.editor.addKeybindingRules([
+  {
+    keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash,
+    command: 'editor.action.commentLine',
+  },
+  {
+    keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Digit7,
+    command: 'editor.action.commentLine',
+  },
+])
 </script>
 
 <script setup lang="ts">
