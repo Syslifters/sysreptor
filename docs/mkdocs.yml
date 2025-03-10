@@ -42,6 +42,7 @@ nav:
           - Keycloak: users/oidc-keycloak.md
           - Microsoft Entra ID: users/oidc-entra-id.md
           - Google: users/oidc-google.md
+          - Microsoft ADFS: users/oidc-adfs.md
           - Generic: users/oidc-generic.md
       - Forgot Password: users/forgot-password.md
   - Plugins: setup/plugins.md
