@@ -98,4 +98,8 @@ async function updateNoteOrder(notes: NoteGroup<NoteBase>) {
     requestErrorToast({ error });
   }
 }
+
+useHeadExtended({
+  syncState: notesCollab.syncState,
+});
 </script>

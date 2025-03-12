@@ -1,19 +1,28 @@
 <template>
-  <v-badge 
-    v-if="modelValue" 
-    :color="modelValue === SyncState.SAVED ? 'success' : modelValue === SyncState.DISCONNECTED ? 'error' : undefined"
-    location="bottom end" 
-    class="badge-save-indicator"
-  >
+  <s-tooltip v-if="modelValue">
+    <template #activator="{ props: tooltipProps }">
+      <v-badge 
+        :color="modelValue === SyncState.SAVED ? 'success' : modelValue === SyncState.DISCONNECTED ? 'error' : undefined"
+        location="bottom end" 
+        class="badge-save-indicator"
+        v-bind="tooltipProps"
+      >
+        <template #default>
+          <v-icon icon="mdi-cloud" />
+        </template>
+        <template #badge>
+          <v-icon v-if="modelValue === SyncState.SAVED" icon="mdi-check-bold" />
+          <v-icon v-else-if="modelValue == SyncState.DISCONNECTED" icon="mdi-cancel" />
+          <v-icon v-else icon="mdi-sync" class="animation-rotate" />
+        </template>
+      </v-badge>
+    </template>
     <template #default>
-      <v-icon icon="mdi-cloud" />
+      <span v-if="modelValue === SyncState.SAVED">Everything saved</span>
+      <span v-else-if="modelValue === SyncState.DISCONNECTED">Disconnected</span>
+      <span v-else>Syncing changes</span>
     </template>
-    <template #badge>
-      <v-icon v-if="modelValue === SyncState.SAVED" icon="mdi-check-bold" />
-      <v-icon v-else-if="modelValue == SyncState.DISCONNECTED" icon="mdi-cancel" />
-      <v-icon v-else icon="mdi-sync" class="animation-rotate" />
-    </template>
-  </v-badge>
+  </s-tooltip>
 </template>
 
 <script setup lang="ts">
