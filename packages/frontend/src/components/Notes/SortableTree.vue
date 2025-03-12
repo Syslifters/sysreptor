@@ -1,5 +1,6 @@
 <template>
   <Draggable
+    ref="draggableRef"
     :model-value="props.modelValue"
     @update:model-value="emit('update:modelValue', $event)"
     @open:node="setExpanded($event.data?.note, true)"
@@ -7,7 +8,7 @@
     :stat-handler="statHandler"
     :disable-drag="props.disabled"
     :disable-drop="props.disabled"
-    update-behavior="new"
+    :update-behavior="props.disabled ? 'disabled' : 'new'"
     :tree-line="true"
     :tree-line-offset="12"
     :keep-placeholder="true"
@@ -105,6 +106,24 @@ function updateChecked(note: NoteBase, checked: boolean) {
   }
   emit('update:checked', { ...note, checked });
 }
+
+const draggableRef = ref<InstanceType<typeof Draggable>>();
+watch(() => props.modelValue, () => {
+  if (!draggableRef.value) {
+    return;
+  }
+  // Ensure that he-tree uses the same deeply reactive data as modelValue
+  // If it is not explicitly set to the same instance, note titles are not reactive in certain conditions (after moving)
+  // The update logic is similar to he-tree-vue BaseTree watch valueComputed 
+  const processor = draggableRef.value.processor
+  const isDragging = draggableRef.value.dragOvering || draggableRef.value.dragNode;
+  if (processor && processor.data !== props.modelValue && !isDragging) {
+    processor.data = props.modelValue;
+    processor.init();
+    draggableRef.value.stats = processor.stats!;
+    draggableRef.value.statsFlat = processor.statsFlat!;
+  }
+}, { deep: true });
 
 </script>
 

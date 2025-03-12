@@ -1,6 +1,7 @@
 <template>
   <Draggable
     :model-value="props.modelValue"
+    update-behavior="disabled"
     :disable-drag="true"
     :disable-drop="true"
     :tree-line="false"
