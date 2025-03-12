@@ -35,8 +35,6 @@
 </template>
 
 <script setup lang="ts">
-import { debounce } from "lodash-es";
-
 const route = useRoute();
 const router = useRouter();
 const auth = useAuth();
@@ -92,12 +90,12 @@ function updateNoteChecked(note: NoteBase) {
     value: note.checked,
   });
 }
-// Execute in next tick: prevent two requests for events in the same tick
-const updateNoteOrder = debounce(async (notes: NoteGroup<NoteBase>) => {
+
+async function updateNoteOrder(notes: NoteGroup<NoteBase>) {
   try {
     await userNotesStore.sortNotes(notes as NoteGroup<UserNote>);
   } catch (error) {
     requestErrorToast({ error });
   }
-}, 0);
+}
 </script>
