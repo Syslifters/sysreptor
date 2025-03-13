@@ -8,6 +8,7 @@
 * Fix duplicate entries in template search results
 * Allow searching for member usernames in project list
 * Enable toggle comment shortcut in HTML/CSS editor
+* SSO: Use `preferred_username` as user identifier in addition to `email`
 
 
 ## v2025.20 - 2025-03-05
