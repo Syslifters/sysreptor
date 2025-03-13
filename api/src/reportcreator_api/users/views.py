@@ -447,11 +447,11 @@ class AuthViewSet(viewsets.ViewSet):
         except OAuthError as ex:
             raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error) from ex
 
-        email = token['userinfo'].get('email', 'unknown')
+        email = token['userinfo'].get('preferred_username', token['userinfo'].get('email', 'unknown'))
         identity = AuthIdentity.objects \
             .select_related('user') \
             .filter(provider=oidc_provider) \
-            .filter(identifier=token['userinfo'].get('email')) \
+            .filter(identifier=email) \
             .first()
         if not identity:
             raise exceptions.AuthenticationFailed(detail=f'Auth identity not configured for any user: SSO provider "{oidc_provider}" identifier "{email}" ')
