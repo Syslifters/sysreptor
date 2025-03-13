@@ -99,7 +99,7 @@ function testFindingGrouping(options: {
   const findings = options.findings.map(data => ({
     id: uuidv4(),
     created: new Date().toISOString(),
-    order: 0,
+    order: data.order || 0,
     data,
   } as Partial<PentestFinding> as PentestFinding));
   const projectType = createProjectType({
@@ -125,23 +125,30 @@ describe('Finding Grouping', () => {
     {findingGrouping: [{field: 'field_cvss', order: SortOrder.DESC}], findings: [{title: 'f1', field_cvss: 'n/a'}, {title: 'f2', field_cvss: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'}, {title: 'f3', field_cvss: 'CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:C/C:N/I:N/A:N'}], expectedGroups: [{label: 'critical', findings: ['f2']}, {label: 'info', findings: ['f1', 'f3']}]},
   ]) {
     it(`should group findings ${JSON.stringify(config.findingGrouping)}`, () => {
-      testFindingGrouping(config);
+      testFindingGrouping({
+        findingOrdering: [{field: 'title', order: SortOrder.ASC}],
+        ...config
+      });
     })
   }
 
   for (const config of [
-    {groupOrder: SortOrder.ASC, findingOrder: SortOrder.DESC, expectedGroups: [{'label': 'g1', 'findings': ['g1f2', 'g1f1']}, {'label': 'g2', 'findings': ['g2f2', 'g2f1']}]},
-    {groupOrder: SortOrder.DESC, findingOrder: SortOrder.ASC, expectedGroups: [{'label': 'g2', 'findings': ['g2f1', 'g2f2']}, {'label': 'g1', 'findings': ['g1f1', 'g1f2']}]},
+    {groupOrder: SortOrder.ASC, findingOrder: SortOrder.ASC, expectedGroups: [{label: 'g1', findings: ['g1f1', 'g1f2']}, {label: 'g2', findings: ['g2f1', 'g2f2']}]},
+    {groupOrder: SortOrder.DESC, findingOrder: SortOrder.DESC, expectedGroups: [{label: 'g2', findings: ['g2f2', 'g2f1']}, {label: 'g1', findings: ['g1f2', 'g1f1']}]},
+    {groupOrder: SortOrder.ASC, findingOrder: SortOrder.DESC, expectedGroups: [{label: 'g1', findings: ['g1f2', 'g1f1']}, {label: 'g2', findings: ['g2f2', 'g2f1']}]},
+    {groupOrder: SortOrder.DESC, findingOrder: SortOrder.ASC, expectedGroups: [{label: 'g2', findings: ['g2f1', 'g2f2']}, {label: 'g1', findings: ['g1f1', 'g1f2']}]},
+    {groupOrder: SortOrder.ASC, findingOrder: null,  expectedGroups: [{label: 'g1', findings: ['g1f1', 'g1f2']}, {label: 'g2', findings: ['g2f1', 'g2f2']}]},
+    {groupOrder: SortOrder.DESC, findingOrder: null, expectedGroups: [{label: 'g1', findings: ['g1f1', 'g1f2']}, {label: 'g2', findings: ['g2f1', 'g2f2']}]},
   ]) {
     it(`should sort groups ${JSON.stringify(pick(config, ['groupOrder', 'findingOrder']))}`, () => {
       testFindingGrouping({
         findingGrouping: [{field: 'field_string', order: config.groupOrder}],
-        findingOrdering: [{field: 'field_int', order: config.findingOrder}],
+        findingOrdering: config.findingOrder ? [{field: 'field_int', order: config.findingOrder}] : [],
         findings: [
-          {title: 'g1f2', field_string: 'g1', field_int: 3},
-          {title: 'g2f1', field_string: 'g2', field_int: 2},
-          {title: 'g1f1', field_string: 'g1', field_int: 1},
-          {title: 'g2f2', field_string: 'g2', field_int: 4},
+          {title: 'g1f2', field_string: 'g1', field_int: 3, order: 3},
+          {title: 'g2f1', field_string: 'g2', field_int: 2, order: 2},
+          {title: 'g1f1', field_string: 'g1', field_int: 1, order: 1},
+          {title: 'g2f2', field_string: 'g2', field_int: 4, order: 4},
         ],
         expectedGroups: config.expectedGroups,
       })

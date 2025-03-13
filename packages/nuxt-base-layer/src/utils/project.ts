@@ -84,6 +84,7 @@ export function groupFindings<T extends PentestFinding>(options: SortFindingsOpt
     return [{ label: '', findings: sortFindings(options) }];
   }
 
+  // Group
   const findingsAnnotated = options.findings.map(finding => ({
     finding,
     groupKey: getSortKeyPart({
@@ -94,11 +95,20 @@ export function groupFindings<T extends PentestFinding>(options: SortFindingsOpt
     }),
   }))
   const groups = groupBy(findingsAnnotated, fa => fa.groupKey);
-  const groupsSorted = orderBy(
-    Object.values(groups),
-    [g => g[0]!.groupKey], 
-    [options.projectType.finding_grouping![0]!.order || SortOrder.ASC]
-  ) as typeof findingsAnnotated[];
+
+  // Sort groups
+  let groupsSorted: typeof findingsAnnotated[];
+  if (options.overrideFindingOrder || options.projectType.finding_ordering.length === 0) {
+    groupsSorted = orderBy(Object.values(groups), [g => Math.min(...g.map(f => f.finding.order))], SortOrder.ASC);
+  } else {
+    groupsSorted = orderBy(
+      Object.values(groups),
+      [g => g[0]!.groupKey], 
+      [options.projectType.finding_grouping![0]!.order || SortOrder.ASC]
+    );
+  }
+  
+  // Format groups
   return groupsSorted.map(g => ({
     label: getGroupLabel({ ...options, finding: g[0]!.finding }),
     findings: sortFindings({
@@ -109,11 +119,13 @@ export function groupFindings<T extends PentestFinding>(options: SortFindingsOpt
 }
 
 
-export function getFindingRiskLevel(options: { finding: PentestFinding, projectType: ProjectType }) {
+export function getFindingRiskLevel(options: { finding: PentestFinding, projectType: ProjectType, topLevelFields?: boolean }) {
+  const findingData = options.topLevelFields ? options.finding as PentestFinding['data'] : options.finding.data;
+
   if (options.projectType.finding_fields.some(f => f.id === 'severity')) {
-    return levelNumberFromLevelName(options.finding.data.severity);
+    return levelNumberFromLevelName(findingData.severity);
   } else if (options.projectType.finding_fields.some(f => f.id === 'cvss')) {
-    return levelNumberFromScore(scoreFromVector(options.finding.data.cvss));
+    return levelNumberFromScore(scoreFromVector(findingData.cvss));
   } else {
     return 'unknown';
   }

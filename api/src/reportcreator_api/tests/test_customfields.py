@@ -893,22 +893,27 @@ class TestFindingGrouping:
     def test_finding_grouping(self, finding_grouping, findings_kwargs, expected_groups):
         self.assert_finding_groups(
             finding_grouping=finding_grouping,
+            finding_ordering=[{'field': 'title', 'order': 'asc'}],
             findings_kwargs=[{'data': f} for f in findings_kwargs],
             expected_groups=expected_groups)
 
     @pytest.mark.parametrize(('finding_grouping_order', 'finding_ordering_order', 'expected_groups'), [
+        ('asc', 'asc', [{'label': 'g1', 'findings': ['g1f1', 'g1f2']}, {'label': 'g2', 'findings': ['g2f1', 'g2f2']}]),
+        ('desc', 'desc', [{'label': 'g2', 'findings': ['g2f2', 'g2f1']}, {'label': 'g1', 'findings': ['g1f2', 'g1f1']}]),
         ('asc', 'desc', [{'label': 'g1', 'findings': ['g1f2', 'g1f1']}, {'label': 'g2', 'findings': ['g2f2', 'g2f1']}]),
         ('desc', 'asc', [{'label': 'g2', 'findings': ['g2f1', 'g2f2']}, {'label': 'g1', 'findings': ['g1f1', 'g1f2']}]),
+        ('asc', None, [{'label': 'g1', 'findings': ['g1f1', 'g1f2']}, {'label': 'g2', 'findings': ['g2f1', 'g2f2']}]),
+        ('desc', None, [{'label': 'g1', 'findings': ['g1f1', 'g1f2']}, {'label': 'g2', 'findings': ['g2f1', 'g2f2']}]),
     ])
     def test_group_sort(self, finding_grouping_order, finding_ordering_order, expected_groups):
         self.assert_finding_groups(
             finding_grouping=[{'field': 'field_string', 'order': finding_grouping_order}],
-            finding_ordering=[{'field': 'field_int', 'order': finding_ordering_order}],
+            finding_ordering=[{'field': 'field_int', 'order': finding_ordering_order}] if finding_ordering_order else [],
             findings_kwargs=[
-                {'data': {'title': 'g1f2', 'field_string': 'g1', 'field_int': 3}},
-                {'data': {'title': 'g2f1', 'field_string': 'g2', 'field_int': 2}},
-                {'data': {'title': 'g1f1', 'field_string': 'g1', 'field_int': 1}},
-                {'data': {'title': 'g2f2', 'field_string': 'g2', 'field_int': 4}},
+                {'data': {'title': 'g1f2', 'field_string': 'g1', 'field_int': 3}, 'order': 3},
+                {'data': {'title': 'g2f1', 'field_string': 'g2', 'field_int': 2}, 'order': 2},
+                {'data': {'title': 'g1f1', 'field_string': 'g1', 'field_int': 1}, 'order': 1},
+                {'data': {'title': 'g2f2', 'field_string': 'g2', 'field_int': 4}, 'order': 4},
             ],
             expected_groups=expected_groups,
         )
