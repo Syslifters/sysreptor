@@ -78,7 +78,7 @@
             <s-btn-icon
               v-if="projectType.finding_ordering.length > 0"
               @click="toggleOverrideFindingOrder"
-              :disabled="project.readonly"
+              :disabled="readonly"
               size="small"
               density="compact"
             >
@@ -90,45 +90,28 @@
             </s-btn-icon>
           </v-list-subheader>
 
-          <draggable
+          <finding-sidebar-list
             :model-value="findings"
             @update:model-value="sortFindings"
-            item-key="id"
-            handle=".draggable-handle"
-            :disabled="project.readonly || !sortFindingsManual"
+            @create="data => ($refs.createFindingDialogRef as any)!.open(data)"
+            :project-type="projectType"
+            :override-finding-order="project.override_finding_order"
+            :readonly="readonly"
+            :to-prefix="`/projects/${route.params.projectId}/reporting/findings/`"
+            :collab="reportingCollab.collabProps.value"
+            @collab="reportingCollab.onCollabEvent"
           >
-            <template #item="{element: finding}">
-              <v-list-item
-                :to="findingUrl(finding)"
-                :active="router.currentRoute.value.path.startsWith(findingUrl(finding))"
-                :ripple="false"
-                density="compact"
-                :class="'finding-level-' + riskLevel(finding)"
-                :data-testid="'finding-' + finding.title"
-              >
-                <template #prepend>
-                  <div v-if="sortFindingsManual" class="draggable-handle mr-2">
-                    <v-icon :disabled="project.readonly" icon="mdi-drag-horizontal" />
-                  </div>
-                </template>
-                <template #default>
-                  <v-list-item-title class="text-body-2">{{ finding.data.title }}</v-list-item-title>
-                  <v-list-item-subtitle>
-                    <span v-if="finding.assignee" :class="{'assignee-self': finding.assignee.id == auth.user.value!.id}">
-                      @{{ finding.assignee.username }}
-                    </span>
-                  </v-list-item-subtitle>
-                </template>
-                <template #append>
-                  <collab-avatar-group 
-                    :collab="collabSubpath(reportingCollab.collabProps.value, `findings.${finding.id}`)"
-                    :class="{'mr-2': finding.status !== ReviewStatus.IN_PROGRESS}"
-                  />
-                  <s-status-info :value="finding.status" />
-                </template>
-              </v-list-item>
+            <template #finding-subtitle="{ finding }">
+              <v-list-item-subtitle v-if="finding.assignee">@{{ finding.assignee.username }}</v-list-item-subtitle>
             </template>
-          </draggable>
+            <template #finding-item-append="{ finding }">
+              <collab-avatar-group
+                :collab="collabSubpath(reportingCollab.collabProps.value, `findings.${finding.id}`)"
+                :class="{'mr-2': finding.status !== ReviewStatus.IN_PROGRESS}"
+              />
+              <s-status-info :value="finding.status" />
+            </template>
+          </finding-sidebar-list>
         </div>
 
         <div v-else>
@@ -158,26 +141,22 @@
 
           <template v-if="searchResultsFindings.length > 0">
             <v-list-subheader title="Findings" />
-            <div
-              v-for="result in searchResultsFindings"
-              :key="result.item.id"
+            <finding-sidebar-list
+              :model-value="searchResultsFindings.map(r => r.item)"
+              :project-type="projectType"
+              :override-finding-order="project.override_finding_order"
+              :readonly="true"
+              :hide-drag-handle="true"
+              :disable-grouping="true"
             >
-              <v-list-item
-                :to="findingUrl(result.item)"
-                :active="router.currentRoute.value.path.startsWith(findingUrl(result.item))"
-                density="compact"
-                :class="'finding-level-' + riskLevel(result.item)"
-              >
-                <template #default>
-                  <v-list-item-title class="text-body-2">{{ result.item.data.title }}</v-list-item-title>
-                </template>
-              </v-list-item>
-              <search-match-list 
-                :result="result"
-                :to-prefix="findingUrl(result.item)"
-                class="match-list"
-              />
-            </div>
+              <template #finding-append="{ finding }">
+                <search-match-list 
+                  :result="searchResultsFindings.find(r => r.item.id === finding.id)!"
+                  :to-prefix="`/projects/${route.params.projectId}/reporting/findings/${finding.id}/`"
+                  class="match-list"
+                />
+              </template>
+            </finding-sidebar-list>
           </template>
         </div>
 
@@ -200,7 +179,6 @@
 
 <script setup lang="ts">
 import { collabSubpath, ReviewStatus, type PentestFinding, type ReportSection } from '#imports';
-import Draggable from "vuedraggable";
 
 const route = useRoute();
 const router = useRouter();
@@ -218,6 +196,8 @@ const projectType = await useAsyncDataE(async () => await projectTypeStore.getBy
 const findings = computed(() => projectStore.findings(project.value.id, { projectType: projectType.value }));
 const sections = computed(() => projectStore.sections(project.value.id, { projectType: projectType.value }));
 const sortFindingsManual = computed(() => project.value.override_finding_order || projectType.value.finding_ordering.length === 0);
+
+const readonly = computed(() => project.value.readonly || !auth.permissions.value.edit_projects);
 
 const reportingCollab = projectStore.useReportingCollab({ project: project.value });
 onMounted(async () => {
@@ -241,9 +221,6 @@ function collabAwarenessSendNavigate() {
 function sectionUrl(section: ReportSection) {
   return `/projects/${route.params.projectId}/reporting/sections/${section.id}/`;
 }
-function findingUrl(finding: PentestFinding) {
-  return `/projects/${route.params.projectId}/reporting/findings/${finding.id}/`;
-}
 
 
 // Sort findings
@@ -258,17 +235,14 @@ async function toggleOverrideFindingOrder() {
   if (!wasOverrideFindingOrder.value) {
     // Use current sort order as starting point
     // But prevent destroying previous overwritten order on toggle
-    await sortFindings(findings.value);
+    const findingsSorted = groupFindings({ findings: findings.value, projectType: projectType.value }).flatMap(g => g.findings);
+    await sortFindings(findingsSorted);
   }
 
   project.value = await projectStore.partialUpdateProject({
     id: project.value.id,
     override_finding_order: !project.value.override_finding_order
   } as PentestProject, ['override_finding_order']);
-}
-
-function riskLevel(finding: PentestFinding) {
-  return getFindingRiskLevel({ finding, projectType: projectType.value });
 }
 
 
@@ -292,25 +266,8 @@ useHeadExtended({
 </script>
 
 <style lang="scss" scoped>
-@use 'sass:map';
-@use "@base/assets/settings" as settings;
-
-@for $level from 1 through 5 {
-  .finding-level-#{$level} {
-    border-left: 0.4em solid map.get(settings.$risk-color-levels, $level);
-  }
-}
-
 :deep(.v-list-item-subtitle) {
   font-size: x-small !important;
-}
-
-.draggable-handle {
-  cursor: grab;
-
-  &:deep(.v-icon) {
-    cursor: inherit;
-  }
 }
 
 :deep(.v-list-subheader) {

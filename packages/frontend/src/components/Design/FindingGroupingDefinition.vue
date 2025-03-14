@@ -3,7 +3,9 @@
     <v-card-title>Finding Grouping</v-card-title>
     <v-card-text>
       <p>
-        Group findings by following field in reports:
+        Group findings by following field in reports:<br>
+        <!-- TODO: link to docs -->
+        <v-icon icon="mdi-help-circle" /> You might need to update your design's HTML+Vue code.
       </p>
 
       <v-row dense>

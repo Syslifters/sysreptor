@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { addDays } from "date-fns";
 import { pick, reverse } from 'lodash-es';
-import { sortFindings } from '@base/utils/project';
+import { groupFindings, sortFindings } from '@base/utils/project';
 import { type FindingOrderingDefinition, type PentestFinding, type ProjectType, SortOrder } from "#imports";
 
 function createProjectType(obj: Partial<ProjectType>) {

@@ -4,7 +4,7 @@
       <btn-confirm
         :action="() => dialogVisible = true"
         :confirm="false"
-        :disabled="project.readonly"
+        :disabled="project.readonly || !auth.permissions.value.edit_projects"
         data-testid="create-finding-button"
         button-text="Add"
         button-icon="mdi-plus"
@@ -94,6 +94,7 @@ const props = defineProps<{
   project: PentestProject;
 }>();
 
+const auth = useAuth();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 
@@ -109,11 +110,13 @@ const templates = useSearchableCursorPaginationFetcher({
 });
 const searchInput = ref<FindingTemplate|string|null>(null);
 const currentTemplate = computed<FindingTemplate|null>(() => typeof searchInput.value === "string" ? null : searchInput.value);
+const findingData = ref<Partial<PentestFinding>|null>();
 watch(dialogVisible, () => {
   // Reset dialog
   templates.applyFilters({ search: '' }, { fetchInitialPage: false });
   searchInput.value = null;
-});
+  findingData.value = null;
+}, { flush: 'sync' });
 
 const templateLanguage = ref<string|null>(null);
 const templateLanguageChoices = computed(() => currentTemplate.value?.translations?.map(tr => apiSettings.settings!.languages.find(l => l.code === tr.language)!) || []);
@@ -135,7 +138,11 @@ async function createEmptyFinding() {
     actionInProgress.value = true;
     const title = ((typeof searchInput.value === "string") ? searchInput.value : null);
     const finding = await projectStore.createFinding(props.project, {
-      data: { ...(title ? { title } : {}) }
+      ...(findingData.value || {}),
+      data: {
+        ...(findingData.value?.data || {}),
+        ...(title ? { title } : {}) 
+      }
     });
     await navigateTo(`/projects/${finding.project}/reporting/findings/${finding.id}/`)
     dialogVisible.value = false;
@@ -149,6 +156,7 @@ async function createFindingFromTemplate() {
   try {
     actionInProgress.value = true;
     const finding = await projectStore.createFindingFromTemplate(props.project, {
+      ...(findingData.value || {}),
       template: currentTemplate.value!.id,
       template_language: templateLanguage.value!,
     });
@@ -168,7 +176,10 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 defineExpose({
-  open: () => { dialogVisible.value = true },
+  open: (data?: Partial<PentestFinding>|null) => { 
+    dialogVisible.value = true 
+    findingData.value = data || null;
+  },
 });
 </script>
 

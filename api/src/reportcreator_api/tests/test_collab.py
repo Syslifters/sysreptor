@@ -681,6 +681,8 @@ class TestProjectReportingDbSync:
         ('data.field_object.field_int', 1337),
         ('data.field_list_objects.[0].field_int', 1337),
         ('data.field_list', ['a', 'b', 'c']),
+        ('data.field_string', 'changed'),
+        ('data.field_markdown', 'changed'),
     ])])
     async def test_update_key(self, obj_type, path, value):
         if obj_type == 'section':

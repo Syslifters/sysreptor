@@ -97,7 +97,7 @@ const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
 const commentSidebarRef = ref<InstanceType<typeof CommentSidebar>>();
 const historyVisible = ref(false);
 const currentUrl = computed(() => {
-  if (finding.value && projectStore.findings(finding.value.project).map(f => f.id).includes(finding.value.id)) {
+  if (finding.value && projectStore.findings(finding.value.project).find(f => f.id === finding.value.id)) {
     return `/projects/${finding.value.project}/reporting/findings/${finding.value.id}/`;
   }
   return null;

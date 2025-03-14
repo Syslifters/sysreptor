@@ -140,7 +140,7 @@ const projectTypeStore = useProjectTypeStore();
 const { data: predefinedFindingFields } = useLazyAsyncData('projecttype:predefinedFindingFields', async () => await projectTypeStore.getPredefinedFindingFields())
 const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,
-  saveFields: ['finding_fields', 'finding_ordering'],
+  saveFields: ['finding_fields', 'finding_ordering', 'finding_grouping'],
 }));
 
 const findingFields = computed({
