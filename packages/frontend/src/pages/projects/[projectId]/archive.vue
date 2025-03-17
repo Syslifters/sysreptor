@@ -67,7 +67,7 @@
       :action="performArchiveProject"
       button-text="Archive Project"
       button-icon="mdi-folder-lock-outline"
-      button-color="primary"
+      button-color="primary-bg"
       tooltip-text="Archive Project"
       :dialog-text="`Archive and encrypt this project. You need at least ${threshold} of ${archiverUsers.length} users to restore this project.`"
       :confirm-input="project.name"

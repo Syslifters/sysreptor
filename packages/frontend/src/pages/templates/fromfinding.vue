@@ -43,7 +43,7 @@
                 :confirm="false"
                 button-text="Save"
                 button-icon="mdi-content-save"
-                button-color="primary"
+                button-color="primary-bg"
                 class="ml-1"
               />
             </v-card-actions>

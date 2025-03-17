@@ -1,11 +1,11 @@
 <template>
   <s-dialog v-model="confirmDialogVisible" :disabled="props.disabled || !props.confirm" max-width="500">
     <template #activator="{ props: dialogProps }">
-      <s-tooltip :disabled="!tooltipText" :text="tooltipText">
+      <s-tooltip :disabled="!props.tooltipText" :text="props.tooltipText">
         <template #activator="{ props: tooltipProps }">
           <v-list-item
-            v-if="buttonVariant === 'list-item'"
-            :title="buttonText"
+            v-if="props.buttonVariant === 'list-item'"
+            :title="props.buttonText"
             :disabled="props.disabled"
             @click="onClick"
             link

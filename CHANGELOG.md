@@ -4,6 +4,7 @@
 * Plugin `renderfindings`: allow rendering finished projects
 * Plugin `webhooks`: webhooks on update
 * UI: Add sync indicator
+* UI: Refine publish project page
 * API: allow setting `text_range` when creating comments via API
 * Fix duplicate entries in template search results
 * Allow searching for member usernames in project list

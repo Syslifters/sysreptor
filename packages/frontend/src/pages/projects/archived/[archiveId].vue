@@ -56,7 +56,7 @@
                   :confirm="false"
                   button-text="Restore"
                   button-icon="mdi-folder-lock-open-outline"
-                  button-color="primary"
+                  button-color="primary-bg"
                   class="mt-4"
                 />
               </v-container>
