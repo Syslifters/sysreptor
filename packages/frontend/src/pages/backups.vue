@@ -27,7 +27,7 @@
       :confirm="false"
       button-text="Download Backup"
       button-icon="mdi-download"
-      button-color="primary"
+      button-color="primary-bg"
       :disabled="!apiSettings.settings!.features.backup"
       class="mt-2"
     />

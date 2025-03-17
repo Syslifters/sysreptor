@@ -60,7 +60,7 @@
                 :confirm="false"
                 button-text="Update"
                 button-icon="mdi-content-save"
-                button-color="primary"
+                button-color="primary-bg"
                 class="mt-4"
               />
             </div>
@@ -78,7 +78,7 @@
                 :confirm="false"
                 button-text="Share"
                 button-icon="mdi-share-variant"
-                button-color="primary"
+                button-color="primary-bg"
                 class="mt-4"
               />
             </div>
@@ -135,7 +135,7 @@ whenever(isVisible, updateShareInfoList);
 async function updateShareInfoList() {
   try {
     isListLoading.value = true;
-    shareInfos.value = await $fetch(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/`);
+    shareInfos.value = await $fetch(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/`, { method: 'GET' });
     if (shareInfos.value.length > 0) {
       currentShareInfo.value = shareInfos.value[0]!;
     } else {

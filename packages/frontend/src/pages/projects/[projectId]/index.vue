@@ -38,6 +38,12 @@
             :name="'project-' + project.name"
             button-text="Export (with notes)"
           />
+          <btn-customize-design
+            :action="() => projectStore.customizeDesign(project)"
+            :project="project"
+            :project-type="projectType"
+            button-variant="list-item"
+          />
         </template>
       </edit-toolbar>
 

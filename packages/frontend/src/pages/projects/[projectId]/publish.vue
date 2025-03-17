@@ -11,9 +11,8 @@
     <template #default>
       <h1>{{ project.name }}</h1>
 
-      <v-form class="pa-4">
-        <!-- Action buttons -->
-        <div>
+      <v-form>
+        <div class="mt-2">
           <s-btn-secondary
             :loading="checksOrPreviewInProgress"
             :disabled="checksOrPreviewInProgress"
@@ -27,41 +26,37 @@
               Refresh PDF
             </template>
           </s-btn-secondary>
-
-          <btn-confirm
-            :action="customizeDesign"
-            button-text="Customize Design"
-            button-icon="mdi-file-cog"
-            tooltip-text="Customize Design for this project"
-            dialog-text="Customize the current Design for this project. This allows you to adapt the appearence (HTML, CSS) of the design for this project only. The original design is not affected. Any changes made to the original design will not be automatically applied to the adapted design."
-            :disabled="project.readonly || projectType.source === 'customized' || !auth.permissions.value.update_project_settings"
-            class="mb-1"
-          />
-        </div>
-
-        <!-- Set password for encrypting report -->
-        <div>
-          <s-checkbox v-model="localSettings.encryptPdfEnabled" label="Encrypt report PDF" />
-          <s-text-field
-            v-if="localSettings.encryptPdfEnabled"
-            v-model="generatePdfForm.password"
-            :error-messages="(localSettings.encryptPdfEnabled && generatePdfForm.password.length === 0) ? ['Password required'] : []"
-            label="PDF password"
-            append-inner-icon="mdi-lock-reset" @click:append-inner="generatePdfForm.password = generateRandomPassword()"
-            spellcheck="false"
-            class="mt-4"
+          
+          <btn-customize-design
+            :action="() => projectStore.customizeDesign(project)"
+            :project="project"
+            :project-type="projectType"
+            class="mr-1 mb-1"
           />
         </div>
 
         <!-- Filename -->
-        <div>
+        <div class="mt-4">
           <s-text-field
             v-model="generatePdfForm.filename"
             label="Filename"
             :rules="rules.filename"
             spellcheck="false"
-            class="mt-4"
           />
+        </div>
+
+        <!-- PDF encryption password -->
+        <div class="mt-4">
+          <s-text-field
+            v-model="generatePdfForm.password"
+            label="PDF password (optional)"
+            append-inner-icon="mdi-lock-reset" @click:append-inner="generatePdfForm.password = generateRandomPassword()"
+            spellcheck="false"
+          >
+            <template #prepend>
+              <s-checkbox v-model="shouldEncryptPdf" v-tooltip:top="'Encrypt PDF'" />
+            </template>
+          </s-text-field>
         </div>
 
         <div class="mt-4">
@@ -71,7 +66,8 @@
             :confirm="false"
             button-text="Download"
             button-icon="mdi-download"
-            button-color="primary"
+            button-color="primary-bg"
+            class="mr-1 mb-1"
           />
           <s-dialog
             v-model="shareReportForm.dialogVisible"
@@ -84,7 +80,7 @@
                 text="Share by Link"
                 :disabled="!canGenerateFinalReport || !auth.permissions.value.share_notes || !auth.permissions.value.edit_projects"
                 :loading="shareReport.pending.value"
-                class="ml-2"
+                class="mr-1 mb-1"
                 v-bind="dialogProps"
               />
             </template>
@@ -102,16 +98,17 @@
                   <template #append-fields>
                     <!-- Set password for encrypting report -->
                     <v-col cols="6">
-                      <s-checkbox v-model="localSettings.encryptPdfEnabled" label="Encrypt report PDF" />
                       <s-text-field
-                        v-if="localSettings.encryptPdfEnabled"
                         v-model="generatePdfForm.password"
-                        :error-messages="(localSettings.encryptPdfEnabled && generatePdfForm.password.length === 0) ? ['Password required'] : []"
-                        label="PDF password"
+                        label="PDF password (optional)"
                         append-inner-icon="mdi-lock-reset" @click:append-inner="generatePdfForm.password = generateRandomPassword()"
                         spellcheck="false"
                         class="mt-4"
-                      />
+                      >
+                        <template #prepend>
+                          <s-checkbox v-model="shouldEncryptPdf" />
+                        </template>
+                      </s-text-field>
                     </v-col>
                   </template>
                 </notes-share-info-form>
@@ -127,38 +124,34 @@
                   :confirm="false"
                   button-icon="mdi-share-variant"
                   button-text="Share"
-                  button-color="primary"
+                  button-color="primary-bg"
                 />
               </v-card-actions>
             </template>
           </s-dialog>
         </div>
-        <div class="mt-4">
-          <btn-readonly
-            v-if="!project.readonly"
-            :value="project.readonly"
-            :set-readonly="setReadonly"
-            :disabled="!canGenerateFinalReport || !auth.permissions.value.update_project_settings"
-          />
-        </div>
       </v-form>
 
-      <error-list v-if="checkMessagesStatus !== 'pending'" :value="allMessages" :group="true" :show-no-message-info="true">
-        <template #location="{msg}">
-          <NuxtLink v-if="messageLocationUrl(msg) && msg.location" :to="messageLocationUrl(msg)" @click="onBeforeOpenMessageLocationUrl(msg)" target="_blank" class="text-primary">
-            in {{ msg.location.type }}
-            <span v-if="msg.location.name"> "{{ msg.location.name }}"</span>
-            <span v-if="msg.location.path"> field "{{ msg.location.path }}"</span>
-          </NuxtLink>
-          <span v-else-if="msg.location?.name">
-            in {{ msg.location.type }}
-            <span v-if="msg.location.name"> "{{ msg.location.name }}"</span>
-            <span v-if="msg.location.path"> field "{{ msg.location.path }}"</span>
-          </span>
-        </template>
-      </error-list>
-      <div v-else class="text-center pa-6">
-        <v-progress-circular indeterminate />
+      <div class="mt-4">
+        <v-list-subheader>Warnings</v-list-subheader>
+        <v-divider />
+        <error-list v-if="checkMessagesStatus !== 'pending'" :value="allMessages" :group="true" :show-no-message-info="true">
+          <template #location="{msg}">
+            <NuxtLink v-if="messageLocationUrl(msg) && msg.location" :to="messageLocationUrl(msg)" @click="onBeforeOpenMessageLocationUrl(msg)" target="_blank" class="text-primary">
+              in {{ msg.location.type }}
+              <span v-if="msg.location.name"> "{{ msg.location.name }}"</span>
+              <span v-if="msg.location.path"> field "{{ msg.location.path }}"</span>
+            </NuxtLink>
+            <span v-else-if="msg.location?.name">
+              in {{ msg.location.type }}
+              <span v-if="msg.location.name"> "{{ msg.location.name }}"</span>
+              <span v-if="msg.location.path"> field "{{ msg.location.path }}"</span>
+            </span>
+          </template>
+        </error-list>
+        <div v-else class="text-center pa-6">
+          <v-progress-circular indeterminate />
+        </div>
       </div>
     </template>
   </split-menu>
@@ -203,9 +196,17 @@ const allMessages = computed(() => {
 const hasErrors = computed(() => allMessages.value.some(m => m.level === MessageLevel.ERROR));
 
 const generatePdfForm = ref({
-  password: generateRandomPassword(),
+  password: localSettings.pdfPasswordEnabled ? generateRandomPassword() : '',
   filename: (project.value.name + '_report.pdf').replaceAll(/[\\/]/g, '').replaceAll(/\s+/g, ' '),
 });
+const shouldEncryptPdf = computed({
+  get: () => !!generatePdfForm.value.password,
+  set: (value) => { generatePdfForm.value.password = value ? generateRandomPassword() : '' }
+});
+watch(shouldEncryptPdf, () => {
+  localSettings.pdfPasswordEnabled = shouldEncryptPdf.value;
+});
+
 const shareReportForm = ref({
   data: {
     expire_date: formatISO9075(addDays(new Date(), 14), { representation: 'date' }),
@@ -224,8 +225,7 @@ const checksOrPreviewInProgress = computed(() => checkMessagesStatus.value === '
 const canGenerateFinalReport = computed(() => {
   return !hasErrors.value &&
         !checksOrPreviewInProgress.value &&
-        pdfPreviewRef.value?.pdfData !== null &&
-        (localSettings.encryptPdfEnabled ? generatePdfForm.value.password.length > 0 : true);
+        pdfPreviewRef.value?.pdfData !== null;
 });
 
 function refreshPreviewAndChecks() {
@@ -248,7 +248,7 @@ async function generatePdfRequest(fetchOptions: { signal: AbortSignal }) {
   return await $fetch<Blob>(`/api/v1/pentestprojects/${project.value.id}/generate/`, {
     method: 'POST',
     body: {
-      password: localSettings.encryptPdfEnabled ? generatePdfForm.value.password : null,
+      password: generatePdfForm.value.password,
     },
     responseType: 'blob',
     ...fetchOptions,
@@ -256,12 +256,12 @@ async function generatePdfRequest(fetchOptions: { signal: AbortSignal }) {
 }
 const generateFinalReport = useAbortController(async (fetchOptions: { signal: AbortSignal }) => {
   const res = await generatePdfRequest(fetchOptions);
-  fileDownload(res, generatePdfForm.value.filename + (generatePdfForm.value.filename.endsWith('.pdf') ? '' : '.pdf'));
+  fileDownload(res, generatePdfForm.value.filename + (generatePdfForm.value.filename.toLowerCase().endsWith('.pdf') ? '' : '.pdf'));
 });
 const shareReport = useAbortController(async (fetchOptions: { signal: AbortSignal }) => {
   try {
     const reportPdf = await generatePdfRequest(fetchOptions);
-    const filename = generatePdfForm.value.filename + (generatePdfForm.value.filename.endsWith('.pdf') ? '' : '.pdf')
+    const filename = generatePdfForm.value.filename + (generatePdfForm.value.filename.toLowerCase().endsWith('.pdf') ? '' : '.pdf')
     const uploadedFile = await uploadFileHelper<UploadedFileInfo>(`/api/v1/pentestprojects/${project.value.id}/upload/`, new File([reportPdf], filename), {}, fetchOptions);
     const note = await projectStore.createNote(project.value, {
       title: 'Report',
@@ -280,14 +280,6 @@ const shareReport = useAbortController(async (fetchOptions: { signal: AbortSigna
   }
 })
 
-
-async function setReadonly() {
-  await projectStore.setReadonly(project.value, true);
-}
-async function customizeDesign() {
-  await projectStore.customizeDesign(project.value);
-  await navigateTo(`/projects/${project.value.id}/designer/`);
-}
 
 function messageLocationUrl(msg: ErrorMessage) {
   if (!msg || !msg.location) {
