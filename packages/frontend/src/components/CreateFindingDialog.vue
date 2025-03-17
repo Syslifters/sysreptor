@@ -1,22 +1,6 @@
 <template>
   <s-dialog v-model="dialogVisible" width="60%" max-width="60%" data-testid="create-finding-dialog">
-    <template #activator>
-      <btn-confirm
-        :action="() => dialogVisible = true"
-        :confirm="false"
-        :disabled="project.readonly || !auth.permissions.value.edit_projects"
-        data-testid="create-finding-button"
-        button-text="Add"
-        button-icon="mdi-plus"
-        tooltip-text="Add Finding (Ctrl+J)"
-        keyboard-shortcut="ctrl+j"
-        color="secondary"
-        size="small"
-        block
-      />
-    </template>
     <template #title>New Finding</template>
-
     <template #default>
       <v-card-text>
         <v-row dense>
@@ -94,7 +78,6 @@ const props = defineProps<{
   project: PentestProject;
 }>();
 
-const auth = useAuth();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 
