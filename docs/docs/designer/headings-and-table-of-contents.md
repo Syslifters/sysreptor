@@ -30,9 +30,8 @@ A.1 Appendix Subheading
 
 Additional resources:
 
-* CSS Counters
-    * https://printcss.net/articles/counter-and-cross-references
-    * https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Counter_Styles/Using_CSS_counters
+* https://printcss.net/articles/counter-and-cross-references
+* https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Counter_Styles/Using_CSS_counters
 
 
 ## Heading Numbers
@@ -107,30 +106,32 @@ html {
 
 /* Appendix heading numbers
 Usage in HTML: 
-  <h1 class="numbered-appendix">Heading</h1> => A Heading 
-  <h2 class="numbered-appendix">Subheading</h2> => A.1 Subheading
+<section class="appendix">
+  <h1 class="numbered">Heading</h1> => A Heading 
+  <h2 class="numbered">Subheading</h2> => A.1 Subheading
+</section>
 */
-h1.numbered-appendix::before {
+.appendix h1.numbered::before {
     padding-right: 5mm;
     counter-increment: h1-appendix-counter;
     content: counter(h1-appendix-counter, upper-alpha);
 }
-h2.numbered-appendix::before {
+.appendix h2.numbered::before {
     padding-right: 5mm;
     counter-increment: h2-counter;
     content: counter(h1-appendix-counter, upper-alpha) "." counter(h2-counter);
 }
-h3.numbered-appendix::before{
+.appendix h3.numbered::before{
     padding-right: 5mm;
     counter-increment: h3-counter;
     content: counter(h1-appendix-counter, upper-alpha) "." counter(h2-counter) "." counter(h3-counter);
 }
 
 /* Reset counters of sub-headings below the current level */
-h1.numbered-appendix {
+.appendix h1.numbered {
     counter-reset: h2-counter h3-counter;
 }
-h2.numbered-appendix {
+.appendix h2.numbered {
     counter-reset: h3-counter;
 }
 ```
@@ -154,56 +155,7 @@ All HTML attributes of the target element are collected and passed to `<table-of
 This can be used to e.g. determine if an item is in an appendix section or regular chapter.
 
 
-### Table of Contents Simple Example
-This example renders a table of contents with
-
-* heading title
-* page number
-* links entries to the target pages, such that you can click on the TOC entries and jump to the referenced pa
-
-```html
-<table-of-contents v-slot="tocItems">
-  <ul class="toc">
-    <template v-for="item in tocItems">
-      <li :class="'level-' + item.level"><a :href="item.href">{{ item.title }}</a></li>
-    </template>
-  </ul>
-</table-of-contents>
-```
-
-```css
-.toc a {
-    color: black;
-}
-
-.toc a::after {
-    font-weight: normal;
-    content: " " target-counter(attr(href), page);
-    float: right;
-}
-
-.toc ul {
-    list-style: none;
-    padding: 0;
-}
-
-.toc .level-1 {
-    margin-top: 0.7em;
-    font-weight: bold;
-}
-.toc .level-2 {
-    padding-left: 1.5em;
-    margin-top: 0.35em;
-    font-weight: normal;
-}
-.toc .level-3 {
-    padding-left: 3em;
-    margin-top: 0.25em;
-    font-weight: normal;
-}
-```
-
-### Table of Contents Complex Example
+### Table of Contents Example
 This example renders a table of contents with
 
 * heading number (via CSS counters)
@@ -214,64 +166,49 @@ This example renders a table of contents with
 * supports regular chapters and appendix chapters
 
 ```html
-<table-of-contents v-slot="tocItems">
-    <ul class="toc">
-        <template v-for="item in tocItems">
-            <li :class="['toc-level-' + item.level, (item.attrs.class || '').split(' ').includes('numbered') ? 'numbered' : '', (item.attrs.class || '').split(' ').includes('numbered-appendix') ? 'numbered-appendix' : '']">
-                <a :href="item.href">{{ item.title }}</a>
-            </li>
-        </template>
-    </ul>
+<table-of-contents id="toc" v-slot="{ items: tocItems }">
+  <h1>Table of Contents</h1>
+  <ul>
+    <li v-for="item in tocItems" :class="'toc-level' + item.level">
+      <ref :to="item.id" />
+    </li>
+  </ul>
+  <pagebreak />
 </table-of-contents>
 ```
 
 ```css
-.toc {
-    padding-left: 0;
+#toc li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.toc a {
-    color: black;
-    text-decoration: none;
-    font-style: inherit;
+#toc .ref::before {
+    padding-right: 0.5em;
 }
-.toc a::after {
+#toc .ref::after {
     content: " " leader(".") " " target-counter(attr(href), page);
 }
-.toc li {
-    list-style: none;
-    padding-left: 0;
+#toc .toc-level1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 0.8rem;
 }
-.toc-level-1 {
-    font-size: 14pt;
-    font-weight: bold;
-    margin-top: 0.8em;
+#toc .toc-level2 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  margin-left: 2rem;
 }
-.toc-level-1.numbered a::before {
-    content: target-counter(attr(href), h1-counter);
-    padding-right: 5mm;
+#toc .toc-level3 {
+  font-size: 1rem;
+  margin-top: 0.4rem;
+  margin-left: 4rem;
 }
-.toc-level-1.numbered-appendix a::before {
-    content: target-counter(attr(href), h1-appendix-counter, upper-alpha);
-    padding-right: 5mm;
-}
-
-.toc-level-2 {
-    font-size: 12pt;
-    font-weight: bold;
-    margin-top: 0.5em;
-}
-.toc-level-2.numbered a::before {
-    content: target-counter(attr(href), h1-counter) "." target-counter(attr(href), h2-counter);
-    padding-right: 5mm;
-}
-.toc-level-2.numbered-appendix a::before {
-    content: target-counter(attr(href), h1-appendix-counter, upper-alpha) "." target-counter(attr(href), h2-counter);
-    padding-right: 5mm;
-}
-
-.toc-level-3 {
-    font-size: 10pt;
-    margin-top: 0.4em;
+#toc .toc-level4 {
+  font-size: 1rem;
+  margin-top: 0;
+  margin-left: 6rem;
 }
 ```
 
@@ -282,27 +219,31 @@ This example renders a table of contents with
 <h2 class="in-toc numbered">Subsection 1.1</h2>
 <h2 class="in-toc numbered">Subsubsection 1.1.1</h2>
 <h1 class="numbered">Section 2: Not in TOC</h1>
-<h1 class="in-toc numbered-appendix">Appendix A</h1>
-<h2 class="in-toc numbered-appendix">Appendix A.1</h2>
+<section class="appendix">
+    <h1 class="in-toc numbered">Appendix A</h1>
+    <h2 class="in-toc numbered">Appendix A.1</h2>
+</section>
 ```
 
 
 ### Referencing sections in text (outside of TOC)
 Headings can not only be referenced in the table of contents, but anywhere in the document.
-References can be added by creating an `<a>` tag that links to the `id` of an heading element.
+References can be added via an `<a>` tag that links to the `id` of an heading element. In HTML (and markdown), a `<ref>` helper component is used to generate the `a` tag with corresponding CSS classes for referencing.
 
-But there are some limitations in what you can reference: the nesting level cannot be determined automatically via CSS.
-You either have to manually specify the nesting level of the referenced heading or not include the heading number in the referenced text.
+See [References](../reporting/references.md) for examples how to reference items.
+
 
 ```css
+/* Hide section title (show only number) e.g. "1.1" */
+.ref-heading .ref-title { 
+  display: none;;
+}
+#toc .ref-heading .ref-title {
+  display: initial;
+}
+
 /* Reference chapter title */
 .chapter-ref-title::before {
     content: "Chapter " target-text(attr(href));
 }
-/* Reference appendix with number. It is assumed that all appendix subsections are on the same nesting level */
-.appendix-ref::before {
-    content: "Appendix " target-counter(attr(href), h1-appendix-counter, upper-alpha) "." target-counter(attr(href), h2-counter) " " target-text(attr(href));
-}
 ```
-
-See [References](../reporting/references.md) for examples how to reference items.

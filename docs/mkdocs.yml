@@ -21,11 +21,11 @@ nav:
   - Designing Reports:
       - Designer: designer/designer.md
       - Field Types: designer/field-types.md
+      - Design Guides: designer/design-guides.md
       - Page Layout: designer/page-layout.md
       - Headings and ToC: designer/headings-and-table-of-contents.md
       - Tables: designer/tables.md
       - Figures: designer/figures.md
-      - Footnotes: designer/footnotes.md
       - Charts: designer/charts.md
       - Findings: designer/findings.md
       - Formatting Utilities: designer/formatting-utils.md

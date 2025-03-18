@@ -20,11 +20,6 @@ Except for logos in headers or background images on the title page.
 ![Exactly sized image](img.png){width="10cm" height="7cm"}
 ```
 
-<!--
-### Two images side by side
-TODO: support inline images; maybe find/implement a markdown-only without the requirement for extra CSS classes
--->
-
 ## Basic styling
 ```css
 /* Image styling */
@@ -33,7 +28,6 @@ img {
     max-width: 100%;
 }
 figure {
-    break-inside: avoid;
     text-align: center;
     margin-left: 0;
     margin-right: 0;
@@ -46,16 +40,9 @@ figcaption {
 
 
 ## Figure numbering 
-```css
-html {
-  counter-reset: figure-counter;
-}
+Figures with captions are numbered by default as `Figure <number>: <caption>` and referenced as `Figure <number>`.
 
-figure:has(figcaption) {
-    counter-increment: figure-counter;
-    content: "Figure " counter(figure-counter) ": ";
-}
-```
+
 
 
 ## List of Figures
@@ -66,34 +53,34 @@ The component uses multi-pass rendering.
 In the first render-pass it does nothing, in the second pass it collects all previously rendered `<figcaption>` tags and provides them in the variable `items`.
 
 ```html
-<list-of-figures id="lof" v-slot="items" >
-    <section v-if="items.length > 0">
-        <h1 class="in-toc">List of Figures</h1>
-        <ul>
-            <li v-for="item in items">
-                <ref :to="item.id" />
-            </li>
-        </ul>
-    </section>
+<list-of-figures id="lof" v-slot="{ items }">
+  <section v-if="items.length > 0">
+    <h1 class="in-toc">List of Figures</h1>
+    <ul>
+      <li v-for="item in items">
+        <ref :to="item.id" />
+      </li>
+    </ul>
     <pagebreak />
+  </section>
 </list-of-figures>
 ```
 
 ### Referencing figure numbers
 ```css
 #lof li {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 #lof .ref-figure::before {
-    content: var(--prefix-figure) target-counter(attr(href), figure-counter) " - ";
+  content: var(--prefix-figure) target-counter(attr(href), figure-counter) " - ";
 }
 #lof .ref-figure > .ref-title {
-    display: inline;
+  display: inline;
 }
 #lof .ref-figure::after {
-    content: " " leader(".") " " target-counter(attr(href), page);
+  content: " " leader(".") " " target-counter(attr(href), page);
 }
 ```
 

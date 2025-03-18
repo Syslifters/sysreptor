@@ -136,3 +136,21 @@
       content: counter(list-item) ".   \200b";
     }
     ```
+
+
+??? note "How to use landscape page orientation?"
+
+    SysReptor uses page orientation `portrait` by default. However, you can change that via CSS.
+    ```css
+    /* Make all pages landscape */
+    @page {
+        size: A4 landscape;
+    }
+    /* Only target specific pages via CSS named pages */
+    .section-landscape {
+        page: page-landscape;
+    }
+    @page page-landscape {
+        size: A4 landscape;
+    }
+    ```

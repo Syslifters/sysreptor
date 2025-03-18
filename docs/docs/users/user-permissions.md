@@ -10,7 +10,7 @@ They cannot read other pentesting reports.
 Superusers have the highest privileges available.
 They have all permissions without explicitly assigning them. They can access all projects, even if they are not members.
 
-**Note:** The permissions of superusers are restricted after login. Superusers must elevate their privileges via the "sudo" button in the toolbar (Pro only). This requires the user to reauthenticate with his password and (if enabled) his second factor.
+**Note:** The permissions of superusers are restricted after login. Superusers must elevate their privileges via the "Enable Superuser Permissions" button in the main menu (Pro only). This requires the user to reauthenticate with his password and (if enabled) his second factor.
 
 ## User Manager
 User Managers can create and update other users, assign permissions and reset passwords (except superusers).
@@ -57,7 +57,7 @@ System is a special privilege that allows users to create backups via API. Syste
 This privilege can only be set via the Django interface:
 
 1. Log in with superuser permissions
-2. Elevate your privileges using the "sudo" button
+2. Elevate your privileges using the "Enable Superuser Permissions" button
 3. Access https://sysreptor.example.com/admin/users/pentestuser/
 4. Choose the user
 5. Tick "Is system user"

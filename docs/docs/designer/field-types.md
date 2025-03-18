@@ -2,7 +2,7 @@
 
 This page describes field types available in SysReptor and how to use them in reports and findings. 
 
-Report and finding definitions define what input fields are available in report sections and findings when writing report. 
+Report and finding definitions define what input fields are available in report sections and findings when writing reports.
 Fields are available as form input fields when writing reports in the web interface.
 Field values are also available in Vue templates as variables.
 
@@ -13,7 +13,7 @@ All fields have the following common options:
 * ID: A unique identifier for the field. This ID is used to access the field in the HTML/Vue template.
 * Data Type: The data type defines the structure of the field and its allowed values. See below for a list of available data types.
 * Label: The label is shown in the input form when writing a report. It is a friendly name for users to understand what the field is for.
-* Required: Mark the field as required (must be filled) or optional (can be empty). If a required field is not filled out, a warning message generated before publishing the report.
+* Required: Mark the field as required (must be filled) or optional (can be empty). If a required field is not filled out, a warning message is generated before publishing the report.
 * Default Value: The default value is the initial value of the field when creating a new project. Some fields support TODOs in the default value to remind the user to fill out parts of the field.
 
 

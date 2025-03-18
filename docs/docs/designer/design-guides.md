@@ -6,6 +6,8 @@ We provide many useful default styles in our `base.css`. You can import them to 
 ```
 
 If you want to customize the styles (like fonts, code blocks, etc.), have a look at the following chapters.
+You can find the content of `base.css` [here](https://github.com/Syslifters/sysreptor/blob/main/api/src/reportcreator_api/tasks/rendering/global_assets/base.css){ target="_blank" }.
+
 
 !!! tip "Use the following snippets as a guide how to override the base styles."
 
@@ -14,11 +16,13 @@ If you want to customize the styles (like fonts, code blocks, etc.), have a look
 
 ## Headings
 ```css
-/* Avoid page breaks in headlines */
-h1, h2, h3, h4, h5, h6 {
-  break-inside: avoid;
-  break-after: avoid;
-}
+/* Customize heading sizes */
+h1 { font-size: 2rem;  }
+h2 { font-size: 1.6rem; }
+h3 { font-size: 1.4rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.1rem; }
+h6 { font-size: 1rem; }
 ```
 
 ## Code
@@ -29,26 +33,29 @@ h1, h2, h3, h4, h5, h6 {
 
 ```css
 pre code {
-  display: block !important;
   border: 1px solid black;
   padding: 0.2em;
 }
 code {
-    background-color: whitesmoke;
-}
-
-/* Allow line wrapping in code blocks: prevent code from overflowing page */
-pre {
-  white-space: pre-wrap;
+  background-color: whitesmoke;
 }
 ```
 
-## Prevent page overflow of long texts
+Code block line number information is provided for markdown code blocks, but not shown by default. Use following CSS rules to display line numbers:
 ```css
-html {
-  overflow-wrap: break-word;
+.code-block-line::before {
+  content: attr(data-line-number);
+  text-align: right;
+  user-select: none;
+  display: inline-block;
+  width: 2em;
+  margin-left: -1em;
+  margin-right: 0.2em;
+  padding-right: 0.3em;
+  background-color: rgba(0, 0, 0, 0.1);
 }
 ```
+
 
 ## Justified texts
 ```css
@@ -65,6 +72,41 @@ li::marker {
   color: red;
 }
 ```
+
+## Footnotes
+```css
+/* Footnote area at the bottom of the page, where the footnote text is placed */
+@page {
+  @footnote {
+    ...  
+  }
+}
+
+/* Footnote number in text */
+::footnote-call {
+  ...
+}
+/* Separator between multiple consecutive footnotes */
+.footnote-call-separator {
+  ...
+}
+
+/* Footnote number in footnote area */
+::footnote-marker {
+  ...
+}
+
+/* Styling footnote content e.g. links */
+footnote a {
+  color: black;
+  text-decoration: none;
+}
+```
+
+Additional resources:
+
+* https://printcss.net/articles/footnotes { target=_blank }
+
 
 ## Fonts
 Fonts can be used in elements with the CSS rule `font-family`.
