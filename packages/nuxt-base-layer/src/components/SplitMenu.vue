@@ -1,5 +1,5 @@
 <template>
-  <splitpanes @resized="emit('update:modelValue', $event[0].size)" class="default-theme h-100">
+  <splitpanes @resized="emit('update:modelValue', $event.prevPane.size)" class="default-theme h-100">
     <pane :size="props.modelValue" class="h-100 overflow-y-auto">
       <div class="h-100 w-100">
         <slot name="menu" />
@@ -19,8 +19,6 @@ import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 
 const router = useRouter();
-
-// TODO: menu slides on load; occurs on loading heavyweight components or loading components that use non-vue rendering (code-editor, markdown-editor)
 
 const props = withDefaults(defineProps<{
   modelValue?: number;
