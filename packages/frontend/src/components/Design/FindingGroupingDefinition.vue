@@ -4,8 +4,15 @@
     <v-card-text>
       <p>
         Group findings by following field in reports:<br>
-        <!-- TODO: link to docs -->
-        <v-icon icon="mdi-help-circle" /> You might need to update your design's HTML+Vue code.
+        <v-btn 
+          href="https://docs.sysreptor.com/designer/findings/" 
+          target="_blank"
+          text="Findings are not grouped in the PDF? You might need to update your design."
+          prepend-icon="mdi-help-circle" 
+          variant="plain" 
+          density="compact"
+          class="btn-help"
+        />
       </p>
 
       <v-row dense>
@@ -57,3 +64,10 @@ const availableFindingFields = computed(() => {
 });
 
 </script>
+
+<style lang="scss" scoped>
+.btn-help {
+  text-transform: none;
+  letter-spacing: normal;
+}
+</style>

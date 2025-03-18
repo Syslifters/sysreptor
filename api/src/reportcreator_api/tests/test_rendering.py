@@ -314,7 +314,7 @@ class TestHtmlRendering:
         html = self.render_html(f"""
         <list-of-tables v-slot="{slotDataSyntax}">
             <section v-if="tables">
-                <h1 id="lot" class="in-lot">List of Tables</h1>
+                <h1 id="lot" class="in-toc">List of Tables</h1>
                 <ul>
                     <li v-for="table in tables">
                         <ref :to="table.id" />

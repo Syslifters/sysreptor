@@ -5,7 +5,7 @@
     button-color="error"
     dialog-title="Confirm Delete?"
     dialog-text="Do you really want to delete this item? This action is not reversible!"
-    :color="props.buttonVariant !== 'icon' ? 'error' : ($attrs.color || 'default')"
+    :color="props.buttonVariant !== 'icon' ? 'error' : (props.color || 'default')"
     :button-variant="props.buttonVariant"
     :confirm="props.confirm"
     :confirm-input="props.confirmInput"
@@ -21,10 +21,12 @@ const props = withDefaults(defineProps<{
   buttonVariant?: BtnConfirmVariant,
   confirm?: boolean,
   confirmInput?: string,
+  color?: string;
 }>(), {
   buttonVariant: 'default',
   icon: false,
   confirm: true,
   confirmInput: undefined,
+  color: undefined,
 });
 </script>
