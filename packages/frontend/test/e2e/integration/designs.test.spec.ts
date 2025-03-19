@@ -36,7 +36,7 @@ test('A User can create an Design with a Name', async ({ page }) => {
   await page.getByTestId('save-toolbar').click();
   await page.getByText('Everything saved').waitFor();
   await page.getByText('Finding Fields').click();
-  await page.getByText('Finding Ordering').waitFor();
+  await page.getByText('Finding Ordering', { exact: true }).waitFor();
   await page.getByText('title').first().click();
   await page.getByTestId('default-value').getByRole('textbox').clear()
   await page.getByTestId('default-value').getByRole('textbox').fill('My Test Finding Title');
