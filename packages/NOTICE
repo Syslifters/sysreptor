@@ -8362,6 +8362,13 @@ MIT
 This is the **x86_64-unknown-linux-gnu** binary for `rollup`
 
 
+@rollup/rollup-linux-x64-musl 4.36.0
+MIT
+# `@rollup/rollup-linux-x64-musl`
+
+This is the **x86_64-unknown-linux-musl** binary for `rollup`
+
+
 @sec-ant/readable-stream 0.4.1
 MIT
 MIT License
@@ -10442,6 +10449,13 @@ MIT
 # `@unrs/rspack-resolver-binding-linux-x64-gnu`
 
 This is the **x86_64-unknown-linux-gnu** binary for `@unrs/rspack-resolver-binding`
+
+
+@unrs/rspack-resolver-binding-linux-x64-musl 1.2.2
+MIT
+# `@unrs/rspack-resolver-binding-linux-x64-musl`
+
+This is the **x86_64-unknown-linux-musl** binary for `@unrs/rspack-resolver-binding`
 
 
 @vercel/nft 0.29.2

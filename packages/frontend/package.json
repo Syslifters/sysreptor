@@ -42,7 +42,7 @@
     "vitest": "^3.0.4",
     "happy-dom": "^16.0.0",
     "vue-tsc": "^2.2.0",
-    "@playwright/test": "^1.49.1",
+    "@playwright/test": "1.51.1",
     "form-data": "^4.0.1",
     "node-fetch": "^3.3.2"
   },
