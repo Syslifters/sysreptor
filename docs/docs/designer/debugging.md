@@ -32,6 +32,16 @@ However, you can set background colors or borders on elements to see where they 
 ```
 
 
+## JS Debugging
+Use `console.log()` to print debug messages from custom helper functions and scripts. 
+Only the first argument as string is displayed in the UI. When you need to log nested data structures, use `JSON.stringify()`.
+
+```js
+console.log(`Debug: ${JSON.stringify(js_var)}`);
+console.log('', {name: 'JS Debug', details: JSON.stringify(js_var) });
+```
+
+
 ## Slow PDF Rendering
 If you experience slow PDF rendering, here are a few tips to speed up rendering:
 
