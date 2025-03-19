@@ -55,11 +55,11 @@ export const useProjectStore = defineStore('project', {
         let findings = Object.values(this.data[projectId]?.reportingCollabState.data.findings || {});
         // Sort findings
         if (projectState && projectType) {
-          findings = sortFindings({
+          findings = groupFindings({
             findings,
             projectType,
             overrideFindingOrder: projectState.project!.override_finding_order,
-          })
+          }).flatMap(f => f.findings);
         }
         return findings;
       };

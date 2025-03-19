@@ -75,7 +75,7 @@ export function levelNumberFromScore(score?: number|null) {
 
 export function levelNameFromLevelNumber(levelNumber?: number|null) {
   const levelIndex = Math.min(Math.max((levelNumber || 1) - 1, 0), 4);
-  return ['Info', 'Low', 'Medium', 'High', 'Critical'][levelIndex];
+  return ['Info', 'Low', 'Medium', 'High', 'Critical'][levelIndex]!;
 }
 
 export function levelNameFromScore(score?: number|null) {

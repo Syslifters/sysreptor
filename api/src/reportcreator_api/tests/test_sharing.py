@@ -2,8 +2,13 @@ import pytest
 from django.test import override_settings
 from django.urls import reverse
 
-from reportcreator_api.pentests.models.notes import ShareInfo
-from reportcreator_api.tests.mock import api_client, create_project, create_projectnotebookpage, create_shareinfo, update
+from reportcreator_api.tests.mock import (
+    api_client,
+    create_project,
+    create_projectnotebookpage,
+    create_shareinfo,
+    update,
+)
 
 
 @pytest.mark.django_db()

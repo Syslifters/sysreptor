@@ -17,7 +17,7 @@ from reportcreator_api.pentests.fielddefinition.predefined_fields import (
     finding_fields_default,
     report_sections_default,
 )
-from reportcreator_api.pentests.fielddefinition.sort import sort_findings
+from reportcreator_api.pentests.fielddefinition.sort import group_findings, sort_findings
 from reportcreator_api.pentests.models import FindingTemplate, FindingTemplateTranslation, Language
 from reportcreator_api.pentests.models.project import Comment
 from reportcreator_api.tasks.rendering.entry import format_template_field_object
@@ -860,6 +860,62 @@ class TestFindingSorting:
             override_finding_order=False,
             project_type=create_project_type(finding_ordering=finding_ordering),
             findings_kwargs=[{'data': f} for f in findings_kwargs],
+        )
+
+
+@pytest.mark.django_db()
+class TestFindingGrouping:
+    def assert_finding_groups(self, finding_grouping, findings_kwargs, expected_groups, finding_ordering=None):
+        project = create_project(
+            project_type=create_project_type(finding_grouping=finding_grouping, finding_ordering=finding_ordering or []),
+            findings_kwargs=findings_kwargs)
+        groups = group_findings(
+            findings=[format_template_field_object(
+                    {'id': str(f.id), 'created': str(f.created), 'order': f.order, **f.data},
+                    definition=project.project_type.finding_fields_obj)
+                for f in project.findings.all()],
+            project_type=project.project_type)
+        group_titles = [{'label': g['label'], 'findings': [f['title'] for f in g['findings']]} for g in groups]
+        assert group_titles == expected_groups
+
+    @pytest.mark.parametrize(('finding_grouping', 'findings_kwargs', 'expected_groups'), [
+        # Not grouped: everything in a single group
+        (None, [{'title': 'f1'}, {'title': 'f2'}, {'title': 'f3'}], [{'label': '', 'findings': ['f1', 'f2', 'f3']}]),
+        ([], [{'title': 'f1'}, {'title': 'f2'}, {'title': 'f3'}], [{'label': '', 'findings': ['f1', 'f2', 'f3']}]),
+        # Group by single field
+        ([{'field': 'field_enum'}], [{'title': 'f1', 'field_enum': 'enum2'}, {'title': 'f2', 'field_enum': 'enum1'}, {'title': 'f3', 'field_enum': 'enum2'}], [{'label': 'Enum Value 1', 'findings': ['f2']}, {'label': 'Enum Value 2', 'findings': ['f1', 'f3']}]),
+        ([{'field': 'field_combobox'}], [{'title': 'f1', 'field_combobox': 'g1'}, {'title': 'f2', 'field_combobox': 'g2'}, {'title': 'f3', 'field_combobox': 'g1'}], [{'label': 'g1', 'findings': ['f1', 'f3']}, {'label': 'g2', 'findings': ['f2']}]),
+        ([{'field': 'field_string'}], [{'title': 'f1', 'field_string': 'g1'}, {'title': 'f2', 'field_string': 'g2'}, {'title': 'f3', 'field_string': 'g1'}], [{'label': 'g1', 'findings': ['f1', 'f3']}, {'label': 'g2', 'findings': ['f2']}]),
+        ([{'field': 'field_bool'}], [{'title': 'f1', 'field_bool': False}, {'title': 'f2', 'field_bool': True}, {'title': 'f3', 'field_bool': False}], [{'label': 'false', 'findings': ['f1', 'f3']}, {'label': 'true', 'findings': ['f2']}]),
+        ([{'field': 'field_date'}], [{'title': 'f1', 'field_date': '2023-01-01'}, {'title': 'f2', 'field_date': '2023-06-01'}, {'title': 'f3', 'field_date': '2023-01-01'}], [{'label': '2023-01-01', 'findings': ['f1', 'f3']}, {'label': '2023-06-01', 'findings': ['f2']}]),
+        ([{'field': 'field_cvss', 'order': 'desc'}], [{'title': 'f1', 'field_cvss': 'n/a'}, {'title': 'f2', 'field_cvss': 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'}, {'title': 'f3', 'field_cvss': 'CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:C/C:N/I:N/A:N'}], [{'label': 'critical', 'findings': ['f2']}, {'label': 'info', 'findings': ['f1', 'f3']}]),
+    ])
+    def test_finding_grouping(self, finding_grouping, findings_kwargs, expected_groups):
+        self.assert_finding_groups(
+            finding_grouping=finding_grouping,
+            finding_ordering=[{'field': 'title', 'order': 'asc'}],
+            findings_kwargs=[{'data': f} for f in findings_kwargs],
+            expected_groups=expected_groups)
+
+    @pytest.mark.parametrize(('finding_grouping_order', 'finding_ordering_order', 'expected_groups'), [
+        ('asc', 'asc', [{'label': 'g1', 'findings': ['g1f1', 'g1f2']}, {'label': 'g2', 'findings': ['g2f1', 'g2f2']}]),
+        ('desc', 'desc', [{'label': 'g2', 'findings': ['g2f2', 'g2f1']}, {'label': 'g1', 'findings': ['g1f2', 'g1f1']}]),
+        ('asc', 'desc', [{'label': 'g1', 'findings': ['g1f2', 'g1f1']}, {'label': 'g2', 'findings': ['g2f2', 'g2f1']}]),
+        ('desc', 'asc', [{'label': 'g2', 'findings': ['g2f1', 'g2f2']}, {'label': 'g1', 'findings': ['g1f1', 'g1f2']}]),
+        ('asc', None, [{'label': 'g1', 'findings': ['g1f1', 'g1f2']}, {'label': 'g2', 'findings': ['g2f1', 'g2f2']}]),
+        ('desc', None, [{'label': 'g1', 'findings': ['g1f1', 'g1f2']}, {'label': 'g2', 'findings': ['g2f1', 'g2f2']}]),
+    ])
+    def test_group_sort(self, finding_grouping_order, finding_ordering_order, expected_groups):
+        self.assert_finding_groups(
+            finding_grouping=[{'field': 'field_string', 'order': finding_grouping_order}],
+            finding_ordering=[{'field': 'field_int', 'order': finding_ordering_order}] if finding_ordering_order else [],
+            findings_kwargs=[
+                {'data': {'title': 'g1f2', 'field_string': 'g1', 'field_int': 3}, 'order': 3},
+                {'data': {'title': 'g2f1', 'field_string': 'g2', 'field_int': 2}, 'order': 2},
+                {'data': {'title': 'g1f1', 'field_string': 'g1', 'field_int': 1}, 'order': 1},
+                {'data': {'title': 'g2f2', 'field_string': 'g2', 'field_int': 4}, 'order': 4},
+            ],
+            expected_groups=expected_groups,
         )
 
 

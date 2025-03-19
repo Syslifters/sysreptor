@@ -314,7 +314,7 @@ class TestHtmlRendering:
         html = self.render_html(f"""
         <list-of-tables v-slot="{slotDataSyntax}">
             <section v-if="tables">
-                <h1 id="lot" class="in-lot">List of Tables</h1>
+                <h1 id="lot" class="in-toc">List of Tables</h1>
                 <ul>
                     <li v-for="table in tables">
                         <ref :to="table.id" />
@@ -386,3 +386,18 @@ class TestHtmlRendering:
         finding_data = next(filter(lambda f: f['id'] == str(finding.finding_id), res['result']['findings']))
         assertHTMLEqual(finding_data['data']['field_markdown'], html)
 
+    def test_render_finding_grouping(self):
+        update(self.project_type, finding_grouping=[{'field': 'field_string', 'order': 'asc'}], finding_ordering=[{'field': 'field_int', 'order': 'asc'}])
+        self.project.findings.all().delete()
+        create_finding(self.project, data={'title': 'f3', 'field_string': 'g2', 'field_int': 3})
+        create_finding(self.project, data={'title': 'f2', 'field_string': 'g1', 'field_int': 2})
+        create_finding(self.project, data={'title': 'f1', 'field_string': 'g2', 'field_int': 1})
+
+        html = self.render_html("""
+            <div id="groups"><span v-for="group in finding_groups">{{ group.label }}: <template v-for="finding in group.findings">{{ finding.title + ' ' }}</template></span></div>
+            <div id="list"><template v-for="finding in findings">{{ finding.title + ' ' }} </template></div>
+        """)
+        assertHTMLEqual(html, """
+            <div id="groups"><span>g1: f2</span><span>g2: f1 f3</span></div>
+            <div id="list">f1 f2 f3</div>
+        """)

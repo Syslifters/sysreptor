@@ -74,14 +74,17 @@ const passwordForm = ref({
   inProgress: false,
 });
 async function submitPasswordForm() {
+  if (!shareInfo.value) {
+    return;
+  }
   try {
     passwordForm.value.inProgress = true;
-    await $fetch(`/api/public/shareinfos/${shareInfo.value!.id}/auth/`, {
+    await $fetch(`/api/public/shareinfos/${shareInfo.value.id}/auth/`, {
       method: 'POST',
       body: passwordForm.value.data,
     });
-    await shareInfoStore.fetchById(shareInfo.value!.id);
-    await navigateTo(`/shared/${shareInfo.value!.id}/notes/`);
+    await shareInfoStore.fetchById(shareInfo.value.id);
+    await navigateTo(`/shared/${shareInfo.value.id}/notes/`);
   } catch (error: any) {
     if (error?.data?.detail) {
       passwordForm.value.error = error.data.detail;

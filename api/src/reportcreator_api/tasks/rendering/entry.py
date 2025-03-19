@@ -17,7 +17,7 @@ from django.utils import dateparse, timezone
 from lxml import etree
 
 from reportcreator_api.pentests import cvss
-from reportcreator_api.pentests.fielddefinition.sort import sort_findings
+from reportcreator_api.pentests.fielddefinition.sort import group_findings, sort_findings
 from reportcreator_api.pentests.models import (
     Language,
     PentestProject,
@@ -128,8 +128,7 @@ def format_template_data(
         data: dict, project_type: ProjectType, imported_members: list[dict] | None = None,
         override_finding_order=False, additonal_data: dict|None = None,
 ):
-    members = [format_template_field_user(u, members=imported_members) for u in data.get(
-        'pentesters', []) + (imported_members or [])]
+    members = [format_template_field_user(u, members=imported_members) for u in data.get('pentesters', []) + (imported_members or [])]
     data['report'] = format_template_field_object(
         value=ensure_defined_structure(
             value=data.get('report', {}),
@@ -143,8 +142,9 @@ def format_template_data(
             value={
                 'id': uuid.uuid4(),
                 'created': timezone.now().isoformat(),
-                'order': fidx,
-            } | (f if isinstance(f, dict) else {}) | ensure_defined_structure(
+            } | (f if isinstance(f, dict) else {}) | {
+                'order': fidx + 1,
+            } | ensure_defined_structure(
                 value=f,
                 definition=project_type.finding_fields_obj,
                 handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT),
@@ -153,6 +153,8 @@ def format_template_data(
             require_id=True)
         for fidx, f in enumerate(data.get('findings', []))],
         project_type=project_type, override_finding_order=override_finding_order)
+    data['finding_groups'] = group_findings(findings=data['findings'], project_type=project_type, override_finding_order=override_finding_order)
+    del data['findings']
     data['pentesters'] = sorted(
         members,
         key=lambda u: (0 if 'lead' in u.get('roles', []) else 1 if 'pentester' in u.get(

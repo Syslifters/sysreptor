@@ -18,20 +18,21 @@
 <script setup lang="ts">
 const props = defineProps<{
   result: SearchResult<any>;
-  toPrefix: string;
+  toPrefix?: string;
 }>();
 
 const route = useRoute();
 
 function matchUrl(match: SearchResultMatch) {
-  return `${props.toPrefix}#${match.field}:offset=${match.from}`;
+  return props.toPrefix ? `${props.toPrefix}#${match.field}:offset=${match.from}` : undefined;
 }
 
 function navigateToMatch(event: Event, match: SearchResultMatch) {
-  const url = new URL(matchUrl(match), window.location.href);
-  if (!url) {
+  const path = matchUrl(match)
+  if (!path) {
     return;
   }
+  const url = new URL(path, window.location.href);
   if (route.path === url.pathname) {
     focusElement(url.hash, { scroll: { behavior: 'smooth', block: 'center' } });
     event.preventDefault();

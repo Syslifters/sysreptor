@@ -242,6 +242,19 @@ describe('send and receive', () => {
     expect(collab.storeState.data.field_key).toBe(newValue);
   });
 
+  test('collab.update_key clear pending events', async () => {
+    const newValue = 'key';
+    collab.onCollabEvent({
+      type: CollabEventType.UPDATE_TEXT,
+      path: collab.storeState.apiPath + 'field_text',
+      updates: [{ changes: ChangeSet.fromJSON([0, [4, 'text']]) }],
+    });
+    connection.receive(createReceivedEvent({type: CollabEventType.UPDATE_KEY, path: 'field_text', value: newValue}));
+    await vi.runOnlyPendingTimersAsync();
+    expect(collab.storeState.data.field_text).toEqual(newValue);
+    expect(connection.send).not.toHaveBeenCalled();
+  });
+
   test('collab.update_key clear pending events of child fields', async () => {
     const newValue = ['c', 'b', 'a'];
     collab.onCollabEvent({

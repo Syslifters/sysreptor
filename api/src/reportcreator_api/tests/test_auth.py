@@ -10,7 +10,14 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from reportcreator_api.management.commands import createapitoken
-from reportcreator_api.tests.mock import api_client, create_project, create_user, mock_time, override_configuration, update
+from reportcreator_api.tests.mock import (
+    api_client,
+    create_project,
+    create_user,
+    mock_time,
+    override_configuration,
+    update,
+)
 from reportcreator_api.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType
 from reportcreator_api.utils.utils import omit_keys
 

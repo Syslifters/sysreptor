@@ -99,6 +99,11 @@
                 :project-type="projectType"
                 :readonly="readonly"
               />
+              <design-finding-grouping-definition
+                v-model="projectType.finding_grouping"
+                :project-type="projectType"
+                :readonly="readonly"
+              />
 
               <design-input-field-definition
                 v-for="f, idx in findingFields" :key="idx"
@@ -135,7 +140,7 @@ const projectTypeStore = useProjectTypeStore();
 const { data: predefinedFindingFields } = useLazyAsyncData('projecttype:predefinedFindingFields', async () => await projectTypeStore.getPredefinedFindingFields())
 const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,
-  saveFields: ['finding_fields', 'finding_ordering'],
+  saveFields: ['finding_fields', 'finding_ordering', 'finding_grouping'],
 }));
 
 const findingFields = computed({
@@ -166,9 +171,11 @@ function updateField(field: FieldDefinition, val: FieldDefinition) {
   if ([FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER].includes(val.type)) {
     // Remove from finding ordering if data type changed to an unsupported type
     projectType.value.finding_ordering = projectType.value.finding_ordering.filter(o => o.field !== val.id);
+    projectType.value.finding_grouping = projectType.value.finding_grouping?.filter(o => o.field !== val.id) || null;
   } else if (val.id !== oldId && projectType.value.finding_ordering.some(o => o.field === oldId)) {
     // Update references to field ID
     projectType.value.finding_ordering = projectType.value.finding_ordering.map(o => ({ ...o, field: val.id }));
+    projectType.value.finding_grouping = projectType.value.finding_grouping?.map(o => ({ ...o, field: val.id })) || null;
   }
 }
 function addField() {

@@ -515,6 +515,7 @@ export type ProjectType = BaseModel & Lockable & {
   report_sections: ReportSectionDefinition[];
   finding_fields: FieldDefinition[];
   finding_ordering: FindingOrderingDefinition[];
+  finding_grouping: FindingOrderingDefinition[]|null;
   default_notes: NoteBase[];
 }
 

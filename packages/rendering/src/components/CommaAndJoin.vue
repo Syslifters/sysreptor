@@ -20,6 +20,6 @@ const props = withDefaults(defineProps<{
 });
 
 defineSlots();
-const slots = useSlots();
+const slots = useSlots() as any;
 const slotNames = computed(() => Object.keys(slots));
 </script>
