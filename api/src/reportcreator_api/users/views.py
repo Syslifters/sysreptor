@@ -447,7 +447,7 @@ class AuthViewSet(viewsets.ViewSet):
         except OAuthError as ex:
             raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error) from ex
 
-        email = token['userinfo'].get('preferred_username', token['userinfo'].get('email', 'unknown'))
+        email = token['userinfo'].get('email', token['userinfo'].get('preferred_username', 'unknown'))
         identity = AuthIdentity.objects \
             .select_related('user') \
             .filter(provider=oidc_provider) \
