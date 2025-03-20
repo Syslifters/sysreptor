@@ -21,6 +21,6 @@
   "devDependencies": {
     "@nuxt/test-utils": "^3.14.4",
     "vitest": "^3.0.4",
-    "happy-dom": "^16.0.0"
+    "happy-dom": "^17.0.0"
   }
 }
