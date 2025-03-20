@@ -1,5 +1,10 @@
 # Changelog
 
+## Upcoming
+* Allow grouping of findings
+* SSO: Fix priority of `email` vs. `preferred_username`
+
+
 ## v2025.25 - 2025-03-19
 * Plugin `renderfindings`: allow rendering finished projects
 * Plugin `webhooks`: webhooks on update
