@@ -50,11 +50,9 @@
 <script setup lang="ts">
 import { ProjectTypeScope } from "#imports";
 
-const props = withDefaults(defineProps<{
-  projectTypeScope: ProjectTypeScope
-}>(), {
-  projectTypeScope: ProjectTypeScope.GLOBAL
-});
+const props = defineProps<{
+  projectTypeScope?: ProjectTypeScope
+}>();
 
 const auth = useAuth();
 const projectTypeStore = useProjectTypeStore();

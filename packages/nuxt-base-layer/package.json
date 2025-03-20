@@ -19,7 +19,7 @@
     "@vueuse/nuxt": "^12.0.0",
 
     "emoji-mart-vue-fast": "^15.0.0",
-    "splitpanes": "^3.1.5",
+    "splitpanes": "^4.0.0",
     "vue-toastification": "^2.0.0-rc.5",
 
     "base64-arraybuffer": "^1.0.2",
@@ -31,7 +31,7 @@
     "date-fns": "^4.1.0"
   },
   "devDependencies": {
-    "nuxt": "~3.15",
+    "nuxt": "~3.16",
     "vuetify": "~3.7",
     
     "@types/node": "^22",
@@ -43,7 +43,7 @@
     "vue-tsc": "^2.2.0"
   },
   "peerDependencies": {
-    "nuxt": "~3.15",
+    "nuxt": "~3.16",
     "vuetify": "~3.7",
     "pinia": "^3.0.0"
   }

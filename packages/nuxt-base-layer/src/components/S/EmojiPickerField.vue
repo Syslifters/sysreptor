@@ -45,7 +45,6 @@ const props = withDefaults(defineProps<{
   readonly?: boolean;
   emptyIcon?: string;
 }>(), {
-  modelValue: null,
   readonly: false,
   emptyIcon: 'mdi-emoticon-outline',
 });
