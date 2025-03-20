@@ -6,7 +6,7 @@ from django.test import override_settings
 
 from sysreptor.pentests.fielddefinition.predefined_fields import FINDING_FIELDS_CORE
 from sysreptor.pentests.models import CommentStatus, ReviewStatus
-from sysreptor.tasks.rendering.error_messages import (
+from sysreptor.pentests.rendering.error_messages import (
     ErrorMessage,
     MessageLevel,
     MessageLocationInfo,

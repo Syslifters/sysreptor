@@ -8,7 +8,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sysreptor.conf.settings')
 celery_app = Celery(
     'sysreptor',
     fixups=Celery.builtin_fixups | {
-        'sysreptor.tasks.rendering.celery_worker:SecureWorkerFixup',
+        'sysreptor.utils.celery_worker:SecureWorkerFixup',
     },
 )
 

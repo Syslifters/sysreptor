@@ -5,8 +5,8 @@ import pytest
 from django.urls import reverse
 from lxml import etree
 from pytest_django.asserts import assertHTMLEqual
-from sysreptor.tasks.rendering.render import render_pdf_impl
-from sysreptor.tasks.rendering.render_utils import RenderStageResult
+from sysreptor.pentests.rendering.render import render_pdf_impl
+from sysreptor.pentests.rendering.render_utils import RenderStageResult
 from sysreptor.tests.mock import (
     api_client,
     create_finding,
@@ -51,7 +51,7 @@ class TestRenderSingleFindingPdf:
                 output='html',
             )
 
-        with mock.patch('sysreptor.tasks.rendering.render.render_pdf_impl', render_only_html):
+        with mock.patch('sysreptor.pentests.rendering.render.render_pdf_impl', render_only_html):
             res = self.client.post(reverse(f'{URL_NAMESPACE}:renderfindings', kwargs={'project_pk': self.project.id}), data={
                 'finding_ids': [f.finding_id for f in findings],
             })

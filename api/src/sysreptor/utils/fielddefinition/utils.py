@@ -7,7 +7,6 @@ from typing import Any
 from django.utils import timezone
 from lorem_text import lorem
 
-from sysreptor.tasks.rendering.error_messages import format_path
 from sysreptor.utils.fielddefinition.types import (
     BaseField,
     CweField,
@@ -131,6 +130,8 @@ def check_definitions_compatible(a: FieldDefinition|BaseField, b: FieldDefinitio
     """
     Check if definitions are compatible and values can be converted without data loss.
     """
+    from sysreptor.pentests.rendering.error_messages import format_path
+
     path = path or tuple()
     valid = True
     errors = []

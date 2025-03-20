@@ -29,7 +29,7 @@ from sysreptor.pentests.models import (
     UploadedUserNotebookImage,
 )
 from sysreptor.pentests.models.project import CommentStatus
-from sysreptor.tasks.rendering.render_utils import RenderStageResult
+from sysreptor.pentests.rendering.render_utils import RenderStageResult
 from sysreptor.tests.mock import (
     create_archived_project,
     create_png_file,
@@ -518,7 +518,7 @@ def test_api_requests(username, name, perform_request, options, expected):
                     'client_secret': 'dummy',
                 },
             }),
-        ), mock.patch('sysreptor.tasks.rendering.render.render_pdf_impl', mock_render_pdf), \
+        ), mock.patch('sysreptor.pentests.rendering.render.render_pdf_impl', mock_render_pdf), \
         mock.patch('sysreptor.api_utils.serializers.LanguageToolSerializerBase.languagetool_request', mock_languagetool_request), \
         mock.patch('sysreptor.tasks.tasks.activate_license', return_value=None):
         user_map = {

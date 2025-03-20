@@ -59,7 +59,7 @@ class CustomRPCBackend(RPCBackend):
 
     def connection(self):
         return self.app.amqp.Connection(
-            self.url.replace('sysreptor.tasks.rendering.celery_worker:CustomRPCBackend', 'pyamqp'),
+            self.url.replace('sysreptor.utils.celery_worker:CustomRPCBackend', 'pyamqp'),
             connect_timeout=self.app.conf.broker_connection_timeout,
         )
 

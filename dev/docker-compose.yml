@@ -72,7 +72,7 @@ services:
   #   environment:
   #     PDF_RENDER_SCRIPT_PATH: /app/packages/rendering/dist/bundle.js
   #     CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
-  #     CELERY_RESULT_BACKEND: sysreptor.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
+  #     CELERY_RESULT_BACKEND: sysreptor.utils.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
   #     CELERY_SECURE_WORKER: "on"
   #   volumes:
   #     - type: bind
@@ -190,7 +190,7 @@ services:
       SPELLCHECK_URL: http://languagetool:8010/
       REDIS_URL: redis://:reportcreator@redis:6379/0
       # CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
-      # CELERY_RESULT_BACKEND: sysreptor.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
+      # CELERY_RESULT_BACKEND: sysreptor.utils.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
     env_file: ../deploy/app.env
     # healthcheck:
     #   test: ["CMD", "curl", "-f", "-so", "/dev/null", "http://localhost:8000/api/public/utils/healthcheck/"]

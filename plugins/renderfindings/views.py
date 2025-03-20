@@ -4,8 +4,8 @@ from lxml import etree
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from sysreptor.pentests.models import PentestFinding
+from sysreptor.pentests.rendering.entry import render_pdf, render_pdf_task
 from sysreptor.pentests.views import ProjectSubresourceMixin
-from sysreptor.tasks.rendering.entry import render_pdf, render_pdf_task
 from sysreptor.utils.api import GenericAPIViewAsync
 
 from .serializers import RenderFindingsSerializer

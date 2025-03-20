@@ -20,7 +20,7 @@ from sysreptor.pentests.fielddefinition.predefined_fields import (
 from sysreptor.pentests.fielddefinition.sort import group_findings, sort_findings
 from sysreptor.pentests.models import FindingTemplate, FindingTemplateTranslation, Language
 from sysreptor.pentests.models.project import Comment
-from sysreptor.tasks.rendering.entry import format_template_field_object
+from sysreptor.pentests.rendering.entry import format_template_field_object
 from sysreptor.tests.mock import (
     api_client,
     create_comment,

@@ -9,8 +9,8 @@ from django.test import override_settings
 from pytest_django.asserts import assertHTMLEqual
 
 from sysreptor.pentests import cvss
-from sysreptor.tasks.rendering.entry import render_pdf, render_project_markdown_fields_to_html
-from sysreptor.tasks.rendering.render import render_pdf_impl
+from sysreptor.pentests.rendering.entry import render_pdf, render_project_markdown_fields_to_html
+from sysreptor.pentests.rendering.render import render_pdf_impl
 from sysreptor.tests.mock import (
     create_finding,
     create_imported_member,
@@ -61,7 +61,7 @@ class TestHtmlRendering:
                 output='html',
             )
 
-        with mock.patch('sysreptor.tasks.rendering.render.render_pdf_impl', render_only_html):
+        with mock.patch('sysreptor.pentests.rendering.render.render_pdf_impl', render_only_html):
             res = async_to_sync(render_pdf)(self.project)
             assert not res.messages
             html = res.pdf.decode()
