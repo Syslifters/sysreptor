@@ -3,8 +3,8 @@ import logging
 
 import httpx
 import tenacity
-from reportcreator_api.utils.configuration import configuration
-from reportcreator_api.utils.utils import run_in_background
+from sysreptor.utils.configuration import configuration
+from sysreptor.utils.utils import run_in_background
 
 from .models import WebhookEventType
 

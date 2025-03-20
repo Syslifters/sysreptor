@@ -47,7 +47,7 @@ FROM --platform=$BUILDPLATFORM frontend-base AS frontend-test
 COPY packages/markdown /app/packages/markdown/
 COPY packages/nuxt-base-layer /app/packages/nuxt-base-layer/
 COPY packages/frontend /app/packages/frontend/
-COPY api/src/reportcreator_api/tasks/rendering/global_assets /app/packages/frontend/src/assets/rendering/
+COPY api/src/sysreptor/tasks/rendering/global_assets /app/packages/frontend/src/assets/rendering/
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/nuxt-base-layer/src/public/static/pdfviewer/dist/
 # Test command
 WORKDIR /app/packages/frontend/
@@ -137,7 +137,7 @@ ENV PYTHONUNBUFFERED=on \
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 
-WORKDIR /app/api/
+WORKDIR /app/api/src
 COPY api/pyproject.toml api/poetry.lock /app/api/
 RUN python3 -m venv /opt/poetry \
     && /opt/poetry/bin/pip install --no-cache poetry==2.1.1 \ 
@@ -147,7 +147,7 @@ RUN python3 -m venv /opt/poetry \
 
 # Unprivileged user
 RUN useradd --uid=1000 --create-home --shell=/bin/bash user \
-    && mkdir -p /data /app/api && chown user:user /data /app/api
+    && mkdir -p /data /app/api/src && chown user:user /data /app/api/src
 # Change owner and permissions to allow adding custom CA certificates
 RUN chown 0:1000 /etc/ssl/certs/ && \
     chown 0:1000 /usr/local/share/ca-certificates/ && \
@@ -158,11 +158,7 @@ VOLUME [ "/data" ]
 
 
 # Configure application
-ARG VERSION=dev
-ENV VERSION=dev \
-    DEBUG=off \
-    MEDIA_ROOT=/data/ \
-    SERVER_WORKERS=4 \
+ENV MEDIA_ROOT=/data/ \
     PDF_RENDER_SCRIPT_PATH=/app/packages/rendering/dist/bundle.js \
     PLUGIN_DIRS=/app/plugins/
 
@@ -176,16 +172,16 @@ CMD ["/bin/bash", "/app/api/start.sh"]
 FROM --platform=$BUILDPLATFORM api-dev AS api-prebuilt
 
 # Copy source code (including pre-build static files)
-COPY --chown=user:user api/src /app/api/
+COPY --chown=user:user api/src /app/api/src/
 COPY --chown=user:user rendering/dist /app/packages/rendering/dist/
 
 
 
 FROM --platform=$BUILDPLATFORM api-dev AS api-test
 # Copy source code
-COPY --chown=user:user api/src /app/api/
+COPY --chown=user:user api/src /app/api/src/
 COPY --chown=user:user plugins /app/plugins/
-RUN mkdir -p /app/api/sysreptor_plugins/ && chmod 777 /app/api/sysreptor_plugins/
+RUN mkdir -p /app/api/src/sysreptor_plugins/ && chmod 777 /app/api/src/sysreptor_plugins/
 
 # Copy generated template rendering script
 COPY --from=rendering --chown=user:user /app/packages/rendering/dist /app/packages/rendering/dist/
@@ -195,15 +191,15 @@ FROM --platform=$BUILDPLATFORM api-test AS api-statics
 # Post-process django files (for admin, API browser) and post-process them (e.g. add unique file hash)
 # Do not post-process nuxt files, because they already have hash names (and django failes to post-process them)
 RUN python3 manage.py collectstatic --no-input --clear
-COPY --from=frontend /app/packages/frontend/dist/index.html /app/packages/frontend/dist/static/ /app/api/frontend/static/
+COPY --from=frontend /app/packages/frontend/dist/index.html /app/packages/frontend/dist/static/ /app/api/src/frontend/static/
 COPY --from=plugin-builder --chown=user:user /app/plugins/ /app/plugins/
-RUN mv /app/api/frontend/static/index.html /app/api/frontend/index.html \
+RUN mv /app/api/src/frontend/static/index.html /app/api/src/frontend/index.html \
     && ENABLED_PLUGINS='*' python3 manage.py collectstatic --no-input --no-post-process
 
 
 FROM api-test AS api
-COPY --from=api-statics /app/api/frontend/index.html /app/api/frontend/index.html
-COPY --from=api-statics /app/api/static/ /app/api/static/
+COPY --from=api-statics /app/api/src/frontend/index.html /app/api/src/frontend/index.html
+COPY --from=api-statics /app/api/src/static/ /app/api/src/static/
 COPY --from=api-statics /app/plugins/ /app/plugins/
 USER 0
 COPY --chown=1000:1000 api/generate_notice.sh api/download_sources.sh api/start.sh api/NOTICE /app/api/

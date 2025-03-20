@@ -1,8 +1,12 @@
 import logging
 
-from reportcreator_api.conf.plugins import PluginConfig
-from reportcreator_api.utils.configuration import configuration
-from reportcreator_api.utils.fielddefinition.types import FieldDefinition, StringField
+from sysreptor.conf.plugins import PluginConfig
+from sysreptor.utils.configuration import configuration
+from sysreptor.utils.fielddefinition.types import FieldDefinition, StringField
+
+# TODO: namespace: sysreptor
+# TODO: official from sysreptor.plugins => PluginConfig, signals, configuration, fielddefinition, BaseModel (utils.models), BaseAdmin
+
 
 log = logging.getLogger(__name__)
 

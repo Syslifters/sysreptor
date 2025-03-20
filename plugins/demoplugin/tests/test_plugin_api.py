@@ -12,7 +12,7 @@ import pytest
 import pytest_asyncio
 from asgiref.sync import sync_to_async
 from django.urls import reverse
-from reportcreator_api.tests.mock import (
+from sysreptor.tests.mock import (
     api_client,
     create_project,
     create_user,

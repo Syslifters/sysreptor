@@ -68,15 +68,15 @@ services:
   #     context: ..
   #     target: api-dev
   #   user: "1000"
-  #   command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery --app=reportcreator_api.conf.celery --quiet worker -Q rendering --without-heartbeat --without-gossip --without-mingle 
+  #   command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery --app=sysreptor.conf.celery --quiet worker -Q rendering --without-heartbeat --without-gossip --without-mingle 
   #   environment:
   #     PDF_RENDER_SCRIPT_PATH: /app/packages/rendering/dist/bundle.js
   #     CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
-  #     CELERY_RESULT_BACKEND: reportcreator_api.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
+  #     CELERY_RESULT_BACKEND: sysreptor.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
   #     CELERY_SECURE_WORKER: "on"
   #   volumes:
   #     - type: bind
-  #       source: ../api/src/
+  #       source: ../api/
   #       target: /app/api/
   #     - type: bind
   #       source: ../packages/rendering/dist
@@ -161,14 +161,14 @@ services:
     build:
       context: ..
       target: api-dev
-    command: sh -c "python3 manage.py migrate && python3 -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 -m uvicorn --reload --host 0.0.0.0 --port 8000 reportcreator_api.conf.asgi:application"
+    command: sh -c "python3 manage.py migrate && python3 -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 -m uvicorn --reload --host 0.0.0.0 --port 8000 sysreptor.conf.asgi:application"
     init: true
     volumes:
       - type: volume
         source: app-data
         target: /data
       - type: bind
-        source: ../api/src/
+        source: ../api/
         target: /app/api/
       - type: bind
         source: ../packages/rendering
@@ -190,7 +190,7 @@ services:
       SPELLCHECK_URL: http://languagetool:8010/
       REDIS_URL: redis://:reportcreator@redis:6379/0
       # CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
-      # CELERY_RESULT_BACKEND: reportcreator_api.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
+      # CELERY_RESULT_BACKEND: sysreptor.tasks.rendering.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
     env_file: ../deploy/app.env
     # healthcheck:
     #   test: ["CMD", "curl", "-f", "-so", "/dev/null", "http://localhost:8000/api/public/utils/healthcheck/"]
@@ -229,7 +229,7 @@ services:
         source: ../packages/pdfviewer/
         target: /app/packages/nuxt-base-layer/src/public/static/pdfviewer/
       - type: bind
-        source: ../api/src/reportcreator_api/tasks/rendering/global_assets/
+        source: ../api/src/sysreptor/tasks/rendering/global_assets/
         target: /app/packages/frontend/src/assets/rendering/
     tmpfs:
       - /tmp

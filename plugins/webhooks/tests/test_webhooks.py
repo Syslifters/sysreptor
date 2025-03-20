@@ -2,15 +2,15 @@ from unittest import mock
 
 import pytest
 from asgiref.sync import async_to_sync
-from reportcreator_api.pentests.models import ArchivedProject, ReviewStatus
-from reportcreator_api.tests.mock import (
+from sysreptor.pentests.models import ArchivedProject, ReviewStatus
+from sysreptor.tests.mock import (
     create_finding,
     create_project,
     create_user,
     override_configuration,
     update,
 )
-from reportcreator_api.utils import utils
+from sysreptor.utils import utils
 
 from ..models import WebhookEventType
 

@@ -2,8 +2,8 @@
 import logging
 
 from django.dispatch import receiver
-from reportcreator_api import signals as sysreptor_signals
-from reportcreator_api.pentests.models.project import PentestProject
+from sysreptor import signals as sysreptor_signals
+from sysreptor.pentests.models.project import PentestProject
 
 log = logging.getLogger(__name__)
 

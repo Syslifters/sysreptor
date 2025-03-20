@@ -5,14 +5,14 @@ from django.core.management import call_command
 from django.template.defaultfilters import date
 from django.template.defaulttags import NowNode
 from django.utils import dateparse
-from reportcreator_api.tests.mock import (
+from sysreptor.tests.mock import (
     api_client,
     create_project,
     create_project_type,
     create_user,
     override_configuration,
 )
-from reportcreator_api.utils.fielddefinition.types import (
+from sysreptor.utils.fielddefinition.types import (
     FieldDefinition,
     StringField,
     serialize_field_definition,

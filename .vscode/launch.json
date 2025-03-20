@@ -19,7 +19,7 @@
                 },
                 {
                     "localRoot": "${workspaceFolder}/api/src",
-                    "remoteRoot": "/app/api"
+                    "remoteRoot": "/app/api/src"
                 }
             ],
             "django": true,

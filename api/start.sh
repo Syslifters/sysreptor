@@ -12,9 +12,9 @@ if [[ -n "${CA_CERTIFICATES:-}" ]]; then
 fi
 
 # Run DB migrations
-python3 manage.py migrate
+python3 /app/api/src/manage.py migrate
 # Collect static files (of custom plugins)
-python3 manage.py collectstatic --noinput --no-post-process
+python3 /app/api/src/manage.py collectstatic --noinput --no-post-process
 # Start web application
 gunicorn --bind=:8000 \
          --worker-class=uvicorn.workers.UvicornWorker \
@@ -22,4 +22,4 @@ gunicorn --bind=:8000 \
          --max-requests=1000 \
          --max-requests-jitter=100 \
          --graceful-timeout=${SERVER_WORKER_RESTART_TIMEOUT:-3600} \
-         reportcreator_api.conf.asgi:application
+         sysreptor.conf.asgi:application

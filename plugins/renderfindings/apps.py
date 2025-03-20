@@ -1,4 +1,4 @@
-from reportcreator_api.conf.plugins import PluginConfig
+from sysreptor.conf.plugins import PluginConfig
 
 
 class RenderFindingsPluginConfig(PluginConfig):
