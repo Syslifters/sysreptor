@@ -1,11 +1,11 @@
 import json
 
-from sysreptor.conf.plugins import PluginConfig
-from sysreptor.utils.fielddefinition.types import (
+from sysreptor.plugins import (
     ComboboxField,
     FieldDefinition,
     ListField,
     ObjectField,
+    PluginConfig,
     StringField,
 )
 from sysreptor.utils.utils import omit_items

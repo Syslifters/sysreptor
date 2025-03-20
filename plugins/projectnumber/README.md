@@ -27,7 +27,7 @@ This pluign adds sequential project numbers to newly created projects. The proje
 ## Customizations
 
 ### Templates
-Using the variable `PLUGIN_PROJECTNUMBER_TEMPLATE` you can use [Django Templates](https://docs.djangoproject.com/en/5.1/topics/templates/) to customize the value of the project number. In the template, you can use the variables `{{project_number}}` and `{{datetime}}`, and built-in Django template tags (like `{% now %}`, `{%random_number%}`).
+Using the variable `PLUGIN_PROJECTNUMBER_TEMPLATE` you can use [Django Templates](https://docs.djangoproject.com/en/stable/topics/templates/) to customize the value of the project number. In the template, you can use the variables `{{project_number}}` and `{{datetime}}`, and built-in Django template tags (like `{% now %}`, `{%random_number%}`).
 
 Here are some examples:
 

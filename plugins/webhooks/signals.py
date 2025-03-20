@@ -1,10 +1,10 @@
 from django.dispatch import receiver
-from sysreptor import signals as sysreptor_signals
 from sysreptor.pentests.models import (
     PentestFinding,
     PentestProject,
     ReportSection,
 )
+from sysreptor.plugins import signals as sysreptor_signals
 
 from .models import WebhookEventType
 from .utils import send_webhooks

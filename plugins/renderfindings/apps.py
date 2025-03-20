@@ -1,4 +1,4 @@
-from sysreptor.conf.plugins import PluginConfig
+from sysreptor.plugins import PluginConfig
 
 
 class RenderFindingsPluginConfig(PluginConfig):

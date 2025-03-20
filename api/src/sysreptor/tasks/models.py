@@ -1,4 +1,5 @@
 import dataclasses
+from collections.abc import Callable
 from datetime import timedelta
 
 from django.db import models
@@ -25,23 +26,23 @@ class PeriodicTask(BaseModel):
     objects = querysets.PeriodicTaskManager()
 
 
-@dataclasses.dataclass(frozen=True, eq=True)
-class PeriodicTaskSpec:
-    id: str
-    schedule: timedelta
-    func: callable
-    retry: timedelta = timedelta(minutes=10)
-    max_runtime: timedelta = timedelta(minutes=10)
-
-
 @dataclasses.dataclass()
 class PeriodicTaskInfo:
-    spec: PeriodicTaskSpec
+    spec: 'PeriodicTaskSpec'
     model: PeriodicTask|None = None
 
     @property
     def id(self):
         return self.spec.id
+
+
+@dataclasses.dataclass(frozen=True, eq=True)
+class PeriodicTaskSpec:
+    id: str
+    schedule: timedelta
+    func: Callable[[PeriodicTaskInfo], TaskStatus|None]
+    retry: timedelta = timedelta(minutes=10)
+    max_runtime: timedelta = timedelta(minutes=10)
 
 
 @dataclasses.dataclass()
@@ -63,7 +64,7 @@ periodic_task_registry = PeriodicTaskRegistry()
 
 
 def periodic_task(schedule: timedelta, id: str|None = None, retry: timedelta|None = None):
-    def inner(func):
+    def inner(func: Callable[[PeriodicTaskInfo], TaskStatus|None]):
         periodic_task_registry.register(PeriodicTaskSpec(
             id=id or f'{func.__module__}.{func.__name__}',
             schedule=schedule,

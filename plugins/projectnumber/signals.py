@@ -2,15 +2,14 @@
 import logging
 
 from django.dispatch import receiver
-from sysreptor import signals as sysreptor_signals
-from sysreptor.pentests.models.common import SourceEnum
-from sysreptor.pentests.models.project import (
+from sysreptor.pentests.models import (
     PentestProject,
     ProjectType,
     ReportSection,
+    SourceEnum,
 )
-from sysreptor.utils.configuration import configuration
-from sysreptor.utils.fielddefinition.types import FieldDataType
+from sysreptor.plugins import FieldDataType, configuration
+from sysreptor.plugins import signals as sysreptor_signals
 
 from .models import ProjectNumber
 from .utils import format_project_number

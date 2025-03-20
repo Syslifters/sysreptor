@@ -3,7 +3,7 @@ import logging
 
 import httpx
 import tenacity
-from sysreptor.utils.configuration import configuration
+from sysreptor.plugins import configuration
 from sysreptor.utils.utils import run_in_background
 
 from .models import WebhookEventType

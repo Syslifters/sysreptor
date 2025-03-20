@@ -1,8 +1,6 @@
 import json
 
-from sysreptor.conf.plugins import PluginConfig
-from sysreptor.utils.configuration import configuration
-from sysreptor.utils.fielddefinition.types import FieldDefinition, JsonField
+from sysreptor.plugins import FieldDefinition, JsonField, PluginConfig, configuration
 
 
 class CustomThemePluginConfig(PluginConfig):

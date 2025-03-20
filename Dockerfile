@@ -137,17 +137,17 @@ ENV PYTHONUNBUFFERED=on \
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 
-WORKDIR /app/api/src
 COPY api/pyproject.toml api/poetry.lock /app/api/
 RUN python3 -m venv /opt/poetry \
     && /opt/poetry/bin/pip install --no-cache poetry==2.1.1 \ 
     && /opt/poetry/bin/poetry config virtualenvs.create false \
-    && /opt/poetry/bin/poetry install --no-cache --no-interaction --no-root \
+    && /opt/poetry/bin/poetry install --directory=/app/api --no-cache --no-interaction --no-root \
     && rm -rf /opt/poetry
 
 # Unprivileged user
 RUN useradd --uid=1000 --create-home --shell=/bin/bash user \
     && mkdir -p /data /app/api/src && chown user:user /data /app/api/src
+WORKDIR /app/api/src
 # Change owner and permissions to allow adding custom CA certificates
 RUN chown 0:1000 /etc/ssl/certs/ && \
     chown 0:1000 /usr/local/share/ca-certificates/ && \

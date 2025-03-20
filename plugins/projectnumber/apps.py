@@ -1,5 +1,4 @@
-from sysreptor.conf.plugins import PluginConfig
-from sysreptor.utils.fielddefinition.types import FieldDefinition, StringField
+from sysreptor.plugins import FieldDefinition, PluginConfig, StringField
 
 from .utils import validate_template
 

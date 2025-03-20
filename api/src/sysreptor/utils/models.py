@@ -1,4 +1,3 @@
-
 import functools
 import itertools
 import uuid
@@ -17,16 +16,16 @@ class ModelDiffMixin(models.Model):
     class Meta:
         abstract = True
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__initial = self._dict
+
     def save(self, *args, **kwargs):
         """
         Saves model and set initial state.
         """
         super().save(*args, **kwargs)
         self.clear_changed_fields()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__initial = self._dict
 
     @property
     def diff(self):
