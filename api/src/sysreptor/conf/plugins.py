@@ -32,7 +32,7 @@ class PluginConfig(AppConfig):
     plugin_id: str = None
     """
     Unique plugin identifier, that never changes.
-    It's recommended to use a UUID (`python3 -c 'import uuid; print(str(uuid.uuid4()))'`).
+    It's recommended to use a UUID (`python3 -m uuid`).
     The plugin_id is used internally to uniquely identify the plugin and it's resources (e.g. DB tables, API endpoints, etc.).
     """
 
@@ -98,7 +98,10 @@ class PluginConfig(AppConfig):
 
     def get_frontend_settings(self, request) -> dict:
         """
-        Dictionary with settings passed to the plugin's frontend implementation
+        Return a dictionary with settings passed to the plugin's frontend implementation.
+        Settings are fetched during initial loading of the web interface.
+        The user might not yet be authenticated at this point.
+        If you need user-specific settings, implement a custom API endpoint.
         """
         return {}
 
