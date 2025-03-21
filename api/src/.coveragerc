@@ -2,5 +2,5 @@
 relative_files = True
 source = ./
 omit = 
-  reportcreator_api/tests/*
-  reportcreator_api/**/migrations/*
+  sysreptor/tests/*
+  sysreptor/**/migrations/*

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from reportcreator_api.utils.admin import BaseAdmin
+from sysreptor.utils.admin import BaseAdmin
 
 from .models import DemoPluginModel
 

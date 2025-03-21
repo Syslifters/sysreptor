@@ -1,5 +1,4 @@
-from reportcreator_api.conf.plugins import PluginConfig
-from reportcreator_api.utils.fielddefinition.types import FieldDefinition, StringField
+from sysreptor.plugins import FieldDefinition, PluginConfig, StringField
 
 from .utils import validate_template
 

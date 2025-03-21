@@ -1,5 +1,5 @@
-from reportcreator_api.pentests.collab.consumer_base import WebsocketConsumerBase
-from reportcreator_api.pentests.models import PentestProject
+from sysreptor.pentests.collab.consumer_base import WebsocketConsumerBase
+from sysreptor.pentests.models import PentestProject
 
 
 class DemoPluginConsumer(WebsocketConsumerBase):

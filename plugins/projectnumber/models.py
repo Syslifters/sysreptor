@@ -1,5 +1,5 @@
 from django.db import models
-from reportcreator_api.utils.models import BaseModel
+from sysreptor.utils.models import BaseModel
 
 
 class ProjectNumber(BaseModel):

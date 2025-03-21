@@ -6,7 +6,7 @@ We provide many useful default styles in our `base.css`. You can import them to 
 ```
 
 If you want to customize the styles (like fonts, code blocks, etc.), have a look at the following chapters.
-You can find the content of `base.css` [here](https://github.com/Syslifters/sysreptor/blob/main/api/src/reportcreator_api/tasks/rendering/global_assets/base.css){ target="_blank" }.
+You can find the content of `base.css` [here](https://github.com/Syslifters/sysreptor/blob/main/api/src/sysreptor/pentests/rendering/global_assets/base.css){ target="_blank" }.
 
 
 !!! tip "Use the following snippets as a guide how to override the base styles."

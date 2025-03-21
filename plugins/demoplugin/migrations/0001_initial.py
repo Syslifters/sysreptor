@@ -2,7 +2,7 @@
 
 import uuid
 
-import reportcreator_api.utils.models
+import sysreptor.utils.models
 from django.db import migrations, models
 
 
@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='DemoPluginModel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(default=reportcreator_api.utils.models.now, editable=False)),
+                ('created', models.DateTimeField(default=sysreptor.utils.models.now, editable=False)),
                 ('updated', models.DateTimeField(auto_now=True)),
                 ('name', models.CharField(max_length=255)),
             ],

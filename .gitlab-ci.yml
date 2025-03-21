@@ -148,7 +148,7 @@ test-api:
   script:
     - mkdir api/test-reports
     - chmod 777 api/test-reports
-    - docker run -e DATABASE_HOST=${POSTGRES_PORT_5432_TCP_ADDR} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} -e ENABLED_PLUGINS='*' --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n 8 --junitxml=test-reports/junit.xml --cov=reportcreator_api --cov-report=term --cov-report=xml:test-reports/coverage.xml
+    - docker run -e DATABASE_HOST=${POSTGRES_PORT_5432_TCP_ADDR} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} -e ENABLED_PLUGINS='*' --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/src/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n 8 --junitxml=test-reports/junit.xml --cov=sysreptor --cov-report=term --cov-report=xml:test-reports/coverage.xml
 
 test-frontend:
   stage: test
@@ -280,8 +280,8 @@ release-prod:
 
     # Create a GitHub release with pre-built JS files
     # Copy pre-built frontend files
-    - docker cp $CONTAINER_ID:/app/api/static api/src/
-    - docker cp $CONTAINER_ID:/app/api/frontend/index.html api/src/frontend/index.html
+    - docker cp $CONTAINER_ID:/app/api/src/static api/src/
+    - docker cp $CONTAINER_ID:/app/api/src/frontend/index.html api/src/frontend/index.html
     - sed -i "/^src\/static$/d" api/.gitignore
     # Copy pre-built rendering files
     - docker cp $CONTAINER_ID:/app/packages/rendering/dist packages/rendering/dist

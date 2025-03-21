@@ -15,7 +15,7 @@ docker compose up -d
 
 
 ### Django Secret Key
-Django server secret key (see https://docs.djangoproject.com/en/4.1/ref/settings/#std-setting-SECRET_KEY).
+Django server secret key (see https://docs.djangoproject.com/en/stable/ref/settings/#std-setting-SECRET_KEY).
 Make sure this key remains secret.
 
 ``` title="Generate random secret key:"

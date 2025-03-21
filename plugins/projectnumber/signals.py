@@ -1,17 +1,15 @@
 
 import logging
 
-from django.db.models import signals
 from django.dispatch import receiver
-from reportcreator_api.pentests.models.common import SourceEnum
-from reportcreator_api.pentests.models.project import (
+from sysreptor.pentests.models import (
     PentestProject,
     ProjectType,
     ReportSection,
+    SourceEnum,
 )
-from reportcreator_api import signals as sysreptor_signals
-from reportcreator_api.utils.configuration import configuration
-from reportcreator_api.utils.fielddefinition.types import FieldDataType
+from sysreptor.plugins import FieldDataType, configuration
+from sysreptor.plugins import signals as sysreptor_signals
 
 from .models import ProjectNumber
 from .utils import format_project_number

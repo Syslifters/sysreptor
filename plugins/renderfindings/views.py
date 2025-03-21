@@ -1,12 +1,12 @@
 from asgiref.sync import sync_to_async
 from django.db.models import Prefetch, aprefetch_related_objects
 from lxml import etree
-from reportcreator_api.pentests.models import PentestFinding
-from reportcreator_api.pentests.views import ProjectSubresourceMixin
-from reportcreator_api.tasks.rendering.entry import render_pdf, render_pdf_task
-from reportcreator_api.utils.api import GenericAPIViewAsync
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from sysreptor.pentests.models import PentestFinding
+from sysreptor.pentests.rendering.entry import render_pdf, render_pdf_task
+from sysreptor.pentests.views import ProjectSubresourceMixin
+from sysreptor.utils.api import GenericAPIViewAsync
 
 from .serializers import RenderFindingsSerializer
 

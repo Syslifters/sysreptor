@@ -1,14 +1,14 @@
 import json
 
-from reportcreator_api.conf.plugins import PluginConfig
-from reportcreator_api.utils.fielddefinition.types import (
+from sysreptor.plugins import (
     ComboboxField,
     FieldDefinition,
     ListField,
     ObjectField,
+    PluginConfig,
     StringField,
 )
-from reportcreator_api.utils.utils import omit_items
+from sysreptor.utils.utils import omit_items
 
 from .models import WebhookEventType
 

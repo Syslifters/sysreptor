@@ -3,6 +3,8 @@
 ## Upcoming
 * Allow grouping of findings
 * SSO: Fix priority of `email` vs. `preferred_username`
+* Restructure python modules
+* Docs: Plugin development guide
 
 
 ## v2025.25 - 2025-03-19
