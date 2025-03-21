@@ -15,7 +15,7 @@
             "pathMappings": [
                 {
                     "localRoot": "${workspaceFolder}/plugins",
-                    "remoteRoot": "/app/api/sysreptor_plugins"
+                    "remoteRoot": "/app/api/src/sysreptor_plugins"
                 },
                 {
                     "localRoot": "${workspaceFolder}/api/src",
