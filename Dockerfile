@@ -47,7 +47,7 @@ FROM --platform=$BUILDPLATFORM frontend-base AS frontend-test
 COPY packages/markdown /app/packages/markdown/
 COPY packages/nuxt-base-layer /app/packages/nuxt-base-layer/
 COPY packages/frontend /app/packages/frontend/
-COPY api/src/sysreptor/tasks/rendering/global_assets /app/packages/frontend/src/assets/rendering/
+COPY api/src/sysreptor/pentests/rendering/global_assets /app/packages/frontend/src/assets/rendering/
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/nuxt-base-layer/src/public/static/pdfviewer/dist/
 # Test command
 WORKDIR /app/packages/frontend/
