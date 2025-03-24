@@ -28,19 +28,21 @@ Official plugins are maintained by the SysReptor team and are shipped inside off
 
 
 
-## Custom Plugins
+## Developing Custom Plugins
 :octicons-server-24: Self-Hosted
 
 It is possible to develop and load custom plugins to extend the functionality of SysReptor.
 Custom plugins are only supported in self-hosted installations, but not in the cloud version.
 
 ### Getting Started
-We recommend to manage custom plugins in a separate Git repository, not in the SysReptor repository.
+We recommend to develop and manage custom plugins in a separate Git repository, not in the SysReptor repository.
 First, you need to set up a new repository (either on GitHub or your internal version control system) with a directory structure similar to:
 
 ```
-repository
+plugin-repository
 ├── .gitignore
+├── .dockerignogre
+├── Dockerfile
 ├── sysreptor.docker-compose.override.yml
 ├── custom_plugins/
 │   ├── myplugin1/
@@ -67,7 +69,7 @@ repository
 └── ...additional top-level files
 ```
 
-We recommend to create a parent directory that contains all your custom plugins (`custom_plugins`).
+We recommend to create a parent directory that contains all your custom plugins (e.g. `custom_plugins`).
 Plugin directories should contain a valid SysReptor plugin structure that can be loaded by the SysReptor core.
 Use [demoplugin](https://github.com/Syslifters/sysreptor/tree/main/plugins/demoplugin) as a starting point.
 
@@ -79,45 +81,65 @@ Use [demoplugin](https://github.com/Syslifters/sysreptor/tree/main/plugins/demop
 
 ### Plugin Loading
 Custom plugins need to be made available to the SysReptor docker container.
-This can be achieved by adding an docker compose include to `sysreptor/deploy/docker-compose.yml`.
+This can be achived by extending the SysReptor docker image and adding your custom plugins to the image.
+
+```dockerfile title="Dockerfile example"
+ARG SYSREPTOR_VERSION="latest"
+
+# Optional build stage for frontend assets
+FROM node:22-alpine3.20 AS plugin-builder
+# Build frontend assets
+COPY custom_plugins /custom_plugins
+RUN cd /custom_plugins/myplugin1/frontend && npm install && npm run generate
+
+# Extend the Sysreptor image with custom plugins
+FROM syslifters/sysreptor:${SYSREPTOR_VERSION}
+# Optional: install additional dependencies
+# RUN pip install ...
+ENV PLUGIN_DIRS=${PLUGIN_DIRS}:/custom_plugins
+COPY --from=plugin-builder /custom_plugins /custom_plugins
+```
+
+Use following code snippets to plug your extended docker image to the SysReptor docker-compose file:
+
+!!! note 
+
+    Directly modifying `sysreptor/deploy/sysreptor/docker-compose.yml` is not recommended, because changes might get overwritten during [updates](/setup/updates.md).
+    The presented way is compatible with the `update.sh` script.
+
+
+First, modify `sysreptor/deploy/docker-compose.yml` to add an include docker compose include file.
 
 ```yaml title="sysreptor/deploy/docker-compose.yml"
 name: sysreptor
 
 include:
   - path:
-    - sysreptor/docker-compose.yml
-    - /absolute/path/to/repository/sysreptor.docker-compose.override.yml
-  - languagetool/docker-compose.yml
+      - sysreptor/docker-compose.yml
+      # Path to sysreptor.docker-compose.override.yml in your plugin repository
+      # Note: Path is relative to sysreptor/deploy/docker-compose.yml (or an absolute path)
+      - ../../plugin-repository/sysreptor.docker-compose.override.yml
 ```
 
-The content of `/absolute/path/to/repository/sysreptor.docker-compose.override.yml` is merged with the original `sysreptor/docker-compose.yml` (from SysReptor core)
+The content of `../../plugin-repository/sysreptor.docker-compose.override.yml` is merged with the original `sysreptor/docker-compose.yml` (from SysReptor core)
 and allows extending or overriding docker compose configurations.
 See https://docs.docker.com/reference/compose-file/include/ for more information about docker compose includes.
 
 
-In `sysreptor.docker-compose.override.yml` you can either mount the custom plugins directory into the SysReptor container, 
-or override the `build` option to use an extended SysReptor docker image with custom plugins included.
-Note that paths in this file are relative to the `sysreptor/deploy` directory (from main docker compose file).
-You might need to use absolute paths to include files from your plugin repository.
+Then, override the `image` and `build` options in `sysreptor.docker-compose.override.yml` to use your extended SysReptor docker image with custom plugins included.
+Note that paths in this file are relative to the `sysreptor/deploy` directory (from SysReptor core docker compose file).
 
 ```yaml title="sysreptor.docker-compose.override.yml example"
 services:
   app:
-    environment:
-      # Directories to load plugins from
-      PLUGIN_DIRS: /app/plugins,/custom_plugins
-    volumes:
-      # Bind-mount custom plugins directory
-      - type: bind
-        source: /absolute/path/to/custom_plugins
-        target: /custom_plugins
+    # Override the docker image
+    image: !reset null
+    build: 
+      # Note: Path is relative to sysreptor/deploy/docker-compose.yml (or an absolute path)
+      context: ../../plugin-repository
+      args:
+        SYSREPTOR_VERSION: ${SYSREPTOR_VERSION:-latest}
 ```
-
-!!! note 
-
-    Directory modifying `sysreptor/deploy/sysreptor/docker-compose.yml` is not recommended, because changes might get overwritten during [updates](/setup/updates.md).
-    `sysreptor/deploy/docker-compose.yml` is never overwritten.
 
 
 
