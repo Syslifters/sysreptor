@@ -57,7 +57,6 @@ report_template = """
     The student will be required to fill out this exam documentation fully and to include the following sections:
     * Methodology walkthrough and detailed outline of steps taken.
     * Each finding with included screenshots, walkthrough, sample code, and proof.txt if applicable.
-    * Each finding with included screenshots, walkthrough, sample code, and proof.txt if ap-plicable.
     * Any additional items that were not included.
 </markdown>
 <pagebreak/>
