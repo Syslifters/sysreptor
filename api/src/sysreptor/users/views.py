@@ -22,6 +22,7 @@ from sysreptor.users.models import AuthIdentity, MFAMethod, PentestUser
 from sysreptor.users.permissions import (
     APITokenViewSetPermissions,
     AuthIdentityViewSetPermissions,
+    ForgotPasswordPermissions,
     LocalUserAuthPermissions,
     MFALoginInProgressAuthentication,
     MFAMethodViewSetPermissons,
@@ -34,6 +35,8 @@ from sysreptor.users.serializers import (
     AuthIdentitySerializer,
     ChangePasswordSerializer,
     CreateUserSerializer,
+    ForgotPasswordCheckSerializer,
+    ForgotPasswordSendSerializer,
     LoginMFACodeSerializer,
     LoginSerializer,
     MFAMethodRegisterBackupCodesSerializer,
@@ -265,6 +268,7 @@ class APITokenViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins
 
 class AuthViewSet(viewsets.ViewSet):
     schema = None
+    throttle_scope = None
     authentication_classes = []
     permission_classes = []
 
@@ -275,6 +279,10 @@ class AuthViewSet(viewsets.ViewSet):
             return LoginMFACodeSerializer
         elif self.action == 'change_password':
             return ChangePasswordSerializer
+        elif self.action == 'forgot_password_send':
+            return ForgotPasswordSendSerializer
+        elif self.action == 'forgot_password_check':
+            return ForgotPasswordCheckSerializer
         else:
             return serializers.Serializer
 
@@ -480,4 +488,31 @@ class AuthViewSet(viewsets.ViewSet):
             raise exceptions.AuthenticationFailed()
         return self.perform_login(request, identity.user)
 
+    @action(detail=False, url_path='forgot-password', methods=['post'], permission_classes=[ForgotPasswordPermissions], throttle_scope='pw')
+    def forgot_password_send(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data={})
 
+    @action(detail=False, url_path='forogot-password/check', methods=['post'], permission_classes=[ForgotPasswordPermissions])
+    def forgot_password_check(self, request, *args, **kwargs):
+        serializers = self.get_serializer(data=request.data)
+        serializers.is_valid(raise_exception=True)
+        user = serializers.validated_data['user']
+        return Response(data=PentestUserSerializer(instance=user).data | {
+            'email': user.email,
+        })
+
+    @action(detail=False, url_path='forgot-password/reset', methods=['post'], permission_classes=[ForgotPasswordPermissions])
+    def forgot_password_reset(self, request, *args, **kwargs):
+        # Check token
+        serializer_check = ForgotPasswordCheckSerializer(data=request.data)
+        serializer_check.is_valid(raise_exception=True)
+        user = serializer_check.validated_data['user']
+
+        # Set password
+        serializer_update = ResetPasswordSerializer(data=request.data, instance=user)
+        serializer_update.is_valid(raise_exception=True)
+        serializer_update.save()
+        return Response(data={'status': 'ok'})

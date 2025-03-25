@@ -24,13 +24,20 @@
       <template #label><pro-info>Must change password</pro-info></template>
     </s-checkbox>
 
-    <s-btn-secondary
-      type="submit"
-      :disabled="!canEdit"
-      class="mt-4"
-    >
-      Change password
-    </s-btn-secondary>
+    <div class="mt-4">
+      <s-btn-primary
+        type="submit"
+        text="Change password"
+        :disabled="!canEdit"
+        class="mr-2"
+      />
+      <s-btn-secondary
+        @click="sendPasswordResetEmail"
+        type="button"
+        text="Send password reset email"
+        :disabled="!user.email || !user.is_active || !apiSettings.settings!.features.forgot_password"
+      />
+    </div>
   </v-form>
 </template>
 
@@ -69,6 +76,21 @@ async function changePassword() {
       serverErrors.value = error.data;
     }
     throw error;
+  }
+}
+
+async function sendPasswordResetEmail() {
+  try {
+    await $fetch(`/api/v1/auth/forgot-password/`, {
+      method: 'POST',
+      body: {
+        email: user.value.email,
+      },
+    });
+    successToast('Password reset email sent. The user has to click the link in the email to reset the password.');
+    await navigateTo(`/users/${user.value.id}/`);
+  } catch (error: any) {
+    await requestErrorToast({ error, message: 'Failed to send password reset email' });
   }
 }
 </script>

@@ -126,6 +126,13 @@ class LocalUserAuthPermissions(permissions.BasePermission):
         return configuration.LOCAL_USER_AUTH_ENABLED or not license.is_professional()
 
 
+class ForgotPasswordPermissions(LocalUserAuthPermissions):
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and \
+              configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and \
+              settings.EMAIL_HOST
+
+
 class UserNotebookPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.user == view.get_user():

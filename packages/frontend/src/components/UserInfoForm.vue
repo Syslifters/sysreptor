@@ -94,12 +94,15 @@
             />
           </v-col>
         </v-row>
+
+        <!-- TODO: move to login information? -->
         <s-text-field
           :model-value="user.email" @update:model-value="updateField('email', $event)"
           type="email"
-          label="Email (optional)"
+          label="Email"
+          hint="Email address to receive notifications and password recovery (if enabled)"
           :error-messages="errors?.email || []"
-          :disabled="!canEdit"
+          :disabled="!canEdit || !canEditUsername"
           spellcheck="false"
           class="mt-8"
         />

@@ -4,6 +4,16 @@
       <v-col xs="12" sm="8" md="4" align-self="center">
         <login-form @login="onLogin">
           <template #message>
+            <div v-if="apiSettings.settings!.features.forgot_password" class="text-end">
+              <v-btn 
+                to="/login/forgot-password/"
+                text="Forgot password?"
+                variant="plain"
+                density="compact"
+                class="text-none"
+              />
+            </div>
+
             <p v-if="apiSettings.settings!.license.error" class="text-error">
               <v-icon start color="error" icon="mdi-alert-decagram" />
               Software License Error: {{ apiSettings.settings!.license.error }}.<br>

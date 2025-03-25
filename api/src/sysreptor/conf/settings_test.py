@@ -25,6 +25,8 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+EMAIL_HOST = 'localhost'
 
 REST_FRAMEWORK |= {
     'DEFAULT_THROTTLE_CLASSES': [],
