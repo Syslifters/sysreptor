@@ -33,7 +33,7 @@ class PentestUser(BaseModel, AbstractUser):
     title_before = models.CharField(_('Title (before)'), max_length=255, null=True, blank=True)
     title_after = models.CharField(_('Title (after)'), max_length=255, null=True, blank=True)
 
-    email = models.EmailField(_("Email address"), null=True, blank=True)
+    email = models.EmailField(_("Email address"), unique=True, null=True, blank=True)
     phone = models.CharField(_('Phone number'), max_length=255, null=True, blank=True)
     mobile = models.CharField(_('Phone number (mobile)'), max_length=255, null=True, blank=True)
 
@@ -50,6 +50,9 @@ class PentestUser(BaseModel, AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = querysets.PentestUserManager()
+
+    class Meta(BaseModel.Meta, AbstractUser.Meta):
+        pass
 
     @property
     def name(self) -> str:
@@ -84,6 +87,11 @@ class PentestUser(BaseModel, AbstractUser):
 
     def is_file_referenced(self, f) -> bool:
         return any(map(lambda n: n.is_file_referenced(f), self.notes.all()))
+
+    def save(self, *args, **kwargs):
+        # Convert empty string to None
+        self.email = self.email or None
+        return super().save(*args, **kwargs)
 
 
 class AuthIdentity(BaseModel):

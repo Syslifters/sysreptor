@@ -10,6 +10,7 @@ from Cryptodome.Hash import SHA512
 from Cryptodome.PublicKey import ECC
 from Cryptodome.Signature import eddsa
 from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -196,6 +197,13 @@ class TestCommunityLicenseRestrictions:
     def test_prevent_login_remoteuser(self):
         self.client.logout()
         assert_api_license_error(self.client.post(reverse('auth-login-remoteuser')))
+
+    @override_configuration(LOCAL_USER_AUTH_ENABLED=True, FORGOT_PASSWORD_ENABLED=True)
+    def test_prevent_forgot_password(self):
+        assert_api_license_error(self.client.post(reverse('auth-forgot-password-send'), data={'email': self.user.email}))
+        data = {'user': self.user.id, 'token': default_token_generator.make_token(self.user), 'password': get_random_string(32)}
+        assert_api_license_error(self.client.post(reverse('auth-forgot-password-check'), data=data))
+        assert_api_license_error(self.client.post(reverse('auth-forgot-password-reset'), data=data))
 
     def test_prevent_login_oidc(self):
         self.client.logout()

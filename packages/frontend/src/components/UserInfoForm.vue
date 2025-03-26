@@ -11,9 +11,9 @@
               hint="Use this name for logging in"
               autocomplete="off"
               :rules="rules.required"
-              :error-messages="errors?.username || []"
+              :error-messages="props.errors?.username || []"
               required
-              :disabled="!canEdit || !canEditUsername"
+              :disabled="!canEditUsername"
               spellcheck="false"
             />
           </v-col>
@@ -48,7 +48,7 @@
               label="First name"
               :rules="rules.required"
               required
-              :error-messages="errors?.first_name || []"
+              :error-messages="props.errors?.first_name || []"
               :disabled="!canEdit"
               spellcheck="false"
             />
@@ -57,7 +57,7 @@
             <s-text-field
               :model-value="user.middle_name" @update:model-value="updateField('middle_name', $event)"
               label="Middle name"
-              :error-messages="errors?.middle_name || []"
+              :error-messages="props.errors?.middle_name || []"
               :disabled="!canEdit"
               spellcheck="false"
             />
@@ -68,7 +68,7 @@
               label="Last name"
               :rules="rules.required"
               required
-              :error-messages="errors?.last_name || []"
+              :error-messages="props.errors?.last_name || []"
               :disabled="!canEdit"
               spellcheck="false"
             />
@@ -79,7 +79,7 @@
             <s-text-field
               :model-value="user.title_before" @update:model-value="updateField('title_before', $event)"
               label="Title (before name)"
-              :error-messages="errors?.title_before || []"
+              :error-messages="props.errors?.title_before || []"
               :disabled="!canEdit"
               spellcheck="false"
             />
@@ -88,7 +88,7 @@
             <s-text-field
               :model-value="user.title_after" @update:model-value="updateField('title_after', $event)"
               label="Title (after name)"
-              :error-messages="errors?.title_after || []"
+              :error-messages="props.errors?.title_after || []"
               :disabled="!canEdit"
               spellcheck="false"
             />
@@ -100,9 +100,9 @@
           :model-value="user.email" @update:model-value="updateField('email', $event)"
           type="email"
           label="Email"
-          hint="Email address to receive notifications and password recovery (if enabled)"
-          :error-messages="errors?.email || []"
-          :disabled="!canEdit || !canEditUsername"
+          hint="Email address to receive notifications and password reset links on (if enabled)"
+          :error-messages="props.errors?.email || []"
+          :disabled="!canEditUsername"
           spellcheck="false"
           class="mt-8"
         />
@@ -112,7 +112,7 @@
               :model-value="user.phone" @update:model-value="updateField('phone', $event)"
               type="tel"
               label="Phone number (optional)"
-              :error-messages="errors?.phone || []"
+              :error-messages="props.errors?.phone || []"
               :disabled="!canEdit"
               spellcheck="false"
             />
@@ -122,7 +122,7 @@
               :model-value="user.mobile" @update:model-value="updateField('mobile', $event)"
               type="tel"
               label="Mobile phone number (optional)"
-              :error-messages="errors?.mobile || []"
+              :error-messages="props.errors?.mobile || []"
               :disabled="!canEdit"
               spellcheck="false"
             />
@@ -139,7 +139,7 @@
           label="Template Editor"
           data-testid="template-editor-checkbox"
           hint="Template Editors are allowed to create and edit finding templates."
-          :error-messages="errors?.is_template_editor || []"
+          :error-messages="props.errors?.is_template_editor || []"
           :disabled="!canEditGeneralPermissions"
           density="compact"
         />
@@ -148,7 +148,7 @@
           label="Designer"
           data-testid="designer-checkbox"
           hint="Designers can create and edit report designs. Users without this permission can create and edit private designs."
-          :error-messages="errors?.is_designer || []"
+          :error-messages="props.errors?.is_designer || []"
           :disabled="!canEditGeneralPermissions"
           density="compact"
         />
@@ -157,7 +157,7 @@
           label="User Manager"
           data-testid="user-manager-checkbox"
           hint="User Managers can create and update other users, assign permissions and reset passwords (except superusers)."
-          :error-messages="errors?.is_user_manager || []"
+          :error-messages="props.errors?.is_user_manager || []"
           :disabled="!canEditGeneralPermissions"
           density="compact"
         />
@@ -165,7 +165,7 @@
           :model-value="user.is_guest" @update:model-value="updateField('is_guest', $event)"
           label="Guest"
           hint="Guest are not allowed to list other users and might be further restricted by your system operator."
-          :error-messages="errors?.is_guest || []"
+          :error-messages="props.errors?.is_guest || []"
           :disabled="!canEditGeneralPermissions"
           density="compact"
         />
@@ -174,7 +174,7 @@
           label="Global Archiver"
           data-testid="global-archiver-checkbox"
           hint="Global Archivers will be added to archives when archiving projects (besides project members) and are able to restore these projects. They need to have archiving public keys configured for this permission take effect."
-          :error-messages="errors?.is_global_archiver || []"
+          :error-messages="props.errors?.is_global_archiver || []"
           :disabled="!canEditGeneralPermissions || !apiSettings.settings!.features.archiving"
           density="compact"
         />
@@ -183,7 +183,7 @@
           label="Project Admin"
           data-testid="project-admin-checkbox"
           hint="Project Admins can access and manage all projects, regardless if they are members of the project or not."
-          :error-messages="errors?.is_project_admin || []"
+          :error-messages="props.errors?.is_project_admin || []"
           :disabled="!canEditGeneralPermissions"
           density="compact"
         />
@@ -191,7 +191,7 @@
           :model-value="user.is_superuser" @update:model-value="updateField('is_superuser', $event)"
           label="Superuser"
           hint="Superusers have the highest privileges available. They have all permissions without explicitly assigning them."
-          :error-messages="errors?.is_superuser || []"
+          :error-messages="props.errors?.is_superuser || []"
           :disabled="!canEditSuperuserPermissions"
           density="compact"
         >
@@ -212,22 +212,16 @@
 
 <script setup lang="ts">
 const user = defineModel<User>({ required: true });
-const props = withDefaults(defineProps<{
-  modelValue: User,
+const props = defineProps<{
   errors?: any,
-  canEditPermissions?: boolean,
-  canEditUsername?: boolean,
-}>(), {
-  errors: null,
-  canEditPermissions: false,
-  canEditUsername: false,
-});
+}>();
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
 const canEdit = computed(() => (auth.permissions.value.user_manager && !user.value.is_system_user) || user.value.id === auth.user.value!.id);
-const canEditGeneralPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.permissions.value.user_manager && apiSettings.settings!.features.permissions);
-const canEditSuperuserPermissions = computed(() => canEdit.value && props.canEditPermissions && auth.permissions.value.user_manager && auth.permissions.value.admin);
+const canEditUsername = computed(() => canEdit.value && auth.permissions.value.user_manager);
+const canEditGeneralPermissions = computed(() => canEdit.value && auth.permissions.value.user_manager && apiSettings.settings!.features.permissions);
+const canEditSuperuserPermissions = computed(() => canEdit.value && auth.permissions.value.user_manager && auth.permissions.value.admin);
 
 const rules = {
   required: [(v: any) => !!v || 'This field is required!'],

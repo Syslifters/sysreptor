@@ -16,7 +16,6 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
-from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
 
@@ -117,17 +116,7 @@ class CreateUserSerializer(PentestUserDetailSerializer):
     class Meta(PentestUserDetailSerializer.Meta):
         fields = PentestUserDetailSerializer.Meta.fields + ['password']
         extra_kwargs = {
-            'password': {'write_only': True},
-        }
-
-    def get_extra_kwargs(self):
-        return super().get_extra_kwargs() | {
-            'password':
-                {'required': False, 'allow_null': True, 'default': None}
-                if (
-                    license.is_professional() and
-                    (not configuration.LOCAL_USER_AUTH_ENABLED or configuration.REMOTE_USER_AUTH_ENABLED or len(get_oauth()._registry) > 0)
-                ) else {},
+            'password': {'write_only': True, 'required': False, 'allow_null': True, 'default': None},
         }
 
     def validate_password(self, value):

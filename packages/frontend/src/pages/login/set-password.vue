@@ -26,7 +26,7 @@
               <v-spacer />
               <s-btn-primary
                 type="submit"
-                text="Set Password"
+                text="Submit"
               />
             </v-card-actions>
           </v-form>

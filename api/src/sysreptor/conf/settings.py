@@ -897,8 +897,8 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
                   'Make sure all users have SSO identities configured before enabling this option. Else they will not be able to log in anymore.'),
     BooleanField(
         id='FORGOT_PASSWORD_ENABLED',
-        default=True,
-        extra_info={'group': 'auth', 'professional_only': False},  # TODO: pro only ???
+        default=False,
+        extra_info={'group': 'auth', 'professional_only': True},
         help_text='Enable/disable the forgot password feature to allow users to reset their password by email. '
                   'This feature requires an email server to be configured and LOCAL_USER_AUTH_ENABLED=True.'),
 

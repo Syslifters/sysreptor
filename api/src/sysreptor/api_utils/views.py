@@ -192,7 +192,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'backup': bool(settings.BACKUP_KEY and license.is_professional()),
                 'websockets': not settings.DISABLE_WEBSOCKETS,
                 'sharing': not configuration.DISABLE_SHARING,
-                'forgot_password': configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and bool(settings.EMAIL_HOST),
+                'forgot_password': True, # TODO license.is_professional() and configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and bool(settings.EMAIL_HOST),
             },
             'permissions': {
                 'guest_users_can_import_projects': configuration.GUEST_USERS_CAN_IMPORT_PROJECTS,
