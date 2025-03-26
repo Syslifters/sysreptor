@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.29 - 2025-03-26
 * Allow grouping of findings
 * SSO: Fix priority of `email` vs. `preferred_username`
 * Restructure python modules
