@@ -1,10 +1,13 @@
 import io
+import re
 from datetime import datetime, timedelta
 from unittest import mock
+from urllib.parse import parse_qsl
 from uuid import uuid4
 
 import pyotp
 import pytest
+from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
@@ -25,6 +28,7 @@ from sysreptor.tests.mock import (
 )
 from sysreptor.tests.utils import assertKeysEqual
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
+from sysreptor.utils import utils
 from sysreptor.utils.utils import omit_keys
 
 
@@ -353,12 +357,12 @@ class TestForgotPassword:
         res1 = self.client.post(reverse('auth-forgot-password-send'), data={'email': self.user.email})
         assert res1.status_code == 200
         assert len(mail.outbox) == 1
-        # TODO: get user ID and token from email
-        token_data = {'user': '', 'token': ''}
+        token_data = dict(parse_qsl(re.search(r'/login/set-password/\?(?P<params>.*)', mail.outbox[0].body).group('params')))
 
         res2 = self.client.post(reverse('auth-forgot-password-check'), data=token_data)
         assert res2.status_code == 200
-        assertKeysEqual(res2.data, self.user, ['id', 'username', 'name', 'email'])
+        assert res2.data['id'] == str(self.user.id)
+        assertKeysEqual(res2.data, self.user, ['username', 'name', 'email'])
 
         new_password = get_random_string(32)
         res3 = self.client.post(reverse('auth-forgot-password-reset'), data=token_data | {'password': new_password})

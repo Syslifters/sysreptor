@@ -495,7 +495,7 @@ class AuthViewSet(viewsets.ViewSet):
         serializer.save()
         return Response(data={})
 
-    @action(detail=False, url_path='forogot-password/check', methods=['post'], permission_classes=[ForgotPasswordPermissions])
+    @action(detail=False, url_path='forgot-password/check', methods=['post'], permission_classes=[ForgotPasswordPermissions])
     def forgot_password_check(self, request, *args, **kwargs):
         serializers = self.get_serializer(data=request.data)
         serializers.is_valid(raise_exception=True)

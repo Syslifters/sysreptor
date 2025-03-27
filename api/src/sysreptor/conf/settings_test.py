@@ -63,10 +63,13 @@ CONFIGURATION_DEFINITION_CORE['INSTALLATION_ID'].default = 'dummy-installation-i
 
 # Disable license check
 from sysreptor.conf import plugins  # noqa: E402
-from sysreptor.utils import license  # noqa: E402
+from sysreptor.utils import license, mail  # noqa: E402
 
 license.check_license = lambda **kwargs: {'type': license.LicenseType.PROFESSIONAL, 'users': 1000, 'name': 'Company Name'}
 plugins.can_load_professional_plugins = lambda: True
+
+# Use blocking mail sending for tests
+mail.send_mail_in_background = mail.send_mail
 
 
 # Always enable some plugins during tests

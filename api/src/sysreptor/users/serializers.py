@@ -4,6 +4,7 @@ import logging
 from collections import OrderedDict
 from uuid import UUID
 
+from asgiref.sync import async_to_sync
 from authlib.integrations.django_client import OAuth
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
@@ -17,6 +18,7 @@ from rest_framework import serializers
 
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
 from sysreptor.utils.configuration import configuration
+from sysreptor.utils.mail import send_mail_in_background
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
 
 
@@ -200,13 +202,17 @@ class ForgotPasswordSendSerializer(serializers.Serializer):
             .filter(email=validated_data['email']) \
             .first()
         if user and user.email and user.is_active:
-            mail_template_ctx = {
-                'user': user,
-                'confirmation_link': self.context['request'].build_absolute_uri(
-                    f'/login/set-password/?user={user.id}&token={default_token_generator.make_token(user)}'),
-                'confirmation_link_valid_hours': settings.PASSWORD_RESET_TIMEOUT // 3600,
-            }
-            # TODO: send mail async
+            async_to_sync(send_mail_in_background)(
+                to=user.email,
+                subject='SysReptor Password Reset',
+                template_name='email/forgot_password.html',
+                template_context={
+                    'user': user,
+                    'confirmation_link': self.context['request'].build_absolute_uri(
+                        f'/login/set-password/?user={user.id}&token={default_token_generator.make_token(user)}'),
+                    'confirmation_link_valid_hours': settings.PASSWORD_RESET_TIMEOUT // 3600,
+                },
+            )
         return {}
 
 

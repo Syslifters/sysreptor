@@ -3,22 +3,23 @@
     <v-row justify="center">
       <v-col xs="12" sm="8" md="4" align-self="center">
         <s-card>
-          <v-toolbar text="Set Password" color="header" flat />
+          <v-toolbar title="Set Password" color="header" flat />
           <v-form v-if="user" ref="form" @submit.prevent="performSetPassword">
             <v-card-text>
-              <v-text-field
+              <s-text-field
                 v-model="user.username"
                 type="text"
                 name="username"
                 label="Username"
-                prepend-icon="mdi-account"
-                required
+                prepend-inner-icon="mdi-account"
+                disabled
               />
               <s-password-field
                 v-model="formSetPassword.password"
                 :error-messages="formError?.data?.detail"
                 confirm show-strength generate
                 label="New Password"
+                class="mt-4"
               />
               <v-alert v-if="formError?.data?.detail" type="error" :text="formError.data.detail" />
             </v-card-text>
