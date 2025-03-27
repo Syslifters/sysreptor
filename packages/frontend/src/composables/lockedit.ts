@@ -147,7 +147,7 @@ export function useProjectEditBase(options: {
       .map(f => ({
         id: f.id, 
         title: f.data.title,
-        label: `[Finding ${f.data.title}]`,
+        label: `[${f.data.title}]`,
         href: `/projects/${options.project.value!.id}/reporting/findings/${f.data.id}/`,
         severity: options.projectType?.value ? 
           levelNameFromLevelNumber(getFindingRiskLevel({ finding: f, projectType: options.projectType?.value }) as any)?.toLowerCase() : 
