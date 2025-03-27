@@ -138,6 +138,19 @@ ARCHIVED_FILE_S3_ENDPOINT_URL="endpoint-url"
 ARCHIVED_FILE_LOCATION="archivedfiles"
 ```
 
+### Emails
+SysReptor sends emails for notifications and password resets. Configure the SMTP server to use for sending emails.
+See https://docs.djangoproject.com/en/5.1/ref/settings/#email-host
+
+``` title="Email settings"
+EMAIL_HOST=mail.example.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=on
+EMAIL_HOST_USER=username
+EMAIL_HOST_PASSWORD=password
+DEFAULT_FROM_EMAIL=sysreptor@example.com
+```
+
 
 ### Backup Key
 <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
@@ -370,6 +383,16 @@ Possible values: `azure`, `google`, `remoteuser`, `local` (username/password aut
 DEFAULT_AUTH_PROVIDER="azure"
 DEFAULT_REAUTH_PROVIDER="local"
 ```
+
+### Local User Authentication
+Local user authentication via username/password is enabled by default. Disable local user authentication to force users to use SSO.
+
+``` title="Example:"
+LOCAL_USER_AUTH_ENABLED=true
+FORGOT_PASSWORD_ENABLED=false
+```
+
+By enabling the `FORGOT_PASSWORD_ENABLED` option, users can reset their passwords themselves via email. This setting only takes effect if `LOCAL_USER_AUTH_ENABLED=true`, email settings are configured, and the user has an email address set. To disable the forgot password functionality for specific users (e.g. superusers), remove the email address from the user profile. Users with superuser or "user manager" permissions are still able to reset passwords in the user management web UI or via the CLI.
 
 
 ### Guest User Permissions
