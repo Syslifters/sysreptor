@@ -26,6 +26,7 @@
             <v-tab :value="PdfDesignerTab.HTML" text="HTML+Vue" />
             <v-tab :value="PdfDesignerTab.CSS" text="CSS" />
             <v-tab :value="PdfDesignerTab.ASSETS" text="Assets" />
+            <v-tab :to="`/designs/${projectType.id}/reportfields/`" text="Fields" />
           </v-tabs>
         </template>
 
