@@ -92,7 +92,7 @@
   </div>
 </template>
 
-<script setup lang="ts" generic="T extends { id: string, lock_info?: LockInfo|null }">
+<script setup lang="ts" generic="T extends { id?: string, lock_info?: LockInfo|null }">
 import { type LockInfo, EditMode } from '#imports';
 import { cloneDeep, debounce, isEqual } from 'lodash-es';
 import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";

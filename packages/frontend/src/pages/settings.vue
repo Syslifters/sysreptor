@@ -2,11 +2,7 @@
   <full-height-page>
     <v-container class="pt-0">
       <v-form ref="form" class="h-100">
-        <edit-toolbar 
-          :data="configurationValues as any"
-          :form="$refs.form as VForm"
-          :save="performSave" 
-        />
+        <edit-toolbar v-bind="toolbarAttrs" />
 
         <s-card v-for="group in coreConfigGroups" :key="group.title" class="mt-4">
           <v-card-title>
@@ -122,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import type { VForm } from 'vuetify/components';
+import { VForm } from 'vuetify/components';
 import ProInfo from '@base/components/ProInfo.vue';
 import { wait } from '@base/utils/helpers';
 
@@ -200,6 +196,13 @@ const coreConfigGroups = computed(() => {
     fields: configurationDefinition.value.core.filter(d => d.group === group.group || (group.group === 'general' && !d.group)),
   })).filter(group => group.fields.length > 0);
 });
+
+const form = ref<VForm>();
+const { toolbarAttrs } = useLockEdit({
+  form,
+  data: configurationValues,
+  performSave,
+})
 
 const errorMessages = ref<any|null>(null);
 async function performSave(data: Record<string, any>) {
