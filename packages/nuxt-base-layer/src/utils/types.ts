@@ -137,6 +137,7 @@ export type ApiSettings = {
         readonly backup: boolean;
         readonly websockets: boolean;
         readonly sharing: boolean;
+        readonly forgot_password: boolean;
     };
     readonly permissions: {
       readonly guest_users_can_import_projects: boolean;

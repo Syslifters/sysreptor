@@ -115,7 +115,9 @@ WEBSOCKET_URLCONF = 'sysreptor.conf.urls_websocket'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / 'sysreptor' / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -143,6 +145,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'pdf': '3/10s',
+        'pw': '10/1h',
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -368,6 +371,19 @@ STORAGES = {
         },
     },
 }
+
+
+# Email settings
+EMAIL_HOST = config('EMAIL_HOST', default=None)
+EMAIL_PORT = config('EMAIL_PORT', cast=int, default=25)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=False)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False)
+EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', cast=int, default=10)
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='')
+
+PASSWORD_RESET_TIMEOUT = 24 * 60 * 60  # 1 day
 
 
 # Default primary key field type
@@ -881,6 +897,12 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         help_text='Enable/disable login via username/password. '
                   'If enabled, users can decide whether they want to log in via SSO or username/password.'
                   'Make sure all users have SSO identities configured before enabling this option. Else they will not be able to log in anymore.'),
+    BooleanField(
+        id='FORGOT_PASSWORD_ENABLED',
+        default=False,
+        extra_info={'group': 'auth', 'professional_only': True},
+        help_text='Enable/disable the forgot password feature to allow users to reset their password by email. '
+                  'This feature requires an email server to be configured and LOCAL_USER_AUTH_ENABLED=True.'),
 
 
     StringField(

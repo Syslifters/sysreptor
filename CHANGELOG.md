@@ -1,10 +1,16 @@
 # Changelog
 
+## Upcoming
+* Allow sending emails (https://docs.sysreptor.com/setup/configuration/#emails)
+* Add forgot password functionality (https://docs.sysreptor.com/setup/configuration/#local-user-authentication)
+* Make user emails unique
+
+
 ## v2025.29 - 2025-03-26
-* Allow grouping of findings
+* Allow grouping of findings (https://docs.sysreptor.com/designer/findings/#finding-groups)
 * SSO: Fix priority of `email` vs. `preferred_username`
 * Restructure python modules
-* Docs: Plugin development guide
+* Docs: Plugin development guide (https://docs.sysreptor.com/setup/plugins/)
 
 
 ## v2025.25 - 2025-03-19

@@ -2,7 +2,12 @@
   <v-form ref="form">
     <edit-toolbar :data="user" :form="$refs.form as VForm" :save="performSave" />
 
-    <user-info-form v-model="user" :errors="serverErrors" />
+    <user-info-form 
+      v-model="user"
+      :can-permissions="canEdit"
+      :can-edit-username="canEdit"
+      :errors="serverErrors"
+    />
   </v-form>
 </template>
 
@@ -11,6 +16,7 @@ import { VForm } from 'vuetify/components';
 
 const auth = useAuth();
 const user = await useFetchE<User>('/api/v1/pentestusers/self/', { method: 'GET', deep: true });
+const canEdit = computed(() => auth.permissions.value.user_manager);
 
 const serverErrors = ref<any|null>(null);
 async function performSave(data: User) {

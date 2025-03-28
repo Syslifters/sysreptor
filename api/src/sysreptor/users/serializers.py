@@ -4,9 +4,12 @@ import logging
 from collections import OrderedDict
 from uuid import UUID
 
+from asgiref.sync import async_to_sync
 from authlib.integrations.django_client import OAuth
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.utils import timezone
@@ -14,8 +17,9 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
-from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
+from sysreptor.utils.mail import send_mail_in_background
+from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
 
 
 @functools.cache
@@ -98,6 +102,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'is_guest': {'read_only': read_only},
             'is_global_archiver': {'read_only': read_only},
             'username': {'read_only': read_only},
+            'email': {'read_only': read_only},
             'is_active': {'read_only': read_only},
             'must_change_password': {'read_only': read_only},
         }
@@ -113,17 +118,7 @@ class CreateUserSerializer(PentestUserDetailSerializer):
     class Meta(PentestUserDetailSerializer.Meta):
         fields = PentestUserDetailSerializer.Meta.fields + ['password']
         extra_kwargs = {
-            'password': {'write_only': True},
-        }
-
-    def get_extra_kwargs(self):
-        return super().get_extra_kwargs() | {
-            'password':
-                {'required': False, 'allow_null': True, 'default': None}
-                if (
-                    license.is_professional() and
-                    (not configuration.LOCAL_USER_AUTH_ENABLED or configuration.REMOTE_USER_AUTH_ENABLED or len(get_oauth()._registry) > 0)
-                ) else {},
+            'password': {'write_only': True, 'required': False, 'allow_null': True, 'default': None},
         }
 
     def validate_password(self, value):
@@ -197,6 +192,44 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
 class ResetPasswordSerializer(ChangePasswordSerializer):
     class Meta(ChangePasswordSerializer.Meta):
         fields = ChangePasswordSerializer.Meta.fields + ['must_change_password']
+
+
+class ForgotPasswordSendSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def create(self, validated_data):
+        user = PentestUser.objects \
+            .filter(email=validated_data['email']) \
+            .first()
+        if user and user.email and user.is_active:
+            async_to_sync(send_mail_in_background)(
+                to=user.email,
+                subject='SysReptor Password Reset',
+                template_name='email/forgot_password.html',
+                template_context={
+                    'user': user,
+                    'confirmation_link': self.context['request'].build_absolute_uri(
+                        f'/login/set-password/?user={user.id}&token={default_token_generator.make_token(user)}'),
+                    'confirmation_link_valid_hours': settings.PASSWORD_RESET_TIMEOUT // 3600,
+                },
+            )
+        return {}
+
+
+class ForgotPasswordCheckSerializer(serializers.Serializer):
+    user = OptionalPrimaryKeyRelatedField(queryset=PentestUser.objects.all())
+    token = serializers.CharField()
+
+    def validate(self, attrs):
+        user = attrs.get('user')
+        if not user or not default_token_generator.check_token(user, attrs.get('token')):
+            raise serializers.ValidationError('The link is invalid or expired.')
+        if not user.is_active:
+            raise serializers.ValidationError('User is inactive or deleted.')
+
+        return super().validate(attrs) | {
+            'user': user,
+        }
 
 
 class MFAMethodSerializer(serializers.ModelSerializer):

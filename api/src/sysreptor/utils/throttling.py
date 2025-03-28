@@ -17,4 +17,4 @@ class ScopedUserRateThrottle(throttling.ScopedRateThrottle):
     def get_ident(self, request):
         if request.user and not request.user.is_anonymous:
             return str(request.user.id)
-        return super().get_ident()
+        return super().get_ident(request)

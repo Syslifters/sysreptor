@@ -11,12 +11,21 @@
 
     <user-info-form v-model="user" :errors="serverErrors" :can-edit-permissions="canEdit" :can-edit-username="canEdit">
       <template #login-information>
-        <s-btn-secondary
-          v-if="canEdit"
-          :to="`/users/${user.id}/reset-password/`"
-          text="Reset Password"
-          class="mt-4 mb-4"
-        />
+        <div class="mt-4 mb-4">
+          <s-btn-secondary
+            v-if="canEdit"
+            :to="`/users/${user.id}/reset-password/`"
+            text="Reset Password"
+            class="mr-2"
+          />
+          <btn-confirm
+            v-if="apiSettings.settings!.features.forgot_password"
+            :action="performSendPasswordResetEmail"
+            :confirm="false"
+            button-text="Send password reset email"
+            :disabled="!user.email || !user.is_active"
+          />
+        </div>
 
         <v-row>
           <v-col>
@@ -108,5 +117,15 @@ async function performDelete() {
   await $fetch(apiUrl, { method: 'DELETE' });
   successToast('User deleted');
   await navigateTo('/users/');
+}
+
+async function performSendPasswordResetEmail() {
+  await $fetch(`/api/v1/auth/forgot-password/`, {
+    method: 'POST',
+    body: {
+      email: user.value.email,
+    },
+  });
+  successToast('Password reset email sent. The user has to click the link in the email to reset the password.');
 }
 </script>

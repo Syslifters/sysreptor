@@ -25,6 +25,8 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+EMAIL_HOST = 'localhost'
 
 REST_FRAMEWORK |= {
     'DEFAULT_THROTTLE_CLASSES': [],
@@ -55,15 +57,19 @@ LOAD_CONFIGURATIONS_FROM_DB = True
 # Override default values for tests
 CONFIGURATION_DEFINITION_CORE['ENABLE_PRIVATE_DESIGNS'].default = True
 CONFIGURATION_DEFINITION_CORE['ARCHIVING_THRESHOLD'].default = 1
+CONFIGURATION_DEFINITION_CORE['FORGOT_PASSWORD_ENABLED'].default = True
 CONFIGURATION_DEFINITION_CORE['INSTALLATION_ID'].default = 'dummy-installation-id-used-in-unit-test'
 
 
 # Disable license check
 from sysreptor.conf import plugins  # noqa: E402
-from sysreptor.utils import license  # noqa: E402
+from sysreptor.utils import license, mail  # noqa: E402
 
 license.check_license = lambda **kwargs: {'type': license.LicenseType.PROFESSIONAL, 'users': 1000, 'name': 'Company Name'}
 plugins.can_load_professional_plugins = lambda: True
+
+# Use blocking mail sending for tests
+mail.send_mail_in_background = mail.send_mail
 
 
 # Always enable some plugins during tests

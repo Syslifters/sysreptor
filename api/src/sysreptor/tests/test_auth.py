@@ -1,10 +1,18 @@
 import io
-from datetime import timedelta
+import re
+from datetime import datetime, timedelta
+from unittest import mock
+from urllib.parse import parse_qsl
+from uuid import uuid4
 
 import pyotp
 import pytest
+from asgiref.sync import async_to_sync
 from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core import mail
 from django.core.management import call_command
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -18,7 +26,9 @@ from sysreptor.tests.mock import (
     override_configuration,
     update,
 )
-from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType
+from sysreptor.tests.utils import assertKeysEqual
+from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
+from sysreptor.utils import utils
 from sysreptor.utils.utils import omit_keys
 
 
@@ -333,3 +343,81 @@ class TestAPITokenAuth:
     def test_token_expired(self):
         update(self.api_token, expire_date=(timezone.now() - timedelta(days=10)).date())
         self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), False)
+
+
+@pytest.mark.django_db()
+class TestForgotPassword:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user(username='user', email='user@example.com')
+        self.token_user = default_token_generator.make_token(self.user)
+        self.client = api_client()
+
+    def test_forgot_password_flow(self):
+        res1 = self.client.post(reverse('auth-forgot-password-send'), data={'email': self.user.email})
+        assert res1.status_code == 200
+        assert len(mail.outbox) == 1
+        token_data = dict(parse_qsl(re.search(r'/login/set-password/\?(?P<params>.*)', mail.outbox[0].body).group('params')))
+
+        res2 = self.client.post(reverse('auth-forgot-password-check'), data=token_data)
+        assert res2.status_code == 200
+        assert res2.data['id'] == str(self.user.id)
+        assertKeysEqual(res2.data, self.user, ['username', 'name', 'email'])
+
+        new_password = get_random_string(32)
+        res3 = self.client.post(reverse('auth-forgot-password-reset'), data=token_data | {'password': new_password})
+        assert res3.status_code == 200
+        self.user.refresh_from_db()
+        assert self.user.check_password(new_password)
+
+    @pytest.mark.parametrize(('expected', 'get_email'), [
+        (True, lambda s: s.user.email),
+        (False, lambda s: 'nonexistent@example.com'),
+        (False, lambda s: update(s.user, is_active=False).email),
+    ])
+    def test_email_sent(self, expected, get_email):
+        res = self.client.post(reverse('auth-forgot-password-send'), data={'email': get_email(self)})
+        assert res.status_code in ([200] if expected else [200, 403])
+        assert len(mail.outbox) == (1 if expected else 0)
+
+    @pytest.mark.parametrize(('expected', 'settings'), [
+        (True, {}),
+        (False, {'FORGOT_PASSWORD_ENABLED': False}),
+        (False, {'LOCAL_USER_AUTH_ENABLED': False}),
+        (False, {'EMAIL_HOST': None}),
+    ])
+    def test_email_sent_settings(self, expected, settings):
+        with override_settings(**settings), override_configuration(**settings):
+            self.test_email_sent(expected, lambda s: s.user.email)
+
+    @pytest.mark.parametrize(('expected', 'get_user', 'get_token'), [
+        (True, lambda s: s.user, lambda s: s.token_user),
+        (False, lambda s: update(s.user, is_active=False), lambda s: s.token_user),
+        (False, lambda s: create_user(email='other@example.com'), lambda s: s.token_user),
+        (False, lambda s: PentestUser(id=uuid4()), lambda s: s.token_user),
+        (False, lambda s: s.user, lambda s: 'invalid token'),
+    ])
+    def test_check_token(self, expected, get_user, get_token):
+        token_data = {
+            'user': get_user(self).id,
+            'token': get_token(self),
+        }
+        res1 = self.client.post(reverse('auth-forgot-password-check'), data=token_data)
+        assert res1.status_code in ([200] if expected else [400, 403])
+
+        res2 = self.client.post(reverse('auth-forgot-password-reset'), data=token_data | {'password': get_random_string(32)})
+        assert res2.status_code in ([200] if expected else [400, 403])
+
+    def test_check_token_expired(self):
+        with mock.patch.object(default_token_generator, '_now', return_value=datetime.now() + timedelta(seconds=settings.PASSWORD_RESET_TIMEOUT * 2)):
+            self.test_check_token(False, lambda s: s.user, lambda s: s.token_user)
+
+    @pytest.mark.parametrize(('expected', 'settings'), [
+        (True, {}),
+        (False, {'FORGOT_PASSWORD_ENABLED': False}),
+        (False, {'LOCAL_USER_AUTH_ENABLED': False}),
+        (False, {'EMAIL_HOST': None}),
+    ])
+    def test_check_token_settings(self, expected, settings):
+        with override_settings(**settings), override_configuration(**settings):
+            self.test_check_token(expected, lambda s: s.user, lambda s: s.token_user)

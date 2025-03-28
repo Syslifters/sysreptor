@@ -24,13 +24,14 @@
       <template #label><pro-info>Must change password</pro-info></template>
     </s-checkbox>
 
-    <s-btn-secondary
-      type="submit"
-      :disabled="!canEdit"
-      class="mt-4"
-    >
-      Change password
-    </s-btn-secondary>
+    <div class="mt-4">
+      <s-btn-primary
+        type="submit"
+        text="Set password"
+        :disabled="!canEdit"
+        class="mr-2"
+      />
+    </div>
   </v-form>
 </template>
 
