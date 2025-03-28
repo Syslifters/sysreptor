@@ -56,7 +56,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         ) {
           await $fetch(new TextDecoder("utf-8").decode(base64decode('aHR0cHM6Ly9wb3J0YWwuc3lzcmVwdG9yLmNvbS9hcGkvdjEvbGljZW5zZXMvYWN0aXZhdGUv')), {
             method: 'POST',
-            body: apiSettings.licenseInfo,
+            body: {
+              user_email_domain: auth.user.value?.email?.split('@')[1],
+              ...apiSettings.licenseInfo,
+            },
           })
         }
       } catch {

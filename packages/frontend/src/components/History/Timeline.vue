@@ -46,7 +46,7 @@
         </history-timeline-item>
         <template v-for="item, idx in historyRecords.data.value" :key="idx">
           <slot v-if="!(idx === 0 && item.history_type === '~' && !item.history_change_reason)" name="item" :item="item">
-    <history-timeline-item :value="item" />
+            <history-timeline-item :value="item" />
           </slot>
         </template>
       </v-timeline>
@@ -87,10 +87,10 @@ watch(() => props.url, () => {
 @use "@base/assets/vuetify.scss" as vuetify;
 
 .history-sidebar {
-  z-index: 5001 !important;
+  z-index: 1001 !important;
 }
 .history-sidebar + .v-navigation-drawer__scrim {
-  z-index: 5000 !important;
+  z-index: 1000 !important;
 }
 .history-sidebar.v-navigation-drawer--active {
   width: 25em !important;
