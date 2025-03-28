@@ -75,7 +75,7 @@ const formSetPassword = ref({ password: '' });
 const formError = ref<any|null>(null);
 async function performSetPassword() {
   try {
-    await $fetch('/api/v1/auth/login/forgot-password/reset/', {
+    await $fetch('/api/v1/auth/forgot-password/reset/', {
       method: 'POST',
       body: {
         ...route.query,
