@@ -51,7 +51,7 @@ const fetchState = useLazyAsyncData<FindingTemplate>(async () => {
     $fetch<FindingTemplate>(baseUrl.value, { method: 'GET' }),
     templateStore.getFieldDefinition(),
   ]);
-  return template;
+  return reactive(template);
 });
 const template = computed({
   get: () => fetchState.data.value,
