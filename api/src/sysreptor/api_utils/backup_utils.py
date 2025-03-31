@@ -332,6 +332,7 @@ def restore_configurations(z):
     configurations_file = zipfile.Path(z, 'configurations.json')
     if not configurations_file.exists():
         logging.info('No saved configurations in backup')
+        return
 
     configurations_data = json.loads(configurations_file.read_text())
     if isinstance(configurations_data, dict) and configurations_data.get('format') == 'configurations/v1':
