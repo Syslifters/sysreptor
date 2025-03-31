@@ -50,4 +50,4 @@ In our Cloud service, we use the same components, but maintain them in a Kuberne
 
 The database server is shared among the customers, but separated using dedicated users and databases for each customer.  
 Files are stored on an internal hosted S3 bucket. The SysReptor apps can only access their own files using temporary S3 keys with permissions restricted to their customer files.  
-The rendering process happens in dedicated rendering worker pods. Each pod is killed after the rendering job has completed (with error or with success). A fresh worker pod replaces the killed pod.
+PDF rendering is performed by a pool of rendering workers. The rendering worker pool is shared among all customers, but after each PDF render the worker job is shut down and replaced with a fresh worker instance. Rendering worker instances are never reused to render reports of different customers.
