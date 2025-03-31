@@ -5,6 +5,7 @@
 * Add forgot password functionality (https://docs.sysreptor.com/setup/configuration/#local-user-authentication)
 * Make user emails unique
 * Fix number field not accepting decimal numbers
+* UI: Template editor performance improvements
 
 
 ## v2025.29 - 2025-03-26

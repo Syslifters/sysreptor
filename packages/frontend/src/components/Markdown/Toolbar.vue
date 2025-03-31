@@ -1,16 +1,16 @@
 <template>
   <v-toolbar ref="toolbarRef" density="compact" flat class="toolbar">
     <template v-if="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW && smAndUp">
-      <markdown-toolbar-button @click="codemirrorAction(toggleStrong)" title="Bold (Ctrl+B)" icon="mdi-format-bold" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strong')" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleEmphasis)" title="Italic (Ctrl+I)" icon="mdi-format-italic" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'emphasis')" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleStrikethrough)" title="Strikethrough" icon="mdi-format-strikethrough" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'strikethrough')" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleFootnote)" title="Footnote" icon="mdi-format-superscript" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'inlineFootnote')" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleStrong)" title="Bold (Ctrl+B)" icon="mdi-format-bold" :disabled="props.disabled" :active="activeActions.strong" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleEmphasis)" title="Italic (Ctrl+I)" icon="mdi-format-italic" :disabled="props.disabled" :active="activeActions.italic" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleStrikethrough)" title="Strikethrough" icon="mdi-format-strikethrough" :disabled="props.disabled" :active="activeActions.strikethrough" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleFootnote)" title="Footnote" icon="mdi-format-superscript" :disabled="props.disabled" :active="activeActions.footnote" />
       <span class="separator" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleListUnordered)" title="Bullet List" icon="mdi-format-list-bulleted" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'listUnordered')" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleListOrdered)" title="Numbered List" icon="mdi-format-list-numbered" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'listOrdered')" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleTaskList)" title="Checklist" icon="mdi-format-list-checkbox" :disabled="props.disabled" :active="isTaskListInSelection(props.editorState)" />
-      <markdown-toolbar-button @click="codemirrorAction(insertCodeBlock)" title="Code" icon="mdi-code-tags" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'codeFenced')" />
-      <markdown-toolbar-button @click="codemirrorAction(insertTable)" title="Table" icon="mdi-table" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'table')" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleListUnordered)" title="Bullet List" icon="mdi-format-list-bulleted" :disabled="props.disabled" :active="activeActions.listUnordered" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleListOrdered)" title="Numbered List" icon="mdi-format-list-numbered" :disabled="props.disabled" :active="activeActions.listOrdered" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleTaskList)" title="Checklist" icon="mdi-format-list-checkbox" :disabled="props.disabled" :active="activeActions.taskList" />
+      <markdown-toolbar-button @click="codemirrorAction(insertCodeBlock)" title="Code" icon="mdi-code-tags" :disabled="props.disabled" :active="activeActions.code" />
+      <markdown-toolbar-button @click="codemirrorAction(insertTable)" title="Table" icon="mdi-table" :disabled="props.disabled" :active="activeActions.table" />
       <span class="separator" />
       <v-menu
         v-if="props.referenceItems"
@@ -32,7 +32,7 @@
           </v-list>
         </template>
       </v-menu>
-      <markdown-toolbar-button @click="codemirrorAction(toggleLink)" title="Link" icon="mdi-link" :disabled="props.disabled" :active="isTypeInSelection(props.editorState, 'link')" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleLink)" title="Link" icon="mdi-link" :disabled="props.disabled" :active="activeActions.link" />
       <template v-if="uploadFiles">
         <markdown-toolbar-button @click="fileInput.click()" title="Image" icon="mdi-image" :disabled="props.disabled || props.fileUploadInProgress" />
         <input ref="fileInput" type="file" multiple @change="e => onUploadFiles(e as InputEvent)" @click.stop :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
@@ -64,7 +64,7 @@
           @click="emitCreateComment"
           title="Comment (Ctrl+Alt+M)"
           icon="mdi-comment-plus-outline"
-          :disabled="props.disabled || !props.editorState"
+          :disabled="props.disabled || !editorState"
         />
         <span class="separator" />
       </template>
@@ -168,6 +168,22 @@ const emit = defineEmits<{
 const apiSettings = useApiSettings();
 const { smAndUp, sm, lgAndUp } = useDisplay();
 
+const editorState = computed(() => props.editorState);
+const activeActions = computed(() => ({
+  strong: isTypeInSelection(editorState.value, 'strong'),
+  italic: isTypeInSelection(editorState.value, 'italic'),
+  strikethrough: isTypeInSelection(editorState.value, 'strikethrough'),
+  footnote: isTypeInSelection(editorState.value, 'inlineFootnote'),
+  listUnordered: isTypeInSelection(editorState.value, 'listUnordered'),
+  listOrdered: isTypeInSelection(editorState.value, 'listOrdered'),
+  taskList: isTaskListInSelection(editorState.value),
+  code: isTypeInSelection(editorState.value, 'codeFenced'),
+  table: isTypeInSelection(editorState.value, 'table'),
+  link: isTypeInSelection(editorState.value, 'link'),
+}));
+const canUndo = computed(() => editorState.value && undoDepth(editorState.value) > 0);
+const canRedo = computed(() => editorState.value && redoDepth(editorState.value) > 0);
+
 const hasSplitMode = computed(() => !props.hideSplitMode && lgAndUp.value);
 watch(hasSplitMode, () => {
   if (!hasSplitMode.value && props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
@@ -195,8 +211,6 @@ function toggleSpellcheck() {
   }
 }
 
-const canUndo = computed(() => props.editorState && undoDepth(props.editorState) > 0);
-const canRedo = computed(() => props.editorState && redoDepth(props.editorState) > 0);
 
 const fileInput = ref();
 async function onUploadFiles(event: InputEvent) {

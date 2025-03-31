@@ -33,16 +33,18 @@ const props = defineProps<{
 
 const { mobile } = useDisplay();
 
-const currentLineNumber = computed(() => props.editorState.doc.lineAt(props.editorState.selection.main.head).number);
+const editorState = computedThrottled(() => props.editorState, { throttle: 500 });
+
+const currentLineNumber = computed(() => editorState.value.doc.lineAt(editorState.value.selection.main.head).number);
 const currentColNumber = computed(() => {
-  const pos = props.editorState.selection.main.head
-  const line = props.editorState.doc.lineAt(pos);
+  const pos = editorState.value.selection.main.head
+  const line = editorState.value.doc.lineAt(pos);
   return pos - line.from;
 });
-const lineCount = computed(() => props.editorState.doc.lines);
+const lineCount = computed(() => editorState.value.doc.lines);
 const wordCount = computed(() => {
   const pattern = /[a-zA-Z0-9_\u00A0-\u02AF\u0392-\u03C9\u0410-\u04F9]+|[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF\u3040-\u309F\uAC00-\uD7AF]+/g;
-  const m = (props.editorState.doc.toString()).match(pattern);
+  const m = (editorState.value.doc.toString()).match(pattern);
   let count = 0;
   if (!m) { return count; }
   for (let i = 0; i < m.length; i++) {

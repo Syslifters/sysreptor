@@ -1,9 +1,13 @@
 <template>
   <div v-if="fieldDefinitionTitle" :key="template.id" class="h-100 d-flex flex-column">
-    <edit-toolbar v-bind="toolbarAttrs" ref="toolbarRef">
+    <edit-toolbar v-bind="toolbarAttrs || {}" ref="toolbarRef">
       <template #title>
-        <v-tabs v-model="currentTab" center-active>
-          <v-tab v-for="tr in template.translations" :key="tr.id">
+        <v-tabs v-model="currentTranslationLanguage"  center-active>
+          <v-tab 
+            v-for="tr in template.translations" 
+            :key="tr.id"
+            :value="tr.language"
+          >
             <v-icon size="small" start icon="mdi-translate" />
             {{ languageInfo(tr.language).name }}
             <btn-delete
@@ -49,18 +53,25 @@
       :current-url="`/templates/${template.id}/?language=${currentTranslation.language}`"
     />
     
-    <v-window v-model="currentTab" class="flex-grow-height">
-      <v-window-item v-for="(translation, idx) in template.translations" :key="idx" class="h-100">
+    <v-window v-model="currentTranslationLanguage" class="flex-grow-height">
+      <v-window-item 
+        v-for="translation in template.translations" 
+        :key="translation.id" 
+        :value="translation.language" 
+        class="h-100"
+      >
         <v-container fluid class="pt-0 h-100 overflow-y-auto">
           <dynamic-input-field
-            :readonly="props.readonly"
-            v-bind="fieldAttrs(translation, fieldDefinitionTitle)"
+            v-model="translation.data.title"
+            :id="fieldDefinitionTitle.id"
+            :definition="fieldDefinitionTitle"
+            :lang="translation.language"
+            v-bind="fieldAttrs"
             :data-testid="`title-${translation.language}`"
           />
 
           <s-status-selection
-            :model-value="translation.status"
-            @update:model-value="(v: any) => updateTranslationField(translation, 'status', v)"
+            v-model="translation.status"
             :readonly="props.readonly"
             variant="outlined"
             density="default"
@@ -68,15 +79,14 @@
             data-testid="template-status"
           />
           <s-tags
-            :model-value="template.tags"
-            @update:model-value="(v: string[]) => updateTemplateField('tags', v)"
+            v-model="template.tags"
             :items="templateTagSuggestions"
             :readonly="props.readonly"
             class="mt-4"
           />
           <s-language-selection
             :model-value="translation.language"
-            @update:model-value="(v: string|null) => updateTranslationField(translation, 'language', v)"
+            @update:model-value="translation.language = currentTranslationLanguage = $event"
             :items="[currentLanguageInfo].concat(unusedLanguageInfos)"
             :readonly="props.readonly"
             class="mt-4"
@@ -84,9 +94,13 @@
 
           <div v-for="d in visibleFieldDefinitionsExceptTitle" :key="d.id" class="d-flex flex-row">
             <dynamic-input-field
-              :readonly="props.readonly"
+              :model-value="(d.id in translation.data) ? translation.data[d.id] : mainTranslation.data[d.id]"
+              @update:model-value="translation.data[d.id] = $event"
+              :id="d.id"
+              :definition="d"
+              :lang="translation.language"
               :disabled="!translation.is_main && !(d.id in translation.data)"
-              v-bind="fieldAttrs(translation, d)"
+              v-bind="fieldAttrs"
             />
             <div v-if="!translation.is_main" class="mt-4 ml-1">
               <s-btn-secondary
@@ -124,12 +138,12 @@
 </template>
 
 <script setup lang="ts">
-import type { MarkdownEditorMode } from "#imports";
+import type { FindingTemplate, FindingTemplateTranslation, MarkdownEditorMode } from "#imports";
 import { uuidv4 } from "@base/utils/helpers";
 import { cloneDeep } from "lodash-es";
 
-const props = withDefaults(defineProps<{
-  modelValue: FindingTemplate;
+const props = defineProps<{
+  modelValue: FindingTemplate;  // Reactive object expected
   fieldDefinitionList?: TemplateFieldDefinition[];
   initialLanguage?: string|null;
   readonly?: boolean;
@@ -137,18 +151,6 @@ const props = withDefaults(defineProps<{
   uploadFile?: (file: File) => Promise<string>;
   rewriteFileUrlMap?: Record<string, string>;
   history?: boolean;
-  
-}>(), {
-  initialLanguage: null,
-  fieldDefinitionList: undefined,
-  toolbarAttrs: () => ({}),
-  uploadFile: undefined,
-  rewriteFileUrlMap: undefined,
-  readonly: false,
-  history: false,
-});
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: FindingTemplate): void;
 }>();
 
 const localSettings = useLocalSettings();
@@ -160,16 +162,13 @@ const template = computed(() => props.modelValue);
 const mainTranslation = computed(() => template.value.translations.find(tr => tr.is_main)!);
 
 const toolbarRef = ref();
-const currentTranslation = ref(template.value.translations.find(tr => tr.language === props.initialLanguage) || mainTranslation.value);
-const currentTab = computed({
-  get: () => template.value.translations.findIndex(tr => tr.id === currentTranslation.value.id),
-  set: (idx) => { currentTranslation.value = template.value.translations[idx] || mainTranslation.value; },
-})
-watch(template, () => {
-  currentTranslation.value = template.value.translations.find(tr => tr.id === currentTranslation.value.id) ||
-      template.value.translations.find(tr => tr.language === currentTranslation.value.language) ||
-      mainTranslation.value;
-}, { deep: true });
+const currentTranslationLanguage = ref((template.value.translations.find(tr => tr.language === props.initialLanguage) || mainTranslation.value).language);
+const currentTranslation = computed(() => template.value.translations.find(tr => tr.language === currentTranslationLanguage.value) || mainTranslation.value);
+watch(() => template.value.translations, () => {
+  if (!template.value.translations.find(tr => tr.language === currentTranslationLanguage.value)) {
+    currentTranslationLanguage.value = mainTranslation.value.language;
+  }
+}, { deep: 1 });
 
 const restoreTranslationDataCache = ref<Record<string, Record<string, any>>>({});
 const initialLanguages = ref(template.value.translations.map(tr => tr.language));
@@ -192,61 +191,44 @@ const unusedLanguageInfos = computed(() => availableLanguageInfos.value.filter(l
 const currentLanguageInfo = computed(() => languageInfo(currentTranslation.value.language));
 const mainLanguageInfo = computed(() => languageInfo(mainTranslation.value.language));
 
-function updateTemplateField(fieldId: string, value: any) {
-  emit('update:modelValue', { ...template.value, [fieldId]: value });
-}
-function updateTranslationField(translation: FindingTemplateTranslation, fieldId: string, value: any) {
-  updateTemplateField('translations', template.value.translations.map(tr =>
-    tr.id === translation.id ? { ...tr, [fieldId]: value } : tr));
-}
-function updateTranslationData(translation: FindingTemplateTranslation, fieldId: string, value: any) {
-  const data = Object.fromEntries(Object.entries(translation.data).filter(([k]) => k !== fieldId));
-  if (value !== undefined) {
-    data[fieldId] = value;
-  }
-  updateTranslationField(translation, 'data', data);
-}
 
 function translateFieldCopy(translation: FindingTemplateTranslation, fieldId: string) {
   // Restore previous value or copy field from main translation
-  const restoreValue = restoreTranslationDataCache.value[translation.id]?.[fieldId] || cloneDeep(mainTranslation.value.data[fieldId]);
-  updateTranslationData(translation, fieldId, restoreValue !== undefined ? restoreValue : null);
+  const restoreValue = cloneDeep(toValue(restoreTranslationDataCache.value[translation.id]?.[fieldId] || mainTranslation.value.data[fieldId]));
+  translation.data[fieldId] = restoreValue !== undefined ? restoreValue : null;
 }
 function translateFieldReset(translation: FindingTemplateTranslation, fieldId: string) {
   // Store old content in cache to be able to restore value
   if (!restoreTranslationDataCache.value[translation.id]) {
     restoreTranslationDataCache.value[translation.id] = {};
   }
-  restoreTranslationDataCache.value[translation.id]![fieldId] = translation.data[fieldId]
+  restoreTranslationDataCache.value[translation.id]![fieldId] = cloneDeep(toValue(translation.data[fieldId]));
   // Remove field from translation (uses value from main translation)
-  updateTranslationData(translation, fieldId, undefined);
+  delete translation.data[fieldId];
 }
 
 async function createTranslation(language: string) {
-  updateTemplateField('translations', [
-    ...template.value.translations,
-    {
-      id: uuidv4(),
-      language,
-      status: 'in-progress',
-      is_main: false,
-      data: {
-        title: mainTranslation.value.data.title,
-      },
-    }]);
-  await nextTick();
-  currentTranslation.value = template.value.translations.find(tr => tr.language === language) || currentTranslation.value;
+  const translation = {
+    id: uuidv4(),
+    language,
+    status: ReviewStatus.IN_PROGRESS,
+    is_main: false,
+    data: {
+      title: mainTranslation.value.data.title,
+    },
+  } as Partial<FindingTemplateTranslation> as FindingTemplateTranslation;
+  template.value.translations.push(translation);
+  currentTranslationLanguage.value = language;
 }
 function deleteTranslation(translationId: string) {
-  updateTemplateField('translations', template.value.translations.filter(tr => tr.id !== translationId))
+  template.value.translations.splice(
+    template.value.translations.findIndex(tr => tr.id === translationId),
+    1
+  );
 }
 
-const fieldAttrs = computed(() => (translation: FindingTemplateTranslation, definition: FieldDefinition) => ({
-  modelValue: (definition.id in translation.data) ? translation.data[definition.id] : mainTranslation.value.data[definition.id],
-  'onUpdate:modelValue': (v: any) => updateTranslationData(translation, definition.id, v),
-  id: definition.id,
-  definition,
-  lang: translation.language,
+const fieldAttrs = computed(() => ({
+  readonly: props.readonly,
   selectableUsers: [],
   spellcheckEnabled: localSettings.templateSpellcheckEnabled,
   'onUpdate:spellcheckEnabled': (value: boolean) => { localSettings.templateSpellcheckEnabled = value },
