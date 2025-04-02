@@ -8,6 +8,7 @@
 * Fix importing backups without stored configurations
 * Fix mermaid rendering not finished race condition in PDFs
 * UI: Template editor performance improvements
+* Improve default checkbox styles in PDFs
 
 
 ## v2025.29 - 2025-03-26
