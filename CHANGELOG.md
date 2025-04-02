@@ -6,6 +6,7 @@
 * Make user emails unique
 * Fix number field not accepting decimal numbers
 * Fix importing backups without stored configurations
+* Fix mermaid rendering not finished race condition in PDFs
 * UI: Template editor performance improvements
 
 

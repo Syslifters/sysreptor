@@ -14,6 +14,7 @@
 <script lang="ts">
 import { defineProps, getCurrentInstance, onMounted, ref } from 'vue';
 import { mermaid } from '@sysreptor/markdown';
+import { useRenderTask } from '@/utils';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -42,7 +43,7 @@ function unescapeCode(code: string) {
   return code.replaceAll('&#x7B;', '{').replaceAll('&#x7D;', '}');
 }
 
-onMounted(async () => { 
+onMounted(useRenderTask(async () => { 
   // Ensure custom fonts are loaded
   await document.fonts.ready;
 
@@ -86,5 +87,5 @@ onMounted(async () => {
 
   // Finally, export canvas contents as PNG
   diagramPng.value = canvas.toDataURL('image/png');
-})
+}))
 </script>
