@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from "uuid";
 import { computed, defineProps, onMounted, ref, useSlots } from "vue";
-import { callForTicks } from "@/utils";
+import { callForTicks, useRenderTask } from "@/utils";
 
 const props = defineProps<{
   to: string;
@@ -154,10 +154,10 @@ function updateReference() {
   }
 
 }
-onMounted(async () => {
+onMounted(useRenderTask(async () => {
   await callForTicks(4, () => updateReference());
   if (error.value) {
     console.warn(error.value.message, error.value);
   }
-});
+}));
 </script>

@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from "uuid";
 import { onMounted, ref, computed, getCurrentInstance } from "vue";
-import { callForTicks, slotDataArray, getAllElements } from "@/utils";
+import { callForTicks, slotDataArray, getAllElements, useRenderTask } from "@/utils";
 
 const shouldRender = ref(false);
 const items = ref<any>([]);
@@ -31,9 +31,9 @@ function updateItems() {
   }
   shouldRender.value = true;
 }
-onMounted(async () => {
+onMounted(useRenderTask(async () => {
   // Defer rendering until everything else is rendered.
   // Then look in the DOM what should be included in the TOC
   await callForTicks(3, () => updateItems());
-});
+}));
 </script>

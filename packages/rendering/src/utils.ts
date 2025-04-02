@@ -1,4 +1,4 @@
-import { nextTick, type ComponentInternalInstance } from "vue";
+import { nextTick, ref, type ComponentInternalInstance } from "vue";
 
 export async function callForTicks(tickCount: number, tickCallback: () => void) {
   for (let i = 0; i < tickCount; i++) {
@@ -31,4 +31,14 @@ export function* getChildElementsRecursive(node: Node): Generator<Element> {
 
 export function getAllElements(vm: ComponentInternalInstance|null, querySelector: string): HTMLElement[] {
   return vm?.root.vnode.el?.querySelectorAll(querySelector) || [];
+}
+
+
+export const pendingRenderTasks = ref<Promise<void>[]>([]);
+export function useRenderTask(fn: () => Promise<void>) {
+  return async () => {
+    const t = fn();
+    pendingRenderTasks.value.push(t);
+    return await t;
+  }
 }

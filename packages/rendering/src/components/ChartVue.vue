@@ -7,6 +7,7 @@
 </template>
 
 <script setup lang="ts">
+import { useRenderTask } from '@/utils';
 import Chart from 'chart.js/auto';
 import { defineProps, ref, nextTick, onMounted } from 'vue';
 
@@ -28,7 +29,11 @@ const props = withDefaults(defineProps<{
 const canvasRef = ref();
 const chartImageData = ref<string|null>(null);
 
-async function renderChartImage() {
+const renderChartImage = useRenderTask(async () => {
+  // Ensure custom fonts are loaded
+  await document.fonts.ready;
+
+  // Render chart
   if (chartImageData.value) {
     chartImageData.value = null;
     await nextTick();
@@ -43,11 +48,6 @@ async function renderChartImage() {
   });
   chartImageData.value = chart.toBase64Image();
   chart.destroy();
-}
-onMounted(async () => {
-  // Ensure custom fonts are loaded
-  await document.fonts.ready;
-  // Render chart
-  await renderChartImage();
 });
+onMounted(renderChartImage);
 </script>

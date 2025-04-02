@@ -12,7 +12,7 @@ import ListOfTables from './components/ListOfTables.vue';
 import Chart from './components/ChartVue.vue';
 import MermaidDiagram from './components/MermaidDiagram.vue';
 import Ref from './components/Ref.vue';
-import { callForTicks, getChildElementsRecursive } from './utils';
+import { callForTicks, getChildElementsRecursive, useRenderTask, pendingRenderTasks } from './utils';
 
 
 export type Report = {
@@ -116,17 +116,17 @@ if (!window.RENDERING_COMPLETED) {
 
       // Wait until rendering is finished
       const _tickCount = ref<number>(0);
-      const _pendingPromises = ref<Promise<void>[]>([]);
       const _observer = new MutationObserver((mutationList) => {
         for (const mutation of mutationList) {
           if (mutation.type === 'childList') {
             for (const an of Array.from(mutation.addedNodes)) {
               for (const node of getChildElementsRecursive(an)) {
                 if (node.nodeName === 'SCRIPT') {
-                  _pendingPromises.value.push(new Promise((resolve, reject) => {
+                  const waitScriptLoaded = useRenderTask(() => new Promise((resolve, reject) => {
                     node.addEventListener('load', () => resolve());
                     node.addEventListener('error', reject);
                   }));
+                  waitScriptLoaded();
                 } else if (node.nodeName === 'INPUT' && node.attributes.getNamedItem('type')?.value === 'checkbox' && (node as HTMLInputElement).checked) {
                   // The "checked" attribute is not exported to HTML, so we need this workaround to know whether a checkbox is checked
                   node.setAttribute('data-checked', 'checked');
@@ -144,11 +144,14 @@ if (!window.RENDERING_COMPLETED) {
         await callForTicks(10, () => {
           _tickCount.value += 1;
         });
-        // Wait for pending promises to finish
-        if (_pendingPromises.value.length > 0) {
-          await Promise.allSettled(_pendingPromises.value);
-          await callForTicks(10, () => {
-            _tickCount.value += 1;
+        // Wait for all pending render tasks to finish
+        while (pendingRenderTasks.value.length > 0) {
+          const pending = [...pendingRenderTasks.value];
+          pendingRenderTasks.value = [];
+          await Promise.allSettled(pending);
+          // Wait some ticks to allow registering new render tasks
+          await callForTicks(10, () => { 
+            _tickCount.value += 1; 
           });
         }
 
