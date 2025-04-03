@@ -87,7 +87,7 @@ RUN /app/plugins/build.sh
 
 
 
-FROM python:3.12-slim-bookworm AS api-dev
+FROM python:3.13-slim-bookworm AS api-dev
 
 # Get a list a preinstalled apt packages
 RUN mkdir /src && \
@@ -139,7 +139,7 @@ ENV PYTHONUNBUFFERED=on \
 
 COPY api/pyproject.toml api/poetry.lock /app/api/
 RUN python3 -m venv /opt/poetry \
-    && /opt/poetry/bin/pip install --no-cache poetry==2.1.1 \ 
+    && /opt/poetry/bin/pip install --no-cache poetry==2.1.2 \ 
     && /opt/poetry/bin/poetry config virtualenvs.create false \
     && /opt/poetry/bin/poetry install --directory=/app/api --no-cache --no-interaction --no-root \
     && rm -rf /opt/poetry

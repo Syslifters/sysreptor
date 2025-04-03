@@ -6,11 +6,11 @@ authors = []
 requires-python = ">=3.12,<4.0"
 
 dependencies = [
-  "django[argon2] (>=5.1,<5.2)",
-  "djangorestframework (>=3.15,<3.16)",
+  "django[argon2] (>=5.2,<5.3)",
+  "djangorestframework (>=3.16,<3.17)",
   "weasyprint (==64.1)",
 
-  "django-csp (>=4.0b2,<5)",
+  "django-csp (>=4.0,<5)",
   "django-storages[s3] (~=1.13)",
   "drf-nested-routers (~=0.94)",
   "django-filter (~=25.1)",
@@ -22,7 +22,7 @@ dependencies = [
   "gunicorn (~=23.0)",
   "uvicorn[standard] (~=0.34)",
   "whitenoise[brotli] (~=6.4)",
-  "channels[daphne] (~=4.1)",
+  "channels[daphne] (~=4.2)",
   "channels-redis (~=4.2)",
 
   "requests (~=2.28)",
@@ -47,12 +47,12 @@ dependencies = [
   "celery (~=5.3)",
   "psutil (~=7.0)",
 
-  "django-debug-toolbar (~=5.0)",
+  "django-debug-toolbar (~=5.1)",
   "elastic-apm (~=6.20)",
   "debugpy (~=1.6)",
   "watchdog (~=6.0)",
-  "pytest-django (~=4.5)",
-  "pytest-asyncio (~=0.25)",
+  "pytest-django (~=4.11)",
+  "pytest-asyncio (~=0.26)",
   "pytest-xdist (~=3.2)",
   "pytest-cov (~=6.0)",
 

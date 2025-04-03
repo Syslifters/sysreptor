@@ -6,7 +6,6 @@ import logging
 import os
 import zipfile
 from pathlib import Path
-from unittest import mock
 
 import boto3
 import zipstream
@@ -17,6 +16,7 @@ from django.core.management import call_command
 from django.core.management.color import no_style
 from django.core.serializers.base import DeserializationError
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.serializers.jsonl import Deserializer as JsonlDeserializer
 from django.db import connection, transaction
 from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.loader import MigrationLoader
@@ -35,6 +35,22 @@ from sysreptor.pentests.models import (
 from sysreptor.pentests.models.project import ProjectMemberRole
 from sysreptor.utils import crypto
 from sysreptor.utils.configuration import configuration
+
+
+class DbJsonlDeserializer(JsonlDeserializer):
+    def __init__(self, *args, migration_apps=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.migration_apps = migration_apps or apps
+
+    def _get_model_from_node(self, model_identifier):
+        app_label, model_name = model_identifier.split('.')
+        try:
+            return self.migration_apps.get_model(app_label, model_name)
+        except LookupError as ex:
+            if app_label.startswith('plugin_'):
+                raise DeserializationError(f'Plugin model "{model_identifier}" not found. Plugin is probably not enabled.') from ex
+            else:
+                raise ex
 
 
 def create_migration_info():
@@ -240,21 +256,11 @@ def restore_database_dump(f):
     Therefore, we patch the django serializer to use the model at the current migration state, not the model from code.
     """
     migration_apps = MigrationExecutor(connection)._create_project_state(with_applied_migrations=True).apps
-    def get_model(model_identifier):
-        app_label, model_name = model_identifier.split('.')
-        try:
-            return migration_apps.get_model(app_label, model_name)
-        except LookupError as ex:
-            if app_label.startswith('plugin_'):
-                raise DeserializationError(f'Plugin model "{model_identifier}" not found. Plugin is probably not enabled.') from ex
-            else:
-                raise ex
 
     # Defer DB constraint checking
-    with constraint_checks_disabled(), \
-        mock.patch('django.core.serializers.python._get_model', get_model):
+    with constraint_checks_disabled():
         objs_with_deferred_fields = []
-        for obj in serializers.deserialize('jsonl', f, handle_forward_references=True, ignorenonexistent=True):
+        for obj in DbJsonlDeserializer(f, migration_apps=migration_apps, handle_forward_references=True, ignorenonexistent=True):
             obj.save()
             if obj.deferred_fields:
                 objs_with_deferred_fields.append(obj)
