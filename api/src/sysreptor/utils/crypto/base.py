@@ -169,10 +169,11 @@ class EncryptionStream(io.RawIOBase):
         if self.closed:
             return
         try:
-            # Write authentication tag at end
-            self._ensure_header()
-            tag = self.cipher.digest()
-            self.fileobj.write(tag)
+            if getattr(self, 'cipher', None) and not self.fileobj.closed:
+                # Write authentication tag at end
+                self._ensure_header()
+                tag = self.cipher.digest()
+                self.fileobj.write(tag)
         finally:
             super().close()
 
@@ -356,7 +357,8 @@ class DecryptionStream(io.RawIOBase):
         if self.closed:
             return
         try:
-            self._verify_auth_tag()
+            if self.cipher and not self.fileobj.closed:
+                self._verify_auth_tag()
         finally:
             self.fileobj.close()
             super().close()

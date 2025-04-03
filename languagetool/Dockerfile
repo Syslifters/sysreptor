@@ -1,4 +1,4 @@
-FROM elestio/languagetool:v6.4
+FROM elestio/languagetool:v6.5
 
 # Add custom CA certificates
 USER root
