@@ -285,7 +285,10 @@ report_template = """
             <tr>
                 <th :class="'risk-bg-' + finding.cvss.level">CWE</th>
                 <td>
-                    {{ finding.cwe || '-' }}
+                    <a v-if="finding.cwe" :href="'https://cwe.mitre.org/data/definitions/' + finding.cwe.id" class="link-none">
+                        {{ finding.cwe.value }} - {{ finding.cwe.name }}
+                    </a>
+                    <span v-else>-</span>
                 </td>
             </tr>
             <tr>
@@ -328,9 +331,15 @@ report_template = """
                 <th :class="'risk-bg-' + finding.cvss.level">References</th>
                 <td>
                     <span v-if="finding.references.length === 0">-</span>
-                    <span v-else-if="finding.references.length === 1">{{ finding.references[0] }}</span>
+                    <span v-else-if="finding.references.length === 1">
+                        <a v-if="finding.references[0]?.startsWith('http')" :href="finding.references[0]" class="link-none">{{ finding.references[0] }}</a>
+                        <span v-else>{{ finding.references[0] }}</span>
+                    </span>
                     <ul v-else>
-                        <li v-for="r in finding.references">{{ r }}</li>
+                        <li v-for="r in finding.references">
+                            <a v-if="r?.startsWith('http')" :href="r" class="link-none">{{ r }}</a>
+                            <span v-else>{{ r }}</span>
+                        </li>
                     </ul>
                 </td>
             </tr>
@@ -518,6 +527,17 @@ code {
     color: red;
     font-style: italic;
 }
+
+.shell-command {
+    color: blue;
+}
+.shell-mark {
+    color: red;
+}
+.shell-highlight {
+    background-color: yellow;
+}
+
 
 /* Footnotes */
 @page {
@@ -1242,12 +1262,10 @@ spellcheck = false
 
 [[finding_fields]]
 id = "cwe"
-type = "string"
+type = "cwe"
 label = "CWE"
 origin = "custom"
-default = "TODO CWE"
 required = false
-spellcheck = false
 
 [[finding_fields]]
 id = "cvss"

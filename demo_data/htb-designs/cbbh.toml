@@ -248,7 +248,10 @@ report_template = """
             <tr>
                 <th :class="'risk-bg-' + finding.cvss.level">CWE</th>
                 <td>
-                    {{ finding.cwe || '-' }}
+                    <a v-if="finding.cwe" :href="'https://cwe.mitre.org/data/definitions/' + finding.cwe.id" class="link-none">
+                        {{ finding.cwe.value }} - {{ finding.cwe.name }}
+                    </a>
+                    <span v-else>-</span>
                 </td>
             </tr>
             <tr>
@@ -291,9 +294,15 @@ report_template = """
                 <th :class="'risk-bg-' + finding.cvss.level">References</th>
                 <td>
                     <span v-if="finding.references.length === 0">-</span>
-                    <span v-else-if="finding.references.length === 1">{{ finding.references[0] }}</span>
+                    <span v-else-if="finding.references.length === 1">
+                        <a v-if="finding.references[0]?.startsWith('http')" :href="finding.references[0]" class="link-none">{{ finding.references[0] }}</a>
+                        <span v-else>{{ finding.references[0] }}</span>
+                    </span>
                     <ul v-else>
-                        <li v-for="r in finding.references">{{ r }}</li>
+                        <li v-for="r in finding.references">
+                            <a v-if="r?.startsWith('http')" :href="r" class="link-none">{{ r }}</a>
+                            <span v-else>{{ r }}</span>
+                        </li>
                     </ul>
                 </td>
             </tr>
@@ -445,6 +454,17 @@ code {
     color: red;
     font-style: italic;
 }
+
+.shell-command {
+    color: blue;
+}
+.shell-mark {
+    color: red;
+}
+.shell-highlight {
+    background-color: yellow;
+}
+
 
 /* Footnotes */
 @page {
@@ -891,16 +911,16 @@ type = "markdown"
 label = "Scope"
 origin = "custom"
 default = """
-The scope of this assessment was as follows TODO *.tricolor.local and any and all open web server ports discovered on the target IP address provided at the start of the assessment.
+The scope of this assessment was as follows TODO *.trilocor.local and any and all open web server ports discovered on the target IP address provided at the start of the assessment.
 
 ### In Scope Assets
 | Host/URL/IP Address | Description |
 |:---|:---|
-| TODO www.triclor.local | Main Tricolor website/unauthenticated |
+| TODO www.triclor.local | Main Trilocor website/unauthenticated |
 | TODO exam IP address  | PR website/unauthenticated |
 | TODO exam IP address  | Jobs Portal/unauthenticated |
 | TODO exam IP address  | HR website/unauthenticated |
-| TODO exam IP address  | Tricolor online store/unauthenticated |
+| TODO exam IP address  | Trilocor online store/unauthenticated |
 """
 required = true
 
@@ -1002,12 +1022,10 @@ spellcheck = false
 
 [[finding_fields]]
 id = "cwe"
-type = "string"
+type = "cwe"
 label = "CWE"
 origin = "custom"
-default = "TODO CWE"
 required = false
-spellcheck = false
 
 [[finding_fields]]
 id = "cvss"
@@ -1135,16 +1153,16 @@ The following types of activities were considered out-of-scope for this bug boun
 {{ report.candidate.name }} performed testing under a “{{ report.pentest_approach.label }}” approach from {{ formatDate(report.pentest_start, 'long') }}, to {{ formatDate(report.pentest_end, 'long') }} without credentials or any advance knowledge of {{ report.customer_short }}’s web applications with the goal of identifying unknown weaknesses. Testing was performed from a non-evasive standpoint with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Testing was performed remotely. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential. {{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal network access.
 """
 scope = """
-The scope of this assessment was as follows TODO *.tricolor.local and any and all open web server ports discovered on the target IP address provided at the start of the assessment.
+The scope of this assessment was as follows TODO *.trilocor.local and any and all open web server ports discovered on the target IP address provided at the start of the assessment.
 
 ### In Scope Assets
 | Host/URL/IP Address | Description |
 |:---|:---|
-| TODO www.trilocor.local | Main Tricolor website/unauthenticated |
+| TODO www.trilocor.local | Main Trilocor website/unauthenticated |
 | TODO exam IP address  | PR website/unauthenticated |
 | TODO exam IP address  | Jobs Portal/unauthenticated |
 | TODO exam IP address  | HR website/unauthenticated |
-| TODO exam IP address  | Tricolor online store/unauthenticated |
+| TODO exam IP address  | Trilocor online store/unauthenticated |
 """
 assessment_overview = """
 During the course of testing against {{ report.candidate.name }} identified ...
