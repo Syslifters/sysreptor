@@ -4,6 +4,7 @@ import tarfile
 
 import pytest
 from django.core.files.base import ContentFile
+from django.db.models import RestrictedError
 from django.test import override_settings
 from rest_framework.exceptions import ValidationError
 
@@ -437,6 +438,16 @@ class TestLinkedProject:
         self.project = create_project(project_type=self.project_type, source=SourceEnum.IMPORTED)
         update(self.project_type, linked_project=self.project)
 
+    def test_prevent_delete_project_type_still_used(self):
+        # Project_type still used by project
+        with pytest.raises(RestrictedError):
+            self.project_type.delete()
+
+    def test_delete_project_type_unused(self):
+        # Project_type not used anymore: can be deleted
+        update(self.project, project_type=create_project_type())
+        self.project_type.delete()
+
     def test_delete_linked_project(self):
         # On delete linked_project: project_type should also be deleted
         self.project.delete()
@@ -451,13 +462,18 @@ class TestLinkedProject:
         assert not ProjectType.objects.filter(id=unused_pt.id).exists()
 
     def test_delete_linked_project_project_type_used_by_another_project(self):
+        # Edge case (should never occur by regular use): project-specific project_type used by multiple projects
         second_p = create_project(project_type=self.project_type)
 
+        with pytest.raises(RestrictedError):
+            self.project.delete()
+
+        # Change second_p.project_type (or delete project) to be able to delete self.project
+        update(second_p, project_type=second_p.project_type.copy(linked_project=second_p))
+
         self.project.delete()
-        assert ProjectType.objects.filter(id=self.project_type.id).exists()
+        assert not ProjectType.objects.filter(id=self.project_type.id).exists()
         assert PentestProject.objects.filter(id=second_p.id).exists()
-        self.project_type.refresh_from_db()
-        assert self.project_type.linked_project is None
 
 
 @pytest.mark.django_db()
