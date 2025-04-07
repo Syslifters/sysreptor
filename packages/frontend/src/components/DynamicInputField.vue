@@ -230,13 +230,13 @@
               />
               <v-list v-else class="pa-0 bg-inherit">
                 <draggable
-                  :model-value="formValue"
+                  :model-value="formValue.map((value: any, index: number) => ({value, index}))"
                   @change="e => e.moved ? emitInputList('move', e.moved.oldIndex, e.moved.newIndex) : undefined"
-                  :item-key="(item: any) => formValue.indexOf(item)"
+                  :item-key="(item: any) => item.index"
                   :disabled="props.disabled || props.readonly"
                   handle=".draggable-handle"
                 >
-                  <template #item="{element: entryVal, index: entryIdx}">
+                  <template #item="{element: {value: entryVal}, index: entryIdx}">
                     <v-list-item class="pa-0">
                       <template #default>
                         <dynamic-input-field
