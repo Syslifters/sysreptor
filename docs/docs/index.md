@@ -92,25 +92,7 @@ title: SysReptor Pentest Report Creator
 </div>
 
 <br><div style="text-align:center">[:fire: Get Started](setup/installation.md){ .md-button target="_blank" }</div>
-
-<br>
-<div style="text-align:center;font-weight:bold">
-    Pentesters taking reporting easy:
-</div>
-
-<figure markdown>
-  [![TÜV TRUST IT](images/Trust_IT_logo.png){ style="width: 220px" }](https://it-tuv.com/){ target=_blank }
-</figure>
-
-<figure markdown>
-  [![slashsec](images/slashsec.svg){ style="width: 220px" }](https://slashsec.at/){ target=_blank }
-</figure>
-
-<figure markdown>
-  [![syslifters](images/syslifters-logo.svg){ style="width: 220px" }](https://syslifters.com/en/home){ target=_blank }
-</figure>
-
-<br><div style="text-align:center">[:sauropod: Book a Demo](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ .md-button target="_blank" }</div>
+<div style="text-align:center">[:sauropod: Book a Demo](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ .md-button target="_blank" }</div>
 
 <br>
 <figure markdown>
