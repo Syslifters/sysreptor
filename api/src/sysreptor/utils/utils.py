@@ -4,7 +4,7 @@ import logging
 import uuid
 from collections import OrderedDict
 from collections.abc import Iterable
-from datetime import date
+from datetime import date, datetime
 from itertools import groupby
 from typing import Any
 
@@ -121,6 +121,14 @@ def parse_date_string(val: str):
     if not timezone.is_aware(out):
         out = timezone.make_aware(out)
     return out
+
+
+def datetime_from_date(val: date) -> datetime:
+    if isinstance(val, datetime):
+        return val
+    if isinstance(val, date):
+        return timezone.make_aware(datetime.combine(val, datetime.min.time()))
+    raise ValueError(f'Expected date or datetime, got {type(val)}')
 
 
 def merge(*args):

@@ -17,7 +17,7 @@ from django.urls import reverse
 from sysreptor.api_utils.backup_utils import destroy_database
 from sysreptor.api_utils.models import BackupLog, BackupLogType, DbConfigurationEntry
 from sysreptor.management.commands import restorebackup
-from sysreptor.notifications.models import NotificationSpec
+from sysreptor.notifications.models import RemoteNotificationSpec
 from sysreptor.pentests.models import UploadedImage
 from sysreptor.pentests.models.collab import CollabClientInfo, CollabEvent
 from sysreptor.pentests.models.common import LockInfo
@@ -62,7 +62,7 @@ class TestBackup:
             self.project_type = create_project_type()
             self.template = create_template()
             self.archived_project = create_archived_project()
-            self.notification = NotificationSpec.objects.create(title='test', text='test')
+            self.remotenotificationspec = RemoteNotificationSpec.objects.create(title='test', text='test')
             self.languagetool_word = create_languagetool_ignore_word()
             self.comment = create_comment(finding=self.project.findings.first(), path='data.title', user=self.user)
 
@@ -112,7 +112,7 @@ class TestBackup:
                 self.user.notes.first(),
                 self.user.mfa_methods.first(),
                 self.archived_project,
-                self.notification,
+                self.remotenotificationspec,
                 self.user.notifications.first(),
                 self.comment,
             ]:
