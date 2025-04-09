@@ -113,7 +113,11 @@ class NotificationQuerySet(models.QuerySet):
 
 class NotificationManager(models.Manager.from_queryset(NotificationQuerySet)):
     def get_created_by(self):
-        return getattr(getattr(HistoricalRecords.context, 'request', None), 'user', None)
+        return getattr(HistoricalRecords.context, 'history_user', None) or \
+               getattr(getattr(HistoricalRecords.context, 'request', None), 'user', None)
+
+    def get_prevent_notifications(self):
+        return getattr(HistoricalRecords.context, 'prevent_notifications', False)
 
     def get_create_kwargs(self, additional_content=None, **kwargs):
         additional_content = additional_content or {}
@@ -148,6 +152,9 @@ class NotificationManager(models.Manager.from_queryset(NotificationQuerySet)):
 
     def create_for_users(self, users, skip_for_created_by=False, **kwargs):
         from sysreptor.pentests.models import ProjectMemberInfo
+
+        if self.get_prevent_notifications():
+            return []
 
         notifications = []
         for user in users:

@@ -47,10 +47,7 @@ class NotificationType(models.TextChoices):
     FINISHED = 'finished'
     ARCHIVED = 'archived'
     DELETED = 'deleted'
-    DELETE_EVIDENCE = 'delete_evidence'  # on project archived/deleted  # TODO: rename to "archived" ???
-    RESTORE_STARTED = 'restore_started'
-    COMMENTED = 'commented'  # TODO: does this make sense => assingee=reviewer, reviewer created comments, pentester receives no notifications
-    MENTIONED = 'mentioned'  # mentioned in a comment
+    COMMENTED = 'commented'
     ASSIGNED = 'assigned'
     BACKUP_MISSING = 'backup_missing'
 
@@ -65,7 +62,7 @@ class Notification(BaseModel):
     Notification assigned to a specific user. Can marked as resolved.
     """
 
-    MENTION_USERNAME_PATTERN = re.compile(r'(^|\s)@(?P<username>[\w\-.@]*\w)($|\s|[.:,;!?])')
+    MENTION_USERNAME_PATTERN = re.compile(r'(^|(?<=\s))@(?P<username>[\w\-.@]*\w)((?=[\s.:,;!?])|$)')
 
     user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='notifications')
     type = models.CharField(max_length=50, choices=NotificationType.choices)

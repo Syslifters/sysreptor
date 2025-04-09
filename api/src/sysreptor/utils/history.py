@@ -1,8 +1,8 @@
 from contextlib import contextmanager
 
 from django.conf import settings
-from django.core import signals as django_signals
 from django.db import models, transaction
+from django.db.models import signals as django_signals
 from django.utils import timezone
 from simple_history import manager as history_manager
 from simple_history import models as history_models
