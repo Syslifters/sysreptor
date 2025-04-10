@@ -184,13 +184,6 @@ const activeActions = computed(() => ({
 const canUndo = computed(() => editorState.value && undoDepth(editorState.value) > 0);
 const canRedo = computed(() => editorState.value && redoDepth(editorState.value) > 0);
 
-const hasSplitMode = computed(() => !props.hideSplitMode && lgAndUp.value);
-watch(hasSplitMode, () => {
-  if (!hasSplitMode.value && props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
-    setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN);
-  }
-}, { immediate: true });
-
 const spellcheckSupported = computed(() => {
   if (!props.spellcheckSupported) {
     return false
@@ -245,8 +238,12 @@ function getScrollParent(node?: HTMLElement|null) {
   }
 }
 async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
-  const scrollParent = getScrollParent(toolbarRef.value!.$el.parentElement);
-  const { y: prevTop } = toolbarRef.value!.$el.getBoundingClientRect();
+  if (!toolbarRef?.value?.$el) {
+    return;
+  }
+
+  const scrollParent = getScrollParent(toolbarRef.value.$el.parentElement);
+  const { y: prevTop } = toolbarRef.value.$el.getBoundingClientRect();
 
   // Update editor mode => changes view and potentially causes layout jump
   emit('update:markdownEditorMode', mode);
@@ -255,11 +252,19 @@ async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
   await nextTick();
 
   // Restore position, such the toolbar is at the same position
-  const { y: newTop } = toolbarRef.value!.$el.getBoundingClientRect();
+  const { y: newTop } = toolbarRef.value.$el.getBoundingClientRect();
   if (scrollParent) {
     scrollParent.scrollTop += newTop - prevTop;
   }
 }
+
+const hasSplitMode = computed(() => !props.hideSplitMode && lgAndUp.value);
+watch(hasSplitMode, () => {
+  if (!hasSplitMode.value && props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
+    setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN);
+  }
+}, { immediate: true });
+
 
 function emitCreateComment() {
   if (!props.collab?.comments || !props.editorState || props.disabled) {

@@ -71,9 +71,9 @@ const previewImageSrc = ref<PreviewImage|null>(null);
 const previewImagesAll = ref<PreviewImage[]>([]);
 function showPreviewImage(event: MouseEvent) {
   const imgElement = event.target as HTMLImageElement;
-  if (imgElement && imgElement.tagName === 'IMG' && imgElement.src) {
+  if (previewRef.value && imgElement && imgElement.tagName === 'IMG' && imgElement.src) {
     // Collect all images in the preview
-    previewImagesAll.value = Array.from(previewRef.value!.querySelectorAll('img')).map((img: HTMLImageElement) => {
+    previewImagesAll.value = Array.from(previewRef.value.querySelectorAll('img')).map((img: HTMLImageElement) => {
       const captionEl = img.parentElement?.querySelector('figcaption');
 
       let markdown = undefined;

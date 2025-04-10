@@ -405,7 +405,7 @@ export function useMarkdownEditorBase(options: {
     }
   });
   watch(spellcheckLanguageToolEnabled, (val) => {
-    editorActions.value?.spellcheckLanguageTool!(val);
+    editorActions.value.spellcheckLanguageTool?.(val);
     if (!val && options.editorView.value) {
     // clear existing spellcheck items from editor
       options.editorView.value.dispatch(setDiagnostics(options.editorView.value.state, []));
