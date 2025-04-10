@@ -5,19 +5,38 @@ from unittest import mock
 
 import pytest
 from asgiref.sync import async_to_sync
+from django.conf import settings
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from sysreptor.api_utils.models import BackupLog, BackupLogType
 from sysreptor.notifications.models import Notification, NotificationType, RemoteNotificationSpec
-from sysreptor.notifications.tasks import fetch_notifications
+from sysreptor.notifications.tasks import create_notifications, fetch_notifications
 from sysreptor.pentests.import_export.import_export import export_projects, import_projects
 from sysreptor.pentests.models.project import CommentAnswer
 from sysreptor.tests.mock import api_client, create_comment, create_project, create_user, update
 from sysreptor.tests.test_import_export import archive_to_file
 from sysreptor.tests.utils import assertKeysEqual
 from sysreptor.users.models import PentestUser
+from sysreptor.utils import license
 from sysreptor.utils.utils import copy_keys
+
+
+@contextlib.contextmanager
+def assert_notifications_created( expected):
+    since = timezone.now()
+    yield
+    assert_notifications_created_since(expected=expected, since=since)
+
+
+def assert_notifications_created_since(expected, since):
+    notifications_actual = list(Notification.objects.filter(created__gte=since).order_by('type', 'user__username'))
+    notifications_actual_formatted = []
+    for e, n in zip(expected, notifications_actual, strict=False):
+        notifications_actual_formatted.append(copy_keys(n, e.keys()))
+    assert notifications_actual_formatted == expected
+    return notifications_actual
 
 
 @pytest.mark.django_db()
@@ -127,20 +146,6 @@ class TestNotificationTriggers:
         self.note = self.project.notes.first()
         self.client = api_client(self.user_self)
 
-    @contextlib.contextmanager
-    def assert_notifications_created(self, expected):
-        since = timezone.now()
-        yield
-        self.assert_notifications_created_since(expected=expected, since=since)
-
-    def assert_notifications_created_since(self, expected, since):
-        notifications_actual = list(Notification.objects.filter(created__gte=since).order_by('type', 'user__username'))
-        notifications_actual_formatted = []
-        for e, n in zip(expected, notifications_actual, strict=False):
-            notifications_actual_formatted.append(copy_keys(n, e.keys()))
-        assert notifications_actual_formatted == expected
-        return notifications_actual
-
     @pytest.mark.parametrize(('text', 'expected_users', 'existing_users'), [
         ('@user', ['user'], ['user2']),
         ('text @user text', ['user'], []),
@@ -172,25 +177,25 @@ class TestNotificationTriggers:
 
         # Create via signal
         expected_notifications = [{'type': NotificationType.COMMENTED, 'user': users[u]} for u in expected_users]
-        with self.assert_notifications_created(expected_notifications):
+        with assert_notifications_created(expected_notifications):
             create_comment(finding=self.finding, text=text, answers_kwargs=[])
 
         # Collab: first, create comment with empty text, then set text
-        with self.assert_notifications_created(expected_notifications):
+        with assert_notifications_created(expected_notifications):
             c1 = create_comment(finding=self.finding, text='', answers_kwargs=[])
             update(c1, text=text)
 
         # Notify all users in comment chain when an answer is created
-        with self.assert_notifications_created(expected_notifications):
+        with assert_notifications_created(expected_notifications):
             CommentAnswer.objects.create(comment=c1, text='Answer')
 
         # Mentioned in answer
         c2 = create_comment(finding=self.finding, text='Comment', answers_kwargs=[])
-        with self.assert_notifications_created(expected_notifications):
+        with assert_notifications_created(expected_notifications):
             CommentAnswer.objects.create(comment=c2, text=text)
 
         # Notify all users in comment chain (also from previous answers) when an answer is created
-        with self.assert_notifications_created(expected_notifications):
+        with assert_notifications_created(expected_notifications):
             CommentAnswer.objects.create(comment=c2, text='Answer')
 
     @pytest.mark.parametrize('instance_type', ['finding', 'section'])
@@ -200,15 +205,15 @@ class TestNotificationTriggers:
 
         # user_self creates a comment on finding that is assigned to user_other
         expected_notifications = [{'type': NotificationType.COMMENTED, 'user': self.user_other}]
-        with self.assert_notifications_created(expected_notifications):
+        with assert_notifications_created(expected_notifications):
             c = create_comment(**{instance_type: instance}, user=self.user_self, answers_kwargs=[])
         # user_self creates a comment answer on section that is assigned to user_other
-        with self.assert_notifications_created(expected_notifications):
+        with assert_notifications_created(expected_notifications):
             CommentAnswer.objects.create(comment=c, text='Answer', user=self.user_self)
 
         # Do not notify yourself
         update(instance, assignee=self.user_self)
-        with self.assert_notifications_created([]):
+        with assert_notifications_created([]):
             c = create_comment(**{instance_type: instance}, user=self.user_self, answers_kwargs=[])
             CommentAnswer.objects.create(comment=c, text='Answer', user=self.user_self)
 
@@ -217,7 +222,7 @@ class TestNotificationTriggers:
         # Notify creator of comment when answered
         instance = getattr(self, instance_type)
         c = create_comment(**{instance_type: instance}, user=self.user_other, text='Comment', answers_kwargs=[])
-        with self.assert_notifications_created([{'type': NotificationType.COMMENTED, 'user': self.user_other}]):
+        with assert_notifications_created([{'type': NotificationType.COMMENTED, 'user': self.user_other}]):
             CommentAnswer.objects.create(comment=c, text='Answer', user=self.user_self)
 
     @pytest.mark.parametrize('instance_type', ['finding', 'section', 'note'])
@@ -232,10 +237,10 @@ class TestNotificationTriggers:
             assert res.status_code == 200, res.data
 
         # Notify new assignee
-        with self.assert_notifications_created([{'type': NotificationType.ASSIGNED, 'user': self.user_other}]):
+        with assert_notifications_created([{'type': NotificationType.ASSIGNED, 'user': self.user_other}]):
             update_assignee(self.user_other)
         # Do not notify yourself
-        with self.assert_notifications_created([]):
+        with assert_notifications_created([]):
             update_assignee(self.user_self)
 
     def test_member_added(self):
@@ -243,13 +248,13 @@ class TestNotificationTriggers:
 
         # Add to existing project
         p = create_project(members=[self.user_self])
-        with self.assert_notifications_created(expected_notifications):
+        with assert_notifications_created(expected_notifications):
             self.client.patch(reverse('pentestproject-detail', kwargs={'pk': p.id}), data={
                 'members': [{'id': self.user_self.id}, {'id': self.user_other.id}],
             })
 
         # Add to new project
-        with self.assert_notifications_created(expected_notifications):
+        with assert_notifications_created(expected_notifications):
             self.client.post(reverse('pentestproject-list'), data={
                 'name': 'Test',
                 'project_type': p.project_type.id,
@@ -257,13 +262,13 @@ class TestNotificationTriggers:
             })
 
     def test_project_finished(self):
-        with self.assert_notifications_created([{'type': NotificationType.FINISHED, 'user': self.user_other}]):
+        with assert_notifications_created([{'type': NotificationType.FINISHED, 'user': self.user_other}]):
             res = self.client.put(reverse('pentestproject-readonly', kwargs={'pk': self.project.id}), data={'readonly': True})
             assert res.status_code == 200, res.data
 
     def test_project_archived(self):
         update(self.project, readonly=True)
-        with self.assert_notifications_created([
+        with assert_notifications_created([
             {'type': NotificationType.ARCHIVED, 'user': self.user_other},
             {'type': NotificationType.ARCHIVED, 'user': self.user_self},
         ]):
@@ -271,7 +276,7 @@ class TestNotificationTriggers:
             assert res.status_code == 201, res.data
 
     def test_project_deleted(self):
-        with self.assert_notifications_created([
+        with assert_notifications_created([
             {'type': NotificationType.DELETED, 'user': self.user_other},
             {'type': NotificationType.DELETED, 'user': self.user_self},
         ]):
@@ -279,9 +284,55 @@ class TestNotificationTriggers:
             assert res.status_code == 204, res.data
 
     def test_no_notifications_on_copy(self):
-        with self.assert_notifications_created([]):
+        with assert_notifications_created([]):
             self.project.copy()
 
     def test_no_notifications_on_import(self):
-        with self.assert_notifications_created([]):
+        with assert_notifications_created([]):
             import_projects(archive_to_file(export_projects([self.project], export_all=True)))
+
+
+@pytest.mark.django_db()
+class TestBackupMissingNotification:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user_superuser = create_user(is_superuser=True)
+        self.user_regular = create_user()
+
+    @pytest.mark.parametrize(('expected', 'backuplog'), [
+        (True, BackupLog(type=BackupLogType.BACKUP, created=timezone.now() - timedelta(days=40))),
+        (True, BackupLog(type=BackupLogType.RESTORE, created=timezone.now() - timedelta(days=40))),
+        (True, BackupLog(type=BackupLogType.SETUP, created=timezone.now() - timedelta(days=40))),
+
+        (False, BackupLog(type=BackupLogType.BACKUP, created=timezone.now() - timedelta(days=10))),
+        (False, BackupLog(type=BackupLogType.RESTORE, created=timezone.now() - timedelta(days=10))),
+        (False, BackupLog(type=BackupLogType.SETUP, created=timezone.now() - timedelta(days=10))),
+    ])
+    def test_create_notification(self, expected, backuplog):
+        BackupLog.objects.all().delete()
+        backuplog.save()
+
+        with assert_notifications_created([{'type': NotificationType.BACKUP_MISSING, 'user': self.user_superuser}] if expected else []):
+            async_to_sync(create_notifications)(None)
+
+        # No duplicate notifications
+        with assert_notifications_created([]):
+            async_to_sync(create_notifications)(None)
+
+    def test_no_notification_after_backup(self):
+        BackupLog.objects.all().delete()
+        BackupLog.objects.create(type=BackupLogType.SETUP, created=timezone.now() - timedelta(days=40))
+
+        with assert_notifications_created([{'type': NotificationType.BACKUP_MISSING, 'user': self.user_superuser}]):
+            async_to_sync(create_notifications)(None)
+
+        api_client(self.user_superuser).post(reverse('utils-backup'), data={'key': settings.BACKUP_KEY})
+        with assert_notifications_created([]):
+            async_to_sync(create_notifications)(None)
+
+    def test_no_notification_for_community(self):
+        BackupLog.objects.all().delete()
+        BackupLog.objects.create(type=BackupLogType.SETUP, created=timezone.now() - timedelta(days=40))
+        with mock.patch('sysreptor.utils.license.check_license', return_value={'type': license.LicenseType.COMMUNITY, 'users': 3, 'error': None}):
+            with assert_notifications_created([]):
+                async_to_sync(create_notifications)(None)

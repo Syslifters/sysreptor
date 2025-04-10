@@ -68,6 +68,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='notification',
+            name='backuplog',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='api_utils.backuplog'),
+        ),
+        migrations.AddField(
+            model_name='notification',
             name='comment',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='pentests.comment'),
         ),
@@ -104,7 +109,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='notification',
             name='type',
-            field=models.CharField(choices=[('remote', 'Remote'), ('member_added', 'Member Added'), ('finished', 'Finished'), ('archived', 'Archived'), ('deleted', 'Deleted'), ('delete_evidence', 'Delete Evidence'), ('restore_started', 'Restore Started'), ('commented', 'Commented'), ('mentioned', 'Mentioned'), ('assigned', 'Assigned'), ('backup_missing', 'Backup Missing')], default='remote', max_length=50),
+            field=models.CharField(choices=[('remote', 'Remote'), ('member_added', 'Member Added'), ('finished', 'Finished'), ('archived', 'Archived'), ('deleted', 'Deleted'), ('commented', 'Commented'), ('assigned', 'Assigned'), ('backup_missing', 'Backup Missing')], max_length=50),
             preserve_default=False,
         ),
         migrations.RunPython(code=migrate_notifications, reverse_code=migrations.RunPython.noop),

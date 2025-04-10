@@ -78,6 +78,7 @@ class Notification(BaseModel):
     section = models.ForeignKey(to='pentests.ReportSection', on_delete=models.CASCADE, null=True, blank=True)
     note = models.ForeignKey(to='pentests.ProjectNotebookPage', on_delete=models.CASCADE, null=True, blank=True)
     comment = models.ForeignKey(to='pentests.Comment', on_delete=models.CASCADE, null=True, blank=True)
+    backuplog = models.ForeignKey(to='api_utils.BackupLog', on_delete=models.CASCADE, null=True, blank=True)
 
     objects = querysets.NotificationManager()
 
