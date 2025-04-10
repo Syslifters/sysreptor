@@ -6,7 +6,9 @@ from django.db import models
 from django.utils import timezone
 
 from sysreptor.notifications import querysets
+from sysreptor.pentests.rendering.error_messages import format_path
 from sysreptor.users.models import PentestUser
+from sysreptor.utils.crypto.fields import EncryptedField
 from sysreptor.utils.models import BaseModel
 from sysreptor.utils.utils import copy_keys, datetime_from_date
 
@@ -52,11 +54,6 @@ class NotificationType(models.TextChoices):
     BACKUP_MISSING = 'backup_missing'
 
 
-class NotificationStatus(models.TextChoices):
-    OPEN = 'open'
-    RESOLVED = 'resolved'
-
-
 class Notification(BaseModel):
     """
     Notification assigned to a specific user. Can marked as resolved.
@@ -65,11 +62,11 @@ class Notification(BaseModel):
     MENTION_USERNAME_PATTERN = re.compile(r'(^|(?<=\s))@(?P<username>[\w\-.@]*\w)((?=[\s.:,;!?])|$)')
 
     user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='notifications')
-    type = models.CharField(max_length=50, choices=NotificationType.choices)
-    status = models.CharField(max_length=10, choices=NotificationStatus.choices, default=NotificationStatus.OPEN)
-    visible_until = models.DateTimeField(null=True, blank=True)
+    type = models.CharField(max_length=50, choices=NotificationType.choices, db_index=True)
+    read = models.BooleanField(default=False, db_index=True)
+    visible_until = models.DateTimeField(null=True, blank=True, db_index=True)
     created_by = models.ForeignKey(to=PentestUser, on_delete=models.SET_NULL, null=True, blank=True)  # TODO: find better name for field
-    additional_content = models.JSONField(encoder=DjangoJSONEncoder, default=dict)
+    additional_content = EncryptedField(models.JSONField(encoder=DjangoJSONEncoder, default=dict))
 
     # Links to related objects
     remotenotificationspec = models.ForeignKey(to=RemoteNotificationSpec, on_delete=models.CASCADE, null=True, blank=True)
@@ -84,34 +81,83 @@ class Notification(BaseModel):
 
     @property
     def content(self) -> dict:
-        reference_content = {}
+        content = self.additional_content.copy()
+
+        # Format username
+        created_by_name = 'Someone'
+        if self.created_by:
+            created_by_name = self.created_by.username
+            if self.created_by.name:
+                created_by_name += f' ({self.created_by.name})'
+
+        # Add ID of referenced project
         if self.project_id:
-            reference_content |= {'project_id': self.project.id}
-        elif self.finding_id:
-            reference_content |= {
-                'finding_id': self.finding.finding_id,
-                'project_id': self.finding.project_id,
+            content['project_id'] = self.project_id
+
+        if self.type == NotificationType.REMOTE and self.remotenotificationspec:
+            content = copy_keys(self.remotenotificationspec, ['title', 'text', 'link_url'])
+        elif self.type == NotificationType.MEMBER_ADDED and self.project:
+            content |= {
+                'title': 'Added as member',
+                'text': f'{created_by_name} added you as member to project "{self.additional_content.get("project_name")}"',
+                'link_url': f'/projects/{self.project.id}/',
             }
-        elif self.section_id:
-            reference_content |= {
-                'section_id': self.section.section_id,
-                'project_id': self.section.project_id,
+        elif self.type == NotificationType.ASSIGNED:
+            if self.finding:
+                content |= {
+                    'title': 'Assigned finding',
+                    'text': f'{created_by_name} assigned you finding "{self.additional_content.get("finding_title")}"',
+                    'link_url': f'/projects/{self.finding.project_id}/reporting/findings/{self.finding.finding_id}/',
+                }
+            elif self.section:
+                content |= {
+                    'title': 'Assigned section',
+                    'text': f'{created_by_name} assigned you section "{self.additional_content.get("section_title")}"',
+                    'link_url': f'/projects/{self.section.project_id}/reporting/sections/{self.section.section_id}/',
+                }
+            elif self.note:
+                content |= {
+                    'title': 'Assigned note',
+                    'text': f'{created_by_name} assigned you note "{self.additional_content.get("note_title")}"',
+                    'link_url': f'/projects/{self.note.project_id}/notes/{self.note.note_id}/',
+                }
+        elif self.type == NotificationType.COMMENTED and self.comment:
+            comment_path = format_path(self.comment.path.removeprefix('data.'))
+            if self.comment.finding:
+                content |= {
+                    'title': 'New comment',
+                    'text': f'{created_by_name} commented on finding "{self.additional_content.get("finding_title")}"',
+                    'link_url': f'/projects/{self.comment.finding.project_id}/reporting/findings/#{comment_path}',
+                }
+            elif self.comment.section:
+                content |= {
+                    'title': 'New comment',
+                    'text': f'{created_by_name} commented on section "{self.additional_content.get("section_title")}"',
+                    'link_url': f'/projects/{self.comment.section.project_id}/reporting/sections/#{comment_path}',
+                }
+        elif self.type == NotificationType.FINISHED and self.project:
+            content |= {
+                'title': 'Project finished',
+                'text': f'{created_by_name} finished project "{self.additional_content.get("project_name")}"',
+                'link_url': f'/projects/{self.project.id}/',
+                'project_id': self.project.id,
             }
-        elif self.note_id:
-            reference_content |= {
-                'note_id': self.note.note_id,
-                'project_id': self.note.project_id,
+        elif self.type == NotificationType.ARCHIVED:
+            content |= {
+                'title': 'Project archived',
+                'text': f'{created_by_name} archived project "{self.additional_content.get("project_name")}".\nDelete any evidence files!"',
             }
-        elif self.comment_id:
-            reference_content |= {
-                'comment_id': self.comment.comment_id,
-                'project_id': self.comment.project_id,
+        elif self.type == NotificationType.DELETED:
+            content |= {
+                'title': 'Project deleted',
+                'text': f'{created_by_name} deleted project "{self.additional_content.get("project_name")}".\nDelete any evidence files!"',
             }
-            if self.comment.finding_id:
-                reference_content |= {'finding_id': self.comment.finding.finding_id}
-            elif self.comment.section_id:
-                reference_content |= {'section_id': self.comment.section.section_id}
-        elif self.remotenotificationspec_id:
-            reference_content |= copy_keys(self.remotenotificationspec, ['title', 'text', 'link_url'])
-        return self.additional_content | reference_content
+        elif self.type == NotificationType.BACKUP_MISSING:
+            content |= {
+                'title': 'Backup missing',
+                'text': 'No backup was created in the last 30 days.',
+                'link_url': 'https://docs.sysreptor.com/setup/backups/',
+            }
+
+        return content
 

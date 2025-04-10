@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.db import models
 from django.db.models import signals
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from packaging import version
 
@@ -109,6 +110,9 @@ class NotificationQuerySet(models.QuerySet):
     def only_visible(self):
         return self \
             .filter(models.Q(visible_until__isnull=True) | models.Q(visible_until__gt=timezone.now()))
+
+    def annotate_group_order(self):
+        return self.annotate(group_order=Coalesce(models.Max('project__notification__created'), models.F('created')))
 
 
 class NotificationManager(models.Manager.from_queryset(NotificationQuerySet)):

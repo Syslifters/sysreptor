@@ -11,6 +11,6 @@ class RemoteNotificationSpecAdmin(BaseAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(BaseAdmin):
-    list_display = ['id', 'type', 'user', 'created', 'status']
+    list_display = ['id', 'type', 'user', 'created', 'read']
     readonly_fields = ['project', 'finding', 'section', 'note', 'comment', 'remotenotificationspec']
 

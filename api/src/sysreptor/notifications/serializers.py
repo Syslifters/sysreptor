@@ -4,6 +4,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from sysreptor.notifications.models import Notification, RemoteNotificationSpec
+from sysreptor.users.serializers import PentestUserSerializer
 
 
 class NotificationSpecContentSerializer(serializers.ModelSerializer):
@@ -13,9 +14,11 @@ class NotificationSpecContentSerializer(serializers.ModelSerializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
+    created_by = PentestUserSerializer(read_only=True, allow_null=True)
+
     class Meta:
         model = Notification
-        fields = ['id', 'created', 'updated', 'status', 'content']
+        fields = ['id', 'created', 'updated', 'type', 'read', 'content', 'created_by']
 
 
 class UserConditionsSerializer(serializers.Serializer):

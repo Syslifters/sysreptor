@@ -7,14 +7,12 @@ import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
+import sysreptor.utils.crypto.fields
 from sysreptor.utils.utils import datetime_from_date
 
 
 def migrate_notifications(apps, schema_editor):
     Notification = apps.get_model('notifications', 'Notification')
-    # Migrate status
-    Notification.objects.filter(read=False).update(status='open')
-    Notification.objects.filter(read=True).update(status='resolved')
     # Migrate active_until to visible_until
     notifications_active_until = Notification.objects \
         .filter(remotenotificationspec__active_until__isnull=False) \
@@ -24,6 +22,12 @@ def migrate_notifications(apps, schema_editor):
         for n in batch:
             n.visible_until = datetime_from_date(n.remotenotificationspec.active_until)
         Notification.objects.bulk_update(batch, ['visible_until'])
+
+
+def reverse_migrate_notifications(apps, schema_editor):
+    Notification = apps.get_model('notifications', 'Notification')
+    # Delete all non-remote notifications
+    Notification.objects.filter(remotenotificationspec__isnull=True).delete()
 
 
 class Migration(migrations.Migration):
@@ -64,7 +68,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='notification',
             name='additional_content',
-            field=models.JSONField(default=dict, encoder=django.core.serializers.json.DjangoJSONEncoder),
+            field=sysreptor.utils.crypto.fields.EncryptedField(base_field=models.JSONField(default=dict, encoder=django.core.serializers.json.DjangoJSONEncoder), editable=True),
         ),
         migrations.AddField(
             model_name='notification',
@@ -103,18 +107,14 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='notification',
-            name='status',
-            field=models.CharField(choices=[('open', 'Open'), ('resolved', 'Resolved')], default='open', max_length=10),
-        ),
-        migrations.AddField(
-            model_name='notification',
             name='type',
-            field=models.CharField(choices=[('remote', 'Remote'), ('member_added', 'Member Added'), ('finished', 'Finished'), ('archived', 'Archived'), ('deleted', 'Deleted'), ('commented', 'Commented'), ('assigned', 'Assigned'), ('backup_missing', 'Backup Missing')], max_length=50),
+            field=models.CharField(choices=[('remote', 'Remote'), ('member_added', 'Member Added'), ('finished', 'Finished'), ('archived', 'Archived'), ('deleted', 'Deleted'), ('commented', 'Commented'), ('assigned', 'Assigned'), ('backup_missing', 'Backup Missing')], default='remote', max_length=50, db_index=True),
             preserve_default=False,
         ),
-        migrations.RunPython(code=migrate_notifications, reverse_code=migrations.RunPython.noop),
-        migrations.RemoveField(
+        migrations.AlterField(
             model_name='notification',
-            name='read',
+            name='visible_until',
+            field=models.DateTimeField(blank=True, db_index=True, null=True),
         ),
+        migrations.RunPython(code=migrate_notifications, reverse_code=reverse_migrate_notifications),
     ]
