@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.utils import timezone
 from rest_framework import serializers
 
-from sysreptor.notifications.models import Notification, RemoteNotificationSpec
+from sysreptor.notifications.models import RemoteNotificationSpec, UserNotification
 from sysreptor.utils.utils import omit_items
 
 
@@ -13,9 +13,9 @@ class NotificationSpecContentSerializer(serializers.ModelSerializer):
         fields = ['title', 'text', 'link_url']
 
 
-class NotificationSerializer(serializers.ModelSerializer):
+class UserNotificationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Notification
+        model = UserNotification
         fields = ['id', 'created', 'updated', 'read', 'content']
         read_only_fields = omit_items(fields, ['read'])
 
@@ -28,7 +28,7 @@ class UserConditionsSerializer(serializers.Serializer):
     is_template_editor = serializers.BooleanField(required=False)
 
 
-class NotificationSpecListSerializer(serializers.ListSerializer):
+class RemoteNotificationSpecListSerializer(serializers.ListSerializer):
     def create(self, validated_data):
         notifications = [RemoteNotificationSpec(**n) for n in validated_data]
         # Set deleted notifications as inactive
@@ -36,7 +36,7 @@ class NotificationSpecListSerializer(serializers.ListSerializer):
             .only_active() \
             .exclude(id__in=[n.id for n in notifications]) \
             .update(active_until=(timezone.now() - timedelta(days=1)).date())
-        Notification.objects \
+        UserNotification.objects \
             .filter(remotenotificationspec__isnull=False) \
             .exclude(id__in=[n.id for n in notifications]) \
             .update(visible_until=timezone.now())
@@ -47,12 +47,12 @@ class NotificationSpecListSerializer(serializers.ListSerializer):
         return RemoteNotificationSpec.objects.bulk_create(new_notifications)
 
 
-class NotificationSpecSerializer(serializers.ModelSerializer):
+class RemoteNotificationSpecSerializer(serializers.ModelSerializer):
     user_conditions = UserConditionsSerializer(required=False)
 
     class Meta:
         model = RemoteNotificationSpec
         fields = ['id', 'active_until', 'visible_for_days', 'user_conditions', 'title', 'text', 'link_url']
         extra_kwargs = {'id': {'read_only': False}}
-        list_serializer_class = NotificationSpecListSerializer
+        list_serializer_class = RemoteNotificationSpecListSerializer
 

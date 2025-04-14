@@ -54,7 +54,7 @@ class NotificationType(models.TextChoices):
     BACKUP_MISSING = 'backup_missing'
 
 
-class Notification(BaseModel):
+class UserNotification(BaseModel):
     """
     Notification assigned to a specific user. Can marked as resolved.
     """
@@ -77,7 +77,7 @@ class Notification(BaseModel):
     comment = models.ForeignKey(to='pentests.Comment', on_delete=models.CASCADE, null=True, blank=True)
     backuplog = models.ForeignKey(to='api_utils.BackupLog', on_delete=models.CASCADE, null=True, blank=True)
 
-    objects = querysets.NotificationManager()
+    objects = querysets.UserNotificationManager()
 
     @property
     def content(self) -> dict:
@@ -136,7 +136,7 @@ class Notification(BaseModel):
             elif self.comment.section:
                 section_title = self.additional_content.get("section_title") or ''
                 content |= {
-                    'title': 'New comment',
+                    'title': f'New comment in section {section_title}',
                     'text': f'{created_by_name} commented on section "{self.additional_content.get("section_title")}"',
                     'link_url': f'/projects/{self.comment.section.project_id}/reporting/sections/#{comment_path}',
                 }

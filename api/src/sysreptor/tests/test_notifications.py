@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from sysreptor.api_utils.models import BackupLog, BackupLogType
-from sysreptor.notifications.models import Notification, NotificationType, RemoteNotificationSpec
+from sysreptor.notifications.models import NotificationType, RemoteNotificationSpec, UserNotification
 from sysreptor.notifications.tasks import create_notifications, fetch_notifications
 from sysreptor.pentests.import_export.import_export import export_projects, import_projects
 from sysreptor.pentests.models.project import CommentAnswer
@@ -31,7 +31,7 @@ def assert_notifications_created( expected):
 
 
 def assert_notifications_created_since(expected, since):
-    notifications_actual = list(Notification.objects.filter(created__gte=since).order_by('type', 'user__username'))
+    notifications_actual = list(UserNotification.objects.filter(created__gte=since).order_by('type', 'user__username'))
     notifications_actual_formatted = []
     for e, n in zip(expected, notifications_actual, strict=False):
         notifications_actual_formatted.append(copy_keys(n, e.keys()))

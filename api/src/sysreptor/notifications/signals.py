@@ -2,7 +2,7 @@ from django.db.models import signals
 from django.dispatch import receiver
 
 from sysreptor import signals as sysreptor_signals
-from sysreptor.notifications.models import Notification, NotificationType, RemoteNotificationSpec
+from sysreptor.notifications.models import NotificationType, RemoteNotificationSpec, UserNotification
 from sysreptor.pentests.models import (
     Comment,
     CommentAnswer,
@@ -31,9 +31,9 @@ def user_created(sender, instance, *args, **kwargs):
 @receiver(sysreptor_signals.post_create, sender=ProjectMemberInfo)
 @disable_for_loaddata
 def notification_member_added(sender, instance, *args, **kwargs):
-    created_by = Notification.objects.get_created_by()
-    if instance.user != created_by and not Notification.objects.get_prevent_notifications():
-        Notification.objects.create(
+    created_by = UserNotification.objects.get_created_by()
+    if instance.user != created_by and not UserNotification.objects.get_prevent_notifications():
+        UserNotification.objects.create(
             type=NotificationType.MEMBER,
             user=instance.user,
             created_by=created_by,
@@ -46,19 +46,19 @@ def notification_member_added(sender, instance, *args, **kwargs):
 @receiver(signals.post_save, sender=ProjectNotebookPage)
 @disable_for_loaddata
 def notification_assigned(sender, instance, *args, **kwargs):
-    created_by = Notification.objects.get_created_by()
+    created_by = UserNotification.objects.get_created_by()
     if (
         'assignee_id' in instance.changed_fields and
         instance.assignee_id and
         (not created_by or instance.assignee_id != created_by.id) and
-        not Notification.objects.get_prevent_notifications()
+        not UserNotification.objects.get_prevent_notifications()
     ):
         ref_field_name = {
             PentestFinding: 'finding',
             ReportSection: 'section',
             ProjectNotebookPage: 'note',
         }[sender]
-        Notification.objects.create(
+        UserNotification.objects.create(
             type=NotificationType.ASSIGNED,
             user=instance.assignee,
             created_by=created_by,
@@ -70,7 +70,7 @@ def notification_assigned(sender, instance, *args, **kwargs):
 @receiver(sysreptor_signals.post_finish, sender=PentestProject)
 @disable_for_loaddata
 def notification_finished(sender, instance, *args, **kwargs):
-    Notification.objects.create_for_users(
+    UserNotification.objects.create_for_users(
         users=instance.members.all(),
         type=NotificationType.FINISHED,
         project=instance,
@@ -99,12 +99,12 @@ def notification_comments(sender, instance, created, *args, **kwargs):
         notify_users.add(c.user)
 
         # "@username" mentioned in text
-        for m in Notification.MENTION_USERNAME_PATTERN.finditer(c.text):
+        for m in UserNotification.MENTION_USERNAME_PATTERN.finditer(c.text):
             if username := m.group('username'):
                 mentioned_usernames.add(username)
     notify_users.update(PentestUser.objects.filter(username__in=mentioned_usernames))
 
-    Notification.objects.create_for_users(
+    UserNotification.objects.create_for_users(
         users=notify_users,
         type=NotificationType.COMMENTED,
         project=comment.project,
@@ -119,7 +119,7 @@ def notification_comments(sender, instance, created, *args, **kwargs):
 @receiver(sysreptor_signals.post_archive, sender=PentestProject)
 @disable_for_loaddata
 def notification_archived(sender, instance, archive, *args, **kwargs):
-    Notification.objects.create_for_users(
+    UserNotification.objects.create_for_users(
         users=instance.members.all(),
         type=NotificationType.ARCHIVED,
         additional_content={'project_name': instance.name},
@@ -130,7 +130,7 @@ def notification_archived(sender, instance, archive, *args, **kwargs):
 @receiver(sysreptor_signals.post_delete, sender=PentestProject)
 @disable_for_loaddata
 def notification_deleted(sender, instance, *args, **kwargs):
-    Notification.objects.create_for_users(
+    UserNotification.objects.create_for_users(
         users=instance.members.all(),
         type=NotificationType.DELETED,
         additional_content={'project_name': instance.name},

@@ -71,11 +71,11 @@ class RemoteNotificationSpecManager(models.Manager.from_queryset(RemoteNotificat
             .filter(models.Q(user_conditions__is_project_admin__isnull=True) | models.Q(user_conditions__is_project_admin=user.is_project_admin))
 
     def assign_to_users(self, instance):
-        from sysreptor.notifications.models import Notification, NotificationType
+        from sysreptor.notifications.models import NotificationType, UserNotification
         users = self.users_for_remotenotificationspecs(instance) \
             .exclude(notifications__remotenotificationspec=instance)
 
-        return Notification.objects.create_for_users(
+        return UserNotification.objects.create_for_users(
             users=users,
             type=NotificationType.REMOTE,
             remotenotificationspec=instance,
@@ -83,18 +83,18 @@ class RemoteNotificationSpecManager(models.Manager.from_queryset(RemoteNotificat
         )
 
     def assign_to_notifications(self, user):
-        from sysreptor.notifications.models import Notification, NotificationType
+        from sysreptor.notifications.models import NotificationType, UserNotification
         remotenotificationspecs = self.remotenotificationspecs_for_user(user)
 
         notifications = []
         for n in remotenotificationspecs:
-            notifications.append(Notification(
+            notifications.append(UserNotification(
                 type=NotificationType.REMOTE,
                 user=user,
                 remotenotificationspec=n,
                 visible_until=n.visible_until,
             ))
-        return Notification.objects.bulk_create(notifications)
+        return UserNotification.objects.bulk_create(notifications)
 
     def bulk_create(self, *args, **kwargs):
         objs = super().bulk_create(*args, **kwargs)
@@ -103,7 +103,7 @@ class RemoteNotificationSpecManager(models.Manager.from_queryset(RemoteNotificat
         return objs
 
 
-class NotificationQuerySet(models.QuerySet):
+class UserNotificationQuerySet(models.QuerySet):
     def only_permitted(self, user):
         return self.filter(user=user)
 
@@ -115,7 +115,7 @@ class NotificationQuerySet(models.QuerySet):
         return self.annotate(group_order=Coalesce(models.Max('project__notification__created'), models.F('created')))
 
 
-class NotificationManager(models.Manager.from_queryset(NotificationQuerySet)):
+class UserNotificationManager(models.Manager.from_queryset(UserNotificationQuerySet)):
     def get_created_by(self):
         return getattr(HistoricalRecords.context, 'history_user', None) or \
                getattr(getattr(HistoricalRecords.context, 'request', None), 'user', None)

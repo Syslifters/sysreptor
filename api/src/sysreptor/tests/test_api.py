@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from rest_framework.test import APIClient
 
-from sysreptor.notifications.models import Notification, RemoteNotificationSpec
+from sysreptor.notifications.models import RemoteNotificationSpec, UserNotification
 from sysreptor.pentests.import_export import (
     export_notes,
     export_project_types,
@@ -422,7 +422,7 @@ class ApiRequestsAndPermissionsTestData:
     @cached_property
     def notification(self):
         RemoteNotificationSpec.objects.create(text='Test')
-        return self.current_user.notifications.first() if self.current_user else Notification()
+        return self.current_user.notifications.first() if self.current_user else UserNotification()
 
     def _create_project(self, members=None, **kwargs):
         if not members:

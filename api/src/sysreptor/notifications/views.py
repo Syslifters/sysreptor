@@ -6,17 +6,17 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.settings import api_settings
 
-from sysreptor.notifications.serializers import NotificationSerializer
+from sysreptor.notifications.serializers import UserNotificationSerializer
 from sysreptor.users.views import UserSubresourceViewSetMixin
 from sysreptor.utils.api import CursorMultiPagination
 
 
-class NotificationPermissions(permissions.BasePermission):
+class UserNotificationPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user == view.get_user()
 
 
-class NotificationOrderingFilter(filters.OrderingFilter):
+class UserNotificationOrderingFilter(filters.OrderingFilter):
     ordering_fields = ['created', 'group']
 
     def get_queryset_ordering(self, request, queryset, view):
@@ -39,10 +39,10 @@ class NotificationOrderingFilter(filters.OrderingFilter):
         return queryset
 
 
-class NotificationViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
-    serializer_class = NotificationSerializer
-    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [NotificationPermissions]
-    filter_backends = [DjangoFilterBackend, NotificationOrderingFilter]
+class UserNotificationViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    serializer_class = UserNotificationSerializer
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [UserNotificationPermissions]
+    filter_backends = [DjangoFilterBackend, UserNotificationOrderingFilter]
     pagination_class = CursorMultiPagination
     filterset_fields = ['read']
     ordering = '-created'

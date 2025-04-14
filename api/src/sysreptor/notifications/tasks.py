@@ -9,8 +9,8 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
 from sysreptor.api_utils.models import BackupLog
-from sysreptor.notifications.models import Notification, NotificationType
-from sysreptor.notifications.serializers import NotificationSpecSerializer
+from sysreptor.notifications.models import NotificationType, UserNotification
+from sysreptor.notifications.serializers import RemoteNotificationSpecSerializer
 from sysreptor.tasks.models import TaskStatus, periodic_task
 from sysreptor.users.models import PentestUser
 from sysreptor.utils import license
@@ -38,7 +38,7 @@ async def fetch_notifications(task_info):
 
     try:
         data = await fetch_notifications_request()
-        serializer = NotificationSpecSerializer(data=data, many=True)
+        serializer = RemoteNotificationSpecSerializer(data=data, many=True)
         serializer.is_valid(raise_exception=True)
         await sync_to_async(serializer.save)()
         return TaskStatus.SUCCESS
@@ -56,12 +56,12 @@ async def create_notifications(task_info):
     latest_backuplog = await BackupLog.objects.order_by('-created').afirst()
     if latest_backuplog and latest_backuplog.created < timezone.now() - timedelta(days=30):
         # Check if a notification already exists: do not multiple times
-        existing_backup_notification = await Notification.objects \
+        existing_backup_notification = await UserNotification.objects \
             .filter(type=NotificationType.BACKUP_MISSING) \
             .filter(backuplog=latest_backuplog) \
             .afirst()
         if not existing_backup_notification:
-            await sync_to_async(Notification.objects.create_for_users)(
+            await sync_to_async(UserNotification.objects.create_for_users)(
                 users=PentestUser.objects.only_active().filter(is_superuser=True),
                 type=NotificationType.BACKUP_MISSING,
                 created_by=None,
