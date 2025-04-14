@@ -244,7 +244,7 @@ class TestNotificationTriggers:
             update_assignee(self.user_self)
 
     def test_member_added(self):
-        expected_notifications = [{'type': NotificationType.MEMBER_ADDED, 'user': self.user_other}]
+        expected_notifications = [{'type': NotificationType.MEMBER, 'user': self.user_other}]
 
         # Add to existing project
         p = create_project(members=[self.user_self])

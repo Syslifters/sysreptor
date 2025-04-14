@@ -45,7 +45,7 @@ class RemoteNotificationSpec(BaseModel):
 class NotificationType(models.TextChoices):
     REMOTE = 'remote'
 
-    MEMBER_ADDED = 'member_added'
+    MEMBER = 'member'
     FINISHED = 'finished'
     ARCHIVED = 'archived'
     DELETED = 'deleted'
@@ -65,8 +65,8 @@ class Notification(BaseModel):
     type = models.CharField(max_length=50, choices=NotificationType.choices, db_index=True)
     read = models.BooleanField(default=False, db_index=True)
     visible_until = models.DateTimeField(null=True, blank=True, db_index=True)
-    created_by = models.ForeignKey(to=PentestUser, on_delete=models.SET_NULL, null=True, blank=True)  # TODO: find better name for field
-    additional_content = EncryptedField(models.JSONField(encoder=DjangoJSONEncoder, default=dict))
+    created_by = models.ForeignKey(to=PentestUser, on_delete=models.SET_NULL, null=True, blank=True)
+    additional_content = EncryptedField(models.JSONField(encoder=DjangoJSONEncoder, default=dict, blank=True))
 
     # Links to related objects
     remotenotificationspec = models.ForeignKey(to=RemoteNotificationSpec, on_delete=models.CASCADE, null=True, blank=True)
@@ -96,7 +96,7 @@ class Notification(BaseModel):
 
         if self.type == NotificationType.REMOTE and self.remotenotificationspec:
             content = copy_keys(self.remotenotificationspec, ['title', 'text', 'link_url'])
-        elif self.type == NotificationType.MEMBER_ADDED and self.project:
+        elif self.type == NotificationType.MEMBER and self.project:
             content |= {
                 'title': 'Added as member',
                 'text': f'{created_by_name} added you as member to project "{self.additional_content.get("project_name")}"',
@@ -104,32 +104,37 @@ class Notification(BaseModel):
             }
         elif self.type == NotificationType.ASSIGNED:
             if self.finding:
+                finding_title = self.additional_content.get("finding_title") or ''
                 content |= {
-                    'title': 'Assigned finding',
-                    'text': f'{created_by_name} assigned you finding "{self.additional_content.get("finding_title")}"',
+                    'title': f'Assigned finding {finding_title}',
+                    'text': f'{created_by_name} assigned you finding "{finding_title}"',
                     'link_url': f'/projects/{self.finding.project_id}/reporting/findings/{self.finding.finding_id}/',
                 }
             elif self.section:
+                section_title = self.additional_content.get("section_title") or ''
                 content |= {
-                    'title': 'Assigned section',
-                    'text': f'{created_by_name} assigned you section "{self.additional_content.get("section_title")}"',
+                    'title': f'Assigned section {section_title}',
+                    'text': f'{created_by_name} assigned you section "{section_title}"',
                     'link_url': f'/projects/{self.section.project_id}/reporting/sections/{self.section.section_id}/',
                 }
             elif self.note:
+                note_title = self.additional_content.get("note_title") or ''
                 content |= {
-                    'title': 'Assigned note',
-                    'text': f'{created_by_name} assigned you note "{self.additional_content.get("note_title")}"',
+                    'title': f'Assigned note {note_title}',
+                    'text': f'{created_by_name} assigned you note "{note_title}"',
                     'link_url': f'/projects/{self.note.project_id}/notes/{self.note.note_id}/',
                 }
         elif self.type == NotificationType.COMMENTED and self.comment:
             comment_path = format_path(self.comment.path.removeprefix('data.'))
             if self.comment.finding:
+                finding_title = self.additional_content.get("finding_title") or ''
                 content |= {
-                    'title': 'New comment',
-                    'text': f'{created_by_name} commented on finding "{self.additional_content.get("finding_title")}"',
+                    'title': f'New comment in finding {finding_title}',
+                    'text': f'{created_by_name} commented on finding "{finding_title}"',
                     'link_url': f'/projects/{self.comment.finding.project_id}/reporting/findings/#{comment_path}',
                 }
             elif self.comment.section:
+                section_title = self.additional_content.get("section_title") or ''
                 content |= {
                     'title': 'New comment',
                     'text': f'{created_by_name} commented on section "{self.additional_content.get("section_title")}"',

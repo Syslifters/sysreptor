@@ -34,7 +34,7 @@ def notification_member_added(sender, instance, *args, **kwargs):
     created_by = Notification.objects.get_created_by()
     if instance.user != created_by and not Notification.objects.get_prevent_notifications():
         Notification.objects.create(
-            type=NotificationType.MEMBER_ADDED,
+            type=NotificationType.MEMBER,
             user=instance.user,
             created_by=created_by,
             project=instance.project,

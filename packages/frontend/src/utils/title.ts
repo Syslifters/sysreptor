@@ -10,8 +10,13 @@ export function getTitle(title?: string|null, route?: RouteType): string|null {
 
 export function rootTitleTemplate(title?: string|null, route?: RouteType): string {
   const notificationStore = useNotificationStore();
+  let notificationTitle = '';
+  if (notificationStore.enabled && notificationStore.unreadNotificationCount > 0) {
+    notificationTitle = ` (${notificationStore.unreadNotificationCount})`;
+  }
+
   title = getTitle(title, route);
-  return (title ? title + ' | ' : '') + 'SysReptor' + (notificationStore.unreadNotificationCount > 0 ? ` (${notificationStore.unreadNotificationCount})` : '');
+  return (title ? title + ' | ' : '') + 'SysReptor' + notificationTitle;
 }
 
 export function projectTitleTemplate(project?: PentestProject, title?: string|null, route?: RouteType) {

@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from sysreptor.notifications.models import Notification, RemoteNotificationSpec
-from sysreptor.users.serializers import PentestUserSerializer
+from sysreptor.utils.utils import omit_items
 
 
 class NotificationSpecContentSerializer(serializers.ModelSerializer):
@@ -14,11 +14,10 @@ class NotificationSpecContentSerializer(serializers.ModelSerializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
-    created_by = PentestUserSerializer(read_only=True, allow_null=True)
-
     class Meta:
         model = Notification
-        fields = ['id', 'created', 'updated', 'type', 'read', 'content', 'created_by']
+        fields = ['id', 'created', 'updated', 'read', 'content']
+        read_only_fields = omit_items(fields, ['read'])
 
 
 class UserConditionsSerializer(serializers.Serializer):

@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='notification',
             name='additional_content',
-            field=sysreptor.utils.crypto.fields.EncryptedField(base_field=models.JSONField(default=dict, encoder=django.core.serializers.json.DjangoJSONEncoder), editable=True),
+            field=sysreptor.utils.crypto.fields.EncryptedField(base_field=models.JSONField(blank=True, default=dict, encoder=django.core.serializers.json.DjangoJSONEncoder), editable=True),
         ),
         migrations.AddField(
             model_name='notification',
@@ -108,7 +108,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='notification',
             name='type',
-            field=models.CharField(choices=[('remote', 'Remote'), ('member_added', 'Member Added'), ('finished', 'Finished'), ('archived', 'Archived'), ('deleted', 'Deleted'), ('commented', 'Commented'), ('assigned', 'Assigned'), ('backup_missing', 'Backup Missing')], default='remote', max_length=50, db_index=True),
+            field=models.CharField(choices=[('remote', 'Remote'), ('member', 'Member'), ('finished', 'Finished'), ('archived', 'Archived'), ('deleted', 'Deleted'), ('commented', 'Commented'), ('assigned', 'Assigned'), ('backup_missing', 'Backup Missing')], default='remote', max_length=50, db_index=True),
             preserve_default=False,
         ),
         migrations.AlterField(

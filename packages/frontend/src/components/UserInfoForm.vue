@@ -95,7 +95,6 @@
           </v-col>
         </v-row>
 
-        <!-- TODO: move to login information? -->
         <s-text-field
           :model-value="user.email" @update:model-value="updateField('email', $event)"
           type="email"
