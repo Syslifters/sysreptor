@@ -107,6 +107,7 @@ def bulk_create_with_history(model, objs, history_date=None, history_change_reas
     # send pre_create signal
     if send_signals:
         for obj in objs:
+            obj.skip_history_when_saving = True  # We bulk-create history entries later
             django_signals.pre_save.send(sender=model, instance=obj, raw=False, using=None, update_fields=None)
 
     out = model.objects.bulk_create(objs=objs)
@@ -115,6 +116,7 @@ def bulk_create_with_history(model, objs, history_date=None, history_change_reas
     if send_signals:
         for obj in objs:
             django_signals.post_save.send(sender=model, instance=obj, created=True, raw=False, using=None, update_fields=None)
+            obj.skip_history_when_saving = False
 
     if settings.SIMPLE_HISTORY_ENABLED and hasattr(model, 'history'):
         bulk_create_history(
@@ -141,6 +143,7 @@ def bulk_update_with_history(model, objs, fields, history_date=None, history_cha
 
     if send_signals:
         for obj in objs:
+            obj.skip_history_when_saving = True  # We bulk-create history entries later
             django_signals.pre_save.send(sender=model, instance=obj, raw=False, using=None, update_fields=fields)
 
     out = model.objects.bulk_update(objs=objs, fields=fields)
@@ -148,6 +151,7 @@ def bulk_update_with_history(model, objs, fields, history_date=None, history_cha
     if send_signals:
         for obj in objs:
             django_signals.post_save.send(sender=model, instance=obj, created=False, raw=False, using=None, update_fields=fields)
+            obj.skip_history_when_saving = False
 
     if settings.SIMPLE_HISTORY_ENABLED and hasattr(model, 'history'):
         bulk_create_history(
