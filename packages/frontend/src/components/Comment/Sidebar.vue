@@ -51,7 +51,7 @@
       <v-list-item-title v-else>No comments found</v-list-item-title>
     </v-list-item>
     <v-list-item v-else v-for="commentGroup, path in commentGroups" :key="path" class="pl-0 pr-0 pt-0">
-      <v-list-subheader class="mt-1 mb-1">
+      <v-list-subheader class="pl-2 mt-1 mb-1">
         <span>{{ prettyFieldLabel(path as string) }}</span>
         <s-btn-icon
           @click="onCommentEvent({ type: 'create', comment: { path } })"

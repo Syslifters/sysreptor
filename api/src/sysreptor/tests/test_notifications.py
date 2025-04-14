@@ -31,7 +31,7 @@ def assert_notifications_created( expected):
 
 
 def assert_notifications_created_since(expected, since):
-    notifications_actual = list(UserNotification.objects.filter(created__gte=since).order_by('type', 'user__username'))
+    notifications_actual = list(UserNotification.objects.filter(created__gte=since).order_by('type', 'user__username', 'created'))
     notifications_actual_formatted = []
     for e, n in zip(expected, notifications_actual, strict=False):
         notifications_actual_formatted.append(copy_keys(n, e.keys()))
@@ -67,16 +67,16 @@ class TestRemoteNotifications:
 
         # Assigned to correct users
         spec.save()
-        assert set(spec.notification_set.values_list('user__username', flat=True)) == set(expected_users)
+        assert set(spec.usernotification_set.values_list('user__username', flat=True)) == set(expected_users)
 
         # Reverse filter
         for u in PentestUser.objects.filter(username__in=expected_users):
             assert spec in RemoteNotificationSpec.objects.remotenotificationspecs_for_user(u)
 
     def test_visible_for(self):
-        assert RemoteNotificationSpec.objects.create(visible_for_days=10).notification_set.first().visible_until.date() == (timezone.now() + timedelta(days=10)).date()
-        assert RemoteNotificationSpec.objects.create(active_until=(timezone.now() + timedelta(days=10)).date()).notification_set.first().visible_until.date() == (timezone.now() + timedelta(days=10)).date()
-        assert RemoteNotificationSpec.objects.create(visible_for_days=None, active_until=None).notification_set.first().visible_until is None
+        assert RemoteNotificationSpec.objects.create(visible_for_days=10).usernotification_set.first().visible_until.date() == (timezone.now() + timedelta(days=10)).date()
+        assert RemoteNotificationSpec.objects.create(active_until=(timezone.now() + timedelta(days=10)).date()).usernotification_set.first().visible_until.date() == (timezone.now() + timedelta(days=10)).date()
+        assert RemoteNotificationSpec.objects.create(visible_for_days=None, active_until=None).usernotification_set.first().visible_until is None
 
 
 @pytest.mark.django_db()
@@ -290,6 +290,21 @@ class TestNotificationTriggers:
     def test_no_notifications_on_import(self):
         with assert_notifications_created([]):
             import_projects(archive_to_file(export_projects([self.project], export_all=True)))
+
+    def test_notification_cleanup_on_project_deleted(self):
+        with assert_notifications_created(
+            [{'type': NotificationType.ASSIGNED, 'user': self.user_other}] * 3 +
+            [{'type': NotificationType.COMMENTED, 'user': self.user_other}] * 2,
+        ):
+            update(self.finding, assignee=self.user_other)
+            update(self.section, assignee=self.user_other)
+            update(self.note, assignee=self.user_other)
+            create_comment(finding=self.finding)
+            create_comment(section=self.section)
+        notifications_delete = [{'type': NotificationType.DELETED, 'user': self.user_other}, {'type': NotificationType.DELETED, 'user': self.user_self}]
+        with assert_notifications_created(notifications_delete):
+            self.project.delete()
+        assert UserNotification.objects.count() == len(notifications_delete)
 
 
 @pytest.mark.django_db()

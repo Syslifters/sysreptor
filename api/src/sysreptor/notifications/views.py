@@ -23,9 +23,9 @@ class UserNotificationOrderingFilter(filters.OrderingFilter):
         out = []
         for o in self.get_ordering(request, queryset, view):
             if o == 'group':
-                out.extend(['group_order', 'type', 'created'])
+                out.extend(['group_order', 'created'])
             elif o == '-group':
-                out.extend(['-group_order', '-type', '-created'])
+                out.extend(['-group_order', '-created'])
             else:
                 out.append(o)
         return out

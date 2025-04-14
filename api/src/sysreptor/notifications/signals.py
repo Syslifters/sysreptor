@@ -127,7 +127,7 @@ def notification_archived(sender, instance, archive, *args, **kwargs):
     )
 
 
-@receiver(sysreptor_signals.post_delete, sender=PentestProject)
+@receiver(signals.pre_delete, sender=PentestProject)
 @disable_for_loaddata
 def notification_deleted(sender, instance, *args, **kwargs):
     UserNotification.objects.create_for_users(

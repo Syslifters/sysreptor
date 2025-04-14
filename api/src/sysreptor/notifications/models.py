@@ -86,7 +86,7 @@ class UserNotification(BaseModel):
         # Format username
         created_by_name = 'Someone'
         if self.created_by:
-            created_by_name = self.created_by.username
+            created_by_name = '@' + self.created_by.username
             if self.created_by.name:
                 created_by_name += f' ({self.created_by.name})'
 
@@ -126,19 +126,22 @@ class UserNotification(BaseModel):
                 }
         elif self.type == NotificationType.COMMENTED and self.comment:
             comment_path = format_path(self.comment.path.removeprefix('data.'))
+            if self.comment.text_range:
+                comment_path += f':offset={self.comment.text_range.from_}'
+
             if self.comment.finding:
                 finding_title = self.additional_content.get("finding_title") or ''
                 content |= {
                     'title': f'New comment in finding {finding_title}',
                     'text': f'{created_by_name} commented on finding "{finding_title}"',
-                    'link_url': f'/projects/{self.comment.finding.project_id}/reporting/findings/#{comment_path}',
+                    'link_url': f'/projects/{self.comment.finding.project_id}/reporting/findings/{self.comment.finding.finding_id}/#{comment_path}',
                 }
             elif self.comment.section:
                 section_title = self.additional_content.get("section_title") or ''
                 content |= {
                     'title': f'New comment in section {section_title}',
                     'text': f'{created_by_name} commented on section "{self.additional_content.get("section_title")}"',
-                    'link_url': f'/projects/{self.comment.section.project_id}/reporting/sections/#{comment_path}',
+                    'link_url': f'/projects/{self.comment.section.project_id}/reporting/sections/{self.comment.section.section_id}/#{comment_path}',
                 }
         elif self.type == NotificationType.FINISHED and self.project:
             content |= {
@@ -149,13 +152,13 @@ class UserNotification(BaseModel):
             }
         elif self.type == NotificationType.ARCHIVED:
             content |= {
-                'title': 'Project archived',
-                'text': f'{created_by_name} archived project "{self.additional_content.get("project_name")}".\nDelete any evidence files!"',
+                'title': 'Project archived. Delete all remaining evidence files',
+                'text': f'{created_by_name} has archived the project "{self.additional_content.get("project_name")}". Ensure you delete all evidence files related to this project.',
             }
         elif self.type == NotificationType.DELETED:
             content |= {
-                'title': 'Project deleted',
-                'text': f'{created_by_name} deleted project "{self.additional_content.get("project_name")}".\nDelete any evidence files!"',
+                'title': 'Project deleted. Delete all remaining evidence files',
+                'text': f'{created_by_name} deleted project "{self.additional_content.get("project_name")}". Ensure you delete all evidence files related to this project.',
             }
         elif self.type == NotificationType.BACKUP_MISSING:
             content |= {
