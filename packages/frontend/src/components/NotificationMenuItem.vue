@@ -43,7 +43,9 @@
               />
             </template>
             <template #default>
-              <v-list-item-title class="text-h6">Notifications</v-list-item-title>
+              <v-list-item-title class="text-h6">
+                <nuxt-link to="/users/self/notifications/" class="title-link">Notifications</nuxt-link>
+              </v-list-item-title>
             </template>
             <template #append v-if="notificationStore.unreadNotificationCount > 0">
               <btn-confirm
@@ -73,7 +75,7 @@
               :value="group.notification.id"
               :title="group.notification.content.title"
               :subtitle="group.notification.content.text"
-              :href="group.notification.content.link_url as any"
+              :href="group.notification.content.link_url || undefined"
               target="_blank"
               @click="markAsRead(group.notification)"
               link
@@ -95,7 +97,7 @@
                 v-for="notification in group.notifications!"
                 :key="notification.id"
                 :value="notification.id"
-                :href="notification.content.link_url as any"
+                :href="notification.content.link_url || undefined"
                 target="_blank"
                 @click="markAsRead(notification)"
                 link
@@ -143,7 +145,7 @@ async function onOpenMenu(value: boolean) {
 
 async function markAsRead(notification: UserNotification) {
   try {
-    await notificationStore.markAsRead(notification);
+    await notificationStore.markAsRead(notification, true);
   } catch (error: any) {
     requestErrorToast({ error });
   }
@@ -179,5 +181,14 @@ watch([() => notificationStore.unreadNotificationCount, () => notificationStore.
 }
 .v-list-group {
   --prepend-width: 0.5em !important;
+}
+
+.title-link {
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    color: rgba(var(--v-theme-primary));
+  }
 }
 </style>

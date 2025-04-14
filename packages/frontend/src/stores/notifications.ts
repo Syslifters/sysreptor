@@ -29,20 +29,34 @@ export const useNotificationStore = defineStore('notifications', {
         this.isLoading = false;
       }
     },
-    async markAsRead(notification: UserNotification) {
-      if (!notification.read) {
+    async markAsRead(notification: UserNotification, read: boolean = true) {
+      if (notification.read !== read) {
+        const notificationInStore = this.notifications.find(n => n.id === notification.id);
         try {
-          notification.read = true;
+          notification.read = read;
+          if (notificationInStore) {
+            notificationInStore.read = read;
+          }
           await $fetch(`/api/v1/pentestusers/self/notifications/${notification.id}/`, {
             method: 'PATCH',
             body: {
-              read: true
+              read,
             }
           });
+
+          if (!read && !notificationInStore) {
+            // Reload notification list to include the un-read notification
+            await this.fetchNotifications();
+          }
         } catch (error) {
-          notification.read = false;
+          notification.read = !read;
+          if (notificationInStore) {
+            notificationInStore.read = !read;
+          }
           throw error;
         }
+
+        
       }
     },
     async markAllAsRead() {
