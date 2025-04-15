@@ -33,7 +33,7 @@ class UserNotificationOrderingFilter(filters.OrderingFilter):
     def filter_queryset(self, request, queryset, view):
         ordering = self.get_queryset_ordering(request, queryset, view)
         if ordering:
-            if 'group' in ''.join(ordering):
+            if 'group_order' in ''.join(ordering):
                 queryset = queryset.annotate_group_order()
             return queryset.order_by(*ordering)
         return queryset

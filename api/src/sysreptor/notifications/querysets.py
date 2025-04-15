@@ -112,7 +112,7 @@ class UserNotificationQuerySet(models.QuerySet):
             .filter(models.Q(visible_until__isnull=True) | models.Q(visible_until__gt=timezone.now()))
 
     def annotate_group_order(self):
-        return self.annotate(group_order=Coalesce(models.Max('project__notification__created'), models.F('created')))
+        return self.annotate(group_order=Coalesce(models.Max('project__usernotification__created'), models.F('created')))
 
 
 class UserNotificationManager(models.Manager.from_queryset(UserNotificationQuerySet)):

@@ -1,5 +1,5 @@
 <template>
-  <list-view url="/api/v1/pentestusers/self/notifications/?order=-created">
+  <list-view url="/api/v1/pentestusers/self/notifications/?ordering=-created">
     <template #title>Notifications</template>
     <template #searchbar><div /></template>
     <template #item="{item}: {item: UserNotification}">

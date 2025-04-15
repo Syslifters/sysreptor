@@ -48,15 +48,11 @@
               </v-list-item-title>
             </template>
             <template #append v-if="notificationStore.unreadNotificationCount > 0">
-              <btn-confirm
-                :action="() => notificationStore.markAllAsRead()"
-                :confirm="true"
-                button-text="Mark all as read"
-                button-icon="mdi-checkbox-blank-outline"
-                button-variant="icon"
+              <s-btn-icon
+                @click="markAllAsRead"
+                icon="mdi-checkbox-blank-outline"
                 density="compact"
-                tooltip-text="Mark all notifications as read"
-                dialog-text="Mark all notifications as read?"
+                v-tooltip="'Mark all notifications as read'"
               />
             </template>
           </v-list-item>
@@ -88,13 +84,13 @@
             <v-list-group v-else :value="group.key">
               <template #activator="{ props: listGroupProps}">
                 <v-list-item
-                  :title="group.label!"
+                  :title="group.label"
                   prepend-icon="mdi-file-document"
                   v-bind="listGroupProps"
                 />
               </template>
               <v-list-item
-                v-for="notification in group.notifications!"
+                v-for="notification in group.notifications"
                 :key="notification.id"
                 :value="notification.id"
                 :href="notification.content.link_url || undefined"
@@ -146,6 +142,14 @@ async function onOpenMenu(value: boolean) {
 async function markAsRead(notification: UserNotification) {
   try {
     await notificationStore.markAsRead(notification, true);
+  } catch (error: any) {
+    requestErrorToast({ error });
+  }
+}
+
+async function markAllAsRead() {
+  try {
+    await notificationStore.markAllAsRead();
   } catch (error: any) {
     requestErrorToast({ error });
   }

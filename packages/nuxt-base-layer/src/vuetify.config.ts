@@ -148,7 +148,7 @@ export default defineVuetifyConfiguration({
       hideDetails: 'auto',
       maxErrors: 100,
       variant: 'outlined',
-      spellcheck: "false",
+      spellcheck: 'false',
     },
     SNumberInput: {
       precision: null,

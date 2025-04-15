@@ -22,7 +22,7 @@ export const useNotificationStore = defineStore('notifications', {
     async fetchNotifications() {
       try {
         this.isLoading = true;
-        const res = await $fetch<PaginatedResponse<UserNotification>>('/api/v1/pentestusers/self/notifications/?read=false&order=-group', { method: 'GET' });
+        const res = await $fetch<PaginatedResponse<UserNotification>>('/api/v1/pentestusers/self/notifications/?read=false&ordering=-group', { method: 'GET' });
         this.notifications = res.results;
       return this.notifications;
       } finally {
