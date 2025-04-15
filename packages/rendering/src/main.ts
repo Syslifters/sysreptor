@@ -121,7 +121,7 @@ if (!window.RENDERING_COMPLETED) {
           if (mutation.type === 'childList') {
             for (const an of Array.from(mutation.addedNodes)) {
               for (const node of getChildElementsRecursive(an)) {
-                if (node.nodeName === 'SCRIPT') {
+                if (node.nodeName === 'SCRIPT' && node.attributes.getNamedItem('src')?.value) {
                   const waitScriptLoaded = useRenderTask(() => new Promise((resolve, reject) => {
                     node.addEventListener('load', () => resolve());
                     node.addEventListener('error', reject);
