@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.37 - 2024-04-17
 * Allow sending emails (https://docs.sysreptor.com/setup/configuration/#emails)
 * Add forgot password functionality (https://docs.sysreptor.com/setup/configuration/#local-user-authentication)
 * Make user emails unique
