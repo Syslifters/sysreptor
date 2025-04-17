@@ -54,7 +54,7 @@ Designs need to support grouping in the Vue template. The grouped finding list i
 ```html
 <section v-for="group in finding_groups">
   <h1 class="in-toc numbered">{{ group.label }}</h1>
-  <div v-for="finding in findings">
+  <div v-for="finding in group.findings">
     <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
     ...
     <pagebreak />
