@@ -2,6 +2,7 @@ from contextlib import contextmanager
 
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import signals as django_signals
 from django.utils import timezone
 from simple_history import manager as history_manager
 from simple_history import models as history_models
@@ -102,8 +103,20 @@ class HistoryManager(history_manager.HistoryManager):
 
 
 @transaction.atomic
-def bulk_create_with_history(model, objs, history_date=None, history_change_reason=None, **kwargs):
+def bulk_create_with_history(model, objs, history_date=None, history_change_reason=None, send_signals=False, **kwargs):
+    # send pre_create signal
+    if send_signals:
+        for obj in objs:
+            obj.skip_history_when_saving = True  # We bulk-create history entries later
+            django_signals.pre_save.send(sender=model, instance=obj, raw=False, using=None, update_fields=None)
+
     out = model.objects.bulk_create(objs=objs)
+
+    # send post_create signal
+    if send_signals:
+        for obj in objs:
+            django_signals.post_save.send(sender=model, instance=obj, created=True, raw=False, using=None, update_fields=None)
+            obj.skip_history_when_saving = False
 
     if settings.SIMPLE_HISTORY_ENABLED and hasattr(model, 'history'):
         bulk_create_history(
@@ -119,7 +132,7 @@ def bulk_create_with_history(model, objs, history_date=None, history_change_reas
 
 
 @transaction.atomic
-def bulk_update_with_history(model, objs, fields, history_date=None, history_change_reason=None, history_prevent_cleanup=None):
+def bulk_update_with_history(model, objs, fields, history_date=None, history_change_reason=None, history_prevent_cleanup=None, send_signals=False):
     """
     Customization of simple_history.utils.bulk_update_with_history that
     respects settings.SIMPLE_HISTORY_ENABLED,
@@ -128,7 +141,18 @@ def bulk_update_with_history(model, objs, fields, history_date=None, history_cha
     """
     objs = list(objs)
 
+    if send_signals:
+        for obj in objs:
+            obj.skip_history_when_saving = True  # We bulk-create history entries later
+            django_signals.pre_save.send(sender=model, instance=obj, raw=False, using=None, update_fields=fields)
+
     out = model.objects.bulk_update(objs=objs, fields=fields)
+
+    if send_signals:
+        for obj in objs:
+            django_signals.post_save.send(sender=model, instance=obj, created=False, raw=False, using=None, update_fields=fields)
+            obj.skip_history_when_saving = False
+
     if settings.SIMPLE_HISTORY_ENABLED and hasattr(model, 'history'):
         bulk_create_history(
             model,

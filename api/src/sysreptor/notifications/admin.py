@@ -1,15 +1,16 @@
 from django.contrib import admin
 
-from sysreptor.notifications.models import NotificationSpec, UserNotification
+from sysreptor.notifications.models import RemoteNotificationSpec, UserNotification
 from sysreptor.utils.admin import BaseAdmin
 
 
-@admin.register(NotificationSpec)
-class NotificationSpecAdmin(BaseAdmin):
+@admin.register(RemoteNotificationSpec)
+class RemoteNotificationSpecAdmin(BaseAdmin):
     list_display = ['id', 'title', 'created', 'active_until', 'visible_for_days']
 
 
 @admin.register(UserNotification)
 class UserNotificationAdmin(BaseAdmin):
-    list_display = ['id', 'notification', 'user', 'created', 'visible_until', 'read']
+    list_display = ['id', 'type', 'user', 'created', 'read']
+    readonly_fields = ['project', 'finding', 'section', 'note', 'comment', 'remotenotificationspec']
 

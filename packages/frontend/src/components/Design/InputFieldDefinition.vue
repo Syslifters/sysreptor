@@ -101,32 +101,20 @@
         <!-- Number options -->
         <template v-if="props.modelValue.type === FieldDataType.NUMBER">
           <v-col class="mt-2 pt-0">
-            <v-number-input
+            <s-number-input
               :model-value="props.modelValue.minimum ?? null"
               @update:model-value="updateProperty('minimum', $event)"
               label="Minimum"
-              :precision="null"
               :rules="rules.minimum"
-              :persistent-hint="true"
-              hide-details="auto"
-              :max-errors="100"
-              variant="outlined"
-              control-variant="stacked"
               clearable
             />
           </v-col>
           <v-col class="mt-2 pt-0">
-            <v-number-input
+            <s-number-input
               :model-value="props.modelValue.maximum ?? null"
               @update:model-value="updateProperty('maximum', $event)"
               label="Maximum"
-              :precision="null"
               :rules="rules.maximum"
-              :persistent-hint="true"
-              hide-details="auto"
-              :max-errors="100"
-              variant="outlined"
-              control-variant="stacked"
               clearable
             />
           </v-col>

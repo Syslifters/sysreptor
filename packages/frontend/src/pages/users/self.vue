@@ -1,5 +1,5 @@
 <template>
-  <split-menu :model-value="15">
+  <split-menu :model-value="15" :content-props="{ class: 'h-100' }">
     <template #menu>
       <v-list nav density="compact">
         <v-list-item-title class="text-h6 pl-2 mb-2">User Profile</v-list-item-title>
@@ -27,6 +27,11 @@
         >
           <v-list-item-title><pro-info>Archiving Public Keys</pro-info></v-list-item-title>
         </v-list-item>
+        <v-list-item
+          to="/users/self/notifications/"
+          prepend-icon="mdi-bell"
+          title="Notifications"
+        />
       </v-list>
     </template>
 

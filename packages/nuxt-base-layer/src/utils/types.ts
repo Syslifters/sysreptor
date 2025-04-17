@@ -211,12 +211,16 @@ export type LoginResponse = {
 }
 
 export type UserNotification = BaseModel & {
+  type: string;
+  read: boolean;
+  created_by: UserShortInfo|null;
   readonly content: {
     title: string;
     text: string;
     link_url: string | null;
+    project_id?: string;
+    project_name?: string;
   },
-  read: boolean;
 }
 
 export type DocumentSelectionPosition = {

@@ -19,7 +19,7 @@ from sysreptor.api_utils.views import (
     UtilsViewSet,
 )
 from sysreptor.conf import plugins
-from sysreptor.notifications.views import NotificationViewSet
+from sysreptor.notifications.views import UserNotificationViewSet
 from sysreptor.pentests.collab.fallback import ConsumerHttpFallbackView
 from sysreptor.pentests.consumers import (
     ProjectNotesConsumer,
@@ -80,7 +80,7 @@ user_router = NestedSimpleRouter(router, 'pentestusers', lookup='pentestuser')
 user_router.register('mfa', MFAMethodViewSet, basename='mfamethod')
 user_router.register('identities', AuthIdentityViewSet, basename='authidentity')
 user_router.register('apitokens', APITokenViewSet, basename='apitoken')
-user_router.register('notifications', NotificationViewSet, basename='notification')
+user_router.register('notifications', UserNotificationViewSet, basename='notification')
 user_router.register('publickeys', UserPublicKeyViewSet, basename='userpublickey')
 user_router.register('notes/images', UploadedUserNotebookImageViewSet, basename='uploadedusernotebookimage')
 user_router.register('notes/files', UploadedUserNotebookFileViewSet, basename='uploadedusernotebookfile')

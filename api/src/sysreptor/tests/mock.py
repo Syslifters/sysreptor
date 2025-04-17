@@ -57,7 +57,7 @@ from sysreptor.utils.fielddefinition.utils import (
     ensure_defined_structure,
     get_field_value_and_definition,
 )
-from sysreptor.utils.history import bulk_create_with_history, history_context
+from sysreptor.utils.history import history_context
 
 
 def create_png_file() -> bytes:
@@ -323,7 +323,7 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
             member_infos.append(m)
         else:
             raise ValueError('Unsupported member type')
-    bulk_create_with_history(ProjectMemberInfo, member_infos)
+    project.set_members(member_infos, new=True)
 
     comment_user = member_infos[0].user if member_infos else None
     if comments:

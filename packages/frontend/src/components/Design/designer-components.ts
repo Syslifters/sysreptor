@@ -397,7 +397,7 @@ export class AppendixComponent extends DesignerComponentBase {
 
           <markdown>
             ## Static Appendix Section {.in-toc.numbered}
-            TODO: Appendix section content
+            ${'TODO'}: Appendix section content
           </markdown>
 
           ${dynamicAppendixSection}

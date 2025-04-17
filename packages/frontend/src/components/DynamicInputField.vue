@@ -75,24 +75,18 @@
           </s-combobox>
 
           <!-- Number -->
-          <v-number-input
+          <s-number-input
             v-else-if="definition.type === FieldDataType.NUMBER"
             :model-value="formValue"
             @update:model-value="emitUpdate($event)"
             :min="definition.minimum ?? undefined"
             :max="definition.maximum ?? undefined"
-            :precision="null"
-            :persistent-hint="true"
-            hide-details="auto"
-            :max-errors="100"
-            variant="outlined"
-            control-variant="stacked"
             clearable
             @focus="collabFocus"
             v-bind="fieldAttrs"
           >
             <template #label v-if="$slots.label"><slot name="label" /></template>
-          </v-number-input>
+          </s-number-input>
 
           <!-- Boolean -->
           <s-checkbox

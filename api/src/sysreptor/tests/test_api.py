@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from rest_framework.test import APIClient
 
-from sysreptor.notifications.models import NotificationSpec, UserNotification
+from sysreptor.notifications.models import RemoteNotificationSpec, UserNotification
 from sysreptor.pentests.import_export import (
     export_notes,
     export_project_types,
@@ -231,6 +231,7 @@ def guest_urls():
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': 'self'}))),
         ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': 'self'}))),
         *viewset_urls('notification', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.notification.id if s.current_user else uuid4()} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
+        ('notification readall', lambda s, c: c.post(reverse('notification-readall', kwargs={'pentestuser_pk': 'self'}), data={})),
         *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.public_keys.first().id if s.current_user else uuid4()} if detail else {}), list=True, retrieve=True, update=True, update_partial=True),
         *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.api_tokens.first().pk if s.current_user else uuid4()} if detail else {}), create=True, list=True, retrieve=True, destroy=True),
 
@@ -240,7 +241,7 @@ def guest_urls():
         *file_viewset_urls('uploadedusernotebookfile', get_obj=lambda s: s.current_user.files.first() if s.current_user else UploadedUserNotebookFile(name='nonexistent.pdf'), get_base_kwargs=lambda s: {'pentestuser_pk': 'self'}, read=True, write=True),
         ('usernotebookpage upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
         ('usernotebookpage upload-image-or-file', lambda s, c: c.post(reverse('usernotebookpage-upload-image-or-file', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
-        ('usernotebookoage export', lambda s, c: c.post(reverse('usernotebookpage-export', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
+        ('usernotebookpage export', lambda s, c: c.post(reverse('usernotebookpage-export', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
         ('usernotebookoage export-all', lambda s, c: c.post(reverse('usernotebookpage-export-all', kwargs={'pentestuser_pk': 'self'}))),
         ('usernotebookpage export-pdf', lambda s, c: c.post(reverse('usernotebookpage-export-pdf', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
         ('usernotebookpage import', lambda s, c: c.post(reverse('usernotebookpage-import', kwargs={'pentestuser_pk': 'self'}), data={'file': export_notes_archive(s.current_user)}, format='multipart')),
@@ -420,7 +421,7 @@ class ApiRequestsAndPermissionsTestData:
 
     @cached_property
     def notification(self):
-        NotificationSpec.objects.create(text='Test')
+        RemoteNotificationSpec.objects.create(text='Test')
         return self.current_user.notifications.first() if self.current_user else UserNotification()
 
     def _create_project(self, members=None, **kwargs):
