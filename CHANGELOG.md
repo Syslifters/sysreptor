@@ -1,5 +1,11 @@
 # Changelog
 
+## Upcoming
+* Notifications about project updates
+* Rework and update PDF viewer
+* UI: do not hide assignee field on small screens
+
+
 ## v2025.37 - 2024-04-17
 * Allow sending emails (https://docs.sysreptor.com/setup/configuration/#emails)
 * Add forgot password functionality (https://docs.sysreptor.com/setup/configuration/#local-user-authentication)

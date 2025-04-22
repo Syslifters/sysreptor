@@ -36,17 +36,13 @@
           </div>
         </template>
         <template #default>
-          <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
-            <s-user-selection
-              :model-value="note.assignee"
-              @update:model-value="updateKey('assignee', $event)"
-              :selectable-users="project.members"
-              :readonly="readonly"
-              label="Assignee"
-              variant="underlined"
-              density="compact"
-            />
-          </div>
+          <s-assignee-selection
+            :model-value="note.assignee"
+            @update:model-value="updateKey('assignee', $event)"
+            :selectable-users="project.members"
+            :readonly="readonly"
+            class="ml-1 mr-1"
+          />
 
           <s-btn-icon @click="shareDialogVisible = true">
             <v-icon icon="mdi-share-variant" />

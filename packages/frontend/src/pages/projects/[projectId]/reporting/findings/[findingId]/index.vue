@@ -28,20 +28,16 @@
         <s-status-selection 
           :model-value="finding.status"
           @update:model-value="updateKey('status', $event)"
-          :readonly="readonly" 
-        />
-      </div>
-      <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
-        <s-user-selection
-          :model-value="finding.assignee"
-          @update:model-value="updateKey('assignee', $event)"
-          :selectable-users="project.members"
           :readonly="readonly"
-          label="Assignee"
-          variant="underlined"
-          density="compact"
         />
       </div>
+      <s-assignee-selection
+        :model-value="finding.assignee"
+        @update:model-value="updateKey('assignee', $event)"
+        :selectable-users="project.members"
+        :readonly="readonly"
+        class="ml-1 mr-1"
+      />
       
       <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="reportingCollab.collabProps.value.comments!" />
       <btn-history v-model="historyVisible" />
@@ -137,8 +133,5 @@ useAutofocus(finding, 'title');
 <style lang="scss" scoped>
 .status-container {
   width: 15em;
-}
-.assignee-container {
-  width: 17em;
 }
 </style>

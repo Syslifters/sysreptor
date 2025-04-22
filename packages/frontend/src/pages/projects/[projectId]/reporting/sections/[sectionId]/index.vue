@@ -8,17 +8,13 @@
           :readonly="readonly" 
         />
       </div>
-      <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
-        <s-user-selection
-          :model-value="section.assignee"
-          @update:model-value="updateKey('assignee', $event)"
-          :selectable-users="project.members"
-          :readonly="readonly"
-          label="Assignee"
-          variant="underlined"
-          density="compact"
-        />
-      </div>
+      <s-assignee-selection
+        :model-value="section.assignee"
+        @update:model-value="updateKey('assignee', $event)"
+        :selectable-users="project.members"
+        :readonly="readonly"
+        class="ml-1 mr-1"
+      />
 
       <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="reportingCollab.collabProps.value.comments!" />
       <btn-history v-model="historyVisible" />

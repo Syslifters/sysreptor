@@ -29,16 +29,12 @@
           </div>
         </template>
         <template #default>
-          <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
-            <s-user-selection
-              v-model="note.assignee"
-              :selectable-users="fieldAttrsHistoric.selectableUsers"
-              :readonly="true"
-              label="Assignee"
-              variant="underlined"
-              density="compact"
-            />
-          </div>
+          <s-assignee-selection
+            v-model="note.assignee"
+            :selectable-users="fieldAttrsHistoric.selectableUsers"
+            :readonly="true"
+            class="ml-1 mr-1"
+          />
 
           <s-btn-secondary
             v-if="currentUrl"

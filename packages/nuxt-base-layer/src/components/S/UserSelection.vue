@@ -19,7 +19,12 @@
         <v-chip v-bind="chipSlotData.props" :disabled="false" />
       </slot>
     </template>
-    <template #append-inner><slot name="append-inner" /></template>
+    <template #prepend-inner v-if="!props.multiple || props.prependInnerIcon">
+      <user-avatar v-if="modelValueObject" :user="modelValueObject" />
+      <v-icon v-else-if="props.prependInnerIcon" :icon="props.prependInnerIcon" />
+    </template>
+    <template #append-inner v-if="$slots['append-inner']"><slot name="append-inner" /></template>
+    <template #append-item v-if="$slots['append-item']"><slot name="append-item" /></template>
   </s-autocomplete>
 </template>
 
@@ -36,6 +41,7 @@ const props = withDefaults(defineProps<{
   clearable?: boolean;
   preventUnselectingSelf?: boolean;
   selectableUsers?: UserShortInfo[]|null;
+  prependInnerIcon?: string;
 }>(), {
   label: 'Users',
   required: false,
@@ -43,6 +49,7 @@ const props = withDefaults(defineProps<{
   clearable: true,
   preventUnselectingSelf: false,
   selectableUsers: null,
+  prependInnerIcon: undefined,
 });
 const emit = defineEmits<{
   (e: 'update:modelValue', value: UserShortInfo|UserShortInfo[]|string|null): void,
@@ -88,6 +95,15 @@ const allItems = computed(() => {
     return sortBy(props.selectableUsers, [u => u.username || u.name]);
   }
   return uniqBy(initialUsers.value.concat(items.data.value), 'id');
+})
+const modelValueObject = computed(() => {
+  if (!props.modelValue || props.multiple) {
+    return null;
+  } else if (isObject(props.modelValue)) {
+    return props.modelValue as UserShortInfo;
+  } else {
+    return (allItems.value.find(u => u.id === props.modelValue) || null) as UserShortInfo|null;
+  }
 })
 
 const attrs = useAttrs() as any;
