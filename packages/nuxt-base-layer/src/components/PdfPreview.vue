@@ -2,7 +2,7 @@
   <div class="h-100 d-flex flex-column pos-relative">
     <pdf :value="pdfData" class="flex-grow-height" />
 
-    <v-footer theme="dark" class="footer">
+    <v-footer class="footer">
       <v-btn @click="showMessages = !showMessages" size="small" block class="footer-btn" :ripple="false">
         <v-spacer />
 
