@@ -4,72 +4,76 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="google" content="notranslate">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; worker-src 'self';">
     <title>PDF Viewer</title>
+    <link rel="stylesheet" href="./viewer.css">
+    <script type="module" src="./viewer.ts"></script>
   </head>
 
-  <body tabindex="1">
+  <body>
     <div id="outerContainer">
       <div id="mainContainer">
-
-        <div class="findbar hidden" id="findbar">
-          <div>
-            <input id="findInput" class="toolbarField" title="Find" placeholder="Find" tabindex="91" autocomplete="off" data-l10n-id="find_input" aria-invalid="false">
+        <div id="findbar" class="findbar hidden" role="search">
+          <div class="findbar-container">
+            <span class="loadingInput">
+              <input id="findInput" class="toolbarField" type="text" title="Find" placeholder="Find" tabindex="91" autocomplete="off">
+            </span>
           </div>
-          <div>
+          <div class="findbar-status">
             <div id="findbarMessageContainer" aria-live="polite">
               <span id="findResultsCount" class="toolbarLabel"></span>
               <span id="findMsg" class="toolbarLabel">No results</span>
             </div>
           </div>
-          <div>
-            <button id="findPrevious" class="toolbarButton" title="Find the previous occurrence of the phrase" tabindex="92" data-l10n-id="find_previous">
+          <div class="findbar-buttons">
+            <button id="findPrevious" class="toolbarButton" title="Find the previous occurrence of the phrase" tabindex="92" aria-label="Previous match">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z" /></svg>
             </button>
-            <button id="findNext" class="toolbarButton" title="Find the next occurrence of the phrase" tabindex="93" data-l10n-id="find_next">
+            <button id="findNext" class="toolbarButton" title="Find the next occurrence of the phrase" tabindex="93" aria-label="Next match">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg>
             </button>
-            <button id="findToggle" class="toolbarButton" title="Close" tabindex="94" data-l10n-id="find_close">
+            <button id="findClose" class="toolbarButton" title="Close" tabindex="94" aria-label="Close search">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>
             </button>
           </div>
         </div>
         
-        <div class="toolbar">
+        <div class="toolbar" role="navigation">
           <div id="toolbarContainer">
             <div id="toolbarViewer">
               <div id="toolbarViewerMiddle">
                 <div id="disabled" class="hidden"></div>
 
-                <input type="number" id="pageNumber" class="toolbarField" title="Page" value="1" min="1" tabindex="15" autocomplete="off">
-                <span id="numPages" class="toolbarLabel"></span>
+                <input type="number" id="pageNumber" class="toolbarField" title="Page" value="1" min="1" tabindex="15" autocomplete="off" aria-label="Page number">
+                <span id="numPages" class="toolbarLabel" aria-hidden="true"></span>
 
                 <div class="toolbarSpacing"></div>
 
-                <button id="zoomOut" class="toolbarButton" title="Zoom Out" tabindex="21">
+                <button id="zoomOut" class="toolbarButton" title="Zoom Out" tabindex="21" aria-label="Zoom out">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z" /></svg>
                 </button>
-                <select id="scaleSelect" class="toolbarField" title="Zoom" tabindex="23">
-                  <option id="pageAutoOption" title="" value="auto" selected="selected">Automatic Zoom</option>
-                  <option id="pageWidthOption" title="" value="page-width">Page Width</option>
-                  <option id="pageActualOption" title="" value="page-actual">Actual Size</option>
-                  <option id="pageFitOption" title="" value="page-fit" >Page Fit</option>
-                  <option id="customScaleOption" title="" value="custom" disabled="disabled" hidden="true"></option>
-                  <option title="" value="0.5">50%</option>
-                  <option title="" value="0.75">75%</option>
-                  <option title="" value="1">100%</option>
-                  <option title="" value="1.25" >125%</option>
-                  <option title="" value="1.5">150%</option>
-                  <option title="" value="2">200%</option>
-                  <option title="" value="3">300%</option>
-                  <option title="" value="4">400%</option>
+                <select id="scaleSelect" class="toolbarField" title="Zoom" tabindex="23" aria-label="Zoom level">
+                  <option id="pageAutoOption" value="auto" selected="selected">Automatic Zoom</option>
+                  <option id="pageWidthOption" value="page-width">Page Width</option>
+                  <option id="pageActualOption" value="page-actual">Actual Size</option>
+                  <option id="pageFitOption" value="page-fit">Page Fit</option>
+                  <option id="customScaleOption" value="custom" disabled="disabled" hidden="true"></option>
+                  <option value="0.5">50%</option>
+                  <option value="0.75">75%</option>
+                  <option value="1">100%</option>
+                  <option value="1.25">125%</option>
+                  <option value="1.5">150%</option>
+                  <option value="2">200%</option>
+                  <option value="3">300%</option>
+                  <option value="4">400%</option>
                 </select>
-                <button id="zoomIn" class="toolbarButton" title="Zoom In" tabindex="22">
+                <button id="zoomIn" class="toolbarButton" title="Zoom In" tabindex="22" aria-label="Zoom in">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" /></svg>
                 </button>
               </div>
 
               <div id="toolbarViewerRight">
-                <button id="download" class="toolbarButton hiddenMediumView" title="Download Preview PDF" tabindex="33" data-l10n-id="save">
+                <button id="download" class="toolbarButton hiddenMediumView" title="Download Preview PDF" tabindex="33" aria-label="Download PDF">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>
                 </button>
               </div>
@@ -77,12 +81,10 @@
           </div>
         </div>
 
-        <div id="viewerContainer" tabindex="0">
+        <div id="viewerContainer" tabindex="0" role="main">
           <div id="viewer" class="pdfViewer"></div>
         </div>
       </div>
     </div>
-
   </body>
 </html>
-    

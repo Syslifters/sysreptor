@@ -98,15 +98,14 @@ body {
   right: 0;
   z-index: 9999;
   font: message-box;
-}
 
-.toolbar input,
-.toolbar button,
-.toolbar select {
-  outline: none;
-  font: message-box;
+  & input,
+  & button,
+  & select {
+    outline: none;
+    font: message-box;
+  }
 }
-
 
 
 
@@ -119,10 +118,11 @@ body {
   border: 1px solid var(--field-border-color);
   box-shadow: none;
   color: var(--field-color);
-}
-.toolbarField:hover, .toolbarField:focus-visible {
-  color: var(--main-color);
-  background-color: var(--hover-bg-color)
+
+  &:hover, &:focus-visible {
+    background-color: var(--field-bg-color);
+    border: 1px solid var(--field-border-color);
+  }
 }
 
 .toolbarLabel {
@@ -138,22 +138,22 @@ body {
 #pageNumber {
   text-align: right;
   width: 2em;
-}
-#pageNumber {
   appearance: textfield;
-}
-#pageNumber::-webkit-outer-spin-button, #pageNumber::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+
+  &::-webkit-outer-spin-button, &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 }
 
 
 #scaleSelect {
   cursor: pointer;
-}
-#scaleSelect > option {
-  color: var(--main-color);
-  background-color: var(--field-bg-color);
+
+  & > option {
+    color: var(--main-color);
+    background-color: var(--field-bg-color);
+  }
 }
 
 
@@ -167,17 +167,19 @@ body {
   color: var(--main-color);
   cursor: pointer;
   user-select: none;
-}
-.toolbarButton svg {
-  fill: var(--main-color);
-}
 
-.toolbarButton[disabled] {
-  opacity: 0.5;
-}
-.toolbarButton:hover, .toolbarButton:focus-visible {
-  color: var(--main-color);
-  background-color: var(--hover-bg-color);
+  & svg {
+    fill: var(--main-color);
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+  }
+
+  &:hover, &:focus-visible {
+    color: var(--main-color);
+    background-color: var(--hover-bg-color);
+  }
 }
 
 
@@ -210,16 +212,15 @@ body {
   width: 12em;
   padding: 0;
   margin-bottom: 2px;
-}
-#findInput::-webkit-input-placeholder {
-  color: rgba(191, 191, 191, 1);
-}
 
+  &::-webkit-input-placeholder {
+    color: rgba(191, 191, 191, 1);
+  }
+}
 #findbarMessageContainer {
   width: 5.5em;
   display: inline-block;
 }
-
 #findResultsCount {
   text-align: center;
   /* padding: 4px 5px; */

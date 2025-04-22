@@ -44,6 +44,7 @@ watch([() => props.value, iframeLoaded], () => updatePdf())
     width: 100%;
     height: 100%;
     border: 0;
+    user-select: none;
   }
   .loading {
     height: 0;

@@ -2,21 +2,18 @@
   "name": "@sysreptor/pdfviewer",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "build": "webpack",
-    "build-watch": "webpack watch"
+    "build": "vite build",
+    "build-watch": "vite build --watch",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "pdfjs-dist": "~3.3.122",
-    "fit-curve": "^0.2.0",
+    "pdfjs-dist": "~5.1.91",
     "base64-arraybuffer": "^1.0.2"
   },
   "devDependencies": {
-    "webpack": "^5.97.1",
-    "webpack-cli": "^6.0.1",
-    "html-webpack-plugin": "^5.5.0",
-    "copy-webpack-plugin": "^13.0.0",
-    "style-loader": "^4.0.0",
-    "css-loader": "^7.1.0"
+    "vite": "^6.0.0",
+    "typescript": "^5.0.2"
   }
 }
