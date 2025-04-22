@@ -1,15 +1,26 @@
 @import 'pdfjs-dist/web/pdf_viewer.css';
 
 :root {
- --body-bg-color: #525659;
- --main-color: rgba(249, 249, 250, 1);
- --toolbar-height: 2rem;
- --toolbar-bg-color: #323639;
- --toolbar-border-color: rgba(12, 12, 13, 1);
- --field-color: var(--main-color);
- --field-bg-color: rgba(64, 64, 68, 1);
- --field-border-color: rgba(115, 115, 115, 1);
- --hover-bg-color: rgba(102, 102, 103, 1);
+ /* Modern color palette */
+ --body-bg-color: #f5f5f7;
+ --main-color: #2c2c2e;
+ --accent-color: #aabb11;
+ --accent-hover: #aabb11;
+ --toolbar-height: 32px;
+ --toolbar-bg-color: rgba(255, 255, 255, 1);
+ --toolbar-border-color: rgba(0, 0, 0, 0.1);
+ --field-color: #2c2c2e;
+ --field-height: 24px;
+ --field-bg-color: rgba(240, 240, 245, 1);
+ --field-border-color: rgba(210, 210, 215, 1);
+ --hover-bg-color: rgba(235, 235, 240, 1);
+ 
+ /* Transitions */
+ --transition-speed: 0.2s;
+ 
+ /* Shadows */
+ --toolbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+ --button-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 html {
@@ -19,8 +30,18 @@ html {
   html {
     color-scheme: dark light;
   }
+  
+  :root {
+    --body-bg-color: #1e1e1e;
+    --main-color: #f5f5f7;
+    --toolbar-bg-color: rgba(42, 42, 42, 1);
+    --field-color: var(--dark-main-color);
+    --field-bg-color: rgba(60, 60, 65, 1);
+    --field-border-color: rgba(80, 80, 85, 1);
+    --hover-bg-color: rgba(75, 75, 80, 1);
+    --button-bg-color: rgba(50, 50, 50, 0.8);
+  }
 }
-
 
 * {
   padding: 0;
@@ -33,12 +54,12 @@ html, body {
 }
 body {
   background-color: var(--body-bg-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .hidden, [hidden] {
   display: none !important;
 }
-
 
 #outerContainer {
   width: 100%;
@@ -61,6 +82,9 @@ body {
   bottom: 0;
   left: 0;
   outline: none;
+  background-color: var(--body-bg-color);
+  transition: background-color var(--transition-speed) ease;
+  padding: 0.5rem;
 }
 
 
@@ -68,28 +92,29 @@ body {
   width: 100%;
   height: var(--toolbar-height);
   background-color: var(--toolbar-bg-color);
-  box-shadow: 0 1px 0 var(--toolbar-border-color);
+  box-shadow: var(--toolbar-shadow);
   border-bottom: none;
+  backdrop-filter: blur(10px);
 }
 #toolbarViewer {
   height: var(--toolbar-height);
   display: flex;
-  flex-direction: row;;
+  flex-direction: row;
+  padding: 0 0.5rem;
+  align-items: center;
 }
 #toolbarViewerMiddle {
   width: max-content;
   height: var(--toolbar-height);
   margin-left: auto;
   margin-right: auto;
-
   display: flex;
   align-items: center;
+  gap: 0.2rem;
 }
 #toolbarViewerRight {
-  float: right;
   display: flex;
   align-items: center;
-  padding-right: 0.5em;
 }
 
 .toolbar {
@@ -97,31 +122,38 @@ body {
   left: 0;
   right: 0;
   z-index: 9999;
-  font: message-box;
-
+  
   & input,
   & button,
   & select {
     outline: none;
-    font: message-box;
+    font-family: inherit;
+    transition: all var(--transition-speed) ease;
   }
 }
 
 
 
 .toolbarField {
-  margin: 0 0.3em;
-  padding: 1px 4px;
-  border-radius: 2px;
+  margin: 0 0.2em;
+  padding: 0 0.4rem;
+  border-radius: 6px;
   background-color: var(--field-bg-color);
   background-clip: padding-box;
   border: 1px solid var(--field-border-color);
-  box-shadow: none;
+  box-shadow: var(--button-shadow);
   color: var(--field-color);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  height: var(--field-height);
+  box-sizing: border-box;
+  vertical-align: middle;
+  display: inline-block;
 
   &:hover, &:focus-visible {
     background-color: var(--field-bg-color);
-    border: 1px solid var(--field-border-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
   }
 }
 
@@ -131,14 +163,18 @@ body {
   text-align: left;
   user-select: none;
   cursor: default;
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
 
 
 #pageNumber {
   text-align: right;
-  width: 2em;
+  width: 3em;
   appearance: textfield;
+  font-size: 0.8rem;
+  font-weight: 500;
 
   &::-webkit-outer-spin-button, &::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -149,9 +185,10 @@ body {
 
 #scaleSelect {
   cursor: pointer;
-
+  padding-right: 1.5rem;
+  
   & > option {
-    color: var(--main-color);
+    color: var(--field-color);
     background-color: var(--field-bg-color);
   }
 }
@@ -160,16 +197,22 @@ body {
 .toolbarButton {
   border: none;
   background: none;
-  width: 1.5em;
-  height: 1.5em;
-  /* padding: 0.2em; */
-  border-radius: 2px;
+  width: 1.8em;
+  height: 1.8em;
+  border-radius: 6px;
   color: var(--main-color);
   cursor: pointer;
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-speed) ease;
 
   & svg {
     fill: var(--main-color);
+    width: 1.5em;
+    height: 1.5em;
+    transition: transform var(--transition-speed) ease;
   }
 
   &[disabled] {
@@ -177,54 +220,66 @@ body {
   }
 
   &:hover, &:focus-visible {
-    color: var(--main-color);
+    color: var(--accent-color);
     background-color: var(--hover-bg-color);
+    
+    & svg {
+      fill: var(--accent-color);
+      transform: scale(1.1);
+    }
   }
 }
 
 
 .toolbarSpacing {
-  width: 2em;
+  width: 1rem;
 }
 
 
 .findbar {
   position: absolute;
   top: calc(var(--toolbar-height) + 1px);
-  right: 2em;
+  right: 1.5rem;
   z-index: 30000;
   height: auto;
-  font: message-box;
-  font-size: 12px;
-  line-height: 14px;
+  font-size: 0.9rem;
+  line-height: 1.4;
   text-align: left;
   cursor: default;
-  width: 26em;
+  width: 25em;
   background-color: var(--toolbar-bg-color);
-  padding: 1px;
-
+  padding: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: row;
   align-items: center;
+  gap: 0.2rem;
+  border: 1px solid var(--field-border-color);
+  animation: fadeIn var(--transition-speed) ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 #findInput {
-  width: 12em;
-  padding: 0;
-  margin-bottom: 2px;
+  width: 15em;
+  padding: 0 0.6rem;
+  border-radius: 6px;
+  margin-bottom: 0;
+  outline: none;
 
   &::-webkit-input-placeholder {
-    color: rgba(191, 191, 191, 1);
+    color: rgba(150, 150, 155, 1);
   }
 }
+
 #findbarMessageContainer {
-  width: 5.5em;
+  min-width: 5.5em;
   display: inline-block;
-}
-#findResultsCount {
   text-align: center;
-  /* padding: 4px 5px; */
-  margin: 5px;
 }
 :is(#findResultsCount, #findMsg):empty {
   display: none;
