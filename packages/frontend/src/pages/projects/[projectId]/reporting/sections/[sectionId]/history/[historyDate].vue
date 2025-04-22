@@ -4,16 +4,12 @@
       <div class="status-container ml-1 mr-1">
         <s-status-selection v-model="section.status" :readonly="true" />
       </div>
-      <div class="assignee-container ml-1 mr-1 d-none d-lg-block">
-        <s-user-selection
-          v-model="section.assignee"
-          :selectable-users="fieldAttrsHistoric.selectableUsers"
-          :readonly="true"
-          label="Assignee"
-          variant="underlined"
-          density="compact"
-        />
-      </div>
+      <s-assignee-selection
+        v-model="section.assignee"
+        :selectable-users="fieldAttrsHistoric.selectableUsers"
+        :readonly="true"
+        class="ml-1 mr-1"
+      />
 
       <s-btn-secondary
         v-if="currentUrl"

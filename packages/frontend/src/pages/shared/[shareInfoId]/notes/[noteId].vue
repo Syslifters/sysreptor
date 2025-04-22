@@ -131,9 +131,4 @@ useAutofocus(note, 'text');
     margin-right: 0.25em;
   }
 }
-
-.assignee-container {
-  width: 17em;
-  min-width: 17em;
-}
 </style>
