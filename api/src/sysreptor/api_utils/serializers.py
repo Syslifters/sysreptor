@@ -69,7 +69,7 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
 
     def validate_language(self, value):
         if value not in self.spellcheck_languages and value != 'auto':
-            raise serializers.ValidationError('Spellchcking is not supported for this language')
+            raise serializers.ValidationError('Spellchecking is not supported for this language')
         return value
 
     async def spellcheck(self):

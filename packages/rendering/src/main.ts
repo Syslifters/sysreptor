@@ -65,11 +65,7 @@ const REPORT_DATA = window.REPORT_DATA || { report: {}, finding_groups: [], pent
 
 const templateCompilerOptions: CompilerOptions & RuntimeCompilerOptions = {
   whitespace: 'preserve',
-  getTextMode: (node) => {
-    // Parse slot content of <markdown> as raw text and do not interpret as html/vue-template
-    // TODO: getTextMode gets removed in Vue 3.4 => find an alternative
-    return ['markdown', 'mermaid-diagram'].includes(node.tag) ? 2 /* TextModes.RAWTEXT */ : 0 /* TextModes.DATA */;
-  },
+  isRawTextTag: (tag) => ['markdown', 'mermaid-diagram'].includes(tag),
   isCustomElement: (tag) => ['footnote'].includes(tag),
   comments: true,
   ssr: false,
@@ -127,9 +123,6 @@ if (!window.RENDERING_COMPLETED) {
                     node.addEventListener('error', reject);
                   }));
                   waitScriptLoaded();
-                } else if (node.nodeName === 'INPUT' && node.attributes.getNamedItem('type')?.value === 'checkbox' && (node as HTMLInputElement).checked) {
-                  // The "checked" attribute is not exported to HTML, so we need this workaround to know whether a checkbox is checked
-                  node.setAttribute('data-checked', 'checked');
                 }
               }
             }

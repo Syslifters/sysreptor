@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { v4 as uuidv4 } from "uuid";
-import { computed, defineProps, onMounted, ref, useSlots } from "vue";
+import { computed, onMounted, ref, useSlots } from "vue";
 import { callForTicks, useRenderTask } from "@/utils";
 
 const props = defineProps<{

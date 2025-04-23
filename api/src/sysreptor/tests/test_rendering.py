@@ -161,6 +161,9 @@ class TestHtmlRendering:
                     '```',
                     '',
                     '<span v-if="false">This should not be rendered</span><span v-if="report.title">Variable: {{ report.title }}</span>',
+                    '',
+                    '\\<escaped-backslash>',
+                    '&lt;escaped-lt>',
                 ]) + '</markdown>'),
                 '\n'.join([
                     '<div class="markdown">',
@@ -180,6 +183,8 @@ class TestHtmlRendering:
                     '<span class="code-block-line" data-line-number="5">&lt;!-- comment preserved --&gt;</span>',
                     '</code></pre>',
                     '<p><span>Variable: Report title</span></p>',
+                    '<p>&lt;escaped-backslash&gt;',
+                    '&lt;escaped-lt&gt;</p>',
                     '</div>',
                 ]),
             )

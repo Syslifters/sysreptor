@@ -1,5 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig, PluginOption } from 'vite'
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import { viteStaticCopy } from 'vite-plugin-static-copy'
@@ -15,11 +15,16 @@ export default defineConfig({
         dest: '',
       }],
     }),
-  ] as unknown as PluginOption[],
+  ],
   resolve: {
     alias: {
       vue: 'vue/dist/vue.esm-bundler.js',
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // Use a modified version of "@vue/compiler-core" that supports parsing tag content as raw text
+      // See package.json postinstall script for installation and patching
+      // When updating Vue, make sure that the patch still works
+      // Checkout vue-core, apply patches, run "nr build" and "nr build-dts", copy packages/compiler-core/dist/{compiler-core.esm-bundler.js,compiler-core.d.ts} to node_modules/@vue/compiler-core/dist/, run npx patch-package @vue/compiler-core
+      '@vue/compiler-core': fileURLToPath(new URL('node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js', import.meta.url)),
     }
   },
   build: {

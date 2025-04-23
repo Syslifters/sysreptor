@@ -18,6 +18,7 @@ COPY packages/pdfviewer/package.json /app/packages/pdfviewer/
 COPY packages/nuxt-base-layer/package.json /app/packages/nuxt-base-layer/
 COPY packages/plugin-base-layer/package.json /app/packages/plugin-base-layer/
 COPY packages/rendering/package.json /app/packages/rendering/
+COPY packages/rendering/patches/ /app/packages/rendering/patches/
 # Install dependencies of all packages
 RUN npm install
 

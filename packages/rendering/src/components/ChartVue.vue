@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import { useRenderTask } from '@/utils';
 import Chart from 'chart.js/auto';
-import { defineProps, ref, nextTick, onMounted } from 'vue';
+import { ref, nextTick, onMounted } from 'vue';
 
 const props = withDefaults(defineProps<{
   config: any;
