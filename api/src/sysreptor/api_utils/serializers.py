@@ -65,7 +65,7 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
 
     @cached_property
     def spellcheck_languages(self):
-        return [l for l in Language if l.spellcheck and (not configuration.PREFERRED_LANGUAGES or l.value in configuration.PREFERRED_LANGUAGES)]
+        return [l for l in Language if l.spellcheck]
 
     def validate_language(self, value):
         if value not in self.spellcheck_languages and value != 'auto':
