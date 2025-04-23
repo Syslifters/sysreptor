@@ -1,0 +1,53 @@
+diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.d.ts b/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
+index 9795cad..db8f834 100644
+--- a/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
++++ b/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
+@@ -662,6 +662,10 @@ export interface ParserOptions extends ErrorHandlingOptions, CompilerCompatOptio
+      * e.g. elements that should preserve whitespace inside, e.g. `<pre>`
+      */
+     isPreTag?: (tag: string) => boolean;
++    /**
++     * e.g. elements that contain raw text instead of nested elements
++     */
++    isRawTextTag?: (tag: string) => boolean;
+     /**
+      * Elements that should ignore the first newline token per parinsg spec
+      * e.g. `<textarea>` and `<pre>`
+@@ -1089,3 +1093,4 @@ export declare function processSlotOutlet(node: SlotOutletNode, context: Transfo
+ 
+ export declare function getConstantType(node: TemplateChildNode | SimpleExpressionNode | CacheExpression, context: TransformContext): ConstantTypes;
+ 
++
+diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
+index 8da200e..0d2bf11 100644
+--- a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
++++ b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
+@@ -1911,6 +1911,7 @@ const defaultParserOptions = {
+   getNamespace: () => 0,
+   isVoidTag: NO,
+   isPreTag: NO,
++  isRawTextTag: NO,
+   isIgnoreNewlineTag: NO,
+   isCustomElement: NO,
+   onError: defaultOnError,
+@@ -2307,6 +2308,11 @@ function endOpenTag(end) {
+   if (ns === 0 && currentOptions.isPreTag(tag)) {
+     inPre++;
+   }
++  if (ns === 0 && currentOptions.isRawTextTag(tag)) {
++    tokenizer.inRCDATA = true;
++    tokenizer.currentSequence = toCharCodes("</" + tag);
++    tokenizer.sequenceIndex = 0;
++  }
+   if (currentOptions.isVoidTag(tag)) {
+     onCloseTag(currentOpenTag, end);
+   } else {
+@@ -2320,7 +2326,7 @@ function endOpenTag(end) {
+ function onText(content, start, end) {
+   {
+     const tag = stack[0] && stack[0].tag;
+-    if (tag !== "script" && tag !== "style" && content.includes("&")) {
++    if (tag !== "script" && tag !== "style" && !currentOptions.isRawTextTag(tag) && content.includes("&")) {
+       content = currentOptions.decodeEntities(content, false);
+     }
+   }

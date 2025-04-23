@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts">
-import { defineProps, getCurrentInstance, onMounted, ref } from 'vue';
+import { getCurrentInstance, onMounted, ref } from 'vue';
 import { mermaid } from '@sysreptor/markdown';
 import { useRenderTask } from '@/utils';
 

@@ -7,12 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "build-watch": "vite build --watch",
-    "typecheck": "vue-tsc --build"
+    "typecheck": "vue-tsc --build",
+    "postinstall": "mkdir -p node_modules/@vue && cp -r ../node_modules/@vue/compiler-core node_modules/@vue/compiler-core && patch-package"
   },
   "dependencies": {
     "@sysreptor/markdown": "../markdown",
 
-    "vue": "~3.3",
+    "vue": "3.5.13",
     "chart.js": "^4",
     "chartjs-plugin-datalabels": "^2",
     "uuid": "^11",
@@ -23,6 +24,7 @@
     "vite": "^6.0.0",
     "vite-plugin-css-injected-by-js": "^3.3.1",
     "vite-plugin-static-copy": "^2.0.0",
+    "patch-package": "^8.0.0",
 
     "vue-tsc": "^2.2.0",
     "@vue/tsconfig": "^0.7.0"
