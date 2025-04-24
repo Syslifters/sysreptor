@@ -476,7 +476,7 @@ async function deleteMfaMethod(mfaMethod: MfaMethod) {
   });
 }
 
-const fromChangePassword = ref<VForm|null>(null);
+const fromChangePassword = useTemplateRef('fromChangePassword');
 async function changePassword() {
   if (!(await fromChangePassword.value!.validate()).valid) {
     return;

@@ -11,7 +11,7 @@
           <span class="timing-value">{{ timingsTotal }}</span>
 
           <v-menu activator="parent" location="top right" :close-on-content-click="false">
-            <v-table class="pa-2">
+            <v-table class="pa-2 border">
               <tr v-for="(timing, key) in timings" :key="key">
                 <td class="timing-table-key">{{ key.replaceAll('_', ' ') }}</td>
                 <td class="timing-value">{{ formatTiming(timing) }}</td>
@@ -151,6 +151,7 @@ function sum(numbers: number[]) {
 defineExpose({
   pdfData,
   showMessages,
+  messages,
   renderingInProgress: fetchPdf.pending,
   reloadDebounced,
   reloadImmediate,

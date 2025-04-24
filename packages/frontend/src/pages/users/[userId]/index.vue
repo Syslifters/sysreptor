@@ -2,7 +2,7 @@
   <v-form ref="form">
     <edit-toolbar
       :data="user"
-      :form="$refs.form as VForm"
+      :form="form"
       :edit-mode="canEdit ? EditMode.EDIT : EditMode.READONLY"
       :save="performSave"
       :delete="performDelete"
@@ -97,6 +97,8 @@ const user = await useAsyncDataE<User>(async () => await $fetch(apiUrl, { method
 
 const serverErrors = ref<any|null>(null);
 const canEdit = computed(() => auth.permissions.value.user_manager && !user.value.is_system_user);
+
+const form = useTemplateRef('form');
 
 async function performSave(data: User) {
   try {

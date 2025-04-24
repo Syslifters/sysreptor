@@ -190,7 +190,7 @@ const currentMfaMethod = ref<MfaMethod | null>(null);
 const formCode = ref({
   code: '',
 });
-const otpRef = ref<VOtpInput|null>(null);
+const otpRef = useTemplateRef('otpRef');
 const formChangePassword = ref({
   password: '',
 });

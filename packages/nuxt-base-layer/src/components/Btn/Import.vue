@@ -1,7 +1,7 @@
 <template>
   <s-btn-icon
     v-if="buttonVariant === 'icon'"
-    @click="fileInput.click()"
+    @click="fileInput?.click()"
     :loading="props.loading || importInProgress"
     :disabled="props.disabled"
     color="secondary"
@@ -23,7 +23,7 @@
   <v-list-item
     v-else
     link
-    @click="fileInput.click()"
+    @click="fileInput?.click()"
     :disabled="props.disabled"
   >
     <template #prepend>
@@ -57,9 +57,9 @@ const props = withDefaults(defineProps<{
 });
 
 const importInProgress = ref(false);
-const fileInput = ref();
+const fileInput = useTemplateRef('fileInput');
 
-async function performImport(files?: FileList|null) {
+async function performImport(files?: FileList|File[]|null) {
   const file = Array.from(files || [])[0];
   if (props.disabled || importInProgress.value || !file) {
     return;
@@ -78,7 +78,7 @@ async function performImport(files?: FileList|null) {
   } finally {
     importInProgress.value = false;
     if (fileInput.value) {
-      fileInput.value.value = null;
+      fileInput.value.value = '';
     }
   }
 }

@@ -11,6 +11,7 @@
             <template #append>
               <comment-btn
                 v-if="props.current.collab?.comments"
+                ref="commentBtnRef"
                 v-bind="commentBtnAttrs"
               />
             </template>
@@ -31,6 +32,7 @@
             <template #append>
               <comment-btn
                 v-if="props.current.collab?.comments"
+                ref="commentBtnRef"
                 v-bind="commentBtnAttrs"
               />
             </template>
@@ -173,7 +175,6 @@ const nestedClass = computed(() => {
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({
-  ref: 'commentBtnRef',
   comments: props.current.collab?.comments?.filter(c => c.collabPath === props.current.collab?.path) || [],
   onComment: (v: any) => props.current?.onComment?.(v),
   collabPath: props.current.collab?.path || '',
@@ -181,5 +182,5 @@ const commentBtnAttrs = computed(() => ({
   disabled: (props.current as any).disabled || props.current.readonly,
   density: 'comfortable',
 }));
-const commentBtnRef = ref();
+const commentBtnRef = useTemplateRef('commentBtnRef');
 </script>

@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import { useRenderTask } from '@/utils';
 import Chart from 'chart.js/auto';
-import { ref, nextTick, onMounted } from 'vue';
+import { ref, nextTick, onMounted, useTemplateRef } from 'vue';
 
 const props = withDefaults(defineProps<{
   config: any;
@@ -26,18 +26,20 @@ const props = withDefaults(defineProps<{
   chartHeight: null,
 });
 
-const canvasRef = ref();
+const canvasRef = ref<HTMLCanvasElement>();  // useTemplateRef results in runtime warnings
 const chartImageData = ref<string|null>(null);
 
-const renderChartImage = useRenderTask(async () => {
+onMounted(useRenderTask(async () => {
   // Ensure custom fonts are loaded
   await document.fonts.ready;
 
-  // Render chart
-  if (chartImageData.value) {
+  // Wait for canvas to be ready
+  while (!canvasRef.value) {
     chartImageData.value = null;
     await nextTick();
   }
+
+  // Render chart
   const chart = new Chart(canvasRef.value, {
     ...props.config,
     options: {
@@ -48,6 +50,5 @@ const renderChartImage = useRenderTask(async () => {
   });
   chartImageData.value = chart.toBase64Image();
   chart.destroy();
-});
-onMounted(renderChartImage);
+}));
 </script>

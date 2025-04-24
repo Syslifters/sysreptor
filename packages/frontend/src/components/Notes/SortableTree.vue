@@ -107,7 +107,7 @@ function updateChecked(note: NoteBase, checked: boolean) {
   emit('update:checked', { ...note, checked });
 }
 
-const draggableRef = ref<InstanceType<typeof Draggable>>();
+const draggableRef = useTemplateRef('draggableRef');
 watch(() => props.modelValue, () => {
   if (!draggableRef.value) {
     return;

@@ -310,7 +310,9 @@ class PDFViewerApplicationClass {
     if (scrollInfo && Object.entries(scrollInfo).length > 0) {
       // Restore scroll position and zoom level of previous document
       this.eventBus.on('pagesinit', () => {
-        this.linkService.setHash(`page=${scrollInfo.pageNumber || 0}&zoom=${scrollInfo.scale || DEFAULT_SCALE_VALUE},${scrollInfo.left || 0},${scrollInfo.top || 0}`);
+        try {
+          this.linkService.setHash(`page=${Math.min(scrollInfo.pageNumber || 1, this.pagesCount)}&zoom=${scrollInfo.scale || DEFAULT_SCALE_VALUE},${scrollInfo.left || 0},${scrollInfo.top || 0}`);
+        } catch {}
       }, {once: true});
     }
 

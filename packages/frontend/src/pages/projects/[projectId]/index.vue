@@ -151,6 +151,7 @@
 <script setup lang="ts">
 import type { VForm } from "vuetify/lib/components/index.mjs";
 import { ProjectTypeScope } from '#imports';
+import type { EditToolbar } from "#components";
 
 const route = useRoute();
 const auth = useAuth();
@@ -163,8 +164,8 @@ const serverErrors = ref<any|null>(null);
 const projectType = ref<ProjectType|null>(null);
 const historyVisible = ref(false);
 
-const formRef = ref<VForm>();
-const toolbarRef = ref();
+const formRef = useTemplateRef<VForm>('formRef');
+const toolbarRef = useTemplateRef<ToolbarRef['value']>('toolbarRef');
 
 const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
   toolbarRef,

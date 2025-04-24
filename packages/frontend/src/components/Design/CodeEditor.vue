@@ -55,7 +55,7 @@ const emits = defineEmits< {
 const theme = useTheme();
 
 let editor: monaco.editor.IStandaloneCodeEditor;
-const editorElement = ref<HTMLElement>();
+const editorElement = useTemplateRef('editorElement');
 
 onMounted(() => {
   editor = monaco.editor.create(editorElement.value!, {

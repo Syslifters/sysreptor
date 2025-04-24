@@ -38,6 +38,7 @@
 import { isEqual } from "lodash-es";
 import { urlJoin } from "@base/utils/helpers";
 import { uploadFileHelper } from "#imports";
+import type { TemplateEditor } from "#components";
 
 const route = useRoute();
 const auth = useAuth();

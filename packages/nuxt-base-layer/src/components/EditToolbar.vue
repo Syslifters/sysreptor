@@ -100,7 +100,7 @@ import type { VForm } from "vuetify/lib/components/index.mjs";
 
 const props = withDefaults(defineProps<{
   data?: T|null,
-  form?: VForm,
+  form?: VForm|null,
   canSave?: boolean,
   canAutoSave?: boolean,
   save?:((data: T) => Promise<void>),
@@ -113,7 +113,7 @@ const props = withDefaults(defineProps<{
   errorMessage?: string|null,
 }>(), {
   data: undefined,
-  form: undefined,
+  form: null,
   canSave: true,
   canAutoSave: false,
   save: undefined,
@@ -219,7 +219,7 @@ async function performSave() {
   if (!canSave.value || !hasChanges.value || savingInProgress.value) {
     return;
   }
-  if (props.form !== undefined) {
+  if (props.form) {
     const { valid, errors } = await props.form.validate();
     if (!valid) {
       // eslint-disable-next-line no-console

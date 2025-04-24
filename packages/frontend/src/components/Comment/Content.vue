@@ -45,7 +45,6 @@
 
       <div v-if="editEnabled" @click.stop.prevent>
         <v-textarea
-          ref="textFieldRef"
           v-model="editText"
           @keydown.ctrl.enter.prevent="performUpdate"
           :placeholder="props.placeholder"
@@ -95,7 +94,6 @@ const props = defineProps<{
 
 const editEnabled = ref(props.initialEdit || false);
 const editText = ref('');
-const textFieldRef = ref<HTMLInputElement|null>(null);
 whenever(() => props.isNew, () => {
   editEnabled.value = true;
 }, { immediate: true });

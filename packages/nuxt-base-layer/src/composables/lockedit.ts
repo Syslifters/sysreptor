@@ -11,7 +11,7 @@ export type LockEditOptions<T> = {
   toolbarRef?: ToolbarRef;
   data: Ref<T>;
   baseUrl?: ComputedRef<string|null>;
-  form?: Ref<VForm|undefined>;
+  form?: Ref<VForm|null|undefined>;
   fetchState?: ReturnType<typeof useLazyFetch>;
   hasEditPermissions?: ComputedRef<boolean>;
   canDelete?: ComputedRef<boolean>;
@@ -25,8 +25,7 @@ export type LockEditOptions<T> = {
 
 export function useLockEdit<T>(options: LockEditOptions<T>) {
   const route = useRoute();
-  const vm = getCurrentInstance()!;
-  const toolbarRef = options.toolbarRef || computed(() => vm.refs.toolbarRef);
+  const toolbarRef = options.toolbarRef || useTemplateRef<ToolbarRef['value']>('toolbarRef');
   const lockUrl = computed(() => options.baseUrl?.value ? urlJoin(options.baseUrl.value, '/lock/') : undefined);
   const unlockUrl = computed(() => options.baseUrl?.value ? urlJoin(options.baseUrl.value, '/unlock/') : undefined);
   const hasEditPermissions = computed(() => {

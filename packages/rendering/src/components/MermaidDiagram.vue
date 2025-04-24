@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts">
-import { getCurrentInstance, onMounted, ref } from 'vue';
+import { onMounted, ref, useId } from 'vue';
 import { mermaid } from '@sysreptor/markdown';
 import { useRenderTask } from '@/utils';
 
@@ -33,11 +33,12 @@ const props = withDefaults(defineProps<{
 const diagramSvg = ref<string|null>(null);
 const diagramPng = ref<string|null>(null);
 
-const codeContainerRef = ref<HTMLElement>();
+// useTemplateRef results in runtime warnings
+const codeContainerRef = ref<HTMLElement>();  
 const svgContainerRef = ref<HTMLImageElement>();
 const canvasRef = ref<HTMLCanvasElement>();
 
-const vm = getCurrentInstance();
+const id = useId();
 
 function unescapeCode(code: string) {
   return code.replaceAll('&#x7B;', '{').replaceAll('&#x7D;', '}');
@@ -47,14 +48,14 @@ onMounted(useRenderTask(async () => {
   // Ensure custom fonts are loaded
   await document.fonts.ready;
 
-  // Get meramid code from slot
+  // Get mermaid code from slot
   const codeContainer = codeContainerRef.value!;
   const mermaidCode = props.text || unescapeCode(codeContainer.innerText);
 
   // Render mermaid code to SVG
   let svg = null;
   try {
-    const res = await mermaid.render(`mermaid-${vm!.uid}`, mermaidCode, codeContainer);
+    const res = await mermaid.render(`mermaid-${id}`, mermaidCode, codeContainer);
     svg = res.svg;
   } catch (e: any) {
     console.warn('mermaid error', { message: 'Mermaid error', details: e.message });

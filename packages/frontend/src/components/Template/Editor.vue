@@ -1,6 +1,6 @@
 <template>
   <div v-if="fieldDefinitionTitle" :key="template.id" class="h-100 d-flex flex-column">
-    <edit-toolbar v-bind="toolbarAttrs || {}" ref="toolbarRef">
+    <edit-toolbar v-bind="props.toolbarAttrs || {}" ref="toolbarRef">
       <template #title>
         <v-tabs v-model="currentTranslationLanguage"  center-active>
           <v-tab 
@@ -38,7 +38,7 @@
 
       <slot name="toolbar-actions" />
 
-      <btn-history v-if="history" v-model="historyVisible" />
+      <btn-history v-if="props.history" v-model="historyVisible" />
 
       <template #context-menu v-if="$slots['toolbar-context-menu']">
         <slot name="toolbar-context-menu" />
@@ -46,7 +46,7 @@
     </edit-toolbar>
 
     <history-timeline-template
-      v-if="history"
+      v-if="props.history"
       v-model="historyVisible"
       :template="template"
       :translation="currentTranslation"
@@ -161,7 +161,7 @@ useLazyAsyncData(async () => await templateStore.getFieldDefinition());
 const template = computed(() => props.modelValue);
 const mainTranslation = computed(() => template.value.translations.find(tr => tr.is_main)!);
 
-const toolbarRef = ref();
+const toolbarRef = useTemplateRef('toolbarRef');
 const currentTranslationLanguage = ref((template.value.translations.find(tr => tr.language === props.initialLanguage) || mainTranslation.value).language);
 const currentTranslation = computed(() => template.value.translations.find(tr => tr.language === currentTranslationLanguage.value) || mainTranslation.value);
 watch(() => template.value.translations, () => {

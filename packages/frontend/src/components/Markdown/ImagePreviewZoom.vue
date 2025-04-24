@@ -25,9 +25,9 @@ const props = withDefaults(defineProps<{
 const zoomHover = ref(false);
 const isZoomed = computed(() => zoomEnabled.value && zoomHover.value);
 
-const imgContainerRef = ref<HTMLElement>();
-const imgNormalRef = ref<HTMLElement>();
-const imgZoomRef = ref<HTMLElement>();
+const imgContainerRef = useTemplateRef('imgContainerRef');
+const imgNormalRef = useTemplateRef('imgNormalRef');
+const imgZoomRef = useTemplateRef('imgZoomRef');
 
 function pageOffset(el: HTMLElement) {
   // get the left and top offset of a dom block element

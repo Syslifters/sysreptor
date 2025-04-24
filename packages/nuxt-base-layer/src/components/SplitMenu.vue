@@ -32,7 +32,7 @@ const emit = defineEmits<{
 }>();
 
 // Scroll to top on navigate
-const contentPaneRef = ref();
+const contentPaneRef = useTemplateRef('contentPaneRef');
 watch(router.currentRoute, () => {
   contentPaneRef.value?.$el?.scrollTo({ top: 0, behavior: 'instant' });
 });

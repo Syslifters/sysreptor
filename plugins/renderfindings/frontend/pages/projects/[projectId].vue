@@ -74,10 +74,11 @@
             :value="finding"
             :class="`finding-level-${riskLevel(finding)}`"
           >
-            <template #prepend="{ isSelected }">
+            <template #prepend="{ isSelected, select }">
               <v-list-item-action start>
                 <v-checkbox-btn 
                   :model-value="isSelected" 
+                  @update:model-value="select"
                   density="compact"
                 />
               </v-list-item-action>
@@ -97,6 +98,7 @@
 
 <script setup lang="ts">
 import { useFetchE, type PentestProject, type PentestFinding, type PdfResponse, MessageLevel, type ProjectType, type ErrorMessage } from '#imports';
+import type { PdfPreview } from '#components';
 import { getFindingRiskLevel, sortFindings } from '@base/utils/project';
 import { base64decode, fileDownload } from '@base/utils/helpers';
 
@@ -119,14 +121,14 @@ const selectedFindings = ref<PentestFinding[]>([]);
 const renderMode = ref<RenderFindingsMode>(RenderFindingsMode.COMBINED);
 
 const menuSize = ref(50);
-const pdfPreviewRef = ref();
+const pdfPreviewRef = useTemplateRef<InstanceType<typeof PdfPreview>>('pdfPreviewRef');
 const renderingInProgress = computed(() => pdfPreviewRef.value?.renderingInProgress);
 function refreshPdfPreview() {
   if (renderingInProgress.value) {
     return;
   }
 
-  pdfPreviewRef.value.reloadImmediate();
+  pdfPreviewRef.value?.reloadImmediate();
 }
 
 async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }): Promise<PdfResponse> {
@@ -152,7 +154,7 @@ async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }): Promise<P
 
   if (res.pdf) {
     // close warnings panel on successfuly render
-    pdfPreviewRef.value.showMessages = false;
+    pdfPreviewRef.value!.showMessages = false;
   }
 
   return res;
@@ -170,7 +172,7 @@ async function downloadPdf() {
     const findingsToRender = findings.value.filter(f => selectedFindings.value.includes(f));
     for (let i = 0; i < findingsToRender.length; i++) {
       selectedFindings.value = [findingsToRender[i]!];
-      pdfPreviewRef.value.reloadImmediate();
+      pdfPreviewRef.value!.reloadImmediate();
       
       // wait until rendered
       while (renderingInProgress.value) {
@@ -179,14 +181,14 @@ async function downloadPdf() {
       
       const rateLimitMessage = (pdfPreviewRef.value?.messages || []).find((m: ErrorMessage) => m.details?.startsWith('Request was throttled'));
       const waitTime = rateLimitMessage?.details?.match(/available in (\d+) seconds/)?.[1];
-      if (pdfPreviewRef.value) {
+      if (Number.isInteger(waitTime)) {
+        // handle rate limit
+        await wait((Number.parseInt(waitTime!) + 1) * 1000);
+        i--;
+      } else if (pdfPreviewRef.value?.pdfData) {
         // download PDF
         fileDownload(base64decode(pdfPreviewRef.value.pdfData), `finding-${i + 1}.pdf`);
-      } else if (Number.isInteger(waitTime)) {
-        // handle rate limit
-        await wait((waitTime + 1) * 1000);
-        i--;
-      } else if (!pdfPreviewRef.value?.pdfData) {
+      } else {
         // rendering error
         errorToast(`Failed to render PDF for finding ${i + 1} "${findingsToRender[i]!.data.title}"`);
       }

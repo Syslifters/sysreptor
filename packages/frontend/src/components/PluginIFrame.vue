@@ -24,7 +24,7 @@ const theme = useTheme();
 const loadingIndicator = useLoadingIndicator();
 loadingIndicator.start();
 
-const iframeRef = ref<HTMLIFrameElement>();
+const iframeRef = useTemplateRef('iframeRef');
 const iframeUrl = computed(() => {
   const url = new URL(props.src, window.location.href);
   // Append current query to iframe URL

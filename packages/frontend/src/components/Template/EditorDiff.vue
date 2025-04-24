@@ -146,7 +146,6 @@ const translationInfos = computed(() => {
   return out;
 })
 
-const toolbarRef = ref();
 const currentTranslation = ref(template.value.translations.find(tr => tr.language === props.initialLanguage) || mainTranslation.value);
 const currentTab = computed({
   get: () => template.value.translations.findIndex(tr => tr.id === currentTranslation.value.id),

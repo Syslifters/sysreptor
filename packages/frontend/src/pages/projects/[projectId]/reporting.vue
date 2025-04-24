@@ -71,7 +71,7 @@ function collabAwarenessSendNavigate() {
   });
 }
 
-const createFindingDialogRef = ref<InstanceType<typeof CreateFindingDialog>>();
+const createFindingDialogRef = useTemplateRef('createFindingDialogRef');
 
 // Sort findings
 const wasOverrideFindingOrder = ref(false);

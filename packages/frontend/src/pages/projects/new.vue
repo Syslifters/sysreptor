@@ -66,7 +66,7 @@ const projectForm = ref({
 });
 const serverErrors = ref<any|null>(null);
 
-const formRef = ref<VForm>();
+const formRef = useTemplateRef('formRef');
 async function performCreate() {
   const { valid } = await formRef.value!.validate();
   if (!valid) {

@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import type { VForm } from "vuetify/lib/components/index.mjs";
+import type { VTextField } from "vuetify/lib/components/index.mjs";
 import zxcvbn from 'zxcvbn';
 
 const modelValue = defineModel<string|null>();
@@ -70,7 +70,7 @@ const props = withDefaults(defineProps<{
   showStrength: false,
 });
 
-const confirmField = ref<VForm|null>(null);
+const confirmField = useTemplateRef<VTextField>('confirmField');
 async function passwordChanged(val: string) {
   if (props.confirm && confirmField.value) {
     await confirmField.value.validate();

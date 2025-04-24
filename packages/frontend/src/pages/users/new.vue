@@ -93,7 +93,7 @@ const identityForm = ref({
 });
 const serverErrors = ref<any|null>();
 
-const form = ref<VForm>();
+const form = templateRef('form');
 async function performCreate() {
   if (!(await form.value!.validate()).valid) {
     return;

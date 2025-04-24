@@ -69,6 +69,7 @@
 <script setup lang="ts">
 import { pick } from "lodash-es";
 import { PdfDesignerTab } from "#imports";
+import type { PdfPreview } from "#components";
 
 const route = useRoute();
 const auth = useAuth();
@@ -77,9 +78,7 @@ const projectStore = useProjectStore();
 const currentTab = ref(PdfDesignerTab.HTML);
 const previewSplitSize = ref(60);
 
-const pdfPreviewRef = ref();
-const htmlEditor = ref();
-const cssEditor = ref();
+const pdfPreviewRef = useTemplateRef<InstanceType<typeof PdfPreview>>('pdfPreviewRef');
 
 const pdfRenderingInProgress = computed(() => pdfPreviewRef.value?.renderingInProgress);
 
@@ -105,9 +104,9 @@ async function fetchPdf(fetchOptions: { signal: AbortSignal }) {
 }
 function loadPdf(immediate = true) {
   if (immediate) {
-    pdfPreviewRef.value.reloadImmediate();
+    pdfPreviewRef.value?.reloadImmediate();
   } else {
-    pdfPreviewRef.value.reloadDebounced();
+    pdfPreviewRef.value?.reloadDebounced();
   }
 }
 watch(projectType, () => loadPdf(false), { deep: true })

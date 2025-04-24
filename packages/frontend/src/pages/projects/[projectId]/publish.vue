@@ -158,6 +158,7 @@
 </template>
 
 <script setup lang="ts">
+import type { PdfPreview } from "#components";
 import { fileDownload, generateRandomPassword } from "@base/utils/helpers";
 import { addDays, formatISO9075 } from "date-fns";
 
@@ -176,7 +177,7 @@ const project = await useAsyncDataE(async () => await projectStore.getById(route
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'publish:projecttype' });
 
 const { data: checkMessages, status: checkMessagesStatus, refresh: refreshCheckMessages } = useLazyFetch<{ messages: ErrorMessage[] }>(`/api/v1/pentestprojects/${project.value.id}/check/`, { method: 'GET' });
-const pdfPreviewRef = ref();
+const pdfPreviewRef = useTemplateRef<InstanceType<typeof PdfPreview>>('pdfPreviewRef');
 const allMessages = computed(() => {
   const out = [] as ErrorMessage[];
   if (checkMessages.value?.messages) {
@@ -233,7 +234,7 @@ function refreshPreviewAndChecks() {
     return;
   }
 
-  pdfPreviewRef.value.reloadImmediate();
+  pdfPreviewRef.value?.reloadImmediate();
   refreshCheckMessages();
 }
 async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }) {

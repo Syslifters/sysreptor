@@ -51,7 +51,7 @@ const props = defineProps<{
   scaleFactor?: number;
 }>();
 
-const windowRef = ref<VWindow>()
+const windowRef = useTemplateRef('windowRef');
 
 function onClose(val: boolean) {
   if (!val) {

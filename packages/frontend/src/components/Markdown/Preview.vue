@@ -44,7 +44,7 @@ watchThrottled(() => props.value, async () => {
   renderedMarkdownText.value = mdText;
 }, { throttle: 500, leading: true, immediate: true });
 
-const previewRef = ref<HTMLDivElement>();
+const previewRef = useTemplateRef('previewRef');
 async function postProcessRenderedHtml() {
   // Prevent navigation when clicking on anchor links in preview
   previewRef.value!.querySelectorAll('.preview a[href^="#"]').forEach((a: Element) => {
@@ -79,7 +79,7 @@ function showPreviewImage(event: MouseEvent) {
       let markdown = undefined;
       try {
         const position = JSON.parse(img.parentElement?.getAttribute('data-position') || '');
-        if (position?.start?.offset && position?.end?.offset) {
+        if (Number.isInteger(position?.start?.offset) && Number.isInteger(position?.end?.offset)) {
           markdown = renderedMarkdownText.value.substring(position.start.offset, position.end.offset) || undefined;
         }
       } catch {

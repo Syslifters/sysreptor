@@ -32,8 +32,7 @@ export function useMarkdownDiff(options: {
     current: DiffFieldProps,
   }>;
 }) {
-  const vm = getCurrentInstance()!;
-  const mergeViewRef = computed(() => vm.refs.mergeViewRef as HTMLElement);
+  const mergeViewRef = useTemplateRef<HTMLElement>('mergeViewRef');
   const mergeView = shallowRef<MergeView|null>(null);
 
   const editorViewCurrent = shallowRef<EditorView|null>(null);
@@ -79,7 +78,7 @@ export function useMarkdownDiff(options: {
 
   function initializeMergeView() {
     mergeView.value = new MergeView({
-      parent: mergeViewRef.value,
+      parent: mergeViewRef.value!,
       root: document,
       orientation: "a-b",
       revertControls: options.props.value.current.readonly ? undefined : "a-to-b",
