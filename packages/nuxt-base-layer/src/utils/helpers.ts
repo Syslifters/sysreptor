@@ -39,13 +39,7 @@ export function useKeyboardShortcut(shortcut: string, handler: (event: KeyboardE
     event.preventDefault();
     handler(event);
   }
-
-  onMounted(() => {
-    window.addEventListener('keydown', onKeyDown);
-  });
-  onBeforeUnmount(() => {
-    window.removeEventListener('keydown', onKeyDown);
-  });
+  useEventListener(window, 'keydown', onKeyDown, { passive: false });
 }
 
 function* positions(node: any, isLineStart = true): Generator<{ node: Node, offset: number, text: string }> {
@@ -169,10 +163,7 @@ export function useAbortController<T>(performFetch: (fetchOptions: { signal: Abo
     }
   }
 
-  onMounted(() => {
-    window.addEventListener('beforeunload', abort);
-  });
-  onBeforeUnmount(() => window.removeEventListener('beforeunload', abort));
+  useEventListener(window, 'beforeunload', abort);
   onUnmounted(() => abort());
 
   return {

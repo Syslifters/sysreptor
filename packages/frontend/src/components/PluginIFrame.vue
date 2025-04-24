@@ -92,12 +92,7 @@ function* getChildElementsRecursive(node: Node): Generator<Element> {
 
 // Redirect native top-level navigation to nuxt navigation.
 // Speed up navigation performance and prevent flashing pages (supported only in Chrome)
-onMounted(() => {
-  (window as any).navigation?.addEventListener('navigate', onNavigate, { once: true });
-});
-onBeforeUnmount(() => {
-  (window as any).navigation?.removeEventListener('navigate', onNavigate);
-});
+useEventListener((window as any).navigation, 'navigate', onNavigate, { once: true });
 function onNavigate(event: any) {
   if (!['push', 'traverse'].includes(event.navigationType) || !event.cancelable || new URL(event.destination.url).origin !== window.location.origin) {
     return;

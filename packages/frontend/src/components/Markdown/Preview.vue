@@ -97,16 +97,10 @@ function showPreviewImage(event: MouseEvent) {
     event.stopPropagation();
   }
 }
+useEventListener(previewRef, 'click', showPreviewImage);
 
-onMounted(() => {
-  previewRef.value?.addEventListener('click', showPreviewImage);
-
-  postProcessRenderedHtml(); 
-});
+onMounted(() => postProcessRenderedHtml());
 onUpdated(() => postProcessRenderedHtml());
-onBeforeUnmount(() => {
-  previewRef.value?.removeEventListener('click', showPreviewImage);
-})
 </script>
 
 <style lang="scss" scoped>
