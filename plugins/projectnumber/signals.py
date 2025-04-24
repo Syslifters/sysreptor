@@ -41,7 +41,7 @@ def on_project_saved(sender, instance: PentestProject, *args, **kwargs):
         )
 
         # Add tag
-        instance.tags = [projectnumber_str]
+        instance.tags += [projectnumber_str]
         instance.save()
 
         # Search through sections to find the correct one

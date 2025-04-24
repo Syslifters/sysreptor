@@ -76,10 +76,11 @@ class TestProjectNumberPlugin:
             )
 
             # Create project
-            project = create_project(project_type=project_type, members=[self.user])
+            project = create_project(project_type=project_type, members=[self.user], tags=['existing_tag'])
             section = project.sections.get(section_id='project_number')
 
             assert section.data.get('project_number') == expected
+            assert project.tags == ['existing_tag', expected]
 
             # Check project counter increment
             counter.refresh_from_db()
