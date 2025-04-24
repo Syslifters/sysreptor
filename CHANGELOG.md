@@ -5,6 +5,7 @@
 * Rework and update PDF viewer
 * Allow spellchecking all supported languages instead of only `PREFERRED_LANGUAGES`
 * UI: do not hide assignee field on small screens
+* Plugin `projectnumber`: do not overwrite existing project tags
 
 
 ## v2025.37 - 2024-04-17
