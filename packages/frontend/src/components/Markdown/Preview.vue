@@ -44,7 +44,7 @@ watchThrottled(() => props.value, async () => {
   renderedMarkdownText.value = mdText;
 }, { throttle: 500, leading: true, immediate: true });
 
-const previewRef = ref<HTMLDivElement>();
+const previewRef = useTemplateRef('previewRef');
 async function postProcessRenderedHtml() {
   // Prevent navigation when clicking on anchor links in preview
   previewRef.value!.querySelectorAll('.preview a[href^="#"]').forEach((a: Element) => {

@@ -19,7 +19,7 @@
       <template #default>
         <full-height-page>
           <template #header>
-            <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm">
+            <edit-toolbar v-bind="toolbarAttrs" :form="form">
               <template #title v-if="currentNote">
                 <div class="note-title-container">
                   <div>
@@ -109,8 +109,9 @@ const noteGroups = computed({
   },
 })
 
-const titleRef = ref();
-const textRef = ref();
+const form = useTemplateRef('form');
+const titleRef = useTemplateRef('titleRef');
+const textRef = useTemplateRef('textRef');
 async function createNote() {
   const newNote = {
     id: uuidv4(),

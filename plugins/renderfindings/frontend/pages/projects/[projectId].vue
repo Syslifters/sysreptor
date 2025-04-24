@@ -97,6 +97,7 @@
 
 <script setup lang="ts">
 import { useFetchE, type PentestProject, type PentestFinding, type PdfResponse, MessageLevel, type ProjectType, type ErrorMessage } from '#imports';
+import type { PdfPreview } from '#components';
 import { getFindingRiskLevel, sortFindings } from '@base/utils/project';
 import { base64decode, fileDownload } from '@base/utils/helpers';
 
@@ -119,14 +120,14 @@ const selectedFindings = ref<PentestFinding[]>([]);
 const renderMode = ref<RenderFindingsMode>(RenderFindingsMode.COMBINED);
 
 const menuSize = ref(50);
-const pdfPreviewRef = ref();
+const pdfPreviewRef = useTemplateRef<typeof PdfPreview>('pdfPreviewRef');
 const renderingInProgress = computed(() => pdfPreviewRef.value?.renderingInProgress);
 function refreshPdfPreview() {
   if (renderingInProgress.value) {
     return;
   }
 
-  pdfPreviewRef.value.reloadImmediate();
+  pdfPreviewRef.value?.reloadImmediate();
 }
 
 async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }): Promise<PdfResponse> {

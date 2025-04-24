@@ -34,7 +34,7 @@
       </v-menu>
       <markdown-toolbar-button @click="codemirrorAction(toggleLink)" title="Link" icon="mdi-link" :disabled="props.disabled" :active="activeActions.link" />
       <template v-if="uploadFiles">
-        <markdown-toolbar-button @click="fileInput.click()" title="Image" icon="mdi-image" :disabled="props.disabled || props.fileUploadInProgress" />
+        <markdown-toolbar-button @click="fileInput?.click()" title="Image" icon="mdi-image" :disabled="props.disabled || props.fileUploadInProgress" />
         <input ref="fileInput" type="file" multiple @change="e => onUploadFiles(e as InputEvent)" @click.stop :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
       </template>
       <span class="separator" />
@@ -205,7 +205,7 @@ function toggleSpellcheck() {
 }
 
 
-const fileInput = ref();
+const fileInput = useTemplateRef('fileInput');
 async function onUploadFiles(event: InputEvent) {
   const files = (event.target as HTMLInputElement).files;
   if (!files || !props.uploadFiles) { return; }
@@ -213,7 +213,7 @@ async function onUploadFiles(event: InputEvent) {
     await props.uploadFiles(files);
   } finally {
     if (fileInput.value) {
-      fileInput.value.value = null;
+      fileInput.value.value = '';
     }
   }
 }
@@ -228,7 +228,7 @@ function codemirrorAction(actionFn: (view: EditorView) => void) {
   }
 }
 
-const toolbarRef = ref<VToolbar>();
+const toolbarRef = useTemplateRef('toolbarRef');
 function getScrollParent(node?: HTMLElement|null) {
   if (!node) { return null; }
   if (node.scrollHeight > node.clientHeight) {
@@ -238,7 +238,7 @@ function getScrollParent(node?: HTMLElement|null) {
   }
 }
 async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
-  if (!toolbarRef?.value?.$el) {
+  if (!toolbarRef.value?.$el) {
     return;
   }
 

@@ -38,6 +38,7 @@
 import { isEqual } from "lodash-es";
 import { urlJoin } from "@base/utils/helpers";
 import { uploadFileHelper } from "#imports";
+import type { TemplateEditor } from "#components";
 
 const route = useRoute();
 const auth = useAuth();
@@ -67,12 +68,12 @@ useHeadExtended({
   breadcrumbs: () => templateDetailBreadcrumbs(template.value),
 });
 
-const vm = getCurrentInstance();
+const templateEditor = useTemplateRef<typeof TemplateEditor>('templateEditor')
 const { toolbarAttrs, fetchLoaderAttrs, readonly } = useLockEdit({
   data: template,
   fetchState,
   baseUrl,
-  toolbarRef: computed(() => (vm?.refs?.templateEditor as any)?.toolbarRef),
+  toolbarRef: templateEditor.value?.toolbarRef,
   hasEditPermissions: computed(() => auth.permissions.value.template_editor),
   performSave: async (data) => {
     const res = await templateStore.update(data!);

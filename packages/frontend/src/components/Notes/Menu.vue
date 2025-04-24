@@ -117,9 +117,9 @@ const props = defineProps<{
   performImport?: (file: File) => Promise<void>;
 }>();
 
-const importBtnRef = ref();
+const importBtnRef = useTemplateRef('importBtnRef');
+const createNoteBtnRef = useTemplateRef('createNoteBtnRef');
 
-const createNoteBtnRef = ref();
 const canCreate = computed(() => !props.readonly && !!props.createNote);
 const isInSearchMode = computed(() => search.value !== null && search.value !== undefined);
 

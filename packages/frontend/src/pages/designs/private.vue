@@ -1,5 +1,5 @@
 <template>
-  <file-drop-area @drop="importBtnRef.performImport($event)" class="h-100">
+  <file-drop-area @drop="importBtnRef?.performImport($event)" class="h-100">
     <list-view 
       url="/api/v1/projecttypes/?scope=private"
       v-model:ordering="localSettings.designListOrdering"
@@ -40,5 +40,5 @@ const route = useRoute();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 
-const importBtnRef = ref();
+const importBtnRef = useTemplateRef('importBtnRef');
 </script>

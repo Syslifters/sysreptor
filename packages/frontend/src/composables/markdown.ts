@@ -518,8 +518,7 @@ export function useMarkdownEditor(options: {
     emit: any;
     fileUploadSupported: boolean;
 }) {
-  const vm = getCurrentInstance()!;
-  const editorRef = computed(() => vm.refs.editorRef as HTMLElement);
+  const editorRef = useTemplateRef<HTMLElement>('editorRef');
   const editorView = shallowRef<EditorView|null>(null);
   
   const mdBase = useMarkdownEditorBase({
@@ -529,7 +528,7 @@ export function useMarkdownEditor(options: {
   
   function initializeEditorView() {
     editorView.value = new EditorView({
-      parent: editorRef.value,
+      parent: editorRef.value!,
       state: EditorState.create(mdBase.createEditorStateConfig()),
     });
   }

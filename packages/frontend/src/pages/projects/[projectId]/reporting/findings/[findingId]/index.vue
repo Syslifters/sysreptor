@@ -112,7 +112,7 @@ const toolbarAttrs = computed(() => ({
   canDelete: !project.value.readonly,
 }));
 const historyVisible = ref(false);
-const commentSidebarRef = ref<InstanceType<typeof CommentSidebar>>();
+const commentSidebarRef = useTemplateRef<InstanceType<typeof CommentSidebar>>('commentSidebarRef');
 
 function updateKey(key: string, value: any) {
   reportingCollab.onCollabEvent({

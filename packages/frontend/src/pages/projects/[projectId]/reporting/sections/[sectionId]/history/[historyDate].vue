@@ -82,7 +82,7 @@ const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
   },
 }));
 
-const commentSidebarRef = ref<InstanceType<typeof CommentSidebar>>();
+const commentSidebarRef = useTemplateRef<InstanceType<typeof CommentSidebar>>('commentSidebarRef');
 const historyVisible = ref(false);
 const currentUrl = computed(() => {
   if (section.value && projectStore.sections(section.value.project).map(s => s.id).includes(section.value.id)) {

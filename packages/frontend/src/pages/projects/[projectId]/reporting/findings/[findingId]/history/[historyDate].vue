@@ -90,7 +90,7 @@ const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
   },
 }));
 
-const commentSidebarRef = ref<InstanceType<typeof CommentSidebar>>();
+const commentSidebarRef = useTemplateRef<InstanceType<typeof CommentSidebar>>('commentSidebarRef');
 const historyVisible = ref(false);
 const currentUrl = computed(() => {
   if (finding.value && projectStore.findings(finding.value.project).find(f => f.id === finding.value.id)) {

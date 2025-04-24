@@ -21,7 +21,7 @@ const props = defineProps<{
 
 const theme = useTheme();
 
-const iframeRef = ref();
+const iframeRef = useTemplateRef('iframeRef');
 const iframeLoaded = ref(false);
 async function updatePdf() {
   if (!iframeRef.value || !iframeLoaded.value || !props.value) {
@@ -33,7 +33,7 @@ async function updatePdf() {
   } else {
     msg = new Uint8Array(props.value);
   }
-  iframeRef.value.contentWindow.postMessage(msg, window.origin, [msg.buffer]);
+  iframeRef.value?.contentWindow?.postMessage(msg, window.origin, [msg.buffer]);
 }
 watch([() => props.value, iframeLoaded], () => updatePdf())
 </script>

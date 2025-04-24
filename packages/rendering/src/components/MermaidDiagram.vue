@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts">
-import { getCurrentInstance, onMounted, ref } from 'vue';
+import { getCurrentInstance, onMounted, ref, useTemplateRef } from 'vue';
 import { mermaid } from '@sysreptor/markdown';
 import { useRenderTask } from '@/utils';
 
@@ -33,9 +33,9 @@ const props = withDefaults(defineProps<{
 const diagramSvg = ref<string|null>(null);
 const diagramPng = ref<string|null>(null);
 
-const codeContainerRef = ref<HTMLElement>();
-const svgContainerRef = ref<HTMLImageElement>();
-const canvasRef = ref<HTMLCanvasElement>();
+const codeContainerRef = useTemplateRef('codeContainerRef');
+const svgContainerRef = useTemplateRef('svgContainerRef');
+const canvasRef = useTemplateRef('canvasRef');
 
 const vm = getCurrentInstance();
 
@@ -47,7 +47,7 @@ onMounted(useRenderTask(async () => {
   // Ensure custom fonts are loaded
   await document.fonts.ready;
 
-  // Get meramid code from slot
+  // Get mermaid code from slot
   const codeContainer = codeContainerRef.value!;
   const mermaidCode = props.text || unescapeCode(codeContainer.innerText);
 

@@ -90,7 +90,7 @@
 
       <template #default>
         <div class="h-100 d-flex flex-column">
-          <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm" />
+          <edit-toolbar v-bind="toolbarAttrs" :form="form" />
 
           <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
             <template v-if="currentField === null">
@@ -160,6 +160,8 @@ const currentFieldSelection = computed({
     currentField.value = (val.length > 0 && val[0] !== allFieldsPlaceholder) ? val[0]! : null;
   }
 });
+
+const form = useTemplateRef('form');
 
 function updateField(field: FieldDefinition, val: FieldDefinition) {
   const oldId = field.id;

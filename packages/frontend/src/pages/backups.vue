@@ -106,7 +106,7 @@ const rules = {
 }
 
 const renderDownloadForm = ref(false);
-const downloadForm = ref<HTMLFormElement>();
+const downloadForm = useTemplateRef('downloadForm');
 async function createBackup() {
   try {
     // Check permissions and backup key

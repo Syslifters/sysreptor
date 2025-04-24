@@ -161,7 +161,7 @@ useLazyAsyncData(async () => await templateStore.getFieldDefinition());
 const template = computed(() => props.modelValue);
 const mainTranslation = computed(() => template.value.translations.find(tr => tr.is_main)!);
 
-const toolbarRef = ref();
+const toolbarRef = useTemplateRef('toolbarRef');
 const currentTranslationLanguage = ref((template.value.translations.find(tr => tr.language === props.initialLanguage) || mainTranslation.value).language);
 const currentTranslation = computed(() => template.value.translations.find(tr => tr.language === currentTranslationLanguage.value) || mainTranslation.value);
 watch(() => template.value.translations, () => {

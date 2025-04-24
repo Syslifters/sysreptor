@@ -8,7 +8,7 @@
             <s-btn-secondary
               :disabled="props.disabled || uploadInProgress"
               :loading="uploadInProgress"
-              @click="($refs.fileInput as unknown as HTMLInputElement).click()"
+              @click="fileInput?.click()"
               block
               prepend-icon="mdi-upload"
               text="Upload"
@@ -90,7 +90,7 @@ const assets = useSearchableCursorPaginationFetcher<UploadedFileInfo>({
 })
 
 const uploadInProgress = ref(false);
-const fileInput = ref();
+const fileInput = useTemplateRef('fileInput');
 async function uploadSingleFile(file: File) {
   try {
     const asset = await uploadFileHelper<UploadedFileInfo>(`/api/v1/projecttypes/${props.projectType.id}/assets/`, file);
@@ -111,7 +111,8 @@ async function performFileUpload(files?: File[]|FileList|null) {
     await Promise.all(Array.from(files).map(uploadSingleFile));
   } finally {
     // clear file input
-    fileInput.value = null;
+    fileInput.value!.value = '';
+    fileInput.value!.files = null;
     uploadInProgress.value = false;
   }
 }

@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-const markdownRef = ref();
+const markdownRef = useTemplateRef('markdownRef');
 const isFocused = ref(false);
 function onControlClick() {
   markdownRef.value?.focus();

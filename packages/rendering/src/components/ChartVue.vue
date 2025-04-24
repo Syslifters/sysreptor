@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import { useRenderTask } from '@/utils';
 import Chart from 'chart.js/auto';
-import { ref, nextTick, onMounted } from 'vue';
+import { ref, nextTick, onMounted, useTemplateRef } from 'vue';
 
 const props = withDefaults(defineProps<{
   config: any;
@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<{
   chartHeight: null,
 });
 
-const canvasRef = ref();
+const canvasRef = useTemplateRef('canvasRef');
 const chartImageData = ref<string|null>(null);
 
 const renderChartImage = useRenderTask(async () => {
@@ -38,7 +38,7 @@ const renderChartImage = useRenderTask(async () => {
     chartImageData.value = null;
     await nextTick();
   }
-  const chart = new Chart(canvasRef.value, {
+  const chart = new Chart(canvasRef.value!, {
     ...props.config,
     options: {
       ...(props.config.options || {}),

@@ -24,7 +24,7 @@ const obj = await useAsyncDataE(async () => {
   return await $fetch<DemoPluginModel>(`/api/plugins/${appConfig.pluginId}/api/demopluginmodels/${route.params.demopluginmodelId}`);
 }, { deep: true });
 
-const toolbarRef = ref();
+const toolbarRef = useTemplateRef('toolbarRef');
 const { toolbarAttrs, readonly } = useLockEdit<DemoPluginModel>({
   data: obj,
   toolbarRef,

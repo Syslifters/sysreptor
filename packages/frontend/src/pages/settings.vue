@@ -197,7 +197,7 @@ const coreConfigGroups = computed(() => {
   })).filter(group => group.fields.length > 0);
 });
 
-const form = ref<VForm>();
+const form = useTemplateRef<VForm>('form');
 const { toolbarAttrs } = useLockEdit({
   form,
   data: configurationValues,

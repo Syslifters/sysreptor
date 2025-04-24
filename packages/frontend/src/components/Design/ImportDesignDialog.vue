@@ -29,8 +29,8 @@ async function performImport(file: File) {
   await navigateTo(`/designs/${designs[0]!.id}/`)
 }
 
-const importBtnRef = ref();
+const importBtnRef = useTemplateRef('importBtnRef');
 defineExpose({
-  performImport: (files?: FileList|null) => importBtnRef.value?.performImport(files),
+  performImport: (files?: FileList|File[]|null) => importBtnRef.value?.performImport(files),
 });
 </script>

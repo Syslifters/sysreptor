@@ -106,7 +106,7 @@
 
       <template #default>
         <div class="h-100 d-flex flex-column">
-          <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm" />
+          <edit-toolbar v-bind="toolbarAttrs" :form="form" />
 
           <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
             <template v-if="currentItemIsSection">
@@ -211,6 +211,7 @@ const rules = {
     (id: string) => !reportSections.value.filter(s => s !== currentItemSection.value).map(s => s.id).includes(id) || 'Section ID is not unique. This ID is already used by another section.',
   ]
 };
+const form = useTemplateRef('form');
 
 function updateField(field: FieldDefinition, val: FieldDefinition) {
   Object.keys(field).forEach(k => delete field[k as keyof FieldDefinition]);

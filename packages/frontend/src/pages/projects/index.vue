@@ -1,5 +1,5 @@
 <template>
-  <file-drop-area @drop="importBtn.performImport($event)" class="h-100">
+  <file-drop-area @drop="importBtn?.performImport($event)" class="h-100">
     <list-view
       url="/api/v1/pentestprojects/?readonly=false" 
       v-model:ordering="localSettings.projectListOrdering"
@@ -46,7 +46,7 @@ const route = useRoute();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 
-const importBtn = ref();
+const importBtn = useTemplateRef('importBtn');
 async function performImport(file: File) {
   const projects = await uploadFileHelper<PentestProject[]>('/api/v1/pentestprojects/import/', file);
   await navigateTo(`/projects/${projects[0]!.id}/`);

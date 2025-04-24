@@ -153,6 +153,7 @@
               <template #append>
                 <comment-btn
                   v-if="props.collab?.comments"
+                  ref="commentBtnRef"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
                   v-show="!mobile"
@@ -189,6 +190,7 @@
               <template #append>
                 <comment-btn
                   v-if="props.collab?.comments"
+                  ref="commentBtnRef"
                   density="comfortable"
                   v-bind="commentBtnAttrs"
                   v-show="!mobile"
@@ -314,6 +316,7 @@
         </div>
         <comment-btn
           v-if="props.collab?.comments && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type as any)"
+          ref="commentBtnRef"
           v-bind="commentBtnAttrs"
           v-show="!mobile"
         />
@@ -616,7 +619,6 @@ const inheritedSlots = computed(() => Object.keys(slots).filter(name => !['label
 
 const isHovering = ref(false);
 const commentBtnAttrs = computed(() => ({
-  ref: 'commentBtnRef',
   comments: props.collab?.comments?.filter(c => c.collabPath === props.collab?.path) || [],
   onComment: (v: any) => emit('comment', v),
   collabPath: props.collab?.path || '',
@@ -624,7 +626,7 @@ const commentBtnAttrs = computed(() => ({
   disabled: props.disabled || props.readonly,
 }));
 
-const commentBtnRef = ref();
+const commentBtnRef = useTemplateRef('commentBtnRef');
 </script>
 
 <style lang="scss" scoped>

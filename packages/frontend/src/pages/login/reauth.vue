@@ -16,7 +16,7 @@
             />
           </template>
         </login-form>
-        <login-provider-form v-else ref="loginProviderForm" :reauth="true">
+        <login-provider-form v-else :reauth="true">
           <template #title>Re-Authenticate</template>
           <template #local>
             <v-list-item>

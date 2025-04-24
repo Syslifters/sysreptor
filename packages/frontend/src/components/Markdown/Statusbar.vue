@@ -3,7 +3,7 @@
     <div v-if="props.uploadFiles">
       <v-btn 
          v-if="!props.fileUploadInProgress"
-        @click="fileInput.click()"
+        @click="fileInput?.click()"
         text="Paste, drop or click to upload files"
         :disabled="props.disabled"
         variant="plain"
@@ -57,7 +57,7 @@ const wordCount = computed(() => {
   return count;
 });
 
-const fileInput = ref();
+const fileInput = useTemplateRef('fileInput');
 async function onUploadFiles(event: InputEvent) {
   const files = (event.target as HTMLInputElement).files;
   if (!files || !props.uploadFiles) { return; }
@@ -65,7 +65,7 @@ async function onUploadFiles(event: InputEvent) {
     await props.uploadFiles(files);
   } finally {
     if (fileInput.value) {
-      fileInput.value.value = null;
+      fileInput.value.value = '';
     }
   }
 }

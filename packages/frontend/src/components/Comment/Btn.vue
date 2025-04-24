@@ -1,7 +1,6 @@
 <template>
   <s-btn-icon
     v-if="props.comments.length > 0"
-    ref="btnRef"
     @click="emit('comment', {type: 'select', comment: props.comments[0], openSidebar: true})"
   >
     <v-badge 
@@ -43,7 +42,6 @@ function createComment() {
   emit('comment', {type: 'create', comment: { collabPath: props.collabPath }})
 }
 
-const btnRef = ref();
 defineExpose({
   createComment,
 });

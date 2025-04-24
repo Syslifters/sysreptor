@@ -87,7 +87,7 @@ const apiSettings = useApiSettings();
 const auth = useAuth();
 const templateStore = useTemplateStore();
 
-const listViewRef = ref();
+const listViewRef = useTemplateRef('listViewRef');
 
 const languageChoices = computed(() => [{ code: null as string|null, name: 'All' } as Language].concat(apiSettings.settings!.languages.filter(l => l.enabled || l.code === route.query.language)));
 const currentLanguage = computed({
@@ -97,7 +97,7 @@ const currentLanguage = computed({
   }
 });
 
-const importBtnRef = ref();
+const importBtnRef = useTemplateRef('importBtnRef');
 async function performImport(file: File) {
   const templates = await uploadFileHelper<FindingTemplate[]>('/api/v1/findingtemplates/import/', file);
   await navigateTo(`/templates/${templates[0]!.id}/`)

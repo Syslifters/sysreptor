@@ -1,7 +1,7 @@
 <template>
   <v-container class="pt-0">
     <v-form ref="form">
-      <edit-toolbar v-bind="toolbarAttrs" :form="$refs.form as VForm">
+      <edit-toolbar v-bind="toolbarAttrs" :form="form">
         <template #context-menu>
           <btn-copy
             :disabled="!auth.permissions.value.designer"
@@ -66,6 +66,8 @@ const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await use
   delete: true,
   saveFields: ['name', 'language', 'status', 'tags'],
 }));
+
+const form = useTemplateRef('form');
 
 async function performCopy() {
   const obj = await projectTypeStore.copy({

@@ -81,7 +81,7 @@ const toolbarAttrs = computed(() => ({
     (!reportingCollab.hasLock.value ? 'This section is locked by another user. Upgrade to SysReptor Professional for lock-free collaborative editing.' : null),
 }));
 const historyVisible = ref(false);
-const commentSidebarRef = ref<InstanceType<typeof CommentSidebar>>();
+const commentSidebarRef = useTemplateRef<InstanceType<typeof CommentSidebar>>('commentSidebarRef');
 
 function updateKey(key: string, value: any) {
   reportingCollab.onCollabEvent({

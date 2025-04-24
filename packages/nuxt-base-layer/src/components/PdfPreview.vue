@@ -151,6 +151,7 @@ function sum(numbers: number[]) {
 defineExpose({
   pdfData,
   showMessages,
+  messages,
   renderingInProgress: fetchPdf.pending,
   reloadDebounced,
   reloadImmediate,
