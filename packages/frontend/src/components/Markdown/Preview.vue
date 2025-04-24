@@ -79,7 +79,7 @@ function showPreviewImage(event: MouseEvent) {
       let markdown = undefined;
       try {
         const position = JSON.parse(img.parentElement?.getAttribute('data-position') || '');
-        if (position?.start?.offset && position?.end?.offset) {
+        if (Number.isInteger(position?.start?.offset) && Number.isInteger(position?.end?.offset)) {
           markdown = renderedMarkdownText.value.substring(position.start.offset, position.end.offset) || undefined;
         }
       } catch {

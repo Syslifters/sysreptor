@@ -68,12 +68,12 @@ useHeadExtended({
   breadcrumbs: () => templateDetailBreadcrumbs(template.value),
 });
 
-const templateEditor = useTemplateRef<typeof TemplateEditor>('templateEditor')
+const vm = getCurrentInstance();
 const { toolbarAttrs, fetchLoaderAttrs, readonly } = useLockEdit({
   data: template,
   fetchState,
   baseUrl,
-  toolbarRef: templateEditor.value?.toolbarRef,
+  toolbarRef: computed(() => (vm?.refs?.templateEditor as any)?.toolbarRef),
   hasEditPermissions: computed(() => auth.permissions.value.template_editor),
   performSave: async (data) => {
     const res = await templateStore.update(data!);

@@ -26,19 +26,21 @@ const props = withDefaults(defineProps<{
   chartHeight: null,
 });
 
-const canvasRef = useTemplateRef('canvasRef');
+const canvasRef = ref<HTMLCanvasElement>();  // useTemplateRef results in runtime warnings
 const chartImageData = ref<string|null>(null);
 
-const renderChartImage = useRenderTask(async () => {
+onMounted(useRenderTask(async () => {
   // Ensure custom fonts are loaded
   await document.fonts.ready;
 
-  // Render chart
-  if (chartImageData.value) {
+  // Wait for canvas to be ready
+  while (!canvasRef.value) {
     chartImageData.value = null;
     await nextTick();
   }
-  const chart = new Chart(canvasRef.value!, {
+
+  // Render chart
+  const chart = new Chart(canvasRef.value, {
     ...props.config,
     options: {
       ...(props.config.options || {}),
@@ -48,6 +50,5 @@ const renderChartImage = useRenderTask(async () => {
   });
   chartImageData.value = chart.toBase64Image();
   chart.destroy();
-});
-onMounted(renderChartImage);
+}));
 </script>
