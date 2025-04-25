@@ -42,6 +42,9 @@ watchThrottled(() => props.value, async () => {
     cacheBuster: cacheBuster.value,
   });
   renderedMarkdownText.value = mdText;
+
+  await nextTick();
+  postProcessRenderedHtml();
 }, { throttle: 500, leading: true, immediate: true });
 
 const previewRef = useTemplateRef('previewRef');
@@ -99,8 +102,6 @@ function showPreviewImage(event: MouseEvent) {
 }
 useEventListener(previewRef, 'click', showPreviewImage);
 
-onMounted(() => postProcessRenderedHtml());
-onUpdated(() => postProcessRenderedHtml());
 </script>
 
 <style lang="scss" scoped>
