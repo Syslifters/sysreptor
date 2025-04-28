@@ -169,7 +169,7 @@ const apiSettings = useApiSettings();
 const { smAndUp, sm, lgAndUp } = useDisplay();
 
 const editorState = computed(() => props.editorState);
-const activeActions = computed(() => ({
+const activeActions = computedCached(() => ({
   strong: isTypeInSelection(editorState.value, 'strong'),
   italic: isTypeInSelection(editorState.value, 'italic'),
   strikethrough: isTypeInSelection(editorState.value, 'strikethrough'),

@@ -39,7 +39,7 @@
       <dynamic-input-field
         v-for="fieldDefinition in sectionDefinition.fields" :key="fieldDefinition.id"
         :model-value="section.data[fieldDefinition.id]"
-        :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldDefinition.id}`)"
+        :collab="reportingCollab.collabSubpathProps.value[`data.${fieldDefinition.id}`]"
         @collab="reportingCollab.onCollabEvent"
         @comment="commentSidebarRef?.onCommentEvent"
         @search="reportingCollab.search.value = $event"
@@ -65,8 +65,8 @@ const project = await useAsyncDataE(async () => await projectStore.getById(route
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'sections:projectType' });
 const sectionDefinition = computed(() => projectType.value.report_sections.find(s => s.id === route.params.sectionId)!);
 
-const reportingCollab = projectStore.useReportingCollab({ project: project.value, sectionId: route.params.sectionId as string });
-const section = computedThrottled(() => reportingCollab.data.value.sections[route.params.sectionId as string], { throttle: 500 });
+const reportingCollab = projectStore.useReportingCollab({ project, projectType, sectionId: route.params.sectionId as string });
+const section = computed(() => reportingCollab.data.value.sections[route.params.sectionId as string]);
 const readonly = computed(() => reportingCollab.readonly.value);
 
 const { inputFieldAttrs, errorMessage } = useProjectEditBase({

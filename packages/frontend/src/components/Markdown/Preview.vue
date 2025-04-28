@@ -37,7 +37,7 @@ watchThrottled(() => props.value, async () => {
   renderedMarkdown.value = await renderMarkdownToHtmlInWorker({
     text: mdText,
     preview: true,
-    referenceItems: props.referenceItems,
+    referenceItems: toRaw(props.referenceItems),
     rewriteFileUrlMap: props.rewriteFileUrlMap,
     cacheBuster: cacheBuster.value,
   });
