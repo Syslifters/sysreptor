@@ -1,4 +1,4 @@
-import type { ProjectNote, ShareInfoPublic } from "#imports";
+import type { CollabPropType, ProjectNote, ShareInfoPublic } from "#imports";
 
 export const useShareInfoStore = defineStore('shareinfo', {
   state: () => {
@@ -84,7 +84,11 @@ export const useShareInfoStore = defineStore('shareinfo', {
 
       const collabState = this.data!.notesCollabState;
       const collab = useCollab(collabState as CollabStoreState<{ notes: Record<string, ProjectNote> }>);
-      const collabProps = computed(() => collabSubpath(collab.collabProps.value, options?.noteId ? `notes.${options.noteId}` : null));
+      const collabProps = computed<CollabPropType>((oldValue) => collabSubpath(
+        collab.collabProps.value, 
+        options?.noteId ? `notes.${options.noteId}` : null,
+        oldValue
+      ));
       
       const apiSettings = useApiSettings();
       const auth = useAuth();

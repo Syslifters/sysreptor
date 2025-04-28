@@ -16,6 +16,13 @@ export function groupNotes<T extends NoteBase>(noteList: T[], options?: { parent
   return collectChildren(options?.parentNoteId || null);
 }
 
+export function flattenNotes<T extends NoteBase>(noteGroups: NoteGroup<T>): T[] {
+  return noteGroups.reduce((acc: T[], group) => {
+    acc.push(group.note);
+    return acc.concat(flattenNotes(group.children));
+  }, []);
+}
+
 export function sortNotes<T extends NoteBase>(noteGroups: NoteGroup<T>, commitNote: (n: T) => void) {
   function setParentAndOrder(children: NoteGroup<T>, parentId: string|null) {
     for (let i = 0; i < children.length; i++) {
@@ -93,7 +100,11 @@ export const useUserNotesStore = defineStore('usernotes', {
 
       return {
         ...collab,
-        collabProps: computed(() => collabSubpath(collab.collabProps.value, options?.noteId ? `notes.${options.noteId}` : null)),
+        collabProps: computed<CollabPropType>((oldValue) => collabSubpath(
+          collab.collabProps.value, 
+          options?.noteId ? `notes.${options.noteId}` : null, 
+          oldValue
+        )),
       }
     },
   }

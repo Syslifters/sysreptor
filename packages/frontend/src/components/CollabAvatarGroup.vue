@@ -30,12 +30,13 @@
 
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
-  collab: CollabPropType;
+  collab?: CollabPropType;
   limit?: number;
 }>(), {
+  collab: undefined,
   limit: 3,
 });
-const clientsAll = computed(() => props.collab.clients);
+const clientsAll = computed(() => props.collab?.clients || []);
 const clientsVisible = computed(() => clientsAll.value.slice(0, clientsAll.value.length > props.limit ? props.limit - 1 : undefined));
 const clientsHidden = computed(() => clientsAll.value.length > props.limit ? clientsAll.value.slice(props.limit - 1) : []);
 
