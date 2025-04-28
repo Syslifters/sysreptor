@@ -58,8 +58,7 @@
         <template #append>
           <slot name="section-item-append" :section="section">
             <collab-avatar-group 
-              v-if="collab"
-              :collab="collabSubpathProps[`sections.${section.id}`]!"
+              :collab="collabSubpathProps[`sections.${section.id}`]"
               :class="{'mr-2': section.status && section.status !== ReviewStatus.IN_PROGRESS}"
             />
             <s-status-info :value="section.status" />
@@ -157,8 +156,7 @@
                   <template #append>
                     <slot name="finding-item-append" :finding="finding" >
                       <collab-avatar-group
-                        v-if="collab"
-                        :collab="collabSubpathProps[`findings.${finding.id}`]!"
+                        :collab="collabSubpathProps[`findings.${finding.id}`]"
                         :class="{'mr-2': finding.status !== ReviewStatus.IN_PROGRESS}"
                       />
                       <s-status-info :value="finding.status" />

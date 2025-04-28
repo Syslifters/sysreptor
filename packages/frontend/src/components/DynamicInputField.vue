@@ -634,7 +634,6 @@ const commentBtnAttrs = computed(() => ({
   isHovering: isHovering.value,
   disabled: props.disabled || props.readonly,
 }));
-
 const commentBtnRef = useTemplateRef('commentBtnRef');
 </script>
 
