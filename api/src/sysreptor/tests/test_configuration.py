@@ -3,10 +3,14 @@ import os
 from unittest import mock
 
 import pytest
+from django.core import mail
+from django.core.management import CommandError, call_command
 from django.test import override_settings
 from django.urls import reverse
+from django.utils.crypto import get_random_string
 
 from sysreptor.api_utils.models import DbConfigurationEntry
+from sysreptor.management.commands import sendtestemail
 from sysreptor.tests.mock import api_client, create_user, override_configuration
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.fielddefinition.types import (
@@ -161,3 +165,35 @@ class TestConfiguration:
         res = self.client.get(reverse('configuration-list'))
         assert 'FIELD_INTERNAL' not in res.data
 
+
+class TestSendTestEmailCommand:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.from_email = 'sysreptor@example.com'
+        self.to_email = 'user@example.com'
+        with override_settings(
+            EMAIL_HOST='mail.example.com',
+            EMAIL_USER='smtp-user',
+            EMAIL_PASSWORD=get_random_string(32),
+            EMAIL_PORT=587,
+            DEFAULT_FROM_EMAIL=self.from_email,
+        ):
+            yield
+
+    def test_send_success(self):
+        call_command(sendtestemail.Command(), self.to_email)
+        assert len(mail.outbox) == 1
+        m = mail.outbox[0]
+        assert m.to == [self.to_email]
+        assert m.from_email == self.from_email
+        assert m.subject == 'SysReptor Test Email'
+
+    def test_send_error(self):
+        with mock.patch('sysreptor.utils.mail.send_mail', side_effect=ConnectionError()):
+            with pytest.raises(ConnectionError):
+                call_command(sendtestemail.Command(), self.to_email)
+
+    @override_settings(EMAIL_HOST=None)
+    def test_no_host_configured(self):
+        with pytest.raises(CommandError):
+            call_command(sendtestemail.Command(), self.to_email)
