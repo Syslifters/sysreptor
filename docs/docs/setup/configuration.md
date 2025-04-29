@@ -151,6 +151,12 @@ EMAIL_HOST_PASSWORD=password
 DEFAULT_FROM_EMAIL=sysreptor@example.com
 ```
 
+To test your email settings, you can run the following command:
+
+```bash title="Send test email"
+docker compose run --rm --no-TTY app python3 manage.py sendtestemail <your-email@example.com>
+```
+
 
 ### Backup Key
 <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
