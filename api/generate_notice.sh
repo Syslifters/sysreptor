@@ -25,6 +25,7 @@ allow_only="$allow_only;Python Software Foundation License"
 allow_only="$allow_only;Zope Public License"
 allow_only="$allow_only;ISC License (ISCL)"
 allow_only="$allow_only;The Unlicense (Unlicense)"
+allow_only="$allow_only;MIT AND Python-2.0"
 
 ignore="webencodings"
 ignore="$ignore pyphen"
@@ -38,6 +39,7 @@ ignore="$ignore pytest-asyncio"
 ignore="$ignore pillow"
 ignore="$ignore urllib3"
 ignore="$ignore pikepdf"
+ignore="$ignore jsonschema-specifications"
 
 pip-licenses --allow-only "$allow_only" --ignore-packages $ignore >/dev/null
 pip-licenses -l --no-license-path -f plain-vertical --no-version --ignore-packages $ignore > NOTICE
@@ -1766,6 +1768,30 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 EOF
 )
+
+jsonschema_specifications=$(cat << EOF
+Copyright (c) 2022 Julian Berman
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+EOF
+)
+
 
 for pkg in $ignore
 do

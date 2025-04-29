@@ -100,7 +100,9 @@ RUN mkdir /src && \
 # Install ghostscript from debian testing
 RUN echo 'Types: deb\nURIs: http://deb.debian.org/debian\nSuites: trixie\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg' > /etc/apt/sources.list.d/testing.sources \
     && echo 'APT::Default-Release "stable";' > /etc/apt/apt.conf.d/default-release \
-    && apt-get update && apt-get install -y --no-install-recommends \
+    && apt-get update \
+    && apt-get -t testing install -y --no-install-recommends perl \
+    && apt-get install -y --no-install-recommends \
         chromium \
         curl \
         fontconfig \
