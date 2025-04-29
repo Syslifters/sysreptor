@@ -174,8 +174,9 @@ const nestedClass = computed(() => {
 })
 
 const isHovering = ref(false);
+const comments = computedList(() => props.current.collab?.comments?.filter(c => c.collabPath === props.current.collab?.path) || [], c => c.id);
 const commentBtnAttrs = computed(() => ({
-  comments: props.current.collab?.comments?.filter(c => c.collabPath === props.current.collab?.path) || [],
+  comments: comments.value,
   onComment: (v: any) => props.current?.onComment?.(v),
   collabPath: props.current.collab?.path || '',
   isHovering: isHovering.value,

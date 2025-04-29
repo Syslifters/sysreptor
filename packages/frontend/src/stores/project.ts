@@ -448,7 +448,7 @@ export const useProjectStore = defineStore('project', {
       const hasLock = ref(true);
       if ((options.findingId || options.sectionId) && !apiSettings.isProfessionalLicense) {
         hasLock.value = false;
-        watch(() => collabProps.value.clients, () => {
+        watch(() => collabProps.value.clients.length, () => {
           if (!hasLock.value && collabProps.value.clients.filter(c => c.user?.id !== auth.user.value?.id).length === 0) {
             hasLock.value = true;
           }
