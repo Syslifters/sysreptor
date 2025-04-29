@@ -142,7 +142,7 @@ export function useProjectEditBase(options: {
     '/images/': urlJoin(projectUrl.value, '/images/'),
     '/files/': urlJoin(projectUrl.value, '/files/'),
   }));
-  const referenceItems = computed<ReferenceItem[]>(() => {
+  const referenceItems = computedList<ReferenceItem>(() => {
     return projectStore.findings(options.project.value?.id || '', { projectType: options.projectType?.value })
       .map(f => ({
         id: f.id, 
@@ -153,7 +153,7 @@ export function useProjectEditBase(options: {
           levelNameFromLevelNumber(getFindingRiskLevel({ finding: f, projectType: options.projectType?.value }) as any)?.toLowerCase() : 
           undefined,
       }))
-  });
+  }, f => f.id);
 
   const spellcheckEnabled = options.spellcheckEnabled || computed({ 
     get: () => localSettings.reportingSpellcheckEnabled && !options.historyDate,

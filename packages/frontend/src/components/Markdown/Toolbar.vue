@@ -33,7 +33,7 @@
         </template>
       </v-menu>
       <markdown-toolbar-button @click="codemirrorAction(toggleLink)" title="Link" icon="mdi-link" :disabled="props.disabled" :active="activeActions.link" />
-      <template v-if="uploadFiles">
+      <template v-if="props.uploadFiles">
         <markdown-toolbar-button @click="fileInput?.click()" title="Image" icon="mdi-image" :disabled="props.disabled || props.fileUploadInProgress" />
         <input ref="fileInput" type="file" multiple @change="e => onUploadFiles(e as InputEvent)" @click.stop :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
       </template>
@@ -68,26 +68,12 @@
         />
         <span class="separator" />
       </template>
-      <s-btn-icon 
-        v-if="$slots['context-menu']"
-        size="small"
-        density="comfortable"
-      >
-        <v-icon icon="mdi-dots-vertical" />
-        <v-tooltip activator="parent" location="top" text="More actions" />
-
-        <v-menu activator="parent">
-          <template #default>
-            <v-list density="compact">
-              <slot 
-                name="context-menu" 
-                :disabled="props.disabled"
-              />
-            </v-list>
-          </template>
-        </v-menu>
-      </s-btn-icon>
     </template>
+    <div 
+      v-show="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW"
+      :id="additionalContentId"
+      class="d-contents"
+    />
 
     <v-spacer />
     <v-btn-toggle
@@ -143,7 +129,6 @@ import {
   undo,
   undoDepth,
 } from '@sysreptor/markdown/editor';
-import type { VToolbar } from 'vuetify/lib/components/index.mjs';
 
 const props = defineProps<{
   editorView?: EditorView|null;
@@ -168,8 +153,10 @@ const emit = defineEmits<{
 const apiSettings = useApiSettings();
 const { smAndUp, sm, lgAndUp } = useDisplay();
 
+const additionalContentId = useId();
+
 const editorState = computed(() => props.editorState);
-const activeActions = computed(() => ({
+const activeActions = computedCached(() => ({
   strong: isTypeInSelection(editorState.value, 'strong'),
   italic: isTypeInSelection(editorState.value, 'italic'),
   strikethrough: isTypeInSelection(editorState.value, 'strikethrough'),
@@ -282,6 +269,9 @@ function emitCreateComment() {
   })
 }
 
+defineExpose({
+  additionalContentId,
+});
 </script>
 
 <style lang="scss" scoped>

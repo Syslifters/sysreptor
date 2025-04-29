@@ -67,10 +67,12 @@ const { obj: finding, fetchState, toolbarAttrs, fieldAttrsHistoric, fieldAttrsCu
   useCollab: (project: PentestProject) => projectStore.useReportingCollab({ project, findingId: route.params.findingId as string }),
 });
 
-const findingFieldValueSuggestions = computedThrottled(() => getFindingFieldValueSuggestions({ 
-  findings: Object.values(projectStore.data[route.params.projectId as string]?.reportingCollabState.data.findings || {}), 
-  projectType: fetchState.value.projectTypeCurrent 
-}), { throttle: 1000 });
+const findingFieldValueSuggestions = useFindingFieldValueSuggestions(
+  () => projectStore.data[route.params.projectId as string]?.reportingCollabState.data.findings || {},
+  fetchState.value.projectTypeCurrent
+)
+
+const commentSidebarRef = useTemplateRef<InstanceType<typeof CommentSidebar>>('commentSidebarRef');
 
 const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
   historic: {
@@ -90,7 +92,6 @@ const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
   },
 }));
 
-const commentSidebarRef = useTemplateRef<InstanceType<typeof CommentSidebar>>('commentSidebarRef');
 const historyVisible = ref(false);
 const currentUrl = computed(() => {
   if (finding.value && projectStore.findings(finding.value.project).find(f => f.id === finding.value.id)) {

@@ -422,11 +422,8 @@ export function useMarkdownEditorBase(options: {
     }
   });
 
-  watch([() => options.props.value.collab, () => options.editorView.value], (valueNew, valueOld) => {
-    if (!options.editorView.value || !options.props.value.collab || isEqual(valueNew, valueOld)) {
-      return;
-    }
-    const remoteClients = options.props.value.collab.clients
+  const remoteClients = computedCached(() => {
+    return (options.props.value.collab?.clients || [])
       .filter(c => !c.isSelf && c.selection)
       .map(c => ({
         client_id: c.client_id,
@@ -436,20 +433,30 @@ export function useMarkdownEditorBase(options: {
             (`${c.client_id} (Anonymous User)`),
         selection: c.selection!,
       }));
-    const comments = (options.props.value.collab.comments || [])
+  });
+  const comments = computedCached(() => {
+    return (options.props.value.collab?.comments || [])
       .filter(c => c.collabPath === options.props.value.collab!.path && c.text_range)
-      .map(c => ({ id: c.id, text_range: SelectionRange.fromJSON({ anchor: c.text_range!.from, head: c.text_range!.to }) }));
-    
+      .map(c => ({ 
+        id: c.id, 
+        text_range: SelectionRange.fromJSON({ anchor: c.text_range!.from, head: c.text_range!.to }) 
+      }));
+  });
+  watch([() => options.editorView.value, remoteClients, comments, () => options.props.value.collab?.search], (newValue, oldValue) => {
+    if (!options.editorView.value || !options.props.value.collab || isEqual(newValue, oldValue)) {
+      return;
+    }
+
     options.editorView.value.dispatch({
       effects: [
-        setRemoteClients.of(remoteClients),
-        setComments.of(comments),
+        setRemoteClients.of(remoteClients.value),
+        setComments.of(comments.value),
         setSearchGlobalQuery.of(options.props.value.collab.search ? new SearchQuery({
           search: options.props.value.collab.search,
           literal: true,
         }) : null),
       ]
-    })
+    });
   });
 
   function focus() {

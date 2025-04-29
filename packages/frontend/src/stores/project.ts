@@ -1,8 +1,11 @@
-import { orderBy, pick, set, isObject } from "lodash-es";
+import { orderBy, pick, set, isObject, isEqual, sortBy } from "lodash-es";
 import { groupNotes } from "@/stores/usernotes";
-import type { Comment, CommentAnswer, CommentStatus, PentestFinding, PentestProject, ProjectNote, ProjectType, ReportSection } from "#imports";
+import { useCollabSubpaths, collabSubpath, type CollabPropType, type Comment, type CommentAnswer, type CommentStatus, type PentestFinding, type PentestProject, type ProjectNote, type ProjectType, type ReportSection } from "#imports";
 
-export function getFindingFieldValueSuggestions(options: { findings: PentestFinding[], projectType: ProjectType }) {
+export function useFindingFieldValueSuggestions(findings: MaybeRefOrGetter<Record<string, PentestFinding>>, projectType: MaybeRefOrGetter<ProjectType>) {
+  const findingsRef = toRef(findings);
+  const projectTypeRef = toRef(projectType);
+
   function getValue(path: string, definition: FieldDefinition, value: any): { path: string, value: any }[] {
     if (definition.type === FieldDataType.LIST && Array.isArray(value)) {
       return value.flatMap(v => getValue(`${path}[]`, definition.items!, v));
@@ -14,21 +17,38 @@ export function getFindingFieldValueSuggestions(options: { findings: PentestFind
     return [];
   }
 
-  const out = new Map<string, string[]>();
-  for (const finding of options.findings) {
-    for (const fieldDefinition of options.projectType.finding_fields) {
-      for (const { path, value } of getValue(fieldDefinition.id, fieldDefinition, finding.data[fieldDefinition.id])) {
-        if (!out.has(path)) {
-          out.set(path, []);
-        }
-        const values = out.get(path)!;
-        if (!values.includes(value)) {
-          values.push(value);
+  const cachedValue = ref(new Map<string, string[]>());
+  watchEffect(() => {
+    const newValue = new Map<string, string[]>();
+    for (const finding of Object.values(findingsRef.value)) {
+      for (const fieldDefinition of projectTypeRef.value.finding_fields) {
+        for (const { path, value } of getValue(fieldDefinition.id, fieldDefinition, finding.data[fieldDefinition.id])) {
+          if (!newValue.has(path)) {
+            newValue.set(path, []);
+          }
+          const values = newValue.get(path)!;
+          if (!values.includes(value)) {
+            values.push(value);
+          }
         }
       }
     }
-  }
-  return out;
+
+    // Remove old paths
+    for (const path of cachedValue.value.keys()) {
+      if (!newValue.has(path)) {
+        cachedValue.value.delete(path);
+      }
+    }
+    // Set new paths / update changed values
+    for (const [path, values] of newValue.entries()) {
+      if (!isEqual(values, cachedValue.value.get(path))) {
+        cachedValue.value.set(path, values);
+      }
+    }
+  })
+  
+  return cachedValue;
 }
 
 export const useProjectStore = defineStore('project', {
@@ -52,7 +72,7 @@ export const useProjectStore = defineStore('project', {
     findings() {
       return (projectId: string, { projectType = null as ProjectType|null } = {}) => {
         const projectState = this.data[projectId]
-        let findings = Object.values(this.data[projectId]?.reportingCollabState.data.findings || {});
+        let findings = sortBy(Object.values(this.data[projectId]?.reportingCollabState.data.findings || {}), ['id']);
         // Sort findings
         if (projectState && projectType) {
           findings = groupFindings({
@@ -66,7 +86,7 @@ export const useProjectStore = defineStore('project', {
     },
     sections() {
       return (projectId: string, { projectType = null as ProjectType|null } = {}) => {
-        let sections = Object.values(this.data[projectId]?.reportingCollabState.data.sections || {});
+        let sections = sortBy(Object.values(this.data[projectId]?.reportingCollabState.data.sections || {}), ['id']);
         // Sort sections
         if (projectType) {
           sections = orderBy(sections, [s => projectType.report_sections.findIndex(rs => rs.id === s.id)]);
@@ -371,7 +391,11 @@ export const useProjectStore = defineStore('project', {
 
       const collabState = this.data[options.project.id]!.notesCollabState;
       const collab = useCollab(collabState);
-      const collabProps = computed(() => collabSubpath(collab.collabProps.value, options.noteId ? `notes.${options.noteId}` : null))
+      const collabProps = computed<CollabPropType>((oldValue) => collabSubpath(
+        collab.collabProps.value, 
+        options.noteId ? `notes.${options.noteId}` : null, 
+        oldValue
+      ))
 
       const apiSettings = useApiSettings();
       const auth = useAuth();
@@ -400,19 +424,31 @@ export const useProjectStore = defineStore('project', {
         connect,
       };
     },
-    useReportingCollab(options: { project: PentestProject, findingId?: string, sectionId?: string }) {
-      this.ensureExists(options.project.id);
+    useReportingCollab(options: { project: MaybeRefOrGetter<PentestProject>, projectType?: MaybeRefOrGetter<ProjectType>, findingId?: string, sectionId?: string }) {
+      const project = toValue(options.project);
+      const projectType = toValue(options.projectType);
+      
+      this.ensureExists(project.id);
 
-      const collabState = this.data[options.project.id]!.reportingCollabState;
+      const collabState = this.data[project.id]!.reportingCollabState;
       const collab = useCollab(collabState);
-      const collabProps = computed(() => collabSubpath(collab.collabProps.value, options.findingId ? `findings.${options.findingId}` : options.sectionId ? `sections.${options.sectionId}` : null));
+      const collabProps = computed<CollabPropType>((oldValue) => collabSubpath(
+        collab.collabProps.value, 
+        options.findingId ? `findings.${options.findingId}` : options.sectionId ? `sections.${options.sectionId}` : null,
+        oldValue
+      ));
+      const subpathNames = 
+        (projectType && options.findingId) ? projectType.finding_fields.map(f => `data.${f.id}`).concat(['status', 'assignee']) :
+        (projectType && options.sectionId) ? projectType.report_sections.flatMap(s => s.fields).map(f => `data.${f.id}`).concat(['status', 'assignee']) :
+        [];
+      const collabSubpathProps = useCollabSubpaths(collabProps, subpathNames);
 
       const apiSettings = useApiSettings();
       const auth = useAuth();
       const hasLock = ref(true);
       if ((options.findingId || options.sectionId) && !apiSettings.isProfessionalLicense) {
         hasLock.value = false;
-        watch(() => collabProps.value.clients, () => {
+        watch(() => collabProps.value.clients.length, () => {
           if (!hasLock.value && collabProps.value.clients.filter(c => c.user?.id !== auth.user.value?.id).length === 0) {
             hasLock.value = true;
           }
@@ -420,7 +456,7 @@ export const useProjectStore = defineStore('project', {
       }
 
       async function connect() {
-        if (options.project.readonly) {
+        if (toValue(options.project).readonly) {
           return await collab.connect({ connectionType: CollabConnectionType.HTTP_READONLY });
         }
         return await collab.connect();
@@ -429,6 +465,7 @@ export const useProjectStore = defineStore('project', {
       return {
         ...collab,
         collabProps,
+        collabSubpathProps,
         hasLock,
         readonly: computed(() => collab.readonly.value || !hasLock.value),
         connect,

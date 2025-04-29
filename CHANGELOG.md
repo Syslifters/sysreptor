@@ -5,6 +5,7 @@
 * Rework and update PDF viewer
 * Allow spellchecking all supported languages instead of only `PREFERRED_LANGUAGES`
 * UI: do not hide assignee field on small screens
+* UI: Findings/sections/notes editor performance improvements
 * Plugin `projectnumber`: do not overwrite existing project tags
 
 

@@ -13,13 +13,20 @@
         <template #default="{ props: fieldProps }">
           <markdown-diff-field-content
             ref="markdownRef"
-            v-bind="{ ...$attrs, ...fieldProps }"
+            v-bind="{...props, ...$attrs, ...fieldProps }"
           />
         </template>
       </s-field>
     </template>
   </s-input>
 </template>
+
+<script setup lang="ts">
+const props = defineProps<{
+  historic: DiffFieldProps,
+  current: DiffFieldProps,
+}>();
+</script>
 
 <style lang="scss" scoped>
 .v-field__input {

@@ -58,8 +58,7 @@
         <template #append>
           <slot name="section-item-append" :section="section">
             <collab-avatar-group 
-              v-if="collab"
-              :collab="collabSubpath(collab, `sections.${section.id}`)"
+              :collab="collabSubpathProps[`sections.${section.id}`]"
               :class="{'mr-2': section.status && section.status !== ReviewStatus.IN_PROGRESS}"
             />
             <s-status-info :value="section.status" />
@@ -157,8 +156,7 @@
                   <template #append>
                     <slot name="finding-item-append" :finding="finding" >
                       <collab-avatar-group
-                        v-if="collab"
-                        :collab="collabSubpath(collab, `findings.${finding.id}`)"
+                        :collab="collabSubpathProps[`findings.${finding.id}`]"
                         :class="{'mr-2': finding.status !== ReviewStatus.IN_PROGRESS}"
                       />
                       <s-status-info :value="finding.status" />
@@ -288,15 +286,18 @@ function createFinding(group?: FindingGroup) {
 
 // Grouping and sorting
 const sortManual = computed(() => overrideFindingOrder.value || props.projectType.finding_ordering.length === 0);
-const findingGroups = computed(() => groupFindings({
+const findingGroups = computedList<FindingGroup>(() => groupFindings({
   findings: props.findings,
   projectType: props.projectType,
   overrideFindingOrder: overrideFindingOrder.value,
-}));
+}), g => ({...g, findings: g.findings.map(f => f.id)}));
 const isGrouped = computed(() => 
   (props.projectType.finding_grouping || []).length > 0 && 
   (findingGroups.value.length > 1 || (findingGroups.value.length === 1 && findingGroups.value[0]?.label))
 );
+
+const subpathNames = computedCached(() => props.findings.map(f => `findings.${f.id}`).concat(props.sections.map(s => `sections.${s.id}`)));
+const collabSubpathProps = useCollabSubpaths(() => props.collab, subpathNames);
 
 function sortGroups(groups: FindingGroup[]) {
   const value = groups.flatMap(g => g.findings)

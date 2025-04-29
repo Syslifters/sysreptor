@@ -100,9 +100,9 @@ const eventBusBeforeApplySetValue = useEventBus('collab:beforeApplySetValue');
 
 const reportingCollab = projectStore.useReportingCollab({ project: props.project, findingId: props.findingId, sectionId: props.sectionId });
 const commentNew = ref<Comment|null>(null);
-const commentsAll = computedThrottled(() => {
+const commentsAll = computedList<Comment>(() => {
   return projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId });
-}, { throttle: 1000 });
+}, c => c.id);
 const commentsVisible = computed(() => {
   const out = localSettings.reportingCommentSidebarVisible ?
     commentsAll.value.filter(c => localSettings.reportingCommentStatusFilter === 'all' ? true : c.status === localSettings.reportingCommentStatusFilter) :

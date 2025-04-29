@@ -167,10 +167,11 @@
                 :key="objectField.id"
                 :model-value="formValue[objectField.id]"
                 @update:model-value="emitInputObject(objectField.id as string, $event)"
-                :collab="props.collab ? collabSubpath(props.collab, objectField.id) : undefined"
+                :definition="objectField"
+                :collab="collabSubpathProps[objectField.id]"
                 :id="props.id ? (props.id + '.' + objectField.id) : undefined"
                 :error-messages="props.errorMessages?.[objectField.id]"
-                v-bind="inheritedAttrs(objectField)"
+                v-bind="inheritedAttrs"
               >
                 <template v-for="name in inheritedSlots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
               </dynamic-input-field>
@@ -238,11 +239,12 @@
                         <dynamic-input-field
                           :model-value="entryVal"
                           @update:model-value="emitInputList('update', entryIdx as number, $event)"
-                          :collab="props.collab ? collabSubpath(props.collab, `[${entryIdx}]`) : undefined"
+                          :definition="props.definition.items!"
+                          :collab="collabSubpathProps[`[${entryIdx}]`]"
                           @keydown="onListKeyDown"
                           :id="id ? `${id}[${entryIdx}]` : undefined"
                           :error-messages="props.errorMessages?.[entryIdx]"
-                          v-bind="inheritedAttrs(props.definition.items!)"
+                          v-bind="inheritedAttrs"
                         >
                           <template v-for="(_, name) in inheritedSlots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
                         </dynamic-input-field>
@@ -329,7 +331,7 @@
 import Draggable from 'vuedraggable';
 import { omit, pick, uniq } from 'lodash-es';
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
-import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo } from '#imports';
+import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo, useCollabSubpaths } from '#imports';
 import { workerUrlPolicy } from '~/plugins/trustedtypes';
 import { wait } from '@base/utils/helpers';
 
@@ -563,7 +565,7 @@ const isListEditingLocked = computed(() => {
   return props.definition.type === FieldDataType.LIST && props.collab && props.collab.clients.some(c => !c.isSelf);
 });
 
-const comboboxSuggestions = computed(() => {
+const comboboxSuggestions = computedCached(() => {
   const suggestions = [] as string[];
   if (props.definition.suggestions) {
     suggestions.push(...props.definition.suggestions);
@@ -574,6 +576,16 @@ const comboboxSuggestions = computed(() => {
   return uniq(suggestions);
 });
 
+const collabSubpathNames = computedCached(() => {
+  if (props.definition.type === FieldDataType.LIST) {
+    return formValue.value.map((_: any, i: number) => `[${i}]`);
+  } else if (props.definition.type === FieldDataType.OBJECT) {
+    return props.definition.properties?.map(d => d.id) || [];
+  } else {
+    return [];
+  }
+});
+const collabSubpathProps = useCollabSubpaths(() => props.collab, collabSubpathNames);
 function collabFocus() {
   if (props.collab) {
     emit('collab', {
@@ -604,28 +616,24 @@ const fieldAttrs = computed(() => ({
   onSearch: (v: any) => emit('search', v),
   'onUpdate:spellcheckEnabled': (v: boolean) => emit('update:spellcheckEnabled', v),
   'onUpdate:markdownEditorMode': (v: MarkdownEditorMode) => emit('update:markdownEditorMode', v),
-}))
-const inheritedAttrs = computed(() => (nestedDefinition: FieldDefinition) => {
-  const nextNestingLevel = (props.nestingLevel || 0) + 1;
-  return {
-    ...omit(fieldAttrs.value, ['errorMessages']),
-    ...pick(props, ['selectableUsers', 'disableValidation', 'showFieldIds', 'fieldValueSuggestions']),
-    definition: nestedDefinition,
-    nestingLevel: nextNestingLevel,
-  };
-});
+}));
+const inheritedAttrs = computed(() => ({
+  ...omit(fieldAttrs.value, ['errorMessages']),
+  ...pick(props, ['selectableUsers', 'disableValidation', 'showFieldIds', 'fieldValueSuggestions']),
+  nestingLevel: (props.nestingLevel || 0) + 1,
+}));
 const slots = useSlots() as any;
 const inheritedSlots = computed(() => Object.keys(slots).filter(name => !['label'].includes(name)));
 
 const isHovering = ref(false);
+const comments = computedList(() => props.collab?.comments?.filter(c => c.collabPath === props.collab?.path) || [], c => c.id);
 const commentBtnAttrs = computed(() => ({
-  comments: props.collab?.comments?.filter(c => c.collabPath === props.collab?.path) || [],
+  comments: comments.value,
   onComment: (v: any) => emit('comment', v),
   collabPath: props.collab?.path || '',
   isHovering: isHovering.value,
   disabled: props.disabled || props.readonly,
 }));
-
 const commentBtnRef = useTemplateRef('commentBtnRef');
 </script>
 

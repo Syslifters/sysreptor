@@ -1,5 +1,5 @@
 <template>
-  <s-input class="v-text-field" v-bind="$attrs">
+  <s-input v-model="modelValue" class="v-text-field" v-bind="$attrs">
     <template #default="{id, isDirty, isDisabled, isReadonly, isValid }">
       <s-field
         v-bind="$attrs"
@@ -16,7 +16,8 @@
         <template #default="{ props: fieldProps, focus, blur }">
           <markdown-text-field-content
             ref="markdownRef"
-            v-bind="{ ...$attrs, ...fieldProps }"
+            v-model="modelValue"
+            v-bind="{ ...props, ...$attrs, ...fieldProps }"
             @focus="focus()"
             @blur="blur()"
             v-intersect.once="onIntersect"
@@ -28,6 +29,11 @@
 </template>
 
 <script setup lang="ts">
+import type { MarkdownProps } from '#imports';
+
+const modelValue = defineModel<string|null>();
+const props = defineProps<MarkdownProps>();
+
 const markdownRef = useTemplateRef('markdownRef');
 const isFocused = ref(false);
 function onControlClick() {

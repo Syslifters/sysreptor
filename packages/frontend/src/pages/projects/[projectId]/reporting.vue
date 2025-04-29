@@ -46,8 +46,8 @@ definePageMeta({
 
 const project = await useAsyncDataE(async () => await projectStore.fetchById(route.params.projectId as string), { key: 'reporting:project' });
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'reporting:projectType' });
-const findings = computed(() => projectStore.findings(project.value.id, { projectType: projectType.value }));
-const sections = computed(() => projectStore.sections(project.value.id, { projectType: projectType.value }));
+const findings = computed(() => projectStore.findings(project.value.id));
+const sections = computed(() => projectStore.sections(project.value.id));
 const sortFindingsManual = computed(() => project.value.override_finding_order || projectType.value.finding_ordering.length === 0);
 
 const readonly = computed(() => project.value.readonly || !auth.permissions.value.edit_projects);

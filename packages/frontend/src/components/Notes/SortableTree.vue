@@ -59,10 +59,7 @@
           </v-list-item-subtitle>
         </template>
         <template #append>
-          <collab-avatar-group 
-            v-if="props.collab"
-            :collab="collabSubpath(props.collab, `notes.${note.id}`)"
-          />
+          <collab-avatar-group :collab="collabSubpathProps[`notes.${note.id}`]"/>
         </template>
       </v-list-item>
     </template>
@@ -124,6 +121,9 @@ watch(() => props.modelValue, () => {
     draggableRef.value.statsFlat = processor.statsFlat!;
   }
 }, { deep: true });
+
+const subpathNames = computedCached(() => flattenNotes(props.modelValue).map(n => `notes.${n.id}`));
+const collabSubpathProps = useCollabSubpaths(() => props.collab, subpathNames);
 
 </script>
 

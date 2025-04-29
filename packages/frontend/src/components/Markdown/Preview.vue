@@ -37,11 +37,14 @@ watchThrottled(() => props.value, async () => {
   renderedMarkdown.value = await renderMarkdownToHtmlInWorker({
     text: mdText,
     preview: true,
-    referenceItems: props.referenceItems,
+    referenceItems: toRaw(props.referenceItems),
     rewriteFileUrlMap: props.rewriteFileUrlMap,
     cacheBuster: cacheBuster.value,
   });
   renderedMarkdownText.value = mdText;
+
+  await nextTick();
+  postProcessRenderedHtml();
 }, { throttle: 500, leading: true, immediate: true });
 
 const previewRef = useTemplateRef('previewRef');
@@ -97,16 +100,8 @@ function showPreviewImage(event: MouseEvent) {
     event.stopPropagation();
   }
 }
+useEventListener(previewRef, 'click', showPreviewImage);
 
-onMounted(() => {
-  previewRef.value?.addEventListener('click', showPreviewImage);
-
-  postProcessRenderedHtml(); 
-});
-onUpdated(() => postProcessRenderedHtml());
-onBeforeUnmount(() => {
-  previewRef.value?.removeEventListener('click', showPreviewImage);
-})
 </script>
 
 <style lang="scss" scoped>

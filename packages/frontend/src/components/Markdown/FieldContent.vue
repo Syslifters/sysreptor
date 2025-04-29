@@ -1,8 +1,16 @@
 <template>
   <div class="mde">
-    <markdown-toolbar v-if="editorView" v-bind="markdownToolbarAttrs">
-      <template v-if="$slots['context-menu']" #context-menu="slotData"><slot name="context-menu" v-bind="slotData" /></template>
-    </markdown-toolbar>
+    <markdown-toolbar ref="toolbarRef" v-bind="markdownToolbarAttrs" />
+    <teleport v-if="toolbarRef && $slots['context-menu']" :to="`#${toolbarRef!.additionalContentId}`" defer>
+      <!-- 
+        Context menu for the markdown-toolbar.
+        Use teleport instead of slots to improve render performance.
+        When slots are defined inside <markdown-toolbar> drastically increase render time, even when not actually rendered (behind a v-if).
+      -->
+      <markdown-toolbar-context-menu>
+        <template #default><slot name="context-menu" :disabled="markdownToolbarAttrs.disabled" /></template>
+      </markdown-toolbar-context-menu>
+    </teleport>
 
     <v-row no-gutters class="w-100">
       <v-col 
@@ -46,6 +54,8 @@ const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPrevie
   extensions: markdownEditorDefaultExtensions(),
   fileUploadSupported: true,
 });
+
+const toolbarRef = useTemplateRef('toolbarRef');
 
 defineExpose({
   focus,

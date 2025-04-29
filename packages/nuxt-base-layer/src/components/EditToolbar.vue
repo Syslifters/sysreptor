@@ -199,22 +199,6 @@ watch(() => props.data, async (newValue) => {
   immediate: true,
 });
 
-onMounted(() => {
-  window.addEventListener('beforeunload', beforeLeaveBrowser);
-  window.addEventListener('keydown', keyboardShortcutListener);
-  window.addEventListener('unload', onUnloadBrowser);
-});
-onBeforeUnmount(() => {
-  window.removeEventListener('beforeunload', beforeLeaveBrowser);
-  window.removeEventListener('keydown', keyboardShortcutListener);
-  window.removeEventListener('unload', onUnloadBrowser);
-
-  if (refreshLockInterval.value) {
-    clearInterval(refreshLockInterval.value);
-    refreshLockInterval.value = null;
-  }
-});
-
 async function performSave() {
   if (!canSave.value || !hasChanges.value || savingInProgress.value) {
     return;
@@ -416,13 +400,6 @@ async function beforeLeave(_to: RouteLocationNormalized, _from: RouteLocationNor
   }
 }
 
-function keyboardShortcutListener(event: KeyboardEvent) {
-  if ((event.ctrlKey && event.key === 's') || (event.metaKey && event.key === 's')) {
-    event.preventDefault();
-    performSave();
-  }
-}
-
 function onUnloadBrowser() {
   // Note: the unload event is not triggered in certain situations
   //       e.g. on mobile devices or on Chrome when a user navigates to a different origin
@@ -440,6 +417,17 @@ function resetComponent() {
 
   return performUnlock(false);
 }
+
+useKeyboardShortcut('ctrl+s', performSave);
+useKeyboardShortcut('meta+s', performSave);
+useEventListener(window, 'beforeunload', beforeLeaveBrowser);
+useEventListener(window, 'unload', onUnloadBrowser);
+onBeforeUnmount(() => {
+  if (refreshLockInterval.value) {
+    clearInterval(refreshLockInterval.value);
+    refreshLockInterval.value = null;
+  }
+});
 
 defineExpose({
   autoSaveEnabled,

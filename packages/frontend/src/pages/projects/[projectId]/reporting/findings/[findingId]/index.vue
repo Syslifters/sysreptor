@@ -62,7 +62,7 @@
       <dynamic-input-field
         v-for="fieldDefinition in projectType.finding_fields" :key="fieldDefinition.id"
         :model-value="finding.data[fieldDefinition.id]"
-        :collab="collabSubpath(reportingCollab.collabProps.value, `data.${fieldDefinition.id}`)"
+        :collab="reportingCollab.collabSubpathProps.value[`data.${fieldDefinition.id}`]"
         @collab="reportingCollab.onCollabEvent"
         @comment="commentSidebarRef?.onCommentEvent"
         @search="reportingCollab.search.value = $event"
@@ -90,9 +90,9 @@ const projectTypeStore = useProjectTypeStore();
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'findings:project' });
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'findings:projectType' });
 
-const reportingCollab = projectStore.useReportingCollab({ project: project.value, findingId: route.params.findingId as string });
-const finding = computedThrottled(() => reportingCollab.data.value.findings[route.params.findingId as string], { throttle: 500 });
-const findingFieldValueSuggestions = computedThrottled(() => getFindingFieldValueSuggestions({ findings: Object.values(reportingCollab.data.value.findings), projectType: projectType.value }), { throttle: 1000 });
+const reportingCollab = projectStore.useReportingCollab({ project, projectType, findingId: route.params.findingId as string });
+const finding = computed(() => reportingCollab.data.value.findings[route.params.findingId as string]);
+const findingFieldValueSuggestions = useFindingFieldValueSuggestions(reportingCollab.data.value.findings, projectType.value);
 const readonly = computed(() => reportingCollab.readonly.value);
 
 const { inputFieldAttrs, errorMessage } = useProjectEditBase({

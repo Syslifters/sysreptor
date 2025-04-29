@@ -24,7 +24,7 @@
             <markdown-text-field-content
               id="title"
               :model-value="note.title"
-              :collab="collabSubpath(notesCollab.collabProps.value, 'title')"
+              :collab="collabPropsTitle"
               @collab="notesCollab.onCollabEvent"
               @search="notesCollab.search.value = $event"
               :readonly="readonly"
@@ -83,7 +83,7 @@
       <markdown-page
         id="text"
         :model-value="note.text"
-        :collab="collabSubpath(notesCollab.collabProps.value, 'text')"
+        :collab="collabPropsText"
         @collab="notesCollab.onCollabEvent"
         @search="notesCollab.search.value = $event"
         :readonly="readonly"
@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { collabSubpath } from '#imports';
+import { collabSubpath, type CollabPropType } from '#imports';
 import { urlJoin } from "@base/utils/helpers";
 
 const route = useRoute();
@@ -105,8 +105,10 @@ const projectStore = useProjectStore();
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
 
 const notesCollab = projectStore.useNotesCollab({ project: project.value, noteId: route.params.noteId as string });
-const note = computedThrottled(() => notesCollab.data.value.notes[route.params.noteId as string], { throttle: 500 });
+const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
 const readonly = computed(() => notesCollab.readonly.value);
+const collabPropsTitle = computed<CollabPropType>((oldValue) => collabSubpath(notesCollab.collabProps.value, 'title', oldValue));
+const collabPropsText = computed<CollabPropType>((oldValue) => collabSubpath(notesCollab.collabProps.value, 'text', oldValue));
 
 const { inputFieldAttrs, errorMessage } = useProjectEditBase({
   project: computed(() => project.value),

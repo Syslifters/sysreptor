@@ -1,5 +1,5 @@
-import { get, set, unset, throttle, trimStart, sortBy, cloneDeep } from "lodash-es";
-import { urlJoin, wait } from "@base/utils/helpers";
+import { get, set, unset, throttle, trimStart, sortBy, cloneDeep, isEqual, zip, omit } from "lodash-es";
+import { computedList, urlJoin, wait } from "@base/utils/helpers";
 import { ChangeSet, EditorSelection, SelectionRange, Text } from "@sysreptor/markdown/editor"
 import { CommentStatus, SyncState, type Comment, type UserShortInfo } from "#imports";
 
@@ -1036,6 +1036,33 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     }
   }
 
+  const collabPropsClients = computedList(() => {
+    return storeState.awareness.clients.map((c) => {
+      const a = c.client_id === storeState.clientID ? 
+        storeState.awareness.self : 
+        storeState.awareness.other[c.client_id];
+      return {
+        ...c,
+        path: storeState.apiPath + (a?.path || ''),
+        selection: a?.selection,
+        isSelf: c.client_id === storeState.clientID,
+      };
+    });
+  }, c => c.client_id);
+  const collabPropsCommentsList = computedList(() => {
+    return sortBy(Object.values(storeState.data.comments || {}), ['created'])
+      .filter(c => c.status === CommentStatus.OPEN)
+      .map(c => ({ ...c, collabPath: storeState.apiPath + c.path }));
+  }, c => c.id);
+  const collabPropsComments = computed(() => storeState.data.comments ? collabPropsCommentsList.value : undefined);
+  const collabPropsSearch = computedThrottled(() => storeState.search, { throttle: 1000 });
+  const collabProps = computed(() => ({
+      path: storeState.apiPath,
+      search: collabPropsSearch.value,
+      clients: collabPropsClients.value,
+      comments: collabPropsComments.value,
+  } as CollabPropType));
+
   return {
     connect,
     connectTo,
@@ -1062,26 +1089,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         return SyncState.SAVED;
       }
     }),
-    collabProps: computedThrottled(() => ({
-      path: storeState.apiPath,
-      clients: storeState.awareness.clients.map((c) => {
-        const a = c.client_id === storeState.clientID ? 
-          storeState.awareness.self : 
-          storeState.awareness.other[c.client_id];
-        return {
-          ...c,
-          path: storeState.apiPath + (a?.path || ''),
-          selection: a?.selection,
-          isSelf: c.client_id === storeState.clientID,
-        };
-      }),
-      comments: !storeState.data.comments ? undefined : (
-        sortBy(Object.values(storeState.data.comments), ['created'])
-          .filter(c => c.status === CommentStatus.OPEN)
-          .map(c => ({ ...c, collabPath: storeState.apiPath + c.path }))
-      ),
-      search: storeState.search,
-    }), { throttle: 1000 }),
+    collabProps,
     search: computed({
       get: () => storeState.search,
       set: (v: string|null) => { storeState.search = v; }, 
@@ -1103,14 +1111,44 @@ export type CollabPropType = {
   search?: string|null;
 };
 
-export function collabSubpath(collab: CollabPropType, subPath: string|null) {
+export function collabSubpath(collab: CollabPropType, subPath: string|null, oldValue?: CollabPropType) {
   const addDot = !collab.path.endsWith('.') && !collab.path.endsWith('/') && subPath;
   const path = collab.path + (addDot ? '.' : '') + (subPath || '');
 
-  return {
+  const newValue = {
     ...collab,
     path,
     clients: collab.clients.filter(a => isSubpath(a.path, path)),
     comments: collab.comments?.filter(c => isSubpath(c.collabPath || '', path)),
   };
+  if (
+    oldValue && 
+    isEqual(omit(oldValue, ['clients', 'comments']), omit(newValue, ['clients', 'comments'])) &&
+    (oldValue.clients.length === newValue.clients.length && zip(oldValue.clients, newValue.clients).every(([o, n]) => o === n)) &&
+    (oldValue.comments?.length === newValue.comments?.length && zip(oldValue.comments, newValue.comments).every(([o, n]) => o === n))
+  ) {
+    return oldValue;
+  }
+
+  return newValue;
+}
+
+export function useCollabSubpaths(collab: MaybeRefOrGetter<CollabPropType|undefined>, subpaths: MaybeRefOrGetter<string[]>): Ref<Record<string, CollabPropType>> {
+  const collabRef = toRef(collab);
+  const subpathNames = toRef(subpaths);
+  const subpathProps = ref<Record<string, CollabPropType>>({});
+
+  watch([subpathNames, collabRef], () => {
+    if (!collabRef.value || subpathNames.value.length === 0) {
+      if (!isEqual(subpathProps.value, {})) {
+        subpathProps.value = {};
+      }
+      return;
+    }
+    // TODO: fix TS types
+    subpathProps.value = Object.fromEntries(subpathNames.value.map((subPath) => 
+      [subPath, computed<CollabPropType>((oldValue) => collabSubpath(collabRef.value! as CollabPropType, subPath, oldValue))]));
+  }, { immediate: true });
+
+  return subpathProps;
 }

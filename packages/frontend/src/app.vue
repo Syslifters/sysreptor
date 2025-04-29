@@ -18,7 +18,7 @@ useHeadExtended({
 
 const colorSchemeQueryList = window.matchMedia('(prefers-color-scheme: dark)');
 const systemThemeIsDark = ref<boolean>(colorSchemeQueryList.matches);
-colorSchemeQueryList.addEventListener('change', (event) => {
+useEventListener(colorSchemeQueryList, 'change', (event: MediaQueryListEvent) => {
   systemThemeIsDark.value = event.matches;
 });
 

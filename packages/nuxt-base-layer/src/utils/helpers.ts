@@ -1,4 +1,4 @@
-import { setWith, clone, cloneDeep, sampleSize } from "lodash-es";
+import { setWith, clone, cloneDeep, sampleSize, isEqual, zip, isObject } from "lodash-es";
 export { decode as base64decode, encode as base64encode } from 'base64-arraybuffer';
 export { default as fileDownload } from 'js-file-download';
 export { default as urlJoin } from 'url-join';
@@ -21,6 +21,43 @@ export function computedThrottled<T>(fn: () => T, options: { throttle: number })
   return valueThrottled;
 }
 
+export function computedCached<T>(fn: () => T) {
+  return computed<T>((oldValue) => {
+    const newValue = fn();
+    return (oldValue && isEqual(oldValue, newValue)) ? oldValue : newValue;
+  });
+}
+
+export function optimizedUpdateReactiveList<T>(newValue: T[], oldValue: T[]|undefined, key: (v: T) => any) {
+  if (oldValue && isEqual(oldValue?.map(key), newValue.map(key))) {
+    // Number of comments and order is the same: only update properties
+    for (let i = 0; i < newValue.length; i++) {
+      if (!isEqual(oldValue[i], newValue[i])) {
+        if (isObject(oldValue[i]) && isObject(newValue[i])) {
+          Object.assign(oldValue[i]!, newValue[i]!);
+        } else {
+          oldValue[i] = newValue[i]!;
+        }
+      }
+    }
+    return oldValue;
+  } else {
+    return newValue;
+  }
+}
+
+export function computedList<T>(fn: () => T[], getItemKey?: (v: T) => any): Ref<T[]> {
+  getItemKey = getItemKey || ((v: T) => v);
+
+  const cachedValue = ref<T[]>([]) as Ref<T[]>;
+  watchEffect(() => {
+    const newValue = fn();
+    cachedValue.value = optimizedUpdateReactiveList(newValue, cachedValue.value, getItemKey);
+  })
+  return cachedValue;
+}
+
+
 export function useKeyboardShortcut(shortcut: string, handler: (event: KeyboardEvent) => void) {
   function onKeyDown(event: KeyboardEvent) {
     const keys = shortcut.split('+');
@@ -39,13 +76,7 @@ export function useKeyboardShortcut(shortcut: string, handler: (event: KeyboardE
     event.preventDefault();
     handler(event);
   }
-
-  onMounted(() => {
-    window.addEventListener('keydown', onKeyDown);
-  });
-  onBeforeUnmount(() => {
-    window.removeEventListener('keydown', onKeyDown);
-  });
+  useEventListener(window, 'keydown', onKeyDown, { passive: false });
 }
 
 function* positions(node: any, isLineStart = true): Generator<{ node: Node, offset: number, text: string }> {
@@ -169,10 +200,7 @@ export function useAbortController<T>(performFetch: (fetchOptions: { signal: Abo
     }
   }
 
-  onMounted(() => {
-    window.addEventListener('beforeunload', abort);
-  });
-  onBeforeUnmount(() => window.removeEventListener('beforeunload', abort));
+  useEventListener(window, 'beforeunload', abort);
   onUnmounted(() => abort());
 
   return {
