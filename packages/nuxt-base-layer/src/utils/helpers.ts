@@ -1,4 +1,4 @@
-import { setWith, clone, cloneDeep, sampleSize, isEqual, zip, isObject } from "lodash-es";
+import { setWith, clone, cloneDeep, sampleSize, isEqual, isObject } from "lodash-es";
 export { decode as base64decode, encode as base64encode } from 'base64-arraybuffer';
 export { default as fileDownload } from 'js-file-download';
 export { default as urlJoin } from 'url-join';

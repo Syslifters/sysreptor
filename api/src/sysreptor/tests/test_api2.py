@@ -2,7 +2,6 @@ import io
 from uuid import uuid4
 
 import pytest
-from django.db.models import RestrictedError
 from django.urls import reverse
 
 from sysreptor.pentests.cvss import CVSSLevel

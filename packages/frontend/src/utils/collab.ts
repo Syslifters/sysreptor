@@ -2,6 +2,7 @@ import { get, set, unset, throttle, trimStart, sortBy, cloneDeep, isEqual, zip, 
 import { computedList, urlJoin, wait } from "@base/utils/helpers";
 import { ChangeSet, EditorSelection, SelectionRange, Text } from "@sysreptor/markdown/editor"
 import { CommentStatus, SyncState, type Comment, type UserShortInfo } from "#imports";
+import type { UnwrapRef } from "vue";
 
 const WS_THROTTLE_INTERVAL = 1_000;
 const WS_RESPONSE_TIMEOUT = 7_000;
@@ -1136,7 +1137,7 @@ export function collabSubpath(collab: CollabPropType, subPath: string|null, oldV
 export function useCollabSubpaths(collab: MaybeRefOrGetter<CollabPropType|undefined>, subpaths: MaybeRefOrGetter<string[]>): Ref<Record<string, CollabPropType>> {
   const collabRef = toRef(collab);
   const subpathNames = toRef(subpaths);
-  const subpathProps = ref<Record<string, CollabPropType>>({});
+  const subpathProps = ref<UnwrapRef<Record<string, CollabPropType>>>({});
 
   watch([subpathNames, collabRef], () => {
     if (!collabRef.value || subpathNames.value.length === 0) {
@@ -1145,9 +1146,8 @@ export function useCollabSubpaths(collab: MaybeRefOrGetter<CollabPropType|undefi
       }
       return;
     }
-    // TODO: fix TS types
     subpathProps.value = Object.fromEntries(subpathNames.value.map((subPath) => 
-      [subPath, computed<CollabPropType>((oldValue) => collabSubpath(collabRef.value! as CollabPropType, subPath, oldValue))]));
+      [subPath, computed<CollabPropType>((oldValue) => collabSubpath(collabRef.value! as CollabPropType, subPath, oldValue)).value]));
   }, { immediate: true });
 
   return subpathProps;

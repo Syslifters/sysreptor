@@ -7,7 +7,6 @@ from uuid import uuid4
 
 import pyotp
 import pytest
-from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
@@ -28,7 +27,6 @@ from sysreptor.tests.mock import (
 )
 from sysreptor.tests.utils import assertKeysEqual
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
-from sysreptor.utils import utils
 from sysreptor.utils.utils import omit_keys
 
 
