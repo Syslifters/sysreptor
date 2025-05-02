@@ -8,7 +8,7 @@ import { merge } from 'lodash-es';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, remarkToRehypeHandersFootnotesPreview, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './footnotes';
 import { remarkStrikethrough, remarkTaskListItem } from './gfm';
-import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteFileUrls, rehypeTemplates, rehypeRawFixSelfClosingTags, rehypeRawFixPassthroughStitches } from './rehypePlugins';
+import { rehypeConvertAttrsToStyle, rehypeLinkTargetBlank, rehypeRewriteFileUrls, rehypeTemplates, rehypeRawFixSelfClosingTags, rehypeRawFixPassthroughStitches, rehypeAnnotateMarkdownPositions } from './rehypePlugins';
 import { remarkAttrs, remarkToRehypeAttrs } from './attrs';
 import { remarkFigure, remarkToRehypeHandlersFigure } from './image';
 import { remarkTables, remarkTableCaptions, remarkToRehypeHandlersTableCaptions, rehypeTableCaptions } from './tables';
@@ -115,7 +115,9 @@ export function renderMarkdownToHtml({ text = '', preview = false, referenceItem
     }
     md = md.use(rehypeLinkTargetBlank)
     if (preview) {
-      md = md.use(rehypeSanitize, rehypeSanitizeSchema);
+      md = md
+        .use(rehypeAnnotateMarkdownPositions)
+        .use(rehypeSanitize, rehypeSanitizeSchema);
     }
     md = md.use(rehypeStringify);
 

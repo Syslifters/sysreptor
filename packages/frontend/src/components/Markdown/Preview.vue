@@ -107,6 +107,10 @@ function showPreviewImage(event: MouseEvent) {
 }
 useEventListener(previewRef, 'click', showPreviewImage);
 
+defineExpose({
+  element: previewRef,
+})
+
 </script>
 
 <style lang="scss" scoped>
@@ -116,7 +120,7 @@ useEventListener(previewRef, 'click', showPreviewImage);
 .preview {
   overflow: auto;
   word-wrap: break-word;
-  padding: 0.5em;
+  padding: 4px 0.5em;
 }
 
 .preview > :deep(*:first-child) {

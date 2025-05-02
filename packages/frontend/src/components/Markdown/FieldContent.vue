@@ -1,7 +1,15 @@
 <template>
-  <div class="mde">
-    <markdown-toolbar ref="toolbarRef" v-bind="markdownToolbarAttrs" />
-    <teleport v-if="toolbarRef && $slots['context-menu']" :to="`#${toolbarRef!.additionalContentId}`" defer>
+  <div ref="mdeRef" class="mde" :class="'mde-mode-' + props.markdownEditorMode">
+    <markdown-toolbar 
+      ref="toolbarRef"
+      class="mde-toolbar"
+      v-bind="markdownToolbarAttrs"
+    />
+    <teleport 
+      v-if="toolbarRef && $slots['context-menu']" 
+      :to="`#${toolbarRef!.additionalContentId}`" 
+      defer
+    >
       <!-- 
         Context menu for the markdown-toolbar.
         Use teleport instead of slots to improve render performance.
@@ -12,37 +20,33 @@
       </markdown-toolbar-context-menu>
     </teleport>
 
-    <v-row no-gutters class="w-100">
-      <v-col 
-        v-show="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW"
-        :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined"
-      >
-        <div
-          ref="editorRef"
-          v-intersect="onIntersect"
-          class="mde-editor"
-        />
-      </v-col>
-      <v-col 
-        v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" 
-        class="w-0"
-      >
-        <v-divider vertical class="h-100" />
-      </v-col>
-      <v-col 
+    <div class="mde-container-editor">
+      <div
+        ref="editorRef"
+        v-intersect="onIntersect"
+        class="mde-editor"
+      />
+    </div>
+    <v-divider vertical class="mde-separator" />
+    <div ref="previewContainerRef" class="mde-container-preview">
+      <markdown-preview 
         v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN"
-        :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" 
-      >
-        <markdown-preview v-bind="markdownPreviewAttrs" class="mde-preview" />
-      </v-col>
-    </v-row>
-    <v-divider />
+        ref="previewRef"
+        v-bind="markdownPreviewAttrs" 
+        class="mde-preview" 
+      />
+    </div>
 
-    <markdown-statusbar v-if="editorView" v-bind="markdownStatusbarAttrs" />
+    <div class="mde-footer">
+      <v-divider />
+      <markdown-statusbar v-if="editorView" v-bind="markdownStatusbarAttrs" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { sortBy, throttle } from 'lodash-es';
+import type { MarkdownToolbar } from '#components';
 import { MarkdownEditorMode } from '#imports';
 
 const props = defineProps(makeMarkdownProps());
@@ -55,7 +59,105 @@ const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPrevie
   fileUploadSupported: true,
 });
 
-const toolbarRef = useTemplateRef('toolbarRef');
+const toolbarRef = useTemplateRef<InstanceType<typeof MarkdownToolbar>>('toolbarRef');
+
+
+const mdeRef = useTemplateRef('mdeRef');
+const previewRef = useTemplateRef('previewRef');
+const previewContainerRef = useTemplateRef('previewContainerRef');
+const scrollParentEditor = computed(() => {
+  if (props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
+    return undefined;
+  }
+  return getScrollParent(mdeRef.value) || undefined;
+});
+
+const syncScrollEditorToPreview = throttle(() => {
+  if (!mdeRef.value || !editorView.value || !editorView.value.contentDOM || !toolbarRef.value?.$el || !previewRef.value?.element || !previewContainerRef.value) {
+    return;
+  }
+  
+  // Check if mdeRef is in viewport
+  const rect = mdeRef.value?.getBoundingClientRect();
+  if (rect.bottom < 0 || rect.top > window.innerHeight) { return; }
+
+  // Get first visible codemirror line
+  const codemirrorLine = Array.from(editorView.value.contentDOM.querySelectorAll<HTMLElement>(':scope > .cm-line')).find(isVisible);
+  if (!codemirrorLine) { return; }
+
+  // Get corresponding preview element for codemirror line
+  const lineNumber = editorView.value.state.doc.lineAt(editorView.value.posAtCoords(codemirrorLine.getBoundingClientRect(), false)).number;
+  const previewElement = getPreviewElementForLine(lineNumber);
+  if (!previewElement) { return; }
+
+  // previewElementOffsetTop and codemirrorLineOffsetTop should be at the same level (they are the same line/block).
+  // Both offsets are relative to the same DOM position: mdeRef below the toolbar.
+  // So we need to scroll previewContainerRef to the difference between the two offsets (when height(preview) > height(codemirror)).
+  const previewElementOffsetTop = getOffsetTop(previewElement, previewContainerRef.value);
+  const codemirrorLineOffsetTop = codemirrorLine.offsetTop;
+  const newScrollTop = previewElementOffsetTop - codemirrorLineOffsetTop
+
+  previewContainerRef.value!.scrollTo({ 
+    top: newScrollTop,
+    behavior: 'smooth' 
+  });
+}, 200);
+useEventListener(scrollParentEditor, 'scroll', syncScrollEditorToPreview);
+watch([() => props.markdownEditorMode, scrollParentEditor, editorView, previewRef], syncScrollEditorToPreview);
+
+
+function isVisible(el: Element) {
+  const elRect = el.getBoundingClientRect()
+  const editorOffsetTop = toolbarRef.value!.$el.getBoundingClientRect().bottom;
+  const bottomVisible = elRect.bottom - editorOffsetTop;
+  if (bottomVisible <= 0 || elRect.top >= window.innerHeight) {
+    return false;
+  }
+  return true;
+}
+function getPosition(el?: Element|null): {start: {line: number, offset: number}, end: {line: number, offset: number}}|null {
+  if (!el) {
+    return null;
+  }
+  try {
+    const position = JSON.parse(el.getAttribute('data-position') || '');
+    if (position && Number.isInteger(position?.start?.line)) {
+      return position;
+    }
+  } catch { 
+    // Ignore error
+  }
+  return null;
+}
+function getDepth(el: Element): number {
+  let depth = 0;
+  while (el && el.parentElement) {
+    depth++;
+    el = el.parentElement;
+  }
+  return depth;
+}
+function getOffsetTop(el: HTMLElement, offsetParent: HTMLElement): number {
+  let offsetTop = el.offsetTop;
+  while (el.offsetParent && el.offsetParent !== offsetParent) {
+    el = el.offsetParent as HTMLElement
+    offsetTop += el.offsetTop;
+  }
+  return offsetTop;
+}
+function getPreviewElementForLine(lineNumber: number): HTMLElement|null {
+  if (!previewRef.value?.element) {
+    return null;
+  }
+  const previewElements = Array.from(previewRef.value.element.querySelectorAll<HTMLElement>('[data-position]'))
+    .filter(el => {
+      const position = getPosition(el);
+      return position && lineNumber >= position.start.line && lineNumber <= position.end.line
+    });
+  // Get the deepest element for this line (e.g. table->tr, ul->li)
+  const previewElement = sortBy(previewElements.map(el => ({ el, depth: getDepth(el) * -1})), ['depth'])[0]?.el;
+  return previewElement || null;
+}
 
 defineExpose({
   focus,
@@ -68,27 +170,75 @@ defineExpose({
 
 $mde-min-height: 15em;
 
-.mde-editor {
-  height: 100%;
 
-  &-side.cm-editor {
-    width: 50%;
+.mde {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: 
+    "toolbar toolbar toolbar"
+    "editor separator preview"
+    "footer footer footer";
+  gap: 0;
+  align-items: start;
+  width: 100%;
+}
+
+.mde-toolbar { grid-area: toolbar; }
+.mde-footer { grid-area: footer; }
+.mde-separator { grid-area: separator; }
+.mde-container-editor { grid-area: editor; }
+.mde-container-preview { grid-area: preview; }
+
+.mde-mode-markdown {
+  .mde-separator, .mde-container-preview {
+    display: none;
+  }
+  .mde-container-editor {
+    grid-column: editor / span preview;
+  }
+}
+.mde-mode-preview {
+  .mde-container-editor, .mde-separator {
+    display: none;
+  }
+  .mde-container-preview {
+    grid-column: editor / span preview;
+    min-height: $mde-min-height;
+  }
+}
+.mde-mode-markdown-preview {
+  .mde-container-editor { grid-area: editor; }
+  .mde-container-preview { grid-area: preview; }
+  .mde-container-preview {
+    min-height: 100%;
+    height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+    position: relative;
   }
 }
 
 :deep(.mde-editor) {
+  @include meta.load-css("@/assets/mde-highlight.scss");
+
   /* set min-height, grow when lines overflow */
   .cm-editor { height: 100%; }
   .cm-content, .cm-gutter { min-height: $mde-min-height; }
   .cm-scroller { overflow: auto; }
   .cm-wrap { border: 1px solid silver }
 }
-
-:deep(.mde-editor) {
-  @include meta.load-css("@/assets/mde-highlight.scss");
-}
-
-.mde-preview {
-  min-height: $mde-min-height;
-}
 </style>
+
+
+<!-- TODO: sync scroll
+* [ ] sync scroll editor to preview
+* [ ] sync scroll preview to editor
+* [ ] handle height(codemirror) < height(preview)
+  * scroll in preview
+* [ ] handle height(codemirror) > height(preview)
+  * negative scroll not allowed in browsers
+  * maybe add spacers at start/end of preview ???
+* [ ] prevent scroll feedback loop
+  * programmatic scroll sync in one pane should not trigger scroll event in other pane
+-->

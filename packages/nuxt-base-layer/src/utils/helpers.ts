@@ -221,3 +221,14 @@ export function generateRandomPassword() {
 export async function wait(ms: number) {
   await new Promise(resolve => setTimeout(resolve, ms));
 }
+
+
+export function getScrollParent(node?: HTMLElement|null): HTMLElement|null {
+  if (!node) { return null; }
+  if (node.scrollHeight > node.clientHeight) {
+    return node;
+  } else {
+    return getScrollParent(node.parentElement);
+  }
+}
+
