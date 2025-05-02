@@ -49,8 +49,12 @@ watchThrottled(() => props.value, async () => {
 
 const previewRef = useTemplateRef('previewRef');
 async function postProcessRenderedHtml() {
+  if (!previewRef.value) {
+    return;
+  }
+
   // Prevent navigation when clicking on anchor links in preview
-  previewRef.value!.querySelectorAll('.preview a[href^="#"]').forEach((a: Element) => {
+  previewRef.value.querySelectorAll('.preview a[href^="#"]').forEach((a: Element) => {
     a.addEventListener('click', (e) => {
       e.preventDefault();
       const target = document.querySelector(a.getAttribute('href')!);
@@ -61,7 +65,7 @@ async function postProcessRenderedHtml() {
   });
 
   // Render mermaid diagrams
-  const mermaidNodes = previewRef.value!.querySelectorAll<HTMLElement>('.preview div.mermaid-diagram');
+  const mermaidNodes = previewRef.value.querySelectorAll<HTMLElement>('.preview div.mermaid-diagram');
   try {
     await mermaid.run({ nodes: mermaidNodes });
   } catch (e: any) {
@@ -69,6 +73,7 @@ async function postProcessRenderedHtml() {
     console.error('Mermaid error: ' + e.message, e);
   }
 }
+whenever(previewRef, postProcessRenderedHtml, { immediate: true });
 
 const previewImageSrc = ref<PreviewImage|null>(null);
 const previewImagesAll = ref<PreviewImage[]>([]);
