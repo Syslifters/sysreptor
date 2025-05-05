@@ -1,7 +1,7 @@
 # Changelog
 
 ## Upcoming
-* Notifications about project updates
+* Notifications about project updates (https://docs.sysreptor.com/users/notifications/)
 * Rework and update PDF viewer
 * Allow spellchecking all supported languages instead of only `PREFERRED_LANGUAGES`
 * UI: do not hide assignee field on small screens
