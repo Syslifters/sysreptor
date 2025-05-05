@@ -50,6 +50,7 @@
 import { sortBy, throttle } from 'lodash-es';
 import type { MarkdownToolbar } from '#components';
 import { MarkdownEditorMode } from '#imports';
+import { syntaxTree, type SyntaxNode } from '@sysreptor/markdown/editor';
 
 const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
@@ -87,19 +88,19 @@ async function syncScrollEditorToPreview() {
 
   // Get first visible codemirror line
   const codemirrorLine = Array.from(editorView.value.contentDOM.querySelectorAll<HTMLElement>(':scope > .cm-line')).find(isVisible);
-  if (!codemirrorLine) { return; }
+  const mdBlock = getEditorMarkdownBlockForLine(codemirrorLine);
+  if (!mdBlock) { return; }
 
   // Get corresponding preview element for codemirror line
-  const lineNumber = editorView.value.state.doc.lineAt(editorView.value.posAtCoords(codemirrorLine.getBoundingClientRect(), false)).number;
-  const previewElement = getPreviewElementForLine(lineNumber);
+  const previewElement = getPreviewElementForLine(mdBlock.line.number);
   if (!previewElement) { return; }
 
-  // previewElementOffsetTop and codemirrorLineOffsetTop should be at the same level (they are the same line/block).
+  // previewElementOffsetTop and mdBlockOffsetTop should be at the same level (they are the same line/block).
   // Both offsets are relative to the same DOM position: mdeRef below the toolbar.
   // So we need to scroll previewContainerRef to the difference between the two offsets (when height(preview) > height(codemirror)).
   const previewElementOffsetTop = getOffsetTop(previewElement, previewContainerRef.value) - scrollSpacerTop.value;
-  const codemirrorLineOffsetTop = codemirrorLine.offsetTop;
-  let newScrollTop = previewElementOffsetTop - codemirrorLineOffsetTop
+  const mdBlockOffsetTop = mdBlock.element.offsetTop;
+  let newScrollTop = previewElementOffsetTop - mdBlockOffsetTop
   let newSpacerTop = 0;
   let newSpacerBottom = 0;
 
@@ -131,7 +132,7 @@ async function syncScrollEditorToPreview() {
   });
 
 }
-useEventListener(scrollParentEditor, 'scroll', throttle(syncScrollEditorToPreview, 200));
+useEventListener(scrollParentEditor, 'scroll', throttle(syncScrollEditorToPreview, 200, { leading: false, trailing: true }));
 watch([() => props.markdownEditorMode, scrollParentEditor, editorView, previewRef], syncScrollEditorToPreview);
 
 
@@ -170,6 +171,38 @@ function getOffsetTop(el: HTMLElement, offsetParent: HTMLElement): number {
     offsetTop += el.offsetTop;
   }
   return offsetTop;
+}
+function getEditorMarkdownBlockForLine(codemirrorLine?: HTMLElement) {
+  if (!codemirrorLine || !editorView.value) {
+    return null;
+  }
+
+  const pos = editorView.value.posAtCoords(codemirrorLine.getBoundingClientRect(), false);
+
+  // Get syntax tree node for current markdown block.
+  // Use the sub-block (instead of top-level block) for nested elements (listItem, tableRow)
+  const tree = syntaxTree(editorView.value.state);
+  let node = tree.resolve(pos + 1, 1) as SyntaxNode|null;
+  while (node && !['content', 'document'].includes(node.parent?.name as string) && !['listItem', 'tableRow', 'image'].includes(node.type.name)) {
+    node = node.parent;
+  }
+  if (!node || ['content', 'document', ''].includes(node?.name as string)) {
+    return null;
+  }
+
+  const position = node.from;
+  const line = editorView.value.state.doc.lineAt(position);
+  const element = (editorView.value as any).docView?.children
+    ?.find((c: any) => c.posAtStart <= node.from && node.from <= c.posAtEnd)?.dom as HTMLElement|undefined;
+  if (!element) {
+    return null;
+  }
+
+  return {
+    line,
+    position,
+    element
+  }
 }
 function getPreviewElementForLine(lineNumber: number): HTMLElement|null {
   if (!previewRef.value?.element) {
@@ -262,18 +295,23 @@ $mde-min-height: 15em;
 
 
 <!-- TODO: sync scroll
-* [ ] sync scroll editor to preview
-* [ ] sync scroll preview to editor
-* [ ] handle height(codemirror) < height(preview)
+* [x] sync scroll editor to preview
+* [x] handle height(codemirror) < height(preview)
   * scroll in preview
 * [x] handle height(codemirror) > height(preview)
   * negative scroll not allowed in browsers
-  * maybe add spacers at start/end of preview ???
+  * add spacers at start/end of preview
+* [x] sync position of MD blocks (codemirror syntax tree) instead of lines
+* [ ] fixed scrollSpacerTop/Bottom heights
+  * ensure there is always enough space for each MD block to be visible
+  * pro: can scroll preview independently
+  * con: space before/after preview content
+  * con: expensive to calculate => on every update
 * [ ] prevent scroll feedback loop
   * programmatic scroll sync in one pane should not trigger scroll event in other pane
-* [ ] sync position of MD blocks (codemirror syntax tree) instead of lines
 * [ ] be less strict with syncing scroll position
   * do not only regard the first visible line
   * also regard other lines
   * only sync scroll when no visible codemirror line is in preview ???
+* [ ] sync scroll preview to editor
 -->
