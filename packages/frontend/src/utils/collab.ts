@@ -1139,7 +1139,12 @@ export function useCollabSubpaths(collab: MaybeRefOrGetter<CollabPropType|undefi
   const subpathNames = toRef(subpaths);
   const subpathProps = ref<UnwrapRef<Record<string, CollabPropType>>>({});
 
-  watch([subpathNames, collabRef], () => {
+  watch([
+    subpathNames, 
+    collabRef, 
+    () => collabRef.value?.clients?.map(c => [c.client_id, c.path]), 
+    () => collabRef.value?.comments?.map(c => [c.id, c.path])
+  ], () => {
     if (!collabRef.value || subpathNames.value.length === 0) {
       if (!isEqual(subpathProps.value, {})) {
         subpathProps.value = {};
