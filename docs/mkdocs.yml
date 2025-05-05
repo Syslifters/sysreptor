@@ -35,7 +35,7 @@ nav:
       - Overview: finding-templates/overview.md
       - Create Finding: finding-templates/create-finding.md
       - Multilingual: finding-templates/multilingual.md
-  - User Management:
+  - Users and Permissions:
       - User Permissions: users/user-permissions.md
       - Single Sign-On:
           - SSO Setup: users/oidc-setup.md
@@ -45,6 +45,7 @@ nav:
           - Microsoft ADFS: users/oidc-adfs.md
           - Generic: users/oidc-generic.md
       - Forgot Password: users/forgot-password.md
+      - Notifications: users/notifications.md
   - Plugins: setup/plugins.md
   - Automize Reporting via CLI:
       - Getting Started: cli/getting-started.md
