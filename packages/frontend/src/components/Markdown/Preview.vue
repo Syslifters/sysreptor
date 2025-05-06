@@ -120,7 +120,7 @@ defineExpose({
 .preview {
   overflow: auto;
   word-wrap: break-word;
-  padding: 4px 0.5em;
+  margin: 4px 0.5em;
 }
 
 .preview > :deep(*:first-child) {
