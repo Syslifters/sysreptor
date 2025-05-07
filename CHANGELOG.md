@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.43 - 2025-05-07
 * Notifications about project updates (https://docs.sysreptor.com/users/notifications/)
 * Rework and update PDF viewer
 * Allow spellchecking all supported languages instead of only `PREFERRED_LANGUAGES`
@@ -9,7 +9,7 @@
 * Plugin `projectnumber`: do not overwrite existing project tags
 
 
-## v2025.37 - 2024-04-17
+## v2025.37 - 2025-04-17
 * Allow sending emails (https://docs.sysreptor.com/setup/configuration/#emails)
 * Add forgot password functionality (https://docs.sysreptor.com/setup/configuration/#local-user-authentication)
 * Make user emails unique
