@@ -79,6 +79,7 @@ async function onUploadFiles(event: InputEvent) {
   padding: 0.3em 1em;
   color: #959694;
   overflow: hidden;
+  background-color: rgb(var(--v-theme-surface));
 
   .status-items {
     span {

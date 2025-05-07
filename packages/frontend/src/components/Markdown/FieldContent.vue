@@ -1,5 +1,5 @@
 <template>
-  <div ref="mdeRef" class="mde" :class="'mde-mode-' + props.markdownEditorMode">
+  <div class="mde" :class="'mde-mode-' + props.markdownEditorMode">
     <markdown-toolbar 
       ref="toolbarRef"
       class="mde-toolbar"
@@ -65,14 +65,15 @@ const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPrevie
 const toolbarRef = useTemplateRef<InstanceType<typeof MarkdownToolbar>>('toolbarRef');
 
 
-const mdeRef = useTemplateRef('mdeRef');
+// Sync scroll
+const editorRef = ref<HTMLDivElement>();
 const previewRef = useTemplateRef('previewRef');
 const previewContainerRef = useTemplateRef('previewContainerRef');
 const scrollParentEditor = computed(() => {
   if (props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
     return undefined;
   }
-  return getScrollParent(mdeRef.value) || undefined;
+  return getScrollParent(editorRef.value) || undefined;
 });
 
 const previewMinHeight = ref(0);
@@ -80,12 +81,12 @@ const previewMinHeightPx = computed(() => previewMinHeight.value + 'px');
 const spacerHeight = ref(0);
 const spacerHeightPx = computed(() => spacerHeight.value + 'px');
 function syncScrollEditorToPreview() {
-  if (!mdeRef.value || !editorView.value || !editorView.value.contentDOM || !toolbarRef.value?.$el || !previewRef.value?.element || !previewContainerRef.value) {
+  if (!editorRef.value || !editorView.value || !editorView.value.contentDOM || !toolbarRef.value?.$el || !previewRef.value?.element || !previewContainerRef.value) {
     return;
   }
 
-  // Check if mdeRef is in viewport
-  const rect = mdeRef.value?.getBoundingClientRect();
+  // Check if editorRef is in viewport
+  const rect = editorRef.value?.getBoundingClientRect();
   if (rect.bottom < 0 || rect.top > window.innerHeight) { return; }
 
   // Get first visible codemirror line
@@ -98,7 +99,7 @@ function syncScrollEditorToPreview() {
   if (!previewElement) { return; }
 
   // previewElementOffsetTop and mdBlockOffsetTop should be at the same level (they are the same line/block).
-  // Both offsets are relative to the same DOM position: mdeRef below the toolbar.
+  // Both offsets are relative to the same DOM position: inside the field below the toolbar.
   // So we need to scroll previewContainerRef to the difference between the two offsets (when height(preview) > height(codemirror)).
   const previewElementOffsetTop = getOffsetTop(previewElement, previewContainerRef.value);
   const mdBlockOffsetTop = mdBlock.element.offsetTop;
@@ -109,11 +110,6 @@ function syncScrollEditorToPreview() {
     return;
   }
 
-  console.log('syncScrollEditorToPreview', {
-    newScrollTop,
-    newSpacerHeight: spacerHeight.value,
-  });
-
   // Scroll to the new position
   previewContainerRef.value.scrollTo({ 
     top: newScrollTop,
@@ -122,7 +118,9 @@ function syncScrollEditorToPreview() {
 }
 
 async function updateSpacers() {
-  if (props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW || !previewContainerRef.value || !previewRef.value?.element || !mdeRef.value) {
+  if (props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW || !previewContainerRef.value || !previewRef.value?.element || !editorRef.value) {
+    previewMinHeight.value = 0;
+    spacerHeight.value = 0;
     return;
   }
 
@@ -131,23 +129,12 @@ async function updateSpacers() {
 
   // Ensure that spacers are large enough to allow scrolling to every preview block for every editor position.
   previewMinHeight.value = Math.min(previewRef.value.element.clientHeight, window.innerHeight);
-  spacerHeight.value = Math.max(previewRef.value.element.clientHeight, mdeRef.value.clientHeight * 2);
+  spacerHeight.value = Math.max(previewRef.value.element.clientHeight, editorRef.value.clientHeight * 2);
 
   // correct scrollTop by the same amount as spacerHeight to prevent jumping
   // 1px offset to prevent scrolling when preview content is initially rendered
   await nextTick();
   previewContainerRef.value.scrollTop = Math.max(0, oldScrollTop - oldSpacerHeight + spacerHeight.value - 1);
-
-  if (mdeRef.value.id === 'input-v-0-0-0-0-23') {
-    console.log('updateSpacers', mdeRef.value, {
-      oldSpacerHeight,
-      oldScrollTop,
-      newSpacerHeight: spacerHeight.value,
-      newScrollTop: previewContainerRef.value.scrollTop,
-      mdeRef: mdeRef.value,
-      previewHeight: previewRef.value.element.clientHeight,
-    });
-  }
 }
 
 useEventListener(scrollParentEditor, 'scroll', throttle(syncScrollEditorToPreview, 200, { leading: false, trailing: true }), { passive: true });
@@ -155,7 +142,6 @@ watch([() => props.markdownEditorMode, scrollParentEditor, editorView, () => pre
   await updateSpacers();
   syncScrollEditorToPreview();
 }, { immediate: true });
-
 useResizeObserver(() => previewRef.value?.element, updateSpacers);
 
 
@@ -289,6 +275,9 @@ defineExpose({
   .mde-container-preview {
     grid-column: editor / span preview;
   }
+  .mde-preview {
+    min-height: var(--mde-min-height);
+  }
 }
 .mde-mode-markdown-preview {
   .mde-container-editor { grid-area: editor; }
@@ -317,22 +306,3 @@ defineExpose({
   .cm-wrap { border: 1px solid silver }
 }
 </style>
-
-
-<!-- TODO: sync scroll
-* [x] sync scroll editor to preview
-* [x] handle height(codemirror) < height(preview)
-  * scroll in preview
-* [x] handle height(codemirror) > height(preview)
-  * negative scroll not allowed in browsers
-  * add spacers at start/end of preview
-* [x] sync position of MD blocks (codemirror syntax tree) instead of lines
-* [x] fixed scrollSpacerTop/Bottom heights
-  * ensure there is always enough space for each MD block to be visible
-  * pro: can scroll preview independently
-  * con: space before/after preview content
-  * con: expensive to calculate => on every update
-* [ ] MarkdownPage: only one-way sync scroll
-* [ ] cleanup and refactor
-  * [ ] refactor to composable
--->

@@ -1,65 +1,32 @@
 <template>
-  <full-height-page class="mde">
-    <template #header>
-      <markdown-toolbar v-bind="markdownToolbarAttrs" />
-    </template>
-
-    <template #default>
-      <div 
-        v-show="props.historic.markdownEditorMode !== MarkdownEditorMode.PREVIEW"
-        ref="mergeViewRef"
-        class="mde-mergeview w-100 h-100 overflow-y-auto"
-      />
-
-      <v-row 
-        v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW" 
-        no-gutters 
-        class="w-100 h-100"
-      >
-        <v-col cols="6" class="h-100">
-          <markdown-preview v-bind="markdownPreviewAttrsHistoric" />
-        </v-col>
-        <v-col class="h-100 w-0">
-          <v-divider vertical class="h-100" />
-        </v-col>
-        <v-col cols="6" class="h-100">
-          <markdown-preview v-bind="markdownPreviewAttrsCurrent" />
-        </v-col>
-      </v-row>
-    </template>
-  </full-height-page>
+  <markdown-diff-field-content
+    class="mde-page"
+    v-bind="attrs"
+  />
 </template>
 
 <script setup lang="ts">
-import { MarkdownEditorMode } from '#imports';
-
-const props = defineProps<{
-  historic: DiffFieldProps,
-  current: DiffFieldProps,
-}>();
-
-const { markdownPreviewAttrsHistoric, markdownPreviewAttrsCurrent, markdownToolbarAttrs } = useMarkdownDiff({
-  props: computed(() => props),
-  extensions: markdownEditorDefaultExtensions(),
-});
+const attrs = useAttrs() as any;
 </script>
 
 <style lang="scss" scoped>
-@use "sass:meta";
+.mde-page:deep() {
+  height: 100%;
+  overflow-y: scroll;
 
-:deep(.mde-mergeview) {
-  .cm-wrap { border: 1px solid silver; }
-
-  .cm-merge-a, .cm-merge-b {
-    border-left: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+  .mde {
+    min-height: 100%;
   }
-}
 
-:deep(.mde-mergeview) {
-  @include meta.load-css("@/assets/mde-highlight.scss");
-
+  .mde-editor {
+    height: 100%;
+  }
   .cm-content {
     font-family: monospace;
+  }
+  .cm-content, .cm-gutter { min-height: 0 !important; }
+  .cm-lineNumbers {
+    margin-bottom: 100vh;
   }
 }
 </style>

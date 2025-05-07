@@ -1,33 +1,25 @@
 <template>
-  <div class="mde">
-    <markdown-toolbar v-bind="markdownToolbarAttrs" />
+  <div class="mde" :class="'mde-mode-' + props.historic.markdownEditorMode">
+    <markdown-toolbar 
+      class="mde-toolbar" 
+      v-bind="markdownToolbarAttrs" 
+    />
     <div 
-      v-show="props.historic.markdownEditorMode !== MarkdownEditorMode.PREVIEW"
       ref="mergeViewRef" 
       class="mde-mergeview" 
     />
-    
-    <v-row 
-      v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW" 
-      no-gutters 
-      class="w-100"
-    >
-      <v-col cols="6">
-        <markdown-preview
-          v-bind="markdownPreviewAttrsHistoric" 
-          class="mde-preview" 
-        />
-      </v-col>
-      <v-col class="w-0">
-        <v-divider vertical class="h-100" />
-      </v-col>
-      <v-col cols="6">
-        <markdown-preview
-          v-bind="markdownPreviewAttrsCurrent" 
-          class="mde-preview" 
-        />
-      </v-col>
-    </v-row>
+
+    <markdown-preview
+      v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW"
+      v-bind="markdownPreviewAttrsHistoric" 
+      class="mde-preview mde-preview-historic" 
+    />
+    <v-divider vertical class="mde-separator" />
+    <markdown-preview
+      v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW"
+      v-bind="markdownPreviewAttrsCurrent" 
+      class="mde-preview mde-preview-current" 
+    />
   </div>
 </template>
 
@@ -48,29 +40,53 @@ const { markdownPreviewAttrsHistoric, markdownPreviewAttrsCurrent, markdownToolb
 <style lang="scss" scoped>
 @use "sass:meta";
 
-$mde-min-height: 15em;
+.mde {
+  --mde-min-height: 18em;
 
-.mde-mergeview {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "toolbar toolbar toolbar"
+    "historic separator current";
+  gap: 0;
+  align-items: start;
   width: 100%;
 }
 
+.mde-toolbar { grid-area: toolbar; }
+.mde-separator { grid-area: separator; }
+.mde-preview-historic { grid-area: historic; }
+.mde-preview-current { grid-area: current; }
+.mde-mergeview { grid-column: historic / span current; }
+.mde-footer { grid-area: footer; }
+
+.mde-mode-markdown {
+  .mde-preview {
+    display: none;
+  }
+}
+.mde-mode-preview {
+  .mde-mergeview {
+    display: none;
+  }
+}
+
+.mde-preview {
+  height: max-content;
+  min-height: var(--mde-min-height);
+}
 :deep(.mde-mergeview) {
+  @include meta.load-css("@/assets/mde-highlight.scss");
+
   /* set min-height, grow when lines overflow */
   .cm-editor { height: 100%; }
-  .cm-content, .cm-gutter { min-height: $mde-min-height; }
+  .cm-content, .cm-gutter { min-height: var(--mde-min-height); }
   .cm-scroller { overflow: auto; }
   .cm-wrap { border: 1px solid silver; }
 
   .cm-merge-a, .cm-merge-b {
     border-left: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
   }
-}
-
-:deep(.mde-mergeview) {
-  @include meta.load-css("@/assets/mde-highlight.scss");
-}
-
-.mde-preview {
-  min-height: $mde-min-height;
 }
 </style>
