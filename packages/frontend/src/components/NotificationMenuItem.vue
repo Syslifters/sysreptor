@@ -123,7 +123,7 @@ const closedGroups = ref<string[]>([]);
 const openGroups = computed(() => notificationStore.groupedNotifications.filter(g => !closedGroups.value.includes(g.key)).map(g => g.key));
 
 // Regularly refresh notifications
-const intervalControls = useIntervalFn(async () => notificationStore.fetchNotifications(), 5 * 60 * 1000, { immediateCallback: true });
+const intervalControls = useIntervalFn(refreshNotifications, 5 * 60 * 1000, { immediateCallback: true });
 watch(() => notificationStore.enabled, (enabled) => {
   if (enabled) {
     intervalControls.resume();
@@ -134,7 +134,15 @@ watch(() => notificationStore.enabled, (enabled) => {
 
 async function onOpenMenu(value: boolean) {
   if (value) {
+    await refreshNotifications();
+  }
+}
+
+async function refreshNotifications() {
+  try {
     await notificationStore.fetchNotifications();
+  } catch {
+    // Ignore errors
   }
 }
 
