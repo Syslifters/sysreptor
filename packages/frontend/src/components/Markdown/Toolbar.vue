@@ -216,14 +216,6 @@ function codemirrorAction(actionFn: (view: EditorView) => void) {
 }
 
 const toolbarRef = useTemplateRef('toolbarRef');
-function getScrollParent(node?: HTMLElement|null) {
-  if (!node) { return null; }
-  if (node.scrollHeight > node.clientHeight) {
-    return node;
-  } else {
-    return getScrollParent(node.parentElement);
-  }
-}
 async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
   if (!toolbarRef.value?.$el) {
     return;

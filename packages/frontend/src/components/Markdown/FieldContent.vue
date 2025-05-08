@@ -1,7 +1,15 @@
 <template>
-  <div class="mde">
-    <markdown-toolbar ref="toolbarRef" v-bind="markdownToolbarAttrs" />
-    <teleport v-if="toolbarRef && $slots['context-menu']" :to="`#${toolbarRef!.additionalContentId}`" defer>
+  <div class="mde" :class="'mde-mode-' + props.markdownEditorMode">
+    <markdown-toolbar 
+      ref="toolbarRef"
+      class="mde-toolbar"
+      v-bind="markdownToolbarAttrs"
+    />
+    <teleport 
+      v-if="toolbarRef && $slots['context-menu']" 
+      :to="`#${toolbarRef!.additionalContentId}`" 
+      defer
+    >
       <!-- 
         Context menu for the markdown-toolbar.
         Use teleport instead of slots to improve render performance.
@@ -12,38 +20,37 @@
       </markdown-toolbar-context-menu>
     </teleport>
 
-    <v-row no-gutters class="w-100">
-      <v-col 
-        v-show="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW"
-        :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined"
-      >
-        <div
-          ref="editorRef"
-          v-intersect="onIntersect"
-          class="mde-editor"
-        />
-      </v-col>
-      <v-col 
-        v-if="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW" 
-        class="w-0"
-      >
-        <v-divider vertical class="h-100" />
-      </v-col>
-      <v-col 
+    <div class="mde-container-editor">
+      <div
+        ref="editorRef"
+        v-intersect="onIntersect"
+        class="mde-editor"
+      />
+    </div>
+    <v-divider vertical class="mde-separator" />
+    <div ref="previewContainerRef" class="mde-container-preview">
+      <div class="mde-spacer" />
+      <markdown-preview 
         v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN"
-        :cols="props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW ? 6 : undefined" 
-      >
-        <markdown-preview v-bind="markdownPreviewAttrs" class="mde-preview" />
-      </v-col>
-    </v-row>
-    <v-divider />
+        ref="previewRef"
+        v-bind="markdownPreviewAttrs" 
+        class="mde-preview"
+      />
+      <div class="mde-spacer" />
+    </div>
 
-    <markdown-statusbar v-if="editorView" v-bind="markdownStatusbarAttrs" />
+    <div class="mde-footer">
+      <v-divider />
+      <markdown-statusbar v-if="editorView" v-bind="markdownStatusbarAttrs" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { sortBy, throttle } from 'lodash-es';
+import type { MarkdownToolbar } from '#components';
 import { MarkdownEditorMode } from '#imports';
+import { syntaxTree, type SyntaxNode } from '@sysreptor/markdown/editor';
 
 const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
@@ -55,7 +62,173 @@ const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPrevie
   fileUploadSupported: true,
 });
 
-const toolbarRef = useTemplateRef('toolbarRef');
+const toolbarRef = useTemplateRef<InstanceType<typeof MarkdownToolbar>>('toolbarRef');
+
+
+// Sync scroll
+const editorRef = ref<HTMLDivElement>();
+const previewRef = useTemplateRef('previewRef');
+const previewContainerRef = useTemplateRef('previewContainerRef');
+const scrollParentEditor = computed(() => {
+  if (props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
+    return undefined;
+  }
+  return getScrollParent(editorRef.value) || undefined;
+});
+
+const previewMinHeight = ref(0);
+const previewMinHeightPx = computed(() => previewMinHeight.value + 'px');
+const spacerHeight = ref(0);
+const spacerHeightPx = computed(() => spacerHeight.value + 'px');
+function syncScrollEditorToPreview() {
+  if (!editorRef.value || !editorView.value || !editorView.value.contentDOM || !toolbarRef.value?.$el || !previewRef.value?.element || !previewContainerRef.value) {
+    return;
+  }
+
+  // Check if editorRef is in viewport
+  const rect = editorRef.value?.getBoundingClientRect();
+  if (rect.bottom < 0 || rect.top > window.innerHeight) { return; }
+
+  // Get first visible codemirror line
+  const codemirrorLine = Array.from(editorView.value.contentDOM.querySelectorAll<HTMLElement>(':scope > .cm-line')).find(isVisible);
+  const mdBlock = getEditorMarkdownBlockForLine(codemirrorLine);
+  if (!mdBlock) { return; }
+
+  // Get corresponding preview element for codemirror line
+  const previewElement = getPreviewElementForLine(mdBlock?.line.number);
+  if (!previewElement) { return; }
+
+  // previewElementOffsetTop and mdBlockOffsetTop should be at the same level (they are the same line/block).
+  // Both offsets are relative to the same DOM position: inside the field below the toolbar.
+  // So we need to scroll previewContainerRef to the difference between the two offsets (when height(preview) > height(codemirror)).
+  const previewElementOffsetTop = getOffsetTop(previewElement, previewContainerRef.value);
+  const mdBlockOffsetTop = mdBlock.element.offsetTop;
+  const newScrollTop = previewElementOffsetTop - mdBlockOffsetTop;
+
+  if (Math.abs(newScrollTop - previewContainerRef.value.scrollTop) < 1) {
+    // We are already at the desired position. No need to scroll.
+    return;
+  }
+
+  // Scroll to the new position
+  previewContainerRef.value.scrollTo({ 
+    top: newScrollTop,
+    behavior: 'smooth', 
+  });
+}
+
+async function updateSpacers() {
+  if (props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW || !previewContainerRef.value || !previewRef.value?.element || !editorRef.value) {
+    previewMinHeight.value = 0;
+    spacerHeight.value = 0;
+    return;
+  }
+
+  const oldSpacerHeight = spacerHeight.value;
+  const oldScrollTop = previewContainerRef.value.scrollTop;
+
+  // Ensure that spacers are large enough to allow scrolling to every preview block for every editor position.
+  previewMinHeight.value = Math.min(previewRef.value.element.clientHeight, window.innerHeight);
+  spacerHeight.value = Math.max(previewRef.value.element.clientHeight, editorRef.value.clientHeight * 2);
+
+  // correct scrollTop by the same amount as spacerHeight to prevent jumping
+  // 1px offset to prevent scrolling when preview content is initially rendered
+  await nextTick();
+  previewContainerRef.value.scrollTop = Math.max(0, oldScrollTop - oldSpacerHeight + spacerHeight.value - 1);
+}
+
+useEventListener(scrollParentEditor, 'scroll', throttle(syncScrollEditorToPreview, 200, { leading: false, trailing: true }), { passive: true });
+watch([() => props.markdownEditorMode, scrollParentEditor, editorView, () => previewRef.value?.element], async () => {
+  await updateSpacers();
+  syncScrollEditorToPreview();
+}, { immediate: true });
+useResizeObserver(() => previewRef.value?.element, updateSpacers);
+
+
+function isVisible(el: Element, threshold = 30) {
+  const elRect = el.getBoundingClientRect()
+  const editorOffsetTop = toolbarRef.value!.$el.getBoundingClientRect().bottom;
+  const bottomVisible = elRect.bottom - editorOffsetTop;
+  // At least threshold px of the element are visible
+  return bottomVisible > threshold && elRect.top < window.innerHeight;
+}
+function getPosition(el?: Element|null): {start: {line: number, offset: number}, end: {line: number, offset: number}}|null {
+  if (!el) {
+    return null;
+  }
+  try {
+    const position = JSON.parse(el.getAttribute('data-position') || '');
+    if (position && Number.isInteger(position?.start?.line)) {
+      return position;
+    }
+  } catch { 
+    // Ignore error
+  }
+  return null;
+}
+function getDepth(el: Element): number {
+  let depth = 0;
+  while (el && el.parentElement) {
+    depth++;
+    el = el.parentElement;
+  }
+  return depth;
+}
+function getOffsetTop(el: HTMLElement, offsetParent: HTMLElement): number {
+  let offsetTop = el.offsetTop;
+  while (el.offsetParent && el.offsetParent !== offsetParent) {
+    el = el.offsetParent as HTMLElement
+    offsetTop += el.offsetTop;
+  }
+  return offsetTop;
+}
+function getEditorMarkdownBlockForLine(codemirrorLine?: HTMLElement) {
+  if (!codemirrorLine || !editorView.value) {
+    return null;
+  }
+
+  const pos = editorView.value.posAtCoords(codemirrorLine.getBoundingClientRect(), false);
+
+  // Get syntax tree node for current markdown block.
+  // Use the sub-block (instead of top-level block) for nested elements (listItem, tableRow)
+  const tree = syntaxTree(editorView.value.state);
+  let node = tree.resolve(pos + 1, 1) as SyntaxNode|null;
+  while (node && !['content', 'document'].includes(node.parent?.name as string) && !['listItem', 'tableRow', 'image'].includes(node.type.name)) {
+    node = node.parent;
+  }
+  if (!node || ['content', 'document', ''].includes(node?.name as string)) {
+    return null;
+  }
+
+  const position = node.from;
+  const line = editorView.value.state.doc.lineAt(position);
+
+  const element = (editorView.value as any).docView?.children
+    ?.find((c: any) => c.posAtStart <= node.from && node.from <= c.posAtEnd && c.dom?.classList.contains('cm-line'))
+    ?.dom as HTMLElement|undefined;
+  if (!element) {
+    return null;
+  }
+
+  return {
+    line,
+    position,
+    element
+  }
+}
+function getPreviewElementForLine(lineNumber?: number): HTMLElement|null {
+  if (!Number.isInteger(lineNumber) || !previewRef.value?.element) {
+    return null;
+  }
+  const previewElements = Array.from(previewRef.value.element.querySelectorAll<HTMLElement>('[data-position]'))
+    .filter(el => {
+      const position = getPosition(el);
+      return position && lineNumber! >= position.start.line && lineNumber! <= position.end.line;
+    });
+  // Get the deepest element for this line (e.g. table->tr, ul->li)
+  const previewElement = sortBy(previewElements.map(el => ({ el, depth: getDepth(el) * -1})), ['depth'])[0]?.el;
+  return previewElement || null;
+}
 
 defineExpose({
   focus,
@@ -66,29 +239,70 @@ defineExpose({
 <style lang="scss" scoped>
 @use "sass:meta";
 
-$mde-min-height: 15em;
+.mde {
+  --mde-min-height: max(18em, v-bind(previewMinHeightPx));
 
-.mde-editor {
-  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: 
+    "toolbar toolbar toolbar"
+    "editor separator preview"
+    "footer footer footer";
+  gap: 0;
+  align-items: start;
+  width: 100%;
+}
 
-  &-side.cm-editor {
-    width: 50%;
+.mde-toolbar { grid-area: toolbar; }
+.mde-footer { grid-area: footer; }
+.mde-separator { grid-area: separator; }
+.mde-container-editor { grid-area: editor; }
+.mde-container-preview { grid-area: preview; }
+
+.mde-mode-markdown {
+  .mde-separator, .mde-container-preview {
+    display: none;
+  }
+  .mde-container-editor {
+    grid-column: editor / span preview;
+  }
+}
+.mde-mode-preview {
+  .mde-container-editor, .mde-separator, .mde-scrollspacer {
+    display: none;
+  }
+  .mde-container-preview {
+    grid-column: editor / span preview;
+  }
+  .mde-preview {
+    min-height: var(--mde-min-height);
+  }
+}
+.mde-mode-markdown-preview {
+  .mde-container-editor { grid-area: editor; }
+  .mde-container-preview { grid-area: preview; }
+  .mde-container-preview {
+    min-height: 100%;
+    height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+    overscroll-behavior-y: contain;
+    position: relative;
+  }
+  .mde-spacer {
+    height: v-bind(spacerHeightPx);
   }
 }
 
-:deep(.mde-editor) {
-  /* set min-height, grow when lines overflow */
-  .cm-editor { height: 100%; }
-  .cm-content, .cm-gutter { min-height: $mde-min-height; }
-  .cm-scroller { overflow: auto; }
-  .cm-wrap { border: 1px solid silver }
-}
 
 :deep(.mde-editor) {
   @include meta.load-css("@/assets/mde-highlight.scss");
-}
 
-.mde-preview {
-  min-height: $mde-min-height;
+  /* set min-height, grow when lines overflow */
+  .cm-editor { height: 100%; }
+  .cm-content, .cm-gutter { min-height: var(--mde-min-height); }
+  .cm-scroller { overflow: auto; }
+  .cm-wrap { border: 1px solid silver }
 }
 </style>

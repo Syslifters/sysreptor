@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming
+* Sync scroll in markdown editor and preview
 * UI: Add a button to expand collapsed menus
 
 
