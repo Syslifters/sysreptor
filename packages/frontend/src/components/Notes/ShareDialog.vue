@@ -7,7 +7,7 @@
   >
     <template #title>Share Note</template>
     <template #default>
-      <split-menu :model-value="shareInfos.length > 0 ? 20 : 0">
+      <split-menu :model-value="shareInfos.length > 0 ? 20 : 0" :expand-size="0">
         <template #menu>
           <v-list
             v-model:selected="currentShareInfoSelection"
