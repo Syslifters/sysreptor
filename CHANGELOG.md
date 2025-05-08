@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* UI: Add a button to expand collapsed menus
+
+
 ## v2025.43 - 2025-05-07
 * Notifications about project updates (https://docs.sysreptor.com/users/notifications/)
 * Rework and update PDF viewer

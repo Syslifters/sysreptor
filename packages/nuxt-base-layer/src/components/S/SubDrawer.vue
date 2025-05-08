@@ -10,7 +10,7 @@
   >
     <v-list class="pa-0 h-100 d-flex flex-column" density="compact">
       <div 
-        class="subdrawer-items flex-grow-height overflow-y-auto" 
+        class="subdrawer-items flex-grow-height" 
         :class="{'subdrawer-items-collapsed': !isExpanded}"
       >
         <slot :is-expanded="isExpanded" />
@@ -55,6 +55,7 @@ const isExpanded = computed(() => localSettings.subDrawerExpanded);
 
 .subdrawer-items {
   overflow-y: auto;
+  overflow-x: hidden;
 
   &-collapsed {
     scrollbar-width: none;
