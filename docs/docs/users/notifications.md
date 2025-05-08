@@ -24,3 +24,4 @@ Notifications are created for following events:
 * Project deleted where you are a member
 * Project archived where you are a member
 * No backup created for more than 30 days
+* Remote notification e.g. SysReptor update available
