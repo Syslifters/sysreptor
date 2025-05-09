@@ -23,7 +23,7 @@
     "@vueuse/nuxt": "^13.0.0",
     "monaco-editor": "^0.52.0",
     "vuedraggable": "^4.1.0",
-    "@iconify/vue": "^4.1.1",
+    "@iconify/vue": "^5.0.0",
     "@iconify/icons-fluent-emoji": "^1.2.10",
     "@github/webauthn-json": "^2.1.1",
     "@elastic/apm-rum-vue": "^2.1.5",
@@ -42,7 +42,7 @@
     "vitest": "^3.0.4",
     "happy-dom": "^17.0.0",
     "vue-tsc": "^2.2.0",
-    "@playwright/test": "1.51.1",
+    "@playwright/test": "1.52.0",
     "form-data": "^4.0.1",
     "node-fetch": "^3.3.2"
   },

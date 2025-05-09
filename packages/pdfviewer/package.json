@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "pdfjs-dist": "~5.1.91",
+    "pdfjs-dist": "~5.2.133",
     "base64-arraybuffer": "^1.0.2"
   },
   "devDependencies": {

@@ -28,7 +28,7 @@ services:
       - 6379
   integration-tests:
     profiles: [test]
-    image: mcr.microsoft.com/playwright:v1.51.1-noble
+    image: mcr.microsoft.com/playwright:v1.52-noble
     working_dir: /app/packages/frontend/
     environment:
       # DISPLAY: :0 # for running with --ui in WSL 2 with XServer
