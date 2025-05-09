@@ -139,7 +139,14 @@ export function rehypeRawFixPassthroughStitches() {
  */
 export function rehypeAnnotateMarkdownPositions() {
   return tree => visit(tree, 'element', (node, _, parent) => {
-    if (node.position && (parent.type === 'root' || (['li', 'tr', 'figure'].includes(node.tagName)))) {
+    
+    if (
+      node.position && 
+      // Only include top-level blocks and nested structures
+      (parent.type === 'root' || (['li', 'tr', 'figure'].includes(node.tagName))) && 
+      // Skip footnotes, because in the preview they are moved outside the document flow (rendered at the bottom)
+      !node.properties?.id?.startsWith('user-content-fn')
+    ) {
       node.properties = node.properties || {};
       node.properties.dataPosition = JSON.stringify(node.position);
     }

@@ -29,14 +29,33 @@
     </div>
     <v-divider vertical class="mde-separator" />
     <div ref="previewContainerRef" class="mde-container-preview">
-      <div class="mde-spacer" />
+      <div v-if="spacerHeight > 0" class="mde-spacer">
+        <div class="mde-endmarker mde-endmarker-top">
+          <s-btn
+            @click="syncScrollOrTop()"
+            text="End of preview"
+            append-icon="mdi-arrow-down"
+            variant="plain"
+          />
+        </div>
+      </div>
       <markdown-preview 
         v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN"
         ref="previewRef"
         v-bind="markdownPreviewAttrs" 
         class="mde-preview"
       />
-      <div class="mde-spacer" />
+      <div v-if="spacerHeight > 0" class="mde-spacer">
+        <v-spacer />
+        <div class="mde-endmarker mde-endmarker-bottom">
+          <s-btn
+            @click="syncScrollOrTop()"
+            text="End of preview"
+            append-icon="mdi-arrow-up"
+            variant="plain"
+          />
+        </div>
+      </div>
     </div>
 
     <div class="mde-footer">
@@ -50,7 +69,7 @@
 import { sortBy, throttle } from 'lodash-es';
 import type { MarkdownToolbar } from '#components';
 import { MarkdownEditorMode } from '#imports';
-import { syntaxTree, type SyntaxNode } from '@sysreptor/markdown/editor';
+import { EditorView, syntaxTree, type ViewUpdate, type SyntaxNode } from '@sysreptor/markdown/editor';
 
 const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
@@ -58,7 +77,10 @@ const emit = defineEmits(makeMarkdownEmits());
 const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
   props: computed(() => ({ ...props, spellcheckSupported: true } as any)),
   emit,
-  extensions: markdownEditorDefaultExtensions(),
+  extensions: [
+    ...markdownEditorDefaultExtensions(),
+    EditorView.updateListener.of(onEditorUpdate),
+  ],
   fileUploadSupported: true,
 });
 
@@ -77,26 +99,43 @@ const scrollParentEditor = computed(() => {
 });
 
 const previewMinHeight = ref(0);
-const previewMinHeightPx = computed(() => previewMinHeight.value + 'px');
 const spacerHeight = ref(0);
-const spacerHeightPx = computed(() => spacerHeight.value + 'px');
+const endmarkerTopOffset = ref(0);
+const endmarkerBottomOffset = ref(0);
 function syncScrollEditorToPreview() {
   if (!editorRef.value || !editorView.value || !editorView.value.contentDOM || !toolbarRef.value?.$el || !previewRef.value?.element || !previewContainerRef.value) {
-    return;
+    return false;
   }
 
   // Check if editorRef is in viewport
   const rect = editorRef.value?.getBoundingClientRect();
-  if (rect.bottom < 0 || rect.top > window.innerHeight) { return; }
+  if (rect.bottom < 0 || rect.top > window.innerHeight) { return false; }
 
-  // Get first visible codemirror line
-  const codemirrorLine = Array.from(editorView.value.contentDOM.querySelectorAll<HTMLElement>(':scope > .cm-line')).find(isVisible);
-  const mdBlock = getEditorMarkdownBlockForLine(codemirrorLine);
-  if (!mdBlock) { return; }
+  // Set offset of preview end markers
+  // We need to calculate the offset in JS because the field might be larger than the viewport.
+  // If the top/bottom is outside the viewport, we need to add an offset such that the markers stay visible.
+  endmarkerTopOffset.value = Math.max(0, (rect.top - toolbarRef.value.$el.getBoundingClientRect().bottom) * -1);
+  endmarkerBottomOffset.value = Math.max(0, rect.bottom - window.innerHeight);
+
+  // Get editor line to sync preview to
+  let editorLine = undefined as HTMLElement|undefined;
+  if (props.isFocussed || props.isFocussed === undefined) {
+    // Use the cursor position if the field is focused and the cursor is visible
+    const cursorLine = getEditorLineForPosition(editorView.value.state.selection.main.head);
+    if (cursorLine && isVisible(cursorLine, 0)) {
+      editorLine = cursorLine;
+    }
+  }
+  if (!editorLine) {
+    // Fallback to the first visible line if the cursor is not visible (e.g. out of viewport)
+    editorLine = Array.from(editorView.value.contentDOM.querySelectorAll<HTMLElement>(':scope > .cm-line')).find(isVisible);
+  }
+  const mdBlock = getEditorMarkdownBlockForLine(editorLine);
+  if (!mdBlock) { return false; }
 
   // Get corresponding preview element for codemirror line
   const previewElement = getPreviewElementForLine(mdBlock?.line.number);
-  if (!previewElement) { return; }
+  if (!previewElement) { return false; }
 
   // previewElementOffsetTop and mdBlockOffsetTop should be at the same level (they are the same line/block).
   // Both offsets are relative to the same DOM position: inside the field below the toolbar.
@@ -107,7 +146,7 @@ function syncScrollEditorToPreview() {
 
   if (Math.abs(newScrollTop - previewContainerRef.value.scrollTop) < 1) {
     // We are already at the desired position. No need to scroll.
-    return;
+    return true;
   }
 
   // Scroll to the new position
@@ -115,6 +154,18 @@ function syncScrollEditorToPreview() {
     top: newScrollTop,
     behavior: 'smooth', 
   });
+  return true;
+}
+function syncScrollOrTop() {
+  const success = syncScrollEditorToPreview();
+  if (!success && previewContainerRef.value && previewRef.value?.element && toolbarRef.value?.$el) {
+    // scroll to start of preview
+    const newScrollTop = 0 + previewRef.value.element.offsetTop + previewContainerRef.value.getBoundingClientRect().top - toolbarRef.value.$el.getBoundingClientRect().bottom;
+    previewContainerRef.value.scrollTo({
+      top: newScrollTop,
+      behavior: 'smooth',
+    });
+  }
 }
 
 async function updateSpacers() {
@@ -129,7 +180,12 @@ async function updateSpacers() {
 
   // Ensure that spacers are large enough to allow scrolling to every preview block for every editor position.
   previewMinHeight.value = Math.min(previewRef.value.element.clientHeight, window.innerHeight);
-  spacerHeight.value = Math.max(previewRef.value.element.clientHeight, editorRef.value.clientHeight * 2);
+  if (previewRef.value.element.clientHeight <= editorRef.value.clientHeight && editorRef.value.clientHeight < window.innerHeight * 0.9) {
+    // Disable scrolling for small fields in preview if preview fully fits in the editor area and on the screen
+    spacerHeight.value = 0;
+  } else {
+    spacerHeight.value = Math.max(previewRef.value.element.clientHeight, editorRef.value.clientHeight * 2);
+  }
 
   // correct scrollTop by the same amount as spacerHeight to prevent jumping
   // 1px offset to prevent scrolling when preview content is initially rendered
@@ -137,12 +193,26 @@ async function updateSpacers() {
   previewContainerRef.value.scrollTop = Math.max(0, oldScrollTop - oldSpacerHeight + spacerHeight.value - 1);
 }
 
+async function onEditorUpdate(update: ViewUpdate) {
+  if (props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
+    return;
+  }
+  if (!(update.docChanged || update.selectionSet)) {
+    return;
+  }
+  await nextTick();
+  // Note: The preview might not be rendered yet. 
+  // New markdown blocks (e.g. when typing the first characters) might not have a corresponding preview element.
+  // On following view updates (e.g. typing more characters), the preview element will be availalbe and scrolled to.
+  syncScrollEditorToPreview();
+}
+
 useEventListener(scrollParentEditor, 'scroll', throttle(syncScrollEditorToPreview, 200, { leading: false, trailing: true }), { passive: true });
 watch([() => props.markdownEditorMode, scrollParentEditor, editorView, () => previewRef.value?.element], async () => {
   await updateSpacers();
   syncScrollEditorToPreview();
 }, { immediate: true });
-useResizeObserver(() => previewRef.value?.element, updateSpacers);
+useResizeObserver([() => previewRef.value?.element, editorRef], updateSpacers);
 
 
 function isVisible(el: Element, threshold = 30) {
@@ -202,10 +272,7 @@ function getEditorMarkdownBlockForLine(codemirrorLine?: HTMLElement) {
 
   const position = node.from;
   const line = editorView.value.state.doc.lineAt(position);
-
-  const element = (editorView.value as any).docView?.children
-    ?.find((c: any) => c.posAtStart <= node.from && node.from <= c.posAtEnd && c.dom?.classList.contains('cm-line'))
-    ?.dom as HTMLElement|undefined;
+  const element = getEditorLineForPosition(position);
   if (!element) {
     return null;
   }
@@ -216,6 +283,12 @@ function getEditorMarkdownBlockForLine(codemirrorLine?: HTMLElement) {
     element
   }
 }
+function getEditorLineForPosition(position: number): HTMLElement|null {
+  return (editorView.value as any)?.docView?.children
+    ?.find((c: any) => c.posAtStart <= position && position <= c.posAtEnd && c.dom?.classList.contains('cm-line'))
+    ?.dom || null;
+}
+
 function getPreviewElementForLine(lineNumber?: number): HTMLElement|null {
   if (!Number.isInteger(lineNumber) || !previewRef.value?.element) {
     return null;
@@ -240,7 +313,7 @@ defineExpose({
 @use "sass:meta";
 
 .mde {
-  --mde-min-height: max(18em, v-bind(previewMinHeightPx));
+  --mde-min-height: max(18em, calc(v-bind(previewMinHeight) * 1px));
 
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -269,7 +342,7 @@ defineExpose({
   }
 }
 .mde-mode-preview {
-  .mde-container-editor, .mde-separator, .mde-scrollspacer {
+  .mde-container-editor, .mde-separator, .mde-spacer {
     display: none;
   }
   .mde-container-preview {
@@ -291,7 +364,30 @@ defineExpose({
     position: relative;
   }
   .mde-spacer {
-    height: v-bind(spacerHeightPx);
+    height: calc(v-bind(spacerHeight) * 1px);
+    display: flex;
+    flex-direction: column;
+  }
+  .mde-endmarker {
+    position: sticky;
+    text-align: center;
+
+    .v-btn {
+      text-transform: none;
+      font-style: italic;
+    }
+
+    &-top {
+      top: calc(v-bind(endmarkerTopOffset) * 1px);
+      padding-bottom: 100vh;
+      padding-top: 5em;
+    }
+    &-bottom {
+      bottom: calc(v-bind(endmarkerBottomOffset) * 1px);
+      padding-top: 100vh;
+      padding-bottom: 5em;
+    }
+
   }
 }
 
