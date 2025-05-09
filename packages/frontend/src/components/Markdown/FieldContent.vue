@@ -50,7 +50,7 @@
 import { sortBy, throttle } from 'lodash-es';
 import type { MarkdownToolbar } from '#components';
 import { MarkdownEditorMode } from '#imports';
-import { syntaxTree, type SyntaxNode } from '@sysreptor/markdown/editor';
+import { EditorView, syntaxTree, type ViewUpdate, type SyntaxNode } from '@sysreptor/markdown/editor';
 
 const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
@@ -58,7 +58,10 @@ const emit = defineEmits(makeMarkdownEmits());
 const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
   props: computed(() => ({ ...props, spellcheckSupported: true } as any)),
   emit,
-  extensions: markdownEditorDefaultExtensions(),
+  extensions: [
+    ...markdownEditorDefaultExtensions(),
+    EditorView.updateListener.of(onEditorUpdate),
+  ],
   fileUploadSupported: true,
 });
 
@@ -89,9 +92,20 @@ function syncScrollEditorToPreview() {
   const rect = editorRef.value?.getBoundingClientRect();
   if (rect.bottom < 0 || rect.top > window.innerHeight) { return; }
 
-  // Get first visible codemirror line
-  const codemirrorLine = Array.from(editorView.value.contentDOM.querySelectorAll<HTMLElement>(':scope > .cm-line')).find(isVisible);
-  const mdBlock = getEditorMarkdownBlockForLine(codemirrorLine);
+  // Get editor line to sync preview to
+  let editorLine = undefined as HTMLElement|undefined;
+  if (props.isFocussed || props.isFocussed === undefined) {
+    // Use the cursor position if the field is focused and the cursor is visible
+    const cursorLine = getEditorLineForPosition(editorView.value.state.selection.main.head);
+    if (cursorLine && isVisible(cursorLine, 0)) {
+      editorLine = cursorLine;
+    }
+  }
+  if (!editorLine) {
+    // Fallback to the first visible line if the cursor is not visible (e.g. out of viewport)
+    editorLine = Array.from(editorView.value.contentDOM.querySelectorAll<HTMLElement>(':scope > .cm-line')).find(isVisible);
+  }
+  const mdBlock = getEditorMarkdownBlockForLine(editorLine);
   if (!mdBlock) { return; }
 
   // Get corresponding preview element for codemirror line
@@ -137,12 +151,26 @@ async function updateSpacers() {
   previewContainerRef.value.scrollTop = Math.max(0, oldScrollTop - oldSpacerHeight + spacerHeight.value - 1);
 }
 
+async function onEditorUpdate(update: ViewUpdate) {
+  if (props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
+    return;
+  }
+  if (!(update.docChanged || update.selectionSet)) {
+    return;
+  }
+  await nextTick();
+  // Note: The preview might not be rendered yet. 
+  // New markdown blocks (e.g. when typing the first characters) might not have a corresponding preview element.
+  // On following view updates (e.g. typing more characters), the preview element will be availalbe and scrolled to.
+  syncScrollEditorToPreview();
+}
+
 useEventListener(scrollParentEditor, 'scroll', throttle(syncScrollEditorToPreview, 200, { leading: false, trailing: true }), { passive: true });
 watch([() => props.markdownEditorMode, scrollParentEditor, editorView, () => previewRef.value?.element], async () => {
   await updateSpacers();
   syncScrollEditorToPreview();
 }, { immediate: true });
-useResizeObserver(() => previewRef.value?.element, updateSpacers);
+useResizeObserver([() => previewRef.value?.element, editorRef.value], updateSpacers);
 
 
 function isVisible(el: Element, threshold = 30) {
@@ -202,10 +230,7 @@ function getEditorMarkdownBlockForLine(codemirrorLine?: HTMLElement) {
 
   const position = node.from;
   const line = editorView.value.state.doc.lineAt(position);
-
-  const element = (editorView.value as any).docView?.children
-    ?.find((c: any) => c.posAtStart <= node.from && node.from <= c.posAtEnd && c.dom?.classList.contains('cm-line'))
-    ?.dom as HTMLElement|undefined;
+  const element = getEditorLineForPosition(position);
   if (!element) {
     return null;
   }
@@ -216,6 +241,12 @@ function getEditorMarkdownBlockForLine(codemirrorLine?: HTMLElement) {
     element
   }
 }
+function getEditorLineForPosition(position: number): HTMLElement|null {
+  return (editorView.value as any)?.docView?.children
+    ?.find((c: any) => c.posAtStart <= position && position <= c.posAtEnd && c.dom?.classList.contains('cm-line'))
+    ?.dom || null;
+}
+
 function getPreviewElementForLine(lineNumber?: number): HTMLElement|null {
   if (!Number.isInteger(lineNumber) || !previewRef.value?.element) {
     return null;
@@ -269,7 +300,7 @@ defineExpose({
   }
 }
 .mde-mode-preview {
-  .mde-container-editor, .mde-separator, .mde-scrollspacer {
+  .mde-container-editor, .mde-separator, .mde-spacer {
     display: none;
   }
   .mde-container-preview {

@@ -139,7 +139,7 @@ export function rehypeRawFixPassthroughStitches() {
  */
 export function rehypeAnnotateMarkdownPositions() {
   return tree => visit(tree, 'element', (node, _, parent) => {
-    if (node.position && (parent.type === 'root' || (['li', 'tr', 'figure'].includes(node.tagName)))) {
+    if (node.position && (parent.type === 'root' || (['li', 'tr', 'figure'].includes(node.tagName))) && !node.properties?.id?.startsWith('user-content-fn')) {
       node.properties = node.properties || {};
       node.properties.dataPosition = JSON.stringify(node.position);
     }

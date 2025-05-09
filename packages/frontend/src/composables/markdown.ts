@@ -92,6 +92,10 @@ export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean
       type: Function as PropType<MarkdownProps['uploadFile']>,
       default: undefined,
     },
+    isFocussed: {
+      type: Boolean,
+      default: undefined,
+    }
   }
 }
 export function makeMarkdownEmits() {
