@@ -143,7 +143,12 @@ async function updateSpacers() {
 
   // Ensure that spacers are large enough to allow scrolling to every preview block for every editor position.
   previewMinHeight.value = Math.min(previewRef.value.element.clientHeight, window.innerHeight);
-  spacerHeight.value = Math.max(previewRef.value.element.clientHeight, editorRef.value.clientHeight * 2);
+  if (previewRef.value.element.clientHeight <= editorRef.value.clientHeight && editorRef.value.clientHeight < window.innerHeight) {
+    // Disable scrolling for small fields in preview if preview fully fits in the editor area and on the screen
+    spacerHeight.value = 0;
+  } else {
+    spacerHeight.value = Math.max(previewRef.value.element.clientHeight, editorRef.value.clientHeight * 2);
+  }
 
   // correct scrollTop by the same amount as spacerHeight to prevent jumping
   // 1px offset to prevent scrolling when preview content is initially rendered
