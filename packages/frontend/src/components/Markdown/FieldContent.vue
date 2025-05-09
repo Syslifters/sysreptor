@@ -212,7 +212,7 @@ watch([() => props.markdownEditorMode, scrollParentEditor, editorView, () => pre
   await updateSpacers();
   syncScrollEditorToPreview();
 }, { immediate: true });
-useResizeObserver([() => previewRef.value?.element, editorRef.value], updateSpacers);
+useResizeObserver([() => previewRef.value?.element, editorRef], updateSpacers);
 
 
 function isVisible(el: Element, threshold = 30) {
