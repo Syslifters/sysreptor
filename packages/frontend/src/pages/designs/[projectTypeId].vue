@@ -28,7 +28,7 @@
 const route = useRoute();
 const projectTypeStore = useProjectTypeStore();
 
-await useAsyncDataE(async () => await projectTypeStore.getById(route.params.projectTypeId as string), { key: 'projectTypeMenu:projectType' });
+await useAsyncDataE(async () => await projectTypeStore.getById(route.params.projectTypeId as string));
 const projectType = computed(() => projectTypeStore.projectType(route.params.projectTypeId as string));
 
 useHeadExtended({

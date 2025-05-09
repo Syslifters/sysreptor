@@ -1,25 +1,19 @@
 import { debounce, isEqual } from "lodash-es";
-import { useFetch, useAsyncData } from "nuxt/app";
-import type { NuxtApp, AsyncDataOptions } from "nuxt/app";
 import type { PaginatedResponse } from "#imports";
 
-export async function useFetchE<T>(...args: Parameters<typeof useFetch<T>>): Promise<Ref<T>> {
-  const res = await useFetch(...args);
-  if (res.error.value) {
-    throw createError({ ...res.error.value, fatal: true });
+export async function useAsyncDataE<T>(handler: () => Promise<T>, options?: { deep?: boolean }): Promise<Ref<T>> {
+  const res = options?.deep ? ref<T>() : shallowRef<T>();
+  try {
+    res.value = await handler();
+  } catch (error: any) {
+    error.fatal = true;
+    throw createError(error);
   }
-  return res.data as Ref<T>;
+  return res as Ref<T>;
 }
 
-export async function useAsyncDataE<T>(handler: (ctx?: NuxtApp) => Promise<T>, options?: AsyncDataOptions<T> & { key?: string }): Promise<Ref<T>> {
-  // By default, if no key is provided Nuxt calculates a key based on the current file location of the useAsyncData call.
-  // Since we use a wrapper, the key will always be the same. Therefore, set an explicit key derived from arguments.
-  const key = options?.key || handler.toString();
-  const res = await useAsyncData(key, handler, options);
-  if (res.error.value) {
-    throw createError({ ...res.error.value, fatal: true });
-  }
-  return res.data as Ref<T>;
+export async function useFetchE<T>(url: string, options: Parameters<typeof $fetch<T>>[1] & { deep?: boolean }): Promise<Ref<T>> {
+  return useAsyncDataE(() => $fetch(url, options));
 }
 
 export function useCursorPaginationFetcher<T>({ baseURL, query }: { baseURL: string|null, query?: object }) {

@@ -61,8 +61,8 @@ const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
 
-const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'sections:project' });
-const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'sections:projectType' });
+const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string));
+const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type));
 const sectionDefinition = computed(() => projectType.value.report_sections.find(s => s.id === route.params.sectionId)!);
 
 const reportingCollab = projectStore.useReportingCollab({ project, projectType, sectionId: route.params.sectionId as string });

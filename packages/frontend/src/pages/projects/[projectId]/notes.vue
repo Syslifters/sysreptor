@@ -45,7 +45,7 @@ definePageMeta({
   title: 'Notes',
 });
 
-const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectnotes:project' });
+const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string));
 const notesCollab = projectStore.useNotesCollab({ project: project.value });
 const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 const noteSearchResults = computed(() => searchNotes(projectStore.notes(project.value.id), notesCollab.collabProps.value.search));
