@@ -29,14 +29,33 @@
     </div>
     <v-divider vertical class="mde-separator" />
     <div ref="previewContainerRef" class="mde-container-preview">
-      <div class="mde-spacer" />
+      <div v-if="spacerHeight > 0" class="mde-spacer">
+        <div class="mde-endmarker mde-endmarker-top">
+          <s-btn
+            @click="syncScrollOrTop()"
+            text="End of preview"
+            append-icon="mdi-arrow-down"
+            variant="plain"
+          />
+        </div>
+      </div>
       <markdown-preview 
         v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN"
         ref="previewRef"
         v-bind="markdownPreviewAttrs" 
         class="mde-preview"
       />
-      <div class="mde-spacer" />
+      <div v-if="spacerHeight > 0" class="mde-spacer">
+        <v-spacer />
+        <div class="mde-endmarker mde-endmarker-bottom">
+          <s-btn
+            @click="syncScrollOrTop()"
+            text="End of preview"
+            append-icon="mdi-arrow-up"
+            variant="plain"
+          />
+        </div>
+      </div>
     </div>
 
     <div class="mde-footer">
@@ -80,17 +99,23 @@ const scrollParentEditor = computed(() => {
 });
 
 const previewMinHeight = ref(0);
-const previewMinHeightPx = computed(() => previewMinHeight.value + 'px');
 const spacerHeight = ref(0);
-const spacerHeightPx = computed(() => spacerHeight.value + 'px');
+const endmarkerTopOffset = ref(0);
+const endmarkerBottomOffset = ref(0);
 function syncScrollEditorToPreview() {
   if (!editorRef.value || !editorView.value || !editorView.value.contentDOM || !toolbarRef.value?.$el || !previewRef.value?.element || !previewContainerRef.value) {
-    return;
+    return false;
   }
 
   // Check if editorRef is in viewport
   const rect = editorRef.value?.getBoundingClientRect();
-  if (rect.bottom < 0 || rect.top > window.innerHeight) { return; }
+  if (rect.bottom < 0 || rect.top > window.innerHeight) { return false; }
+
+  // Set offset of preview end markers
+  // We need to calculate the offset in JS because the field might be larger than the viewport.
+  // If the top/bottom is outside the viewport, we need to add an offset such that the markers stay visible.
+  endmarkerTopOffset.value = Math.max(0, (rect.top - toolbarRef.value.$el.getBoundingClientRect().bottom) * -1);
+  endmarkerBottomOffset.value = Math.max(0, rect.bottom - window.innerHeight);
 
   // Get editor line to sync preview to
   let editorLine = undefined as HTMLElement|undefined;
@@ -106,11 +131,11 @@ function syncScrollEditorToPreview() {
     editorLine = Array.from(editorView.value.contentDOM.querySelectorAll<HTMLElement>(':scope > .cm-line')).find(isVisible);
   }
   const mdBlock = getEditorMarkdownBlockForLine(editorLine);
-  if (!mdBlock) { return; }
+  if (!mdBlock) { return false; }
 
   // Get corresponding preview element for codemirror line
   const previewElement = getPreviewElementForLine(mdBlock?.line.number);
-  if (!previewElement) { return; }
+  if (!previewElement) { return false; }
 
   // previewElementOffsetTop and mdBlockOffsetTop should be at the same level (they are the same line/block).
   // Both offsets are relative to the same DOM position: inside the field below the toolbar.
@@ -121,7 +146,7 @@ function syncScrollEditorToPreview() {
 
   if (Math.abs(newScrollTop - previewContainerRef.value.scrollTop) < 1) {
     // We are already at the desired position. No need to scroll.
-    return;
+    return true;
   }
 
   // Scroll to the new position
@@ -129,6 +154,18 @@ function syncScrollEditorToPreview() {
     top: newScrollTop,
     behavior: 'smooth', 
   });
+  return true;
+}
+function syncScrollOrTop() {
+  const success = syncScrollEditorToPreview();
+  if (!success && previewContainerRef.value && previewRef.value?.element && toolbarRef.value?.$el) {
+    // scroll to start of preview
+    const newScrollTop = 0 + previewRef.value.element.offsetTop + previewContainerRef.value.getBoundingClientRect().top - toolbarRef.value.$el.getBoundingClientRect().bottom;
+    previewContainerRef.value.scrollTo({
+      top: newScrollTop,
+      behavior: 'smooth',
+    });
+  }
 }
 
 async function updateSpacers() {
@@ -143,7 +180,7 @@ async function updateSpacers() {
 
   // Ensure that spacers are large enough to allow scrolling to every preview block for every editor position.
   previewMinHeight.value = Math.min(previewRef.value.element.clientHeight, window.innerHeight);
-  if (previewRef.value.element.clientHeight <= editorRef.value.clientHeight && editorRef.value.clientHeight < window.innerHeight) {
+  if (previewRef.value.element.clientHeight <= editorRef.value.clientHeight && editorRef.value.clientHeight < window.innerHeight * 0.9) {
     // Disable scrolling for small fields in preview if preview fully fits in the editor area and on the screen
     spacerHeight.value = 0;
   } else {
@@ -276,7 +313,7 @@ defineExpose({
 @use "sass:meta";
 
 .mde {
-  --mde-min-height: max(18em, v-bind(previewMinHeightPx));
+  --mde-min-height: max(18em, calc(v-bind(previewMinHeight) * 1px));
 
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -327,7 +364,30 @@ defineExpose({
     position: relative;
   }
   .mde-spacer {
-    height: v-bind(spacerHeightPx);
+    height: calc(v-bind(spacerHeight) * 1px);
+    display: flex;
+    flex-direction: column;
+  }
+  .mde-endmarker {
+    position: sticky;
+    text-align: center;
+
+    .v-btn {
+      text-transform: none;
+      font-style: italic;
+    }
+
+    &-top {
+      top: calc(v-bind(endmarkerTopOffset) * 1px);
+      padding-bottom: 100vh;
+      padding-top: 5em;
+    }
+    &-bottom {
+      bottom: calc(v-bind(endmarkerBottomOffset) * 1px);
+      padding-top: 100vh;
+      padding-bottom: 5em;
+    }
+
   }
 }
 
