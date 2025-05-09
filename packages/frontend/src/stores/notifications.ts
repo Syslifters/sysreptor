@@ -75,7 +75,7 @@ export const useNotificationStore = defineStore('notifications', {
       return this.unreadNotifications.length;
     },
     groupedNotifications(): NotificationGroup[] {
-      return Object.entries(groupBy(this.unreadNotifications, n => n.content.project_id || n.id))
+      return Object.entries(groupBy(this.unreadNotifications, n => 'group-' + (n.content.project_id || n.id)))
         .map(([k, g]) => {
           const isGrouped = g.length !== 1 || (k !== g[0]!.id || g[0]!.content.project_name);
           return {
