@@ -82,7 +82,7 @@ const pdfPreviewRef = useTemplateRef<InstanceType<typeof PdfPreview>>('pdfPrevie
 
 const pdfRenderingInProgress = computed(() => pdfPreviewRef.value?.renderingInProgress);
 
-const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectdesigner:project' })
+const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string))
 const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit({
   ...await useProjectTypeLockEditOptions({
     id: project.value.project_type,

@@ -173,8 +173,8 @@ const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
 const { mdAndDown } = useDisplay();
 
-const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'publish:project' });
-const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'publish:projecttype' });
+const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string));
+const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type));
 
 const { data: checkMessages, status: checkMessagesStatus, refresh: refreshCheckMessages } = useLazyFetch<{ messages: ErrorMessage[] }>(`/api/v1/pentestprojects/${project.value.id}/check/`, { method: 'GET' });
 const pdfPreviewRef = useTemplateRef<InstanceType<typeof PdfPreview>>('pdfPreviewRef');

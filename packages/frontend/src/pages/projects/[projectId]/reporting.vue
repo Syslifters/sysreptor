@@ -44,8 +44,8 @@ definePageMeta({
   title: 'Reporting'
 });
 
-const project = await useAsyncDataE(async () => await projectStore.fetchById(route.params.projectId as string), { key: 'reporting:project' });
-const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'reporting:projectType' });
+const project = await useAsyncDataE(async () => await projectStore.fetchById(route.params.projectId as string));
+const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type));
 const findings = computed(() => projectStore.findings(project.value.id));
 const sections = computed(() => projectStore.sections(project.value.id));
 const sortFindingsManual = computed(() => project.value.override_finding_order || projectType.value.finding_ordering.length === 0);

@@ -87,8 +87,8 @@ const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
 
-const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'findings:project' });
-const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'findings:projectType' });
+const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string));
+const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type));
 
 const reportingCollab = projectStore.useReportingCollab({ project, projectType, findingId: route.params.findingId as string });
 const finding = computed(() => reportingCollab.data.value.findings[route.params.findingId as string]);

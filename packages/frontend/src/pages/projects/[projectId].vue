@@ -51,9 +51,9 @@ const pluginStore = usePluginStore();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
 
-await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string), { key: 'projectMenu:project' });
+await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string));
 const project = computed(() => projectStore.project(route.params.projectId as string)!);
-const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type), { key: 'projectMenu:projectType' });
+const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type));
 watch(() => project.value?.project_type, async () => {
   if (!project.value) {
     return;
