@@ -2,18 +2,18 @@ import { debounce, isEqual } from "lodash-es";
 import type { PaginatedResponse } from "#imports";
 
 export async function useAsyncDataE<T>(handler: () => Promise<T>, options?: { deep?: boolean }): Promise<Ref<T>> {
-  const res = options?.deep ? ref<T>() : shallowRef<T>();
   try {
-    res.value = await handler();
+    const createRef: (d: T) => Ref<T> = options?.deep ? ref : shallowRef;
+    const data = await handler();
+    return createRef(data);
   } catch (error: any) {
     error.fatal = true;
     throw createError(error);
   }
-  return res as Ref<T>;
 }
 
 export async function useFetchE<T>(url: string, options: Parameters<typeof $fetch<T>>[1] & { deep?: boolean }): Promise<Ref<T>> {
-  return useAsyncDataE(() => $fetch(url, options));
+  return useAsyncDataE(() => $fetch(url, options), options);
 }
 
 export function useCursorPaginationFetcher<T>({ baseURL, query }: { baseURL: string|null, query?: object }) {
