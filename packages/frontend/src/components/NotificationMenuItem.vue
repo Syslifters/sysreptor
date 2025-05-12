@@ -124,10 +124,10 @@ const openGroups = computed(() => notificationStore.groupedNotifications.filter(
 
 // Regularly refresh notifications
 const intervalControls = useIntervalFn(refreshNotifications, 5 * 60 * 1000, { immediateCallback: true });
-watch(() => notificationStore.enabled, (enabled) => {
-  if (enabled) {
+watch(() => notificationStore.enabled, (enabled, enabledOld) => {
+  if (enabled && enabledOld !== undefined) {
     intervalControls.resume();
-  } else {
+  } else if (!enabled) {
     intervalControls.pause();
   }
 }, { immediate: true });
