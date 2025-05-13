@@ -36,6 +36,8 @@ Custom plugins are only supported in self-hosted installations, but not in the c
 
 ### Getting Started
 We recommend to develop and manage custom plugins in a separate Git repository, not in the SysReptor repository.
+You can use our [example plugin repository](https://github.com/Syslifters/sysreptor-plugin-example) as a starting point.
+
 First, you need to set up a new repository (either on GitHub or your internal version control system) with a directory structure similar to:
 
 ```
@@ -298,7 +300,8 @@ We recommend to place your Vue/Nuxt code in the `frontend/` directory of your pl
 
 SysReptor provides the [Nuxt Layer](https://nuxt.com/docs/getting-started/layers) `plugin-base-layer`.
 This layer contains basic plugin configurations and UI components that can be used in plugins.
-See https://github.com/Syslifters/sysreptor/tree/main/plugins/demoplugin/frontend for an example setup.
+The source code of this layer is located in the main SysReptor repository and needs to be included during the build step (e.g. via git submodule).
+See https://github.com/Syslifters/sysreptor-plugin-example/tree/main/custom_plugins/myplugin1/frontend for an example setup.
 
 To build the frontend assets, you need to run the following commands:
 
