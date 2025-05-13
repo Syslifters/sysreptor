@@ -63,6 +63,11 @@ function build_all() {
   if [ $action == "dev" ]; then
     wait
   fi
+
+  # Clean up node_modules in prod docker builds
+  if [ $action == "build" ]; then
+    rm -rf node_modules
+  fi
 }
 
 build_all
