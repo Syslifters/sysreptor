@@ -97,11 +97,8 @@ RUN mkdir /src && \
     echo "This image distributes binaries of copyleft licensed software. Please find the corresponding source code in our source-code distributing images (append -src to the image tags; e.g. syslifters/sysreptor:2024.58-src)." > /src/SOURCES.txt
 
 # Install system dependencies required by weasyprint and chromium
-# Install ghostscript from debian testing
-RUN echo 'Types: deb\nURIs: http://deb.debian.org/debian\nSuites: trixie\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg' > /etc/apt/sources.list.d/testing.sources \
-    && echo 'APT::Default-Release "stable";' > /etc/apt/apt.conf.d/default-release \
-    && apt-get update \
-    && apt-get -t testing install -y --no-install-recommends perl \
+# Install a specific ghostscript version
+RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         chromium \
         curl \
@@ -120,8 +117,11 @@ RUN echo 'Types: deb\nURIs: http://deb.debian.org/debian\nSuites: trixie\nCompon
         unzip \
         wget \
         postgresql-client \
-    && apt-get -t testing install -y --no-install-recommends ghostscript \
-    && apt-get clean \
+    && echo 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20250301T010101Z/\nSuites: testing\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg' > /etc/apt/sources.list.d/snapshot.sources \
+    && echo 'Package: ghostscript\nPin: version 10.04.0~dfsg-2\nPin-Priority: 1001' > /etc/apt/preferences.d/ghostscript \
+    && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/10no-check-valid-until \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends ghostscript \
     && rm -rf /var/lib/apt/lists/*
 
 # Install fonts
@@ -220,11 +220,10 @@ ARG VERSION
 ENV VERSION=${VERSION}
 COPY CHANGELOG.md /app/
 
-FROM ${PROD_API_IMAGE} AS api-src
+FROM api AS api-src
 USER 0
-RUN dpkg-query -W -f='${binary:Package}=${Version}\n' > /src/post_installed.txt \
-    && bash /app/api/download_sources.sh
+RUN /app/api/download_sources.sh
 USER 1000
 
 # Default stage
-FROM api
+FROM api-src
