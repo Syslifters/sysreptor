@@ -19,6 +19,7 @@ import { remarkTodoMarker } from './todo';
 import { rehypeHighlightCode } from './codeHighlight';
 import { modifiedCommonmarkFeatures } from './modified-commonmark';
 import { rehypeStringify } from './stringify';
+import rehypeParse from 'rehype-parse';
 
 const allClasses = ['className', /^.*$/];
 const rehypeSanitizeSchema = merge({}, defaultSchema, {
@@ -64,6 +65,19 @@ export function markdownParser() {
 
 
 /**
+ * @param {string} html 
+ * @returns {string}
+ */
+export function formatHtml(html) {
+  return unified()
+    .use(rehypeParse, { fragment: true })
+    .use(rehypeStringify)
+    .processSync(html)
+    .value;
+}
+
+
+/**
  * 
  * @param {string} text 
  * @returns {string}
@@ -98,7 +112,7 @@ export function renderMarkdownToHtml({ text = '', preview = false, referenceItem
           ...remarkToRehypeHandlersTableCaptions,
           ...remarkToRehypeAttrs,
           ...remarkToRehypeTemplateVariables,
-        }
+        },
       })
       .use(rehypeTableCaptions)
       .use(rehypeHighlightCode, { preview })

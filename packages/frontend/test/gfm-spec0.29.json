@@ -1,0 +1,80 @@
+[
+  {
+    "markdown": "| foo | bar |\n| --- | --- |\n| baz | bim |",
+    "html": "<table>\n<thead>\n<tr>\n<th>foo</th>\n<th>bar</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>baz</td>\n<td>bim</td>\n</tr>\n</tbody>\n</table>",
+    "example": 198,
+    "section": "Tables (extension)"
+  },
+  {
+    "markdown": "| abc | defghi |\n:-: | -----------:\nbar | baz",
+    "html": "<table>\n<thead>\n<tr>\n<th align=\"center\">abc</th>\n<th align=\"right\">defghi</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td align=\"center\">bar</td>\n<td align=\"right\">baz</td>\n</tr>\n</tbody>\n</table>",
+    "example": 199,
+    "section": "Tables (extension)"
+  },
+  {
+    "markdown": "| f\\|oo  |\n| ------ |\n| b `\\|` az |\n| b **\\|** im |",
+    "html": "<table>\n<thead>\n<tr>\n<th>f|oo</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>b <code>|</code> az</td>\n</tr>\n<tr>\n<td>b <strong>|</strong> im</td>\n</tr>\n</tbody>\n</table>",
+    "example": 200,
+    "section": "Tables (extension)"
+  },
+  {
+    "markdown": "| abc | def |\n| --- | --- |\n| bar | baz |\n> bar",
+    "html": "<table>\n<thead>\n<tr>\n<th>abc</th>\n<th>def</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>bar</td>\n<td>baz</td>\n</tr>\n</tbody>\n</table>\n<blockquote>\n<p>bar</p>\n</blockquote>",
+    "example": 201,
+    "section": "Tables (extension)"
+  },
+  {
+    "markdown": "| abc | def |\n| --- | --- |\n| bar | baz |\nbar\n\nbar",
+    "html": "<table>\n<thead>\n<tr>\n<th>abc</th>\n<th>def</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>bar</td>\n<td>baz</td>\n</tr>\n<tr>\n<td>bar</td>\n<td></td>\n</tr>\n</tbody>\n</table>\n<p>bar</p>",
+    "example": 202,
+    "section": "Tables (extension)"
+  },
+  {
+    "markdown": "| abc | def |\n| --- |\n| bar |",
+    "html": "<p>| abc | def |\n| --- |\n| bar |</p>",
+    "example": 203,
+    "section": "Tables (extension)"
+  },
+  {
+    "markdown": "| abc | def |\n| --- | --- |\n| bar |\n| bar | baz | boo |",
+    "html": "<table>\n<thead>\n<tr>\n<th>abc</th>\n<th>def</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>bar</td>\n<td></td>\n</tr>\n<tr>\n<td>bar</td>\n<td>baz</td>\n</tr>\n</tbody>\n</table>",
+    "example": 204,
+    "section": "Tables (extension)"
+  },
+  {
+    "markdown": "| abc | def |\n| --- | --- |",
+    "html": "<table>\n<thead>\n<tr>\n<th>abc</th>\n<th>def</th>\n</tr>\n</thead>\n</table>",
+    "example": 205,
+    "section": "Tables (extension)"
+  },
+  {
+    "markdown": "- [ ] foo\n- [x] bar",
+    "html": "<ul>\n<li><input type=\"checkbox\" disabled=\"\"> foo</li>\n<li><input type=\"checkbox\" checked=\"\" disabled=\"\"> bar</li>\n</ul>",
+    "example": 279,
+    "section": "Task list items (extension)"
+  },
+  {
+    "markdown": "- [x] foo\n  - [ ] bar\n  - [x] baz\n- [ ] bim",
+    "html": "<ul>\n<li><input type=\"checkbox\" checked=\"\" disabled=\"\"> foo\n<ul>\n<li><input type=\"checkbox\" disabled=\"\"> bar</li>\n<li><input type=\"checkbox\" checked=\"\" disabled=\"\"> baz</li>\n</ul>\n</li>\n<li><input type=\"checkbox\" disabled=\"\"> bim</li>\n</ul>",
+    "example": 280,
+    "section": "Task list items (extension)"
+  },
+  {
+    "markdown": "~~Hi~~ Hello, ~there~ world!",
+    "html": "<p><del>Hi</del> Hello, <del>there</del> world!</p>",
+    "example": 491,
+    "section": "Strikethrough (extension)"
+  },
+  {
+    "markdown": "This ~~has a\n\nnew paragraph~~.",
+    "html": "<p>This ~~has a</p>\n<p>new paragraph~~.</p>",
+    "example": 492,
+    "section": "Strikethrough (extension)"
+  },
+  {
+    "markdown": "This will ~~~not~~~ strike.",
+    "html": "<p>This will ~~~not~~~ strike.</p>",
+    "example": 493,
+    "section": "Strikethrough (extension)"
+  }
+]
