@@ -133,6 +133,7 @@ X11
 MIT-1"
 
 cd /src
+dpkg-query -W -f='${binary:Package}=${Version}\n' > /src/post_installed.txt
 sed -i "s/^Types: deb$/Types: deb deb-src/" /etc/apt/sources.list.d/*.sources
 apt-get update > /dev/null 2>&1
 
