@@ -234,7 +234,7 @@
 </template>
 
 <script setup lang="ts">
-import { pick } from 'lodash-es';
+import { orderBy, pick } from 'lodash-es';
 import Draggable from 'vuedraggable';
 import { groupFindings, type FindingGroup } from '@base/utils/project';
 
@@ -283,6 +283,8 @@ function createFinding(group?: FindingGroup) {
   } : undefined;
   emit('create:finding', findingData);
 }
+
+const sections = computed(() => orderBy(props.sections, [s => props.projectType.report_sections.findIndex(rs => rs.id === s.id)]));
 
 // Grouping and sorting
 const sortManual = computed(() => overrideFindingOrder.value || props.projectType.finding_ordering.length === 0);
