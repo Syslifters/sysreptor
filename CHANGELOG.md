@@ -4,6 +4,7 @@
 * Sync scroll in markdown editor and preview
 * Pin ghostscript version to fix bugs in pdf compression
 * UI: Add a button to expand collapsed menus
+* UI: Fix sections not sorted in sidebar
 
 
 ## v2025.43 - 2025-05-07
