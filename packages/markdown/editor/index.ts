@@ -13,7 +13,6 @@ export { markdown } from './language';
 export { createEditorExtensionToggler } from './utils';
 export { spellcheck, spellcheckTheme } from './spellcheck';
 export { highlightTodos } from './todos';
-export { markdownHighlightStyle, markdownHighlightCodeBlocks } from './highlight';
 export { 
   toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
   toggleListUnordered, toggleListOrdered, toggleTaskList,

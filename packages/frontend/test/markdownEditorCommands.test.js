@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest'
 import {
   EditorState, EditorSelection, EditorView,
-  markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
+  markdown,
   toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
   toggleListUnordered, toggleListOrdered, toggleTaskList,
   toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup
@@ -23,8 +23,6 @@ function createEditorState(textWithSelection, cursorMarker = '|') {
     selection: EditorSelection.create([selectionRange]),
     extensions: [
       markdown(),
-      syntaxHighlighting(markdownHighlightStyle),
-      markdownHighlightCodeBlocks,
     ]
   });
 }

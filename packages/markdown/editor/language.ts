@@ -1,5 +1,5 @@
 import { micromarkEventsToTree, parseMicromarkEvents, type MicromarkTreeNode } from "./micromark-utils";
-import { LanguageSupport, Language, defineLanguageFacet, languageDataProp, indentNodeProp } from '@codemirror/language';
+import { LanguageSupport, Language, defineLanguageFacet, languageDataProp, indentNodeProp, syntaxHighlighting } from '@codemirror/language';
 import { html } from "@codemirror/lang-html"
 import { Prec } from "@codemirror/state";
 import { keymap } from '@codemirror/view';
@@ -7,7 +7,7 @@ import { Parser, Tree, NodeSet, NodeType, type Input, TreeFragment, type Partial
 import { styleTags, tags as t } from "@lezer/highlight"
 import { type Event } from 'micromark-util-types';
 import { markdownParser } from "..";
-import { tags } from "./highlight";
+import { markdownHighlightCodeBlocks, markdownHighlightStyle, tags } from "./highlight";
 import { insertNewlineContinueMarkup, deleteMarkupBackward, toggleStrong, toggleEmphasis } from "./commands";
 import type { Range } from "./codemirror-utils";
 
@@ -199,6 +199,8 @@ export const markdownLanguage = new Language(
 
 export function markdown() {
   return new LanguageSupport(markdownLanguage, [
+    syntaxHighlighting(markdownHighlightStyle),
+    markdownHighlightCodeBlocks,
     Prec.high(keymap.of([
       {key: 'Enter', run: insertNewlineContinueMarkup},
       {key: 'Backspace', run: deleteMarkupBackward},

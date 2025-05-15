@@ -2,6 +2,7 @@ import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import remarkStringify from 'remark-stringify';
+import rehypeParse from 'rehype-parse';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { merge } from 'lodash-es';
@@ -19,7 +20,6 @@ import { remarkTodoMarker } from './todo';
 import { rehypeHighlightCode } from './codeHighlight';
 import { modifiedCommonmarkFeatures } from './modified-commonmark';
 import { rehypeStringify } from './stringify';
-import rehypeParse from 'rehype-parse';
 
 const allClasses = ['className', /^.*$/];
 const rehypeSanitizeSchema = merge({}, defaultSchema, {
