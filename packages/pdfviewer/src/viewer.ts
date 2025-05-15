@@ -6,6 +6,7 @@ import {
   getDocument,
   version as pdfjsVersion,
   build as pdfjsBuild,
+  TouchManager,
 } from 'pdfjs-dist';
 import {
   PDFViewer,
@@ -146,9 +147,13 @@ class PDFViewerApplicationClass {
   l10n: GenericL10n;
   downloadManager: DownloadManager;
   findController: PDFFindController;
+  touchManager: TouchManager;
 
   findbarView: FindbarView;
+  _isCtrlKeyDown = false;
   _wheelUnusedTicks = 0;
+  _wheelUnusedFactor = 0;
+  _touchUnusedFactor = 0;
 
   /**
    * Constructor that initializes the UI elements for the PDF viewer
@@ -166,7 +171,14 @@ class PDFViewerApplicationClass {
       linkService: this.linkService,
       eventBus: this.eventBus,
       updateMatchesCountOnProgress: true,
-    })
+    });
+    const abortController = new AbortController();
+    this.touchManager = new TouchManager({
+      container: window,
+      onPinching: this.touchPinchCallback as any,
+      onPinchEnd: this.touchPinchEndCallback as any,
+      signal: abortController.signal,
+    });
     
     this.l10n = new GenericL10n('en-us');
     this.pdfViewer = new PDFViewer({
@@ -182,6 +194,8 @@ class PDFViewerApplicationClass {
       textLayerMode: 1,  // TextLayerMode.ENABLE,
       annotationMode: 1,  // AnnotationMode.ENABLE,
       annotationEditorMode: 0,  // AnnotationEditorType.NONE,
+
+      supportsPinchToZoom: true,
     });
     this.linkService.setViewer(this.pdfViewer);
 
@@ -206,12 +220,18 @@ class PDFViewerApplicationClass {
     config.appContainer.addEventListener("wheel", (e) => this.handleMouseWheel(e), { passive: false });
     config.appContainer.addEventListener("keydown", (e) => {
       let handled = false;
+      if (e.key === 'Control') {
+        this._isCtrlKeyDown = true;
+      }
       if (e.ctrlKey) {
         if (['+', 'NumpadAdd', 'Equal'].includes(e.key)) {
           this.updateZoom(1);
           handled = true;
         } else if (['-', 'Minus', 'NumpadSubtract'].includes(e.key)) {
           this.updateZoom(-1);
+          handled = true;
+        } else if (['0', 'Digit0', 'Numpad0'].includes(e.key)) {
+          this.pdfViewer.currentScaleValue = DEFAULT_SCALE_VALUE;
           handled = true;
         } else if (e.key === 'f') {
           this.findbarView.open();
@@ -224,6 +244,11 @@ class PDFViewerApplicationClass {
 
       if (handled) {
         e.preventDefault();
+      }
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key === 'Control') {
+        this._isCtrlKeyDown = false;
       }
     });
     window.addEventListener("resize", () => this.eventBus.dispatch('resize', { source: window }));
@@ -402,10 +427,12 @@ class PDFViewerApplicationClass {
     this.pdfViewer.currentPageNumber = Math.max(1, Math.min(val, this.pagesCount));
   }
 
-  updateZoom(steps: number) {
+  updateZoom(steps?: number, scaleFactor?: number, origin?: number[]) {
     this.pdfViewer.updateScale({
       drawingDelay: 400,
       steps,
+      scaleFactor,
+      origin,
     });
   }
 
@@ -413,39 +440,72 @@ class PDFViewerApplicationClass {
    * Handles mouse wheel events for zooming when Ctrl key is pressed
    */
   handleMouseWheel(event: WheelEvent): void {
-    // Check if the Ctrl or Meta key is pressed
-    if (!event.ctrlKey && !event.metaKey) {
-      return;
-    }
-
-    // Prevent the default behavior (page scrolling or browser zoom)
-    event.preventDefault();
-
     // It is important that we query deltaMode before delta{X,Y}, so that
     // Firefox doesn't switch to DOM_DELTA_PIXEL mode for compat with other
     // browsers, see https://bugzilla.mozilla.org/show_bug.cgi?id=1392460.
     const deltaMode = event.deltaMode;
 
-    // Get delta and determine zoom direction
-    const delta = this.normalizeWheelEventDirection(event);
+    // The following formula is a bit strange but it comes from:
+    // https://searchfox.org/mozilla-central/rev/d62c4c4d5547064487006a1506287da394b64724/widget/InputData.cpp#618-626
+    let scaleFactor = Math.exp(-event.deltaY / 100);
 
-    let ticks = 0;
-    if (deltaMode === WheelEvent.DOM_DELTA_LINE || WheelEvent.DOM_DELTA_PAGE) {
-      // For line-based devices, use one tick per event, because different
-      // OSs have different defaults for the number lines. But we generally
-      // want one "clicky" roll of the wheel (which produces one event) to
-      // adjust the zoom by one step.
-      //
-      // If we're getting fractional lines (I can't think of a scenario
-      // this might actually happen), be safe and use the accumulator.
-      ticks = Math.abs(delta) >= 1 ? Math.sign(delta) : this._accumulateTicks(delta);
-    } else {
-      // pixel-based devices
-      const PIXELS_PER_LINE_SCALE = 30;
-      ticks = this._accumulateTicks(delta / PIXELS_PER_LINE_SCALE);
+    const isBuiltInMac = navigator.platform?.toUpperCase().includes('MAC');
+    const isPinchToZoom =
+      event.ctrlKey &&
+      !this._isCtrlKeyDown &&
+      deltaMode === WheelEvent.DOM_DELTA_PIXEL &&
+      event.deltaX === 0 &&
+      (Math.abs(scaleFactor - 1) < 0.05 || isBuiltInMac) &&
+      event.deltaZ === 0;
+    const origin = [event.clientX, event.clientY];
+
+    if (
+      isPinchToZoom ||
+      event.ctrlKey ||
+      event.metaKey
+    ) {
+      // Only zoom the pages, not the entire viewer.
+      event.preventDefault();
+
+      if (isPinchToZoom) {
+        scaleFactor = this._accumulateFactor(this.pdfViewer.currentScale, scaleFactor, '_wheelUnusedFactor');
+        this.updateZoom(undefined, scaleFactor, origin);
+      } else {
+        // Get delta and determine zoom direction
+        const delta = this.normalizeWheelEventDirection(event);
+
+        let ticks = 0;
+        if (deltaMode === WheelEvent.DOM_DELTA_LINE || WheelEvent.DOM_DELTA_PAGE) {
+          // For line-based devices, use one tick per event, because different
+          // OSs have different defaults for the number lines. But we generally
+          // want one "clicky" roll of the wheel (which produces one event) to
+          // adjust the zoom by one step.
+          //
+          // If we're getting fractional lines (I can't think of a scenario
+          // this might actually happen), be safe and use the accumulator.
+          ticks = Math.abs(delta) >= 1 ? Math.sign(delta) : this._accumulateTicks(delta);
+        } else {
+          // pixel-based devices
+          const PIXELS_PER_LINE_SCALE = 30;
+          ticks = this._accumulateTicks(delta / PIXELS_PER_LINE_SCALE);
+        }
+
+        this.updateZoom(ticks, undefined, origin);
+      }
     }
+  }
 
-    this.updateZoom(ticks);
+  touchPinchCallback(origin: number[], prevDistance: number, distance: number) {
+    const newScaleFactor = this._accumulateFactor(
+      this.pdfViewer.currentScale,
+      distance / prevDistance,
+      "_touchUnusedFactor"
+    );
+    this.updateZoom(undefined, newScaleFactor, origin);
+  }
+
+  touchPinchEndCallback() {
+    this._touchUnusedFactor = 1;
   }
 
   normalizeWheelEventDirection(evt: WheelEvent): number {
@@ -467,6 +527,22 @@ class PDFViewerApplicationClass {
     const wholeTicks = Math.trunc(this._wheelUnusedTicks);
     this._wheelUnusedTicks -= wholeTicks;
     return wholeTicks;
+  }
+
+  _accumulateFactor(previousScale: number, factor: number, prop: '_wheelUnusedFactor'|'_touchUnusedFactor' = '_wheelUnusedFactor') {
+    if (factor === 1) {
+      return 1;
+    }
+
+    // If the direction changed, reset the accumulated factor.
+    if ((this[prop] > 1 && factor < 1) || (this[prop] < 1 && factor > 1)) {
+      this[prop] = 1;
+    }
+
+    const newFactor = Math.floor(previousScale * factor * this[prop] * 100) / (100 * previousScale);
+    this[prop] = factor / newFactor;
+
+    return newFactor;
   }
 }
 
