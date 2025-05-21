@@ -25,7 +25,6 @@
           prepend-icon="mdi-account"
           title="Profile"
           data-testid="profile-button"
-
         />
         <template v-if="auth.loggedIn.value && apiSettings.isProfessionalLicense">
           <v-list-item

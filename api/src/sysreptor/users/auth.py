@@ -63,9 +63,9 @@ class APITokenAuthentication(authentication.BaseAuthentication):
         try:
             if len(auth) != 2:
                 raise Exception()
-            if not auth[1].startswith(b'sysreptor_'):
+            if not auth[1].startswith(APIToken.TOKEN_PREFIX.encode()):
                 raise Exception()
-            token_id, token_key = b64decode(auth[1][10:]).decode().split(':')
+            token_id, token_key = b64decode(auth[1][len(APIToken.TOKEN_PREFIX.encode()):]).decode().split(':')
             token_id = UUID(token_id)
         except Exception as ex:
             raise exceptions.AuthenticationFailed('Invalid token header format.') from ex

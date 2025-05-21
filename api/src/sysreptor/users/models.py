@@ -106,6 +106,8 @@ class AuthIdentity(BaseModel):
 
 
 class APIToken(BaseModel):
+    TOKEN_PREFIX = 'sysreptor_'  # noqa: S105
+
     user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, related_name='api_tokens')
     token_hash = models.CharField(max_length=256)
     name = models.CharField(max_length=255, default='API Token')
@@ -126,7 +128,7 @@ class APIToken(BaseModel):
     def token_formatted(self) -> str:
         if not self.token_plaintext:
             return None
-        return 'sysreptor_' + b64encode(f'{self.id}:{self.token_plaintext}'.encode()).decode()
+        return self.TOKEN_PREFIX + b64encode(f'{self.id}:{self.token_plaintext}'.encode()).decode()
 
     def validate_token(self, token_plaintext):
         from sysreptor.users.auth import UnsaltedSHA3_256PasswordHasher
