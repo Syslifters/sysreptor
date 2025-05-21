@@ -69,7 +69,7 @@
 import { sortBy, throttle } from 'lodash-es';
 import type { MarkdownToolbar } from '#components';
 import { MarkdownEditorMode } from '#imports';
-import { EditorView, syntaxTree, type ViewUpdate, type SyntaxNode } from '@sysreptor/markdown/editor';
+import { EditorView, syntaxTree, type ViewUpdate, type SyntaxNode, Transaction } from '@sysreptor/markdown/editor';
 
 const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
@@ -179,12 +179,13 @@ async function updateSpacers() {
   const oldScrollTop = previewContainerRef.value.scrollTop;
 
   // Ensure that spacers are large enough to allow scrolling to every preview block for every editor position.
-  previewMinHeight.value = Math.min(previewRef.value.element.clientHeight, window.innerHeight);
-  if (previewRef.value.element.clientHeight <= editorRef.value.clientHeight && editorRef.value.clientHeight < window.innerHeight * 0.9) {
+  const previewHeight = previewRef.value.element.clientHeight + 10;
+  previewMinHeight.value = Math.min(previewHeight, window.innerHeight);
+  if (previewHeight <= editorRef.value.clientHeight && editorRef.value.clientHeight < window.innerHeight * 0.9) {
     // Disable scrolling for small fields in preview if preview fully fits in the editor area and on the screen
     spacerHeight.value = 0;
   } else {
-    spacerHeight.value = Math.max(previewRef.value.element.clientHeight, editorRef.value.clientHeight * 2);
+    spacerHeight.value = Math.max(previewHeight, editorRef.value.clientHeight * 2);
   }
 
   // correct scrollTop by the same amount as spacerHeight to prevent jumping
@@ -197,7 +198,7 @@ async function onEditorUpdate(update: ViewUpdate) {
   if (props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
     return;
   }
-  if (!(update.docChanged || update.selectionSet)) {
+  if (!(update.docChanged || update.selectionSet) || update.transactions.some(tr => tr.annotation(Transaction.remote))) {
     return;
   }
   await nextTick();
