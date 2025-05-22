@@ -47,7 +47,7 @@
             "ms-python.python",
             "charliermarsh.ruff",
             "vue.volar",
-            "ms-azuretools.vscode-docker",
+            "ms-azuretools.vscode-containers",
             "dbaeumer.vscode-eslint",
             "syler.sass-indented",
             "gruntfuggly.todo-tree"

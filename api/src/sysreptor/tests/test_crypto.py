@@ -285,22 +285,21 @@ class TestEncryptedDbField:
 class TestEncryptDataCommand:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        with tempfile.TemporaryDirectory() as location:
-            with override_settings(
-                ENCRYPTION_KEYS={},
-                DEFAULT_ENCRYPTION_KEY_ID=None,
-                ENCRYPTION_PLAINTEXT_FALLBACK=True,
-                STORAGES=settings.STORAGES | {
-                    'uploadedimages': {'BACKEND': 'sysreptor.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedimages'}},
-                    'uploadedassets': {'BACKEND': 'sysreptor.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedassets'}},
-                    'uploadedfiles': {'BACKEND': 'sysreptor.utils.storages.EncryptedInMemoryStorage', 'OPTIONS': {'location': location + '/uploadedfiles'}},
-                },
-            ):
-                UploadedImage.file.field.storage = storages['uploadedimages']
-                UploadedAsset.file.field.storage = storages['uploadedassets']
-                UploadedProjectFile.file.field.storage = storages['uploadedfiles']
-                self.project = create_project()
-                yield
+        with override_settings(
+            ENCRYPTION_KEYS={},
+            DEFAULT_ENCRYPTION_KEY_ID=None,
+            ENCRYPTION_PLAINTEXT_FALLBACK=True,
+            STORAGES=settings.STORAGES | {
+                'uploadedimages': {'BACKEND': 'sysreptor.utils.storages.EncryptedInMemoryStorage'},
+                'uploadedassets': {'BACKEND': 'sysreptor.utils.storages.EncryptedInMemoryStorage'},
+                'uploadedfiles': {'BACKEND': 'sysreptor.utils.storages.EncryptedInMemoryStorage'},
+            },
+        ):
+            UploadedImage.file.field.storage = storages['uploadedimages']
+            UploadedAsset.file.field.storage = storages['uploadedassets']
+            UploadedProjectFile.file.field.storage = storages['uploadedfiles']
+            self.project = create_project()
+            yield
 
     @override_settings(
         ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},
