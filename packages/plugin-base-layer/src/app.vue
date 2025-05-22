@@ -13,7 +13,6 @@ const theme = useTheme();
 onBeforeMount(() => {
   try {
     const parentThemeConfig = window.parent?.useNuxtApp?.().$vuetify?.theme;
-    console.log('initialize theme', parentThemeConfig);
     if (parentThemeConfig) {
       for (const themeName of Object.keys(theme.themes.value)) {
         if (parentThemeConfig.themes.value[themeName]) {

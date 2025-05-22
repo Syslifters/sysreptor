@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Incremental parsing in markdown editor
+
+
 ## v2025.50 - 2025-05-28
 * Sync scroll in markdown editor and preview
 * Pin ghostscript version to fix bugs in pdf compression

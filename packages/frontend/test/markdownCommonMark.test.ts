@@ -52,8 +52,6 @@ function markdownTestCase(testCase: CommonMarkTestCase) {
     const normalizedRenderedHtml = normalizeHtml(renderedHtml);
     const normalizedExpectedHtml = normalizeHtml(testCase.html);
 
-    console.log('HTML', testCase.html);
-    
     expect(normalizedRenderedHtml).toBe(normalizedExpectedHtml);
   });
 }

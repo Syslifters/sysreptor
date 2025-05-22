@@ -7,13 +7,13 @@ import {
   toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup
 } from '@sysreptor/markdown/editor';
 
-function createEditorState(textWithSelection, cursorMarker = '|') {
+function createEditorState(textWithSelection: string, cursorMarker: string = '|') {
   const parts = textWithSelection.split(cursorMarker);
   let selectionRange = null;
   if (parts.length === 2) {
-    selectionRange = EditorSelection.cursor(parts[0].length)
+    selectionRange = EditorSelection.cursor(parts[0]!.length)
   } else if (parts.length === 3) {
-    selectionRange = EditorSelection.range(parts[0].length, parts[0].length + parts[1].length);
+    selectionRange = EditorSelection.range(parts[0]!.length, parts[0]!.length + parts[1]!.length);
   } else {
     throw new Error('Invalid number of cursors in text');
   }
@@ -27,7 +27,7 @@ function createEditorState(textWithSelection, cursorMarker = '|') {
   });
 }
 
-function testCommand(command, before, after, cursorMarker = '|') {
+function testCommand(command: (view: EditorView) => void, before: string, after: string, cursorMarker: string = '|') {
   test(before, () => {
     const view = new EditorView({ state: createEditorState(before, cursorMarker) })
     command(view);

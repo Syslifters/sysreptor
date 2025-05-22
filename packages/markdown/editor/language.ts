@@ -1,15 +1,17 @@
-import { micromarkEventsToTree, parseMicromarkEvents, type MicromarkTreeNode } from "./micromark-utils";
 import { LanguageSupport, Language, defineLanguageFacet, languageDataProp, indentNodeProp, syntaxHighlighting } from '@codemirror/language';
 import { html } from "@codemirror/lang-html"
-import { Prec } from "@codemirror/state";
-import { keymap } from '@codemirror/view';
+import { Prec, RangeSet, RangeSetBuilder } from "@codemirror/state";
+import { keymap, Decoration, EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view';
 import { Parser, Tree, NodeSet, NodeType, type Input, TreeFragment, type PartialParse, parseMixed, type SyntaxNode, IterMode } from '@lezer/common';
-import { styleTags, tags as t } from "@lezer/highlight"
+import { styleTags, tags as t, Tag, tagHighlighter } from "@lezer/highlight"
 import { type Event } from 'micromark-util-types';
+
 import { markdownParser } from "..";
-import { markdownHighlightCodeBlocks, markdownHighlightStyle, tags } from "./highlight";
+import { micromarkEventsToTree, parseMicromarkEvents, type MicromarkTreeNode } from "./micromark-utils";
 import { insertNewlineContinueMarkup, deleteMarkupBackward, toggleStrong, toggleEmphasis } from "./commands";
-import type { Range } from "./codemirror-utils";
+import { linesInRange, type Range } from "./codemirror-utils";
+import { syntaxTree } from "@codemirror/language";
+
 
 const markdownLanguageFacet = defineLanguageFacet({
   commentTokens: {
@@ -19,6 +21,15 @@ const markdownLanguageFacet = defineLanguageFacet({
     brackets: ["(", "[", "{", "'", '"', "`", "_", "~"],
   },
 });
+
+
+export const tags = {
+  codeblock: Tag.define(),
+  inlinecode: Tag.define(),
+  footnote: Tag.define(),
+  table: Tag.define(),
+  todo: Tag.define(),
+};
 
 const markdownHighlighting = styleTags({
   "strong/...": t.strong,
@@ -72,6 +83,24 @@ const nodeSet = new NodeSet(nodeTypes)
   .extend(markdownHighlighting)
   .extend(languageDataProp.add({ document: markdownLanguageFacet }))
   .extend(indentNodeProp.add({ document: () => null }));
+
+
+export function compareTree(a: Tree, b: Tree) {
+  const curA = a.cursor();
+  const curB = b.cursor();
+  let next = true;
+  while (next) {
+    if (
+      curA.type != curB.type ||
+      curA.from != curB.from ||
+      curA.to != curB.to ||
+      (next = curA.next()) != curB.next()
+    ) { 
+      return false;
+    }
+  }
+  return true;
+}
 
 
 function modifySyntaxTree(tree: MicromarkTreeNode[]) {
@@ -139,7 +168,7 @@ function micromarkToLezerSyntaxTree(text: string, events: Event[]) {
     }
 
     buffer.push(
-      MarkdownNodeType[node.type as any] as number|undefined ?? NodeType.none.id, 
+      MarkdownNodeType[node.type as any] as unknown as number|undefined ?? NodeType.none.id, 
       node.enter.start.offset,
       node.enter.end.offset,
       4 + buffer.length - bufferLengthStart
@@ -372,30 +401,19 @@ class BlockContext implements PartialParse {
     if (!oldBlocks && !newBlocks) {
       return true;
     }
-    if (!oldBlocks || !newBlocks) {
+    if (!oldBlocks || !newBlocks || oldBlocks.length !== newBlocks.length) {
       return false;
     }
-
-    const oldFormatted = oldBlocks.flatMap(b => {
-      const out: number[] = [];
-      b.toTree().iterate({ enter: n => { out.push(n.type.id, n.from + b.from - fragmentOffset, n.to + b.from - fragmentOffset) } });
-      return out;
-    });
-    const newFormatted = newBlocks.flatMap(b => {
-      const out: number[] = [];
-      b.toTree().iterate({ enter: n => { out.push(n.type.id, n.from + b.from, n.to + b.from) } });
-      return out;
-    });
-
-    if (oldFormatted.length !== newFormatted.length) {
-      return false;
-    }
-    for (let i = 0; i < oldFormatted.length; i++) {
-      if (oldFormatted[i] !== newFormatted[i]) {
+    for (let i = 0; i < oldBlocks.length; i++) {
+      if (
+        oldBlocks[i]!.type.id !== newBlocks[i]!.type.id ||
+        oldBlocks[i]!.from - fragmentOffset !== newBlocks[i]!.from ||
+        oldBlocks[i]!.to - fragmentOffset !== newBlocks[i]!.to ||
+        !compareTree(oldBlocks[i]!.toTree(), newBlocks[i]!.toTree())
+      ) {
         return false;
       }
     }
-    
     return true;
   }
 
@@ -429,6 +447,60 @@ export const markdownLanguage = new Language(
   markdownLanguageFacet,
   new MarkdownParser(),
 );
+
+export const markdownHighlightStyle = tagHighlighter([
+  {tag: t.heading1, class: 'tok-h1'},
+  {tag: t.heading2, class: 'tok-h2'},
+  {tag: t.heading3, class: 'tok-h3'},
+  {tag: t.heading4, class: 'tok-h4'},
+  {tag: t.heading5, class: 'tok-h5'},
+  {tag: t.heading6, class: 'tok-h6'},
+  {tag: t.strong, class: 'tok-strong'},
+  {tag: t.emphasis, class: 'tok-emphasis'},
+  {tag: t.strikethrough, class: 'tok-strikethrough'},
+  {tag: t.link, class: 'tok-link'},
+  {tag: t.url, class: 'tok-url'},
+  {tag: t.quote, class: 'tok-quote'},
+
+  {tag: tags.inlinecode, class: 'tok-inlinecode'},
+  {tag: tags.table, class: 'tok-table'},
+  {tag: tags.footnote, class: 'tok-footnote'},
+  {tag: tags.todo, class: 'tok-todo'},
+
+  {tag: t.tagName, class: 'tok-tagname'},
+  {tag: t.angleBracket, class: 'tok-anglebracket'},
+  {tag: t.attributeName, class: 'tok-attributename'},
+  {tag: t.attributeValue, class: 'tok-attributevalue'},
+  {tag: t.comment, class: 'tok-comment'},
+]);
+
+
+// https://discuss.codemirror.net/t/how-to-define-highlighting-styles-for-blocks/4029
+export const markdownHighlightCodeBlocks = ViewPlugin.fromClass(class {
+  decorations: RangeSet<Decoration> = Decoration.none;
+
+  constructor(view: EditorView) {
+    this.updateDecorations(view);
+  }
+
+  update(update: ViewUpdate) {
+    this.updateDecorations(update.view);
+  }
+
+  updateDecorations(view: EditorView) {
+    let builder = new RangeSetBuilder<Decoration>();
+    syntaxTree(view.state).iterate({
+      enter: (n) => {
+        if (n.name === 'codeFenced') {
+          for (const l of linesInRange(view.state.doc, n)) {
+            builder.add(l.from, l.from, Decoration.line({class: 'tok-codeblock'}));
+          }    
+        }
+      }
+    })
+    this.decorations = builder.finish();
+  }
+}, {decorations: v => v.decorations});
 
 export function markdown() {
   return new LanguageSupport(markdownLanguage, [
