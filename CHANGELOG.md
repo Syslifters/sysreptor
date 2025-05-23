@@ -4,6 +4,7 @@
 * Sync scroll in markdown editor and preview
 * Pin ghostscript version to fix bugs in pdf compression
 * Prevent PDF rendering Vue warning about tr children of table tags
+* PDF viewer: Allow navigation via arrow keys
 * UI: Add a button to expand collapsed menus
 * UI: Fix sections not sorted in sidebar
 

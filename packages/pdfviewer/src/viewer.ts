@@ -240,6 +240,22 @@ class PDFViewerApplicationClass {
           this.download();
           handled = true;
         }
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+        if (
+          (e.key === 'ArrowLeft' && !this.pdfViewer.isHorizontalScrollbarEnabled) ||
+          e.key === 'k' ||
+          e.key === 'p'
+        ) {
+          this.pdfViewer.previousPage();
+          handled = true;
+        } else if (
+          (e.key === 'ArrowRight' && !this.pdfViewer.isHorizontalScrollbarEnabled) ||
+          e.key === 'j' ||
+          e.key === 'n'
+        ) {
+          this.pdfViewer.nextPage();
+          handled = true;
+        }
       }
 
       if (handled) {
