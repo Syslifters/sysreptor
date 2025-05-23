@@ -6,6 +6,7 @@
 * Prevent PDF rendering Vue warning about tr children of table tags
 * UI: Add a button to expand collapsed menus
 * UI: Fix sections not sorted in sidebar
+* UI: Add shortcut indicator to save comments
 
 
 ## v2025.43 - 2025-05-07

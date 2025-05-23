@@ -31,6 +31,7 @@
               <btn-delete
                 v-if="props.delete"
                 :delete="props.delete"
+                :confirm="!!modelValue.text"
                 :disabled="props.readonly || modelValue.user?.id !== auth.user.value!.id"
                 button-variant="list-item"
               />
@@ -68,8 +69,10 @@
             :disabled="!editText.trim()"
             :loading="updateInProgress" 
             size="small" 
-            text="Save" 
-          />
+          >
+            Save
+            <s-tooltip activator="parent" text="Save comment (Ctrl+Enter)" />
+          </s-btn-other>
         </div>
       </div>
       <span v-else class="comment-text">{{ modelValue.text }}</span>
