@@ -141,6 +141,8 @@ test-api:
         path: api/test-reports/coverage.xml
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/' # Regex to match coverage report
   variables:
+    FF_NETWORK_PER_BUILD: "true"
+    DATABASE_HOST: postgres
     POSTGRES_DB: postgres
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
@@ -148,7 +150,7 @@ test-api:
   script:
     - mkdir api/test-reports
     - chmod 777 api/test-reports
-    - docker run -e DATABASE_HOST=${POSTGRES_PORT_5432_TCP_ADDR} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} -e ENABLED_PLUGINS='*' --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/src/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n 8 --junitxml=test-reports/junit.xml --cov=sysreptor --cov-report=term --cov-report=xml:test-reports/coverage.xml
+    - docker run -e DATABASE_HOST=${DATABASE_HOST} -e DATABASE_NAME=${POSTGRES_DB} -e DATABASE_USER=${POSTGRES_USER} -e DATABASE_PASSWORD=${POSTGRES_PASSWORD} -e ENABLED_PLUGINS='*' --network=host --mount=type=bind,source=$PWD/api/test-reports,target=/app/api/src/test-reports $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA pytest -n 8 --junitxml=test-reports/junit.xml --cov=sysreptor --cov-report=term --cov-report=xml:test-reports/coverage.xml
 
 test-frontend:
   stage: test
