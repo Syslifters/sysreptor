@@ -10,13 +10,13 @@
               text="Cancel"
             />
             <s-btn-secondary
-              v-if="apiSettings.settings!.auth_providers.length > 1"
+              v-if="authProviders.length > 1"
               @click="step = Step.LIST"
               text="Use another method"
             />
           </template>
         </login-form>
-        <login-provider-form v-else :reauth="true">
+        <login-provider-form v-else :auth-providers="authProviders" :reauth="true">
           <template #title>Re-Authenticate</template>
           <template #local>
             <v-list-item>
@@ -29,7 +29,7 @@
           </template>
           <template #actions>
             <s-btn-other
-              v-if="apiSettings.settings!.auth_providers.length > 1"
+              v-if="authProviders.length > 1"
               @click="cancelReAuth"
               text="Cancel"
             />
@@ -58,16 +58,21 @@ enum Step {
 }
 
 const step = ref(Step.LIST);
+const authProviders = ref<AuthProvider[]>([]);
 
 useLazyAsyncData(async () => {
   if (!route.query?.logout) {
-    const authProviders = apiSettings.settings!.auth_providers;
-    let defaultAuthProvider = authProviders.find(p => p.id === apiSettings.settings!.default_reauth_provider);
-    if (!defaultAuthProvider && authProviders.length === 1) {
-      defaultAuthProvider = authProviders[0];
+    authProviders.value = apiSettings.settings!.auth_providers;
+    if (!auth.user.value!.has_password || !auth.user.value!.can_login_local) {
+      authProviders.value = authProviders.value.filter(p => p.type !== AuthProviderType.LOCAL)
     }
-    if (!defaultAuthProvider && auth.user.value!.can_login_local) {
-      defaultAuthProvider = authProviders.find(p => p.type === AuthProviderType.LOCAL);
+
+    let defaultAuthProvider = authProviders.value.find(p => p.id === apiSettings.settings!.default_reauth_provider);
+    if (!defaultAuthProvider && authProviders.value.length === 1) {
+      defaultAuthProvider = authProviders.value[0];
+    }
+    if (!defaultAuthProvider && auth.user.value!.can_login_local && auth.user.value!.has_password) {
+      defaultAuthProvider = authProviders.value.find(p => p.type === AuthProviderType.LOCAL);
     }
     if (defaultAuthProvider?.type === AuthProviderType.LOCAL) {
       step.value = Step.LOCAL;

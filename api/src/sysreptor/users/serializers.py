@@ -82,7 +82,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
             'email', 'phone', 'mobile', 'color', 'must_change_password',
             'scope', 'is_superuser', 'is_project_admin', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user', 'is_global_archiver',
-            'is_mfa_enabled', 'can_login_local', 'can_login_sso',
+            'is_mfa_enabled', 'has_password', 'can_login_local', 'can_login_sso',
         ]
         read_only_fields = ['is_system_user']
 
@@ -105,6 +105,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'email': {'read_only': read_only},
             'is_active': {'read_only': read_only},
             'must_change_password': {'read_only': read_only},
+            'can_login_local': {'read_only': read_only},
         }
 
     def validate_is_active(self, value):

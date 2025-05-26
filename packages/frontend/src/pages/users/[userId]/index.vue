@@ -39,9 +39,8 @@
           </v-col>
           <v-col>
             <s-checkbox
-              v-if="user.can_login_local"
               v-model="user.must_change_password"
-              :disabled="!canEdit || !apiSettings.isProfessionalLicense"
+              :disabled="!canEdit || !apiSettings.isProfessionalLicense || !canLoginLocal"
               hint="The user has to change the password at the next login."
               density="compact"
             >
@@ -52,34 +51,41 @@
         <v-row>
           <v-col>
             <s-checkbox
-              v-model="user.can_login_local"
-              label="Local user"
-              hint="The user can log in with username and password."
-              disabled
+              :model-value="apiSettings.isLocalUserAuthEnabled ? user.can_login_local : false"
+              @update:model-value="user.can_login_local = $event"
+              :disabled="!canEdit || !apiSettings.isLocalUserAuthEnabled || !apiSettings.isProfessionalLicense"
+              label="Can login via username/password"
+              hint="The user can log in with username and password. Disable to force SSO login for this user."
               density="compact"
             />
           </v-col>
           <v-col>
             <s-checkbox
-              v-if="apiSettings.isSsoEnabled"
               v-model="user.can_login_sso"
-              label="SSO user"
+              :disabled="true"
               hint="The user can login with an authentication provider. Linked identities are configured."
+              density="compact"
+            >
+              <template #label><pro-info>Can login via SSO</pro-info></template>
+            </s-checkbox>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <s-checkbox
+              v-if="apiSettings.isLocalUserAuthEnabled && !user.is_system_user"
+              v-model="user.is_mfa_enabled"
+              label="Is Multi Factor Authentication enabled"
               disabled
               density="compact"
             />
           </v-col>
         </v-row>
+
+        <p v-if="!user.is_system_user" class="mt-4">
+          Last login: <chip-date :value="user.last_login" />
+        </p>
       </template>
-      <s-checkbox
-        v-if="apiSettings.isLocalUserAuthEnabled && !user.is_system_user"
-        v-model="user.is_mfa_enabled"
-        label="Is Multi Factor Authentication enabled"
-        disabled
-      />
-      <p v-if="!user.is_system_user" class="mt-4">
-        Last login: {{ user.last_login || 'Never' }}
-      </p>
     </user-info-form>
   </v-form>
 </template>
@@ -97,6 +103,7 @@ const user = await useAsyncDataE<User>(async () => await $fetch(apiUrl, { method
 
 const serverErrors = ref<any|null>(null);
 const canEdit = computed(() => auth.permissions.value.user_manager && !user.value.is_system_user);
+const canLoginLocal = computed(() => user.value.can_login_local && apiSettings.isLocalUserAuthEnabled);
 
 const form = useTemplateRef('form');
 

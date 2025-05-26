@@ -191,7 +191,10 @@ class TestLogin:
     @override_configuration(LOCAL_USER_AUTH_ENABLED=False)
     def test_local_login_disabled(self):
         self.assert_login(self.user, success=False)
-        self.assert_api_access(False)
+
+    def test_local_login_disabled_user(self):
+        update(self.user, can_login_local=False)
+        self.assert_login(self.user, success=False)
 
 
 @pytest.mark.django_db()

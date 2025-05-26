@@ -373,8 +373,9 @@ REMOTE_USER_AUTH_ENABLED=true
 REMOTE_USER_AUTH_HEADER="Remote-User"
 ```
 
-By default users can decide whether they want to log in via SSO or username/password. It is possible to disable login via username/password.
+By default users can decide whether they want to log in via SSO or username/password. It is possible to globally disable login via username/password via this setting.
 Make sure all users have SSO identities configured before enabling this option. Else they will not be able to log in anymore.
+It is also possible to disable username/password login for specific users via the user management.
 
 ``` title="Disable username/password authentication example"
 LOCAL_USER_AUTH_ENABLED=false
