@@ -5,9 +5,12 @@
         <notes-menu
           title="Initial Notes"
           :create-note="createNote"
+          :perform-delete="deleteNote"
+          :selected-notes="noteTreeRef?.selectedNotes"
           :readonly="readonly"
         >
           <notes-sortable-tree
+            ref="noteTreeRef"
             v-model="noteGroups"
             :selected="currentNote"
             @update:selected="selectNote"
@@ -109,6 +112,7 @@ const noteGroups = computed({
   },
 })
 
+const noteTreeRef = useTemplateRef('noteTreeRef');
 const form = useTemplateRef('form');
 const titleRef = useTemplateRef('titleRef');
 const textRef = useTemplateRef('textRef');

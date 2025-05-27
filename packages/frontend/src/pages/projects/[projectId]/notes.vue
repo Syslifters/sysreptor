@@ -6,11 +6,14 @@
         v-model:search="notesCollab.search.value"
         :create-note="createNote"
         :perform-import="performImport"
+        :perform-delete="performDelete"
         :export-url="`/api/v1/pentestprojects/${project.id}/notes/export/`"
         :export-name="'notes-' + project.name"
+        :selected-notes="noteTreeRef?.selectedNotes"
         :readonly="notesCollab.readonly.value"
       >
         <notes-sortable-tree
+          ref="noteTreeRef"
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
           @update:checked="updateNoteChecked"
@@ -50,6 +53,8 @@ const notesCollab = projectStore.useNotesCollab({ project: project.value });
 const noteGroups = computed(() => projectStore.noteGroups(project.value.id));
 const noteSearchResults = computed(() => searchNotes(projectStore.notes(project.value.id), notesCollab.collabProps.value.search));
 
+const noteTreeRef = useTemplateRef('noteTreeRef');
+
 onMounted(async () => {
   await notesCollab.connect();
   collabAwarenessSendNavigate();
@@ -82,6 +87,9 @@ async function performImport(file: File) {
   const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);
   const note = res.find(n => n.parent === null)!;
   await navigateTo(`/projects/${project.value.id}/notes/${note.id}/`);
+}
+async function performDelete(note: NoteBase) {
+  await projectStore.deleteNote(project.value, note as ProjectNote);
 }
 
 function updateNoteChecked(note: NoteBase) {
