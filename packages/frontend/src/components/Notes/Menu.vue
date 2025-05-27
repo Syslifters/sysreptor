@@ -46,6 +46,14 @@
                 :name="props.exportName"
                 :disabled="props.readonly"
               />
+              <btn-export
+                v-if="props.exportUrl && props.selectedNotes"
+                button-text="Export Selected"
+                :export-url="props.exportUrl"
+                :options="{notes: props.selectedNotes.map(n => n.id)}"
+                :name="props.exportName"
+                :disabled="props.readonly || props.selectedNotes.length === 0"
+              />
               <btn-delete
                 v-if="props.performDelete && props.selectedNotes"
                 :delete="() => deleteNotes(props.selectedNotes!)"

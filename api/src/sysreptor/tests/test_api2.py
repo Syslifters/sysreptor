@@ -491,3 +491,24 @@ class TestNotesApi:
         res = self.client.delete(reverse('usernotebookpage-detail', kwargs={'pentestuser_pk': 'self', 'id': note1.note_id}))
         assert res.status_code == 204, res.data
         assert set(n.id for n in self.user.notes.all()) == {note2.id, note2_1.id}
+
+    def test_export_multiple(self):
+        self.user.notes.all().delete()
+
+        note1 = create_usernotebookpage(user=self.user, parent=None, order=1)
+        note1_1 = create_usernotebookpage(user=self.user, parent=note1, order=1)
+        _note1_2 = create_usernotebookpage(user=self.user, parent=note1, order=2)
+        note2 = create_usernotebookpage(user=self.user, parent=None, order=2)
+
+        res = self.client.post(reverse('usernotebookpage-export-all', kwargs={'pentestuser_pk': 'self'}), data={
+            'notes': [note1_1.note_id, note2.note_id],
+        })
+        assert res.status_code == 200, res.data
+        archive = b''.join(res.streaming_content)
+
+        self.user.notes.all().delete()
+        res2 = self.client.post(reverse('usernotebookpage-import', kwargs={'pentestuser_pk': 'self'}), data={
+            'file': io.BytesIO(archive),
+        }, format='multipart')
+        assert len(res2.data) == 2
+
