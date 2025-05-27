@@ -152,18 +152,22 @@ async function deleteNotes(notes?: NoteBase[]) {
     return;
   }
 
-  await Promise.all(notes.map(n => (async () => {
-    try {
-      await Promise.resolve(props.performDelete!(n));
-    } catch (error: any) {
-      if (error?.status === 404) {
-        // Note was already deleted, ignore
-        return;
-      } else {
-        requestErrorToast(error);
+  // Optimize delete: skip deleting children if parent is also being deleted
+  const deleteTasks = notes
+    .filter(n => !notes.some(n2 => n2.id === n.parent))
+    .map(n => (async () => {
+      try {
+        await Promise.resolve(props.performDelete!(n));
+      } catch (error: any) {
+        if (error?.status === 404) {
+          // Note was already deleted, ignore
+          return;
+        } else {
+          requestErrorToast({ error,  message: `Failed to delete note "${n.title}"` });
+        }
       }
-    }
-  })()));
+    })());
+  await Promise.all(deleteTasks);
 }
 
 useKeyboardShortcut('ctrl+shift+f', () => showSearch());
