@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Incremental parsing in markdown editor
+* Add user setting to disable local login
 
 
 ## v2025.50 - 2025-05-28

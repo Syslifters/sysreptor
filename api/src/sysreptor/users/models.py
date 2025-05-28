@@ -19,7 +19,6 @@ from fido2.webauthn import PublicKeyCredentialRpEntity
 
 from sysreptor.users import querysets
 from sysreptor.utils import license
-from sysreptor.utils.configuration import configuration
 from sysreptor.utils.crypto.fields import EncryptedField
 from sysreptor.utils.models import BaseModel
 from sysreptor.utils.utils import get_random_color
@@ -47,6 +46,8 @@ class PentestUser(BaseModel, AbstractUser):
     is_system_user = models.BooleanField(default=False, db_index=True)
     is_global_archiver = models.BooleanField(default=False, db_index=True)
 
+    can_login_local = models.BooleanField(default=True)
+
     REQUIRED_FIELDS = []
 
     objects = querysets.PentestUserManager()
@@ -73,8 +74,8 @@ class PentestUser(BaseModel, AbstractUser):
                (['system'] if self.is_system_user else [])
 
     @property
-    def can_login_local(self) -> bool:
-        return (configuration.LOCAL_USER_AUTH_ENABLED or not license.is_professional(skip_db_checks=True)) and self.password and self.has_usable_password()
+    def has_password(self) -> bool:
+        return self.password and self.has_usable_password()
 
     @functools.cached_property
     def can_login_sso(self) -> bool:

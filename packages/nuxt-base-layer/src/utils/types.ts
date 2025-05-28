@@ -32,9 +32,10 @@ export type User = UserShortInfo & BaseModel & {
   readonly updated: string;
   readonly last_login: string|null;
   readonly is_mfa_enabled: boolean;
-  readonly can_login_local: boolean;
+  readonly has_password: boolean;
   readonly can_login_sso: boolean;
-
+  
+  can_login_local: boolean;
   must_change_password: boolean;
 
   email: string|null;

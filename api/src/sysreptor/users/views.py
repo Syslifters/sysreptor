@@ -380,6 +380,9 @@ class AuthViewSet(viewsets.ViewSet):
         elif step == 'mfa':
             # After MFA successful
             self.validate_login_allowed(user)
+            if not user.can_login_local:
+                raise APIBadRequestError('Local user login via username/password is disabled for this user. Log in via SSO instead.')
+
             request.session['login_state'] = request.session.get('login_state', {}) | {
                 'status': 'password-change-required',
             }
