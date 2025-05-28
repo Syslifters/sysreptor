@@ -2223,23 +2223,40 @@ typing = ["typing-extensions ; python_version < \"3.10\""]
 xmp = ["defusedxml"]
 
 [[package]]
-name = "pip-licenses"
-version = "5.0.0"
+name = "pip-licenses-cli"
+version = "1.0.0"
 description = "Dump the software license list of Python packages installed with pip."
 optional = false
-python-versions = ">=3.9"
+python-versions = "<4,>=3.9"
 groups = ["main"]
 files = [
-    {file = "pip_licenses-5.0.0-py3-none-any.whl", hash = "sha256:82c83666753efb86d1af1c405c8ab273413eb10d6689c218df2f09acf40e477d"},
-    {file = "pip_licenses-5.0.0.tar.gz", hash = "sha256:0633a1f9aab58e5a6216931b0e1d5cdded8bcc2709ff563674eb0e2ff9e77e8e"},
+    {file = "pip_licenses_cli-1.0.0-py3-none-any.whl", hash = "sha256:e46e0c49e8b3547bc40b77c65f1942f63dad35888cb643ecd3fab6c100093429"},
+    {file = "pip_licenses_cli-1.0.0.tar.gz", hash = "sha256:78bc99f7858ad8edf44979e61a012a651ba24d3ed40dced95c24a27969998b6d"},
 ]
 
 [package.dependencies]
-prettytable = ">=2.3.0"
+pip-licenses-lib = ">=0.5.0"
+prettytable = ">=3.13.0"
 tomli = ">=2"
 
 [package.extras]
 dev = ["autopep8", "black", "docutils", "isort", "mypy", "pip-tools", "pypandoc", "pytest-cov", "pytest-pycodestyle", "pytest-runner", "tomli-w", "twine", "wheel"]
+
+[[package]]
+name = "pip-licenses-lib"
+version = "0.5.0"
+description = "Retrieve the software license list of Python packages installed with pip."
+optional = false
+python-versions = "<4,>=3.9"
+groups = ["main"]
+files = [
+    {file = "pip_licenses_lib-0.5.0-py3-none-any.whl", hash = "sha256:b6b3c1c85a71879494d0ea65f63f3b4ca37cf8e1862617e3766a8402d1064a1d"},
+    {file = "pip_licenses_lib-0.5.0.tar.gz", hash = "sha256:3e1afbd230703d38baf01fc3b05727d79dfa4ab8877ee305574df1fd73504dab"},
+]
+
+[package.extras]
+dev = ["codespell", "flake8", "flake8-bugbear", "mypy", "pep8-naming", "pypdf", "requests", "types-requests"]
+docs = ["furo", "sphinx"]
 
 [[package]]
 name = "playwright"
@@ -4099,4 +4116,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "c890cd9378024e430537e44a1a0b50710e2de4946586e674de07474e395a2c18"
+content-hash = "dad8fe9766896cd7412874b658d776294f4e31eaaed6c6d4c27ac20132da9c8c"
