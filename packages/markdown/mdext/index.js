@@ -2,6 +2,7 @@ import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import remarkStringify from 'remark-stringify';
+import rehypeParse from 'rehype-parse';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { merge } from 'lodash-es';
@@ -64,6 +65,19 @@ export function markdownParser() {
 
 
 /**
+ * @param {string} html 
+ * @returns {string}
+ */
+export function formatHtml(html) {
+  return unified()
+    .use(rehypeParse, { fragment: true })
+    .use(rehypeStringify)
+    .processSync(html)
+    .value;
+}
+
+
+/**
  * 
  * @param {string} text 
  * @returns {string}
@@ -98,7 +112,7 @@ export function renderMarkdownToHtml({ text = '', preview = false, referenceItem
           ...remarkToRehypeHandlersTableCaptions,
           ...remarkToRehypeAttrs,
           ...remarkToRehypeTemplateVariables,
-        }
+        },
       })
       .use(rehypeTableCaptions)
       .use(rehypeHighlightCode, { preview })

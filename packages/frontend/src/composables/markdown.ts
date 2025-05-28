@@ -9,7 +9,7 @@ import {
   history, historyKeymap, keymap, setDiagnostics,
   spellcheck, spellcheckTheme,
   lineNumbers, indentUnit, defaultKeymap, indentWithTab,
-  markdown, syntaxHighlighting, markdownHighlightStyle, markdownHighlightCodeBlocks,
+  markdown,
   Transaction,
   remoteSelection, setRemoteClients,
   commentsExtension, setComments,
@@ -568,8 +568,6 @@ export function markdownEditorDefaultExtensions() {
     ]),
     closeBrackets(),
     markdown(),
-    syntaxHighlighting(markdownHighlightStyle),
-    markdownHighlightCodeBlocks,
     commentsExtension(),
     search({
       literal: true,

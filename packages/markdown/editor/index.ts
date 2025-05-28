@@ -6,14 +6,13 @@ export { closeBrackets } from "@codemirror/autocomplete";
 export { search, searchKeymap, SearchQuery, SearchCursor } from '@codemirror/search'
 export { MergeView } from '@codemirror/merge';
 export { syntaxHighlighting, syntaxTree, indentUnit } from '@codemirror/language';
-export type { SyntaxNode } from '@lezer/common';
+export type { SyntaxNode, Tree } from '@lezer/common';
 export { vueLanguage } from '@codemirror/lang-vue';
 export { cssLanguage } from '@codemirror/lang-css';
-export { markdown } from './language';
+export { markdown, compareTree } from './language';
 export { createEditorExtensionToggler } from './utils';
 export { spellcheck, spellcheckTheme } from './spellcheck';
 export { highlightTodos } from './todos';
-export { markdownHighlightStyle, markdownHighlightCodeBlocks } from './highlight';
 export { 
   toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
   toggleListUnordered, toggleListOrdered, toggleTaskList,

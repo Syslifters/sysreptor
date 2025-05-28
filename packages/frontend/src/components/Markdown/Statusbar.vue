@@ -33,7 +33,8 @@ const props = defineProps<{
 
 const { mobile } = useDisplay();
 
-const editorState = computedThrottled(() => props.editorState, { throttle: 500 });
+const editorState = ref<EditorState>(props.editorState);
+watchThrottled(() => props.editorState, (newValue) => { editorState.value = newValue; }, { throttle: 500 });
 
 const currentLineNumber = computed(() => editorState.value.doc.lineAt(editorState.value.selection.main.head).number);
 const currentColNumber = computed(() => {
