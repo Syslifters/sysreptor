@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.50 - 2025-05-28
 * Sync scroll in markdown editor and preview
 * Pin ghostscript version to fix bugs in pdf compression
 * Prevent PDF rendering Vue warning about tr children of table tags
