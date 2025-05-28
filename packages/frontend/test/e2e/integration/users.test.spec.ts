@@ -51,8 +51,8 @@ test('A Admin User can delete a User', async ({ page }) => {
   await page.goto('/users/');
   // Delete User
   await page.getByRole('link', { name: userUsername }).click();
-  await page.getByTestId('options-dots').click();
-  await page.getByText('Delete').click();
+  await page.getByTestId('edittoolbar-contextmenu').click();
+  await page.getByTestId('edittoolbar-delete').click();
   // Confirm Delete
   await page.getByTestId('confirm-input').getByRole('textbox').fill(userUsername);
   await page.getByTestId('confirm-button').click();

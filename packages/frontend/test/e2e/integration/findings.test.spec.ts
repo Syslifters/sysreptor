@@ -98,7 +98,7 @@ test('A User create a Template from a Finding', async ({ page }) => {
   await page.getByTestId('project-reporting-tab').click();
   await page.getByRole('link', { name: 'DC', exact: true }).click();
   await page.getByLabel('CVSS').waitFor();
-  await page.getByTestId('options-dots').click();
+  await page.getByTestId('edittoolbar-contextmenu').click();
   await page.getByText('Save as Template').click();
   await page.getByTestId('title-en-US').getByRole('textbox').waitFor();
   await page.getByTestId('title-en-US').getByRole('textbox').fill('My Template');

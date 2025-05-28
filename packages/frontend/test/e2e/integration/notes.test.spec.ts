@@ -24,9 +24,9 @@ test('A User can create, write and delete a Note', async ({ page }) => {
   expect(await page.getByTestId('note-title').getByText(noteTitle).isVisible()).toBeTruthy();
   expect(await page.getByTestId('note-text').getByRole('textbox').getByText(noteText).isVisible()).toBeTruthy();
 
-  await page.getByTestId('options-dots').click();
-  await page.getByText('Delete').click();
-  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.getByTestId('edittoolbar-contextmenu').click();
+  await page.getByTestId('edittoolbar-delete').click();
+  await page.getByTestId('confirm-button').click();
   await page.getByTestId('confirm-button').waitFor({ state: 'hidden' });
   expect(await page.getByTestId('note-title').getByText(noteTitle).isVisible()).toBeFalsy();
   expect(await page.getByTestId('note-text').getByRole('textbox').getByText(noteText).isVisible()).toBeFalsy();

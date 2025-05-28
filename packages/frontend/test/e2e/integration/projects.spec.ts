@@ -23,10 +23,10 @@ test('A User can delete a Project', async ({ page }) => {
   await page.waitForSelector('text=Projects');
   await page.getByRole('link', { name: projectName }).click();
   await page.getByTestId('project-settings-tab').click();
-  await page.getByTestId('options-dots').click();
-  await page.getByText('Delete').click();
+  await page.getByTestId('edittoolbar-contextmenu').click();
+  await page.getByTestId('edittoolbar-delete').click();
   await page.getByTestId('confirm-input').getByRole('textbox').fill(projectName);
-  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.getByTestId('confirm-button').click();
   await page.waitForSelector('text=Projects');
   
 });
