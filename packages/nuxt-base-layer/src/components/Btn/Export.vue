@@ -13,9 +13,11 @@ import { fileDownload } from "@base/utils/helpers";
 
 const props = withDefaults(defineProps<{
   exportUrl: string;
+  options?: any;
   name?: string|null;
   extension?: string;
 }>(), {
+  options: null,
   name: null,
   extension: '.tar.gz',
 });
@@ -25,7 +27,7 @@ const filename = computed(() => (props.name || 'export').replaceAll(/[ @#/\\]/g,
 async function performExport() {
   const res = await $fetch<Blob>(props.exportUrl, {
     method: 'POST',
-    body: {},
+    body: props.options || {},
     responseType: "blob"
   });
   fileDownload(res, filename.value);

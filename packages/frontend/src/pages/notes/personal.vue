@@ -6,11 +6,14 @@
         v-model:search="notesCollab.search.value"
         :create-note="createNote"
         :perform-import="performImport"
+        :perform-delete="performDelete"
         :export-url="`/api/v1/pentestusers/self/notes/export/`"
         :export-name="'notes-' + auth.user.value!.username"
+        :selected-notes="noteTreeRef?.selectedNotes"
         :readonly="notesCollab.readonly.value"
       >
         <notes-sortable-tree
+          ref="noteTreeRef"
           :model-value="noteGroups"
           @update:model-value="updateNoteOrder"
           @update:checked="updateNoteChecked"
@@ -45,6 +48,8 @@ const notesCollab = userNotesStore.useNotesCollab();
 const noteGroups = computed(() => userNotesStore.noteGroups);
 const noteSearchResults = computed(() => searchNotes(userNotesStore.notes, notesCollab.collabProps.value.search));
 
+const noteTreeRef = useTemplateRef('noteTreeRef');
+
 useHeadExtended({
   titleTemplate: (title?: string|null) => userNotesTitleTemplate(title, route),
   breadcrumbs: () => [{ title: 'Personal Notes', to: '/notes/personal/' }],
@@ -77,6 +82,9 @@ async function createNote() {
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
   });
   await navigateTo({ path: `/notes/personal/${obj.id}/`, hash: 'title' });
+}
+async function performDelete(note: NoteBase) {
+  return await userNotesStore.deleteNote(note as UserNote);
 }
 async function performImport(file: File) {
   const res = await uploadFileHelper<UserNote[]>(`/api/v1/pentestusers/self/notes/import/`, file);

@@ -24,9 +24,9 @@
       <v-list-item
         v-if="note"
         :to="(props.toPrefix) ? `${props.toPrefix}${note.id}/?c=${uuidv4()}` : undefined"
-        @click="emit('update:selected', note)"
+        @click="onClickNote($event, note, stat)"
         link
-        :active="props.selected ? props.selected.id === note.id : (props.toPrefix ? router.currentRoute.value.path.startsWith(props.toPrefix + note.id) : undefined)"
+        :active="note.id === currentNoteId || stat.checked === true"
         :ripple="false"
         draggable="false"
         class="note-list-item"
@@ -87,8 +87,11 @@ const emit = defineEmits<{
   'update:checked': [NoteBase];
 }>();
 
+const currentNoteId = computed(() => props.selected ? props.selected.id : router.currentRoute.value.params.noteId as string || null);
+
 function statHandler(stat: any) {
   stat.open = localSettings.isNoteExpanded(stat.data.note.id);
+  stat.checked = stat.data?.note.id === currentNoteId.value;
   return stat;
 }
 function setExpanded(note: NoteBase|undefined, value: boolean) {
@@ -125,6 +128,55 @@ watch(() => props.modelValue, () => {
 const subpathNames = computedCached(() => flattenNotes(props.modelValue).map(n => `notes.${n.id}`));
 const collabSubpathProps = useCollabSubpaths(() => props.collab, subpathNames);
 
+const lastSelectedNoteId = ref<string|null>(null);
+function onClickNote(event: MouseEvent|KeyboardEvent, note: NoteBase, stat?: any) {
+  if (event.ctrlKey) {
+    if (currentNoteId.value !== note.id || !stat.checked) {
+      stat.checked = !stat.checked;
+    }
+    lastSelectedNoteId.value = note.id;
+    event.preventDefault();
+  } else if (event.shiftKey) {
+    // Select all leaf notes between the last selected note and the current one.
+    // Parents are auto-selected if all children are selected.
+    const idxSelectionStart = (draggableRef.value?.statsFlat || []).findIndex(s => (s.data as NoteGroup<NoteBase>[0])?.note.id === lastSelectedNoteId.value);
+    const idxSelectionEnd = (draggableRef.value?.statsFlat || []).findIndex(s => (s.data as NoteGroup<NoteBase>[0])?.note.id === note.id);
+    
+    if (idxSelectionStart === -1 || idxSelectionEnd === -1) {
+      stat.checked = true;
+    } else {
+      draggableRef.value?.statsFlat
+        .slice(Math.min(idxSelectionStart, idxSelectionEnd), Math.max(idxSelectionStart, idxSelectionEnd) + 1)
+        .forEach(s => {
+          if (s.children.length === 0 || (s.data as NoteGroup<NoteBase>[0])?.note.id === note.id) {
+            s.checked = true;
+          }
+        });
+    }
+
+    lastSelectedNoteId.value = note.id;
+    event.preventDefault();
+  } else {
+    emit('update:selected', note);
+  }
+}
+watch(currentNoteId, () => {
+  // On navigate: reset selection
+  draggableRef.value?.statsFlat.forEach(stat => { 
+    stat.checked = (stat.data as NoteGroup<NoteBase>[0])?.note.id === currentNoteId.value; 
+  });
+  lastSelectedNoteId.value = currentNoteId.value;
+}, { immediate: true });
+
+const selectedNotes = computed(() => {
+  return (draggableRef.value?.statsFlat || [])
+    .filter(s => s.checked || (s.data as NoteGroup<NoteBase>[0])?.note.id === currentNoteId.value)
+    .map(s => (s.data as NoteGroup<NoteBase>[0]).note);
+});
+
+defineExpose({
+  selectedNotes,
+});
 </script>
 
 <style scoped lang="scss">
@@ -167,6 +219,5 @@ const collabSubpathProps = useCollabSubpaths(() => props.collab, subpathNames);
     background: rgba(var(--v-theme-on-surface), calc(var(--v-activated-opacity) * 2));
     border: 1px dashed rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
   }
-
 }
 </style>

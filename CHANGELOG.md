@@ -3,6 +3,8 @@
 ## Upcoming
 * Incremental parsing in markdown editor
 * Add user setting to disable local login
+* Bulk delete and bulk export notes
+* UI: allow multi-select in notes tree
 
 
 ## v2025.50 - 2025-05-28

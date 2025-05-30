@@ -36,8 +36,8 @@ test('A User can delete a Template', async ({ page }) => {
   if(await page.getByText('It seems like you are editing').isVisible()) {
     await page.getByRole('button', { name: 'Edit Anyway' }).click();
   }
-  await page.getByTestId('options-dots').click();
-  await page.getByText('Delete').click();
-  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.getByTestId('edittoolbar-contextmenu').click();
+  await page.getByTestId('edittoolbar-delete').click();
+  await page.getByTestId('confirm-button').click();
   await page.getByRole('heading', { name: 'Templates' }).waitFor();
 });

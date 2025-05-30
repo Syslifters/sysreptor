@@ -418,6 +418,7 @@ class TestImportExport:
 
     def test_export_import_notes_project_partial_sublevel(self):
         archive = archive_to_file(export_notes(self.project, notes=[self.p_note1_1]))
+        files = {(f.name, f.file.read()) for f in [self.project.files.filter_name('file.txt').get()]}
         self.project.refresh_from_db()
         self.project.notes.all().delete()
         self.project.images.all().delete()
@@ -428,6 +429,27 @@ class TestImportExport:
         assert len(imported) == 1
         assertKeysEqual(imported[0], self.p_note1_1, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
         assert imported[0].parent is None
+        assert self.project.images.count() == 0
+        assert {(i.name, i.file.read()) for i in self.project.images.all()} == set()
+        assert {(f.name, f.file.read()) for f in self.project.files.all()} == files
+
+    def test_export_import_notes_partial_mixed(self):
+        archive = archive_to_file(export_notes(self.project, notes=[self.p_note1_1, self.p_note2]))
+        files = {(f.name, f.file.read()) for f in [self.project.files.filter_name('file.txt').get()]}
+        self.project.refresh_from_db()
+        self.project.notes.all().delete()
+        self.project.images.all().delete()
+        self.project.files.all().delete()
+
+        # Import notes
+        imported = import_notes(archive, context={'project': self.project})
+        assert len(imported) == 2
+        assertKeysEqual(imported[0], self.p_note1_1, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
+        assertKeysEqual(imported[1], self.p_note2, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
+        assert imported[0].parent is None
+        assert imported[1].parent is None
+        assert {(i.name, i.file.read()) for i in self.project.images.all()} == set()
+        assert {(f.name, f.file.read()) for f in self.project.files.all()} == files
 
 
 @pytest.mark.django_db()

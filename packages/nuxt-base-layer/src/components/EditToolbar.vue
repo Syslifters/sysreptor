@@ -33,7 +33,7 @@
       </s-btn-icon>
 
       <s-btn-icon v-if="(showSave && props.canAutoSave) || showDelete || $slots['context-menu']">
-        <v-icon icon="mdi-dots-vertical" data-testid="options-dots" />
+        <v-icon icon="mdi-dots-vertical" data-testid="edittoolbar-contextmenu" />
 
         <v-menu activator="parent" :close-on-content-click="false" location="bottom left" class="context-menu">
           <v-list>
@@ -62,6 +62,7 @@
               :disabled="!canDelete"
               button-variant="list-item"
               color="error"
+              data-testid="edittoolbar-delete"
             />
           </v-list>
         </v-menu>
