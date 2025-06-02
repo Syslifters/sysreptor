@@ -192,6 +192,13 @@ const remoteSelectionTheme = EditorView.theme({
       filter: 'invert(1) grayscale(1) contrast(100)',
     },
   },
+  '.cm-tooltip:has(.cm-tooltip-remoteCursor)': {
+    border: 'none',
+    backgroundColor: 'transparent',
+    '& > .cm-tooltip-remoteCursor': {
+      borderRadius: '4px',
+    },
+  },
 })
 
 
