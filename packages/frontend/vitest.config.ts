@@ -3,7 +3,7 @@ export default defineVitestConfig({
   test: {
     environment: 'happy-dom',
     dir: 'test',
-    exclude: ['**/*.spec.ts'],
+    include: ['**/*.test.ts'],
     reporters: ['default', 'junit'],
     outputFile: '../test-reports/junit.xml',
   },
