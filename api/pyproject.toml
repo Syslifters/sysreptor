@@ -34,12 +34,12 @@ dependencies = [
   "pycryptodomex (~=3.17)",
   "pyotp (~=2.8)",
   "qrcode[pil] (~=8.0)",
-  "fido2 (~=1.1)",
+  "fido2 (~=2.0)",
   "authlib (~=1.3)",
   "python-gnupg (~=0.5)",
   "frozendict (~=2.3)",
 
-  "lorem-text (~=2.1)",
+  "lorem-text (~=3.0)",
   "randomcolor (~=0.4)",
   "zipstream-ng (~=1.6)",
   "playwright (~=1.32)",
@@ -52,7 +52,7 @@ dependencies = [
   "debugpy (~=1.6)",
   "watchdog (~=6.0)",
   "pytest-django (~=4.11)",
-  "pytest-asyncio (~=0.26)",
+  "pytest-asyncio (~=1.0.0)",
   "pytest-xdist (~=3.2)",
   "pytest-cov (~=6.0)",
 

@@ -16,7 +16,6 @@ import socket
 from datetime import timedelta
 from pathlib import Path
 
-import fido2.features
 import redis
 from csp.constants import NONE, SELF, UNSAFE_INLINE
 from decouple import Csv, config
@@ -260,8 +259,6 @@ MFA_SERVER_NAME = config('MFA_SERVER_NAME', default='SysReptor')
 MFA_FIDO2_RP_ID = config('MFA_FIDO2_RP_ID', default='')
 MFA_LOGIN_TIMEOUT = timedelta(minutes=5)
 SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT = timedelta(minutes=15)
-
-fido2.features.webauthn_json_mapping.enabled = True
 
 
 # Allowed Hosts
