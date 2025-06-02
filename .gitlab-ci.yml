@@ -8,8 +8,6 @@ stages:
 
 image: docker:23.0.1
 variables:
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
   CI_REGISTRY_IMAGE: registry.internal.syslifters.com/reportcreator/reportcreator
   DOCKER_HUB_IMAGE: syslifters/sysreptor
 
