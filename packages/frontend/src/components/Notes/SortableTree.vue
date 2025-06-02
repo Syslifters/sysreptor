@@ -26,7 +26,7 @@
         :to="(props.toPrefix) ? `${props.toPrefix}${note.id}/?c=${uuidv4()}` : undefined"
         @click="onClickNote($event, note, stat)"
         link
-        :active="note.id === currentNoteId || stat.checked === true"
+        :active="note.id === currentNoteId || selectedNoteIds.has(note.id)"
         :ripple="false"
         draggable="false"
         class="note-list-item"
@@ -88,10 +88,10 @@ const emit = defineEmits<{
 }>();
 
 const currentNoteId = computed(() => props.selected ? props.selected.id : router.currentRoute.value.params.noteId as string || null);
+const selectedNoteIds = ref<Set<string>>(new Set());
 
 function statHandler(stat: any) {
   stat.open = localSettings.isNoteExpanded(stat.data.note.id);
-  stat.checked = stat.data?.note.id === currentNoteId.value;
   return stat;
 }
 function setExpanded(note: NoteBase|undefined, value: boolean) {
@@ -129,27 +129,73 @@ const subpathNames = computedCached(() => flattenNotes(props.modelValue).map(n =
 const collabSubpathProps = useCollabSubpaths(() => props.collab, subpathNames);
 
 const lastSelectedNoteId = ref<string|null>(null);
-function onClickNote(event: MouseEvent|KeyboardEvent, note: NoteBase, stat?: any) {
-  if (event.ctrlKey) {
-    if (currentNoteId.value !== note.id || !stat.checked) {
-      stat.checked = !stat.checked;
+function getNoteGroupById(id?: string|null, group?: NoteGroup<NoteBase>): NoteGroup<NoteBase>[0]|null {
+  if (!id) {
+    return null;
+  }
+
+  for (const item of group || props.modelValue) {
+    if (item.note.id === id) {
+      return item;
     }
+    if (item.children.length > 0) {
+      const found = getNoteGroupById(id, item.children);
+      if (found) {
+        return found;
+      }
+    }
+  }
+  return null;
+}
+function selectNote(note?: NoteBase|null, value: boolean = true) {
+  const group = getNoteGroupById(note?.id);
+  if (!note || !group) {
+    return;
+  }
+
+  if (value) {
+    selectedNoteIds.value.add(note.id);
+  } else {
+    // Unselect note and parents
+    for (
+      let n = note as (typeof note|null);
+      n;
+      n = getNoteGroupById(n.parent, props.modelValue)?.note as (typeof note|null)
+    ) {
+      selectedNoteIds.value.delete(n.id);
+    }
+  }
+  
+  // Select children
+  for (const c of group.children) {
+    selectNote(c.note, value);
+  }
+}
+
+function onClickNote(event: MouseEvent|KeyboardEvent, note?: NoteBase, stat?: any) {
+  if (!note || !stat) {
+    return;
+  }
+
+  if (event.ctrlKey) {
+    selectNote(note, !selectedNoteIds.value.has(note.id) || currentNoteId.value === note.id);
     lastSelectedNoteId.value = note.id;
     event.preventDefault();
   } else if (event.shiftKey) {
     // Select all leaf notes between the last selected note and the current one.
     // Parents are auto-selected if all children are selected.
-    const idxSelectionStart = (draggableRef.value?.statsFlat || []).findIndex(s => (s.data as NoteGroup<NoteBase>[0])?.note.id === lastSelectedNoteId.value);
-    const idxSelectionEnd = (draggableRef.value?.statsFlat || []).findIndex(s => (s.data as NoteGroup<NoteBase>[0])?.note.id === note.id);
+    const idxSelectionStart = (draggableRef.value?.statsFlat || []).findIndex(s => (s.data as NoteGroup<NoteBase>[0]|null)?.note?.id === lastSelectedNoteId.value);
+    const idxSelectionEnd = (draggableRef.value?.statsFlat || []).findIndex(s => (s.data as NoteGroup<NoteBase>[0]|null)?.note?.id === note.id);
     
     if (idxSelectionStart === -1 || idxSelectionEnd === -1) {
-      stat.checked = true;
+      selectNote(note);
     } else {
       draggableRef.value?.statsFlat
         .slice(Math.min(idxSelectionStart, idxSelectionEnd), Math.max(idxSelectionStart, idxSelectionEnd) + 1)
         .forEach(s => {
-          if (s.children.length === 0 || (s.data as NoteGroup<NoteBase>[0])?.note.id === note.id) {
-            s.checked = true;
+          const sNote = (s.data as NoteGroup<NoteBase>[0]|null)?.note;
+          if (sNote) {
+            selectNote(sNote, true);
           }
         });
     }
@@ -162,16 +208,17 @@ function onClickNote(event: MouseEvent|KeyboardEvent, note: NoteBase, stat?: any
 }
 watch(currentNoteId, () => {
   // On navigate: reset selection
-  draggableRef.value?.statsFlat.forEach(stat => { 
-    stat.checked = (stat.data as NoteGroup<NoteBase>[0])?.note.id === currentNoteId.value; 
-  });
+  selectedNoteIds.value.clear();
+  if (currentNoteId.value) {
+    selectedNoteIds.value.add(currentNoteId.value);
+  }
   lastSelectedNoteId.value = currentNoteId.value;
 }, { immediate: true });
 
 const selectedNotes = computed(() => {
-  return (draggableRef.value?.statsFlat || [])
-    .filter(s => s.checked || (s.data as NoteGroup<NoteBase>[0])?.note.id === currentNoteId.value)
-    .map(s => (s.data as NoteGroup<NoteBase>[0]).note);
+  return Array.from(selectedNoteIds.value)
+    .map(id => getNoteGroupById(id)?.note)
+    .filter(n => !!n);
 });
 
 defineExpose({
