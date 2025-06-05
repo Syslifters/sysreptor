@@ -7,6 +7,7 @@
         :create-note="createNote"
         :perform-import="performImport"
         :perform-delete="performDelete"
+        :perform-copy="performCopy"
         :export-url="`/api/v1/pentestusers/self/notes/export/`"
         :export-name="'notes-' + auth.user.value!.username"
         :selected-notes="noteTreeRef?.selectedNotes"
@@ -90,6 +91,9 @@ async function performImport(file: File) {
   const res = await uploadFileHelper<UserNote[]>(`/api/v1/pentestusers/self/notes/import/`, file);
   const note = res.find(n => n.parent === null)!;
   await navigateTo(`/notes/personal/${note.id}/`);
+}
+async function performCopy(note: NoteBase) {
+  await userNotesStore.copyNote(note as UserNote);
 }
 function updateNoteChecked(note: NoteBase) {
   notesCollab.onCollabEvent({

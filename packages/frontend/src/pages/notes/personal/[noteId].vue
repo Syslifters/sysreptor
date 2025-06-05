@@ -32,7 +32,10 @@
           </div>
         </template>
         <template #context-menu>
-          <btn-copy :copy="performCopy" />
+          <btn-copy 
+            :copy="performCopy"
+            :readonly="notesCollab.readonly.value"
+          />
           <btn-export
             :export-url="exportUrl"
             :name="'notes-' + note.title"

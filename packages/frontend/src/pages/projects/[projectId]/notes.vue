@@ -7,6 +7,7 @@
         :create-note="createNote"
         :perform-import="performImport"
         :perform-delete="performDelete"
+        :perform-copy="performCopy"
         :export-url="`/api/v1/pentestprojects/${project.id}/notes/export/`"
         :export-name="'notes-' + project.name"
         :selected-notes="noteTreeRef?.selectedNotes"
@@ -90,6 +91,9 @@ async function performImport(file: File) {
 }
 async function performDelete(note: NoteBase) {
   await projectStore.deleteNote(project.value, note as ProjectNote);
+}
+async function performCopy(note: NoteBase) {
+  await projectStore.copyNote(project.value, note as ProjectNote);
 }
 
 function updateNoteChecked(note: NoteBase) {

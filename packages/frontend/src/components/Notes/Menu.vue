@@ -28,10 +28,19 @@
           density="compact"
           class="ml-2"
         />
-        <s-btn-icon v-if="props.exportUrl || props.performImport || (props.performDelete && props.selectedNotes)" size="small" density="compact">
+        <s-btn-icon 
+          v-if="props.exportUrl || props.performImport || (props.performDelete && props.selectedNotes) || (props.performCopy && props.selectedNotes)" 
+          size="small" 
+          density="compact"
+        >
           <v-icon icon="mdi-dots-vertical" />
           <v-menu activator="parent" eager :close-on-content-click="false" location="bottom right" class="context-menu">
             <v-list>
+              <btn-copy
+                v-if="props.performCopy && props.selectedNotes"
+                :copy="() => copyNotes(props.selectedNotes)"
+                :disabled="props.readonly || props.selectedNotes.length === 0"
+              />
               <btn-import 
                 v-if="props.performImport"
                 ref="importBtnRef"
@@ -56,7 +65,7 @@
               />
               <btn-delete
                 v-if="props.performDelete && props.selectedNotes"
-                :delete="() => deleteNotes(props.selectedNotes!)"
+                :delete="() => deleteNotes(props.selectedNotes)"
                 :disabled="props.readonly || props.selectedNotes.length === 0"
                 button-variant="list-item"
                 :dialog-text="`Do you really want to delete ${props.selectedNotes.length} note(s)?`"
@@ -132,6 +141,7 @@ const props = defineProps<{
   selectedNotes?: NoteBase[];
   performImport?: (file: File) => Promise<void>;
   performDelete?: (note: NoteBase) => (Promise<void>|void);
+  performCopy?: (note: NoteBase) => (Promise<void>);
 }>();
 
 const importBtnRef = useTemplateRef('importBtnRef');
@@ -147,14 +157,17 @@ function hideSearch() {
   search.value = null;
 }
 
+function filterParentNotes(notes: NoteBase[]): NoteBase[] {
+  return notes.filter(n => !notes.some(n2 => n2.id === n.parent))
+}
+
 async function deleteNotes(notes?: NoteBase[]) {
   if (!props.performDelete || !notes || notes.length === 0) {
     return;
   }
 
   // Optimize delete: skip deleting children if parent is also being deleted
-  const deleteTasks = notes
-    .filter(n => !notes.some(n2 => n2.id === n.parent))
+  const deleteTasks = filterParentNotes(notes)
     .map(n => (async () => {
       try {
         await Promise.resolve(props.performDelete!(n));
@@ -168,6 +181,22 @@ async function deleteNotes(notes?: NoteBase[]) {
       }
     })());
   await Promise.all(deleteTasks);
+}
+
+async function copyNotes(notes?: NoteBase[]) {
+  if (!props.performCopy || !notes || notes.length === 0) {
+    return;
+  }
+
+  const copyTasks = filterParentNotes(notes)
+    .map(n => (async () => {
+      try {
+        await Promise.resolve(props.performCopy!(n));
+      } catch (error: any) {
+        requestErrorToast({ error, message: `Failed to copy note "${n.title}"` });
+      }
+    })());
+  await Promise.all(copyTasks);
 }
 
 useKeyboardShortcut('ctrl+shift+f', () => showSearch());
