@@ -3,6 +3,7 @@
 ## Upcoming
 * Incremental parsing in markdown editor
 * Add user setting to disable local login
+* Provide parent CWEs in PDF rendering
 * Bulk delete and bulk export notes
 * UI: allow multi-select in notes tree
 
