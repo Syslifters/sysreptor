@@ -32,6 +32,7 @@
           </div>
         </template>
         <template #context-menu>
+          <btn-copy :copy="performCopy" />
           <btn-export
             :export-url="exportUrl"
             :name="'notes-' + note.title"
@@ -96,6 +97,11 @@ const hasChildNotes = computed(() => {
   return userNotesStore.notes
     .some(n => n.parent === note.value!.id && n.id !== note.value!.id);
 });
+
+async function performCopy() {
+  const newNote = await userNotesStore.copyNote(note.value!);
+  await navigateTo(`/notes/personal/${newNote.id}/`);
+}
 
 async function uploadFile(file: File) {
   const obj = await uploadFileHelper<UploadedFileInfo>('/api/v1/pentestusers/self/notes/upload/', file);

@@ -150,6 +150,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('finding sort', lambda s, c: c.post(reverse('finding-sort', kwargs={'project_pk': get_obj(s).pk}), data=[{'id': get_obj(s).findings.first().finding_id, 'order': 1}])),
             ('projectnotebookpage sort', lambda s, c: c.post(reverse('projectnotebookpage-sort', kwargs={'project_pk': get_obj(s).pk}), data=[{'id': get_obj(s).notes.first().note_id, 'parent': None, 'order': 1}])),
             ('projectnotebookpage import', lambda s, c: c.post(reverse('projectnotebookpage-import', kwargs={'project_pk': get_obj(s).pk}), data={'file': export_notes_archive(get_obj(s))}, format='multipart')),
+            ('projectnotebookpage copy', lambda s, c: c.post(reverse('projectnotebookpage-copy', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}), data={})),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
             ('comment resolve', lambda s, c: c.post(reverse('comment-resolve', kwargs={'project_pk': get_obj(s).pk, 'pk': get_obj(s).findings.first().comments.first().id}), data={'status': CommentStatus.RESOLVED})),
@@ -245,6 +246,7 @@ def guest_urls():
         ('usernotebookoage export-all', lambda s, c: c.post(reverse('usernotebookpage-export-all', kwargs={'pentestuser_pk': 'self'}))),
         ('usernotebookpage export-pdf', lambda s, c: c.post(reverse('usernotebookpage-export-pdf', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
         ('usernotebookpage import', lambda s, c: c.post(reverse('usernotebookpage-import', kwargs={'pentestuser_pk': 'self'}), data={'file': export_notes_archive(s.current_user)}, format='multipart')),
+        ('usernotebookpage copy', lambda s, c: c.post(reverse('usernotebookpage-copy', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id}), data={})),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True, history_timeline=True),

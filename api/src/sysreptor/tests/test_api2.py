@@ -512,3 +512,7 @@ class TestNotesApi:
         }, format='multipart')
         assert len(res2.data) == 2
 
+    def test_copy_note(self):
+        note_id = self.user.notes.first().note_id
+        cp = self.client.post(reverse('usernotebookpage-copy', kwargs={'pentestuser_pk': 'self', 'id': note_id})).json()
+        assert cp['id'] != str(note_id)
