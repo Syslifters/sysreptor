@@ -2842,6 +2842,13 @@ MIT
 This is the **x86_64-unknown-linux-gnu** binary for `@oxc-parser/binding`
 
 
+@oxc-parser/binding-linux-x64-musl 0.71.0
+MIT
+# `@oxc-parser/binding-linux-x64-musl`
+
+This is the **x86_64-unknown-linux-musl** binary for `@oxc-parser/binding`
+
+
 @oxc-project/types 0.71.0
 MIT
 MIT License
@@ -3790,6 +3797,13 @@ MIT
 # `@rollup/rollup-linux-x64-gnu`
 
 This is the **x86_64-unknown-linux-gnu** binary for `rollup`
+
+
+@rollup/rollup-linux-x64-musl 4.41.1
+MIT
+# `@rollup/rollup-linux-x64-musl`
+
+This is the **x86_64-unknown-linux-musl** binary for `rollup`
 
 
 @sindresorhus/is 7.0.1

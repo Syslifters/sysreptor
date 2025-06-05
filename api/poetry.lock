@@ -56,24 +56,18 @@ trio = ["trio (>=0.26.1)"]
 
 [[package]]
 name = "argon2-cffi"
-version = "23.1.0"
+version = "25.1.0"
 description = "Argon2 for Python"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "argon2_cffi-23.1.0-py3-none-any.whl", hash = "sha256:c670642b78ba29641818ab2e68bd4e6a78ba53b7eff7b4c3815ae16abf91c7ea"},
-    {file = "argon2_cffi-23.1.0.tar.gz", hash = "sha256:879c3e79a2729ce768ebb7d36d4609e3a78a4ca2ec3a9f12286ca057e3d0db08"},
+    {file = "argon2_cffi-25.1.0-py3-none-any.whl", hash = "sha256:fdc8b074db390fccb6eb4a3604ae7231f219aa669a2652e0f20e16ba513d5741"},
+    {file = "argon2_cffi-25.1.0.tar.gz", hash = "sha256:694ae5cc8a42f4c4e2bf2ca0e64e51e23a040c6a517a85074683d3959e1346c1"},
 ]
 
 [package.dependencies]
 argon2-cffi-bindings = "*"
-
-[package.extras]
-dev = ["argon2-cffi[tests,typing]", "tox (>4)"]
-docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton", "sphinx-notfound-page"]
-tests = ["hypothesis", "pytest"]
-typing = ["mypy"]
 
 [[package]]
 name = "argon2-cffi-bindings"
@@ -234,18 +228,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.38.27"
+version = "1.38.30"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "boto3-1.38.27-py3-none-any.whl", hash = "sha256:95f5fe688795303a8a15e8b7e7f255cadab35eae459d00cc281a4fd77252ea80"},
-    {file = "boto3-1.38.27.tar.gz", hash = "sha256:94bd7fdd92d5701b362d4df100d21e28f8307a67ff56b6a8b0398119cf22f859"},
+    {file = "boto3-1.38.30-py3-none-any.whl", hash = "sha256:949df0a0edd360f4ad60f1492622eecf98a359a2f72b1e236193d9b320c5dc8c"},
+    {file = "boto3-1.38.30.tar.gz", hash = "sha256:17af769544b5743843bcc732709b43226de19f1ebff2c324a3440bbecbddb893"},
 ]
 
 [package.dependencies]
-botocore = ">=1.38.27,<1.39.0"
+botocore = ">=1.38.30,<1.39.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.13.0,<0.14.0"
 
@@ -254,14 +248,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.38.27"
+version = "1.38.30"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "botocore-1.38.27-py3-none-any.whl", hash = "sha256:a785d5e9a5eda88ad6ab9ed8b87d1f2ac409d0226bba6ff801c55359e94d91a8"},
-    {file = "botocore-1.38.27.tar.gz", hash = "sha256:9788f7efe974328a38cbade64cc0b1e67d27944b899f88cb786ae362973133b6"},
+    {file = "botocore-1.38.30-py3-none-any.whl", hash = "sha256:530e40a6e91c8a096cab17fcc590d0c7227c8347f71a867576163a44d027a714"},
+    {file = "botocore-1.38.30.tar.gz", hash = "sha256:7836c5041c5f249431dbd5471c61db17d4053f72a1d6e3b2197c07ca0839588b"},
 ]
 
 [package.dependencies]
@@ -1070,14 +1064,14 @@ dev = ["PyTest", "PyTest-Cov", "bump2version (<1)", "setuptools ; python_version
 
 [[package]]
 name = "django"
-version = "5.2.1"
+version = "5.2.2"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django-5.2.1-py3-none-any.whl", hash = "sha256:a9b680e84f9a0e71da83e399f1e922e1ab37b2173ced046b541c72e1589a5961"},
-    {file = "django-5.2.1.tar.gz", hash = "sha256:57fe1f1b59462caed092c80b3dd324fd92161b620d59a9ba9181c34746c97284"},
+    {file = "django-5.2.2-py3-none-any.whl", hash = "sha256:997ef2162d04ead6869551b22cde4e06da1f94cf595f4af3f3d3afeae1f3f6fe"},
+    {file = "django-5.2.2.tar.gz", hash = "sha256:85852e517f84435e9b13421379cd6c43ef5b48a9c8b391d29a26f7900967e952"},
 ]
 
 [package.dependencies]
@@ -2217,14 +2211,14 @@ xmp = ["defusedxml"]
 
 [[package]]
 name = "pip-licenses-cli"
-version = "1.1.0"
+version = "1.2.0"
 description = "Dump the software license list of Python packages installed with pip."
 optional = false
 python-versions = "<4,>=3.9"
 groups = ["main"]
 files = [
-    {file = "pip_licenses_cli-1.1.0-py3-none-any.whl", hash = "sha256:20851628d38a76f509109b77ba737cec62eb2637f42175b315eac6a4c755bcd8"},
-    {file = "pip_licenses_cli-1.1.0.tar.gz", hash = "sha256:20422066730bd39f27caaa858bd190272b31fc1e06a4161f41a63f1ba04e9e66"},
+    {file = "pip_licenses_cli-1.2.0-py3-none-any.whl", hash = "sha256:3ee5a20fad8d980b37d623ea718d369decaa4f39021c4d2fdd221008116225b0"},
+    {file = "pip_licenses_cli-1.2.0.tar.gz", hash = "sha256:3eedef50a2de26c6db1d0f617e8714b63909d6f298c385d7efe2b072d619439d"},
 ]
 
 [package.dependencies]
@@ -2232,7 +2226,8 @@ pip-licenses-lib = ">=0.5.0"
 prettytable = ">=3.13.0"
 
 [package.extras]
-dev = ["autopep8", "black", "docutils", "isort", "mypy", "pip-tools", "pypandoc", "pytest-cov", "pytest-pycodestyle", "tomli-w", "twine", "wheel"]
+dev = ["autopep8", "black", "cryptography (>=45.0.3)", "docutils", "isort", "mypy", "pip-licenses-cli[spdx]", "pip-tools", "pypandoc", "pytest-cov", "pytest-pycodestyle", "tomli-w", "twine", "types-colorama", "types-docutils", "types-pexpect", "types-pygments", "wheel"]
+spdx = ["license-expression"]
 
 [[package]]
 name = "pip-licenses-lib"
@@ -2587,6 +2582,21 @@ typing-extensions = "*"
 dev = ["black", "build", "flake8", "flake8-black", "isort", "jupyter-console", "mkdocs", "mkdocs-include-markdown-plugin", "mkdocstrings[python]", "mypy", "pytest", "pytest-asyncio ; python_version >= \"3.4\"", "pytest-trio ; python_version >= \"3.7\"", "sphinx", "toml", "tox", "trio", "trio ; python_version > \"3.6\"", "trio-typing ; python_version > \"3.6\"", "twine", "twisted", "validate-pyproject[all]"]
 
 [[package]]
+name = "pygments"
+version = "2.19.1"
+description = "Pygments is a syntax highlighting package written in Python."
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "pygments-2.19.1-py3-none-any.whl", hash = "sha256:9ea1544ad55cecf4b8242fab6dd35a93bbce657034b0611ee383099054ab6d8c"},
+    {file = "pygments-2.19.1.tar.gz", hash = "sha256:61c16d2a8576dc0649d9f39e089b5f02bcd27fba10d8fb4dcc28173f7a45151f"},
+]
+
+[package.extras]
+windows-terminal = ["colorama (>=0.4.6)"]
+
+[[package]]
 name = "pyopenssl"
 version = "25.1.0"
 description = "Python wrapper module around the OpenSSL library"
@@ -2639,24 +2649,25 @@ test = ["pytest", "ruff"]
 
 [[package]]
 name = "pytest"
-version = "8.3.5"
+version = "8.4.0"
 description = "pytest: simple powerful testing with Python"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pytest-8.3.5-py3-none-any.whl", hash = "sha256:c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820"},
-    {file = "pytest-8.3.5.tar.gz", hash = "sha256:f4efe70cc14e511565ac476b57c279e12a855b11f48f212af1080ef2263d3845"},
+    {file = "pytest-8.4.0-py3-none-any.whl", hash = "sha256:f40f825768ad76c0977cbacdf1fd37c6f7a468e460ea6a0636078f8972d4517e"},
+    {file = "pytest-8.4.0.tar.gz", hash = "sha256:14d920b48472ea0dbf68e45b96cd1ffda4705f33307dcc86c676c1b5104838a6"},
 ]
 
 [package.dependencies]
-colorama = {version = "*", markers = "sys_platform == \"win32\""}
-iniconfig = "*"
-packaging = "*"
+colorama = {version = ">=0.4", markers = "sys_platform == \"win32\""}
+iniconfig = ">=1"
+packaging = ">=20"
 pluggy = ">=1.5,<2"
+pygments = ">=2.7.2"
 
 [package.extras]
-dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
+dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "requests", "setuptools", "xmlschema"]
 
 [[package]]
 name = "pytest-asyncio"
@@ -3417,14 +3428,14 @@ twisted = ["twisted (>=20.3.0)", "zope.interface (>=5.2.0)"]
 
 [[package]]
 name = "typing-extensions"
-version = "4.13.2"
-description = "Backported and Experimental Type Hints for Python 3.8+"
+version = "4.14.0"
+description = "Backported and Experimental Type Hints for Python 3.9+"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "typing_extensions-4.13.2-py3-none-any.whl", hash = "sha256:a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c"},
-    {file = "typing_extensions-4.13.2.tar.gz", hash = "sha256:e6c81219bd689f51865d9e372991c540bda33a0379d5573cddb9a3a23f7caaef"},
+    {file = "typing_extensions-4.14.0-py3-none-any.whl", hash = "sha256:a1514509136dd0b477638fc68d6a91497af5076466ad0fa6c338e44e359944af"},
+    {file = "typing_extensions-4.14.0.tar.gz", hash = "sha256:8676b788e32f02ab42d9e7c61324048ae4c6d844a399eebace3d4979d75ceef4"},
 ]
 
 [[package]]
@@ -3442,14 +3453,14 @@ files = [
 
 [[package]]
 name = "uritemplate"
-version = "4.1.1"
+version = "4.2.0"
 description = "Implementation of RFC 6570 URI Templates"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "uritemplate-4.1.1-py2.py3-none-any.whl", hash = "sha256:830c08b8d99bdd312ea4ead05994a38e8936266f84b9a7878232db50b044e02e"},
-    {file = "uritemplate-4.1.1.tar.gz", hash = "sha256:4346edfc5c3b79f694bccd6d6099a322bbeb628dbf2cd86eea55a456ce5124f0"},
+    {file = "uritemplate-4.2.0-py3-none-any.whl", hash = "sha256:962201ba1c4edcab02e60f9a0d3821e82dfc5d2d6662a21abd533879bdb8a686"},
+    {file = "uritemplate-4.2.0.tar.gz", hash = "sha256:480c2ed180878955863323eea31b0ede668795de182617fef9c6ca09e6ec9d0e"},
 ]
 
 [[package]]
