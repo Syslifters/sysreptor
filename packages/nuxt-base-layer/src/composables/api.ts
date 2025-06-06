@@ -2,10 +2,20 @@ import { debounce, isEqual } from "lodash-es";
 import type { PaginatedResponse } from "#imports";
 
 export async function useAsyncDataE<T>(handler: () => Promise<T>, options?: { deep?: boolean }): Promise<Ref<T>> {
+  const nuxtApp = useNuxtApp();
+
   try {
     const createRef: (d: T) => Ref<T> = options?.deep ? ref : shallowRef;
-    const data = await handler();
-    return createRef(data);
+    const dataRef = createRef(await handler());
+
+    const unsubscribeDataRefreshHook = nuxtApp.hook('app:data:refresh', async () => {
+      dataRef.value = await handler();
+    });
+    onScopeDispose(() => {
+      unsubscribeDataRefreshHook();
+    });
+
+    return dataRef;
   } catch (error: any) {
     error.fatal = true;
     throw createError(error);

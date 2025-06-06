@@ -7,6 +7,7 @@
 * Allow copying notes
 * Bulk delete and bulk export notes
 * UI: allow multi-select in notes tree
+* UI: fix UI not updated after finish and reactivate project
 
 
 ## v2025.50 - 2025-05-28
