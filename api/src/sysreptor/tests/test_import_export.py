@@ -655,6 +655,33 @@ class TestCopyModel:
             assert t_tr != cp_tr
             assertKeysEqual(t_tr, cp_tr, ['language', 'status', 'is_main', 'risk_score', 'risk_level', 'title', 'data_all'])
 
+    def test_copy_notes(self):
+        p = create_project(notes_kwargs=[])
+        n1 = create_projectnotebookpage(project=p, parent=None, order=1)
+        n1_1 = create_projectnotebookpage(project=p, parent=n1, order=1)
+        n2 = create_projectnotebookpage(project=p, parent=None, order=2)
+        n2_1 = create_projectnotebookpage(project=p, parent=n2, order=1)
+
+        # Note copied
+        cp_n1 = n1.copy()
+        assertKeysEqual(cp_n1, n1, ['title', 'text', 'checked', 'icon_emoji'])
+        assert cp_n1.id != n1.id
+        assert cp_n1.note_id != n1.note_id
+        assert cp_n1.order == n1.order + 1
+
+        # Child-notes copied
+        cp_n1_1 = p.notes.get(parent=cp_n1)
+        assertKeysEqual(cp_n1, n1, ['title', 'text', 'checked', 'icon_emoji'])
+        assert cp_n1_1.id != n1_1.id
+        assert cp_n1_1.note_id != n1_1.note_id
+        assert cp_n1_1.order == n1_1.order
+
+        # Order updated
+        n2.refresh_from_db()
+        assert n2.order == cp_n1.order + 1
+        n2_1.refresh_from_db()
+        assert n2_1.order == 1
+
 
 @pytest.mark.parametrize(('original', 'cleaned'), [
     ('test.txt', 'test.txt'),

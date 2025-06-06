@@ -221,8 +221,6 @@ class TestTextTransformations:
         c2.to_dict()
 
 
-
-
 @contextlib.asynccontextmanager
 async def ws_connect(path, user, consume_init=True, other_clients=None):
     async with websocket_client(path=path, user=user) as consumer:
@@ -552,6 +550,7 @@ class TestProjectNotesDbSync:
         assert sort_event['version'] > self.client1.init['version']
 
     async def test_import_sync(self):
+        @sync_to_async
         def import_notes():
             res = self.api_client1.post(
                 path=reverse('projectnotebookpage-import', kwargs={'project_pk': self.project.id}),
@@ -559,11 +558,20 @@ class TestProjectNotesDbSync:
                 format='multipart',
             )
             return res.data
-        notes_imported = await sync_to_async(import_notes)()
+        notes_imported = await import_notes()
 
         for n in notes_imported:
             await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{n["id"]}', 'value': n, 'client_id': None})
         await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
+
+    async def test_copy_sync(self):
+        @sync_to_async
+        def copy_note():
+            return self.api_client1.post(reverse('projectnotebookpage-copy', kwargs={'project_pk': self.project.id, 'id': self.note.note_id})).data
+        cp = await copy_note()
+        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{cp["id"]}', 'value': cp, 'client_id': None})
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
+
 
     async def test_shareinfo_sync(self):
         res = await sync_to_async(self.api_client1.post)(

@@ -53,6 +53,10 @@
         </template>
 
         <template #context-menu>
+          <btn-copy 
+            :copy="performCopy"
+            :readonly="notesCollab.readonly.value"
+          />
           <btn-export
             :export-url="exportUrl"
             :name="'notes-' + note.title"
@@ -146,6 +150,14 @@ const hasChildNotes = computed(() => {
   return projectStore.notes(project.value.id)
     .some(n => n.parent === note.value!.id && n.id !== note.value!.id);
 });
+
+async function performCopy() {
+  if (!project.value || !note.value) {
+    return;
+  }
+  const newNote = await projectStore.copyNote(project.value, note.value);
+  await navigateTo(`/projects/${project.value.id}/notes/${newNote.id}`);
+}
 
 const shareDialogVisible = ref(false);
 useAutofocus(note, 'text', (id?: string) => {

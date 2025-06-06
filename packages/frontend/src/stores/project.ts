@@ -386,6 +386,15 @@ export const useProjectStore = defineStore('project', {
         body: notes.map(n => pick(n, ['id', 'parent', 'order']))
       });
     },
+    async copyNote(project: PentestProject, note: ProjectNote) {
+      const newNote = await $fetch<ProjectNote>(`/api/v1/pentestprojects/${project.id}/notes/${note.id}/copy/`, {
+        method: 'POST',
+        body: {},
+      });
+      this.ensureExists(project.id);
+      this.data[project.id]!.notesCollabState.data.notes[newNote.id] = newNote;
+      return newNote;
+    },
     useNotesCollab(options: { project: PentestProject, noteId?: string }) {
       this.ensureExists(options.project.id);
 

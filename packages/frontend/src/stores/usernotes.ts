@@ -94,6 +94,14 @@ export const useUserNotesStore = defineStore('usernotes', {
         body: notes.map(n => pick(n, ['id', 'parent', 'order']))
       });
     },
+    async copyNote(note: UserNote) {
+      const newNote = await $fetch<UserNote>(`/api/v1/pentestusers/self/notes/${note.id}/copy/`, {
+        method: 'POST',
+        body: {},
+      });
+      this.notesCollabState.data.notes[newNote.id] = newNote;
+      return newNote;
+    },
     useNotesCollab(options?: { noteId?: string }) {
       const collabState = this.notesCollabState;
       const collab = useCollab(collabState as CollabStoreState<{ notes: Record<string, UserNote> }>);

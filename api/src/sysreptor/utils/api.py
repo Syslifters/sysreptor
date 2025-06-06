@@ -20,9 +20,10 @@ from sysreptor.utils.crypto import CryptoError
 class GenericAPIViewAsyncMixin:
     throttle_scope = None
 
-    async def aget_valid_serializer(self, *args, **kwargs):
+    @sync_to_async
+    def aget_valid_serializer(self, *args, **kwargs):
         serializer = self.get_serializer(*args, **kwargs)
-        await sync_to_async(serializer.is_valid)(raise_exception=True)
+        serializer.is_valid(raise_exception=True)
         return serializer
 
     async def aget_object(self):
