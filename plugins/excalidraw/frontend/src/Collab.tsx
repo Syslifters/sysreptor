@@ -1,4 +1,4 @@
-import { PureComponent } from "react";
+import { PureComponent, useState } from "react";
 import { throttle } from "lodash-es";
 import urlJoin from "url-join";
 
@@ -7,7 +7,7 @@ import {
   isInvisiblySmallElement, 
   reconcileElements, 
   restoreElements, 
-  CaptureUpdateAction 
+  CaptureUpdateAction,
 } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElement, OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
@@ -40,7 +40,7 @@ type ExcalidrawCollabEvent = {
 type WebsocketConnectionOptions = {
   path: string;
   onReceiveMessage: (message: ExcalidrawCollabEvent) => void;
-  onDisconnect?: () => void;
+  onDisconnect?: (event?: CloseEvent) => void;
 };
 
 class WebsocketConnection {
@@ -76,7 +76,8 @@ class WebsocketConnection {
         // eslint-disable-next-line no-console
         console.log('Websocket closed', event);
 
-        reject(event);
+        this.options.onDisconnect?.(event);
+        reject(new Error(`Websocket connection failed ${event.reason}`));
       });
       this.websocket.addEventListener('message', (event) => {
         // Reset connection loss detection
@@ -118,7 +119,6 @@ class WebsocketConnection {
     if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
       return;
     }
-    console.log('websocket.send', msg);
     this.websocket?.send(JSON.stringify(msg));
     this.websocketResponseTimeout();
   }
@@ -229,7 +229,6 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
     const connection = this.connection = new WebsocketConnection({
       path: this.path,
       onReceiveMessage: (msg) => {
-        console.log('onReceiveMessage', msg);
         try {
           if (msg.type === ExcalidrawCollabEventType.INIT) {
             this.clientId = msg.client_id!;
@@ -258,7 +257,7 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
           this.handleCollabError(msg, error);
         }
       },
-      onDisconnect: () => {
+      onDisconnect: (event) => {
         if (this.connection === connection) {
           this.connection = null;
           this.clientId = null;
@@ -266,7 +265,7 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
           this.lastSyncAllVersion = 0;
           this.broadcastedElementVersions.clear();
           this.syncAllElementsThrottled.cancel();
-          // Notify connection is lost
+          // Notify connection loss
           this.props.onConnectionChange?.(false);
         }
       },
@@ -299,7 +298,7 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
   }
 
   render() {
-    return (<div></div>);
+    return (<></>);
   }
 }
 

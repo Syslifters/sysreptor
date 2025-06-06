@@ -26,7 +26,7 @@ class ExcalidrawPluginConfig(PluginConfig):
 #   * [x] no assets/files
 #   * [x] no awareness/presence/cursor
 #   * [x] no user follow
-# * [ ] frontend UI
+# * [x] frontend UI
 #   * [x] plugin.js
 #   * [x] per-project iframe
 #   * [x] light-dark mode
@@ -35,13 +35,12 @@ class ExcalidrawPluginConfig(PluginConfig):
 #   * [x] on disconnect: set readonly
 #   * [x] disable external libraries
 #   * [x] failed to load font
-#   * [ ] error handling: show error message on initial load
+#   * [x] error handling: show error message on initial load
 #     * [x] log exceptions
 #     * [x] connection error: show error message on initial load
 #     * [x] connection loss: readonly
-#     * [ ] connection loss: show error message: ErrorDialog + retry button
-#   * [ ] reconnect on disconnect, max 3 times?
-#       * [ ] show error message on reconnect failure
+#     * [x] connection loss: show error message: ErrorDialog
+#     * [x] reconnect on disconnect
 # * [x] libraries
 #   * [x] save libraries in indexdb
 #   * [x] support "Add to Excalidraw" button => link with hash

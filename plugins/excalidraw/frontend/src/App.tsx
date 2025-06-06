@@ -32,9 +32,14 @@ export default function App() {
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI|null>(null);
   const excalidrawCollabRef = useRef<SysreptorCollab | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [wasConnected, setWasConnected] = useState<boolean>(false);
   
   const loadInitialDataPromise = useResolvablePromise<ExcalidrawInitialDataState>();
   async function initializeScene(options: { excalidrawAPI: ExcalidrawImperativeAPI, excalidrawCollab: SysreptorCollab }): Promise<ExcalidrawInitialDataState> {
+    if (!projectId) {
+      throw new Error('No Project ID provided');
+    }
+    
     await options.excalidrawCollab.connect();
     const res = {
       elements: reconcileElements(
@@ -44,7 +49,6 @@ export default function App() {
       ),
       scrollToContent: true,
     };
-    console.log('initializeScene', res, options);
     return res;
   }
   useEffect(() => {
@@ -55,7 +59,16 @@ export default function App() {
       excalidrawAPI,
       excalidrawCollab: excalidrawCollabRef.current,
     }));
-  }, [excalidrawAPI, excalidrawCollabRef])
+  }, [excalidrawAPI, excalidrawCollabRef]);
+  useEffect(() => {
+    if (isConnected) {
+      setWasConnected(true);
+    } else if (!isConnected && wasConnected) {
+      // Reload on connection loss.
+      // An error message is shown when there is still a connection error after reload.
+      window.location.reload();
+    }
+  }, [isConnected]);
 
   function onChange(elements: readonly OrderedExcalidrawElement[], appState: AppState, files: BinaryFiles) {
     excalidrawCollabRef.current?.syncElementsThrottled({ elements });
