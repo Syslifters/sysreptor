@@ -3,23 +3,25 @@ import type { PaginatedResponse } from "#imports";
 
 export async function useAsyncDataE<T>(handler: () => Promise<T>, options?: { deep?: boolean }): Promise<Ref<T>> {
   const nuxtApp = useNuxtApp();
+  const createRef: (d: T) => Ref<T> = options?.deep ? ref : shallowRef;
+  const dataRef = createRef(null as any);
 
-  try {
-    const createRef: (d: T) => Ref<T> = options?.deep ? ref : shallowRef;
-    const dataRef = createRef(await handler());
-
-    const unsubscribeDataRefreshHook = nuxtApp.hook('app:data:refresh', async () => {
+  async function runHandler() {
+    try {
       dataRef.value = await handler();
-    });
-    onScopeDispose(() => {
-      unsubscribeDataRefreshHook();
-    });
-
-    return dataRef;
-  } catch (error: any) {
-    error.fatal = true;
-    throw createError(error);
+    } catch (error: any) {
+      error.fatal = true;
+      throw createError(error);
+    }
   }
+
+  const unsubscribeDataRefreshHook = nuxtApp.hook('app:data:refresh', runHandler);
+  onScopeDispose(() => {
+    unsubscribeDataRefreshHook();
+  });
+
+  await runHandler();
+  return dataRef;
 }
 
 export async function useFetchE<T>(url: string, options: Parameters<typeof $fetch<T>>[1] & { deep?: boolean }): Promise<Ref<T>> {
