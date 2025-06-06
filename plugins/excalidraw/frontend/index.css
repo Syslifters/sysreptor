@@ -2,8 +2,3 @@ body {
   margin: 0;
 }
 
-/* Disable libraries button */
-.excalidraw .sidebar-trigger {
-	display: none !important;
-}
-

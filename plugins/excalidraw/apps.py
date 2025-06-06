@@ -35,13 +35,25 @@ class ExcalidrawPluginConfig(PluginConfig):
 #   * [x] on disconnect: set readonly
 #   * [x] disable external libraries
 #   * [x] failed to load font
-#   * [ ] error handling: 
-#     * [ ] connection loss: readonly
-#     * [ ] connection error: show error message
-#   * [ ] reconnect on disconnect
+#   * [ ] error handling: show error message on initial load
+#     * [x] log exceptions
+#     * [x] connection error: show error message on initial load
+#     * [x] connection loss: readonly
+#     * [ ] connection loss: show error message: ErrorDialog + retry button
+#   * [ ] reconnect on disconnect, max 3 times?
+#       * [ ] show error message on reconnect failure
+# * [x] libraries
+#   * [x] save libraries in indexdb
+#   * [x] support "Add to Excalidraw" button => link with hash
 # * [ ] export/import
 #   * [ ] export plugin data with project
 # * [ ] tests
+#   * [x] collab event broadcasting
+#   * [x] collab init: load from DB
+#   * [x] save to db
+#   * [ ] import/export
+# * [x] build
+#   * [x] test frontend built in dockerfile
 # * [ ] docs
 #   * [ ] README
 #   * [ ] plugin table

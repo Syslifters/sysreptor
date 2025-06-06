@@ -265,7 +265,7 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
           this.lastUpdateVersion = 0;
           this.lastSyncAllVersion = 0;
           this.broadcastedElementVersions.clear();
-          this.syncAllElementsThrottled.clear();
+          this.syncAllElementsThrottled.cancel();
           // Notify connection is lost
           this.props.onConnectionChange?.(false);
         }

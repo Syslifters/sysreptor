@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Excalidraw,
   reconcileElements,
+  useHandleLibrary,
 } from "@excalidraw/excalidraw";
 import { AppState, BinaryFiles, ExcalidrawInitialDataState } from "@excalidraw/excalidraw/types";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
@@ -11,6 +12,7 @@ import { SysreptorCollab } from "./Collab";
 import { useTheme } from "./utils";
 
 import "@excalidraw/excalidraw/index.css";
+import { LibraryIndexedDBAdapter } from "./store";
 
 const PLUGIN_ID = 'c50b19ff-db68-4a83-9508-80ff6b6d2498';
 
@@ -27,7 +29,7 @@ function useResolvablePromise<T>() {
 export default function App() {
   const projectId = new URLSearchParams(window.location.hash.slice(1)).get('projectId');
   const collabPath = `/api/plugins/${PLUGIN_ID}/ws/projects/${projectId}/excalidraw/`;
-  const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI>();
+  const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI|null>(null);
   const excalidrawCollabRef = useRef<SysreptorCollab | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   
@@ -58,6 +60,11 @@ export default function App() {
   function onChange(elements: readonly OrderedExcalidrawElement[], appState: AppState, files: BinaryFiles) {
     excalidrawCollabRef.current?.syncElementsThrottled({ elements });
   }
+
+  useHandleLibrary({
+    excalidrawAPI,
+    adapter: LibraryIndexedDBAdapter,
+  });
   
   const { isDarkTheme } = useTheme();
   return (
@@ -67,6 +74,7 @@ export default function App() {
         initialData={loadInitialDataPromise.current.promise}
         onChange={onChange}
         isCollaborating={true}
+        libraryReturnUrl={window.top!.location.origin + window.top!.location.pathname}
         detectScroll={false}
         langCode="en"
         autoFocus={true}

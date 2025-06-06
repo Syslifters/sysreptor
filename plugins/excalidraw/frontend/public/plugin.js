@@ -3,9 +3,13 @@ export default function (options) {
     scope: 'project',
     route: {
       path: '',
-      component: () => options.pluginHelpers.iframeComponent(({ route }) => ({
-        src: `index.html#projectId=${route.params.projectId}`,
-      }))
+      component: () => options.pluginHelpers.iframeComponent(({ route }) => {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        params.set('projectId', route.params.projectId);
+        return {
+          src: `index.html#${params.toString()}`,
+        }
+      }),
     },
     menu: {
       title: 'Excalidraw',
