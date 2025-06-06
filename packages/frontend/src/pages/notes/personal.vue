@@ -10,6 +10,7 @@
         :perform-copy="performCopy"
         :export-url="`/api/v1/pentestusers/self/notes/export/`"
         :export-name="'notes-' + auth.user.value!.username"
+        :export-pdf-url="`/api/v1/pentestusers/self/notes/export-pdf/`"
         :selected-notes="noteTreeRef?.selectedNotes"
         :readonly="notesCollab.readonly.value"
       >

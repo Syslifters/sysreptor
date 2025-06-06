@@ -558,7 +558,7 @@ class TestProjectNotesDbSync:
                 format='multipart',
             )
             return res.data
-        notes_imported = await sync_to_async(import_notes)()
+        notes_imported = await import_notes()
 
         for n in notes_imported:
             await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{n["id"]}', 'value': n, 'client_id': None})

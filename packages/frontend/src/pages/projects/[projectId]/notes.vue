@@ -10,6 +10,7 @@
         :perform-copy="performCopy"
         :export-url="`/api/v1/pentestprojects/${project.id}/notes/export/`"
         :export-name="'notes-' + project.name"
+        :export-pdf-url="`/api/v1/pentestprojects/${project.id}/notes/export-pdf/`"
         :selected-notes="noteTreeRef?.selectedNotes"
         :readonly="notesCollab.readonly.value"
       >

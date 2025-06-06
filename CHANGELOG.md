@@ -4,6 +4,7 @@
 * Incremental parsing in markdown editor
 * Add user setting to disable local login
 * Provide parent CWEs in PDF rendering
+* Allow copying notes
 * Bulk delete and bulk export notes
 * UI: allow multi-select in notes tree
 

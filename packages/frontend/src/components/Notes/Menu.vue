@@ -29,7 +29,7 @@
           class="ml-2"
         />
         <s-btn-icon 
-          v-if="props.exportUrl || props.performImport || (props.performDelete && props.selectedNotes) || (props.performCopy && props.selectedNotes)" 
+          v-if="props.exportUrl || props.performImport || (props.exportPdfUrl && props.selectedNotes) || (props.performDelete && props.selectedNotes) || (props.performCopy && props.selectedNotes)" 
           size="small" 
           density="compact"
         >
@@ -49,18 +49,20 @@
                 button-variant="list-item"
               />
               <btn-export
-                v-if="props.exportUrl"
-                button-text="Export All"
-                :export-url="props.exportUrl"
-                :name="props.exportName"
-                :disabled="props.readonly"
-              />
-              <btn-export
                 v-if="props.exportUrl && props.selectedNotes"
                 button-text="Export Selected"
                 :export-url="props.exportUrl"
                 :options="{notes: props.selectedNotes.map(n => n.id)}"
                 :name="props.exportName"
+                :disabled="props.readonly || props.selectedNotes.length === 0"
+              />
+              <btn-export
+                v-if="props.exportPdfUrl && props.selectedNotes"
+                button-text="Export as PDF"
+                name="notes"
+                extension=".pdf"
+                :export-url="props.exportPdfUrl"
+                :options="{notes: props.selectedNotes.map(n => n.id)}"
                 :disabled="props.readonly || props.selectedNotes.length === 0"
               />
               <btn-delete
@@ -138,6 +140,7 @@ const props = defineProps<{
   createNote?: () => Promise<void>;
   exportUrl?: string;
   exportName?: string;
+  exportPdfUrl?: string;
   selectedNotes?: NoteBase[];
   performImport?: (file: File) => Promise<void>;
   performDelete?: (note: NoteBase) => (Promise<void>|void);
