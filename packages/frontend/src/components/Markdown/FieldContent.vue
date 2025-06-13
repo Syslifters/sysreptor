@@ -191,7 +191,9 @@ async function updateSpacers() {
   // correct scrollTop by the same amount as spacerHeight to prevent jumping
   // 1px offset to prevent scrolling when preview content is initially rendered
   await nextTick();
-  previewContainerRef.value.scrollTop = Math.max(0, oldScrollTop - oldSpacerHeight + spacerHeight.value - 1);
+  if (previewContainerRef.value) {
+    previewContainerRef.value.scrollTop = Math.max(0, oldScrollTop - oldSpacerHeight + spacerHeight.value - 1);
+  }
 }
 
 async function onEditorUpdate(update: ViewUpdate) {
