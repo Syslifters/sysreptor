@@ -54,6 +54,7 @@ nav:
       - Tools:
           - Burp: cli/tools/burp.md
           - Nessus: cli/tools/nessus.md
+          - Qualys: cli/tools/qualys.md
           - OpenVAS: cli/tools/openvas.md
           - Nmap: cli/tools/nmap.md
           - SSLyze: cli/tools/sslyze.md
