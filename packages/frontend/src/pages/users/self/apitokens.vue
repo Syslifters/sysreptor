@@ -100,7 +100,17 @@
                       Please copy the token and store it in a safe place.
                       You will not be able to see it again.
                     </p>
-                    <pre class="token-preview"><s-code>Authorization: Bearer {{ setupWizard.newApiToken?.token }}</s-code></pre>
+                    <s-code class="token-preview">
+                      Authorization: Bearer {{ setupWizard.newApiToken?.token }}
+                      <s-btn-icon 
+                        @click="copyToClipboard(setupWizard.newApiToken?.token || '')" 
+                        icon="mdi-content-copy" 
+                        size="small"
+                        density="compact"
+                        class="ml-2"
+                      />
+                    </s-code>
+                    
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer />
@@ -204,9 +214,6 @@ async function deleteApiToken(apiToken: ApiToken) {
 .token-preview {
   white-space: pre-wrap;
   word-break: break-all;
-
-  code {
-    display: block;
-  }
+  display: block;
 }
 </style>
