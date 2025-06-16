@@ -87,10 +87,10 @@ watch(() => props.url, () => {
 @use "@base/assets/vuetify.scss" as vuetify;
 
 .history-sidebar {
-  z-index: 1001 !important;
+  z-index: 2001 !important;
 }
 .history-sidebar + .v-navigation-drawer__scrim {
-  z-index: 1000 !important;
+  z-index: 2000 !important;
 }
 .history-sidebar.v-navigation-drawer--active {
   width: 25em !important;

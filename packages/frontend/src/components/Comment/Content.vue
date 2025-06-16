@@ -106,6 +106,10 @@ whenever(editEnabled, () => {
 
 const updateInProgress = ref(false);
 async function performUpdate() {
+  if (!editText.value.trim()) {
+    return;
+  }
+
   try {
     updateInProgress.value = true;
     const value = { id: modelValue.value.id, text: editText.value, editEnabled: false };

@@ -89,6 +89,9 @@
               <v-alert v-if="!apiSettings.settings!.features.sharing" color="warning">
                 Note sharing is disabled in instance settings.
               </v-alert>
+              <v-alert v-else color="warning">
+                You do not have permission to share notes.
+              </v-alert>
             </div>
           </v-container>
         </template>
