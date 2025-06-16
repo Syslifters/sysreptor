@@ -6,7 +6,8 @@
         <v-row dense>
           <v-col cols="12" md="9">
             <s-combobox
-              v-model="searchInput"
+              :model-value="searchInput"
+              @update:model-value="updateSearchInput"
               @update:search="(v: string|null) => templates.search.value = v || ''"
               label="Template (optional)"
               :items="templates.data.value"
@@ -23,11 +24,11 @@
               :class="{'hide-input': !!currentTemplate}"
               @keydown="onKeydown"
             >
-              <template #selection="{ item: { raw: template }}">
+              <template v-if="currentTemplate" #selection="{ item: { raw: template } }">
                 <template-select-item v-if="template?.id" :template="template" :language="displayLanguage" />
                 <template v-else>{{ searchInput }}</template>
               </template>
-              <template #item="{item: { raw: template}, props: itemProps}">
+              <template #item="{item: { raw: template }, props: itemProps}">
                 <v-list-item v-bind="itemProps" title="">
                   <template-select-item :template="template" :language="displayLanguage" />
                 </v-list-item>
@@ -149,6 +150,14 @@ async function createFindingFromTemplate() {
     requestErrorToast({ error });
   } finally {
     actionInProgress.value = false;
+  }
+}
+
+function updateSearchInput(value: string|FindingTemplate|null) {
+  if (typeof value === 'string' && currentTemplate.value) {
+    searchInput.value = value.replaceAll('[object Object]', '').trim();
+  } else {
+    searchInput.value = value;
   }
 }
 

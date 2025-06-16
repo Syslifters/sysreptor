@@ -8,6 +8,8 @@
 * Bulk delete and bulk export notes
 * UI: allow multi-select in notes tree
 * UI: fix UI not updated after finish and reactivate project
+* UI: fix version history sidebar behind comment sidebar
+* UI: fix search text reset on click outside of CreateFindingDialog
 
 
 ## v2025.50 - 2025-05-28
