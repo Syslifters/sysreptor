@@ -330,7 +330,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/compat-data 7.27.3
+@babel/compat-data 7.27.5
 MIT
 MIT License
 
@@ -382,7 +382,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/generator 7.27.3
+@babel/generator 7.27.5
 MIT
 MIT License
 
@@ -746,7 +746,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/helpers 7.27.4
+@babel/helpers 7.27.6
 MIT
 MIT License
 
@@ -773,7 +773,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/parser 7.27.4
+@babel/parser 7.27.5
 MIT
 Copyright (C) 2012-2014 by various contributors (see AUTHORS)
 
@@ -874,7 +874,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/runtime 7.27.4
+@babel/runtime 7.27.6
 MIT
 MIT License
 
@@ -952,7 +952,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babel/types 7.27.3
+@babel/types 7.27.6
 MIT
 MIT License
 
@@ -1003,7 +1003,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@bufbuild/protobuf 2.5.1
+@bufbuild/protobuf 2.5.2
 (Apache-2.0 AND BSD-3-Clause)
 # @bufbuild/protobuf
 
@@ -2582,7 +2582,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/lang-markdown 6.3.2
+@codemirror/lang-markdown 6.3.3
 MIT
 MIT License
 
@@ -2632,7 +2632,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/language 6.11.0
+@codemirror/language 6.11.1
 MIT
 MIT License
 
@@ -2682,7 +2682,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/merge 6.10.1
+@codemirror/merge 6.10.2
 MIT
 MIT License
 
@@ -2757,7 +2757,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@codemirror/view 6.37.1
+@codemirror/view 6.37.2
 MIT
 MIT License
 
@@ -3042,13 +3042,6 @@ MIT
 This is the Linux 64-bit binary for esbuild, a JavaScript bundler and minifier. See https://github.com/evanw/esbuild for details.
 
 
-@esbuild/linux-x64 0.25.4
-MIT
-# esbuild
-
-This is the Linux 64-bit binary for esbuild, a JavaScript bundler and minifier. See https://github.com/evanw/esbuild for details.
-
-
 @esbuild/linux-x64 0.25.5
 MIT
 # esbuild
@@ -3106,7 +3099,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@eslint/compat 1.2.9
+@eslint/compat 1.3.0
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004
@@ -3311,7 +3304,7 @@ Apache-2.0
    limitations under the License.
 
 
-@eslint/config-array 0.20.0
+@eslint/config-array 0.20.1
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004
@@ -3516,7 +3509,7 @@ Apache-2.0
    limitations under the License.
 
 
-@eslint/config-helpers 0.2.2
+@eslint/config-helpers 0.2.3
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004
@@ -3721,7 +3714,7 @@ Apache-2.0
    limitations under the License.
 
 
-@eslint/config-inspector 1.0.2
+@eslint/config-inspector 1.1.0
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004
@@ -4336,6 +4329,211 @@ Apache-2.0
    limitations under the License.
 
 
+@eslint/core 0.15.0
+Apache-2.0
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+
 @eslint/eslintrc 3.3.1
 MIT
 Copyright OpenJS Foundation and other contributors, <www.openjsf.org>
@@ -4359,7 +4557,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@eslint/js 9.28.0
+@eslint/js 9.29.0
 MIT
 Copyright OpenJS Foundation and other contributors, <www.openjsf.org>
 
@@ -4792,7 +4990,7 @@ Apache-2.0
    limitations under the License.
 
 
-@eslint/plugin-kit 0.3.1
+@eslint/plugin-kit 0.3.2
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004
@@ -6812,21 +7010,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@napi-rs/canvas-linux-x64-gnu 0.1.70
+@napi-rs/canvas-linux-x64-gnu 0.1.71
 MIT
 # `@napi-rs/canvas-linux-x64-gnu`
 
 This is the **x86_64-unknown-linux-gnu** binary for `@napi-rs/canvas`
 
 
-@napi-rs/canvas-linux-x64-musl 0.1.70
+@napi-rs/canvas-linux-x64-musl 0.1.71
 MIT
 # `@napi-rs/canvas-linux-x64-musl`
 
 This is the **x86_64-unknown-linux-musl** binary for `@napi-rs/canvas`
 
 
-@napi-rs/canvas 0.1.70
+@napi-rs/canvas 0.1.71
 MIT
 MIT License
 
@@ -6851,7 +7049,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@napi-rs/wasm-runtime 0.2.10
+@napi-rs/wasm-runtime 0.2.11
 MIT
 MIT License
 
@@ -7072,7 +7270,33 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@netlify/zip-it-and-ship-it 12.1.1
+@netlify/serverless-functions-api 2.1.2
+MIT
+Copyright (c) 2023 Netlify <team@netlify.com>
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@netlify/zip-it-and-ship-it 12.1.4
 MIT
 Copyright (c) 2020 Netlify <team@netlify.com>
 
@@ -7287,7 +7511,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@nuxt/devtools-kit 2.4.1
+@nuxt/devtools-kit 2.5.0
 MIT
 MIT License
 
@@ -7312,7 +7536,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@nuxt/devtools-wizard 2.4.1
+@nuxt/devtools-wizard 2.5.0
 MIT
 MIT License
 
@@ -7337,7 +7561,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@nuxt/devtools 2.4.1
+@nuxt/devtools 2.5.0
 MIT
 MIT License
 
@@ -7437,7 +7661,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@nuxt/kit 3.17.4
+@nuxt/kit 3.17.5
 MIT
 The MIT License (MIT)
 
@@ -7462,7 +7686,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@nuxt/schema 3.17.4
+@nuxt/schema 3.17.5
 MIT
 The MIT License (MIT)
 
@@ -7537,7 +7761,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@nuxt/vite-builder 3.17.4
+@nuxt/vite-builder 3.17.5
 MIT
 The MIT License (MIT)
 
@@ -7562,21 +7786,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@oxc-parser/binding-linux-x64-gnu 0.71.0
+@oxc-parser/binding-linux-x64-gnu 0.72.3
 MIT
 # `@oxc-parser/binding-linux-x64-gnu`
 
 This is the **x86_64-unknown-linux-gnu** binary for `@oxc-parser/binding`
 
 
-@oxc-parser/binding-linux-x64-musl 0.71.0
+@oxc-parser/binding-linux-x64-musl 0.72.3
 MIT
 # `@oxc-parser/binding-linux-x64-musl`
 
 This is the **x86_64-unknown-linux-musl** binary for `@oxc-parser/binding`
 
 
-@oxc-project/types 0.71.0
+@oxc-project/types 0.72.3
 MIT
 MIT License
 
@@ -7816,7 +8040,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@pinia/nuxt 0.11.0
+@pinia/nuxt 0.11.1
 MIT
 The MIT License (MIT)
 
@@ -8363,7 +8587,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@rolldown/pluginutils 1.0.0-beta.10
+@rolldown/pluginutils 1.0.0-beta.16
 MIT
 MIT License
 
@@ -8417,7 +8641,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@rollup/plugin-commonjs 28.0.3
+@rollup/plugin-commonjs 28.0.5
 MIT
 The MIT License (MIT)
 
@@ -8726,21 +8950,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@rollup/rollup-linux-x64-gnu 4.41.1
+@rollup/rollup-linux-x64-gnu 4.43.0
 MIT
 # `@rollup/rollup-linux-x64-gnu`
 
 This is the **x86_64-unknown-linux-gnu** binary for `rollup`
 
 
-@rollup/rollup-linux-x64-musl 4.41.1
+@rollup/rollup-linux-x64-musl 4.43.0
 MIT
 # `@rollup/rollup-linux-x64-musl`
 
 This is the **x86_64-unknown-linux-musl** binary for `rollup`
 
 
-@sindresorhus/is 7.0.1
+@sindresorhus/is 7.0.2
 MIT
 MIT License
 
@@ -8891,7 +9115,7 @@ express Statement of Purpose.
     this CC0 or use of the Work.
 
 
-@stylistic/eslint-plugin 4.4.0
+@stylistic/eslint-plugin 4.4.1
 MIT
 MIT License
 
@@ -9131,6 +9355,31 @@ console.log(Date.now() - now >= 200)
 - [ ] ~~sock_recv~~
 - [ ] ~~sock_send~~
 - [ ] ~~sock_shutdown~~
+
+
+@types/chai 5.2.2
+MIT
+    MIT License
+
+    Copyright (c) Microsoft Corporation.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE
 
 
 @types/d3-array 3.2.1
@@ -9933,6 +10182,31 @@ MIT
     SOFTWARE
 
 
+@types/deep-eql 4.0.2
+MIT
+    MIT License
+
+    Copyright (c) Microsoft Corporation.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE
+
+
 @types/dompurify 3.0.5
 MIT
     MIT License
@@ -9959,6 +10233,31 @@ MIT
 
 
 @types/estree 1.0.7
+MIT
+    MIT License
+
+    Copyright (c) Microsoft Corporation.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE
+
+
+@types/estree 1.0.8
 MIT
     MIT License
 
@@ -10158,7 +10457,7 @@ MIT
     SOFTWARE
 
 
-@types/node 22.15.29
+@types/node 22.15.32
 MIT
     MIT License
 
@@ -10483,7 +10782,7 @@ MIT
     SOFTWARE
 
 
-@typescript-eslint/eslint-plugin 8.33.0
+@typescript-eslint/eslint-plugin 8.34.0
 MIT
 MIT License
 
@@ -10508,7 +10807,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/parser 8.33.0
+@typescript-eslint/parser 8.34.0
 MIT
 MIT License
 
@@ -10533,7 +10832,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/project-service 8.33.0
+@typescript-eslint/project-service 8.34.0
 MIT
 MIT License
 
@@ -10558,7 +10857,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/scope-manager 8.33.0
+@typescript-eslint/scope-manager 8.34.0
 MIT
 MIT License
 
@@ -10583,7 +10882,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/tsconfig-utils 8.33.0
+@typescript-eslint/tsconfig-utils 8.34.0
 MIT
 MIT License
 
@@ -10608,7 +10907,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/type-utils 8.33.0
+@typescript-eslint/type-utils 8.34.0
 MIT
 MIT License
 
@@ -10633,7 +10932,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/types 8.33.0
+@typescript-eslint/types 8.34.0
 MIT
 MIT License
 
@@ -10658,7 +10957,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/typescript-estree 8.33.0
+@typescript-eslint/typescript-estree 8.34.0
 MIT
 MIT License
 
@@ -10683,7 +10982,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/utils 8.33.0
+@typescript-eslint/utils 8.34.0
 MIT
 MIT License
 
@@ -10708,7 +11007,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@typescript-eslint/visitor-keys 8.33.0
+@typescript-eslint/visitor-keys 8.34.0
 MIT
 MIT License
 
@@ -10777,29 +11076,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@unrs/resolver-binding-linux-x64-gnu 1.7.8
+@unrs/resolver-binding-linux-x64-gnu 1.9.0
 MIT
 # `@unrs/resolver-binding-linux-x64-gnu`
 
 This is the **x86_64-unknown-linux-gnu** binary for `@unrs/resolver-binding`
 
 
-@unrs/resolver-binding-linux-x64-musl 1.7.8
+@unrs/resolver-binding-linux-x64-musl 1.9.0
 MIT
 # `@unrs/resolver-binding-linux-x64-musl`
 
 This is the **x86_64-unknown-linux-musl** binary for `@unrs/resolver-binding`
 
-
-@vercel/nft 0.29.3
-MIT
-Copyright 2019 Vercel, Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 @vercel/nft 0.29.4
 MIT
@@ -10882,7 +11171,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vitest/expect 3.1.4
+@vitest/expect 3.2.3
 MIT
 MIT License
 
@@ -10907,7 +11196,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vitest/mocker 3.1.4
+@vitest/mocker 3.2.3
 MIT
 MIT License
 
@@ -10932,7 +11221,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vitest/pretty-format 3.1.4
+@vitest/pretty-format 3.2.3
 MIT
 MIT License
 
@@ -10957,7 +11246,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vitest/runner 3.1.4
+@vitest/runner 3.2.3
 MIT
 MIT License
 
@@ -10982,7 +11271,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vitest/snapshot 3.1.4
+@vitest/snapshot 3.2.3
 MIT
 MIT License
 
@@ -11007,7 +11296,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vitest/spy 3.1.4
+@vitest/spy 3.2.3
 MIT
 MIT License
 
@@ -11032,7 +11321,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vitest/utils 3.1.4
+@vitest/utils 3.2.3
 MIT
 MIT License
 
@@ -11502,7 +11791,7 @@ Generate a code frame that highlights the part in `template` defined by `start` 
 MIT
 
 
-@vue/devtools-api 7.7.6
+@vue/devtools-api 7.7.7
 MIT
 MIT License
 
@@ -11527,7 +11816,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vue/devtools-core 7.7.6
+@vue/devtools-core 7.7.7
 MIT
 MIT License
 
@@ -11552,7 +11841,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vue/devtools-kit 7.7.6
+@vue/devtools-kit 7.7.7
 MIT
 MIT License
 
@@ -11577,7 +11866,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@vue/devtools-shared 7.7.6
+@vue/devtools-shared 7.7.7
 MIT
 MIT License
 
@@ -12856,7 +13145,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-acorn 8.14.1
+acorn 8.15.0
 MIT
 MIT License
 
@@ -13010,6 +13299,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 ansis 3.17.0
+ISC
+ISC License
+
+Copyright (c) 2025, webdiscus
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+ansis 4.1.0
 ISC
 ISC License
 
@@ -14161,7 +14468,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-birpc 2.3.0
+birpc 2.4.0
 MIT
 MIT License
 
@@ -14199,7 +14506,7 @@ By having only a single instance of these functions around, it's possible to do 
 
 I'm trying to modularize `CSSselect` and most modules depend on these functions. IMHO, having a separate module is the easiest solution to this problem.
 
-brace-expansion 1.1.11
+brace-expansion 1.1.12
 MIT
 MIT License
 
@@ -14224,7 +14531,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-brace-expansion 2.0.1
+brace-expansion 2.0.2
 MIT
 MIT License
 
@@ -14680,7 +14987,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-caniuse-lite 1.0.30001720
+caniuse-lite 1.0.30001723
 CC-BY-4.0
 Attribution 4.0 International
 
@@ -15247,7 +15554,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-chart.js 4.4.9
+chart.js 4.5.0
 MIT
 The MIT License (MIT)
 
@@ -16778,7 +17085,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-core-js-compat 3.42.0
+core-js-compat 3.43.0
 MIT
 Copyright (c) 2014-2025 Denis Pushkarev
 
@@ -16801,7 +17108,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-core-js 3.42.0
+core-js 3.43.0
 MIT
 Copyright (c) 2014-2025 Denis Pushkarev
 
@@ -18585,7 +18892,7 @@ https://github.com/dwyl/decache/issues
 ***Thanks***!
 
 
-decode-named-character-reference 1.1.0
+decode-named-character-reference 1.2.0
 MIT
 (The MIT License)
 
@@ -19822,7 +20129,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-diff 7.0.0
+diff 8.0.2
 BSD-3-Clause
 BSD 3-Clause License
 
@@ -20661,7 +20968,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-electron-to-chromium 1.5.161
+electron-to-chromium 1.5.167
 ISC
 Copyright 2018 Kilian Valkhof
 
@@ -20847,7 +21154,7 @@ THIS IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRE
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-entities 6.0.0
+entities 6.0.1
 BSD-2-Clause
 Copyright (c) Felix Böhm
 All rights reserved.
@@ -21093,31 +21400,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-esbuild 0.25.4
-MIT
-MIT License
-
-Copyright (c) 2020 Evan Wallace
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 esbuild 0.25.5
 MIT
 MIT License
@@ -21310,7 +21592,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-eslint-import-context 0.1.6
+eslint-import-context 0.1.8
 MIT
 MIT License
 
@@ -21360,7 +21642,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-eslint-plugin-import-x 4.15.0
+eslint-plugin-import-x 4.15.2
 MIT
 The MIT License (MIT)
 
@@ -21386,7 +21668,7 @@ SOFTWARE.
 
 
 
-eslint-plugin-jsdoc 50.7.1
+eslint-plugin-jsdoc 50.8.0
 BSD-3-Clause
 Copyright (c) 2018, Gajus Kuizinas (http://gajus.com/)
 All rights reserved.
@@ -21414,7 +21696,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-eslint-plugin-regexp 2.7.0
+eslint-plugin-regexp 2.9.0
 MIT
 MIT License
 
@@ -21452,7 +21734,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-eslint-plugin-vue 10.1.0
+eslint-plugin-vue 10.2.0
 MIT
 MIT License
 
@@ -21502,7 +21784,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-eslint-scope 8.3.0
+eslint-scope 8.4.0
 BSD-2-Clause
 Copyright JS Foundation and other contributors, https://js.foundation
 Copyright (C) 2012-2013 Yusuke Suzuki (twitter: @Constellation) and other contributors.
@@ -21758,7 +22040,7 @@ Apache-2.0
    limitations under the License.
 
 
-eslint-visitor-keys 4.2.0
+eslint-visitor-keys 4.2.1
 Apache-2.0
                                  Apache License
                            Version 2.0, January 2004
@@ -21963,7 +22245,7 @@ Apache-2.0
    limitations under the License.
 
 
-eslint 9.28.0
+eslint 9.29.0
 MIT
 Copyright OpenJS Foundation and other contributors, <www.openjsf.org>
 
@@ -21986,7 +22268,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-espree 10.3.0
+espree 10.4.0
 BSD-2-Clause
 BSD 2-Clause License
 
@@ -23198,7 +23480,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-fdir 6.4.5
+fdir 6.4.6
 MIT
 Copyright 2023 Abdullah Atta
 
@@ -23682,7 +23964,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-form-data 4.0.2
+form-data 4.0.3
 MIT
 Copyright (c) 2012 Felix Geisendörfer (felix@debuggable.com) and contributors
 
@@ -24588,25 +24870,6 @@ under a Creative Commons Attribution-ShareAlike 4.0 International License
 https://creativecommons.org/licenses/by-sa/4.0/
 
 
-glob 8.1.0
-ISC
-The ISC License
-
-Copyright (c) 2009-2022 Isaac Z. Schlueter and Contributors
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
-IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-
 global-directory 4.0.1
 MIT
 MIT License
@@ -24836,7 +25099,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-happy-dom 17.5.6
+happy-dom 17.6.3
 MIT
 MIT License
 
@@ -25848,7 +26111,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-immutable 5.1.2
+immutable 5.1.3
 MIT
 MIT License
 
@@ -29124,7 +29387,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-loupe 3.1.3
+loupe 3.1.4
 MIT
 (The MIT License)
 
@@ -32714,7 +32977,7 @@ THIS IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRE
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-nuxt 3.17.4
+nuxt 3.17.5
 MIT
 The MIT License (MIT)
 
@@ -33256,7 +33519,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-oxc-parser 0.71.0
+oxc-parser 0.72.3
 MIT
 MIT License
 
@@ -34421,7 +34684,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-pinia 3.0.2
+pinia 3.0.3
 MIT
 The MIT License (MIT)
 
@@ -36178,7 +36441,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 
 
-postcss 8.5.4
+postcss 8.5.5
 MIT
 The MIT License (MIT)
 
@@ -36440,7 +36703,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-pump 3.0.2
+pump 3.0.3
 MIT
 The MIT License (MIT)
 
@@ -37941,7 +38204,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-rollup 4.41.1
+rollup-plugin-visualizer 6.0.3
+MIT
+The MIT License (MIT)
+
+Copyright (c) 2016 Denis Bardadym
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+rollup 4.43.0
 MIT
 # Rollup core license
 Rollup is released under the MIT license:
@@ -39024,21 +39312,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-sass-embedded-linux-musl-x64 1.89.1
+sass-embedded-linux-musl-x64 1.89.2
 MIT
 # `sass-embedded-linux-musl-x64`
 
 This is the **linux-musl-x64** binary for [`sass-embedded`](https://www.npmjs.com/package/sass-embedded)
 
 
-sass-embedded-linux-x64 1.89.1
+sass-embedded-linux-x64 1.89.2
 MIT
 # `sass-embedded-linux-x64`
 
 This is the **linux-x64** binary for [`sass-embedded`](https://www.npmjs.com/package/sass-embedded)
 
 
-sass-embedded 1.89.1
+sass-embedded 1.89.2
 MIT
 Copyright (c) 2019, Google LLC
 
@@ -39494,7 +39782,7 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-simple-git 3.27.0
+simple-git 3.28.0
 MIT
 # Simple Git
 
@@ -39932,6 +40220,14 @@ git.pull('origin', 'master', { '--no-rebase': null });
 
 // results in 'git pull origin master --rebase=true'
 git.pull('origin', 'master', { '--rebase': 'true' });
+```
+
+When the value of the property is an array of `string`s or `number`s, each element will be 
+included as separate `name=value` pairs:
+
+```javascript
+// results in 'git log --grep=bug --grep=fix --grep=feature'
+git.log({ '--grep': ['bug', 'fix', 'feature'] });
 ```
 
 ### Options as an Array
@@ -41318,152 +41614,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-stable-hash 0.0.5
+stable-hash-x 0.1.1
 MIT
-# stable-hash
+MIT License
 
-A tiny and fast (481b <sup>[unpkg](https://unpkg.com/stable-hash@0.0.3/dist/index.mjs)</sup>) lib for "stably hashing" a JavaScript value. Originally created for [SWR](https://github.com/vercel/swr).
+Copyright (c) 2025-present UnTS
 
-It's similar to `JSON.stringify(value)`, but:
-1. Supports any JavaScript value (BigInt, NaN, Symbol, function, class, ...)
-2. Sorts object keys (stable)
-3. Supports circular objects
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-## Use
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-```bash
-yarn add stable-hash
-```
-
-```js
-import hash from 'stable-hash'
-
-hash(anyJavaScriptValueHere) // returns a string
-```
-
-## Examples
-
-### Primitive Value
-
-```js
-hash(1)
-hash('foo')
-hash(true)
-hash(undefined)
-hash(null)
-hash(NaN)
-```
-
-BigInt:
-
-```js
-hash(1) === hash(1n)
-hash(1) !== hash(2n)
-```
-
-Symbol:
-
-```js
-hash(Symbol.for('foo')) === hash(Symbol.for('foo'))
-hash(Symbol.for('foo')) === hash(Symbol('foo'))
-hash(Symbol('foo')) === hash(Symbol('foo'))
-hash(Symbol('foo')) !== hash(Symbol('bar'))
-```
-
-_Since Symbols cannot be serialized, stable-hash simply uses its description as the hash._
-
-### Regex
-
-```js
-hash(/foo/) === hash(/foo/)
-hash(/foo/) !== hash(/bar/)
-```
-
-### Date
-
-```js
-hash(new Date(1)) === hash(new Date(1))
-```
-
-### Array
-
-```js
-hash([1, '2', [new Date(3)]]) === hash([1, '2', [new Date(3)]])
-hash([1, 2]) !== hash([2, 1])
-```
-
-Circular:
-
-```js
-const foo = []
-foo.push(foo)
-hash(foo) === hash(foo)
-```
-
-### Object
-
-```js
-hash({ foo: 'bar' }) === hash({ foo: 'bar' })
-hash({ foo: { bar: 1 } }) === hash({ foo: { bar: 1 } })
-```
-
-Stable:
-
-```js
-hash({ a: 1, b: 2, c: 3 }) === hash({ c: 3, b: 2, a: 1 })
-```
-
-Circular:
-
-```js
-const foo = {}
-foo.foo = foo
-hash(foo) === hash(foo)
-```
-
-### Function, Class, Set, Map, Buffer...
-
-`stable-hash` guarantees reference consistency (`===`) for objects that the constructor isn't `Object`.
-
-```js
-const foo = () => {}
-hash(foo) === hash(foo)
-hash(foo) !== hash(() => {})
-```
-
-```js
-class Foo {}
-hash(Foo) === hash(Foo)
-hash(Foo) !== hash(class {})
-```
-
-```js
-const foo = new Set([1])
-hash(foo) === hash(foo)
-hash(foo) !== hash(new Set([1]))
-```
-
-## Notes
-
-This function does something similar to `JSON.stringify`, but more than it. It doesn't generate a secure checksum, which usually has a fixed length and is hard to be reversed. With `stable-hash` it's still possible to get the original data. Also, the output might include any charaters, not just alphabets and numbers like other hash algorithms. So:
-
-- Use another encoding layer on top of it if you want to display the output. 
-- Use another crypto layer on top of it if you want to have a secure and fixed length hash.
-
-```js
-import crypto from 'crypto'
-import hash from 'stable-hash'
-
-const weakHash = hash(anyJavaScriptValueHere)
-const encodedHash = Buffer.from(weakHash).toString('base64')
-const safeHash = crypto.createHash('MD5').update(weakHash).digest('hex')
-```
-
-Also, the consistency of this lib is sometimes guaranteed by the singularity of the WeakMap instance. So it might not generate the consistent results when running in different runtimes, e.g. server/client or parent/worker scenarios.
-
-## License
-
-Created by Shu Ding. Released under the MIT License.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
 stack-trace 0.0.10
@@ -41587,6 +41760,33 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
+statuses 2.0.2
+MIT
+
+The MIT License (MIT)
+
+Copyright (c) 2014 Jonathan Ong <me@jongleberry.com>
+Copyright (c) 2016 Douglas Christopher Wilson <doug@somethingdoug.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
 std-env 3.9.0
 MIT
 MIT License
@@ -41613,7 +41813,7 @@ SOFTWARE.
 
 
 
-streamx 2.22.0
+streamx 2.22.1
 MIT
 The MIT License (MIT)
 
@@ -42220,7 +42420,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-terser 5.40.0
+terser 5.42.0
 BSD-2-Clause
 Copyright 2012-2018 (c) Mihai Bazon <mihai.bazon@gmail.com>
 
@@ -42580,31 +42780,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-tinyglobby 0.2.13
-MIT
-MIT License
-
-Copyright (c) 2024 Madeline Gurriarán
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 tinyglobby 0.2.14
 MIT
 MIT License
@@ -42683,7 +42858,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-tinyspy 3.0.2
+tinyspy 4.0.3
 MIT
 MIT License
 
@@ -43348,7 +43523,7 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
-tsx 4.19.4
+tsx 4.20.3
 MIT
 MIT License
 
@@ -44173,18 +44348,91 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-unrs-resolver 1.7.8
+unrs-resolver 1.9.0
 MIT
-# UnRS Resolver Napi Binding
+> [!NOTE]
+>
+> This is a fork of [oxc-resolver] and [rspack-resolver], and will be used in [eslint-plugin-import-x] and [eslint-import-resolver-typescript] cause 100% compatible with [enhanced-resolve] is the non-goal of [oxc-resolver] itself, we add [enhanced-resolve] specific features like [`pnp support`](https://github.com/web-infra-dev/rspack/issues/2236).
+>
+> We also fix several bugs reported by [eslint-plugin-import-x] and [eslint-import-resolver-typescript] users:
+>
+> - takes `paths` and `references` into account [at the same time](https://github.com/unrs/unrs-resolver/pull/12)
+> - `references` should [take higher priority](https://github.com/unrs/unrs-resolver/pull/13)
+> - support `pnpapi` core module and [package deep link](https://github.com/un-ts/eslint-plugin-import-x/issues/253)
+> - enable [more targets](https://github.com/unrs/unrs-resolver/pull/29) support
+> - absolute path aliasing [should not be skipped](https://github.com/import-js/eslint-import-resolver-typescript/issues/401)
+> - use [napi-postinstall] for [legacy npm versions](https://github.com/unrs/unrs-resolver/issues/56)
+> - Raspberry PI 4 aarch64 [compatibility issue](https://github.com/unrs/unrs-resolver/issues/64) and [import-js/eslint-import-resolver-typescript#406](https://github.com/import-js/eslint-import-resolver-typescript/issues/406) due to [mimalloc-safe]
+> - support `load_as_directory` for [`pnp` mode](https://github.com/import-js/eslint-import-resolver-typescript/issues/409)
+> - [resolve parent base url correctly](https://github.com/import-js/eslint-import-resolver-typescript/issues/437) by normalizing as absolute path
+>
+> The list could be longer in the future, but we don't want to make it too long here.
+>
+> We also sync with [oxc-resolver] and [rspack-resolver] regularly to keep up with the latest changes:
+>
+> - `oxc-resolver`: [#15](https://github.com/unrs/unrs-resolver/pull/15), [#49](https://github.com/unrs/unrs-resolver/pull/49), [#62](https://github.com/unrs/unrs-resolver/pull/62), [#86](https://github.com/unrs/unrs-resolver/pull/86) and [#94](https://github.com/unrs/unrs-resolver/pull/94)
+> - `rspack-resolver`(planned): [#59](https://github.com/unrs/unrs-resolver/issues/59)
+>
+> Last but not least, we prepare some bug fix PRs first on our side and PR back into upstream projects, and we will keep doing this in the future:
+>
+> - `oxc-resolver`: [#84](https://github.com/unrs/unrs-resolver/pull/84) with [oxc-resolver#455](https://github.com/oxc-project/oxc-resolver/pull/455)
+> - `rspack-resolver`: [#7](https://github.com/unrs/unrs-resolver/pull/7) with [rspack-resolver#54](https://github.com/web-infra-dev/rspack-resolver/pull/54), which is eventually replaced by [oxc-resolver#443](https://github.com/oxc-project/oxc-resolver/pull/443)
 
-See
+<div align="center">
 
-- `index.d.ts` for `resolveSync` and `ResolverFactory` API.
-- [README.md](https://github.com/unrs/unrs-resolver#unrs-resolver) for options.
+[![Crates.io][crates-badge]][crates-url]
+[![npmjs.com][npm-badge]][npm-url]
 
-## API
+[![Docs.rs][docs-badge]][docs-url]
+[![Build Status][ci-badge]][ci-url]
+[![Code Coverage][code-coverage-badge]][code-coverage-url]
+[![CodSpeed Badge][codspeed-badge]][codspeed-url]
+[![Sponsors][sponsors-badge]][sponsors-url]
+[![MIT licensed][license-badge]][license-url]
 
-`resolve(directory, specifier)` - resolve `specifier` at an absolute path to a `directory`.
+</div>
+
+# UnRS Resolver
+
+Rust port of [enhanced-resolve].
+
+- Released on [crates.io][crates-url] and [npm][npm-url].
+- Implements the [ESM](https://nodejs.org/api/esm.html#resolution-algorithm) and [CommonJS](https://nodejs.org/api/modules.html#all-together) module resolution algorithm specification.
+- Built-in [tsconfig-paths-webpack-plugin]
+  - support extending tsconfig defined in `tsconfig.extends`
+  - support paths alias defined in `tsconfig.compilerOptions.paths`
+  - support project references defined `tsconfig.references`
+  - support [template variable ${configDir} for substitution of config files directory path](https://github.com/microsoft/TypeScript/pull/58042)
+- Supports in-memory file system via the `FileSystem` trait.
+- Contains `tracing` instrumentation.
+
+## Usage
+
+### npm package
+
+See `index.d.ts` for `resolveSync` and `ResolverFactory` API.
+
+Quick example:
+
+```javascript
+import assert from 'node:assert';
+import path from 'node:path';
+
+import resolve, { ResolverFactory } from 'unrs-resolver';
+
+// `resolve`
+assert(resolve.sync(process.cwd(), './index.js').path, path.resolve('index.js'));
+
+// `ResolverFactory`
+const resolver = new ResolverFactory();
+assert(resolver.sync(process.cwd(), './index.js').path, path.resolve('index.js'));
+```
+
+### Rust
+
+See [docs.rs/unrs_resolver](https://docs.rs/unrs_resolver/latest/unrs_resolver/).
+
+## Terminology
 
 ### `directory`
 
@@ -44200,20 +44448,250 @@ Behavior is undefined when given a path to a file.
 
 The string passed to `require` or `import`, i.e. `require("specifier")` or `import "specifier"`
 
-## ESM Example
+## Errors and Trouble Shooting
+
+- `Error: Package subpath '.' is not defined by "exports" in` - occurs when resolving without `conditionNames`.
+
+## Configuration
+
+The following usages apply to both Rust and Node.js; the code snippets are written in JavaScript.
+
+To handle the `exports` field in `package.json`, ESM and CJS need to be differentiated.
+
+### ESM
+
+Per [ESM Resolution algorithm](https://nodejs.org/api/esm.html#resolution-and-loading-algorithm)
+
+> defaultConditions is the conditional environment name array, ["node", "import"].
+
+This means when the caller is an ESM import (`import "module"`), resolve options should be
 
 ```javascript
-import assert from 'assert';
-import path from 'path';
-import resolve, { ResolverFactory } from './index.js';
-
-// `resolve`
-assert(resolve.sync(process.cwd(), './index.js').path, path.join(cwd, 'index.js'));
-
-// `ResolverFactory`
-const resolver = new ResolverFactory();
-assert(resolver.sync(process.cwd(), './index.js').path, path.join(cwd, 'index.js'));
+{
+  "conditionNames": ["node", "import"]
+}
 ```
+
+### CJS
+
+Per [CJS Resolution algorithm](https://nodejs.org/api/modules.html#all-together)
+
+> LOAD_PACKAGE_EXPORTS(X, DIR)
+>
+> 5. let MATCH = PACKAGE_EXPORTS_RESOLVE(pathToFileURL(DIR/NAME), "." + SUBPATH,
+>    `package.json` "exports", ["node", "require"]) defined in the ESM resolver.
+
+This means when the caller is a CJS require (`require("module")`), resolve options should be
+
+```javascript
+{
+  "conditionNames": ["node", "require"]
+}
+```
+
+### Cache
+
+To support both CJS and ESM with the same cache:
+
+```javascript
+const esmResolver = new ResolverFactory({
+  conditionNames: ['node', 'import'],
+});
+
+const cjsResolver = esmResolver.cloneWithOptions({
+  conditionNames: ['node', 'require'],
+});
+```
+
+### Browser Field
+
+From this [non-standard spec](https://github.com/defunctzombie/package-browser-field-spec):
+
+> The `browser` field is provided to JavaScript bundlers or component tools when packaging modules for client side use.
+
+The option is
+
+```javascript
+{
+  "aliasFields": ["browser"]
+}
+```
+
+### Main Field
+
+```javascript
+{
+  "mainFields": ["module", "main"]
+}
+```
+
+Quoting esbuild's documentation:
+
+- `main` - This is [the standard field](https://docs.npmjs.com/files/package.json#main) for all packages that are meant to be used with node. The name main is hard-coded in to node's module resolution logic itself. Because it's intended for use with node, it's reasonable to expect that the file path in this field is a CommonJS-style module.
+- `module` - This field came from a [proposal](https://github.com/dherman/defense-of-dot-js/blob/f31319be735b21739756b87d551f6711bd7aa283/proposal.md) for how to integrate ECMAScript modules into node. Because of this, it's reasonable to expect that the file path in this field is an ECMAScript-style module. This proposal wasn't adopted by node (node uses "type": "module" instead) but it was adopted by major bundlers because ECMAScript-style modules lead to better tree shaking, or dead code removal.
+- `browser` - This field came from a [proposal](https://gist.github.com/defunctzombie/4339901/49493836fb873ddaa4b8a7aa0ef2352119f69211) that allows bundlers to replace node-specific files or modules with their browser-friendly versions. It lets you specify an alternate browser-specific entry point. Note that it is possible for a package to use both the browser and module field together (see the note below).
+
+## Options
+
+The following options are aligned with [enhanced-resolve], and is implemented for Rust crate usage.
+
+See [index.d.ts](https://github.com/unrs/unrs-resolver/blob/main/napi/index.d.ts) for Node.js usage.
+
+| Field            | Default                   | Description                                                                                                                                               |
+| ---------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| alias            | []                        | A list of module alias configurations or an object which maps key to value                                                                                |
+| aliasFields      | []                        | A list of alias fields in description files                                                                                                               |
+| extensionAlias   | {}                        | An object which maps extension to extension aliases                                                                                                       |
+| conditionNames   | []                        | A list of exports field condition names                                                                                                                   |
+| descriptionFiles | ["package.json"]          | A list of description files to read from                                                                                                                  |
+| enforceExtension | false                     | Enforce that a extension from extensions must be used                                                                                                     |
+| exportsFields    | ["exports"]               | A list of exports fields in description files                                                                                                             |
+| extensions       | [".js", ".json", ".node"] | A list of extensions which should be tried for files                                                                                                      |
+| fallback         | []                        | Same as `alias`, but only used if default resolving fails                                                                                                 |
+| fileSystem       |                           | The file system which should be used                                                                                                                      |
+| fullySpecified   | false                     | Request passed to resolve is already fully specified and extensions or main files are not resolved for it (they are still resolved for internal requests) |
+| mainFields       | ["main"]                  | A list of main fields in description files                                                                                                                |
+| mainFiles        | ["index"]                 | A list of main files in directories                                                                                                                       |
+| modules          | ["node_modules"]          | A list of directories to resolve modules from, can be absolute path or folder name                                                                        |
+| resolveToContext | false                     | Resolve to a context instead of a file                                                                                                                    |
+| preferRelative   | false                     | Prefer to resolve module requests as relative request and fallback to resolving as module                                                                 |
+| preferAbsolute   | false                     | Prefer to resolve server-relative urls as absolute paths before falling back to resolve in roots                                                          |
+| restrictions     | []                        | A list of resolve restrictions                                                                                                                            |
+| roots            | []                        | A list of root paths                                                                                                                                      |
+| symlinks         | true                      | Whether to resolve symlinks to their symlinked location, [if possible](https://github.com/unrs/unrs-resolver/blob/main/src/options.rs#L157-L170).         |
+
+### Unimplemented Options
+
+| Field            | Default                     | Description                                                                                                                                   |
+| ---------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| cachePredicate   | function() { return true }; | A function which decides whether a request should be cached or not. An object is passed to the function with `path` and `request` properties. |
+| cacheWithContext | true                        | If unsafe cache is enabled, includes `request.context` in the cache key                                                                       |
+| plugins          | []                          | A list of additional resolve plugins which should be applied                                                                                  |
+| resolver         | undefined                   | A prepared Resolver to which the plugins are attached                                                                                         |
+| unsafeCache      | false                       | Use this cache object to unsafely cache the successful requests                                                                               |
+
+## Debugging
+
+The following environment variable emits tracing information for the `oxc_resolver::resolve` function.
+
+e.g.
+
+```
+2024-06-11T07:12:20.003537Z DEBUG oxc_resolver: options: ResolveOptions { ... }, path: "...", specifier: "...", ret: "..."
+    at /path/to/oxc_resolver-1.8.1/src/lib.rs:212
+    in oxc_resolver::resolve with path: "...", specifier: "..."
+```
+
+The input values are `options`, `path` and `specifier`, the returned value is `ret`.
+
+### NAPI
+
+```
+OXC_LOG=DEBUG your_program
+```
+
+### Rolldown
+
+```bash
+RD_LOG='oxc_resolver' rolldown build
+```
+
+## Test
+
+Tests are ported from
+
+- [enhanced-resolve](https://github.com/webpack/enhanced-resolve/tree/main/test)
+- [tsconfig-path](https://github.com/dividab/tsconfig-paths/blob/master/src/__tests__/data/match-path-data.ts) and [parcel-resolver](https://github.com/parcel-bundler/parcel/tree/v2/packages/utils/node-resolver-core/test/fixture/tsconfig) for tsconfig-paths
+
+Test cases are located in `./src/tests`, fixtures are located in `./tests`
+
+- [x] alias.test.js
+- [x] browserField.test.js
+- [x] dependencies.test.js
+- [x] exportsField.test.js
+- [x] extension-alias.test.js
+- [x] extensions.test.js
+- [x] fallback.test.js
+- [x] fullSpecified.test.js
+- [x] identifier.test.js (see unit test in `crates/oxc_resolver/src/request.rs`)
+- [x] importsField.test.js
+- [x] incorrect-description-file.test.js (need to add ctx.fileDependencies)
+- [x] missing.test.js
+- [x] path.test.js (see unit test in `crates/oxc_resolver/src/path.rs`)
+- [ ] plugins.test.js
+- [ ] pnp.test.js
+- [x] resolve.test.js
+- [x] restrictions.test.js (partially done, regex is not supported yet)
+- [x] roots.test.js
+- [x] scoped-packages.test.js
+- [x] simple.test.js
+- [x] symlink.test.js
+
+Irrelevant tests
+
+- CachedInputFileSystem.test.js
+- SyncAsyncFileSystemDecorator.test.js
+- forEachBail.test.js
+- getPaths.test.js
+- pr-53.test.js
+- unsafe-cache.test.js
+- yield.test.js
+
+## [Sponsored By](https://github.com/sponsors/JounQin)
+
+[![Sponsors](https://raw.githubusercontent.com/1stG/static/master/sponsors.svg)](https://github.com/sponsors/JounQin)
+
+### Sponsors
+
+| 1stG                                                                                                                               | UnRs                                                                                                                               | UnTS                                                                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| [![1stG Open Collective backers and sponsors](https://opencollective.com/1stG/organizations.svg)](https://opencollective.com/1stG) | [![UnRs Open Collective backers and sponsors](https://opencollective.com/unrs/organizations.svg)](https://opencollective.com/unrs) | [![UnTS Open Collective backers and sponsors](https://opencollective.com/unts/organizations.svg)](https://opencollective.com/unts) |
+
+### Backers
+
+| 1stG                                                                                                                             | UnRs                                                                                                                             | UnTS                                                                                                                             |
+| -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| [![1stG Open Collective backers and sponsors](https://opencollective.com/1stG/individuals.svg)](https://opencollective.com/1stG) | [![UnRs Open Collective backers and sponsors](https://opencollective.com/unrs/individuals.svg)](https://opencollective.com/unrs) | [![UnTS Open Collective backers and sponsors](https://opencollective.com/unts/individuals.svg)](https://opencollective.com/unts) |
+
+## 📖 License
+
+`unrs_resolver` is free and open-source software licensed under the [MIT License](./LICENSE).
+
+UnRS partially copies code from the following projects.
+
+| Project                                                                           | License                                                                      |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [webpack/enhanced-resolve](https://github.com/webpack/enhanced-resolve)           | [MIT](https://github.com/webpack/enhanced-resolve/blob/main/LICENSE)         |
+| [dividab/tsconfig-paths](https://github.com/dividab/tsconfig-paths)               | [MIT](https://github.com/dividab/tsconfig-paths/blob/master/LICENSE)         |
+| [parcel-bundler/parcel](https://github.com/parcel-bundler/parcel)                 | [MIT](https://github.com/parcel-bundler/parcel/blob/v2/LICENSE)              |
+| [tmccombs/json-comments-rs](https://github.com/tmccombs/json-comments-rs)         | [Apache 2.0](https://github.com/tmccombs/json-comments-rs/blob/main/LICENSE) |
+| [oxc-project/oxc-resolver](https://github.com/oxc-project/oxc-resolver)           | [MIT](https://github.com/oxc-project/oxc-resolver/blob/main/LICENSE)         |
+| [web-infra-dev/rspack-resolver](https://github.com/web-infra-dev/rspack-resolver) | [MIT](https://github.com/web-infra-dev/rspack-resolver/blob/main/LICENSE)    |
+
+[enhanced-resolve]: https://github.com/webpack/enhanced-resolve
+[oxc-resolver]: https://github.com/oxc-project/oxc-resolver
+[rspack-resolver]: https://github.com/web-infra-dev/rspack-resolver
+[eslint-plugin-import-x]: https://github.com/un-ts/eslint-plugin-import-x
+[eslint-import-resolver-typescript]: https://github.com/import-js/eslint-import-resolver-typescript
+[napi-postinstall]: https://github.com/un-ts/napi-postinstall
+[mimalloc-safe]: https://github.com/napi-rs/mimalloc-safe
+[tsconfig-paths-webpack-plugin]: https://github.com/dividab/tsconfig-paths-webpack-plugin
+[license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[license-url]: https://github.com/unrs/unrs-resolver/blob/main/LICENSE
+[ci-badge]: https://github.com/unrs/unrs-resolver/actions/workflows/ci.yml/badge.svg?event=push&branch=main
+[ci-url]: https://github.com/unrs/unrs-resolver/actions/workflows/ci.yml?query=event%3Apush+branch%3Amain
+[code-coverage-badge]: https://codecov.io/github/unrs/unrs-resolver/branch/main/graph/badge.svg
+[code-coverage-url]: https://codecov.io/gh/unrs/unrs-resolver
+[sponsors-badge]: https://img.shields.io/github/sponsors/JounQin
+[sponsors-url]: https://github.com/sponsors/JounQin
+[codspeed-badge]: https://img.shields.io/endpoint?url=https://codspeed.io/badge.json
+[codspeed-url]: https://codspeed.io/unrs/unrs-resolver
+[crates-badge]: https://img.shields.io/crates/d/unrs_resolver?label=crates.io
+[crates-url]: https://crates.io/crates/unrs_resolver
+[docs-badge]: https://img.shields.io/docsrs/unrs_resolver
+[docs-url]: https://docs.rs/unrs_resolver
+[npm-badge]: https://img.shields.io/npm/dw/unrs-resolver?label=npm
+[npm-url]: https://www.npmjs.com/package/unrs-resolver
 
 
 unstorage 1.16.0
@@ -44962,7 +45440,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vite-node 3.1.4
+vite-node 3.2.3
 MIT
 MIT License
 
@@ -45037,7 +45515,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vite-plugin-inspect 11.1.0
+vite-plugin-inspect 11.2.0
 MIT
 MIT License
 
@@ -45062,7 +45540,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vite-plugin-static-copy 2.3.1
+vite-plugin-static-copy 3.0.2
 MIT
 MIT License
 
@@ -45087,7 +45565,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vite-plugin-vue-tracer 0.1.3
+vite-plugin-vue-tracer 0.1.4
 MIT
 MIT License
 
@@ -47539,7 +48017,7 @@ vitest-environment-nuxt 1.0.1
 MIT
 
 
-vitest 3.1.4
+vitest 3.2.3
 MIT
 # Vitest core license
 Vitest is released under the MIT license:
@@ -47713,35 +48191,6 @@ Repository: git+https://github.com/antfu/birpc.git
 
 ---------------------------------------
 
-## braces
-License: MIT
-By: Jon Schlinkert, Brian Woodward, Elan Shanker, Eugene Sharygin, hemanth.hm
-Repository: micromatch/braces
-
-> The MIT License (MIT)
->
-> Copyright (c) 2014-present, Jon Schlinkert.
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy
-> of this software and associated documentation files (the "Software"), to deal
-> in the Software without restriction, including without limitation the rights
-> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-> copies of the Software, and to permit persons to whom the Software is
-> furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in
-> all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-> THE SOFTWARE.
-
----------------------------------------
-
 ## cac
 License: MIT
 By: egoist
@@ -47800,35 +48249,6 @@ Repository: https://github.com/debitoor/chai-subset.git
 
 ---------------------------------------
 
-## fill-range
-License: MIT
-By: Jon Schlinkert, Edo Rivai, Paul Miller, Rouven Weßling
-Repository: jonschlinkert/fill-range
-
-> The MIT License (MIT)
->
-> Copyright (c) 2014-present, Jon Schlinkert.
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy
-> of this software and associated documentation files (the "Software"), to deal
-> in the Software without restriction, including without limitation the rights
-> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-> copies of the Software, and to permit persons to whom the Software is
-> furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in
-> all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-> THE SOFTWARE.
-
----------------------------------------
-
 ## find-up
 License: MIT
 By: Sindre Sorhus
@@ -47866,64 +48286,6 @@ Repository: git+https://github.com/WebReflection/flatted.git
 > LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 > OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 > PERFORMANCE OF THIS SOFTWARE.
-
----------------------------------------
-
-## get-tsconfig
-License: MIT
-By: Hiroki Osame
-Repository: privatenumber/get-tsconfig
-
-> MIT License
->
-> Copyright (c) Hiroki Osame <hiroki.osame@gmail.com>
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy
-> of this software and associated documentation files (the "Software"), to deal
-> in the Software without restriction, including without limitation the rights
-> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-> copies of the Software, and to permit persons to whom the Software is
-> furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in all
-> copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> SOFTWARE.
-
----------------------------------------
-
-## is-number
-License: MIT
-By: Jon Schlinkert, Olsten Larck, Rouven Weßling
-Repository: jonschlinkert/is-number
-
-> The MIT License (MIT)
->
-> Copyright (c) 2014-present, Jon Schlinkert.
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy
-> of this software and associated documentation files (the "Software"), to deal
-> in the Software without restriction, including without limitation the rights
-> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-> copies of the Software, and to permit persons to whom the Software is
-> furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in
-> all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-> THE SOFTWARE.
 
 ---------------------------------------
 
@@ -48031,14 +48393,14 @@ Repository: sindresorhus/locate-path
 
 ---------------------------------------
 
-## micromatch
+## mime
 License: MIT
-By: Jon Schlinkert, Amila Welihinda, Bogdan Chadkin, Brian Woodward, Devon Govett, Elan Shanker, Fabrício Matté, Martin Kolárik, Olsten Larck, Paul Miller, Tom Byrer, Tyler Akins, Peter Bright, Kuba Juszczyk
-Repository: micromatch/micromatch
+By: Robert Kieffer
+Repository: https://github.com/broofa/mime
 
-> The MIT License (MIT)
+> MIT License
 >
-> Copyright (c) 2014-present, Jon Schlinkert.
+> Copyright (c) 2023 Robert Kieffer
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy
 > of this software and associated documentation files (the "Software"), to deal
@@ -48047,16 +48409,16 @@ Repository: micromatch/micromatch
 > copies of the Software, and to permit persons to whom the Software is
 > furnished to do so, subject to the following conditions:
 >
-> The above copyright notice and this permission notice shall be included in
-> all copies or substantial portions of the Software.
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
 >
 > THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 > IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 > FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 > AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-> THE SOFTWARE.
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
 
 ---------------------------------------
 
@@ -48151,35 +48513,6 @@ Repository: git+https://github.com/antfu-collective/package-manager-detector.git
 
 ---------------------------------------
 
-## picomatch
-License: MIT
-By: Jon Schlinkert
-Repository: micromatch/picomatch
-
-> The MIT License (MIT)
->
-> Copyright (c) 2017-present, Jon Schlinkert.
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy
-> of this software and associated documentation files (the "Software"), to deal
-> in the Software without restriction, including without limitation the rights
-> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-> copies of the Software, and to permit persons to whom the Software is
-> furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in
-> all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-> THE SOFTWARE.
-
----------------------------------------
-
 ## prompts
 License: MIT
 By: Terkel Gjervig
@@ -48217,35 +48550,6 @@ Repository: git+https://github.com/quansync-dev/quansync.git
 > MIT License
 >
 > Copyright (c) 2025-PRESENT Anthony Fu <https://github.com/antfu> and Kevin Deng <https://github.com/sxzz>
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy
-> of this software and associated documentation files (the "Software"), to deal
-> in the Software without restriction, including without limitation the rights
-> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-> copies of the Software, and to permit persons to whom the Software is
-> furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in all
-> copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> SOFTWARE.
-
----------------------------------------
-
-## resolve-pkg-maps
-License: MIT
-By: Hiroki Osame
-Repository: privatenumber/resolve-pkg-maps
-
-> MIT License
->
-> Copyright (c) Hiroki Osame <hiroki.osame@gmail.com>
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy
 > of this software and associated documentation files (the "Software"), to deal
@@ -48322,35 +48626,6 @@ Repository: git+https://github.com/antfu/strip-literal.git
 > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
-
----------------------------------------
-
-## to-regex-range
-License: MIT
-By: Jon Schlinkert, Rouven Weßling
-Repository: micromatch/to-regex-range
-
-> The MIT License (MIT)
->
-> Copyright (c) 2015-present, Jon Schlinkert.
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy
-> of this software and associated documentation files (the "Software"), to deal
-> in the Software without restriction, including without limitation the rights
-> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-> copies of the Software, and to permit persons to whom the Software is
-> furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in
-> all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-> THE SOFTWARE.
 
 ---------------------------------------
 
@@ -48777,7 +49052,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vuetify-nuxt-module 0.18.6
+vuetify-nuxt-module 0.18.7
 MIT
 MIT License
 
@@ -48802,11 +49077,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-vuetify 3.8.7
+vuetify 3.8.9
 MIT
 The MIT License (MIT)
 
-Copyright (c) 2016-2023 John Jeremy Leider
+Copyright (c) 2016-now Vuetify, LLC
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49655,7 +49930,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
-zod 3.25.47
+zod 3.25.64
 MIT
 MIT License
 
