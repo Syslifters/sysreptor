@@ -299,7 +299,7 @@ function getPreviewElementForLine(lineNumber?: number): HTMLElement|null {
   const previewElements = Array.from(previewRef.value.element.querySelectorAll<HTMLElement>('[data-position]'))
     .filter(el => {
       const position = getPosition(el);
-      return position && lineNumber! >= position.start.line && lineNumber! <= position.end.line;
+      return position && lineNumber! >= position.start.line && lineNumber! <= position.end.line && el.offsetTop > 0;
     });
   // Get the deepest element for this line (e.g. table->tr, ul->li)
   const previewElement = sortBy(previewElements.map(el => ({ el, depth: getDepth(el) * -1})), ['depth'])[0]?.el;
