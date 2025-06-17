@@ -72,6 +72,12 @@ class TestSignalsSent:
         with self.assert_signal(sysreptor_signals.post_finish, **kwargs):
             yield
 
+    @contextlib.contextmanager
+    def assert_post_export_import_signals(self, sender, **kwargs):
+        with self.assert_signal(sysreptor_signals.post_export, sender=sender, **kwargs), \
+             self.assert_signal(sysreptor_signals.post_import, sender=sender, **kwargs):
+            yield
+
     def test_post_create_project(self):
         p = create_project(members=[self.user])
         expected_subresources = {
@@ -186,3 +192,12 @@ class TestSignalsSent:
 
         with self.assert_post_finish_signal(expected_call_count=0):
             create_project(readonly=True)
+
+    def test_export_import(self):
+        with self.assert_post_export_import_signals(sender=PentestProject):
+            import_projects(archive_to_file(export_projects([create_project()])))
+        with self.assert_post_export_import_signals(sender=ProjectType):
+            import_project_types(archive_to_file(export_project_types([create_project_type()])))
+        with self.assert_post_export_import_signals(sender=FindingTemplate):
+            import_templates(archive_to_file(export_templates([create_template()])))
+

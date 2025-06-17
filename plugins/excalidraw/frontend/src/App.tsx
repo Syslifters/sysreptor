@@ -33,6 +33,7 @@ export default function App() {
   const excalidrawCollabRef = useRef<SysreptorCollab | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [wasConnected, setWasConnected] = useState<boolean>(false);
+  const [isReadonly, setIsReadonly] = useState<boolean>(false);
   
   const loadInitialDataPromise = useResolvablePromise<ExcalidrawInitialDataState>();
   async function initializeScene(options: { excalidrawAPI: ExcalidrawImperativeAPI, excalidrawCollab: SysreptorCollab }): Promise<ExcalidrawInitialDataState> {
@@ -91,7 +92,7 @@ export default function App() {
         detectScroll={false}
         langCode="en"
         autoFocus={true}
-        viewModeEnabled={!isConnected}
+        viewModeEnabled={!isConnected || isReadonly}
         theme={isDarkTheme ? 'dark' : 'light'}
         UIOptions={{
           canvasActions: {
@@ -109,6 +110,7 @@ export default function App() {
             excalidrawAPI={excalidrawAPI}
             path={collabPath}
             onConnectionChange={setIsConnected}
+            onReadonlyChange={setIsReadonly}
           />
         )}
       </Excalidraw>

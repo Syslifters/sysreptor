@@ -4,6 +4,9 @@ from sysreptor.plugins import PluginConfig
 class ExcalidrawPluginConfig(PluginConfig):
     plugin_id = 'c50b19ff-db68-4a83-9508-80ff6b6d2498'
 
+    def ready(self):
+        from . import signals  # noqa
+
 
 # TODO: Excalidraw collaborative editing:
 # * [x] model
@@ -26,6 +29,7 @@ class ExcalidrawPluginConfig(PluginConfig):
 #   * [x] no assets/files
 #   * [x] no awareness/presence/cursor
 #   * [x] no user follow
+#   * [x] collab.init => respect readonly mode => set UI to readonly
 # * [x] frontend UI
 #   * [x] plugin.js
 #   * [x] per-project iframe
@@ -44,13 +48,23 @@ class ExcalidrawPluginConfig(PluginConfig):
 # * [x] libraries
 #   * [x] save libraries in indexdb
 #   * [x] support "Add to Excalidraw" button => link with hash
-# * [ ] export/import
-#   * [ ] export plugin data with project
-# * [ ] tests
+# * [x] export/import
+#   * [x] export plugin data with project
+#   * [x] export/import signals => plugins can export/import data
+#       * pro: extensible, works for project, project_type, templates, etc.
+#       * con: bad integration with data validation => do we need good error messages?, should always work if it is the correct type
+#       * pro: very flexible
+#       * con: needs manual file handling: pass tarfile as argument to signal handler
+#   * [x] send post_export/post_import signals
+#       * for top-level models: project, design, template
+#       * not for sub-models: findings, sections, notes, etc.
+# * [x] tests
 #   * [x] collab event broadcasting
 #   * [x] collab init: load from DB
 #   * [x] save to db
-#   * [ ] import/export
+#   * [x] readonly project: prevent write
+#   * [x] import/export signals sent
+#   * [x] import/export
 # * [x] build
 #   * [x] test frontend built in dockerfile
 # * [ ] docs

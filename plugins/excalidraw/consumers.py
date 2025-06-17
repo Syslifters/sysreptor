@@ -48,6 +48,10 @@ class ExcalidrawConsumer(CollabConsumerBase):
             'type': 'collab.init',
             'client_id': self.client_id,
             'elements': db_data.elements if db_data else [],
+            'permissions': {
+                'read': True,
+                'write': self.has_permission(action='write'),
+            },
         }
 
     async def receive_json(self, content, **kwargs):

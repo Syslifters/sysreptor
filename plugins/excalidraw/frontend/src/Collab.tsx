@@ -34,6 +34,10 @@ type ExcalidrawCollabEvent = {
   client_id?: string;
   elements?: readonly ExcalidrawElement[];
   syncall?: boolean;
+  permissions?: {
+    read: boolean;
+    write: boolean;
+  },
 }
 
 
@@ -135,6 +139,7 @@ interface CollabProps {
   excalidrawAPI: ExcalidrawImperativeAPI;
   path: string;
   onConnectionChange?: (isConnected: boolean) => void;
+  onReadonlyChange?: (isReadonly: boolean) => void;
 };
 
 export class SysreptorCollab extends PureComponent<CollabProps> {
@@ -235,6 +240,7 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
             this.handleRemoteSceneUpdate(msg.elements!);
             // Notify connection is established
             this.props.onConnectionChange?.(true);
+            this.props.onReadonlyChange?.(!msg.permissions!.write)
           } else if (msg.type === ExcalidrawCollabEventType.UPDATE) {
             this.handleRemoteSceneUpdate(msg.elements!);
             if (msg.syncall) {
