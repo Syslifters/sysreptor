@@ -194,6 +194,7 @@ class PDFViewerApplicationClass {
       textLayerMode: 1,  // TextLayerMode.ENABLE,
       annotationMode: 1,  // AnnotationMode.ENABLE,
       annotationEditorMode: 0,  // AnnotationEditorType.NONE,
+      enableAutoLinking: false,
 
       supportsPinchToZoom: true,
     });
