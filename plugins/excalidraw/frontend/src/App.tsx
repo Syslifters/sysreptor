@@ -34,6 +34,10 @@ export default function App() {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [wasConnected, setWasConnected] = useState<boolean>(false);
   const [isReadonly, setIsReadonly] = useState<boolean>(false);
+
+  function reload() {
+    window.top!.location.reload();
+  }
   
   const loadInitialDataPromise = useResolvablePromise<ExcalidrawInitialDataState>();
   async function initializeScene(options: { excalidrawAPI: ExcalidrawImperativeAPI, excalidrawCollab: SysreptorCollab }): Promise<ExcalidrawInitialDataState> {
@@ -67,7 +71,7 @@ export default function App() {
     } else if (!isConnected && wasConnected) {
       // Reload on connection loss.
       // An error message is shown when there is still a connection error after reload.
-      window.location.reload();
+      reload();
     }
   }, [isConnected]);
 
@@ -112,6 +116,12 @@ export default function App() {
             onConnectionChange={setIsConnected}
             onReadonlyChange={setIsReadonly}
           />
+        )}
+        {excalidrawCollabRef.current && !isConnected && (
+          <div className="collab-connection-warning">
+            Could not establish a WebSocket connection.
+            <button onClick={reload}>Reload</button>
+          </div>
         )}
       </Excalidraw>
     </div>

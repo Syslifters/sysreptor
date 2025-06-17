@@ -48,6 +48,7 @@ class ExcalidrawConsumer(CollabConsumerBase):
             'type': 'collab.init',
             'client_id': self.client_id,
             'elements': db_data.elements if db_data else [],
+            'clients': self.get_client_infos(),
             'permissions': {
                 'read': True,
                 'write': self.has_permission(action='write'),

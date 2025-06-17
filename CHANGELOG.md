@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming
+* Plugin `excalidraw`: Integrate Excalidraw in SysReptor
 * PDF viewer: fix single-letter shortcuts applied when typing in searchbar input
 * Fix scroll sync to wrong position on HTML blocks starting with `<br>` tags
 
