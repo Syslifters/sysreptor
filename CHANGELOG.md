@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.56 - 2025-06-17
 * Incremental parsing in markdown editor
 * Add user setting to disable local login
 * Provide parent CWEs in PDF rendering
