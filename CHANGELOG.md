@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* PDF viewer: fix single-letter shortcuts applied when typing in searchbar input
+
+
 ## v2025.56 - 2025-06-17
 * Incremental parsing in markdown editor
 * Add user setting to disable local login

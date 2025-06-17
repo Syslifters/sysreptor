@@ -220,6 +220,8 @@ class PDFViewerApplicationClass {
     });
     config.appContainer.addEventListener("wheel", (e) => this.handleMouseWheel(e), { passive: false });
     config.appContainer.addEventListener("keydown", (e) => {
+      const currentElement = (document.activeElement || document.querySelector(':focus') || document.body) as HTMLElement;
+
       let handled = false;
       if (e.key === 'Control') {
         this._isCtrlKeyDown = true;
@@ -241,7 +243,10 @@ class PDFViewerApplicationClass {
           this.download();
           handled = true;
         }
-      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      } else if (
+        !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && 
+        !(['input', 'textarea', 'select'].includes(currentElement.tagName.toLowerCase()) || currentElement.isContentEditable)
+      ) {
         if (
           (e.key === 'ArrowLeft' && !this.pdfViewer.isHorizontalScrollbarEnabled) ||
           e.key === 'k' ||
