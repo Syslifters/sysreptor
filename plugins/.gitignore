@@ -7,11 +7,13 @@
 !NOTICE
 
 # Plugin directories
-!/demoplugin
-!/cyberchef
-!/customizetheme
-!/graphqlvoyager
-!/checkthehash
-!/projectnumber
-!/webhooks
-!/renderfindings
+!demoplugin
+!cyberchef
+!customizetheme
+!graphqlvoyager
+!checkthehash
+!projectnumber
+!webhooks
+!renderfindings
+!excalidraw
+
