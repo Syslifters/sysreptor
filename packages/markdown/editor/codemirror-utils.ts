@@ -26,7 +26,7 @@ export function getChildren(n: SyntaxNode) {
   return out;
 }
 
-export function intersectsRange(range: Range, node: SyntaxNode) {
+export function intersectsRange(range: Range, node: SyntaxNode|Range) {
   return range.to >= node.from && node.to >= range.from;
 }
 

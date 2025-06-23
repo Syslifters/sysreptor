@@ -9,6 +9,7 @@
       <markdown-toolbar-button @click="codemirrorAction(toggleListUnordered)" title="Bullet List" icon="mdi-format-list-bulleted" :disabled="props.disabled" :active="activeActions.listUnordered" />
       <markdown-toolbar-button @click="codemirrorAction(toggleListOrdered)" title="Numbered List" icon="mdi-format-list-numbered" :disabled="props.disabled" :active="activeActions.listOrdered" />
       <markdown-toolbar-button @click="codemirrorAction(toggleTaskList)" title="Checklist" icon="mdi-format-list-checkbox" :disabled="props.disabled" :active="activeActions.taskList" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleBlockQuote)" title="Blockquote" icon="mdi-format-quote-open" :disabled="props.disabled" :active="activeActions.blockquote" />
       <markdown-toolbar-button @click="codemirrorAction(insertCodeBlock)" title="Code" icon="mdi-code-tags" :disabled="props.disabled" :active="activeActions.code" />
       <markdown-toolbar-button @click="codemirrorAction(insertTable)" title="Table" icon="mdi-table" :disabled="props.disabled" :active="activeActions.table" />
       <span class="separator" />
@@ -118,6 +119,7 @@ import {
   isTypeInSelection,
   redo,
   redoDepth,
+  toggleBlockQuote,
   toggleEmphasis,
   toggleFootnote,
   toggleLink,
@@ -167,6 +169,7 @@ const activeActions = computedCached(() => ({
   code: isTypeInSelection(editorState.value, 'codeFenced'),
   table: isTypeInSelection(editorState.value, 'table'),
   link: isTypeInSelection(editorState.value, 'link'),
+  blockquote: isTypeInSelection(editorState.value, 'blockQuote'),
 }));
 const canUndo = computed(() => editorState.value && undoDepth(editorState.value) > 0);
 const canRedo = computed(() => editorState.value && redoDepth(editorState.value) > 0);

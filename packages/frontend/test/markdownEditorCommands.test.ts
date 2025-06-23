@@ -3,7 +3,7 @@ import {
   EditorState, EditorSelection, EditorView,
   markdown,
   toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
-  toggleListUnordered, toggleListOrdered, toggleTaskList,
+  toggleListUnordered, toggleListOrdered, toggleTaskList, toggleBlockQuote,
   toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup
 } from '@sysreptor/markdown/editor';
 
@@ -156,6 +156,23 @@ describe('insertCodeBlock', () => {
 
 describe('insertTable', () => {
   testCommand(insertTable, 'a\n§\nb', 'a\n§\n| Column1 | Column2 | Column3 |\n| ------- | ------- | ------- |\n| Text    | Text    | Text    |\n\n\nb', '§');
+});
+
+describe('toggleBlockQuote', () => {
+  for (const [before, after] of Object.entries({
+    "|a\nb|": "|> a\n> b|",
+    "a|aa\nb": "> a|aa\nb",
+    "|> a\n> b|": "|a\nb|",
+    "> a|\n> b": "a|\nb",
+    "|": "> |",
+    "|a": "> |a",
+    "multi\n\n|line\ntext": "multi\n\n> |line\ntext",
+    "multi\n\n|line\ntext|": "multi\n\n|> line\n> text|",
+    "> multi\n> \n|> line\n> text": "multi\n\n|line\ntext",
+    "|> multi\n>| \n> line\n> text": "|multi\n|\n> line\n> text",
+  })) {
+    testCommand(toggleBlockQuote, before, after);
+  }
 });
 
 describe('insertNewlineContinueMarkup', () => {
