@@ -103,7 +103,10 @@ export function useAuth() {
     if (response.status !== LoginResponseStatus.SUCCESS) {
       throw new Error('Login failed');
     }
+    // Refresh settings to include authenticated settings
     const apiSettings = useApiSettings();
+    await apiSettings.fetchSettings();
+
     apiSettings.licenseInfo = response.license!;
 
     return await fetchUser();

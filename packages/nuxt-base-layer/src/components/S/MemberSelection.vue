@@ -65,10 +65,10 @@ const apiSettings = useApiSettings();
 
 const rolesCache = ref(Object.fromEntries(modelValue.value.filter(m => Array.isArray(m.roles)).map(m => [m.id, m.roles])));
 const allRoles = computed(() =>
-  uniq(apiSettings.settings!.project_member_roles.map(r => r.role)
+  uniq((apiSettings.settings!.project_member_roles || []).map(r => r.role)
     .concat(Object.values(rolesCache.value).flat()))
 )
-const defaultRoles = computed(() => apiSettings.settings!.project_member_roles.filter(r => r.default).map(r => r.role));
+const defaultRoles = computed(() => (apiSettings.settings!.project_member_roles || []).filter(r => r.default).map(r => r.role));
 
 function updateMembers(members: ProjectMember[]) {
   members = cloneDeep(members);

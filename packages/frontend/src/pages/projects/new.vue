@@ -61,7 +61,7 @@ const projectForm = ref({
   tags: [] as string[],
   members: [{
     ...auth.user.value!,
-    roles: apiSettings.settings!.project_member_roles.filter(r => r.default).map(r => r.role),
+    roles: (apiSettings.settings!.project_member_roles || []).filter(r => r.default).map(r => r.role),
   }] as ProjectMember[],
 });
 const serverErrors = ref<any|null>(null);
