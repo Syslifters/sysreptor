@@ -474,7 +474,7 @@ export function toggleListOrdered({state, dispatch}: CommandArg) {
       let itemNumber = 0;
       for (const line of linesInRange(state.doc, range)) {
         itemNumber += 1;
-        const listItemNumber =  itemNumber + '. ';
+        const listItemNumber = itemNumber + '. ';
 
         const listItemBullet = getIntersectionNodes(tree, line, n => n.name === 'listItem' && n.parent!.name === 'listUnordered')
           .flatMap(n => getChildren(n))
@@ -514,7 +514,50 @@ export function toggleListOrdered({state, dispatch}: CommandArg) {
   });
 }
 
+export function toggleBlockQuote({state, dispatch}: CommandArg) {
+  return toggleMarkdownAction({state, dispatch}, {
+    isInSelection: n => n.name === 'blockQuote',
+    enable: (range) => {
+      // Add '> ' to the start of each line in the selection
+      const changes: ChangeSpec[] = [];
+      let newRange = range;
+      for (const line of linesInRange(state.doc, range)) {
+        const change = {from: line.from, insert: '> '};
+        newRange = moveRangeInsert(newRange, range, change);
+        changes.push(change);
+      }
+      return {
+        range: newRange,
+        changes,
+      };
+    },
+    disable: (range, foundNodes) => {
+      const selectedLines = linesInRange(state.doc, range);
+      const lineRange = selectedLines.length > 0 ? {from: selectedLines[0]!.from, to: selectedLines.at(-1)!.to} : range;
 
+      // Remove blockquote markers
+      const removeMarkers = foundNodes.flatMap(n => getChildren(n)).flatMap(n => {
+        if (n.name === 'blockQuotePrefix') {
+          return {from: n.from, to: n.to};
+        } else if (n.name !== 'lineEnding') {
+          return Array.from(state.doc.sliceString(n.from, n.to).matchAll(/\n> /g))
+            .map(m => ({from: n.from + m.index + 1, to: n.from + m.index + m[0].length}));
+        } else {
+          return [];
+        }
+      })
+      .filter(r => !range.empty ? intersectsRange(lineRange, r) : true);
+      
+      let newRange = range;
+      const changes: ChangeSpec[] = [];
+      for (const change of removeMarkers) {
+        newRange = moveRangeDelete(newRange, range, change)
+        changes.push(change);
+      }
+      return { range: newRange, changes };
+    }
+  });
+}
 
 function isTaskListItem(node: SyntaxNode, doc: Text) {
   const contentNode = node.firstChild?.nextSibling;

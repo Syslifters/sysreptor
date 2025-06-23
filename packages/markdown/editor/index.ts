@@ -15,7 +15,7 @@ export { spellcheck, spellcheckTheme } from './spellcheck';
 export { highlightTodos } from './todos';
 export { 
   toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
-  toggleListUnordered, toggleListOrdered, toggleTaskList,
+  toggleListUnordered, toggleListOrdered, toggleTaskList, toggleBlockQuote,
   toggleLink, insertCodeBlock, insertTable, insertText,
   isTypeInSelection, isTaskListInSelection,
   insertNewlineContinueMarkup
