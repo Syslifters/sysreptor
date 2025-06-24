@@ -7,7 +7,6 @@ from sysreptor.pentests.models import (
     PentestProject,
     ProjectType,
     ProjectTypeScope,
-    ProjectTypeStatus,
     ReportSection,
     ReviewStatus,
     SourceEnum,
@@ -20,7 +19,7 @@ from sysreptor.utils.models import BaseModel
 __all__ = [
     # Models
     'PentestProject', 'PentestFinding', 'ReportSection', 'ArchivedProject',
-    'ProjectType', 'ProjectTypeScope', 'ProjectTypeStatus',
+    'ProjectType', 'ProjectTypeScope',
     'FindingTemplate', 'FindingTemplateTranslation',
     'ReviewStatus', 'SourceEnum', 'Language',
     'PentestUser',

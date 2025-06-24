@@ -1,17 +1,17 @@
 <template>
   <v-chip v-if="statusInfo" size="small" class="ma-1">
-    <v-icon size="small" start :class="'status-' + statusInfo.value" :icon="statusInfo.icon" />
-    {{ statusInfo.title }}
+    <v-icon size="small" start :class="'status-' + statusInfo.id" :icon="statusInfo.icon || 'mdi-help'" />
+    {{ statusInfo.label }}
   </v-chip>
 </template>
 
 <script setup lang="ts">
-import type { ProjectTypeStatus, ReviewStatus } from '#imports';
-
 const props = defineProps<{
-  value?: ReviewStatus|ProjectTypeStatus|null
+  value?: string|null
 }>();
-const statusInfo = computed(() => ProjectTypeStatusItems.find(i => i.value === props.value))
+
+const apiSettings = useApiSettings();
+const statusInfo = computed(() => apiSettings.getStatusDefinition(props.value));
 </script>
 
 <style lang="scss" scoped>

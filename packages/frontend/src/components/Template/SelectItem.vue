@@ -4,7 +4,7 @@
     <div class="pt-2 pb-2 flex-grow-1 wrap-content">
       {{ translation.data.title }}
       <br />
-      <chip-review-status v-if="translation.status !== 'finished'" :value="translation.status" />
+      <chip-status v-if="translation.status !== 'finished'" :value="translation.status" />
       <s-tooltip v-for="tr in props.template.translations" :key="tr.id" :text="tr.data.title">
         <template #activator="{props: tooltipProps}">
           <chip-language :value="tr.language" v-bind="tooltipProps" />

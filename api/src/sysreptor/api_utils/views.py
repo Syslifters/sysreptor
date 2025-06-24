@@ -26,7 +26,7 @@ from sysreptor.api_utils.serializers import (
     LanguageToolSerializer,
 )
 from sysreptor.conf import plugins
-from sysreptor.pentests.models import Language, ProjectMemberRole
+from sysreptor.pentests.models import Language, ProjectMemberRole, ReviewStatus
 from sysreptor.tasks.models import PeriodicTask
 from sysreptor.users.models import AuthIdentity
 from sysreptor.users.serializers import get_oauth
@@ -177,6 +177,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
 
         return Response({
             'languages': languages,
+            'statuses': ReviewStatus.get_definitions(),
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
             'auth_providers': auth_providers,
             'default_auth_provider': configuration.DEFAULT_AUTH_PROVIDER,
