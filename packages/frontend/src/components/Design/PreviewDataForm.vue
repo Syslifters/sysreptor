@@ -162,7 +162,7 @@ function updateFindingField(fieldId: string, value: any) {
 }
 function createField(definition: FieldDefinition): any {
   if (definition.type === FieldDataType.LIST) {
-    return [];
+    return definition.default || [];
   } else if (definition.type === FieldDataType.OBJECT) {
     return createObject(definition.properties!);
   }

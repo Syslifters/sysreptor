@@ -716,13 +716,16 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
             StringField(id='label', required=True),
             StringField(id='icon', required=False, pattern=r'^mdi-[a-zA-Z0-9-_]+$', help_text='Status icon to display in UI. Available icons: https://pictogrammers.com/library/mdi/'),
         ]),
-        # TODO: list default value not supported
-        # default=[
-        #     {'id': 'review-required', 'label': 'Review required', 'icon': 'mdi-check'},
-        #     {'id': 'needs-improvement', 'label': 'Needs improvement', 'icon': 'mdi-exclamation-thick'},
-        # ],
+        default=[
+            {'id': 'ready-for-review', 'label': 'Ready for review', 'icon': 'mdi-check'},
+            {'id': 'needs-improvement', 'label': 'Needs improvement', 'icon': 'mdi-exclamation-thick'},
+        ],
         required=False,
-        extra_info={'group': 'other', 'professional_only': True, 'validate': lambda l: len(l) == len(set([s['id'] for s in l]))},
+        extra_info={
+            'group': 'other',
+            'professional_only': True,
+            'validate': lambda l: len(l) == len(set([s['id'] for s in l])),
+        },
         help_text='Define custom statuses for findings and sections. In addition to the statuses defined here the statuses "in-progress" and "finished" are also available.',
     ),
 

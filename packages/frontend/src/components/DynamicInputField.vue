@@ -329,7 +329,7 @@
 
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
-import { omit, pick, uniq } from 'lodash-es';
+import { isEqual, omit, pick, uniq } from 'lodash-es';
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo, useCollabSubpaths } from '#imports';
 import { workerUrlPolicy } from '~/plugins/trustedtypes';
@@ -478,7 +478,7 @@ const label = computed(() => {
 
 function isEmptyOrDefault(value: any, definition: FieldDefinition): boolean {
   if (definition.type === FieldDataType.LIST) {
-    return value.length === 0 || value.every((v: any) => isEmptyOrDefault(v, definition.items!));
+    return !value || value.length === 0 || isEqual(value, definition.default) || value.every((v: any) => isEmptyOrDefault(v, definition.items!));
   } else if (definition.type === FieldDataType.OBJECT) {
     return !value || definition.properties!.every(d => isEmptyOrDefault(value[d.id], d));
   } else {

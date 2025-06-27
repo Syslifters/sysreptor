@@ -69,6 +69,7 @@ watch(() => modelValue, () => {
 @use "@base/assets/settings" as settings;
 
 :deep(.v-select__selection) {
+  white-space: nowrap;
   overflow: hidden;
 }
 

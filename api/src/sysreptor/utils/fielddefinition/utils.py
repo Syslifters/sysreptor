@@ -98,6 +98,8 @@ def ensure_defined_structure(value, definition: FieldDefinition|BaseField, handl
             else:
                 if handle_undefined == HandleUndefinedFieldsOptions.FILL_DEMO_DATA and definition.items.type != FieldDataType.USER:
                     return [ensure_defined_structure(value=None, definition=definition.items, handle_undefined=handle_undefined) for _ in range(2)]
+                elif handle_undefined == HandleUndefinedFieldsOptions.FILL_DEFAULT and isinstance(definition.default, list):
+                    return [ensure_defined_structure(value=e, definition=definition.items, handle_undefined=handle_undefined) for e in definition.default]
                 else:
                     return []
         elif definition.type == FieldDataType.MARKDOWN and not isinstance(value, str):
