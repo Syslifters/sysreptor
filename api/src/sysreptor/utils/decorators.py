@@ -41,6 +41,15 @@ def recursive_freeze(value):
         return value
 
 
+def recursive_unfreeze(value):
+    if isinstance(value, frozendict):
+        return dict({k: recursive_unfreeze(v) for k, v in value.items()})
+    elif isinstance(value, tuple):
+        return [recursive_unfreeze(v) for v in value]
+    else:
+        return value
+
+
 def freeze_args(func):
     """
     Transform mutable dictionnary into immutable.

@@ -39,7 +39,7 @@
       />
       <s-status-selection
         v-model="projectType.status"
-        :items="ProjectTypeStatusItems"
+        :include-deprecated="true"
         :readonly="readonly"
         variant="outlined"
         density="default"
@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { ProjectTypeStatusItems, useProjectTypeLockEditOptions } from "#imports";
+import { useProjectTypeLockEditOptions } from "#imports";
 import type { VForm } from 'vuetify/components';
 
 const auth = useAuth();

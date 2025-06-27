@@ -36,7 +36,6 @@ from sysreptor.pentests.models import (
     ProjectMemberRole,
     ProjectNotebookPage,
     ProjectType,
-    ProjectTypeStatus,
     ReviewStatus,
     ShareInfo,
     UploadedAsset,
@@ -188,7 +187,7 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
     project_type = ProjectType.objects.create(**{
         'name': f'Project Type #{get_random_string(8)}',
         'language': Language.ENGLISH_US,
-        'status': ProjectTypeStatus.FINISHED,
+        'status': ReviewStatus.FINISHED,
         'tags': ['web', 'example'],
         'report_sections': report_sections,
         'finding_fields': finding_fields_default() + additional_fields,

@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Plugin `excalidraw`: Integrate Excalidraw in SysReptor
+* Allow customizing finding/section statuses (https://docs.sysreptor.com/setup/configuration/#custom-statuses)
 * PDF viewer: fix single-letter shortcuts applied when typing in searchbar input
 * Fix scroll sync to wrong position on HTML blocks starting with `<br>` tags
 * UI: add blockquote button to markdown editor toolbar

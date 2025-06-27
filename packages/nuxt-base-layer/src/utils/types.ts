@@ -77,6 +77,12 @@ export type Language = {
     enabled: boolean,
 }
 
+export type ReviewStatusDefinition = {
+  id: string;
+  label: string;
+  icon?: string|null;
+}
+
 export enum AuthProviderType {
     LOCAL = 'local',
     REMOTEUSER = 'remoteuser',
@@ -121,6 +127,7 @@ export type ApiSettings = {
         readonly error: string|null;
     };
     readonly languages: Language[];
+    readonly statuses: ReviewStatusDefinition[];
     readonly project_member_roles: {
         readonly role: string;
         readonly default: boolean;
@@ -261,25 +268,8 @@ export enum ReviewStatus {
   READY_FOR_REVIEW = 'ready-for-review',
   NEEDS_IMPROVEMENT = 'needs-improvement',
   FINISHED = 'finished',
-}
-
-export const ReviewStatusItems = Object.freeze([
-  { value: ReviewStatus.IN_PROGRESS, title: 'In progress', icon: 'mdi-pencil' },
-  { value: ReviewStatus.READY_FOR_REVIEW, title: 'Ready for review', icon: 'mdi-check' },
-  { value: ReviewStatus.NEEDS_IMPROVEMENT, title: 'Needs improvement', icon: 'mdi-exclamation-thick' },
-  { value: ReviewStatus.FINISHED, title: 'Finished', icon: 'mdi-check-all' }
-]);
-
-export enum ProjectTypeStatus {
-  IN_PROGRESS = 'in-progress',
-  READY_FOR_REVIEW = 'ready-for-review',
-  NEEDS_IMPROVEMENT = 'needs-improvement',
-  FINISHED = 'finished',
   DEPRECATED = 'deprecated',
 }
-export const ProjectTypeStatusItems = Object.freeze((ReviewStatusItems as unknown as {value: ProjectTypeStatus, title: string, icon: string}[]).concat([
-  { value: ProjectTypeStatus.DEPRECATED, title: 'Deprecated', icon: 'mdi-close-octagon-outline' },
-]))
 
 export enum CommentStatus {
   OPEN = 'open',
@@ -330,7 +320,7 @@ export type ReportSection = BaseModel & {
   readonly language: string;
 
   assignee: UserShortInfo|null;
-  status: ReviewStatus|null;
+  status: string|null;
   data: Record<string, any>;
 }
 
@@ -344,7 +334,7 @@ export type PentestFinding = BaseModel & {
 
   order: number;
   assignee: UserShortInfo|null;
-  status: ReviewStatus|null;
+  status: string|null;
   data: Record<string, any>;
 };
 
@@ -409,7 +399,7 @@ export type FindingTemplateTranslation = BaseModel & {
   readonly risk_level: RiskLevel;
 
   language: string;
-  status: ReviewStatus;
+  status: string|null;
   is_main: boolean;
   data: {
     title: string,
@@ -506,7 +496,7 @@ export type ProjectType = BaseModel & Lockable & {
 
   name: string;
   language: string;
-  status: ProjectTypeStatus;
+  status: string|null;
   tags: string[];
 
   report_template: string;

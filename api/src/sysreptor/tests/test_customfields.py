@@ -97,6 +97,7 @@ from sysreptor.utils.fielddefinition.validators import FieldDefinitionValidator,
     (False, [{'id': 'f', 'type': 'object', 'label': 'Object Field', 'properties': [{'id': 'adsf'}]}]),
     (False, [{'id': 'f', 'type': 'list', 'label': 'List Field'}]),
     (False, [{'id': 'f', 'type': 'list', 'label': 'List Field', 'items': {}}]),
+    (False, [{'id': 'field_list', 'type': 'list', 'label': 'List Field', 'items': {'type': 'string'}, 'default': 'not a list'}]),
 ])
 def test_definition_formats(valid, definition):
     res_valid = True
@@ -114,7 +115,7 @@ def test_definition_formats(valid, definition):
     ),
     (
         {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'type': 'string', 'label': 'Item', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}},
-        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'id': '', 'type': 'string', 'label': 'Item', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}],
+        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': False, 'items': {'id': '', 'type': 'string', 'label': 'Item', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}],
     ),
     (
         {'f': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}},
@@ -122,7 +123,7 @@ def test_definition_formats(valid, definition):
     ),
     (
         {'f': {'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': {'nested': {'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}}}}},
-        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'required': False, 'items': {'id': '', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}}],
+        [{'id': 'f', 'type': 'list', 'label': 'List Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': False, 'items': {'id': '', 'type': 'object', 'label': 'Object Field', 'origin': 'custom', 'help_text': None, 'properties': [{'id': 'nested', 'type': 'string', 'label': 'String Field', 'origin': 'custom', 'help_text': None, 'default': None, 'required': True, 'spellcheck': True, 'pattern': None}]}}],
     ),
 ])
 def test_legacy_definition_format(definition_old, definition_new):
@@ -306,6 +307,26 @@ def test_update_field_values(definition, old_value, new_value):
 ])
 def test_definitions_compatible(compatible, a, b):
     assert check_definitions_compatible(parse_field_definition(a), parse_field_definition(b))[0] == compatible
+
+
+@pytest.mark.parametrize(('definition', 'expected'), [
+    ({'type': 'string'}, None),
+    ({'type': 'string', 'default': None}, None),
+    ({'type': 'string', 'default': 'default'}, 'default'),
+    ({'type': 'boolean'}, None),
+    ({'type': 'boolean', 'default': True}, True),
+    ({'type': 'boolean', 'default': False}, False),
+    ({'type': 'list', 'items': {'type': 'string'}}, []),
+    ({'type': 'list', 'items': {'type': 'string'}, 'default': None}, []),
+    ({'type': 'list', 'items': {'type': 'string'}, 'default': ['default', 'list']}, ['default', 'list']),
+    ({'type': 'object', 'properties': [{'id': 'p', 'type': 'string'}]}, {'p': None}),
+    ({'type': 'object', 'properties': [{'id': 'p', 'type': 'string', 'default': 'default'}]}, {'p': 'default'}),
+    ({'type': 'list', 'items': {'type': 'object', 'properties': [{'id': 'p', 'type': 'string', 'default': 'default'}]}, 'default': [{}]}, [{'p': 'default'}]),
+    ({'type': 'list', 'items': {'type': 'object', 'properties': [{'id': 'p', 'type': 'string', 'default': 'default'}]}, 'default': [{'p': 'list'}]}, [{'p': 'list'}]),
+])
+def test_ensure_defined_structure_fill_default(definition, expected):
+    actual = ensure_defined_structure(value={'f': None}, definition=parse_field_definition([{'id': 'f'} | definition]), handle_undefined=HandleUndefinedFieldsOptions.FILL_DEFAULT)
+    assert actual['f'] == expected
 
 
 def get_definition(definition: list[dict], path: str|tuple[str]):
@@ -689,7 +710,7 @@ class TestTemplateFieldDefinition:
     def test_change_field_type(self):
         self.project_type1.finding_fields = copy.deepcopy(self.project_type1.finding_fields)
         get_definition(self.project_type1.finding_fields, 'field1').update(
-            {'type': 'list', 'label': 'changed field type', 'items': {'type': 'string', 'default': 'default'}},
+            {'type': 'list', 'label': 'changed field type', 'items': {'type': 'string', 'default': 'default'}, 'default': None},
         )
         self.project_type1.save()
         self.template.refresh_from_db()

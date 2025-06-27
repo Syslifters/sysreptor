@@ -1,4 +1,4 @@
-import { type ApiSettings, type AuthProvider, type CWE, type LicenseInfoDetails, AuthProviderType } from '#imports';
+import { type ApiSettings, type AuthProvider, type CWE, type LicenseInfoDetails, type ReviewStatusDefinition, AuthProviderType, ReviewStatus } from '#imports';
 
 export const useApiSettings = defineStore('apisettings', {
   state: () => ({
@@ -67,8 +67,7 @@ export const useApiSettings = defineStore('apisettings', {
           this.getLicenseInfoSync = null;
         }
       }
-
-    }
+    },
   },
   getters: {
     isProfessionalLicense(): boolean {
@@ -95,6 +94,15 @@ export const useApiSettings = defineStore('apisettings', {
     spellcheckLanguageToolSupportedForLanguage() {
       return (lang?: string|null) => this.spellcheckLanguageToolSupported && 
         (!!this.settings!.languages.find(l => l.code === lang)?.spellcheck || lang === 'auto');
+    },
+    getStatusDefinition() {
+      return (status?: string|null): ReviewStatusDefinition => {
+        let out = this.settings?.statuses.find(s => s.id === status);
+        if (!out && status === ReviewStatus.DEPRECATED) {
+          out = {id: ReviewStatus.DEPRECATED, label: 'Deprecated', icon: 'mdi-close-octagon-outline'};
+        }
+        return out || {id: status || 'unknown', label: status || 'Unknown'};
+      }
     },
   }
 })

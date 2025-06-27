@@ -1,7 +1,7 @@
 <template>
-  <div v-if="statusInfo && statusInfo.value !== ReviewStatus.IN_PROGRESS" class="status-icon">
-    <v-icon size="small" :class="'status-' + statusInfo.value" :icon="statusInfo.icon" />
-    <s-tooltip activator="parent" :text="statusInfo.title" />
+  <div v-if="statusInfo && statusInfo.id !== ReviewStatus.IN_PROGRESS" class="status-icon">
+    <v-icon size="small" :class="'status-' + statusInfo.id" :icon="statusInfo.icon || 'mdi-help'" />
+    <s-tooltip activator="parent" :text="statusInfo.label" />
   </div>
 </template>
 
@@ -9,9 +9,11 @@
 import { ReviewStatus } from "#imports";
 
 const props = defineProps<{
-  value?: ReviewStatus|null;
+  value?: string|null;
 }>();
-const statusInfo = computed(() => ReviewStatusItems.find(i => i.value === props.value));
+
+const apiSettings = useApiSettings();
+const statusInfo = computed(() => apiSettings.getStatusDefinition(props.value));
 </script>
 
 <style lang="scss" scoped>

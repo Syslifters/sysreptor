@@ -11,7 +11,7 @@ from typing import Any
 from django.utils.deconstruct import deconstructible
 from frozendict import frozendict
 
-from sysreptor.utils.decorators import freeze_args
+from sysreptor.utils.decorators import freeze_args, recursive_unfreeze
 from sysreptor.utils.utils import copy_keys, is_date_string
 
 
@@ -232,6 +232,7 @@ class ObjectField(BaseField, FieldLookupMixin):
 class ListField(BaseField):
     items: BaseField = None
     required: bool = True
+    default: list|None = None
     type: FieldDataType = FieldDataType.LIST
 
     def __post_init__(self):
@@ -282,6 +283,8 @@ def _field_from_dict(t: type, v: dict|str|Any, additional_dataclass_args=None):
             return t(**dataclass_args)
         except TypeError:
             pass
+    elif (t is list or t == list|None) and isinstance(v, list|tuple):
+        return recursive_unfreeze(v)
 
     raise ValueError('Could not decode field definition', v)
 
@@ -370,6 +373,7 @@ def serialize_field_definition_legacy(definition: FieldDefinition) -> dict:
             field_data['properties'] = serialize_field_definition_legacy(definition=FieldDefinition(fields=f.properties))
         elif isinstance(f, ListField):
             field_data['items'] = serialize_field_definition_legacy(definition=FieldDefinition(fields=[f.items]))[f.items.id]
+            field_data.pop('default')
         field_dict[f.id] = field_data
     return field_dict
 

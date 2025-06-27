@@ -416,7 +416,8 @@ function updateType(type: FieldDataType) {
         (type === FieldDataType.ENUM && !(newObj.choices || []).find(c => c.value === def)) ||
         (type === FieldDataType.CWE && (!(def instanceof String) || !def.startsWith('CWE-'))) ||
         (type === FieldDataType.DATE) ||
-        (type === FieldDataType.USER)
+        (type === FieldDataType.USER) ||
+        (type === FieldDataType.LIST)
   ) {
     if (def !== null) {
       newObj.default = null;

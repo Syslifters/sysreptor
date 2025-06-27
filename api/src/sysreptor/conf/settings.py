@@ -30,6 +30,7 @@ from sysreptor.utils.fielddefinition.types import (
     JsonField,
     ListField,
     NumberField,
+    ObjectField,
     StringField,
 )
 from sysreptor.utils.language import Language
@@ -165,7 +166,6 @@ SPECTACULAR_SETTINGS = {
     'REDOC_DIST': 'SIDECAR',
     'ENUM_NAME_OVERRIDES': {
         'Language': 'sysreptor.pentests.models.Language',
-        'ReviewStatus': 'sysreptor.pentests.models.ReviewStatus',
         'ProjectTypeScope': 'sysreptor.pentests.models.ProjectTypeScope',
         'ProjectTypeScopeCreate': ['global', 'private'],
     },
@@ -709,6 +709,22 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         extra_info={'group': 'other', 'professional_only': False},
         help_text='PDFs are compressed via ghostscript when generating the final report (not in previews). '
                   'PDF compression reduces the file size, but can lead to quality loss of images and differences between the preview and the final PDF.'),
+    ListField(
+        id='STATUS_DEFINITIONS',
+        items=ObjectField(properties=[
+            StringField(id='id', required=True, pattern=r'^[a-zA-Z0-9_-]{1,50}$', help_text='Unique identifier for the status.'),
+            StringField(id='label', required=True),
+            StringField(id='icon', required=False, pattern=r'^mdi-[a-zA-Z0-9-_]+$', help_text='Status icon to display in UI. Available icons: https://pictogrammers.com/library/mdi/'),
+        ]),
+        default=[
+            {"id": "ready-for-review", "label": "Ready for review", "icon": "mdi-check"},
+            {"id": "needs-improvement", "label": "Needs improvement", "icon": "mdi-exclamation-thick"},
+        ],
+        required=False,
+        extra_info={'group': 'other', 'professional_only': True, 'validate': lambda l: len(l) == len(set([s['id'] for s in l]))},
+        help_text='Define custom statuses for findings and sections. In addition to the statuses defined here the statuses "in-progress" and "finished" are also available.',
+    ),
+
 
     BooleanField(
         id='DISABLE_SHARING',
