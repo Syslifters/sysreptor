@@ -195,7 +195,7 @@ SECURE_SSL_REDIRECT=on
 ```
 
 ### Proxy Server
-Set the proxy variables `HTTP_PROXY` and `HTTPS_PROXY` to allow outbound connections using a proxy server.
+Set the proxy variables `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` to allow outbound connections using a proxy server.
 
 ```bash title="Example:"
 HTTP_PROXY="http://192.168.0.111:8080"
