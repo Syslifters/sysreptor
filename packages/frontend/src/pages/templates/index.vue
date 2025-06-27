@@ -89,7 +89,7 @@ const templateStore = useTemplateStore();
 
 const listViewRef = useTemplateRef('listViewRef');
 
-const languageChoices = computed(() => [{ code: null as string|null, name: 'All' } as Language].concat(apiSettings.settings!.languages.filter(l => l.enabled || l.code === route.query.language)));
+const languageChoices = computed(() => [{ code: null as string|null, name: 'All' } as Language].concat((apiSettings.settings!.languages || []).filter(l => l.enabled || l.code === route.query.language)));
 const currentLanguage = computed({
   get: () => (Array.isArray(route.query.language) ? route.query.language[0] : route.query.language) || null,
   set: (val) => {
@@ -111,7 +111,7 @@ async function performCreate() {
       tags: [],
       translations: [{
         is_main: true,
-        language: apiSettings.settings!.languages[0]?.code || 'en-US',
+        language: apiSettings.settings!.languages?.[0]?.code || 'en-US',
         status: ReviewStatus.IN_PROGRESS,
         data: {
           title: 'TODO: New Template Title',

@@ -74,26 +74,26 @@ export const useApiSettings = defineStore('apisettings', {
       return this.settings?.license?.type === LicenseType.professional;
     },
     isLocalUserAuthEnabled(): boolean {
-      return this.settings!.auth_providers.some(p => p.type === AuthProviderType.LOCAL);
+      return this.settings?.auth_providers.some(p => p.type === AuthProviderType.LOCAL) || false;
     },
     oidcAuthProviders(): AuthProvider[] {
-      return this.settings!.auth_providers.filter(p => p.type === AuthProviderType.OIDC);
+      return this.settings?.auth_providers.filter(p => p.type === AuthProviderType.OIDC) || [];
     },
     remoteUserAuthProvider(): AuthProvider|null {
-      return this.settings!.auth_providers.find(p => p.type === AuthProviderType.REMOTEUSER) || null;
+      return this.settings?.auth_providers.find(p => p.type === AuthProviderType.REMOTEUSER) || null;
     },
     ssoAuthProviders(): AuthProvider[] {
-      return this.settings!.auth_providers.filter(p => [AuthProviderType.OIDC, AuthProviderType.REMOTEUSER].includes(p.type));
+      return this.settings?.auth_providers.filter(p => [AuthProviderType.OIDC, AuthProviderType.REMOTEUSER].includes(p.type)) || [];
     },
     isSsoEnabled(): boolean {
       return this.ssoAuthProviders.length > 0;
     },
     spellcheckLanguageToolSupported(): boolean {
-      return this.settings?.features?.spellcheck || false;
+      return this.settings?.features.spellcheck || false;
     },
     spellcheckLanguageToolSupportedForLanguage() {
       return (lang?: string|null) => this.spellcheckLanguageToolSupported && 
-        (!!this.settings!.languages.find(l => l.code === lang)?.spellcheck || lang === 'auto');
+        (!!this.settings?.languages.find(l => l.code === lang)?.spellcheck || lang === 'auto');
     },
     getStatusDefinition() {
       return (status?: string|null): ReviewStatusDefinition => {

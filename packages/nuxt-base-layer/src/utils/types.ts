@@ -122,42 +122,46 @@ export type PluginMenuEntry = {
 }
 
 export type ApiSettings = {
-    readonly license: {
-        readonly type: LicenseType;
-        readonly error: string|null;
-    };
-    readonly languages: Language[];
-    readonly statuses: ReviewStatusDefinition[];
-    readonly project_member_roles: {
-        readonly role: string;
-        readonly default: boolean;
-    }[];
-    readonly auth_providers: AuthProvider[];
-    readonly default_auth_provider: string|null;
-    readonly default_reauth_provider: string|null;
-    readonly elastic_apm_rum_config: any|null;
-    readonly archiving_threshold: number;
-    readonly features: {
-        readonly private_designs: boolean;
-        readonly spellcheck: boolean;
-        readonly archiving: boolean;
-        readonly permissions: boolean;
-        readonly backup: boolean;
-        readonly websockets: boolean;
-        readonly sharing: boolean;
-        readonly forgot_password: boolean;
-    };
-    readonly permissions: {
-      readonly guest_users_can_import_projects: boolean;
-      readonly guest_users_can_create_projects: boolean;
-      readonly guest_users_can_delete_projects: boolean;
-      readonly guest_users_can_update_project_settings: boolean;
-      readonly guest_users_can_edit_projects: boolean;
-      readonly guest_users_can_share_notes: boolean;
-      readonly guest_users_can_see_all_users: boolean;
-      readonly project_members_can_archive_projects: boolean;
-    };
-    readonly plugins: PluginConfig[];
+  // Public settings
+  readonly auth_providers: AuthProvider[];
+  readonly default_auth_provider: string|null;
+  readonly default_reauth_provider: string|null;
+  readonly elastic_apm_rum_config: any|null;
+  readonly languages: Language[];
+  readonly license: {
+      readonly type: LicenseType;
+      readonly error: string|null;
+  };
+  readonly plugins: PluginConfig[];
+
+  // Authenticated settings
+  readonly statuses: ReviewStatusDefinition[];
+  readonly project_member_roles?: {
+    readonly role: string;
+    readonly default: boolean;
+  }[];
+  readonly archiving_threshold?: number;
+  readonly features: {
+    readonly websockets: boolean;
+    readonly forgot_password: boolean;
+
+    readonly private_designs?: boolean;
+    readonly spellcheck?: boolean;
+    readonly archiving?: boolean;
+    readonly permissions?: boolean;
+    readonly backup?: boolean;
+    readonly sharing?: boolean;
+  };
+  readonly permissions: {
+    readonly guest_users_can_import_projects?: boolean;
+    readonly guest_users_can_create_projects?: boolean;
+    readonly guest_users_can_delete_projects?: boolean;
+    readonly guest_users_can_update_project_settings?: boolean;
+    readonly guest_users_can_edit_projects?: boolean;
+    readonly guest_users_can_share_notes?: boolean;
+    readonly guest_users_can_see_all_users?: boolean;
+    readonly project_members_can_archive_projects?: boolean;
+  };
 }
 
 export type LicenseInfoDetails = {

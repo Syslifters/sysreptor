@@ -88,7 +88,7 @@ const archiveCheck = await useFetchE<ArchiveCheckResult>(`/api/v1/pentestproject
 
 const allArchiverUsers = computed(() => sortBy(archiveCheck.value.users, [u => !u.can_restore, 'created']));
 const archiverUsers = computed(() => allArchiverUsers.value.filter(u => u.can_restore));
-const threshold = computed(() => apiSettings.settings!.archiving_threshold);
+const threshold = computed(() => apiSettings.settings!.archiving_threshold!);
 const canArchive = computed(() => apiSettings.settings!.features.archiving && threshold.value > 0 && threshold.value <= archiverUsers.value.length);
 const warnings = computed(() => {
   const out = [] as ErrorMessage[];

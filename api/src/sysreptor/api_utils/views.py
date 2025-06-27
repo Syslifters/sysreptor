@@ -161,7 +161,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
         }).get(*args, **kwargs)
 
     @extend_schema(responses=OpenApiTypes.OBJECT)
-    @action(detail=False, url_name='settings', url_path='settings')
+    @action(detail=False, url_name='settings', url_path='settings', authentication_classes=api_settings.DEFAULT_AUTHENTICATION_CLASSES)
     def settings_endpoint(self, request, *args, **kwargs):
         languages = [{
             'code': l.value,
@@ -175,27 +175,43 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
             ([{'type': AuthIdentity.PROVIDER_REMOTE_USER, 'id': AuthIdentity.PROVIDER_REMOTE_USER, 'name': 'Remote User'}] if configuration.REMOTE_USER_AUTH_ENABLED and license.is_professional() else []) + \
             ([{'type': 'oidc', 'id': k, 'name': v[1].get('label', k)} for k, v in (get_oauth()._registry or {}).items()] if license.is_professional() else [])
 
-        return Response({
-            'languages': languages,
-            'statuses': ReviewStatus.get_definitions(),
-            'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
+        public_settings = {
             'auth_providers': auth_providers,
             'default_auth_provider': configuration.DEFAULT_AUTH_PROVIDER,
             'default_reauth_provider': configuration.DEFAULT_REAUTH_PROVIDER,
             'elastic_apm_rum_config': settings.ELASTIC_APM_RUM_CONFIG if settings.ELASTIC_APM_RUM_ENABLED else None,
-            'archiving_threshold': int(configuration.ARCHIVING_THRESHOLD),
+            'languages': languages,
             'license': copy_keys(license.check_license(), ['type', 'error']),
             'features': {
+                'websockets': not settings.DISABLE_WEBSOCKETS,
+                'forgot_password': license.is_professional() and configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and bool(settings.EMAIL_HOST),
+            },
+            'permissions': {},
+            'plugins': [
+                {
+                    'id': p.plugin_id,
+                    'name': p.name.split('.')[-1],
+                    'frontend_entry': p.get_frontend_entry(request),
+                    'frontend_settings': p.get_frontend_settings(request),
+                } for p in plugins.enabled_plugins
+            ],
+        }
+        if not request.user.is_authenticated:
+            return Response(public_settings)
+
+        return Response(public_settings | {
+            'statuses': ReviewStatus.get_definitions(),
+            'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
+            'archiving_threshold': int(configuration.ARCHIVING_THRESHOLD),
+            'features': public_settings['features'] | {
                 'private_designs': configuration.ENABLE_PRIVATE_DESIGNS,
                 'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
                 'archiving': license.is_professional(),
                 'permissions': license.is_professional(),
                 'backup': bool(settings.BACKUP_KEY and license.is_professional()),
-                'websockets': not settings.DISABLE_WEBSOCKETS,
                 'sharing': not configuration.DISABLE_SHARING,
-                'forgot_password': license.is_professional() and configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and bool(settings.EMAIL_HOST),
             },
-            'permissions': {
+            'permissions': public_settings['permissions'] | {
                 'guest_users_can_import_projects': configuration.GUEST_USERS_CAN_IMPORT_PROJECTS,
                 'guest_users_can_create_projects': configuration.GUEST_USERS_CAN_CREATE_PROJECTS,
                 'guest_users_can_delete_projects': configuration.GUEST_USERS_CAN_DELETE_PROJECTS,
@@ -205,14 +221,6 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'guest_users_can_see_all_users': configuration.GUEST_USERS_CAN_SEE_ALL_USERS,
                 'project_members_can_archive_projects': configuration.PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS,
             },
-            'plugins': [
-                {
-                    'id': p.plugin_id,
-                    'name': p.name.split('.')[-1],
-                    'frontend_entry': p.get_frontend_entry(request),
-                    'frontend_settings': p.get_frontend_settings(request),
-                } for p in plugins.enabled_plugins
-            ],
         })
 
 
