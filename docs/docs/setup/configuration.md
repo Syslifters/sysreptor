@@ -414,3 +414,15 @@ GUEST_USERS_CAN_DELETE_PROJECTS=True
 GUEST_USERS_CAN_SEE_ALL_USERS=False
 ```
 
+### Custom Statuses
+It is possible to define custom statuses for findings and sections. 
+In addition to the custom statuses the statuses "in-progress" and "finished" are always available.
+By default, the statuses "ready-for-review" and "needs-improvement" are also available.
+
+``` title="Example:"
+STATUS_DEFINITIONS='[
+  {"id": "ready-for-review", "label": "Ready for review", "icon": "mdi-check"},
+  {"id": "needs-improvement", "label": "Needs improvement", "icon": "mdi-exclamation-thick"},
+]'
+```
+
