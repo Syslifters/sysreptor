@@ -38,7 +38,7 @@ type PDFViewerApplicationConfig = {
     numPages: HTMLElement;
 
     download: HTMLButtonElement;
-  },
+  };
   findBar: {
     findbar: HTMLElement;
     findInput: HTMLInputElement;
@@ -47,7 +47,14 @@ type PDFViewerApplicationConfig = {
     findPrevious: HTMLButtonElement;
     findNext: HTMLButtonElement;
     findClose: HTMLButtonElement;
-  }
+  };
+  sidebar: {
+    outerContainer: HTMLElement;
+    sidebarContainer: HTMLElement;
+    toggleButton: HTMLButtonElement;
+    sidebarResizer: HTMLElement;
+    outlineView: HTMLElement;
+  };
 }
 
 type FindUpdateEvent = {
@@ -136,6 +143,126 @@ class FindbarView {
 }
 
 
+class PDFOutlineViewer {
+
+}
+
+class SidebarView {
+  viewer: PDFViewerApplicationClass;
+  pdfOutlineViewer: PDFOutlineViewer;
+  isOpen = false;
+
+  mouseAC: AbortController|null = null;
+  width: number|null = null;
+
+  constructor(viewer: PDFViewerApplicationClass) {
+    this.viewer = viewer;
+    this.pdfOutlineViewer = new PDFOutlineViewer();
+
+    this.addEventListeners();
+
+    // Initially hide the sidebar
+    this.close();
+  }
+
+  addEventListeners() {
+    this.viewer.config.sidebar.outerContainer.addEventListener('transitionend', e =>  {
+      if (e.target === this.viewer.config.sidebar.outerContainer) {
+        this.viewer.config.sidebar.outerContainer.classList.remove('sidebarMoving');
+        this.viewer.eventBus.dispatch('resize', { source: this });
+      }
+    });
+    this.viewer.config.sidebar.toggleButton.addEventListener('click', () => this.toggle());
+
+    // Handle resizing of the sidebar.
+    this.viewer.config.sidebar.sidebarResizer.addEventListener("mousedown", evt => {
+      if (evt.button !== 0) {
+        return;
+      }
+      // Disable the `transition-duration` rules when sidebar resizing begins,
+      // in order to improve responsiveness and to avoid visual glitches.
+      this.viewer.config.sidebar.outerContainer.classList.add('sidebarResizing');
+
+      this.mouseAC = new AbortController();
+      const opts = { signal: this.mouseAC.signal };
+
+      window.addEventListener("mousemove", (e) => this.updateWidth(e.clientX), opts);
+      window.addEventListener("mouseup", () => this.mouseUp(), opts);
+      window.addEventListener("blur",() => this.mouseUp(), opts);
+    });
+
+    this.viewer.eventBus.on('resize', (e: { source: any }) => {
+      if (e.source !== window || !this.width) {
+        return;
+      }
+
+      if (!this.isOpen) {
+        this.updateWidth(this.width);
+      }
+      this.viewer.config.sidebar.outerContainer.classList.add('sidebarResizing');
+      const updated = this.updateWidth(this.width);
+
+      Promise.resolve().then(() => {
+        this.viewer.config.sidebar.outerContainer.classList.remove('sidebarResizing');
+        // Trigger rendering if the sidebar width changed, to avoid
+        // depending on the order in which 'resize' events are handled.
+        if (updated) {
+          this.viewer.eventBus.dispatch("resize", { source: this });
+        }
+      });
+    })
+  }
+
+  mouseUp() {
+    // Re-enable the `transition-duration` rules when sidebar resizing ends...
+    this.viewer.config.sidebar.outerContainer.classList.remove('sidebarResizing');
+    // ... and ensure that rendering will always be triggered.
+    this.viewer.eventBus.dispatch("resize", { source: this });
+
+    this.mouseAC?.abort();
+    this.mouseAC = null;
+  }
+
+  updateWidth(width: number = 0) {
+    // Prevent the sidebar from becoming too narrow, or from occupying more
+    // than half of the available viewer width.
+    const minWidth = 200;
+    const maxWidth = Math.floor(this.viewer.config.appContainer.clientWidth / 2);
+    width = Math.max(Math.min(width, maxWidth), minWidth);
+
+    // Only update the UI when the sidebar width did in fact change.
+    if (width === this.width) {
+      return false;
+    }
+    this.width = width;
+
+    document.documentElement.style.setProperty('--sidebar-width', `${width}px`);
+    return true;
+  }
+
+  toggle() {
+    if (this.isOpen) {
+      this.close();
+    } else {
+      this.open();
+    }
+  }
+
+  open() {
+    this.isOpen = true;
+    this.viewer.config.sidebar.outerContainer.classList.add('sidebarOpen', 'sidebarMoving');
+    this.viewer.config.sidebar.toggleButton.classList.add('toggled'); 
+  }
+
+  close() {
+    this.isOpen = false;
+    this.viewer.config.sidebar.outerContainer.classList.remove('sidebarOpen');
+    this.viewer.config.sidebar.outerContainer.classList.add('sidebarMoving');
+    this.viewer.config.sidebar.toggleButton.classList.remove('toggled');
+  }
+}
+
+
 class PDFViewerApplicationClass {
   config: PDFViewerApplicationConfig;
 
@@ -150,6 +277,7 @@ class PDFViewerApplicationClass {
   touchManager: TouchManager;
 
   findbarView: FindbarView;
+  sidebarView: SidebarView;
   _isCtrlKeyDown = false;
   _wheelUnusedTicks = 0;
   _wheelUnusedFactor = 0;
@@ -201,6 +329,7 @@ class PDFViewerApplicationClass {
     this.linkService.setViewer(this.pdfViewer);
 
     this.findbarView = new FindbarView(this);
+    this.sidebarView = new SidebarView(this);
 
     config.toolbar.zoomIn.addEventListener("click", () => this.updateZoom(1));
     config.toolbar.zoomOut.addEventListener("click", () => this.updateZoom(-1));
@@ -591,7 +720,14 @@ function webViewerLoad() {
       findPrevious: document.getElementById('findPrevious') as HTMLButtonElement,
       findNext: document.getElementById('findNext') as HTMLButtonElement,
       findClose: document.getElementById('findClose') as HTMLButtonElement,
-    }
+    },
+    sidebar: {
+      outerContainer: document.getElementById('outerContainer') as HTMLElement,
+      sidebarContainer: document.getElementById('sidebarContainer') as HTMLElement,
+      toggleButton: document.getElementById('toggleButton') as HTMLButtonElement,
+      sidebarResizer: document.getElementById('sidebarResizer') as HTMLElement,
+      outlineView: document.getElementById('outlineView') as HTMLElement,
+    },
   });
   // Make PDFViewerApplication globally available
   (window as any).PDFViewerApplication = PDFViewerApplication;
@@ -605,6 +741,13 @@ function webViewerLoad() {
     // Load PDF
     await PDFViewerApplication.open({ data: msg.data as Uint8Array });
   });
+
+  // TODO: debug only
+  async function loadDummyPdf() {
+    const data = new Uint8Array(await (await fetch('./document.pdf', { method: 'GET' })).arrayBuffer());
+    await PDFViewerApplication.open({ data });
+  }
+  loadDummyPdf();
 }
 
 
@@ -613,3 +756,4 @@ if (document.readyState === "interactive" || document.readyState === "complete")
 } else {
   document.addEventListener("DOMContentLoaded", webViewerLoad, true);
 }
+

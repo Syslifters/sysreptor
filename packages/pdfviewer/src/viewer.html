@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="google" content="notranslate">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; worker-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; worker-src 'self'; connect-src 'self';">
     <title>PDF Viewer</title>
     <link rel="stylesheet" href="./viewer.css">
     <script type="module" src="./viewer.ts"></script>
@@ -12,6 +12,13 @@
 
   <body>
     <div id="outerContainer">
+      <div id="sidebarContainer">
+        <div id="sidebarContent">
+          <div id="outlineView"></div>
+        </div>
+        <div id="sidebarResizer"></div>
+      </div>
+
       <div id="mainContainer">
         <div id="findbar" class="findbar hidden" role="search">
           <div class="findbar-container">
@@ -37,9 +44,13 @@
         <div class="toolbar" role="navigation">
           <div id="toolbarContainer">
             <div id="toolbarViewer">
-              <div id="toolbarViewerMiddle">
-                <div id="disabled" class="hidden"></div>
+              <div id="toolbarViewerLeft">
+                <button id="toggleButton" class="toolbarButton hiddenMediumView" tabindex="0" aria-expanded="false" aria-haspopup="true" aria-controls="sidebarContainer">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>
+                </button>
+              </div>
 
+              <div id="toolbarViewerMiddle">
                 <input type="number" id="pageNumber" class="toolbarField" title="Page" value="1" min="1" tabindex="15" autocomplete="off" aria-label="Page number">
                 <span id="numPages" class="toolbarLabel" aria-hidden="true"></span>
 

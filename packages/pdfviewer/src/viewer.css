@@ -1,26 +1,27 @@
 @import 'pdfjs-dist/web/pdf_viewer.css';
 
 :root {
- /* Modern color palette */
- --body-bg-color: #f5f5f7;
- --main-color: #2c2c2e;
- --accent-color: #aabb11;
- --accent-hover: #aabb11;
- --toolbar-height: 32px;
- --toolbar-bg-color: rgba(255, 255, 255, 1);
- --toolbar-border-color: rgba(0, 0, 0, 0.1);
- --field-color: #2c2c2e;
- --field-height: 24px;
- --field-bg-color: rgba(240, 240, 245, 1);
- --field-border-color: rgba(210, 210, 215, 1);
- --hover-bg-color: rgba(235, 235, 240, 1);
- 
- /* Transitions */
- --transition-speed: 0.2s;
- 
- /* Shadows */
- --toolbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
- --button-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  /* Modern color palette */
+  --body-bg-color: #f5f5f7;
+  --main-color: #2c2c2e;
+  --accent-color: #aabb11;
+  --accent-hover: #aabb11;
+  --toolbar-height: 32px;
+  --toolbar-bg-color: rgba(255, 255, 255, 1);
+  --toolbar-border-color: rgba(0, 0, 0, 0.1);
+  --field-color: #2c2c2e;
+  --field-height: 24px;
+  --field-bg-color: rgba(240, 240, 245, 1);
+  --field-border-color: rgba(210, 210, 215, 1);
+  --hover-bg-color: rgba(235, 235, 240, 1);
+  --sidebar-width: 200px;
+
+  /* Transitions */
+  --transition-speed: 0.2s;
+
+  /* Shadows */
+  --toolbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --button-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 html {
@@ -65,26 +66,23 @@ body {
   width: 100%;
   height: 100%;
   position: relative;
+  margin: 0;
 }
 #mainContainer {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   min-width: 350px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
 }
 #viewerContainer {
   overflow: auto;
   position: absolute;
-  top: var(--toolbar-height);
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: var(--toolbar-height) 0 0;
   outline: none;
-  background-color: var(--body-bg-color);
-  transition: background-color var(--transition-speed) ease;
-  padding: 0.5rem;
+  z-index: 0;
+  transition: inset-inline-start var(--transition-speed) ease;
 }
 
 
@@ -112,7 +110,7 @@ body {
   align-items: center;
   gap: 0.2rem;
 }
-#toolbarViewerRight {
+#toolbarViewerLeft, #toolbarViewerRight {
   display: flex;
   align-items: center;
 }
@@ -228,6 +226,17 @@ body {
       transform: scale(1.1);
     }
   }
+
+  &.toggled {
+    background-color: var(--hover-bg-color);
+
+    &:hover {
+      outline: none !important;
+      &:active {
+        background-color: var(--hover-bg-color);
+      }
+    }
+  }
 }
 
 
@@ -283,4 +292,66 @@ body {
 }
 :is(#findResultsCount, #findMsg):empty {
   display: none;
+}
+
+
+
+#sidebarContainer {
+  position: absolute;
+  inset-block: var(--toolbar-height) 0;
+  inset-inline-start: calc(-1 * var(--sidebar-width));
+  width: var(--sidebar-width);
+  visibility: hidden;
+  z-index: 1;
+  border-top: 1px solid transparent;
+  border-inline-end: 1px solid var(--toolbar-border-color);
+  transition: inset-inline-start var(--transition-speed) ease;
+  background-color: var(--toolbar-bg-color);
+  border-right: 1px solid var(--toolbar-border-color);
+
+  #sidebarContent {
+    inset-block: var(--toolbar-height) 0;
+    inset-inline-start: 0;
+    overflow: auto;
+    position: absolute;
+    width: 100%;
+    box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.25);
+  }
+
+  #sidebarResizer {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: -6px;
+    width: 6px;
+    z-index: 200;
+    cursor: ew-resize;
+  }
+}
+
+#outerContainer:is(.sidebarMoving, .sidebarOpen) #sidebarContainer {
+  visibility: visible;
+}
+#outerContainer.sidebarOpen #sidebarContainer {
+  inset-inline-start: 0;
+}
+#outerContainer.sidebarOpen #viewerContainer {
+  inset-inline-start: var(--sidebar-width);
+  transition-property: inset-inline-start;
+}
+#outerContainer.sidebarOpen #loadingBar {
+  inset-inline-start: var(--sidebar-width);
+}
+#outerContainer.sidebarResizing :is(#sidebarContainer, #viewerContainer, #loadingBar) {
+  /* Improve responsiveness and avoid visual glitches when the sidebar is resized. */
+  transition-duration: 0s;
+}
+
+
+@media all and (max-width: 750px) {
+  #outerContainer .hiddenMediumView {
+    display: none !important;
+  }
+  #outerContainer.sidebarOpen #viewerContainer {
+    inset-inline-start: 0 !important;
+  }
 }
