@@ -7,9 +7,9 @@ services:
     image: 'postgres:14'
     container_name: 'sysreptor-db'
     environment:
-      POSTGRES_USER: reportcreator
-      POSTGRES_PASSWORD: reportcreator
-      POSTGRES_DB: reportcreator
+      POSTGRES_USER: ${POSTGRES_USER:-reportcreator}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-reportcreator}
+      POSTGRES_DB: ${POSTGRES_NAME:-reportcreator}
       PGDATA: /data
     volumes:
       - type: volume
