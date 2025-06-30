@@ -20,7 +20,7 @@ dependencies = [
 
   "psycopg[binary,pool] (~=3.1)",
   "gunicorn (~=23.0)",
-  "uvicorn[standard] (~=0.34)",
+  "uvicorn[standard] (~=0.35)",
   "whitenoise[brotli] (~=6.4)",
   "channels[daphne] (~=4.2)",
   "channels-redis (~=4.2)",
@@ -42,7 +42,7 @@ dependencies = [
   "lorem-text (~=3.0)",
   "randomcolor (~=0.4)",
   "zipstream-ng (~=1.6)",
-  "playwright (~=1.32)",
+  "playwright (~=1.53)",
   "pikepdf (~=9.0)",
   "celery (~=5.3)",
   "psutil (~=7.0)",
@@ -57,7 +57,7 @@ dependencies = [
   "pytest-cov (~=6.0)",
 
   "pip-licenses-cli (~=1.0)",
-  "ruff (~=0.9)",
+  "ruff (~=0.12)",
 ]
 
 
