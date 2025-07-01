@@ -1,6 +1,6 @@
 <template>
   <v-toolbar ref="toolbarRef" density="compact" flat class="toolbar">
-    <template v-if="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW && smAndUp">
+    <template v-if="props.markdownEditorMode !== MarkdownEditorMode.PREVIEW && toolbarWidth >= thresholds.sm">
       <markdown-toolbar-button @click="codemirrorAction(toggleStrong)" title="Bold (Ctrl+B)" icon="mdi-format-bold" :disabled="props.disabled" :active="activeActions.strong" />
       <markdown-toolbar-button @click="codemirrorAction(toggleEmphasis)" title="Italic (Ctrl+I)" icon="mdi-format-italic" :disabled="props.disabled" :active="activeActions.italic" />
       <markdown-toolbar-button @click="codemirrorAction(toggleStrikethrough)" title="Strikethrough" icon="mdi-format-strikethrough" :disabled="props.disabled" :active="activeActions.strikethrough" />
@@ -84,7 +84,7 @@
       variant="plain"
       rounded="0"
       class="toggle-mdemode"
-      :class="{ 'toggle-mdemode-icononly': sm }"
+      :class="{ 'toggle-mdemode-icononly': toolbarWidth <= thresholds.sm }"
     >
       <v-btn
         :value="MarkdownEditorMode.MARKDOWN"
@@ -153,8 +153,6 @@ const emit = defineEmits<{
 }>();
 
 const apiSettings = useApiSettings();
-const { smAndUp, sm, lgAndUp } = useDisplay();
-
 const additionalContentId = useId();
 
 const editorState = computed(() => props.editorState);
@@ -240,12 +238,19 @@ async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
   }
 }
 
-const hasSplitMode = computed(() => !props.hideSplitMode && lgAndUp.value);
+
+const { thresholds } = useDisplay();
+const { width: toolbarWidth } = useElementSize(toolbarRef);
+const hasSplitMode = computed(() => !props.hideSplitMode && toolbarWidth.value >= thresholds.value.md);
 watch(hasSplitMode, () => {
   if (!hasSplitMode.value && props.markdownEditorMode === MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
     setMarkdownEditorMode(MarkdownEditorMode.MARKDOWN);
   }
 }, { immediate: true });
+
+watch([thresholds, toolbarWidth, hasSplitMode], () => {
+  console.log('resize', toolbarWidth.value, thresholds.value.md, hasSplitMode.value)
+})
 
 
 function emitCreateComment() {
