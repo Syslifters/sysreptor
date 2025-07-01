@@ -102,7 +102,7 @@ report_template = """
 <markdown>
     # Exam Objectives (Read Carefully) {.in-toc.numbered}
     To be awarded the HTB Certified Defensive Security Analyst (CDSA) certification, you must:
-    * Obtain a minimum of 85 points while investigating <span class="highlight">Incident 1</span> by submitting 17 out of the 20 flags listed below <span class="highlight">AND</span>
+    * Obtain a minimum of 80 points while investigating <span class="highlight">Incident 1</span> by submitting 16 out of the 20 flags listed below <span class="highlight">AND</span>
     * Compose and submit a commercial-grade security incident report **for both incidents** that encompasses an <span class="highlight">Executive Summary</span> and <span class="highlight">Technical Analysis</span> sections <span class="highlight">for each incident</span>, adhering strictly to the format and content outlined in the <span class="highlight">Security Incident Reporting</span> module.
         * <u>While the Impact Analysis and the Response and Recovery Analysis, including diagrams, can be excluded, the Technical Analysis for both incidents must be exceptionally thorough.</u>
         * <u>Each stage of the cyber kill chain needs to be addressed, and any activities related to process injection should be scrutinized thoroughly, considering aspects like the origin, destination, and whether a process was sacrificial.</u>
