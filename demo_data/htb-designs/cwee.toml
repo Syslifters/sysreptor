@@ -25,6 +25,19 @@ report_template = """
 </div>
 
 
+<section id="page-warning" data-sysreptor-generated="page-cover">
+    <h1>⚠️ WARNING:<br>DO NOT SUBMIT THIS PDF</h1>
+    <p class="text-warning">
+        CWEE requires submissions in markdown format.<br>
+        If you submit a PDF, you will fail the certification.
+    </p>
+    <p>
+        Copy fields from SysReptor into a plain markdown document. Add images to a <code>/assets/</code> directory and exploit scripts to a <code>/exploits/</code> directory and create a <code>.zip</code> file.
+    </p>
+    <pagebreak />
+</section>
+
+
 <section id="page-cover" data-sysreptor-generated="page-cover">
     <img id="page-cover-logo" src="/assets/name/logo-transparent.png" alt="">
     <div id="page-cover-logo-title">
@@ -707,6 +720,43 @@ footnote {
     margin-left: 2em;
 }
 /* #endregion toc */
+
+
+/* #region page-warning */
+#page-warning {
+    page: page-warning;
+}
+@page page-warning {
+    /* Hide header */
+    @top-left-corner { content: none !important; }
+    @top-left { content: none !important; }
+    @top-center { content: none !important; }
+    @top-right { content: none !important; }
+    @top-right-corner { content: none !important; }
+    /* Hide footer */
+    @bottom-left-corner { content: none !important; }
+    @bottom-left { content: none !important; }
+    @bottom-center { content: none !important; }
+    @bottom-right { content: none !important; }
+    @bottom-right-corner { content: none !important; }
+}
+#page-warning {
+    text-align: center;
+}
+#page-warning h1 {
+    font-size: 35pt;
+    font-weight: bold;
+    margin-top: 2cm;
+    color: var(--color-risk-high);
+}
+#page-warning p {
+    font-size: 14pt;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 1cm;
+}
+/* #endregion page-warning */
+
 """
 
 [[report_sections]]
