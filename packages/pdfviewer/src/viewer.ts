@@ -18,6 +18,7 @@ import {
   PDFFindController,
   FindState,
 } from 'pdfjs-dist/web/pdf_viewer.mjs';
+import { PDFOutlineViewer } from './outline';
 
 // Set up the PDF.js worker
 GlobalWorkerOptions.workerPort = new Worker(new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url), { type: 'module' });
@@ -143,10 +144,6 @@ class FindbarView {
 }
 
 
-class PDFOutlineViewer {
-
-}
-
 class SidebarView {
   viewer: PDFViewerApplicationClass;
   pdfOutlineViewer: PDFOutlineViewer;
@@ -157,7 +154,11 @@ class SidebarView {
 
   constructor(viewer: PDFViewerApplicationClass) {
     this.viewer = viewer;
-    this.pdfOutlineViewer = new PDFOutlineViewer();
+    this.pdfOutlineViewer = new PDFOutlineViewer({
+      container: viewer.config.sidebar.outlineView,
+      eventBus: viewer.eventBus,
+      linkService: viewer.linkService,
+    });
 
     this.addEventListeners();
 
@@ -167,7 +168,7 @@ class SidebarView {
 
   addEventListeners() {
     this.viewer.config.sidebar.outerContainer.addEventListener('transitionend', e =>  {
-      if (e.target === this.viewer.config.sidebar.outerContainer) {
+      if (e.target === this.viewer.config.sidebar.sidebarContainer) {
         this.viewer.config.sidebar.outerContainer.classList.remove('sidebarMoving');
         this.viewer.eventBus.dispatch('resize', { source: this });
       }
@@ -226,7 +227,7 @@ class SidebarView {
   updateWidth(width: number = 0) {
     // Prevent the sidebar from becoming too narrow, or from occupying more
     // than half of the available viewer width.
-    const minWidth = 200;
+    const minWidth = 250;
     const maxWidth = Math.floor(this.viewer.config.appContainer.clientWidth / 2);
     width = Math.max(Math.min(width, maxWidth), minWidth);
 
@@ -251,14 +252,12 @@ class SidebarView {
   open() {
     this.isOpen = true;
     this.viewer.config.sidebar.outerContainer.classList.add('sidebarOpen', 'sidebarMoving');
-    this.viewer.config.sidebar.toggleButton.classList.add('toggled'); 
   }
 
   close() {
     this.isOpen = false;
     this.viewer.config.sidebar.outerContainer.classList.remove('sidebarOpen');
     this.viewer.config.sidebar.outerContainer.classList.add('sidebarMoving');
-    this.viewer.config.sidebar.toggleButton.classList.remove('toggled');
   }
 }
 
@@ -498,6 +497,7 @@ class PDFViewerApplicationClass {
       this.pdfDocument = pdfDocument;
       this.pdfViewer.setDocument(pdfDocument);
       this.linkService.setDocument(pdfDocument);
+      this.sidebarView.pdfOutlineViewer.setDocument(this.pdfDocument);
     } catch (err) {
       let key = "pdfjs-loading-error";
       const reason = err as Error;
@@ -741,13 +741,6 @@ function webViewerLoad() {
     // Load PDF
     await PDFViewerApplication.open({ data: msg.data as Uint8Array });
   });
-
-  // TODO: debug only
-  async function loadDummyPdf() {
-    const data = new Uint8Array(await (await fetch('./document.pdf', { method: 'GET' })).arrayBuffer());
-    await PDFViewerApplication.open({ data });
-  }
-  loadDummyPdf();
 }
 
 

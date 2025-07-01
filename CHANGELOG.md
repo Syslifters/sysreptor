@@ -5,6 +5,7 @@
 * Allow customizing finding/section statuses (https://docs.sysreptor.com/setup/configuration/#custom-statuses)
 * Limit publicly accessible settings in API responses
 * Improve markdown editor toolbar responsive layout on sidebar width change
+* PDF viewer: add PDF outline view
 * PDF viewer: fix single-letter shortcuts applied when typing in searchbar input
 * Fix scroll sync to wrong position on HTML blocks starting with `<br>` tags
 * UI: add blockquote button to markdown editor toolbar

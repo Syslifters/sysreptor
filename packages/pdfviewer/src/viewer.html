@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="google" content="notranslate">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; worker-src 'self'; connect-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; worker-src 'self';">
     <title>PDF Viewer</title>
     <link rel="stylesheet" href="./viewer.css">
     <script type="module" src="./viewer.ts"></script>
@@ -45,7 +45,7 @@
           <div id="toolbarContainer">
             <div id="toolbarViewer">
               <div id="toolbarViewerLeft">
-                <button id="toggleButton" class="toolbarButton hiddenMediumView" tabindex="0" aria-expanded="false" aria-haspopup="true" aria-controls="sidebarContainer">
+                <button id="toggleButton" class="toolbarButton" tabindex="0" aria-expanded="false" aria-haspopup="true" aria-controls="sidebarContainer">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>
                 </button>
               </div>
@@ -80,7 +80,7 @@
               </div>
 
               <div id="toolbarViewerRight">
-                <button id="download" class="toolbarButton hiddenMediumView" title="Download Preview PDF" tabindex="33" aria-label="Download PDF">
+                <button id="download" class="toolbarButton" title="Download Preview PDF" tabindex="33" aria-label="Download PDF">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>
                 </button>
               </div>

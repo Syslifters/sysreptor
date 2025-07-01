@@ -14,7 +14,7 @@
   --field-bg-color: rgba(240, 240, 245, 1);
   --field-border-color: rgba(210, 210, 215, 1);
   --hover-bg-color: rgba(235, 235, 240, 1);
-  --sidebar-width: 200px;
+  --sidebar-width: 250px;
 
   /* Transitions */
   --transition-speed: 0.2s;
@@ -310,7 +310,7 @@ body {
   border-right: 1px solid var(--toolbar-border-color);
 
   #sidebarContent {
-    inset-block: var(--toolbar-height) 0;
+    inset-block: 0;
     inset-inline-start: 0;
     overflow: auto;
     position: absolute;
@@ -347,11 +347,57 @@ body {
 }
 
 
-@media all and (max-width: 750px) {
-  #outerContainer .hiddenMediumView {
-    display: none !important;
+.treeWithDeepNesting > .treeItem,
+.treeItem > .treeItems {
+  margin-inline-start: 20px;
+}
+.treeItem > a {
+  text-decoration: none;
+  display: inline-block;
+  /* Subtract the right padding (left, in RTL mode) of the container: */
+  min-width: calc(100% - 4px);
+  height: auto;
+  margin-bottom: 1px;
+  padding: 2px 2px 4px;
+  border-radius: 2px;
+  color: var(--treeitem-color);
+  font-size: 14px;
+  line-height: 15px;
+  user-select: none;
+  white-space: normal;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--hover-bg-color);
   }
-  #outerContainer.sidebarOpen #viewerContainer {
-    inset-inline-start: 0 !important;
+}
+
+.treeItemToggler {
+  position: relative;
+  float: left;
+  height: 0;
+  width: 0;
+  color: rgb(255 255 255 / 0.5);
+  cursor: pointer;
+
+  &::before {
+    position: absolute;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+
+    content: "";
+    background-color: light-dark(black, white);
+    mask-size: cover;
+    inset-inline-end: 0;
+
+    mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg>');
+  }
+
+  &.treeItemsHidden::before {
+    mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z" /></svg>');
+  }
+  &.treeItemsHidden ~ .treeItems {
+    display: none;
   }
 }
