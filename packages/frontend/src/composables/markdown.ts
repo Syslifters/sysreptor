@@ -24,7 +24,7 @@ import {
 } from "@sysreptor/markdown/editor/index";
 import { uuidv4 } from "@base/utils/helpers";
 import { MarkdownEditorMode } from '#imports';
-import type { renderMarkdownToHtml } from "@sysreptor/markdown";
+import { formatHtmlToMarkdown, type renderMarkdownToHtml } from "@sysreptor/markdown";
 import { workerUrlPolicy } from "~/plugins/trustedtypes";
 import markdownWorkerUrl from "~/workers/markdownWorker?worker&url"
 
@@ -355,7 +355,30 @@ export function useMarkdownEditorBase(options: {
               uploadFiles(event.dataTransfer?.files, dropPos);
             },
             paste: (event: ClipboardEvent) => {
-              if ((event.clipboardData?.files?.length || 0) > 0) {
+              if (!options.editorView.value) {
+                return;
+              }
+              
+              const types = event.clipboardData?.types || [];
+              if (types.includes('text/html') && (
+                  !types.includes('text/plain') || // HTML only
+                  types.indexOf('text/html') < types.indexOf('text/plain') || // Microsoft Excel, Word
+                  types.includes('text/rtf')  // LibreOffice
+              )) {
+                event.stopPropagation();
+                event.preventDefault();
+
+                // convert HTML to markdown
+                const htmlData = event.clipboardData!.getData('text/html')!;
+                const mdText = formatHtmlToMarkdown(htmlData);
+                
+                // insert at cursor position
+                const selection = options.editorView.value.state.selection.main;
+                options.editorView.value.dispatch(options.editorView.value.state.update({ 
+                  changes: { from: selection.from, to: selection.to, insert: mdText },
+                  selection: { anchor: selection.from + mdText.length },
+                }));
+              } else if ((event.clipboardData?.files?.length || 0) > 0) {
                 event.stopPropagation();
                 event.preventDefault();
                 uploadFiles(event.clipboardData!.files);

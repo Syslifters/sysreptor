@@ -7,8 +7,9 @@
 * Improve markdown editor toolbar responsive layout on sidebar width change
 * PDF viewer: add PDF outline view
 * PDF viewer: fix single-letter shortcuts applied when typing in searchbar input
-* Fix scroll sync to wrong position on HTML blocks starting with `<br>` tags
-* UI: add blockquote button to markdown editor toolbar
+* Markdown editor: fix scroll sync to wrong position on HTML blocks starting with `<br>` tags
+* Markdown editor: convert HTML (e.g. Excel tables, Word, etc.) to markdown on paste
+* Markdown editor: add blockquote button toolbar
 
 
 ## v2025.56 - 2025-06-17
