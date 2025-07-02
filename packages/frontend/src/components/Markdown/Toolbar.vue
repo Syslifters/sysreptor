@@ -248,10 +248,6 @@ watch(hasSplitMode, () => {
   }
 }, { immediate: true });
 
-watch([thresholds, toolbarWidth, hasSplitMode], () => {
-  console.log('resize', toolbarWidth.value, thresholds.value.md, hasSplitMode.value)
-})
-
 
 function emitCreateComment() {
   if (!props.collab?.comments || !props.editorState || props.disabled) {

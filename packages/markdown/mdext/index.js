@@ -1,10 +1,12 @@
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
+import rehypeRemark from 'rehype-remark';
 import remarkStringify from 'remark-stringify';
 import rehypeParse from 'rehype-parse';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
+import { defaultHandlers as defaultHandlersToMdast, defaultNodeHandlers as defaultNodeHandlersToMdast } from 'hast-util-to-mdast';
 import { merge } from 'lodash-es';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, remarkToRehypeHandersFootnotesPreview, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './footnotes';
@@ -74,6 +76,34 @@ export function formatHtml(html) {
     .use(rehypeStringify)
     .processSync(html)
     .value;
+}
+
+
+/**
+ * @param {string} html
+ * @returns {string}
+ */
+export function formatHtmlToMarkdown(html) {
+  const md = markdownParser()
+    .use(rehypeParse, { fragment: true })
+    .use(rehypeRemark, {
+      nodeHandlers: {
+        ...defaultNodeHandlersToMdast,
+        comment: () => {},
+      },
+      handlers: {
+        ...defaultHandlersToMdast,
+        a: (state, node) => {
+          if (node.properties.href) {
+            return defaultHandlersToMdast.a(state, node);
+          }
+          return state.all(node);
+        }
+      }
+    })
+    .use(remarkStringify)
+  const text = md.processSync(html).value;
+  return text;
 }
 
 
