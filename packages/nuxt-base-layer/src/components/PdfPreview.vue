@@ -161,6 +161,7 @@ defineExpose({
 <style lang="scss" scoped>
 .pdf-overlay {
   color: white;
+  bottom: 28px;  /* footer height */
 
   :deep(.v-overlay__content) {
     width: 100%;
