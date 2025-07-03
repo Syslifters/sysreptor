@@ -62,6 +62,7 @@ dependencies = [
   # temporary pin version to prevent memory leak in backup
   "boto3 (==1.38.36)",
   "botocore (==1.38.36)",
+  "urllib3 (==2.4.0)",
 ]
 
 
