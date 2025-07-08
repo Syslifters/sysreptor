@@ -47,14 +47,17 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
 # TODO: markdownexport plugin
 # * [x] urls
 # * [x] view
-# * [x] markdown export logic
+# * [ ] markdown export logic
 #   * [x] zipstream with markdown and images
 #   * [x] rewrite image paths
 #   * [x] format fields
 #   * [x] format title, sections, findings
 #   * [x] appendix section after findings
+#   * [x] table of contents: below title => generate via python (only finding/section headings)
+#   * [ ] CWEE special handling (if "CWEE" in project_type.name): copy files from note "Exploits" (and sub-notes?) to zip in "exploits" folder
 # * [ ] frontend
 #   * [ ] download button
+#   * [ ] warnings: for project via checks API endpoint
 #   * [ ] warning: CWEE add exploits to zip ???
 #   * [ ] warning: features not supported: template variables, template language, generated content, review content
 # * [x] tests

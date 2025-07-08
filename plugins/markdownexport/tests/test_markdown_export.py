@@ -123,9 +123,23 @@ class TestMarkdownFormatting:
 
         actual = format_project(p).strip()
         expected = f'''
-        # {p.data['title']}
+        # {p.data['title']} {{#project-title}}
 
-        ## Meta
+        ## Table of Contents {{#table-of-contents}}
+
+        * [{p.data['title']}](#project-title)
+            * [Table of Contents](#table-of-contents)
+            * [Meta](#meta)
+            * [Executive Summary](#executive-summary)
+            * [Field Types](#field-types)
+            * [Findings](#findings)
+                * [{f1.data['title']}](#{f1.finding_id})
+                * [{f2.data['title']}](#{f2.finding_id})
+            * [Appendix](#appendix)
+                * [{p.data['appendix'][0]['title']}](#appendix-1)
+                * [{p.data['appendix'][1]['title']}](#appendix-2)
+
+        ## Meta {{#meta}}
 
         ### Report Date
 
@@ -136,12 +150,12 @@ class TestMarkdownFormatting:
         {p.data['pentester']}
 
         
-        ## Executive Summary
+        ## Executive Summary {{#executive-summary}}
 
         {p.data['executive_summary']}
 
         
-        ## Field Types
+        ## Field Types {{#field-types}}
 
         ### String Field
 
@@ -186,9 +200,9 @@ class TestMarkdownFormatting:
         * {p.data['field_list'][2]}
 
         
-        ## Findings
+        ## Findings {{#findings}}
 
-        ### {f1.data['title']}
+        ### {f1.data['title']} {{#{f1.finding_id}}}
 
         #### CVSS
 
@@ -208,7 +222,7 @@ class TestMarkdownFormatting:
         * {f1.data['affected_components'][1]}
 
 
-        ### {f2.data['title']}
+        ### {f2.data['title']} {{#{f2.finding_id}}}
 
         #### CVSS
 
@@ -227,13 +241,13 @@ class TestMarkdownFormatting:
         
 
         
-        ## Appendix
+        ## Appendix {{#appendix}}
 
-        ### {p.data['appendix'][0]['title']}
+        ### {p.data['appendix'][0]['title']} {{#appendix-1}}
 
         {p.data['appendix'][0]['content']}
 
-        ### {p.data['appendix'][1]['title']}
+        ### {p.data['appendix'][1]['title']} {{#appendix-2}}
 
         {p.data['appendix'][1]['content']}
         '''
