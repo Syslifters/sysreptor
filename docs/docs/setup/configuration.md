@@ -26,6 +26,7 @@ printf "SECRET_KEY=$(openssl rand -base64 64 | tr -d '\n=')\n"
 SECRET_KEY="TODO-change-me-Z6cuMithzO0fMn3ZqJ7nTg0YJznoHiJXoJCNngQM4Kqzzd3fiYKdVx9ZidvTzqsm"
 ```
 
+If you renew the Django secret key, all existing sessions terminate and links for setting new passwords (e.g., from password reset emails) are invalidated.
 
 ### Data Encryption at Rest
 Encrypt data at rest by configuring an encryption key. This will encrypt sensitive data in your database and files uploaded in your notes (~~except images~~, images are also encrypted).
