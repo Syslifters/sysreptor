@@ -262,11 +262,14 @@ class TestMarkdownExportApi:
     def test_api(self):
         u = create_user()
         p = create_project(
+            project_type=create_project_type(name='cwee'),
             members=[u],
             report_data={
-                'field_markdown': '![image](/images/name/test.png)',
+                'field_markdown': '![image](/images/name/image.png)',
             }, 
-            images_kwargs=[{'name': 'test.png'}, {'name': 'unused.png'}],
+            images_kwargs=[{'name': 'image.png'}, {'name': 'unreferenced.png'}],
+            files_kwargs=[{'name': 'file.py'}, {'name': 'unreferenced.py'}],
+            notes_kwargs=[{'title': 'Exploits', 'text': '[](/files/name/file.py)'}],
         )
         res = api_client(u).post(reverse(f'{MARKDOWNEXPORT_APPLABEL}:markdownexport', kwargs={'project_pk': p.id}))
         assert res.status_code == 200
@@ -274,8 +277,10 @@ class TestMarkdownExportApi:
         content = b''.join(res.streaming_content)
         with zipfile.ZipFile(io.BytesIO(content), mode='r') as z:
             assert zipfile.Path(z, 'report.md').exists()
-            assert zipfile.Path(z, 'assets/test.png').exists()
-            assert not zipfile.Path(z, 'assets/unused.png').exists()
+            assert zipfile.Path(z, 'assets/image.png').exists()
+            assert not zipfile.Path(z, 'assets/unreferenced.png').exists()
+            assert zipfile.Path(z, 'exploits/file.py').exists()
+            assert not zipfile.Path(z, 'exploits/unreferenced.py').exists()
 
     def test_permissions(self):
         p = create_project()

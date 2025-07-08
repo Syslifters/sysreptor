@@ -21,7 +21,12 @@ def format_heading(value: str, level: int|None = None, id: str|None = None, toc:
     heading_level = level or 1
     if heading_level <= 6:
         if toc is not None:
-            id = id or slug(value)
+            if not id:
+                id = slug(value)
+                i = 0
+                while id in set(c['id'] for c in toc):
+                    i += 1
+                    id = slug(value + '-' + str(i))
             toc.append({
                 'level': level,
                 'title': value,

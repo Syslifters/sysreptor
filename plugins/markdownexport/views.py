@@ -26,7 +26,7 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
         project = self.get_project()
         prefetch_related_objects(
             [project], 
-            'findings', 'sections', 'images',
+            'findings', 'sections', 'notes', 'images', 'files',
             Prefetch('members', queryset=ProjectMemberInfo.objects.select_related('user')),
         )
 
@@ -36,6 +36,17 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
             if project.is_file_referenced(f, sections=True, findings=True, notes=False):
                 md = md.replace(f'/images/name/{f.name}', 'assets/' + f.name)
                 z.add(arcname=str(Path('assets') / f.name), data=file_chunks(f.file))
+
+        if 'cwee' in project.project_type.name.lower():
+            # Special handling for CWEE projects: add exploits from the "Exploits" note
+            for note in project.notes.all():
+                if not ('exploits' in note.title.lower() and not note.parent_id):
+                    continue
+                for f in project.files.all():
+                    if note.is_file_referenced(f):
+                        md = md.replace(f'/files/name/{f.name}', f'exploits/{f.name}')
+                        z.add(arcname=str(Path('exploits') / f.name), data=file_chunks(f.file))
+
         z.add(arcname='report.md', data=md.encode())
         
         return StreamingHttpResponseAsync(
@@ -47,14 +58,14 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
 # TODO: markdownexport plugin
 # * [x] urls
 # * [x] view
-# * [ ] markdown export logic
+# * [x] markdown export logic
 #   * [x] zipstream with markdown and images
 #   * [x] rewrite image paths
 #   * [x] format fields
 #   * [x] format title, sections, findings
 #   * [x] appendix section after findings
 #   * [x] table of contents: below title => generate via python (only finding/section headings)
-#   * [ ] CWEE special handling (if "CWEE" in project_type.name): copy files from note "Exploits" (and sub-notes?) to zip in "exploits" folder
+#   * [x] CWEE special handling (if "CWEE" in project_type.name): copy files from note "Exploits" (and sub-notes?) to zip in "exploits" folder
 # * [ ] frontend
 #   * [ ] download button
 #   * [ ] warnings: for project via checks API endpoint
@@ -69,4 +80,5 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
 #   * [x] test permissions: user not in project
 # * [ ] docs
 #   * [ ] plugins table
+#   * [ ] plugin readme
 # * [ ] changelog
