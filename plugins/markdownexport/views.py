@@ -22,7 +22,7 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES
     serializer_class = Serializer
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         project = self.get_project()
         prefetch_related_objects(
             [project], 
@@ -37,11 +37,15 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
                 md = md.replace(f'/images/name/{f.name}', 'assets/' + f.name)
                 z.add(arcname=str(Path('assets') / f.name), data=file_chunks(f.file))
 
-        if 'cwee' in project.project_type.name.lower():
-            # Special handling for CWEE projects: add exploits from the "Exploits" note
-            for note in project.notes.all():
-                if not ('exploits' in note.title.lower() and not note.parent_id):
-                    continue
+        # Special handling for CWEE projects: add exploits from the "Exploits" note
+        all_notes = project.notes.to_ordered_list_flat(project.notes.all())
+        added_note_ids = []
+        for note in all_notes:
+            if (
+                (note.title.lower() in ['exploits', 'exploit files', 'exploit scripts'] and note.parent_id is None) or 
+                note.parent_id in added_note_ids
+            ):
+                added_note_ids.append(note.id)
                 for f in project.files.all():
                     if note.is_file_referenced(f):
                         md = md.replace(f'/files/name/{f.name}', f'exploits/{f.name}')
@@ -66,11 +70,9 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
 #   * [x] appendix section after findings
 #   * [x] table of contents: below title => generate via python (only finding/section headings)
 #   * [x] CWEE special handling (if "CWEE" in project_type.name): copy files from note "Exploits" (and sub-notes?) to zip in "exploits" folder
-# * [ ] frontend
-#   * [ ] download button
-#   * [ ] warnings: for project via checks API endpoint
-#   * [ ] warning: CWEE add exploits to zip ???
-#   * [ ] warning: features not supported: template variables, template language, generated content, review content
+# * [x] frontend
+#   * [x] download button
+#   * [x] add to publish page
 # * [x] tests
 #   * [x] test formatting all field types
 #   * [x] test nested fields (list, object)
@@ -78,6 +80,11 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
 #   * [x] test section/finding order
 #   * [x] test API requests: returns zip with report.md and images
 #   * [x] test permissions: user not in project
+# * [x] CWEE design
+#   * [x] update finding/section fields
+#   * [x] default notes: exploits
+#   * [x] update HTML/Vue template => update field usage
+#   * [x] first page warning: enable markdownexport plugin, click "Export Markdown"
 # * [ ] docs
 #   * [ ] plugins table
 #   * [ ] plugin readme

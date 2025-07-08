@@ -95,11 +95,11 @@ def format_field_value(value, definition, context=None):
     elif definition.type == FieldDataType.CVSS:
         return f"{value['vector']} ({value['score']} - {value['level'].title()})"
     elif definition.type == FieldDataType.CWE:
-        return value['value']
+        return value['value'] or ''
     elif definition.type == FieldDataType.ENUM:
-        return value['label']
+        return str(value['label'])
     elif definition.type == FieldDataType.USER:
-        return value['name']
+        return str(value['name'])
     else:
         return str(value)
 
