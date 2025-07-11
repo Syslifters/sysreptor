@@ -47,6 +47,12 @@ nav:
       - Forgot Password: users/forgot-password.md
       - Notifications: users/notifications.md
   - Plugins: setup/plugins.md
+  - Python Integration:
+      - Getting Started: python-library/index.md
+      - Tutorial:
+         - 1. Projects: python-library/tutorial/part-1/projects.md
+         - 2. Findings: python-library/tutorial/part-2/findings.md
+         - 3. Notes: python-library/tutorial/part-3/notes.md
   - Automize Reporting via CLI:
       - Getting Started: cli/getting-started.md
       - Setup: cli/setup.md
@@ -100,6 +106,7 @@ theme:
   custom_dir: overrides
   logo: images/logo.svg
   features:
+    - content.code.copy
     - content.code.annotate
     - search.share
   palette:
