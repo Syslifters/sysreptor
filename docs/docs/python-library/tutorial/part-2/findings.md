@@ -16,9 +16,9 @@ my_finding
 # Out: FindingRaw(title="Test Finding", id="33ddc5f3-7396-4076-8c17-3eee16465840")
 ```
 
-The finding dictionary consists of metadata (like `status`, `assignee`, etc.) and the actual finding data (your finding fields). Add the data you want to add to your finding fields into the `data` dictionary. The keys map to the finding IDs from your project designs.
+The input finding dictionary consists of metadata (like `status`, `assignee`, etc.) and the actual finding data (your finding fields). Add the data you want to add to your finding fields into the `data` dictionary. The keys map to the finding IDs from your project designs.
 
-Now let's update the finding that we just created. The FindingRaw object has an ID that we can use for referencing the finding that we want to update.  
+Now let's update the finding that we just created. The [FindingRaw](/python-library/dataclasses/finding.md#reptor.models.Finding.FindingRaw) object has an ID that we can use for referencing the finding that we want to update.  
 We'll just fill out the `summary` field and change the `status` to `finished`.
 
 ```python title="Update the finding we just created"
@@ -33,9 +33,9 @@ my_finding = reptor.api.projects.update_finding(
 )
 ```
 
-The `update_finding` method returns the updated FindingRaw objects.
+The `update_finding` method returns the updated [FindingRaw](/python-library/dataclasses/finding.md#reptor.models.Finding.FindingRaw) objects.
 
-We can use the FindingRaw object to duplicate our finding...
+We can use the [FindingRaw](/python-library/dataclasses/finding.md#reptor.models.Finding.FindingRaw) object to duplicate our finding...
 
 ```python title="Duplicate finding"
 duplicated_finding = reptor.api.projects.create_finding(
@@ -43,13 +43,13 @@ duplicated_finding = reptor.api.projects.create_finding(
 )
 ```
 
-...and to delete it.
+...or to delete it.
 
 ```python title="Delete finding"
 reptor.api.projects.delete_finding(duplicated_finding.id)
 ```
 
-We can also create new findings from finding templates. For this, we introduce the `template` API.  
+We can also create new findings from finding templates. For this, we introduce the [Finding Templates API](/python-library/api/templates.md).  
 Searching for finding templates works the same way as searching for projects.
 
 ```python title="Search finding templates"
@@ -61,6 +61,7 @@ reptor.api.templates.search(search_term="XSS")  # Search for "XSS"
 #  FindingTemplate(title="Incorrectly configured HTTP security headers", id="e63df410-42f2-49ad-837c-0d6d343a040c")]
 ```
 
+The search returns a list of [FindingTemplate](/python-library/dataclasses/finding-template.md#reptor.models.FindingTemplate.FindingTemplate) objects.
 We now use the finding template ID to create a new finding from the template.
 
 ```python title="Create finding from templates"
@@ -74,7 +75,7 @@ We might also want to update report fields in our report sections.
 
 ![Sections and report fields](/images/sections.png)
 
-We get access to available sections and report fields through the project.
+We get access to available [Sections](/python-library/dataclasses/section.md#reptor.models.Section.Section) and report fields through the project.
 
 ```python title="Get available sections and report fields"
 my_project.sections
@@ -125,7 +126,7 @@ reptor.api.projects.duplicate_project()
 # Out: Project(name="Copy of Margherita Report Demo", id="2fe0ab2b-8482-49fa-a3b5-1d0d7bb49c01")
 ```
 
-The `duplicate_project` method returns the newly created `Project`. If you now want to interact with that project, you need to re-initialize your `reptor` object.
+The `duplicate_project` method returns the newly created [Project](/python-library/dataclasses/project.md#reptor.models.Project.Project). If you now want to interact with that project, you need to re-initialize your `reptor` object.
 
 ```python title="Switch project after duplicate"
 duplicate = reptor.api.projects.duplicate_project()

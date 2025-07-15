@@ -2,7 +2,7 @@
 
 The `reptor` library also allows you to interact with your notes structures.
 
-Use the notes API to get the full project notes structure.
+Use the [Notes API](/python-library/api/notes.md) to get the your project's note structures.
 
 ```python title="Get project notes"
 notes = reptor.api.notes.get_notes()
@@ -19,6 +19,8 @@ notes[0].text
 notes[0].icon_emoji
 # Out: '🧐'
 ```
+
+This method returns a list of [Notes](/python-library/dataclasses/note.md#reptor.models.Note.Note).
 
 We can also create notes. Let's add a new item to our "Web Security Checklist".
 

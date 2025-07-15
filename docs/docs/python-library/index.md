@@ -1,5 +1,5 @@
-# reptor (alpha version)
-reptor allows you to integrate your Python3 applications with SysReptor.
+# reptor
+reptor allows you to integrate your Python applications with SysReptor.
 
  * Manage projects
  * Read, update, create findings
