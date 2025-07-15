@@ -8,4 +8,5 @@ pymdown-extensions==10.12
 pillow>=10.2.0
 cairosvg==2.7.1
 requests>=2.31.0
-reptor>=0.13
+reptor>=0.32
+mkdocstrings[python]==0.29.1

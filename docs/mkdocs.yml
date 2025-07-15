@@ -47,6 +47,25 @@ nav:
       - Forgot Password: users/forgot-password.md
       - Notifications: users/notifications.md
   - Plugins: setup/plugins.md
+  - Python Integration:
+      - Getting Started: python-library/index.md
+      - Tutorial:
+         - 1. Projects: python-library/tutorial/part-1/projects.md
+         - 2. Findings: python-library/tutorial/part-2/findings.md
+         - 3. Notes: python-library/tutorial/part-3/notes.md
+      - API:
+          - Projects: python-library/api/projects.md
+          - Notes: python-library/api/notes.md
+          - Finding Templates: python-library/api/templates.md
+          - Project Designs: python-library/api/project-designs.md
+      - Data Classes:
+          - Project: python-library/dataclasses/project.md
+          - Finding: python-library/dataclasses/finding.md
+          - Section: python-library/dataclasses/section.md
+          - Note: python-library/dataclasses/note.md
+          - Finding Template: python-library/dataclasses/finding-template.md
+          - Project Design: python-library/dataclasses/project-design.md
+          - User: python-library/dataclasses/user.md 
   - Automize Reporting via CLI:
       - Getting Started: cli/getting-started.md
       - Setup: cli/setup.md
@@ -100,6 +119,7 @@ theme:
   custom_dir: overrides
   logo: images/logo.svg
   features:
+    - content.code.copy
     - content.code.annotate
     - search.share
   palette:
@@ -107,14 +127,28 @@ theme:
   theme:
   icon:
     repo: fontawesome/brands/github
-    admonition:
-      note: octicons/question-16
 
 extra_css:
   - stylesheets/extra.css
   - stylesheets/hint.min.css
 
 plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_section_style: list
+            preload_modules:
+            - reptor
+            allow_inspection: true
+            force_inspection: false
+            show_root_heading: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            show_category_heading: false
+            heading_level: 2
+            show_bases: false
+
   - blog:
       enabled: true
       blog_dir: show-and-tell
