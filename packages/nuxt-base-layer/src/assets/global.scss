@@ -104,3 +104,15 @@ body {
 .field-highlight-nested2 {
   background-color: rgba(var(--v-theme-on-surface), 0.05) !important;
 }
+
+// Action buttons for list items
+.project-list-item .action-buttons,
+.design-list-item .action-buttons {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.project-list-item:hover .action-buttons,
+.design-list-item:hover .action-buttons {
+  opacity: 1;
+}

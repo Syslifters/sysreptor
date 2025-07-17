@@ -82,14 +82,3 @@ const emit = defineEmits<{
   filter: [filter: FilterValue];
 }>();
 </script>
-
-<style scoped>
-.project-list-item .action-buttons {
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-}
-
-.project-list-item:hover .action-buttons {
-  opacity: 1;
-}
-</style>
