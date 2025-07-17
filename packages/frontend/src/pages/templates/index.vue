@@ -119,7 +119,7 @@ async function performCreate() {
 }
 
 const statusOptions = computed(() => {
-  return apiSettings.settings?.statuses?.map(status => ({'title': status.label, 'value': status.id})) || [];
+  return apiSettings.settings?.statuses?.map(status => ({'title': status.label, 'value': status.id, 'icon': status.icon})) || [];
 });
 const risk_levels = [
   { title: 'Critical', value: 'critical' },
