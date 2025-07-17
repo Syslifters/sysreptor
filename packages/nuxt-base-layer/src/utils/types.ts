@@ -644,7 +644,7 @@ export type FilterProperties = {
   name: string,
   icon?: string,
   multiple: boolean,
-  options: string[],
+  options: string[] | object[],
   type: FilterType,
   allow_exclude: boolean,
   allow_regex?: boolean,
