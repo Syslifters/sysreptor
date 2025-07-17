@@ -7,6 +7,7 @@
       {id: 'updated', title: 'Updated', value: '-updated'},
       {id: 'name', title: 'Name', value: 'name'},
     ]"
+    :filter-properties="filterProperties"
   >
     <template #title>Projects</template>
     <template #tabs>
@@ -34,4 +35,10 @@ useHeadExtended({
 const route = useRoute();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
+
+const filterProperties: FilterProperties[] = [
+  { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
+  { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: false },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'text', options: [], allow_exclude: true, allow_regex: false, default: '', multiple: true },
+];
 </script>

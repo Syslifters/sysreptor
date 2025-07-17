@@ -1,13 +1,15 @@
 <template>
   <file-drop-area @drop="importBtn?.performImport($event)" class="h-100">
     <list-view
-      url="/api/v1/pentestprojects/?readonly=false" 
+      url="/api/v1/pentestprojects/?readonly=false&search=&ordering=-created" 
       v-model:ordering="localSettings.projectListOrdering"
       :ordering-options="[
         {id: 'created', title: 'Created', value: '-created'},
         {id: 'updated', title: 'Updated', value: '-updated'},
         {id: 'name', title: 'Name', value: 'name'},
       ]"
+      :filter-properties="filterProperties"
+      ref="listRef"
     >
       <template #title>Projects</template>
       <template #actions>
@@ -51,4 +53,10 @@ async function performImport(file: File) {
   const projects = await uploadFileHelper<PentestProject[]>('/api/v1/pentestprojects/import/', file);
   await navigateTo(`/projects/${projects[0]!.id}/`);
 }
+
+const filterProperties: FilterProperties[] = [
+  { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
+  { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: false },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'text', options: [], allow_exclude: true, allow_regex: false, default: '', multiple: true },
+];
 </script>

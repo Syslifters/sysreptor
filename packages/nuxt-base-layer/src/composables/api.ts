@@ -115,16 +115,17 @@ export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: stri
     initializingFetcher.value = false;
   }
 
+  const baseURLQuery = Object.fromEntries(new URLSearchParams((options.baseURL || '').split('?')[1] || ''));
   const currentQuery = computed(() => {
-    return Object.fromEntries(new URLSearchParams((fetcher.value.baseURL || '').split('?')[1] || ''));
+    return { ...baseURLQuery, ...options.query };
   });
 
   function applyFilters(query: object, { fetchInitialPage = true, debounce = false } = {}) {
-    const newQuery = { ...currentQuery.value, ...query };
-    if (isEqual(currentQuery.value, newQuery)) {
+    const newQuery = { ...baseURLQuery, ...query };
+    if (isEqual(baseURLQuery.value, newQuery)) {
       return;
     }
-    createFetcher({ baseURL: fetcher.value.baseURL, query: newQuery, fetchInitialPage, debounce });
+    createFetcher({ baseURL: options.baseURL, query: newQuery, fetchInitialPage, debounce });
   }
 
   const search = computed({
@@ -146,7 +147,6 @@ export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: stri
     hasError: computed(() => fetcher.value.hasError),
     hasNextPage: computed(() => fetcher.value.hasNextPage),
     hasBaseURL: computed(() => fetcher.value.hasBaseURL),
-    currentQuery,
     search,
     applyFilters,
     fetchNextPage,

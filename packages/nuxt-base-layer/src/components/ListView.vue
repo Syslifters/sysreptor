@@ -30,6 +30,13 @@
               />
             </div>
           </slot>
+          <slot name="filters" :activeFilters="activeFilters" :filterProperties="props.filterProperties">
+            <filter-chip-list
+              v-if="props.filterProperties && props.filterProperties.length > 0"
+              v-model="activeFilters"
+              :filter-properties="props.filterProperties"
+            />
+          </slot>
           <v-tabs v-if="$slots.tabs" height="30" selected-class="text-primary" class="list-header-tabs">
             <slot name="tabs" />
           </v-tabs>
@@ -52,14 +59,18 @@
   </full-height-page>
 </template>
 
-<script setup lang="ts" generic="T = any">
-import { useSearchableCursorPaginationFetcher } from "#imports";
+<script setup lang="ts" generic="T">
+import { filtersToQueryParams, parseFiltersFromQuery } from '~/utils/filter';
 
 const orderingModel = defineModel<string|null>('ordering');
 const props = defineProps<{
   url: string|null;
   orderingOptions?: OrderingOption[];
+  filterProperties?: FilterProperties[];
 }>();
+
+// Filter-related state
+const activeFilters = ref<FilterValue[]>([]);
 
 const ordering = computed(() => {
   if (route.query.ordering) {
@@ -81,6 +92,31 @@ const items = useSearchableCursorPaginationFetcher<T>({
 useLazyAsyncData(async () => {
   await items.fetchNextPage()
 });
+
+// Initialize filters from URL on mount
+onMounted(async () => {
+  if (props.filterProperties && props.filterProperties.length > 0) {
+    const filtersFromUrl = parseFiltersFromQuery(route.query, props.filterProperties);
+    if (filtersFromUrl.length > 0) {
+      activeFilters.value = filtersFromUrl;
+    }
+  }
+});
+
+// Watch for filter changes and update URL
+watch(activeFilters, () => {
+  if (props.filterProperties && props.filterProperties.length > 0) {
+    const filterParams = filtersToQueryParams(activeFilters.value, props.filterProperties);
+    
+    router.replace({
+      query: {
+        ...filterParams,
+        search: route.query.search || undefined,
+        ordering: route.query.ordering || undefined
+      } 
+    });
+  }
+}, { deep: true });
 
 watch(() => route.query, () => {
   items.applyFilters({ ...route.query }, { debounce: true });
@@ -106,6 +142,7 @@ function updateOrdering(ordering?: OrderingOption|null) {
 
 defineExpose({
   items,
+  activeFilters,
   updateSearch,
   updateOrdering,
 });

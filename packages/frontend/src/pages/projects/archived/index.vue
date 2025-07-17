@@ -1,5 +1,8 @@
 <template>
-  <list-view url="/api/v1/archivedprojects/">
+  <list-view
+    url="/api/v1/archivedprojects/"
+    :filter-properties="filterProperties"
+  >
     <template #title>Projects</template>
     <template #tabs>
       <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active" />
@@ -54,4 +57,9 @@ useHeadExtended({
 });
 
 const route = useRoute();
+
+const filterProperties: FilterProperties[] = [
+  { id: 'timerange', name: 'Time Archived', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'text', options: [], allow_exclude: true, allow_regex: false, default: '', multiple: true },
+];
 </script>
