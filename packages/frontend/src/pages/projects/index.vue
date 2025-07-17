@@ -9,7 +9,7 @@
         {id: 'name', title: 'Name', value: 'name'},
       ]"
       :filter-properties="filterProperties"
-      ref="listRef"
+      ref="listViewRef"
     >
       <template #title>Projects</template>
       <template #actions>
@@ -54,17 +54,17 @@ async function performImport(file: File) {
   await navigateTo(`/projects/${projects[0]!.id}/`);
 }
 
-const listRef = ref();
+const listViewRef = ref();
 const pentestMembers = ref<string[]>([]);
 
 watchEffect(() => {
-  if (!listRef.value?.items?.data.value || !Array.isArray(listRef.value.items.data.value)) {
+  if (!listViewRef.value?.items?.data.value || !Array.isArray(listViewRef.value.items.data.value)) {
     pentestMembers.value = [];
     return;
   }
   
   const allUsernames = new Set<string>(pentestMembers.value);
-  listRef.value.items.data.value.forEach((project: PentestProject) => {
+  listViewRef.value.items.data.value.forEach((project: PentestProject) => {
     if (project.members && Array.isArray(project.members)) {
       project.members.forEach(member => {
         allUsernames.add(member.username);
