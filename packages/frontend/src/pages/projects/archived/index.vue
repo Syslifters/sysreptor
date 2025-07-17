@@ -15,6 +15,8 @@
         <v-list-item-title> {{ item.name }}</v-list-item-title>
 
         <v-list-item-subtitle>
+          <chip-storage-size :value="item.size" />
+
           <chip-created :value="item.created" />
           <chip-auto-delete :value="item.auto_delete_date" />
 
