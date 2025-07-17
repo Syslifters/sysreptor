@@ -637,7 +637,7 @@ export type ShareInfoPublic = BaseModel & {
   readonly note_id: string;
 }
 
-export type FilterType = "select" | "text" | "daterange" | "timerange";
+export type FilterType = "select" | "text" | "daterange" | "timerange" | "combobox";
 
 export type FilterProperties = {
   id: string,

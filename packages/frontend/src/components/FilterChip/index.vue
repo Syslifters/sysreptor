@@ -2,6 +2,7 @@
   <component 
     :is="{
       'select': FilterChipSelect,
+      'combobox': FilterChipCombobox,
       'timerange': FilterChipTimerange,
       'daterange': FilterChipDaterange,
       'text': FilterChipText,
@@ -13,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { FilterChipDaterange, FilterChipSelect, FilterChipText, FilterChipTimerange } from '#components';
+import { FilterChipCombobox, FilterChipDaterange, FilterChipSelect, FilterChipText, FilterChipTimerange } from '#components';
 
 const filter = defineModel<FilterValue>('filter', { required: true })
 const props = defineProps<{
