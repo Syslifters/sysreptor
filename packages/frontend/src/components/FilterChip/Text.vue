@@ -34,12 +34,8 @@ const props = defineProps<{
 }>();
 const emit = defineEmits(['remove']);
 
-const localSettings = useLocalSettings()
-
 const displayValue = computed(() => {
-  if (localSettings.redactPlatforms) {
-    return '****'
-  } else if (typeof filter.value.value === 'string' && filter.value.value.length) {
+  if (typeof filter.value.value === 'string' && filter.value.value.length) {
     return filter.value.value
   } else {
     return 'Any'
