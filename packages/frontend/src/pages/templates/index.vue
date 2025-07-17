@@ -9,6 +9,7 @@
         {id: 'created', title: 'Created', value: '-created'},
         {id: 'updated', title: 'Updated', value: '-updated'},
       ]"
+      :filter-properties="filterProperties"
     >
       <template #title>Templates</template>
       <template #searchbar="{ items, ordering, orderingOptions }">
@@ -22,14 +23,6 @@
               hide-details="auto"
               variant="underlined"
               autofocus
-              class="ma-0"
-            />
-          </v-col>
-          <v-col cols="12" md="2">
-            <s-language-selection
-              v-model="currentLanguage"
-              :items="languageChoices"
-              variant="underlined"
               class="ma-0"
             />
           </v-col>
@@ -89,7 +82,6 @@ const templateStore = useTemplateStore();
 
 const listViewRef = useTemplateRef('listViewRef');
 
-const languageChoices = computed(() => [{ code: null as string|null, name: 'All' } as Language].concat((apiSettings.settings!.languages || []).filter(l => l.enabled || l.code === route.query.language)));
 const currentLanguage = computed({
   get: () => (Array.isArray(route.query.language) ? route.query.language[0] : route.query.language) || null,
   set: (val) => {
@@ -125,4 +117,10 @@ async function performCreate() {
     performCreateInProgress.value = false;
   }
 }
+
+const filterProperties: FilterProperties[] = [
+  { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
+  { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'text', options: [], allow_exclude: true, allow_regex: false, default: '', multiple: true },
+];
 </script>
