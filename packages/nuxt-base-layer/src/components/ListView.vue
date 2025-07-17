@@ -3,13 +3,13 @@
     <v-container class="pt-0">
       <v-list v-if="items" class="pt-0 overflow-visible">
         <div class="list-header pt-2 mb-4">
-          <h1>
-            <slot name="title" />
+            <h1>
+              <slot name="title" />
 
-            <div v-if="$slots.actions" class="list-header-actions">
-              <slot name="actions" />
-            </div>
-          </h1>
+              <div v-if="$slots.actions" class="list-header-actions">
+                <slot name="actions" />
+              </div>
+            </h1>
 
           <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions" :filter-properties="filterProperties">
             <div class="d-flex flex-row">
@@ -182,6 +182,10 @@ defineExpose({
 
 .list-header-tabs:deep(.v-tab) {
   text-transform: initial;
+}
+
+.list-header h1 {
+  min-height: 2em;
 }
 
 :deep(.v-list-item .v-list-item-subtitle) {
