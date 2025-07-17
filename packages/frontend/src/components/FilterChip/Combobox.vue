@@ -11,7 +11,7 @@
       density="compact"
       hide-details="auto"
       variant="outlined"
-      :multiple="typeof filter.value === 'string' ? false : true"
+      :multiple="false"
       clearable
     />
   </filter-chip-base>
