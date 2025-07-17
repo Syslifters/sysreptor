@@ -22,6 +22,7 @@
                 hide-details="auto"
                 autofocus
                 class="mt-0 mb-2"
+                clearable
               />
               <s-select-ordering
                 :model-value="ordering"
