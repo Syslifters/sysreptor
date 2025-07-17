@@ -91,23 +91,25 @@ export function useCursorPaginationFetcher<T>({ baseURL, query }: { baseURL: str
 export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: string|null, query?: object }) {
   const initializingFetcher = ref(false);
   const fetcher = ref<ReturnType<typeof useCursorPaginationFetcher<T>>>(null as any);
+  const fetcherOptions = ref(options);
   const fetchNextPageDebounced = debounce(async () => {
     await fetcher.value.fetchNextPage();
     initializingFetcher.value = true;
   }, 750);
-  function createFetcher(options: { baseURL: string|null, query?: object, fetchInitialPage?: boolean, debounce?: boolean }) {
-    const newFetcher = useCursorPaginationFetcher<T>(options) as any;
-    if (options.fetchInitialPage) {
+  function createFetcher(newOptions: { baseURL: string|null, query?: object, fetchInitialPage?: boolean, debounce?: boolean }) {
+    const newFetcher = useCursorPaginationFetcher<T>(newOptions) as any;
+    if (newOptions.fetchInitialPage) {
       initializingFetcher.value = true;
-      if (options.debounce) {
+      if (newOptions.debounce) {
         fetchNextPageDebounced();
       } else {
         fetchNextPage();
       }
     }
     fetcher.value = newFetcher
+    fetcherOptions.value = newOptions;
   }
-  createFetcher(options);
+  createFetcher(fetcherOptions.value);
 
   async function fetchNextPage() {
     fetchNextPageDebounced!();
@@ -115,13 +117,16 @@ export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: stri
     initializingFetcher.value = false;
   }
 
-  const baseURLQuery = Object.fromEntries(new URLSearchParams((options.baseURL || '').split('?')[1] || ''));
+  const baseURLQuery = Object.fromEntries(new URLSearchParams((fetcherOptions.value.baseURL || '').split('?')[1] || ''));
   const currentQuery = computed(() => {
-    return { ...baseURLQuery, ...options.query };
+    return { ...baseURLQuery, ...fetcherOptions.value.query };
   });
 
   function applyFilters(query: object, { fetchInitialPage = true, debounce = false } = {}) {
-    const newQuery = { ...baseURLQuery, ...query };
+    const newQuery = {
+      ...baseURLQuery,
+      ...query,
+    };
     if (isEqual(baseURLQuery.value, newQuery)) {
       return;
     }
