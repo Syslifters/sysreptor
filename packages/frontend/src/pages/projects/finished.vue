@@ -39,6 +39,7 @@ const apiSettings = useApiSettings();
 
 const listViewRef = ref();
 const pentestMembers = ref<string[]>([]);
+const tags = ref<string[]>([]);
 
 watchEffect(() => {
   if (!listViewRef.value?.items?.data.value || !Array.isArray(listViewRef.value.items.data.value)) {
@@ -47,19 +48,28 @@ watchEffect(() => {
   }
   
   const allUsernames = new Set<string>(pentestMembers.value);
-  listViewRef.value.items.data.value.forEach((project: PentestProject) => {
-    if (project.members && Array.isArray(project.members)) {
-      project.members.forEach(member => {
+  const allTags = new Set<string>(tags.value);
+  listViewRef.value.items.data.value.forEach((item: PentestProject) => {
+    if (item.members && Array.isArray(item.members)) {
+      item.members.forEach(member => {
         allUsernames.add(member.username);
+      });
+    }
+    if (item.tags && Array.isArray(item.tags)) {
+      item.tags.forEach(tag => {
+        if (!allTags.has(tag)) {
+          allTags.add(tag);
+        }
       });
     }
   });
   pentestMembers.value = Array.from(allUsernames).sort();
+  tags.value = Array.from(allTags).sort();
 });
 
 const filterProperties = computed((): FilterProperties[] => [
   { id: 'member', name: 'Member', icon: 'mdi-account', type: 'combobox', options: pentestMembers.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
-  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'text', options: [], allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: tags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
   { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
 ]);

@@ -129,10 +129,30 @@ const risk_levels = [
   { title: 'Info', value: 'info' },
 ]
 
+const tags = ref<string[]>([]);
+
+watchEffect(() => {
+  if (!listViewRef.value?.items?.data?.value || !Array.isArray(listViewRef.value?.items?.data?.value)) {
+    return;
+  }
+  const allTags = new Set<string>(tags.value);
+  listViewRef.value.items.data.value.forEach((item: unknown) => {
+    const template = item as FindingTemplate;
+    if (template.tags && Array.isArray(template.tags)) {
+      template.tags.forEach(tag => {
+        if (!allTags.has(tag)) {
+          allTags.add(tag);
+        }
+      });
+    }
+  });
+  tags.value = Array.from(allTags).sort();
+});
+
 const filterProperties = computed((): FilterProperties[] => [
   { id: 'status', name: 'Status', icon: 'mdi-flag', type: 'select', options: statusOptions.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'risk_level', name: 'Risk Level', icon: 'mdi-alert', type: 'select', options: risk_levels, allow_exclude: true, allow_regex: false, default: '', multiple: true },
-  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'text', options: [], allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: tags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
   { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
 ]);

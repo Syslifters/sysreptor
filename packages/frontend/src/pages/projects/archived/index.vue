@@ -1,5 +1,6 @@
 <template>
   <list-view
+    ref="listViewRef"
     url="/api/v1/archivedprojects/"
     :filter-properties="filterProperties"
   >
@@ -58,8 +59,28 @@ useHeadExtended({
 
 const route = useRoute();
 
-const filterProperties: FilterProperties[] = [
-  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'text', options: [], allow_exclude: true, allow_regex: false, default: '', multiple: true },
+const listViewRef = ref();
+const tags = ref<string[]>([]);
+
+watchEffect(() => {
+  if (!listViewRef.value?.items?.data.value || !Array.isArray(listViewRef.value.items.data.value)) {
+    return;
+  }
+  const allTags = new Set<string>(tags.value);
+  listViewRef.value.items.data.value.forEach((item: ArchivedProject) => {
+    if (item.tags && Array.isArray(item.tags)) {
+      item.tags.forEach(tag => {
+        if (!allTags.has(tag)) {
+          allTags.add(tag);
+        }
+      });
+    }
+  });
+  tags.value = Array.from(allTags).sort();
+});
+
+const filterProperties = computed((): FilterProperties[] => [
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: tags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'timerange', name: 'Time Archived', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
-];
+]);
 </script>
