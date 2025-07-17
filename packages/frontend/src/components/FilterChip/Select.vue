@@ -15,7 +15,24 @@
       hide-details="auto"
       variant="outlined"
       :multiple="false"
-    />
+    >
+      <template #item="{ props: itemProps, item }">
+        <v-list-item v-bind="itemProps">
+          <template #prepend v-if="typeof item.raw === 'object' && (item.raw as any).icon">
+            <v-icon>{{ (item.raw as any).icon }}</v-icon>
+          </template>
+        </v-list-item>
+      </template>
+      
+      <template #selection="{ item }">
+        <div class="d-flex align-center">
+          <v-icon v-if="typeof item.raw === 'object' && (item.raw as any).icon" class="me-2" size="small">
+            {{ (item.raw as any).icon }}
+          </v-icon>
+          {{ item.title }}
+        </div>
+      </template>
+    </v-select>
   </filter-chip-base>
 </template>
 
