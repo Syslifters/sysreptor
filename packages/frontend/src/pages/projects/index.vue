@@ -54,9 +54,30 @@ async function performImport(file: File) {
   await navigateTo(`/projects/${projects[0]!.id}/`);
 }
 
-const filterProperties: FilterProperties[] = [
+const listRef = ref();
+const pentestMembers = ref<string[]>([]);
+
+watchEffect(() => {
+  if (!listRef.value?.items?.data.value || !Array.isArray(listRef.value.items.data.value)) {
+    pentestMembers.value = [];
+    return;
+  }
+  
+  const allUsernames = new Set<string>(pentestMembers.value);
+  listRef.value.items.data.value.forEach((project: PentestProject) => {
+    if (project.members && Array.isArray(project.members)) {
+      project.members.forEach(member => {
+        allUsernames.add(member.username);
+      });
+    }
+  });
+  pentestMembers.value = Array.from(allUsernames).sort();
+});
+
+const filterProperties = computed((): FilterProperties[] => [
+  { id: 'member', name: 'Member', icon: 'mdi-account', type: 'combobox', options: pentestMembers.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
   { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
   { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'text', options: [], allow_exclude: true, allow_regex: false, default: '', multiple: true },
-];
+]);
 </script>
