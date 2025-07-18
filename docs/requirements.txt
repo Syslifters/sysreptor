@@ -11,3 +11,4 @@ requests>=2.32.4
 reptor>=0.32
 mkdocstrings[python]==0.29.1
 ruff==0.12.4
+mkdocs-llmstxt==0.3.0

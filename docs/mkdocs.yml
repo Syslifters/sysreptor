@@ -133,6 +133,37 @@ extra_css:
   - stylesheets/hint.min.css
 
 plugins:
+  - llmstxt:
+      full_output: llms-full.txt
+      markdown_description: "This is the official hosting and usage documentation of the pentest reporting tool SysReptor."
+      sections:
+        How to design SysReptor pentest reports:
+          - demo-reports.md: Demo reports
+          - designer/**.md
+        How to write finding templates with SysReptor:
+          - finding-templates/**.md
+        Technical insights to SysReptor:
+          - insights/**.md
+        Integrating SysReptor with Python:
+          - python-library/**.md
+        Writing reports with SysReptor as a pentester:
+          - reporting/**.md
+        Get SysReptor up and running:
+          - setup/**.md
+        Show and Tell:
+          - show-and-tell/**.md
+        User management and permissions in SysReptor:
+          - users/**.md
+        Contact the SysReptor team:
+          - contact-us.md
+        Features and pricing of SysReptor:
+          - features-and-pricing.md
+        Hack the Box (HTB) reporting with SysReptor:
+          - htb-reporting-with-sysreptor.md
+        Offsec reporting with SysReptor:
+          - offsec-reporting-with-sysreptor.md
+        Automating reporting with SysReptor CLI:
+          - cli/**.md
   - mkdocstrings:
       handlers:
         python:
