@@ -58,6 +58,7 @@
           :language="currentLanguage"
           :to="{path: `/templates/${item.id}/`, query: {language: currentLanguage}}"
           lines="two"
+          @filter="addFilter(listViewRef.activeFilters, $event);"
         />
       </template>
     </list-view>
@@ -80,7 +81,7 @@ const apiSettings = useApiSettings();
 const auth = useAuth();
 const templateStore = useTemplateStore();
 
-const listViewRef = useTemplateRef('listViewRef');
+const listViewRef = ref();
 
 const currentLanguage = computed({
   get: () => (Array.isArray(route.query.language) ? route.query.language[0] : route.query.language) || null,
