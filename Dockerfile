@@ -205,7 +205,7 @@ COPY --from=api-statics /app/api/src/frontend/index.html /app/api/src/frontend/i
 COPY --from=api-statics /app/api/src/static/ /app/api/src/static/
 COPY --from=api-statics /app/plugins/ /app/plugins/
 USER 0
-COPY --chown=1000:1000 api/verify_licenses.sh api/download_sources.sh api/start.sh api/NOTICE /app/api/
+COPY --chown=1000:1000 api/verify_licenses.sh api/download_sources.sh api/start.sh /app/api/
 RUN /bin/bash /app/api/verify_licenses.sh
 # Copy of changelog should be one of the last things to use cache for prod releases
 COPY LICENSE CHANGELOG.md /app/
