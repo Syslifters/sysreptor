@@ -2,8 +2,19 @@
   <v-list-item :to="`/designs/${item.id}/pdfdesigner/`" :title="title" lines="two" :data-testid="`design-${item.id}`">
     <v-list-item-subtitle>
       <chip-status v-if="item.status" :value="item.status" />
-      <chip-language v-if="item.language" :value="item.language" />
-      <chip-tag v-for="tag in props.item.tags || []" :key="tag" :value="tag" />
+      <chip-language
+        v-if="item.language"
+        :value="item.language"
+        :filterable="true"
+        @filter="$emit('filter', $event)"
+      />
+      <chip-tag
+        v-for="tag in props.item.tags || []"
+        :key="tag"
+        :value="tag"
+        :filterable="true"
+        @filter="$emit('filter', $event)"
+      />
     </v-list-item-subtitle>
   </v-list-item>
 </template>
@@ -24,4 +35,8 @@ const title = computed(() => {
     return props.item.name;
   }
 })
+
+defineEmits<{
+  filter: [filter: FilterValue];
+}>();
 </script>
