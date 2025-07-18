@@ -41,7 +41,14 @@
             </s-tooltip>
           </v-chip>
 
-          <chip-tag v-for="tag in item.tags" :key="tag" :value="tag" class="mt-2" />
+          <chip-tag
+            v-for="tag in item.tags"
+            :key="tag"
+            :value="tag"
+            class="mt-2"
+            :filterable="true"
+            @filter="listViewRef?.addFilter($event)"
+          />
         </v-list-item-subtitle>
       </v-list-item>
     </template>

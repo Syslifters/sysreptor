@@ -19,7 +19,7 @@
       </v-tab>
     </template>
     <template #item="{item}: {item: PentestProject}">
-      <project-list-item :item="item" />
+      <project-list-item :item="item" @filter="addFilter(listViewRef.activeFilters, $event);" />
     </template>
   </list-view>
 </template>

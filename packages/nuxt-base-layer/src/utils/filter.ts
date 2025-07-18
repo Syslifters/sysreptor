@@ -182,3 +182,20 @@ export function filtersToQueryParams(
 
   return params;
 }
+
+/**
+ * Add a filter to the active filters array, preventing duplicates
+ * @param activeFilters - The reactive array of active filters
+ * @param filter - The filter to add
+ */
+export function addFilter(activeFilters: FilterValue[], filter: FilterValue) {
+  // Check if filter already exists
+  const existingIndex = activeFilters.findIndex(
+    (f: FilterValue) => f.id === filter.id && f.value === filter.value
+  );
+  
+  // If it doesn't exist, add it
+  if (existingIndex === -1) {
+    activeFilters.push(filter);
+  }
+}

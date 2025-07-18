@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts" generic="T">
-import { filtersToQueryParams, parseFiltersFromQuery } from '~/utils/filter';
+import { addFilter as addFilterUtil } from '~/utils/filter';
 
 const orderingModel = defineModel<string|null>('ordering');
 const props = defineProps<{
@@ -141,11 +141,16 @@ function updateOrdering(ordering?: OrderingOption|null) {
   items.applyFilters({ ...route.query });
 }
 
+function addFilter(filter: FilterValue) {
+  addFilterUtil(activeFilters.value, filter);
+}
+
 defineExpose({
   items,
   activeFilters,
   updateSearch,
   updateOrdering,
+  addFilter,
 });
 </script>
 

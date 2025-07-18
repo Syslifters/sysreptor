@@ -27,8 +27,8 @@
           <pro-info>Archived</pro-info>
         </v-tab>
       </template>
-      <template #item="{item}: {item: PentestProject}">
-        <project-list-item :item="item" />
+      <template #item="{item}">
+        <project-list-item :item="item as PentestProject" @filter="addFilter(listViewRef.activeFilters, $event);" />
       </template>
     </list-view>
   </file-drop-area>
@@ -57,6 +57,7 @@ async function performImport(file: File) {
 const listViewRef = ref();
 const pentestMembers = ref<string[]>([]);
 const tags = ref<string[]>([]);
+
 
 watchEffect(() => {
   if (!listViewRef.value?.items?.data.value || !Array.isArray(listViewRef.value.items.data.value)) {
