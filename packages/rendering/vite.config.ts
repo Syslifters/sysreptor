@@ -11,7 +11,7 @@ export default defineConfig({
     cssInjectedByJsPlugin(),
     viteStaticCopy({
       targets: [{
-        src: ['NOTICE', 'NOTICE_DESIGNS'],
+        src: ['NOTICE'],
         dest: '',
       }],
     }),
