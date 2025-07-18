@@ -1,6 +1,7 @@
 site_name: "SysReptor"
 site_url: "https://docs.sysreptor.com/"
 repo_url: https://github.com/syslifters/sysreptor/
+edit_uri: edit/main/docs/docs
 site_dir: ./site/ # Where to put the HTML files
 nav:
   - Features and Pricing: features-and-pricing.md
@@ -122,6 +123,7 @@ theme:
     - content.code.copy
     - content.code.annotate
     - search.share
+    - content.action.edit
   palette:
     - scheme: default
   theme:

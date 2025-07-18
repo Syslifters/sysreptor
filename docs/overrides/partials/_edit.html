@@ -1,0 +1,15 @@
+{% if page.edit_url %}
+  {% if not page.file.src_path.startswith('cli/') %}  <!-- /cli not hosted in this repo -->
+    <hr style="margin-bottom: 0.5em;">
+    <a href="{{ page.edit_url }}" style="text-align: right; display: block">
+        <span class="twemoji">{% include ".icons/simple/github.svg" %}</span>
+        Edit on GitHub
+    </a>
+  {% endif %}
+{% endif %}
+
+<!-- Was this page helpful? -->
+{% include "partials/feedback.html" %}
+
+<!-- Comment system -->
+{% include "partials/comments.html" %}
