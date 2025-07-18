@@ -5,7 +5,11 @@
       {{ translation.data.title }}
     </v-list-item-title>
     <v-list-item-subtitle>
-      <chip-status :value="translation.status" />
+      <chip-status
+        :value="translation.status"
+        :filterable="true"
+        @filter="$emit('filter', $event)"
+      />
       <s-tooltip v-for="tr in props.template.translations" :key="tr.id">
         <template #activator="{ props: tooltipProps }">
           <chip-language
