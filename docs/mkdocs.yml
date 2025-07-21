@@ -230,6 +230,8 @@ plugins:
         "setup/oidc-generic.md": "users/oidc-generic.md"
         "setup/proxy.md": "setup/configuration.md"
         "setup/network.md": "setup/configuration.md"
+        "security.txt.md": "https://docs.syslifters.com/.well-known/security.txt"
+        ".well-known/security.txt.md": "https://docs.syslifters.com/.well-known/security.txt"
 
 markdown_extensions:
   - attr_list
