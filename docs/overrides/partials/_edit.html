@@ -1,10 +1,17 @@
 {% if page.edit_url %}
   {% if not page.file.src_path.startswith('cli/') %}  <!-- /cli not hosted in this repo -->
-    <hr style="margin-bottom: 0.5em;">
-    <a href="{{ page.edit_url }}" style="text-align: right; display: block">
-        <span class="twemoji">{% include ".icons/simple/github.svg" %}</span>
-        Edit on GitHub
-    </a>
+
+    <span class="md-source-file__fact">
+      <span class="twemoji">{% include ".icons/simple/github.svg" %}</span>
+      <a href="{{ page.edit_url }}" style="text-align: right; display: block" target="_blank">
+        Edit
+      </a>
+      /
+      <a href="{{ page.edit_url | replace('edit', 'raw') }}" style="text-align: right; display: block" target="_blank">
+        View
+      </a>
+      on GitHub
+    </span>
   {% endif %}
 {% endif %}
 
