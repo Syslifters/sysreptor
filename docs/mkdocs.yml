@@ -110,6 +110,7 @@ nav:
       - Vulnerabilities: insights/vulnerabilities.md
   - HTB Reporting: htb-reporting-with-sysreptor.md
   - Demo Reports: demo-reports.md
+  - Get Involved: get-involved.md
   - Contact Us: contact-us.md
 
 theme:
