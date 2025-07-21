@@ -12,3 +12,5 @@ reptor>=0.32
 mkdocstrings[python]==0.29.1
 ruff==0.12.4
 mkdocs-llmstxt==0.3.0
+mkdocs-git-revision-date-localized-plugin==1.4.7
+mkdocs-git-committers-plugin-2==2.5.0

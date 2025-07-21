@@ -124,6 +124,7 @@ theme:
     - content.code.annotate
     - search.share
     - content.action.edit
+    - content.action.view
   palette:
     - scheme: default
   theme:
@@ -135,6 +136,15 @@ extra_css:
   - stylesheets/hint.min.css
 
 plugins:
+  - git-revision-date-localized:
+      enabled: true
+      enable_creation_date: false
+  - git-committers:
+      repository: syslifters/sysreptor
+      token: !ENV [MKDOCS_GIT_COMMITTERS_APIKEY, ""]
+      enabled: true
+      branch: main
+      docs_path: docs/docs/
   - llmstxt:
       full_output: llms-full.txt
       markdown_description: "This is the official hosting and usage documentation of the pentest reporting tool SysReptor."
@@ -181,7 +191,6 @@ plugins:
             show_category_heading: false
             heading_level: 2
             show_bases: false
-
   - blog:
       enabled: true
       blog_dir: show-and-tell
