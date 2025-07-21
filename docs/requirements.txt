@@ -14,3 +14,4 @@ ruff==0.12.4
 mkdocs-llmstxt==0.3.0
 mkdocs-git-revision-date-localized-plugin==1.4.7
 mkdocs-git-committers-plugin-2==2.5.0
+mkdocs-minify-plugin==0.8.0

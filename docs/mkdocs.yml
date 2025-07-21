@@ -136,16 +136,20 @@ extra_css:
   - stylesheets/hint.min.css
 
 plugins:
+  - minify:
+      enabled: !ENV [CI, false]
+      minify_html: true
   - git-revision-date-localized:
       enabled: true
       enable_creation_date: false
   - git-committers:
       repository: syslifters/sysreptor
       token: !ENV [MKDOCS_GIT_COMMITTERS_APIKEY, ""]
-      enabled: true
+      enabled: !ENV [CI, false]
       branch: main
       docs_path: docs/docs/
   - llmstxt:
+      enabled: !ENV [CI, false]
       full_output: llms-full.txt
       markdown_description: "This is the official hosting and usage documentation of the pentest reporting tool SysReptor."
       sections:
@@ -177,6 +181,7 @@ plugins:
         Automating reporting with SysReptor CLI:
           - cli/**.md
   - mkdocstrings:
+      enabled: !ENV [CI, false]
       handlers:
         python:
           options:
