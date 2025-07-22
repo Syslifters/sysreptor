@@ -1,0 +1,2219 @@
+id = "6ac5f130-45aa-4991-9481-470717d143d9"
+name = "CJCA Exam Report"
+language = "en-US"
+tags = []
+override_finding_order = false
+images = []
+format = "projects/v2"
+
+members = []
+
+[[sections]]
+id = "remediation_summary"
+created = "2025-07-17T13:46:24.522576Z"
+updated = "2025-07-22T12:45:38.171525Z"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+created = "2025-07-17T13:46:24.522556Z"
+updated = "2025-07-17T13:46:24.524474Z"
+status = "in-progress"
+
+[[sections]]
+id = "phase2"
+created = "2025-07-17T13:46:24.522536Z"
+updated = "2025-07-17T13:46:24.524400Z"
+status = "in-progress"
+
+[[sections]]
+id = "meta"
+created = "2025-07-17T13:46:24.522516Z"
+updated = "2025-07-17T13:46:24.524337Z"
+status = "in-progress"
+
+[[sections]]
+id = "executive_summary"
+created = "2025-07-17T13:46:24.522493Z"
+updated = "2025-07-17T13:46:24.524229Z"
+status = "in-progress"
+
+[[sections]]
+id = "network_pentest_summary"
+created = "2025-07-17T13:46:24.522473Z"
+updated = "2025-07-17T13:46:24.524153Z"
+status = "in-progress"
+
+[[sections]]
+id = "phase1"
+created = "2025-07-17T13:46:24.522452Z"
+updated = "2025-07-17T13:46:24.524073Z"
+status = "in-progress"
+
+[[sections]]
+id = "network_pentest_walkthrough"
+created = "2025-07-17T13:46:24.522427Z"
+updated = "2025-07-17T13:46:24.523959Z"
+status = "in-progress"
+
+[[sections]]
+id = "document_control"
+created = "2025-07-17T13:46:24.522398Z"
+updated = "2025-07-17T13:59:46.965809Z"
+status = "in-progress"
+
+[[sections]]
+id = "assignment"
+created = "2025-07-17T13:46:24.522351Z"
+updated = "2025-07-17T13:46:24.523751Z"
+status = "in-progress"
+
+[report_data]
+title = "CJCA Exam Report"
+remediation_summary = "As a result of this assessment there are several opportunities for {{ report.customer_short }} to strengthen its internal network security. Remediation efforts are prioritized below starting with those that will likely take the least amount of time and effort to complete. {{ report.customer_short }} should ensure that all remediation steps and mitigating controls are carefully planned and tested to prevent any service disruptions or loss of data. "
+short_term = """
+TODO SHORT TERM REMEDIATION:
+* [TODO Finding Reference 2](#findingid2) - Disable Anonymous Access on the FTP server 
+* [TODO Finding Reference 3](#findingid3) - Change the default FTP directory which doesn’t contain sensitive files 
+* [TODO Finding Reference 7](#findingid7) - Update the WordPress Hash Form Plugin to the latest version
+* [TODOFinding Reference X](#findingidX) - TODO FILL IN AS APPROPRIATE
+"""
+medium_term = """
+TODO MEDIUM TERM REMEDIATION:
+* [TODO Finding Reference 1](#findingid1) - Disable LLMNR and NBT-NS wherever possible
+* [TODO Finding Reference 12](#findingid12) - Enforce Unique Password Usage
+* [TODO Finding Reference 2](#findingid2) - TODO FILL IN AS APPROPRIATE
+"""
+long_term = """
+TODO LONG TERM REMEDIATION:
+* Perform ongoing internal network vulnerability assessments
+* Educate systems and network administrators and developers on security hardening best practices compromise 
+* TODO FILL IN AS APPROPRIATE
+"""
+appendix_severities = """
+Each finding has been assigned a severity rating of high, medium, or low. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
+
+| Rating   | Severity Rating Definition |
+| -------- | ---------------- | 
+| <span class="risk-high">**High**</span>     | Exploitation of the technical or procedural vulnerability will cause substantial harm.  Significant political, financial, and/or legal damage is likely to result.  The threat exposure is high, thereby increasing the likelihood of occurrence.  Security controls are not effectively implemented to reduce the severity of impact if the vulnerability were exploited.       |
+| <span class="risk-medium">**Medium**</span>   | Exploitation of the technical or procedural vulnerability will significantly impact the confidentiality, integrity, and/or availability of the system, application, or data.  Exploitation of the vulnerability may cause moderate financial loss or public embarrassment.  The threat exposure is moderate-to-high, thereby increasing the likelihood of occurrence.  Security controls are in place to contain the severity of impact if the vulnerability were exploited, such that further political, financial, or legal damage will not occur. <br><br>- OR -<br><br> The vulnerability is such that it would otherwise be considered High Risk, but the threat exposure is so limited that the likelihood of occurrence is minimal.  |
+| <span class="risk-low">**Low**</span>      | Exploitation of the technical or procedural vulnerability will cause minimal impact to operations.  The Confidentiality, Integrity and Availability (CIA) of sensitive information are not at risk of compromise.  Exploitation of the vulnerability may cause slight financial loss or public embarrassment.  The threat exposure is moderate-to-low.  Security controls are in place to contain the severity of impact if the vulnerability were exploited, such that further political, financial, or legal damage will not occur. <br><br> - OR - <br><br> The vulnerability is such that it would otherwise be considered Medium Risk, but the threat exposure is so limited that the likelihood of occurrence is minimal.|
+"""
+appendix_flags = """
+The Tester found the following flags on compromised hosts in the TODO FILL IN NETWORK SEGMENT NAME network segment.
+
+| IP/Host/Target | File name | Flag |
+| ------- | ------- | ------- |
+| 192.168.195.10 | user.txt   | [flag]    |
+| 192.168.195.10 | root.txt   | [flag]    |
+| 192.168.195.20 | ...   | ...    |
+| 192.168.195.20 | ...   | ...    |
+| 192.168.195.30 | ...   | ...    |
+| TODO | ...   | ...    |
+| TODO | ...   | ...    |
+| TODO | ...   | ...    |
+"""
+appendix_additional_sections = []
+phase2_scope = """
+In phase 2, {{ report.customer_short }}’s security team reproduced the attack paths identified during the penetration test in a controlled staging environment. These simulations generated telemetry data, which was ingested into the Elastic SIEM platform, resulting in security alerts based on the techniques used. The generated alerts are documented under SIEM Alerts below.
+
+### In-Scope Assets
+| Host/URL/IP Address | Description |
+| ------- | ------- |
+| ELK01    | Luminex Elastics SIEM   |
+| TODO    | TODO  |
+"""
+deliverables = "The analyst will review the security alerts generated by {{ report.customer_short }}'s Elastic SIEM platform in response to the simulated attacks executed in the controlled staging environment. These evaluations will be presented in a dedicated table titled \"SIEM Alert Validation and Analysis\" within the report, classifying each alert as a true positive (confirmed malicious activity or legitimate threat based on log analysis) or a false positive (benign activity erroneously flagged as malicious, such as overly sensitive detection rules, legitimate administrative/operating system activity, etc.). Evidence for each classification will be derived from SIEM log analysis."
+siem_alerts = """
+| No. | Alert Name | Description | Host | Alert Timestamp |
+| ------- | ------- | ------- | ------- | ------- |
+| 1    | [Placeholder]    | TODO The actual SIEM alerts can be found in the report template, which can be downloaded form within the HTB CJCA exam lab after starting the exam.    | XXX    | XXX    |
+| 2    | XXX    | XXX    | XXX    | XXX    |
+| 3    | XXX    | XXX    | XXX    | XXX    |
+| 4    | XXX    | XXX    | XXX    | XXX    |
+"""
+siem_alert_validation_and_analysis = """
+| Alert No. | True Positive | False Positive | Evidence |
+| ------- | ------- | ------- | ------- |
+| 1    | X    |     | TODO Evidence    |
+| 2    | Text    | X    | TODO Evidence    |
+| 3    |     |     |     |
+| 4    |     |     |     |
+| 5    |     |     |     |
+| 6    |     |     |     |
+"""
+assessor_full = "TODO Assessor Ltd."
+assessor_short = "TODO Assessor"
+customer_full = "TODO Customer Ltd."
+customer_short = "TODO Customer"
+report_version = "TODO 1.0"
+executive_summary = "{{ report.customer_full }} (“{{ report.customer_short }}” herein) contracted {{ report.candidate.name }} to perform a Network Penetration Test of {{ report.customer_short }}’s externally facing network to identify security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations."
+approach = """
+{{ report.assessor_full }} will conduct the assessment in two sequential phases under controlled conditions to simulate realistic attack scenarios while minimizing disruption.
+        </markdown>
+        
+### Phase 1: Grey Box Penetration Test
+Testing will be performed under a "grey box" approach, where {{ report.assessor_full }} has limited prior knowledge of {{ report.customer_short }}’s environment (e.g., basic network diagrams or IP ranges) but no credentials or detailed internal configurations. The objective is to identify unknown weaknesses from an attacker's perspective with partial visibility. Testing will be conducted remotely via a provisioned host, adopting a non-evasive standpoint initially to uncover misconfigurations and vulnerabilities through reconnaissance, scanning, and targeted exploitation. Each identified weakness will be documented and manually investigated for exploitation possibilities, including potential foothold establishment, lateral movement, and horizontal/vertical privilege escalation. If a foothold is gained, {{ report.customer_short }} authorizes further internal testing to demonstrate the full impact of a compromise, such as data exfiltration or domain control, while adhering to rules of engagement to avoid production impacts.
+
+### Phase 2: SIEM Alert Validation and Analysis
+Following the penetration test, {{ report.customer_short }}’s security team will reproduce the identified attack paths in a controlled staging environment. These simulations will generate telemetry data, which will be ingested into their Elastic SIEM platform. Based on this data, the SIEM will generate security alerts tied to the techniques used during the simulated attacks. {{ report.assessor_full }} will review these alerts to determine whether each one represents a true positive or a false positive, providing supporting evidence from the SIEM logs for each decision.
+
+Throughout both phases, {{ report.assessor_full }} will prioritize safety, with predefined escalation protocols for any high-risk findings, and collaborate with {{ report.customer_short }}'s IT/security team for validation and controlled testing.
+"""
+assessment_overview = """
+During the penetration test against {{ report.customer_short }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}'s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
+
+TODO EXECUTIVE SUMMARY HERE
+
+{{ report.customer_short }} should create a remediation plan based on the [Remediation Summary](#remediation-summary) section of this report, addressing all high findings as soon as possible according to the needs of the business. {{ report.customer_short }} should also consider performing periodic vulnerability assessments if they are not already being performed. Once the issues identified in this report have been addressed, a more collaborative, in-depth Active Directory security assessment may help identify additional opportunities to harden the Active Directory environment, making it more difficult for attackers to move around the network and increasing the likelihood that {{ report.customer_short }} will be able to detect and respond to suspicious activity.
+"""
+network_summary = "{{ report.candidate.name }} began all testing activities from the perspective of an unauthenticated user on the internal network.  Project Director provided the tester with network ranges but did not provide any additional information. "
+finding_summary = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}'s information systems. {{ report.candidate.name }} also identified {{ findings.filter(f => f.htb_severity.label === 'Info').length }} informational finding that, if addressed, could further strengthen {{ report.customer_short }}'s overall security posture. Informational findings are observations for areas of improvement by the organization and do not represent security vulnerabilities on their own. The below chart provides a summary of the findings by severity level."
+exploited_hosts = """
+| Host | Scope | Method | Notes |
+| ------- | ------- | ------- | ------- |
+| 192.168.195.204 (Ubuntu)    | Internal    | Sudo Privilege Abuse | Nano Shell Escape |
+| 192.168.195.205 (WIN01)    | Internal    | Schedule Task Abuse    | Code Injection    |
+| TODO    | TODO    | TODO    | TODO    |
+"""
+compromised_users = """
+| Username | Host | Method | Notes |
+| ------- | ------- | ------- | ------- |
+| john    | 192.168.195.10    | SSH Private Key & Leaked Credentials    | Sudo User    |
+| www-data    | 192.168.195.10    | Wordpress Hash Form Plugin RCE    | Web Server User    |
+| john    | 192.168.195.20    | Credential Reuse    | Standard User    |
+| TODO    | TODO    | TODO    | TODO    |
+"""
+cleanup = """
+| Host | Scope | Change / Cleanup needed |
+| ------- | ------- | ------- |
+| 192.168.195.10 (Ubuntu)    | Internal    | Linpeas.sh file in /home/john | linpeas.sh | md5sum: db7d6def7d80b8e982f3359875ea54e3    |
+| 192.168.195.20 (WIN01)    | Internal    | Winpill file in C:\\winpill.ps1 | winpill.ps1 | md5sum: 5391c4a8af1ede757ba9d28865e75853    |
+| TODO    | TODO    | TODO    |
+"""
+scope = """
+The scope of this assessment is one internal network segment consisting of five hosts and the luminex.htb domain.
+
+### In Scope Assets
+| Host/URL/IP Address | Description |
+|:---|:---|
+| NIX01 | Luminex Software Development Server |
+| NIX02 | Luminex Email Server |
+| WEB01 | Luminex Web Server |
+| WIN01 | Luminex Windows Client |
+| WIN02 | Luminex Windows Management Server |
+| TODO | TODO |
+"""
+reporting_and_deliverables = """
+* Detailed report documenting identified vulnerabilities and technical details including step-by-step walkthrough for each penetration testing stage and screenshots.
+* Risk ratings (High, Medium, Low) based on the Common Vulnerability Scoring System (CVSS).
+* Proof-of-Concept (PoC) for exploited vulnerabilities (where applicable).
+* Recommended remediation steps for each vulnerability. 
+"""
+rules_of_engagement = """
+* Sensitive or personally identifiable information disclosure
+* Remote Code Execution (RCE)
+* Arbitrary file upload
+* Authentication or authorization flaws
+* All forms of injection vulnerabilities
+* Directory Traversal
+* Local File Read
+* Significant Security misconfigurations and business logic flaws
+* Exposed credentials that could be leveraged to gain further accessed
+* Windows and Linux local privilege escalation vulnerabilities
+* Vulnerable services and applications
+
+The following types of activities are considered out-of-scope for this penetration test:
+
+* Scanning and assessing any other IP in the entry point’s network or hosts that do not fall within the in-scope internal subnets
+* Physical attack against {{ report.customer_short }} properties
+* Unverified scanner output
+* Any vulnerabilities identified through DDoS or spam attacks
+* Self-XSS Login/logout CSRF
+* Issues with SSL certificates, open ports, TLS versions, or missing HTTP response headers
+* Vulnerabilities in third-party libraries unless they can be leveraged to significantly impact the targeted
+* Any theoretical attack or attacks that require significant user interaction or low risk
+* Phishing or social engineering attack against {{ report.customer_short }} employees or contractors
+"""
+walkthrough_summary = "During the course of the assessment the Tester was able gain a foothold and compromise the internal network, leading to full administrative control over the TODO INSERT NETWORK SEGMENT NAME network segment. The steps below demonstrate the steps taken from initial access to compromise. Any issues not used as part of the path to compromise are listed as separate, standalone issues in the Detailed Walkthrough section, ranked by severity level. The intent of this attack chain is to demonstrate to {{ report.customer_short }} the impact of each vulnerability shown in this report and how they fit together to demonstrate the overall risk to the client environment and help to prioritize remediation efforts (i.e., patching two flaws quickly could break up the attack chain while the company works to remediate all issues reported). While other findings shown in this report could be leveraged to gain a similar level of access, this attack chain shows the initial path of least resistance taken by the tester to achieve domain compromise."
+walkthrough_details = """
+{{ report.candidate.name }}performed the following to fully compromise the TODO INSERT NETWORK SEGMENT NAME network segment.
+
+| Step # | IP/Host/Target | Action/Command | Result |
+| ------- | ------- | ------- | ------- |
+| 1.1    | 192.168.195.10    | nmap -sV –open -p- 192.168.195.10    | Open ports: 21, 22, 80, 443, 8000    |
+| 1.2    | 192.168.195.10    | ftp 192.168.195.10 -P 21  # anonymous:anon    | Anonymous login available    |
+| 1.x    | 192.168.195.10    | ...    | ...    |
+| 2.1    | 192.168.195.20    | nmap -sV –open -p- 192.168.195.20    | Open ports: 22, 135, 139, 445, 3000, 3389  |
+| 2.x    | 192.168.195.20    | ...    | ...    |
+| TODO  | TODO | TODO | TODO |
+"""
+collected_evidence = """
+**1.1 – 192.168.195.10 – Port & Service Discovery**
+
+```
+$ sudo nmap -p- -sV 10.129.12.10 -T5 --open 
+
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-02-15 14:55 EST 
+Nmap scan report for cube-case.htb (10.129.12.10) 
+Host is up (0.048s latency). 
+Not shown: 65527 closed tcp ports (reset)
+PORT     STATE  SERVICE            VERSION 
+21/tcp   open   ftp                ProFTPD 
+22/tcp   open   ssh                OpenSSH 8.9p1 Ubuntu 3ubuntu0.7 (Ubuntu Linux; protocol 2.0) 
+80/tcp   open   http               nginx 1.18.0 (Ubuntu) 
+443/tcp  open   ssl/http           Apache httpd 2.4.52 ((Ubuntu)) 
+8000/tcp open   ssl/http           Golang net/http server (Go-IPFS json-rpc or InfluxDB API) 
+8001/tcp open   ssl/vcom-tunnel? 
+8080/tcp open   http               Apache httpd 2.4.52 ((Ubuntu)) 
+8889/tcp open   ssl/http           Golang net/http server
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 61.99 seconds
+
+```
+
+**1.2 – 192.168.195.10 – FTP Anonymous Access on port 21/tcp**
+
+
+```
+$ ftp 10.129.12.10 21
+Connected to 10.129.12.10. 
+220 ProFTPD Server (Debian) [10.129.12.10] 
+Name (10.129.12.10:pwnbox): anonymous 
+
+331 Anonymous login ok, send your complete email address as your password 
+Password: anonymous 
+
+230 Anonymous access granted, restrictions apply Remote system type is UNIX. 
+Using binary mode to transfer files.
+```
+
+
+```
+ftp> ls -al
+229 Entering Extended Passive Mode (|||42851|)
+150 Opening ASCII mode data connection for file list
+drwxr-x--- 4 john john 4096 Feb 16 17:28 .
+drwxr-x--- 4 john john 4096 Feb 16 17:28 ..
+-rw------- 1 john john 20 Feb 16 16:34 .lesshst
+-rw-r--r-- 1 john john 807 Jan 6 2022 .profile
+drwxrwxr-x 2 john john 4096 Feb 12 13:55 .ssh
+-rw-r--r-- 1 john john 0 Feb 11 10:18 .sudo_as_admin_successful
+-rw------- 1 john john 17094 Feb 15 22:14 .viminfo
+-rw-rw-r-- 1 john john 964 Feb 15 22:14 WordPress_Blog_Setup_Update.txt
+226 Transfer complete
+
+ftp> get WordPress_Blog_Setup_Update.txt
+local: WordPress_Blog_Setup_Update.txt remote: WordPress_Blog_Setup_Update.txt
+229 Entering Extended Passive Mode (|||12725|)
+150 Opening BINARY mode data connection for WordPress_Blog_Setup_Update.txt (964 bytes)
+100% |**********************************************| 964 14.97 KiB/s 00:00 ETA
+226 Transfer complete 964 bytes received in 00:00 (7.92 KiB/s)
+
+ftp> get .bash_history local: bash_history remote: bash_history
+229 Entering Extended Passive Mode (|||39373|)
+150 Opening BINARY mode data connection for bash_history (1285 bytes)
+100% |**********************************************| 1285 51.01 KiB/s 00:00 ETA
+226 Transfer complete 1285 bytes received in 00:00 (10.95 KiB/s)
+
+ftp> cd .ssh
+ftp> ls -al
+229 Entering Extended Passive Mode (|||26184|)
+150 Opening ASCII mode data connection for file list
+-rw------- 1 john john 2602 Feb 12 13:55 id_rsa
+-rw-r--r-- 1 john john 565 Feb 12 13:55 id_rsa.pub
+226 Transfer complete
+ftp> get id_rsa local: id_rsa remote: id_rsa 229 Entering Extended Passive Mode (|||41007|)
+150 Opening BINARY mode data connection for id_rsa (2602 bytes)
+100% |**********************************************| 2602 108.80 KiB/s 00:00 ETA
+226 Transfer complete 2602 bytes received in 00:00 (22.28 KiB/s)
+```
+"""
+assignment = """
+* **From:** Project Director 
+* **To:** {{ report.candidate.name }} (Tester)
+* **Start:** {{ formatDate(report.pentest_start, 'long') }}
+* **End:** {{ formatDate(report.pentest_end, 'long') }} 
+"""
+objective = "Help {{ report.customer_short }} understand how an attacker could navigate their environment, identify the risks present within the in-scope segment of their network, and evaluate the accuracy and coverage of their detection rules."
+assignment_overview = "You are a Junior Cybersecurity Analyst at {{ report.assessor_full }}. Following a recent surge in suspicious activity and growing concerns about internal threats, {{ report.customer_full }} has engaged your team to perform a comprehensive internal cybersecurity assessment of a certain segment of its corporate network. This engagement includes not only identifying vulnerabilities through targeted attack simulation, but also evaluating the effectiveness of {{ report.customer_short }}’s Security Information and Event Management (SIEM) detections in identifying those threats. Once the assessment is complete, compose and submit a commercial-grade report . The report should include all identified vulnerabilities, step-by-step evidence of successful exploitation, and clear remediation recommendations. When documenting your alert classifications, follow the same step-by-step approach to provide evidence and justification for each decision."
+
+[report_data.candidate]
+title = "TODO Candidate Title"
+name = "TODO Candidate Name"
+email = "TODO Candidate Email"
+
+[[report_data.customer_contacts]]
+title = "Manager"
+name = "Luminex Ltd."
+email = "mgmt@luminex.htb"
+
+[[report_data.assessor_contacts]]
+title = "Project Director"
+name = "Acme Security, LLC."
+email = "mgmt@acmesecurity.htb"
+
+[[report_data.assessor_contacts]]
+title = "Junior Cybersecurity Analyst"
+name = "Acme Security, LLC."
+email = "TODO Student Email"
+
+[[findings]]
+id = "72dfcfc8-25a9-47b6-b3e5-a9b42fed5603"
+created = "2025-07-17T13:48:53.266851Z"
+updated = "2025-07-17T13:49:04.946428Z"
+status = "in-progress"
+order = 5
+
+[findings.assignee]
+id = "b9a1560e-79ea-4d73-b1e0-818601d0386f"
+
+[findings.data]
+title = "Directory Listing in FTP Enabled"
+htb_severity = "low"
+
+[[findings]]
+id = "e9ef8c15-d97d-4858-bd6f-c2301c69c318"
+created = "2025-07-17T13:48:47.249847Z"
+updated = "2025-07-17T13:48:58.655915Z"
+status = "in-progress"
+order = 4
+
+[findings.assignee]
+id = "b9a1560e-79ea-4d73-b1e0-818601d0386f"
+
+[findings.data]
+title = "Anonymous FTP Access"
+htb_severity = "medium"
+
+[[findings]]
+id = "80dee5dc-0cef-471b-8701-851ef22cab0a"
+created = "2025-07-17T13:48:41.413251Z"
+updated = "2025-07-17T13:48:41.414017Z"
+status = "in-progress"
+order = 3
+
+[findings.assignee]
+id = "b9a1560e-79ea-4d73-b1e0-818601d0386f"
+
+[findings.data]
+title = "Vulnerable WordPress Plugin with RCE"
+htb_severity = "high"
+
+[[findings]]
+id = "90891d45-0336-4977-8c19-35afcb01362e"
+created = "2025-07-17T13:48:31.899214Z"
+updated = "2025-07-17T13:48:31.900013Z"
+status = "in-progress"
+order = 2
+
+[findings.assignee]
+id = "b9a1560e-79ea-4d73-b1e0-818601d0386f"
+
+[findings.data]
+title = "Exposed History File with Credentials"
+htb_severity = "high"
+
+[[findings]]
+id = "7dbce0fb-aecb-40ef-8bcc-b677b4ad0755"
+created = "2025-07-17T13:48:20.141559Z"
+updated = "2025-07-17T13:48:20.142351Z"
+status = "in-progress"
+order = 1
+
+[findings.assignee]
+id = "b9a1560e-79ea-4d73-b1e0-818601d0386f"
+
+[findings.data]
+title = "Exposed and Unprotected SSH Private Key"
+htb_severity = "high"
+
+[project_type]
+id = "bb89472c-2051-4ef4-ba46-c2e0dd252ce2"
+created = "2025-07-22T12:44:25.452823Z"
+updated = "2025-07-22T12:44:25.459128Z"
+name = "HTB CJCA Report v1.0"
+language = "en-US"
+status = "finished"
+tags = [
+    "htb",
+    "HackTheBox",
+]
+default_notes = []
+report_template = """
+<div id="header" data-sysreptor-generated="page-header">
+    <div id="header-left">
+        <img id="header-logo" src="/assets/name/logo-transparent.png" alt="logo" />
+        <div id="header-text">
+            <strong>HACK</strong>THE<strong>BOX</strong>
+        </div>
+    </div>
+</div>
+
+
+<div id="footer" data-sysreptor-generated="page-footer">
+    <div id="footer-left"><em>CONFIDENTIAL</em></div>
+    <div id="footer-center">{{ report.title }}</div>
+</div>
+
+
+<section id="page-cover" data-sysreptor-generated="page-cover">
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.png" alt="">
+    <div id="page-cover-logo-title">
+        <strong>HACK</strong>THE<strong>BOX</strong>
+    </div>
+
+    <div id="page-cover-title">
+        <h1>Cybersecurity Assessment</h1>
+        <h2 id="page-cover-report-title">{{ report.title }}</h2>
+        <h2>Internal Report of Findings</h2>
+        <h3>HTB Junior Cybersecurity Associate (CJCA) Exam Report</h3>
+        <h3>Candidate Name: {{ report.candidate.name }}</h3>
+    </div>
+
+    <div id="page-cover-recipient">
+        <h1>{{ report.customer_full }}</h1>
+        <h2>{{ formatDate(report.report_date, 'long') }}</h2>
+        <h2>Version: {{ report.report_version }}</h2>
+    </div>
+    <pagebreak />
+</section>
+
+
+<table-of-contents id="toc" v-slot="tocItems">
+    <h1>Table of Contents</h1>
+    <ul>
+        <li v-for="item in tocItems" :class="'toc-level' + item.level">
+            <ref :to="item.id" />
+        </li>
+    </ul>
+    <pagebreak />
+</table-of-contents>
+
+
+<markdown>
+    # Statement of Confidentiality {#SoC .in-toc.numbered}
+    The contents of this document have been developed by {{ report.assessor_full }}. {{ report.assessor_full }} considers the contents of this document to be proprietary and business confidential information. This information is to be used only in the performance of its intended use. This document may not be released to another vendor, business partner or contractor without prior written consent from {{ report.assessor_full }}. Additionally, no portion of this document may be communicated, reproduced, copied or distributed without the prior consent of {{ report.assessor_full }}.
+
+    The contents of this document do not constitute legal advice. {{ report.assessor_full }}'s offer of services that relate to compliance, litigation or other legal interests are not intended as legal counsel and should not be taken as such. The assessment detailed herein is against a fictional company for training and examination purposes, and the vulnerabilities in no way affect {{ report.assessor_full }} external or internal infrastructure.
+
+    <pagebreak />
+</markdown>
+
+
+<section>
+    <div>
+        <h1 id="contacts" class="in-toc numbered">Engagement Contacts</h1>
+        <table>
+            <colgroup>
+                <col style="width: auto;" />
+                <col style="width: auto;" />
+                <col style="width: auto;" />
+            </colgroup>
+            <tr>
+                <th colspan="3" style="text-align: center">
+                    {{ report.customer_short }} Contacts
+                </th>
+            </tr>
+            <tr>
+                <td><strong>Contact</strong></td>
+                <td><strong>Title</strong></td>
+                <td><strong>Contact Email</strong></td>
+            </tr>
+            <tr v-for="contact in report.customer_contacts">
+                <td>{{ contact.name }}</td>
+                <td>{{ contact.title }}</td>
+                <td>{{ contact.email }}</td>
+            </tr>
+        </table>
+
+        <table>
+            <colgroup>
+                <col style="width: auto;" />
+                <col style="width: auto;" />
+                <col style="width: auto;" />
+            </colgroup>
+            <tr>
+                <th colspan="3" style="text-align: center">
+                    {{ report.assessor_short }} Contact
+                </th>
+            </tr>
+            <tr>
+                <td><strong>Assessor Name</strong></td>
+                <td><strong>Title</strong></td>
+                <td><strong>Assessor Contact Email</strong></td>
+            </tr>
+            <tr v-for="contact in report.assessor_contacts">
+                <td>{{ contact.name }}</td>
+                <td>{{ contact.title }}</td>
+                <td>{{ contact.email }}</td>
+            </tr>
+        </table>
+    </div>
+    <pagebreak />
+</section>
+
+
+<section>
+
+    <h1 id="summary" class="in-toc numbered">Executive Summary</h1>
+    <markdown :text="report.executive_summary" />
+    
+    <h2 id="approach" class="in-toc numbered">Approach</h2>
+    <markdown :text="report.approach" />
+    <pagebreak />
+</section>
+
+<section>
+    <h1 id="assignment" class="in-toc numbered">Assignment</h1>
+    <markdown :text="report.assignment" />
+
+    <h2 id="objective" class="in-toc numbered">Objective</h2>
+    <markdown :text="report.objective" />
+
+    <h2 id="assignment-overview" class="in-toc numbered">Assignment Overview</h2>
+    <markdown :text="report.assignment_overview" />
+    <pagebreak />
+</section>
+
+<section>
+    <h1 id="phase1" class="in-toc numbered">Phase 1: Grey Box Penetration Test</h1>
+    <h2 id="scope" class="in-toc numbered">Scope</h2>
+    <markdown :text="report.scope" />
+
+    <h2 id="reporting-and-deliverables" class="in-toc numbered">Reporting and Deliverables</h2>
+    <markdown :text="report.reporting_and_deliverables" />
+
+    <h2 id="rules-of-engagement" class="in-toc numbered">Rules of Engagement</h2>
+    <markdown :text="report.rules_of_engagement" />
+    <pagebreak />
+</section>
+
+<section>
+    <h1 id="network-summary" class="in-toc numbered">Network Penetration Test Assessment Summary</h1>
+    <markdown :text="report.network_summary" />
+
+    <div>
+        <h2 class="in-toc numbered">Summary of Findings</h2>
+        <markdown :text="report.finding_summary" />
+
+        <p>
+            In the course of this penetration test
+            <comma-and-join>
+                <template #high v-if="findings.filter(f => f.htb_severity.value === 'high').length > 0"><strong class="risk-high">{{ findings.filter(f => f.htb_severity.value === 'high').length }} High</strong></template>
+                <template #medium v-if="findings.filter(f => f.htb_severity.value === 'medium').length > 0"><strong class="risk-medium">{{ findings.filter(f => f.htb_severity.value === 'medium').length }} Medium</strong></template>
+                <template #low v-if="findings.filter(f => f.htb_severity.value === 'low').length > 0"><strong class="risk-low">{{ findings.filter(f => f.htb_severity.value === 'low').length }} Low</strong></template>
+                <template #info v-if="findings.filter(f => f.htb_severity.value === 'info').length > 0"><strong class="risk-info">{{ findings.filter(f => f.htb_severity.value === 'info').length }} Info</strong></template>
+            </comma-and-join>
+            vulnerabilities were identified:
+        </p>
+
+        <figure>
+            <chart :width="15" :height="10" :config="{
+                type: 'bar', 
+                data: {
+                    labels: ['High', 'Medium', 'Low', 'Info'],
+                    datasets: [{
+                        data: [
+                            findings.filter(f => f.htb_severity.value === 'high').length,
+                            findings.filter(f => f.htb_severity.value === 'medium').length,
+                            findings.filter(f => f.htb_severity.value === 'low').length,
+                            findings.filter(f => f.htb_severity.value === 'info').length
+                        ],
+                        backgroundColor: [
+                            cssvar('--color-risk-high'),
+                            cssvar('--color-risk-medium'),
+                            cssvar('--color-risk-low'),
+                            cssvar('--color-risk-info')
+                        ],
+                    }],
+                },
+                options: {
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' }, // Specify the font color for the x-axis ticks
+                            grid: { color: cssvar('--color-secondary') }, // Set the grid color for the x-axis
+                        },
+                        y: {
+                            beginAtZero: true, 
+                            ticks: { precision: 0, color: 'white' },
+                            grid: { color: cssvar('--color-secondary') },  // Set the grid color for the y-axis
+                        },
+                    },
+                    plugins: {legend: { display: false }},
+                }, 
+            }" />
+            <figcaption>Distribution of identified vulnerabilities</figcaption>
+        </figure>
+
+        <pagebreak />
+        <p>
+            Below is a high-level overview of each finding identified during testing. These findings are covered in depth in the
+            <ref to="findings">Technical Findings Details</ref> section of this report.
+        </p>
+        <table class="findings-list">
+            <thead>
+                <tr>
+                    <th style="width: 3em;" align="center">#</th>
+                    <th style="width: 8em;" align="center">Severity Level</th>
+                    <th style="width: auto;">Finding Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(finding, index) in findings" class="table-row-link">
+                    <td align="center" :id="finding.id">
+                        {{ index + 1 }}
+                    </td>
+                    <td :class="'risk-bg-' + finding.htb_severity.value" align="center">
+                        <ref :to="finding.id">{{ finding.htb_severity.label }}</ref>
+                    </td>
+                    <td>
+                        <ref :to="finding.id">{{ finding.title }}</ref>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2 id="exploited-hosts" class="in-toc numbered">Exploited Hosts</h2>
+    <markdown :text="report.exploited_hosts" />
+
+    <h2 id="compromised-users" class="in-toc numbered">Compromised Users</h2>
+    <markdown :text="report.compromised_users" />
+
+    <h2 id="cleanup" class="in-toc numbered">Changes / Host Cleanup</h2>
+    <markdown :text="report.cleanup" />
+
+    <pagebreak />
+</section>
+
+
+<section>
+    <h1 id="compromise-walkthrough" class="in-toc numbered">Internal Network Compromise Walkthrough</h1>
+    <markdown :text="report.walkthrough_summary" />
+
+    <div>
+        <h2 id="compromise-walkthrough-details" class="in-toc numbered">Detailed Walkthrough</h2>
+        <markdown :text="report.walkthrough_details" />
+    </div>
+
+    <div>
+        <h2 id="collected-evidence" class="in-toc numbered">Collected Evidence</h2>
+        <markdown :text="report.collected_evidence" />
+    </div>
+
+    <pagebreak />
+</section>
+
+
+<section>
+    <h1 id="remediation-summary" class="in-toc numbered">Remediation Summary</h1>
+    <markdown :text="report.remediation_summary" />
+
+    <div v-if="report.short_term">
+        <h2 id="short-term" class="in-toc numbered">Short Term</h2>
+        <markdown :text="report.short_term" />
+    </div>
+
+    <div v-if="report.medium_term">
+        <h2 id="medium-term" class="in-toc numbered">Medium Term</h2>
+        <markdown :text="report.medium_term" />
+    </div>
+
+    <div v-if="report.long_term">
+        <h2 id="long-term" class="in-toc numbered">Long Term</h2>
+        <markdown :text="report.long_term" />
+    </div>
+
+    <pagebreak />
+</section>
+
+<section>
+    <h1 id="phase2" class="in-toc numbered">Phase 2: SIEM Alert Validation and Analysis</h1>
+    <h2 id="phase2-scope" class="in-toc numbered">Scope</h2>
+    <markdown :text="report.phase2_scope" />
+
+    <h2 id="deliverables" class="in-toc numbered">Deliverables</h2>
+    <markdown :text="report.deliverables" />
+
+    <h2 id="siem-alerts" class="in-toc numbered">SIEM Alerts</h2>
+    <markdown :text="report.siem_alerts" />
+
+    <h2 id="siem-alert-validation-and-analysis" class="in-toc numbered">SIEM Alert Validation and Analysis</h2>
+    <markdown :text="report.siem_alert_validation_and_analysis" />
+    <pagebreak />
+</section>
+
+<section class="appendix">
+    <h1 id="appendix" class="in-toc numbered">Appendix</h1>
+
+    <div v-if="report.appendix_severities">
+        <h2 class="in-toc numbered">Finding Severities</h2>
+        <markdown :text="report.appendix_severities" />
+    </div>
+
+    <div v-if="report.appendix_flags">
+        <h2 class="in-toc numbered">Flags Discovered</h2>
+        <markdown :text="report.appendix_flags" />
+    </div>
+
+    <div v-for="appendix_additional_section in report.appendix_additional_sections">
+        <h2 class="in-toc numbered">{{ appendix_additional_section.title }}</h2>
+        <markdown :text="appendix_additional_section.content" />
+    </div>
+</section>
+
+<section>
+    <div class="end-of-report">
+        End of Report
+    </div>
+    <div class="end-of-report">
+        This report was rendered<br>
+        by <a href="https://docs.sysreptor.com/">SysReptor</a> with<br>
+        <span style="color:red;">&hearts;</span><br>
+    </div>
+</section>
+"""
+report_styles = """
+@import "/assets/global/base.css";
+
+/* Define variables */
+:root {
+    --color-risk-high: #E83221;
+    --color-risk-medium: #ffc400;
+    --color-risk-low: #4285F5;
+    --color-risk-info: #00AE51;
+
+    --color-highlight: #9FEF00;
+    --color-secondary: #A6B0CB;
+    
+    --color-table-header: #9FEF00;
+    --color-table-row-even: #A4B1CD;
+    --color-table-row-odd: #BFC8DC;
+    --color-table-content: #151515;
+
+    --color-page-background: #161D2A;
+}
+
+@page {
+    size: A4 portrait;
+    margin: 35mm 20mm 25mm 20mm;
+    background-color: var(--color-page-background);
+}
+
+/* Font */
+html {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 10pt;
+    color: white;
+}
+h1, h2, h3, h4, h5, h6 {
+    color: var(--color-highlight);
+}
+
+/* Justify text */
+p {
+    text-align: justify;
+    text-align-last: start;
+}
+
+a {
+    color: var(--color-secondary); /* Set the color of unvisited links */
+    text-decoration: underline; /* Remove the underline from unvisited links */
+}
+
+
+/* Table styling */
+table {
+    table-layout: auto;
+}
+.markdown table {
+    table-layout: auto;
+}
+table, th, td {
+    border: 1px solid white;
+}
+th {
+    background-color: var(--color-table-header);
+    color: var(--color-table-content);
+}
+th, td {
+    padding: 0.2em 0.5em 0.2em 0.5em;
+    min-width: 5em;
+}
+tr.table-row-link td {
+    padding: 0;
+}
+tr.table-row-link td a {
+    display: block;
+    padding: 0.2em 0.5em 0.2em 0.5em;
+    color: inherit;
+    text-decoration: none;
+    font-style: inherit;
+}
+td.table-key {
+    height: 3em;
+    width: 10em;
+}
+tr{
+    color: var(--color-table-content);
+}
+tr:nth-child(even) {
+    background-color: var(--color-table-row-even)
+}
+tr:nth-child(odd) {
+    background-color: var(--color-table-row-odd)
+}
+tr .highlight, tr code {
+    background-color: var(--color-page-background);
+}
+
+
+/* Code block styling */
+pre code {
+    border: 1px solid white;
+    padding: 0.2em !important;
+}
+code {
+    color: var(--color-highlight);
+    background-color: inherit;
+}
+
+.code-important{
+    background-color: yellow;
+    color: red;
+    font-style: italic;
+}
+
+/* Footnotes */
+@page {
+    @footnote {
+        border-top: 1px solid white;
+    }
+}
+footnote {
+    font-size: 8pt;
+}
+
+/* Classes for risk colors */
+.risk-high { color: var(--color-risk-high) !important; font-weight: bold; }
+.risk-medium { color: var(--color-risk-medium) !important; font-weight: bold; }
+.risk-low { color: var(--color-risk-low) !important; font-weight: bold; }
+.risk-info { color: var(--color-risk-info) !important; font-weight: bold; }
+
+.risk-bg-high { background-color: var(--color-risk-high) !important; color: white !important; }
+.risk-bg-medium { background-color: var(--color-risk-medium) !important; }
+.risk-bg-low { background-color: var(--color-risk-low) !important; }
+.risk-bg-info { background-color: var(--color-risk-info) !important; }
+
+
+/* Helper class for referencing page number */
+.ref-page::before { 
+    content: "" !important;
+}
+.ref-page .ref-title, .ref-finding-number .ref-title {
+    display: none !important;
+}
+.ref-page::after {
+    content: target-counter(attr(href), page) !important;
+}
+.ref-finding-number::before {
+    content: target-counter(attr(href), finding-number);
+}
+
+.findings-list {
+    counter-reset: finding-number;
+}
+.finding-number {
+    color: white;
+}
+.finding-number::before {
+    counter-increment: finding-number;
+    content: counter(finding-number) ". ";
+}
+
+
+
+/* Finding */
+.finding-header th {
+    font-weight: normal;
+    width: 7em;
+}
+.finding-header tr {
+    break-inside: auto;
+}
+
+
+
+
+/*CSS classes for multiple systems */
+.finding-systems {
+    padding-left: 1em;
+}
+.finding-systems-cols {
+    column-count: 2;
+    padding-top: 1em;
+    margin-bottom: 1em;
+}
+
+.end-of-report {
+    text-align:center;
+    font-style:italic;
+    margin-top:70px;
+    line-height:1.7;
+}
+
+
+
+/* #region header */
+@page {
+    margin-top: 35mm;
+    --header-margin-bottom: 5mm;
+    
+    @top-left-corner {
+        content: "";
+        margin-bottom: var(--header-margin-bottom);
+        border-bottom: 2px dotted white;
+    }
+    @top-left { 
+        content: element(header-left); 
+        margin-bottom: var(--header-margin-bottom);
+        border-bottom: 2px dotted white;
+        width: 100%;
+    }
+    @top-right-corner { 
+        content: "";
+        margin-bottom: var(--header-margin-bottom); 
+        border-bottom: 2px dotted white;
+    }
+}
+#header {
+    position: absolute;
+    width: 0;
+}
+#header-left { 
+    position: running(header-left); 
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+#header-logo { height: 20mm; }
+#header-text { font-size: 14pt; margin-left: -3mm; }
+/* #endregion header */
+
+/* #region footer */
+@page {
+    @bottom-left { content: element(footer-left); }
+    @bottom-center { content: element(footer-center); }
+    @bottom-right-corner { content: counter(page); }
+}
+#footer {
+    position: absolute;
+    width: 0;
+}
+#footer-left { position: running(footer-left); }
+#footer-center { position: running(footer-center); }
+/* #endregion footer */
+
+/* #region page-cover */
+#page-cover-logo {
+    position: absolute;
+    top: 5%;
+    left: 2cm;
+    height: 6cm;
+    transform: translate(-50%, -50%);
+    display: inline-block
+}
+
+#page-cover-logo-title {
+    position: absolute;
+    top: 5%;
+    left: 9.5cm;
+    transform: translate(-50%, -50%);
+    display: inline-block;
+    font-size: 42pt;
+}
+
+#page-cover-title {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    width: 14cm;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+#page-cover-title h1 {
+    font-size: 32pt;
+    color: white;
+}
+#page-cover-title h2 {
+    font-size: 24pt;
+    color: white;
+}
+#page-cover-title h3 {
+    font-size: 12pt;
+    color: white;
+}
+#page-cover-report-title{
+    color: var(--color-highlight) !important;
+}
+
+#page-cover-recipient {
+    position: absolute;
+    top: 80%;
+    left: 50%;
+    width: 14cm;
+    transform: translate(-50%, -50%);
+    display: inline-block;
+    text-align: right;
+}
+
+#page-cover-recipient h1 {
+    font-size: 16pt;
+    color: var(--color-highlight);
+}
+#page-cover-recipient h2 {
+    font-size: 12pt;
+    color: var(--color-secondary);
+}
+
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
+    /* Hide header */
+    @top-left-corner { content: none !important; }
+    @top-left { content: none !important; }
+    @top-right-corner { content: none !important; }
+    /* Hide footer (except "confidential") */
+    @bottom-center { content: none !important; }
+    @bottom-right-corner { content: none !important; }
+}
+/* #endregion page-cover */
+
+/* #region toc */
+#toc li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    color: var(--color-secondary);
+}
+#toc .ref::before {
+    padding-right: 0.5em;
+}
+#toc .ref::after {
+    content: " " leader(".") " " target-counter(attr(href), page);
+}
+#toc .toc-level1 {
+    font-size: 14pt;
+    margin-top: 0.8em;
+    color: white;
+}
+#toc .toc-level2 {
+    font-size: 12pt;
+    margin-top: 0.5em;
+    margin-left: 1em;
+}
+#toc .toc-level3 {
+    font-size: 10pt;
+    margin-top: 0.4em;
+    margin-left: 2em;
+}
+/* #endregion toc */
+"""
+format = "projecttypes/v2"
+
+[[project_type.report_sections]]
+id = "meta"
+label = "Meta"
+
+[[project_type.report_sections.fields]]
+id = "candidate"
+type = "object"
+label = "HTB Candidate"
+origin = "custom"
+
+[[project_type.report_sections.fields.properties]]
+id = "name"
+type = "string"
+label = "Full Name"
+origin = "custom"
+default = "TODO Candidate Name"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO Candidate Title"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields.properties]]
+id = "email"
+type = "string"
+label = "Email"
+origin = "custom"
+default = "TODO Candidate Email"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields]]
+id = "title"
+type = "string"
+label = "Report Title"
+origin = "core"
+default = "TODO Report Title"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields]]
+id = "assessor_full"
+type = "string"
+label = "Assessor"
+origin = "custom"
+default = "TODO Assessor Ltd."
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields]]
+id = "assessor_short"
+type = "string"
+label = "Assessor (abbreviated)"
+origin = "custom"
+default = "TODO Assessor"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields]]
+id = "customer_full"
+type = "string"
+label = "Customer"
+origin = "custom"
+default = "TODO Customer Ltd."
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields]]
+id = "customer_short"
+type = "string"
+label = "Customer (abbreviated)"
+origin = "custom"
+default = "TODO Customer"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields]]
+id = "pentest_start"
+type = "date"
+label = "Pentest Start"
+origin = "custom"
+required = true
+
+[[project_type.report_sections.fields]]
+id = "pentest_end"
+type = "date"
+label = "Pentest End"
+origin = "custom"
+required = true
+
+[[project_type.report_sections.fields]]
+id = "report_date"
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[[project_type.report_sections.fields]]
+id = "report_version"
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "TODO 1.0"
+required = true
+spellcheck = false
+
+[[project_type.report_sections]]
+id = "document_control"
+label = "Document Control"
+
+[[project_type.report_sections.fields]]
+id = "customer_contacts"
+type = "list"
+label = "Customer Contacts"
+origin = "custom"
+required = true
+
+[project_type.report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[project_type.report_sections.fields.items.properties]]
+id = "name"
+type = "string"
+label = "Name"
+origin = "custom"
+default = "TODO Name"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO Title"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields.items.properties]]
+id = "email"
+type = "string"
+label = "Email"
+origin = "custom"
+default = "TODO Email"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields]]
+id = "assessor_contacts"
+type = "list"
+label = "Assessor Contacts"
+origin = "custom"
+required = true
+
+[project_type.report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[project_type.report_sections.fields.items.properties]]
+id = "name"
+type = "string"
+label = "Name"
+origin = "custom"
+default = "TODO Name"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO Title"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields.items.properties]]
+id = "email"
+type = "string"
+label = "Email"
+origin = "custom"
+default = "TODO Email"
+required = true
+spellcheck = false
+
+[[project_type.report_sections]]
+id = "executive_summary"
+label = "Executive Summary"
+
+[[project_type.report_sections.fields]]
+id = "executive_summary"
+type = "markdown"
+label = "Executive Summary"
+origin = "custom"
+default = "{{ report.customer_full }} (“{{ report.customer_short }}” herein) contracted {{ report.candidate.name }} to perform a Network Penetration Test of {{ report.customer_short }}’s externally facing network to identify security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations."
+required = true
+
+[[project_type.report_sections.fields]]
+id = "approach"
+type = "markdown"
+label = "Approach"
+origin = "custom"
+default = """
+{{ report.assessor_full }} will conduct the assessment in two sequential phases under controlled conditions to simulate realistic attack scenarios while minimizing disruption.
+        </markdown>
+        
+### Phase 1: Grey Box Penetration Test
+Testing will be performed under a "grey box" approach, where {{ report.assessor_full }} has limited prior knowledge of {{ report.customer_short }}’s environment (e.g., basic network diagrams or IP ranges) but no credentials or detailed internal configurations. The objective is to identify unknown weaknesses from an attacker's perspective with partial visibility. Testing will be conducted remotely via a provisioned host, adopting a non-evasive standpoint initially to uncover misconfigurations and vulnerabilities through reconnaissance, scanning, and targeted exploitation. Each identified weakness will be documented and manually investigated for exploitation possibilities, including potential foothold establishment, lateral movement, and horizontal/vertical privilege escalation. If a foothold is gained, {{ report.customer_short }} authorizes further internal testing to demonstrate the full impact of a compromise, such as data exfiltration or domain control, while adhering to rules of engagement to avoid production impacts.
+
+### Phase 2: SIEM Alert Validation and Analysis
+Following the penetration test, {{ report.customer_short }}’s security team will reproduce the identified attack paths in a controlled staging environment. These simulations will generate telemetry data, which will be ingested into their Elastic SIEM platform. Based on this data, the SIEM will generate security alerts tied to the techniques used during the simulated attacks. {{ report.assessor_full }} will review these alerts to determine whether each one represents a true positive or a false positive, providing supporting evidence from the SIEM logs for each decision.
+
+Throughout both phases, {{ report.assessor_full }} will prioritize safety, with predefined escalation protocols for any high-risk findings, and collaborate with {{ report.customer_short }}'s IT/security team for validation and controlled testing.
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "assessment_overview"
+type = "markdown"
+label = "Assessment Overview and Recommendations"
+origin = "custom"
+default = """
+During the penetration test against {{ report.customer_short }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}'s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
+
+TODO EXECUTIVE SUMMARY HERE
+
+{{ report.customer_short }} should create a remediation plan based on the [Remediation Summary](#remediation-summary) section of this report, addressing all high findings as soon as possible according to the needs of the business. {{ report.customer_short }} should also consider performing periodic vulnerability assessments if they are not already being performed. Once the issues identified in this report have been addressed, a more collaborative, in-depth Active Directory security assessment may help identify additional opportunities to harden the Active Directory environment, making it more difficult for attackers to move around the network and increasing the likelihood that {{ report.customer_short }} will be able to detect and respond to suspicious activity.
+"""
+required = true
+
+[[project_type.report_sections]]
+id = "assignment"
+label = "Assignment"
+
+[[project_type.report_sections.fields]]
+id = "assignment"
+type = "markdown"
+label = "Assignment"
+origin = "custom"
+default = """
+* **From:** Project Director 
+* **To:** {{ report.candidate.name }} (Tester)
+* **Start:** {{ formatDate(report.pentest_start, 'long') }}
+* **End:** {{ formatDate(report.pentest_end, 'long') }} 
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "objective"
+type = "markdown"
+label = "Objective"
+origin = "custom"
+default = "Help {{ report.customer_short }} understand how an attacker could navigate their environment, identify the risks present within the in-scope segment of their network, and evaluate the accuracy and coverage of their detection rules."
+required = true
+
+[[project_type.report_sections.fields]]
+id = "assignment_overview"
+type = "markdown"
+label = "Assignment Overview"
+origin = "custom"
+default = "You are a Junior Cybersecurity Analyst at {{ report.assessor_full }}. Following a recent surge in suspicious activity and growing concerns about internal threats, {{ report.customer_full }} has engaged your team to perform a comprehensive internal cybersecurity assessment of a certain segment of its corporate network. This engagement includes not only identifying vulnerabilities through targeted attack simulation, but also evaluating the effectiveness of {{ report.customer_short }}’s Security Information and Event Management (SIEM) detections in identifying those threats. Once the assessment is complete, compose and submit a commercial-grade report . The report should include all identified vulnerabilities, step-by-step evidence of successful exploitation, and clear remediation recommendations. When documenting your alert classifications, follow the same step-by-step approach to provide evidence and justification for each decision."
+required = true
+
+[[project_type.report_sections]]
+id = "phase1"
+label = "Phase 1: Grey Box Penetration Test"
+
+[[project_type.report_sections.fields]]
+id = "scope"
+type = "markdown"
+label = "Scope"
+origin = "custom"
+default = """
+The scope of this assessment is one internal network segment consisting of five hosts and the luminex.htb domain.
+
+### In Scope Assets
+| Host/URL/IP Address | Description |
+|:---|:---|
+| NIX01 | Luminex Software Development Server |
+| NIX02 | Luminex Email Server |
+| WEB01 | Luminex Web Server |
+| WIN01 | Luminex Windows Client |
+| WIN02 | Luminex Windows Management Server |
+| TODO | TODO |
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "reporting_and_deliverables"
+type = "markdown"
+label = "Reporting and Deliverables"
+origin = "custom"
+default = """
+* Detailed report documenting identified vulnerabilities and technical details including step-by-step walkthrough for each penetration testing stage and screenshots.
+* Risk ratings (High, Medium, Low) based on the Common Vulnerability Scoring System (CVSS).
+* Proof-of-Concept (PoC) for exploited vulnerabilities (where applicable).
+* Recommended remediation steps for each vulnerability. 
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "rules_of_engagement"
+type = "markdown"
+label = "Rules of Engagement"
+origin = "custom"
+default = """
+* Sensitive or personally identifiable information disclosure
+* Remote Code Execution (RCE)
+* Arbitrary file upload
+* Authentication or authorization flaws
+* All forms of injection vulnerabilities
+* Directory Traversal
+* Local File Read
+* Significant Security misconfigurations and business logic flaws
+* Exposed credentials that could be leveraged to gain further accessed
+* Windows and Linux local privilege escalation vulnerabilities
+* Vulnerable services and applications
+
+The following types of activities are considered out-of-scope for this penetration test:
+
+* Scanning and assessing any other IP in the entry point’s network or hosts that do not fall within the in-scope internal subnets
+* Physical attack against {{ report.customer_short }} properties
+* Unverified scanner output
+* Any vulnerabilities identified through DDoS or spam attacks
+* Self-XSS Login/logout CSRF
+* Issues with SSL certificates, open ports, TLS versions, or missing HTTP response headers
+* Vulnerabilities in third-party libraries unless they can be leveraged to significantly impact the targeted
+* Any theoretical attack or attacks that require significant user interaction or low risk
+* Phishing or social engineering attack against {{ report.customer_short }} employees or contractors
+"""
+required = true
+
+[[project_type.report_sections]]
+id = "network_pentest_summary"
+label = "Network Penetration Test Assessment Summary"
+
+[[project_type.report_sections.fields]]
+id = "network_summary"
+type = "markdown"
+label = "Network Summary"
+origin = "custom"
+default = "{{ report.candidate.name }} began all testing activities from the perspective of an unauthenticated user on the internal network.  Project Director provided the tester with network ranges but did not provide any additional information. "
+required = true
+
+[[project_type.report_sections.fields]]
+id = "finding_summary"
+type = "markdown"
+label = "Summary of Findings"
+origin = "custom"
+default = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}'s information systems. {{ report.candidate.name }} also identified {{ findings.filter(f => f.htb_severity.label === 'Info').length }} informational finding that, if addressed, could further strengthen {{ report.customer_short }}'s overall security posture. Informational findings are observations for areas of improvement by the organization and do not represent security vulnerabilities on their own. The below chart provides a summary of the findings by severity level."
+required = true
+
+[[project_type.report_sections.fields]]
+id = "exploited_hosts"
+type = "markdown"
+label = "Exploitet Hosts"
+origin = "custom"
+default = """
+| Host | Scope | Method | Notes |
+| ------- | ------- | ------- | ------- |
+| 192.168.195.204 (Ubuntu)    | Internal    | Sudo Privilege Abuse | Nano Shell Escape |
+| 192.168.195.205 (WIN01)    | Internal    | Schedule Task Abuse    | Code Injection    |
+| TODO    | TODO    | TODO    | TODO    |
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "compromised_users"
+type = "markdown"
+label = "Compromised Users"
+origin = "custom"
+default = """
+| Username | Host | Method | Notes |
+| ------- | ------- | ------- | ------- |
+| john    | 192.168.195.10    | SSH Private Key & Leaked Credentials    | Sudo User    |
+| www-data    | 192.168.195.10    | Wordpress Hash Form Plugin RCE    | Web Server User    |
+| john    | 192.168.195.20    | Credential Reuse    | Standard User    |
+| TODO    | TODO    | TODO    | TODO    |
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "cleanup"
+type = "markdown"
+label = "Changes / Host Cleanup"
+origin = "custom"
+default = """
+| Host | Scope | Change / Cleanup needed |
+| ------- | ------- | ------- |
+| 192.168.195.10 (Ubuntu)    | Internal    | Linpeas.sh file in /home/john | linpeas.sh | md5sum: db7d6def7d80b8e982f3359875ea54e3    |
+| 192.168.195.20 (WIN01)    | Internal    | Winpill file in C:\\winpill.ps1 | winpill.ps1 | md5sum: 5391c4a8af1ede757ba9d28865e75853    |
+| TODO    | TODO    | TODO    |
+"""
+required = true
+
+[[project_type.report_sections]]
+id = "network_pentest_walkthrough"
+label = "Internal Network Compromise Walkthrough"
+
+[[project_type.report_sections.fields]]
+id = "walkthrough_summary"
+type = "markdown"
+label = "Walkthrough Summary"
+origin = "custom"
+default = "During the course of the assessment the Tester was able gain a foothold and compromise the internal network, leading to full administrative control over the TODO INSERT NETWORK SEGMENT NAME network segment. The steps below demonstrate the steps taken from initial access to compromise. Any issues not used as part of the path to compromise are listed as separate, standalone issues in the Detailed Walkthrough section, ranked by severity level. The intent of this attack chain is to demonstrate to {{ report.customer_short }} the impact of each vulnerability shown in this report and how they fit together to demonstrate the overall risk to the client environment and help to prioritize remediation efforts (i.e., patching two flaws quickly could break up the attack chain while the company works to remediate all issues reported). While other findings shown in this report could be leveraged to gain a similar level of access, this attack chain shows the initial path of least resistance taken by the tester to achieve domain compromise."
+required = true
+
+[[project_type.report_sections.fields]]
+id = "walkthrough_details"
+type = "markdown"
+label = "Detailed Walkthrough"
+origin = "custom"
+default = """
+{{ report.candidate.name }}performed the following to fully compromise the TODO INSERT NETWORK SEGMENT NAME network segment.
+
+| Step # | IP/Host/Target | Action/Command | Result |
+| ------- | ------- | ------- | ------- |
+| 1.1    | 192.168.195.10    | nmap -sV –open -p- 192.168.195.10    | Open ports: 21, 22, 80, 443, 8000    |
+| 1.2    | 192.168.195.10    | ftp 192.168.195.10 -P 21  # anonymous:anon    | Anonymous login available    |
+| 1.x    | 192.168.195.10    | ...    | ...    |
+| 2.1    | 192.168.195.20    | nmap -sV –open -p- 192.168.195.20    | Open ports: 22, 135, 139, 445, 3000, 3389  |
+| 2.x    | 192.168.195.20    | ...    | ...    |
+| TODO  | TODO | TODO | TODO |
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "collected_evidence"
+type = "markdown"
+label = "Collected Evidence"
+origin = "custom"
+default = """
+**1.1 – 192.168.195.10 – Port & Service Discovery**
+
+```
+$ sudo nmap -p- -sV 10.129.12.10 -T5 --open 
+
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-02-15 14:55 EST 
+Nmap scan report for cube-case.htb (10.129.12.10) 
+Host is up (0.048s latency). 
+Not shown: 65527 closed tcp ports (reset)
+PORT     STATE  SERVICE            VERSION 
+21/tcp   open   ftp                ProFTPD 
+22/tcp   open   ssh                OpenSSH 8.9p1 Ubuntu 3ubuntu0.7 (Ubuntu Linux; protocol 2.0) 
+80/tcp   open   http               nginx 1.18.0 (Ubuntu) 
+443/tcp  open   ssl/http           Apache httpd 2.4.52 ((Ubuntu)) 
+8000/tcp open   ssl/http           Golang net/http server (Go-IPFS json-rpc or InfluxDB API) 
+8001/tcp open   ssl/vcom-tunnel? 
+8080/tcp open   http               Apache httpd 2.4.52 ((Ubuntu)) 
+8889/tcp open   ssl/http           Golang net/http server
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 61.99 seconds
+
+```
+
+**1.2 – 192.168.195.10 – FTP Anonymous Access on port 21/tcp**
+
+
+```
+$ ftp 10.129.12.10 21
+Connected to 10.129.12.10. 
+220 ProFTPD Server (Debian) [10.129.12.10] 
+Name (10.129.12.10:pwnbox): anonymous 
+
+331 Anonymous login ok, send your complete email address as your password 
+Password: anonymous 
+
+230 Anonymous access granted, restrictions apply Remote system type is UNIX. 
+Using binary mode to transfer files.
+```
+
+
+```
+ftp> ls -al
+229 Entering Extended Passive Mode (|||42851|)
+150 Opening ASCII mode data connection for file list
+drwxr-x--- 4 john john 4096 Feb 16 17:28 .
+drwxr-x--- 4 john john 4096 Feb 16 17:28 ..
+-rw------- 1 john john 20 Feb 16 16:34 .lesshst
+-rw-r--r-- 1 john john 807 Jan 6 2022 .profile
+drwxrwxr-x 2 john john 4096 Feb 12 13:55 .ssh
+-rw-r--r-- 1 john john 0 Feb 11 10:18 .sudo_as_admin_successful
+-rw------- 1 john john 17094 Feb 15 22:14 .viminfo
+-rw-rw-r-- 1 john john 964 Feb 15 22:14 WordPress_Blog_Setup_Update.txt
+226 Transfer complete
+
+ftp> get WordPress_Blog_Setup_Update.txt
+local: WordPress_Blog_Setup_Update.txt remote: WordPress_Blog_Setup_Update.txt
+229 Entering Extended Passive Mode (|||12725|)
+150 Opening BINARY mode data connection for WordPress_Blog_Setup_Update.txt (964 bytes)
+100% |**********************************************| 964 14.97 KiB/s 00:00 ETA
+226 Transfer complete 964 bytes received in 00:00 (7.92 KiB/s)
+
+ftp> get .bash_history local: bash_history remote: bash_history
+229 Entering Extended Passive Mode (|||39373|)
+150 Opening BINARY mode data connection for bash_history (1285 bytes)
+100% |**********************************************| 1285 51.01 KiB/s 00:00 ETA
+226 Transfer complete 1285 bytes received in 00:00 (10.95 KiB/s)
+
+ftp> cd .ssh
+ftp> ls -al
+229 Entering Extended Passive Mode (|||26184|)
+150 Opening ASCII mode data connection for file list
+-rw------- 1 john john 2602 Feb 12 13:55 id_rsa
+-rw-r--r-- 1 john john 565 Feb 12 13:55 id_rsa.pub
+226 Transfer complete
+ftp> get id_rsa local: id_rsa remote: id_rsa 229 Entering Extended Passive Mode (|||41007|)
+150 Opening BINARY mode data connection for id_rsa (2602 bytes)
+100% |**********************************************| 2602 108.80 KiB/s 00:00 ETA
+226 Transfer complete 2602 bytes received in 00:00 (22.28 KiB/s)
+```
+"""
+required = true
+
+[[project_type.report_sections]]
+id = "remediation_summary"
+label = "Remediation Summary"
+
+[[project_type.report_sections.fields]]
+id = "remediation_summary"
+type = "markdown"
+label = "Remediation Summary"
+origin = "custom"
+default = "As a result of this assessment there are several opportunities for {{ report.customer_short }} to strengthen its internal network security. Remediation efforts are prioritized below starting with those that will likely take the least amount of time and effort to complete. {{ report.customer_short }} should ensure that all remediation steps and mitigating controls are carefully planned and tested to prevent any service disruptions or loss of data. "
+required = true
+
+[[project_type.report_sections.fields]]
+id = "short_term"
+type = "markdown"
+label = "Short Term"
+origin = "custom"
+default = """
+TODO SHORT TERM REMEDIATION:
+* [TODO Finding Reference 2](#findingid2) - Disable Anonymous Access on the FTP server 
+* [TODO Finding Reference 3](#findingid3) - Change the default FTP directory which doesn’t contain sensitive files 
+* [TODO Finding Reference 7](#findingid7) - Update the WordPress Hash Form Plugin to the latest version
+* [TODOFinding Reference X](#findingidX) - TODO FILL IN AS APPROPRIATE
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "medium_term"
+type = "markdown"
+label = "Medium Term"
+origin = "custom"
+default = """
+TODO MEDIUM TERM REMEDIATION:
+* [TODO Finding Reference 1](#findingid1) - Disable LLMNR and NBT-NS wherever possible
+* [TODO Finding Reference 12](#findingid12) - Enforce Unique Password Usage
+* [TODO Finding Reference 2](#findingid2) - TODO FILL IN AS APPROPRIATE
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "long_term"
+type = "markdown"
+label = "Long Term"
+origin = "custom"
+default = """
+TODO LONG TERM REMEDIATION:
+* Perform ongoing internal network vulnerability assessments
+* Educate systems and network administrators and developers on security hardening best practices compromise 
+* TODO FILL IN AS APPROPRIATE
+"""
+required = true
+
+[[project_type.report_sections]]
+id = "phase2"
+label = "Phase 2: SIEM Alert Validation and Analysis"
+
+[[project_type.report_sections.fields]]
+id = "phase2_scope"
+type = "markdown"
+label = "Scope"
+origin = "custom"
+default = """
+In phase 2, {{ report.customer_short }}’s security team reproduced the attack paths identified during the penetration test in a controlled staging environment. These simulations generated telemetry data, which was ingested into the Elastic SIEM platform, resulting in security alerts based on the techniques used. The generated alerts are documented under SIEM Alerts below.
+
+### In-Scope Assets
+| Host/URL/IP Address | Description |
+| ------- | ------- |
+| ELK01    | Luminex Elastics SIEM   |
+| TODO    | TODO  |
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "deliverables"
+type = "markdown"
+label = "Deliverables"
+origin = "custom"
+default = "The analyst will review the security alerts generated by {{ report.customer_short }}'s Elastic SIEM platform in response to the simulated attacks executed in the controlled staging environment. These evaluations will be presented in a dedicated table titled \"SIEM Alert Validation and Analysis\" within the report, classifying each alert as a true positive (confirmed malicious activity or legitimate threat based on log analysis) or a false positive (benign activity erroneously flagged as malicious, such as overly sensitive detection rules, legitimate administrative/operating system activity, etc.). Evidence for each classification will be derived from SIEM log analysis."
+required = true
+
+[[project_type.report_sections.fields]]
+id = "siem_alerts"
+type = "markdown"
+label = "SIEM Alerts"
+origin = "custom"
+default = """
+| No. | Alert Name | Description | Host | Alert Timestamp |
+| ------- | ------- | ------- | ------- | ------- |
+| 1    | [Placeholder]    | TODO The actual SIEM alerts can be found in the report template, which can be downloaded form within the HTB CJCA exam lab after starting the exam.    | XXX    | XXX    |
+| 2    | XXX    | XXX    | XXX    | XXX    |
+| 3    | XXX    | XXX    | XXX    | XXX    |
+| 4    | XXX    | XXX    | XXX    | XXX    |
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "siem_alert_validation_and_analysis"
+type = "markdown"
+label = "SIEM Alert Validation and Analysis"
+origin = "custom"
+default = """
+| Alert No. | True Positive | False Positive | Evidence |
+| ------- | ------- | ------- | ------- |
+| 1    | X    |     | TODO Evidence    |
+| 2    | Text    | X    | TODO Evidence    |
+| 3    |     |     |     |
+| 4    |     |     |     |
+| 5    |     |     |     |
+| 6    |     |     |     |
+"""
+required = true
+
+[[project_type.report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[project_type.report_sections.fields]]
+id = "appendix_severities"
+type = "markdown"
+label = "Finding Severities"
+origin = "custom"
+default = """
+Each finding has been assigned a severity rating of high, medium, or low. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
+
+| Rating   | Severity Rating Definition |
+| -------- | ---------------- | 
+| <span class="risk-high">**High**</span>     | Exploitation of the technical or procedural vulnerability will cause substantial harm.  Significant political, financial, and/or legal damage is likely to result.  The threat exposure is high, thereby increasing the likelihood of occurrence.  Security controls are not effectively implemented to reduce the severity of impact if the vulnerability were exploited.       |
+| <span class="risk-medium">**Medium**</span>   | Exploitation of the technical or procedural vulnerability will significantly impact the confidentiality, integrity, and/or availability of the system, application, or data.  Exploitation of the vulnerability may cause moderate financial loss or public embarrassment.  The threat exposure is moderate-to-high, thereby increasing the likelihood of occurrence.  Security controls are in place to contain the severity of impact if the vulnerability were exploited, such that further political, financial, or legal damage will not occur. <br><br>- OR -<br><br> The vulnerability is such that it would otherwise be considered High Risk, but the threat exposure is so limited that the likelihood of occurrence is minimal.  |
+| <span class="risk-low">**Low**</span>      | Exploitation of the technical or procedural vulnerability will cause minimal impact to operations.  The Confidentiality, Integrity and Availability (CIA) of sensitive information are not at risk of compromise.  Exploitation of the vulnerability may cause slight financial loss or public embarrassment.  The threat exposure is moderate-to-low.  Security controls are in place to contain the severity of impact if the vulnerability were exploited, such that further political, financial, or legal damage will not occur. <br><br> - OR - <br><br> The vulnerability is such that it would otherwise be considered Medium Risk, but the threat exposure is so limited that the likelihood of occurrence is minimal.|
+"""
+required = false
+
+[[project_type.report_sections.fields]]
+id = "appendix_flags"
+type = "markdown"
+label = "Obtained Flags"
+origin = "custom"
+default = """
+The Tester found the following flags on compromised hosts in the TODO FILL IN NETWORK SEGMENT NAME network segment.
+
+| IP/Host/Target | File name | Flag |
+| ------- | ------- | ------- |
+| 192.168.195.10 | user.txt   | [flag]    |
+| 192.168.195.10 | root.txt   | [flag]    |
+| 192.168.195.20 | ...   | ...    |
+| 192.168.195.20 | ...   | ...    |
+| 192.168.195.30 | ...   | ...    |
+| TODO | ...   | ...    |
+| TODO | ...   | ...    |
+| TODO | ...   | ...    |
+"""
+required = true
+
+[[project_type.report_sections.fields]]
+id = "appendix_additional_sections"
+type = "list"
+label = "Additional Appendix"
+origin = "custom"
+required = false
+
+[project_type.report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[project_type.report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO Appendix Title"
+required = true
+spellcheck = false
+
+[[project_type.report_sections.fields.items.properties]]
+id = "content"
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO Additional Appendix"
+required = true
+
+[[project_type.finding_fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "TODO FINDING TITLE"
+required = true
+spellcheck = false
+
+[[project_type.finding_fields]]
+id = "htb_severity"
+type = "enum"
+label = "Severity"
+origin = "custom"
+default = "high"
+required = true
+
+[[project_type.finding_fields.choices]]
+label = "High"
+value = "high"
+
+[[project_type.finding_fields.choices]]
+label = "Medium"
+value = "medium"
+
+[[project_type.finding_fields.choices]]
+label = "Low"
+value = "low"
+
+[[project_type.finding_fields.choices]]
+label = "Info"
+value = "info"
+
+[[project_type.finding_ordering]]
+field = "htb_severity"
+order = "asc"
+
+[project_type.report_preview_data.report]
+title = "Luminex"
+assessor_full = "Acme Security, LLC"
+assessor_short = "Acme Security"
+customer_full = "Luminex Ltd."
+customer_short = "Luminex"
+pentest_start = "2025-07-14"
+pentest_end = "2025-07-17"
+report_date = "2025-07-21"
+report_version = "1.0"
+executive_summary = """
+{{ report.customer_full }} ("{{ report.customer_short }}" herein) contracted {{ report.assessor_full }} to perform a comprehensive cybersecurity assessment of a certain segment of its corporate network. This engagement includes not only identifying vulnerabilities through targeted attack simulation, but also evaluating the effectiveness of {{ report.customer_short }}"’s Security Information and Event Management (SIEM) detections in identifying those threats.
+The objective is not only to simulate realistic adversary behavior, provide a comprehensive view of the internal threat landscape, document all findings in a clear and repeatable manner, and offer remediation recommendations, but also to help {{ report.customer_short }}" evaluate the accuracy and coverage of their detection rules.
+"""
+approach = """
+{{ report.assessor_full }} will conduct the assessment in two sequential phases under controlled conditions to simulate realistic attack scenarios while minimizing disruption.
+        </markdown>
+        
+### Phase 1: Grey Box Penetration Test
+Testing will be performed under a "grey box" approach, where {{ report.assessor_full }} has limited prior knowledge of {{ report.customer_short }}’s environment (e.g., basic network diagrams or IP ranges) but no credentials or detailed internal configurations. The objective is to identify unknown weaknesses from an attacker's perspective with partial visibility. Testing will be conducted remotely via a provisioned host, adopting a non-evasive standpoint initially to uncover misconfigurations and vulnerabilities through reconnaissance, scanning, and targeted exploitation. Each identified weakness will be documented and manually investigated for exploitation possibilities, including potential foothold establishment, lateral movement, and horizontal/vertical privilege escalation. If a foothold is gained, {{ report.customer_short }} authorizes further internal testing to demonstrate the full impact of a compromise, such as data exfiltration or domain control, while adhering to rules of engagement to avoid production impacts.
+
+### Phase 2: SIEM Alert Validation and Analysis
+Following the penetration test, {{ report.customer_short }}’s security team will reproduce the identified attack paths in a controlled staging environment. These simulations will generate telemetry data, which will be ingested into their Elastic SIEM platform. Based on this data, the SIEM will generate security alerts tied to the techniques used during the simulated attacks. {{ report.assessor_full }} will review these alerts to determine whether each one represents a true positive or a false positive, providing supporting evidence from the SIEM logs for each decision.
+
+Throughout both phases, {{ report.assessor_full }} will prioritize safety, with predefined escalation protocols for any high-risk findings, and collaborate with {{ report.customer_short }}'s IT/security team for validation and controlled testing.
+"""
+assessment_overview = """
+During the penetration test against {{ report.customer_short }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}'s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk rating, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There was also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
+
+TODO EXECUTIVE SUMMARY HERE
+
+{{ report.customer_short }} should create a remediation plan based on the [Remediation Summary](#remediation-summary) section of this report, addressing all high findings as soon as possible according to the needs of the business. {{ report.customer_short }} should also consider performing periodic vulnerability assessments if they are not already being performed. Once the issues identified in this report have been addressed, a more collaborative, in-depth Active Directory security assessment may help identify additional opportunities to harden the Active Directory environment, making it more difficult for attackers to move around the network and increasing the likelihood that {{ report.customer_short }} will be able to detect and respond to suspicious activity.
+"""
+assignment = """
+* **From:** Project Director 
+* **To:** {{ report.candidate.name }} (Tester)
+* **Start:** {{ formatDate(report.pentest_start, 'long') }}
+* **End:** {{ formatDate(report.pentest_end, 'long') }} 
+"""
+objective = "Help {{ report.customer_short }} understand how an attacker could navigate their environment, identify the risks present within the in-scope segment of their network, and evaluate the accuracy and coverage of their detection rules."
+assignment_overview = "You are a Junior Cybersecurity Analyst at {{ report.assessor_full }}. Following a recent surge in suspicious activity and growing concerns about internal threats, {{ report.customer_full }} has engaged your team to perform a comprehensive internal cybersecurity assessment of a certain segment of its corporate network. This engagement includes not only identifying vulnerabilities through targeted attack simulation, but also evaluating the effectiveness of {{ report.customer_short }}’s Security Information and Event Management (SIEM) detections in identifying those threats. Once the assessment is complete, compose and submit a commercial-grade report . The report should include all identified vulnerabilities, step-by-step evidence of successful exploitation, and clear remediation recommendations. When documenting your alert classifications, follow the same step-by-step approach to provide evidence and justification for each decision."
+scope = """
+The scope of this assessment is one internal network segment consisting of five hosts and the luminex.htb domain.
+
+### In Scope Assets
+| Host/URL/IP Address | Description |
+|:---|:---|
+| NIX01 | Luminex Software Development Server |
+| NIX02 | Luminex Email Server |
+| WEB01 | Luminex Web Server |
+| WIN01 | Luminex Windows Client |
+| WIN02 | Luminex Windows Management Server |
+| TODO | TODO |
+"""
+reporting_and_deliverables = """
+* Detailed report documenting identified vulnerabilities and technical details including step-by-step walkthrough for each penetration testing stage and screenshots.
+* Risk ratings (High, Medium, Low) based on the Common Vulnerability Scoring System (CVSS).
+* Proof-of-Concept (PoC) for exploited vulnerabilities (where applicable).
+* Recommended remediation steps for each vulnerability. 
+"""
+rules_of_engagement = """
+* Sensitive or personally identifiable information disclosure
+* Remote Code Execution (RCE)
+* Arbitrary file upload
+* Authentication or authorization flaws
+* All forms of injection vulnerabilities
+* Directory Traversal
+* Local File Read
+* Significant Security misconfigurations and business logic flaws
+* Exposed credentials that could be leveraged to gain further accessed
+* Windows and Linux local privilege escalation vulnerabilities
+* Vulnerable services and applications
+
+The following types of activities are considered out-of-scope for this penetration test:
+
+* Scanning and assessing any other IP in the entry point’s network or hosts that do not fall within the in-scope internal subnets
+* Physical attack against {{ report.customer_short }} properties
+* Unverified scanner output
+* Any vulnerabilities identified through DDoS or spam attacks
+* Self-XSS Login/logout CSRF
+* Issues with SSL certificates, open ports, TLS versions, or missing HTTP response headers
+* Vulnerabilities in third-party libraries unless they can be leveraged to significantly impact the targeted
+* Any theoretical attack or attacks that require significant user interaction or low risk
+* Phishing or social engineering attack against {{ report.customer_short }} employees or contractors
+"""
+network_summary = "{{ report.candidate.name }} began all testing activities from the perspective of an unauthenticated user on the internal network.  Project Director provided the tester with network ranges but did not provide any additional information. "
+finding_summary = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}'s information systems. {{ report.candidate.name }} also identified {{ findings.filter(f => f.htb_severity.label === 'Info').length }} informational finding that, if addressed, could further strengthen {{ report.customer_short }}'s overall security posture. Informational findings are observations for areas of improvement by the organization and do not represent security vulnerabilities on their own. The below chart provides a summary of the findings by severity level."
+exploited_hosts = """
+| Host | Scope | Method | Notes |
+| ------- | ------- | ------- | ------- |
+| 192.168.195.204 (Ubuntu)    | Internal    | Sudo Privilege Abuse | Nano Shell Escape |
+| 192.168.195.205 (WIN01)    | Internal    | Schedule Task Abuse    | Code Injection    |
+| TODO    | TODO    | TODO    | TODO    |
+"""
+compromised_users = """
+| Username | Host | Method | Notes |
+| ------- | ------- | ------- | ------- |
+| john    | 192.168.195.10    | SSH Private Key & Leaked Credentials    | Sudo User    |
+| www-data    | 192.168.195.10    | Wordpress Hash Form Plugin RCE    | Web Server User    |
+| john    | 192.168.195.20    | Credential Reuse    | Standard User    |
+| TODO    | TODO    | TODO    | TODO    |
+"""
+cleanup = """
+| Host | Scope | Change / Cleanup needed |
+| ------- | ------- | ------- |
+| 192.168.195.10 (Ubuntu)    | Internal    | Linpeas.sh file in /home/john | linpeas.sh | md5sum: db7d6def7d80b8e982f3359875ea54e3    |
+| 192.168.195.20 (WIN01)    | Internal    | Winpill file in C:\\winpill.ps1 | winpill.ps1 | md5sum: 5391c4a8af1ede757ba9d28865e75853    |
+| TODO    | TODO    | TODO    |
+"""
+walkthrough_summary = "During the course of the assessment the Tester was able gain a foothold and compromise the internal network, leading to full administrative control over the TODO INSERT NETWORK SEGMENT NAME network segment. The steps below demonstrate the steps taken from initial access to compromise. Any issues not used as part of the path to compromise are listed as separate, standalone issues in the Detailed Walkthrough section, ranked by severity level. The intent of this attack chain is to demonstrate to {{ report.customer_short }} the impact of each vulnerability shown in this report and how they fit together to demonstrate the overall risk to the client environment and help to prioritize remediation efforts (i.e., patching two flaws quickly could break up the attack chain while the company works to remediate all issues reported). While other findings shown in this report could be leveraged to gain a similar level of access, this attack chain shows the initial path of least resistance taken by the tester to achieve domain compromise."
+walkthrough_details = """
+{{ report.candidate.name }}performed the following to fully compromise the TODO INSERT NETWORK SEGMENT NAME network segment.
+
+| Step # | IP/Host/Target | Action/Command | Result |
+| ------- | ------- | ------- | ------- |
+| 1.1    | 192.168.195.10    | nmap -sV –open -p- 192.168.195.10    | Open ports: 21, 22, 80, 443, 8000    |
+| 1.2    | 192.168.195.10    | ftp 192.168.195.10 -P 21  # anonymous:anon    | Anonymous login available    |
+| 1.x    | 192.168.195.10    | ...    | ...    |
+| 2.1    | 192.168.195.20    | nmap -sV –open -p- 192.168.195.20    | Open ports: 22, 135, 139, 445, 3000, 3389  |
+| 2.x    | 192.168.195.20    | ...    | ...    |
+| TODO  | TODO | TODO | TODO |
+"""
+collected_evidence = """
+**1.1 – 192.168.195.10 – Port & Service Discovery**
+
+```
+$ sudo nmap -p- -sV 10.129.12.10 -T5 --open 
+
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-02-15 14:55 EST 
+Nmap scan report for cube-case.htb (10.129.12.10) 
+Host is up (0.048s latency). 
+Not shown: 65527 closed tcp ports (reset)
+PORT     STATE  SERVICE            VERSION 
+21/tcp   open   ftp                ProFTPD 
+22/tcp   open   ssh                OpenSSH 8.9p1 Ubuntu 3ubuntu0.7 (Ubuntu Linux; protocol 2.0) 
+80/tcp   open   http               nginx 1.18.0 (Ubuntu) 
+443/tcp  open   ssl/http           Apache httpd 2.4.52 ((Ubuntu)) 
+8000/tcp open   ssl/http           Golang net/http server (Go-IPFS json-rpc or InfluxDB API) 
+8001/tcp open   ssl/vcom-tunnel? 
+8080/tcp open   http               Apache httpd 2.4.52 ((Ubuntu)) 
+8889/tcp open   ssl/http           Golang net/http server
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 61.99 seconds
+
+```
+
+**1.2 – 192.168.195.10 – FTP Anonymous Access on port 21/tcp**
+
+
+```
+$ ftp 10.129.12.10 21
+Connected to 10.129.12.10. 
+220 ProFTPD Server (Debian) [10.129.12.10] 
+Name (10.129.12.10:pwnbox): anonymous 
+
+331 Anonymous login ok, send your complete email address as your password 
+Password: anonymous 
+
+230 Anonymous access granted, restrictions apply Remote system type is UNIX. 
+Using binary mode to transfer files.
+```
+
+
+```
+ftp> ls -al
+229 Entering Extended Passive Mode (|||42851|)
+150 Opening ASCII mode data connection for file list
+drwxr-x--- 4 john john 4096 Feb 16 17:28 .
+drwxr-x--- 4 john john 4096 Feb 16 17:28 ..
+-rw------- 1 john john 20 Feb 16 16:34 .lesshst
+-rw-r--r-- 1 john john 807 Jan 6 2022 .profile
+drwxrwxr-x 2 john john 4096 Feb 12 13:55 .ssh
+-rw-r--r-- 1 john john 0 Feb 11 10:18 .sudo_as_admin_successful
+-rw------- 1 john john 17094 Feb 15 22:14 .viminfo
+-rw-rw-r-- 1 john john 964 Feb 15 22:14 WordPress_Blog_Setup_Update.txt
+226 Transfer complete
+
+ftp> get WordPress_Blog_Setup_Update.txt
+local: WordPress_Blog_Setup_Update.txt remote: WordPress_Blog_Setup_Update.txt
+229 Entering Extended Passive Mode (|||12725|)
+150 Opening BINARY mode data connection for WordPress_Blog_Setup_Update.txt (964 bytes)
+100% |**********************************************| 964 14.97 KiB/s 00:00 ETA
+226 Transfer complete 964 bytes received in 00:00 (7.92 KiB/s)
+
+ftp> get .bash_history local: bash_history remote: bash_history
+229 Entering Extended Passive Mode (|||39373|)
+150 Opening BINARY mode data connection for bash_history (1285 bytes)
+100% |**********************************************| 1285 51.01 KiB/s 00:00 ETA
+226 Transfer complete 1285 bytes received in 00:00 (10.95 KiB/s)
+
+ftp> cd .ssh
+ftp> ls -al
+229 Entering Extended Passive Mode (|||26184|)
+150 Opening ASCII mode data connection for file list
+-rw------- 1 john john 2602 Feb 12 13:55 id_rsa
+-rw-r--r-- 1 john john 565 Feb 12 13:55 id_rsa.pub
+226 Transfer complete
+ftp> get id_rsa local: id_rsa remote: id_rsa 229 Entering Extended Passive Mode (|||41007|)
+150 Opening BINARY mode data connection for id_rsa (2602 bytes)
+100% |**********************************************| 2602 108.80 KiB/s 00:00 ETA
+226 Transfer complete 2602 bytes received in 00:00 (22.28 KiB/s)
+```
+"""
+remediation_summary = "As a result of this assessment there are several opportunities for {{ report.customer_short }} to strengthen its internal network security. Remediation efforts are prioritized below starting with those that will likely take the least amount of time and effort to complete. {{ report.customer_short }} should ensure that all remediation steps and mitigating controls are carefully planned and tested to prevent any service disruptions or loss of data. "
+short_term = """
+TODO SHORT TERM REMEDIATION:
+* [Finding Reference 1](#a10eed1a-07f5-46ef-bf3a-b78208e72272) - Set strong (24+ character) passwords on all SPN accounts
+* [Finding Reference 2](#89b9d011-8782-4a14-be15-ead66d720936) - TODO FILL IN AS APPROPRIATE
+* [Finding Reference 3](#f622369f-782e-4d77-bf2d-493b85747b3b) - Enforce a password change for all users because of the domain compromise
+
+TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
+"""
+medium_term = """
+TODO MEDIUM TERM REMEDIATION:
+* [Finding Reference 1](#a10eed1a-07f5-46ef-bf3a-b78208e72272) - Disable LLMNR and NBT-NS wherever possible
+* [Finding Reference 2](#89b9d011-8782-4a14-be15-ead66d720936) - TODO FILL IN AS APPROPRIATE
+
+TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
+"""
+long_term = """
+TODO LONG TERM REMEDIATION:
+* Perform ongoing internal network vulnerability assessments
+* Educate systems and network administrators and developers on security hardening best practices compromise 
+* TODO FILL IN AS APPROPRIATE
+"""
+phase2_scope = """
+In phase 2, {{ report.customer_short }}’s security team reproduced the attack paths identified during the penetration test in a controlled staging environment. These simulations generated telemetry data, which was ingested into the Elastic SIEM platform, resulting in security alerts based on the techniques used. The generated alerts are documented under SIEM Alerts below.
+
+### In-Scope Assets
+| Host/URL/IP Address | Description |
+| ------- | ------- |
+| ELK01    | Luminex Elastics SIEM   |
+| TODO    | TODO  |
+"""
+deliverables = "The analyst will review the security alerts generated by {{ report.customer_short }}'s Elastic SIEM platform in response to the simulated attacks executed in the controlled staging environment. These evaluations will be presented in a dedicated table titled \"SIEM Alert Validation and Analysis\" within the report, classifying each alert as a true positive (confirmed malicious activity or legitimate threat based on log analysis) or a false positive (benign activity erroneously flagged as malicious, such as overly sensitive detection rules, legitimate administrative/operating system activity, etc.). Evidence for each classification will be derived from SIEM log analysis."
+siem_alerts = """
+| No. | Alert Name | Description | Host | Alert Timestamp |
+| ------- | ------- | ------- | ------- | ------- |
+| 1    | [Placeholder]    | TODO The actual SIEM alerts can be found in the report template, which can be downloaded form within the HTB CJCA exam lab after starting the exam.    | XXX    | XXX    |
+| 2    | XXX    | XXX    | XXX    | XXX    |
+| 3    | XXX    | XXX    | XXX    | XXX    |
+| 4    | XXX    | XXX    | XXX    | XXX    |
+"""
+siem_alert_validation_and_analysis = """
+| Alert No. | True Positive | False Positive | Evidence |
+| ------- | ------- | ------- | ------- |
+| 1    | X    |     | TODO Evidence    |
+| 2    | Text    | X    | TODO Evidence    |
+| 3    |     |     |     |
+| 4    |     |     |     |
+| 5    |     |     |     |
+| 6    |     |     |     |
+"""
+appendix_severities = """
+Each finding has been assigned a severity rating of high, medium, or low. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
+
+| Rating   | Severity Rating Definition |
+| -------- | ---------------- | 
+| <span class="risk-high">High</span>     | Exploitation of the technical or procedural vulnerability will cause substantial harm.  Significant political, financial, and/or legal damage is likely to result.  The threat exposure is high, thereby increasing the likelihood of occurrence.  Security controls are not effectively implemented to reduce the severity of impact if the vulnerability were exploited.       |
+| <span class="risk-medium">Medium</span>   | Exploitation of the technical or procedural vulnerability will significantly impact the confidentiality, integrity, and/or availability of the system, application, or data.  Exploitation of the vulnerability may cause moderate financial loss or public embarrassment.  The threat exposure is moderate-to-high, thereby increasing the likelihood of occurrence.  Security controls are in place to contain the severity of impact if the vulnerability were exploited, such that further political, financial, or legal damage will not occur. <br><br>- OR -<br><br> The vulnerability is such that it would otherwise be considered High Risk, but the threat exposure is so limited that the likelihood of occurrence is minimal.  |
+| <span class="risk-low">Low</span>      | Exploitation of the technical or procedural vulnerability will cause minimal impact to operations.  The Confidentiality, Integrity and Availability (CIA) of sensitive information are not at risk of compromise.  Exploitation of the vulnerability may cause slight financial loss or public embarrassment.  The threat exposure is moderate-to-low.  Security controls are in place to contain the severity of impact if the vulnerability were exploited, such that further political, financial, or legal damage will not occur. <br><br> - OR - <br><br> The vulnerability is such that it would otherwise be considered Medium Risk, but the threat exposure is so limited that the likelihood of occurrence is minimal.|
+"""
+appendix_flags = """
+The Tester found the following flags on compromised hosts in the TODO FILL IN NETWORK SEGMENT NAME network segment.
+
+| IP/Host/Target | File name | Flag |
+| ------- | ------- | ------- |
+| 192.168.195.10 | user.txt   | [flag]    |
+| 192.168.195.10 | root.txt   | [flag]    |
+| 192.168.195.20 | ...   | ...    |
+| 192.168.195.20 | ...   | ...    |
+| 192.168.195.30 | ...   | ...    |
+| TODO | ...   | ...    |
+| TODO | ...   | ...    |
+| TODO | ...   | ...    |
+"""
+appendix_additional_sections = []
+
+[project_type.report_preview_data.report.candidate]
+title = "TODO Candidate Title"
+name = "TODO Candidate Name"
+email = "TODO Candidate Email"
+
+[[project_type.report_preview_data.report.customer_contacts]]
+title = "TODO Title"
+name = "TODO Name"
+email = "TODO Email"
+
+[[project_type.report_preview_data.report.customer_contacts]]
+title = "TODO Title"
+name = "TODO Name"
+email = "TODO Email"
+
+[[project_type.report_preview_data.report.assessor_contacts]]
+title = "TODO Title"
+name = "TODO Name"
+email = "TODO Email"
+
+[[project_type.report_preview_data.report.assessor_contacts]]
+title = "TODO Title"
+name = "TODO Name"
+email = "TODO Email"
+
+[[project_type.report_preview_data.findings]]
+title = "Exposed and Unprotected SSH Private Key"
+id = "a10eed1a-07f5-46ef-bf3a-b78208e72272"
+created = "2024-12-09T09:49:08.895277+00:00"
+order = 1
+htb_severity = "high"
+
+[[project_type.report_preview_data.findings]]
+title = "Exposed History File with Credentials"
+id = "89b9d011-8782-4a14-be15-ead66d720936"
+created = "2024-12-09T09:49:08.895342+00:00"
+order = 2
+htb_severity = "high"
+
+[[project_type.report_preview_data.findings]]
+title = "Vulnerable WordPress Plugin with RCE"
+id = "55c8bd59-c026-477e-a84e-4948ba018f17"
+created = "2025-07-17T08:51:27.019Z"
+order = 3
+htb_severity = "high"
+
+[[project_type.report_preview_data.findings]]
+title = "Anonymous FTP Access"
+id = "ab9b90db-45ba-4b2c-ae54-6c5b4f5df680"
+created = "2025-07-17T08:51:42.955Z"
+order = 4
+htb_severity = "medium"
+
+[[project_type.report_preview_data.findings]]
+title = "Directory Listing in FTP Enabled"
+id = "f622369f-782e-4d77-bf2d-493b85747b3b"
+created = "2024-12-09T09:49:08.895388+00:00"
+order = 5
+htb_severity = "low"
+
+[[project_type.assets]]
+id = "c871fa0b-efa2-4685-af34-b58833d0b0dc"
+created = "2024-12-10T12:21:49.235000Z"
+updated = "2025-07-22T12:44:25.472311Z"
+name = "LICENSE"
+
+[[project_type.assets]]
+id = "2fb5dae4-1ca6-449c-8dbe-61dbc25177cb"
+created = "2024-12-10T12:21:49.235000Z"
+updated = "2025-07-22T12:44:25.472452Z"
+name = "logo-transparent.png"
