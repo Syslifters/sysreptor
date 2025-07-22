@@ -30,3 +30,16 @@ pip3 install .
 <div style="display: flex; justify-content: flex-end;">
   <span><a href="tutorial/part-1/projects">First steps with the reptor Python library →</a></span>
 </div>
+
+<div class="grid cards" style="margin: 4em;" markdown>
+
+-   :material-help-circle:{ .lg .middle } __Questions?__
+
+    ---
+
+    Need help or have questions?  
+    Get support and connect with us and the SysReptor community.
+
+    [:octicons-arrow-right-24: Get help](https://github.com/Syslifters/sysreptor/discussions/categories/q-a){ target="_blank"}
+
+</div>

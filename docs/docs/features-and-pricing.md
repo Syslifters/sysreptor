@@ -22,7 +22,42 @@
 | [__SSO (oAuth/OIDC)__](users/oidc-setup.md){ target=_blank }                                   | <span style="color:red;font-weight:bold;">X</span>                                                            | <span style="color:green;font-weight:bold;">✓</span>                                                                                                                  |
 | [__Project Archiving (encrypted)__](insights/archiving.md){ target=_blank }                    | <span style="color:red;font-weight:bold;">X</span>                                                            | <span style="color:green;font-weight:bold;">✓</span>                                                                                                                  |
 |                                                                                               | [:fire: Get Started](setup/installation.md){ .md-button target="_blank" }                                      | [:rocket: Buy](https://portal.sysreptor.com/order/){ .md-button target="_blank"}                                                                                       |
-|                                                                                               | [:material-phone: Contact Us](contact-us.md){ .md-button style="align:center;" }                               | [:sauropod: Book a Demo](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ .md-button style="align:center;" target=_blank } |
+
+Started with SysReptor Community?  
+You can upgrade anytime, seamlessly and without reinstall.
+
+<div class="grid cards" style="margin-top: 2em;" markdown>
+
+-   :material-calendar:{ .lg .middle } __Book a demo__
+
+    ---
+
+    Interested in SysReptor Professional?  
+    Book a Teams call with us and get you questions answered.
+
+    [:octicons-arrow-right-24: Choose your time slot](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ target="_blank"}
+
+</div>
+
+<div class="grid cards" style="margin-bottom: 4em" markdown>
+-   :material-help-circle:{ .lg .middle } __Ask a question__
+
+    ---
+
+    Need help or have questions? Get support
+    and connect with us and the SysReptor community.
+
+    [:octicons-arrow-right-24: Get help](https://github.com/Syslifters/sysreptor/discussions/categories/q-a){ target="_blank"}
+
+-   :material-chat:{ .lg .middle } __Contact us privately__
+
+    ---
+
+    Need to reach us privately? Send confidential messages
+    about sensitive topics or business inquiries.
+
+    <span style="color: var(--md-typeset-a-color);">:octicons-arrow-right-24: Reach us at Signal: **syslifters.01**</span>
+</div>
 
 __\*Additional currencies accepted__: USD, AUD, CHF, DKK, GBP, NOK, SEK  
 __\*\*Spell Check support__: English, German, Spanish, French, Portuguese, Dutch  

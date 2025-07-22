@@ -40,3 +40,15 @@ This is ensured by two measures:
    No HTTP requests are involved when including these resources (neither to localhost), 
    but a custom handler that returns the resources as data following the 
    [WeasyPrint security recommendations](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#security){ target=_blank }.
+
+
+<div class="grid cards" style="margin: 4em;" markdown>
+-   :material-shield-alert:{ .lg .middle } __Report a security issue__
+
+    ---
+
+    Discovered a security vulnerability?  
+    Report it responsibly through our secure disclosure process.
+
+    [:octicons-arrow-right-24: Disclose responsibly](https://docs.syslifters.com/en/vulnerability-disclosure/){ target="_blank"}
+</div>

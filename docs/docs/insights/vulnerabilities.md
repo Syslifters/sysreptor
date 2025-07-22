@@ -20,3 +20,13 @@ If you don't use a reverse proxy (like Caddy or nginx) for SysReptor and expose 
 
 This is due to an unpatched [vulnerability in gunicorn](https://huntr.com/bounties/22158e34-cfd5-41ad-97e0-a780773d96c1){ target=_blank }. The vulnerability could be well-exploitable for authenticated users and might lead to privilege escalation.
 
+<div class="grid cards" style="margin: 4em;" markdown>
+-   :material-shield-alert:{ .lg .middle } __Report a security issue__
+
+    ---
+
+    Discovered a security vulnerability?  
+    Report it responsibly through our secure disclosure process.
+
+    [:octicons-arrow-right-24: Disclose responsibly](https://docs.syslifters.com/en/vulnerability-disclosure/){ target="_blank"}
+</div>

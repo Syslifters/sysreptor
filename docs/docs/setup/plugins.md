@@ -331,3 +331,16 @@ Here are some notes to get you started:
   * if you want to import them explicitely use `import { ... } from '#components'`
   * composables, utilities, etc. (from nuxt-base-layer and local) can be imported via `import { ... } from '#imports'`
 
+
+<div class="grid cards" style="margin: 4em;" markdown>
+
+-   :material-help-circle:{ .lg .middle } __Still have questions?__
+
+    ---
+
+    Need help or have questions?  
+    Get support and connect with us and the SysReptor community.
+
+    [:octicons-arrow-right-24: Get help](https://github.com/Syslifters/sysreptor/discussions/categories/q-a){ target="_blank"}
+
+</div>
