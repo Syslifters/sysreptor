@@ -30,7 +30,7 @@ software:
   - name: PeTeReport
     self: no
     url: https://github.com/1modm/petereport
-    discontinued: no
+    discontinued: yes
     customization: LaTeX/Eisvogel
     deployment: OnPrem
     price: Free and Open Source
@@ -94,7 +94,7 @@ software:
   - name: WriteHat
     self: no
     url: https://github.com/blacklanternsecurity/writehat
-    discontinued: yes
+    discontinued: no
     customization: HTML/Django Templating Language
     deployment: OnPrem
     price: Free and Open Source
