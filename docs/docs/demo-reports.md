@@ -89,3 +89,15 @@
 </div>
 <br style="clear:both" />
 
+<div class="grid cards" style="margin-top: 4em;" markdown>
+
+-   :material-palette:{ .lg .middle } __Wanna see your report design here?__
+
+    ---
+
+    Post your report design (PDF and/or exported design) and we'll add it to our page (if desired).  
+    We'll happily provide a backlink to your website.
+
+    [:octicons-arrow-right-24: Show & Tell](https://github.com/Syslifters/sysreptor/discussions/20){ target="_blank" }
+
+</div>

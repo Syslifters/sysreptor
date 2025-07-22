@@ -1,6 +1,7 @@
 site_name: "SysReptor"
 site_url: "https://docs.sysreptor.com/"
 repo_url: https://github.com/syslifters/sysreptor/
+edit_uri: edit/main/docs/docs
 site_dir: ./site/ # Where to put the HTML files
 nav:
   - Features and Pricing: features-and-pricing.md
@@ -109,6 +110,7 @@ nav:
       - Vulnerabilities: insights/vulnerabilities.md
   - HTB Reporting: htb-reporting-with-sysreptor.md
   - Demo Reports: demo-reports.md
+  - Get Involved: get-involved.md
   - Contact Us: contact-us.md
 
 theme:
@@ -122,6 +124,8 @@ theme:
     - content.code.copy
     - content.code.annotate
     - search.share
+    - content.action.edit
+    - content.action.view
   palette:
     - scheme: default
   theme:
@@ -133,7 +137,56 @@ extra_css:
   - stylesheets/hint.min.css
 
 plugins:
+  - minify:
+      enabled: !ENV [CI, false]
+      minify_html: true
+  - git-revision-date-localized:
+      enabled: true
+      enable_creation_date: false
+      exclude:
+        - "cli/*"
+  - git-committers:
+      repository: syslifters/sysreptor
+      token: !ENV [GITHUB_TOKEN, ""]
+      enabled: !ENV [CI, false]
+      branch: main
+      docs_path: docs/docs/
+      exclude:
+        - "cli/*"
+  - llmstxt:
+      enabled: !ENV [CI, false]
+      full_output: llms-full.txt
+      markdown_description: "This is the official hosting and usage documentation of the pentest reporting tool SysReptor."
+      sections:
+        How to design SysReptor pentest reports:
+          - demo-reports.md: Demo reports
+          - designer/**.md
+        How to write finding templates with SysReptor:
+          - finding-templates/**.md
+        Technical insights to SysReptor:
+          - insights/**.md
+        Integrating SysReptor with Python:
+          - python-library/**.md
+        Writing reports with SysReptor as a pentester:
+          - reporting/**.md
+        Get SysReptor up and running:
+          - setup/**.md
+        Show and Tell:
+          - show-and-tell/**.md
+        User management and permissions in SysReptor:
+          - users/**.md
+        Contact the SysReptor team:
+          - contact-us.md
+        Features and pricing of SysReptor:
+          - features-and-pricing.md
+        Hack the Box (HTB) reporting with SysReptor:
+          - htb-reporting-with-sysreptor.md
+        Offsec reporting with SysReptor:
+          - offsec-reporting-with-sysreptor.md
+        Automating reporting with SysReptor CLI:
+          - cli/**.md
   - mkdocstrings:
+      enabled: !ENV [CI, false]
       handlers:
         python:
           options:
@@ -148,7 +201,6 @@ plugins:
             show_category_heading: false
             heading_level: 2
             show_bases: false
-
   - blog:
       enabled: true
       blog_dir: show-and-tell
@@ -183,6 +235,8 @@ plugins:
         "setup/oidc-generic.md": "users/oidc-generic.md"
         "setup/proxy.md": "setup/configuration.md"
         "setup/network.md": "setup/configuration.md"
+        "security.txt.md": "https://docs.syslifters.com/.well-known/security.txt"
+        ".well-known/security.txt.md": "https://docs.syslifters.com/.well-known/security.txt"
 
 markdown_extensions:
   - attr_list

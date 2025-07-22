@@ -131,3 +131,16 @@ Further [configurations](../setup/configuration.md) can be edited in `sysreptor/
 ## Stopping SysReptor
 
 To stop SysReptor and all associated containers, go to the `sysreptor/deploy` directory and run `docker compose stop`.
+
+<div class="grid cards" style="margin: 4em;" markdown>
+
+-   :material-help-circle:{ .lg .middle } __Still have questions?__
+
+    ---
+
+    Need help or have questions?  
+    Get support and connect with us and the SysReptor community.
+
+    [:octicons-arrow-right-24: Get help](https://github.com/Syslifters/sysreptor/discussions/categories/q-a){ target="_blank"}
+
+</div>

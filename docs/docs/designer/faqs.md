@@ -1,4 +1,4 @@
-# Frequently Asked Questions
+# Frequently Asked Questions (FAQs)
 
 ??? note "How to set solid color as page background?"
 
@@ -154,3 +154,15 @@
         size: A4 landscape;
     }
     ```
+
+
+<div class="grid cards" style="margin: 4em auto;" markdown>
+-   :material-help-circle:{ .lg .middle } __Further questions?__
+
+    ---
+
+    Need help or have questions? Get support
+    and connect with us and the SysReptor community.
+
+    [:octicons-arrow-right-24: Get help](https://github.com/Syslifters/sysreptor/discussions/categories/q-a){ target="_blank"}
+</div>
