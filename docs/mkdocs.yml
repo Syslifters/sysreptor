@@ -145,7 +145,7 @@ plugins:
       enable_creation_date: false
   - git-committers:
       repository: syslifters/sysreptor
-      token: !ENV [MKDOCS_GIT_COMMITTERS_APIKEY, ""]
+      token: !ENV [GITHUB_TOKEN, ""]
       enabled: !ENV [CI, false]
       branch: main
       docs_path: docs/docs/
