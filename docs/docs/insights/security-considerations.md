@@ -48,7 +48,7 @@ This is ensured by two measures:
     ---
 
     Discovered a security vulnerability?  
-    Report it responsibly through our secure disclosure process.
+    Report it responsibly through our vulnerability disclosure process.
 
     [:octicons-arrow-right-24: Disclose responsibly](https://docs.syslifters.com/en/vulnerability-disclosure/){ target="_blank"}
 </div>

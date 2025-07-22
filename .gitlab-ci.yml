@@ -33,6 +33,7 @@ services:
     - shopt -u dotglob
     - rm -rf *
     - cp -r ../site/* .
+    - cp -r ../site/.well-known .
     - git add .
     - git commit -m "INIT"
     - git reset $(git commit-tree HEAD^{tree} -m "INIT")

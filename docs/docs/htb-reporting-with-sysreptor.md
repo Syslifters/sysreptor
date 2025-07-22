@@ -57,6 +57,12 @@ curl -s "https://docs.sysreptor.com/assets/htb-demo-projects.tar.gz" | docker co
         <figcaption>HTB CAPE Report Demo</figcaption>
     </figure>
 </a>
+<a href="/assets/reports/HTB-CJCA-Report.pdf" target="_blank">
+    <figure style="float:left;width:24%;margin:0.5em;">
+        <img alt="HTB CJCA Report Demo" src="/assets/reports/HTB-CJCA-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>HTB CJCA Report Demo</figcaption>
+    </figure>
+</a>
 </div>
 <br style="clear:both" />
 
