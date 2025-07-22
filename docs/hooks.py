@@ -196,12 +196,12 @@ def generate_table(software_list, skip_software=None):
             software_icon=software_icon,
             name=software['name'],
             url=software['url'],
-            pros=software['pros'] if software['pros'] else '',
+            pros=software['pros'] if software.get('pros') else '',
             cons_icon=cons_icon,
-            cons=software['cons'] if software['cons'] else '',
-            customization=software['customization'] if software['customization'] else '',
-            deployment=software['deployment'] if software['deployment'] else '',
-            price=software['price'] if software['price'] else "",
+            cons=software['cons'] if software.get('cons') else '',
+            customization=software['customization'] if software.get('customization') else '',
+            deployment=software['deployment'] if software.get('deployment') else '',
+            price=software['price'] if software.get('price') else "",
         )
         
         if software['name'] != skip_software:
