@@ -143,12 +143,16 @@ plugins:
   - git-revision-date-localized:
       enabled: true
       enable_creation_date: false
+      exclude:
+        - "cli/*"
   - git-committers:
       repository: syslifters/sysreptor
       token: !ENV [GITHUB_TOKEN, ""]
       enabled: !ENV [CI, false]
       branch: main
       docs_path: docs/docs/
+      exclude:
+        - "cli/*"
   - llmstxt:
       enabled: !ENV [CI, false]
       full_output: llms-full.txt
