@@ -1,6 +1,6 @@
 # Contribute to SysReptor
 
-We're glad you're here to contribute and to make pentest reporting even easier.  
+We're glad you're here to contribute and to make pentest reporting even easier.
 Thank you for investing your time. <span style="color:red;">:octicons-heart-fill-24:</span>
 
 We've created a some suggestions how you could help us improving SysReptor and everything around it.
