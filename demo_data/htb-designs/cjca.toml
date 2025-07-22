@@ -900,7 +900,7 @@ id = "executive_summary"
 type = "markdown"
 label = "Executive Summary"
 origin = "custom"
-default = "{{ report.customer_full }} (ì{{ report.customer_short }}î herein) contracted {{ report.candidate.name }} to perform a Network Penetration Test of {{ report.customer_short }}ís externally facing network to identify security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations."
+default = "{{ report.customer_full }} (‚Äú{{ report.customer_short }}‚Äù herein) contracted {{ report.candidate.name }} to perform a Network Penetration Test of {{ report.customer_short }}‚Äôs externally facing network to identify security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations."
 required = true
 
 [[report_sections.fields]]
@@ -913,10 +913,10 @@ default = """
         </markdown>
         
 ### Phase 1: Grey Box Penetration Test
-Testing will be performed under a "grey box" approach, where {{ report.assessor_full }} has limited prior knowledge of {{ report.customer_short }}ís environment (e.g., basic network diagrams or IP ranges) but no credentials or detailed internal configurations. The objective is to identify unknown weaknesses from an attacker's perspective with partial visibility. Testing will be conducted remotely via a provisioned host, adopting a non-evasive standpoint initially to uncover misconfigurations and vulnerabilities through reconnaissance, scanning, and targeted exploitation. Each identified weakness will be documented and manually investigated for exploitation possibilities, including potential foothold establishment, lateral movement, and horizontal/vertical privilege escalation. If a foothold is gained, {{ report.customer_short }} authorizes further internal testing to demonstrate the full impact of a compromise, such as data exfiltration or domain control, while adhering to rules of engagement to avoid production impacts.
+Testing will be performed under a "grey box" approach, where {{ report.assessor_full }} has limited prior knowledge of {{ report.customer_short }}‚Äôs environment (e.g., basic network diagrams or IP ranges) but no credentials or detailed internal configurations. The objective is to identify unknown weaknesses from an attacker's perspective with partial visibility. Testing will be conducted remotely via a provisioned host, adopting a non-evasive standpoint initially to uncover misconfigurations and vulnerabilities through reconnaissance, scanning, and targeted exploitation. Each identified weakness will be documented and manually investigated for exploitation possibilities, including potential foothold establishment, lateral movement, and horizontal/vertical privilege escalation. If a foothold is gained, {{ report.customer_short }} authorizes further internal testing to demonstrate the full impact of a compromise, such as data exfiltration or domain control, while adhering to rules of engagement to avoid production impacts.
 
 ### Phase 2: SIEM Alert Validation and Analysis
-Following the penetration test, {{ report.customer_short }}ís security team will reproduce the identified attack paths in a controlled staging environment. These simulations will generate telemetry data, which will be ingested into their Elastic SIEM platform. Based on this data, the SIEM will generate security alerts tied to the techniques used during the simulated attacks. {{ report.assessor_full }} will review these alerts to determine whether each one represents a true positive or a false positive, providing supporting evidence from the SIEM logs for each decision.
+Following the penetration test, {{ report.customer_short }}‚Äôs security team will reproduce the identified attack paths in a controlled staging environment. These simulations will generate telemetry data, which will be ingested into their Elastic SIEM platform. Based on this data, the SIEM will generate security alerts tied to the techniques used during the simulated attacks. {{ report.assessor_full }} will review these alerts to determine whether each one represents a true positive or a false positive, providing supporting evidence from the SIEM logs for each decision.
 
 Throughout both phases, {{ report.assessor_full }} will prioritize safety, with predefined escalation protocols for any high-risk findings, and collaborate with {{ report.customer_short }}'s IT/security team for validation and controlled testing.
 """
@@ -966,7 +966,7 @@ id = "assignment_overview"
 type = "markdown"
 label = "Assignment Overview"
 origin = "custom"
-default = "You are a Junior Cybersecurity Analyst at {{ report.assessor_full }}. Following a recent surge in suspicious activity and growing concerns about internal threats, {{ report.customer_full }} has engaged your team to perform a comprehensive internal cybersecurity assessment of a certain segment of its corporate network. This engagement includes not only identifying vulnerabilities through targeted attack simulation, but also evaluating the effectiveness of {{ report.customer_short }}ís Security Information and Event Management (SIEM) detections in identifying those threats. Once the assessment is complete, compose and submit a commercial-grade report . The report should include all identified vulnerabilities, step-by-step evidence of successful exploitation, and clear remediation recommendations. When documenting your alert classifications, follow the same step-by-step approach to provide evidence and justification for each decision."
+default = "You are a Junior Cybersecurity Analyst at {{ report.assessor_full }}. Following a recent surge in suspicious activity and growing concerns about internal threats, {{ report.customer_full }} has engaged your team to perform a comprehensive internal cybersecurity assessment of a certain segment of its corporate network. This engagement includes not only identifying vulnerabilities through targeted attack simulation, but also evaluating the effectiveness of {{ report.customer_short }}‚Äôs Security Information and Event Management (SIEM) detections in identifying those threats. Once the assessment is complete, compose and submit a commercial-grade report . The report should include all identified vulnerabilities, step-by-step evidence of successful exploitation, and clear remediation recommendations. When documenting your alert classifications, follow the same step-by-step approach to provide evidence and justification for each decision."
 required = true
 
 [[report_sections]]
@@ -1026,7 +1026,7 @@ default = """
 
 The following types of activities are considered out-of-scope for this penetration test:
 
-* Scanning and assessing any other IP in the entry pointís network or hosts that do not fall within the in-scope internal subnets
+* Scanning and assessing any other IP in the entry point‚Äôs network or hosts that do not fall within the in-scope internal subnets
 * Physical attack against {{ report.customer_short }} properties
 * Unverified scanner output
 * Any vulnerabilities identified through DDoS or spam attacks
@@ -1123,10 +1123,10 @@ default = """
 
 | Step # | IP/Host/Target | Action/Command | Result |
 | ------- | ------- | ------- | ------- |
-| 1.1    | 192.168.195.10    | nmap -sV ñopen -p- 192.168.195.10    | Open ports: 21, 22, 80, 443, 8000    |
+| 1.1    | 192.168.195.10    | nmap -sV ‚Äìopen -p- 192.168.195.10    | Open ports: 21, 22, 80, 443, 8000    |
 | 1.2    | 192.168.195.10    | ftp 192.168.195.10 -P 21  # anonymous:anon    | Anonymous login available    |
 | 1.x    | 192.168.195.10    | ...    | ...    |
-| 2.1    | 192.168.195.20    | nmap -sV ñopen -p- 192.168.195.20    | Open ports: 22, 135, 139, 445, 3000, 3389  |
+| 2.1    | 192.168.195.20    | nmap -sV ‚Äìopen -p- 192.168.195.20    | Open ports: 22, 135, 139, 445, 3000, 3389  |
 | 2.x    | 192.168.195.20    | ...    | ...    |
 | TODO  | TODO | TODO | TODO |
 """
@@ -1138,7 +1138,7 @@ type = "markdown"
 label = "Collected Evidence"
 origin = "custom"
 default = """
-**1.1 ñ 192.168.195.10 ñ Port & Service Discovery**
+**1.1 ‚Äì 192.168.195.10 ‚Äì Port & Service Discovery**
 
 ```
 $ sudo nmap -p- -sV 10.129.12.10 -T5 --open 
@@ -1161,7 +1161,7 @@ Nmap done: 1 IP address (1 host up) scanned in 61.99 seconds
 
 ```
 
-**1.2 ñ 192.168.195.10 ñ FTP Anonymous Access on port 21/tcp**
+**1.2 ‚Äì 192.168.195.10 ‚Äì FTP Anonymous Access on port 21/tcp**
 
 
 ```
@@ -1240,7 +1240,7 @@ origin = "custom"
 default = """
 TODO SHORT TERM REMEDIATION:
 * [TODO Finding Reference 2](#findingid2) - Disable Anonymous Access on the FTP server 
-* [TODO Finding Reference 3](#findingid3) - Change the default FTP directory which doesnít contain sensitive files 
+* [TODO Finding Reference 3](#findingid3) - Change the default FTP directory which doesn‚Äôt contain sensitive files 
 * [TODO Finding Reference 7](#findingid7) - Update the WordPress Hash Form Plugin to the latest version
 * [TODOFinding Reference X](#findingidX) - TODO FILL IN AS APPROPRIATE
 """
@@ -1282,7 +1282,7 @@ type = "markdown"
 label = "Scope"
 origin = "custom"
 default = """
-In phase 2, {{ report.customer_short }}ís security team reproduced the attack paths identified during the penetration test in a controlled staging environment. These simulations generated telemetry data, which was ingested into the Elastic SIEM platform, resulting in security alerts based on the techniques used. The generated alerts are documented under SIEM Alerts below.
+In phase 2, {{ report.customer_short }}‚Äôs security team reproduced the attack paths identified during the penetration test in a controlled staging environment. These simulations generated telemetry data, which was ingested into the Elastic SIEM platform, resulting in security alerts based on the techniques used. The generated alerts are documented under SIEM Alerts below.
 
 ### In-Scope Assets
 | Host/URL/IP Address | Description |
@@ -1342,7 +1342,7 @@ type = "markdown"
 label = "Finding Severities"
 origin = "custom"
 default = """
-Each finding has been assigned a severity rating of high, medium, or low. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}ís data.
+Each finding has been assigned a severity rating of high, medium, or low. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}‚Äôs data.
 
 | Rating   | Severity Rating Definition |
 | -------- | ---------------- | 
@@ -1529,7 +1529,7 @@ pentest_end = "2025-07-17"
 report_date = "2025-07-21"
 report_version = "1.0"
 executive_summary = """
-{{ report.customer_full }} ("{{ report.customer_short }}" herein) contracted {{ report.assessor_full }} to perform a comprehensive cybersecurity assessment of a certain segment of its corporate network. This engagement includes not only identifying vulnerabilities through targeted attack simulation, but also evaluating the effectiveness of {{ report.customer_short }}"ís Security Information and Event Management (SIEM) detections in identifying those threats.
+{{ report.customer_full }} ("{{ report.customer_short }}" herein) contracted {{ report.assessor_full }} to perform a comprehensive cybersecurity assessment of a certain segment of its corporate network. This engagement includes not only identifying vulnerabilities through targeted attack simulation, but also evaluating the effectiveness of {{ report.customer_short }}"‚Äôs Security Information and Event Management (SIEM) detections in identifying those threats.
 The objective is not only to simulate realistic adversary behavior, provide a comprehensive view of the internal threat landscape, document all findings in a clear and repeatable manner, and offer remediation recommendations, but also to help {{ report.customer_short }}" evaluate the accuracy and coverage of their detection rules.
 """
 approach = """
@@ -1537,10 +1537,10 @@ approach = """
         </markdown>
         
 ### Phase 1: Grey Box Penetration Test
-Testing will be performed under a "grey box" approach, where {{ report.assessor_full }} has limited prior knowledge of {{ report.customer_short }}ís environment (e.g., basic network diagrams or IP ranges) but no credentials or detailed internal configurations. The objective is to identify unknown weaknesses from an attacker's perspective with partial visibility. Testing will be conducted remotely via a provisioned host, adopting a non-evasive standpoint initially to uncover misconfigurations and vulnerabilities through reconnaissance, scanning, and targeted exploitation. Each identified weakness will be documented and manually investigated for exploitation possibilities, including potential foothold establishment, lateral movement, and horizontal/vertical privilege escalation. If a foothold is gained, {{ report.customer_short }} authorizes further internal testing to demonstrate the full impact of a compromise, such as data exfiltration or domain control, while adhering to rules of engagement to avoid production impacts.
+Testing will be performed under a "grey box" approach, where {{ report.assessor_full }} has limited prior knowledge of {{ report.customer_short }}‚Äôs environment (e.g., basic network diagrams or IP ranges) but no credentials or detailed internal configurations. The objective is to identify unknown weaknesses from an attacker's perspective with partial visibility. Testing will be conducted remotely via a provisioned host, adopting a non-evasive standpoint initially to uncover misconfigurations and vulnerabilities through reconnaissance, scanning, and targeted exploitation. Each identified weakness will be documented and manually investigated for exploitation possibilities, including potential foothold establishment, lateral movement, and horizontal/vertical privilege escalation. If a foothold is gained, {{ report.customer_short }} authorizes further internal testing to demonstrate the full impact of a compromise, such as data exfiltration or domain control, while adhering to rules of engagement to avoid production impacts.
 
 ### Phase 2: SIEM Alert Validation and Analysis
-Following the penetration test, {{ report.customer_short }}ís security team will reproduce the identified attack paths in a controlled staging environment. These simulations will generate telemetry data, which will be ingested into their Elastic SIEM platform. Based on this data, the SIEM will generate security alerts tied to the techniques used during the simulated attacks. {{ report.assessor_full }} will review these alerts to determine whether each one represents a true positive or a false positive, providing supporting evidence from the SIEM logs for each decision.
+Following the penetration test, {{ report.customer_short }}‚Äôs security team will reproduce the identified attack paths in a controlled staging environment. These simulations will generate telemetry data, which will be ingested into their Elastic SIEM platform. Based on this data, the SIEM will generate security alerts tied to the techniques used during the simulated attacks. {{ report.assessor_full }} will review these alerts to determine whether each one represents a true positive or a false positive, providing supporting evidence from the SIEM logs for each decision.
 
 Throughout both phases, {{ report.assessor_full }} will prioritize safety, with predefined escalation protocols for any high-risk findings, and collaborate with {{ report.customer_short }}'s IT/security team for validation and controlled testing.
 """
@@ -1558,7 +1558,7 @@ assignment = """
 * **End:** {{ formatDate(report.pentest_end, 'long') }} 
 """
 objective = "Help {{ report.customer_short }} understand how an attacker could navigate their environment, identify the risks present within the in-scope segment of their network, and evaluate the accuracy and coverage of their detection rules."
-assignment_overview = "You are a Junior Cybersecurity Analyst at {{ report.assessor_full }}. Following a recent surge in suspicious activity and growing concerns about internal threats, {{ report.customer_full }} has engaged your team to perform a comprehensive internal cybersecurity assessment of a certain segment of its corporate network. This engagement includes not only identifying vulnerabilities through targeted attack simulation, but also evaluating the effectiveness of {{ report.customer_short }}ís Security Information and Event Management (SIEM) detections in identifying those threats. Once the assessment is complete, compose and submit a commercial-grade report . The report should include all identified vulnerabilities, step-by-step evidence of successful exploitation, and clear remediation recommendations. When documenting your alert classifications, follow the same step-by-step approach to provide evidence and justification for each decision."
+assignment_overview = "You are a Junior Cybersecurity Analyst at {{ report.assessor_full }}. Following a recent surge in suspicious activity and growing concerns about internal threats, {{ report.customer_full }} has engaged your team to perform a comprehensive internal cybersecurity assessment of a certain segment of its corporate network. This engagement includes not only identifying vulnerabilities through targeted attack simulation, but also evaluating the effectiveness of {{ report.customer_short }}‚Äôs Security Information and Event Management (SIEM) detections in identifying those threats. Once the assessment is complete, compose and submit a commercial-grade report . The report should include all identified vulnerabilities, step-by-step evidence of successful exploitation, and clear remediation recommendations. When documenting your alert classifications, follow the same step-by-step approach to provide evidence and justification for each decision."
 scope = """
 The scope of this assessment is one internal network segment consisting of five hosts and the luminex.htb domain.
 
@@ -1593,7 +1593,7 @@ rules_of_engagement = """
 
 The following types of activities are considered out-of-scope for this penetration test:
 
-* Scanning and assessing any other IP in the entry pointís network or hosts that do not fall within the in-scope internal subnets
+* Scanning and assessing any other IP in the entry point‚Äôs network or hosts that do not fall within the in-scope internal subnets
 * Physical attack against {{ report.customer_short }} properties
 * Unverified scanner output
 * Any vulnerabilities identified through DDoS or spam attacks
@@ -1633,15 +1633,15 @@ walkthrough_details = """
 
 | Step # | IP/Host/Target | Action/Command | Result |
 | ------- | ------- | ------- | ------- |
-| 1.1    | 192.168.195.10    | nmap -sV ñopen -p- 192.168.195.10    | Open ports: 21, 22, 80, 443, 8000    |
+| 1.1    | 192.168.195.10    | nmap -sV ‚Äìopen -p- 192.168.195.10    | Open ports: 21, 22, 80, 443, 8000    |
 | 1.2    | 192.168.195.10    | ftp 192.168.195.10 -P 21  # anonymous:anon    | Anonymous login available    |
 | 1.x    | 192.168.195.10    | ...    | ...    |
-| 2.1    | 192.168.195.20    | nmap -sV ñopen -p- 192.168.195.20    | Open ports: 22, 135, 139, 445, 3000, 3389  |
+| 2.1    | 192.168.195.20    | nmap -sV ‚Äìopen -p- 192.168.195.20    | Open ports: 22, 135, 139, 445, 3000, 3389  |
 | 2.x    | 192.168.195.20    | ...    | ...    |
 | TODO  | TODO | TODO | TODO |
 """
 collected_evidence = """
-**1.1 ñ 192.168.195.10 ñ Port & Service Discovery**
+**1.1 ‚Äì 192.168.195.10 ‚Äì Port & Service Discovery**
 
 ```
 $ sudo nmap -p- -sV 10.129.12.10 -T5 --open 
@@ -1664,7 +1664,7 @@ Nmap done: 1 IP address (1 host up) scanned in 61.99 seconds
 
 ```
 
-**1.2 ñ 192.168.195.10 ñ FTP Anonymous Access on port 21/tcp**
+**1.2 ‚Äì 192.168.195.10 ‚Äì FTP Anonymous Access on port 21/tcp**
 
 
 ```
@@ -1744,7 +1744,7 @@ TODO LONG TERM REMEDIATION:
 * TODO FILL IN AS APPROPRIATE
 """
 phase2_scope = """
-In phase 2, {{ report.customer_short }}ís security team reproduced the attack paths identified during the penetration test in a controlled staging environment. These simulations generated telemetry data, which was ingested into the Elastic SIEM platform, resulting in security alerts based on the techniques used. The generated alerts are documented under SIEM Alerts below.
+In phase 2, {{ report.customer_short }}‚Äôs security team reproduced the attack paths identified during the penetration test in a controlled staging environment. These simulations generated telemetry data, which was ingested into the Elastic SIEM platform, resulting in security alerts based on the techniques used. The generated alerts are documented under SIEM Alerts below.
 
 ### In-Scope Assets
 | Host/URL/IP Address | Description |
@@ -1772,7 +1772,7 @@ siem_alert_validation_and_analysis = """
 | 6    |     |     |     |
 """
 appendix_severities = """
-Each finding has been assigned a severity rating of high, medium, or low. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}ís data.
+Each finding has been assigned a severity rating of high, medium, or low. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}‚Äôs data.
 
 | Rating   | Severity Rating Definition |
 | -------- | ---------------- | 
