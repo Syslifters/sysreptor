@@ -1,6 +1,6 @@
 ## Get Support & Report Issues
 
-<div class="grid cards" markdown>
+<div class="grid cards" style="margin-top: 2em;" markdown>
 
 -   :material-bug:{ .lg .middle } __Report a bug__
 
@@ -53,6 +53,16 @@
     You are a Professional customer and need support via a private channel?
 
     <span style="color: var(--md-typeset-a-color);">:octicons-arrow-right-24:</span> <a href="&#109;&#97;&#105;&#108;&#116;&#111;&colon;&#116;&#101;&#97;&#109;&#x40;&#x73;&#x79;&#x73;&#x6c;&#x69;&#x66;&#x74;&#x65;&#x72;&#x73;&#x2e;&#x63;&#x6f;&#x6d;">E-mail us at: &#116;&#101;&#97;&#109;&commat;&#115;&#121;&#115;&#108;<!-- mail@example.com -->&#x69;&#x66;&#x74;&#x65;&#x72;&#x73;&#x2e;&#x63;&#x6f;&#x6d;</a> [:material-key-variant:](https://docs.syslifters.com/assets/team.cer "S/MIME public key"){target=\_blank}
+</div>
+<div class="grid cards" style="margin-bottom: 4em" markdown>
+-   :material-calendar:{ .lg .middle } __Book a demo__
+
+    ---
+
+    Interested in SysReptor Professional?  
+    Book a Teams call with us and get you questions answered.
+
+    [:octicons-arrow-right-24: Choose your time slot](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ target="_blank"}
 </div>
 
 ## Contact Information
