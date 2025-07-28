@@ -4,6 +4,7 @@
 * Plugin `excalidraw`: Integrate Excalidraw in SysReptor
 * Allow customizing finding/section statuses (https://docs.sysreptor.com/setup/configuration/#custom-statuses)
 * Limit publicly accessible settings in API responses
+* `restorebackup` command: add option to skip restoring files
 * Improve markdown editor toolbar responsive layout on sidebar width change
 * PDF viewer: add PDF outline view
 * PDF viewer: fix single-letter shortcuts applied when typing in searchbar input

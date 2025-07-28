@@ -348,7 +348,7 @@ def restore_configurations(z):
 
 
 @transaction.atomic
-def restore_backup(z, keepfiles=True):
+def restore_backup(z, keepfiles=True, skip_files=False, skip_database=False):
     logging.info('Begin restoring backup')
 
     backup_version_file = zipfile.Path(z, 'VERSION')
@@ -359,65 +359,68 @@ def restore_backup(z, keepfiles=True):
     else:
         logging.warning('No version information found in backup file.')
 
-    # Load migrations
-    migrations = None
-    configurations_file = zipfile.Path(z, 'migrations.json')
-    if configurations_file.exists():
-        migrations_info = json.loads(configurations_file.read_text())
-        assert migrations_info.get('format') == 'migrations/v1'
-        migrations = migrations_info.get('current', [])
+    if not skip_database:
+        # Load migrations
+        migrations = None
+        configurations_file = zipfile.Path(z, 'migrations.json')
+        if configurations_file.exists():
+            migrations_info = json.loads(configurations_file.read_text())
+            assert migrations_info.get('format') == 'migrations/v1'
+            migrations = migrations_info.get('current', [])
 
-    # Delete all DB data
-    logging.info('Begin destroying DB. Dropping all tables.')
-    destroy_database()
-    logging.info('Finished destroying DB')
+        # Delete all DB data
+        logging.info('Begin destroying DB. Dropping all tables.')
+        destroy_database()
+        logging.info('Finished destroying DB')
 
-    # Apply migrations from backup
-    logging.info('Begin running migrations from backup')
-    if migrations is not None:
-        for m in migrations:
-            if m['app_label'].startswith('plugin_') and not any(a for a in apps.get_app_configs() if a.label == m['app_label']):
-                logging.warning(f'Cannot run migation "{m["migration_name"]}", because plugin "{m["app_label"]}" is not enabled. Plugin data will not be restored.')
-                continue
+        # Apply migrations from backup
+        logging.info('Begin running migrations from backup')
+        if migrations is not None:
+            for m in migrations:
+                if m['app_label'].startswith('plugin_') and not any(a for a in apps.get_app_configs() if a.label == m['app_label']):
+                    logging.warning(f'Cannot run migation "{m["migration_name"]}", because plugin "{m["app_label"]}" is not enabled. Plugin data will not be restored.')
+                    continue
 
-            call_command('migrate', app_label=m['app_label'], migration_name=m['migration_name'], interactive=False, verbosity=0)
-    else:
-        logging.warning('No migrations info found in backup. Applying all available migrations')
-        call_command('migrate', interactive=False, verbosity=0)
-    logging.info('Finished migrations')
+                call_command('migrate', app_label=m['app_label'], migration_name=m['migration_name'], interactive=False, verbosity=0)
+        else:
+            logging.warning('No migrations info found in backup. Applying all available migrations')
+            call_command('migrate', interactive=False, verbosity=0)
+        logging.info('Finished migrations')
 
-    # Delete data created in migrations
-    ProjectMemberRole.objects.all().delete()
-    BackupLog.objects.all().delete()
+        # Delete data created in migrations
+        ProjectMemberRole.objects.all().delete()
+        BackupLog.objects.all().delete()
 
-    # Restore DB data
-    logging.info('Begin restoring DB data')
-    with z.open('backup.jsonl') as f:
-        restore_database_dump(f)
-    logging.info('Finished restoring DB data')
+        # Restore DB data
+        logging.info('Begin restoring DB data')
+        with z.open('backup.jsonl') as f:
+            restore_database_dump(f)
+        logging.info('Finished restoring DB data')
 
-    # Reset sequences
-    logging.info('Begin resetting DB sequences')
-    reset_database_sequences()
-    logging.info('Finished resetting DB sequences')
+        # Reset sequences
+        logging.info('Begin resetting DB sequences')
+        reset_database_sequences()
+        logging.info('Finished resetting DB sequences')
 
-    # Restore files
-    logging.info('Begin restoring files')
-    if not keepfiles:
-        delete_all_storage_files()
-    restore_files(z)
-    logging.info('Finished restoring files')
+    if not skip_files:
+        # Restore files
+        logging.info('Begin restoring files')
+        if not keepfiles:
+            delete_all_storage_files()
+        restore_files(z)
+        logging.info('Finished restoring files')
 
-    # Apply remaining migrations
-    logging.info('Begin running new migrations')
-    with constraint_checks_immediate():
-        call_command('migrate', interactive=False, verbosity=0)
-    logging.info('Finished running new migrations')
+    if not skip_database:
+        # Apply remaining migrations
+        logging.info('Begin running new migrations')
+        with constraint_checks_immediate():
+            call_command('migrate', interactive=False, verbosity=0)
+        logging.info('Finished running new migrations')
 
-    # Restore configurations
-    logging.info('Begin restoring configurations')
-    restore_configurations(z)
-    logging.info('Finished restoring configurations')
+        # Restore configurations
+        logging.info('Begin restoring configurations')
+        restore_configurations(z)
+        logging.info('Finished restoring configurations')
 
     logging.info('Finished backup restore')
     BackupLog.objects.create(type=BackupLogType.RESTORE, user=None)
