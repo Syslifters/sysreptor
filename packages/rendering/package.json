@@ -13,7 +13,7 @@
   "dependencies": {
     "@sysreptor/markdown": "../markdown",
 
-    "vue": "3.5.16",
+    "vue": "3.5.18",
     "chart.js": "^4",
     "chartjs-plugin-datalabels": "^2",
     "uuid": "^11",
@@ -26,7 +26,7 @@
     "vite-plugin-static-copy": "^3.0.0",
     "patch-package": "^8.0.0",
 
-    "vue-tsc": "^2.2.0",
+    "vue-tsc": "^3.0.0",
     "@vue/tsconfig": "^0.7.0"
   }
 }
