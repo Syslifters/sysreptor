@@ -16,8 +16,10 @@ class Command(BaseCommand):
         parser.add_argument('file', nargs='?', type=argparse.FileType('rb'), default='-')
         parser.add_argument('--key', type=aes_key, help='AES key to decrypt the backup')
         parser.add_argument('--keepfiles', action='store_true', default=False, help='Keep existing files in storages. Do not delete them.')
+        parser.add_argument('--skip-files', action='store_true', default=False, help='Skip restoring files from the backup')
+        parser.add_argument('--skip-database', action='store_true', default=False, help='Skip restoring database from the backup')
 
-    def handle(self, file, key, keepfiles, verbosity=1, **kwargs) -> str | None:
+    def handle(self, file, key, keepfiles, skip_files, skip_database, verbosity=1, **kwargs) -> str | None:
         if verbosity <= 0:
             logging.getLogger().disabled = True
 
@@ -34,7 +36,7 @@ class Command(BaseCommand):
                 f.seek(0)
 
                 with ZipFile(file=f, mode='r') as z:
-                    restore_backup(z, keepfiles=keepfiles)
+                    restore_backup(z, keepfiles=keepfiles, skip_files=skip_files, skip_database=skip_database)
         except crypto.CryptoError as ex:
             raise CommandError(*ex.args) from ex
 
