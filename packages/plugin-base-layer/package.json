@@ -19,7 +19,7 @@
 
     "sass-embedded": "^1.79.5",
     "eslint": "^9.0.0",
-    "vue-tsc": "^2.2.0"
+    "vue-tsc": "^3.0.4"
   },
   "peerDependencies": {
     "@sysreptor/nuxt-base-layer": "*"

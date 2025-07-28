@@ -41,8 +41,8 @@
     "eslint": "^9.0.0",
     "vitest": "^3.0.4",
     "happy-dom": "^17.0.0",
-    "vue-tsc": "^2.2.0",
-    "@playwright/test": "1.53.1",
+    "vue-tsc": "^3.0.4",
+    "@playwright/test": "1.54.1",
     "form-data": "^4.0.1",
     "node-fetch": "^3.3.2"
   },

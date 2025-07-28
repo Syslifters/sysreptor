@@ -1,5 +1,5 @@
 diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.d.ts b/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
-index d83735c..db8f834 100644
+index 80d336b..642965a 100644
 --- a/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
 +++ b/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
 @@ -662,6 +662,10 @@ export interface ParserOptions extends ErrorHandlingOptions, CompilerCompatOptio
@@ -14,10 +14,19 @@ index d83735c..db8f834 100644
       * Elements that should ignore the first newline token per parinsg spec
       * e.g. `<textarea>` and `<pre>`
 diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
-index 81447fc..b7f0d0b 100644
+index b7bbc8a..9694b4e 100644
 --- a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
 +++ b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
-@@ -1911,6 +1911,7 @@ const defaultParserOptions = {
+@@ -1535,7 +1535,7 @@ function isForStatement(stmt) {
+ }
+ function walkForStatement(stmt, isVar, onIdent) {
+   const variable = stmt.type === "ForStatement" ? stmt.init : stmt.left;
+-  if (variable && variable.type === "VariableDeclaration" && (variable.kind === "var" ? isVar : !isVar)) {
++  if (variable && variable.type === "VariableDeclaration" && (variable.kind === "var" ? isVar : false)) {
+     for (const decl of variable.declarations) {
+       for (const id of extractIdentifiers(decl.id)) {
+         onIdent(id);
+@@ -1914,6 +1914,7 @@ const defaultParserOptions = {
    getNamespace: () => 0,
    isVoidTag: NO,
    isPreTag: NO,
@@ -25,7 +34,7 @@ index 81447fc..b7f0d0b 100644
    isIgnoreNewlineTag: NO,
    isCustomElement: NO,
    onError: defaultOnError,
-@@ -2307,6 +2308,11 @@ function endOpenTag(end) {
+@@ -2310,6 +2311,11 @@ function endOpenTag(end) {
    if (ns === 0 && currentOptions.isPreTag(tag)) {
      inPre++;
    }
@@ -37,7 +46,7 @@ index 81447fc..b7f0d0b 100644
    if (currentOptions.isVoidTag(tag)) {
      onCloseTag(currentOpenTag, end);
    } else {
-@@ -2320,7 +2326,7 @@ function endOpenTag(end) {
+@@ -2323,7 +2329,7 @@ function endOpenTag(end) {
  function onText(content, start, end) {
    {
      const tag = stack[0] && stack[0].tag;
