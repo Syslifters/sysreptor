@@ -349,14 +349,14 @@ export function useMarkdownEditorBase(options: {
         uploadFile: createEditorExtensionToggler(options.editorView.value, [
           EditorView.domEventHandlers({
             drop: (event: DragEvent) => {
-              event.stopPropagation();
-              event.preventDefault();
-              const dropPos = options.editorView.value!.posAtCoords({ x: event.clientX, y: event.clientY });
-              uploadFiles(event.dataTransfer?.files, dropPos);
+              // Prevent inserting text from text files in addition to file upload
+              if (event.dataTransfer?.files?.length ?? 0 > 0) {
+                return true;
+              }
             },
             paste: (event: ClipboardEvent) => {
               if (!options.editorView.value) {
-                return;
+                return false;
               }
               
               const types = event.clipboardData?.types || [];
@@ -378,10 +378,13 @@ export function useMarkdownEditorBase(options: {
                   changes: { from: selection.from, to: selection.to, insert: mdText },
                   selection: { anchor: selection.from + mdText.length },
                 }));
+
+                return true;
               } else if ((event.clipboardData?.files?.length || 0) > 0) {
                 event.stopPropagation();
                 event.preventDefault();
                 uploadFiles(event.clipboardData!.files);
+                return true;
               }
             }
           })
@@ -395,6 +398,17 @@ export function useMarkdownEditorBase(options: {
       editorActions.value.spellcheckBrowser!(spellcheckBrowserEnabled.value);
       editorActions.value.uploadFile!(fileUploadEnabled.value);
       editorActions.value.darkTheme!(theme.current.value.dark);
+      
+      options.editorView.value.dom.addEventListener('dragover', (event: DragEvent) => {
+        // Allow dropping files
+        event.preventDefault();
+      });
+      options.editorView.value.dom.addEventListener('drop', (event: DragEvent) => {
+        event.stopPropagation();
+        event.preventDefault();
+        const dropPos = options.editorView.value!.posAtCoords({ x: event.clientX, y: event.clientY });
+        uploadFiles(event.dataTransfer?.files, dropPos);
+      });
     } else if (!newValue) {
       eventBusBeforeApplyRemoteTextChanges.off(onBeforeApplyRemoteTextChange);
       eventBusBeforeApplySetValue.off(onBeforeApplySetValue);
