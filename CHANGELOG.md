@@ -12,6 +12,7 @@
 * Markdown editor: fix scroll sync to wrong position on HTML blocks starting with `<br>` tags
 * Markdown editor: convert HTML (e.g. Excel tables, Word, etc.) to markdown on paste
 * Markdown editor: add blockquote button toolbar
+* Markdown editor: fix dropping files below last line
 
 
 ## v2025.56 - 2025-06-17
