@@ -4,6 +4,7 @@ import logging
 from django.core.management.base import BaseCommand, CommandError, CommandParser
 
 from sysreptor.api_utils.backup_utils import create_backup, encrypt_backup, to_chunks
+from sysreptor.api_utils.models import BackupLog, BackupLogType
 from sysreptor.utils import crypto, license
 
 
@@ -36,4 +37,5 @@ class Command(BaseCommand):
             for c in to_chunks(z):
                 file.write(c)
 
+        BackupLog.objects.create(type=BackupLogType.BACKUP_FINISHED, user=None)
         logging.info('Backup finished')

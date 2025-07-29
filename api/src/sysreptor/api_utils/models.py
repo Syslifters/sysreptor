@@ -20,7 +20,8 @@ class LanguageToolIgnoreWords(models.Model):
 
 class BackupLogType(models.TextChoices):
     SETUP = 'setup', 'Setup'
-    BACKUP = 'backup', 'Backup'
+    BACKUP_STARTED = 'backup_started', 'Backup Started'
+    BACKUP_FINISHED = 'backup_finished', 'Backup Finished'
     RESTORE = 'restore', 'Restore'
 
 

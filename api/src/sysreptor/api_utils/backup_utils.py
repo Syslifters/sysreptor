@@ -141,6 +141,7 @@ def backup_files(z, path, storage, models):
 
 def create_backup(user=None):
     logging.info('Backup requested')
+    BackupLog.objects.create(type=BackupLogType.BACKUP_STARTED, user=user)
 
     z = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
     z.add(arcname='VERSION', data=settings.VERSION.encode())
@@ -152,8 +153,6 @@ def create_backup(user=None):
     backup_files(z, 'uploadedassets', storages.get_uploaded_asset_storage(), [UploadedAsset])
     backup_files(z, 'uploadedfiles', storages.get_uploaded_file_storage(), [UploadedProjectFile, UploadedUserNotebookFile])
     backup_files(z, 'archivedfiles', storages.get_archive_file_storage(), [ArchivedProject])
-
-    BackupLog.objects.create(type=BackupLogType.BACKUP, user=user)
 
     return z
 

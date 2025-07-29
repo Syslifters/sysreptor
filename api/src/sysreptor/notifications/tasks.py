@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
-from sysreptor.api_utils.models import BackupLog
+from sysreptor.api_utils.models import BackupLog, BackupLogType
 from sysreptor.notifications.models import NotificationType, UserNotification
 from sysreptor.notifications.serializers import RemoteNotificationSpecSerializer
 from sysreptor.tasks.models import TaskStatus, periodic_task
@@ -53,7 +53,10 @@ async def create_notifications(task_info):
         return
 
     # Notification when a backup is missing
-    latest_backuplog = await BackupLog.objects.order_by('-created').afirst()
+    latest_backuplog = await BackupLog.objects \
+        .exclude(type=BackupLogType.BACKUP_STARTED) \
+        .order_by('-created') \
+        .afirst()
     if latest_backuplog and latest_backuplog.created < timezone.now() - timedelta(days=30):
         # Check if a notification already exists: do not multiple times
         existing_backup_notification = await UserNotification.objects \
