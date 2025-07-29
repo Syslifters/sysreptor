@@ -39,7 +39,7 @@ export default function App() {
     window.top!.location.reload();
   }
   
-  const loadInitialDataPromise = Promise.withResolvers<ExcalidrawInitialDataState>();
+  const loadInitialDataPromise = useResolvablePromise<ExcalidrawInitialDataState>();
   async function initializeScene(options: { excalidrawAPI: ExcalidrawImperativeAPI, excalidrawCollab: SysreptorCollab }): Promise<ExcalidrawInitialDataState> {
     if (!projectId) {
       throw new Error('No Project ID provided');
@@ -60,7 +60,7 @@ export default function App() {
     if (!excalidrawAPI || !excalidrawCollabRef.current) {
       return;
     }
-    loadInitialDataPromise.resolve(initializeScene({
+    loadInitialDataPromise.current.resolve(initializeScene({
       excalidrawAPI,
       excalidrawCollab: excalidrawCollabRef.current,
     }));
@@ -89,7 +89,7 @@ export default function App() {
     <div style={{ height: '100vh' }}>
       <Excalidraw
         excalidrawAPI={setExcalidrawAPI}
-        initialData={loadInitialDataPromise.promise}
+        initialData={loadInitialDataPromise.current.promise}
         onChange={onChange}
         isCollaborating={true}
         libraryReturnUrl={window.top!.location.origin + window.top!.location.pathname}
