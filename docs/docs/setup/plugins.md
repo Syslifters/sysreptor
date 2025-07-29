@@ -99,7 +99,7 @@ RUN cd /custom_plugins/myplugin1/frontend && npm install && npm run generate
 FROM syslifters/sysreptor:${SYSREPTOR_VERSION}
 # Optional: install additional dependencies
 # RUN pip install ...
-ENV PLUGIN_DIRS=${PLUGIN_DIRS}:/custom_plugins
+ENV PLUGIN_DIRS=${PLUGIN_DIRS},/custom_plugins
 COPY --from=plugin-builder /custom_plugins /custom_plugins
 ```
 
