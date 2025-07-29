@@ -25,8 +25,8 @@ services:
     restart: unless-stopped
     stop_grace_period: 120s
   redis:
-    image: bitnami/redis:7.2
-    container_name: 'sysreptor-redis'
+    image: redis:8.0-alpine
+    command: sh -c "redis-server --requirepass $${REDIS_PASSWORD:-}"
     environment:
       REDIS_PASSWORD: reportcreator
     expose:
