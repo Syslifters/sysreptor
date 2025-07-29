@@ -271,7 +271,7 @@ class TestMarkdownExportApi:
             files_kwargs=[{'name': 'file.py'}, {'name': 'unreferenced.py'}],
             notes_kwargs=[{'title': 'Exploits', 'text': '[](/files/name/file.py)'}],
         )
-        res = api_client(u).post(reverse(f'{MARKDOWNEXPORT_APPLABEL}:markdownexport', kwargs={'project_pk': p.id}))
+        res = api_client(u).get(reverse(f'{MARKDOWNEXPORT_APPLABEL}:markdownexport', kwargs={'project_pk': p.id}))
         assert res.status_code == 200
         assert res['Content-Type'] == 'application/zip'
         content = b''.join(res.streaming_content)
@@ -284,5 +284,5 @@ class TestMarkdownExportApi:
 
     def test_permissions(self):
         p = create_project()
-        res = api_client(create_user()).post(reverse(f'{MARKDOWNEXPORT_APPLABEL}:markdownexport', kwargs={'project_pk': p.id}))
+        res = api_client(create_user()).get(reverse(f'{MARKDOWNEXPORT_APPLABEL}:markdownexport', kwargs={'project_pk': p.id}))
         assert res.status_code == 404
