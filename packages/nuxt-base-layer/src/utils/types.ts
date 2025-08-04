@@ -605,7 +605,8 @@ export type CWE = {
 
 export enum BackupLogType {
   SETUP = 'setup',
-  BACKUP = 'backup',
+  BACKUP_STARTED = 'backup_started',
+  BACKUP_FINISHED = 'backup_finished',
   RESTORE = 'restore',
 }
 

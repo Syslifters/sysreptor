@@ -142,7 +142,7 @@ class TestBackup:
         assert isinstance(res, StreamingHttpResponse)
         z = b''.join(res.streaming_content)
         self.assert_backup(z)
-        assert list(BackupLog.objects.values_list('type', flat=True)) == [BackupLogType.BACKUP, BackupLogType.SETUP]
+        assert list(BackupLog.objects.values_list('type', flat=True)) == [BackupLogType.BACKUP_FINISHED, BackupLogType.BACKUP_STARTED, BackupLogType.SETUP]
 
     def test_backup_permissions(self):
         user_regular = create_user()
@@ -210,7 +210,9 @@ class TestBackupRestore:
 
     def test_backup_restore(self):
         # Create backup
-        backup = b''.join(self.backup_request(aes_key=self.backup_encryption_key).streaming_content)
+        res = self.backup_request(aes_key=self.backup_encryption_key)
+        assert res.status_code == 200
+        backup = b''.join(res.streaming_content)
 
         # Delete files
         deleted_files = [
@@ -253,7 +255,7 @@ class TestBackupRestore:
         assert DbConfigurationEntry.objects.get(name='DUMMY_SETTING').value == json.dumps(self.configuration_value)
 
         # BackupLog entry created
-        assert list(BackupLog.objects.values_list('type', flat=True)) == [BackupLogType.RESTORE, BackupLogType.BACKUP, BackupLogType.SETUP]
+        assert list(BackupLog.objects.values_list('type', flat=True)) == [BackupLogType.RESTORE, BackupLogType.BACKUP_STARTED, BackupLogType.SETUP]
 
         # Can add ignored word without ID conflict
         create_languagetool_ignore_word()

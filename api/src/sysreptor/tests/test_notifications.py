@@ -315,17 +315,22 @@ class TestBackupMissingNotification:
         self.user_regular = create_user()
 
     @pytest.mark.parametrize(('expected', 'backuplog'), [
-        (True, BackupLog(type=BackupLogType.BACKUP, created=timezone.now() - timedelta(days=40))),
+        (True, BackupLog(type=BackupLogType.BACKUP_FINISHED, created=timezone.now() - timedelta(days=40))),
         (True, BackupLog(type=BackupLogType.RESTORE, created=timezone.now() - timedelta(days=40))),
         (True, BackupLog(type=BackupLogType.SETUP, created=timezone.now() - timedelta(days=40))),
+        (True, [BackupLog(type=BackupLogType.SETUP, created=timezone.now() - timedelta(days=40)), BackupLog(type=BackupLogType.BACKUP_STARTED, created=timezone.now() - timedelta(days=10))]),
 
-        (False, BackupLog(type=BackupLogType.BACKUP, created=timezone.now() - timedelta(days=10))),
+        (False, BackupLog(type=BackupLogType.BACKUP_FINISHED, created=timezone.now() - timedelta(days=10))),
         (False, BackupLog(type=BackupLogType.RESTORE, created=timezone.now() - timedelta(days=10))),
         (False, BackupLog(type=BackupLogType.SETUP, created=timezone.now() - timedelta(days=10))),
     ])
     def test_create_notification(self, expected, backuplog):
         BackupLog.objects.all().delete()
-        backuplog.save()
+        if isinstance(backuplog, list):
+            for log in backuplog:
+                log.save()
+        else:
+            backuplog.save()
 
         with assert_notifications_created([{'type': NotificationType.BACKUP_MISSING, 'user': self.user_superuser}] if expected else []):
             async_to_sync(create_notifications)(None)

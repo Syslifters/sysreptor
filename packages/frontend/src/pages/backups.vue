@@ -58,7 +58,8 @@
               <td>{{ log.user || '-' }}</td>
               <td>
                 <template v-if="log.type === BackupLogType.SETUP">Set up SysReptor instance</template>
-                <template v-else-if="log.type === BackupLogType.BACKUP">Backup created</template>
+                <template v-else-if="log.type === BackupLogType.BACKUP_STARTED">Backup started</template>
+                <template v-else-if="log.type === BackupLogType.BACKUP_FINISHED">Backup finished</template>
                 <template v-else-if="log.type === BackupLogType.RESTORE">Restored backup</template>
                 <template v-else>{{ log.type }}</template>
               </td>
