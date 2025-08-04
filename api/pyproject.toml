@@ -8,7 +8,7 @@ requires-python = ">=3.12,<4.0"
 dependencies = [
   "django[argon2] (>=5.2,<5.3)",
   "djangorestframework (>=3.16,<3.17)",
-  "weasyprint (==65.1)",
+  "weasyprint (==66.0)",
 
   "django-csp (>=4.0,<5)",
   "django-storages[s3] (~=1.13)",
@@ -28,7 +28,7 @@ dependencies = [
   "requests (~=2.28)",
   "httpx (~=0.28)",
   "tenacity (~=9.0)",
-  "regex (~=2024.5)",
+  "regex (~=2025.7)",
   "jsonschema (~=4.17)",
   "python-decouple (~=3.8)",
   "pycryptodomex (~=3.17)",
@@ -56,11 +56,8 @@ dependencies = [
   "pytest-xdist (~=3.2)",
   "pytest-cov (~=6.0)",
 
-  "pip-licenses-cli (~=1.0)",
+  "pip-licenses-cli (~=2.0)",
   "ruff (~=0.12)",
-
-  # temporary pin version to prevent memory leak in backup
-  "urllib3 (==2.4.0)",
 ]
 
 
