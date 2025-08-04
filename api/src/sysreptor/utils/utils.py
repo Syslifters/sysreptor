@@ -8,7 +8,7 @@ from datetime import date, datetime
 from itertools import groupby
 from typing import Any
 
-from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync, sync_to_async
 from django.db import close_old_connections, connections
 from django.utils import dateparse, timezone
 from django.utils.crypto import get_random_string
@@ -167,18 +167,18 @@ def get_random_color() -> str:
 _background_tasks = set()
 def run_in_background(func):
     def inner(*args, **kwargs):
-        @sync_to_async()
         def task_finished():
             if not connections['default'].in_atomic_block:
                 close_old_connections()
 
-        async def wrapper():
+        @sync_to_async(thread_sensitive=False)
+        def wrapper():
             try:
-                await func(*args, **kwargs)
+                async_to_sync(func)(*args, **kwargs)
             except Exception:
                 logging.exception(f'Error while running run_in_background({func.__name__})')
             finally:
-                await task_finished()
+                task_finished()
 
         task = asyncio.create_task(wrapper())
         _background_tasks.add(task)

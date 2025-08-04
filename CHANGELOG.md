@@ -1,5 +1,12 @@
 # Changelog
 
+## Upcoming
+* Fix out of memory bug in `StreamingHttpResponseAsync`
+* Fix crypto stream errors logged on cleanup
+* Fix `run_in_background` after `asgiref` update
+* Log backup started and finished times
+
+
 ## v2025.64 - 2025-07-30
 * Plugin `excalidraw`: Integrate Excalidraw in SysReptor
 * Allow customizing finding/section statuses (https://docs.sysreptor.com/setup/configuration/#custom-statuses)
