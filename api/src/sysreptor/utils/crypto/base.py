@@ -361,7 +361,10 @@ class DecryptionStream(io.RawIOBase):
                 self._verify_auth_tag()
         finally:
             if not self.fileobj.closed:
-                self.fileobj.close()
+                try:
+                    self.fileobj.close()
+                except ValueError:
+                    pass
             super().close()
 
     def __del__(self):
