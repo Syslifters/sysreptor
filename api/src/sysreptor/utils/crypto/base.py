@@ -353,14 +353,17 @@ class DecryptionStream(io.RawIOBase):
         except Exception as ex:
             raise CryptoError('Cannot decrypt data: Auth tag verification failed') from ex
 
-    def close(self):
+    def close(self, skip_verify_auth_tag=False):
         if self.closed:
             return
         try:
-            if self.cipher and not self.fileobj.closed:
+            if self.cipher and not self.fileobj.closed and not skip_verify_auth_tag:
                 self._verify_auth_tag()
         finally:
-            self.fileobj.close()
+            if not self.fileobj.closed:
+                self.fileobj.close()
             super().close()
 
+    def __del__(self):
+        return self.close(skip_verify_auth_tag=True)
 
