@@ -40,55 +40,49 @@ class ViewSetAsync(GenericAPIViewAsyncMixin, AdrfAsyncGenericViewSet):
         return True
 
 
-class _SyncIterableToAsync:
-    def __init__(self, get_sync_iterable):
+class sync_iterable_to_async:
+    def __init__(self, sync_iterable, close=None):
         """
         Functions as an async version of the iterable returned by ``get_sync_iterable``.
         """
-
-        self.get_sync_iterable = get_sync_iterable
-
-        # async versions of the `next` and `iter` functions
-        self.next_async = sync_to_async(self.next)
-        self.iter_async = sync_to_async(iter)
+        self.sync_iterable = sync_iterable
+        self.close = close
+        self._exhausted = False
 
     def __aiter__(self):
         return self
 
     async def __anext__(self):
+        if self._exhausted:
+            raise StopAsyncIteration()
+
         if not hasattr(self, "sync_iterator"):
             # one-time setup of the internal iterator
-            sync_iterable = await self.get_sync_iterable()
-            self.sync_iterator = await self.iter_async(sync_iterable)
+            self.sync_iterator = await sync_to_async(iter)(self.sync_iterable)
 
-        return await self.next_async(self.sync_iterator)
+        # Use a sentinel to detect end of iteration
+        sentinel = object()
+        result = await sync_to_async(next)(self.sync_iterator, sentinel)
 
-    @staticmethod
-    def next(it):
-        """
-        asyncio expects `StopAsyncIteration` in place of `StopIteration`,
-        so here's a modified in-built `next` function that can handle this.
-        """
-        try:
-            return next(it)
-        except StopIteration as ex:
-            raise StopAsyncIteration() from ex
+        if result is sentinel:
+            # Iterator is exhausted
+            self._exhausted = True
+            del self.sync_iterator
+            raise StopAsyncIteration()
 
+        return result
 
-def sync_iterable_to_async(sync_iterable):
-    async def get_sync_iterable():
-        return sync_iterable
-    return _SyncIterableToAsync(get_sync_iterable)
+    async def aclose(self):
+        if self.close:
+            await sync_to_async(self.close)()
 
 
 class StreamingHttpResponseAsync(StreamingHttpResponse):
-    async def __aiter__(self):
+    def __aiter__(self):
         try:
-            async for part in self.streaming_content:
-                yield part
+            return aiter(self.streaming_content)
         except TypeError:
-            async for part in sync_iterable_to_async(self.streaming_content):
-                yield part
+            return sync_iterable_to_async(self.streaming_content, close=self.close)
 
 
 class FileResponseAsync(FileResponse):
