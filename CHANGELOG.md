@@ -5,6 +5,7 @@
 * Fix crypto stream errors logged on cleanup
 * Fix `run_in_background` after `asgiref` update
 * Log backup started and finished times
+* Restore backup: bulk insert DB objects
 
 
 ## v2025.64 - 2025-07-30

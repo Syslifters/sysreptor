@@ -12,6 +12,7 @@ import zipstream
 from django.apps import apps
 from django.conf import settings
 from django.core import serializers
+from django.core.files.storage import storages
 from django.core.management import call_command
 from django.core.management.color import no_style
 from django.core.serializers.base import DeserializationError
@@ -22,16 +23,6 @@ from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.loader import MigrationLoader
 
 from sysreptor.api_utils.models import BackupLog, BackupLogType
-from sysreptor.pentests import storages
-from sysreptor.pentests.models import (
-    ArchivedProject,
-    UploadedAsset,
-    UploadedImage,
-    UploadedProjectFile,
-    UploadedTemplateImage,
-    UploadedUserNotebookFile,
-    UploadedUserNotebookImage,
-)
 from sysreptor.pentests.models.project import ProjectMemberRole
 from sysreptor.utils import crypto
 from sysreptor.utils.configuration import configuration
@@ -118,7 +109,11 @@ def create_database_dump():
         raise ex
 
 
-def backup_files(z, path, storage, models):
+def get_storage_dirs():
+    return {k: storages[k] for k in storages.backends.keys() if k not in ['staticfiles', 'default']}
+
+
+def backup_files(z, path, storage):
     def file_chunks(f):
         try:
             with storage.open(f) as fp:
@@ -126,16 +121,7 @@ def backup_files(z, path, storage, models):
         except (FileNotFoundError, OSError) as ex:
             logging.warning(f'Could not backup file {f}: {ex}')
 
-    for m in list(models):
-        if hasattr(m, 'history'):
-            models.append(m.history.model)
-
-    qs = models[0].objects.values_list('file', flat=True)
-    if len(models) > 1:
-        qs = qs.union(*[m.objects.values_list('file', flat=True) for m in models[1:]], all=False)
-    else:
-        qs = qs.distinct()
-    for f in qs.iterator():
+    for f in walk_storage_dir(storage):
         z.add(arcname=str(Path(path) / f), data=file_chunks(f))
 
 
@@ -149,10 +135,8 @@ def create_backup(user=None):
     z.add(arcname='configurations.json', data=json.dumps(create_configurations_backup()).encode())
     z.add(arcname='backup.jsonl', data=create_database_dump())
 
-    backup_files(z, 'uploadedimages', storages.get_uploaded_image_storage(), [UploadedImage, UploadedUserNotebookImage, UploadedTemplateImage])
-    backup_files(z, 'uploadedassets', storages.get_uploaded_asset_storage(), [UploadedAsset])
-    backup_files(z, 'uploadedfiles', storages.get_uploaded_file_storage(), [UploadedProjectFile, UploadedUserNotebookFile])
-    backup_files(z, 'archivedfiles', storages.get_archive_file_storage(), [ArchivedProject])
+    for d, storage in get_storage_dirs().items():
+        backup_files(z, d, storage)
 
     return z
 
@@ -259,10 +243,22 @@ def restore_database_dump(f):
     # Defer DB constraint checking
     with constraint_checks_disabled():
         objs_with_deferred_fields = []
+        batch = []
         for obj in DbJsonlDeserializer(f, migration_apps=migration_apps, handle_forward_references=True, ignorenonexistent=True):
-            obj.save()
+            if batch and (len(batch) == 1000 or batch[0].__class__ != obj.object.__class__):
+                batch[0].__class__.objects.bulk_create(batch)
+                batch.clear()
+
+            if not obj.m2m_data:
+                # Bulk insert if possible
+                batch.append(obj.object)
+            else:
+                obj.save()
+
             if obj.deferred_fields:
                 objs_with_deferred_fields.append(obj)
+        if batch:
+            batch[0].__class__.objects.bulk_create(batch)
         for obj in objs_with_deferred_fields:
             obj.save_deferred_fields()
 
@@ -296,13 +292,7 @@ def delete_all_storage_files():
     """
     Delete all files from storages
     """
-    storage_list = [
-        storages.get_uploaded_image_storage(),
-        storages.get_uploaded_asset_storage(),
-        storages.get_uploaded_file_storage(),
-        storages.get_archive_file_storage(),
-    ]
-    for storage in storage_list:
+    for storage in get_storage_dirs().values():
         for f in walk_storage_dir(storage):
             try:
                 storage.delete(f)
@@ -319,13 +309,7 @@ def walk_zip_dir(d):
 
 
 def restore_files(z):
-    storage_dirs = {
-        'uploadedimages': storages.get_uploaded_image_storage(),
-        'uploadedassets': storages.get_uploaded_asset_storage(),
-        'uploadedfiles': storages.get_uploaded_file_storage(),
-        'archivedfiles': storages.get_archive_file_storage(),
-    }
-    for d, storage in storage_dirs.items():
+    for d, storage in get_storage_dirs().items():
         d = zipfile.Path(z, d + '/')
         if d.exists() and d.is_dir():
             for f in walk_zip_dir(d):
@@ -346,7 +330,6 @@ def restore_configurations(z):
         logging.warning('Unknown format in configurations.json')
 
 
-@transaction.atomic
 def restore_backup(z, keepfiles=True, skip_files=False, skip_database=False):
     logging.info('Begin restoring backup')
 
@@ -359,47 +342,48 @@ def restore_backup(z, keepfiles=True, skip_files=False, skip_database=False):
         logging.warning('No version information found in backup file.')
 
     if not skip_database:
-        # Load migrations
-        migrations = None
-        configurations_file = zipfile.Path(z, 'migrations.json')
-        if configurations_file.exists():
-            migrations_info = json.loads(configurations_file.read_text())
-            assert migrations_info.get('format') == 'migrations/v1'
-            migrations = migrations_info.get('current', [])
+        with transaction.atomic():
+            # Load migrations
+            migrations = None
+            configurations_file = zipfile.Path(z, 'migrations.json')
+            if configurations_file.exists():
+                migrations_info = json.loads(configurations_file.read_text())
+                assert migrations_info.get('format') == 'migrations/v1'
+                migrations = migrations_info.get('current', [])
 
-        # Delete all DB data
-        logging.info('Begin destroying DB. Dropping all tables.')
-        destroy_database()
-        logging.info('Finished destroying DB')
+            # Delete all DB data
+            logging.info('Begin destroying DB. Dropping all tables.')
+            destroy_database()
+            logging.info('Finished destroying DB')
 
-        # Apply migrations from backup
-        logging.info('Begin running migrations from backup')
-        if migrations is not None:
-            for m in migrations:
-                if m['app_label'].startswith('plugin_') and not any(a for a in apps.get_app_configs() if a.label == m['app_label']):
-                    logging.warning(f'Cannot run migation "{m["migration_name"]}", because plugin "{m["app_label"]}" is not enabled. Plugin data will not be restored.')
-                    continue
+            # Apply migrations from backup
+            logging.info('Begin running migrations from backup')
+            if migrations is not None:
+                for m in migrations:
+                    if m['app_label'].startswith('plugin_') and not any(a for a in apps.get_app_configs() if a.label == m['app_label']):
+                        logging.warning(f'Cannot run migation "{m["migration_name"]}", because plugin "{m["app_label"]}" is not enabled. Plugin data will not be restored.')
+                        continue
 
-                call_command('migrate', app_label=m['app_label'], migration_name=m['migration_name'], interactive=False, verbosity=0)
-        else:
-            logging.warning('No migrations info found in backup. Applying all available migrations')
-            call_command('migrate', interactive=False, verbosity=0)
-        logging.info('Finished migrations')
+                    call_command('migrate', app_label=m['app_label'], migration_name=m['migration_name'], interactive=False, verbosity=0)
+            else:
+                logging.warning('No migrations info found in backup. Applying all available migrations')
+                call_command('migrate', interactive=False, verbosity=0)
+            logging.info('Finished migrations')
 
-        # Delete data created in migrations
-        ProjectMemberRole.objects.all().delete()
-        BackupLog.objects.all().delete()
+            # Delete data created in migrations
+            ProjectMemberRole.objects.all().delete()
+            BackupLog.objects.all().delete()
 
-        # Restore DB data
-        logging.info('Begin restoring DB data')
-        with z.open('backup.jsonl') as f:
-            restore_database_dump(f)
-        logging.info('Finished restoring DB data')
+            # Restore DB data
+            logging.info('Begin restoring DB data')
+            with z.open('backup.jsonl') as f:
+                restore_database_dump(f)
+            logging.info('Finished restoring DB data')
 
-        # Reset sequences
-        logging.info('Begin resetting DB sequences')
-        reset_database_sequences()
-        logging.info('Finished resetting DB sequences')
+            # Reset sequences
+            logging.info('Begin resetting DB sequences')
+            reset_database_sequences()
+            logging.info('Finished resetting DB sequences')
 
     if not skip_files:
         # Restore files
