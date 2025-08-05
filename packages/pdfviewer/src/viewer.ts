@@ -737,6 +737,9 @@ function webViewerLoad() {
     if (msg.origin !== window.origin) {
       return;
     }
+    if (!msg.data || !(msg.data instanceof Uint8Array)) {
+      return;
+    }
 
     // Load PDF
     await PDFViewerApplication.open({ data: msg.data as Uint8Array });
