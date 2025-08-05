@@ -4,7 +4,6 @@
 !package.json
 !package-lock.json
 !.npmrc
-!NOTICE
 
 # Plugin directories
 !demoplugin

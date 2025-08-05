@@ -46,6 +46,7 @@ function build_plugin() {
 function build_all() {
   # Install dependencies of all plugins
   npm install
+  npm run generate-notice
 
   # Build all plugins
   for plugin in *; do

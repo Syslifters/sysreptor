@@ -590,7 +590,7 @@
   {
     "id": 117,
     "name": "Improper Output Neutralization for Logs",
-    "description": "The product does not neutralize or incorrectly neutralizes output that is written to logs.",
+    "description": "The product constructs a log message from external input, but it does not neutralize or incorrectly neutralizes special elements when the message is written to a log file.",
     "parent": 116
   },
   {
@@ -609,7 +609,7 @@
     "id": 120,
     "name": "Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')",
     "description": "The product copies an input buffer to an output buffer without verifying that the size of the input buffer is less than the size of the output buffer, leading to a buffer overflow.",
-    "parent": 119
+    "parent": 787
   },
   {
     "id": 121,
@@ -939,7 +939,7 @@
     "id": 182,
     "name": "Collapse of Data into Unsafe Value",
     "description": "The product filters data in a way that causes it to be reduced or \"collapsed\" into an unsafe value that violates an expected security property.",
-    "parent": 693
+    "parent": 707
   },
   {
     "id": 183,
@@ -1664,7 +1664,7 @@
   {
     "id": 321,
     "name": "Use of Hard-coded Cryptographic Key",
-    "description": "The use of a hard-coded cryptographic key significantly increases the possibility that encrypted data may be recovered.",
+    "description": "The product uses a hard-coded, unchangeable cryptographic key.",
     "parent": 798
   },
   {
@@ -1850,7 +1850,7 @@
   {
     "id": 352,
     "name": "Cross-Site Request Forgery (CSRF)",
-    "description": "The web application does not, or can not, sufficiently verify whether a well-formed, valid, consistent request was intentionally provided by the user who submitted the request.",
+    "description": "The web application does not, or cannot, sufficiently verify whether a request was intentionally provided by the user who sent the request, which could have originated from an unauthorized actor. ",
     "parent": 345
   },
   {
@@ -2030,7 +2030,7 @@
   {
     "id": 393,
     "name": "Return of Wrong Status Code",
-    "description": "A function or operation returns an incorrect return value or status code that does not indicate an error, but causes the product to modify its behavior based on the incorrect result.",
+    "description": "A function or operation returns an incorrect return value or status code that does not indicate the true result of execution, causing the product to modify its behavior based on the incorrect result.",
     "parent": 684
   },
   {
@@ -2054,19 +2054,19 @@
   {
     "id": 397,
     "name": "Declaration of Throws for Generic Exception",
-    "description": "Throwing overly broad exceptions promotes complex error handling code that is more likely to contain security vulnerabilities.",
+    "description": "The product throws or raises an overly broad exceptions that can hide important details and produce inappropriate responses to certain conditions.",
     "parent": 705
   },
   {
     "id": 400,
     "name": "Uncontrolled Resource Consumption",
-    "description": "The product does not properly control the allocation and maintenance of a limited resource, thereby enabling an actor to influence the amount of resources consumed, eventually leading to the exhaustion of available resources.",
+    "description": "The product does not properly control the allocation and maintenance of a limited resource.",
     "parent": 664
   },
   {
     "id": 401,
     "name": "Missing Release of Memory after Effective Lifetime",
-    "description": "The product does not sufficiently track and release allocated memory after it has been used, which slowly consumes remaining memory.",
+    "description": "The product does not sufficiently track and release allocated memory after it has been used, making the memory unavailable for reallocation and reuse.",
     "parent": 772
   },
   {
@@ -2144,7 +2144,7 @@
   {
     "id": 415,
     "name": "Double Free",
-    "description": "The product calls free() twice on the same memory address, potentially leading to modification of unexpected memory locations.",
+    "description": "The product calls free() twice on the same memory address.",
     "parent": 825
   },
   {
@@ -2786,7 +2786,7 @@
   {
     "id": 548,
     "name": "Exposure of Information Through Directory Listing",
-    "description": "A directory listing is inappropriately exposed, yielding potentially sensitive information to attackers.",
+    "description": "The product inappropriately exposes a directory listing with an index of all the resources located inside of the directory.",
     "parent": 497
   },
   {
@@ -4273,7 +4273,7 @@
   },
   {
     "id": 1039,
-    "name": "Automated Recognition Mechanism with Inadequate Detection or Handling of Adversarial Input Perturbations",
+    "name": "Inadequate Detection or Handling of Adversarial Input Perturbations in Automated Recognition Mechanism",
     "description": "The product uses an automated mechanism such as machine learning to recognize complex data inputs (e.g. image or audio) as a particular concept or category, but it does not properly detect or handle inputs that have been modified or constructed in a way that causes the mechanism to detect a different, incorrect concept.",
     "parent": 693
   },
@@ -4971,7 +4971,7 @@
     "id": 1242,
     "name": "Inclusion of Undocumented Features or Chicken Bits",
     "description": "The device includes chicken bits or undocumented features that can create entry points for unauthorized actors.",
-    "parent": 284
+    "parent": 912
   },
   {
     "id": 1243,
@@ -5193,7 +5193,7 @@
     "id": 1279,
     "name": "Cryptographic Operations are run Before Supporting Units are Ready",
     "description": "Performing cryptographic operations without ensuring that the supporting inputs are ready to supply valid data may compromise the cryptographic result.",
-    "parent": 691
+    "parent": 696
   },
   {
     "id": 1280,
@@ -5638,5 +5638,23 @@
     "name": "Improper Neutralization of Input Used for LLM Prompting",
     "description": "The product uses externally-provided data to build prompts provided to\nlarge language models (LLMs), but the way these prompts are constructed\ncauses the LLM to fail to distinguish between user-supplied inputs and\ndeveloper provided system directives.",
     "parent": 77
+  },
+  {
+    "id": 1428,
+    "name": "Reliance on HTTP instead of HTTPS",
+    "description": "The product provides or relies on use of HTTP communications when HTTPS is available.",
+    "parent": 319
+  },
+  {
+    "id": 1429,
+    "name": "Missing Security-Relevant Feedback for Unexecuted Operations in Hardware Interface",
+    "description": "The product has a hardware interface that silently discards operations\n\t\t\tin situations for which feedback would be security-relevant, such as\n\t\t\tthe timely detection of failures or attacks.",
+    "parent": 223
+  },
+  {
+    "id": 1431,
+    "name": "Driving Intermediate Cryptographic State/Results to Hardware Module Outputs",
+    "description": "The product uses a hardware module implementing a cryptographic\n\t\t  algorithm that writes sensitive information about the intermediate\n\t\t  state or results of its cryptographic operations via one of its output\n\t\t  wires (typically the output port containing the final result).",
+    "parent": 200
   }
 ]

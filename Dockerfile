@@ -58,6 +58,7 @@ CMD ["npm", "run", "test"]
 FROM --platform=$BUILDPLATFORM frontend-test AS frontend
 # Build JS bundle
 RUN npm run postinstall && npm run generate
+RUN cd .. && npm run generate-notice
 
 
 
@@ -204,9 +205,10 @@ FROM api-test AS api
 COPY --from=api-statics /app/api/src/frontend/index.html /app/api/src/frontend/index.html
 COPY --from=api-statics /app/api/src/static/ /app/api/src/static/
 COPY --from=api-statics /app/plugins/ /app/plugins/
+COPY --from=frontend /app/packages/NOTICE /app/packages/NOTICE
 USER 0
-COPY --chown=1000:1000 api/generate_notice.sh api/download_sources.sh api/start.sh api/NOTICE /app/api/
-RUN /bin/bash /app/api/generate_notice.sh
+COPY --chown=1000:1000 api/verify_licenses.sh api/download_sources.sh api/start.sh /app/api/
+RUN /bin/bash /app/api/verify_licenses.sh
 # Copy of changelog should be one of the last things to use cache for prod releases
 COPY LICENSE CHANGELOG.md /app/
 ARG VERSION=dev
@@ -226,4 +228,4 @@ RUN /app/api/download_sources.sh
 USER 1000
 
 # Default stage
-FROM api-src
+FROM api
