@@ -6,11 +6,6 @@ tags = []
 override_finding_order = false
 images = []
 
-[[sections]]
-id = "document_control"
-created = "2024-02-22T08:14:06.791606Z"
-updated = "2024-02-22T08:17:08.083896Z"
-status = "in-progress"
 
 [[sections]]
 id = "executive_summary"
@@ -44,28 +39,30 @@ status = "in-progress"
 
 [report_data]
 title = "CWEE Exam Report"
-executive_summary = """
-{{ report.customers[0]?.customer_full }} (“{{ report.customers[0]?.customer_short }}” herein), {{ report.customers[1]?.customer_full }} (“{{ report.customers[1]?.customer_short }}” herein), and {{ report.customers[2]?.customer_full }} (“{{ report.customers[2]?.customer_short }}” herein) have invited {{ report.candidate.name }} to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
+summary_of_findings = """
+During the course of testing, TODO **YOUR_NAME** uncovered a total of TODO **number** of findings that pose a material risk to clients' web applications and systems. The below table provides a summary of the findings by severity level.
 
-All web-related findings were considered in-scope, as long as they can be proven harmful to the client with a Medium-High impact. The following types of activities were considered out-of-scope for this test:
+TODO: update table 
 
-* Physical attacks against the clients' properties
-* Unverified scanner output
-* Any vulnerabilities identified through DDoS or spam attacks
-* Vulnerabilities in third-party libraries unless they can be leveraged to impact the target significantly
-* Any theoretical attacks or attacks that require significant user interaction or are considered low-risk
+| Finding Severity |            |         |           |
+| ---------------- | ---------- | ------- | --------- |
+| **High**         | **Medium** | **Low** | **Total** |
+| **0**            | **0**      | **0**   | **0**     |
+
+Below is a high-level overview of each finding identified during the course of testing. These findings are covered in depth in the [Technical Findings Details](#technical-findings-details) section of this report.
+
+TODO: update table
+
+| Finding # | Severity Level | Finding Name                 |
+| --------- | -------------- | ---------------------------- |
+| 1.        | **High**       | _Command Injection_          |
+| 2.        | **Medium**     | _Username Enumeration_       |
+| 3.        | **Low**        | _Cookie Missing Secure Flag_ |
+
 """
-approach = """
-{{ report.candidate.name }} performed testing under a mixture of "blackbox" and a "whitebox" approach from {{ formatDate(report.pentest_start, 'long', 'en-US') }}  to {{ formatDate(report.pentest_end, 'long', 'en-US') }}, as follows:
-
-<ul><li v-for="customer in report.customers"> <code v-text="customer.customer_short" /> <markdown :text="customer.pentest_approach" class="markdown-inline" /></li></ul>
-
-Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
-
-{{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal network access. Furthermore, {{ report.candidate.name }} has also documented the sources of vulnerabilities that were identified through source code analysis, and provided recommended patches to fix them.
-"""
+assessment_overview_and_recommendations = "TODO: 1 page summary of all identified vulnerabilities, as well as their respective recommended remediations."
 appendix_severities = """
-Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’s data.
+Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of data.
 
 | Rating   | CVSS Score Range |
 | -------- | ---------------- | 
@@ -87,13 +84,62 @@ TODO: fill in any identified flags.
 | 5.     | **VitaMedix - Auth**  |            |                       |
 | 6.     | **VitaMedix - RCE**   |            |                       |
 """
+appendix_exploits = """
+The exploit scripts used during this penetration test are attached as files in the `exploits` directory of the submitted `zip` file.
+
+TODO: go to Notes -> Exploits and upload your exploit scripts
+
+"""
 appendix_additional_sections = []
-pentest_start = "2024-02-18"
-pentest_end = "2024-02-23"
-report_date = "2024-02-23"
-report_version = "TODO 1.0"
+executive_summary = """
+TODO Royal Flush Ltd. ("RoyalFlush" herein), Secure Data Ltd. ("SecureData" herein), and Vita Medix Ltd. ("VitaMedix" herein) have invited 
+TODO YOUR_NAME
+to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
+
+All web-related findings were considered in-scope, as long as they can be proven harmful to the client with a Medium-High impact. The following types of activities were considered out-of-scope for this test:
+
+* Physical attacks against the clients' properties
+* Unverified scanner output
+* Any vulnerabilities identified through DDoS or spam attacks
+* Vulnerabilities in third-party libraries unless they can be leveraged to impact the target significantly
+* Any theoretical attacks or attacks that require significant user interaction or are considered low-risk
+"""
+approach = """
+TODO YOUR_NAME performed testing under a mixture of "blackbox" and a "whitebox" approach from TODO START_DATE to TODO END_DATE, as follows:
+
+TODO: update approach
+* `RoyalFlush` A whitebox penetration test was carried against their targets, with access to their web applications' source code on `http://git.royalflush.htb/`.
+* `SecureData` A blackbox penetration test was performed, with no further details or access to their web applications.
+* `VitaMedix` A mixture of blackbox and whitebox was carried against all web applications under their sub-domains.
+
+Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
+
+TODO YOUR_NAME sought to demonstrate the full impact of every vulnerability, up to and including internal network access. Furthermore, TODO YOUR_NAME has also documented the sources of vulnerabilities that were identified through source code analysis, and provided recommended patches to fix them.
+"""
+engagement_contacts = """
+TODO: update contacts
+
+| Company Contacts      |                         |                                                     |
+| --------------------- | ----------------------- | --------------------------------------------------- |
+| **Primary Contact**   | **Title**               | **Primary Contact Email**                           |
+| Yelon Husk            | Chief Executive Officer | [yelon@royalflush.htb](mailto:yelon@royalflush.htb) |
+| **Secondary Contact** | **Title**               | **Secondary Contact Email**                         |
+| Zeyad AlMadani        | Chief Technical Officer | [zeyad@securedata.htb](mailto:zeyad@securedata.htb) |
+
+| Assessor Contact  |            |                            |
+| ----------------- | ---------- | -------------------------- |
+| **Assessor Name** | **Title**  | **Assessor Contact Email** |
+| YOUR_NAME         | YOUR_TITLE | YOUR_EMAIL                 |
+"""
+statement_of_confidentiality = """
+The contents of this document have been developed by Hack The Box. Hack The Box considers the contents of this document to be proprietary and business confidential information. This information is to be used only in the performance of its intended use. This document may not be released to another vendor, business partner or contractor without prior written consent from Hack The Box. Additionally, no portion of this document may be communicated, reproduced, copied or distributed without the prior consent of Hack The Box.
+
+The contents of this document do not constitute legal advice. Hack The Box's offer of services that relate to compliance, litigation or other legal interests are not intended as legal counsel and should not be taken as such. The assessment detailed herein is against a fictional company for training and examination purposes, and the vulnerabilities in no way affect Hack The Box external or internal infrastructure.
+"""
 scope = """
 The scope of this assessment was as follows:
+
+TODO: update scope
 
 | **URL**              | **Description**             |
 | -------------------- | --------------------------- |
@@ -103,38 +149,13 @@ The scope of this assessment was as follows:
 | vault.royalflush.htb | RoyalFlush Secure Vault     |
 | \\*.securedata.htb    | SecureData web app(s)       |
 | \\*.vitamedix.htb     | VitaMedix web app(s)        |
+
 """
-assessment_overview_and_recommendations = "TODO: 1 page summary of all identified vulnerabilities, as well as their respective recommended remediations."
-
-[[report_data.customer_contacts]]
-a_name = "Yelon Husk"
-b_title = "Chief Executive Officer"
-c_email = "yelon@royalflush.htb"
-
-[[report_data.customer_contacts]]
-a_name = "Zeyad AlMadani"
-b_title = "Chief Technical Officer"
-c_email = "zeyad@securedata.htb"
 
 [report_data.candidate]
-a_name = "TODO Candidate Name"
-b_title = "TODO Candidate Title"
-c_email = "TODO Candidate Email"
-
-[[report_data.customers]]
-customer_full = "Royal Flush Ltd."
-customer_short = "RoyalFlush"
-pentest_approach = "A whitebox penetration test was carried against their targets, with access to their web applications' source code on [http://git.royalflush.htb/](http://git.royalflush.htb/)."
-
-[[report_data.customers]]
-customer_full = "Secure Data Ltd."
-customer_short = "SecureData"
-pentest_approach = "A blackbox penetration test was performed, with no further details or access to their web applications."
-
-[[report_data.customers]]
-customer_full = "Vita Medix Ltd."
-customer_short = "VitaMedix"
-pentest_approach = "A mixture of blackbox and whitebox was carried against all web applications under their sub-domains."
+title = "TODO Candidate Title"
+name = "TODO Candidate Name"
+email = "TODO Candidate Email"
 
 [[findings]]
 id = "dfee355f-30f6-4129-b8c1-43cc7d581387"
@@ -144,16 +165,21 @@ status = "in-progress"
 template = "7fc45348-0d04-45f6-8798-0aa38782e325"
 order = 1
 
-[findings.assignee]
-id = "b9a1560e-79ea-4d73-b1e0-818601d0386f"
-
 [findings.data]
 title = "Stored Cross-Site Scripting (XSS)"
 cvss = "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N"
 summary = "TODO DESCRIPTION & CAUSE"
 impact = "TODO SECURITY IMPACT"
-description = "TODO DETAILED WALKTHROUGH"
-recommendation = "TODO PATCHING AND REMEDIATION"
+description = """
+TODO: Explain in detail how to replicate this finding and how it was identified, and provide detailed steps, screenshots, and commands to support your findings.
+
+TODO: For vulnerabilities identified through source code analysis "whitebox", you also need to include the vulnerable code block and highlight the vulnerable lines of code. Then, you need to explain how this lead to the vulnerability. You do not need to include the entire file, but only the parts that are related to the vulnerability.
+"""
+recommendation = """
+TODO: Provide detailed remediation advice to fix the identified vulnerability. The advice needs to be practical with detailed instructions, and not just an overview.
+
+TODO: For vulnerabilities identified through source code analysis "whitebox", you need to provide a recommended patch for each vulnerable code block, while highlighting the applied changes, and explaining how they remediate the issue.
+"""
 cwe = "CWE-79"
 references = [
     "TODO EXTERNAL REFERENCES",
@@ -161,6 +187,18 @@ references = [
 affected_components = [
     "TODO AFFECTED COMPONENT",
 ]
+
+[[notes]]
+title = "Exploits"
+id = "a1813ff9-d3b7-472d-b190-c004d97b5bcb"
+created = "2025-08-06T08:14:05.660311Z"
+updated = "2025-08-06T08:14:05.660755Z"
+text = """
+TODO: Upload exploit files
+
+"""
+icon_emoji = "🛡️"
+order = 1
 
 [project_type]
 file = "../htb-designs/cwee.toml"
