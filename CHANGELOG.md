@@ -4,6 +4,7 @@
 * Fix out of memory bug in `StreamingHttpResponseAsync`
 * Fix crypto stream errors logged on cleanup
 * Fix `run_in_background` after `asgiref` update
+* Fix custom CA certificates not loaded for commands
 * Log backup started and finished times
 * Restore backup: bulk insert DB objects
 * PDF viewer: add stricter postMessage validation to prevent errors on unexpected messages
