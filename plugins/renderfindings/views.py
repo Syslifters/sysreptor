@@ -53,7 +53,7 @@ class RenderFindingsView(ProjectSubresourceMixin, GenericAPIViewAsync):
 
         # Render findings to HTML
         await aprefetch_related_objects([project], Prefetch('findings', PentestFinding.objects.filter(finding_id__in=finding_ids)), 'sections')
-        res = await render_pdf(project=project, additonal_data={'isPluginRenderFindings': True}, output='html')
+        res = await render_pdf(project=project, additional_data={'isPluginRenderFindings': True}, output='html')
 
         # Post-process HTML to remove unwanted elements
         if res.pdf:

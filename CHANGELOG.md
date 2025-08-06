@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming
+* Plugin `markdownexport`: Export reports as Markdown documents in ZIP format
 * Fix out of memory bug in `StreamingHttpResponseAsync`
 * Fix crypto stream errors logged on cleanup
 * Fix `run_in_background` after `asgiref` update

@@ -59,7 +59,7 @@
           </s-text-field>
         </div>
 
-        <div class="mt-4">
+        <div id="publish-actions-download" class="mt-4">
           <btn-confirm
             :disabled="!canGenerateFinalReport"
             :action="generateFinalReport.run"
