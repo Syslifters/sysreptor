@@ -22,7 +22,7 @@ services:
     stop_grace_period: 120s
   redis:
     image: redis:8.0-alpine
-    command: sh -c "redis-server --requirepass $${REDIS_PASSWORD:-}"
+    command: sh -c "exec redis-server --requirepass $${REDIS_PASSWORD:-}"
     environment:
       REDIS_PASSWORD: reportcreator
     expose:
