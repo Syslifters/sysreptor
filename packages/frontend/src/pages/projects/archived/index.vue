@@ -15,10 +15,9 @@
         <v-list-item-title> {{ item.name }}</v-list-item-title>
 
         <v-list-item-subtitle>
-          <chip-storage-size :value="item.size" />
-
           <chip-created :value="item.created" />
           <chip-auto-delete :value="item.auto_delete_date" />
+          <chip-storage-size :value="item.size" />
 
           <v-chip size="small" class="ma-1">
             <v-icon v-if="item.key_parts.some(p => !p.user.is_active) && item.key_parts.filter(p => p.user.is_active).length < item.threshold * 2" size="small" start color="warning" icon="mdi-alert" />
