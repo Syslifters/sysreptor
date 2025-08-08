@@ -37,6 +37,9 @@ const isExpanded = computed(() => localSettings.subDrawerExpanded);
     padding-top: 1em;
     padding-bottom: 1em;
   }
+  .v-list-item:has(.v-list-subheader) {
+    padding-inline: 0 !important;
+  }
   .v-list-item__spacer {
     width: 1em !important;
   }

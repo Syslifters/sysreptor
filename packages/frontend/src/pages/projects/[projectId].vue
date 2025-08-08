@@ -22,19 +22,32 @@
         </v-list-item>
         
         <template v-if="pluginMenuEntries.length > 0">
-          <v-list-subheader>
-            <span v-if="isExpanded">Plugins</span>
-          </v-list-subheader>
-          <v-list-item
-            v-for="pluginMenuEntry, idx in pluginMenuEntries"
-            :key="idx"
-            :to="pluginUrl(pluginMenuEntry, { projectId: route.params.projectId })"
-            :title="pluginMenuEntry.title"
-            :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
-            v-bind="pluginMenuEntry.attrs"
-          >
-            <s-tooltip v-if="!isExpanded" activator="parent" :text="pluginMenuEntry.title" />
+          <v-list-item density="compact" class="pa-0">
+            <v-list-subheader>
+              <span v-if="isExpanded">Plugins</span>
+            </v-list-subheader>
+            <template #append>
+              <s-btn-icon
+                @click="localSettings.pluginMenuExpanded = !localSettings.pluginMenuExpanded"
+                :icon="localSettings.pluginMenuExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                size="small"
+                density="compact"
+                class="mr-2"
+              />
+            </template>
           </v-list-item>
+          <template v-if="localSettings.pluginMenuExpanded">
+            <v-list-item
+              v-for="pluginMenuEntry, idx in pluginMenuEntries"
+              :key="idx"
+              :to="pluginUrl(pluginMenuEntry, { projectId: route.params.projectId })"
+              :title="pluginMenuEntry.title"
+              :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
+              v-bind="pluginMenuEntry.attrs"
+            >
+              <s-tooltip v-if="!isExpanded" activator="parent" :text="pluginMenuEntry.title" />
+            </v-list-item>
+          </template>
         </template>
       </template>
     </s-sub-drawer>
@@ -50,6 +63,7 @@ const route = useRoute();
 const pluginStore = usePluginStore();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
+const localSettings = useLocalSettings();
 
 await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string));
 const project = computed(() => projectStore.project(route.params.projectId as string)!);
