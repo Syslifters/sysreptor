@@ -5,22 +5,19 @@
     :display-value="displayValue"
     @remove="emit('remove')"
   >
-    <v-text-field
+    <s-text-field
       v-model="filter.value"
       :label="props.filterProperties.name || filter.id"
-      variant="outlined"
       density="compact"
-      hide-details="auto"
       spellcheck="false"
       clearable
     />
     <div class="d-flex align-center justify-left mt-1 ml-4">
-      <v-checkbox
+      <s-checkbox
         v-if="props.filterProperties.allow_regex"
         v-model="filter.regex"
         label="Regex"
         density="compact"
-        hide-details
         class="mt-2"
       />
     </div>

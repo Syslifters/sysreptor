@@ -5,15 +5,13 @@
     :filter-properties="props.filterProperties"
     @remove="emit('remove')"
   >
-    <v-select
+    <s-select
       v-model="filter.value"
       :label="props.filterProperties.name || filter.id"
       :items="props.filterProperties.options || []"
       item-title="title"
       item-value="value"
       density="compact"
-      hide-details="auto"
-      variant="outlined"
       :multiple="false"
     >
       <template #item="{ props: itemProps, item }">
@@ -32,7 +30,7 @@
           {{ item.title }}
         </div>
       </template>
-    </v-select>
+    </s-select>
   </filter-chip-base>
 </template>
 

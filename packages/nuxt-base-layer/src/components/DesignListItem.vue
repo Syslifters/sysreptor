@@ -5,20 +5,20 @@
         v-if="item.status"
         :value="item.status"
         :filterable="true"
-        @filter="$emit('filter', $event)"
+        @filter="emit('filter', $event)"
       />
       <chip-language
         v-if="item.language"
         :value="item.language"
         :filterable="true"
-        @filter="$emit('filter', $event)"
+        @filter="emit('filter', $event)"
       />
       <chip-tag
         v-for="tag in props.item.tags || []"
         :key="tag"
         :value="tag"
         :filterable="true"
-        @filter="$emit('filter', $event)"
+        @filter="emit('filter', $event)"
       />
     </v-list-item-subtitle>
   </v-list-item>
@@ -33,6 +33,10 @@ const props = defineProps<{
   item: ProjectType;
   formatTitle?: boolean;
 }>();
+const emit = defineEmits<{
+  filter: [filter: FilterValue];
+}>();
+
 const title = computed(() => {
   if (props.formatTitle) {
     return formatProjectTypeTitle(props.item);
@@ -41,7 +45,4 @@ const title = computed(() => {
   }
 })
 
-defineEmits<{
-  filter: [filter: FilterValue];
-}>();
 </script>

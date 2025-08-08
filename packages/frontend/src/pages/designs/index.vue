@@ -21,7 +21,7 @@
         <v-tab :to="{ path: '/designs/private/', query: route.query }" prepend-icon="mdi-account" text="Private" />
       </template>
       <template #item="{item}: {item: ProjectType}">
-        <design-list-item :item="item" @filter="addFilter(listViewRef.activeFilters, $event);" />
+        <design-list-item :item="item" @filter="listViewRef?.addFilter($event)" />
       </template>
     </list-view>
   </file-drop-area>
@@ -29,6 +29,7 @@
 
 <script setup lang="ts">
 import { ProjectTypeScope, type ProjectType } from '#imports';
+import { sortBy, uniq } from 'lodash-es';
 
 definePageMeta({
   title: 'Designs',
@@ -42,36 +43,18 @@ const route = useRoute();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 
-
 const importBtnRef = useTemplateRef('importBtnRef');
 
-const listViewRef = ref();
-const tags = ref<string[]>([]);
-
-watchEffect(() => {
-  if (!listViewRef.value?.items?.data.value || !Array.isArray(listViewRef.value.items.data.value)) {
-    return;
-  }
-  const allTags = new Set<string>(tags.value);
-  listViewRef.value.items.data.value.forEach((item: ProjectType) => {
-    if (item.tags && Array.isArray(item.tags)) {
-      item.tags.forEach(tag => {
-        if (!allTags.has(tag)) {
-          allTags.add(tag);
-        }
-      });
-    }
-  });
-  tags.value = Array.from(allTags).sort();
-});
-
-const statusOptions = computed(() => {
-  return apiSettings.settings?.statuses?.map(status => ({'title': status.label, 'value': status.id, 'icon': status.icon})) || [];
-});
-
+const listViewRef = useTemplateRef('listViewRef');
+const statusOptions = computed(() => apiSettings.settings?.statuses?.map(status => ({title: status.label, value: status.id, icon: status.icon})) || []);
+const suggestedTags = ref<string[]>([]);
+watch(() => listViewRef.value?.items?.data.value as ProjectType[]|undefined, (items) => {
+  if (!items) { return; }
+  suggestedTags.value = sortBy(uniq(items.flatMap(p => p.tags).concat(suggestedTags.value)));
+}, { immediate: true, deep: 1 });
 const filterProperties = computed((): FilterProperties[] => [
   { id: 'status', name: 'Status', icon: 'mdi-flag', type: 'select', options: statusOptions.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
-  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: tags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: suggestedTags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
   { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
 ]);

@@ -4,13 +4,12 @@
     :filter-properties="props.filterProperties"
     @remove="emit('remove')"
   >
-    <v-combobox
+    <s-combobox
       v-model="filter.value"
       :label="props.filterProperties.name || filter.id"
       :items="props.filterProperties.options || []"
       density="compact"
-      hide-details="auto"
-      variant="outlined"
+      spellcheck="false"
       :multiple="false"
       clearable
     />

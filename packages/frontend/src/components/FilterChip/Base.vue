@@ -24,7 +24,7 @@
           >
             <v-switch
               v-model="filter.exclude"
-              color="red-lighten-3"
+              color="secondary"
               hide-details
               density="compact"
               class="mr-2 ml-4"

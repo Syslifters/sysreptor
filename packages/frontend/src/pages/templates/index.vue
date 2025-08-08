@@ -12,29 +12,6 @@
       :filter-properties="filterProperties"
     >
       <template #title>Templates</template>
-      <template #searchbar="{ items, ordering, orderingOptions }">
-        <v-row dense class="mb-2 w-100">
-          <v-col cols="12" md="auto" class="flex-grow-1">
-            <v-text-field
-              :model-value="items.search.value"
-              @update:model-value="listViewRef?.updateSearch"
-              label="Search"
-              spellcheck="false"
-              hide-details="auto"
-              variant="underlined"
-              autofocus
-              class="ma-0"
-            />
-          </v-col>
-          <v-col cols="auto">
-            <s-select-ordering
-              :model-value="ordering"
-              @update:model-value="listViewRef?.updateOrdering"
-              :ordering-options="orderingOptions"
-            />
-          </v-col>
-        </v-row>
-      </template>
       <template #actions>
         <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
           <btn-create 
@@ -58,7 +35,7 @@
           :language="currentLanguage"
           :to="{path: `/templates/${item.id}/`, query: {language: currentLanguage}}"
           lines="two"
-          @filter="addFilter(listViewRef.activeFilters, $event);"
+          @filter="listViewRef?.addFilter($event)"
         />
       </template>
     </list-view>
@@ -66,6 +43,8 @@
 </template>
 
 <script setup lang="ts">
+import { sortBy, uniq, capitalize } from 'lodash-es';
+
 definePageMeta({
   title: 'Templates',
   toplevel: true,
@@ -81,7 +60,7 @@ const apiSettings = useApiSettings();
 const auth = useAuth();
 const templateStore = useTemplateStore();
 
-const listViewRef = ref();
+const listViewRef = useTemplateRef('listViewRef');
 
 const currentLanguage = computed({
   get: () => (Array.isArray(route.query.language) ? route.query.language[0] : route.query.language) || null,
@@ -119,43 +98,19 @@ async function performCreate() {
   }
 }
 
-const statusOptions = computed(() => {
-  return apiSettings.settings?.statuses?.map(status => ({'title': status.label, 'value': status.id, 'icon': status.icon})) || [];
-});
-const risk_levels = [
-  { title: 'Critical', value: 'critical' },
-  { title: 'High', value: 'high' },
-  { title: 'Medium', value: 'medium' },
-  { title: 'Low', value: 'low' },
-  { title: 'Info', value: 'info' },
-]
-
-const tags = ref<string[]>([]);
-
-watchEffect(() => {
-  if (!listViewRef.value?.items?.data?.value || !Array.isArray(listViewRef.value?.items?.data?.value)) {
-    return;
-  }
-  const allTags = new Set<string>(tags.value);
-  listViewRef.value.items.data.value.forEach((item: unknown) => {
-    const template = item as FindingTemplate;
-    if (template.tags && Array.isArray(template.tags)) {
-      template.tags.forEach(tag => {
-        if (!allTags.has(tag)) {
-          allTags.add(tag);
-        }
-      });
-    }
-  });
-  tags.value = Array.from(allTags).sort();
-});
-
+const statusOptions = computed(() => apiSettings.settings?.statuses?.map(status => ({title: status.label, value: status.id, icon: status.icon})) || []);
+const languageOptions = computed(() => apiSettings.settings!.languages.map(l => ({title: l.name, value: l.code, icon: 'mdi-translate'})));
+const riskLevelOptions = computed(() => Object.values(RiskLevel).map(l => ({title: capitalize(l), value: l})));
+const suggestedTags = ref<string[]>([]);
+watch(() => listViewRef.value?.items?.data.value as FindingTemplate[]|undefined, (items) => {
+  if (!items) { return; }
+  suggestedTags.value = sortBy(uniq(items.flatMap(p => p.tags).concat(suggestedTags.value)));
+}, { immediate: true, deep: 1 });
 const filterProperties = computed((): FilterProperties[] => [
   { id: 'status', name: 'Status', icon: 'mdi-flag', type: 'select', options: statusOptions.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
-  { id: 'risk_level', name: 'Risk Level', icon: 'mdi-alert', type: 'select', options: risk_levels, allow_exclude: true, allow_regex: false, default: '', multiple: true },
-  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: tags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'risk_level', name: 'Risk Level', icon: 'mdi-alert', type: 'select', options: riskLevelOptions.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: suggestedTags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
-  { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
+  { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: languageOptions.value, allow_exclude: true, default: '', multiple: true },
 ]);
-
 </script>

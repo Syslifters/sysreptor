@@ -1,13 +1,6 @@
 <template>
-  <v-btn
-    color="primary"
-    variant="flat"
-    density="comfortable"
-    prepend-icon="mdi-filter-plus"
-    height="32"
-    :class="$attrs.class"
-  >
-    Add Filter
+  <s-btn-icon>
+    <v-icon icon="mdi-filter-plus-outline" />
 
     <v-menu
       v-if="props.filterProperties && props.filterProperties.length"
@@ -25,7 +18,7 @@
         />
       </v-list>
     </v-menu>
-  </v-btn>
+  </s-btn-icon>
 </template>
 
 <script setup lang="ts">

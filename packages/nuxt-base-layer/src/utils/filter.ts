@@ -1,4 +1,5 @@
 import type { LocationQuery } from 'vue-router';
+import type { FilterProperties, FilterValue } from '@base/utils/types';
 
 /**
  * Parse URL query parameters into filter values

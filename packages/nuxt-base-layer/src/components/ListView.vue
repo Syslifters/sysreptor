@@ -11,8 +11,14 @@
             </div>
           </h1>
 
-          <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions">
+          <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions" :filter-properties="filterProperties">
             <div class="d-flex flex-row">
+              <filter-chip-selector
+                v-if="props.filterProperties && props.filterProperties.length > 0"
+                v-model:active-filters="activeFilters"
+                :filter-properties="props.filterProperties"
+                class="mr-1"
+              />
               <v-text-field
                 :model-value="items.search.value"
                 @update:model-value="updateSearch"
@@ -25,13 +31,15 @@
                 clearable
               />
               <s-select-ordering
+                v-if="props.orderingOptions && props.orderingOptions.length > 0"
                 :model-value="ordering"
                 @update:model-value="updateOrdering"
                 :ordering-options="props.orderingOptions"
+                class="ml-1"
               />
             </div>
           </slot>
-          <slot name="filters" :activeFilters="activeFilters" :filterProperties="props.filterProperties">
+          <slot name="filters" :active-filters="activeFilters" :filter-properties="props.filterProperties">
             <filter-chip-list
               v-if="props.filterProperties && props.filterProperties.length > 0"
               v-model="activeFilters"
@@ -44,7 +52,7 @@
         </div>
 
         <slot name="items" :items="items">
-          <slot v-for="item in items.data.value" name="item" :item="item" />
+          <slot v-for="item in items.data.value" name="item" :item="item as any" />
         </slot>
         <page-loader :items="items" class="mt-4" />
         <v-list-item
@@ -61,7 +69,9 @@
 </template>
 
 <script setup lang="ts" generic="T">
-import { addFilter as addFilterUtil } from '~/utils/filter';
+import { pick } from 'lodash-es';
+import type { FilterProperties, FilterValue } from '@base/utils/types';
+import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery } from '@base/utils/filter';
 
 const orderingModel = defineModel<string|null>('ordering');
 const props = defineProps<{
@@ -111,10 +121,9 @@ watch(activeFilters, () => {
     
     router.replace({
       query: {
+        ...pick(route.query, ['search', 'ordering']),
         ...filterParams,
-        search: route.query.search || undefined,
-        ordering: route.query.ordering || undefined
-      } 
+      }
     });
   }
 }, { deep: true });

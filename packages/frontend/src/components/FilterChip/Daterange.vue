@@ -5,15 +5,13 @@
     :display-value="displayValue"
     @remove="emit('remove')"
   >
-    <v-select
+    <s-select
       v-model="timePreset"
       :label="props.filterProperties.name || filter.id"
       :items="timePresets"
       item-title="text"
       item-value="value"
       density="compact"
-      hide-details="auto"
-      variant="outlined"
       class="mb-2"
       clearable
       @update:model-value="applyTimePreset"
@@ -22,25 +20,21 @@
     <v-divider class="my-2"></v-divider>
     <p class="text-subtitle-2 mb-2">Custom Range:</p>
 
-    <v-text-field
+    <s-text-field
       v-model="filter.value[0]"
       label="Start Time"
-      variant="outlined"
-      density="compact"
-      hide-details="auto"
-      clearable
       type="date"
+      density="compact"
+      clearable
       class="mb-2"
     />
 
-    <v-text-field
+    <s-text-field
       v-model="filter.value[1]"
       label="End Time"
-      variant="outlined"
-      density="compact"
-      hide-details="auto"
-      clearable
       type="date"
+      density="compact"
+      clearable
     />
   </filter-chip-base>
 </template>

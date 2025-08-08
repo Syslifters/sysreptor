@@ -1,7 +1,7 @@
 <template>
   <file-drop-area @drop="importBtn?.performImport($event)" class="h-100">
     <list-view
-      url="/api/v1/pentestprojects/?readonly=false&search=&ordering=-created" 
+      url="/api/v1/pentestprojects/?readonly=false" 
       v-model:ordering="localSettings.projectListOrdering"
       :ordering-options="[
         {id: 'created', title: 'Created', value: '-created'},
@@ -27,14 +27,16 @@
           <pro-info>Archived</pro-info>
         </v-tab>
       </template>
-      <template #item="{item}">
-        <project-list-item :item="item as PentestProject" @filter="addFilter(listViewRef.activeFilters, $event);" />
+      <template #item="{item}: {item: PentestProject}">
+        <project-list-item :item="item" @filter="listViewRef?.addFilter($event)" />
       </template>
     </list-view>
   </file-drop-area>
 </template>
 
 <script setup lang="ts">
+import { sortBy, uniq } from 'lodash-es';
+
 definePageMeta({
   title: 'Projects',
   toplevel: true,
@@ -54,40 +56,18 @@ async function performImport(file: File) {
   await navigateTo(`/projects/${projects[0]!.id}/`);
 }
 
-const listViewRef = ref();
-const pentestMembers = ref<string[]>([]);
-const tags = ref<string[]>([]);
-
-
-watchEffect(() => {
-  if (!listViewRef.value?.items?.data.value || !Array.isArray(listViewRef.value.items.data.value)) {
-    return;
-  }
-  
-  const allUsernames = new Set<string>(pentestMembers.value);
-  const allTags = new Set<string>(tags.value);
-  listViewRef.value.items.data.value.forEach((item: PentestProject) => {
-    if (item.members && Array.isArray(item.members)) {
-      item.members.forEach(member => {
-        allUsernames.add(member.username);
-      });
-    }
-    if (item.tags && Array.isArray(item.tags)) {
-      item.tags.forEach(tag => {
-        if (!allTags.has(tag)) {
-          allTags.add(tag);
-        }
-      });
-    }
-  });
-  pentestMembers.value = Array.from(allUsernames).sort();
-  tags.value = Array.from(allTags).sort();
-  
-});
-
+const listViewRef = useTemplateRef('listViewRef');
+const suggestedMembers = ref<string[]>([]);
+const suggestedTags = ref<string[]>([]);
+watch(() => listViewRef.value?.items?.data.value as PentestProject[]|undefined, (items) => {
+  if (!items) { return; }
+  suggestedMembers.value = sortBy(uniq(items.flatMap(p => p.members.map(member => member.username)).concat(suggestedMembers.value)));
+  suggestedTags.value = sortBy(uniq(items.flatMap(p => p.tags).concat(suggestedTags.value)));
+  console.log('Suggested members', suggestedMembers.value, suggestedTags.value);
+}, { immediate: true, deep: 1 });
 const filterProperties = computed((): FilterProperties[] => [
-  { id: 'member', name: 'Member', icon: 'mdi-account', type: 'combobox', options: pentestMembers.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
-  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: tags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'member', name: 'Member', icon: 'mdi-account', type: 'combobox', options: suggestedMembers.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: suggestedTags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
   { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
 ]);

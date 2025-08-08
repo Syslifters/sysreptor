@@ -1,10 +1,5 @@
 <template>
-  <div class="d-flex flex-wrap mt-2 mb-2">
-    <filter-chip-selector
-      v-model:active-filters="activeFilters"
-      :filter-properties="props.filterProperties"
-      class="mr-2 mb-2"
-    />
+  <div class="d-flex flex-wrap">
     <template v-for="(filter, index) in activeFilters" :key="`${index}-${filter.id}`">
       <filter-chip
         v-if="props.filterProperties.some(f => f.id === filter.id)"

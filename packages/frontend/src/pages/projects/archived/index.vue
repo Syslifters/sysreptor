@@ -56,6 +56,8 @@
 </template>
 
 <script setup lang="ts">
+import { sortBy, uniq } from 'lodash-es';
+
 definePageMeta({
   title: 'Projects',
   toplevel: true,
@@ -66,28 +68,14 @@ useHeadExtended({
 
 const route = useRoute();
 
-const listViewRef = ref();
-const tags = ref<string[]>([]);
-
-watchEffect(() => {
-  if (!listViewRef.value?.items?.data.value || !Array.isArray(listViewRef.value.items.data.value)) {
-    return;
-  }
-  const allTags = new Set<string>(tags.value);
-  listViewRef.value.items.data.value.forEach((item: ArchivedProject) => {
-    if (item.tags && Array.isArray(item.tags)) {
-      item.tags.forEach(tag => {
-        if (!allTags.has(tag)) {
-          allTags.add(tag);
-        }
-      });
-    }
-  });
-  tags.value = Array.from(allTags).sort();
-});
-
+const listViewRef = useTemplateRef('listViewRef');
+const suggestedTags = ref<string[]>([]);
+watch(() => listViewRef.value?.items?.data.value as ArchivedProject[]|undefined, (items) => {
+  if (!items) { return; }
+  suggestedTags.value = sortBy(uniq(items.flatMap(p => p.tags).concat(suggestedTags.value)));
+}, { immediate: true, deep: 1 });
 const filterProperties = computed((): FilterProperties[] => [
-  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: tags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: suggestedTags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'timerange', name: 'Time Archived', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
 ]);
 </script>

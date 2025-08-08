@@ -8,7 +8,7 @@
       <chip-status
         :value="translation.status"
         :filterable="true"
-        @filter="$emit('filter', $event)"
+        @filter="emit('filter', $event)"
       />
       <s-tooltip v-for="tr in props.template.translations" :key="tr.id">
         <template #activator="{ props: tooltipProps }">
@@ -16,7 +16,7 @@
             :value="tr.language"
             v-bind="tooltipProps"
             :filterable="true"
-            @filter="$emit('filter', $event)"
+            @filter="emit('filter', $event)"
           />
         </template>
         <template #default>
@@ -28,7 +28,7 @@
         :key="tag"
         :value="tag"
         :filterable="true"
-        @filter="$emit('filter', $event)"
+        @filter="emit('filter', $event)"
       />
     </v-list-item-subtitle>
   </v-list-item>
@@ -41,10 +41,11 @@ const props = withDefaults(defineProps <{
 }>(), {
   language: null
 });
+const emit = defineEmits<{
+  filter: [filter: FilterValue];
+}>();
 
 const translation = computed(() => props.template.translations.find(tr => tr.language === props.language) || props.template.translations.find(tr => tr.is_main)!);
 
-defineEmits<{
-  filter: [filter: FilterValue];
-}>();
+
 </script>

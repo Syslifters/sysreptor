@@ -9,22 +9,20 @@
         :key="user.id" 
         :value="user" 
         :filterable="true"
-        @filter="$emit('filter', $event)"
+        @filter="emit('filter', $event)"
       />
       <chip-member 
         v-for="user in props.item.imported_members" 
         :key="user.id" 
         :value="user" 
         imported
-        :filterable="true"
-        @filter="$emit('filter', $event)"
       />
       <chip-tag 
         v-for="tag in props.item.tags" 
         :key="tag" 
         :value="tag" 
         :filterable="true"
-        @filter="$emit('filter', $event)"
+        @filter="emit('filter', $event)"
       />
     </v-list-item-subtitle>
   </v-list-item>
@@ -34,8 +32,7 @@
 const props = defineProps<{
   item: PentestProject;
 }>();
-
-defineEmits<{
+const emit = defineEmits<{
   filter: [filter: FilterValue];
 }>();
 </script>
