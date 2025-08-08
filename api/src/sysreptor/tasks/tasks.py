@@ -22,7 +22,7 @@ async def activate_license_request(license_info):
         res = await client.post(
             url='https://portal.sysreptor.com/api/v1/licenses/activate/',
             headers={'Content-Type': 'application/json'},
-            data=json.dumps(license_info, cls=DjangoJSONEncoder),
+            content=json.dumps(license_info, cls=DjangoJSONEncoder).encode(),
         )
         res.raise_for_status()
         return res.json()

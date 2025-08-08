@@ -21,11 +21,11 @@ async def fetch_notifications_request():
         res = await client.post(
             url=settings.NOTIFICATION_IMPORT_URL,
             headers={'Content-Type': 'application/json'},
-            data=json.dumps({
+            content=json.dumps({
                 'version': settings.VERSION,
                 'license': await license.aget_license_info(),
                 'instance_tags': settings.INSTANCE_TAGS,
-            }, cls=DjangoJSONEncoder),
+            }, cls=DjangoJSONEncoder).encode(),
         )
         res.raise_for_status()
         return res.json()
