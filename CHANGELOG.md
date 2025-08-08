@@ -10,6 +10,7 @@
 * Log backup started and finished times
 * Restore backup: bulk insert DB objects
 * PDF viewer: add stricter postMessage validation to prevent errors on unexpected messages
+* Allow collapsing plugin menu
 
 
 ## v2025.64 - 2025-07-30

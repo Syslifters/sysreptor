@@ -52,15 +52,28 @@
         <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" :active="route.path.startsWith('/notes')" data-testid="notes-tab" />
         
         <template v-if="pluginMenuEntries.length > 0">
-          <v-list-subheader title="Plugins" class="mt-4 pa-0" />
-          <v-list-item
-            v-for="pluginMenuEntry, idx in pluginMenuEntries"
-            :key="idx"
-            :to="pluginUrl(pluginMenuEntry)"
-            :title="pluginMenuEntry.title"
-            :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
-            v-bind="pluginMenuEntry.attrs"
-          />
+          <v-list-item class="mt-4 pa-0">
+            <v-list-subheader>Plugins</v-list-subheader>
+            <template #append>
+              <s-btn-icon
+                @click="localSettings.pluginMenuExpanded = !localSettings.pluginMenuExpanded"
+                :icon="localSettings.pluginMenuExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                size="small"
+                density="compact"
+                class="mr-2"
+              />
+            </template>
+          </v-list-item>
+          <template v-if="localSettings.pluginMenuExpanded">
+            <v-list-item
+              v-for="pluginMenuEntry, idx in pluginMenuEntries"
+              :key="idx"
+              :to="pluginUrl(pluginMenuEntry)"
+              :title="pluginMenuEntry.title"
+              :prepend-icon="pluginMenuEntry.icon || 'mdi-puzzle'"
+              v-bind="pluginMenuEntry.attrs"
+            />
+          </template>
         </template>
 
         <v-list-item class="mt-4 pa-0" min-height="0">
@@ -125,6 +138,7 @@ import { PluginRouteScope, type SyncState } from '#imports';
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
+const localSettings = useLocalSettings();
 const pluginStore = usePluginStore();
 const route = useRoute();
 const display = useDisplay();
