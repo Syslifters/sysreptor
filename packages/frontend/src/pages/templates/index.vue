@@ -9,39 +9,9 @@
         {id: 'created', title: 'Created', value: '-created'},
         {id: 'updated', title: 'Updated', value: '-updated'},
       ]"
+      :filter-properties="filterProperties"
     >
       <template #title>Templates</template>
-      <template #searchbar="{ items, ordering, orderingOptions }">
-        <v-row dense class="mb-2 w-100">
-          <v-col cols="12" md="auto" class="flex-grow-1">
-            <v-text-field
-              :model-value="items.search.value"
-              @update:model-value="listViewRef?.updateSearch"
-              label="Search"
-              spellcheck="false"
-              hide-details="auto"
-              variant="underlined"
-              autofocus
-              class="ma-0"
-            />
-          </v-col>
-          <v-col cols="12" md="2">
-            <s-language-selection
-              v-model="currentLanguage"
-              :items="languageChoices"
-              variant="underlined"
-              class="ma-0"
-            />
-          </v-col>
-          <v-col cols="auto">
-            <s-select-ordering
-              :model-value="ordering"
-              @update:model-value="listViewRef?.updateOrdering"
-              :ordering-options="orderingOptions"
-            />
-          </v-col>
-        </v-row>
-      </template>
       <template #actions>
         <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
           <btn-create 
@@ -65,6 +35,7 @@
           :language="currentLanguage"
           :to="{path: `/templates/${item.id}/`, query: {language: currentLanguage}}"
           lines="two"
+          @filter="listViewRef?.addFilter($event)"
         />
       </template>
     </list-view>
@@ -72,6 +43,8 @@
 </template>
 
 <script setup lang="ts">
+import { sortBy, uniq, capitalize } from 'lodash-es';
+
 definePageMeta({
   title: 'Templates',
   toplevel: true,
@@ -89,7 +62,6 @@ const templateStore = useTemplateStore();
 
 const listViewRef = useTemplateRef('listViewRef');
 
-const languageChoices = computed(() => [{ code: null as string|null, name: 'All' } as Language].concat((apiSettings.settings!.languages || []).filter(l => l.enabled || l.code === route.query.language)));
 const currentLanguage = computed({
   get: () => (Array.isArray(route.query.language) ? route.query.language[0] : route.query.language) || null,
   set: (val) => {
@@ -125,4 +97,20 @@ async function performCreate() {
     performCreateInProgress.value = false;
   }
 }
+
+const statusOptions = computed(() => apiSettings.settings?.statuses?.map(status => ({title: status.label, value: status.id, icon: status.icon})) || []);
+const languageOptions = computed(() => apiSettings.settings!.languages.map(l => ({title: l.name, value: l.code, icon: 'mdi-translate'})));
+const riskLevelOptions = computed(() => Object.values(RiskLevel).map(l => ({title: capitalize(l), value: l})));
+const suggestedTags = ref<string[]>([]);
+watch(() => listViewRef.value?.items?.data.value as FindingTemplate[]|undefined, (items) => {
+  if (!items) { return; }
+  suggestedTags.value = sortBy(uniq(items.flatMap(p => p.tags).concat(suggestedTags.value)));
+}, { immediate: true, deep: 1 });
+const filterProperties = computed((): FilterProperties[] => [
+  { id: 'status', name: 'Status', icon: 'mdi-flag', type: 'select', options: statusOptions.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'risk_level', name: 'Risk Level', icon: 'mdi-alert', type: 'select', options: riskLevelOptions.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: suggestedTags.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
+  { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
+  { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: languageOptions.value, allow_exclude: true, default: '', multiple: true },
+]);
 </script>

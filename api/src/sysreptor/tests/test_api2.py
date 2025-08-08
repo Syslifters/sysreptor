@@ -1,8 +1,10 @@
 import io
+from datetime import timedelta
 from uuid import uuid4
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from sysreptor.pentests.cvss import CVSSLevel
 from sysreptor.pentests.import_export import export_project_types
@@ -22,6 +24,7 @@ from sysreptor.tests.mock import (
     create_template,
     create_user,
     create_usernotebookpage,
+    mock_time,
     update,
 )
 from sysreptor.tests.utils import assertKeysEqual
@@ -123,6 +126,48 @@ class TestProjectApi:
         assert [project.findings.get(finding_id=f['id']).data['title'] for f in sorted(res.data, key=lambda f: f['order'])] == expected_order
         assert [f.data['title'] for f in project.findings.order_by('order')] == expected_order
 
+    @pytest.mark.parametrize(('filters', 'results'), [
+        # Member
+        ({'member': 'user1'}, ['p1']),
+        ({'not_member': 'user2'}, ['p1']),
+        ({'member': 'invalid'}, []),
+        # Tag
+        ({'tag': 'tag1'}, ['p1']),
+        ({'not_tag': 'tag2'}, ['p1']),
+        # Language
+        ({'language': Language.ENGLISH_US.value}, ['p1']),
+        ({'not_language': Language.ENGLISH_US.value}, ['p2']),
+        ({'language': 'invalid'}, []),
+        # Created
+        ({'timerange': f'|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['p1']),
+        ({'timerange': f'null|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['p1']),
+        ({'timerange': f'{(timezone.now() - timedelta(days=2)).date().isoformat()}|'}, ['p2']),
+        ({'timerange': f'{(timezone.now() - timedelta(days=2)).date().isoformat()}|null'}, ['p2']),
+        ({'timerange': f'{(timezone.now() - timedelta(days=30)).date().isoformat()}|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['p1']),
+        ({'not_timerange': f'|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['p2']),
+        ({'not_timerange': f'null|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['p2']),
+        ({'not_timerange': f'{(timezone.now() - timedelta(days=2)).date().isoformat()}|'}, ['p1']),
+        ({'not_timerange': f'{(timezone.now() - timedelta(days=2)).date().isoformat()}|null'}, ['p1']),
+        ({'not_timerange': f'{(timezone.now() - timedelta(days=30)).date().isoformat()}|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['p2']),
+        # Created: invalid formats
+        ({'timerange': ''}, ['p1', 'p2']),
+        ({'timerange': 'null|null'}, ['p1', 'p2']),
+        ({'timerange': f'{timezone.now().date().isoformat()}|{(timezone.now()).date().isoformat()}|{timezone.now().date().isoformat()}'}, ['p1', 'p2']),
+        ({'timerange': 'invalid'}, ['p1', 'p2']),
+        ({'timerange': 'invalid|invalid'}, ['p1', 'p2']),
+        # Combine filters
+        ({'member': ['user1', 'user2']}, ['p1', 'p2']),  # Same filter: OR
+        ({'member': 'user1', 'tag': 'tag:all'}, ['p1']),  # Different filters: AND
+        ({'tag': 'tag:all', 'not_tag': 'tag2'}, ['p1']),  # Not filters: AND
+    ])
+    def test_filters(self, filters, results):
+        with mock_time(before=timedelta(days=10)):
+            create_project(name='p1', project_type=self.project_type, members=[self.user, create_user(username='user1')], tags=['tag1', 'tag:all'], language=Language.ENGLISH_US)
+        create_project(name='p2', project_type=self.project_type, members=[self.user, create_user(username='user2')], tags=['tag2', 'tag:all'], language=Language.GERMAN_DE)
+
+        res = self.client.get(reverse('pentestproject-list', query=filters))
+        assert set(p['name'] for p in res.data['results']) == set(results)
+
 
 @pytest.mark.django_db()
 class TestProjectTypeApi:
@@ -184,6 +229,33 @@ class TestProjectTypeApi:
             assert pt.linked_project is None
             assert pt.linked_user == (user if scope == ProjectTypeScope.PRIVATE else None)
             assert pt.copy_of == project_type
+
+    @pytest.mark.parametrize(('filters', 'results'), [
+        # Status
+        ({'status': ReviewStatus.FINISHED}, ['pt1']),
+        ({'not_status': ReviewStatus.FINISHED}, ['pt2']),
+        ({'status': 'invalid'}, []),
+        # Tag
+        ({'tag': 'tag1'}, ['pt1']),
+        ({'not_tag': 'tag2'}, ['pt1']),
+        ({'tag': 'tag:all'}, ['pt1', 'pt2']),
+        ({'not_tag': 'tag:all'}, []),
+        # Language
+        ({'language': Language.ENGLISH_US.value}, ['pt1']),
+        ({'not_language': Language.ENGLISH_US.value}, ['pt2']),
+        ({'language': 'invalid'}, []),
+        # Created (timerange)
+        ({'timerange': f'{(timezone.now() - timedelta(days=30)).date().isoformat()}|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['pt1']),
+        ({'not_timerange': f'{(timezone.now() - timedelta(days=30)).date().isoformat()}|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['pt2']),
+    ])
+    def test_filters(self, filters, results):
+        with mock_time(before=timedelta(days=10)):
+            create_project_type(name='pt1', status=ReviewStatus.FINISHED, tags=['tag1', 'tag:all'], language=Language.ENGLISH_US)
+        create_project_type(name='pt2', status=ReviewStatus.IN_PROGRESS, tags=['tag2', 'tag:all'], language=Language.GERMAN_DE)
+
+        res = api_client(create_user(is_designer=True)).get(reverse('projecttype-list'), data=filters)
+        assert res.status_code == 200
+        assert set(pt['name'] for pt in res.data['results']) == set(results)
 
 
 @pytest.mark.django_db()
@@ -414,6 +486,57 @@ class TestTemplateApi:
 
         res = self.client.get(reverse('findingtemplate-list'), data={'ordering': ordering})
         assert [t['translations'][0]['data']['title'] for t in res.data['results']] == expected
+
+    @pytest.mark.parametrize(('filters', 'results'), [
+        # Status
+        ({'status': ReviewStatus.FINISHED}, ['t1']),
+        ({'not_status': ReviewStatus.FINISHED}, ['t2']),
+        ({'status': 'invalid'}, []),
+        # Risk level
+        ({'risk_level': CVSSLevel.HIGH}, ['t1']),
+        ({'not_risk_level': CVSSLevel.HIGH}, ['t2']),
+        ({'risk_level': 'invalid'}, []),
+        # Tag
+        ({'tag': 'tag1'}, ['t1']),
+        ({'not_tag': 'tag2'}, ['t1']),
+        ({'tag': 'tag:all'}, ['t1', 't2']),
+        ({'not_tag': 'tag:all'}, []),
+        # Language
+        ({'language': Language.ENGLISH_US.value}, ['t1']),
+        ({'not_language': Language.ENGLISH_US.value}, ['t2']),
+        ({'language': 'invalid'}, []),
+        # Created (timerange)
+        ({'timerange': f'{(timezone.now() - timedelta(days=30)).date().isoformat()}|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['t1']),
+        ({'not_timerange': f'{(timezone.now() - timedelta(days=30)).date().isoformat()}|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['t2']),
+        # Timerange: invalid formats
+        ({'timerange': ''}, ['t1', 't2']),
+        ({'timerange': 'null|null'}, ['t1', 't2']),
+        ({'timerange': 'invalid'}, ['t1', 't2']),
+        # Combine filters
+        ({'status': ReviewStatus.FINISHED, 'tag': 'tag1'}, ['t1']),  # Different filters: AND
+        ({'tag': 'tag:all', 'not_tag': 'tag2'}, ['t1']),  # Not filters: AND
+    ])
+    def test_filters(self, filters, results):
+        # Delete existing template from setUp
+        self.template.delete()
+
+        with mock_time(before=timedelta(days=10)):
+            create_template(
+                data={'title': 't1', 'severity': CVSSLevel.HIGH},
+                status=ReviewStatus.FINISHED,
+                tags=['tag1', 'tag:all'],
+                language=Language.ENGLISH_US,
+            )
+        create_template(
+            data={'title': 't2', 'severity': CVSSLevel.INFO},
+            status=ReviewStatus.IN_PROGRESS,
+            tags=['tag2', 'tag:all'],
+            language=Language.GERMAN_DE,
+        )
+
+        res = self.client.get(reverse('findingtemplate-list'), data=filters)
+        assert res.status_code == 200
+        assert set(t['translations'][0]['data']['title'] for t in res.data['results']) == set(results)
 
 
 @pytest.mark.django_db()

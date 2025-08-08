@@ -11,8 +11,14 @@
             </div>
           </h1>
 
-          <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions">
+          <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions" :filter-properties="filterProperties">
             <div class="d-flex flex-row">
+              <filter-chip-selector
+                v-if="props.filterProperties && props.filterProperties.length > 0"
+                v-model:active-filters="activeFilters"
+                :filter-properties="props.filterProperties"
+                class="mr-1"
+              />
               <v-text-field
                 :model-value="items.search.value"
                 @update:model-value="updateSearch"
@@ -22,13 +28,23 @@
                 hide-details="auto"
                 autofocus
                 class="mt-0 mb-2"
+                clearable
               />
               <s-select-ordering
+                v-if="props.orderingOptions && props.orderingOptions.length > 0"
                 :model-value="ordering"
                 @update:model-value="updateOrdering"
                 :ordering-options="props.orderingOptions"
+                class="ml-1"
               />
             </div>
+          </slot>
+          <slot name="filters" :active-filters="activeFilters" :filter-properties="props.filterProperties">
+            <filter-chip-list
+              v-if="props.filterProperties && props.filterProperties.length > 0"
+              v-model="activeFilters"
+              :filter-properties="props.filterProperties"
+            />
           </slot>
           <v-tabs v-if="$slots.tabs" height="30" selected-class="text-primary" class="list-header-tabs">
             <slot name="tabs" />
@@ -36,7 +52,7 @@
         </div>
 
         <slot name="items" :items="items">
-          <slot v-for="item in items.data.value" name="item" :item="item" />
+          <slot v-for="item in items.data.value" name="item" :item="item as any" />
         </slot>
         <page-loader :items="items" class="mt-4" />
         <v-list-item
@@ -52,14 +68,20 @@
   </full-height-page>
 </template>
 
-<script setup lang="ts" generic="T = any">
-import { useSearchableCursorPaginationFetcher } from "#imports";
+<script setup lang="ts" generic="T">
+import { pick } from 'lodash-es';
+import type { FilterProperties, FilterValue } from '@base/utils/types';
+import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery } from '@base/utils/filter';
 
 const orderingModel = defineModel<string|null>('ordering');
 const props = defineProps<{
   url: string|null;
   orderingOptions?: OrderingOption[];
+  filterProperties?: FilterProperties[];
 }>();
+
+// Filter-related state
+const activeFilters = ref<FilterValue[]>([]);
 
 const ordering = computed(() => {
   if (route.query.ordering) {
@@ -81,6 +103,30 @@ const items = useSearchableCursorPaginationFetcher<T>({
 useLazyAsyncData(async () => {
   await items.fetchNextPage()
 });
+
+// Initialize filters from URL on mount
+onMounted(async () => {
+  if (props.filterProperties && props.filterProperties.length > 0) {
+    const filtersFromUrl = parseFiltersFromQuery(route.query, props.filterProperties);
+    if (filtersFromUrl.length > 0) {
+      activeFilters.value = filtersFromUrl;
+    }
+  }
+});
+
+// Watch for filter changes and update URL
+watch(activeFilters, () => {
+  if (props.filterProperties && props.filterProperties.length > 0) {
+    const filterParams = filtersToQueryParams(activeFilters.value, props.filterProperties);
+    
+    router.replace({
+      query: {
+        ...pick(route.query, ['search', 'ordering']),
+        ...filterParams,
+      }
+    });
+  }
+}, { deep: true });
 
 watch(() => route.query, () => {
   items.applyFilters({ ...route.query }, { debounce: true });
@@ -104,10 +150,16 @@ function updateOrdering(ordering?: OrderingOption|null) {
   items.applyFilters({ ...route.query });
 }
 
+function addFilter(filter: FilterValue) {
+  addFilterUtil(activeFilters.value, filter);
+}
+
 defineExpose({
   items,
+  activeFilters,
   updateSearch,
   updateOrdering,
+  addFilter,
 });
 </script>
 

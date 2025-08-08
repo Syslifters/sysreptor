@@ -228,7 +228,7 @@
               <v-list v-else class="pa-0 bg-inherit">
                 <draggable
                   :model-value="formValue.map((value: any, index: number) => ({value, index}))"
-                  @change="e => e.moved ? emitInputList('move', e.moved.oldIndex, e.moved.newIndex) : undefined"
+                  @change="(e: any) => e.moved ? emitInputList('move', e.moved.oldIndex, e.moved.newIndex) : undefined"
                   :item-key="(item: any) => item.index"
                   :disabled="props.disabled || props.readonly"
                   handle=".draggable-handle"

@@ -636,3 +636,27 @@ export type ShareInfoPublic = BaseModel & {
   readonly password_verified: boolean;
   readonly note_id: string;
 }
+
+export type FilterType = "select" | "text" | "daterange" | "timerange" | "combobox";
+
+export type FilterProperties = {
+  id: string,
+  name: string,
+  icon?: string,
+  multiple: boolean,
+  options: string[] | object[],
+  type: FilterType,
+  allow_exclude: boolean,
+  allow_regex?: boolean,
+  default: string | string[],
+}
+
+export type FilterValue = {
+  id: string,
+  value: string | string[],
+  exclude: boolean,
+  regex?: boolean,
+}
+
+export type DateRange = 'last24Hours' | 'last7Days' | 'last30Days' | 'last90Days' | 'last12Months' | 'last24Months' | 'last5Years';
+export type TimeRange = 'last15Min' | 'lastHour' | 'last3Hours' | 'last12Hours' | 'last24Hours' | 'last7Days' | 'last30Days';
