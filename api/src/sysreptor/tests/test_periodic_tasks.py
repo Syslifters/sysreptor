@@ -63,6 +63,7 @@ class TestPeriodicTaskScheduling:
         async_to_sync(PeriodicTask.objects.run_all_pending_tasks)()
 
     def test_initial_run(self):
+        PeriodicTask.objects.all().delete()
         self.run_tasks()
         assert PeriodicTask.objects.all().count() == 2
         assert PeriodicTask.objects.get(id='task_success').status == TaskStatus.SUCCESS
