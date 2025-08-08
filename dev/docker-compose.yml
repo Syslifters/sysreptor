@@ -21,7 +21,8 @@ services:
       retries: 30
     stop_grace_period: 120s
   redis:
-    image: bitnami/redis:7.2
+    image: redis:8.0-alpine
+    command: sh -c "exec redis-server --requirepass $${REDIS_PASSWORD:-}"
     environment:
       REDIS_PASSWORD: reportcreator
     expose:
