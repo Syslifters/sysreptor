@@ -21,7 +21,7 @@
         <v-tab :to="{ path: '/designs/private/', query: route.query }" prepend-icon="mdi-account" text="Private" />
       </template>
       <template #item="{item}: {item: ProjectType}">
-        <design-list-item :item="item" @filter="listViewRef?.addFilter($event)" />
+        <design-list-item :item="item" :action-buttons="true" @filter="listViewRef?.addFilter($event)" />
       </template>
     </list-view>
   </file-drop-area>

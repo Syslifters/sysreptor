@@ -369,6 +369,7 @@ export type ArchivedProject = BaseModel & {
   readonly auto_delete_date: string|null;
   readonly reencrypt_key_parts_after_inactivity_date: string|null;
   name: string;
+  size: string;
   tags: string[];
   threshold: number;
   key_parts: ArchivedProjectKeyPart[];

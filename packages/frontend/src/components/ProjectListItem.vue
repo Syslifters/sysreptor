@@ -1,8 +1,45 @@
 <template>
-  <v-list-item :to="`/projects/${props.item.id}/reporting/`" lines="two">
-    <v-list-item-title>{{ props.item.name }}</v-list-item-title>
+  <v-list-item 
+    :to="`/projects/${props.item.id}/reporting/`" 
+    lines="two"
+    class="project-list-item"
+  >
+    <template #title>
+      {{ props.item.name }}
 
-    <v-list-item-subtitle class="mt-1">
+      <div class="action-buttons d-inline-flex ml-2">
+        <s-btn-icon
+          :to="`/projects/${props.item.id}/`"
+          @click.stop
+          icon="mdi-cogs"
+          size="x-small"
+          v-tooltip="{ text: 'Settings', location: 'top', openDelay: 500 }"
+        />
+        <s-btn-icon
+          :to="`/projects/${props.item.id}/reporting/`"
+          @click.stop
+          icon="mdi-text"
+          size="x-small"
+          v-tooltip="{ text: 'Reporting', location: 'top', openDelay: 500 }"
+        />
+        <s-btn-icon
+          :to="`/projects/${props.item.id}/notes/`"
+          @click.stop
+          icon="mdi-notebook"
+          size="x-small"
+          v-tooltip="{ text: 'Notes', location: 'top', openDelay: 500 }"
+        />
+        <s-btn-icon
+          :to="`/projects/${props.item.id}/publish/`"
+          @click.stop
+          icon="mdi-earth"
+          size="x-small"
+          v-tooltip="{ text: 'Publish', location: 'top', openDelay: 500 }"
+        />
+      </div>
+    </template>
+
+    <template #subtitle>
       <chip-created :value="props.item.created" />
       <chip-member
         v-for="user in props.item.members" 
@@ -24,7 +61,7 @@
         :filterable="true"
         @filter="emit('filter', $event)"
       />
-    </v-list-item-subtitle>
+    </template>
   </v-list-item>
 </template>
 
@@ -36,3 +73,15 @@ const emit = defineEmits<{
   filter: [filter: FilterValue];
 }>();
 </script>
+
+<style lang="scss" scoped>
+.action-buttons {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+.project-list-item:hover {
+  .action-buttons {
+    opacity: 1;
+  }
+}
+</style>

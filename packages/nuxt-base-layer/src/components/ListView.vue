@@ -184,6 +184,10 @@ defineExpose({
   text-transform: initial;
 }
 
+.list-header h1 {
+  min-height: 2em;
+}
+
 :deep(.v-list-item .v-list-item-subtitle) {
   opacity: var(--v-high-emphasis-opacity);
 }
