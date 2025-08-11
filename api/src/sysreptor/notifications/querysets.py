@@ -146,8 +146,12 @@ class UserNotificationManager(models.Manager.from_queryset(UserNotificationQuery
         if project:
             additional_content |= {'project_name': project.name}
 
+        created_by = kwargs.get('created_by', self.get_created_by())
+        if created_by and created_by.is_anonymous:
+            created_by = None
+
         return kwargs | {
-            'created_by': kwargs.get('created_by', self.get_created_by()),
+            'created_by': created_by,
             'additional_content': additional_content,
         }
 
