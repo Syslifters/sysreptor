@@ -71,7 +71,8 @@ class TestMarkdownFormatting:
                     'id': 'appendix',
                     'label': 'Appendix',
                     'fields': serialize_field_definition(FieldDefinition(fields=[
-                        ListField(id='appendix', items=ObjectField(id='appendix_sections', label='Appendix Sections', properties=[
+                        MarkdownField(id='appendix_field', label='Appendix Field', required=True),
+                        ListField(id='appendix_sections', label='Appendix Sections', items=ObjectField(properties=[
                             StringField(id='title', label='Title', required=True, default='Appendix Title'),
                             MarkdownField(id='content', label='Content', required=True),
                         ])),
@@ -88,7 +89,8 @@ class TestMarkdownFormatting:
             'report_date': '2025-01-01',
             'pentester': 'John Doe',
             'executive_summary': 'This is the **executive summary** with _markdown_ text.\n\nAnd multiple paragraphs.',
-            'appendix': [
+            'appendix_field': 'Static Appendix Field',
+            'appendix_sections': [
                 {'title': 'Appendix 1', 'content': 'This is the content of the appendix section with **bold** text.'},
                 {'title': 'Appendix 2', 'content': 'This is another appendix section with _italic_ text.'},
             ],
@@ -136,8 +138,9 @@ class TestMarkdownFormatting:
                 * [{f1.data['title']}](#{f1.finding_id})
                 * [{f2.data['title']}](#{f2.finding_id})
             * [Appendix](#appendix)
-                * [{p.data['appendix'][0]['title']}](#appendix-1)
-                * [{p.data['appendix'][1]['title']}](#appendix-2)
+                * [Appendix Field](#appendix-field)
+                * [{p.data['appendix_sections'][0]['title']}](#appendix-1)
+                * [{p.data['appendix_sections'][1]['title']}](#appendix-2)
 
         ## Meta {{#meta}}
 
@@ -243,13 +246,17 @@ class TestMarkdownFormatting:
         
         ## Appendix {{#appendix}}
 
-        ### {p.data['appendix'][0]['title']} {{#appendix-1}}
+        ### Appendix Field {{#appendix-field}}
 
-        {p.data['appendix'][0]['content']}
+        {p.data['appendix_field']}
 
-        ### {p.data['appendix'][1]['title']} {{#appendix-2}}
+        ### {p.data['appendix_sections'][0]['title']} {{#appendix-1}}
 
-        {p.data['appendix'][1]['content']}
+        {p.data['appendix_sections'][0]['content']}
+
+        ### {p.data['appendix_sections'][1]['title']} {{#appendix-2}}
+
+        {p.data['appendix_sections'][1]['content']}
         '''
         # Remove leading spaces from each line for comparison
         expected = '\n'.join(line[8:] if not line[:8].strip() else line for line in expected.splitlines()).strip()
