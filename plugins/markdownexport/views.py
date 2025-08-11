@@ -56,5 +56,6 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
         return StreamingHttpResponseAsync(
             streaming_content=to_chunks(z, allow_small_first_chunk=True),
             content_type='application/zip',
-        ) 
+            headers={'Content-Disposition': 'attachment; filename=markdownexport.zip'}
+        )
 

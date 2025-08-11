@@ -16,6 +16,12 @@ def slug(value: str) -> str:
     return value.replace(' ', '-')
 
 
+def is_dynamic_section(definition) -> bool:
+    return definition.type == FieldDataType.LIST and \
+        definition.items.type == FieldDataType.OBJECT and \
+        set(definition.items.keys()) == {'title', 'content'}
+
+
 def format_heading(value: str, level: int|None = None, id: str|None = None, toc: list[dict]|None = None):
     value = value or ''
     heading_level = level or 1
@@ -42,6 +48,7 @@ def format_field_object(value, definition, context=None):
     heading_level = context.pop('heading_level', 0) + 1
     skip_heading = context.pop('skip_heading', [])
     skip_fields = context.pop('skip_fields', [])
+    appendix = context.pop('appendix', False)
 
     fields_formatted = []
     for f in definition.fields:
@@ -49,11 +56,11 @@ def format_field_object(value, definition, context=None):
             continue
 
         heading_formatted = ''
-        if f.id in skip_heading:
+        if f.id in skip_heading or is_dynamic_section(f):
             heading_formatted = ''
             heading_level -= 1
         elif isinstance(definition, FieldDefinition):
-            heading_formatted = format_heading(f.label or f.id, level=heading_level)
+            heading_formatted = format_heading(f.label or f.id, level=heading_level, toc=context.get('toc') if appendix else None)
         else:
             heading_formatted = format_heading(f.label or f.id, level=7)
         
@@ -67,11 +74,7 @@ def format_field_value(value, definition, context=None):
     if value is None:
         return ''
     
-    if (
-        definition.type == FieldDataType.LIST and \
-        definition.items.type == FieldDataType.OBJECT and \
-        set(definition.items.keys()) == {'title', 'content'}
-    ):
+    if is_dynamic_section(definition):
         # Special handling for list of sections
         fields_formatted = []
         for v in value:
@@ -154,7 +157,7 @@ def format_project(project):
         md += format_finding(data=finding, definition=project.project_type.finding_fields_obj, context={'heading_level': 2, 'toc': toc})
 
     for section in appendix_sections:
-        md += format_section(data=data['report'], section=section, context={'heading_level': 1, 'toc': toc})
+        md += format_section(data=data['report'], section=section, context={'heading_level': 1, 'toc': toc, 'appendix': True})
 
     for entry in toc:
         md_start += f"{' ' * 4 * (entry['level'] - 1)}* [{entry['title']}](#{entry['id']})\n"
