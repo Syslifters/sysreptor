@@ -269,10 +269,10 @@ class TestMarkdownExportApi:
     def test_api(self):
         u = create_user()
         p = create_project(
-            project_type=create_project_type(name='cwee'),
+            project_type=create_project_type(name='cwee', assets_kwargs=[{'name': 'asset.png'}]),
             members=[u],
             report_data={
-                'field_markdown': '![image](/images/name/image.png)',
+                'field_markdown': '![image](/images/name/image.png) ![asset](/assets/name/asset.png)',
             }, 
             images_kwargs=[{'name': 'image.png'}, {'name': 'unreferenced.png'}],
             files_kwargs=[{'name': 'file.py'}, {'name': 'unreferenced.py'}],

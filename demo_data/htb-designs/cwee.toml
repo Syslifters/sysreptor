@@ -630,6 +630,14 @@ required = true
 spellcheck = false
 
 [[report_sections.fields]]
+id = "logo"
+type = "markdown"
+label = "HTB Logo"
+origin = "custom"
+default = "![](/assets/name/logo-banner.svg)"
+required = true
+
+[[report_sections.fields]]
 id = "report_date"
 type = "date"
 label = "Report Date"
@@ -1013,6 +1021,7 @@ icon_emoji = "🛡️"
 
 [report_preview_data.report]
 title = "Private Web App Pentest"
+logo = "![](/assets/name/logo-banner.svg)"
 report_date = "2025-07-01"
 engagement_contacts = """
 TODO: update contacts

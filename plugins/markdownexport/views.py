@@ -36,6 +36,10 @@ class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
             if project.is_file_referenced(f, sections=True, findings=True, notes=False):
                 md = md.replace(f'/images/name/{f.name}', 'assets/' + f.name)
                 z.add(arcname=str(Path('assets') / f.name), data=file_chunks(f.file))
+        for f in project.project_type.assets.all():
+            if project.is_file_referenced(f, sections=True, findings=True, notes=False):
+                md = md.replace(f'/assets/name/{f.name}', 'assets/' + f.name)
+                z.add(arcname=str(Path('assets') / f.name), data=file_chunks(f.file))
 
         # Special handling for CWEE projects: add exploits from the "Exploits" note
         all_notes = project.notes.to_ordered_list_flat(project.notes.all())
