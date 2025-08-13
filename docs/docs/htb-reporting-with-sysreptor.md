@@ -1,6 +1,6 @@
 # Hack The Box Reporting
 
-Our free cloud service to write your Hack The Box CPTS, CHHB, CDSA, CWEE, CAPE or CJCA reports.
+Our free cloud service to write your Hack The Box CPTS, CBBH, CDSA, CWEE, CAPE or CJCA reports.
 
 💲 Free  
 📝 Write in markdown  
