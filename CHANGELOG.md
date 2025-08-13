@@ -1,6 +1,6 @@
 # Changelog
 
-## v2025.68 - 2025-08-13
+## v2025.69 - 2025-08-13
 * Replace deprecated bitnami redis docker image with official redis image
 * Plugin `markdownexport`: Export reports as Markdown documents in ZIP format
 * Fix out of memory bug in `StreamingHttpResponseAsync`
