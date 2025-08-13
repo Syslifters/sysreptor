@@ -1,0 +1,122 @@
+import contextlib
+import re
+from unittest import mock
+
+from django.template import Context, Engine
+from django.template.base import Token, TokenType
+from html_to_markdown import convert_to_markdown
+from lxml import etree
+
+
+def parse_xml(file):
+    file.seek(0)
+    data = file.read()
+    return etree.fromstring(data, etree.XMLParser(resolve_entities=False))
+
+
+def xml_to_dict(node):
+    """
+    Convert an lxml.etree node tree into a dict.
+    """
+    result = {}
+
+    for key, value in node.attrib.items():
+        result['@' + key] = value
+
+    for element in node.iterchildren():
+        # Remove namespace prefix
+        key = etree.QName(element).localname
+
+        # Process element as tree element if the inner XML contains non-whitespace content
+        if element.text and element.text.strip():
+            value = element.text
+        else:
+            value = xml_to_dict(element)
+        if key in result:
+            if type(result[key]) is list:
+                result[key].append(value)
+            else:
+                result[key] = [result[key], value]
+        else:
+            result[key] = value
+    return result
+
+
+def html_to_markdown(html: str) -> str:
+    return convert_to_markdown(
+        source=html, 
+        extract_metadata=False,
+        heading_style="atx",
+        bullets="*",
+        escape_misc=False,
+    )
+
+
+@contextlib.contextmanager
+def custom_django_tags():
+    """
+    Monkey-patch django template engine to use different delimiters.
+    """
+
+    # Modified django template language tags
+    HTML_REGEX = re.compile(r"(<!--{%.*?%}-->|<!--{{.*?}}-->|<!--{#.*?#}-->)")
+    BLOCK_TAG_START = "<!--{%"
+    BLOCK_TAG_END = "%}-->"
+    VARIABLE_TAG_START = "<!--{{"
+    VARIABLE_TAG_END = "}}-->"
+    COMMENT_TAG_START = "<!--{#"
+    COMMENT_TAG_END = "#}-->"
+
+    def create_token(self, token_string, position, lineno, in_tag):
+        """
+        Convert the given token string into a new Token object and return it.
+        If in_tag is True, we are processing something that matched a tag,
+        otherwise it should be treated as a literal string.
+        """
+        if in_tag:
+            # The [0:2] and [2:-2] ranges below strip off *_TAG_START and
+            # *_TAG_END. The 2's are hard-coded for performance. Using
+            # len(BLOCK_TAG_START) would permit BLOCK_TAG_START to be
+            # different, but it's not likely that the TAG_START values will
+            # change anytime soon.
+            token_start = token_string[0:len(BLOCK_TAG_START)]
+            if token_start == BLOCK_TAG_START:
+                content = token_string[len(BLOCK_TAG_START):-len(BLOCK_TAG_END)].strip()
+                if self.verbatim:
+                    # Then a verbatim block is being processed.
+                    if content != self.verbatim:
+                        return Token(TokenType.TEXT, token_string, position, lineno)
+                    # Otherwise, the current verbatim block is ending.
+                    self.verbatim = False
+                elif content[:9] in ("verbatim", "verbatim "):
+                    # Then a verbatim block is starting.
+                    self.verbatim = "end%s" % content
+                return Token(TokenType.BLOCK, content, position, lineno)
+            if not self.verbatim:
+                content = token_string[len(BLOCK_TAG_START):-len(BLOCK_TAG_END)].strip()
+                if token_start == VARIABLE_TAG_START:
+                    return Token(TokenType.VAR, content, position, lineno)
+                # BLOCK_TAG_START was handled above.
+                assert token_start == COMMENT_TAG_START
+                return Token(TokenType.COMMENT, content, position, lineno)
+        return Token(TokenType.TEXT, token_string, position, lineno)
+
+    with mock.patch('django.template.base.Lexer.create_token', create_token), \
+        mock.patch('django.template.base.tag_re', HTML_REGEX), \
+        mock.patch('django.template.base.BLOCK_TAG_START', BLOCK_TAG_START), \
+        mock.patch('django.template.base.BLOCK_TAG_END', BLOCK_TAG_END), \
+        mock.patch('django.template.base.VARIABLE_TAG_START', VARIABLE_TAG_START), \
+        mock.patch('django.template.base.VARIABLE_TAG_END', VARIABLE_TAG_END), \
+        mock.patch('django.template.base.COMMENT_TAG_START', COMMENT_TAG_START), \
+        mock.patch('django.template.base.COMMENT_TAG_END', COMMENT_TAG_END):
+        yield
+    
+    
+
+@custom_django_tags()
+def render_template_string(template_string: str, context: dict):
+    return Engine(
+        builtins=Engine.default_builtins + ['sysreptor_plugins.scanimport.templatetags'],
+        autoescape=False
+    ).from_string(template_string).render(context=Context(context, autoescape=False))
+
