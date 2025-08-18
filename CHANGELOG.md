@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Fix date field empty value not saved as null
+
+
 ## v2025.69 - 2025-08-13
 * Replace deprecated bitnami redis docker image with official redis image
 * Plugin `markdownexport`: Export reports as Markdown documents in ZIP format

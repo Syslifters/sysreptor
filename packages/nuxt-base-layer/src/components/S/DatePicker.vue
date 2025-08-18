@@ -1,13 +1,13 @@
 <template>
   <s-text-field
     :model-value="props.modelValue"
-    @update:model-value="emit('update:modelValue', $event)"
+    @update:model-value="emit('update:modelValue', $event || null)"
     :disabled="props.disabled"
     :readonly="props.readonly"
     :rules="rules"
     prepend-inner-icon="mdi-calendar"
     spellcheck="false"
-    :clearable="props.readonly"
+    :clearable="!props.readonly"
     @click:clear="emit('update:modelValue', null)"
     @focus="emit('focus', $event)"
     @blur="emit('blur', $event)"
