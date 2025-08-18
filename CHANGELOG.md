@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Fix date field empty value not saved as null
+* Markdown editor: fix pasted images not inserted correctly in some cases
 
 
 ## v2025.69 - 2025-08-13

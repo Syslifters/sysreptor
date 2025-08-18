@@ -361,9 +361,10 @@ export function useMarkdownEditorBase(options: {
               
               const types = event.clipboardData?.types || [];
               if (types.includes('text/html') && (
-                  !types.includes('text/plain') || // HTML only
-                  types.indexOf('text/html') < types.indexOf('text/plain') || // Microsoft Excel, Word
-                  types.includes('text/rtf')  // LibreOffice
+                types.length === 1 ||  // HTML only
+                (types.indexOf('text/html') === 0 && !types.includes('Files')) ||  // HTML content
+                (types.indexOf('text/html') < types.indexOf('text/plain') && types.length === 2) || // Microsoft Excel, Word
+                types.includes('text/rtf')  // LibreOffice
               )) {
                 event.stopPropagation();
                 event.preventDefault();
