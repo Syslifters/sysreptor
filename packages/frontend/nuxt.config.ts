@@ -49,8 +49,7 @@ export default defineNuxtConfig({
     },
     optimizeDeps: {
       include: [
-        'vuedraggable', 'monaco-editor', '@github/webauthn-json/browser-ponyfill', 'randomcolor',
-        '@he-tree/vue', '@elastic/apm-rum-vue',
+        'vuedraggable', 'monaco-editor', '@github/webauthn-json/browser-ponyfill', 'randomcolor', '@elastic/apm-rum-vue',
         // Dependencies of @sysreptor/markdown
         '@codemirror/state', '@codemirror/view', '@codemirror/commands', '@codemirror/lint', '@codemirror/autocomplete', 
         '@codemirror/search', '@codemirror/merge', '@codemirror/language', '@codemirror/lang-vue', '@codemirror/lang-css', 

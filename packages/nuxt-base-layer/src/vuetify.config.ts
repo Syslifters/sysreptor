@@ -193,6 +193,11 @@ export default defineVuetifyConfiguration({
       variant: 'outlined',
       spellcheck: "false",
     },
+    SFileInput: {
+      variant: 'outlined',
+      hideDetails: 'auto',
+      maxErrors: 100,
+    },
   },
   aliases: {
     STooltip: 'VTooltip',
@@ -211,5 +216,6 @@ export default defineVuetifyConfiguration({
     SInput: 'VInput',
     SField: 'VField',
     SCode: 'VCode',
+    SFileInput: 'VFileInput',
   },
 })

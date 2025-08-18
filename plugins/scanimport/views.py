@@ -1,20 +1,17 @@
-from rest_framework import views, viewsets
+from rest_framework import views
 from rest_framework.response import Response
-from rest_framework.decorators import action
 from sysreptor.pentests.views import ProjectSubresourceMixin
 
-from .serializers import ScanImportSerializer
 from .importers import registry
+from .serializers import ScanImportSerializer
 
 
-class ListImportersView(views.APIView):
+class ListAvailableImportersView(views.APIView):
     def get(self, request, *args, **kwargs):
-        return Response({
-            "importers": [i.id for i in registry.importers]
-        })
+        return Response(['auto'] + [i.id for i in registry.importers])
 
 
-class ScanImportView(ProjectSubresourceMixin, views.APIView):
+class ParseImportView(ProjectSubresourceMixin, views.APIView):
     serializer_class = ScanImportSerializer
 
     def post(self, request, *args, **kwargs):
@@ -23,4 +20,3 @@ class ScanImportView(ProjectSubresourceMixin, views.APIView):
         data = serializer.save()
         return Response(data, status=200)
     
-

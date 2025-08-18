@@ -12,6 +12,10 @@ from ..utils import html_to_markdown, parse_xml, render_template_string, xml_to_
 from .base import BaseImporter, fallback_template
 
 
+def to_inline_code(tag, text, **kwargs):
+    return f'`{text}`'
+
+
 class BurpImporter(BaseImporter):
     id = 'burp'
 
@@ -70,7 +74,11 @@ class BurpImporter(BaseImporter):
             issue['title'] = issue.pop('name', '')
             for k in ['issueBackground', 'issueDetail', 'remediationBackground']:
                 if v := issue.get(k):
-                    issue[k] = html_to_markdown(v)
+                    issue[k] = html_to_markdown(v, custom_converters={
+                        # Convert bold and italic to inline code, because Burp often uses them instead of <code> tags
+                        'b': to_inline_code,
+                        'i': to_inline_code,
+                    })
 
             issues.append(issue)
 

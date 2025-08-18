@@ -43,6 +43,7 @@ class BaseImporter:
         return template.main_translation
 
     def select_finding_template(self, templates: list[FindingTemplate], fallback: list[FindingTemplate], selector: str|None = None, language: Language|None = None) -> FindingTemplateTranslation:
+        # TODO: naming convention for template tags "scanimport:burp" vs "burp"
         selector_base = f'scanimport:{self.id}'
         
         if selector:

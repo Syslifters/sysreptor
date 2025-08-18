@@ -1,7 +1,9 @@
 import logging
 
 from rest_framework import serializers
+from sysreptor.pentests.fielddefinition.sort import sort_findings
 from sysreptor.pentests.models import ProjectNotebookPage
+from sysreptor.pentests.rendering.entry import format_template_field_object
 from sysreptor.pentests.serializers.notes import ProjectNotebookPageSerializer
 from sysreptor.pentests.serializers.project import PentestFindingSerializer
 
@@ -27,8 +29,19 @@ class ScanImportSerializer(serializers.Serializer):
 
         try:
             if validated_data['import_as'] == 'findings':
-                findings = importer.parse_findings(file=validated_data['file'], project=self.context['project'])
-                return PentestFindingSerializer(many=True, instance=findings).data
+                project = self.context['project']
+                findings = importer.parse_findings(file=validated_data['file'], project=project)
+
+                # Sort findings
+                findings_sorted_data = sort_findings([
+                    format_template_field_object(
+                        {'id': str(f.id), 'created': str(f.created), 'order': f.order, **f.data},
+                        definition=project.project_type.finding_fields_obj)
+                    for f in findings], project_type=project.project_type)
+                findings_sorted_ids = [f['id'] for f in findings_sorted_data]
+                findings_sorted = sorted(findings, key=lambda f: findings_sorted_ids.index(str(f.id)))
+
+                return PentestFindingSerializer(many=True, instance=findings_sorted).data
             elif validated_data['import_as'] == 'notes':
                 notes = importer.parse_notes(validated_data['file'])
                 ProjectNotebookPage.objects.check_parent_and_order(notes)

@@ -42,13 +42,15 @@ def xml_to_dict(node):
     return result
 
 
-def html_to_markdown(html: str) -> str:
+def html_to_markdown(html: str, **kwargs) -> str:
     return convert_to_markdown(
         source=html, 
         extract_metadata=False,
         heading_style="atx",
         bullets="*",
         escape_misc=False,
+        preprocess_html=True,
+        **kwargs
     )
 
 

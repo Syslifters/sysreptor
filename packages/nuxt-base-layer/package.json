@@ -21,6 +21,7 @@
     "emoji-mart-vue-fast": "^15.0.0",
     "splitpanes": "^4.0.0",
     "vue-toastification": "^2.0.0-rc.5",
+    "@he-tree/vue": "^2.9.4",
 
     "base64-arraybuffer": "^1.0.2",
     "js-file-download": "^0.4.12",
