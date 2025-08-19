@@ -3,9 +3,9 @@ import textwrap
 
 from sysreptor.pentests.models import (
     FindingTemplateTranslation,
+    Language,
     ProjectNotebookPage,
 )
-from sysreptor.utils.language import Language
 from sysreptor.utils.utils import groupby_to_dict
 
 from ..utils import html_to_markdown, parse_xml, render_template_string, xml_to_dict
@@ -18,14 +18,6 @@ def to_inline_code(tag, text, **kwargs):
 
 class BurpImporter(BaseImporter):
     id = 'burp'
-
-    severity_mapping = {
-        "info": "🟢",
-        "low": "🔵",
-        "medium": "🟡",
-        "high": "🟠",
-        "critical": "🔴",
-    }
 
     fallback_templates = [fallback_template(tags=[f'scanimport:{id}'], translations=[
         FindingTemplateTranslation(
@@ -43,44 +35,45 @@ class BurpImporter(BaseImporter):
         version = tree.xpath('/issues/@burpVersion')
         return bool(version)
     
-    def parse_burp_issues(self, file):
+    def parse_burp_issues(self, files):
         issues = []
-        for tree in parse_xml(file).xpath('/issues/issue'):
-            issue = xml_to_dict(tree)
+        for file in files:
+            for tree in parse_xml(file).xpath('/issues/issue'):
+                issue = xml_to_dict(tree)
 
-            # Exclude false positives
-            if issue.get('severity') == 'False Positive':
-                continue
+                # Exclude false positives
+                if issue.get('severity') == 'False Positive':
+                    continue
 
-            # Normalize severity
-            issue['severity'] = issue.get('severity', 'info').lower()
-            if issue['severity'] == 'information':
-                issue['severity'] = 'info'
-            issue["severity_score"] = list(self.severity_mapping.keys()).index(issue["severity"]) + 1
+                # Normalize severity
+                issue['severity'] = issue.get('severity', 'info').lower()
+                if issue['severity'] == 'information':
+                    issue['severity'] = 'info'
+                issue["severity_score"] = list(self.severity_mapping.keys()).index(issue["severity"]) + 1
 
-            # References to list
-            issue['references'] = re.findall(r"<a\s+href=['\"](.*?)['\"]", issue.get('references') or "")
+                # References to list
+                issue['references'] = re.findall(r"<a\s+href=['\"](.*?)['\"]", issue.get('references') or "")
 
-            # Affected components
-            issue['affected_components'] = []
-            issue['ip'] = None
-            if (host := tree.find('host')) is not None:
-                issue['ip'] = host.attrib.get("@ip")
-                url = issue.get('host') or issue['ip']
-                location = issue.get("location") or issue.get("path") or ''
-                issue['affected_components'].append(f"{url}{location}{f' ({issue['ip']})' if issue['ip'] and url else ''}")
-            
-            # Post process fields
-            issue['title'] = issue.pop('name', '')
-            for k in ['issueBackground', 'issueDetail', 'remediationBackground']:
-                if v := issue.get(k):
-                    issue[k] = html_to_markdown(v, custom_converters={
-                        # Convert bold and italic to inline code, because Burp often uses them instead of <code> tags
-                        'b': to_inline_code,
-                        'i': to_inline_code,
-                    })
+                # Affected components
+                issue['affected_components'] = []
+                issue['ip'] = None
+                if (host := tree.find('host')) is not None:
+                    issue['ip'] = host.attrib.get("@ip")
+                    url = issue.get('host') or issue['ip']
+                    location = issue.get("location") or issue.get("path") or ''
+                    issue['affected_components'].append(f"{url}{location}{f' ({issue['ip']})' if issue['ip'] and url else ''}")
+                
+                # Post process fields
+                issue['title'] = issue.pop('name', '')
+                for k in ['issueBackground', 'issueDetail', 'remediationBackground']:
+                    if v := issue.get(k):
+                        issue[k] = html_to_markdown(v, custom_converters={
+                            # Convert bold and italic to inline code, because Burp often uses them instead of <code> tags
+                            'b': to_inline_code,
+                            'i': to_inline_code,
+                        })
 
-            issues.append(issue)
+                issues.append(issue)
 
         # Order by severity
         issues = sorted(issues, key=lambda x: (x.get("severity_score", 0) * -1, x.get('title', '')))
@@ -111,7 +104,7 @@ class BurpImporter(BaseImporter):
         out = sorted(out, key=lambda x: (x.get("severity_score", 0) * -1, x.get('title', '')))
         return out
 
-    def parse_notes(self, file):
+    def parse_notes(self, files):
         notes = []
 
         # Main note
@@ -123,7 +116,7 @@ class BurpImporter(BaseImporter):
         notes.append(note_root)
 
         order = 0
-        for ip, issues in self.group_issues_by_ip(self.parse_burp_issues(file)).items():
+        for ip, issues in self.group_issues_by_ip(self.parse_burp_issues(files)).items():
             order += 1
             note_ip = ProjectNotebookPage(
                 parent=note_root,
@@ -151,12 +144,12 @@ class BurpImporter(BaseImporter):
                     """), { 'ip': ip, 'findings': issues }),
             )
             notes.append(note_ip)
-            for idx, issue in enumerate(issues):
+            for idx, issue in enumerate(self.merge_findings_by_type(issues)):
                 notes.append(ProjectNotebookPage(
                     parent=note_ip,
                     order=idx + 1,
                     checked=False,
-                    title=f"{ self.severity_mapping.get(issue.get('severity', 'info').lower()) } {issue.get('title', '')}",
+                    title=f"{self.severity_mapping.get(issue.get('severity', 'info').lower())} {issue.get('title', '')}",
                     text=render_template_string(textwrap.dedent(
                         """\
                         **Type (plugin ID):** <!--{{ type }}-->  
@@ -185,10 +178,10 @@ class BurpImporter(BaseImporter):
             return []
         return notes
 
-    def parse_findings(self, file, project):
+    def parse_findings(self, files, project):
         findings = []
         templates = self.get_all_finding_templates()
-        for issue in self.merge_findings_by_type(self.parse_burp_issues(file)):
+        for issue in self.merge_findings_by_type(self.parse_burp_issues(files)):
             findings.append(self.generate_finding_from_template(
                 tr=self.select_finding_template(
                     templates=templates,

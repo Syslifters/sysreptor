@@ -6,6 +6,7 @@ from sysreptor.pentests.models import ProjectNotebookPage
 from sysreptor.pentests.rendering.entry import format_template_field_object
 from sysreptor.pentests.serializers.notes import ProjectNotebookPageSerializer
 from sysreptor.pentests.serializers.project import PentestFindingSerializer
+from sysreptor.utils.utils import groupby_to_dict
 
 from .importers import registry
 
@@ -13,24 +14,25 @@ from .importers import registry
 class ScanImportSerializer(serializers.Serializer):
     importer = serializers.ChoiceField(choices=['auto'] + [i.id for i in registry.importers])
     import_as = serializers.ChoiceField(choices=['findings', 'notes'])
-    file = serializers.FileField()
-
-    def validate_importer(self, value):
-        if value == 'auto':
-            out = registry.auto_detect_format(self.initial_data['file'])
-            if not out:
-                raise serializers.ValidationError("No suitable importer found for the provided file.")
-            return out
-        else:
-            return registry[value]
+    file = serializers.ListField(child=serializers.FileField())
 
     def create(self, validated_data):
-        importer = validated_data['importer']
+        if validated_data['importer'] == 'auto':
+            def detect_importer(f):
+                out = registry.auto_detect_format(f)
+                if not out:
+                    raise serializers.ValidationError(f"No suitable importer found for file '{f.name}'.")
+                return out.id
+            importer_files = groupby_to_dict(validated_data['file'], key=detect_importer)
+        else:
+            importer_files = {validated_data['importer']: validated_data['file']}
 
         try:
             if validated_data['import_as'] == 'findings':
                 project = self.context['project']
-                findings = importer.parse_findings(file=validated_data['file'], project=project)
+                findings = []
+                for importer_id, files in importer_files.items():
+                    findings += registry[importer_id].parse_findings(files=files, project=project)
 
                 # Sort findings
                 findings_sorted_data = sort_findings([
@@ -43,11 +45,15 @@ class ScanImportSerializer(serializers.Serializer):
 
                 return PentestFindingSerializer(many=True, instance=findings_sorted).data
             elif validated_data['import_as'] == 'notes':
-                notes = importer.parse_notes(validated_data['file'])
+                notes = []
+                for importer_id, files in importer_files.items():
+                    notes += registry[importer_id].parse_notes(files=files)
                 ProjectNotebookPage.objects.check_parent_and_order(notes)
                 return ProjectNotebookPageSerializer(many=True, instance=notes).data
+        except serializers.ValidationError:
+            raise
         except Exception as ex:
             raise  # TODO: debug only
-            logging.exception(f'Error while importing importer={importer.id}')
+            logging.exception('Error while importing')
             raise serializers.ValidationError('Error while importing') from ex
 

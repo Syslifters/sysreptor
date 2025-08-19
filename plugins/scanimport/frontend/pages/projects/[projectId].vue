@@ -5,8 +5,9 @@
       <v-row>
         <v-col cols="6">
           <s-file-input
-            v-model="uploadForm.file"
+            v-model="uploadForm.files"
             label="File"
+            :multiple="true"
           />
         </v-col>
         <v-col cols="6">
@@ -23,7 +24,7 @@
               :confirm="false"
               button-text="Import as Notes"
               button-color="primary"
-              :disabled="!uploadForm.file"
+              :disabled="uploadForm.files.length === 0"
               class="mr-2"
             />
             <btn-confirm
@@ -31,7 +32,7 @@
               :confirm="false"
               button-text="Import as Findings"
               button-color="primary"
-              :disabled="!uploadForm.file"
+              :disabled="uploadForm.files.length === 0"
             />
           </div>
         </v-col>
@@ -84,7 +85,7 @@ const step = ref(Step.UPLOAD);
 const uploadForm = ref({
   importer: 'auto',
   importAs: ImportAs.NOTES,
-  file: null,
+  files: [],
 });
 const parsedData = ref<ProjectNote[]|PentestFinding[]>([]);
 const selectForm = ref({
@@ -93,12 +94,12 @@ const selectForm = ref({
 })
 
 async function importScanFile(importAs: ImportAs) {
-  if (!uploadForm.value.file) {
+  if (uploadForm.value.files.length === 0) {
     return;
   }
 
   try {
-    parsedData.value = await uploadFileHelper(`/api/plugins/${appConfig.pluginId}/api/projects/${route.params.projectId}/parse/`, uploadForm.value.file, {
+    parsedData.value = await uploadFileHelper(`/api/plugins/${appConfig.pluginId}/api/projects/${route.params.projectId}/parse/`, uploadForm.value.files, {
       importer: uploadForm.value.importer,
       import_as: importAs,
     });
@@ -142,14 +143,6 @@ async function importSelectedObjects() {
     (findings as ProjectNote[]).map(createNote));
   step.value = Step.DONE;
 }
-
-
-
-
-
-watch(() => selectForm.value.selected, (val) => {
-  console.log('Selected IDs:', val);
-})
 
 
 </script>

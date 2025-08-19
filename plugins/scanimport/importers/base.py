@@ -1,10 +1,10 @@
 from django.db.models.expressions import RawSQL
+from sysreptor.pentests.cvss import CVSSLevel
 from sysreptor.pentests.models import (
     FindingTemplate,
     FindingTemplateTranslation,
     PentestFinding,
     PentestProject,
-    ProjectNotebookPage,
 )
 from sysreptor.utils.language import Language
 
@@ -14,16 +14,21 @@ from ..utils import render_template_string
 class BaseImporter:
     id: str = None
 
-    default_note: ProjectNotebookPage = None
-    default_template: FindingTemplate = None
+    severity_mapping = {
+        CVSSLevel.INFO: "🟢",
+        CVSSLevel.LOW: "🔵",
+        CVSSLevel.MEDIUM: "🟡",
+        CVSSLevel.HIGH: "🟠",
+        CVSSLevel.CRITICAL: "🔴",
+    }
 
     def is_format(self, file):
         return False
     
-    def parse_findings(self, file) -> list[dict]:
+    def parse_findings(self, files) -> list[dict]:
         pass
 
-    def parse_notes(self, file) -> list[dict]:
+    def parse_notes(self, files) -> list[dict]:
         pass
 
     def get_all_finding_templates(self) -> list[FindingTemplate]:

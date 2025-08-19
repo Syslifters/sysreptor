@@ -1,6 +1,12 @@
-export async function uploadFileHelper<T>(url: string, file: File, data: object = {}, fetchOptions?: object) {
+export async function uploadFileHelper<T>(url: string, file: File|File[], data: object = {}, fetchOptions?: object) {
   const form = new FormData();
-  form.append('file', file);
+  if (Array.isArray(file)) {
+    for (const f of file) {
+      form.append('file', f, f.name);
+    }
+  } else {
+    form.append('file', file, file.name);
+  }
   for (const [k, v] of Object.entries(data)) {
     form.append(k, v);
   }
