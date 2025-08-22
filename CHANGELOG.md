@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Fix date field empty value not saved as null
+* Fix outbound connection established during PDF rendering
 * Markdown editor: fix pasted images not inserted correctly in some cases
 * Update executive summary section in HTB CBBH design
 
