@@ -100,6 +100,7 @@
           type="email"
           label="Email"
           hint="Email address to receive notifications and password reset links on (if enabled)"
+          :rules="rules.required_email"
           :error-messages="props.errors?.email || []"
           :disabled="!canEditUsername"
           spellcheck="false"
@@ -224,6 +225,7 @@ const canEditSuperuserPermissions = computed(() => canEdit.value && auth.permiss
 
 const rules = {
   required: [(v: any) => !!v || 'This field is required!'],
+  required_email: [(v: any) => canEditUsername.value ? rules.required[0]!(v) : true],
 };
 
 function updateField(fieldName: keyof User, val: any) {

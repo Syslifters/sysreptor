@@ -5,6 +5,7 @@
 * Fix outbound connection established during PDF rendering
 * Markdown editor: fix pasted images not inserted correctly in some cases
 * Update executive summary section in HTB CBBH design
+* Require email address for user creation
 
 
 ## v2025.69 - 2025-08-13
