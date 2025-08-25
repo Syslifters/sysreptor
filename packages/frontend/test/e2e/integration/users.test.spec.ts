@@ -5,6 +5,7 @@ const userPassword = 'Test123!@';
 const userNewPassword = 'Test123!@456789'
 const userFirstName = 'John';
 const userLastName = 'Doe';
+const userEmail = 'myuser@example.com'
 
 
 test('A Admin User can create a new User', async ({ page }) => {
@@ -17,6 +18,7 @@ test('A Admin User can create a new User', async ({ page }) => {
   await page.getByLabel('Password (confirm)').fill(userPassword);
   await page.getByLabel('First Name').fill(userFirstName);
   await page.getByLabel('Last Name').fill(userLastName);
+  await page.getByLabel('Email').fill(userEmail);
   await page.getByRole('button', { name: 'Create' }).click();
 
   // Check if user was created

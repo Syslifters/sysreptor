@@ -25,6 +25,7 @@ export const selfPromotion = async (page: Page) => {
   await page.getByTestId('test-reptor').click();
   await page.getByLabel('First Name').fill('User');
   await page.getByLabel('Last Name').fill('User');
+  await page.getByLabel('Email').fill('user@example.com');
   await page.getByTestId('template-editor-checkbox').getByRole('checkbox').check();
   await page.getByTestId('designer-checkbox').getByRole('checkbox').check();
   await page.getByTestId('user-manager-checkbox').getByRole('checkbox').check();
