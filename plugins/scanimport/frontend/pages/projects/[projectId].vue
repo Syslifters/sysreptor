@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { uploadFileHelper, type PentestFinding, type ProjectNote } from "#imports";
+import { uploadFileHelper, type NoteGroup, type PentestFinding, type ProjectNote } from "#imports";
 
 const appConfig = useAppConfig()
 const route = useRoute();
@@ -127,7 +127,7 @@ async function createFinding(finding: PentestFinding) {
 
 async function createNote(note: ProjectNote) {
   try {
-    await $fetch(`/api/v1/pentestprojects/${route.params.projectId}/notes/`, {
+    return await $fetch<ProjectNote>(`/api/v1/pentestprojects/${route.params.projectId}/notes/`, {
       method: 'POST',
       body: note,
     });
@@ -137,10 +137,24 @@ async function createNote(note: ProjectNote) {
 }
 
 async function importSelectedObjects() {
-  const findings = parsedData.value.filter(f => selectForm.value.selected.includes(f.id));
-  await Promise.all(
-    selectForm.value.importAs === ImportAs.FINDINGS ? (findings as PentestFinding[]).map(createFinding) : 
-    (findings as ProjectNote[]).map(createNote));
+  if (selectForm.value.importAs === ImportAs.FINDINGS) {
+    const findings = parsedData.value.filter(f => selectForm.value.selected.includes(f.id)) as PentestFinding[];
+    await Promise.all(findings.map(createFinding));
+  } else {
+    const notes = parsedData.value.filter(n => selectForm.value.selected.includes(n.id)) as ProjectNote[];
+    const groups = groupNotes(notes);
+    async function createNoteGroup(group: NoteGroup<ProjectNote>, parentId?: string) {
+      for (const g of group) {
+        g.note.parent = parentId || null;
+        const newNote = await createNote(g.note);
+        if (newNote) {
+          await createNoteGroup(g.children, newNote.id);
+        }
+      }
+    }
+    await createNoteGroup(groups);
+  }
+  
   step.value = Step.DONE;
 }
 

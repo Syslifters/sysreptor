@@ -6,12 +6,15 @@ from django.template import Context, Engine
 from django.template.base import Token, TokenType
 from html_to_markdown import convert_to_markdown
 from lxml import etree
+from sysreptor.pentests.cvss.cvss2 import is_cvss2, parse_cvss2
 
 
 def parse_xml(file):
     file.seek(0)
-    data = file.read()
-    return etree.fromstring(data, etree.XMLParser(resolve_entities=False))
+    data = file.read().lstrip()
+    return etree.fromstring(data, etree.XMLParser(
+        resolve_entities=False,
+    ))
 
 
 def xml_to_dict(node):
@@ -112,13 +115,36 @@ def custom_django_tags():
         mock.patch('django.template.base.COMMENT_TAG_START', COMMENT_TAG_START), \
         mock.patch('django.template.base.COMMENT_TAG_END', COMMENT_TAG_END):
         yield
-    
-    
+
 
 @custom_django_tags()
-def render_template_string(template_string: str, context: dict):
+def load_template_string(template_string: str):
     return Engine(
         builtins=Engine.default_builtins + ['sysreptor_plugins.scanimport.templatetags'],
         autoescape=False
-    ).from_string(template_string).render(context=Context(context, autoescape=False))
+    ).from_string(template_string)
 
+
+@custom_django_tags()
+def render_template_string(template_string: str, context: dict) -> str:
+    return load_template_string(template_string) \
+        .render(context=Context(context, autoescape=False))
+
+
+def cvss2_to_cvss31(cvss2_vector):
+    if not is_cvss2(cvss2_vector):
+        return cvss2_vector
+    
+    metrics2 = parse_cvss2(cvss2_vector)
+    impact_mapping = {'C': 'H', 'P': 'L', 'N': 'N'}
+    metrics3 = {
+        'AV': metrics2['AV'],
+        'AC': {'M': 'L'}.get(metrics2['AC'], metrics2['AC']),
+        'PR': {"M": "H", "S": "L", "N": "N"}[metrics2.get('Au', 'N')],
+        'UI': 'N',
+        'S': 'U',
+        'C': impact_mapping.get(metrics2['C'], 'N'),
+        'I': impact_mapping.get(metrics2['I'], 'N'),
+        'A': impact_mapping.get(metrics2['A'], 'N')
+    }
+    return 'CVSS:3.1' + ''.join([f"/{k}:{v}" for k, v in metrics3.items()])

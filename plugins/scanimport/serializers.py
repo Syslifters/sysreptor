@@ -11,6 +11,16 @@ from sysreptor.utils.utils import groupby_to_dict
 from .importers import registry
 
 
+class ParsedPentestFindingSerializer(PentestFindingSerializer):
+    template_info = serializers.SerializerMethodField()
+
+    class Meta(PentestFindingSerializer.Meta):
+        fields = PentestFindingSerializer.Meta.fields + ['template_info']
+    
+    def get_template_info(self, obj):
+        return getattr(obj, 'template_info', {})
+
+
 class ScanImportSerializer(serializers.Serializer):
     importer = serializers.ChoiceField(choices=['auto'] + [i.id for i in registry.importers])
     import_as = serializers.ChoiceField(choices=['findings', 'notes'])
@@ -43,7 +53,7 @@ class ScanImportSerializer(serializers.Serializer):
                 findings_sorted_ids = [f['id'] for f in findings_sorted_data]
                 findings_sorted = sorted(findings, key=lambda f: findings_sorted_ids.index(str(f.id)))
 
-                return PentestFindingSerializer(many=True, instance=findings_sorted).data
+                return ParsedPentestFindingSerializer(many=True, instance=findings_sorted).data
             elif validated_data['import_as'] == 'notes':
                 notes = []
                 for importer_id, files in importer_files.items():
