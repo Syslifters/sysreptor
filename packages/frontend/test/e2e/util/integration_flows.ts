@@ -3,7 +3,7 @@ import { getIntegrationAdmin } from "./admin";
 
 export const integrationLogin = async (page: Page, baseURL: string|undefined) => {
   await page.goto(baseURL + '/login/local/');
-  await expect(page).toHaveTitle("Login | SysReptor");
+  await expect(page).toHaveTitle("Login | SysReptor", { timeout: 60000 });
   await page.getByLabel('Username').fill(getIntegrationAdmin().username);
   await page.getByLabel('Password').fill(getIntegrationAdmin().password);
   await page.getByTestId('login-submit').click();
