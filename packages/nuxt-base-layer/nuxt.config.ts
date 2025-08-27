@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
-  compatibilityDate: '2024-07-08',
+  compatibilityDate: '2025-08-26',
   devtools: { enabled: false },
 
   // Build as SPA application
@@ -63,13 +63,6 @@ export default defineNuxtConfig({
     },
     optimizeDeps: {
       include: ['splitpanes', 'js-file-download', 'base64-arraybuffer', 'uuid', 'zxcvbn', 'emoji-mart-vue-fast/src'],
-    },
-    css: {
-      preprocessorOptions: {
-        scss: {
-          api: 'modern',
-        },
-      },
     },
   },
   nitro: {

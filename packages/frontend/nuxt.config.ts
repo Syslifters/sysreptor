@@ -10,7 +10,7 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
-  compatibilityDate: '2024-07-08',
+  compatibilityDate: '2025-08-26',
 
   // Source code directory
   srcDir: 'src/',

@@ -19,7 +19,7 @@
     "vue": "latest"
   },
   "devDependencies": {
-    "@nuxt/test-utils": "^3.14.4",
+    "@nuxt/test-utils": "3.19.1",
     "vitest": "^3.0.4",
     "happy-dom": "^17.0.0"
   }
