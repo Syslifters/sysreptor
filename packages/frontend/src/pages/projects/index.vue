@@ -63,7 +63,6 @@ watch(() => listViewRef.value?.items?.data.value as PentestProject[]|undefined, 
   if (!items) { return; }
   suggestedMembers.value = sortBy(uniq(items.flatMap(p => p.members.map(member => member.username)).concat(suggestedMembers.value)));
   suggestedTags.value = sortBy(uniq(items.flatMap(p => p.tags).concat(suggestedTags.value)));
-  console.log('Suggested members', suggestedMembers.value, suggestedTags.value);
 }, { immediate: true, deep: 1 });
 const filterProperties = computed((): FilterProperties[] => [
   { id: 'member', name: 'Member', icon: 'mdi-account', type: 'combobox', options: suggestedMembers.value, allow_exclude: true, allow_regex: false, default: '', multiple: true },
