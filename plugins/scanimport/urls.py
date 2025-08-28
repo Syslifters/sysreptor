@@ -1,11 +1,9 @@
-from django.urls import include, path
+from django.urls import path
 
 from .views import ListAvailableImportersView, ParseImportView
 
 urlpatterns = [
-    path('projects/<uuid:project_pk>/', include([
-        path('availableimporters/', ListAvailableImportersView.as_view(), name='availableimporters'),
-        path('parse/', ParseImportView.as_view(), name='parse'),
-    ])),
+    path('availableimporters/', ListAvailableImportersView.as_view(), name='availableimporters'),
+    path('projects/<uuid:project_pk>/parse/', ParseImportView.as_view(), name='parse'),
 ]
 

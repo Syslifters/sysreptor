@@ -36,7 +36,7 @@
           </template>
           <template #default>
             <v-list-item-title class="text-body-2">
-              <s-emoji v-if="note.icon_emoji" :value="note.icon_emoji" size="small" start />
+              <s-emoji v-if="note.icon_emoji" :value="note.icon_emoji" size="small" start class="emoji-icon" />
               {{ note.title }}
             </v-list-item-title>
           </template>
@@ -200,6 +200,10 @@ function onClickNote(event: MouseEvent|KeyboardEvent, note?: NoteBase, stat?: an
   .note-icon {
     width: 1.5rem;
     height: 1.5rem;
+
+    .emoji-icon {
+      vertical-align: text-bottom;
+    }
   }
 }
 

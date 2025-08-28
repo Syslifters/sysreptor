@@ -3,10 +3,10 @@
     :selected="selectedFindingIdsModel"
     select-strategy="leaf"
     density="compact"
+    class="pa-0"
   >
     <v-list-item 
       v-for="finding in props.findings"
-      :title="finding.data.title"
       :value="finding.id"
       @click="onClickFinding($event, finding)"
       density="compact"
@@ -20,6 +20,30 @@
           />
         </v-list-item-action>
       </template>
+      <template #title>
+        {{ finding.data.title }}
+
+        <s-btn-icon
+          v-if="finding.template"
+          @click.stop
+          :href="`/templates/${finding.template}/`"
+          target="_blank"
+          icon="mdi-view-compact"
+          v-tooltip="'Show Template'"
+          density="compact"
+          class="ml-2"
+        />
+      </template>
+      <template #subtitle>
+        Template selector: 
+        <v-chip 
+          v-for="tag, idx of finding.template_info.search_path" :key="idx"
+          :text="tag"
+          prepend-icon="mdi-tag"
+          size="small"
+          class="ma-1"
+        />
+      </template>
     </v-list-item>
   </v-list>
 </template>
@@ -29,7 +53,7 @@ import { isEqual } from 'lodash-es';
 import { scoreFromVector, levelNumberFromLevelName, levelNumberFromScore } from "@base/utils/cvss";
 
 const props = defineProps<{
-  findings: PentestFinding[];
+  findings: ParsedPentestFinding[];
 }>();
 
 const selectedFindingIdsModel = defineModel<string[]>('selectedFindingIds', { default: [] });
