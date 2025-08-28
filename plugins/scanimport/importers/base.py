@@ -56,12 +56,11 @@ class BaseImporter:
         if selector:
             selector = selector_base + ':' + selector
             additional_info['search_path'].insert(0, selector)
+        
+        for tag in additional_info['search_path']:
             for t in templates + fallback:
-                if selector in t.tags:
+                if tag in t.tags:
                     return self.select_template_translation(t, language, additional_info=additional_info)
-        for t in templates + fallback:
-            if selector_base in t.tags:
-                return self.select_template_translation(t, language, additional_info=additional_info)
         if fallback:
             return self.select_template_translation(fallback[0], language, additional_info=additional_info)
         raise ValueError(f"No suitable template found for importer '{self.id}' with selector '{selector}'.")
@@ -115,7 +114,7 @@ class ImporterRegistry:
     def get(self, key, default=None):
         return next((imp for imp in self.importers if imp.id == key), default)
     
-    def auto_detect_format(self, file):
+    def auto_detect_format(self, file) -> BaseImporter|None:
         for importer in self.importers:
             try:
                 if importer.is_format(file):

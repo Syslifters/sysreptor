@@ -29,6 +29,8 @@ class ZapImporter(BaseImporter):
                 alert_dict = xml_to_dict(alert_xml) | {
                     'site': dict(site_xml.attrib),
                 }
+                if isinstance(alert_dict.get('instances'), dict):
+                    alert_dict['instances'] = [alert_dict['instances']]
                 alerts.append(alert_dict)
         return alerts
 

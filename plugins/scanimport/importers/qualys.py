@@ -50,7 +50,7 @@ class QualysImporter(BaseImporter):
                 finding['target'] = target
                 finding['affected_components'] = [(target['hostname'] or target['ip']) + (f":{target['port']}" if target['port'] else '')]
 
-                finding['severity_score'] = int(finding['severity'] or 1)
+                finding['severity_score'] = int(finding.get('severity') or 1)
                 finding['severity'] = list(cvss.CVSSLevel)[finding['severity_score'] - 1]
                 finding['description'] = finding.pop('diagnosis', None)
                 finding['summary'] = finding.pop('consequence', None)

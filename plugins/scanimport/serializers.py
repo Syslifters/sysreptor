@@ -22,7 +22,7 @@ class ParsedPentestFindingSerializer(PentestFindingSerializer):
 
 
 class ScanImportSerializer(serializers.Serializer):
-    importer = serializers.ChoiceField(choices=['auto'] + [i.id for i in registry.importers])
+    importer = serializers.ChoiceField(choices=['auto'] + [i.id for i in registry.importers], default='auto')
     import_as = serializers.ChoiceField(choices=['findings', 'notes'])
     file = serializers.ListField(child=serializers.FileField())
 

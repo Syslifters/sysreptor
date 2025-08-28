@@ -166,6 +166,7 @@ class NessusImporter(BaseImporter):
         templates = self.get_all_finding_templates()
         for issue in self.merge_findings_by_plugin(self.parse_nessus_findings(files)):
             findings.append(self.generate_finding_from_template(
+                project=project,
                 tr=self.select_finding_template(
                     templates=templates,
                     fallback=self.fallback_templates,
@@ -173,7 +174,6 @@ class NessusImporter(BaseImporter):
                     language=project.language,
                 ),
                 data=issue,
-                project=project,
             ))
 
         return findings

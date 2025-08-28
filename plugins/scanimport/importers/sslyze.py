@@ -345,7 +345,7 @@ class SslyzeImporter(BaseImporter):
             'has_sha1_in_certificate_chain': any(d.get('verified_chain_has_sha1_signature', False) for d in deployments),
             'certificate_untrusted': [v.get('trust_store', {}).get('name') for v in path_validation_results if not v.get('was_validation_successful', True)],
         }
-        certinfo['has_cert_issues'] = certinfo['certificate_untrusted'] or certinfo['has_sha1_in_certificate_chain'] or not certinfo['certificate_matches_hostname']
+        certinfo['has_cert_issues'] = bool(certinfo['certificate_untrusted'] or certinfo['has_sha1_in_certificate_chain'] or not certinfo['certificate_matches_hostname'])
         return certinfo
     
     def get_vulnerabilities(self, scan_result):

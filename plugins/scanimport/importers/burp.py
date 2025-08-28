@@ -101,7 +101,7 @@ class BurpImporter(BaseImporter):
                     merged['affected_components'].extend(i['affected_components'])
                 out.append(merged)
 
-        out = sorted(out, key=lambda x: (x.get("severity_score", 0) * -1, x.get('title', '')))
+        out = sorted(out, key=lambda x: (x.get("severity_score", 0) * -1, x.get('type'), x.get('title', '')))
         return out
 
     def parse_notes(self, files):

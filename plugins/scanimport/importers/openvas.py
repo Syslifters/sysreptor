@@ -52,7 +52,7 @@ class OpenVASImporter(BaseImporter):
                 finding['oid'] = finding['nvt'].get('@oid')
                 finding['title'] = finding['name']
 
-                severity = finding.get('severities', {}).get('serverity', {})
+                severity = finding.get('severities', {}).get('severity', {})
                 if severity and isinstance(severity, list):
                     severity = severity[0]
                 finding['cvss'] = cvss2_to_cvss31(severity.get('value'))
