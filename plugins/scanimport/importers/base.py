@@ -1,4 +1,6 @@
 from django.db.models.expressions import RawSQL
+from django.template import TemplateSyntaxError
+from rest_framework import serializers
 from sysreptor.pentests.cvss import CVSSLevel
 from sysreptor.pentests.models import (
     FindingTemplate,
@@ -49,7 +51,6 @@ class BaseImporter:
         return template.main_translation
 
     def select_finding_template(self, templates: list[FindingTemplate], fallback: list[FindingTemplate], selector: str|None = None, language: Language|None = None) -> FindingTemplateTranslation:
-        # TODO: naming convention for template tags "scanimport:burp" vs "burp"
         selector_base = f'scanimport:{self.id}'
         additional_info = {'search_path': [selector_base]}
         
@@ -77,7 +78,11 @@ class BaseImporter:
         f.update_data(data)
         for k, v in tr.data.items():
             if v and isinstance(v, str):
-                f.update_data({k: render_template_string(v, context=data)})
+                try:
+                    f.update_data({k: render_template_string(v, context=data)})
+                except TemplateSyntaxError as ex:
+                    template_identifier = (f'{self.id} fallback template' if getattr(tr, 'is_fallback', False) else f'template id="{self.id}"')
+                    raise serializers.ValidationError(f'Template error in {template_identifier} with language="{tr.language}" field="{k}": {ex}') from ex
             elif v:
                 f.update_data({k: v})
         
@@ -104,6 +109,11 @@ class ImporterRegistry:
         if self.get(importer.id):
             raise ValueError(f"Importer with name '{importer.id}' is already registered.")
         self.importers.append(importer)
+
+    def unregister(self, importer: BaseImporter|str):
+        if isinstance(importer, str):
+            importer = self.get(importer)
+        self.importers.remove(importer)
 
     def __getitem__(self, key):
         out = self.get(key)

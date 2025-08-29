@@ -63,7 +63,6 @@ class ScanImportSerializer(serializers.Serializer):
         except serializers.ValidationError:
             raise
         except Exception as ex:
-            raise  # TODO: debug only
             logging.exception('Error while importing')
             raise serializers.ValidationError('Error while importing') from ex
 

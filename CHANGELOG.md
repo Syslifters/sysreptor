@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming
+* Plugin `scanimport`: Import scan results from various tools
 * Fix date field empty value not saved as null
 * Fix outbound connection established during PDF rendering
 * Markdown editor: fix pasted images not inserted correctly in some cases
