@@ -6,6 +6,7 @@
 * Markdown editor: fix pasted images not inserted correctly in some cases
 * Update executive summary section in HTB CBBH design
 * Require email address for user creation
+* Require a different password when changing passwords
 
 
 ## v2025.69 - 2025-08-13
