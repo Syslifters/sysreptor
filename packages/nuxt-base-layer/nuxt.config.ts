@@ -62,7 +62,11 @@ export default defineNuxtConfig({
       dedupe: ['vuetify'],
     },
     optimizeDeps: {
-      include: ['splitpanes', 'js-file-download', 'base64-arraybuffer', 'uuid', 'zxcvbn', 'emoji-mart-vue-fast/src'],
+      include: [
+        'splitpanes', 'js-file-download', 'base64-arraybuffer', 'uuid', 'zxcvbn', 'emoji-mart-vue-fast/src',
+        'vue-toastification', 'date-fns', 'lodash-es', 'url-join',
+        '@iconify/vue/dist/offline', '@iconify/icons-fluent-emoji/face-with-peeking-eye', 
+      ],
     },
   },
   nitro: {
