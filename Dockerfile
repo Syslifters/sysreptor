@@ -89,7 +89,7 @@ RUN /app/plugins/build.sh
 
 
 
-FROM python:3.13-slim-trixie AS api-dev
+FROM python:3.13-slim-bookworm AS api-dev
 
 # Get a list a preinstalled apt packages
 RUN mkdir /src && \
@@ -118,8 +118,8 @@ RUN apt-get update \
         unzip \
         wget \
         postgresql-client \
-    && echo 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20250301T010101Z/\nSuites: trixie\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg' > /etc/apt/sources.list.d/snapshot.sources \
-    && echo 'Package: ghostscript libgs10 libgs10-common libgs-common\nPin: version 10.04.0*\nPin-Priority: 1001' > /etc/apt/preferences.d/ghostscript \
+    && echo 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20250301T010101Z/\nSuites: testing\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg' > /etc/apt/sources.list.d/snapshot.sources \
+    && echo 'Package: ghostscript\nPin: version 10.04.0~dfsg-2\nPin-Priority: 1001' > /etc/apt/preferences.d/ghostscript \
     && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/10no-check-valid-until \
     && apt-get update \
     && apt-get install -y --no-install-recommends ghostscript \
