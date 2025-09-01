@@ -37,6 +37,7 @@ How rendering works:
 
 ## Limitations
 * Different counter values than in the full report e.g. heading numbers, figures, tables, pages, etc.
+* Table of Contents also contains sections that are not included in the report
 
 
 ## Examples

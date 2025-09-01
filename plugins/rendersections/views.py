@@ -46,7 +46,6 @@ class RenderSectionsView(ProjectSubresourceMixin, GenericAPIViewAsync):
                 and set(elem.get(RENDERSECTIONS_RELATEDIDS_ATTRIBUTE).split(",")) & set(section_ids):
                     keep = True
 
-            print(keep, elem)
             if not keep:
                 elem.getparent().remove(elem)
 
