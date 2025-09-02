@@ -1,5 +1,5 @@
 import { orderBy, pick, set, isObject, isEqual, sortBy } from "lodash-es";
-import { groupNotes } from "@/stores/usernotes";
+import { groupNotes } from "@base/utils/notes";
 import { useCollabSubpaths, collabSubpath, type CollabPropType, type Comment, type CommentAnswer, type CommentStatus, type PentestFinding, type PentestProject, type ProjectNote, type ProjectType, type ReportSection } from "#imports";
 
 export function useFindingFieldValueSuggestions(findings: MaybeRefOrGetter<Record<string, PentestFinding>>, projectType: MaybeRefOrGetter<ProjectType>) {

@@ -1,0 +1,4 @@
+# Nmap 7.80 scan initiated Fri Mar 10 22:21:46 2023 as: nmap -Pn -n -sV -p 80,443,8443 -oG - 127.0.0.1
+Host: 127.0.0.1 ()        Status: Up
+Host: 127.0.0.1 ()        Ports: 80/open/tcp//http//nginx (reverse proxy)/, 443/open/tcp//ssl|http//nginx (reverse proxy)/, 8080/open/tcp/////, 8443/filtered/tcp//https-alt///
+# Nmap done at Fri Mar 10 22:22:12 2023 -- 1 IP address (1 host up) scanned in 26.27 seconds

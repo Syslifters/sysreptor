@@ -46,6 +46,7 @@ dependencies = [
   "pikepdf (~=9.0)",
   "celery (~=5.3)",
   "psutil (~=7.0)",
+  "html-to-markdown[lxml] (~=1.9)",
 
   "django-debug-toolbar (~=6.0)",
   "elastic-apm (~=6.20)",

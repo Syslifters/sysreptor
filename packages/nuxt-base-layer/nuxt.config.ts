@@ -64,7 +64,7 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'splitpanes', 'js-file-download', 'base64-arraybuffer', 'uuid', 'zxcvbn', 'emoji-mart-vue-fast/src',
-        'vue-toastification', 'date-fns', 'lodash-es', 'url-join',
+        'vue-toastification', 'date-fns', 'lodash-es', 'url-join',  '@he-tree/vue',
         '@iconify/vue/dist/offline', '@iconify/icons-fluent-emoji/face-with-peeking-eye', 
       ],
     },

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.80 scan initiated Fri Aug  4 13:56:11 2023 as: nmap -Pn -n -oX - -p 80,443,445 142.251.208.164 -->
+<nmaprun scanner="nmap" args="nmap -Pn -n -oX - -p 80,443,445 142.251.208.164" start="1691150171" startstr="Fri Aug  4 13:56:11 2023" version="7.80" xmloutputversion="1.04">
+<scaninfo type="syn" protocol="tcp" numservices="3" services="80,443,445"/>
+<verbose level="0"/>
+<debugging level="0"/>
+<host starttime="1691150171" endtime="1691150172"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="142.251.208.164" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<ports><port protocol="tcp" portid="80"><state state="open" reason="syn-ack" reason_ttl="122"/><service name="http" method="table" conf="3"/></port>
+<port protocol="tcp" portid="443"><state state="open" reason="syn-ack" reason_ttl="122"/><service name="https" method="table" conf="3"/></port>
+<port protocol="tcp" portid="445"><state state="filtered" reason="no-response" reason_ttl="0"/><service name="microsoft-ds" method="table" conf="3"/></port>
+</ports>
+<times srtt="58015" rttvar="43642" to="232583"/>
+</host>
+<runstats><finished time="1691150172" timestr="Fri Aug  4 13:56:12 2023" elapsed="1.68" summary="Nmap done at Fri Aug  4 13:56:12 2023; 1 IP address (1 host up) scanned in 1.68 seconds" exit="success"/><hosts up="1" down="0" total="1"/>
+</runstats>
+</nmaprun>

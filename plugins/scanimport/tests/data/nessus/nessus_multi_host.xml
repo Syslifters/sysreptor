@@ -1,0 +1,604 @@
+<?xml version="1.0" ?>
+
+<NessusClientData_v2>
+    <Report xmlns:cm="http://www.nessus.org/cm" name="Scan Testbed">
+        <ReportHost name="192.168.1.112">
+            <HostProperties>
+                <tag name="HOST_END">Wed Jun 18 04:20:45 2014</tag>
+                <tag name="patch-summary-total-cves">1</tag>
+                <tag name="traceroute-hop-1">?</tag>
+                <tag name="traceroute-hop-0">10.10.10.20</tag>
+                <tag name="operating-system">Linux Kernel</tag>
+                <tag name="host-ip">192.168.1.112</tag>
+                <tag name="HOST_START">Wed Jun 18 04:19:21 2014</tag>
+            </HostProperties>
+            <ReportItem port="5353" svc_name="mdns" protocol="udp" severity="2" pluginID="12218"
+                        pluginName="mDNS Detection (Remote Network)" pluginFamily="Service detection">
+                <cvss_base_score>5.0</cvss_base_score>
+                <cve>CVE-2007-2446</cve>
+                <cvss_vector>CVSS2#AV:N/AC:L/Au:N/C:P/I:N/A:N</cvss_vector>
+                <description>The remote service understands the Bonjour (also known as ZeroConf or mDNS) protocol, which
+                    allows anyone to uncover information from the remote host such as its operating system type and
+                    exact version, its hostname, and the list of services it is running.
+
+                    This plugin attempts to discover mDNS used by hosts that are not on the network segment on which
+                    Nessus resides.
+                </description>
+                <fname>mdns.nasl</fname>
+                <plugin_modification_date>2013/05/31</plugin_modification_date>
+                <plugin_name>mDNS Detection (Remote Network)</plugin_name>
+                <plugin_publication_date>2004/04/28</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>Medium</risk_factor>
+                <script_version>$Revision: 1.26 $</script_version>
+                <solution>Filter incoming traffic to UDP port 5353, if desired.</solution>
+                <synopsis>It is possible to obtain information about the remote host.</synopsis>
+                <plugin_output>Nessus was able to extract the following information :
+
+                    - mDNS hostname : toto-desktop.local.
+
+                    - Advertised services :
+                    o Service name : toto-desktop [00:0c:29:ee:24:05]._workstation._tcp.local.
+                    Port number : 9
+
+                    - CPU type : X86_64
+                    - OS : LINUX
+                </plugin_output>
+            </ReportItem>
+        </ReportHost>
+        <ReportHost name="192.168.1.111">
+            <HostProperties>
+                <tag name="HOST_END">Wed Jun 18 04:20:46 2014</tag>
+                <tag name="patch-summary-total-cves">1</tag>
+                <tag name="traceroute-hop-1">?</tag>
+                <tag name="traceroute-hop-0">10.10.10.20</tag>
+                <tag name="operating-system">Linux Kernel</tag>
+                <tag name="host-ip">192.168.1.111</tag>
+                <tag name="HOST_START">Wed Jun 18 04:19:21 2014</tag>
+            </HostProperties>
+            <ReportItem port="5353" svc_name="mdns" protocol="udp" severity="2" pluginID="12218"
+                        pluginName="mDNS Detection (Remote Network)" pluginFamily="Service detection">
+                <cvss_base_score>5.0</cvss_base_score>
+                <cvss_vector>CVSS2#AV:N/AC:L/Au:N/C:P/I:N/A:N</cvss_vector>
+                <description>The remote service understands the Bonjour (also known as ZeroConf or mDNS) protocol, which
+                    allows anyone to uncover information from the remote host such as its operating system type and
+                    exact version, its hostname, and the list of services it is running.
+
+                    This plugin attempts to discover mDNS used by hosts that are not on the network segment on which
+                    Nessus resides.
+                </description>
+                <fname>mdns.nasl</fname>
+                <plugin_modification_date>2013/05/31</plugin_modification_date>
+                <plugin_name>mDNS Detection (Remote Network)</plugin_name>
+                <plugin_publication_date>2004/04/28</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>Medium</risk_factor>
+                <script_version>$Revision: 1.26 $</script_version>
+                <solution>Filter incoming traffic to UDP port 5353, if desired.</solution>
+                <synopsis>It is possible to obtain information about the remote host.</synopsis>
+                <plugin_output>Nessus was able to extract the following information :
+
+                    - mDNS hostname : toto-desktop-3.local.
+
+                    - Advertised services :
+                    o Service name : toto-desktop-3 [00:0c:29:70:4d:68]._workstation._tcp.local.
+                    Port number : 9
+
+                    - CPU type : X86_64
+                    - OS : LINUX
+                </plugin_output>
+            </ReportItem>
+        </ReportHost>
+        <ReportHost name="10.15.10.14">
+            <HostProperties>
+                <tag name="HOST_END">Wed Jun 18 04:25:17 2014</tag>
+                <tag name="patch-summary-total-cves">18</tag>
+                <tag name="patch-summary-cves-0ce02e42cd03dd8290178f03c2a16836">CVE-2010-4094, CVE-2010-0557,
+                    CVE-2009-3548, CVE-2009-3099
+                </tag>
+                <tag name="patch-summary-cve-num-0ce02e42cd03dd8290178f03c2a16836">4</tag>
+                <tag name="patch-summary-txt-0ce02e42cd03dd8290178f03c2a16836">Apache Tomcat Manager Common
+                    Administrative Credentials: Edit the associated &apos;tomcat-users.xml&apos; file and change or
+                    remove the affected set of credentials.
+                </tag>
+                <tag name="cpe-1">cpe:/a:isc:bind:9.4.</tag>
+                <tag name="cpe-0">cpe:/o:linux:linux_kernel:2.6</tag>
+                <tag name="system-type">general-purpose</tag>
+                <tag name="operating-system">Linux Kernel 2.6</tag>
+                <tag name="traceroute-hop-1">10.15.10.14</tag>
+                <tag name="traceroute-hop-0">10.10.10.20</tag>
+                <tag name="host-ip">10.15.10.14</tag>
+                <tag name="HOST_START">Wed Jun 18 04:19:21 2014</tag>
+            </HostProperties>
+            <ReportItem port="8180" svc_name="www" protocol="tcp" severity="0" pluginID="22964"
+                        pluginName="Service Detection" pluginFamily="Service detection">
+                <description>It was possible to identify the remote service by its banner or by looking at the error
+                    message it sends when it receives an HTTP request.
+                </description>
+                <fname>find_service.nasl</fname>
+                <plugin_modification_date>2014/06/03</plugin_modification_date>
+                <plugin_name>Service Detection</plugin_name>
+                <plugin_publication_date>2007/08/19</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.137 $</script_version>
+                <solution>n/a</solution>
+                <synopsis>The remote service could be identified.</synopsis>
+                <plugin_output>A web server is running on this port.</plugin_output>
+            </ReportItem>
+            <ReportItem port="6667" svc_name="irc" protocol="tcp" severity="0" pluginID="22964"
+                        pluginName="Service Detection" pluginFamily="Service detection">
+                <description>It was possible to identify the remote service by its banner or by looking at the error
+                    message it sends when it receives an HTTP request.
+                </description>
+                <fname>find_service.nasl</fname>
+                <plugin_modification_date>2014/06/03</plugin_modification_date>
+                <plugin_name>Service Detection</plugin_name>
+                <plugin_publication_date>2007/08/19</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.137 $</script_version>
+                <solution>n/a</solution>
+                <synopsis>The remote service could be identified.</synopsis>
+                <plugin_output>An IRC server seems to be running on this port is running on this port.</plugin_output>
+            </ReportItem>
+            <ReportItem port="5900" svc_name="vnc" protocol="tcp" severity="0" pluginID="22964"
+                        pluginName="Service Detection" pluginFamily="Service detection">
+                <description>It was possible to identify the remote service by its banner or by looking at the error
+                    message it sends when it receives an HTTP request.
+                </description>
+                <fname>find_service.nasl</fname>
+                <plugin_modification_date>2014/06/03</plugin_modification_date>
+                <plugin_name>Service Detection</plugin_name>
+                <plugin_publication_date>2007/08/19</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.137 $</script_version>
+                <solution>n/a</solution>
+                <synopsis>The remote service could be identified.</synopsis>
+                <plugin_output>A vnc server is running on this port.</plugin_output>
+            </ReportItem>
+            <ReportItem port="25" svc_name="smtp" protocol="tcp" severity="0" pluginID="22964"
+                        pluginName="Service Detection" pluginFamily="Service detection">
+                <description>It was possible to identify the remote service by its banner or by looking at the error
+                    message it sends when it receives an HTTP request.
+                </description>
+                <fname>find_service.nasl</fname>
+                <plugin_modification_date>2014/06/03</plugin_modification_date>
+                <plugin_name>Service Detection</plugin_name>
+                <plugin_publication_date>2007/08/19</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.137 $</script_version>
+                <solution>n/a</solution>
+                <synopsis>The remote service could be identified.</synopsis>
+                <plugin_output>An SMTP server is running on this port.</plugin_output>
+            </ReportItem>
+            <ReportItem port="443" svc_name="general" protocol="icmp" severity="0" pluginID="10114"
+                        pluginName="ICMP Timestamp Request Remote Date Disclosure" pluginFamily="General">
+                <cve>CVE-1999-0524</cve>
+                <cwe>200</cwe>
+                <description>The remote host answers to an ICMP timestamp request. This allows an attacker to know the
+                    date that is set on the targeted machine, which may assist an unauthenticated, remote attacker in
+                    defeating time-based authentication protocols.
+
+                    Timestamps returned from machines running Windows Vista / 7 / 2008 / 2008 R2 are deliberately
+                    incorrect, but usually within 1000 seconds of the actual system time.
+                </description>
+                <fname>icmp_timestamp.nasl</fname>
+                <osvdb>94</osvdb>
+                <plugin_modification_date>2012/06/18</plugin_modification_date>
+                <plugin_name>ICMP Timestamp Request Remote Date Disclosure</plugin_name>
+                <plugin_publication_date>1999/08/01</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.45 $</script_version>
+                <solution>Filter out the ICMP timestamp requests (13), and the outgoing ICMP timestamp replies (14).
+                </solution>
+                <synopsis>It is possible to determine the exact time set on the remote host.</synopsis>
+                <vuln_publication_date>1995/01/01</vuln_publication_date>
+                <xref>OSVDB:94</xref>
+                <xref>CWE:200</xref>
+                <plugin_output>The difference between the local and remote clocks is -60 seconds.
+                </plugin_output>
+            </ReportItem>
+            <ReportItem port="53" svc_name="dns" protocol="udp" severity="0" pluginID="10028"
+                        pluginName="DNS Server BIND version Directive Remote Version Detection" pluginFamily="DNS">
+                <cpe>cpe:/a:isc:bind</cpe>
+                <description>The remote host is running BIND or another DNS server that reports its version number when
+                    it receives a special request for the text &apos;version.bind&apos; in the domain &apos;chaos&apos;.
+
+                    This version is not necessarily accurate and could even be forged, as some DNS servers send the
+                    information based on a configuration file.
+                </description>
+                <fname>bind_version.nasl</fname>
+                <plugin_modification_date>2014/05/09</plugin_modification_date>
+                <plugin_name>DNS Server BIND version Directive Remote Version Detection</plugin_name>
+                <plugin_publication_date>1999/10/12</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.53 $</script_version>
+                <solution>It is possible to hide the version number of BIND by using the &apos;version&apos; directive
+                    in the &apos;options&apos; section in named.conf.
+                </solution>
+                <synopsis>It is possible to obtain the version number of the remote DNS server.</synopsis>
+                <plugin_output>
+                    Version : 9.4.2
+                </plugin_output>
+            </ReportItem>
+            <ReportItem port="53" svc_name="dns" protocol="udp" severity="0" pluginID="35371"
+                        pluginName="DNS Server hostname.bind Map Hostname Disclosure" pluginFamily="DNS">
+                <cpe>cpe:/a:isc:bind</cpe>
+                <description>It is possible to learn the remote host name by querying the remote DNS server for &apos;hostname.bind&apos;
+                    in the CHAOS domain.
+                </description>
+                <fname>bind_hostname.nasl</fname>
+                <plugin_modification_date>2011/09/14</plugin_modification_date>
+                <plugin_name>DNS Server hostname.bind Map Hostname Disclosure</plugin_name>
+                <plugin_publication_date>2009/01/15</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.11 $</script_version>
+                <solution>It may be possible to disable this feature. Consult the vendor&apos;s documentation for more
+                    information.
+                </solution>
+                <synopsis>The DNS server discloses the remote host name.</synopsis>
+                <plugin_output>
+                    The remote host name is :
+
+                    metasploitable
+                </plugin_output>
+            </ReportItem>
+            <ReportItem port="8180" svc_name="www" protocol="tcp" severity="0" pluginID="11219"
+                        pluginName="Nessus SYN scanner" pluginFamily="Port scanners">
+                <description>This plugin is a SYN &apos;half-open&apos; port scanner. It shall be reasonably quick even
+                    against a firewalled target.
+
+                    Note that SYN scans are less intrusive than TCP (full connect) scans against broken services, but
+                    they might cause problems for less robust firewalls and also leave unclosed connections on the
+                    remote target, if the network is loaded.
+                </description>
+                <fname>nessus_syn_scanner.nbin</fname>
+                <plugin_modification_date>2014/01/23</plugin_modification_date>
+                <plugin_name>Nessus SYN scanner</plugin_name>
+                <plugin_publication_date>2009/02/04</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.20 $</script_version>
+                <solution>Protect your target with an IP filter.</solution>
+                <synopsis>It is possible to determine which TCP ports are open.</synopsis>
+                <plugin_output>Port 8180/tcp was found to be open</plugin_output>
+            </ReportItem>
+            <ReportItem port="111" svc_name="rpc-portmapper" protocol="tcp" severity="0" pluginID="11219"
+                        pluginName="Nessus SYN scanner" pluginFamily="Port scanners">
+                <description>This plugin is a SYN &apos;half-open&apos; port scanner. It shall be reasonably quick even
+                    against a firewalled target.
+
+                    Note that SYN scans are less intrusive than TCP (full connect) scans against broken services, but
+                    they might cause problems for less robust firewalls and also leave unclosed connections on the
+                    remote target, if the network is loaded.
+                </description>
+                <fname>nessus_syn_scanner.nbin</fname>
+                <plugin_modification_date>2014/01/23</plugin_modification_date>
+                <plugin_name>Nessus SYN scanner</plugin_name>
+                <plugin_publication_date>2009/02/04</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.20 $</script_version>
+                <solution>Protect your target with an IP filter.</solution>
+                <synopsis>It is possible to determine which TCP ports are open.</synopsis>
+                <plugin_output>Port 111/tcp was found to be open</plugin_output>
+            </ReportItem>
+        </ReportHost>
+        <ReportHost name="10.15.10.11">
+            <HostProperties>
+                <tag name="HOST_END">Wed Jun 18 04:24:22 2014</tag>
+                <tag name="patch-summary-total-cves">12</tag>
+                <tag name="patch-summary-cves-0ce02e42cd03dd8290178f03c2a16836">CVE-2010-4094, CVE-2010-0557,
+                    CVE-2009-3548, CVE-2009-3099
+                </tag>
+                <tag name="patch-summary-cve-num-0ce02e42cd03dd8290178f03c2a16836">4</tag>
+                <tag name="patch-summary-txt-0ce02e42cd03dd8290178f03c2a16836">Apache Tomcat Manager Common
+                    Administrative Credentials: Edit the associated &apos;tomcat-users.xml&apos; file and change or
+                    remove the affected set of credentials.
+                </tag>
+                <tag name="patch-summary-cves-ec0c30778faac81c1b29f0d59d2a4595">CVE-2007-2446</tag>
+                <tag name="patch-summary-cve-num-ec0c30778faac81c1b29f0d59d2a4595">1</tag>
+                <tag name="patch-summary-txt-ec0c30778faac81c1b29f0d59d2a4595">Samba NDR MS-RPC Request Heap-Based
+                    Remote Buffer Overflow: Upgrade to Samba version 3.0.25 or later.
+                </tag>
+                <tag name="cpe-2">cpe:/a:isc:bind:9.4.</tag>
+                <tag name="cpe-1">cpe:/a:samba:samba:3.0.20 -&gt; Samba 3.0.20</tag>
+                <tag name="cpe-0">cpe:/o:linux:linux_kernel:2.6</tag>
+                <tag name="system-type">general-purpose</tag>
+                <tag name="operating-system">Linux Kernel 2.6</tag>
+                <tag name="traceroute-hop-1">10.15.10.11</tag>
+                <tag name="traceroute-hop-0">10.10.10.20</tag>
+                <tag name="netbios-name">METASPLOITABLE</tag>
+                <tag name="host-ip">10.15.10.11</tag>
+                <tag name="HOST_START">Wed Jun 18 04:19:21 2014</tag>
+            </HostProperties>
+            <ReportItem port="53" svc_name="dns" protocol="udp" severity="0" pluginID="11002"
+                        pluginName="DNS Server Detection" pluginFamily="DNS">
+                <description>The remote service is a Domain Name System (DNS) server, which provides a mapping between
+                    hostnames and IP addresses.
+                </description>
+                <fname>dns_server.nasl</fname>
+                <plugin_modification_date>2013/05/07</plugin_modification_date>
+                <plugin_name>DNS Server Detection</plugin_name>
+                <plugin_publication_date>2003/02/13</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.20 $</script_version>
+                <see_also>http://en.wikipedia.org/wiki/Domain_Name_System</see_also>
+                <solution>Disable this service if it is not needed or restrict access to internal hosts only if the
+                    service is available externally.
+                </solution>
+                <synopsis>A DNS server is listening on the remote host.</synopsis>
+            </ReportItem>
+            <ReportItem port="0" svc_name="general" protocol="tcp" severity="0" pluginID="25220"
+                        pluginName="TCP/IP Timestamps Supported" pluginFamily="General">
+                <description>The remote host implements TCP timestamps, as defined by RFC1323. A side effect of this
+                    feature is that the uptime of the remote host can sometimes be computed.
+                </description>
+                <fname>tcp_timestamps.nasl</fname>
+                <plugin_modification_date>2011/03/20</plugin_modification_date>
+                <plugin_name>TCP/IP Timestamps Supported</plugin_name>
+                <plugin_publication_date>2007/05/16</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>1.19</script_version>
+                <see_also>http://www.ietf.org/rfc/rfc1323.txt</see_also>
+                <solution>n/a</solution>
+                <synopsis>The remote service implements TCP timestamps.</synopsis>
+            </ReportItem>
+            <ReportItem port="0" svc_name="general" protocol="udp" severity="0" pluginID="10287"
+                        pluginName="Traceroute Information" pluginFamily="General">
+                <description>Makes a traceroute to the remote host.</description>
+                <fname>traceroute.nasl</fname>
+                <plugin_modification_date>2013/04/11</plugin_modification_date>
+                <plugin_name>Traceroute Information</plugin_name>
+                <plugin_publication_date>1999/11/27</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>1.62</script_version>
+                <solution>n/a</solution>
+                <synopsis>It was possible to obtain traceroute information.</synopsis>
+                <plugin_output>For your information, here is the traceroute from 10.10.10.3 to 10.15.10.11 :
+                    10.10.10.3
+                    10.10.10.20
+                    10.15.10.11
+                </plugin_output>
+            </ReportItem>
+            <ReportItem port="443" svc_name="cifs" protocol="tcp" severity="4" pluginID="25216"
+                        pluginName="Samba NDR MS-RPC Request Heap-Based Remote Buffer Overflow" pluginFamily="Misc.">
+                <bid>23973</bid>
+                <bid>24195</bid>
+                <bid>24196</bid>
+                <bid>24197</bid>
+                <bid>24198</bid>
+                <canvas_package>CANVAS</canvas_package>
+                <cpe>cpe:/a:samba:samba</cpe>
+                <cve>CVE-2007-2446</cve>
+                <cvss_base_score>10.0</cvss_base_score>
+                <cvss_temporal_score>7.8</cvss_temporal_score>
+                <cvss_temporal_vector>CVSS2#E:POC/RL:OF/RC:C</cvss_temporal_vector>
+                <cvss_vector>CVSS2#AV:N/AC:L/Au:N/C:C/I:C/A:C</cvss_vector>
+                <description>The version of the Samba server installed on the remote host is affected by multiple heap
+                    overflow vulnerabilities, which can be exploited remotely to execute code with the privileges of the
+                    Samba daemon.
+                </description>
+                <exploit_available>true</exploit_available>
+                <exploit_framework_canvas>true</exploit_framework_canvas>
+                <exploit_framework_metasploit>true</exploit_framework_metasploit>
+                <exploitability_ease>Exploits are available</exploitability_ease>
+                <fname>samba_overflow.nasl</fname>
+                <metasploit_name>Samba lsa_io_trans_names Heap Overflow</metasploit_name>
+                <osvdb>34699</osvdb>
+                <osvdb>34731</osvdb>
+                <osvdb>34732</osvdb>
+                <osvdb>34733</osvdb>
+                <patch_publication_date>2007/07/11</patch_publication_date>
+                <plugin_modification_date>2013/02/01</plugin_modification_date>
+                <plugin_name>Samba NDR MS-RPC Request Heap-Based Remote Buffer Overflow</plugin_name>
+                <plugin_publication_date>2007/05/15</plugin_publication_date>
+                <plugin_type>local</plugin_type>
+                <risk_factor>Critical</risk_factor>
+                <script_version>$Revision: 1.15 $</script_version>
+                <see_also>http://www.samba.org/samba/security/CVE-2007-2446.html</see_also>
+                <solution>Upgrade to Samba version 3.0.25 or later.</solution>
+                <synopsis>It is possible to execute code on the remote host through Samba.</synopsis>
+                <vuln_publication_date>2007/05/14</vuln_publication_date>
+                <xref>OSVDB:34699</xref>
+                <xref>OSVDB:34731</xref>
+                <xref>OSVDB:34732</xref>
+                <xref>OSVDB:34733</xref>
+            </ReportItem>
+            <ReportItem port="443" svc_name="cifs" protocol="tcp" severity="3" pluginID="42411"
+                        pluginName="Microsoft Windows SMB Shares Unprivileged Access" pluginFamily="Windows">
+                <bid>8026</bid>
+                <cve>CVE-1999-0519</cve>
+                <cve>CVE-1999-0520</cve>
+                <cvss_base_score>7.5</cvss_base_score>
+                <cvss_temporal_score>7.5</cvss_temporal_score>
+                <cvss_temporal_vector>CVSS2#E:H/RL:U/RC:ND</cvss_temporal_vector>
+                <cvss_vector>CVSS2#AV:N/AC:L/Au:N/C:P/I:P/A:P</cvss_vector>
+                <description>The remote has one or more Windows shares that can be accessed through the network with the
+                    given credentials.
+
+                    Depending on the share rights, it may allow an attacker to read/write confidential data.
+                </description>
+                <exploit_available>true</exploit_available>
+                <exploitability_ease>No exploit is required</exploitability_ease>
+                <fname>smb_accessible_shares_unpriv.nasl</fname>
+                <osvdb>299</osvdb>
+                <plugin_modification_date>2011/03/27</plugin_modification_date>
+                <plugin_name>Microsoft Windows SMB Shares Unprivileged Access</plugin_name>
+                <plugin_publication_date>2009/11/06</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>High</risk_factor>
+                <script_version>$Revision: 1.7 $</script_version>
+                <solution>To restrict access under Windows, open Explorer, do a right click on each share, go to the
+                    &apos;sharing&apos; tab, and click on &apos;permissions&apos;.
+                </solution>
+                <synopsis>It is possible to access a network share.</synopsis>
+                <vuln_publication_date>1999/07/14</vuln_publication_date>
+                <xref>OSVDB:299</xref>
+                <plugin_output>
+                    The following shares can be accessed using a NULL session :
+
+                    - tmp - (readable,writable)
+                    + Content of this share :
+                    ..
+                    5172.jsvc_up
+                    .ICE-unix
+                    .X11-unix
+                    .X0-lock
+
+                </plugin_output>
+            </ReportItem>
+            <ReportItem port="445" svc_name="cifs" protocol="tcp" severity="0" pluginID="10397"
+                        pluginName="Microsoft Windows SMB LanMan Pipe Server Listing Disclosure" pluginFamily="Windows">
+                <description>It was possible to obtain the browse list of the remote Windows system by sending a request
+                    to the LANMAN pipe. The browse list is the list of the nearest Windows systems of the remote host.
+                </description>
+                <fname>smb_lanman_browse_list.nasl</fname>
+                <osvdb>300</osvdb>
+                <plugin_modification_date>2014/06/09</plugin_modification_date>
+                <plugin_name>Microsoft Windows SMB LanMan Pipe Server Listing Disclosure</plugin_name>
+                <plugin_publication_date>2000/05/09</plugin_publication_date>
+                <plugin_type>local</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.37 $</script_version>
+                <solution>n/a</solution>
+                <synopsis>It is possible to obtain network information.</synopsis>
+                <xref>OSVDB:300</xref>
+                <plugin_output>
+                    Here is the browse list of the remote host :
+
+                    METASPLOITABLE ( os : 0.0 )
+                </plugin_output>
+            </ReportItem>
+            <ReportItem port="2049" svc_name="rpc-nfs" protocol="tcp" severity="0" pluginID="11219"
+                        pluginName="Nessus SYN scanner" pluginFamily="Port scanners">
+                <description>This plugin is a SYN &apos;half-open&apos; port scanner. It shall be reasonably quick even
+                    against a firewalled target.
+
+                    Note that SYN scans are less intrusive than TCP (full connect) scans against broken services, but
+                    they might cause problems for less robust firewalls and also leave unclosed connections on the
+                    remote target, if the network is loaded.
+                </description>
+                <fname>nessus_syn_scanner.nbin</fname>
+                <plugin_modification_date>2014/01/23</plugin_modification_date>
+                <plugin_name>Nessus SYN scanner</plugin_name>
+                <plugin_publication_date>2009/02/04</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.20 $</script_version>
+                <solution>Protect your target with an IP filter.</solution>
+                <synopsis>It is possible to determine which TCP ports are open.</synopsis>
+                <plugin_output>Port 2049/tcp was found to be open</plugin_output>
+            </ReportItem>
+            <ReportItem port="445" svc_name="cifs" protocol="tcp" severity="0" pluginID="11219"
+                        pluginName="Nessus SYN scanner" pluginFamily="Port scanners">
+                <description>This plugin is a SYN &apos;half-open&apos; port scanner. It shall be reasonably quick even
+                    against a firewalled target.
+
+                    Note that SYN scans are less intrusive than TCP (full connect) scans against broken services, but
+                    they might cause problems for less robust firewalls and also leave unclosed connections on the
+                    remote target, if the network is loaded.
+                </description>
+                <fname>nessus_syn_scanner.nbin</fname>
+                <plugin_modification_date>2014/01/23</plugin_modification_date>
+                <plugin_name>Nessus SYN scanner</plugin_name>
+                <plugin_publication_date>2009/02/04</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.20 $</script_version>
+                <solution>Protect your target with an IP filter.</solution>
+                <synopsis>It is possible to determine which TCP ports are open.</synopsis>
+                <plugin_output>Port 445/tcp was found to be open</plugin_output>
+            </ReportItem>
+            <ReportItem port="53" svc_name="dns" protocol="tcp" severity="0" pluginID="11219"
+                        pluginName="Nessus SYN scanner" pluginFamily="Port scanners">
+                <description>This plugin is a SYN &apos;half-open&apos; port scanner. It shall be reasonably quick even
+                    against a firewalled target.
+
+                    Note that SYN scans are less intrusive than TCP (full connect) scans against broken services, but
+                    they might cause problems for less robust firewalls and also leave unclosed connections on the
+                    remote target, if the network is loaded.
+                </description>
+                <fname>nessus_syn_scanner.nbin</fname>
+                <plugin_modification_date>2014/01/23</plugin_modification_date>
+                <plugin_name>Nessus SYN scanner</plugin_name>
+                <plugin_publication_date>2009/02/04</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.20 $</script_version>
+                <solution>Protect your target with an IP filter.</solution>
+                <synopsis>It is possible to determine which TCP ports are open.</synopsis>
+                <plugin_output>Port 53/tcp was found to be open</plugin_output>
+            </ReportItem>
+            <ReportItem port="6000" svc_name="x11" protocol="tcp" severity="0" pluginID="11219"
+                        pluginName="Nessus SYN scanner" pluginFamily="Port scanners">
+                <description>This plugin is a SYN &apos;half-open&apos; port scanner. It shall be reasonably quick even
+                    against a firewalled target.
+
+                    Note that SYN scans are less intrusive than TCP (full connect) scans against broken services, but
+                    they might cause problems for less robust firewalls and also leave unclosed connections on the
+                    remote target, if the network is loaded.
+                </description>
+                <fname>nessus_syn_scanner.nbin</fname>
+                <plugin_modification_date>2014/01/23</plugin_modification_date>
+                <plugin_name>Nessus SYN scanner</plugin_name>
+                <plugin_publication_date>2009/02/04</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.20 $</script_version>
+                <solution>Protect your target with an IP filter.</solution>
+                <synopsis>It is possible to determine which TCP ports are open.</synopsis>
+                <plugin_output>Port 6000/tcp was found to be open</plugin_output>
+            </ReportItem>
+            <ReportItem port="139" svc_name="smb" protocol="tcp" severity="0" pluginID="11219"
+                        pluginName="Nessus SYN scanner" pluginFamily="Port scanners">
+                <description>This plugin is a SYN &apos;half-open&apos; port scanner. It shall be reasonably quick even
+                    against a firewalled target.
+
+                    Note that SYN scans are less intrusive than TCP (full connect) scans against broken services, but
+                    they might cause problems for less robust firewalls and also leave unclosed connections on the
+                    remote target, if the network is loaded.
+                </description>
+                <fname>nessus_syn_scanner.nbin</fname>
+                <plugin_modification_date>2014/01/23</plugin_modification_date>
+                <plugin_name>Nessus SYN scanner</plugin_name>
+                <plugin_publication_date>2009/02/04</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.20 $</script_version>
+                <solution>Protect your target with an IP filter.</solution>
+                <synopsis>It is possible to determine which TCP ports are open.</synopsis>
+                <plugin_output>Port 139/tcp was found to be open</plugin_output>
+            </ReportItem>
+            <ReportItem port="111" svc_name="rpc-portmapper" protocol="tcp" severity="0" pluginID="11219"
+                        pluginName="Nessus SYN scanner" pluginFamily="Port scanners">
+                <description>This plugin is a SYN &apos;half-open&apos; port scanner. It shall be reasonably quick even
+                    against a firewalled target.
+
+                    Note that SYN scans are less intrusive than TCP (full connect) scans against broken services, but
+                    they might cause problems for less robust firewalls and also leave unclosed connections on the
+                    remote target, if the network is loaded.
+                </description>
+                <fname>nessus_syn_scanner.nbin</fname>
+                <plugin_modification_date>2014/01/23</plugin_modification_date>
+                <plugin_name>Nessus SYN scanner</plugin_name>
+                <plugin_publication_date>2009/02/04</plugin_publication_date>
+                <plugin_type>remote</plugin_type>
+                <risk_factor>None</risk_factor>
+                <script_version>$Revision: 1.20 $</script_version>
+                <solution>Protect your target with an IP filter.</solution>
+                <synopsis>It is possible to determine which TCP ports are open.</synopsis>
+                <plugin_output>Port 111/tcp was found to be open</plugin_output>
+            </ReportItem>
+        </ReportHost>
+    </Report>
+</NessusClientData_v2>

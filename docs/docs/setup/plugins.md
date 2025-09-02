@@ -25,6 +25,7 @@ Official plugins are maintained by the SysReptor team and are shipped inside off
 | [projectnumber](https://github.com/Syslifters/sysreptor/tree/main/plugins/projectnumber) | Automatically adds an incremental project number to new projects | |
 | [webhooks](https://github.com/Syslifters/sysreptor/tree/main/plugins/webhooks) | Send webhooks on certain events | <span style="color:red;">:octicons-heart-fill-24: Pro only</span> |
 | [renderfindings](https://github.com/Syslifters/sysreptor/tree/main/plugins/renderfindings) | Render selected findings to pdf | <span style="color:red;">:octicons-heart-fill-24: Pro only</span> |
+| [scanimport](https://github.com/Syslifters/sysreptor/tree/main/plugins/scanimport) | Import scan results from various tools | <span style="color:red;">:octicons-heart-fill-24: Pro only</span> |
 
 
 

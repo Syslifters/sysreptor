@@ -1,4 +1,4 @@
-# Render Findings Plugins
+# Render Findings Plugin
 
 This plugin renders selected findings to a PDF without rendering the whole report. 
 It is possible to render multiple findings in one PDF and to render each finding to a separate PDF.

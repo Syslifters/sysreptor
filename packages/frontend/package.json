@@ -30,8 +30,7 @@
     "date-fns": "^4.1.0",
     "lodash-es": "^4.17.21",
     "dompurify": "^3.1.6",
-    "randomcolor": "^0.6.2",
-    "@he-tree/vue": "^2.9.4"
+    "randomcolor": "^0.6.2"
   },
   "devDependencies": {
     "@nuxt/test-utils": "3.19.1",
