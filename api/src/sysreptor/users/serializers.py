@@ -181,6 +181,10 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
 
     def validate_password(self, value):
         validate_password(value, user=self.instance)
+
+        if self.instance and self.instance.check_password(value):
+            raise serializers.ValidationError('The new password must be different from the current password.')
+
         return value
 
     def update(self, instance, validated_data):
