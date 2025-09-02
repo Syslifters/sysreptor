@@ -8,6 +8,7 @@
 * Update executive summary section in HTB CBBH design
 * Require email address for user creation
 * Require a different password when changing passwords
+* Improve setting proxy variables
 
 
 ## v2025.69 - 2025-08-13
