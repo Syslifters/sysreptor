@@ -10,9 +10,9 @@ export async function createProject(page: Page, options: { projectName: string, 
   await page.getByLabel('Name').fill(options.projectName);
   
   // Select design
-  const textbox = await page.getByTestId('project-type').getByRole('textbox');
-  textbox.clear();
-  textbox.fill(options.designName);
+  const designSelection = await page.getByTestId('project-type').locator('css=input[type=text]');
+  await designSelection.clear();
+  await designSelection.fill(options.designName);
   await page.getByTestId('page-loader').waitFor({ state: 'hidden' });
   await page.getByText('No data found').waitFor({ state: 'hidden' });
   await page.getByTestId(`design-${options.designId}`).click();

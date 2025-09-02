@@ -1,6 +1,6 @@
-import { chromium, expect, test } from '@playwright/test';
-import fs from 'fs';
-const userUsername = 'MyUser';
+import { expect, test } from '@playwright/test';
+
+const userUsername = 'myuser';
 const userPassword = 'Test123!@';
 const userNewPassword = 'Test123!@456789'
 const userFirstName = 'John';
@@ -27,26 +27,18 @@ test('A Admin User can create a new User', async ({ page }) => {
   expect(await page.isVisible(`text=${userUsername}`)).toBeTruthy();
 });
 
-test('A created User can login', async () => {
-  const browser = await chromium.launch();
-  // create temporary storage state (so we can login as the user and not loose the admin session)
-  fs.writeFileSync('../state2.json', "{}");
-  const context1 = await browser.newContext({
-    storageState: '../state2.json'
-  });
-  const page1 = await context1.newPage();
-  await page1.goto('/login/local');
-  await page1.getByLabel('Username').fill(userUsername);
-  await page1.getByLabel('Password').fill(userPassword);
-  await page1.getByRole('button', { name: 'Login' }).click();
-  await page1.getByLabel('New Password', { exact: true }).fill(userNewPassword);
-  await page1.getByLabel('New Password (confirm)').fill(userNewPassword);
-  await page1.getByRole('button', { name: 'Change Password' }).click();
-  await page1.getByTestId('mfa-setup-skip').click();
-  await page1.getByRole('heading', { name: 'Projects' }).waitFor();
-  await browser.close();
-  // delete storage state
-  fs.unlinkSync('../state2.json');
+test('A created User can login', async ({ page, context }) => {
+  await context.clearCookies();
+
+  await page.goto('/login/local/');
+  await page.getByLabel('Username').fill(userUsername);
+  await page.getByLabel('Password').fill(userPassword);
+  await page.getByRole('button', { name: 'Login' }).click();
+  await page.getByLabel('New Password', { exact: true }).fill(userNewPassword);
+  await page.getByLabel('New Password (confirm)').fill(userNewPassword);
+  await page.getByRole('button', { name: 'Change Password' }).click();
+  await page.getByTestId('mfa-setup-skip').click();
+  await page.getByRole('heading', { name: 'Projects' }).waitFor();
 });
 
 test('A Admin User can delete a User', async ({ page }) => {

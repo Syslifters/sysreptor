@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { DemoDataState } from '../util/demo_data';
 import { createProject } from '../util/helpers';
+
 const projectName = 'Updated Project Name';
+
 test('A User can create an Project with a Name', async ({ page }) => {
   const oldProjectName = 'My Test Project'
   await createProject(page, { projectName: oldProjectName, designId: new DemoDataState().designs[0]!, designName: 'Demo Matrix' });
@@ -14,7 +16,7 @@ test('A User can create an Project with a Name', async ({ page }) => {
   await page.getByLabel('Name').fill(projectName);
   await page.getByLabel('Tags').fill('Updated Tags');
   await page.keyboard.press('Enter');
-  await page.getByRole('button', { name: 'Badge' }).click();
+  await page.getByTestId('save-toolbar').click();
   await page.getByText('Everything Saved').waitFor();
 });
 
@@ -28,5 +30,4 @@ test('A User can delete a Project', async ({ page }) => {
   await page.getByTestId('confirm-input').getByRole('textbox').fill(projectName);
   await page.getByTestId('confirm-button').click();
   await page.waitForSelector('text=Projects');
-  
 });

@@ -48,7 +48,21 @@ export default defineNuxtConfig({
       conditions: ['module', 'worker', 'browser', 'development|production'],
     },
     optimizeDeps: {
-      include: ['vuedraggable', 'monaco-editor', '@github/webauthn-json/browser-ponyfill', 'randomcolor', '@he-tree/vue'],
+      include: [
+        'vuedraggable', 'monaco-editor', '@github/webauthn-json/browser-ponyfill', 'randomcolor',
+        '@he-tree/vue', '@elastic/apm-rum-vue',
+        // Dependencies of @sysreptor/markdown
+        '@codemirror/state', '@codemirror/view', '@codemirror/commands', '@codemirror/lint', '@codemirror/autocomplete', 
+        '@codemirror/search', '@codemirror/merge', '@codemirror/language', '@codemirror/lang-vue', '@codemirror/lang-css', 
+        '@codemirror/lang-html', '@lezer/common', '@lezer/highlight', 'crelt', 'mermaid', 'micromark', 'unified', 
+        'remark-parse', 'remark-rehype', 'rehype-remark', 'remark-stringify', 'rehype-parse', 'rehype-raw', 'rehype-sanitize', 
+        'hast-util-to-mdast', 'micromark-util-chunked', 'micromark-util-symbol', 'micromark-util-resolve-all', 'unist-util-visit', 
+        'micromark-extension-gfm-strikethrough', 'mdast-util-gfm-strikethrough', 'micromark-extension-gfm-task-list-item', 
+        'mdast-util-gfm-task-list-item', 'parse-entities', 'micromark-util-sanitize-uri', 'micromark-extension-gfm-table', 
+        'mdast-util-gfm-table', 'hast-util-to-string', 'lowlight', 'html-void-elements', 'property-information', 
+        'stringify-entities', 'micromark-factory-space', 'micromark-factory-whitespace', 'micromark-util-character', 
+        'micromark-factory-destination', 'micromark-factory-label', 'micromark-factory-title', 'micromark-util-normalize-identifier',
+      ],
     },
     worker: {
       format: 'es',
