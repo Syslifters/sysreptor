@@ -9,6 +9,7 @@
 * Require email address for user creation
 * Require a different password when changing passwords
 * Improve setting proxy variables
+* Use nonce instead of hash for CSP `script-src`
 
 
 ## v2025.69 - 2025-08-13

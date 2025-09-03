@@ -18,7 +18,6 @@ export default defineNuxtConfig({
     public: 'src/public/'
   },
 
-  buildId: 'static',
   app: {
     buildAssetsDir: isDev ? '_nuxt' : '/static/_nuxt/',
     head: {
