@@ -16,7 +16,6 @@ export default defineNuxtConfig({
   sourcemap: {
     client: true,
   },
-  buildId: 'static',
   srcDir: join(currentDir, './src'),
   watch: [
     join(currentDir, './src'),

@@ -1,7 +1,7 @@
 <template>
   <iframe
     ref="iframeRef"
-    src="/static/pdfviewer/dist/viewer.html"
+    :src="`/static/pdfviewer/dist/viewer.html?c=${runtimeConfig.app?.buildId}`"
     @load="iframeLoaded = true"
     class="pdfviewer"
     :class="{loading: !iframeLoaded}"
@@ -20,6 +20,7 @@ const props = defineProps<{
 }>();
 
 const theme = useTheme();
+const runtimeConfig = useRuntimeConfig();
 
 const iframeRef = useTemplateRef('iframeRef');
 const iframeLoaded = ref(false);
