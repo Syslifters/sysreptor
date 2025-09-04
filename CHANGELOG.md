@@ -5,6 +5,7 @@
 * Fix date field empty value not saved as null
 * Fix outbound connection established during PDF rendering
 * Markdown editor: fix pasted images not inserted correctly in some cases
+* Markdown editor: do not format as markdown when pasting into code blocks
 * Update executive summary section in HTB CBBH design
 * Require email address for user creation
 * Require a different password when changing passwords

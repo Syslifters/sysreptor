@@ -21,6 +21,9 @@ import {
   search,
   searchKeymap,
   CustomizedSearchPanel,
+  EditorSelection,
+  syntaxTree,
+  type SyntaxNode,
 } from "@sysreptor/markdown/editor/index";
 import { uuidv4 } from "@base/utils/helpers";
 import { MarkdownEditorMode } from '#imports';
@@ -243,6 +246,18 @@ export function useMarkdownEditorBase(options: {
     }
   }
 
+  function isCodeBlockAtPosition(state: EditorState, pos: number) {
+      const tree = syntaxTree(state);
+      let node = tree.resolve(pos) as SyntaxNode|null;
+      while (node) {
+        if (node.type.name === 'codeFenced') {
+          return true;
+        }
+        node = node.parent;
+      }
+      return false;
+  }
+
   const editorState = shallowRef<EditorState|null>(null);
   const editorActions = ref<Record<string, (enabled: boolean) => void>>({});
   const eventBusBeforeApplyRemoteTextChanges = useEventBus('collab:beforeApplyRemoteTextChanges');
@@ -358,9 +373,13 @@ export function useMarkdownEditorBase(options: {
               if (!options.editorView.value) {
                 return false;
               }
-              
+
+              const selection = options.editorView.value.state.selection.main;
+              const inCodeBlock = isCodeBlockAtPosition(options.editorView.value.state, selection.from) ||
+              isCodeBlockAtPosition(options.editorView.value.state, selection.to);
+
               const types = event.clipboardData?.types || [];
-              if (types.includes('text/html') && (
+              if (types.includes('text/html') && !inCodeBlock && (
                 types.length === 1 ||  // HTML only
                 (types.indexOf('text/html') === 0 && !types.includes('Files')) ||  // HTML content
                 (types.indexOf('text/html') < types.indexOf('text/plain') && types.length === 2) || // Microsoft Excel, Word
@@ -374,7 +393,6 @@ export function useMarkdownEditorBase(options: {
                 const mdText = formatHtmlToMarkdown(htmlData);
                 
                 // insert at cursor position
-                const selection = options.editorView.value.state.selection.main;
                 options.editorView.value.dispatch(options.editorView.value.state.update({ 
                   changes: { from: selection.from, to: selection.to, insert: mdText },
                   selection: { anchor: selection.from + mdText.length },
