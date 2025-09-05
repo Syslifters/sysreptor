@@ -150,7 +150,11 @@ class NessusImporter(BaseImporter):
                         **Port:** <!--{{ port }}-->  
                         **Service:** <!--{{ svc_name|default:"n/a" }}-->  
 
-                        <!--{{ plugin_output|default:"" }}-->
+                        <!--{% for o in plugin_output %}-->
+                        ```
+                        <!--{{ o }}-->
+                        ```
+                        <!--{% endfor %}-->
 
                         ## Description
                         <!--{{ description }}-->
