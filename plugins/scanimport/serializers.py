@@ -31,7 +31,7 @@ class ScanImportSerializer(serializers.Serializer):
             def detect_importer(f):
                 out = registry.auto_detect_format(f)
                 if not out:
-                    raise serializers.ValidationError(f"No suitable importer found for file '{f.name}'.")
+                    raise serializers.ValidationError(f"No suitable importer found for file '{f.name}'. Try to manually select an importer.")
                 return out.id
             importer_files = groupby_to_dict(validated_data['file'], key=detect_importer)
         else:
