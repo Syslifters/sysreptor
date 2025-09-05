@@ -1,4 +1,5 @@
 import ipaddress
+import re
 import textwrap
 
 from lxml import etree
@@ -55,8 +56,9 @@ class NmapImporter(BaseImporter):
             ip, ports = line.split("Ports:")
             ip = ip.split(" ")[1]
 
-            for port in ports.split(','):
-                port, status, protocol, _, service, _, version, _ = port.strip().split("/")
+            # Split on comma, but handle parentheses in version info
+            for port in re.split(r',(?![^()]*\))', ports):
+                port, status, protocol, _, service, _, version, _ = port.strip().split("/", maxsplit=8)
                 if status == 'open':
                     out.append({
                         'ip': ipaddress.ip_address(ip),
