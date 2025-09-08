@@ -12,9 +12,15 @@ from sysreptor.pentests.cvss.cvss2 import is_cvss2, parse_cvss2
 def parse_xml(file):
     file.seek(0)
     data = file.read().lstrip()
-    return etree.fromstring(data, etree.XMLParser(
+    tree = etree.fromstring(data, etree.XMLParser(
         resolve_entities=False,
+        recover=True,
     ))
+
+    if tree is None:
+        raise etree.XMLSyntaxError("Could not parse XML", 0, 0, 0)
+
+    return tree
 
 
 def xml_to_dict(node):
