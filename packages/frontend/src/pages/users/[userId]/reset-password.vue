@@ -68,8 +68,9 @@ async function changePassword() {
   } catch (error: any) {
     if (error?.status === 400 && error?.data) {
       serverErrors.value = error.data;
+    } else {
+      requestErrorToast({ error });
     }
-    throw error;
   }
 }
 </script>
