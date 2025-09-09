@@ -9,6 +9,7 @@ import pytest_asyncio
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from django.utils import timezone
@@ -25,6 +26,7 @@ from sysreptor.pentests.import_export import export_notes
 from sysreptor.pentests.models import (
     CollabClientInfo,
     CollabEventType,
+    NoteType,
     PentestFinding,
     ProjectMemberInfo,
     ReportSection,
@@ -41,6 +43,7 @@ from sysreptor.tests.mock import (
     create_user,
     mock_time,
     override_configuration,
+    update,
     websocket_client,
 )
 from sysreptor.utils.fielddefinition.utils import (
@@ -626,6 +629,80 @@ class TestProjectNotesDbSync:
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio()
+class TestProjectNoteExcalidrawCollab:
+    @pytest_asyncio.fixture(autouse=True)
+    async def setUp(self):
+        def setup_db():
+            self.user1 = create_user()
+            self.user2 = create_user()
+            self.project = create_project(members=[self.user1, self.user2], notes_kwargs=[{'type': NoteType.EXCALIDRAW, 'checked': None, 'icon_emoji': None, 'title': 'ABC'}])
+            self.note_excalidraw = self.project.notes.all()[0]
+            self.api_client1 = api_client(self.user1)
+        await sync_to_async(setup_db)()
+
+    def assert_events_equal(self, actual, expected):
+        for k, v in expected.items():
+            assert actual[k] == v
+        return actual
+
+    async def test_excalidraw_collab(self):
+        async with websocket_client(path=f'/api/ws/pentestprojects/{self.project.id}/notes/{self.note_excalidraw.note_id}/excalidraw/', user=self.user1) as client1, \
+                   websocket_client(path=f'/api/ws/pentestprojects/{self.project.id}/notes/{self.note_excalidraw.note_id}/excalidraw/', user=self.user2) as client2:
+            init1 = self.assert_events_equal(await client1.receive_json_from(), {'type': CollabEventType.INIT})
+            client1.client_id = init1['client_id']
+            self.assert_events_equal(await client1.receive_json_from(), {'type': CollabEventType.CONNECT, 'client_id': client1.client_id})
+
+            init2 = self.assert_events_equal(await client2.receive_json_from(), {'type': CollabEventType.INIT})
+            client2.client_id = init2['client_id']
+            self.assert_events_equal(await client2.receive_json_from(), {'type': CollabEventType.CONNECT, 'client_id': client2.client_id})
+            self.assert_events_equal(await client1.receive_json_from(), {'type': CollabEventType.CONNECT, 'client_id': client2.client_id})
+
+            # Test event broadcasting
+            event = {
+                'type': CollabEventType.UPDATE_EXCALIDRAW,
+                'client_id':  client1.client_id,
+                'elements': [{'id': 'e1', 'type': 'rectangle', 'x': 0, 'y': 0}],
+            }
+            await client1.send_json_to(event)
+            self.assert_events_equal(await client1.receive_json_from(), event)
+            self.assert_events_equal(await client2.receive_json_from(), event)
+
+            # Test disconnect
+            await client2.disconnect()
+            self.assert_events_equal(await client1.receive_json_from(), {'type': CollabEventType.DISCONNECT, 'client_id': client2.client_id})
+
+    async def test_sync_to_db(self):
+        file = await sync_to_async(lambda: self.note_excalidraw.excalidraw_file)()
+        await sync_to_async(update)(file, file=SimpleUploadedFile(content=json.dumps({'elements': [{'id': 'e1', 'type': 'rectangle', 'x': 0, 'y': 0}]}).encode(), name='excalidraw.json'))
+
+        async with websocket_client(path=f'/api/ws/pentestprojects/{self.project.id}/notes/{self.note_excalidraw.note_id}/excalidraw/', user=self.user1) as client:
+            # DB data sent in init event
+            self.assert_events_equal(await client.receive_json_from(), {'type': CollabEventType.INIT})
+            self.assert_events_equal(await client.receive_json_from(), {'type': CollabEventType.CONNECT})
+
+            # Save update to DB
+            new_elements = await sync_to_async(lambda: self.note_excalidraw.excalidraw_data['elements'])() + \
+                  [{'id': 'e2', 'type': 'rectangle', 'x': 10, 'y': 10}]
+            event = {
+                'type': CollabEventType.UPDATE_EXCALIDRAW,
+                'elements': new_elements,
+                'sync_all': True,  # sync to all clients
+            }
+            await client.send_json_to(event)
+            self.assert_events_equal(await client.receive_json_from(), event)
+
+            # Verify data saved to DB
+            await self.note_excalidraw.arefresh_from_db()
+            db_elements = await sync_to_async(lambda: self.note_excalidraw.excalidraw_data['elements'])()
+            assert db_elements == new_elements
+
+            api_elements = db_elements + [{'id': 'e2', 'type': 'rectangle', 'x': 20, 'y': 20}]
+            await sync_to_async(self.note_excalidraw.update_excalidraw_data)({'elements': api_elements})
+            self.assert_events_equal(await client.receive_json_from(), {'client_id': None, 'elements': api_elements})
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio()
 class TestProjectReportingDbSync:
     @pytest_asyncio.fixture(autouse=True)
     async def setUp(self):
@@ -1086,7 +1163,7 @@ class TestSharedProjectNotesDbSync:
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio()
 class TestConsumerPermissions:
-    async def ws_connect(self, path, user):
+    async def ws_connect(self, path, user, event=None):
         async with websocket_client(path=path, user=user, connect=False) as consumer:
             can_read, _ = await consumer.connect()
             can_write = False
@@ -1094,7 +1171,7 @@ class TestConsumerPermissions:
                 await consumer.receive_json_from()  # collab.init
                 await consumer.receive_json_from()  # collab.connect
 
-                await consumer.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': 'test', 'value': 'test'})
+                await consumer.send_json_to(event or {'type': CollabEventType.UPDATE_KEY, 'path': 'test', 'value': 'test'})
                 msg = await consumer.receive_output()
                 can_write = msg['type'] != 'websocket.close'
 
@@ -1125,28 +1202,38 @@ class TestConsumerPermissions:
             if user.is_superuser:
                 user.admin_permissions_enabled = True
 
+            notes_kwargs = [{'type': NoteType.TEXT}, {'type': NoteType.EXCALIDRAW}]
             projects = {
-                'project': create_project(members=[user_member, user_guest]),
-                'readonly': create_project(members=[user_member, user_guest], readonly=True),
+                'project': create_project(members=[user_member, user_guest], notes_kwargs=notes_kwargs),
+                'readonly': create_project(members=[user_member, user_guest], notes_kwargs=notes_kwargs, readonly=True),
             }
             return user, projects[project_name]
         with override_configuration(GUEST_USERS_CAN_EDIT_PROJECTS=False):
             user, project = await sync_to_async(setup_db)()
-            assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
+            note_excalidraw = await project.notes.filter(type=NoteType.EXCALIDRAW).afirst()
+
             assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)
+            assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
+            assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/notes/{note_excalidraw.note_id}/excalidraw/', user, event={'type': CollabEventType.UPDATE_EXCALIDRAW, 'elements': []}) == (expected_read, expected_write)
 
             client = api_client(user)
+            res = await sync_to_async(client.get)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}))
+            assert res.status_code == (200 if expected_read else 403)
+            client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
+            res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+            assert res.status_code == (200 if expected_write else 403)
+
             res = await sync_to_async(client.get)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}))
             assert res.status_code == (200 if expected_read else 403)
             client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
             res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
             assert res.status_code == (200 if expected_write else 403)
 
-            res = await sync_to_async(client.get)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}))
+            res = await sync_to_async(client.get)(reverse('projectnoteexcalidraw-fallback', kwargs={'project_pk': project.id, 'note_id': note_excalidraw.note_id}))
             assert res.status_code == (200 if expected_read else 403)
             client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
-            res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
-            assert res.status_code == (200 if expected_write else 403)
+            res = await sync_to_async(client.post)(reverse('projectnoteexcalidraw-fallback', kwargs={'project_pk': project.id, 'note_id': note_excalidraw.note_id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+            assert res.status_code == 403  # Always readonly
 
     @pytest.mark.parametrize(('expected', 'user_name'), [
         (True, 'self'),
@@ -1168,7 +1255,10 @@ class TestConsumerPermissions:
                 user.admin_permissions_enabled = True
             return user, user_notes
         user, user_notes = await sync_to_async(setup_db)()
+        note_excalidraw = await user_notes.notes.filter(type=NoteType.EXCALIDRAW).afirst()
+
         assert await self.ws_connect(f'/api/ws/pentestusers/{user_notes.id}/notes/', user) == (expected, expected)
+        assert await self.ws_connect(f'/api/ws/pentestusers/{user_notes.id}/notes/{note_excalidraw.note_id}/excalidraw/', user, event={'type': CollabEventType.UPDATE_EXCALIDRAW, 'elements': []}) == (expected, expected)
 
         client = api_client(user)
         res = await sync_to_async(client.get)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}))
@@ -1176,6 +1266,12 @@ class TestConsumerPermissions:
         client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
         res = await sync_to_async(client.post)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
         assert res.status_code == (200 if expected else 403), res.data
+
+        res = await sync_to_async(client.get)(reverse('usernoteexcalidraw-fallback', kwargs={'pentestuser_pk': user_notes.id, 'note_id': note_excalidraw.note_id}))
+        assert res.status_code == (200 if expected else 403)
+        client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
+        res = await sync_to_async(client.post)(reverse('usernoteexcalidraw-fallback', kwargs={'pentestuser_pk': user_notes.id, 'note_id': note_excalidraw.note_id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+        assert res.status_code == 403  # Always readonly
 
     @pytest.mark.parametrize(('share_kwargs', 'expected_read', 'expected_write'), [
         ({'is_revoked': True}, False, False),
@@ -1188,9 +1284,14 @@ class TestConsumerPermissions:
     async def test_shared_notes_permissions(self, share_kwargs, expected_read, expected_write):
         def setup_db():
             project = create_project(**share_kwargs.pop('project', {}))
-            return create_shareinfo(note=project.notes.first(), **share_kwargs)
+            note = project.notes.first()
+            create_projectnotebookpage(project=project, parent=note, order=1, type=NoteType.EXCALIDRAW)
+            return create_shareinfo(note=note, **share_kwargs)
         share_info = await sync_to_async(setup_db)()
+        note_excalidraw = await share_info.note.project.notes.filter(type=NoteType.EXCALIDRAW).afirst()
+
         assert await self.ws_connect(f'/api/public/ws/shareinfos/{share_info.id}/notes/', user=None) == (expected_read, expected_write)
+        assert await self.ws_connect(f'/api/public/ws/shareinfos/{share_info.id}/notes/{note_excalidraw.note_id}/excalidraw/', user=None, event={'type': CollabEventType.UPDATE_EXCALIDRAW, 'elements': []}) == (expected_read, expected_write)
 
         client = api_client()
         res = await sync_to_async(client.get)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}))
@@ -1199,7 +1300,15 @@ class TestConsumerPermissions:
         res = await sync_to_async(client.post)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
         assert res.status_code == (200 if expected_write else 403)
 
+        res = await sync_to_async(client.get)(reverse('sharednoteexcalidraw-fallback', kwargs={'shareinfo_pk': share_info.id, 'note_id': note_excalidraw.note_id}))
+        assert res.status_code == (200 if expected_read else 403)
+        client_id = res.data.get('client_id', 'anonymous/asdf')
+        res = await sync_to_async(client.post)(reverse('sharednoteexcalidraw-fallback', kwargs={'shareinfo_pk': share_info.id, 'note_id': note_excalidraw.note_id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+        assert res.status_code == 403  # Always readonly
+
         res = await sync_to_async(client.get)(reverse('sharednote-list', kwargs={'shareinfo_pk': share_info.id}))
         assert res.status_code in ([200] if expected_read else [403, 404])
         res = await sync_to_async(client.patch)(reverse('sharednote-detail', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.note.note_id}), data={})
         assert res.status_code in ([200] if expected_write else [403, 404])
+        res = await sync_to_async(client.get)(reverse('sharednote-excalidraw', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.note.note_id}))
+        assert res.status_code == (200 if expected_read else 403)

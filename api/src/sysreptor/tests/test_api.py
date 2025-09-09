@@ -20,8 +20,10 @@ from sysreptor.pentests.import_export import (
     export_templates,
 )
 from sysreptor.pentests.models import (
+    CommentStatus,
     FindingTemplate,
     Language,
+    NoteType,
     PentestProject,
     ProjectType,
     ProjectTypeScope,
@@ -29,13 +31,13 @@ from sysreptor.pentests.models import (
     UploadedUserNotebookFile,
     UploadedUserNotebookImage,
 )
-from sysreptor.pentests.models.project import CommentStatus
 from sysreptor.pentests.rendering.render_utils import RenderStageResult
 from sysreptor.tests.mock import (
     create_archived_project,
     create_png_file,
     create_project,
     create_project_type,
+    create_projectnotebookpage,
     create_shareinfo,
     create_template,
     create_user,
@@ -137,11 +139,13 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('projectnotebookpage export-all', lambda s, c: c.post(reverse('projectnotebookpage-export-all', kwargs={'project_pk': get_obj(s).pk}))),
             ('projectnotebookpage export-pdf', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
             ('projectnotebookpage export-pdf-multiple', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf-multiple', kwargs={'project_pk': get_obj(s).pk}), data={'notes': [get_obj(s).notes.first().note_id]})),
+            ('projectnotebookpage excalidraw', lambda s, c: c.get(reverse('projectnotebookpage-excalidraw', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.filter(type=NoteType.EXCALIDRAW).first().note_id}))),
 
             ('pentestprojecthistory project', lambda s, c: c.get(reverse('pentestprojecthistory-detail', kwargs={'project_pk': get_obj(s).pk, 'history_date': s.history_date}))),
             ('pentestprojecthistory section', lambda s, c: c.get(reverse('pentestprojecthistory-section', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).sections.first().section_id, 'history_date': s.history_date}))),
-            ('pentestprojecthistory section', lambda s, c: c.get(reverse('pentestprojecthistory-finding', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).findings.first().finding_id, 'history_date': s.history_date}))),
-            ('pentestprojecthistory section', lambda s, c: c.get(reverse('pentestprojecthistory-note', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id, 'history_date': s.history_date}))),
+            ('pentestprojecthistory finding', lambda s, c: c.get(reverse('pentestprojecthistory-finding', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).findings.first().finding_id, 'history_date': s.history_date}))),
+            ('pentestprojecthistory note', lambda s, c: c.get(reverse('pentestprojecthistory-note', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id, 'history_date': s.history_date}))),
+            ('pentestprojecthistory note-excalidraw', lambda s, c: c.get(reverse('pentestprojecthistory-note-excalidraw', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.filter(type=NoteType.EXCALIDRAW).first().note_id, 'history_date': s.history_date}))),
             ('pentestprojecthistory image-by-name', lambda s, c: c.get(reverse('pentestprojecthistory-image-by-name', kwargs={'project_pk': get_obj(s).pk, 'filename': get_obj(s).images.first().name, 'history_date': s.history_date}))),
             ('pentestprojecthistory file-by-name', lambda s, c: c.get(reverse('pentestprojecthistory-file-by-name', kwargs={'project_pk': get_obj(s).pk, 'filename': get_obj(s).files.first().name, 'history_date': s.history_date}))),
         ])
@@ -215,6 +219,7 @@ def public_urls():
         ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-image-by-name', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.images.first().name}))),
         ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-file-by-name', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.files.first().name}))),
         ('sharednote upload-image-or-file', lambda s, c: c.post(reverse('sharednote-upload-image-or-file', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
+        ('sharednote excalidraw', lambda s, c: c.get(reverse('sharednote-excalidraw', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'id': s.project.notes.filter(type=NoteType.EXCALIDRAW).first().note_id}))),
     ]
 
 
@@ -249,6 +254,7 @@ def guest_urls():
         ('usernotebookpage export-pdf-multiple', lambda s, c: c.post(reverse('usernotebookpage-export-pdf-multiple', kwargs={'pentestuser_pk': 'self'}), data={'notes': [s.current_user.notes.first().note_id] if s.current_user else []})),
         ('usernotebookpage import', lambda s, c: c.post(reverse('usernotebookpage-import', kwargs={'pentestuser_pk': 'self'}), data={'file': export_notes_archive(s.current_user)}, format='multipart')),
         ('usernotebookpage copy', lambda s, c: c.post(reverse('usernotebookpage-copy', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}), data={})),
+        ('usernotebookpage excalidraw', lambda s, c: c.get(reverse('usernotebookpage-excalidraw', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.filter(type=NoteType.EXCALIDRAW).first().note_id if s.current_user else uuid4()}))),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True, history_timeline=True),
@@ -434,11 +440,12 @@ class ApiRequestsAndPermissionsTestData:
                 members = [self.current_user]
             else:
                 members = [self.user_other]
-        p = create_project(members=members, comments=True, **kwargs)
+        p = create_project(members=members, comments=True, notes_kwargs=[{'type': NoteType.TEXT}], **kwargs)
         image_name = p.images.all().first().name
         file_name = p.files.all().first().name
         note = update(p.notes.all().first(), text=f'![](/images/name/{image_name})\n![](/files/name/{file_name})')
         create_shareinfo(note=note)
+        create_projectnotebookpage(project=p, parent=note, type=NoteType.EXCALIDRAW)
         return p
 
     @cached_property

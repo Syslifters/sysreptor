@@ -22,12 +22,14 @@ from sysreptor.pentests.import_export import (
 from sysreptor.pentests.import_export.import_export import build_tarinfo
 from sysreptor.pentests.models import (
     Language,
+    NoteType,
     PentestProject,
     ProjectType,
     SourceEnum,
     UploadedAsset,
     UploadedImage,
 )
+from sysreptor.pentests.models.files import ProjectNotebookExcalidrawFile
 from sysreptor.tests.mock import (
     create_comment,
     create_finding,
@@ -78,6 +80,7 @@ class TestImportExport:
         )
         u_note1 = create_usernotebookpage(user=self.user, title='Note 1', text='Note text 1 ![](/images/name/image-note.png)')
         create_usernotebookpage(user=self.user, parent=u_note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
+        create_usernotebookpage(user=self.user, type=NoteType.EXCALIDRAW, title='Note 2', excalidraw_data={'elements': [{'id': 'element1'}]})
 
         self.template = create_template(
             language=Language.ENGLISH_US,
@@ -113,7 +116,7 @@ class TestImportExport:
 
         self.p_note1 = create_projectnotebookpage(project=self.project, order=1, title='Note 1', text='Note text 1 ![](/images/name/image-note.png)')
         self.p_note1_1 = create_projectnotebookpage(project=self.project, parent=self.p_note1, title='Note 1.1', text='Note text 1.1 [](/files/name/file.txt)')
-        self.p_note2 = create_projectnotebookpage(project=self.project, order=2, title='Note 2', text='Note text 2')
+        self.p_note2 = create_projectnotebookpage(project=self.project, order=2, type=NoteType.EXCALIDRAW, title='Note 2', excalidraw_data={'elements': [{'id': 'element1'}]})
 
         with override_configuration(COMPRESS_IMAGES=False):
             yield
@@ -278,7 +281,7 @@ class TestImportExport:
 
         assert p.notes.count() == self.project.notes.count()
         for i, s in zip(p.notes.order_by('note_id'), self.project.notes.order_by('note_id'), strict=False):
-            assertKeysEqual(i, s, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
+            assertKeysEqual(i, s, ['note_id', 'created', 'type', 'title', 'text', 'checked', 'icon_emoji', 'order', 'excalidraw_data'])
             assert i.parent.note_id == s.parent.note_id if s.parent else i.parent is None
         assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in self.project.files.all()}
 
@@ -336,6 +339,7 @@ class TestImportExport:
         notes = list(self.project.notes.all().select_related('parent'))
         images = {(i.name, i.file.read()) for i in self.project.images.all() if self.project.is_file_referenced(i, findings=False, sections=False, notes=True)}
         files = {(f.name, f.file.read()) for f in self.project.files.all() if self.project.is_file_referenced(f, findings=False, sections=False, notes=True)}
+        excalidraw = {(n.note_id, json.dumps(n.excalidraw_data)) for n in notes}
         self.project.refresh_from_db()
         self.project.notes.all().delete()
         self.project.images.all().delete()
@@ -349,13 +353,14 @@ class TestImportExport:
             assert (i.parent.note_id if i.parent else None) == (n.parent.note_id if n.parent else None)
         assert {(i.name, i.file.read()) for i in self.project.images.all()} == images
         assert {(f.name, f.file.read()) for f in self.project.files.all()} == files
+        assert {(n.note_id, json.dumps(n.excalidraw_data)) for n in notes} == excalidraw
 
         # Import notes again: test name collission prevention
         archive.seek(0)
         imported2 = import_notes(archive, context={'project': self.project})
         assert len(imported2) == len(notes)
         for i, n in zip(sorted(imported2, key=lambda n: n.title), sorted(notes, key=lambda n: n.title), strict=False):
-            assertKeysEqual(i, n, ['title', 'checked', 'icon_emoji'])
+            assertKeysEqual(i, n, ['type', 'title', 'checked', 'icon_emoji'])
             assert i.text == self.update_references(n.text, images.union(files), list(self.project.images.all()) + list(self.project.files.all()))
             assert i.note_id != n.note_id
             if n.parent:
@@ -369,6 +374,7 @@ class TestImportExport:
         notes = list(self.user.notes.all().select_related('parent'))
         images = {(i.name, i.file.read()) for i in self.user.images.all()}
         files = {(f.name, f.file.read()) for f in self.user.files.all()}
+        excalidraw = {(n.note_id, json.dumps(n.excalidraw_data)) for n in notes}
         self.user.refresh_from_db()
         self.user.notes.all().delete()
         self.user.images.all().delete()
@@ -378,10 +384,11 @@ class TestImportExport:
         imported = import_notes(archive, context={'user': self.user})
         assert len(imported) == len(notes)
         for i, n in zip(sorted(imported, key=lambda n: n.title), sorted(notes, key=lambda n: n.title), strict=False):
-            assertKeysEqual(i, n, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
+            assertKeysEqual(i, n, ['note_id', 'created', 'type', 'title', 'text', 'checked', 'icon_emoji', 'order'])
             assert (i.parent.note_id if i.parent else None) == (n.parent.note_id if n.parent else None)
         assert {(i.name, i.file.read()) for i in self.user.images.all()} == images
         assert {(f.name, f.file.read()) for f in self.user.files.all()} == files
+        assert {(n.note_id, json.dumps(n.excalidraw_data)) for n in notes} == excalidraw
 
         # Import notes again: test name collission prevention
         archive.seek(0)
@@ -448,6 +455,7 @@ class TestImportExport:
         assertKeysEqual(imported[1], self.p_note2, ['note_id', 'created', 'title', 'text', 'checked', 'icon_emoji', 'order'])
         assert imported[0].parent is None
         assert imported[1].parent is None
+        assert imported[1].excalidraw_data == self.p_note2.excalidraw_data
         assert {(i.name, i.file.read()) for i in self.project.images.all()} == set()
         assert {(f.name, f.file.read()) for f in self.project.files.all()} == files
 
@@ -624,6 +632,15 @@ class TestCopyModel:
                 assert p_n.parent != cp_n.parent
             else:
                 assert cp_n.parent is None
+
+        for p_x, cp_x in zip(
+            ProjectNotebookExcalidrawFile.objects.filter(linked_object__project=p).order_by('linked_object__note_id'),
+            ProjectNotebookExcalidrawFile.objects.filter(linked_object__project=cp).order_by('linked_object__note_id'), strict=False,
+        ):
+            assert p_x != cp_x
+            assert p_x.linked_object != cp_x.linked_object
+            assert p_x.linked_object.note_id == cp_x.linked_object.note_id
+            assert p_x.file.read() == cp_x.file.read()
 
     def test_copy_project_type(self):
         user = create_user()

@@ -1,4 +1,5 @@
 import contextlib
+import json
 import random
 from datetime import datetime, timedelta
 from unittest import mock
@@ -30,10 +31,12 @@ from sysreptor.pentests.models import (
     FindingTemplate,
     FindingTemplateTranslation,
     Language,
+    NoteType,
     PentestFinding,
     PentestProject,
     ProjectMemberInfo,
     ProjectMemberRole,
+    ProjectNotebookExcalidrawFile,
     ProjectNotebookPage,
     ProjectType,
     ReviewStatus,
@@ -44,6 +47,7 @@ from sysreptor.pentests.models import (
     UploadedTemplateImage,
     UploadedUserNotebookFile,
     UploadedUserNotebookImage,
+    UserNotebookExcalidrawFile,
     UserNotebookPage,
     UserPublicKey,
 )
@@ -85,7 +89,7 @@ def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, 
     if public_key:
         create_public_key(user=user)
 
-    for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}]:
+    for note_kwargs in notes_kwargs if notes_kwargs is not None else [{'type': NoteType.TEXT}, {'type': NoteType.EXCALIDRAW}]:
         create_usernotebookpage(user=user, **note_kwargs)
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}]):
         UploadedUserNotebookImage.objects.create(linked_object=user, **{
@@ -262,22 +266,40 @@ def create_finding(project, template=None, **kwargs) -> PentestFinding:
     } | kwargs)
 
 
-def create_usernotebookpage(**kwargs) -> UserNotebookPage:
-    return UserNotebookPage.objects.create(**{
+def create_usernotebookpage(type=NoteType.TEXT, excalidraw_data=None, **kwargs) -> UserNotebookPage:
+    note = UserNotebookPage.objects.create(**{
+        'type': type,
         'title': f'Note #{get_random_string(8)}',
         'text': 'Note text',
         'checked': random.choice([None, True, False]),  # noqa: S311
         'icon_emoji': random.choice([None, '🦖']),  # noqa: S311,
     } | kwargs)
 
+    if type == NoteType.EXCALIDRAW:
+        UserNotebookExcalidrawFile.objects.create(
+            linked_object=note,
+            file=SimpleUploadedFile(content=json.dumps(excalidraw_data or {"elements": []}).encode(), name='excalidraw.json'),
+        )
 
-def create_projectnotebookpage(**kwargs) -> ProjectNotebookPage:
-    return ProjectNotebookPage.objects.create(**{
+    return note
+
+
+def create_projectnotebookpage(type=NoteType.TEXT, excalidraw_data=None, **kwargs) -> ProjectNotebookPage:
+    note = ProjectNotebookPage.objects.create(**{
+        'type': type,
         'title': f'Note #{get_random_string(8)}',
         'text': 'Note text',
         'checked': random.choice([None, True, False]),  # noqa: S311
         'icon_emoji': random.choice([None, '🦖']),  # noqa: S311,
     } | kwargs)
+
+    if type == NoteType.EXCALIDRAW:
+        ProjectNotebookExcalidrawFile.objects.create(
+            linked_object=note,
+            file=SimpleUploadedFile(content=json.dumps(excalidraw_data or {"elements": []}).encode(), name='excalidraw.json'),
+        )
+
+    return note
 
 
 def create_shareinfo(note, **kwargs):
@@ -337,7 +359,7 @@ def create_project(project_type=None, members=None, report_data=None, findings_k
     if notes_kwargs is not None:
         # Delete default notes
         project.notes.all().delete()
-    for note_kwargs in notes_kwargs if notes_kwargs is not None else [{}] * 1:
+    for note_kwargs in notes_kwargs if notes_kwargs is not None else [{'type': NoteType.TEXT}, {'type': NoteType.EXCALIDRAW}]:
         create_projectnotebookpage(project=project, **note_kwargs)
 
     for idx, image_kwargs in enumerate(images_kwargs if images_kwargs is not None else [{}] * 1):

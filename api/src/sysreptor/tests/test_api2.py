@@ -12,6 +12,7 @@ from sysreptor.pentests.models import (
     FindingTemplate,
     FindingTemplateTranslation,
     Language,
+    NoteType,
     ProjectType,
     ProjectTypeScope,
     ReviewStatus,
@@ -639,3 +640,24 @@ class TestNotesApi:
         note_id = self.user.notes.first().note_id
         cp = self.client.post(reverse('usernotebookpage-copy', kwargs={'pentestuser_pk': 'self', 'id': note_id})).json()
         assert cp['id'] != str(note_id)
+
+    def test_excalidraw_note(self):
+        excalidraw_data = {'elements': [{'id': 'e1', 'type': 'rectangle', 'x': 0, 'y': 0}]}
+        res = self.client.post(reverse('usernotebookpage-list', kwargs={'pentestuser_pk': 'self'}), data={
+            'type': NoteType.EXCALIDRAW,
+            'excalidraw_data': excalidraw_data,
+        })
+        assert res.status_code == 201, res.data
+        assert res.data['type'] == NoteType.EXCALIDRAW
+        note_id = res.data['id']
+        res = self.client.get(reverse('usernotebookpage-excalidraw', kwargs={'pentestuser_pk': 'self', 'id': note_id}))
+        assert res.data == excalidraw_data
+
+        excalidraw_data['elements'] += [{'id': 'e2', 'type': 'rectangle', 'x': 10, 'y': 10}]
+        res = self.client.patch(reverse('usernotebookpage-detail', kwargs={'pentestuser_pk': 'self', 'id': note_id}), data={
+            'excalidraw_data': excalidraw_data,
+        })
+        assert res.status_code == 200, res
+        assert res.data['type'] == NoteType.EXCALIDRAW
+        res = self.client.get(reverse('usernotebookpage-excalidraw', kwargs={'pentestuser_pk': 'self', 'id': note_id}))
+        assert res.data == excalidraw_data

@@ -18,7 +18,7 @@ from sysreptor.api_utils.backup_utils import destroy_database
 from sysreptor.api_utils.models import BackupLog, BackupLogType, DbConfigurationEntry
 from sysreptor.management.commands import restorebackup
 from sysreptor.notifications.models import RemoteNotificationSpec
-from sysreptor.pentests.models import UploadedImage
+from sysreptor.pentests.models import NoteType, UploadedImage
 from sysreptor.pentests.models.collab import CollabClientInfo, CollabEvent
 from sysreptor.pentests.models.common import LockInfo
 from sysreptor.tests.mock import (
@@ -124,8 +124,10 @@ class TestBackup:
             self.assert_backup_file(backup, z, 'uploadedimages', self.template.images.all().first())
             self.assert_backup_file(backup, z, 'uploadedimages', self.image_history_only)
             self.assert_backup_file(backup, z, 'uploadedassets', self.project_type.assets.all().first())
-            self.assert_backup_file(backup, z, 'uploadedfiles', self.project.files.first())
+            self.assert_backup_file(backup, z, 'uploadedfiles', self.project.files.all().first())
             self.assert_backup_file(backup, z, 'uploadedfiles', self.user.files.all().first())
+            self.assert_backup_file(backup, z, 'uploadedfiles', self.project.notes.filter(type=NoteType.EXCALIDRAW).first().excalidraw_file)
+            self.assert_backup_file(backup, z, 'uploadedfiles', self.user.notes.filter(type=NoteType.EXCALIDRAW).first().excalidraw_file)
             self.assert_backup_file(backup, z, 'archivedfiles', self.archived_project, stored_encrypted=True)
 
     def backup_request(self, user=None, backup_key=None, aes_key=None):
