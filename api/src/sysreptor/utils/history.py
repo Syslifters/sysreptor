@@ -192,6 +192,17 @@ def bulk_create_history(model, objs, history_type=None, history_date=None, histo
         historical_records.append(historical_obj)
     model.history.bulk_create(historical_records)
 
+    for obj in objs:
+        history_signals.post_create_historical_record.send(
+            sender=model.history.model,
+            instance=obj,
+            history_instance=historical_obj,
+            history_date=historical_obj.history_date,
+            history_user=historical_obj.history_user,
+            history_change_reason=historical_obj.history_change_reason,
+            using=None,
+        )
+
 
 @contextmanager
 def history_context(override_existing=False, history_date=None, **kwargs):

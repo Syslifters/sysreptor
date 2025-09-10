@@ -16,7 +16,7 @@
               v-if="note.checked === null"
               :model-value="note.icon_emoji"
               @update:model-value="updateKey('icon_emoji', $event)"
-              :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
+              :empty-icon="hasChildNotes ? 'mdi-folder-outline' : note.type === NoteType.EXCALIDRAW ? 'mdi-drawing' : 'mdi-note-text-outline'"
               :readonly="readonly"
               density="comfortable"
             />

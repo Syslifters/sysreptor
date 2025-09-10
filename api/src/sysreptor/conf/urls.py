@@ -177,14 +177,10 @@ urlpatterns = [
     ])),
 
     # Websocket HTTP fallback
-    # TODO: do we need excalidraw fallback consumers? => they are always readonly, we can use regular API URLs too in frontend
     path('api/ws/pentestprojects/<uuid:project_pk>/reporting/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectReportingConsumer), name='projectreporting-fallback'),
     path('api/ws/pentestprojects/<uuid:project_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectNotesConsumer), name='projectnotebookpage-fallback'),
-    path('api/ws/pentestprojects/<uuid:project_pk>/notes/<uuid:note_id>/excalidraw/fallback/', ReadonlyConsumerHttpFallbackView.as_view(consumer_class=ProjectNoteExcalidrawConsumer), name='projectnoteexcalidraw-fallback'),
     path('api/ws/pentestusers/<str:pentestuser_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=UserNotesConsumer), name='usernotebookpage-fallback'),
-    path('api/ws/pentestusers/<str:pentestuser_pk>/notes/<uuid:note_id>/excalidraw/fallback/', ReadonlyConsumerHttpFallbackView.as_view(consumer_class=UserNoteExcalidrawConsumer), name='usernoteexcalidraw-fallback'),
     path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=SharedProjectNotesPublicConsumer), name='sharednote-fallback'),
-    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/<uuid:note_id>/excalidraw/', ReadonlyConsumerHttpFallbackView.as_view(consumer_class=SharedProjectNoteExcalidrawConsumer.as_asgi()), name='sharednoteexcalidraw-fallback'),
 
     # Static files
     path('robots.txt', lambda *args, **kwargs: HttpResponse("User-Agent: *\nDisallow: /\n", content_type="text/plain")),

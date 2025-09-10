@@ -15,7 +15,7 @@
             <s-emoji-picker-field
               v-if="note.checked === null"
               v-model="note.icon_emoji"
-              :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
+              :empty-icon="hasChildNotes ? 'mdi-folder-outline' : note.type === NoteType.EXCALIDRAW ? 'mdi-drawing' : 'mdi-note-text-outline'"
               :readonly="true"
               density="comfortable"
             />
@@ -55,7 +55,15 @@
         :current-url="currentUrl"
       />
         
-      <markdown-diff-page v-bind="markdownPageAttrs" />
+      <markdown-diff-page
+        v-if="note.type === NoteType.TEXT"
+        v-bind="markdownPageAttrs" 
+      />
+      <notes-excalidraw
+        v-else-if="note.type === NoteType.EXCALIDRAW"
+        :api-url="`/api/v1/pentestprojects/${route.params.projectId}/history/${route.params.historyDate}/notes/${route.params.noteId}/excalidraw/`"
+        :readonly="true"
+      />
     </template>
   </full-height-page>
 </template>
