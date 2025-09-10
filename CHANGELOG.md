@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.74 - 2025-09-10
 * Plugin `scanimport`: Import scan results from various tools
 * Fix date field empty value not saved as null
 * Fix outbound connection established during PDF rendering
