@@ -16,7 +16,7 @@ export const highlightTodos = ViewPlugin.fromClass(class {
 
   updateDecorations(view: EditorView) {
     const builder = new RangeSetBuilder<Decoration>();
-    for (const m of view.state.doc.toString().matchAll(/(TODO|To-Do)/gi)) {
+    for (const m of view.state.doc.toString().matchAll(/(TODO|ToDo|TO-DO|To-Do)/g)) {
       builder.add(m.index!, m.index! + m[0].length, decorationTodo);
     }
     this.decorations = builder.finish();

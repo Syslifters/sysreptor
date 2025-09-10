@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Case sensitive todo marker parsing
+
+
 ## v2025.74 - 2025-09-10
 * Plugin `scanimport`: Import scan results from various tools
 * Fix date field empty value not saved as null
