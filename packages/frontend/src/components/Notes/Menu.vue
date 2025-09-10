@@ -113,18 +113,11 @@
       <div>
         <v-divider />
         <v-list-item>
-          <btn-confirm
+          <notes-create-button
             ref="createNoteBtnRef"
-            :action="props.createNote!"
+            :create-note="props.createNote!"
             :disabled="!canCreate"
-            :confirm="false"
-            data-testid="create-note"
-            button-text="Add"
-            button-icon="mdi-plus"
-            tooltip-text="Add Note (Ctrl+J)"
-            keyboard-shortcut="ctrl+j"
-            size="small"
-            block
+            :prevent-create-excalidraw="props.preventCreateExcalidraw"
           />
         </v-list-item>
       </div>
@@ -137,7 +130,7 @@ const search = defineModel<string|null>('search');
 const props = defineProps<{
   title?: string;
   readonly?: boolean;
-  createNote?: () => Promise<void>;
+  createNote?: (data?: Partial<NoteBase>) => Promise<void>;
   exportUrl?: string;
   exportName?: string;
   exportPdfUrl?: string;
@@ -145,6 +138,7 @@ const props = defineProps<{
   performImport?: (file: File) => Promise<void>;
   performDelete?: (note: NoteBase) => (Promise<void>|void);
   performCopy?: (note: NoteBase) => (Promise<void>);
+  preventCreateExcalidraw?: boolean;
 }>();
 
 const importBtnRef = useTemplateRef('importBtnRef');

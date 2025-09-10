@@ -45,3 +45,7 @@ test/e2e/demodata/
 !src/public/static/pdfviewer/dist/
 src/public/static/pdfviewer/dist/**/*
 !src/public/static/pdfviewer/dist/.gitkeep
+
+!src/public/static/excalidraw/dist/
+src/public/static/excalidraw/dist/**/*
+!src/public/static/excalidraw/dist/.gitkeep

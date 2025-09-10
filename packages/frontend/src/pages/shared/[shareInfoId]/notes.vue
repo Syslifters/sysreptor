@@ -91,7 +91,7 @@ function collabAwarenessSendNavigate() {
   });
 }
 
-async function createNote() {
+async function createNote(data?: Partial<NoteBase>) {
   let currentNote = shareInfoStore.notes.find(n => n.id === route.params.noteId) || null;
   let parentNoteId = currentNote?.parent;
   if (!parentNoteId || !shareInfoStore.notes.find(n => n.id === parentNoteId)) {
@@ -104,6 +104,7 @@ async function createNote() {
     parent: parentNoteId,
     order: (currentNote ? currentNote.order + 1 : undefined),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
+    ...data,
   })
   await navigateTo({ path: `/shared/${shareInfo.value!.id}/notes/${obj.id}/`, hash: '#title' })
 }
