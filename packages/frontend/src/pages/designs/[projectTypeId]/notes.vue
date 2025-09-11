@@ -198,5 +198,7 @@ async function selectNote(note: NoteBase|null) {
   max-height: 50vh;
   pointer-events: none;
   user-select: none;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>

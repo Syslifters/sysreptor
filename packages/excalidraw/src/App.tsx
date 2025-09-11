@@ -41,7 +41,7 @@ export default function App() {
     if (!collabRef.current || !excalidrawAPI) {
       throw new Error("Collab adapter or Excalidraw API not initialized");
     }
-    collabRef.current.connect();
+    await collabRef.current.connect();
     const res = {
       elements: reconcileElements(
         excalidrawAPI.getSceneElementsIncludingDeleted(),

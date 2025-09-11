@@ -1,6 +1,8 @@
 # Changelog
 
 ## Upcoming
+* Add excalidraw notes to SysReptor core
+* Deprecate `excalidraw` plugin
 * Case sensitive todo marker parsing
 
 
