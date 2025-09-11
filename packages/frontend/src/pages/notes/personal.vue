@@ -74,7 +74,7 @@ function collabAwarenessSendNavigate() {
   });
 }
 
-async function createNote() {
+async function createNote(data?: Partial<NoteBase>) {
   const currentNote = userNotesStore.notes.find(n => n.id === route.params.noteId);
   const obj = await userNotesStore.createNote({
     title: 'New Note',
@@ -82,6 +82,7 @@ async function createNote() {
     parent: currentNote?.parent || null,
     order: (currentNote ? currentNote.order + 1 : undefined),
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
+    ...data,
   });
   await navigateTo({ path: `/notes/personal/${obj.id}/`, hash: 'title' });
 }

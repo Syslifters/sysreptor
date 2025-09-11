@@ -15,6 +15,7 @@ COPY packages/package.json packages/package-lock.json /app/packages/
 COPY packages/frontend/package.json /app/packages/frontend/
 COPY packages/markdown/package.json /app/packages/markdown/
 COPY packages/pdfviewer/package.json /app/packages/pdfviewer/
+COPY packages/excalidraw/package.json /app/packages/excalidraw/
 COPY packages/nuxt-base-layer/package.json /app/packages/nuxt-base-layer/
 COPY packages/plugin-base-layer/package.json /app/packages/plugin-base-layer/
 COPY packages/rendering/package.json /app/packages/rendering/
@@ -29,6 +30,13 @@ FROM --platform=$BUILDPLATFORM frontend-base AS pdfviewer
 # Build JS bundle
 COPY packages/pdfviewer /app/packages/pdfviewer/
 WORKDIR /app/packages/pdfviewer/
+RUN npm run build
+
+
+FROM --platform=$BUILDPLATFORM frontend-base AS excalidraw
+# Build JS bundle
+COPY packages/excalidraw /app/packages/excalidraw/
+WORKDIR /app/packages/excalidraw/
 RUN npm run build
 
 
@@ -50,6 +58,7 @@ COPY packages/nuxt-base-layer /app/packages/nuxt-base-layer/
 COPY packages/frontend /app/packages/frontend/
 COPY api/src/sysreptor/pentests/rendering/global_assets /app/packages/frontend/src/assets/rendering/
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/nuxt-base-layer/src/public/static/pdfviewer/dist/
+COPY --from=excalidraw /app/packages/excalidraw/dist/ /app/packages/nuxt-base-layer/src/public/static/excalidraw/dist/
 # Test command
 WORKDIR /app/packages/frontend/
 CMD ["npm", "run", "test"]

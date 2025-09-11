@@ -28,3 +28,7 @@ body {
   }
 }
 
+.ToolIcon__LaserPointer {
+  display: none !important;
+}
+

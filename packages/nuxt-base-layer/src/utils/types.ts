@@ -342,10 +342,16 @@ export type PentestFinding = BaseModel & {
   data: Record<string, any>;
 };
 
+export enum NoteType {
+  TEXT = 'text',
+  EXCALIDRAW = 'excalidraw',
+}
+
 export type NoteBase = {
   id: string;
   parent: string|null;
   order: number;
+  type: NoteType;
   title: string;
   text: string;
   checked: boolean|null;

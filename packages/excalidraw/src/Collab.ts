@@ -1,10 +1,10 @@
-import { PureComponent } from "react";
+import React, { PureComponent } from "react";
 import { throttle } from "lodash-es";
 import urlJoin from "url-join";
+import { $fetch } from 'ofetch';
 
 import { 
   hashElementsVersion,
-  isInvisiblySmallElement, 
   reconcileElements, 
   restoreElements, 
   CaptureUpdateAction,
@@ -12,15 +12,17 @@ import {
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElement, OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
+import { isSyncableElement } from "./utils";
 
 
 const WS_THROTTLE_INTERVAL = 1_000;
 const WS_RESPONSE_TIMEOUT = 7_000;
 const WS_PING_INTERVAL = 30_000;
-const WS_FULL_SYNC_INTERVAL = 20_000;
+const WS_FULL_SYNC_INTERVAL = 30_000;
+const HTTP_FALLBACK_INTERVAL = 30_000;
 
 
-enum ExcalidrawCollabEventType {
+export enum ExcalidrawCollabEventType {
   INIT = 'collab.init',
   CONNECT = 'collab.connect',
   DISCONNECT = 'collab.disconnect',
@@ -29,11 +31,11 @@ enum ExcalidrawCollabEventType {
   ERROR = 'error',
 };
 
-type ExcalidrawCollabEvent = {
+export type ExcalidrawCollabEvent = {
   type: ExcalidrawCollabEventType;
   client_id?: string;
   elements?: readonly ExcalidrawElement[];
-  syncall?: boolean;
+  sync_all?: boolean;
   permissions?: {
     read: boolean;
     write: boolean;
@@ -41,24 +43,24 @@ type ExcalidrawCollabEvent = {
 }
 
 
-type WebsocketConnectionOptions = {
+export type ConnectionOptions = {
   path: string;
   onReceiveMessage: (message: ExcalidrawCollabEvent) => void;
   onDisconnect?: (event?: CloseEvent) => void;
 };
 
-class WebsocketConnection {
-  wsUrl: string;
+export class WebsocketConnection {
+  websocketUrl: string;
   websocket: WebSocket | null = null;
   pingIntervalId: number | null = null;
-  readonly options: WebsocketConnectionOptions;
+  readonly options: ConnectionOptions;
 
-  constructor(options: WebsocketConnectionOptions) {
+  constructor(options: ConnectionOptions) {
     this.options = options;
     const serverUrl = process.env.NODE_ENV === 'development' ?
       'ws://localhost:3000/' :
       `${window.location.protocol === 'http:' ? 'ws' : 'wss'}://${window.location.host}/`;
-    this.wsUrl = urlJoin(serverUrl, options.path);
+    this.websocketUrl = urlJoin(serverUrl, options.path);
   }
 
   async connect() {
@@ -68,7 +70,7 @@ class WebsocketConnection {
         return;
       }
 
-      this.websocket = new WebSocket(this.wsUrl);
+      this.websocket = new WebSocket(this.websocketUrl);
       this.websocket.addEventListener('open', () => {
         this.pingIntervalId = window.setInterval(() => this.sendPing(), WS_PING_INTERVAL);
       });
@@ -135,19 +137,75 @@ class WebsocketConnection {
 }
 
 
+export class HttpFallbackReadonlyConnection {
+  apiUrl: string;
+  fetchIntervalId: number | null = null;
+  readonly options: ConnectionOptions;
+
+  constructor(options: ConnectionOptions) {
+    this.options = options;
+    const serverUrl = process.env.NODE_ENV === 'development' ?
+      'http://localhost:3000/' :
+      `${window.location.protocol}//${window.location.host}/`;
+    this.apiUrl = urlJoin(serverUrl, options.path);
+  }
+
+  async connect() {
+    try {
+      // Initial connection to get INIT event
+      this.refreshData();
+
+      // Start polling for updates
+      this.fetchIntervalId = window.setInterval(() => this.refreshData(), HTTP_FALLBACK_INTERVAL);
+    } catch (error) {
+      this.options.onDisconnect?.();
+      throw error;
+    }
+  }
+
+  async refreshData() {
+    const data = await $fetch(this.apiUrl, { method: 'GET' });
+    this.options.onReceiveMessage({
+      type: ExcalidrawCollabEventType.UPDATE,
+      elements: data.elements,
+      sync_all: true,
+      permissions: {
+        read: true,
+        write: false,
+      },
+    });
+  }
+
+  async disconnect() {
+    if (this.fetchIntervalId) {
+      window.clearInterval(this.fetchIntervalId);
+      this.fetchIntervalId = null;
+    }
+    this.options.onDisconnect?.();
+  }
+
+  send(msg: ExcalidrawCollabEvent) {
+    // Not supported
+  }
+}
+
+
 interface CollabProps {
   excalidrawAPI: ExcalidrawImperativeAPI;
-  path: string;
+    params: {
+    apiUrl?: string|null;
+    websocketUrl?: string|null;
+  };
   onConnectionChange?: (isConnected: boolean) => void;
   onReadonlyChange?: (isReadonly: boolean) => void;
 };
 
-export class SysreptorCollab extends PureComponent<CollabProps> {
+export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
   excalidrawAPI: ExcalidrawImperativeAPI;
-  path: string;
+  params: CollabProps['params'];
 
   clientId: string | null = null;
-  connection: WebsocketConnection | null = null;
+  connection: WebsocketConnection | HttpFallbackReadonlyConnection | null = null;
   lastUpdateVersion: number = 0;
   lastSyncAllVersion: number = 0;
   broadcastedElementVersions = new Map<string, number>();
@@ -155,26 +213,23 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
   constructor(props: CollabProps) {
     super(props);
     this.excalidrawAPI = props.excalidrawAPI;
-    this.path = props.path;
+    this.params = props.params;
   }
 
   componentDidMount(): void {
-    window.addEventListener('beforeunload', this.onBeforeUnload.bind(this));
-    window.addEventListener('unload', this.onUnload.bind(this));
+    window.addEventListener('visibilitychange', this.onLeavePage.bind(this));
   }
 
   componentWillUnmount(): void {
-    this.connection?.disconnect();
-    window.removeEventListener('beforeunload', this.onBeforeUnload);
-    window.removeEventListener('unload', this.onUnload);
-  }
-
-  private onBeforeUnload() {
     this.syncElements({ syncAll: true });
+    this.connection?.disconnect();
+    window.removeEventListener('visibilitychange', this.onLeavePage);
   }
 
-  private onUnload() {
-    this.connection?.disconnect();
+  private onLeavePage() {
+    if (document.visibilityState === 'hidden') {
+      this.syncElements({ syncAll: true });
+    }
   }
 
   syncElements(options: { elements?: readonly OrderedExcalidrawElement[], syncAll?: boolean }) {
@@ -198,7 +253,7 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
     this.connection?.send({
       type: ExcalidrawCollabEventType.UPDATE,
       elements: syncableElements,
-      syncall: options?.syncAll,
+      sync_all: options?.syncAll,
     });
 
     // Update versions
@@ -224,6 +279,37 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
     this.syncElements({ syncAll: true });
   }, WS_FULL_SYNC_INTERVAL, { leading: false, trailing: true });
 
+  async onReceiveMessage(msg: ExcalidrawCollabEvent) {
+    try {
+      if (msg.type === ExcalidrawCollabEventType.INIT) {
+        this.clientId = msg.client_id!;
+        this.handleRemoteSceneUpdate(msg.elements!);
+        // Notify connection is established
+        this.props.onConnectionChange?.(true);
+        this.props.onReadonlyChange?.(!msg.permissions!.write)
+      } else if (msg.type === ExcalidrawCollabEventType.UPDATE) {
+        this.handleRemoteSceneUpdate(msg.elements!);
+        if (msg.sync_all) {
+          this.lastUpdateVersion = hashElementsVersion(msg.elements!);
+        }
+      } else if (msg.type === ExcalidrawCollabEventType.CONNECT) {
+        // Send current scene to new client
+        if (this.clientId !== msg.client_id) {
+          this.syncElements({ syncAll: true });
+        }
+      } else if ([ExcalidrawCollabEventType.PING, ExcalidrawCollabEventType.DISCONNECT].includes(msg.type)) {
+        // Do nothing
+      } else if (msg.type === ExcalidrawCollabEventType.ERROR) {
+        // eslint-disable-next-line no-console
+        console.error('Received error from websocket:', msg);
+      } else {
+        throw new Error(`Unknown message type: ${msg.type}`);
+      }
+    } catch (error) {
+      this.handleCollabError(msg, error);
+    }
+  }
+
   async connect() {
     // Reset state
     this.clientId = null;
@@ -231,52 +317,39 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
     this.lastSyncAllVersion = 0;
     this.broadcastedElementVersions.clear();
 
-    const connection = this.connection = new WebsocketConnection({
-      path: this.path,
-      onReceiveMessage: (msg) => {
-        try {
-          if (msg.type === ExcalidrawCollabEventType.INIT) {
-            this.clientId = msg.client_id!;
-            this.handleRemoteSceneUpdate(msg.elements!);
-            // Notify connection is established
-            this.props.onConnectionChange?.(true);
-            this.props.onReadonlyChange?.(!msg.permissions!.write)
-          } else if (msg.type === ExcalidrawCollabEventType.UPDATE) {
-            this.handleRemoteSceneUpdate(msg.elements!);
-            if (msg.syncall) {
-              this.lastUpdateVersion = hashElementsVersion(msg.elements!);
+    if (this.params.websocketUrl) {
+      try {
+        const wsConnection = this.connection = new WebsocketConnection({
+          path: this.params.websocketUrl,
+          onReceiveMessage: msg => this.onReceiveMessage(msg),
+          onDisconnect: (event) => {
+            if (this.connection === wsConnection) {
+              this.connection = null;
+              this.clientId = null;
+              this.lastUpdateVersion = 0;
+              this.lastSyncAllVersion = 0;
+              this.broadcastedElementVersions.clear();
+              this.syncAllElementsThrottled.cancel();
+              // Notify connection loss
+              this.props.onConnectionChange?.(false);
             }
-          } else if (msg.type === ExcalidrawCollabEventType.CONNECT) {
-            // Send current scene to new client
-            if (this.clientId !== msg.client_id) {
-              this.syncElements({ syncAll: true });
-            }
-          } else if ([ExcalidrawCollabEventType.PING, ExcalidrawCollabEventType.DISCONNECT].includes(msg.type)) {
-            // Do nothing
-          } else if (msg.type === ExcalidrawCollabEventType.ERROR) {
-            // eslint-disable-next-line no-console
-            console.error('Received error from websocket:', msg);
-          } else {
-            throw new Error(`Unknown message type: ${msg.type}`);
-          }
-        } catch (error) {
-          this.handleCollabError(msg, error);
-        }
-      },
-      onDisconnect: (event) => {
-        if (this.connection === connection) {
-          this.connection = null;
-          this.clientId = null;
-          this.lastUpdateVersion = 0;
-          this.lastSyncAllVersion = 0;
-          this.broadcastedElementVersions.clear();
-          this.syncAllElementsThrottled.cancel();
-          // Notify connection loss
-          this.props.onConnectionChange?.(false);
-        }
-      },
-    });
-    return await connection.connect();
+          },
+        });
+        return await wsConnection.connect();
+      } catch (error) {
+        console.error('Error connecting to websocket:', error);
+      }
+    }
+
+    if (this.params.apiUrl) {
+      const apiConnection = this.connection = new HttpFallbackReadonlyConnection({
+        path: this.params.apiUrl,
+        onReceiveMessage: msg => this.onReceiveMessage(msg),
+      });
+      return await apiConnection.connect();
+    }
+
+    throw new Error('Could not establish connection');
   }
 
   private handleRemoteSceneUpdate(remoteElements: readonly ExcalidrawElement[]) {
@@ -304,17 +377,6 @@ export class SysreptorCollab extends PureComponent<CollabProps> {
   }
 
   render() {
-    return (<></>);
+    return React.createElement(React.Fragment);
   }
-}
-
-
-function isSyncableElement(element: OrderedExcalidrawElement): boolean {
-  if (element.isDeleted) {
-    if (element.updated > Date.now() - 24 * 60 * 60 * 1000) {
-      return true;
-    }
-    return false;
-  }
-  return !isInvisiblySmallElement(element);
 }

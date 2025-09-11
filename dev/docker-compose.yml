@@ -111,6 +111,19 @@ services:
     depends_on:
       frontend-setup:
         condition: service_completed_successfully
+  excalidraw-builder:
+    build: 
+      context: ..
+      target: frontend-dev
+    command: npm run --workspace=excalidraw build-watch
+    init: true
+    volumes:
+      - type: bind
+        source: ../packages/
+        target: /app/packages/
+    depends_on:
+      frontend-setup:
+        condition: service_completed_successfully
   rendering-builder:
     build: 
       context: ..
@@ -230,6 +243,9 @@ services:
       - type: bind
         source: ../packages/pdfviewer/
         target: /app/packages/nuxt-base-layer/src/public/static/pdfviewer/
+      - type: bind
+        source: ../packages/excalidraw/
+        target: /app/packages/frontend/src/public/static/excalidraw/
       - type: bind
         source: ../api/src/sysreptor/pentests/rendering/global_assets/
         target: /app/packages/frontend/src/assets/rendering/

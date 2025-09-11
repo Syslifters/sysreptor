@@ -8,6 +8,7 @@
           :perform-delete="deleteNote"
           :selected-notes="noteTreeRef?.selectedNotes"
           :readonly="readonly"
+          :prevent-create-excalidraw="true"
         >
           <notes-sortable-tree
             ref="noteTreeRef"
@@ -116,7 +117,7 @@ const noteTreeRef = useTemplateRef('noteTreeRef');
 const form = useTemplateRef('form');
 const titleRef = useTemplateRef('titleRef');
 const textRef = useTemplateRef('textRef');
-async function createNote() {
+async function createNote(data?: Partial<NoteBase>) {
   const newNote = {
     id: uuidv4(),
     parent: null,
@@ -125,6 +126,8 @@ async function createNote() {
     icon_emoji: null,
     title: 'New Note',
     text: '',
+    ...data,
+    type: NoteType.TEXT,
   } as NoteBase;
 
   if (currentNote.value) {
@@ -195,5 +198,7 @@ async function selectNote(note: NoteBase|null) {
   max-height: 50vh;
   pointer-events: none;
   user-select: none;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>

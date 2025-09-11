@@ -44,6 +44,7 @@
             <v-icon v-else-if="note.checked === false" @click.stop.prevent="updateChecked(note, true)" size="small" class="text-disabled" icon="mdi-checkbox-blank-outline" />
             <s-emoji v-else-if="note.icon_emoji" :value="note.icon_emoji" size="small" class="emoji-icon" />
             <v-icon v-else-if="stat.children.length > 0" size="small" class="text-disabled" icon="mdi-folder-outline" />
+            <v-icon v-else-if="note.type === NoteType.EXCALIDRAW" size="small" class="text-disabled" icon="mdi-drawing" />
             <v-icon v-else size="small" class="text-disabled" icon="mdi-note-text-outline" />
           </div>
         </template>

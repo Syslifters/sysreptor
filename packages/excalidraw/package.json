@@ -1,10 +1,11 @@
 {
-  "name": "@sysreptor/plugin-excalidraw-frontend",
+  "name": "@sysreptor/excalidraw",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "generate": "vite build",
+    "build": "vite build",
+    "build-watch": "vite build --watch",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

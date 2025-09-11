@@ -84,7 +84,12 @@ export default defineNuxtConfig({
           target: 'http://api:8000',
           changeOrigin: false,
           bypass(req) {
-            if (['/static/logo.svg', '/static/logo-text.svg', '/static/favicon.ico'].includes(req.url!) || req.url!.startsWith('/static/pdfviewer/')) {
+            const bypassPaths = [
+              '/static/logo.svg', '/static/logo-text.svg', '/static/favicon.ico', 
+              '/static/pdfviewer/', '/static/excalidraw/',
+            ]
+            if (bypassPaths.some(path => req.url!.startsWith(path))
+            ) {
               return req.url;
             }
           },

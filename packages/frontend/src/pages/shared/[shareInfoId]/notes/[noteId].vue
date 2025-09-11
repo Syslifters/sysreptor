@@ -16,7 +16,7 @@
               v-if="note.checked === null"
               :model-value="note.icon_emoji"
               @update:model-value="updateKey('icon_emoji', $event)"
-              :empty-icon="hasChildNotes ? 'mdi-folder-outline' : 'mdi-note-text-outline'"
+              :empty-icon="hasChildNotes ? 'mdi-folder-outline' : note.type === NoteType.EXCALIDRAW ? 'mdi-drawing' : 'mdi-note-text-outline'"
               :readonly="readonly"
               density="comfortable"
             />
@@ -35,11 +35,18 @@
     </template>
     <template #default>
       <markdown-page
+        v-if="note.type === NoteType.TEXT"
         id="text"
         :model-value="note.text"
         :collab="collabPropsText"
         @collab="notesCollab.onCollabEvent"
         v-bind="inputFieldAttrs"
+      />
+      <notes-excalidraw
+        v-else-if="note.type === NoteType.EXCALIDRAW"
+        :websocket-url="`api/public/ws/shareinfos/${route.params.shareInfoId}/notes/${route.params.noteId}/excalidraw/`"
+        :api-url="`api/public/shareinfos/${route.params.shareInfoId}/notes/${route.params.noteId}/excalidraw/`"
+        :readonly="readonly"
       />
     </template>
   </full-height-page>

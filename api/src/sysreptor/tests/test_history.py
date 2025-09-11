@@ -22,6 +22,8 @@ from sysreptor.pentests.models import (
     FindingTemplate,
     FindingTemplateTranslation,
     Language,
+    NoteType,
+    ProjectNotebookExcalidrawFile,
     ProjectType,
     ReviewStatus,
     UploadedTemplateImage,
@@ -440,6 +442,7 @@ class TestProjectHistory:
         assert ProjectMemberInfo.history.filter(project_id=pid).count() == 0
         assert UploadedImage.history.filter(linked_object_id=pid).count() == 0
         assert UploadedAsset.history.filter(linked_object_id=pid).count() == 0
+        assert ProjectNotebookExcalidrawFile.history.filter(linked_object__project_id=pid).count() == 0
 
     def test_change_project_type(self):
         p = create_project(members=[self.user])
@@ -490,6 +493,7 @@ class TestProjectHistory:
                 'findings': [self.client.get(reverse('finding-detail', kwargs={'project_pk': p.id, 'id': f.finding_id})).data for f in p.findings.all()],
                 'sections': [self.client.get(reverse('section-detail', kwargs={'project_pk': p.id, 'id': s.section_id})).data for s in p.sections.all()],
                 'notes': [self.client.get(reverse('projectnotebookpage-detail', kwargs={'project_pk': p.id, 'id': n.note_id})).data for n in p.notes.all()],
+                'excalidraw': {n.note_id: self.client.get(reverse('projectnotebookpage-excalidraw', kwargs={'project_pk': p.id, 'id': n.note_id})).data for n in p.notes.filter(type=NoteType.EXCALIDRAW)},
                 'images': {i.name: i.file.read() for i in p.images.all()},
                 'files': {f.name: f.file.read() for f in p.images.all()},
             })
@@ -515,7 +519,17 @@ class TestProjectHistory:
         n = create_projectnotebookpage(project=p, title='title', text='text')
         add_history_test()
         # Update note
-        update(n, title='new title', assignee=self.user)
+        update(n, title='new title', text='new text', assignee=self.user)
+        add_history_test()
+        # Delete note
+        n.delete()
+        add_history_test()
+
+        # Create excalidraw note
+        n = create_projectnotebookpage(project=p, type=NoteType.EXCALIDRAW, title='excalidraw', excalidraw_data=[{'elements': [{'id': 'element1'}]}])
+        add_history_test()
+        # Update excalidraw data
+        n.update_excalidraw_data({'elements': [{'id': 'element1'}, {'id': 'element2'}]})
         add_history_test()
         # Delete note
         n.delete()
@@ -572,6 +586,9 @@ class TestProjectHistory:
             for nh in h['notes']:
                 res_n = self.client.get(reverse('pentestprojecthistory-note', kwargs=url_kwargs | {'id': nh['id']}))
                 assert omit_keys(res_n.data, ['updated']) == omit_keys(nh, ['updated'])
+            for note_id, eh in h['excalidraw'].items():
+                res_e = self.client.get(reverse('pentestprojecthistory-note-excalidraw', kwargs=url_kwargs | {'id': note_id}))
+                assert res_e.data == eh
             for name, content in h['images'].items():
                 res_i = self.client.get(reverse('pentestprojecthistory-image-by-name', kwargs=url_kwargs | {'filename': name}))
                 assert b''.join(iter(res_i)) == content

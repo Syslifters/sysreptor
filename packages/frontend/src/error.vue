@@ -78,5 +78,7 @@ h1 {
   width: 25rem;
   pointer-events: none;
   user-select: none;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>

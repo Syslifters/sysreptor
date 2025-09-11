@@ -17,7 +17,6 @@ Official plugins are maintained by the SysReptor team and are shipped inside off
 | ------ | ----------- | --- |
 | [cyberchef](https://github.com/Syslifters/sysreptor/tree/main/plugins/cyberchef) | CyberChef integration | |
 | [graphqlvoyager](https://github.com/Syslifters/sysreptor/tree/main/plugins/graphqlvoyager) | GraphQL Voyager integration | |
-| [excalidraw](https://github.com/Syslifters/sysreptor/tree/main/plugins/excalidraw) | Excalidraw integration | |
 | [checkthehash](https://github.com/Syslifters/sysreptor/tree/main/plugins/checkthehash) | Hash identifier | |
 | [customizetheme](https://github.com/Syslifters/sysreptor/tree/main/plugins/customizetheme) | Customize UI themes per instance | |
 | [demoplugin](https://github.com/Syslifters/sysreptor/tree/main/plugins/demoplugin) | A demo plugin that demonstrates the plugin system | |

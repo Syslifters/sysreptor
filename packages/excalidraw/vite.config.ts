@@ -5,19 +5,22 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 // https://vitejs.dev/config/
 export default defineConfig({
   base: './',
-  build: {
-    outDir: '../static',
-    emptyOutDir: true,
-  },
   plugins: [
     react(),
     viteStaticCopy({
       targets: [
         {
-          src: '../../node_modules/@excalidraw/excalidraw/dist/prod/fonts/',
+          src: '../node_modules/@excalidraw/excalidraw/dist/prod/fonts/',
           dest: '',
         }
       ]
     }),
   ],
+  optimizeDeps: {
+    esbuildOptions: {
+      target: "es2022",
+      treeShaking: true,
+    },
+  },
 })
+

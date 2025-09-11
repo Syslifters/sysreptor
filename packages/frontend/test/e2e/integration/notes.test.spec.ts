@@ -11,7 +11,7 @@ test('A User can create, write and delete a Note', async ({ page }) => {
   await page.getByTestId('project-notes-tab').click();
 
   // Create a Note
-  await page.getByTestId('create-note').click();
+  await page.getByTestId('create-note-button').click();
 
   await page.getByTestId('note-title').getByRole('textbox').fill(noteTitle);
 

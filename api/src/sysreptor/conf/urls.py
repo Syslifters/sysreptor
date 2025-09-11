@@ -19,11 +19,14 @@ from sysreptor.api_utils.views import (
 )
 from sysreptor.conf import plugins
 from sysreptor.notifications.views import UserNotificationViewSet
-from sysreptor.pentests.collab.fallback import ConsumerHttpFallbackView
+from sysreptor.pentests.collab.fallback import ConsumerHttpFallbackView, ReadonlyConsumerHttpFallbackView
 from sysreptor.pentests.consumers import (
+    ProjectNoteExcalidrawConsumer,
     ProjectNotesConsumer,
     ProjectReportingConsumer,
+    SharedProjectNoteExcalidrawConsumer,
     SharedProjectNotesPublicConsumer,
+    UserNoteExcalidrawConsumer,
     UserNotesConsumer,
 )
 from sysreptor.pentests.views import (
@@ -191,8 +194,11 @@ urlpatterns = [
 websocket_urlpatterns = [
     path('api/ws/pentestprojects/<uuid:project_pk>/reporting/', ProjectReportingConsumer.as_asgi(), name='projectreporting-ws'),
     path('api/ws/pentestprojects/<uuid:project_pk>/notes/', ProjectNotesConsumer.as_asgi(), name='projectnotebookpage-ws'),
+    path('api/ws/pentestprojects/<uuid:project_pk>/notes/<uuid:note_id>/excalidraw/', ProjectNoteExcalidrawConsumer.as_asgi(), name='projectnoteexcalidraw-ws'),
     path('api/ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi(), name='usernotebookpage-ws'),
+    path('api/ws/pentestusers/<str:pentestuser_pk>/notes/<uuid:note_id>/excalidraw/', UserNoteExcalidrawConsumer.as_asgi(), name='usernoteexcalidraw-ws'),
     path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/', SharedProjectNotesPublicConsumer.as_asgi(), name='sharednote-ws'),
+    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/<uuid:note_id>/excalidraw/', SharedProjectNoteExcalidrawConsumer.as_asgi(), name='sharednoteexcalidraw-ws'),
 
     # Plugins
     *[path(f'api/plugins/{p.plugin_id}/ws/', URLRouter(p.websocket_urlpatterns)) for p in plugins.enabled_plugins],

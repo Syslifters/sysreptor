@@ -3,12 +3,14 @@ from django.db import transaction
 
 from sysreptor.pentests.models import (
     ArchivedProject,
+    ProjectNotebookExcalidrawFile,
     UploadedAsset,
     UploadedImage,
     UploadedProjectFile,
     UploadedTemplateImage,
     UploadedUserNotebookFile,
     UploadedUserNotebookImage,
+    UserNotebookExcalidrawFile,
 )
 
 
@@ -31,6 +33,8 @@ class Command(BaseCommand):
             UploadedTemplateImage,
             UploadedProjectFile,
             UploadedUserNotebookFile,
+            ProjectNotebookExcalidrawFile,
+            UserNotebookExcalidrawFile,
             ArchivedProject,
         ]
         for model in models:
