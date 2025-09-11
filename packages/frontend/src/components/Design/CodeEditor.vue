@@ -8,6 +8,12 @@ import cssWorkerUrl from 'monaco-editor/esm/vs/language/css/css.worker?worker&ur
 import htmlWorkerUrl from 'monaco-editor/esm/vs/language/html/html.worker?worker&url';
 import editorWorkerUrl from 'monaco-editor/esm/vs/editor/editor.worker?worker&url';
 
+declare global {
+  interface Window {
+    MonacoEnvironment: monaco.Environment;
+  }
+}
+
 self.MonacoEnvironment = {
   getWorkerUrl(_: string, label: string) {
     if (label === 'css') {

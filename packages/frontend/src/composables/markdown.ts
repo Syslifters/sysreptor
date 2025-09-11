@@ -21,7 +21,6 @@ import {
   search,
   searchKeymap,
   CustomizedSearchPanel,
-  EditorSelection,
   syntaxTree,
   type SyntaxNode,
 } from "@sysreptor/markdown/editor/index";

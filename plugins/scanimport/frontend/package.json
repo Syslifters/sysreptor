@@ -11,7 +11,9 @@
     "@sysreptor/nuxt-base-layer": "../../../packages/nuxt-base-layer",
     "nuxt": "*",
     "vuetify": "*",
-    "pinia": "*"
+    "pinia": "*",
+
+    "@he-tree/vue": "^2.9.4"
   },
   "overrides": {
     "vue": "latest"

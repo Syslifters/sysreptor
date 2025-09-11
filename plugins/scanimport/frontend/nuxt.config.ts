@@ -10,6 +10,12 @@ export default defineNuxtConfig({
   nitro: {
     output: {
       publicDir: '../static/'
-    }
+    },
+  },
+
+  vite: {
+    optimizeDeps: {
+      include: ['@he-tree/vue'],
+    },
   },
 })
