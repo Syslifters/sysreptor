@@ -19,6 +19,7 @@ from sysreptor.pentests.models import (
     ArchivedProject,
     PentestFinding,
     PentestProject,
+    ProjectNotebookExcalidrawFile,
     ProjectType,
     UploadedAsset,
     UploadedImage,
@@ -298,6 +299,7 @@ class TestEncryptDataCommand:
             UploadedImage.file.field.storage = storages['uploadedimages']
             UploadedAsset.file.field.storage = storages['uploadedassets']
             UploadedProjectFile.file.field.storage = storages['uploadedfiles']
+            ProjectNotebookExcalidrawFile.file.field.storage = storages['uploadedfiles']
             self.project = create_project()
             yield
 

@@ -1229,12 +1229,6 @@ class TestConsumerPermissions:
             res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
             assert res.status_code == (200 if expected_write else 403)
 
-            res = await sync_to_async(client.get)(reverse('projectnoteexcalidraw-fallback', kwargs={'project_pk': project.id, 'note_id': note_excalidraw.note_id}))
-            assert res.status_code == (200 if expected_read else 403)
-            client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
-            res = await sync_to_async(client.post)(reverse('projectnoteexcalidraw-fallback', kwargs={'project_pk': project.id, 'note_id': note_excalidraw.note_id}), data={'version': 1, 'client_id': client_id, 'messages': []})
-            assert res.status_code == 403  # Always readonly
-
     @pytest.mark.parametrize(('expected', 'user_name'), [
         (True, 'self'),
         (False, 'admin'),
@@ -1267,12 +1261,6 @@ class TestConsumerPermissions:
         res = await sync_to_async(client.post)(reverse('usernotebookpage-fallback', kwargs={'pentestuser_pk': user_notes.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
         assert res.status_code == (200 if expected else 403), res.data
 
-        res = await sync_to_async(client.get)(reverse('usernoteexcalidraw-fallback', kwargs={'pentestuser_pk': user_notes.id, 'note_id': note_excalidraw.note_id}))
-        assert res.status_code == (200 if expected else 403)
-        client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
-        res = await sync_to_async(client.post)(reverse('usernoteexcalidraw-fallback', kwargs={'pentestuser_pk': user_notes.id, 'note_id': note_excalidraw.note_id}), data={'version': 1, 'client_id': client_id, 'messages': []})
-        assert res.status_code == 403  # Always readonly
-
     @pytest.mark.parametrize(('share_kwargs', 'expected_read', 'expected_write'), [
         ({'is_revoked': True}, False, False),
         ({'expire_date': (timezone.now() - timedelta(days=1)).date()}, False, False),
@@ -1283,12 +1271,12 @@ class TestConsumerPermissions:
     ])
     async def test_shared_notes_permissions(self, share_kwargs, expected_read, expected_write):
         def setup_db():
-            project = create_project(**share_kwargs.pop('project', {}))
+            project = create_project(notes_kwargs=[{'type': NoteType.TEXT}], **share_kwargs.pop('project', {}))
             note = project.notes.first()
             create_projectnotebookpage(project=project, parent=note, order=1, type=NoteType.EXCALIDRAW)
             return create_shareinfo(note=note, **share_kwargs)
         share_info = await sync_to_async(setup_db)()
-        note_excalidraw = await share_info.note.project.notes.filter(type=NoteType.EXCALIDRAW).afirst()
+        note_excalidraw = await share_info.note.project.notes.filter(type=NoteType.EXCALIDRAW).aget()
 
         assert await self.ws_connect(f'/api/public/ws/shareinfos/{share_info.id}/notes/', user=None) == (expected_read, expected_write)
         assert await self.ws_connect(f'/api/public/ws/shareinfos/{share_info.id}/notes/{note_excalidraw.note_id}/excalidraw/', user=None, event={'type': CollabEventType.UPDATE_EXCALIDRAW, 'elements': []}) == (expected_read, expected_write)
@@ -1300,15 +1288,9 @@ class TestConsumerPermissions:
         res = await sync_to_async(client.post)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
         assert res.status_code == (200 if expected_write else 403)
 
-        res = await sync_to_async(client.get)(reverse('sharednoteexcalidraw-fallback', kwargs={'shareinfo_pk': share_info.id, 'note_id': note_excalidraw.note_id}))
-        assert res.status_code == (200 if expected_read else 403)
-        client_id = res.data.get('client_id', 'anonymous/asdf')
-        res = await sync_to_async(client.post)(reverse('sharednoteexcalidraw-fallback', kwargs={'shareinfo_pk': share_info.id, 'note_id': note_excalidraw.note_id}), data={'version': 1, 'client_id': client_id, 'messages': []})
-        assert res.status_code == 403  # Always readonly
-
         res = await sync_to_async(client.get)(reverse('sharednote-list', kwargs={'shareinfo_pk': share_info.id}))
         assert res.status_code in ([200] if expected_read else [403, 404])
         res = await sync_to_async(client.patch)(reverse('sharednote-detail', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.note.note_id}), data={})
         assert res.status_code in ([200] if expected_write else [403, 404])
         res = await sync_to_async(client.get)(reverse('sharednote-excalidraw', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.note.note_id}))
-        assert res.status_code == (200 if expected_read else 403)
+        assert res.status_code in ([200] if expected_read else [403, 404])

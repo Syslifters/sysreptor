@@ -29,6 +29,6 @@ body {
 }
 
 .ToolIcon__LaserPointer {
-  display: none;
+  display: none !important;
 }
 

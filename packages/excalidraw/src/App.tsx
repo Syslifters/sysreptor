@@ -4,6 +4,7 @@ import {
   MainMenu,
   reconcileElements,
   useHandleLibrary,
+  WelcomeScreen,
 } from "@excalidraw/excalidraw";
 import { AppState, BinaryFiles, ExcalidrawInitialDataState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
@@ -72,7 +73,6 @@ export default function App() {
     collabRef.current?.syncElementsThrottled({ elements });
   }
 
-  // TODO: handle library: pass through from top-level window to iframe (window.name, hash change)
   useHandleLibrary({
     excalidrawAPI,
     adapter: LibraryIndexedDBAdapter,
@@ -123,6 +123,18 @@ export default function App() {
           <MainMenu.DefaultItems.Help />
           <MainMenu.DefaultItems.ClearCanvas />
         </MainMenu>
+
+        <WelcomeScreen>
+          <WelcomeScreen.Center>
+            <WelcomeScreen.Center.Logo />
+            <WelcomeScreen.Center.Heading>
+              Pick a tool & Start drawing!
+            </WelcomeScreen.Center.Heading>
+          </WelcomeScreen.Center>
+          <WelcomeScreen.Hints.MenuHint />
+          <WelcomeScreen.Hints.ToolbarHint />
+          <WelcomeScreen.Hints.HelpHint />
+        </WelcomeScreen>
 
         {excalidrawAPI && (
           <ExcalidrawSysreptorCollab

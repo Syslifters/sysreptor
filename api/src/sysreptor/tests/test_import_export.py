@@ -353,7 +353,7 @@ class TestImportExport:
             assert (i.parent.note_id if i.parent else None) == (n.parent.note_id if n.parent else None)
         assert {(i.name, i.file.read()) for i in self.project.images.all()} == images
         assert {(f.name, f.file.read()) for f in self.project.files.all()} == files
-        assert {(n.note_id, json.dumps(n.excalidraw_data)) for n in notes} == excalidraw
+        assert {(n.note_id, json.dumps(n.excalidraw_data)) for n in imported} == excalidraw
 
         # Import notes again: test name collission prevention
         archive.seek(0)
@@ -388,7 +388,7 @@ class TestImportExport:
             assert (i.parent.note_id if i.parent else None) == (n.parent.note_id if n.parent else None)
         assert {(i.name, i.file.read()) for i in self.user.images.all()} == images
         assert {(f.name, f.file.read()) for f in self.user.files.all()} == files
-        assert {(n.note_id, json.dumps(n.excalidraw_data)) for n in notes} == excalidraw
+        assert {(n.note_id, json.dumps(n.excalidraw_data)) for n in imported} == excalidraw
 
         # Import notes again: test name collission prevention
         archive.seek(0)

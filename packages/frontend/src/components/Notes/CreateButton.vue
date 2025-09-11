@@ -7,6 +7,7 @@
       prepend-icon="mdi-plus"
       class="split-button-main"
       size="small"
+      data-testid="create-note-button"
     >
       Add
       <s-tooltip activator="parent" location="top" text="Add Note (Ctrl+J)" />
