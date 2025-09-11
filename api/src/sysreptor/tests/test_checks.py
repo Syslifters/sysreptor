@@ -71,7 +71,7 @@ def test_check_todo():
         'field_string': 'TODO: content',
         'field_markdown': 'Multiline markdown \nwith ![image](To-do) in markdown\n\n* item1\n* TODO: more items',
         'field_list': ['item1', 'ToDo: more items'],
-        'field_object': {'nested1': 'nested todo in object'},
+        'field_object': {'nested1': 'nested To-Do in object'},
         'field_list_objects': [{'nested1': 'TODO'}],
     }
     todo_field_paths = ['field_string', 'field_markdown', 'field_list[1]',

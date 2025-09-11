@@ -9,9 +9,6 @@ function todoSyntax() {
       [codes.uppercaseT]: {
         tokenize: tokenizeTodo,
       },
-      [codes.lowercaseT]: {
-        tokenize: tokenizeTodo,
-      },
     }
   };
 
@@ -39,7 +36,7 @@ function todoSyntax() {
       return middleD(code);
     }
     function middleD(code) {
-      if (![codes.uppercaseD, codes.lowercaseD].includes(code)) {
+      if (![codes.uppercaseD].includes(code)) {
         return nok(code);
       }
       effects.consume(code);
