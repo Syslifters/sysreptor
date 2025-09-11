@@ -19,7 +19,7 @@ from sysreptor.api_utils.views import (
 )
 from sysreptor.conf import plugins
 from sysreptor.notifications.views import UserNotificationViewSet
-from sysreptor.pentests.collab.fallback import ConsumerHttpFallbackView, ReadonlyConsumerHttpFallbackView
+from sysreptor.pentests.collab.fallback import ConsumerHttpFallbackView
 from sysreptor.pentests.consumers import (
     ProjectNoteExcalidrawConsumer,
     ProjectNotesConsumer,

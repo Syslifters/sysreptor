@@ -12,7 +12,7 @@ dependencies = [
 
   "django-csp (>=4.0,<5)",
   "django-storages[s3] (~=1.13)",
-  "drf-nested-routers (~=0.94)",
+  "drf-nested-routers (~=0.95)",
   "django-filter (~=25.1)",
   "drf-spectacular[sidecar] (~=0.28)",
   "django-simple-history (~=3.5)",
@@ -53,12 +53,12 @@ dependencies = [
   "debugpy (~=1.6)",
   "watchdog (~=6.0)",
   "pytest-django (~=4.11)",
-  "pytest-asyncio (~=1.0.0)",
+  "pytest-asyncio (~=1.1.0)",
   "pytest-xdist (~=3.2)",
-  "pytest-cov (~=6.0)",
+  "pytest-cov (~=7.0)",
 
   "pip-licenses-cli (~=2.0)",
-  "ruff (~=0.12)",
+  "ruff (~=0.13)",
 ]
 
 
