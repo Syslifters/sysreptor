@@ -1,9 +1,2 @@
-# Excalidraw Plugin
-Add Excalidraw to SysReptor.
-
-Add `excalidraw` to the `ENABLED_PLUGINS` variable in your `app.env` and restart your containers using `docker compose up -d` from the `deploy` directory.
-
-```
-ENABLED_PLUGINS="excalidraw"
-```
-![Excalidraw](docs/img/excalidraw.png)
+# Excalidraw Plugin (deprecated)
+Excalidraw has been integrated into SysReptor core. This plugin is deprecated and will be removed in a future release.

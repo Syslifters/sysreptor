@@ -1,42 +1,35 @@
 from django.dispatch import receiver
+from rest_framework import serializers
 from sysreptor.pentests.import_export.serializers.common import (
-    ExportImportSerializer,
     MultiFormatSerializer,
 )
-from sysreptor.pentests.models import PentestProject
+from sysreptor.pentests.models import NoteType, PentestProject, ProjectNotebookPage
 from sysreptor.plugins import signals as sysreptor_signals
 
 from .apps import ExcalidrawPluginConfig
-from .models import ProjectExcalidrawData
 
 
-class ProjectExcalidrawDataExportImportSerializerV1(ExportImportSerializer):
+class ProjectExcalidrawDataExportImportSerializerV1(serializers.Serializer):
+    elements = serializers.JSONField()
+
     class Meta:
-        model = ProjectExcalidrawData
         fields = ['elements']
 
     def create(self, validated_data):
-        return super().create(validated_data | {
-            'project': self.context['project'],
-        })
+        if elements := validated_data.get('elements', []):
+            instance = ProjectNotebookPage.objects.create(
+                project=self.context['project'],
+                type=NoteType.EXCALIDRAW,
+                title='Excalidraw',
+            )
+            instance.update_excalidraw_data({'elements': elements})
+            return instance
 
 
 class ExcalidrawExportImportSerializer(MultiFormatSerializer):
     serializer_formats = {
         'excalidraw/v1': ProjectExcalidrawDataExportImportSerializerV1(),
     }
-
-
-@receiver(sysreptor_signals.post_export, sender=PentestProject)
-def export_excalidraw_data(sender, instance, data, context, **kwargs):
-    if not context.get('export_all'):
-        return
-    instance = ProjectExcalidrawData.objects.filter(project=instance).first()
-    if not instance:
-        return
-    
-    serializer = ExcalidrawExportImportSerializer(instance=instance, context=context)
-    data.setdefault('plugins', {})[ExcalidrawPluginConfig.plugin_id] = serializer.data
 
 
 @receiver(sysreptor_signals.post_import, sender=PentestProject)
