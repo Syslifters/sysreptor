@@ -1,5 +1,5 @@
 {
-  "name": "@sysreptor/plugin-excalidraw-frontend",
+  "name": "@sysreptor/excalidraw",
   "private": true,
   "type": "module",
   "scripts": {
