@@ -1,6 +1,6 @@
 # Globally defined ARGS
-ARG TESTED_API_IMAGE=undefined_test_image_used_in_ci
-ARG PROD_API_IMAGE=undefined_prod_image_used_in_ci
+ARG TESTED_API_IMAGE=api
+ARG PROD_API_IMAGE=api-prod
 
 FROM --platform=$BUILDPLATFORM node:22-alpine3.20 AS frontend-dev
 ENV NODE_OPTIONS="--max-old-space-size=4096"
@@ -223,7 +223,7 @@ ARG VERSION
 ENV VERSION=${VERSION}
 COPY CHANGELOG.md /app/
 
-FROM api AS api-src
+FROM ${PROD_API_IMAGE} AS api-src
 USER 0
 RUN /app/api/download_sources.sh
 USER 1000
