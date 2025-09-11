@@ -15,6 +15,7 @@ COPY packages/package.json packages/package-lock.json /app/packages/
 COPY packages/frontend/package.json /app/packages/frontend/
 COPY packages/markdown/package.json /app/packages/markdown/
 COPY packages/pdfviewer/package.json /app/packages/pdfviewer/
+COPY packages/excalidraw/package.json /app/packages/excalidraw/
 COPY packages/nuxt-base-layer/package.json /app/packages/nuxt-base-layer/
 COPY packages/plugin-base-layer/package.json /app/packages/plugin-base-layer/
 COPY packages/rendering/package.json /app/packages/rendering/
