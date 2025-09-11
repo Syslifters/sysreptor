@@ -6,6 +6,7 @@
     class="iframe-container"
     :class="{
       'iframe-loading': loadingIndicator.isLoading.value,
+      'iframe-fullscreen': iframeFullscreen,
     }"
     :style="{ 
       colorScheme: theme.current.value.dark ? 'dark': 'light',
@@ -23,6 +24,7 @@ const props = defineProps<{
 }>();
 
 const theme = useTheme();
+const route = useRoute();
 const apiSettings = useApiSettings();
 const runtimeConfig = useRuntimeConfig();
 const iframeRef = useTemplateRef('iframeRef');
@@ -30,8 +32,9 @@ const loadingIndicator = useLoadingIndicator();
 onBeforeMount(() => loadingIndicator.start());
 
 const iframeSrc = computed(() => `/static/excalidraw/dist/index.html?c=${runtimeConfig.app.buildId}#` + encodeParams({
-  'apiUrl': props.apiUrl,
-  'websocketUrl': (!props.readonly && apiSettings.settings!.features.websockets) ? props.websocketUrl : undefined,
+  ...Object.fromEntries(new URLSearchParams(route.hash?.slice(1)).entries()),
+  apiUrl: props.apiUrl,
+  websocketUrl: (!props.readonly && apiSettings.settings!.features.websockets) ? props.websocketUrl : undefined,
 }));
 
 
@@ -42,6 +45,18 @@ function onIframeLoaded() {
 function encodeParams(params: Record<string, string|undefined>): string {
   return new URLSearchParams(Object.entries(params).filter(([_, v]) => !!v) as [string, string][]).toString();
 }
+
+
+const iframeFullscreen = ref(false);
+useEventListener(window, 'message', (event) => {
+  if (event.source !== iframeRef.value?.contentWindow) {
+    return;
+  }
+  if (event.data.type === 'toggleFullscreen') {
+    iframeFullscreen.value = !iframeFullscreen.value;
+  }
+});
+
 </script>
 
 <style lang="scss" scoped>
@@ -56,5 +71,15 @@ function encodeParams(params: Record<string, string|undefined>): string {
   opacity: 0;
   top: 0;
   position: absolute;
+}
+
+.iframe-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999999;
+  overflow: hidden;
 }
 </style>

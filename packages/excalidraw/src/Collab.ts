@@ -217,22 +217,19 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
   }
 
   componentDidMount(): void {
-    window.addEventListener('beforeunload', this.onBeforeUnload.bind(this));
-    window.addEventListener('unload', this.onUnload.bind(this));
+    window.addEventListener('visibilitychange', this.onLeavePage.bind(this));
   }
 
   componentWillUnmount(): void {
-    this.connection?.disconnect();
-    window.removeEventListener('beforeunload', this.onBeforeUnload);
-    window.removeEventListener('unload', this.onUnload);
-  }
-
-  private onBeforeUnload() {
     this.syncElements({ syncAll: true });
+    this.connection?.disconnect();
+    window.removeEventListener('visibilitychange', this.onLeavePage);
   }
 
-  private onUnload() {
-    this.connection?.disconnect();
+  private onLeavePage() {
+    if (document.visibilityState === 'hidden') {
+      this.syncElements({ syncAll: true });
+    }
   }
 
   syncElements(options: { elements?: readonly OrderedExcalidrawElement[], syncAll?: boolean }) {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Excalidraw,
+  MainMenu,
   reconcileElements,
   useHandleLibrary,
 } from "@excalidraw/excalidraw";
@@ -16,6 +17,10 @@ import { ExcalidrawSysreptorCollab } from "./Collab";
 
 function reload() {
   window.location.reload();
+}
+
+function toggleFullscreen() {
+  window.parent.postMessage({ type: 'toggleFullscreen' }, window.origin);
 }
 
 
@@ -72,7 +77,7 @@ export default function App() {
     excalidrawAPI,
     adapter: LibraryIndexedDBAdapter,
   });
-  
+
   const { isDarkTheme } = useTheme();
   return (
     <div style={{ height: '100vh' }}>
@@ -97,6 +102,28 @@ export default function App() {
           },
         }}
       >
+        <MainMenu>
+          <MainMenu.DefaultItems.LoadScene />
+          <MainMenu.DefaultItems.Export />
+          <MainMenu.DefaultItems.SaveAsImage />
+          <MainMenu.DefaultItems.SearchMenu />
+          {document.fullscreenEnabled ? 
+            <MainMenu.Item 
+              onSelect={toggleFullscreen}
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" focusable="false" role="img" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" />
+                </svg>
+              }
+            >
+              Fullscreen
+            </MainMenu.Item>
+            : null
+          }
+          <MainMenu.DefaultItems.Help />
+          <MainMenu.DefaultItems.ClearCanvas />
+        </MainMenu>
+
         {excalidrawAPI && (
           <ExcalidrawSysreptorCollab
             ref={collabRef}
