@@ -21,8 +21,9 @@
     
     "sass-embedded": "^1.79.5",
     "@vueuse/nuxt": "^13.0.0",
-    "monaco-editor": "^0.52.0",
+    "monaco-editor": "^0.53.0",
     "vuedraggable": "^4.1.0",
+    "@he-tree/vue": "^2.9.4",
     "@iconify/vue": "^5.0.0",
     "@iconify/icons-fluent-emoji": "^1.2.10",
     "@github/webauthn-json": "^2.1.1",

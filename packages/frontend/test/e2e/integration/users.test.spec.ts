@@ -23,7 +23,7 @@ test('A Admin User can create a new User', async ({ page }) => {
 
   // Check if user was created
   await page.goto('/users/');
-  await page.getByRole('link', { name: userUsername }).waitFor();
+  await page.getByTestId(`user-${userUsername}`).waitFor();
   expect(await page.isVisible(`text=${userUsername}`)).toBeTruthy();
 });
 
@@ -44,7 +44,7 @@ test('A created User can login', async ({ page, context }) => {
 test('A Admin User can delete a User', async ({ page }) => {
   await page.goto('/users/');
   // Delete User
-  await page.getByRole('link', { name: userUsername }).click();
+  await page.getByTestId(`user-${userUsername}`).click();
   await page.getByTestId('edittoolbar-contextmenu').click();
   await page.getByTestId('edittoolbar-delete').click();
   // Confirm Delete

@@ -5,7 +5,7 @@
 //   await page.goto(`/`);
 
 //   await page.getByRole('heading', { name: 'Projects' }).waitFor();
-//   await page.getByRole('link', { name: 'CyberChef' }).click();
+//   await page.getByRole('listitem', { name: 'CyberChef' }).click();
 //   await page.locator('iframe').contentFrame().locator('#preloader').waitFor({state: 'hidden'});
 //   const buffer1 = await page.screenshot();
 //   console.log(buffer1.toString('base64'));

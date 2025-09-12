@@ -16,7 +16,7 @@
     "vue": "3.5.18",
     "chart.js": "^4",
     "chartjs-plugin-datalabels": "^2",
-    "uuid": "^11",
+    "uuid": "^13",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

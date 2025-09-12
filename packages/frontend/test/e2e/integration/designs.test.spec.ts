@@ -48,7 +48,7 @@ test('Design Settings are reflected in a Project', async ({ page }) => {
   const testState = new DemoDataState();
   await createProject(page, { projectName: 'My Design Test Project', designId: testState.designs.at(testState.designs.length - 1)!, designName: designName });
   
-  await page.getByRole('link', { name: 'Executive Summary' }).click();
+  await page.getByRole('option', { name: 'Executive Summary' }).click();
   await page.getByLabel('Assignee', { exact: true }).waitFor();
   expect(await page.getByRole('textbox').getByText('This is a test executive summary').isVisible()).toBeTruthy();
   await page.getByTestId('create-finding-button').click();

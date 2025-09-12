@@ -30,7 +30,7 @@ export default async function globalSetup(config: FullConfig) {
 
   // Goes to User Settings and gives user all permissions
   await page.getByTestId('users-tab').click();
-  await page.getByTestId('test-reptor').click();
+  await page.getByTestId(`user-${adminUser.username}`).click();
   await page.getByLabel('First Name').fill('User');
   await page.getByLabel('Last Name').fill('User');
   await page.getByLabel('Email').fill('user@example.com');
