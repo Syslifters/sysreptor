@@ -23,7 +23,7 @@ test('A User can create an Project with a Name', async ({ page }) => {
 test('A User can delete a Project', async ({ page }) => {
   await page.goto('/projects');
   await page.waitForSelector('text=Projects');
-  await page.getByRole('link', { name: projectName }).click();
+  await page.getByText(projectName).click();
   await page.getByTestId('project-settings-tab').click();
   await page.getByTestId('edittoolbar-contextmenu').click();
   await page.getByTestId('edittoolbar-delete').click();

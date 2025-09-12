@@ -19,7 +19,7 @@
       <v-list-item :to="`/users/${user.id}/`">
         <v-row>
           <v-col md="3">
-            <v-list-item-title :data-testid="'test-'+user.username">
+            <v-list-item-title :data-testid="`user-${user.username}`">
               <user-avatar :user="user" class="mr-2" />
               {{ user.username }}
               <template v-if="user.name">
