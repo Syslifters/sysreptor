@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/stable/ref/settings/
 
 import itertools
 import json
+import shlex
 import socket
 from datetime import timedelta
 from pathlib import Path
@@ -184,6 +185,7 @@ DATABASES = {
         'PASSWORD': config('DATABASE_PASSWORD', default=''),
         'DISABLE_SERVER_SIDE_CURSORS': True,
         'OPTIONS': {
+            'options': f'-c search_path={shlex.quote(schema)}' if (schema := config('DATABASE_SCHEMA', default=None)) else None,
             'prepare_threshold': None,
             'pool': {
                 'min_size': 4,
