@@ -408,7 +408,7 @@ function onUnloadBrowser() {
   performUnlock(true);
 }
 
-function resetComponent() {
+function resetComponent(options?: { keepLock?: boolean }) {
   isDestroying.value = true;
   hasChangesValue.value = false;
   previousData.value = null;
@@ -416,7 +416,9 @@ function resetComponent() {
   lockInfo.value = null;
   lockError.value = false;
 
-  return performUnlock(false);
+  if (!options?.keepLock) {
+    return performUnlock(false);
+  }
 }
 
 useKeyboardShortcut('ctrl+s', performSave);

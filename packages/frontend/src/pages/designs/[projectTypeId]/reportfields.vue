@@ -143,9 +143,9 @@
                 :model-value="f"
                 @update:model-value="updateField(f, $event)"
                 :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
-                :lang="projectType.language"
                 :readonly="readonly"
                 :sibling-field-ids="allReportFields.filter(rf => rf !== f).map(rf => rf.id)"
+                v-bind="inputFieldAttrs"
               />
               <s-btn-secondary
                 @click.stop="addField(currentItemSection!)"
@@ -160,9 +160,9 @@
                 :model-value="currentItemField!"
                 @update:model-value="updateField(currentItemField!, $event)"
                 :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentItemField!.origin as any)"
-                :lang="projectType.language"
                 :readonly="readonly"
                 :sibling-field-ids="allReportFields.filter(rf => rf !== currentItemField!).map(rf => rf.id)"
+                v-bind="inputFieldAttrs"
               />
             </template>
           </v-container>
@@ -179,7 +179,7 @@ import { FieldOrigin, type ReportSectionDefinition, uniqueName } from "#imports"
 
 const localSettings = useLocalSettings();
 
-const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
+const { projectType, toolbarAttrs, inputFieldAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,
   saveFields: ['report_sections'],
 }));

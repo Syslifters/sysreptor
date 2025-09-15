@@ -404,6 +404,42 @@ class TestImportExport:
         assert len(self.user.images.all()) == len(images) * 2
         assert len(self.user.files.all()) == len(files) * 2
 
+    def test_import_notes_design(self):
+        archive = archive_to_file(export_notes(self.user))
+        notes = list(self.user.notes.all().exclude(type__in=[NoteType.EXCALIDRAW]).select_related('parent'))
+        images = {(i.name, i.file.read()) for i in self.user.images.all()}
+        files = {(f.name, f.file.read()) for f in self.user.files.all()}
+
+        update(self.project_type, default_notes=[])
+        self.project_type.assets.all().delete()
+
+        # Import notes
+        imported = import_notes(archive, context={'project_type': self.project_type})
+        assert len(imported) == len(notes)
+        for i, n in zip(sorted(imported, key=lambda n: n['title']), sorted(notes, key=lambda n: n.title), strict=False):
+            assertKeysEqual(i, n, ['type', 'title', 'text', 'checked', 'icon_emoji', 'order'])
+            assert i['id'] == str(n.note_id)
+            assert i['parent'] == (str(n.parent.note_id) if n.parent else None)
+        assert {(a.name, a.file.read()) for a in self.project_type.assets.all()} == images | files
+
+        # Import notes again: test name collission prevention
+        archive.seek(0)
+        imported2 = import_notes(archive, context={'project_type': self.project_type})
+        assert len(imported2) == len(notes)
+        for i, n in zip(sorted(imported2, key=lambda n: n['title']), sorted(notes, key=lambda n: n.title), strict=False):
+            assertKeysEqual(i, n, ['title', 'checked', 'icon_emoji'])
+            text_expected = self.update_references(n.text, images.union(files), list(self.project_type.assets.all())) \
+                .replace('/files/name/', '/assets/name/') \
+                .replace('/images/name/', '/assets/name/')
+            assert i['text'] == text_expected
+            assert i['id'] != str(n.note_id)
+            if n.parent:
+                assert i['parent'] != str(n.parent.note_id)
+
+        self.project_type.refresh_from_db()
+        assert len(self.project_type.default_notes) == len(notes) * 2
+        assert len(self.project_type.assets.all()) == (len(images) + len(files)) * 2
+
     def test_export_import_notes_project_partial_toplevel(self):
         archive = archive_to_file(export_notes(self.project, notes=[self.p_note1]))
         notes = [self.p_note1, self.p_note1_1]

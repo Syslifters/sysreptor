@@ -6,6 +6,7 @@
           title="Initial Notes"
           :create-note="createNote"
           :perform-delete="deleteNote"
+          :perform-import="importNotes"
           :selected-notes="noteTreeRef?.selectedNotes"
           :readonly="readonly"
           :prevent-create-excalidraw="true"
@@ -23,7 +24,7 @@
       <template #default>
         <full-height-page>
           <template #header>
-            <edit-toolbar v-bind="toolbarAttrs" :form="form">
+            <edit-toolbar v-bind="toolbarAttrs" ref="toolbarRef" :form="form">
               <template #title v-if="currentNote">
                 <div class="note-title-container">
                   <div>
@@ -47,9 +48,9 @@
                     v-model="currentNote.title"
                     :readonly="readonly"
                     :spellcheck-supported="true"
-                    :lang="projectType.language"
                     v-model:spellcheck-enabled="localSettings.designSpellcheckEnabled"
                     class="note-title"
+                    v-bind="inputFieldAttrs"
                   />
                 </div>
               </template>
@@ -69,9 +70,9 @@
               ref="textRef"
               v-model="currentNote.text"
               :readonly="readonly"
-              :lang="projectType.language"
               v-model:spellcheck-enabled="localSettings.designSpellcheckEnabled"
               v-model:markdown-editor-mode="localSettings.designMarkdownEditorMode"
+              v-bind="inputFieldAttrs"
             />
             <v-empty-state v-else>
               <template #media>
@@ -94,7 +95,9 @@ import { uuidv4 } from "@base/utils/helpers";
 
 const localSettings = useLocalSettings();
 
-const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
+const toolbarRef = useTemplateRef('toolbarRef');
+const { projectType, toolbarAttrs, inputFieldAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
+  toolbarRef,
   save: true,
   saveFields: ['default_notes'],
 }));
@@ -159,6 +162,20 @@ function deleteNote(note: NoteBase) {
     currentNote.value = null;
   }
 }
+async function importNotes(file: File) {
+  if (!file || readonly.value) {
+    return;
+  }
+  // Force save before performing server-side import
+  await toolbarRef.value!.performSave();
+
+  const res = await uploadFileHelper<NoteBase[]>(`/api/v1/projecttypes/${projectType.value.id}/import-notes/`, file);
+  projectType.value.default_notes.push(...res);
+  currentNote.value = res.find(n => n.parent === null)!;
+
+  toolbarRef.value?.resetComponent({ keepLock: true });
+}
+
 function updateNoteChecked(note: NoteBase) {
   const dn = projectType.value.default_notes.find(n => n.id === note.id);
   if (dn) {
