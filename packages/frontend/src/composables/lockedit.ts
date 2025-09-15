@@ -8,6 +8,7 @@ import {
   type PentestProject,
   type ProjectType,
   type ReferenceItem,
+  type ToolbarRef,
   type UploadedFileInfo,
 } from "#imports";
 
@@ -18,6 +19,7 @@ export function useProjectTypeLockEdit(options: {
   performDelete?: (data: ProjectType) => Promise<void>;
   hasEditPermissions?: ComputedRef<boolean>;
   errorMessage?: ComputedRef<string|null>;
+  toolbarRef?: ToolbarRef;
 }) {
   const auth = useAuth();
   const projectType = computed(() => options.projectType.value);
@@ -51,6 +53,18 @@ export function useProjectTypeLockEdit(options: {
     return null;
   })
 
+  async function uploadFile(file: File) {
+    const img = await uploadFileHelper<UploadedFileInfo>(`/api/v1/projecttypes/${projectType.value.id}/assets/`, file);
+    return `![](/assets/name/${img.name}){width="auto"}`;
+  }
+  const inputFieldAttrs = computed(() => ({
+    lang: projectType.value.language,
+    rewriteFileUrlMap: {
+      '/assets/': `/api/v1/projecttypes/${projectType.value.id}/assets/`,
+    },
+    uploadFile,
+  }));
+
   const deleteConfirmInput = computed(() => projectType.value.name);
   return {
     ...useLockEdit<ProjectType>({
@@ -63,10 +77,11 @@ export function useProjectTypeLockEdit(options: {
       errorMessage,
     }),
     projectType,
+    inputFieldAttrs,
   }
 }
 
-export async function useProjectTypeLockEditOptions(options: {save?: boolean, delete?: boolean, saveFields?: string[], id?: string}) {
+export async function useProjectTypeLockEditOptions(options: {save?: boolean, delete?: boolean, saveFields?: string[], id?: string, toolbarRef?: ToolbarRef}) {
   const route = useRoute();
   const projectTypeId = options.id || route.params.projectTypeId;
   const projectType = await useFetchE<ProjectType>(`/api/v1/projecttypes/${projectTypeId}/`, { method: 'GET', deep: true });
@@ -83,7 +98,8 @@ export async function useProjectTypeLockEditOptions(options: {save?: boolean, de
   return {
     projectType,
     ...(options.save ? { performSave } : {}),
-    ...(options.delete ? { performDelete } : {})
+    ...(options.delete ? { performDelete } : {}),
+    toolbarRef: options.toolbarRef,
   };
 }
 

@@ -185,6 +185,10 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=Fal
             ('projecttypehistory detail', lambda s, c: c.get(reverse('projecttypehistory-detail', kwargs={'projecttype_pk': get_obj(s).pk, 'history_date': s.history_date}))),
             ('projecttypehistory asset-by-name', lambda s, c: c.get(reverse('projecttypehistory-asset-by-name', kwargs={'projecttype_pk': get_obj(s).pk, 'filename': get_obj(s).assets.first().name, 'history_date': s.history_date}))),
         ])
+    if write:
+        out.extend([
+            ('projecttype import_notes', lambda s, c: c.post(reverse('projecttype-import-notes', kwargs={'pk': get_obj(s).pk}), data={'file': export_notes_archive(s.project)}, format='multipart')),
+        ])
     if create_global:
         out.extend([
             ('projecttype import global', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(get_obj(s)), 'scope': ProjectTypeScope.GLOBAL}, format='multipart')),

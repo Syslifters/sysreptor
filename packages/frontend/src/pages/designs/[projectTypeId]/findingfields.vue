@@ -109,18 +109,18 @@
                 v-for="f, idx in findingFields" :key="idx"
                 :model-value="f" @update:model-value="updateField(f, $event)"
                 :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
-                :lang="projectType.language"
                 :readonly="readonly"
                 :sibling-field-ids="findingFields.filter(ff => ff !== f).map(f => f.id)"
+                v-bind="inputFieldAttrs"
               />
             </template>
             <design-input-field-definition
               v-else-if="currentField.type"
               :model-value="currentField" @update:model-value="updateField(currentField, $event)"
               :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentField.origin as any)"
-              :lang="projectType.language"
               :readonly="readonly"
               :sibling-field-ids="findingFields.filter(ff => ff !== currentField).map(f => f.id)"
+              v-bind="inputFieldAttrs"
             />
           </v-container>
         </div>
@@ -138,7 +138,7 @@ const localSettings = useLocalSettings();
 const projectTypeStore = useProjectTypeStore();
 
 const { data: predefinedFindingFields } = useLazyAsyncData('projecttype:predefinedFindingFields', async () => await projectTypeStore.getPredefinedFindingFields())
-const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
+const { projectType, toolbarAttrs, inputFieldAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,
   saveFields: ['finding_fields', 'finding_ordering', 'finding_grouping'],
 }));

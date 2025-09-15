@@ -66,9 +66,8 @@
               <design-preview-data-form
                 v-model="projectType.report_preview_data"
                 :project-type="projectType"
-                :upload-file="uploadFile"
-                :rewrite-file-url-map="rewriteFileUrlMap"
                 :readonly="readonly"
+                v-bind="inputFieldAttrs"
               />
             </v-window-item>
           </v-window>
@@ -116,7 +115,7 @@
 
 <script setup lang="ts">
 import { initialCss } from '~/components/Design/designer-components';
-import { formatProjectTypeTitle, uploadFileHelper, PdfDesignerTab } from "#imports";
+import { formatProjectTypeTitle, PdfDesignerTab } from "#imports";
 import type { PdfPreview } from '#components';
 
 const currentTab = ref(PdfDesignerTab.HTML);
@@ -128,7 +127,7 @@ const cssEditor = useTemplateRef('cssEditor')
 
 const pdfRenderingInProgress = computed(() => pdfPreviewRef.value?.renderingInProgress);
 
-const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
+const { projectType, toolbarAttrs, inputFieldAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,
   saveFields: ['report_template', 'report_styles', 'report_preview_data', 'finding_fields', 'report_sections'],
 }));
@@ -148,14 +147,6 @@ function loadPdf(immediate = true) {
   }
 }
 watch(projectType, () => loadPdf(false), { deep: true })
-
-async function uploadFile(file: File) {
-  const img = await uploadFileHelper<UploadedFileInfo>(`/api/v1/projecttypes/${projectType.value.id}/assets/`, file);
-  return `![](/assets/name/${img.name}){width="auto"}`;
-}
-const rewriteFileUrlMap = computed(() => ({
-  '/assets/': `/api/v1/projecttypes/${projectType.value.id}/assets/`,
-}));
 
 const showStartDialog = ref(!projectType.value.report_template && !projectType.value.report_styles && !readonly.value);
 function startDesigning() {

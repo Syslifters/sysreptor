@@ -269,6 +269,8 @@
         v-model:spellcheck-enabled="localSettings.designSpellcheckEnabled"
         v-model:markdown-editor-mode="localSettings.designMarkdownEditorMode"
         :readonly="props.readonly"
+        :rewrite-file-url-map="props.rewriteFileUrlMap"
+        :upload-file="props.uploadFile"
         :disable-validation="true"
         data-testid='default-value'
       />
@@ -354,10 +356,14 @@ const props = withDefaults(defineProps<{
   lang?: string|null;
   nestingLevel?: number;
   siblingFieldIds?: string[];
+  rewriteFileUrlMap?: Record<string, string>;
+  uploadFile?: (file: File) => Promise<string>;
 }>(), {
   lang: null,
   nestingLevel: 0,
   siblingFieldIds: () => [],
+  rewriteFileUrlMap: undefined,
+  uploadFile: undefined,
 });
 const emit = defineEmits<{
   'update:modelValue': [FieldDefinition];

@@ -4,6 +4,7 @@
 * Add excalidraw notes to SysReptor core
 * Deprecate `excalidraw` plugin
 * Case sensitive todo marker parsing
+* Allow importing notes to design default note structure
 
 
 ## v2025.74 - 2025-09-10
