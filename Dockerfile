@@ -58,7 +58,7 @@ COPY packages/nuxt-base-layer /app/packages/nuxt-base-layer/
 COPY packages/frontend /app/packages/frontend/
 COPY api/src/sysreptor/pentests/rendering/global_assets /app/packages/frontend/src/assets/rendering/
 COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/nuxt-base-layer/src/public/static/pdfviewer/dist/
-COPY --from=excalidraw /app/packages/excalidraw/dist/ /app/packages/nuxt-base-layer/src/public/static/excalidraw/dist/
+COPY --from=excalidraw /app/packages/excalidraw/dist/ /app/packages/frontend/src/public/static/excalidraw/dist/
 # Test command
 WORKDIR /app/packages/frontend/
 CMD ["npm", "run", "test"]
