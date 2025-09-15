@@ -1,0 +1,5 @@
+name: sysreptor
+
+include:
+  - caddy/docker-compose.yml
+  - sysreptor/docker-compose.yml

@@ -72,6 +72,7 @@
 import { pick } from 'lodash-es';
 import type { FilterProperties, FilterValue } from '@base/utils/types';
 import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery } from '@base/utils/filter';
+import { usePinnedFilters } from '@base/composables/usePinnedFilters';
 
 const orderingModel = defineModel<string|null>('ordering');
 const props = defineProps<{
@@ -104,12 +105,25 @@ useLazyAsyncData(async () => {
   await items.fetchNextPage()
 });
 
-// Initialize filters from URL on mount
+// Initialize filters from URL on mount and merge pinned filters
 onMounted(async () => {
   if (props.filterProperties && props.filterProperties.length > 0) {
-    const filtersFromUrl = parseFiltersFromQuery(route.query, props.filterProperties);
-    if (filtersFromUrl.length > 0) {
-      activeFilters.value = filtersFromUrl;
+  const filtersFromUrl = parseFiltersFromQuery(route.query, props.filterProperties);
+  const { restorePinnedFilters } = usePinnedFilters();
+  const pinned = restorePinnedFilters(props.filterProperties);
+  console.debug('[ListView] onMounted merge', { filtersFromUrl, pinned });
+    // merge pinned and URL filters, preferring URL values when duplicate ids exist
+    const merged: FilterValue[] = [];
+    // add URL filters first
+    for (const f of filtersFromUrl) merged.push(f);
+    for (const p of pinned) {
+      if (!merged.some(m => m.id === p.id && JSON.stringify(m.value) === JSON.stringify(p.value))) {
+        merged.push(p);
+      }
+    }
+    if (merged.length > 0) {
+      activeFilters.value = merged;
+      console.debug('[ListView] applied merged filters', merged);
     }
   }
 });

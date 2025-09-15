@@ -1,0 +1,40 @@
+server {
+	listen 80 default_server;
+	server_name _;
+	# redirect all HTTP to HTTPS
+	return 301 https://$host$request_uri;
+}
+
+server {
+	listen 443 ssl http2 default_server;
+	server_name _;
+
+	ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
+	ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+	ssl_session_timeout 1d;
+	ssl_session_cache shared:MozSSL:10m;  # about 40000 sessions
+	ssl_session_tickets off;
+	ssl_protocols TLSv1.3;
+	ssl_prefer_server_ciphers off;
+
+	# HSTS (ngx_http_headers_module is required) (63072000 seconds)
+	# Uncomment if desired
+	#add_header Strict-Transport-Security "max-age=63072000" always;
+
+	ssl_stapling on;
+	ssl_stapling_verify on;
+
+	# Timeouts for long running websocket connections and long PDF rendering tasks
+	proxy_read_timeout 5m;
+	proxy_send_timeout 5m;
+	client_max_body_size 0;
+
+	location / {
+		include proxy_params;
+		proxy_pass http://127.0.0.1:8000;
+
+		# Websockets
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "Upgrade";
+	}
+}
