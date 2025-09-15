@@ -417,9 +417,10 @@ class TestImportExport:
         imported = import_notes(archive, context={'project_type': self.project_type})
         assert len(imported) == len(notes)
         for i, n in zip(sorted(imported, key=lambda n: n['title']), sorted(notes, key=lambda n: n.title), strict=False):
-            assertKeysEqual(i, n, ['type', 'title', 'text', 'checked', 'icon_emoji', 'order'])
+            assertKeysEqual(i, n, ['type', 'title', 'checked', 'icon_emoji', 'order'])
             assert i['id'] == str(n.note_id)
             assert i['parent'] == (str(n.parent.note_id) if n.parent else None)
+            assert i['text'] == n.text.replace('/files/name/', '/assets/name/').replace('/images/name/', '/assets/name/')
         assert {(a.name, a.file.read()) for a in self.project_type.assets.all()} == images | files
 
         # Import notes again: test name collission prevention
