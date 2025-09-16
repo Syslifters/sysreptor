@@ -33,6 +33,7 @@
       :project-type="projectType"
       :section-id="route.params.sectionId as string"
       :readonly="readonly"
+      :selectable-users="inputFieldAttrs.selectableUsers"
     />
 
     <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">

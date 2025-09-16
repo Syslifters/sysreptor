@@ -71,6 +71,7 @@
         v-for="comment in commentGroup" :key="comment.id"
         :comment="comment"
         :project="props.project"
+        :selectable-users="props.selectableUsers"
         @click="selectComment(comment, { focus: 'field' })"
         :is-active="comment.id === selectedComment?.id"
         :is-new="comment.id === commentNew?.id"
@@ -91,6 +92,7 @@ const props = defineProps<{
   findingId?: string;
   sectionId?: string;
   readonly?: boolean;
+  selectableUsers?: UserShortInfo[];
 }>();
 
 const localSettings = useLocalSettings();

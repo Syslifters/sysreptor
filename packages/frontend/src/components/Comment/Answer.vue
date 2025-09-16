@@ -4,6 +4,7 @@
     :update="performUpdate"
     :delete="() => projectStore.deleteCommentAnswer(props.project, props.comment, props.answer)"
     :readonly="props.readonly"
+    :selectable-users="props.selectableUsers"
     placeholder="Answer..."
     class="answer-content"
   />
@@ -16,7 +17,8 @@ const props = defineProps<{
   answer: CommentAnswer;
   comment: Comment;
   project: PentestProject;
-  readonly?: boolean
+  readonly?: boolean;
+  selectableUsers?: UserShortInfo[];
   update?: (value: CommentAnswer) => Promise<void>;
 }>()
 

@@ -2,7 +2,7 @@ export { EditorState, EditorSelection, SelectionRange, ChangeSet, Text, Transact
 export { EditorView, ViewUpdate, tooltips, scrollPastEnd, keymap, lineNumbers, drawSelection, rectangularSelection, crosshairCursor, dropCursor } from '@codemirror/view';
 export { history, historyKeymap, defaultKeymap, indentWithTab, undo, redo, undoDepth, redoDepth } from '@codemirror/commands';
 export { forceLinting, setDiagnostics } from '@codemirror/lint';
-export { closeBrackets } from "@codemirror/autocomplete";
+export { closeBrackets, CompletionContext, autocompletion } from "@codemirror/autocomplete";
 export { search, searchKeymap, SearchQuery, SearchCursor } from '@codemirror/search'
 export { MergeView } from '@codemirror/merge';
 export { syntaxHighlighting, syntaxTree, indentUnit } from '@codemirror/language';
