@@ -22,7 +22,8 @@ const props = defineProps<{
   selectableUsers?: UserShortInfo[];
 }>();
 const emit = defineEmits<{
-  (e: 'focus'): void;
+  'focus': [];
+  'save': [];
 }>();
 
 const editorRef = useTemplateRef('editorRef');
@@ -36,6 +37,7 @@ onMounted(() => {
       extensions: [
         history(),
         keymap.of([
+          { key: 'Ctrl-Enter', preventDefault: true, run: () => { emit('save'); return true; }},
           ...defaultKeymap,
           ...historyKeymap,
         ]),
@@ -122,7 +124,6 @@ defineExpose({
   max-width: 100%;
   display: inline-block;
   font-size: vuetify.$card-text-font-size;
-  //color: rgba(var(--v-theme-on-background), var(--v-high-emphasis-opacity));
 }
 
 :deep(.editor-field) {

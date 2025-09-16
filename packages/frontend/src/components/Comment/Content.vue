@@ -48,6 +48,7 @@
         <comment-text-field
           v-model="editText"
           :selectable-users="props.selectableUsers"
+          @save="performUpdate"
           density="compact"
           variant="outlined"
         />

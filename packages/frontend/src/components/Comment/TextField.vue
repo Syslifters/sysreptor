@@ -20,6 +20,7 @@
             v-bind="{ ...props, ...$attrs, ...fieldProps }"
             @focus="focus()"
             @blur="blur()"
+            @save="emit('save')"
             v-intersect.once="onIntersect"
           />
         </template>
@@ -33,6 +34,7 @@ const modelValue = defineModel<string|null>();
 const props = defineProps<{
   selectableUsers?: UserShortInfo[];
 }>();
+const emit = defineEmits(['save']);
 
 const contentRef = useTemplateRef('contentRef');
 const isFocused = ref(false);
