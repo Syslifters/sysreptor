@@ -7,6 +7,9 @@
         @update:filter="updateFilterValue(index, $event)"
         :type="props.filterProperties.find(f => f.id === filter.id)!.type"
         :filter-properties="props.filterProperties.find(f => f.id === filter.id)!"
+        :isPinned="isFilterPinned(filter, props.filterProperties.find(f => f.id === filter.id)!)"
+        @pin="onPin"
+        @unpin="onUnpin"
         @remove="updateFilterValue(index, undefined)"
       />
     </template>
@@ -15,35 +18,25 @@
 
 <script setup lang="ts">
 import { onMounted, watch } from 'vue';
-import { usePinnedFilters } from '@/composables/usePinnedFilters';
 
 const props = defineProps<{
   filterProperties: FilterProperties[];
+  pinnedStrings?: string[];
 }>();
+
+const emit = defineEmits(['pin', 'unpin']);
 
 // activeFilters is a model bound from parent
 const activeFilters = defineModel<FilterValue[]>({ required: true });
 
-const { getPinnedFilters, restorePinnedFilters } = usePinnedFilters();
+// pinned state is passed from pages via ListView; List-level logic will call parent to update store
 
 function mergePinnedIntoActive() {
-  const pinned = restorePinnedFilters(props.filterProperties);
-  if (!pinned || pinned.length === 0) return;
-  const merged = [...activeFilters.value];
-  let changed = false;
-  for (const p of pinned) {
-    if (!merged.some(f => f.id === p.id && JSON.stringify(f.value) === JSON.stringify(p.value))) {
-      merged.push(p);
-      changed = true;
-    }
-  }
-  if (changed) {
-    activeFilters.value = merged;
-  }
+  // No-op: pinned filters are applied by ListView as defaults
 }
 
 onMounted(() => {
-  mergePinnedIntoActive();
+  // Nothing to do here; parent ListView will initialize activeFilters
 });
 
 watch(() => props.filterProperties, () => {
@@ -52,8 +45,21 @@ watch(() => props.filterProperties, () => {
 
 // Also attempt to merge when parent initializes activeFilters (watch model)
 watch(activeFilters, () => {
-  mergePinnedIntoActive();
+  // Nothing to do here; parent ListView will control activeFilters initialization
 }, { immediate: true, deep: true });
+
+function isFilterPinned(filter: FilterValue, filterProp: FilterProperties) {
+  const pinKey = `${filterProp.id}:${JSON.stringify(filter.value)}`;
+  return (props.pinnedStrings || []).includes(pinKey);
+}
+
+function onPin(pinStr: string) {
+  emit('pin', pinStr);
+}
+
+function onUnpin(pinStr: string) {
+  emit('unpin', pinStr);
+}
 
 function updateFilterValue(idx: number, value?: FilterValue) {
   if (value === undefined) {

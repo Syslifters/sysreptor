@@ -12,7 +12,7 @@
     <v-icon
       class="ml-1"
       size="small"
-      :icon="isPinned ? 'mdi-pin' : 'mdi-pin-off'"
+      :icon="props.isPinned ? 'mdi-pin' : 'mdi-pin-off'"
       @click.stop="togglePin"
       title="Pin filter to persist across sessions"
     />
@@ -51,62 +51,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
-
-const PINNED_FILTERS_KEY = 'pinnedFilters';
-
-function getPinnedFilters() {
-  try {
-    return JSON.parse(localStorage.getItem(PINNED_FILTERS_KEY) || '[]');
-  } catch {
-    return [];
-  }
-}
-
-function setPinnedFilters(filters: string[]) {
-  localStorage.setItem(PINNED_FILTERS_KEY, JSON.stringify(filters));
-}
+import { computed } from 'vue';
 
 const filterId = computed(() => {
-  // Unique identifier for the filter (customize as needed)
-  return `${props.filterProperties.name}:${JSON.stringify(filter.value.value)}`;
+  // Unique identifier for the filter: use property id to avoid display-name changes
+  return `${props.filterProperties.id}:${JSON.stringify(filter.value.value)}`;
 });
-
-const isPinned = ref(false);
 
 function togglePin() {
-  const pinned = getPinnedFilters();
-  if (isPinned.value) {
-  const newPinned = pinned.filter((f: string) => f !== filterId.value);
-  setPinnedFilters(newPinned);
-    isPinned.value = false;
-    console.debug('[FilterChip] unpinned', { filterId: filterId.value, pinnedBefore: pinned, pinnedAfter: newPinned });
+  // Emit pin/unpin events upward; parent will update the store
+  if (props.isPinned) {
+    emit('unpin', filterId.value);
   } else {
-    const newPinned = [...pinned, filterId.value];
-    setPinnedFilters(newPinned);
-    isPinned.value = true;
-    console.debug('[FilterChip] pinned', { filterId: filterId.value, pinnedBefore: pinned, pinnedAfter: newPinned });
+    emit('pin', filterId.value);
   }
 }
-
-onMounted(() => {
-  const pinned = getPinnedFilters();
-  isPinned.value = pinned.includes(filterId.value);
-  console.debug('[FilterChip] mounted', { filterId: filterId.value, pinned });
-});
-
-watch(filterId, (newId) => {
-  const pinned = getPinnedFilters();
-  isPinned.value = pinned.includes(newId);
-  console.debug('[FilterChip] filterId changed', { newId, pinned });
-});
 const filter = defineModel<FilterValue>('filter', { required: true });
 const props = defineProps<{
   filterProperties: FilterProperties;
   displayValue?: string;
   minWidth?: string;
+  isPinned?: boolean;
 }>();
-const emit = defineEmits(['remove']);
+const emit = defineEmits(['remove', 'pin', 'unpin']);
 
 const chipDisplayValue = computed(() => {
   if (props.displayValue) {

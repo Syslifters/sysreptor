@@ -4,6 +4,7 @@
       ref="listViewRef"
       url="/api/v1/projecttypes/?scope=global"
       v-model:ordering="localSettings.designListOrdering"
+      v-model:pinnedFilters="localSettings.designListPinnedFilters"
       :ordering-options="[
         {id: 'name', title: 'Name', value: 'name'},
         {id: 'created', title: 'Created', value: '-created'},

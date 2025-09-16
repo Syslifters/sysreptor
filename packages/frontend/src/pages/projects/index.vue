@@ -3,6 +3,7 @@
     <list-view
       url="/api/v1/pentestprojects/?readonly=false" 
       v-model:ordering="localSettings.projectListOrdering"
+      v-model:pinnedFilters="localSettings.projectListPinnedFilters"
       :ordering-options="[
         {id: 'created', title: 'Created', value: '-created'},
         {id: 'updated', title: 'Updated', value: '-updated'},

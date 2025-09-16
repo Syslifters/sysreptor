@@ -44,6 +44,9 @@
               v-if="props.filterProperties && props.filterProperties.length > 0"
               v-model="activeFilters"
               :filter-properties="props.filterProperties"
+              :pinned-strings="pinnedFilters"
+              @pin="onPin"
+              @unpin="onUnpin"
             />
           </slot>
           <v-tabs v-if="$slots.tabs" height="30" selected-class="text-primary" class="list-header-tabs">
@@ -72,7 +75,6 @@
 import { pick } from 'lodash-es';
 import type { FilterProperties, FilterValue } from '@base/utils/types';
 import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery } from '@base/utils/filter';
-import { usePinnedFilters } from '@base/composables/usePinnedFilters';
 
 const orderingModel = defineModel<string|null>('ordering');
 const props = defineProps<{
@@ -80,6 +82,9 @@ const props = defineProps<{
   orderingOptions?: OrderingOption[];
   filterProperties?: FilterProperties[];
 }>();
+
+// pinnedFilters is a model bound from the page (v-model:pinnedFilters)
+const pinnedFilters = defineModel<string[]>('pinnedFilters');
 
 // Filter-related state
 const activeFilters = ref<FilterValue[]>([]);
@@ -105,26 +110,67 @@ useLazyAsyncData(async () => {
   await items.fetchNextPage()
 });
 
-// Initialize filters from URL on mount and merge pinned filters
+function readPinned(): string[] {
+  try {
+    if (!pinnedFilters) return [];
+    // pinnedFilters might be a model ref or plain array; normalize
+    // @ts-ignore
+    if (Array.isArray(pinnedFilters)) return pinnedFilters as string[];
+    // @ts-ignore
+    if (pinnedFilters.value && Array.isArray(pinnedFilters.value)) return pinnedFilters.value as string[];
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+function writePinned(arr: string[]) {
+  try {
+    if (!pinnedFilters) return;
+    // pinnedFilters can be a model ref or a plain array; use any casts to avoid strict type mismatch
+    const pfAny: any = pinnedFilters as any;
+    if (Array.isArray(pfAny)) {
+      pfAny.splice(0, pfAny.length, ...arr);
+      return;
+    }
+    if (pfAny && Array.isArray(pfAny.value)) {
+      pfAny.value.splice(0, pfAny.value.length, ...arr);
+      return;
+    }
+  } catch {
+    // no-op
+  }
+}
+
+// Initialize filters from URL on mount and apply pinned filters as defaults only
 onMounted(async () => {
-  if (props.filterProperties && props.filterProperties.length > 0) {
+  if (!(props.filterProperties && props.filterProperties.length > 0)) return;
+
   const filtersFromUrl = parseFiltersFromQuery(route.query, props.filterProperties);
-  const { restorePinnedFilters } = usePinnedFilters();
-  const pinned = restorePinnedFilters(props.filterProperties);
-  console.debug('[ListView] onMounted merge', { filtersFromUrl, pinned });
-    // merge pinned and URL filters, preferring URL values when duplicate ids exist
-    const merged: FilterValue[] = [];
-    // add URL filters first
-    for (const f of filtersFromUrl) merged.push(f);
-    for (const p of pinned) {
-      if (!merged.some(m => m.id === p.id && JSON.stringify(m.value) === JSON.stringify(p.value))) {
-        merged.push(p);
+
+  // If URL filters are present, respect them (they override pinned defaults)
+  if (filtersFromUrl && filtersFromUrl.length > 0) {
+    activeFilters.value = filtersFromUrl;
+    return;
+  }
+
+  // No explicit URL filters: apply pinned filters passed from the page
+  const restored: FilterValue[] = [];
+  const pinnedArr = readPinned();
+  for (const pinStr of pinnedArr) {
+    for (const filterProp of props.filterProperties) {
+      if (typeof pinStr === 'string' && pinStr.startsWith(filterProp.id + ':')) {
+        let value: any;
+        try {
+          value = JSON.parse(pinStr.slice(filterProp.id.length + 1));
+        } catch { value = undefined; }
+        restored.push({ id: filterProp.id, value, exclude: false });
       }
     }
-    if (merged.length > 0) {
-      activeFilters.value = merged;
-      console.debug('[ListView] applied merged filters', merged);
-    }
+  }
+
+  if (restored.length > 0) {
+    activeFilters.value = restored;
   }
 });
 
@@ -166,6 +212,20 @@ function updateOrdering(ordering?: OrderingOption|null) {
 
 function addFilter(filter: FilterValue) {
   addFilterUtil(activeFilters.value, filter);
+}
+
+function onPin(pinStr: string) {
+  const arr = readPinned();
+  if (!arr.includes(pinStr)) {
+    arr.push(pinStr);
+    writePinned(arr);
+  }
+}
+
+function onUnpin(pinStr: string) {
+  const arr = readPinned();
+  const after = arr.filter(p => p !== pinStr);
+  writePinned(after);
 }
 
 defineExpose({

@@ -1,11 +1,8 @@
-import { createProxyServer } from "httpxy"
-import type { IncomingMessage, ServerResponse } from "http";
 
 const isDev = process.env.NODE_ENV === 'development';
-// Allow overriding the API host for local development when backend isn't in Docker
-const API_HOST = process.env.API_HOST || (isDev ? 'localhost' : 'api');
+// Proxy target should point at Docker service hostname 'api' for dev; no localhost override
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
+// Proxy target intentionally points at Docker service hostname 'api'
 export default defineNuxtConfig({
   extends: ['@sysreptor/nuxt-base-layer'],
 
@@ -70,20 +67,20 @@ export default defineNuxtConfig({
     server: {
       proxy: {
           '/api': {
-            target: `http://${API_HOST}:8000`,
+            target: 'http://api:8000',
           changeOrigin: false,
           ws: true,
         },
           '/admin': {
-            target: `http://${API_HOST}:8000`,
+            target: 'http://api:8000',
           changeOrigin: false,
         },
           '/__debug__': {
-            target: `http://${API_HOST}:8000`,
+            target: 'http://api:8000',
           changeOrigin: false,
         },
           '/static': {
-            target: `http://${API_HOST}:8000`,
+            target: 'http://api:8000',
           changeOrigin: false,
           bypass(req) {
             const bypassPaths = [
@@ -97,7 +94,7 @@ export default defineNuxtConfig({
           },
         },
           '/favicon.ico': {
-            target: `http://${API_HOST}:8000`,
+            target: 'http://api:8000',
           changeOrigin: false,
         },
       }
@@ -105,16 +102,6 @@ export default defineNuxtConfig({
   },
   hooks: {
     // Websocket proxy workaround: https://github.com/nuxt/cli/issues/107#issuecomment-1850751905
-      listen(server) {
-      const proxy = createProxyServer({ target: { host: API_HOST, port: 8000 }, ws: true })
-
-      server.removeAllListeners("upgrade")
-      server.on("upgrade", (req: IncomingMessage, socket: ServerResponse, head: any) => {
-        if (req.url!.startsWith('/api')) {
-          proxy.ws(req, socket, head);
-        }
-      })
-    },
   },
 
 });
