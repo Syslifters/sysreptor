@@ -45,17 +45,11 @@
       <slot name="prepend-text" />
 
       <div v-if="editEnabled" @click.stop.prevent>
-        <v-textarea
+        <comment-text-field
           v-model="editText"
-          @keydown.ctrl.enter.prevent="performUpdate"
-          :placeholder="props.placeholder"
+          :selectable-users="props.selectableUsers"
           density="compact"
           variant="outlined"
-          rows="1"
-          auto-grow
-          hide-details="auto"
-          spellcheck="false"
-          class="comment-textfield"
         />
         <div class="mt-1">
           <s-btn-other 
@@ -93,6 +87,7 @@ const props = defineProps<{
   isNew?: boolean;
   initialEdit?: boolean;
   placeholder?: string;
+  selectableUsers?: UserShortInfo[];
 }>();
 
 const editEnabled = ref(props.initialEdit || false);
@@ -130,8 +125,6 @@ async function performUpdate() {
 </script>
 
 <style lang="scss" scoped>
-@use "@base/assets/vuetify.scss" as vuetify;
-
 .comment-header {
   padding-top: 0.1em;
   padding-bottom: 0.1em;
@@ -143,10 +136,5 @@ async function performUpdate() {
 .comment-text {
   white-space: pre-wrap;
   word-break: break-word;
-}
-.comment-textfield {
-  :deep(.v-field) {
-    font-size: vuetify.$card-text-font-size;
-  }
 }
 </style>

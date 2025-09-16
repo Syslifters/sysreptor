@@ -56,6 +56,7 @@
       :project-type="projectType"
       :finding-id="route.params.findingId as string"
       :readonly="readonly"
+      :selectable-users="inputFieldAttrs.selectableUsers"
     />
 
     <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">

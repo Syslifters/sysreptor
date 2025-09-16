@@ -16,6 +16,7 @@
       :delete="() => projectStore.deleteComment(props.project, comment)"
       :is-new="props.isNew"
       :readonly="readonly"
+      :selectable-users="props.selectableUsers"
       placeholder="Comment text..."
       class="comment-content"
     >
@@ -62,6 +63,7 @@
         :comment="props.comment"
         :project="props.project"
         :readonly="props.readonly"
+        :selectable-users="props.selectableUsers"
         placeholder="Answer..."
         class="answer-content"
       />
@@ -73,6 +75,7 @@
         :comment="props.comment"
         :project="props.project"
         :update="a => projectStore.createCommentAnswer(props.project, comment, a)"
+        :selectable-users="props.selectableUsers"
         :initial-edit="true"
         class="answer-new"
       />
@@ -90,6 +93,7 @@ const props = defineProps<{
   isActive?: boolean;
   isNew?: boolean;
   readonly?: boolean;
+  selectableUsers?: UserShortInfo[];
 }>();
 
 const projectStore = useProjectStore();
