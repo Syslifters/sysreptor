@@ -44,6 +44,7 @@
               v-if="props.filterProperties && props.filterProperties.length > 0"
               v-model="activeFilters"
               :filter-properties="props.filterProperties"
+              @update-pinned="updatePinnedFilters"
             />
           </slot>
           <v-tabs v-if="$slots.tabs" height="30" selected-class="text-primary" class="list-header-tabs">
@@ -69,7 +70,7 @@
 </template>
 
 <script setup lang="ts" generic="T">
-import { pick } from 'lodash-es';
+import { pick, isEqual, sortBy } from 'lodash-es';
 import type { FilterProperties, FilterValue } from '@base/utils/types';
 import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery } from '@base/utils/filter';
 
@@ -79,6 +80,9 @@ const props = defineProps<{
   orderingOptions?: OrderingOption[];
   filterProperties?: FilterProperties[];
 }>();
+
+// pinnedFilters is a model bound from the page (v-model:pinnedFilters)
+const pinnedFilters = defineModel<FilterValue[]>('pinnedFilters');
 
 // Filter-related state
 const activeFilters = ref<FilterValue[]>([]);
@@ -104,13 +108,29 @@ useLazyAsyncData(async () => {
   await items.fetchNextPage()
 });
 
-// Initialize filters from URL on mount
 onMounted(async () => {
-  if (props.filterProperties && props.filterProperties.length > 0) {
-    const filtersFromUrl = parseFiltersFromQuery(route.query, props.filterProperties);
-    if (filtersFromUrl.length > 0) {
-      activeFilters.value = filtersFromUrl;
+  if (!props.filterProperties || props.filterProperties.length === 0) {
+    return;
+  }
+
+  const pinnedFiltersParsed = Array.isArray(pinnedFilters.value) ? pinnedFilters.value.filter(f => props.filterProperties?.some(fp => fp.id === f.id)) : [];
+
+  // If URL filters are present, respect them (they override pinned defaults)
+  const filtersFromUrl = parseFiltersFromQuery(route.query, props.filterProperties);
+  if (filtersFromUrl && filtersFromUrl.length > 0) {
+    activeFilters.value = filtersFromUrl;
+  } else {
+    // No explicit URL filters: apply pinned filters
+    activeFilters.value = pinnedFiltersParsed.map(f => ({...f}));
+  }
+
+  if (pinnedFilters.value) {
+    // Set filter.isPinned for pinned filters. Apply both for URL and pinned filters
+    for (const f of activeFilters.value) {
+      f.isPinned = pinnedFiltersParsed.some(pf => pf.id === f.id && isEqual(pf.value, f.value));
     }
+    // Sort filters: pinned first
+    activeFilters.value = sortBy(activeFilters.value, [f => !f.isPinned, f => pinnedFiltersParsed.findIndex(pf => pf.id === f.id && isEqual(pf.value, f.value))]);
   }
 });
 
@@ -118,7 +138,7 @@ onMounted(async () => {
 watch(activeFilters, () => {
   if (props.filterProperties && props.filterProperties.length > 0) {
     const filterParams = filtersToQueryParams(activeFilters.value, props.filterProperties);
-    
+
     router.replace({
       query: {
         ...pick(route.query, ['search', 'ordering']),
@@ -152,6 +172,13 @@ function updateOrdering(ordering?: OrderingOption|null) {
 
 function addFilter(filter: FilterValue) {
   addFilterUtil(activeFilters.value, filter);
+}
+
+function updatePinnedFilters() {
+  // When any filter is pinned or unpinned, update the entire list of pinned filters to the currently pinned filters
+  if (pinnedFilters.value && props.filterProperties) {
+    pinnedFilters.value = activeFilters.value.filter(f => f.isPinned);
+  }
 }
 
 defineExpose({

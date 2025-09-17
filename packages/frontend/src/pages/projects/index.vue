@@ -8,6 +8,7 @@
         {id: 'updated', title: 'Updated', value: '-updated'},
         {id: 'name', title: 'Name', value: 'name'},
       ]"
+      v-model:pinned-filters="localSettings.projectListPinnedFilters"
       :filter-properties="filterProperties"
       ref="listViewRef"
     >

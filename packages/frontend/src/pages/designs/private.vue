@@ -9,6 +9,7 @@
         {id: 'created', title: 'Created', value: '-created'},
         {id: 'updated', title: 'Updated', value: '-updated'},
       ]"
+      v-model:pinned-filters="localSettings.designListPinnedFilters"
       :filter-properties="filterProperties"
     >
       <template #title>Designs</template>

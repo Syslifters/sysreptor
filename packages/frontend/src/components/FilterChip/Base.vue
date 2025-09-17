@@ -6,8 +6,17 @@
     closable
     @click:close="emit('remove')"
   >
+
     <v-icon v-if="props.filterProperties.icon" start size="small" :icon="props.filterProperties.icon" />
     {{ filter.exclude ? '! ' : '' }}{{ props.filterProperties.name }}: {{ chipDisplayValue }}
+    <v-icon
+      v-if="isPinned !== undefined"
+      class="ml-1"
+      size="small"
+      :icon="isPinned ? 'mdi-pin' : 'mdi-pin-off'"
+      @click.stop="isPinned = !isPinned"
+      title="Pin filter to persist across sessions"
+    />
     <slot name="chip-actions"></slot>
 
     <v-menu
@@ -44,6 +53,7 @@
 
 <script setup lang="ts">
 const filter = defineModel<FilterValue>('filter', { required: true });
+const isPinned = defineModel<boolean>('isPinned');
 const props = defineProps<{
   filterProperties: FilterProperties;
   displayValue?: string;
