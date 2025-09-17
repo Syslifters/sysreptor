@@ -1,4 +1,0 @@
-name: sysreptor
-
-include:
-  - sysreptor/docker-compose.yml
