@@ -1,5 +1,5 @@
 import { CvssVersion } from "@base/utils/cvss/base";
-import { MarkdownEditorMode, CommentStatus } from "#imports";
+import { MarkdownEditorMode, CommentStatus, type FilterValue } from "#imports";
 
 export const useLocalSettings = defineStore('settings', {
   state: () => ({
@@ -26,10 +26,9 @@ export const useLocalSettings = defineStore('settings', {
     projectListOrdering: null as string|null,
     designListOrdering: null as string|null,
     templateListOrdering: null as string|null,
-  // Per-list pinned filters stored as arrays of pin-strings
-  projectListPinnedFilters: [] as string[],
-  designListPinnedFilters: [] as string[],
-  templateListPinnedFilters: [] as string[],
+    projectListPinnedFilters: [] as FilterValue[],
+    designListPinnedFilters: [] as FilterValue[],
+    templateListPinnedFilters: [] as FilterValue[],
     userListOrdering: null as string|null,
     templateFieldFilterDesign: 'all',
     templateFieldFilterHiddenFields: [] as string[],

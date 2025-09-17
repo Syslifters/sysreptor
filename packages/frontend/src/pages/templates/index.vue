@@ -4,12 +4,12 @@
       ref="listViewRef" 
       url="/api/v1/findingtemplates/"
       v-model:ordering="localSettings.templateListOrdering"
-      v-model:pinnedFilters="localSettings.templateListPinnedFilters"
       :ordering-options="[
         {id: 'risk', title: 'Severity', value: '-risk'},
         {id: 'created', title: 'Created', value: '-created'},
         {id: 'updated', title: 'Updated', value: '-updated'},
       ]"
+      v-model:pinned-filters="localSettings.templateListPinnedFilters"
       :filter-properties="filterProperties"
     >
       <template #title>Templates</template>
