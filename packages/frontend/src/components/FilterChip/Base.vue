@@ -10,10 +10,11 @@
     <v-icon v-if="props.filterProperties.icon" start size="small" :icon="props.filterProperties.icon" />
     {{ filter.exclude ? '! ' : '' }}{{ props.filterProperties.name }}: {{ chipDisplayValue }}
     <v-icon
+      v-if="isPinned !== undefined"
       class="ml-1"
       size="small"
-      :icon="props.isPinned ? 'mdi-pin' : 'mdi-pin-off'"
-      @click.stop="togglePin"
+      :icon="isPinned ? 'mdi-pin' : 'mdi-pin-off'"
+      @click.stop="isPinned = !isPinned"
       title="Pin filter to persist across sessions"
     />
     <slot name="chip-actions"></slot>
@@ -51,29 +52,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-
-const filterId = computed(() => {
-  // Unique identifier for the filter: use property id to avoid display-name changes
-  return `${props.filterProperties.id}:${JSON.stringify(filter.value.value)}`;
-});
-
-function togglePin() {
-  // Emit pin/unpin events upward; parent will update the store
-  if (props.isPinned) {
-    emit('unpin', filterId.value);
-  } else {
-    emit('pin', filterId.value);
-  }
-}
 const filter = defineModel<FilterValue>('filter', { required: true });
+const isPinned = defineModel<boolean>('isPinned');
 const props = defineProps<{
   filterProperties: FilterProperties;
   displayValue?: string;
   minWidth?: string;
-  isPinned?: boolean;
 }>();
-const emit = defineEmits(['remove', 'pin', 'unpin']);
+const emit = defineEmits(['remove']);
 
 const chipDisplayValue = computed(() => {
   if (props.displayValue) {
