@@ -42,35 +42,36 @@ class OpenVASImporter(BaseImporter):
         findings = []
         for file in files:
             for result_xml in parse_xml(file).xpath('//report/results/result'):
-                finding = xml_to_dict(result_xml)
+                nvt_xml = result_xml.find('nvt')
+                if nvt_xml is None:
+                    continue
+
+                finding = xml_to_dict(node=result_xml, elements_str=['name']) | {
+                    'nvt': xml_to_dict(node=nvt_xml)
+                }
 
                 # Parse nvt tags
-                tags = finding.get("nvt", dict()).get("tags", "")
-                tags = {i[0]: i[1] for i in (item.split("=", maxsplit=1) for item in tags.split("|"))}
+                tags = {i[0]: i[1] for i in (item.split("=", maxsplit=1) for item in (nvt_xml.findtext('tags') or '').split("|"))}
                 finding |= tags
 
-                finding['oid'] = finding['nvt'].get('@oid')
+                finding['oid'] = nvt_xml.attrib.get('oid')
                 finding['title'] = finding['name']
 
-                severity = finding.get('severities', {}).get('severity', {})
-                if severity and isinstance(severity, list):
-                    severity = severity[0]
-                finding['cvss'] = cvss2_to_cvss31(severity.get('value'))
+                finding['cvss'] = cvss2_to_cvss31(result_xml.findtext('nvt/severities/severity/value') or finding.get('cvss_base_vector'))
                 finding['severity'] = cvss.level_from_score(float(finding.get('severity') or '0')).value
 
-                host_xml = result_xml.find('host')
-                finding['host'] = xml_to_dict(host_xml) | {
-                    'ip': next(iter(result_xml.xpath('host/text()')), None),
-                    'hostname': next(iter(result_xml.xpath('host/hostname/text()')), None),
-                    'port': next(iter(result_xml.xpath('host/port/text()')), None),
+                finding['host'] = xml_to_dict(result_xml.find('host')) | {
+                    'ip': result_xml.findtext('host'),
+                    'hostname': result_xml.findtext('host/hostname'),
+                    'port': result_xml.findtext('port') or '',
                 }
                 finding['target'] = finding['host']['hostname'] or finding['host']['ip']
-                finding['affected_components'] = [f"{finding['target']}{':' + finding['port'] if not finding['port'].startswith('general') else ''}"]
+                finding['affected_components'] = [f"{finding['target']}{':' + finding['host']['port'] if finding['host']['port'] and not finding['host']['port'].startswith('general') else ''}"]
                 finding['references'] = result_xml.xpath('nvt/refs/ref[@type="url"]/@id')
 
                 findings.append(finding)
 
-        findings = sorted(findings, key=lambda f: cvss.calculate_score(f['cvss']))
+        findings = sorted(findings, key=lambda f: cvss.calculate_score(f['cvss']), reverse=True)
         return findings
     
     def merge_findings_by_plugin(self, findings):

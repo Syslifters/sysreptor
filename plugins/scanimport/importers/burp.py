@@ -1,5 +1,6 @@
 import re
 import textwrap
+from base64 import b64decode
 
 from sysreptor.pentests.models import (
     FindingTemplateTranslation,
@@ -39,7 +40,16 @@ class BurpImporter(BaseImporter):
         issues = []
         for file in files:
             for tree in parse_xml(file).xpath('/issues/issue'):
-                issue = xml_to_dict(tree)
+                issue = xml_to_dict(
+                    node=tree,
+                    elements_str=['type', 'name', 'severity', 'references', 'issueBackground', 'issueDetail', 'remediationDetail', 'remediationBackground', 'host', 'path', 'location', 'confidence', 'vulnerabilityClassifications'],
+                ) | {
+                    'issueDetailItems': tree.xpath('issueDetailItems/issueDetailItem/text()'),
+                    'requestresponse': [{
+                        'request': b64decode(rr.findtext('request[@base64="true"]') or ''),
+                        'response': b64decode(rr.findtext('response[@base64="true"]') or ''),
+                    } for rr in tree.xpath('requestresponse')]
+                }
 
                 # Exclude false positives
                 if issue.get('severity') == 'False Positive':
