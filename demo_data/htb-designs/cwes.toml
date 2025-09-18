@@ -1,6 +1,6 @@
 format = "projecttypes/v2"
 id = "8412f94b-7eb7-4508-9397-0e1b8da5f066"
-name = "HTB CBBH Report v1.2"
+name = "HTB CWES Report v1.0"
 language = "en-US"
 status = "finished"
 tags = [
@@ -32,10 +32,9 @@ report_template = """
     </div>
 
     <div id="page-cover-title">
-        <h1>Bug Bounty Program</h1>
-        <h2 id="page-cover-report-title">{{ report.title }}</h2>
+        <h1 id="page-cover-report-title">{{ report.title }}</h1>
         <h2>Report of Findings</h2>
-        <h3>HTB Certified Bug Bounty Hunter (CBBH) Exam Report</h3>
+        <h3>HTB Certified Web Exploitation Specialist (CWES) Exam Report</h3>
         <h3>Candidate Name: {{ report.candidate.name }}</h3>
     </div>
 
@@ -44,6 +43,12 @@ report_template = """
         <h2>{{ formatDate(report.report_date, 'long') }}</h2>
         <h2>Version: {{ report.report_version }}</h2>
     </div>
+
+    <div id="page-cover-footer">
+        <strong>Hack The Box Confidential</strong><br>
+        <span>No part of this document may be disclosed to outside sources without the explicit written authorization of Hack The Box.</span>
+    </div>
+
     <pagebreak />
 </section>
 
@@ -558,18 +563,18 @@ footnote {
     @top-left-corner {
         content: "";
         margin-bottom: var(--header-margin-bottom);
-        border-bottom: 2px dotted white;
+        border-bottom: 2px dotted var(--color-secondary);
     }
     @top-left { 
         content: element(header-left); 
         margin-bottom: var(--header-margin-bottom);
-        border-bottom: 2px dotted white;
+        border-bottom: 2px dotted var(--color-secondary);
         width: 100%;
     }
     @top-right-corner { 
         content: "";
         margin-bottom: var(--header-margin-bottom); 
-        border-bottom: 2px dotted white;
+        border-bottom: 2px dotted var(--color-secondary);
     }
 }
 #header {
@@ -628,7 +633,7 @@ footnote {
     text-align: center;
 }
 #page-cover-title h1 {
-    font-size: 32pt;
+    font-size: 30pt;
     color: white;
 }
 #page-cover-title h2 {
@@ -666,13 +671,39 @@ footnote {
     page: page-cover;
 }
 @page page-cover {
+    margin-bottom: 25mm;
+    --footer-margin-top: 5mm;
+
     /* Hide header */
     @top-left-corner { content: none !important; }
     @top-left { content: none !important; }
     @top-right-corner { content: none !important; }
-    /* Hide footer (except "confidential") */
-    @bottom-center { content: none !important; }
-    @bottom-right-corner { content: none !important; }
+    /* Different footer */
+    @bottom-left { content: none !important; }
+    @bottom-right { content: none !important; }
+    @bottom-center { 
+        content: element(page-cover-footer); 
+        border-top: 2px dotted var(--color-secondary);
+        margin-top: var(--footer-margin-top);
+        width: 100%;
+    }
+    @bottom-left-corner { 
+        content: "" !important;
+        border-top: 2px dotted var(--color-secondary);
+        margin-top: var(--footer-margin-top);
+    }
+    @bottom-right-corner { 
+        content: "" !important;
+        border-top: 2px dotted var(--color-secondary);
+        margin-top: var(--footer-margin-top);
+    }
+}
+#page-cover-footer {
+    position: running(page-cover-footer);
+    text-align: center;
+    font-size: 8pt;
+    color: var(--color-secondary);
+    margin-top: -5mm;
 }
 /* #endregion page-cover */
 
@@ -749,7 +780,7 @@ id = "title"
 type = "string"
 label = "Report Title"
 origin = "core"
-default = "TODO Private Web Application"
+default = "Private Web Application Security Assessment"
 required = true
 spellcheck = false
 
@@ -875,7 +906,7 @@ type = "markdown"
 label = "Executive Summary"
 origin = "custom"
 default = """
-{{ report.customer_full }} (“{{ report.customer_short }}” herein) invited {{ report.candidate.name }} to a private bug bounty program to perform a targeted Web Application Penetration Test of {{ report.customer_short }}’s externally facing web applications to identify high-risk security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations.
+{{ report.customer_full }} (“{{ report.customer_short }}” herein) invited {{ report.candidate.name }} to a private engagement to perform a targeted Web Application Penetration Test of {{ report.customer_short }}’s externally facing web applications to identify high-risk security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations.
 """
 required = true
 
@@ -906,7 +937,7 @@ The scope of this assessment was as follows TODO *.trilocor.local and any and al
 | TODO exam IP address  | Trilocor online store/unauthenticated |
 
 
-The following types of findings were in-scope for this private bug bounty program: 
+The following types of findings were in-scope for this assessment:
 
 * Sensitive or personally identifiable information disclosure
 * Cross-Site Scripting (XSS)
@@ -919,7 +950,7 @@ The following types of findings were in-scope for this private bug bounty progra
 * Significant security misconfigurations and business logic flaws
 * Exposed credentials that could be leveraged to gain further access
 
-The following types of activities were considered out-of-scope for this bug bounty program:
+The following types of activities were considered out-of-scope for this assessment:
 
 * Scanning and assessing any other IP in the Entry Point's network
 * Physical attacks against {{ report.customer_short }} properties
@@ -1123,9 +1154,8 @@ order = "desc"
 field = "title"
 order = "asc"
 
-[report_preview_data]
 [report_preview_data.report]
-title = "Trilocor Private Web Application"
+title = "Private Web Application Security Assessment"
 customer_full = "Trilocor Robotics Ltd."
 customer_short = "Trilocor"
 pentest_approach = "BLACKBOX"
@@ -1134,7 +1164,7 @@ pentest_end = "2023-05-31"
 report_date = "2023-05-31"
 report_version = "1.0"
 executive_summary = """
-{{ report.customer_full }} (“{{ report.customer_short }}” herein) invited {{ report.candidate.name }} to a private bug bounty program to perform a targeted Web Application Penetration Test of {{ report.customer_short }}’s externally facing web applications to identify high-risk security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations.
+{{ report.customer_full }} (“{{ report.customer_short }}” herein) invited {{ report.candidate.name }} to a private engagement to perform a targeted Web Application Penetration Test of {{ report.customer_short }}’s externally facing web applications to identify high-risk security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations.
 """
 approach = """
 {{ report.candidate.name }} performed testing under a “{{ report.pentest_approach.label }}” approach from {{ formatDate(report.pentest_start, 'long') }}, to {{ formatDate(report.pentest_end, 'long') }} without credentials or any advance knowledge of {{ report.customer_short }}’s web applications with the goal of identifying unknown weaknesses. Testing was performed from a non-evasive standpoint with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Testing was performed remotely. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential. {{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal network access.
@@ -1151,7 +1181,7 @@ The scope of this assessment was as follows TODO *.trilocor.local and any and al
 | TODO exam IP address  | Trilocor online store/unauthenticated |
 
 
-The following types of findings were in-scope for this private bug bounty program: 
+The following types of findings were in-scope for this assessment:
 
 * Sensitive or personally identifiable information disclosure
 * Cross-Site Scripting (XSS)
@@ -1164,7 +1194,7 @@ The following types of findings were in-scope for this private bug bounty progra
 * Significant security misconfigurations and business logic flaws
 * Exposed credentials that could be leveraged to gain further access
 
-The following types of activities were considered out-of-scope for this bug bounty program:
+The following types of activities were considered out-of-scope for this assessment:
 
 * Scanning and assessing any other IP in the Entry Point's network
 * Physical attacks against {{ report.customer_short }} properties
