@@ -23,31 +23,42 @@ def parse_xml(file):
     return tree
 
 
-def xml_to_dict(node):
+def xml_to_dict(node, elements_str: list[str]|None = None) -> dict:
     """
     Convert an lxml.etree node tree into a dict.
     """
     result = {}
 
-    for key, value in node.attrib.items():
-        result['@' + key] = value
+    if node is not None:
+        for key, value in node.attrib.items():
+            result['@' + key] = value
 
-    for element in node.iterchildren():
-        # Remove namespace prefix
-        key = etree.QName(element).localname
+        for element in node.iterchildren():
+            # Remove namespace prefix
+            key = etree.QName(element).localname
 
-        # Process element as tree element if the inner XML contains non-whitespace content
-        if element.text and element.text.strip():
-            value = element.text
-        else:
-            value = xml_to_dict(element)
-        if key in result:
-            if type(result[key]) is list:
-                result[key].append(value)
+            # Process element as tree element if the inner XML contains non-whitespace content
+            if element.text and element.text.strip():
+                value = element.text
             else:
-                result[key] = [result[key], value]
+                value = xml_to_dict(element)
+            if key in result:
+                if isinstance(result[key], list):
+                    result[key].append(value)
+                else:
+                    result[key] = [result[key], value]
+            else:
+                result[key] = value
+
+    for k in elements_str or []:
+        v = result.get(k)
+        if isinstance(v, str):
+            continue
+        elif isinstance(v, list) and len(v) > 0:
+            result[k] = str(v[0])
         else:
-            result[key] = value
+            result[k] = None
+
     return result
 
 

@@ -42,7 +42,13 @@ class NessusImporter(BaseImporter):
         findings = []
         for file in files:
             for report_item in parse_xml(file).xpath('/NessusClientData_v2/Report/ReportHost/ReportItem'):
-                finding = xml_to_dict(report_item) | dict(report_item.attrib)
+                finding = xml_to_dict(
+                    node=report_item, 
+                    elements_str=['description', 'solution', 'synopsis', 'risk_factor', 'cve', 'cvss_vector', 'plugin_name'],
+                ) | {
+                    'plugin_output': report_item.xpath('plugin_output/text()'),
+                    'see_also': report_item.xpath('see_also/text()'),
+                } | dict(report_item.attrib)
 
                 # Fix text indentation
                 for k, v in finding.items():
@@ -68,18 +74,18 @@ class NessusImporter(BaseImporter):
                 finding['host'] = host
 
                 # Format finding data
-                finding['title'] = finding.pop('pluginName')
-                finding['severity'] = (finding.pop('risk_factor') or 'info').lower()
+                finding['title'] = finding.get('pluginName') or finding.get('plugin_name')
+                finding['severity'] = (finding.pop('risk_factor', None) or 'info').lower()
                 if finding['severity'] not in self.severity_mapping:
                     finding['severity'] = 'info'
                 finding['severity_score'] = int(report_item.attrib.get('severity') or 0) + 1
                 finding['cvss'] = cvss2_to_cvss31(finding.get('cvss_vector'))
 
                 finding['recommendation'] = finding.pop('solution', '')
-                finding['plugin_output'] = [finding['plugin_output']] if finding.get('plugin_output') else []
-                references = finding.pop('see_also', '')
-                finding['references'] = references if isinstance(references, list) else [references] if references else []
-
+                finding['references'] = []
+                for ref in finding.pop('see_also', []):
+                    finding['references'].extend(list(filter(None, ref.splitlines())))
+                
                 target = host.get("name") or host.get("host_ip") or "n/a"
                 port = finding.get("port") or "0"
                 svc_name = finding.get("svc_name") or "general"
@@ -97,7 +103,7 @@ class NessusImporter(BaseImporter):
         for _, findings in groupby_to_dict(findings, key=lambda f: f['pluginID']).items():
             merged = findings[0]
             for f in findings[1:]:
-                merged['affected_components'].extend(f['affected_components'])
+                merged['affected_components'] += f['affected_components']
                 merged['references'] = list(set(merged['references'] + f['references']))
                 merged['plugin_output'] += f['plugin_output']
             out.append(merged)

@@ -26,15 +26,19 @@ class ZapImporter(BaseImporter):
         alerts = []
         for site_xml in parse_xml(file).xpath('/OWASPZAPReport/site'):
             for alert_xml in site_xml.xpath('alerts/alertitem'):
-                alert_dict = xml_to_dict(alert_xml) | {
+                alert_dict = xml_to_dict(
+                    node=alert_xml,
+                    elements_str=['plugiid', 'name', 'alert', 'alertRef', 'riskcode', 'confidence', 'desc', 'solution', 'cweid'],
+                ) | {
                     'site': dict(site_xml.attrib),
+                    'instances': [xml_to_dict(
+                        node=instance_xml,
+                        elements_str=['uri', 'method', 'param', 'attack', 'evidence', 'otherinfo', 'requestheader', 'requestbody', 'responseheader', 'responsebody'],
+                    ) for instance_xml in alert_xml.xpath('instances/instance')],
                 }
-                if isinstance(alert_dict.get('instances'), dict):
-                    alert_dict['instances'] = [alert_dict['instances']]
                 alerts.append(alert_dict)
         return alerts
 
-    
     def parse_zap_json(self, file):
         alerts = []
         file.seek(0)
@@ -54,6 +58,7 @@ class ZapImporter(BaseImporter):
                 alerts.extend(self.parse_zap_xml(file))
 
         for alert in alerts:
+            alert['alertRef'] = alert.get('alertRef') or '0'
             alert['riskcode'] = alert.get('riskcode') or '0'
             alert['severity'] = {'0': 'info', '1': 'low', '2': 'medium', '3': 'high'}.get(alert['riskcode'], 'info')
         alerts = sorted(alerts, key=lambda a: (a['riskcode'], a['alertRef']))
@@ -69,7 +74,6 @@ class ZapImporter(BaseImporter):
                 merged['count'] = len(merged['instances'])
             out.append(merged)
         return out
-
 
     def parse_notes(self, files):
         notes = []

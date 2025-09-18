@@ -37,7 +37,11 @@ class QualysImporter(BaseImporter):
             tree =  parse_xml(file)
 
             for vuln_xml in tree.xpath('/SCAN/IP/VULNS/CAT/VULN'):
-                finding = {k.lower(): v for k, v in xml_to_dict(vuln_xml).items()} | dict(vuln_xml.attrib)
+                vuln_data = xml_to_dict(
+                    node=vuln_xml,
+                    elements_str=['TITLE', 'DIAGNOSIS', 'CONSEQUENCE', 'SOLUTION', 'SEVERITY', 'RESULT'],
+                ) | dict(vuln_xml.attrib)
+                finding = {k.lower(): v for k, v in vuln_data.items()} | dict(vuln_xml.attrib)
 
                 cat_xml = vuln_xml.getparent()
                 ip_xml = cat_xml.getparent().getparent()
@@ -58,10 +62,15 @@ class QualysImporter(BaseImporter):
 
                 findings.append(finding)
 
-            qids = {q.find('QID').text: xml_to_dict(q) for q in tree.xpath('/WAS_SCAN_REPORT/GLOSSARY/QID_LIST/QID')}
+            qids = {
+                q.find('QID').text: xml_to_dict(
+                    node=q,
+                    elements_str=['QID', 'TITLE', 'SEVERITY', 'CATEGORY', 'DESCRIPTION', 'IMPACT', 'SOLUTION', 'CWE']
+                ) for q in tree.xpath('/WAS_SCAN_REPORT/GLOSSARY/QID_LIST/QID')
+            }
             for vuln_xml in tree.xpath('/WAS_SCAN_REPORT/RESULTS/VULNERABILITY_LIST/VULNERABILITY'):
-                finding = xml_to_dict(vuln_xml)
-                finding |= qids[finding['QID']] | {'number': finding['QID']}
+                finding = xml_to_dict(node=vuln_xml, elements_str=['QID', 'URL', 'SEVERITY'])
+                finding = qids[finding['QID']] | finding | {'number': finding['QID']}
                 finding = {k.lower(): v for k, v in finding.items()}
                 
                 url = urlparse(finding['url'])
