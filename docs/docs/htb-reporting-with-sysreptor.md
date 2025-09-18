@@ -1,11 +1,11 @@
 # Hack The Box Reporting
 
-Our free cloud service to write your Hack The Box CPTS, CBBH, CDSA, CWEE, CAPE or CJCA reports.
+Our free cloud service to write your Hack The Box CPTS, CWES, CDSA, CWEE, CAPE or CJCA reports.
 
 💲 Free  
 📝 Write in markdown  
 ⚙️ Render your report to PDF  
-🛡️ CPTS, CBBH, CDSA, CWEE, CAPE, CJCA  
+🛡️ CPTS, CWES, CDSA, CWEE, CAPE, CJCA  
 🚀 Fully customizable  
 👌 No local software troubleshooting
 
@@ -33,10 +33,10 @@ curl -s "https://docs.sysreptor.com/assets/htb-demo-projects.tar.gz" | docker co
         <figcaption>HTB CPTS Report Demo</figcaption>
     </figure>
 </a>
-<a href="/assets/reports/HTB-CBBH-Report.pdf" target="_blank">
+<a href="/assets/reports/HTB-CWES-Report.pdf" target="_blank">
     <figure style="float:left;width:24%;margin:0.5em;">
-        <img alt="HTB CBBH Report Demo" src="/assets/reports/HTB-CBBH-Report-Preview.png" style="border:1px solid;" />
-        <figcaption>HTB CBBH Report Demo</figcaption>
+        <img alt="HTB CWES Report Demo" src="/assets/reports/HTB-CWES-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>HTB CWES Report Demo</figcaption>
     </figure>
 </a>
 <a href="/assets/reports/HTB-CDSA-Report.pdf" target="_blank">

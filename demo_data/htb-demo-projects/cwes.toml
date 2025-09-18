@@ -1,6 +1,6 @@
 format = "projects/v2"
 id = "bb4eddb5-eead-48ab-9416-181bb6ddaeb2"
-name = "CBBH Exam Report"
+name = "CWES Exam Report"
 language = "en-US"
 tags = []
 members = []
@@ -28,7 +28,7 @@ id = "executive_summary"
 status = "in-progress"
 
 [report_data]
-title = "CBBH Exam Report"
+title = "Private Web Application Security Assessment"
 web_application_summary = "{{ report.candidate.name }} began all testing activities from the perspective of an unauthenticated user on the internet. {{ report.customer_short }} provided the tester with a single URL and IP address but did not provide additional information such as operating system or configuration information."
 finding_summary = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}’s information systems. The below chart provides a summary of the findings by severity level."
 appendix_flags = """
@@ -52,7 +52,7 @@ pentest_approach = "BLACKBOX"
 report_version = "TODO 1.0"
 customer_contacts = []
 executive_summary = """
-{{ report.customer_full }} (“{{ report.customer_short }}” herein) invited {{ report.candidate.name }} to a private bug bounty program to perform a targeted Web Application Penetration Test of {{ report.customer_short }}’s externally facing web applications to identify high-risk security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations.
+{{ report.customer_full }} (“{{ report.customer_short }}” herein) invited {{ report.candidate.name }} to a private engagement to perform a targeted Web Application Penetration Test of {{ report.customer_short }}’s externally facing web applications to identify high-risk security weaknesses, determine the impact to {{ report.customer_short }}, document all findings in a clear and repeatable manner, and provide remediation recommendations.
 """
 approach = """
 {{ report.candidate.name }} performed testing under a “{{ report.pentest_approach.label }}” approach from {{ formatDate(report.pentest_start, 'long') }}, to {{ formatDate(report.pentest_end, 'long') }} without credentials or any advance knowledge of {{ report.customer_short }}’s web applications with the goal of identifying unknown weaknesses. Testing was performed from a non-evasive standpoint with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Testing was performed remotely. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential. {{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal network access.
@@ -69,7 +69,7 @@ The scope of this assessment was as follows TODO *.trilocor.local and any and al
 | TODO exam IP address  | Trilocor online store/unauthenticated |
 
 
-The following types of findings were in-scope for this private bug bounty program: 
+The following types of findings were in-scope for this assessment:
 
 * Sensitive or personally identifiable information disclosure
 * Cross-Site Scripting (XSS)
@@ -82,7 +82,7 @@ The following types of findings were in-scope for this private bug bounty progra
 * Significant security misconfigurations and business logic flaws
 * Exposed credentials that could be leveraged to gain further access
 
-The following types of activities were considered out-of-scope for this bug bounty program:
+The following types of activities were considered out-of-scope for this assessment:
 
 * Scanning and assessing any other IP in the Entry Point's network
 * Physical attacks against {{ report.customer_short }} properties
@@ -129,4 +129,4 @@ references = []
 affected_components = []
 
 [project_type]
-file = "../htb-designs/cbbh.toml"
+file = "../htb-designs/cwes.toml"
