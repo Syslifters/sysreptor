@@ -92,7 +92,9 @@ function autocompleteUsernames(context: CompletionContext) {
   const from = word ? word.from : context.pos;
   return {
     from,
-    options: props.selectableUsers.map(u => ({ label: `@${u.username}`, detail: u.name || undefined })),
+    options: props.selectableUsers
+      .filter(u => !!u.username)
+      .map(u => ({ label: `@${u.username}`, detail: u.name || undefined })),
   };
 }
 
