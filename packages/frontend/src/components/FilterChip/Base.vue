@@ -6,17 +6,10 @@
     closable
     @click:close="emit('remove')"
   >
-
     <v-icon v-if="props.filterProperties.icon" start size="small" :icon="props.filterProperties.icon" />
     {{ filter.exclude ? '! ' : '' }}{{ props.filterProperties.name }}: {{ chipDisplayValue }}
-    <v-icon
-      v-if="isPinned !== undefined"
-      class="ml-1"
-      size="small"
-      :icon="isPinned ? 'mdi-pin' : 'mdi-pin-off'"
-      @click.stop="isPinned = !isPinned"
-      title="Pin filter to persist across sessions"
-    />
+    <v-icon v-if="isPinned" icon="mdi-pin" size="small" class="ml-1" />
+
     <slot name="chip-actions"></slot>
 
     <v-menu
@@ -28,10 +21,11 @@
         <v-card-text>
           <slot name="default"></slot>
           <div
-            v-if="props.filterProperties.allow_exclude"
+            v-if="props.filterProperties.allow_exclude || isPinned !== undefined"
             class="d-flex align-center justify-left mt-1"
           >
             <v-switch
+              v-if="props.filterProperties.allow_exclude"
               v-model="filter.exclude"
               color="secondary"
               hide-details
@@ -44,6 +38,17 @@
                 </label>
               </template>
             </v-switch>
+            <v-spacer />
+
+            <v-checkbox-btn
+              v-if="isPinned !== undefined"
+              v-model="isPinned"
+              true-icon="mdi-pin"
+              false-icon="mdi-pin-off"
+              density="compact"
+              inline
+              v-tooltip="{text: 'Pin filter to persist across sessions'}"
+            />
           </div>
         </v-card-text>
       </v-card>
@@ -52,6 +57,8 @@
 </template>
 
 <script setup lang="ts">
+import { cloneDeep, isEqual } from 'lodash-es';
+
 const filter = defineModel<FilterValue>('filter', { required: true });
 const isPinned = defineModel<boolean>('isPinned');
 const props = defineProps<{
@@ -73,4 +80,13 @@ const chipDisplayValue = computed(() => {
     return 'Any'
   }
 })
+
+const oldFilterValue = ref<FilterValue>(cloneDeep(filter.value));
+watch(filter, () => {
+  // Trigger update:filter events when a sub-property changes
+  if (oldFilterValue.value.internalId === filter.value.internalId && !isEqual(oldFilterValue.value, filter.value)) {
+    oldFilterValue.value = cloneDeep(toValue(filter.value));
+    filter.value = {...filter.value};
+  }
+}, { deep: true });
 </script>
