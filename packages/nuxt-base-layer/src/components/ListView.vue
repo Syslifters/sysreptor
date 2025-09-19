@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts" generic="T">
-import { pick, isEqual, sortBy } from 'lodash-es';
+import { pick, isEqual, sortBy, omit } from 'lodash-es';
 import type { FilterProperties, FilterValue } from '@base/utils/types';
 import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery } from '@base/utils/filter';
 
@@ -124,20 +124,22 @@ onMounted(async () => {
     activeFilters.value = pinnedFiltersParsed.map(f => ({...f}));
   }
 
-  if (pinnedFilters.value) {
-    // Set filter.isPinned for pinned filters. Apply both for URL and pinned filters
-    for (const f of activeFilters.value) {
-      f.isPinned = pinnedFiltersParsed.some(pf => pf.id === f.id && isEqual(pf.value, f.value));
+  for (const f of activeFilters.value) {
+    f.internalId = uuidv4();
+    if (pinnedFilters.value) {
+      // Set filter.isPinned for pinned filters. Apply both for URL and pinned filters
+      f.isPinned = pinnedFiltersParsed.some(pf => isEqual(omit(pf, ['internalId', 'isPinned']), omit(f, ['internalId', 'isPinned'])));
     }
-    // Sort filters: pinned first
-    activeFilters.value = sortBy(activeFilters.value, [f => !f.isPinned, f => pinnedFiltersParsed.findIndex(pf => pf.id === f.id && isEqual(pf.value, f.value))]);
   }
+  // Sort filters: pinned first
+  activeFilters.value = sortBy(activeFilters.value, [f => !f.isPinned, f => pinnedFiltersParsed.findIndex(pf => isEqual(omit(pf, ['internalId', 'isPinned']), omit(f, ['internalId', 'isPinned'])))]);
 });
 
 // Watch for filter changes and update URL
 watch(activeFilters, () => {
-  if (pinnedFilters.value) {
-    for (const f of activeFilters.value) {
+  for (const f of activeFilters.value) {
+    f.internalId ??= uuidv4();
+    if (pinnedFilters.value) {
       f.isPinned ??= false;
     }
   }
@@ -183,7 +185,7 @@ function addFilter(filter: FilterValue) {
 function updatePinnedFilters() {
   // When any filter is pinned or unpinned, update the entire list of pinned filters to the currently pinned filters
   if (pinnedFilters.value && props.filterProperties) {
-    pinnedFilters.value = activeFilters.value.filter(f => f.isPinned);
+    pinnedFilters.value = activeFilters.value.filter(f => f.isPinned).map(f => omit(f, ['internalId', 'isPinned']));
   }
 }
 

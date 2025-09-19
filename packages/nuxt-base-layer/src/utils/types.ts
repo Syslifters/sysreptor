@@ -664,6 +664,7 @@ export type FilterValue = {
   exclude: boolean,
   regex?: boolean,
   isPinned?: boolean,
+  internalId?: string,
 }
 
 export type DateRange = 'last24Hours' | 'last7Days' | 'last30Days' | 'last90Days' | 'last12Months' | 'last24Months' | 'last5Years';

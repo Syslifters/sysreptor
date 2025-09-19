@@ -6,7 +6,6 @@
     closable
     @click:close="emit('remove')"
   >
-
     <v-icon v-if="props.filterProperties.icon" start size="small" :icon="props.filterProperties.icon" />
     {{ filter.exclude ? '! ' : '' }}{{ props.filterProperties.name }}: {{ chipDisplayValue }}
     <v-icon
@@ -52,6 +51,8 @@
 </template>
 
 <script setup lang="ts">
+import { cloneDeep, isEqual } from 'lodash-es';
+
 const filter = defineModel<FilterValue>('filter', { required: true });
 const isPinned = defineModel<boolean>('isPinned');
 const props = defineProps<{
@@ -73,4 +74,13 @@ const chipDisplayValue = computed(() => {
     return 'Any'
   }
 })
+
+const oldFilterValue = ref<FilterValue>(cloneDeep(filter.value));
+watch(filter, () => {
+  // Trigger update:filter events when a sub-property changes
+  if (oldFilterValue.value.internalId === filter.value.internalId && !isEqual(oldFilterValue.value, filter.value)) {
+    oldFilterValue.value = cloneDeep(toValue(filter.value));
+    filter.value = {...filter.value};
+  }
+}, { deep: true });
 </script>
