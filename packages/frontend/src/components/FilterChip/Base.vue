@@ -8,14 +8,8 @@
   >
     <v-icon v-if="props.filterProperties.icon" start size="small" :icon="props.filterProperties.icon" />
     {{ filter.exclude ? '! ' : '' }}{{ props.filterProperties.name }}: {{ chipDisplayValue }}
-    <v-icon
-      v-if="isPinned !== undefined"
-      class="ml-1"
-      size="small"
-      :icon="isPinned ? 'mdi-pin' : 'mdi-pin-off'"
-      @click.stop="isPinned = !isPinned"
-      title="Pin filter to persist across sessions"
-    />
+    <v-icon v-if="isPinned" icon="mdi-pin" size="small" class="ml-1" />
+
     <slot name="chip-actions"></slot>
 
     <v-menu
@@ -27,10 +21,11 @@
         <v-card-text>
           <slot name="default"></slot>
           <div
-            v-if="props.filterProperties.allow_exclude"
+            v-if="props.filterProperties.allow_exclude || isPinned !== undefined"
             class="d-flex align-center justify-left mt-1"
           >
             <v-switch
+              v-if="props.filterProperties.allow_exclude"
               v-model="filter.exclude"
               color="secondary"
               hide-details
@@ -43,6 +38,17 @@
                 </label>
               </template>
             </v-switch>
+            <v-spacer />
+
+            <v-checkbox-btn
+              v-if="isPinned !== undefined"
+              v-model="isPinned"
+              true-icon="mdi-pin"
+              false-icon="mdi-pin-off"
+              density="compact"
+              inline
+              v-tooltip="{text: 'Pin filter to persist across sessions'}"
+            />
           </div>
         </v-card-text>
       </v-card>
