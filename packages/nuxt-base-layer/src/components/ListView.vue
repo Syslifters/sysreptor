@@ -136,6 +136,12 @@ onMounted(async () => {
 
 // Watch for filter changes and update URL
 watch(activeFilters, () => {
+  if (pinnedFilters.value) {
+    for (const f of activeFilters.value) {
+      f.isPinned ??= false;
+    }
+  }
+
   if (props.filterProperties && props.filterProperties.length > 0) {
     const filterParams = filtersToQueryParams(activeFilters.value, props.filterProperties);
 
