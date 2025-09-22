@@ -8,6 +8,7 @@
 * Allow using a custom PostgreSQL schema via `DATABASE_SCHEMA`
 * Auto-complete usernames in comments
 * Update HTB CBBH design to HTB CWES
+* Fix CSP errors related to `strict-dynamic` directive
 
 
 ## v2025.74 - 2025-09-10

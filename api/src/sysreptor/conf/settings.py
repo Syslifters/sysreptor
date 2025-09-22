@@ -18,7 +18,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import redis
-from csp.constants import NONCE, NONE, SELF, STRICT_DYNAMIC, UNSAFE_INLINE
+from csp.constants import NONCE, NONE, SELF, UNSAFE_INLINE
 from decouple import Csv, config
 from kombu import Queue
 
@@ -410,7 +410,7 @@ CONTENT_SECURITY_POLICY = {
         'frame-src': [SELF, 'blob:'],
         # nuxt, vuetify and markdown preview use inline styles
         'style-src': [SELF, UNSAFE_INLINE],
-        'script-src': [SELF, NONCE, STRICT_DYNAMIC],
+        'script-src': [SELF, NONCE],
         # Trusted types are not compatible with django admin, django rest framework's browsable API, swagger UI and django debug toolbar
         # 'require-trusted-types-for': ["'script'"],
         # 'trusted-types': [
