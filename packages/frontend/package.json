@@ -15,10 +15,10 @@
     "@sysreptor/nuxt-base-layer": "../nuxt-base-layer",
     "@sysreptor/markdown": "../markdown",
 
-    "nuxt": "*",
-    "vuetify": "*",
-    "pinia": "*",
-    
+    "nuxt": "~4.0",
+    "vuetify": "~3.10",
+    "pinia": "^3.0",
+
     "sass-embedded": "^1.79.5",
     "@vueuse/nuxt": "^13.0.0",
     "monaco-editor": "^0.53.0",
