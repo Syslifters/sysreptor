@@ -96,11 +96,11 @@ class ZapImporter(BaseImporter):
                     """\
                     | Target | Information |
                     | :----- | :---------- |
-                    | Site   | <!--{{name}}--> |
-                    | Host   | <!--{{host}}--> |
-                    | Port   | <!--{{port}}--> |
-                    | SSL?   | <!--{{ssl|yesno}}--> |
-                    """), context={}),
+                    | Site   | <!--{{ name }}--> |
+                    | Host   | <!--{{ host }}--> |
+                    | Port   | <!--{{ port }}--> |
+                    | SSL?   | <!--{{ ssl|yesno }}--> |
+                    """), context=alerts[0]['site']),
             )
             notes.append(note_host)
             for idx, alert in enumerate(self.merge_alerts(alerts)):
