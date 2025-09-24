@@ -138,9 +138,9 @@ class NessusImporter(BaseImporter):
                     
                     | Title | Severity |
                     | ------- | ------- |
-                    <!--{% for f in findings %}-->| <!--{{f.plugin_name}}--> | <!--{{f.severity}}--> |
+                    <!--{% for f in findings %}-->| <!--{{ f.title }}--> | <!--{{ f.severity }}--> |
                     <!--{% endfor %}-->
-                    """), {'host': findings[0]['host'] | {'findings': findings}})
+                    """), context=findings[0]['host'] | {'findings': findings})
             )
             notes.append(note_host)
             for idx, finding in enumerate(self.merge_findings_by_plugin(findings)):
