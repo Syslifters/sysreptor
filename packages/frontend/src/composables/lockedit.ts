@@ -70,6 +70,7 @@ export function useProjectTypeLockEdit(options: {
     ...useLockEdit<ProjectType>({
       performSave: options.performSave,
       performDelete: options.performDelete,
+      toolbarRef: options.toolbarRef,
       deleteConfirmInput,
       data: projectType,
       baseUrl,

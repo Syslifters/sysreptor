@@ -1,5 +1,9 @@
 # Changelog
 
+## v2025.81 - 2025-09-24
+* Fix error when opening design notes page
+
+
 ## v2025.80 - 2025-09-24
 * Add excalidraw notes to SysReptor core
 * Deprecate `excalidraw` plugin
