@@ -169,6 +169,19 @@ class TestProjectApi:
         res = self.client.get(reverse('pentestproject-list', query=filters))
         assert set(p['name'] for p in res.data['results']) == set(results)
 
+    @pytest.mark.parametrize(('projects', 'expected'), [
+        ([{'tags': ['x', 'b', 'y']}, {'tags': ['c', 'z', 'a']}], ['a', 'b', 'c', 'x', 'y', 'z']),
+        ([{'tags': ['only_a', 'common1', 'common2']}, {'tags': ['only_b', 'common1', 'common2']}], ['common1', 'common2', 'only_a', 'only_b']),
+        ([{'tags': ['tag_member'], 'member': True}, {'tags': ['tag_other'], 'member': False}], ['tag_member']),
+    ])
+    def test_tags(self, projects, expected):
+        for p in projects:
+            create_project(**p | {'members': [self.user] if p.pop('member', True) else []})
+
+        res = self.client.get(reverse('pentestproject-tags'))
+        assert res.status_code == 200
+        assert res.data['tags'] == expected
+
 
 @pytest.mark.django_db()
 class TestProjectTypeApi:

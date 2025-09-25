@@ -112,12 +112,12 @@ def file_viewset_urls(basename, get_obj, get_base_kwargs=None, read=False, write
     return out
 
 
-def project_viewset_urls(get_obj, read=False, write=False, create=False, list=False, destory=None, update=None, share=False):
-    destory = destory if destory is not None else write
+def project_viewset_urls(get_obj, read=False, write=False, create=False, list=False, destroy=None, update=None, share=False):
+    destroy = destroy if destroy is not None else write
     update = update if update is not None else write
 
     out = [
-        *viewset_urls('pentestproject', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=update, update_partial=update, destroy=destory, history_timeline=read),
+        *viewset_urls('pentestproject', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=update, update_partial=update, destroy=destroy, history_timeline=read),
         *viewset_urls('section', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).sections.first().section_id} if detail else {}), list=read, retrieve=read, update=write, update_partial=write, history_timeline=read),
         *viewset_urls('finding', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).findings.first().finding_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, history_timeline=read),
         *viewset_urls('projectnotebookpage', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).notes.first().note_id} if detail else {}), list=read, retrieve=read, create=write, destroy=write, update=write, update_partial=write, history_timeline=read),
@@ -169,6 +169,10 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('pentestproject copy', lambda s, c: c.post(reverse('pentestproject-copy', kwargs={'pk': get_obj(s).pk}), data={})),
             ('pentestproject import', lambda s, c: c.post(reverse('pentestproject-import'), data={'file': export_archive(get_obj(s))}, format='multipart')),
         ])
+    if list:
+        out.extend([
+            ('pentestproject tags', lambda s, c: c.get(reverse('pentestproject-tags'))),
+        ])
     return out
 
 
@@ -197,6 +201,7 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=Fal
     if list:
         out.extend([
             ('projecttype get-predefined-finding-fields', lambda s, c: c.get(reverse('projecttype-get-predefined-finding-fields'))),
+            ('projecttype tags', lambda s, c: c.get(reverse('projecttype-tags'))),
         ])
     return out
 
@@ -264,6 +269,7 @@ def guest_urls():
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True, history_timeline=True),
         *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, read=True),
         ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition')), {'initialize_dependencies': lambda s: [s.template, s.project_type]}),
+        ('findingtemplate tags', lambda s, c: c.get(reverse('findingtemplate-tags'))),
         ('findingtemplatehistory template', lambda s, c: c.get(reverse('findingtemplatehistory-detail', kwargs={'template_pk': s.template.pk, 'history_date': s.history_date}))),
         ('findingtemplatehistory image-by-name', lambda s, c: c.get(reverse('findingtemplatehistory-image-by-name', kwargs={'template_pk': s.template.pk, 'filename': s.template.images.first().name, 'history_date': s.history_date}))),
 
@@ -274,12 +280,13 @@ def guest_urls():
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, read=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private, read=True, write=True),
 
-        *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True, write=False, destory=False, update=False, share=False),
+        *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True, write=False, destroy=False, update=False, share=False),
         *project_viewset_urls(get_obj=lambda s: s.project_readonly, read=True, share=False),
 
         *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project.pk} | ({'pk': s.archived_project.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
         ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project.pk, 'pk': getattr(s.archived_project.key_parts.filter(user=s.current_user).first(), 'pk', uuid4())}))),
+        ('archivedproject tags', lambda s, c: c.get(reverse('archivedproject-tags'))),
     ]
 
 
@@ -287,10 +294,10 @@ def regular_user_urls():
     return [
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, retrieve=True),
 
-        *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, write=True, destory=True, share=True),
+        *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, write=True, destroy=True, share=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, write=True),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project.pk}), data={'readonly': True})),
-        *project_viewset_urls(get_obj=lambda s: s.project_readonly, destory=True, share=True),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, destroy=True, share=True),
         ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project_readonly.pk}), data={'readonly': False})),
 
         ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly.pk}))),
@@ -360,7 +367,7 @@ def superuser_urls():
 
 def forbidden_urls():
     return [
-        *project_viewset_urls(get_obj=lambda s: s.project_readonly, write=True, destory=False),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, write=True, destroy=False),
         ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
