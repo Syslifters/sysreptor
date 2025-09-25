@@ -47,6 +47,7 @@
       />
       <s-tags
         v-model="projectType.tags"
+        :items="tagSuggestions.getTags"
         :readonly="readonly"
         class="mt-4"
       />
@@ -60,6 +61,7 @@ import type { VForm } from 'vuetify/components';
 
 const auth = useAuth();
 const projectTypeStore = useProjectTypeStore();
+const tagSuggestions = useProjectTypeTags();
 
 const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit(await useProjectTypeLockEditOptions({
   save: true,

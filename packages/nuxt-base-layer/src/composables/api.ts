@@ -159,3 +159,35 @@ export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: stri
     reset,
   };
 }
+
+
+export function useSingletonFetcher<T>(url: string) {
+  const data = ref<T>();
+  const getDataSync = ref<Promise<T>|null>(null);
+
+  async function fetchData(): Promise<T> {
+    data.value = await $fetch<T>(url, { method: 'GET' });
+    return data.value!;
+  }
+
+  async function getData(): Promise<T> {
+    if (data.value) {
+      return data.value!;
+    } else if (getDataSync.value) {
+      return await getDataSync.value;
+    } else {
+      try {
+        getDataSync.value = fetchData();
+        return await getDataSync.value;
+      } finally {
+        getDataSync.value = null;
+      }
+    }
+  }
+
+  return {
+    data,
+    fetchData,
+    getData,
+  }
+}

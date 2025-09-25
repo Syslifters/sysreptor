@@ -644,6 +644,8 @@ export type ShareInfoPublic = BaseModel & {
   readonly note_id: string;
 }
 
+export type MaybePromiseCallable<T> = T | Promise<T> | (() => Promise<T>) | (() => T);
+
 export type FilterType = "select" | "text" | "daterange" | "timerange" | "combobox";
 
 export type FilterProperties = {
@@ -651,7 +653,7 @@ export type FilterProperties = {
   name: string,
   icon?: string,
   multiple: boolean,
-  options: string[] | object[],
+  options: MaybePromiseCallable<string[] | any[]>,
   type: FilterType,
   allow_exclude: boolean,
   allow_regex?: boolean,

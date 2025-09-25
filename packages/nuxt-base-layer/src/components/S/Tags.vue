@@ -16,7 +16,9 @@
         <v-icon size="small" start icon="mdi-tag" class="ml-0" /> {{ item.title }}
       </v-chip>
     </template>
-    <template #no-data><span /></template>
+    <template #no-data>
+      <span v-intersect="onIntersect" />
+    </template>
     <template #append-item>
       <v-list-item
         title="Type to add custom tags..."
@@ -27,9 +29,11 @@
 </template>
 
 <script setup lang="ts">
+import { uniq } from 'lodash-es';
+
 const props = withDefaults(defineProps<{
   modelValue: string[];
-  items?: string[];
+  items?: string[]|(() => Promise<string[]>);
   readonly?: boolean;
 }>(), {
   items: () => ([]),
@@ -39,12 +43,20 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string[]): void
 }>();
 
-const tagSuggestions = ref([...props.items, ...props.modelValue]);
-watch(() => props.modelValue, (val) => {
-  for (const tag of val) {
-    if (!tagSuggestions.value.includes(tag)) {
-      tagSuggestions.value.push(tag);
-    }
+const tagSuggestions = ref<string[]>([]);
+function addTagSuggestions(tags: string[]) {
+  tagSuggestions.value = uniq(tagSuggestions.value.concat(tags));
+}
+
+async function onIntersect() {
+  addTagSuggestions(props.modelValue);
+
+  if (Array.isArray(props.items)) {
+    addTagSuggestions(props.items);
+  } else if (typeof props.items === 'function') {
+    const items = await props.items();
+    addTagSuggestions(items);
   }
-});
+}
+
 </script>

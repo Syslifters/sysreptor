@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Suggest previously used tags in filters, projects, designs and templates
+
+
 ## v2025.81 - 2025-09-24
 * Fix error when opening design notes page
 
