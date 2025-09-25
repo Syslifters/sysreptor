@@ -121,6 +121,7 @@
       />
       <s-tags
         v-model="project.tags"
+        :items="tagSuggestions.getTags"
         :error-messages="serverErrors?.tags || []"
         :readonly="readonly"
         class="mt-4"
@@ -158,6 +159,7 @@ const auth = useAuth();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
+const tagSuggestions = useProjectTags();
 
 const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${route.params.projectId}/`, { method: 'GET', deep: true });
 const serverErrors = ref<any|null>(null);

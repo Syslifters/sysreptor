@@ -35,7 +35,8 @@
         class="mt-4" 
       />
       <s-tags 
-        v-model="projectForm.tags" 
+        v-model="projectForm.tags"
+        :items="tagSuggestions.getTags"
         :error-messages="serverErrors?.tags || []"
         class="mt-4" 
       />
@@ -54,6 +55,7 @@ useHeadExtended({
 const auth = useAuth();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
+const tagSuggestions = useProjectTags();
 
 const projectForm = ref({
   name: '',

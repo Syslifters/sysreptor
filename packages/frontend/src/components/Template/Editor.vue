@@ -80,7 +80,7 @@
           />
           <s-tags
             v-model="template.tags"
-            :items="templateTagSuggestions"
+            :items="tagSuggestions.getTags"
             :readonly="props.readonly"
             class="mt-4"
           />
@@ -156,6 +156,7 @@ const props = defineProps<{
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 const templateStore = useTemplateStore();
+const tagSuggestions = useFindingTemplateTags();
 useLazyAsyncData(async () => await templateStore.getFieldDefinition());
 
 const template = computed(() => props.modelValue);
@@ -173,11 +174,6 @@ watch(() => template.value.translations, () => {
 const restoreTranslationDataCache = ref<Record<string, Record<string, any>>>({});
 const initialLanguages = ref(template.value.translations.map(tr => tr.language));
 const historyVisible = ref(false);
-const templateTagSuggestions = [
-  'web', 'infrastructure', 'organizational', 'hardening', 'internal', 'external', 'third_party',
-  'active_directory', 'windows', 'client',
-  'config', 'update', 'development', 'crypto',
-];
 
 const visibleFieldDefinitions = computed(() => (props.fieldDefinitionList || templateStore.fieldDefinitionList).filter(f => f.visible));
 const visibleFieldDefinitionsExceptTitle = computed(() => visibleFieldDefinitions.value.filter(f => f.id !== 'title'));
