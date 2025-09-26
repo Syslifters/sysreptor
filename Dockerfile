@@ -57,7 +57,7 @@ COPY packages/markdown /app/packages/markdown/
 COPY packages/nuxt-base-layer /app/packages/nuxt-base-layer/
 COPY packages/frontend /app/packages/frontend/
 COPY api/src/sysreptor/pentests/rendering/global_assets /app/packages/frontend/src/assets/rendering/
-COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/nuxt-base-layer/src/public/static/pdfviewer/dist/
+COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/frontend/src/public/static/pdfviewer/dist/
 COPY --from=excalidraw /app/packages/excalidraw/dist/ /app/packages/frontend/src/public/static/excalidraw/dist/
 # Test command
 WORKDIR /app/packages/frontend/
@@ -88,7 +88,6 @@ FROM --platform=$BUILDPLATFORM plugin-builder-dev AS plugin-builder
 COPY --from=frontend-base /app/packages /app/packages/
 # Copy source code
 COPY packages/nuxt-base-layer /app/packages/nuxt-base-layer/
-COPY --from=pdfviewer /app/packages/pdfviewer/dist/ /app/packages/nuxt-base-layer/src/public/static/pdfviewer/dist/
 COPY packages/plugin-base-layer /app/packages/plugin-base-layer/
 COPY packages/markdown /app/packages/markdown/
 COPY plugins /app/plugins/

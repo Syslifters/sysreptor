@@ -4,6 +4,7 @@
 * Suggest previously used tags in filters, projects, designs and templates
 * Plugin `scanimport`: Prevent errors on incompatible finding field types
 * Prevent excalidraw update errors on delete note
+* Do not include pdfviewer in every plugin frontend build
 
 
 ## v2025.81 - 2025-09-24
