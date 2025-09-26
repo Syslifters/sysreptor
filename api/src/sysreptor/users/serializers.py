@@ -98,6 +98,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'is_superuser': {'read_only': not getattr(user, 'is_admin', False)},
             'is_user_manager': {'read_only': read_only},
             'is_designer': {'read_only': read_only},
+            'is_project_admin': {'read_only': read_only},
             'is_template_editor': {'read_only': read_only},
             'is_guest': {'read_only': read_only},
             'is_global_archiver': {'read_only': read_only},
