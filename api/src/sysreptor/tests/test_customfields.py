@@ -38,6 +38,7 @@ from sysreptor.utils.fielddefinition.types import (
     FieldDataType,
     FieldDefinition,
     ListField,
+    ObjectField,
     StringField,
     parse_field_definition,
     parse_field_definition_legacy,
@@ -674,6 +675,8 @@ class TestTemplateFieldDefinition:
         self.project_type1 = create_project_type(
             finding_fields=serialize_field_definition(FINDING_FIELDS_CORE | FieldDefinition(fields=[
                 StringField(id='field1', default='default', label='Field 1'),
+                ListField(id='field1_list', items=StringField()),
+                ObjectField(id='field1_object', properties=[StringField(id='field_string')]),
                 StringField(id='field_conflict', default='default', label='Conflicting field type'),
             ])),
         )
@@ -696,7 +699,7 @@ class TestTemplateFieldDefinition:
     def test_get_template_field_definition(self):
         assert \
             set(FindingTemplate.field_definition.keys()) == \
-            set(FINDING_FIELDS_CORE.keys()) | set(FINDING_FIELDS_PREDEFINED.keys()) | {'field1', 'field2', 'field_conflict'}
+            set(FINDING_FIELDS_CORE.keys()) | set(FINDING_FIELDS_PREDEFINED.keys()) | {'field1', 'field1_list', 'field1_object', 'field2', 'field_conflict'}
         assert FindingTemplate.field_definition['field_conflict'].type == FieldDataType.STRING
 
     def test_delete_field_definition(self):
@@ -708,15 +711,35 @@ class TestTemplateFieldDefinition:
         assert self.template.main_translation.data_all['field1'] == old_value
 
     def test_change_field_type(self):
+        tr = self.template.main_translation
+        tr.update_data({
+            'field1': 'string value',
+            'field1_list': ['list', 'value'],
+            'field1_object': {'field_string': 'object value'},
+        })
+        tr.save()
+
         self.project_type1.finding_fields = copy.deepcopy(self.project_type1.finding_fields)
         get_definition(self.project_type1.finding_fields, 'field1').update(
             {'type': 'list', 'label': 'changed field type', 'items': {'type': 'string', 'default': 'default'}, 'default': None},
+        )
+        get_definition(self.project_type1.finding_fields, 'field1_list').update(
+            {'type': 'string', 'label': 'changed field type', 'default': 'default'},
+        )
+        get_definition(self.project_type1.finding_fields, 'field1_object').update(
+            {'type': 'string', 'label': 'changed field type', 'default': 'default'},
         )
         self.project_type1.save()
         self.template.refresh_from_db()
 
         assert FindingTemplate.field_definition['field1'].type == FieldDataType.LIST
-        assert self.template.main_translation.data['field1'] == []
+        assert tr.data['field1'] == ['string value']
+
+        assert FindingTemplate.field_definition['field1_list'].type == FieldDataType.STRING
+        assert tr.data['field1_list'] == 'list'
+
+        assert FindingTemplate.field_definition['field1_object'].type == FieldDataType.STRING
+        assert tr.data['field1_object'] is None
 
 
 @pytest.mark.django_db()

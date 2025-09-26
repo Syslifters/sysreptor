@@ -202,8 +202,8 @@ class TestTemplateRendering:
     @pytest.mark.parametrize(('data', 'expected'), [
         ({'field_string': 'string'}, {'field_string': 'string'}),
         ({'field_list': ['list']}, {'field_list': ['list']}),
-        ({'field_string': ['list']}, {'field_string': None}),
-        ({'field_list': 'string'}, {'field_list': []}),
+        ({'field_string': ['list']}, {'field_string': 'list'}),
+        ({'field_list': 'string'}, {'field_list': ['string']}),
         ({'field_string': None}, {'field_string': None}),
         ({'field_list': None}, {'field_list': []}),
     ])
