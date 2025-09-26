@@ -8,6 +8,10 @@ from sysreptor.pentests.models import (
     PentestFinding,
     PentestProject,
 )
+from sysreptor.utils.fielddefinition.utils import (
+    HandleUndefinedFieldsOptions,
+    ensure_defined_structure,
+)
 from sysreptor.utils.language import Language
 
 from ..utils import render_template_string
@@ -75,19 +79,29 @@ class BaseImporter:
         }
 
         # Format finding data based on template
-        f.update_data(data)
+        f.update_data(ensure_defined_structure(
+            value=data,
+            definition=project.project_type.finding_fields_obj,
+            handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
+        ))
         for k, v in tr.data.items():
+            if k not in project.project_type.finding_fields_obj or not v:
+                continue
+
             if v and isinstance(v, str):
                 try:
-                    f.update_data({k: render_template_string(v, context=data)})
+                    v = render_template_string(v, context=data)
                 except TemplateSyntaxError as ex:
                     template_identifier = (f'{self.id} fallback template' if getattr(tr, 'is_fallback', False) else f'template id="{self.id}"')
                     raise serializers.ValidationError(f'Template error in {template_identifier} with language="{tr.language}" field="{k}": {ex}') from ex
-            elif v:
-                f.update_data({k: v})
-        
+            f.update_data({ k: ensure_defined_structure(
+                value=v,
+                definition=project.project_type.finding_fields_obj[k],
+                handle_undefined=HandleUndefinedFieldsOptions.FILL_NONE,
+            )})
+
         return f
-    
+
 
 def fallback_template(tags: list[str], translations: list[FindingTemplateTranslation]) -> FindingTemplate:
     template = FindingTemplate(tags=tags)

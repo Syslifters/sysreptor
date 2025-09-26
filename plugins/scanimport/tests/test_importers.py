@@ -5,6 +5,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from rest_framework import serializers
 from sysreptor.pentests.models import Language
 from sysreptor.tests.mock import (
     api_client,
@@ -18,6 +19,7 @@ from sysreptor.tests.utils import assertKeysEqual
 
 from ..apps import ScanImportPluginConfig
 from ..importers import registry
+from ..importers.base import BaseImporter
 
 SCANIMPORT_APPLABEL = ScanImportPluginConfig.label
 DATA_FILES = [f for f in (Path(__file__).parent / 'data').glob('**/*') if f.is_file()]
@@ -156,10 +158,61 @@ class TestTemplateRendering:
             """
         )
 
-    def test_template_missing_context_variables(self):
-        create_template(tags=['scanimport:burp'], data={'description': 'Missing variable: <!--{{ missing.nested.variable }}-->'})
-        f = self.import_burp_finding()
-        assert f['data']['description'] == 'Missing variable: '
+    @pytest.mark.parametrize(('template_str', 'expected'), [
+        ('<!--{{ variable_string }}-->', 'variable_string'),
+        ('<!--{{ variable_list }}-->', "['item1', 'item2']"),
+        ('<!--{{ variable_dict }}-->', "{'key': 'value'}"),
+        ('<!--{{ variable_dict.key }}-->', 'value'),
+        ('<!--{{ variable_none }}-->', 'None'),
+        ('<!--{{ variable_missing }}-->', ''),
+        ('<!--{{ missing.nested.variable }}-->', ''),
+        ('<!--{% for i in variable_list %}--><!--{{ i }}-->;<!--{% endfor %}-->', 'item1;item2;'),
+        ('<!--{% for i in variable_string %}--><!--{{ i }}-->;<!--{% endfor %}-->', 'v;a;r;i;a;b;l;e;_;s;t;r;i;n;g;'),
+        ('<!--{% for i in variable_none %}--><!--{{ i }}-->;<!--{% endfor %}-->', ''),
+        ('<!--{% for i in variable_missing %}--><!--{{ i }}-->;<!--{% endfor %}-->', ''),
+        ('<!--{% for k, v in variable_dict.items %}--><!--{{ k }}-->=<!--{{ v }}-->;<!--{% endfor %}-->', 'key=value;'),
+        ('<!--{% for k, v in variable_none.items %}--><!--{{ k }}-->=<!--{{ v }}-->;<!--{% endfor %}-->', ''),
+        ('<!--{% for k, v in variable_missing.items %}--><!--{{ k }}-->=<!--{{ v }}-->;<!--{% endfor %}-->', ''),
+    ])
+    def test_template_ignored_errors(self, template_str, expected):
+        t = create_template(data={'description': template_str})
+        f = BaseImporter().generate_finding_from_template(project=self.project, tr=t.main_translation, data={
+            'variable_string': 'variable_string',
+            'variable_list': ['item1', 'item2'],
+            'variable_dict': {'key': 'value'},
+            'variable_none': None,
+        })
+        assert f.data['description'] == expected
+
+    def test_template_syntax_error(self):
+        t = create_template(tags=['scanimport:burp'], data={'description': 'Syntax error: <!--{% for i in list %}-->no endfor'})
+        with pytest.raises(serializers.ValidationError) as exc_info:
+            BaseImporter().generate_finding_from_template(project=self.project, tr=t.main_translation, data={})
+        assert 'Template error' in str(exc_info.value)
+        assert 'description' in str(exc_info.value)
+
+    def test_template_data_field_priority(self):
+        t = create_template(data={'title': 'template_value', 'field_string': 'template_value', 'field_int': 100})
+        data = {'title': 'Parsed Title', 'field_string': 'parsed_value', 'field_int': 50, 'field_list': ['parsed_value']}
+        f = BaseImporter().generate_finding_from_template(project=self.project, tr=t.main_translation, data=data)
+        
+        assertKeysEqual(f.data, t.main_translation.data, ['title', 'field_string', 'field_int'])
+        assertKeysEqual(f.data, data, ['field_list'])
+
+    @pytest.mark.parametrize(('data', 'expected'), [
+        ({'field_string': 'string'}, {'field_string': 'string'}),
+        ({'field_list': ['list']}, {'field_list': ['list']}),
+        ({'field_string': ['list']}, {'field_string': 'list'}),
+        ({'field_list': 'string'}, {'field_list': ['string']}),
+        ({'field_string': None}, {'field_string': None}),
+        ({'field_list': None}, {'field_list': []}),
+    ])
+    def test_incompatible_field_types(self, data, expected):
+        f = BaseImporter().generate_finding_from_template(
+            project=self.project, 
+            tr=create_template().main_translation, 
+            data=data)
+        assertKeysEqual(f.data, expected, expected.keys())
 
 
 @pytest.mark.django_db

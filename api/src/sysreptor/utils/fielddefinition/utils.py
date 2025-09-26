@@ -91,41 +91,45 @@ def ensure_defined_structure(value, definition: FieldDefinition|BaseField, handl
         for f in definition.fields:
             out[f.id] = ensure_defined_structure(value=(value if isinstance(value, dict) else {}).get(f.id), definition=f, handle_undefined=handle_undefined)
         return out
-    else:
-        if definition.type == FieldDataType.LIST:
-            if isinstance(value, list):
-                return [ensure_defined_structure(value=e, definition=definition.items, handle_undefined=handle_undefined) for e in value]
-            else:
-                if handle_undefined == HandleUndefinedFieldsOptions.FILL_DEMO_DATA and definition.items.type != FieldDataType.USER:
-                    return [ensure_defined_structure(value=None, definition=definition.items, handle_undefined=handle_undefined) for _ in range(2)]
-                elif handle_undefined == HandleUndefinedFieldsOptions.FILL_DEFAULT and isinstance(definition.default, list):
-                    return [ensure_defined_structure(value=e, definition=definition.items, handle_undefined=handle_undefined) for e in definition.default]
-                else:
-                    return []
-        elif definition.type == FieldDataType.MARKDOWN and not isinstance(value, str):
-            return _default_or_demo_data(definition, lorem.paragraphs(3), handle_undefined=handle_undefined)
-        elif definition.type == FieldDataType.STRING and not isinstance(value, str):
-            return _default_or_demo_data(definition, lorem.words(2), handle_undefined=handle_undefined)
-        elif definition.type == FieldDataType.CVSS and not isinstance(value, str):
-            return _default_or_demo_data(definition, 'n/a', handle_undefined=handle_undefined)
-        elif definition.type == FieldDataType.ENUM and not (isinstance(value, str) and value in {c.value for c in definition.choices}):
-            return _default_or_demo_data(definition, next(iter(map(lambda c: c.value, definition.choices)), None), handle_undefined=handle_undefined)
-        elif definition.type == FieldDataType.CWE and not (isinstance(value, str) and CweField.is_valid_cwe(value)):
-            return _default_or_demo_data(definition, 'CWE-89', handle_undefined=handle_undefined)
-        elif definition.type == FieldDataType.COMBOBOX and not isinstance(value, str):
-            return _default_or_demo_data(definition, next(iter(definition.suggestions), None), handle_undefined=handle_undefined)
-        elif definition.type == FieldDataType.DATE and not (isinstance(value, str) and is_date_string(value)):
-            return _default_or_demo_data(definition, timezone.now().date().isoformat(), handle_undefined=handle_undefined)
-        elif definition.type == FieldDataType.NUMBER and not isinstance(value, int|float):
-            return _default_or_demo_data(definition, random.randint(1, 10), handle_undefined=handle_undefined)  # noqa: S311
-        elif definition.type == FieldDataType.BOOLEAN and not isinstance(value, bool):
-            return _default_or_demo_data(definition, random.choice([True, False]), handle_undefined=handle_undefined)  # noqa: S311
-        elif definition.type == FieldDataType.JSON and not isinstance(value, str):
-            return _default_or_demo_data(definition, None, handle_undefined=handle_undefined)
-        elif definition.type == FieldDataType.USER and not is_uuid(value):
-            return None
+    elif definition.type == FieldDataType.LIST:
+        if isinstance(value, list):
+            return [ensure_defined_structure(value=e, definition=definition.items, handle_undefined=handle_undefined) for e in value]
+        elif value:
+            # Wrap single value in list
+            return [ensure_defined_structure(value=value, definition=definition.items, handle_undefined=handle_undefined)]
         else:
-            return value
+            if handle_undefined == HandleUndefinedFieldsOptions.FILL_DEMO_DATA and definition.items.type != FieldDataType.USER:
+                return [ensure_defined_structure(value=None, definition=definition.items, handle_undefined=handle_undefined) for _ in range(2)]
+            elif handle_undefined == HandleUndefinedFieldsOptions.FILL_DEFAULT and isinstance(definition.default, list):
+                return [ensure_defined_structure(value=e, definition=definition.items, handle_undefined=handle_undefined) for e in definition.default]
+            else:
+                return []
+    elif definition.type != FieldDataType.LIST and isinstance(value, list) and len(value) > 0:
+        return ensure_defined_structure(value=value[0], definition=definition, handle_undefined=handle_undefined)
+    elif definition.type == FieldDataType.MARKDOWN and not isinstance(value, str):
+        return _default_or_demo_data(definition, lorem.paragraphs(3), handle_undefined=handle_undefined)
+    elif definition.type == FieldDataType.STRING and not isinstance(value, str):
+        return _default_or_demo_data(definition, lorem.words(2), handle_undefined=handle_undefined)
+    elif definition.type == FieldDataType.CVSS and not isinstance(value, str):
+        return _default_or_demo_data(definition, 'n/a', handle_undefined=handle_undefined)
+    elif definition.type == FieldDataType.ENUM and not (isinstance(value, str) and value in {c.value for c in definition.choices}):
+        return _default_or_demo_data(definition, next(iter(map(lambda c: c.value, definition.choices)), None), handle_undefined=handle_undefined)
+    elif definition.type == FieldDataType.CWE and not (isinstance(value, str) and CweField.is_valid_cwe(value)):
+        return _default_or_demo_data(definition, 'CWE-89', handle_undefined=handle_undefined)
+    elif definition.type == FieldDataType.COMBOBOX and not isinstance(value, str):
+        return _default_or_demo_data(definition, next(iter(definition.suggestions), None), handle_undefined=handle_undefined)
+    elif definition.type == FieldDataType.DATE and not (isinstance(value, str) and is_date_string(value)):
+        return _default_or_demo_data(definition, timezone.now().date().isoformat(), handle_undefined=handle_undefined)
+    elif definition.type == FieldDataType.NUMBER and not isinstance(value, int|float):
+        return _default_or_demo_data(definition, random.randint(1, 10), handle_undefined=handle_undefined)  # noqa: S311
+    elif definition.type == FieldDataType.BOOLEAN and not isinstance(value, bool):
+        return _default_or_demo_data(definition, random.choice([True, False]), handle_undefined=handle_undefined)  # noqa: S311
+    elif definition.type == FieldDataType.JSON and not isinstance(value, str):
+        return _default_or_demo_data(definition, None, handle_undefined=handle_undefined)
+    elif definition.type == FieldDataType.USER and not is_uuid(value):
+        return None
+    else:
+        return value
 
 
 def check_definitions_compatible(a: FieldDefinition|BaseField, b: FieldDefinition|BaseField, path: tuple[str] | None = None) -> tuple[bool, list[str]]:
