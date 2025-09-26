@@ -31,7 +31,3 @@ logs
 
 .output
 
-
-!src/public/static/pdfviewer/dist/
-src/public/static/pdfviewer/dist/**/*
-!src/public/static/pdfviewer/dist/.gitkeep

@@ -242,7 +242,7 @@ services:
         target: /app/packages/
       - type: bind
         source: ../packages/pdfviewer/
-        target: /app/packages/nuxt-base-layer/src/public/static/pdfviewer/
+        target: /app/packages/frontend/src/public/static/pdfviewer/
       - type: bind
         source: ../packages/excalidraw/
         target: /app/packages/frontend/src/public/static/excalidraw/
