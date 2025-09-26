@@ -1,10 +1,11 @@
 # Changelog
 
-## Upcoming
+## v2025.83 - 2025-09-26
 * Suggest previously used tags in filters, projects, designs and templates
 * Plugin `scanimport`: Prevent errors on incompatible finding field types
 * Prevent excalidraw update errors on delete note
 * Do not include pdfviewer in every plugin frontend build
+* Enforce read only flag for is_project_admin
 
 
 ## v2025.81 - 2025-09-24
