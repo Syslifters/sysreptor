@@ -107,7 +107,7 @@ nav:
       - Rendering Workflow: insights/rendering-workflow.md
       - Archiving: insights/archiving.md
       - Security Considerations: insights/security-considerations.md
-      - Vulnerabilities: insights/vulnerabilities.md
+      - Vulnerabilities: https://github.com/Syslifters/sysreptor/security/advisories
   - HTB Reporting: htb-reporting-with-sysreptor.md
   - Demo Reports: demo-reports.md
   - Get Involved: get-involved.md
