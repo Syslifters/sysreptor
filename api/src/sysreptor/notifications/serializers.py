@@ -38,7 +38,7 @@ class RemoteNotificationSpecListSerializer(serializers.ListSerializer):
             .update(active_until=(timezone.now() - timedelta(days=1)).date())
         UserNotification.objects \
             .filter(remotenotificationspec__isnull=False) \
-            .exclude(id__in=[n.id for n in notifications]) \
+            .exclude(remotenotificationspec_id__in=[n.id for n in notifications]) \
             .update(visible_until=timezone.now())
 
         # Create new notifications

@@ -119,19 +119,32 @@ class TestRemoteNotificationImport:
 
     def test_refetch(self):
         async_to_sync(fetch_notifications)(None)
-        before = RemoteNotificationSpec.objects.get()
+        rn_before = RemoteNotificationSpec.objects.get()
+        un_before = self.user_notification.notifications.get()
         async_to_sync(fetch_notifications)(None)
-        after = RemoteNotificationSpec.objects.get()
-        assertKeysEqual(before, after, ['id', 'created', 'updated', 'active_until'])
+        rn_after = RemoteNotificationSpec.objects.get()
+        assertKeysEqual(rn_before, rn_after, ['id', 'created', 'updated', 'active_until'])
+        un_after = self.user_notification.notifications.get()
+        assertKeysEqual(un_before, un_after, ['id', 'created', 'user', 'type', 'remotenotificationspec_id', 'visible_until', 'read', 'additional_content'])
 
     def test_delete(self):
         async_to_sync(fetch_notifications)(None)
         self.notification_import_data = []
         async_to_sync(fetch_notifications)(None)
+
+        # RemoteNotificationSpec is set to inactive
         after = RemoteNotificationSpec.objects.get()
         notification = self.user_notification.notifications.get(remotenotificationspec=after)
         assert after.active_until < timezone.now().date()
         assert notification.visible_until < timezone.now()
+
+        # User notifications are set to invisible
+        un1 = self.user_notification.notifications.get(remotenotificationspec=after)
+        assert un1.visible_until < timezone.now()
+
+        # No new notifications are created
+        u = create_user()
+        assert u.notifications.all().count() == 0
 
 
 @pytest.mark.django_db()

@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Fix remote notification disappearing after refetch
+
+
 ## v2025.83 - 2025-09-26
 * Suggest previously used tags in filters, projects, designs and templates
 * Plugin `scanimport`: Prevent errors on incompatible finding field types
