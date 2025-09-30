@@ -1,4 +1,5 @@
 import io
+import itertools
 import re
 from datetime import datetime, timedelta
 from unittest import mock
@@ -27,6 +28,7 @@ from sysreptor.tests.mock import (
 )
 from sysreptor.tests.utils import assertKeysEqual
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
+from sysreptor.users.serializers import PentestUserDetailSerializer
 from sysreptor.utils.utils import omit_keys
 
 
@@ -422,3 +424,64 @@ class TestForgotPassword:
     def test_check_token_settings(self, expected, settings):
         with override_settings(**settings), override_configuration(**settings):
             self.test_check_token(expected, lambda s: s.user, lambda s: s.token_user)
+
+
+@pytest.mark.django_db()
+class TestUserPermissionAssignment:
+    protected_fields = set(PentestUserDetailSerializer.Meta.fields) - {
+        # Exclude non-permission and read-only fields
+        'id', 'created', 'updated', 'last_login',
+        'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
+        'phone', 'mobile', 'color', 'scope', 'has_password', 'can_login_sso', 'is_mfa_enabled',
+    }
+
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        create_user(username='regular', is_user_manager=False, is_superuser=False)
+        create_user(username='user_manager', is_user_manager=True, is_superuser=False)
+        create_user(username='superuser', is_user_manager=False, is_superuser=True)
+        create_user(username='other')
+
+    @staticmethod
+    def get_test_params(username, usernames_target, fields, expected):
+        return sorted(itertools.chain(*[[(username, username_target, f, expected) for f in fields] for username_target in usernames_target]))
+
+    @pytest.mark.parametrize(('username', 'username_target', 'field', 'expected'), [
+        *get_test_params('regular', ['self', 'other'], protected_fields, False),
+        *get_test_params('user_manager', ['self', 'other'], protected_fields - {'is_superuser', 'is_system_user', 'is_active'}, True),
+        *get_test_params('user_manager', ['self', 'other'], ['is_superuser', 'is_system_user'], False),
+        *get_test_params('superuser', ['self', 'other'], protected_fields - {'is_active', 'is_system_user'}, True),
+    ])
+    def test_update_field(self, username, username_target, field, expected):
+        user_req = PentestUser.objects.get(username=username)
+        user_req.admin_permissions_enabled = True
+        user_target = PentestUser.objects.get(username=username if username_target == 'self' else username_target)
+
+        update_data = {
+            'email': 'changed@example.com',
+            'username': 'changed',
+        }
+        if field in update_data:
+            value = update_data[field]
+        elif isinstance(v := getattr(user_target, field), bool):
+            value = not v
+        else:
+            raise ValueError(f'Cannot automatically handle non-bool field {field}. Exclude field or add it to update_data above.')
+
+        self.assert_update_user(
+            user_req=user_req,
+            user_target=user_target,
+            data={field: value},
+            expected=expected,
+        )
+
+    def assert_update_user(self, user_req, user_target, data, expected):
+        client = api_client(user_req)
+
+        original_data = {k: getattr(user_target, k) for k in data.keys()}
+
+        res = client.patch(reverse('pentestuser-detail', kwargs={'pk': 'self' if user_req == user_target else user_target.id}), data=data)
+        assert res.status_code in ([200] if expected else [200, 403])
+
+        user_target.refresh_from_db()
+        assert {k: getattr(user_target, k) for k in data.keys()} == data if expected else original_data
