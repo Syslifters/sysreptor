@@ -178,6 +178,7 @@ function createFinding(data?: any) {
     ...omit(data || {}, ['data']),
     ...(data?.data || {}),
     id: uuidv4(),
+    order: Math.max(0, ...findings.value.map(f => f.order || 0)) + 1,
     created: new Date().toISOString(),
     title: findingData.title || data?.data?.title || 'New Demo Finding',
   };
