@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Fix remote notification disappearing after refetch
+* Improve finding grouping in design preview data
 
 
 ## v2025.83 - 2025-09-26
