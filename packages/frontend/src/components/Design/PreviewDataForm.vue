@@ -60,6 +60,7 @@
             @update:model-value="updateFindingField(fieldDefinition.id, $event)"
             :id="fieldDefinition.id"
             :definition="fieldDefinition"
+            :field-value-suggestions="findingFieldValueSuggestions"
             v-bind="fieldAttrs"
           >
             <template #markdown-context-menu="{value, definition, disabled}">
@@ -202,6 +203,8 @@ function setFieldDefinitionDefault(definition: FieldDefinition, value: any) {
   definition.default = value;
 }
 
+const findingsMap = computed(() => Object.fromEntries(findings.value.map(f => [f.id, f])));
+const findingFieldValueSuggestions = useFindingFieldValueSuggestions(findingsMap, props.projectType);
 const fieldAttrs = computed(() => ({
   showFieldIds: true,
   uploadFile: props.uploadFile,
