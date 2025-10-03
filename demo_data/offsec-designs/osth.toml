@@ -1,0 +1,925 @@
+format = "projecttypes/v2"
+id = "1584e014-4de0-48b0-825b-1c1ae0fbe43f"
+name = "OffSec OSTH Exam Report v2.0"
+language = "en-US"
+status = "finished"
+tags = [
+    "OffSec",
+]
+default_notes = []
+report_template = """
+<div id="footer" data-sysreptor-generated="page-footer">
+    <div id="footer-left"><em>CONFIDENTIAL</em></div>
+    <div id="footer-center">{{ report.title }}</div>
+</div>
+
+<div v-if="report.watermark" id="watermark-osid">{{ report.osid }}</div>
+
+
+<section id="page-cover" data-sysreptor-generated="page-cover">
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.svg" alt="logo">
+    <div id="page-cover-title">
+        <h1>{{ report.title }}</h1>
+        <h2>Exam Report</h2>
+    </div>
+
+    <div id="page-cover-student">
+        <p id="page-cover-osid">
+            <strong>OSID: {{ report.osid }}</strong><br>
+            {{ report.mail }}<br>
+        </p>
+        <p id="page-cover-meta">
+            {{ formatDate(report.report_date, 'long') }}<br>
+            v{{ report.report_version }}
+        </p>
+    </div>
+</section>
+<pagebreak />
+
+
+<table-of-contents id="toc" v-slot="tocItems">
+    <h1>Table of Contents</h1>
+    <ul>
+        <li v-for="item in tocItems" :class="'toc-level' + item.level">
+            <ref :to="item.id" />
+        </li>
+    </ul>
+    <pagebreak />
+</table-of-contents>
+
+<markdown>
+    # OffSec Threat Hunter Exam Report {.in-toc.numbered}
+    ## Introduction {.in-toc.numbered}
+    The OffSec Threat Hunter exam report contains all efforts that were conducted in order to pass the OffSec certification examination. This report should contain all items that were used to pass the exam and it will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has a full understanding of threat hunting methodologies as well as the technical knowledge to pass the qualifications for the OffSec Threat Hunter.
+
+    ## Objective {.in-toc.numbered}
+    The objective of this assessment is to perform a threat hunting sprint in the Megacorp One environment. The student is tasked with following a methodical approach to identify all compromised systems and detect if sensitive data was exfiltrated or encrypted. 
+
+    An example page has already been created for you at the latter portions of this document that should demonstrate the amount of information and detail that is expected in the exam report. Use the sample report as a guideline to get you through the reporting.
+
+    ## Requirements {.in-toc.numbered}
+    The student will be required to fill out this threat hunting report fully and to include the following sections:
+    
+    * Executive Summary
+    * Methodology
+    * Hunt Narrative
+        * A detailed walkthrough of the entire threat hunting sprint.
+        * The walkthrough should contain an explanation of all steps, assumptions, and decisions supported by screenshots and Splunk queries if applicable.
+        * The walkthrough should be thorough enough that the complete threat hunting sprint can be replicated step-by-step by a technically competent reader.
+    * Findings
+        * A timeline of all key activities related to the attacker's actions
+    * Conclusion
+    * IoC Lists in the Appendix
+
+</markdown>
+<pagebreak/>
+
+<section>
+    <h1 id="summary" class="in-toc numbered">Executive Summary</h1>
+    <h2 class="in-toc numbered">Overview</h2>
+    <markdown :text="report.executive_summary" />
+    
+    <h2 class="in-toc numbered">High-Level Attack Path</h2>
+    <markdown :text="report.highlevel_attack_path" />
+
+    <h2 class="in-toc numbered">Recommendations</h2>
+    <markdown :text="report.recommendations" />
+</section>
+<pagebreak/>
+
+<section>
+    <h1 id="methodology" class="in-toc numbered">Methodology</h1>
+    <markdown :text="report.methodology" />
+</section>
+<pagebreak/>
+
+<section>
+    <h1 id="hunt-narrative" class="in-toc numbered">Hunt Narrative</h1>
+    <markdown :text="report.hunt_narrative" />
+</section>
+<pagebreak/>
+    
+<section>
+    <h1 id="findings" class="in-toc numbered">Findings</h1>
+    <table>
+        <thead>
+            <tr>
+            <th>Timestamp</th>
+            <th>Observation</th>
+            <th>Affected Assets</th>
+            </tr>
+        </thead>
+        <tbody>
+            <div v-for="finding in findings">
+                <tr>
+                    <td>{{ finding.timestamp }}</td>
+                    <td>{{ finding.title }}</td>
+                    <td><div v-for="a in finding.assets">{{ a.asset_type }}: {{ a.asset_details }}</div></td>
+                </tr>
+            </div>
+        </tbody>
+    </table>
+</section>
+<pagebreak/>
+
+<section>
+    <h1 id="conclusion" class="in-toc numbered">Conclusion</h1>
+    <markdown :text="report.conclusion" />
+</section>
+<pagebreak/>
+
+<section v-if="report.appendix_sections.length > 0" class="appendix">
+    <h1 id="appendix" class="in-toc numbered">Appendix</h1>
+
+    <div v-for="appendix_section in report.appendix_sections">
+        <h2 class="in-toc numbered">{{ appendix_section.title }}</h2>
+        <markdown :text="appendix_section.content" />
+    </div>
+    <pagebreak />
+</section>
+
+<section>
+    <div class="end-of-report">
+        End of Report<br>
+    </div>
+    <div class="end-of-report">
+        This report was rendered<br>
+        by <a href="https://docs.sysreptor.com/">SysReptor</a> with<br>
+        <span style="color:red;">&hearts;</span><br>
+    </div>
+</section>
+"""
+report_styles = """
+@import "/assets/global/base.css";
+
+/* Define variables */
+:root {
+    --color-risk-critical: #E83221;
+    --color-risk-high: #FF9300;
+    --color-risk-medium: #FFDA00;
+    --color-risk-low: #4285F5;
+    --color-risk-info: #00AE51;
+    
+    --color-primary: #42335e;
+    --color-secondary: rgba(152, 105, 245);
+
+    --color-table-header: var(--color-primary);
+    --color-table-header-text: white;
+    --color-table-row-even: rgb(221, 221, 221);
+    --color-table-row-odd: white;
+    --color-table-content: #151515;
+
+    --color-code: rgb(221, 221, 221);
+}
+
+/* Font settings */
+html {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 10pt;
+}
+
+
+/* Global styles */
+@page {
+    size: A4 portrait;
+    margin: 35mm 20mm 25mm 20mm;
+}
+
+a {
+    font-style: italic;
+    text-decoration: underline;
+    color: var(--color-secondary);
+}
+
+pre code {
+    border: 1px solid black;
+    padding: 0.2em !important;
+}
+code {
+    background-color: var(--color-code);
+}
+
+
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
+th {
+    font-weight: bold;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr.table-row-link td {
+    padding: 0;
+}
+tr.table-row-link td a {
+    display: block;
+    padding: 0.3em;
+    color: inherit;
+    text-decoration: none;
+    font-style: inherit;
+}
+.table-key {
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr {
+    color: var(--color-table-content);
+}
+tr:nth-child(even) {
+    background-color: var(--color-table-row-even);
+}
+tr:nth-child(odd) {
+    background-color: var(--color-table-row-odd);
+}
+tr .highlight, tr code {
+    background-color: var(--color-primary);
+}
+
+
+/* Classes for risk colors */
+.risk-critical { color: var(--color-risk-critical) !important; font-weight: bold; }
+.risk-high { color: var(--color-risk-high) !important; font-weight: bold; }
+.risk-medium { color: var(--color-risk-medium) !important; font-weight: bold; }
+.risk-low { color: var(--color-risk-low) !important; font-weight: bold; }
+.risk-info { color: var(--color-risk-info) !important; font-weight: bold; }
+
+.risk-bg-critical { background-color: var(--color-risk-critical) !important; color: white !important; }
+.risk-bg-high { background-color: var(--color-risk-high) !important; }
+.risk-bg-medium { background-color: var(--color-risk-medium) !important; }
+.risk-bg-low { background-color: var(--color-risk-low) !important; }
+.risk-bg-info { background-color: var(--color-risk-info) !important; }
+
+/* Helper class for referencing page number */
+.ref-page::before { 
+    content: "" !important;
+}
+.ref-page::after {
+    content: target-counter(attr(href), page) !important;
+}
+.ref-page .ref-title {
+    display: none !important;
+}
+
+/* Table in finding chapters */
+.finding-heading .table-key {
+    height: 3em;
+    width: 10em;
+}
+
+
+.end-of-report {
+    text-align:center;
+    font-style:italic;
+    margin-top:70px;
+    line-height:1.7;
+}
+
+
+
+
+
+/* #region footer */
+@page {
+    @bottom-left { content: element(footer-left); }
+    @bottom-center { content: element(footer-center); }
+    @bottom-right-corner { content: counter(page); }
+}
+#footer {
+    position: absolute;
+    width: 0;
+}
+#footer #footer-left { position: running(footer-left); }
+#footer #footer-center { position: running(footer-center); }
+/* #endregion footer */
+
+/* #region watermark */
+#watermark-osid {
+    position: fixed;
+    top: 9cm;
+    left: 1cm;
+    transform: rotate(-45deg);
+    font-size: 90pt;
+    text-transform: uppercase;
+    opacity: 0.2;
+}
+/* #endregion watermark */
+
+/* #region page-cover */
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
+    /* Footer on the cover page */
+    @bottom-right-corner {
+        content: "";
+    }
+    @bottom-right {
+        /* Page number */
+        content: counter(page);
+        font-size: 9pt;
+        color: white
+    }
+    @bottom-left {
+        content: "Confidential";
+        text-transform: uppercase;
+        font-style: italic;
+        color: white;
+    }
+     /* Pentest title should not appear on cover page */
+    @bottom-center {
+        content: '';
+    }
+    background-color: var(--color-primary);
+}
+#page-cover-logo {
+    position: absolute;
+    left: 2cm;
+    height: 6cm;
+    transform: translate(-50%, -50%);
+    display: inline-block
+}
+
+/* Title page elements */
+#page-cover-title {
+    position: absolute;
+    top: 20mm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-title h1 {
+    font-size: 32pt;
+}
+#page-cover-title h2 {
+    font-size: 24pt;
+}
+#page-cover-student {
+    position: absolute;
+    top: 11cm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-osid {
+    font-size: 14pt;
+}
+#page-cover-meta {
+    line-height: 2em;
+}
+/* #endregion page-cover */
+
+/* #region toc */
+#toc li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#toc .ref::before {
+    padding-right: 0.5em;
+}
+#toc .ref::after {
+    content: " " leader(".") " " target-counter(attr(href), page);
+}
+#toc .toc-level1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
+}
+#toc .toc-level2 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-left: 2rem;
+}
+#toc .toc-level3 {
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    margin-left: 4rem;
+}
+#toc .toc-level4 {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-left: 6rem;
+}
+/* #endregion toc */
+"""
+
+[[report_sections]]
+id = "Student"
+label = "Student"
+
+[[report_sections.fields]]
+id = "firstname"
+type = "string"
+label = "Firstname"
+origin = "custom"
+default = "John"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "lastname"
+type = "string"
+label = "Lastname"
+origin = "custom"
+default = "Doe"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "osid"
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "mail"
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "other"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "OffSec Threat Hunter"
+required = true
+spellcheck = true
+
+[[report_sections.fields]]
+id = "report_date"
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "report_version"
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "2.0"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "watermark"
+type = "boolean"
+label = "Watermark"
+origin = "custom"
+default = false
+
+[[report_sections]]
+id = "executive_summary"
+label = "Executive Summary"
+
+[[report_sections.fields]]
+id = "executive_summary"
+type = "markdown"
+label = "Overview"
+origin = "custom"
+default = """
+TODO: Overview
+
+The threat hunting sprint began with the assignment of reviewing the threat intelligence report of an APT group known as "We Are Garfield" (WAG) and proactively hunting for indicators of a compromise within the Megacorp One systems. The primary objectives were to identify all compromised systems and assess the impact of the attacker’s actions, such as determining whether data has been exfiltrated or encrypted.
+
+During the threat hunt, we identified three compromised systems within the Megacorp One environment:
+
+* PC1
+* PC2
+* PC3
+
+The threat actor accessed and exfiltrated the secret recipe for our chocolate muffins, which could have catastrophic consequences if leaked or sold to competitors.
+"""
+required = true
+
+[[report_sections.fields]]
+id = "highlevel_attack_path"
+type = "markdown"
+label = "High-Level Attack Path"
+origin = "custom"
+default = """
+TODO: High-Level Attack Path
+
+The threat hunt revealed the following high-level path the threat actor took to compromise the Megacorp One environment:
+
+1. PC1 was used as the initial entry vector by the threat actor by trying numerous passwords against several user accounts. The threat actor finally succeeded and got access to this machine with administrative privileges.
+2. PC2 was configured to use the same password for the local administrator account and the threat actor used it to get access to it. On the machine, the attacker obtained credentials from logged on users by using Mimikatz.
+3. PC3 was accessed using one of the obtained sets of credentials from PC2. The threat actor accessed and exfiltrated the secret chocolate muffin recipe from this machine.
+"""
+required = true
+
+[[report_sections.fields]]
+id = "recommendations"
+type = "markdown"
+label = "Recommendations"
+origin = "custom"
+default = """
+TODO: Recommendations
+
+1. **Escalate Incident to Incident Response Team:**
+    * Escalate the incident to the incident response team to conduct a thorough investigation of the identified compromises. The focus should be on assessing the full scope of the incident and understanding its impact on the organization's systems and data.
+    * Collaborate closely with the incident response team to share findings, provide context, and support their efforts in containing and remediating the security incidents.
+
+2. **Continued Support and Analysis:**
+    * Remain actively involved in supporting other defensive teams, particularly during the incident detection and identification phase of the incident management process.
+    * Conduct further analysis of the malware samples to extract additional IoCs and behavioral patterns, providing valuable insights for ongoing threat detection and mitigation efforts.
+
+3. **Continuous Improvement and Training:**
+    * Implement policies to ensure that users do not reuse passwords across different accounts.
+    * Develop and deploy detection rules to identify and prevent successful password attacks.
+    * Add access control mechanisms to prevent unprivileged user accounts from accessing sensitive files.
+    * Implement security awareness training for all users, emphasizing strong password usage and best practices.
+"""
+required = true
+
+[[report_sections]]
+id = "methodology"
+label = "Methodology"
+
+[[report_sections.fields]]
+id = "methodology"
+type = "markdown"
+label = "Methodology"
+origin = "custom"
+default = """
+TODO: adapt methodology
+
+For the scheduled threat hunting sprint, we utilized the following tools, scripts, commands, and resources:
+
+* Splunk
+* WAG Threat Intelligence Report
+* PowerShell on DEV (Deobfuscation)
+
+We performed an intelligence-based threat hunting sprint based on the information provided in the WAG threat intelligence report. This approach led us to detect the usage of Mimikatz on PC2, which revealed several additional indicators for further investigation. By analyzing these indicators, we were able to identify lateral movement to PC3 by correlating login and Sysmon events in Splunk with the known tools and techniques categorized under the "Lateral Movement" column. Through this analysis, we also discovered that after compromising PC3, the attacker exfiltrated a sensitive document.
+
+After exhausting our list of IoCs and other information from the intelligence-based phase, we transitioned to hypothesis-based threat hunting. This shift provided us with the flexibility to investigate how PC2 was accessed and how the perimeter was breached, considering that this is not a publicly accessible machine.
+
+Our hunting hypothesis was:
+
+We suspect that PC3 and PC2 are not the only systems compromised by the WAG threat actor. While we couldn't identify any further indicators that revealed additional compromised systems using the credentials obtained from PC2, or following the compromise of PC3, it is likely that PC2 was not the initial system compromised by WAG, given that it is not externally accessible. Therefore, we suspect that at least one other machine is compromised. We will validate this by investigating the events preceding the use of Mimikatz to obtain credentials and by identifying the vector the threat actor used to access PC2 and breach the perimeter.
+"""
+required = true
+
+[[report_sections]]
+id = "hunt_narrative"
+label = "Hunt Narrative"
+
+[[report_sections.fields]]
+id = "hunt_narrative"
+type = "markdown"
+label = "Hunt Narrative"
+origin = "custom"
+default = """
+TODO: Hunt Narrative
+* A detailed walkthrough of the entire threat hunting sprint.
+* The walkthrough should contain an explanation of all steps, assumptions, and decisions supported by screenshots and Splunk queries if applicable.
+* The walkthrough should be thorough enough that the complete threat hunting sprint can be replicated step-by-step by a technically competent reader.
+"""
+required = true
+
+[[report_sections]]
+id = "conclusion"
+label = "Conclusion"
+
+[[report_sections.fields]]
+id = "conclusion"
+type = "markdown"
+label = "Conclusion"
+origin = "custom"
+default = """
+TODO: Conclusion
+
+Our threat hunting sprint successfully uncovered three compromised systems within the Megacorp One enterprise, along with the exfiltration of our secret chocolate muffin recipe.
+
+Based on our findings and actionable insights, the incident response team can now initiate the necessary steps for incident detection and identification, containment, and restoration of the compromised systems. In addition, any policy- or regulation-driven actions can be initiated to ensure compliance and further secure the organization.
+
+For comprehensive guidance on potential remediation steps and enhancing detection capabilities, please refer to the compiled list of IoCs provided in the Appendix of this report. These IoCs serve as a valuable reference and baseline for improving our organization's overall security resilience against similar threats in the future.
+"""
+required = true
+
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[report_sections.fields]]
+id = "appendix_sections"
+type = "list"
+label = "Appendix"
+origin = "custom"
+required = false
+
+[report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO appendix title"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "content"
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO appendix content"
+required = true
+
+[[finding_fields]]
+id = "title"
+type = "string"
+label = "Observation"
+origin = "core"
+default = "TODO Observation e.g. Beginning of Password Spraying"
+required = true
+spellcheck = true
+
+[[finding_fields]]
+id = "timestamp"
+type = "string"
+label = "Timestamp"
+origin = "custom"
+default = "TODO Timestamp e.g. 2025-10-01 06:41:10"
+pattern = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+required = true
+spellcheck = false
+
+[[finding_fields]]
+id = "assets"
+type = "list"
+label = "Affected Assets"
+origin = "custom"
+required = true
+
+[finding_fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[finding_fields.items.properties]]
+id = "asset_type"
+type = "combobox"
+label = "Type"
+origin = "custom"
+required = true
+suggestions = [
+    "Host",
+    "User",
+    "Target Machine",
+    "Target User",
+    "Password",
+]
+
+[[finding_fields.items.properties]]
+id = "asset_details"
+type = "combobox"
+label = "Asset Details"
+origin = "custom"
+required = true
+suggestions = []
+
+[[finding_ordering]]
+field = "timestamp"
+order = "asc"
+
+[report_preview_data.report]
+title = "OffSec Threat Hunter "
+firstname = "John"
+lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_date = "2025-09-30"
+report_version = "2.0"
+watermark = true
+executive_summary = """
+TODO: Overview
+
+The threat hunting sprint began with the assignment of reviewing the threat intelligence report of an APT group known as "We Are Garfield" (WAG) and proactively hunting for indicators of a compromise within the Megacorp One systems. The primary objectives were to identify all compromised systems and assess the impact of the attacker’s actions, such as determining whether data has been exfiltrated or encrypted.
+
+During the threat hunt, we identified three compromised systems within the Megacorp One environment:
+
+* PC1
+* PC2
+* PC3
+
+The threat actor accessed and exfiltrated the secret recipe for our chocolate muffins, which could have catastrophic consequences if leaked or sold to competitors.
+"""
+highlevel_attack_path = """
+TODO: High-Level Attack Path
+
+The threat hunt revealed the following high-level path the threat actor took to compromise the Megacorp One environment:
+
+1. PC1 was used as the initial entry vector by the threat actor by trying numerous passwords against several user accounts. The threat actor finally succeeded and got access to this machine with administrative privileges.
+2. PC2 was configured to use the same password for the local administrator account and the threat actor used it to get access to it. On the machine, the attacker obtained credentials from logged on users by using Mimikatz.
+3. PC3 was accessed using one of the obtained sets of credentials from PC2. The threat actor accessed and exfiltrated the secret chocolate muffin recipe from this machine.
+"""
+recommendations = """
+TODO: Recommendations
+
+1. **Escalate Incident to Incident Response Team:**
+    * Escalate the incident to the incident response team to conduct a thorough investigation of the identified compromises. The focus should be on assessing the full scope of the incident and understanding its impact on the organization's systems and data.
+    * Collaborate closely with the incident response team to share findings, provide context, and support their efforts in containing and remediating the security incidents.
+
+2. **Continued Support and Analysis:**
+    * Remain actively involved in supporting other defensive teams, particularly during the incident detection and identification phase of the incident management process.
+    * Conduct further analysis of the malware samples to extract additional IoCs and behavioral patterns, providing valuable insights for ongoing threat detection and mitigation efforts.
+
+3. **Continuous Improvement and Training:**
+    * Implement policies to ensure that users do not reuse passwords across different accounts.
+    * Develop and deploy detection rules to identify and prevent successful password attacks.
+    * Add access control mechanisms to prevent unprivileged user accounts from accessing sensitive files.
+    * Implement security awareness training for all users, emphasizing strong password usage and best practices.
+"""
+methodology = """
+TODO: adapt methodology
+
+For the scheduled threat hunting sprint, we utilized the following tools, scripts, commands, and resources:
+
+* Splunk
+* WAG Threat Intelligence Report
+* PowerShell on DEV (Deobfuscation)
+
+We performed an intelligence-based threat hunting sprint based on the information provided in the WAG threat intelligence report. This approach led us to detect the usage of Mimikatz on PC2, which revealed several additional indicators for further investigation. By analyzing these indicators, we were able to identify lateral movement to PC3 by correlating login and Sysmon events in Splunk with the known tools and techniques categorized under the "Lateral Movement" column. Through this analysis, we also discovered that after compromising PC3, the attacker exfiltrated a sensitive document.
+
+After exhausting our list of IoCs and other information from the intelligence-based phase, we transitioned to hypothesis-based threat hunting. This shift provided us with the flexibility to investigate how PC2 was accessed and how the perimeter was breached, considering that this is not a publicly accessible machine.
+
+Our hunting hypothesis was:
+
+We suspect that PC3 and PC2 are not the only systems compromised by the WAG threat actor. While we couldn't identify any further indicators that revealed additional compromised systems using the credentials obtained from PC2, or following the compromise of PC3, it is likely that PC2 was not the initial system compromised by WAG, given that it is not externally accessible. Therefore, we suspect that at least one other machine is compromised. We will validate this by investigating the events preceding the use of Mimikatz to obtain credentials and by identifying the vector the threat actor used to access PC2 and breach the perimeter.
+"""
+hunt_narrative = """
+TODO: Hunt Narrative
+* A detailed walkthrough of the entire threat hunting sprint.
+* The walkthrough should contain an explanation of all steps, assumptions, and decisions supported by screenshots and Splunk queries if applicable.
+* The walkthrough should be thorough enough that the complete threat hunting sprint can be replicated step-by-step by a technically competent reader.
+"""
+conclusion = """
+TODO: Conclusion
+
+Our threat hunting sprint successfully uncovered three compromised systems within the Megacorp One enterprise, along with the exfiltration of our secret chocolate muffin recipe.
+
+Based on our findings and actionable insights, the incident response team can now initiate the necessary steps for incident detection and identification, containment, and restoration of the compromised systems. In addition, any policy- or regulation-driven actions can be initiated to ensure compliance and further secure the organization.
+
+For comprehensive guidance on potential remediation steps and enhancing detection capabilities, please refer to the compiled list of IoCs provided in the Appendix of this report. These IoCs serve as a valuable reference and baseline for improving our organization's overall security resilience against similar threats in the future.
+"""
+
+[[report_preview_data.report.appendix_sections]]
+title = "IOCs"
+content = """
+Attached is a compiled list of the resulting IOCs found during the threat hunting sprint.
+
+**File Hashes**  
+| File Name | SHA256 | 
+| ------- | ------- |
+| Zwetsch.exe    | 4ED877F6F154EB6EBB02EE44E4D836C28193D9254A4A3D6AF6236D8F5BAB88D2 |
+| meterpreter.exe    | DF99BBABE7BD0E7A1D96CF370B78FDCF250AF380065A3D51F57EDE6A571E2C15 |
+| ...    | ... |
+
+**Network Communications**  
+| Type | Value | 
+| ------- | ------- |
+| C&C    | 192.168.1.1:9999 (meterpreter.exe) |
+| Exfiltration    | 192.168.1.1:80 (WebDAV Share "looty") |
+| File Download    | 192.168.1.1:80 (meterpreter.exe) |
+| File Download   | 192.168.1.1:80 (Zwetsch.exe) |
+| ...    | ... |
+"""
+
+[[report_preview_data.findings]]
+title = "Beginning of Password Spraying with Password Password1!"
+id = "637b22d5-a72d-456a-9b3c-834fa72fd5fa"
+created = "2025-09-30T15:19:29.441Z"
+order = 1
+timestamp = "2024-09-01 15:25:00"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings]]
+title = "End of Password Spraying"
+id = "28baa8fe-fb07-4ff9-870f-d32f3a8d381b"
+created = "2025-09-30T15:25:50.527Z"
+order = 2
+timestamp = "2024-09-01 15:58:00"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings]]
+title = "Successful login for local Administrator user"
+id = "36069320-f48c-4eef-ad1c-f993c9aa9750"
+created = "2025-09-30T15:38:24.949Z"
+order = 3
+timestamp = "2024-09-01 15:58:15"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[report_preview_data.findings]]
+title = "Download of meterpreter.exe from <IP> via Browser"
+id = "3622399f-dd1a-48c0-b0ce-3d225b364cc9"
+created = "2025-09-30T15:39:02.784Z"
+order = 4
+timestamp = "2024-09-01 15:59:00"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings.assets]]
+asset_type = "User"
+asset_details = "Administrator"
+
+[[report_preview_data.findings]]
+title = "Process Creation of meterpreter.exe "
+id = "198863c4-2847-43d0-a8bc-ef5a0235daed"
+created = "2025-09-30T15:39:35.355Z"
+order = 5
+timestamp = "2024-09-01 15:59:49"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[report_preview_data.findings]]
+title = "Process Creation of PsExec"
+id = "7ec5ac97-95cb-4db0-b2f1-d2e7695e18be"
+created = "2025-09-30T15:40:31.557Z"
+order = 6
+timestamp = "2024-09-01 16:05:11"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Target Machine"
+asset_details = "PC2"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Target User"
+asset_details = "Administrator (local)"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Password"
+asset_details = "Password1!"
+
+[[report_preview_data.findings]]
+title = "Process Creation of Zwetsch.exe"
+id = "0491c6cb-1e0a-4ef5-b83c-1da141d88094"
+created = "2025-09-30T15:41:42.795Z"
+order = 7
+timestamp = "2024-11-01 01:11:11"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC2"
+
+[[report_preview_data.findings.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[report_preview_data.findings]]
+title = "TODO Observation e.g. Beginning of Password Spraying"
+id = "6e4139f0-7171-4b03-b35b-9d073e413f4b"
+created = "2025-10-01T10:41:08.099Z"
+order = 8
+timestamp = "TODO Timestamp e.g. 2025-10-01 06:41:10"
+assets = []

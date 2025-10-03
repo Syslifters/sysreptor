@@ -1,11 +1,10 @@
 format = "projecttypes/v2"
 id = "9efe3b9d-b0df-45e0-86d9-a5bc7bcbb525"
-name = "OSEP Exam Report v1.2"
+name = "OffSec OSEP Exam Report v2.0"
 language = "en-US"
 status = "finished"
 tags = [
-    "offsec",
-    "OffensiveSecurity",
+    "OffSec",
 ]
 finding_ordering = []
 default_notes = []
@@ -19,10 +18,10 @@ report_template = """
 
 
 <section id="page-cover" data-sysreptor-generated="page-cover">
-    <div id="page-cover-background" />
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.svg" alt="logo">
     <div id="page-cover-title">
-        <h1>Offensive Security</h1>
-        <h2>{{ report.title }}</h2>
+        <h1>{{ report.title }}</h1>
+        <h2>Exam Report</h2>
     </div>
 
     <div id="page-cover-student">
@@ -50,11 +49,11 @@ report_template = """
 </table-of-contents>
 
 <markdown>
-    # Offensive Security OSEP Exam Documentation {.in-toc.numbered}
-    The Offensive Security OSEP exam documentation contains all efforts that were conducted in order to pass the Offensive Security Experienced Penetration Tester exam. This report will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has the technical knowledge required to pass the qualifications for the Offensive Security Experienced Penetration Tester certification.
+    # OffSec Experienced Pentester Exam Report {.in-toc.numbered}
+    The OffSec Experienced Pentester exam report contains all efforts that were conducted in order to pass the OffSec Experienced Penetration Tester exam. This report will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has the technical knowledge required to pass the qualifications for the OffSec Experienced Pentester certification.
 
     ## Objective {.in-toc.numbered}
-    The objective of this assessment is to perform an external penetration test against the Offensive Security Exam network. The student is tasked with following methodical approach in obtaining access to the objective goals. This test should simulate an actual penetration test and how you would start from beginning to end, including enumeration and post-exploitation. The exam report is not meant to be a penetration test report, but rather a writeup of the steps taken to locate, enumerate and compromise the network.
+    The objective of this assessment is to perform an external penetration test against the OffSec Exam network. The student is tasked with following methodical approach in obtaining access to the objective goals. This test should simulate an actual penetration test and how you would start from beginning to end, including enumeration and post-exploitation. The exam report is not meant to be a penetration test report, but rather a writeup of the steps taken to locate, enumerate and compromise the network.
 Enumeration and post-exploitation actions that lead to subsequent attacks with successful compromises should be included in the report.
 An example page has already been created for you at the latter portions of this document that should give you ample information on what is expected to pass this exam. Use the sample report as a guideline to get you through the reporting.
 
@@ -140,8 +139,17 @@ report_styles = """
     --color-risk-medium: #FFDA00;
     --color-risk-low: #4285F5;
     --color-risk-info: #00AE51;
+    
+    --color-primary: #2c3f2e;
+    --color-secondary: rgba(51, 153, 51);
 
-    --color-cover-page-bg: #3d85c6; 
+    --color-table-header: var(--color-primary);
+    --color-table-header-text: white;
+    --color-table-row-even: rgb(221, 221, 221);
+    --color-table-row-odd: white;
+    --color-table-content: #151515;
+
+    --color-code: rgb(221, 221, 221);
 }
 
 /* Font settings */
@@ -159,8 +167,8 @@ html {
 
 a {
     font-style: italic;
-    text-decoration: none;
-    color: inherit;
+    text-decoration: underline;
+    color: var(--color-secondary);
 }
 
 pre code {
@@ -168,12 +176,20 @@ pre code {
     padding: 0.2em !important;
 }
 code {
-    background-color: rgb(221, 221, 221);
+    background-color: var(--color-code);
 }
 
+
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
 th {
-    background-color: #ABABAB;
     font-weight: bold;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
 }
 tr.table-row-link td {
     padding: 0;
@@ -186,7 +202,20 @@ tr.table-row-link td a {
     font-style: inherit;
 }
 .table-key {
-    background-color: #ABABAB;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr {
+    color: var(--color-table-content);
+}
+tr:nth-child(even) {
+    background-color: var(--color-table-row-even);
+}
+tr:nth-child(odd) {
+    background-color: var(--color-table-row-odd);
+}
+tr .highlight, tr code {
+    background-color: var(--color-primary);
 }
 
 
@@ -208,10 +237,10 @@ tr.table-row-link td a {
     content: "" !important;
 }
 .ref-page::after {
-  content: target-counter(attr(href), page) !important;
+    content: target-counter(attr(href), page) !important;
 }
 .ref-page .ref-title {
-  display: none !important;
+    display: none !important;
 }
 
 /* Table in finding chapters */
@@ -238,6 +267,10 @@ tr.table-row-link td a {
     @bottom-center { content: element(footer-center); }
     @bottom-right-corner { content: counter(page); }
 }
+#footer {
+    position: absolute;
+    width: 0;
+}
 #footer #footer-left { position: running(footer-left); }
 #footer #footer-center { position: running(footer-center); }
 /* #endregion footer */
@@ -255,7 +288,10 @@ tr.table-row-link td a {
 /* #endregion watermark */
 
 /* #region page-cover */
-@page :first {
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
     /* Footer on the cover page */
     @bottom-right-corner {
         content: "";
@@ -276,14 +312,15 @@ tr.table-row-link td a {
     @bottom-center {
         content: '';
     }
+    background-color: var(--color-primary);
 }
-#page-cover-background{
+
+#page-cover-logo {
     position: absolute;
-    margin-top: -35mm;
-    margin-left: -20mm;
-    width: 210mm;
-    height: 297mm;
-    background-color: var(--color-cover-page-bg);
+    left: 2cm;
+    height: 6cm;
+    transform: translate(-50%, -50%);
+    display: inline-block
 }
 /* Title page elements */
 #page-cover-title {
@@ -316,9 +353,9 @@ tr.table-row-link td a {
 
 /* #region toc */
 #toc li {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 #toc .ref::before {
     padding-right: 0.5em;
@@ -327,25 +364,25 @@ tr.table-row-link td a {
     content: " " leader(".") " " target-counter(attr(href), page);
 }
 #toc .toc-level1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-top: 0.8rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
 }
 #toc .toc-level2 {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-top: 0.5rem;
-  margin-left: 2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-left: 2rem;
 }
 #toc .toc-level3 {
-  font-size: 1rem;
-  margin-top: 0.4rem;
-  margin-left: 4rem;
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    margin-left: 4rem;
 }
 #toc .toc-level4 {
-  font-size: 1rem;
-  margin-top: 0;
-  margin-left: 6rem;
+    font-size: 1rem;
+    margin-top: 0;
+    margin-left: 6rem;
 }
 /* #endregion toc */
 """
@@ -399,7 +436,7 @@ id = "title"
 type = "string"
 label = "Title"
 origin = "core"
-default = "OSEP Exam Documentation"
+default = "OffSec Experienced Pentester"
 required = true
 spellcheck = true
 
@@ -415,7 +452,7 @@ id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
-default = "1.0"
+default = "2.0"
 required = true
 spellcheck = false
 
@@ -447,7 +484,7 @@ id = "appendix_sections"
 type = "list"
 label = "Appendix"
 origin = "custom"
-required = true
+required = false
 
 [report_sections.fields.items]
 id = ""
@@ -469,7 +506,7 @@ id = "content"
 type = "markdown"
 label = "Content"
 origin = "custom"
-default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+default = "TODO appendix content"
 required = true
 
 [[finding_fields]]
@@ -477,7 +514,7 @@ id = "title"
 type = "string"
 label = "Target"
 origin = "core"
-default = "TODO Target Name"
+default = "TODO Target Name / IP Address"
 required = true
 spellcheck = true
 
@@ -533,15 +570,14 @@ Each local.txt, proof.txt and secret.txt found must be shown in a screenshot tha
 """
 required = true
 
-[report_preview_data]
 [report_preview_data.report]
-title = "OSEP Exam Documentation"
+title = "OffSec Experienced Pentester"
 firstname = "John"
 lastname = "Doe"
 osid = "OS-XXXXX"
 mail = "student@example.com"
-report_date = "2022-07-29"
-report_version = "1.0"
+report_date = "2025-09-30"
+report_version = "2.0"
 watermark = true
 highlevel_summary = "TODO A brief description of the attack chain with machine names, including the depth of compromise should be included here."
 
@@ -552,7 +588,7 @@ content = "Appendix content"
 [[report_preview_data.findings]]
 title = "192.168.X.X"
 id = "b8395ecb-13fe-48dc-812d-5c739c448510"
-created = "2024-12-09T13:35:23.020369+00:00"
+created = "2025-09-30T08:02:22.958702+00:00"
 order = 1
 proof = "TODO Provide the contents of local.txt, proof.txt or secret.txt"
 enumeration = "TODO Provide relevant techniques and methods used to perform enumeration prior to initial compromise, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."

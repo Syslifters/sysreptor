@@ -309,10 +309,10 @@ tr {
     color: var(--color-table-content);
 }
 tr:nth-child(even) {
-    background-color: var(--color-table-row-even)
+    background-color: var(--color-table-row-even);
 }
 tr:nth-child(odd) {
-    background-color: var(--color-table-row-odd)
+    background-color: var(--color-table-row-odd);
 }
 tr .highlight, tr code {
     background-color: var(--color-page-background);

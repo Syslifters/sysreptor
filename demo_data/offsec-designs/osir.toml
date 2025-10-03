@@ -1,0 +1,903 @@
+format = "projecttypes/v2"
+id = "2e936c1e-3897-426b-b22a-e244bce6c952"
+name = "OffSec OSIR Exam Report v2.0"
+language = "en-US"
+status = "finished"
+tags = [
+    "OffSec",
+]
+default_notes = []
+report_template = """
+<div id="footer" data-sysreptor-generated="page-footer">
+    <div id="footer-left"><em>CONFIDENTIAL</em></div>
+    <div id="footer-center">{{ report.title }}</div>
+</div>
+
+<div v-if="report.watermark" id="watermark-osid">{{ report.osid }}</div>
+
+
+<section id="page-cover" data-sysreptor-generated="page-cover">
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.svg" alt="logo">
+    <div id="page-cover-title">
+        <h1>{{ report.title }}</h1>
+        <h2>Exam Report</h2>
+    </div>
+
+    <div id="page-cover-student">
+        <p id="page-cover-osid">
+            <strong>OSID: {{ report.osid }}</strong><br>
+            {{ report.mail }}<br>
+        </p>
+        <p id="page-cover-meta">
+            {{ formatDate(report.report_date, 'long') }}<br>
+            v{{ report.report_version }}
+        </p>
+    </div>
+</section>
+<pagebreak />
+
+
+<table-of-contents id="toc" v-slot="tocItems">
+    <h1>Table of Contents</h1>
+    <ul>
+        <li v-for="item in tocItems" :class="'toc-level' + item.level">
+            <ref :to="item.id" />
+        </li>
+    </ul>
+    <pagebreak />
+</table-of-contents>
+
+<markdown>
+    # OffSec Incident Responder Exam Report {.in-toc.numbered}
+    ## Introduction {.in-toc.numbered}
+    The OffSec Incident Responder exam report contains all efforts that were conducted in order to pass the OffSec certification examination. This report should contain all items that were used to pass the exam and it will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has a full understanding of incident response methodologies as well as the technical knowledge to pass the qualifications for the OffSec Incident Responder.
+
+    ## Objective {.in-toc.numbered}
+    The objective of this assessment is to respond to an incident in the Megacorp One environment. The objective in the first phase is to identify all compromised systems and detect if sensitive data was exfiltrated or encrypted. Phase 2 involves performing a forensic analysis on a disk image provided by a colleague from another branch of the Megacorp One's Incident Response team. Based on their initial analysis, the disk image contains a post-exploitation framework binary that contains an encryption key. You must find the binary and obtain the encryption key.
+    
+    Example pages have already been created for you at the latter portions of this document that should demonstrate the amount of information and detail that is expected in the exam report. Use the sample report as a guideline to get you through the reporting.
+
+    ## Requirements {.in-toc.numbered}
+    The student will be required to fill out this incident response report fully and to include the following sections:
+
+    * Executive Summary (All sections)
+    * Incident Detection and Identification 
+        * In this section, provide a detailed, story-style walkthrough of Phase 1. Focus on how you identified the answer to each exercise question, and ensure you include the exact Splunk query used in your investigation.
+    * Incident Detection and Identification  - Containment, Eradication, and Recovery
+        * In this section, outline the key steps that can be taken to contain and recover compromised systems, as well as eliminate the threat identified in Phase 1. Focus on actions that mitigate the immediate risk, restore system integrity, and remove any remaining traces of the compromise.
+    * Incident Detection and Identification  - Findings
+        * In this section, which contains a timetable of your findings, make sure to document the **overall attacker activity or phase** related to each exercise question.
+    * Forensic Analysis - Disk Image Analysis
+        * In this section, provide a detailed, story-style walkthrough of the disk image analysis in Phase 2), focusing on how you identified the malicious binary.
+    * Forensic Analysis - Malware Analysis
+        * In this section, provide a detailed, story-style walkthrough of the malware analysis process in Phase 2), focusing on how you analyzed and identified the encryption key used by the binary.
+    * Conclusion
+
+    The walkthroughs in the **Incident Detection and Identification**, **Disk Image Analysis**, and **Malware Analysis** sections should be clear and thorough, containing enough explanations and screenshots to allow a technically proficient reader to replicate each step. Additionally, ensure that your workflow and decision-making process throughout the analysis are well explained and easily understood.
+
+</markdown>
+<pagebreak/>
+
+<section>
+    <h1 id="summary" class="in-toc numbered">Executive Summary</h1>
+    <h2 class="in-toc numbered">Incident Detection and Identification Overview</h2>
+    <markdown :text="report.executive_summary" />
+    
+    <h2 class="in-toc numbered">High-Level Attack Path</h2>
+    <markdown :text="report.highlevel_attack_path" />
+
+    <h2 class="in-toc numbered">Forensic Analysis Overview</h2>
+    <markdown :text="report.forensic_analysis" />
+
+    <pagebreak/>
+</section>
+
+
+<section>
+    <h1 id="methodology" class="in-toc numbered">Incident Detection and Identification</h1>
+    <markdown :text="report.incident_detection_and_identification" />
+
+    <h2 class="in-toc numbered">Containment, Eradication, and Recovery</h2>
+    <markdown :text="report.containment_eradication_recovery" />
+
+    <h2 id="findings" class="in-toc numbered">Findings</h2>
+    <table>
+        <thead>
+            <tr>
+            <th>Timestamp</th>
+            <th>Observation</th>
+            <th>Affected Assets</th>
+            </tr>
+        </thead>
+        <tbody>
+            <div v-for="finding in findings">
+                <tr>
+                    <td>{{ finding.timestamp }}</td>
+                    <td>{{ finding.title }}</td>
+                    <td><div v-for="a in finding.assets">{{ a.asset_type }}: {{ a.asset_details }}</div></td>
+                </tr>
+            </div>
+        </tbody>
+    </table>
+    <pagebreak/>
+</section>
+
+<section>
+    <h1 id="forensic-analysis" class="in-toc numbered">Forensic Analysis</h1>
+    <h2 class="in-toc numbered">Disk Image Analysis</h2>
+    <markdown :text="report.disk_image_analysis" />
+    
+    <h2 class="in-toc numbered">Malware Analysis</h2>
+    <markdown :text="report.malware_analysis" />
+    <pagebreak/>
+</section>
+
+<section>
+    <h1 id="conclusion" class="in-toc numbered">Conclusion</h1>
+    <markdown :text="report.conclusion" />
+    <pagebreak/>
+</section>
+
+<section v-if="report.appendix_sections.length > 0" class="appendix">
+    <h1 id="appendix" class="in-toc numbered">Appendix</h1>
+
+    <div v-for="appendix_section in report.appendix_sections">
+        <h2 class="in-toc numbered">{{ appendix_section.title }}</h2>
+        <markdown :text="appendix_section.content" />
+    </div>
+    <pagebreak />
+</section>
+
+<section>
+    <div class="end-of-report">
+        End of Report<br>
+    </div>
+    <div class="end-of-report">
+        This report was rendered<br>
+        by <a href="https://docs.sysreptor.com/">SysReptor</a> with<br>
+        <span style="color:red;">&hearts;</span><br>
+    </div>
+</section>
+"""
+report_styles = """
+@import "/assets/global/base.css";
+
+/* Define variables */
+:root {
+    --color-risk-critical: #E83221;
+    --color-risk-high: #FF9300;
+    --color-risk-medium: #FFDA00;
+    --color-risk-low: #4285F5;
+    --color-risk-info: #00AE51;
+    
+    --color-primary: #2c4a44;
+    --color-secondary: rgba(6, 198, 141);
+
+    --color-table-header: var(--color-primary);
+    --color-table-header-text: white;
+    --color-table-row-even: rgb(221, 221, 221);
+    --color-table-row-odd: white;
+    --color-table-content: #151515;
+
+    --color-code: rgb(221, 221, 221);
+}
+
+
+/* Font settings */
+html {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 10pt;
+}
+
+
+/* Global styles */
+@page {
+    size: A4 portrait;
+    margin: 35mm 20mm 25mm 20mm;
+}
+
+a {
+    font-style: italic;
+    text-decoration: underline;
+    color: var(--color-secondary);
+}
+
+pre code {
+    border: 1px solid black;
+    padding: 0.2em !important;
+}
+code {
+    background-color: var(--color-code);
+}
+
+
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
+th {
+    font-weight: bold;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr.table-row-link td {
+    padding: 0;
+}
+tr.table-row-link td a {
+    display: block;
+    padding: 0.3em;
+    color: inherit;
+    text-decoration: none;
+    font-style: inherit;
+}
+.table-key {
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr {
+    color: var(--color-table-content);
+}
+tr:nth-child(even) {
+    background-color: var(--color-table-row-even);
+}
+tr:nth-child(odd) {
+    background-color: var(--color-table-row-odd);
+}
+tr .highlight, tr code {
+    background-color: var(--color-primary);
+}
+
+
+/* Classes for risk colors */
+.risk-critical { color: var(--color-risk-critical) !important; font-weight: bold; }
+.risk-high { color: var(--color-risk-high) !important; font-weight: bold; }
+.risk-medium { color: var(--color-risk-medium) !important; font-weight: bold; }
+.risk-low { color: var(--color-risk-low) !important; font-weight: bold; }
+.risk-info { color: var(--color-risk-info) !important; font-weight: bold; }
+
+.risk-bg-critical { background-color: var(--color-risk-critical) !important; color: white !important; }
+.risk-bg-high { background-color: var(--color-risk-high) !important; }
+.risk-bg-medium { background-color: var(--color-risk-medium) !important; }
+.risk-bg-low { background-color: var(--color-risk-low) !important; }
+.risk-bg-info { background-color: var(--color-risk-info) !important; }
+
+/* Helper class for referencing page number */
+.ref-page::before { 
+    content: "" !important;
+}
+.ref-page::after {
+    content: target-counter(attr(href), page) !important;
+}
+.ref-page .ref-title {
+    display: none !important;
+}
+
+/* Table in finding chapters */
+.finding-heading .table-key {
+    height: 3em;
+    width: 10em;
+}
+
+
+.end-of-report {
+    text-align:center;
+    font-style:italic;
+    margin-top:70px;
+    line-height:1.7;
+}
+
+
+
+
+
+/* #region footer */
+@page {
+    @bottom-left { content: element(footer-left); }
+    @bottom-center { content: element(footer-center); }
+    @bottom-right-corner { content: counter(page); }
+}
+#footer {
+    position: absolute;
+    width: 0;
+}
+#footer #footer-left { position: running(footer-left); }
+#footer #footer-center { position: running(footer-center); }
+/* #endregion footer */
+
+/* #region watermark */
+#watermark-osid {
+    position: fixed;
+    top: 9cm;
+    left: 1cm;
+    transform: rotate(-45deg);
+    font-size: 90pt;
+    text-transform: uppercase;
+    opacity: 0.2;
+}
+/* #endregion watermark */
+
+/* #region page-cover */
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
+    /* Footer on the cover page */
+    @bottom-right-corner {
+        content: "";
+    }
+    @bottom-right {
+        /* Page number */
+        content: counter(page);
+        font-size: 9pt;
+        color: white
+    }
+    @bottom-left {
+        content: "Confidential";
+        text-transform: uppercase;
+        font-style: italic;
+        color: white;
+    }
+     /* Pentest title should not appear on cover page */
+    @bottom-center {
+        content: '';
+    }
+    background-color: var(--color-primary);
+}
+#page-cover-logo {
+    position: absolute;
+    left: 2cm;
+    height: 6cm;
+    transform: translate(-50%, -50%);
+    display: inline-block
+}
+
+/* Title page elements */
+#page-cover-title {
+    position: absolute;
+    top: 20mm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-title h1 {
+    font-size: 32pt;
+}
+#page-cover-title h2 {
+    font-size: 24pt;
+}
+#page-cover-student {
+    position: absolute;
+    top: 11cm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-osid {
+    font-size: 14pt;
+}
+#page-cover-meta {
+    line-height: 2em;
+}
+/* #endregion page-cover */
+
+/* #region toc */
+#toc li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#toc .ref::before {
+    padding-right: 0.5em;
+}
+#toc .ref::after {
+    content: " " leader(".") " " target-counter(attr(href), page);
+}
+#toc .toc-level1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
+}
+#toc .toc-level2 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-left: 2rem;
+}
+#toc .toc-level3 {
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    margin-left: 4rem;
+}
+#toc .toc-level4 {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-left: 6rem;
+}
+/* #endregion toc */
+"""
+
+[[report_sections]]
+id = "Student"
+label = "Student"
+
+[[report_sections.fields]]
+id = "firstname"
+type = "string"
+label = "Firstname"
+origin = "custom"
+default = "John"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "lastname"
+type = "string"
+label = "Lastname"
+origin = "custom"
+default = "Doe"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "osid"
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "mail"
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "other"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "OffSec Incident Responder"
+required = true
+spellcheck = true
+
+[[report_sections.fields]]
+id = "report_date"
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "report_version"
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "2.0"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "watermark"
+type = "boolean"
+label = "Watermark"
+origin = "custom"
+default = false
+
+[[report_sections]]
+id = "executive_summary"
+label = "Executive Summary"
+
+[[report_sections.fields]]
+id = "executive_summary"
+type = "markdown"
+label = "Incident Detection and Identification Overview"
+origin = "custom"
+default = """
+TODO: Incident Detection and Identification Overview
+
+The SOC team escalated several triggered alerts to the Incident Response team for investigation. The primary objectives were to identify if the triggered alerts contained compromised systems and assess the impact of the attacker’s actions, such as determining whether data has been exfiltrated or encrypted.
+
+While investigating the alerts and the recorded data of the incident, we identified three compromised systems in the Megacorp One environment:
+
+* PC1
+* PC2
+* SRV1
+
+The threat actor accessed and exfiltrated the secret recipe for our chocolate muffins, which could have catastrophic consequences if leaked or sold to competitors.
+"""
+required = true
+
+[[report_sections.fields]]
+id = "highlevel_attack_path"
+type = "markdown"
+label = "High-Level Attack Path"
+origin = "custom"
+default = """
+TODO: High-Level Attack Path
+
+Our investigation revealed the following high-level path the threat actor took to compromise the Megacorp One environment and accessed the sensitive recipe:
+
+1. PC1 was used as the initial entry vector by the threat actor by trying numerous passwords against several user accounts. The threat actor finally succeeded and got access to this machine with administrative privileges.
+2. PC2 was configured to use the same password for the local administrator account and the threat actor used it to get access to it. On the machine, the attacker obtained credentials from logged on users by using Mimikatz.
+3. SRV1 was accessed using one of the obtained sets of credentials from PC2. The threat actor accessed and exfiltrated the secret chocolate muffin recipe from this machine.
+"""
+required = true
+
+[[report_sections.fields]]
+id = "forensic_analysis"
+type = "markdown"
+label = "Forensic Analysis Overview"
+origin = "custom"
+default = """
+TODO: Forensic Analysis Overview
+
+A disk image was created from a compromised machine in another branch of the Megacorp One enterprise. Analysis of this disk image confirmed that it had been compromised by a threat actor, who had downloaded a password-protected archive containing a malicious binary.
+
+Upon analyzing the binary, we found that it checks whether the system is in a specific state before executing actions to generate a token. By leveraging this token, we were able to obtain an authentication token for the threat actor’s Command & Control (C\\&C) infrastructure, which provided valuable insights into their operations and helped strengthen our security.
+"""
+required = true
+
+[[report_sections]]
+id = "incident_detection_and_identification"
+label = "Incident Detection and Identification"
+
+[[report_sections.fields]]
+id = "incident_detection_and_identification"
+type = "markdown"
+label = "Incident Detection and Identification"
+origin = "custom"
+default = """
+TODO: Incident Detection and Identification
+
+In this section, provide a detailed, story-style walkthrough of Phase 1. Focus on how you identified the answer to each exercise question, and ensure you include the exact Splunk query used in your investigation.
+"""
+required = true
+
+[[report_sections.fields]]
+id = "containment_eradication_recovery"
+type = "markdown"
+label = "Containment, Eradication, and Recovery"
+origin = "custom"
+default = """
+TODO: Containment, Eradication, and Recovery
+
+In this section, outline the key steps that can be taken to contain and recover compromised systems, as well as eliminate the threat identified in Phase 1. Focus on actions that mitigate the immediate risk, restore system integrity, and remove any remaining traces of the compromise.
+"""
+required = true
+
+[[report_sections]]
+id = "forensic_analysis"
+label = "Forensic Analysis"
+
+[[report_sections.fields]]
+id = "disk_image_analysis"
+type = "markdown"
+label = "Disk Image Analysis"
+origin = "custom"
+default = """
+TODO: Disk Image Analysis
+
+In this section, provide a detailed, story-style walkthrough of the disk image analysis in Phase 2), focusing on how you identified the malicious binary.
+"""
+required = true
+
+[[report_sections.fields]]
+id = "malware_analysis"
+type = "markdown"
+label = "Malware Analysis"
+origin = "custom"
+default = """
+TODO: Malware Analysis
+
+In this section, provide a detailed, story-style walkthrough of the malware analysis process in Phase 2), focusing on how you analyzed and identified the encryption key used by the binary.
+"""
+required = true
+
+[[report_sections]]
+id = "conclusion"
+label = "Conclusion"
+
+[[report_sections.fields]]
+id = "conclusion"
+type = "markdown"
+label = "Conclusion"
+origin = "custom"
+default = """
+TODO: Conclusion
+
+Our incident detection and identification process successfully uncovered three compromised systems within Megacorp One's infrastructure, alongside the exfiltration of our confidential chocolate muffin recipe.
+
+During forensic analysis, it was revealed that the threat actor downloaded a password-protected archive on one of the compromised systems, extracting a malicious binary. This binary leveraged temporary tokens to secure an authentication token linked to the threat actor's Command & Control (C&C) infrastructure. By obtaining this authentication token, we gained valuable insights into the threat actor's operations, enhancing our ability to defend against future attacks.
+
+Through swift containment, recovery of the compromised systems, and eradication of the malicious artifacts, we successfully mitigated the threat and prevented further compromise of Megacorp One’s environment.
+"""
+required = true
+
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[report_sections.fields]]
+id = "appendix_sections"
+type = "list"
+label = "Appendix"
+origin = "custom"
+required = false
+
+[report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO appendix title"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "content"
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO appendix content"
+required = true
+
+[[finding_fields]]
+id = "title"
+type = "string"
+label = "Observation"
+origin = "core"
+default = "TODO Observation e.g. Beginning of Password Spraying"
+required = true
+spellcheck = true
+
+[[finding_fields]]
+id = "timestamp"
+type = "string"
+label = "Timestamp"
+origin = "custom"
+default = "TODO Timestamp e.g. 2025-10-01 06:41:10"
+pattern = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+required = true
+spellcheck = false
+
+[[finding_fields]]
+id = "assets"
+type = "list"
+label = "Affected Assets"
+origin = "custom"
+required = true
+
+[finding_fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[finding_fields.items.properties]]
+id = "asset_type"
+type = "combobox"
+label = "Type"
+origin = "custom"
+required = true
+suggestions = [
+    "Host",
+    "User",
+    "Password",
+    "Target Machine",
+    "Target User",
+]
+
+[[finding_fields.items.properties]]
+id = "asset_details"
+type = "combobox"
+label = "Asset Details"
+origin = "custom"
+required = true
+suggestions = []
+
+[[finding_ordering]]
+field = "timestamp"
+order = "asc"
+
+[report_preview_data.report]
+title = "OffSec Incident Responder"
+firstname = "John"
+lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_date = "2025-09-30"
+report_version = "2.0"
+watermark = true
+executive_summary = """
+TODO: Incident Detection and Identification Overview
+
+The SOC team escalated several triggered alerts to the Incident Response team for investigation. The primary objectives were to identify if the triggered alerts contained compromised systems and assess the impact of the attacker’s actions, such as determining whether data has been exfiltrated or encrypted.
+
+While investigating the alerts and the recorded data of the incident, we identified three compromised systems in the Megacorp One environment:
+
+* PC1
+* PC2
+* SRV1
+
+The threat actor accessed and exfiltrated the secret recipe for our chocolate muffins, which could have catastrophic consequences if leaked or sold to competitors.
+"""
+highlevel_attack_path = """
+TODO: High-Level Attack Path
+
+Our investigation revealed the following high-level path the threat actor took to compromise the Megacorp One environment and accessed the sensitive recipe:
+
+1. PC1 was used as the initial entry vector by the threat actor by trying numerous passwords against several user accounts. The threat actor finally succeeded and got access to this machine with administrative privileges.
+2. PC2 was configured to use the same password for the local administrator account and the threat actor used it to get access to it. On the machine, the attacker obtained credentials from logged on users by using Mimikatz.
+3. SRV1 was accessed using one of the obtained sets of credentials from PC2. The threat actor accessed and exfiltrated the secret chocolate muffin recipe from this machine.
+"""
+forensic_analysis = """
+TODO: Forensic Analysis Overview
+
+A disk image was created from a compromised machine in another branch of the Megacorp One enterprise. Analysis of this disk image confirmed that it had been compromised by a threat actor, who had downloaded a password-protected archive containing a malicious binary.
+
+Upon analyzing the binary, we found that it checks whether the system is in a specific state before executing actions to generate a token. By leveraging this token, we were able to obtain an authentication token for the threat actor’s Command & Control (C\\&C) infrastructure, which provided valuable insights into their operations and helped strengthen our security.
+"""
+incident_detection_and_identification = """
+TODO: Incident Detection and Identification
+
+In this section, provide a detailed, story-style walkthrough of Phase 1. Focus on how you identified the answer to each exercise question, and ensure you include the exact Splunk query used in your investigation.
+"""
+containment_eradication_recovery = """
+TODO: Containment, Eradication, and Recovery
+
+In this section, outline the key steps that can be taken to contain and recover compromised systems, as well as eliminate the threat identified in Phase 1. Focus on actions that mitigate the immediate risk, restore system integrity, and remove any remaining traces of the compromise.
+"""
+disk_image_analysis = """
+TODO: Disk Image Analysis
+
+In this section, provide a detailed, story-style walkthrough of the disk image analysis in Phase 2), focusing on how you identified the malicious binary.
+"""
+malware_analysis = """
+TODO: Malware Analysis
+
+In this section, provide a detailed, story-style walkthrough of the malware analysis process in Phase 2), focusing on how you analyzed and identified the encryption key used by the binary.
+"""
+conclusion = """
+TODO: Conclusion
+
+Our incident detection and identification process successfully uncovered three compromised systems within Megacorp One’s infrastructure, alongside the exfiltration of our confidential chocolate muffin recipe.
+
+During forensic analysis, it was revealed that the threat actor downloaded a password-protected archive on one of the compromised systems, extracting a malicious binary. This binary leveraged temporary tokens to secure an authentication token linked to the threat actor's Command & Control (C&C) infrastructure. By obtaining this authentication token, we gained valuable insights into the threat actor’s operations, enhancing our ability to defend against future attacks.
+
+Through swift containment, recovery of the compromised systems, and eradication of the malicious artifacts, we successfully mitigated the threat and prevented further compromise of Megacorp One’s environment.
+"""
+appendix_sections = []
+
+[[report_preview_data.findings]]
+title = "Beginning of Password Spraying with Password Password1!"
+id = "637b22d5-a72d-456a-9b3c-834fa72fd5fa"
+created = "2025-09-30T15:19:29.441Z"
+order = 1
+timestamp = "2024-09-01 15:25:00"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings]]
+title = "End of Password Spraying"
+id = "28baa8fe-fb07-4ff9-870f-d32f3a8d381b"
+created = "2025-09-30T15:25:50.527Z"
+order = 2
+timestamp = "2024-09-01 15:58:00"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings]]
+title = "Successful login for local Administrator user"
+id = "36069320-f48c-4eef-ad1c-f993c9aa9750"
+created = "2025-09-30T15:38:24.949Z"
+order = 3
+timestamp = "2024-09-01 15:58:15"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[report_preview_data.findings]]
+title = "Download of meterpreter.exe from <IP> via Browser"
+id = "3622399f-dd1a-48c0-b0ce-3d225b364cc9"
+created = "2025-09-30T15:39:02.784Z"
+order = 4
+timestamp = "2024-09-01 15:59:00"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings.assets]]
+asset_type = "User"
+asset_details = "Administrator"
+
+[[report_preview_data.findings]]
+title = "Process Creation of meterpreter.exe "
+id = "198863c4-2847-43d0-a8bc-ef5a0235daed"
+created = "2025-09-30T15:39:35.355Z"
+order = 5
+timestamp = "2024-09-01 15:59:49"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[report_preview_data.findings]]
+title = "Process Creation of PsExec"
+id = "7ec5ac97-95cb-4db0-b2f1-d2e7695e18be"
+created = "2025-09-30T15:40:31.557Z"
+order = 6
+timestamp = "2024-09-01 16:05:11"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[report_preview_data.findings.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Target Machine"
+asset_details = "PC2"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Target User"
+asset_details = "Administrator (local)"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Password"
+asset_details = "Password1!"
+
+[[report_preview_data.findings]]
+title = "Process Creation of Zwetsch.exe"
+id = "0491c6cb-1e0a-4ef5-b83c-1da141d88094"
+created = "2025-09-30T15:41:42.795Z"
+order = 7
+timestamp = "2024-11-01 01:11:11"
+
+[[report_preview_data.findings.assets]]
+asset_type = "Host"
+asset_details = "PC2"
+
+[[report_preview_data.findings.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[report_preview_data.findings]]
+title = "TODO Observation e.g. Beginning of Password Spraying"
+id = "ec3f69ed-b4ed-4b21-8846-bbdf57de4d4e"
+created = "2025-10-01T10:31:35.364Z"
+order = 8
+timestamp = "TODO Timestamp e.g. 2025-10-01 06:41:10"
+assets = []

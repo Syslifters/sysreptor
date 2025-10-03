@@ -1,11 +1,10 @@
 format = "projecttypes/v2"
 id = "c465ed9d-546f-44ba-b519-eb3c036fda01"
-name = "OSWP Exam Report v1.2"
+name = "OffSec OSWP Exam Report v2.0"
 language = "en-US"
 status = "finished"
 tags = [
-    "offsec",
-    "OffensiveSecurity",
+    "OffSec",
 ]
 finding_ordering = []
 default_notes = []
@@ -19,10 +18,10 @@ report_template = """
 
 
 <section id="page-cover" data-sysreptor-generated="page-cover">
-    <div id="page-cover-background" />
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.svg" alt="logo">
     <div id="page-cover-title">
-        <h1>Offensive Security</h1>
-        <h2>{{ report.title }}</h2>
+        <h1>{{ report.title }}</h1>
+        <h2>Exam Report</h2>
     </div>
 
     <div id="page-cover-student">
@@ -50,9 +49,9 @@ report_template = """
 </table-of-contents>
 
 <markdown>
-    # Offensive Security OSWP Exam Documentation {.in-toc.numbered}
-    The Offensive Security OSWP exam documentation contains all efforts that were conducted in order to pass the Offensive Security Wireless Professional exam. This report will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has the technical knowledge required to pass the qualifications for the Offensive Security Wireless Professional certification.
-
+    # OffSec Wireless Professional Exam Report {.in-toc.numbered}
+    The OffSec Wireless Professional exam documentation contains all efforts that were conducted in order to pass the OffSec Wireless Professional exam. This report will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has the technical knowledge required to pass the qualifications for the OffSec Wireless Professional certification.
+    
     ## Requirements {.in-toc.numbered}
     The student will be required to fill out this penetration testing report fully and to include the following sections:
     * Methodology walkthrough and detailed outline of steps taken
@@ -62,26 +61,31 @@ report_template = """
 <pagebreak/>
     
 <section>
-    <h1 id="findings" class="in-toc numbered">Findings</h1>
     <div v-for="finding in findings">
-        <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
+        <h1 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h1>
         <markdown :text="finding.description" />
         <div v-if="finding.proof">
-            <h3 class="in-toc numbered">Proof</h3>
+            <h2 class="in-toc numbered">Proof</h2>
             <markdown :text="finding.proof" />
         </div>
 
         <div v-if="finding.screenshots">
-            <h3 class="in-toc numbered">Screenshots</h3>
+            <h2 class="in-toc numbered">Screenshots</h2>
             <markdown :text="finding.screenshots" />
         </div>
 
          <div v-if="finding.steps">
-            <h3 class="in-toc numbered">Steps</h3>
+            <h2 class="in-toc numbered">Steps</h2>
             <markdown :text="finding.steps" />
         </div>
         <pagebreak />
     </div>
+</section>
+
+<section v-if="report.additional_items">
+    <h1 id="additional" class="in-toc numbered">Additional Items Not Mentioned in the Report</h1>
+    <markdown :text="report.additional_items" />
+    <pagebreak/>
 </section>
 
 <section v-if="report.appendix_sections.length > 0" class="appendix">
@@ -115,8 +119,17 @@ report_styles = """
     --color-risk-medium: #FFDA00;
     --color-risk-low: #4285F5;
     --color-risk-info: #00AE51;
+    
+    --color-primary: #253555;
+    --color-secondary: rgba(0, 112, 212);
 
-    --color-cover-page-bg: #c37cc3; 
+    --color-table-header: var(--color-primary);
+    --color-table-header-text: white;
+    --color-table-row-even: rgb(221, 221, 221);
+    --color-table-row-odd: white;
+    --color-table-content: #151515;
+
+    --color-code: rgb(221, 221, 221);
 }
 
 /* Font settings */
@@ -134,8 +147,8 @@ html {
 
 a {
     font-style: italic;
-    text-decoration: none;
-    color: inherit;
+    text-decoration: underline;
+    color: var(--color-secondary);
 }
 
 pre code {
@@ -143,7 +156,7 @@ pre code {
     padding: 0.2em !important;
 }
 code {
-    background-color: rgb(221, 221, 221);
+    background-color: var(--color-code);
 }
 
 
@@ -154,8 +167,9 @@ table {
     table-layout: auto;
 }
 th {
-    background-color: #ABABAB;
     font-weight: bold;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
 }
 tr.table-row-link td {
     padding: 0;
@@ -168,7 +182,20 @@ tr.table-row-link td a {
     font-style: inherit;
 }
 .table-key {
-    background-color: #ABABAB;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr {
+    color: var(--color-table-content);
+}
+tr:nth-child(even) {
+    background-color: var(--color-table-row-even);
+}
+tr:nth-child(odd) {
+    background-color: var(--color-table-row-odd);
+}
+tr .highlight, tr code {
+    background-color: var(--color-primary);
 }
 
 
@@ -265,14 +292,15 @@ tr.table-row-link td a {
     @bottom-center {
         content: '';
     }
+    background-color: var(--color-primary);
 }
-#page-cover-background {
+
+#page-cover-logo {
     position: absolute;
-    margin-top: -35mm;
-    margin-left: -20mm;
-    width: 210mm;
-    height: 297mm;
-    background-color: var(--color-cover-page-bg);
+    left: 2cm;
+    height: 6cm;
+    transform: translate(-50%, -50%);
+    display: inline-block
 }
 /* Title page elements */
 #page-cover-title {
@@ -388,7 +416,7 @@ id = "title"
 type = "string"
 label = "Title"
 origin = "core"
-default = "OSWP Exam Documentation"
+default = "OffSec Wireless Professional"
 required = true
 spellcheck = true
 
@@ -404,7 +432,7 @@ id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
-default = "1.0"
+default = "2.0"
 required = true
 spellcheck = false
 
@@ -416,6 +444,18 @@ origin = "custom"
 default = false
 
 [[report_sections]]
+id = "additional"
+label = "Additional Items"
+
+[[report_sections.fields]]
+id = "additional_items"
+type = "markdown"
+label = "Additional Items"
+origin = "custom"
+default = "This section is placed for any additional items that were not mentioned in the overall report."
+required = false
+
+[[report_sections]]
 id = "appendix"
 label = "Appendix"
 
@@ -424,7 +464,7 @@ id = "appendix_sections"
 type = "list"
 label = "Additional Items Not Mentioned in the Report"
 origin = "custom"
-required = true
+required = false
 
 [report_sections.fields.items]
 id = ""
@@ -446,15 +486,15 @@ id = "content"
 type = "markdown"
 label = "Content"
 origin = "custom"
-default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+default = "TODO appendix content"
 required = true
 
 [[finding_fields]]
 id = "title"
 type = "string"
-label = "Target"
+label = "Access Point"
 origin = "core"
-default = "TODO Target Name"
+default = "TODO Access Point X"
 required = true
 spellcheck = true
 
@@ -490,27 +530,48 @@ origin = "custom"
 default = "TODO Provide a detailed account of your methodology in obtaining the \"Access Point X\" wireless network key. **The steps taken should be able to be easily followed and reproducible if necessary.**"
 required = true
 
-[report_preview_data]
 [report_preview_data.report]
-title = "OSWP Exam Documentation"
+title = "OffSec Wireless Professional"
 firstname = "John"
 lastname = "Doe"
 osid = "OS-XXXXX"
 mail = "student@example.com"
-report_date = "2022-07-29"
-report_version = "1.0"
+report_date = "2025-09-30"
+report_version = "2.0"
 watermark = true
+additional_items = "This section is placed for any additional items that were not mentioned in the overall report."
+appendix_sections = []
 
-[[report_preview_data.report.appendix_sections]]
-title = "Appendix Title"
-content = "Appendix content"
+[[report_preview_data.findings]]
+title = "Access Point Y"
+description = "While monitoring the wifi activity in the area, I discovered Access Point Y. Further enumeration I discovered that Access Point Y was transmitting on channel X and using XYZ as its security algorithm. I proceeded by collecting information by utilizing the XYZ attack, till there was enough information to crack the key using the 123 cracking tool."
+id = "d929613b-917f-4f04-a061-f7334f4b3168"
+created = "2025-09-30T14:23:40.562Z"
+order = 1
+proof = """
+The "Access Point 2" wireless network key: **DE:AD:CA:FE:BA:BE:99:77:55:33:11:88:66**
+The "Access Point Y" proof.txt: **b78066a8ec18b4182da1209471a6ce95**
+"""
+screenshots = """
+TODO: screenshots
+"""
+steps = """
+1. Placed interface in monitor mode.
+*Command and/or screenshots*
+
+3. Next Step
+*Command and/or screenshots*
+
+3. Crack the key using the 123 cracking tool.
+*Command and/or screenshots*
+"""
 
 [[report_preview_data.findings]]
 title = "Access Point X"
-description = "TODO: A brief description of the attack chain with machine names, including the depth of compromise should be included here."
+description = "TODO A brief description of the attack chain with machine names, including the depth of compromise should be included here."
 id = "30fa6ea9-64f0-4b95-a7ff-dcc2e1983d3f"
-created = "2024-12-09T13:59:15.670800+00:00"
-order = 1
+created = "2025-09-30T08:02:23.658755+00:00"
+order = 2
 proof = "TODO Provide the contents of the \"Access Point X\" wireless network key."
 screenshots = "TODO Provide at least one screenshot of the successfully cracked \"Access Point X\" wireless network key and a screenshot of proof.txt."
 steps = "TODO Provide a detailed account of your methodology in obtaining the \"Access Point X\" wireless network key. **The steps taken should be able to be easily followed and reproducible if necessary.**"

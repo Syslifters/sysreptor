@@ -1,16 +1,22 @@
 format = "projects/v2"
 id = "d7195b61-4c6a-4bee-ac03-7b982854343b"
-name = "OSWP Exam Report"
+name = "OffSec OSWP Exam Report v2.0"
 language = "en-US"
 tags = []
+members = []
 images = []
+files = []
+
+[[sections]]
+id = "Student"
+status = "in-progress"
 
 [[sections]]
 id = "other"
 status = "in-progress"
 
 [[sections]]
-id = "Student"
+id = "additional"
 status = "in-progress"
 
 [[sections]]
@@ -18,32 +24,29 @@ id = "appendix"
 status = "in-progress"
 
 [report_data]
-title = "OSWP Exam Report"
+title = "OffSec Wireless Professional"
 mail = "student@example.com"
-osid = "XXXXX"
+osid = "OS-XXXXX"
 lastname = "Doe"
 firstname = "John"
-watermark = false
-report_version = "1.0"
-
-[[report_data.appendix_sections]]
-title = "TODO appendix title"
-content = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+report_version = "2.0"
+report_date = "2025-09-30"
+watermark = true
+additional_items = "This section is placed for any additional items that were not mentioned in the overall report."
+appendix_sections = []
 
 [[findings]]
 id = "761f283c-ad35-4b39-ae9c-3c1b51ab666c"
 status = "in-progress"
+order = 1
 
-[findings.assignee]
-id = "c01c7ccf-7597-45cc-99bb-01be93743b97"
 
 [findings.data]
 title = "Access Point X"
-cvss = "n/a"
 description = "TODO A brief description of the attack chain with machine names, including the depth of compromise should be included here."
-proof = "TODO Provide the contents of the “Access Point X” wireless network key."
-steps = "TODO Provide a detailed account of your methodology in obtaining the “Access Point X” wireless network key. **The steps taken should be able to be easily followed and reproducible if necessary.**"
-screenshots = "TODO Provide at least one screenshot of the successfully cracked “Access Point X\" wireless network key and a screenshot of proof.txt."
+proof = "TODO Provide the contents of the \"Access Point X\" wireless network key."
+steps = "TODO Provide a detailed account of your methodology in obtaining the \"Access Point X\" wireless network key. **The steps taken should be able to be easily followed and reproducible if necessary.**"
+screenshots = "TODO Provide at least one screenshot of the successfully cracked \"Access Point X\" wireless network key and a screenshot of proof.txt."
 
 [project_type]
 file = "../offsec-designs/oswp.toml"

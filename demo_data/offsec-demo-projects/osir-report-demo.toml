@@ -1,0 +1,310 @@
+format = "projects/v2"
+id = "2e936c1e-3897-426b-b22a-e244bce6c952"
+name = "OffSec OSIR Exam Report v2.0"
+language = "en-US"
+tags = []
+members = []
+images = []
+files = []
+
+[[sections]]
+id = "Student"
+status = "in-progress"
+
+[[sections]]
+id = "other"
+status = "in-progress"
+
+[[sections]]
+id = "executive_summary"
+status = "in-progress"
+
+[[sections]]
+id = "incident_detection_and_identification"
+status = "in-progress"
+
+[[sections]]
+id = "forensic_analysis"
+status = "in-progress"
+
+[[sections]]
+id = "conclusion"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[report_data]
+title = "OffSec Incident Responder"
+firstname = "John"
+lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_date = "2025-09-30"
+report_version = "2.0"
+watermark = true
+executive_summary = """
+TODO: Incident Detection and Identification Overview
+
+The SOC team escalated several triggered alerts to the Incident Response team for investigation. The primary objectives were to identify if the triggered alerts contained compromised systems and assess the impact of the attacker’s actions, such as determining whether data has been exfiltrated or encrypted.
+
+While investigating the alerts and the recorded data of the incident, we identified three compromised systems in the Megacorp One environment:
+
+* PC1
+* PC2
+* SRV1
+
+The threat actor accessed and exfiltrated the secret recipe for our chocolate muffins, which could have catastrophic consequences if leaked or sold to competitors.
+"""
+highlevel_attack_path = """
+TODO: High-Level Attack Path
+
+Our investigation revealed the following high-level path the threat actor took to compromise the Megacorp One environment and accessed the sensitive recipe:
+
+1. PC1 was used as the initial entry vector by the threat actor by trying numerous passwords against several user accounts. The threat actor finally succeeded and got access to this machine with administrative privileges.
+2. PC2 was configured to use the same password for the local administrator account and the threat actor used it to get access to it. On the machine, the attacker obtained credentials from logged on users by using Mimikatz.
+3. SRV1 was accessed using one of the obtained sets of credentials from PC2. The threat actor accessed and exfiltrated the secret chocolate muffin recipe from this machine.
+"""
+forensic_analysis = """
+TODO: Forensic Analysis Overview
+
+A disk image was created from a compromised machine in another branch of the Megacorp One enterprise. Analysis of this disk image confirmed that it had been compromised by a threat actor, who had downloaded a password-protected archive containing a malicious binary.
+
+Upon analyzing the binary, we found that it checks whether the system is in a specific state before executing actions to generate a token. By leveraging this token, we were able to obtain an authentication token for the threat actor’s Command & Control (C\\&C) infrastructure, which provided valuable insights into their operations and helped strengthen our security.
+"""
+incident_detection_and_identification = """
+TODO: Incident Detection and Identification
+
+In this section, provide a detailed, story-style walkthrough of Phase 1. Focus on how you identified the answer to each exercise question, and ensure you include the exact Splunk query used in your investigation.
+
+
+The SOC team escalated several triggered alerts to the Incident Response team as shown in the following screenshot.
+
+![](/images/name/image.png){width="auto"}
+
+One of the escalated alerts is named "Malicious Apps" and monitors the collected events for occurrences of SHA-256 hashes of known malicious applications that are commonly used by threat actors such as Mimikatz and NetExec. The alert triggered only one time for an event recorded at 01/11/2024 1:11:11 AM.
+
+Since events containing information about the usage of applications that are commonly used by attackers may have severe implications, let's review this event in more detail.
+
+![](/images/name/image-Wvg13zIC.png){width="auto"}
+
+The event provides us several important information that can be leveraged in our incident detection and identification process:
+
+* Username: `Administrator`
+* Filename: `Zwetsch.exe`
+* Directory: `C:\\hackingtools\\`
+
+Based on the matching SHA-256 hash and the characteristic commandline argument `sekurlsa::logonpasswords`, we can be certain that this is Mimikatz.
+"""
+containment_eradication_recovery = """
+TODO: Containment, Eradication, and Recovery
+
+In this section, outline the key steps that can be taken to contain and recover compromised systems, as well as eliminate the threat identified in Phase 1. Focus on actions that mitigate the immediate risk, restore system integrity, and remove any remaining traces of the compromise.
+"""
+disk_image_analysis = """
+TODO: Disk Image Analysis
+
+In this section, provide a detailed, story-style walkthrough of the disk image analysis in Phase 2), focusing on how you identified the malicious binary.
+
+
+We began the analysis of the provided disk image by loading it in Autopsy and enabling the plugin "Recent Activities". Once the analysis of the disk image is finished, we’ll have several options to start our investigation.
+
+![](/images/name/image-e9utsLep.png){width="auto"}
+
+Based on the information that were shared by the other incident response team, a download has been recorded. Therefore, let’s begin by analyzing the "Web Downloads" under "Data Artifacts". One entry catches our attention which states that offer.7z was downloaded from 192.168.48.130:8000.
+
+![](/images/name/image-LOReQuxX.png){width="auto"}
+
+Let’s check if this archive exists in the Downloads directory of the Admin user where it was downloaded to. If yes,let’s try to extract it.
+
+![](/images/name/image-mHVGJH8T.png){width="auto"}
+
+Unfortunately, we get prompted for a password. Since we don’t have a password, our extraction attempt fails.
+
+![](/images/name/image-jSqZunB1.png){width="auto"}
+
+At this point, let’s think about how we could obtain such a password. One possibility is to assume that the attacker had only access via CLI and therefore might have used PowerShell to extract the archive. In addition, based on the information from the system we know that PowerShell Script Block Logging is enabled. Let’s check out the PowerShell Operational Log in Event Viewer and search for "offer.7z".
+
+![](/images/name/image-8sZ7i38U.png){width="auto"}
+
+The event contains the information that the password superpass was used to extract the archive. Let’s try this password and extract the files by using 7z. Once the archive is extracted, a new binary appears named "viruz.exe". The lab asks for the file hash of this binary which we can get via the Cmdlet Get-FileHash: 2D51EF5F421E844EC1278CDAAA1830105D1F879A163AF55EA826B428A0A97E68.
+
+![](/images/name/image-582UkMnV.png){width="auto"}
+"""
+malware_analysis = """
+TODO: Malware Analysis
+
+In this section, provide a detailed, story-style walkthrough of the malware analysis process in Phase 2), focusing on how you analyzed and identified the encryption key used by the binary.
+
+
+The second lab of the Forensic Analysis phase asks to analyze the binary from the previous lab and obtain a token that is used by the threat actor for authenticating to their C&C infrastructure. Let’s start by starting an administrative PowerShell session.
+
+![](/images/name/image-6WDDiHSA.png){width="auto"}
+
+Then, let’s navigate to the correct directory and execute the binary.
+
+![](/images/name/image-IHexZBZB.png){width="auto"}
+
+The binary returns the information that a token is missing. At this point, we can either use static or dynamic analysis. We’ll use dynamic analysis using ProcMon and start by adding a filter for viruz.exe.
+
+![](/images/name/image-oGnmwaEH.png){width="auto"}
+
+Once we rerun the binary, we’ll see the following entries in ProcMon. One entry shows a "NAME NOT FOUND" Result for the file C:\\Windows\\token.
+
+![](/images/name/image-XIRNRLw8.png){width="auto"}
+
+Using the Cmdlet Test-Path, let’s check if the file exists:
+
+![](/images/name/image-X4p3beKm.png){width="auto"}
+
+As expected the file doesn’t exist. To resolve this issue, let’s create this file as empty file with the Cmdlet New-Item.
+
+![](/images/name/image-kj03Fapx.png){width="auto"}
+
+Once done, let’s rerun the binary.
+
+![](/images/name/image-lOShlumD.png){width="auto"}
+
+Now, the binary returns the information “Waiting for token…” instead of the previous error. In addition, it doesn’t terminate itself but waits presumably for input of a token of some kind. Let’s clear the ProcMon screen and rerun the binary to see what the binary is doing.
+
+...
+"""
+conclusion = """
+TODO: Conclusion
+
+Our incident detection and identification process successfully uncovered three compromised systems within Megacorp One’s infrastructure, alongside the exfiltration of our confidential chocolate muffin recipe.
+
+During forensic analysis, it was revealed that the threat actor downloaded a password-protected archive on one of the compromised systems, extracting a malicious binary. This binary leveraged temporary tokens to secure an authentication token linked to the threat actor's Command & Control (C&C) infrastructure. By obtaining this authentication token, we gained valuable insights into the threat actor’s operations, enhancing our ability to defend against future attacks.
+
+Through swift containment, recovery of the compromised systems, and eradication of the malicious artifacts, we successfully mitigated the threat and prevented further compromise of Megacorp One’s environment.
+"""
+appendix_sections = []
+
+[[findings]]
+id = "637b22d5-a72d-456a-9b3c-834fa72fd5fa"
+order = 1
+
+[findings.data]
+title = "Beginning of Password Spraying with Password Password1!"
+timestamp = "2024-09-01 15:25:00"
+
+[[findings.data.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[findings]]
+id = "28baa8fe-fb07-4ff9-870f-d32f3a8d381b"
+order = 2
+
+[findings.data]
+title = "End of Password Spraying"
+timestamp = "2024-09-01 15:58:00"
+
+[[findings.data.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[findings]]
+id = "36069320-f48c-4eef-ad1c-f993c9aa9750"
+order = 3
+
+[findings.data]
+title = "Successful login for local Administrator user"
+timestamp = "2024-09-01 15:58:15"
+
+[[findings.data.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[findings.data.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[findings]]
+id = "3622399f-dd1a-48c0-b0ce-3d225b364cc9"
+order = 4
+
+[findings.data]
+title = "Download of meterpreter.exe from <IP> via Browser"
+timestamp = "2024-09-01 15:59:00"
+
+[[findings.data.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[findings.data.assets]]
+asset_type = "User"
+asset_details = "Administrator"
+
+[[findings]]
+id = "198863c4-2847-43d0-a8bc-ef5a0235daed"
+order = 5
+
+[findings.data]
+title = "Process Creation of meterpreter.exe "
+timestamp = "2024-09-01 15:59:49"
+
+[[findings.data.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[findings.data.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[findings]]
+id = "7ec5ac97-95cb-4db0-b2f1-d2e7695e18be"
+order = 6
+
+[findings.data]
+title = "Process Creation of PsExec"
+timestamp = "2024-09-01 16:05:11"
+
+[[findings.data.assets]]
+asset_type = "Host"
+asset_details = "PC1"
+
+[[findings.data.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[findings.data.assets]]
+asset_type = "Target Machine"
+asset_details = "PC2"
+
+[[findings.data.assets]]
+asset_type = "Target User"
+asset_details = "Administrator (local)"
+
+[[findings.data.assets]]
+asset_type = "Password"
+asset_details = "Password1!"
+
+[[findings]]
+id = "0491c6cb-1e0a-4ef5-b83c-1da141d88094"
+order = 7
+
+[findings.data]
+title = "Process Creation of Zwetsch.exe"
+timestamp = "2024-11-01 01:11:11"
+
+[[findings.data.assets]]
+asset_type = "Host"
+asset_details = "PC2"
+
+[[findings.data.assets]]
+asset_type = "User"
+asset_details = "Administrator (local)"
+
+[[findings]]
+id = "ec3f69ed-b4ed-4b21-8846-bbdf57de4d4e"
+order = 8
+
+[findings.data]
+title = "TODO Observation e.g. Beginning of Password Spraying"
+timestamp = "TODO Timestamp e.g. 2025-10-01 06:41:10"
+assets = []
+
+[project_type]
+file = "../offsec-designs/osir.toml"
