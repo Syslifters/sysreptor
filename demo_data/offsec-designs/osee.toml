@@ -1,11 +1,10 @@
 format = "projecttypes/v2"
 id = "779cbbda-c7b1-4deb-9d21-571b3ac72f6f"
-name = "OSEE Exam Report v1.2"
+name = "OffSec OSEE Exam Report v2.0"
 language = "en-US"
 status = "finished"
 tags = [
-    "offsec",
-    "OffensiveSecurity",
+    "OffSec",
 ]
 finding_ordering = []
 default_notes = []
@@ -19,10 +18,10 @@ report_template = """
 
 
 <section id="page-cover" data-sysreptor-generated="page-cover">
-    <div id="page-cover-background" />
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.svg" alt="logo">
     <div id="page-cover-title">
-        <h1>Offensive Security</h1>
-        <h2>{{ report.title }}</h2>
+        <h1>{{ report.title }}</h1>
+        <h2>Exam Report</h2>
     </div>
 
     <div id="page-cover-student">
@@ -51,41 +50,41 @@ report_template = """
 
 
 <markdown>
-    # Offensive Security OSEE Exam Documentation {.in-toc.numbered}
-    The Offensive Security OSEE exam documentation contains all efforts that were conducted in order to pass the Offensive Security Exploitation Expert exam. This report will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has the technical knowledge required to pass the qualifications for the Offensive Security Exploitation Expert certification.
+    # OffSec Exploitation Expert Exam Report {.in-toc.numbered}
+    The OffSec OSEE exam documentation contains all efforts that were conducted in order to pass the OffSec Exploitation Expert exam. This report will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has the technical knowledge required to pass the qualifications for the OffSec Exploitation Expert certification.
 
     The student will be required to fill out this exam documentation fully and to include the following sections:
     * Methodology walkthrough and detailed outline of steps taken.
     * Each finding with included screenshots, walkthrough, sample code, and proof.txt if applicable.
+    * Each finding with included screenshots, walkthrough, sample code, and proof.txt if ap-plicable.
     * Any additional items that were not included.
 </markdown>
 <pagebreak/>
 
 <section>
-    <h1 id="findings" class="in-toc numbered">Findings</h1>
     <div v-for="finding in findings">
-        <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
+        <h1 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h1>
         <div v-if="finding.proof">
-            <h3 class="in-toc numbered">Local.txt/Proof.txt</h3>
+            <h2 class="in-toc numbered">Local.txt/Proof.txt</h2>
             <markdown :text="finding.proof" />
         </div>
         <div v-for="vulnerability in finding.vulnerabilities">
-            <h3 class="in-toc numbered">{{ vulnerability.reference}}</h3>
+            <h2 class="in-toc numbered">{{ vulnerability.reference}}</h2>
             <markdown :text="vulnerability.details" />
         </div>
 
         <div v-if="finding.poc">
-            <h3 class="in-toc numbered" >PoC Code</h3>
+            <h2 class="in-toc numbered" >PoC Code</h2>
             <markdown :text="finding.poc" />
         </div>
         
         <div v-if="finding.screenshots">
-            <h3 class="in-toc numbered">Screenshots</h3>
+            <h2 class="in-toc numbered">Screenshots</h2>
             <markdown :text="finding.screenshots" />
         </div>
 
         <div v-if="finding.steps">
-            <h3 class="in-toc numbered">Steps</h3>
+            <h2 class="in-toc numbered">Steps</h2>
             <markdown :text="finding.steps" />
         </div>
         <pagebreak />
@@ -123,8 +122,17 @@ report_styles = """
     --color-risk-medium: #FFDA00;
     --color-risk-low: #4285F5;
     --color-risk-info: #00AE51;
+    
+    --color-primary: #5a2525;
+    --color-secondary: rgba(240, 26, 0);
 
-    --color-cover-page-bg: #f1c232; 
+    --color-table-header: var(--color-primary);
+    --color-table-header-text: white;
+    --color-table-row-even: rgb(221, 221, 221);
+    --color-table-row-odd: white;
+    --color-table-content: #151515;
+
+    --color-code: rgb(221, 221, 221);
 }
 
 /* Font settings */
@@ -142,8 +150,8 @@ html {
 
 a {
     font-style: italic;
-    text-decoration: none;
-    color: inherit;
+    text-decoration: underline;
+    color: var(--color-secondary);
 }
 
 pre code {
@@ -151,8 +159,9 @@ pre code {
     padding: 0.2em !important;
 }
 code {
-    background-color: rgb(221, 221, 221);
+    background-color: var(--color-code);
 }
+
 
 table {
     table-layout: fixed;
@@ -161,8 +170,9 @@ table {
     table-layout: auto;
 }
 th {
-    background-color: #ABABAB;
     font-weight: bold;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
 }
 tr.table-row-link td {
     padding: 0;
@@ -175,7 +185,20 @@ tr.table-row-link td a {
     font-style: inherit;
 }
 .table-key {
-    background-color: #ABABAB;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr {
+    color: var(--color-table-content);
+}
+tr:nth-child(even) {
+    background-color: var(--color-table-row-even);
+}
+tr:nth-child(odd) {
+    background-color: var(--color-table-row-odd);
+}
+tr .highlight, tr code {
+    background-color: var(--color-primary);
 }
 
 
@@ -272,15 +295,16 @@ tr.table-row-link td a {
     @bottom-center {
         content: '';
     }
+    background-color: var(--color-primary);
 }
-#page-cover-background {
+#page-cover-logo {
     position: absolute;
-    margin-top: -35mm;
-    margin-left: -20mm;
-    width: 210mm;
-    height: 297mm;
-    background-color: var(--color-cover-page-bg);
+    left: 2cm;
+    height: 6cm;
+    transform: translate(-50%, -50%);
+    display: inline-block
 }
+
 /* Title page elements */
 #page-cover-title {
     position: absolute;
@@ -395,7 +419,7 @@ id = "title"
 type = "string"
 label = "Title"
 origin = "core"
-default = "OSEE Exam Documentation"
+default = "OffSec Exploitation Expert"
 required = true
 spellcheck = true
 
@@ -411,7 +435,7 @@ id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
-default = "1.0"
+default = "2.0"
 required = true
 spellcheck = false
 
@@ -453,7 +477,7 @@ id = "content"
 type = "markdown"
 label = "Content"
 origin = "custom"
-default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+default = "TODO appendix content"
 required = true
 
 [[finding_fields]]
@@ -505,25 +529,21 @@ origin = "custom"
 default = "TODO Provide a detailed account of your methodology in creating the exploit. The steps taken should be able to be easily followed and reproducible if necessary. "
 required = true
 
-[report_preview_data]
 [report_preview_data.report]
-title = "OSEE Exam Documentation"
+title = "OffSec Exploitation Expert"
 firstname = "John"
 lastname = "Doe"
 osid = "OS-XXXXX"
 mail = "student@example.com"
-report_date = "2022-07-29"
-report_version = "1.0"
+report_date = "2025-09-30"
+report_version = "2.0"
 watermark = true
-
-[[report_preview_data.report.appendix_sections]]
-title = "Appendix Title"
-content = "Appendix content"
+appendix_sections = []
 
 [[report_preview_data.findings]]
 title = "192.168.X.X "
 id = "a48695e2-2e6d-4f62-aa98-d3603d0c81eb"
-created = "2024-12-09T13:28:14.176703+00:00"
+created = "2025-09-30T08:02:23.602023+00:00"
 order = 1
 proof = "TODO Provide the contents of proof.txt"
 ropchain = "TODO Provide the ASM ROP chains used in the exploit with a brief explanation for each gadget."

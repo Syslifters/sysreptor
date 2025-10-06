@@ -1,11 +1,10 @@
 format = "projecttypes/v2"
 id = "431ca4e2-14f4-41bc-a431-07e8002b45de"
-name = "OSDA Exam Report v1.2"
+name = "OffSec OSDA Exam Report v2.0"
 language = "en-US"
 status = "finished"
 tags = [
-    "offsec",
-    "OffensiveSecurity",
+    "OffSec",
 ]
 finding_ordering = []
 default_notes = []
@@ -19,10 +18,10 @@ report_template = """
 
 
 <section id="page-cover" data-sysreptor-generated="page-cover">
-    <div id="page-cover-background" />
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.svg" alt="logo">
     <div id="page-cover-title">
-        <h1>Offensive Security</h1>
-        <h2>{{ report.title }}</h2>
+        <h1>{{ report.title }}</h1>
+        <h2>Exam Report</h2>
     </div>
 
     <div id="page-cover-student">
@@ -50,8 +49,8 @@ report_template = """
 </table-of-contents>
 
 <markdown>
-    # Offensive Security OSDA Exam Documentation {.in-toc.numbered}
-    The Offensive Security Exam report contains all efforts that were conducted in order to pass the Offensive Security certification test. This report should contain all items that were used to pass the exam and it will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has a full understanding of security detection methodologies as well as the technical knowledge to pass the qualifications for the Offensive Security Defense Analyst.
+    # OffSec Defense Analyst  Exam Report {.in-toc.numbered}
+    The OffSec Defense Analyst exam report contains all efforts that were conducted in order to pass the OffSec certification examination. This report should contain all items that were used to pass the exam and it will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has a full understanding of security detection methodologies as well as the technical knowledge to pass the qualifications for the OffSec Defense Analyst.
 
     ## Objective {.in-toc.numbered}
     The objective of this assessment is to perform detections and analysis on the simulated exam network in order to determine which attacker actions took place in each of the 10 phases.
@@ -74,14 +73,14 @@ report_template = """
 </section>
 
 <section>
-    <h1 id="findings" class="in-toc numbered">Phases</h1>
-    <div v-for="finding in findings">
-        <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
-        <div v-for="step in finding.steps">
-            <h3 class="in-toc numbered">{{ step.step_title }}</h3>
-            <markdown :text="step.step_details" />
+    <h1 id="findings" class="in-toc numbered">Attacker Phases</h1>
+    <div v-for="group in finding_groups">
+        <h2 class="in-toc numbered">{{ group.label }}</h2>
+        <div v-for="finding in group.findings">
+            <h3 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h3>
+            <markdown :text="finding.description" />
+            <pagebreak />
         </div>
-        <pagebreak />
     </div>
 </section>
 
@@ -116,8 +115,17 @@ report_styles = """
     --color-risk-medium: #FFDA00;
     --color-risk-low: #4285F5;
     --color-risk-info: #00AE51;
+    
+    --color-primary: #364f5b;
+    --color-secondary: rgba(92, 214, 237);
 
-    --color-cover-page-bg: #005ad0; 
+    --color-table-header: var(--color-primary);
+    --color-table-header-text: white;
+    --color-table-row-even: rgb(221, 221, 221);
+    --color-table-row-odd: white;
+    --color-table-content: #151515;
+
+    --color-code: rgb(221, 221, 221);
 }
 
 /* Font settings */
@@ -135,8 +143,8 @@ html {
 
 a {
     font-style: italic;
-    text-decoration: none;
-    color: inherit;
+    text-decoration: underline;
+    color: var(--color-secondary);
 }
 
 pre code {
@@ -144,7 +152,7 @@ pre code {
     padding: 0.2em !important;
 }
 code {
-    background-color: rgb(221, 221, 221);
+    background-color: var(--color-code);
 }
 
 
@@ -155,8 +163,9 @@ table {
     table-layout: auto;
 }
 th {
-    background-color: #ABABAB;
     font-weight: bold;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
 }
 tr.table-row-link td {
     padding: 0;
@@ -169,7 +178,20 @@ tr.table-row-link td a {
     font-style: inherit;
 }
 .table-key {
-    background-color: #ABABAB;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr {
+    color: var(--color-table-content);
+}
+tr:nth-child(even) {
+    background-color: var(--color-table-row-even);
+}
+tr:nth-child(odd) {
+    background-color: var(--color-table-row-odd);
+}
+tr .highlight, tr code {
+    background-color: var(--color-primary);
 }
 
 
@@ -266,14 +288,14 @@ tr.table-row-link td a {
     @bottom-center {
         content: '';
     }
+    background-color: var(--color-primary);
 }
-#page-cover-background {
+#page-cover-logo {
     position: absolute;
-    margin-top: -35mm;
-    margin-left: -20mm;
-    width: 210mm;
-    height: 297mm;
-    background-color: var(--color-cover-page-bg);
+    left: 2cm;
+    height: 6cm;
+    transform: translate(-50%, -50%);
+    display: inline-block
 }
 /* Title page elements */
 #page-cover-title {
@@ -389,7 +411,7 @@ id = "title"
 type = "string"
 label = "Title"
 origin = "core"
-default = "OSDA Exam Documentation"
+default = "OffSec Defense Analyst"
 required = true
 spellcheck = true
 
@@ -405,7 +427,7 @@ id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
-default = "1.0"
+default = "2.0"
 required = true
 spellcheck = false
 
@@ -426,13 +448,13 @@ type = "markdown"
 label = "High-Level Summary"
 origin = "custom"
 default = """
-TODO This report details and documents the attacks observed against the Offensive Security OSDA exam network.
+This report details and documents the attacks observed against the OffSec OSDA exam network.
 
 The attacker organization started by performing a brute force against an internet accessible RDP server called APPSRV02 and obtained administrative access. This led to a complete compromise of the server.
 
 Next the attacker performed lateral movement to the internal server APPSRV02 by reusing stolen credentials from APPSRV02, this also led to a complete compromise of APPSRV03.
 
-[…]
+...
 """
 required = true
 
@@ -445,7 +467,7 @@ id = "appendix_sections"
 type = "list"
 label = "Appendix"
 origin = "custom"
-required = true
+required = false
 
 [report_sections.fields.items]
 id = ""
@@ -467,80 +489,64 @@ id = "content"
 type = "markdown"
 label = "Content"
 origin = "custom"
-default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+default = "TODO appendix content"
 required = true
+
+[[finding_fields]]
+id = "phase"
+type = "combobox"
+label = "Phase"
+origin = "custom"
+required = true
+suggestions = [
+    "Phase 1",
+    "Phase 2",
+]
 
 [[finding_fields]]
 id = "title"
 type = "string"
-label = "Phase"
+label = "Action"
 origin = "core"
-default = "TODO Phase Name"
+default = "TODO Action"
 required = true
 spellcheck = true
 
 [[finding_fields]]
-id = "steps"
-type = "list"
-label = "Steps"
-origin = "custom"
-required = true
-
-[finding_fields.items]
-id = ""
-type = "object"
-label = ""
-origin = "custom"
-
-[[finding_fields.items.properties]]
-id = "step_details"
+id = "description"
 type = "markdown"
-label = "Step Details"
-origin = "custom"
-default = "TODO step details"
+label = "Detailed Description"
+origin = "predefined"
+default = "TODO Action Details"
 required = true
 
-[[finding_fields.items.properties]]
-id = "step_title"
-type = "string"
-label = "Step Title"
-origin = "custom"
-default = "TODO step title"
-required = true
-spellcheck = false
+[[finding_grouping]]
+field = "phase"
+order = "asc"
 
-[report_preview_data]
 [report_preview_data.report]
-title = "OSDA Exam Documentation"
+title = "OffSec Defense Analyst"
 firstname = "John"
 lastname = "Doe"
 osid = "OS-XXXXX"
 mail = "student@example.com"
-report_date = "2022-07-29"
-report_version = "1.0"
+report_date = "2025-09-30"
+report_version = "2.0"
 watermark = true
 highlevel_summary = """
-TODO This report details and documents the attacks observed against the Offensive Security OSDA exam network.
+This report details and documents the attacks observed against the OffSec OSDA exam network.
 
 The attacker organization started by performing a brute force against an internet accessible RDP server called APPSRV02 and obtained administrative access. This led to a complete compromise of the server.
 
 Next the attacker performed lateral movement to the internal server APPSRV02 by reusing stolen credentials from APPSRV02, this also led to a complete compromise of APPSRV03.
 
-[…]
+...
 """
-
-[[report_preview_data.report.appendix_sections]]
-title = "Appendix Title"
-content = "Appendix content"
+appendix_sections = []
 
 [[report_preview_data.findings]]
-title = "Phase 1"
-id = "90a0038a-3649-4a37-8151-06c935a5a15e"
-created = "2024-12-09T13:11:25.791917+00:00"
-order = 1
-
-[[report_preview_data.findings.steps]]
-step_details = """
+title = "RDP Brute Force"
+description = """
 The initial indicator of an attack happening was the triggering of a pre-defined threshold rule called “Possible RDP brute force” as shown below.
 
 ![](/assets/name/image-590869.png)
@@ -555,7 +561,9 @@ Given that an attacker may have attempted to brute force the server, we should s
 
 We do this with the following KQL query:
 
-event.code : "4624" and NOT user.name : SYSTEM and NOT user.name : DWM-2
+```
+event.code:"4624" and NOT user.name:SYSTEM and NOT user.name:DWM-2
+```
 
 From this query we find the following event entry:
 
@@ -565,10 +573,14 @@ This shows that the user Peter did a successful logon to APPSRV02 shortly after 
 
 At this point we have a strong suspicion that the account with the username Peter was compromised and a malicious actor obtained access to APPSRV02 coming from the IP address 192.168.67.69. We should escalate this to an incident and contact the user to verify whether this was a legitimate logon.
 """
-step_title = "RDP Brute Force"
+id = "90a0038a-3649-4a37-8151-06c935a5a15e"
+created = "2025-09-30T08:02:23.322362+00:00"
+order = 1
+phase = "Phase 1"
 
-[[report_preview_data.findings.steps]]
-step_details = """
+[[report_preview_data.findings]]
+title = "Persistence"
+description = """
 After suspicion of a compromise, additional investigation should be performed. One area is looking for persistence and a common way attackers employ is through the registry.
 
 To try and determine if this happed, we can use the KQL query:
@@ -583,100 +595,88 @@ This shows that a registry change was performed. An entry for the Run key was ad
 In particular we notice that the file “C:\\Windows\\System32\\update.exe” will be executed when a user logs on to APPSRV02.
 
 We should escalate this to investigate what the file update.exe is.
-
 """
-step_title = "Persistence"
-
-[[report_preview_data.findings.steps]]
-step_details = "In this phase we have strong suspicions that a malicious actor performed a brute force attack against APPSRV02 and managed to compromise the user account with the username “Peter”. Additionally, we suspect that persistence was set up through a Run key in the registry to execute the file “C:\\Windows\\System32\\update.exe”."
-step_title = "Summary"
-
-[[report_preview_data.findings]]
-title = "Phase 2"
-id = "8a39146e-3b2c-4d93-b1d7-9f604092fae4"
-created = "2024-12-09T13:11:25.791979+00:00"
+id = "7b6a8c91-86d3-4764-8dcb-28dba2bae61e"
+created = "2025-09-30T13:38:43.461Z"
 order = 2
-
-[[report_preview_data.findings.steps]]
-step_details = "TODO step details"
-step_title = "TODO step title"
+phase = "Phase 1"
 
 [[report_preview_data.findings]]
-title = "Phase 3"
-id = "7d3e1727-5993-44b8-b06c-89e97c3d35c0"
-created = "2024-12-09T13:11:25.792015+00:00"
+title = "Summary"
+description = "In this phase we have strong suspicions that a malicious actor performed a brute force attack against APPSRV02 and managed to compromise the user account with the username “Peter”. Additionally, we suspect that persistence was set up through a Run key in the registry to execute the file “C:\\Windows\\System32\\update.exe”."
+id = "e902bc11-4984-4a10-bbae-c4fd89938cd7"
+created = "2025-09-30T13:39:25.887Z"
 order = 3
-
-[[report_preview_data.findings.steps]]
-step_details = "TODO step details"
-step_title = "TODO step title"
+phase = "Phase 1"
 
 [[report_preview_data.findings]]
-title = "Phase 4"
-id = "489071b1-0a42-47ca-aa31-0b3f7e5260cd"
-created = "2024-12-09T13:11:25.792047+00:00"
+title = "TODO Action"
+description = "TODO Action Details"
+id = "238d684a-8850-4a35-9f72-3abbc4d0fc2b"
+created = "2025-09-30T13:40:32.935Z"
 order = 4
-
-[[report_preview_data.findings.steps]]
-step_details = "TODO step details"
-step_title = "TODO step title"
+phase = "Phase 2"
 
 [[report_preview_data.findings]]
-title = "Phase 5"
-id = "cab9e74f-4735-4665-ad2f-f9a05ca84870"
-created = "2024-12-09T13:11:25.792078+00:00"
+title = "TODO Action"
+description = "TODO Action Details"
+id = "fd22470a-12dc-42cf-ac02-8e84558e0fbc"
+created = "2025-09-30T13:40:40.260Z"
 order = 5
-
-[[report_preview_data.findings.steps]]
-step_details = "TODO step details"
-step_title = "TODO step title"
+phase = "Phase 3"
 
 [[report_preview_data.findings]]
-title = "Phase 6"
-id = "cba6456f-02f1-4ce0-9b1e-88f8bca06430"
-created = "2024-12-09T13:11:25.792109+00:00"
+title = "TODO Action"
+description = "TODO Action Details"
+id = "52a0d0d5-e8bd-4df2-9374-7d06f7eb2639"
+created = "2025-09-30T13:40:45.134Z"
 order = 6
-
-[[report_preview_data.findings.steps]]
-step_details = "TODO step details"
-step_title = "TODO step title"
+phase = "Phase 4"
 
 [[report_preview_data.findings]]
-title = "Phase 7"
-id = "9e79526d-1c15-4eaa-8335-490e895053b0"
-created = "2024-12-09T13:11:25.792140+00:00"
+title = "TODO Action"
+description = "TODO Action Details"
+id = "0aae3a12-6672-42da-babb-987aa440cebc"
+created = "2025-09-30T13:40:48.240Z"
 order = 7
-
-[[report_preview_data.findings.steps]]
-step_details = "TODO step details"
-step_title = "TODO step title"
+phase = "Phase 5"
 
 [[report_preview_data.findings]]
-title = "Phase 8"
-id = "9fb08d0f-f4f7-469c-9423-87bc6e6b25de"
-created = "2024-12-09T13:11:25.792173+00:00"
+title = "TODO Action"
+description = "TODO Action Details"
+id = "eb2c2dda-3f5e-4a73-97c6-7d357d339589"
+created = "2025-09-30T13:40:51.514Z"
 order = 8
-
-[[report_preview_data.findings.steps]]
-step_details = "TODO step details"
-step_title = "TODO step title"
+phase = "Phase 6"
 
 [[report_preview_data.findings]]
-title = "Phase 9"
-id = "81d6959d-f7e7-4cab-a0e5-484107a4a534"
-created = "2024-12-09T13:11:25.792204+00:00"
+title = "TODO Action"
+description = "TODO Action Details"
+id = "48c4bb8b-308e-4271-829f-b1709217e511"
+created = "2025-09-30T13:40:55.251Z"
 order = 9
-
-[[report_preview_data.findings.steps]]
-step_details = "TODO step details"
-step_title = "TODO step title"
+phase = "Phase 7"
 
 [[report_preview_data.findings]]
-title = "Phase 10"
-id = "2a5fd063-334a-4158-9ff9-a4735f556c51"
-created = "2024-12-09T13:11:25.792235+00:00"
+title = "TODO Action"
+description = "TODO Action Details"
+id = "d99811c2-9816-47a7-8f44-e8c31092346c"
+created = "2025-09-30T13:40:58.842Z"
 order = 10
+phase = "Phase 8"
 
-[[report_preview_data.findings.steps]]
-step_details = "TODO step details"
-step_title = "TODO step title"
+[[report_preview_data.findings]]
+title = "TODO Action"
+description = "TODO Action Details"
+id = "fdc3576a-9614-4f03-ba03-1bf2c3286cb3"
+created = "2025-09-30T13:41:02.247Z"
+order = 11
+phase = "Phase 9"
+
+[[report_preview_data.findings]]
+title = "TODO Action"
+description = "TODO Action Details"
+id = "157a8eb4-ba59-48bd-af82-a0488c2ec4ad"
+created = "2025-09-30T13:41:05.564Z"
+order = 12
+phase = "Phase 10"

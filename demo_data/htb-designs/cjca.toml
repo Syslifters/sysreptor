@@ -1,6 +1,5 @@
+format = "projecttypes/v2"
 id = "eac520ff-0e4f-442a-bb66-d52685d4ba21"
-created = "2025-07-16T12:31:52.774830Z"
-updated = "2025-07-22T12:44:18.287921Z"
 name = "HTB CJCA Report v1.0"
 language = "en-US"
 status = "finished"
@@ -424,14 +423,14 @@ td.table-key {
     height: 3em;
     width: 10em;
 }
-tr{
+tr {
     color: var(--color-table-content);
 }
 tr:nth-child(even) {
-    background-color: var(--color-table-row-even)
+    background-color: var(--color-table-row-even);
 }
 tr:nth-child(odd) {
-    background-color: var(--color-table-row-odd)
+    background-color: var(--color-table-row-odd);
 }
 tr .highlight, tr code {
     background-color: var(--color-page-background);
@@ -690,7 +689,6 @@ footnote {
 }
 /* #endregion toc */
 """
-format = "projecttypes/v2"
 
 [[report_sections]]
 id = "meta"
@@ -1774,15 +1772,3 @@ id = "f622369f-782e-4d77-bf2d-493b85747b3b"
 created = "2024-12-09T09:49:08.895388+00:00"
 order = 5
 htb_severity = "low"
-
-[[assets]]
-id = "c9abe0c3-e452-4cbd-be34-056ad23d1cda"
-created = "2024-12-10T12:21:49.235000Z"
-updated = "2025-07-16T12:31:52.796800Z"
-name = "LICENSE"
-
-[[assets]]
-id = "89f5c8a2-06cd-44ad-b876-3bca36edcc80"
-created = "2024-12-10T12:21:49.235000Z"
-updated = "2025-07-16T12:31:52.796918Z"
-name = "logo-transparent.png"

@@ -1,0 +1,194 @@
+format = "projects/v2"
+id = "431ca4e2-14f4-41bc-a431-07e8002b45de"
+name = "OffSec OSDA Exam Report v2.0"
+language = "en-US"
+tags = []
+members = []
+images = []
+files = []
+
+[[sections]]
+id = "Student"
+status = "in-progress"
+
+[[sections]]
+id = "other"
+status = "in-progress"
+
+[[sections]]
+id = "highlevel_summary"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[report_data]
+title = "OffSec Defense Analyst"
+firstname = "John"
+lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_date = "2025-09-30"
+report_version = "2.0"
+watermark = true
+highlevel_summary = """
+This report details and documents the attacks observed against the OffSec OSDA exam network.
+
+The attacker organization started by performing a brute force against an internet accessible RDP server called APPSRV02 and obtained administrative access. This led to a complete compromise of the server.
+
+Next the attacker performed lateral movement to the internal server APPSRV02 by reusing stolen credentials from APPSRV02, this also led to a complete compromise of APPSRV03.
+
+...
+"""
+appendix_sections = []
+
+[[findings]]
+id = "90a0038a-3649-4a37-8151-06c935a5a15e"
+order = 1
+
+[findings.data]
+title = "RDP Brute Force"
+description = """
+The initial indicator of an attack happening was the triggering of a pre-defined threshold rule called “Possible RDP brute force” as shown below.
+
+![](/assets/name/image-590869.png)
+
+By looking at how the rule was defined, it is triggered by more than 100 instances of event ID 4625, which is a failed logon. This could align with a brute force attack where the attacker makes use of a user and/or password list.
+
+When we inspect some of the events that triggered the alert, as shown below, we notice that the server reporting the events is APPSRV02.
+
+![](/assets/name/image-127195.png)
+
+Given that an attacker may have attempted to brute force the server, we should search for a subsequent successful log on event to APPSRV02 to determine if they obtained access.
+
+We do this with the following KQL query:
+
+event.code : "4624" and NOT user.name : SYSTEM and NOT user.name : DWM-2
+
+From this query we find the following event entry:
+
+![](/assets/name/image-322213.png)
+
+This shows that the user Peter did a successful logon to APPSRV02 shortly after the suspected brute force attack. The source IP of the logon event was 192.168.67.69 which means its not a local logon, but remotely.
+
+At this point we have a strong suspicion that the account with the username Peter was compromised and a malicious actor obtained access to APPSRV02 coming from the IP address 192.168.67.69. We should escalate this to an incident and contact the user to verify whether this was a legitimate logon.
+"""
+phase = "Phase 1"
+
+[[findings]]
+id = "7b6a8c91-86d3-4764-8dcb-28dba2bae61e"
+order = 2
+
+[findings.data]
+title = "Persistence"
+description = """
+After suspicion of a compromise, additional investigation should be performed. One area is looking for persistence and a common way attackers employ is through the registry.
+
+To try and determine if this happed, we can use the KQL query:
+
+process.name : "reg.exe"
+As a result, we find the following event:
+
+![](/assets/name/image-781171.png)
+
+This shows that a registry change was performed. An entry for the Run key was added. The Run registry key is used when a user logs on to the computer and thus is often used for persistence.
+
+In particular we notice that the file “C:\\Windows\\System32\\update.exe” will be executed when a user logs on to APPSRV02.
+
+We should escalate this to investigate what the file update.exe is.
+"""
+phase = "Phase 1"
+
+[[findings]]
+id = "e902bc11-4984-4a10-bbae-c4fd89938cd7"
+order = 3
+
+[findings.data]
+title = "Summary"
+description = "In this phase we have strong suspicions that a malicious actor performed a brute force attack against APPSRV02 and managed to compromise the user account with the username “Peter”. Additionally, we suspect that persistence was set up through a Run key in the registry to execute the file “C:\\Windows\\System32\\update.exe”."
+phase = "Phase 1"
+
+[[findings]]
+id = "238d684a-8850-4a35-9f72-3abbc4d0fc2b"
+order = 4
+
+[findings.data]
+title = "TODO Action"
+description = "TODO Action Details"
+phase = "Phase 2"
+
+[[findings]]
+id = "fd22470a-12dc-42cf-ac02-8e84558e0fbc"
+order = 5
+
+[findings.data]
+title = "TODO Action"
+description = "TODO Action Details"
+phase = "Phase 3"
+
+[[findings]]
+id = "52a0d0d5-e8bd-4df2-9374-7d06f7eb2639"
+order = 6
+
+[findings.data]
+title = "TODO Action"
+description = "TODO Action Details"
+phase = "Phase 4"
+
+[[findings]]
+id = "0aae3a12-6672-42da-babb-987aa440cebc"
+order = 7
+
+[findings.data]
+title = "TODO Action"
+description = "TODO Action Details"
+phase = "Phase 5"
+
+[[findings]]
+id = "eb2c2dda-3f5e-4a73-97c6-7d357d339589"
+order = 8
+
+[findings.data]
+title = "TODO Action"
+description = "TODO Action Details"
+phase = "Phase 6"
+
+[[findings]]
+id = "48c4bb8b-308e-4271-829f-b1709217e511"
+order = 9
+
+[findings.data]
+title = "TODO Action"
+description = "TODO Action Details"
+phase = "Phase 7"
+
+[[findings]]
+id = "d99811c2-9816-47a7-8f44-e8c31092346c"
+order = 10
+
+[findings.data]
+title = "TODO Action"
+description = "TODO Action Details"
+phase = "Phase 8"
+
+[[findings]]
+id = "fdc3576a-9614-4f03-ba03-1bf2c3286cb3"
+order = 11
+
+[findings.data]
+title = "TODO Action"
+description = "TODO Action Details"
+phase = "Phase 9"
+
+[[findings]]
+id = "157a8eb4-ba59-48bd-af82-a0488c2ec4ad"
+order = 12
+
+[findings.data]
+title = "TODO Action"
+description = "TODO Action Details"
+phase = "Phase 10"
+
+[project_type]
+file = "../offsec-designs/osda.toml"

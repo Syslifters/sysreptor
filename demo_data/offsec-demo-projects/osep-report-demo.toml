@@ -1,9 +1,11 @@
 format = "projects/v2"
 id = "eacbd761-0503-4bdb-a0a4-b14653c42157"
-name = "OSEP Exam Report"
+name = "OffSec OSEP Exam Report v2.0"
 language = "en-US"
 tags = []
+members = []
 images = []
+files = []
 
 [[sections]]
 id = "appendix"
@@ -22,29 +24,27 @@ id = "highlevel_summary"
 status = "in-progress"
 
 [report_data]
-title = "OSEP Exam Report"
+title = "OffSec Experienced Pentester"
 mail = "student@example.com"
-osid = "XXXXX"
+osid = "OS-XXXXX"
 lastname = "Doe"
 firstname = "John"
-watermark = false
-report_version = "1.0"
+watermark = true
+report_date = "2025-09-30"
+report_version = "2.0"
 highlevel_summary = "TODO A brief description of the attack chain with machine names, including the depth of compromise should be included here."
 
 [[report_data.appendix_sections]]
 title = "TODO appendix title"
-content = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+content = "TODO appendix content"
 
 [[findings]]
 id = "e600f074-2155-4250-8620-09bcc70b260c"
+order = 1
 status = "in-progress"
 
-[findings.assignee]
-id = "c01c7ccf-7597-45cc-99bb-01be93743b97"
-
 [findings.data]
-title = "192.168.XX.XX / Hostname"
-cvss = "n/a"
+title = "192.168.X.X"
 proof = "TODO Provide the contents of local.txt, proof.txt or secret.txt"
 compromise = "TODO Provide a description of exploitation steps to compromise the machine and obtain shell access, the steps taken should be able to be easily followed and reproducible if necessary. Only the steps that ended up working are required. Include any custom code or references to public tools."
 enumeration = "TODO Provide relevant techniques and methods used to perform enumeration prior to initial compromise, the steps taken should be able to be easily followed and reproducible if necessary. Include any custom code or references to public tools."

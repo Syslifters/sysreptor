@@ -1,11 +1,10 @@
 format = "projecttypes/v2"
 id = "ea7efb89-8c2b-4008-99e2-419611fdb979"
-name = "OSMR Exam Report v1.2"
+name = "OffSec OSMR Exam Report v2.0"
 language = "en-US"
 status = "finished"
 tags = [
-    "offsec",
-    "OffensiveSecurity",
+    "OffSec",
 ]
 finding_ordering = []
 default_notes = []
@@ -19,10 +18,10 @@ report_template = """
 
 
 <section id="page-cover" data-sysreptor-generated="page-cover">
-    <div id="page-cover-background" />
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.svg" alt="logo">
     <div id="page-cover-title">
-        <h1>Offensive Security</h1>
-        <h2>{{ report.title }}</h2>
+        <h1>{{ report.title }}</h1>
+        <h2>Exam Report</h2>
     </div>
 
     <div id="page-cover-student">
@@ -50,8 +49,8 @@ report_template = """
 </table-of-contents>
 
 <markdown>
-    # Offensive Security OSMR Exam Documentation {.in-toc.numbered}
-    The Offensive Security OSMR exam documentation contains all efforts that were conducted in order to pass the Offensive Security macOS Researcher exam. This report will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has the technical knowledge required to pass the qualifications for the Offensive Security macOS Researcher certification.
+    # OffSec macOS Researcher Exam Report {.in-toc.numbered}
+    The OffSec macOS Researcher exam report contains all efforts that were conducted in order to pass the OffSec macOS Researcher exam. This report will be graded from a standpoint of correctness and fullness to all aspects of the exam. The purpose of this report is to ensure that the student has the technical knowledge required to pass the qualifications for the OffSec macOS Researcher certification.
 
     ## Objective {.in-toc.numbered}
     The objective of this exam is to solve four given assignments as described in the control panel. The student is tasked with following a methodical approach in analyzing and solving the assignments. The exam report is meant to be a writeup of the steps taken to solve the assignment, including any analysis performed and code written.
@@ -74,30 +73,29 @@ report_template = """
 <pagebreak/>
     
 <section>
-    <h1 id="findings" class="in-toc numbered">Assignments</h1>
     <div v-for="finding in findings">
-        <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
+        <h1 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h1>
         <div v-if="finding.proof">
-            <h3 class="in-toc numbered">Proof.txt</h3>
+            <h2 class="in-toc numbered">Proof.txt</h2>
             <markdown :text="finding.proof" />
         </div>
         <div v-if="finding.initial_analysis">
-            <h3 class="in-toc numbered">Initial Analysis</h3>
+            <h2 class="in-toc numbered">Initial Analysis</h2>
             <markdown :text="finding.initial_analysis" />
         </div>
         
         <div v-if="finding.vulnerability_discovery">
-            <h3 class="in-toc numbered">Vulnerability Discovery</h3>
+            <h2 class="in-toc numbered">Vulnerability Discovery</h2>
             <markdown :text="finding.vulnerability_discovery" />
         </div>
 
         <div v-if="finding.exploit_creation">
-            <h3 class="in-toc numbered">Exploit or Bypass Creation</h3>
+            <h2 class="in-toc numbered">Exploit or Bypass Creation</h2>
             <markdown :text="finding.exploit_creation" />
         </div>
 
         <div v-if="finding.screenshots">
-            <h3 class="in-toc numbered">Screenshots</h3>
+            <h2 class="in-toc numbered">Screenshots</h2>
             <markdown :text="finding.screenshots" />
         </div>
         <pagebreak />
@@ -135,8 +133,17 @@ report_styles = """
     --color-risk-medium: #FFDA00;
     --color-risk-low: #4285F5;
     --color-risk-info: #00AE51;
+    
+    --color-primary: #2f2e58;
+    --color-secondary: rgba(76, 82, 221);
 
-    --color-cover-page-bg: #a0a0a0; 
+    --color-table-header: var(--color-primary);
+    --color-table-header-text: white;
+    --color-table-row-even: rgb(221, 221, 221);
+    --color-table-row-odd: white;
+    --color-table-content: #151515;
+
+    --color-code: rgb(221, 221, 221);
 }
 
 /* Font settings */
@@ -154,8 +161,8 @@ html {
 
 a {
     font-style: italic;
-    text-decoration: none;
-    color: inherit;
+    text-decoration: underline;
+    color: var(--color-secondary);
 }
 
 pre code {
@@ -163,8 +170,9 @@ pre code {
     padding: 0.2em !important;
 }
 code {
-    background-color: rgb(221, 221, 221);
+    background-color: var(--color-code);
 }
+
 
 table {
     table-layout: fixed;
@@ -173,8 +181,9 @@ table {
     table-layout: auto;
 }
 th {
-    background-color: #ABABAB;
     font-weight: bold;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
 }
 tr.table-row-link td {
     padding: 0;
@@ -187,7 +196,20 @@ tr.table-row-link td a {
     font-style: inherit;
 }
 .table-key {
-    background-color: #ABABAB;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr {
+    color: var(--color-table-content);
+}
+tr:nth-child(even) {
+    background-color: var(--color-table-row-even);
+}
+tr:nth-child(odd) {
+    background-color: var(--color-table-row-odd);
+}
+tr .highlight, tr code {
+    background-color: var(--color-primary);
 }
 
 
@@ -284,15 +306,16 @@ tr.table-row-link td a {
     @bottom-center {
         content: '';
     }
+    background-color: var(--color-primary);
 }
-#page-cover-background {
+#page-cover-logo {
     position: absolute;
-    margin-top: -35mm;
-    margin-left: -20mm;
-    width: 210mm;
-    height: 297mm;
-    background-color: var(--color-cover-page-bg);
+    left: 2cm;
+    height: 6cm;
+    transform: translate(-50%, -50%);
+    display: inline-block
 }
+
 /* Title page elements */
 #page-cover-title {
     position: absolute;
@@ -324,9 +347,9 @@ tr.table-row-link td a {
 
 /* #region toc */
 #toc li {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 #toc .ref::before {
     padding-right: 0.5em;
@@ -407,7 +430,7 @@ id = "title"
 type = "string"
 label = "Title"
 origin = "core"
-default = "OSMR Exam Documentation"
+default = "OffSec macOS Researcher"
 required = true
 spellcheck = true
 
@@ -423,7 +446,7 @@ id = "report_version"
 type = "string"
 label = "Report Version"
 origin = "custom"
-default = "1.0"
+default = "2.0"
 required = true
 spellcheck = false
 
@@ -455,7 +478,7 @@ id = "appendix_sections"
 type = "list"
 label = "Appendix"
 origin = "custom"
-required = true
+required = false
 
 [report_sections.fields.items]
 id = ""
@@ -477,7 +500,7 @@ id = "content"
 type = "markdown"
 label = "Content"
 origin = "custom"
-default = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+default = "TODO appendix content"
 required = true
 
 [[finding_fields]]
@@ -514,7 +537,6 @@ default = """
 TODO Provide relevant analysis steps to locate vulnerability inside the application or environment, this includes results from static analysis and/or dynamic analysis. Explain the vulnerability identified.
 
 Only the steps that ended up working are required.
-
 """
 required = true
 
@@ -538,26 +560,22 @@ Each local.txt, proof.txt or secret.txt found must be shown in a screenshot that
 """
 required = true
 
-[report_preview_data]
 [report_preview_data.report]
-title = "OSMR Exam Documentation"
+title = "OffSec macOS Researcher"
 firstname = "John"
 lastname = "Doe"
 osid = "OS-XXXXX"
 mail = "student@example.com"
-report_date = "2022-07-29"
-report_version = "1.0"
+report_date = "2025-09-30"
+report_version = "2.0"
 watermark = true
 highlevel_summary = "TODO A brief description of the assignments that were solved, including the overall exploitation steps."
-
-[[report_preview_data.report.appendix_sections]]
-title = "Appendix Title"
-content = "Appendix content"
+appendix_sections = []
 
 [[report_preview_data.findings]]
-title = "TODO Assignment Name"
+title = "Assignment X"
 id = "cc0cb8c0-5ee8-4fc9-b1a0-a659e31ac2fb"
-created = "2024-12-09T13:40:14.583565+00:00"
+created = "2025-09-30T08:02:23.777889+00:00"
 order = 1
 proof = "TODO Provide the contents of local.txt, proof.txt or secret.txt."
 initial_analysis = "TODO Provide relevant techniques and methods used to perform enumeration and discovery of the application and/or the environment. The steps taken should be reproducible and easy to under-stand. Include any custom code or references to public tools."
@@ -565,7 +583,6 @@ vulnerability_discovery = """
 TODO Provide relevant analysis steps to locate vulnerability inside the application or environment, this includes results from static analysis and/or dynamic analysis. Explain the vulnerability identified.
 
 Only the steps that ended up working are required.
-
 """
 exploit_creation = "TODO Provide a description of steps to create the exploit or security control bypass. At the end of this section the full exploit (or bypass) code should be developed while an explanation of each step should be performed."
 screenshots = """

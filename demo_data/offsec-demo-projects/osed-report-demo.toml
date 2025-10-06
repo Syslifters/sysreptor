@@ -1,0 +1,66 @@
+format = "projects/v2"
+id = "650eba7d-2ae4-4646-9125-fcd597af5809"
+name = "OffSec OSED Exam Report v2.0"
+language = "en-US"
+tags = []
+members = []
+images = []
+files = []
+
+[[sections]]
+id = "Student"
+status = "in-progress"
+
+[[sections]]
+id = "other"
+status = "in-progress"
+
+[[sections]]
+id = "highlevel_summary"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[report_data]
+title = "OffSec Exploit Developer"
+firstname = "John"
+lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_date = "2025-09-30"
+report_version = "2.0"
+watermark = true
+highlevel_summary = "TODO A brief description of the assignments that were solved, including the overall exploitation steps."
+appendix_sections = []
+
+[[findings]]
+id = "af3d5c20-71ef-4bb2-b7af-155a5c375af1"
+order = 1
+
+[findings.data]
+title = "Assignment X"
+proof = "TODO Provide the contents of proof.txt."
+initial_analysis = "TODO Provide relevant techniques and methods used to perform enumeration of the application, including network ports, security mitigations etc. The steps taken should be reproducible and easy to understand. Include any custom code or references to public tools."
+application_analysis = """
+TODO Provide a description of the analysis performed against the application, this includes both dynamic and static analysis.
+
+The analysis should include any reverse engineering performed to understand network protocols or file formats as well as how the application may be triggered to dispatch available commands.
+"""
+vulnerability_discovery = """
+TODO Provide relevant analysis steps to locate vulnerabilities inside the application, this includes both results from static analysis and dynamic analysis. 
+
+As part of the documentation, proof of concept Python3 code must be created and explained that triggers the vulnerabilities. This includes both ASLR bypass and memory corruption vulnerabilities.
+
+Only the steps that ended up working are required.
+"""
+exploit_creation = "TODO Provide a description of steps to create the exploit, this includes how to combine vulnerabilities, how to bypass DEP and how to write any custom shellcode. At the end of this section the full exploit code should be developed while an explanation of each step should be performed."
+screenshots = """
+TODO The exam control panel contains a section available to submit your proof files. The contents of the proof.txt files obtained from your exam machines must be submitted in the control panel be-fore your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
+
+Each proof.txt found must be shown in a screenshot that includes the contents of the file, as well as the IP address of the target by using ipconfig.
+"""
+
+[project_type]
+file = "../offsec-designs/osed.toml"

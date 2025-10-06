@@ -1,10 +1,10 @@
+format = "projects/v2"
 id = "6ac5f130-45aa-4991-9481-470717d143d9"
 name = "CJCA Exam Report"
 language = "en-US"
 tags = []
 override_finding_order = false
 images = []
-format = "projects/v2"
 
 members = []
 

@@ -1,0 +1,61 @@
+format = "projects/v2"
+id = "666aa376-9bf5-4a7a-93b0-0c1156f0beeb"
+name = "OffSec OSWA Exam Report v2.0"
+language = "en-US"
+tags = []
+members = []
+images = []
+files = []
+
+[[sections]]
+id = "Student"
+status = "in-progress"
+
+[[sections]]
+id = "other"
+status = "in-progress"
+
+[[sections]]
+id = "additional"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[report_data]
+title = "OffSec Web Assessor"
+firstname = "John"
+lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_date = "2025-09-30"
+report_version = "2.0"
+watermark = true
+additional_items = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+appendix_sections = []
+
+[[findings]]
+id = "25a70e70-515e-4664-b7ab-dffc2f2fe12e"
+order = 1
+
+[findings.data]
+title = "192.168.X.X"
+proof = "TODO Provide the contents of local.txt and proof.txt"
+screenshots = "TODO Provide screenshots of local.txt and proof.txt contents as stated in the Exam Control Panel Objectives."
+steps = "TODO Provide a detailed account of your methodology in creating the exploits. The steps taken should be able to be easily followed and reproducible if necessary."
+
+[[findings.data.vulnerabilities]]
+details = "TODO Provide the method and steps used to find the vulnerability."
+reference = "Vulnerability X"
+
+[[findings.data.vulnerabilities]]
+details = "TODO Provide the method and steps used to find the vulnerability."
+reference = "Vulnerability X"
+
+[[findings.data.vulnerabilities]]
+details = "TODO Provide the method and steps used to find the vulnerability."
+reference = "Vulnerability X"
+
+[project_type]
+file = "../offsec-designs/oswa.toml"

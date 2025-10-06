@@ -3,6 +3,7 @@
 ## Upcoming
 * Fix remote notification disappearing after refetch
 * Improve finding grouping in design preview data
+* Update OffSec designs
 
 
 ## v2025.83 - 2025-09-26

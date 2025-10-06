@@ -1,9 +1,11 @@
 format = "projects/v2"
 id = "24f45d75-1b1c-4a87-8e63-346d0620e8fc"
-name = "OSEE Exam Report"
+name = "OffSec OSEE Exam Report v2.0"
 language = "en-US"
 tags = []
+members = []
 images = []
+files = []
 
 [[sections]]
 id = "other"
@@ -18,44 +20,23 @@ id = "appendix"
 status = "in-progress"
 
 [report_data]
-title = "OSEE Exam Report"
+title = "OffSec Exploitation Expert"
 mail = "student@example.com"
-osid = "XXXXX"
+osid = "OS-XXXXX"
 lastname = "Doe"
 firstname = "John"
-watermark = false
-report_version = "1.0"
-
-[[report_data.appendix_sections]]
-title = "TODO appendix title"
-content = "TODO This section is placed for any additional items that were not mentioned in the overall report."
+watermark = true
+report_version = "2.0"
+report_date = "2025-09-30"
+appendix_sections = []
 
 [[findings]]
 id = "8ef2a475-fc05-49fa-a493-4172acf1ab62"
 status = "in-progress"
-
-[findings.assignee]
-id = "c01c7ccf-7597-45cc-99bb-01be93743b97"
+order = 1
 
 [findings.data]
-title = "192.168.66.6 (70 Points)"
-cvss = "n/a"
-poc = "TODO Provide the final proof of concept code used to gain access to the server."
-proof = "TODO Provide the contents of proof.txt"
-steps = "TODO Provide a detailed account of your methodology in creating the exploit. The steps taken should be able to be easily followed and reproducible if necessary."
-ropchain = "TODO Provide the ASM ROP chains used in the exploit with a brief explanation for each gadget."
-screenshots = "TODO Provide a screenshot of the ipconfig command and the contents of proof.txt."
-
-[[findings]]
-id = "a87211a2-4301-41c3-8347-fb28cd441d1e"
-status = "in-progress"
-
-[findings.assignee]
-id = "c01c7ccf-7597-45cc-99bb-01be93743b97"
-
-[findings.data]
-title = "192.168.66.63 (30 Points or 15 Points)"
-cvss = "n/a"
+title = "192.168.X.X "
 poc = "TODO Provide the final proof of concept code used to gain access to the server."
 proof = "TODO Provide the contents of proof.txt"
 steps = "TODO Provide a detailed account of your methodology in creating the exploit. The steps taken should be able to be easily followed and reproducible if necessary."
