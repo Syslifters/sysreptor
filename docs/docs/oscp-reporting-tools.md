@@ -65,7 +65,7 @@ hide:
 </figure>
 
 
-<br><div style="text-align:center">[:rocket: Sign Up to SysReptor](https://oscp.sysreptor.com/oscp/signup/){ .md-button }</div>
+<br><div style="text-align:center">[:rocket: Sign Up to SysReptor](https://offsec.sysreptor.com/oscp/signup/){ .md-button }</div>
 
 <br>
 Make sure to test your tool of choice before the exam.
