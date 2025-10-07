@@ -6,7 +6,7 @@ const projectName = 'Updated Project Name';
 
 test('A User can create an Project with a Name', async ({ page }) => {
   const oldProjectName = 'My Test Project'
-  await createProject(page, { projectName: oldProjectName, designId: new DemoDataState().designs[0]!, designName: 'Demo Matrix' });
+  await createProject(page, { projectName: oldProjectName, designId: new DemoDataState().designs[0]!, designName: 'Demo Calzone' });
 
   // Verify Project Name
   await expect(page.getByText(oldProjectName)).toBeVisible();

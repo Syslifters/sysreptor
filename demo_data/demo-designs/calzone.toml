@@ -877,7 +877,7 @@ spellcheck = false
 [[finding_fields]]
 id = "title"
 type = "string"
-label = "Titel"
+label = "Title"
 origin = "core"
 default = "TODO finding title"
 required = true

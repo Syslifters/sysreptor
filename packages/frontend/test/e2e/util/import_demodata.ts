@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
+import { sortBy } from 'lodash-es';
 import type { Page } from '@playwright/test';
 import { $fetch } from 'ofetch';
 
@@ -84,7 +85,7 @@ export async function importDemoData(page: Page, baseURL: string) {
 
   async function performImport(spec) {
     const data = await importFile(spec.url.toString(), spec.filePath, state.cookies);
-    const ids = data.map((item: { id: string }) => item.id);
+    const ids = sortBy(data, ['name']).map((item: { id: string }) => item.id);
     console.log(`Imported ${ids.length} items from ${spec.url}`);
     fs.writeFileSync(spec.outputFile, JSON.stringify(ids, null, 2));
 

@@ -1,16 +1,15 @@
 import { expect, test } from '@playwright/test';
 import { DemoDataState } from '../util/demo_data';
 
-test('A User can Create a Finding an Export an Report', async ({ page }) => {
+test('A User can Create a Finding and Export a Report', async ({ page }) => {
   const projectId = new DemoDataState().projects[0];
   await page.goto(`/projects/${projectId}`);
   await page.getByText('Reporting').click();
   await page.getByTestId('create-finding-button').click();
-  await page.getByLabel('Template (optional)').locator('nth=0').fill('SQL Injection');
-  await page.getByText('SQL Injection (SQLi)').locator('nth=0').waitFor()
-  await page.getByText('SQL Injection (SQLi)').locator('nth=0').click();
-  await page.getByText('Create From Template').click();
-  await page.getByRole('textbox').getByText('SQL Injection (SQLi)').waitFor();
+  const createFindingDialog = page.getByTestId('create-finding-dialog');
+  await createFindingDialog.getByLabel('Template (optional)').locator('nth=0').fill('SQL Injection (SQLi)');
+  await page.locator('.v-combobox__content').getByText('SQL Injection (SQLi)').locator('nth=0').click();
+  await createFindingDialog.getByText('Create From Template').click();
   await page.getByRole('textbox').getByText('SQL Injection (SQLi)').fill('My SQL Injection');
   await page.getByText('Publish').click();
   await page.waitForSelector('text=Download');
@@ -22,8 +21,8 @@ test('A User can edit a CVSS Score', async ({ page }) => {
   await page.goto(`/projects/${projectId}`);
   await page.getByText('Project Settings').waitFor();
   await page.getByTestId('project-reporting-tab').click();
-  await page.getByRole('option', { name: 'Ajla' }).waitFor();
-  await page.getByRole('option', { name: 'Ajla' }).click();
+  await page.getByRole('option', { name: 'SQL Injection (SQLi)' }).waitFor();
+  await page.getByRole('option', { name: 'SQL Injection (SQLi)' }).click();
   await page.getByLabel('CVSS').waitFor();
   await page.getByRole('button', { name: 'CVSS Editor' }).click();
   await page.waitForSelector('text=CVSS:3.1 Editor');
@@ -56,8 +55,8 @@ test('Version History correctly displays the changes CVSS changes', async ({ pag
   await page.goto(`/projects/${projectId}`);
   await page.getByText('Project Settings').waitFor();
   await page.getByTestId('project-reporting-tab').click();
-  await page.getByRole('option', { name: 'Ajla' }).waitFor();
-  await page.getByRole('option', { name: 'Ajla' }).click();
+  await page.getByRole('option', { name: 'SQL Injection (SQLi)' }).waitFor();
+  await page.getByRole('option', { name: 'SQL Injection (SQLi)' }).click();
   await page.getByLabel('CVSS').waitFor();
   await page.getByTestId('history-button').click();
   await page.locator('circle').nth(1).waitFor({ state: 'hidden'})
@@ -72,8 +71,8 @@ test('A User can assign a Finding to a User and change status', async ({ page })
   await page.goto(`/projects/${projectId}`);
   await page.getByText('Project Settings').waitFor();
   await page.getByTestId('project-reporting-tab').click();
-  await page.getByRole('option', { name: 'Ajla' }).waitFor();
-  await page.getByRole('option', { name: 'Ajla' }).click();
+  await page.getByRole('option', { name: 'SQL Injection (SQLi)' }).waitFor();
+  await page.getByRole('option', { name: 'SQL Injection (SQLi)' }).click();
   await page.getByLabel('CVSS').waitFor();
 
   // Happens when test are run out of order
@@ -96,7 +95,7 @@ test('A User create a Template from a Finding', async ({ page }) => {
   await page.goto(`/projects/${projectId}`);
   await page.getByText('Project Settings').waitFor();
   await page.getByTestId('project-reporting-tab').click();
-  await page.getByRole('option', { name: 'DC', exact: true }).click();
+  await page.getByRole('option', { name: 'Stored Cross-Site Scripting (XSS)', exact: true }).click();
   await page.getByLabel('CVSS').waitFor();
   await page.getByTestId('edittoolbar-contextmenu').click();
   await page.getByText('Save as Template').click();
