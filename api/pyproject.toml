@@ -21,7 +21,7 @@ dependencies = [
   "psycopg[binary,pool] (~=3.1)",
   "gunicorn (~=23.0)",
   "uvicorn[standard] (~=0.36)",
-  "whitenoise[brotli] (~=6.4)",
+  "whitenoise (~=6.4)",
   "channels[daphne] (~=4.2)",
   "channels-redis (~=4.2)",
 
@@ -53,12 +53,12 @@ dependencies = [
   "debugpy (~=1.6)",
   "watchdog (~=6.0)",
   "pytest-django (~=4.11)",
-  "pytest-asyncio (~=1.1.0)",
+  "pytest-asyncio (~=1.2)",
   "pytest-xdist (~=3.2)",
   "pytest-cov (~=7.0)",
 
   "pip-licenses-cli (~=2.0)",
-  "ruff (~=0.13)",
+  "ruff (~=0.14)",
 ]
 
 

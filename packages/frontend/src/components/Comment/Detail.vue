@@ -11,20 +11,20 @@
     }"
   >
     <comment-content 
-      :model-value="comment"
+      :model-value="props.comment"
       :update="(c) => projectStore.updateComment(props.project, c)"
-      :delete="() => projectStore.deleteComment(props.project, comment)"
+      :delete="() => projectStore.deleteComment(props.project, props.comment)"
       :is-new="props.isNew"
-      :readonly="readonly"
+      :readonly="props.readonly"
       :selectable-users="props.selectableUsers"
       placeholder="Comment text..."
       class="comment-content"
     >
       <template #menu>
         <btn-confirm
-          v-if="comment.status === CommentStatus.OPEN"
-          :action="() => projectStore.resolveComment(props.project, comment, { status: CommentStatus.RESOLVED })"
-          :disabled="readonly"
+          v-if="props.comment.status === CommentStatus.OPEN"
+          :action="() => projectStore.resolveComment(props.project, props.comment, { status: CommentStatus.RESOLVED })"
+          :disabled="props.readonly"
           :confirm="false"
           button-variant="icon"
           button-icon="mdi-circle-outline"
@@ -34,8 +34,8 @@
         />
         <btn-confirm
           v-else
-          :action="() => projectStore.resolveComment(props.project, comment, { status: CommentStatus.OPEN })"
-          :disabled="readonly"
+          :action="() => projectStore.resolveComment(props.project, props.comment, { status: CommentStatus.OPEN })"
+          :disabled="props.readonly"
           :confirm="false"
           button-variant="icon"
           button-icon="mdi-checkbox-marked-circle-outline"
@@ -47,16 +47,16 @@
       </template>
       <template #prepend-text>
         <blockquote 
-          v-if="comment.text_original" 
+          v-if="props.comment.text_original" 
           @click="textOriginalExpanded = !textOriginalExpanded"
           class="comment-textoriginal"
         >
-          <span v-if="textOriginalExpanded" class="comment-textoriginal-expanded">{{ comment.text_original }}</span>
-          <span v-else>{{ truncate(comment.text_original, { length: 50 }) }}</span>
+          <span v-if="textOriginalExpanded" class="comment-textoriginal-expanded">{{ props.comment.text_original }}</span>
+          <span v-else>{{ truncate(props.comment.text_original, { length: 50 }) }}</span>
         </blockquote>
       </template>
     </comment-content>
-    <div v-for="answer in comment.answers" :key="answer.id" class="ml-4">
+    <div v-for="answer in props.comment.answers" :key="answer.id" class="ml-4">
       <v-divider />
       <comment-answer 
         :answer="answer"
@@ -68,7 +68,7 @@
         class="answer-content"
       />
     </div>
-    <div v-if="props.isActive && comment.status === CommentStatus.OPEN && comment.text && !readonly" class="ml-4">
+    <div v-if="props.isActive && props.comment.status === CommentStatus.OPEN && props.comment.text && !props.readonly" class="ml-4">
       <v-divider />
       <comment-answer
         :answer="{ text: '' } as unknown as CommentAnswer"

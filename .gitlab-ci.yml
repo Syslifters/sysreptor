@@ -23,7 +23,7 @@ services:
     - docker buildx create --use
 
 .deploy_docs:
-  image: python:latest
+  image: python:3.13
   script:
     - cd docs
     - git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor-docs.git ghpages
@@ -57,7 +57,7 @@ sync:
     - git push public main
 
 build-docs:
-  image: python:latest
+  image: python:3.13
   stage: build-release
   needs: []
   artifacts:
@@ -191,7 +191,7 @@ integration-test-frontend:
     # Setup
     - docker network create mynet
     - docker pull postgres:15 -q
-    - docker pull mcr.microsoft.com/playwright:v1.55.0-noble -q
+    - docker pull mcr.microsoft.com/playwright:v1.56.0-noble -q
     - docker pull $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA -q
     - docker pull $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA -q
     - docker cp $(docker create --name temp $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA):/app/packages/ packages2 && docker rm temp
@@ -203,7 +203,7 @@ integration-test-frontend:
     # Add Superuser
     - docker exec api python3 manage.py createsuperuser --noinput --username=$SYSREPTOR_INTEGRATION_USER
     # Run E2E Tests
-    - docker run --name=playwright --rm --network=mynet --mount=type=bind,source=$PWD/packages2/,target=/app/packages/ -w /app/packages/frontend/ -e FRONTEND_ADMIN_PASSWORD=$SYSREPTOR_INTEGRATION_PASSWORD -e FRONTEND_ADMIN_USER=$SYSREPTOR_INTEGRATION_USER -e LICENSE=$SYSREPTOR_INTEGRATION_LICENSE mcr.microsoft.com/playwright:v1.55.0-noble bash -c 'npx playwright test'
+    - docker run --name=playwright --rm --network=mynet --mount=type=bind,source=$PWD/packages2/,target=/app/packages/ -w /app/packages/frontend/ -e FRONTEND_ADMIN_PASSWORD=$SYSREPTOR_INTEGRATION_PASSWORD -e FRONTEND_ADMIN_USER=$SYSREPTOR_INTEGRATION_USER -e LICENSE=$SYSREPTOR_INTEGRATION_LICENSE mcr.microsoft.com/playwright:v1.56.0-noble bash -c 'npx playwright test'
 
 build-release:
   stage: build-release
