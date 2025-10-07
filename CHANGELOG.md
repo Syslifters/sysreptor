@@ -3,6 +3,7 @@
 ## Upcoming
 * Fix remote notification disappearing after refetch
 * Improve finding grouping in design preview data
+* Add retest status indicator to finding list
 * Update OffSec designs
 
 

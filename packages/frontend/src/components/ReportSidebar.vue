@@ -141,7 +141,10 @@
                   :active="props.toPrefix ? router.currentRoute.value.path.startsWith(findingUrl(finding)!) : undefined"
                   :ripple="false"
                   density="compact"
-                  :class="'finding-level-' + riskLevel(finding)"
+                  :class="[
+                    `finding-level-${riskLevel(finding)}`,
+                    `finding-retest-${findingRetestStatus(finding)?.value}`,
+                  ]"
                   :data-testid="'finding-' + findingTitle(finding)"
                 >
                   <template #prepend v-if="sortManual">
@@ -152,6 +155,9 @@
                   <template #default>
                     <v-list-item-title class="text-body-2">{{ findingTitle(finding) }}</v-list-item-title>
                     <v-list-item-subtitle v-if="finding.assignee">@{{ finding.assignee.username }}</v-list-item-subtitle>
+                    <s-tooltip v-if="['resolved', 'accepted', 'partial'].includes(findingRetestStatus(finding)?.value)" activator="parent">
+                      Retest status: {{ findingRetestStatus(finding)?.label }}
+                    </s-tooltip>
                   </template>
                   <template #append>
                     <slot name="finding-item-append" :finding="finding" >
@@ -268,6 +274,10 @@ function findingTitle(finding: PentestFinding) {
 }
 function riskLevel(finding: PentestFinding) {
   return getFindingRiskLevel({ finding, projectType: props.projectType });
+}
+function findingRetestStatus(finding: PentestFinding) {
+  const d = props.projectType.finding_fields.find(f => f.id === 'retest_status' && f.type === FieldDataType.ENUM);
+  return d?.choices?.find(c => c.value === finding.data.retest_status) || null;
 }
 
 function createFinding(group?: FindingGroup) {
@@ -399,6 +409,23 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
   .finding-level-#{$level} {
     border-left: 0.4em solid map.get(settings.$risk-color-levels, $level);
   }
+}
+
+.finding-retest-resolved, .finding-retest-accepted, .finding-retest-partial {
+  &:not(.v-list-item--active) > :deep(.v-list-item__overlay)  {
+    opacity: 0.1;
+  }
+  &.v-list-item--active > :deep(.v-list-item__overlay)  {
+    opacity: 0.2;
+  }
+}
+.finding-retest-resolved, .finding-retest-accepted {
+  &:deep(.v-list-item__overlay) {
+    background-color: rgb(var(--v-theme-success));
+  }
+}
+.finding-retest-partial:deep(.v-list-item__overlay) {
+  background-color: rgb(var(--v-theme-warning));
 }
 
 :deep(.v-list-item-subtitle) {
