@@ -4,13 +4,14 @@
   "type": "module",
   "scripts": {
     "generate": "nuxt generate",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "dev": "nuxt dev --port 3001"
   },
   "dependencies": {
     "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
     "@sysreptor/nuxt-base-layer": "../../../packages/nuxt-base-layer",
 
-    "nuxt": "~4.0",
+    "nuxt": "~4.1",
     "vuetify": "~3.10",
     "pinia": "^3.0"
   },

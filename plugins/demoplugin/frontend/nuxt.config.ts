@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     pluginId: 'db365aa0-ed36-4e90-93b6-a28effc4ed47',
   },
 
+  srcDir: '.',
   nitro: {
     output: {
       publicDir: '../static/'

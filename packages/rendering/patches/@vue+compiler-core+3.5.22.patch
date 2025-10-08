@@ -1,5 +1,5 @@
 diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.d.ts b/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
-index 80d336b..642965a 100644
+index b524b7e..ba35c1f 100644
 --- a/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
 +++ b/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
 @@ -662,6 +662,10 @@ export interface ParserOptions extends ErrorHandlingOptions, CompilerCompatOptio
@@ -14,10 +14,10 @@ index 80d336b..642965a 100644
       * Elements that should ignore the first newline token per parinsg spec
       * e.g. `<textarea>` and `<pre>`
 diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
-index b7bbc8a..9694b4e 100644
+index dd39182..bfdb33d 100644
 --- a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
 +++ b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
-@@ -1535,7 +1535,7 @@ function isForStatement(stmt) {
+@@ -1538,7 +1538,7 @@ function isForStatement(stmt) {
  }
  function walkForStatement(stmt, isVar, onIdent) {
    const variable = stmt.type === "ForStatement" ? stmt.init : stmt.left;
@@ -26,7 +26,16 @@ index b7bbc8a..9694b4e 100644
      for (const decl of variable.declarations) {
        for (const id of extractIdentifiers(decl.id)) {
          onIdent(id);
-@@ -1914,6 +1914,7 @@ const defaultParserOptions = {
+@@ -1549,7 +1549,7 @@ function walkForStatement(stmt, isVar, onIdent) {
+ function walkSwitchStatement(stmt, isVar, onIdent) {
+   for (const cs of stmt.cases) {
+     for (const stmt2 of cs.consequent) {
+-      if (stmt2.type === "VariableDeclaration" && (stmt2.kind === "var" ? isVar : !isVar)) {
++      if (stmt2.type === "VariableDeclaration" && (stmt2.kind === "var" ? isVar : false)) {
+         for (const decl of stmt2.declarations) {
+           for (const id of extractIdentifiers(decl.id)) {
+             onIdent(id);
+@@ -1931,6 +1931,7 @@ const defaultParserOptions = {
    getNamespace: () => 0,
    isVoidTag: NO,
    isPreTag: NO,
@@ -34,7 +43,7 @@ index b7bbc8a..9694b4e 100644
    isIgnoreNewlineTag: NO,
    isCustomElement: NO,
    onError: defaultOnError,
-@@ -2310,6 +2311,11 @@ function endOpenTag(end) {
+@@ -2327,6 +2328,11 @@ function endOpenTag(end) {
    if (ns === 0 && currentOptions.isPreTag(tag)) {
      inPre++;
    }
@@ -46,7 +55,7 @@ index b7bbc8a..9694b4e 100644
    if (currentOptions.isVoidTag(tag)) {
      onCloseTag(currentOpenTag, end);
    } else {
-@@ -2323,7 +2329,7 @@ function endOpenTag(end) {
+@@ -2340,7 +2346,7 @@ function endOpenTag(end) {
  function onText(content, start, end) {
    {
      const tag = stack[0] && stack[0].tag;

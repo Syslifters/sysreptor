@@ -34,7 +34,7 @@ export default defineNuxtConfig({
   ],
 
   css: [
-    'vuetify/styles',
+    // 'vuetify/styles',
     join(currentDir, './src/assets/global.scss'),
     '@mdi/font/css/materialdesignicons.css',
   ],
@@ -64,7 +64,6 @@ export default defineNuxtConfig({
       include: [
         'splitpanes', 'js-file-download', 'base64-arraybuffer', 'uuid', 'zxcvbn', 'emoji-mart-vue-fast/src',
         'vue-toastification', 'date-fns', 'lodash-es', 'url-join',
-        '@iconify/vue/dist/offline', '@iconify/icons-fluent-emoji/face-with-peeking-eye', 
       ],
     },
   },
