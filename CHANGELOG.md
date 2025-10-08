@@ -5,6 +5,7 @@
 * Improve finding grouping in design preview data
 * Add retest status indicator to finding list
 * Update OffSec designs
+* Markdown editor: Improve scroll sync for nested lists
 
 
 ## v2025.83 - 2025-09-26

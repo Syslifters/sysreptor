@@ -119,22 +119,24 @@ function syncScrollEditorToPreview() {
 
   // Get editor line to sync preview to
   let editorLine = undefined as HTMLElement|undefined;
+  let editorPosition = undefined as number|undefined;
   if (props.isFocussed || props.isFocussed === undefined) {
     // Use the cursor position if the field is focused and the cursor is visible
     const cursorLine = getEditorLineForPosition(editorView.value.state.selection.main.head);
     if (cursorLine && isVisible(cursorLine, 0)) {
       editorLine = cursorLine;
+      editorPosition = editorView.value.state.selection.main.head;
     }
   }
   if (!editorLine) {
     // Fallback to the first visible line if the cursor is not visible (e.g. out of viewport)
     editorLine = Array.from(editorView.value.contentDOM.querySelectorAll<HTMLElement>(':scope > .cm-line')).find(isVisible);
   }
-  const mdBlock = getEditorMarkdownBlockForLine(editorLine);
+  const mdBlock = getEditorMarkdownBlockForLine(editorLine, editorPosition);
   if (!mdBlock) { return false; }
 
   // Get corresponding preview element for codemirror line
-  const previewElement = getPreviewElementForLine(mdBlock?.line.number);
+  const previewElement = getPreviewElementForLine(mdBlock?.line.number, editorPosition);
   if (!previewElement) { return false; }
 
   // previewElementOffsetTop and mdBlockOffsetTop should be at the same level (they are the same line/block).
@@ -258,12 +260,13 @@ function getOffsetTop(el: HTMLElement, offsetParent: HTMLElement): number {
   }
   return offsetTop;
 }
-function getEditorMarkdownBlockForLine(codemirrorLine?: HTMLElement) {
+function getEditorMarkdownBlockForLine(codemirrorLine?: HTMLElement, editorPosition?: number) {
   if (!codemirrorLine || !editorView.value) {
     return null;
   }
 
-  const pos = editorView.value.posAtCoords(codemirrorLine.getBoundingClientRect(), false);
+  const pos = editorPosition ?? editorView.value.posAtCoords(codemirrorLine.getBoundingClientRect(), false);
+  // TODO: at indent before listItem => sync to parent listItem
 
   // Get syntax tree node for current markdown block.
   // Use the sub-block (instead of top-level block) for nested elements (listItem, tableRow)
@@ -295,14 +298,17 @@ function getEditorLineForPosition(position: number): HTMLElement|null {
     ?.dom || null;
 }
 
-function getPreviewElementForLine(lineNumber?: number): HTMLElement|null {
+function getPreviewElementForLine(lineNumber?: number, editorPosition?: number): HTMLElement|null {
   if (!Number.isInteger(lineNumber) || !previewRef.value?.element) {
     return null;
   }
   const previewElements = Array.from(previewRef.value.element.querySelectorAll<HTMLElement>('[data-position]'))
     .filter(el => {
       const position = getPosition(el);
-      return position && lineNumber! >= position.start.line && lineNumber! <= position.end.line && el.offsetTop > 0;
+      return position &&  el.offsetTop > 0 && (
+        (editorPosition ? (editorPosition >= position.start.offset && editorPosition <= position.end.offset) : false) ||
+        (lineNumber! >= position.start.line && lineNumber! <= position.end.line)
+     );
     });
   // Get the deepest element for this line (e.g. table->tr, ul->li)
   const previewElement = sortBy(previewElements.map(el => ({ el, depth: getDepth(el) * -1})), ['depth'])[0]?.el;
