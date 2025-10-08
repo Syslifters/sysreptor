@@ -72,7 +72,7 @@
 <script setup lang="ts">
 import Draggable from "vuedraggable";
 import { pick } from "lodash-es";
-import { type MarkdownProps, PdfDesignerTab } from "#imports";
+import type { MarkdownProps } from "@/composables/markdown";
 import type { DesignerComponentBlock } from "~/components/Design/designer-components";
 
 const props = defineProps<MarkdownProps & {

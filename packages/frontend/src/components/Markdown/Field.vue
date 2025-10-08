@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import type { MarkdownProps } from '#imports';
+import type { MarkdownProps } from "@/composables/markdown";
 
 const modelValue = defineModel<string|null>();
 const props = defineProps<MarkdownProps>();

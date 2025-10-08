@@ -63,7 +63,8 @@
 <script setup lang="ts">
 import { sortBy } from "lodash-es";
 import Draggable from "vuedraggable";
-import type { MarkdownProps, PdfDesignerTab } from "#imports";
+import type { PdfDesignerTab } from "#imports";
+import type { MarkdownProps } from "@/composables/markdown";
 import {
   type DesignerComponent,
   type DesignerComponentBlock,
