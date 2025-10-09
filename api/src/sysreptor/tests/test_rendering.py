@@ -18,6 +18,7 @@ from sysreptor.tests.mock import (
     create_project,
     create_project_type,
     create_user,
+    override_configuration,
     update,
 )
 from sysreptor.utils.utils import copy_keys, merge
@@ -47,7 +48,8 @@ class TestHtmlRendering:
             report_data={'field_user': str(self.user.id)})
         self.finding = create_finding(project=self.project)
 
-        with override_settings(CELERY_TASK_ALWAYS_EAGER=True):
+        with override_settings(CELERY_TASK_ALWAYS_EAGER=True), \
+             override_configuration(GENERATE_ACCESSIBLE_PDFS=True):
             yield
 
     def render_html(self, template, additional_data=None):
@@ -117,8 +119,9 @@ class TestHtmlRendering:
         ('<ref to="nonexistent" />', {'level': 'warning', 'message': 'Invalid reference'}),
         ('<a href="/files/name/file.pdf">File</a>', {'level': 'warning', 'message': 'Cannot embed uploaded files'}),
         ('<a href="/path/to/relative/url">Relative URL</a>', {'level': 'warning', 'message': 'Link to relative URL'}),
-        ('<img src="/assets/name/nonexistent.png" />', {'level': 'warning', 'message': 'Resource not found'}),
-        ('<img src="https://example.com/external.png" />', {'level': 'warning', 'message': 'Blocked request to external URL'}),
+        ('<img src="/assets/name/nonexistent.png" alt="image" />', {'level': 'warning', 'message': 'Resource not found'}),
+        ('<img src="https://example.com/external.png" alt="image" />', {'level': 'warning', 'message': 'Blocked request to external URL'}),
+        ('<img src="/assets/name/image.png" />', {'level': 'warning', 'message': 'Accessibility issue'}),
         (html_load_script('/assets/name/nonexistent.js'), {'level': 'warning', 'message': 'Resource not found' }),
         (html_load_script('https://example.com/external.js'), {'level': 'warning', 'message': 'Blocked request to external URL' }),
         (html_load_script('/assets/name/test.js'), {'level': 'info', 'message': 'Script loaded' }),
@@ -229,9 +232,9 @@ class TestHtmlRendering:
                 <h1 id="h1-numbered-appendix" class="numbered">H1 appendix</h1>
                 <h2 id="h1.1-numbered-appendix" class="numbered">H1.1 appendix</h2>
             </div>
-            <figure id="fig1"><img id="fig1-img" src="/assets/name/image.png" /><figcaption id="fig1-caption">caption1</figcaption></figure>
-            <figure id="fig2"><img id="fig2-img" src="/assets/name/image.png" /><figcaption id="fig2-caption">caption2</figcaption></figure>
-            <figure id="fig3"><img id="fig3-img" src="/assets/name/image.png" /><figcaption id="fig3-caption">caption3</figcaption></figure>
+            <figure id="fig1"><img id="fig1-img" src="/assets/name/image.png" alt="image" /><figcaption id="fig1-caption">caption1</figcaption></figure>
+            <figure id="fig2"><img id="fig2-img" src="/assets/name/image.png" alt="image" /><figcaption id="fig2-caption">caption2</figcaption></figure>
+            <figure id="fig3"><img id="fig3-img" src="/assets/name/image.png" alt="image" /><figcaption id="fig3-caption">caption3</figcaption></figure>
             <table id="table1"><caption id="table1-caption">caption1</caption></table>
             <table id="table2"><caption id="table2-caption">caption2</caption></table>
             <div id="other">other</div>
@@ -299,9 +302,9 @@ class TestHtmlRendering:
                 </ul>
             </section>
         </list-of-figures>
-        <figure id="fig1"><img src="/assets/name/image.png" /><figcaption>caption1</figcaption></figure>
-        <figure id="fig2"><img src="/assets/name/image.png" /><figcaption>caption2</figcaption></figure>
-        <figure id="fig3"><img src="/assets/name/image.png" /><figcaption>caption3</figcaption></figure>
+        <figure id="fig1"><img src="/assets/name/image.png" alt="image" /><figcaption>caption1</figcaption></figure>
+        <figure id="fig2"><img src="/assets/name/image.png" alt="image" /><figcaption>caption2</figcaption></figure>
+        <figure id="fig3"><img src="/assets/name/image.png" alt="image" /><figcaption>caption3</figcaption></figure>
         """)
         assertHTMLEqual(self.extract_html_part(html, '<ul>', '</ul>'), """
         <ul>

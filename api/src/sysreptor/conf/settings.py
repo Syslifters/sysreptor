@@ -712,7 +712,7 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         id='GENERATE_ACCESSIBLE_PDFS',
         default=False,
         extra_info={'group': 'other', 'professional_only': False},
-        help_text='Generate accessible PDFs in PDF/UA format (experimental). '
+        help_text='Generate accessible PDFs in PDF/UA format. '
                   'Warning: Incompatible with COMPRESS_PDFS. PDFs are not compressed and might be larger.',
     ),
     ListField(
