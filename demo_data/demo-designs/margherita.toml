@@ -24,10 +24,10 @@ report_template = """
 
 <section id="page-cover" data-sysreptor-generated="page-cover">
   <div id="page-cover-background">
-    <img id="page-cover-background-img" src="/assets/name/background.jpg" alt="">
+    <img id="page-cover-background-img" src="/assets/name/background.jpg" alt="background">
   </div>
 
-  <img id="page-cover-logo" src="/assets/name/logo-transparent.png" alt="">
+  <img id="page-cover-logo" src="/assets/name/logo-transparent.png" alt="logo">
 
   <div id="page-cover-infobox">
     <h1 id="page-cover-title">{{ report.title }}</h1>

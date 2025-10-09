@@ -116,7 +116,7 @@ Testing was performed remotely from a non-evasive standpoint, with the goal of u
 
 TODO YOUR_NAME sought to demonstrate the full impact of every vulnerability, up to and including internal network access. Furthermore, TODO YOUR_NAME has also documented the sources of vulnerabilities that were identified through source code analysis, and provided recommended patches to fix them.
 """
-logo = "![](/assets/name/logo-banner.svg)"
+logo = "![logo](/assets/name/logo-banner.svg)"
 engagement_contacts = """
 TODO: update contacts
 

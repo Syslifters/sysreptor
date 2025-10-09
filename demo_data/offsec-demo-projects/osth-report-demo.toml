@@ -116,10 +116,10 @@ index="*" ("EEAAFA68236BD1629E36E81C5A8EC2CE8804C9798B5C84FEE55F6128CCBA8FB0" OR
 ```
 
 This search query resulted in only a single event with the timestamp 01/11/2024 1:11:11 AM:
-![](/images/name/image.png){width="auto"}
+![Hash search results](/images/name/image.png){width="auto"}
 
 The matching SHA-256 hash is referred to as “Mimikatz” in the threat intelligence report. We then reviewed the event in more detail.
-![](/images/name/image-uGA1tzva.png){width="auto"}
+![Event details](/images/name/image-uGA1tzva.png){width="auto"}
 
 The event provides us several important information that can be leveraged in our hunt:
 
