@@ -92,7 +92,8 @@
 
 <script setup lang="ts">
 import { pick, merge, omit } from 'lodash-es';
-import { FieldDataType, type DynamicInputFieldDiffProps } from '#imports';
+import { FieldDataType } from '#imports';
+import type { DynamicInputFieldDiffProps } from '@/composables/history';
 
 const props = defineProps<DynamicInputFieldDiffProps>();
 defineSlots();

@@ -330,8 +330,9 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable';
 import { isEqual, omit, pick, uniq } from 'lodash-es';
+import { collabSubpath, type MarkdownEditorMode, FieldDataType, type FieldDefinition, type UserShortInfo, useCollabSubpaths } from '#imports';
+import type { MarkdownProps } from "@/composables/markdown";
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
-import { collabSubpath, type MarkdownEditorMode, FieldDataType, type MarkdownProps, type FieldDefinition, type UserShortInfo, useCollabSubpaths } from '#imports';
 import { workerUrlPolicy } from '~/plugins/trustedtypes';
 import { wait } from '@base/utils/helpers';
 
