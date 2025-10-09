@@ -357,7 +357,7 @@ class TestHtmlRendering:
             options: {scales: {y: {beginAtZero: true, ticks: {precision: 0}}}, plugins: {legend: {display: false}}},
             plugins: [ chartjsPlugins.DataLabels ],
         }" />""")
-        assert re.fullmatch(r'^\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="" style="width: 15cm; height: 10cm;">\s*$', html)
+        assert re.fullmatch(r'^\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="chart" style="width: 15cm; height: 10cm;">\s*$', html)
 
     def test_mermaid_rendering(self):
         html = self.render_html("""
@@ -366,7 +366,7 @@ class TestHtmlRendering:
                 A --> B;
         </mermaid-diagram>
         """)
-        assert re.fullmatch(r'^\s*<div class="mermaid-diagram">\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="">\s*</div>\s*$', html)
+        assert re.fullmatch(r'^\s*<div class="mermaid-diagram">\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="mermaid diagram">\s*</div>\s*$', html)
 
     @pytest.mark.parametrize(("password", "encrypted"), [
         ('password', True),
