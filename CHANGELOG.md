@@ -6,6 +6,7 @@
 * Add retest status indicator to finding list
 * Update OffSec designs
 * Markdown editor: Improve scroll sync for nested lists
+* Markdown editor: Sticky header in nested fields
 * Support generate accessible PDF/UA files via config `GENERATE_ACCESSIBLE_PDFS`
 * Improve warning location reporting during PDF rendering
 

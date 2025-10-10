@@ -146,7 +146,7 @@
           </s-codeblock-field>
 
           <!-- Object -->
-          <s-card v-else-if="definition.type === FieldDataType.OBJECT">
+          <s-card v-else-if="definition.type === FieldDataType.OBJECT" class="field-nested">
             <v-card-item class="pb-0">
               <v-card-title class="text-body-1"><slot name="label">{{ label }}</slot></v-card-title>
               <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
@@ -179,7 +179,7 @@
           </s-card>
 
           <!-- List -->
-          <s-card v-else-if="definition.type === FieldDataType.LIST">
+          <s-card v-else-if="definition.type === FieldDataType.LIST" class="field-nested">
             <v-card-item class="pb-0">
               <v-card-title class="text-body-1"><slot name="label">{{ label }}</slot></v-card-title>
               <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
@@ -225,7 +225,7 @@
                 label="Enter one item per line"
                 class="mt-4"
               />
-              <v-list v-else class="pa-0 bg-inherit">
+              <v-list v-else class="pa-0 bg-inherit field-nested">
                 <draggable
                   :model-value="formValue.map((value: any, index: number) => ({value, index}))"
                   @change="(e: any) => e.moved ? emitInputList('move', e.moved.oldIndex, e.moved.newIndex) : undefined"
@@ -234,7 +234,7 @@
                   handle=".draggable-handle"
                 >
                   <template #item="{element: {value: entryVal}, index: entryIdx}">
-                    <v-list-item class="pa-0">
+                    <v-list-item>
                       <template #default>
                         <dynamic-input-field
                           :model-value="entryVal"
@@ -651,5 +651,13 @@ const commentBtnRef = useTemplateRef('commentBtnRef');
 }
 .dynamic-input-field-wrapper:hover .visible-on-hover {
   opacity: 1;
+}
+
+.field-nested {
+  overflow: initial;
+
+  &.v-list > div > .v-list-item:deep(> .v-list-item__content) {
+    overflow: initial;
+  }
 }
 </style>
