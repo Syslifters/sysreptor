@@ -275,6 +275,14 @@ PDF compression is enabled by default. Disable PDF compression using this settin
 COMPRESS_PDFS=false
 ```
 
+It is possible to generate accessible PDFs in PDF/UA format.
+Accessible PDFs can be read by screen readers and are compliant with accessibility standards.
+Generating accessible PDFs is incompatible with PDF compression. If you enable accessible PDFs, PDF compression is automatically disabled.
+
+``` title="Example:"
+GENERATE_ACCESSIBLE_PDFS=true
+```
+
 SysReptor limits the rendering time a PDF can take. If the rendering time exceeds the limit, the PDF render task is aborted. The default limit is 300 seconds (5 minutes).
 If you experience slow PDF rendering, try to [optimize your design](../designer/debugging.md#slow-pdf-rendering) before increasing the limit.
 

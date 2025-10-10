@@ -81,13 +81,13 @@ In this section, provide a detailed, story-style walkthrough of Phase 1. Focus o
 
 The SOC team escalated several triggered alerts to the Incident Response team as shown in the following screenshot.
 
-![](/images/name/image.png){width="auto"}
+![Screenshot of SOC escalated alerts](/images/name/image.png){width="auto"}
 
 One of the escalated alerts is named "Malicious Apps" and monitors the collected events for occurrences of SHA-256 hashes of known malicious applications that are commonly used by threat actors such as Mimikatz and NetExec. The alert triggered only one time for an event recorded at 01/11/2024 1:11:11 AM.
 
 Since events containing information about the usage of applications that are commonly used by attackers may have severe implications, let's review this event in more detail.
 
-![](/images/name/image-Wvg13zIC.png){width="auto"}
+![Details of Malicious Apps alert event](/images/name/image-Wvg13zIC.png){width="auto"}
 
 The event provides us several important information that can be leveraged in our incident detection and identification process:
 
@@ -110,27 +110,27 @@ In this section, provide a detailed, story-style walkthrough of the disk image a
 
 We began the analysis of the provided disk image by loading it in Autopsy and enabling the plugin "Recent Activities". Once the analysis of the disk image is finished, we’ll have several options to start our investigation.
 
-![](/images/name/image-e9utsLep.png){width="auto"}
+![Autopsy Recent Activities](/images/name/image-e9utsLep.png){width="auto"}
 
 Based on the information that were shared by the other incident response team, a download has been recorded. Therefore, let’s begin by analyzing the "Web Downloads" under "Data Artifacts". One entry catches our attention which states that offer.7z was downloaded from 192.168.48.130:8000.
 
-![](/images/name/image-LOReQuxX.png){width="auto"}
+![Web Downloads showing offer.7z entry](/images/name/image-LOReQuxX.png){width="auto"}
 
 Let’s check if this archive exists in the Downloads directory of the Admin user where it was downloaded to. If yes,let’s try to extract it.
 
-![](/images/name/image-mHVGJH8T.png){width="auto"}
+![Attempting to extract offer.7z in Downloads directory](/images/name/image-mHVGJH8T.png){width="auto"}
 
 Unfortunately, we get prompted for a password. Since we don’t have a password, our extraction attempt fails.
 
-![](/images/name/image-jSqZunB1.png){width="auto"}
+![Password prompt for extracting offer.7z](/images/name/image-jSqZunB1.png){width="auto"}
 
 At this point, let’s think about how we could obtain such a password. One possibility is to assume that the attacker had only access via CLI and therefore might have used PowerShell to extract the archive. In addition, based on the information from the system we know that PowerShell Script Block Logging is enabled. Let’s check out the PowerShell Operational Log in Event Viewer and search for "offer.7z".
 
-![](/images/name/image-8sZ7i38U.png){width="auto"}
+![PowerShell Operational Log showing extraction of offer.7z](/images/name/image-8sZ7i38U.png){width="auto"}
 
 The event contains the information that the password superpass was used to extract the archive. Let’s try this password and extract the files by using 7z. Once the archive is extracted, a new binary appears named "viruz.exe". The lab asks for the file hash of this binary which we can get via the Cmdlet Get-FileHash: 2D51EF5F421E844EC1278CDAAA1830105D1F879A163AF55EA826B428A0A97E68.
 
-![](/images/name/image-582UkMnV.png){width="auto"}
+![Extracted viruz.exe and obtained file hash](/images/name/image-582UkMnV.png){width="auto"}
 """
 malware_analysis = """
 TODO: Malware Analysis
@@ -140,31 +140,31 @@ In this section, provide a detailed, story-style walkthrough of the malware anal
 
 The second lab of the Forensic Analysis phase asks to analyze the binary from the previous lab and obtain a token that is used by the threat actor for authenticating to their C&C infrastructure. Let’s start by starting an administrative PowerShell session.
 
-![](/images/name/image-6WDDiHSA.png){width="auto"}
+![Administrative PowerShell session started](/images/name/image-6WDDiHSA.png){width="auto"}
 
 Then, let’s navigate to the correct directory and execute the binary.
 
-![](/images/name/image-IHexZBZB.png){width="auto"}
+![Executing viruz.exe](/images/name/image-IHexZBZB.png){width="auto"}
 
 The binary returns the information that a token is missing. At this point, we can either use static or dynamic analysis. We’ll use dynamic analysis using ProcMon and start by adding a filter for viruz.exe.
 
-![](/images/name/image-oGnmwaEH.png){width="auto"}
+![ProcMon filter set for viruz.exe](/images/name/image-oGnmwaEH.png){width="auto"}
 
 Once we rerun the binary, we’ll see the following entries in ProcMon. One entry shows a "NAME NOT FOUND" Result for the file C:\\Windows\\token.
 
-![](/images/name/image-XIRNRLw8.png){width="auto"}
+![Token file not found](/images/name/image-XIRNRLw8.png){width="auto"}
 
 Using the Cmdlet Test-Path, let’s check if the file exists:
 
-![](/images/name/image-X4p3beKm.png){width="auto"}
+![Token file does not exist](/images/name/image-X4p3beKm.png){width="auto"}
 
 As expected the file doesn’t exist. To resolve this issue, let’s create this file as empty file with the Cmdlet New-Item.
 
-![](/images/name/image-kj03Fapx.png){width="auto"}
+![Creating empty token file](/images/name/image-kj03Fapx.png){width="auto"}
 
 Once done, let’s rerun the binary.
 
-![](/images/name/image-lOShlumD.png){width="auto"}
+![viruz.exe now waiting for token after file creation](/images/name/image-lOShlumD.png){width="auto"}
 
 Now, the binary returns the information “Waiting for token…” instead of the previous error. In addition, it doesn’t terminate itself but waits presumably for input of a token of some kind. Let’s clear the ProcMon screen and rerun the binary to see what the binary is doing.
 

@@ -38,7 +38,7 @@ report_template = """
 
 
 <section id="page-cover" data-sysreptor-generated="page-cover">
-    <img id="page-cover-logo" src="/assets/name/logo-transparent.png" alt="">
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.png" alt="logo">
     <div id="page-cover-logo-title">
         <strong>HACK</strong>THE<strong>BOX</strong>
     </div>
@@ -634,7 +634,7 @@ id = "logo"
 type = "markdown"
 label = "HTB Logo"
 origin = "custom"
-default = "![](/assets/name/logo-banner.svg)"
+default = "![logo](/assets/name/logo-banner.svg)"
 required = true
 
 [[report_sections.fields]]
@@ -1021,7 +1021,7 @@ icon_emoji = "🛡️"
 
 [report_preview_data.report]
 title = "Private Web App Pentest"
-logo = "![](/assets/name/logo-banner.svg)"
+logo = "![logo](/assets/name/logo-banner.svg)"
 report_date = "2025-07-01"
 engagement_contacts = """
 TODO: update contacts

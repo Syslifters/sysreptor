@@ -3,11 +3,11 @@
     <pre ref="codeContainerRef" v-bind="$attrs">
       <slot name="default" />
     </pre>
-    <img ref="svgContainerRef" :src="diagramSvg || undefined" alt="" v-bind="$attrs" />
+    <img ref="svgContainerRef" :src="diagramSvg || undefined" alt="mermaid diagram" v-bind="$attrs" />
     <canvas ref="canvasRef" />
   </template>
   <div v-else class="mermaid-diagram" v-bind="$attrs">
-    <img :src="diagramPng" alt="" />
+    <img :src="diagramPng" alt="mermaid diagram" />
   </div>
 </template>
 

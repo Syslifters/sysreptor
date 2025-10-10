@@ -3,7 +3,7 @@
     :width="chartWidth || (width * 50)" 
     :height="chartHeight || (height * 50)" 
   />
-  <img v-else :src="chartImageData" alt="" :style="{width: width + 'cm', height: height + 'cm'}"   />
+  <img v-else :src="chartImageData" alt="chart" :style="{width: width + 'cm', height: height + 'cm'}"   />
 </template>
 
 <script setup lang="ts">
