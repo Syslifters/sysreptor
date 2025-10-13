@@ -52,7 +52,7 @@
         </figcaption>
     </figure>
 </a>
-<a href="/assets/reports/OSCP-Exam-Report.pdf" target="_blank">
+<a href="/assets/reports/OffSec-OSCP-Exam-Report.pdf" target="_blank">
     <figure style="float:left;width:24%;margin:0.5em;">
         <img alt="Offsec OSCP+ Report" src="/assets/reports/OffSec-OSCP-Exam-Report-Preview.png" style="border:1px solid;" />
         <figcaption><a href="/assets/offsec-designs.tar.gz">Download OffSec designs</a></figcaption>
