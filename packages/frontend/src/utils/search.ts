@@ -18,7 +18,7 @@ export type SearchResult<T> = {
 export type NoteSearchResults<T extends NoteBase> = (SearchResult<T> & { children: NoteSearchResults<T> })[];
 
 
-function searchField(obj: any, search: string, field?: string): SearchResultMatch[] {
+export function searchField(obj: any, search: string, field?: string): SearchResultMatch[] {
   const fieldValue = field ? get(obj, field) : obj;
   if (typeof fieldValue !== 'string') {
     return [];
