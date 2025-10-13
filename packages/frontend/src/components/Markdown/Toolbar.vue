@@ -16,20 +16,41 @@
       <v-menu
         v-if="props.referenceItems"
         :disabled="props.disabled || props.referenceItems.length === 0"
+        @update:model-value="referenceItemSearch = $event ? '' : referenceItemSearch"
       >
         <template #activator="{ props: menuProps }">
           <markdown-toolbar-button title="Finding Reference" icon="mdi-alpha-f-box-outline" v-bind="menuProps" />
         </template>
         <template #default>
           <v-list density="compact" class="pa-0 finding-reference-list">
-            <v-list-subheader>Finding Reference</v-list-subheader>
+            <div class="finding-reference-list-header">
+              <v-list-subheader>Finding Reference</v-list-subheader>
+              <v-list-subheader>
+                <s-text-field 
+                  v-model="referenceItemSearch"
+                  placeholder="Search..."
+                  density="compact"
+                  variant="underlined"
+                  prepend-inner-icon="mdi-magnify"
+                  clearable
+                  autofocus
+                  autocomplete="off"
+                  spellcheck="false"
+                  @click.stop
+                  class="finding-reference-list-search"
+                />
+              </v-list-subheader>
+            </div>
             <v-list-item
-              v-for="item in props.referenceItems"
+              v-for="item in referenceItemResults"
               :key="item.id"
               @click="codemirrorAction(() => insertText(props.editorView!, `[](#${item.id})`))"
               :title="item.title"
               :class="'finding-level-' + levelNumberFromLevelName(item.severity)"
             />
+            <v-list-item v-if="referenceItemResults.length === 0" disabled>
+              No finding references found
+            </v-list-item>
           </v-list>
         </template>
       </v-menu>
@@ -265,6 +286,14 @@ function emitCreateComment() {
   })
 }
 
+const referenceItemSearch = ref('');
+const referenceItemResults = computed(() => {
+  if (!props.referenceItems || !referenceItemSearch.value) {
+    return props.referenceItems || [];
+  }
+  return props.referenceItems.filter(item => searchField(item, referenceItemSearch.value, 'title').length > 0);
+})
+
 defineExpose({
   additionalContentId,
 });
@@ -313,6 +342,20 @@ defineExpose({
 
 .finding-reference-list {
   max-height: 70vh;
+
+  &-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: rgba(var(--v-theme-surface), 1);
+  }
+  &-search {
+    --v-input-padding-top: 0 !important;
+    --v-field-padding-top: 0 !important;
+  }
+  :deep(.v-list-subheader__text) {
+    width: 100%;
+  }
 }
 
 .v-btn-toggle.toggle-mdemode {

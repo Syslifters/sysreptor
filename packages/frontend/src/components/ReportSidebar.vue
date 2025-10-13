@@ -155,7 +155,7 @@
                   <template #default>
                     <v-list-item-title class="text-body-2">{{ findingTitle(finding) }}</v-list-item-title>
                     <v-list-item-subtitle v-if="finding.assignee">@{{ finding.assignee.username }}</v-list-item-subtitle>
-                    <s-tooltip v-if="['resolved', 'accepted', 'partial'].includes(findingRetestStatus(finding)?.value)" activator="parent">
+                    <s-tooltip v-if="['resolved', 'accepted', 'partial'].includes(findingRetestStatus(finding)?.value || '')" activator="parent">
                       Retest status: {{ findingRetestStatus(finding)?.label }}
                     </s-tooltip>
                   </template>
