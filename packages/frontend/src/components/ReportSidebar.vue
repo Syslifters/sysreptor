@@ -46,7 +46,7 @@
         :key="section.id"
         :value="section.id"
         :to="sectionUrl(section)"
-        :active="props.toPrefix ? router.currentRoute.value.path.startsWith(sectionUrl(section)!) : undefined"
+        :active="props.toPrefix ? router.currentRoute.value.path.startsWith(sectionUrl(section, false)!) : undefined"
         density="compact"
       >
         <template #default>
@@ -138,7 +138,7 @@
                 <v-list-item
                   :to="findingUrl(finding)"
                   :value="finding.id"
-                  :active="props.toPrefix ? router.currentRoute.value.path.startsWith(findingUrl(finding)!) : undefined"
+                  :active="props.toPrefix ? router.currentRoute.value.path.startsWith(findingUrl(finding, false)!) : undefined"
                   :ripple="false"
                   density="compact"
                   :class="[
@@ -183,7 +183,7 @@
         <div v-for="result in searchResultsSections" :key="result.item.id">
           <v-list-item
             :to="sectionUrl(result.item)"
-            :active="props.toPrefix ? router.currentRoute.value.path.startsWith(sectionUrl(result.item)!) : undefined"
+            :active="props.toPrefix ? router.currentRoute.value.path.startsWith(sectionUrl(result.item, false)!) : undefined"
             density="compact"
           >
             <template #default>
@@ -203,7 +203,7 @@
         <div v-for="result in searchResultsFindings" :key="result.item.id">
           <v-list-item
             :to="findingUrl(result.item)"
-            :active="props.toPrefix ? router.currentRoute.value.path.startsWith(findingUrl(result.item)!) : undefined"
+            :active="props.toPrefix ? router.currentRoute.value.path.startsWith(findingUrl(result.item, false)!) : undefined"
             :class="'finding-level-' + riskLevel(result.item)"
             density="compact"
           >
@@ -263,11 +263,11 @@ const emit = defineEmits<{
 
 const router = useRouter();
 
-function sectionUrl(section: ReportSection) {
-  return props.toPrefix ? `${props.toPrefix}sections/${section.id}/` : undefined;
+function sectionUrl(section: ReportSection, trailingSlash = true) {
+  return props.toPrefix ? `${props.toPrefix}sections/${section.id}${trailingSlash ? '/' : ''}` : undefined;
 }
-function findingUrl(finding: PentestFinding) {
-  return props.toPrefix ? `${props.toPrefix}findings/${finding.id}/` : undefined;
+function findingUrl(finding: PentestFinding, trailingSlash = true) {
+  return props.toPrefix ? `${props.toPrefix}findings/${finding.id}${trailingSlash ? '/' : ''}` : undefined;
 }
 function findingTitle(finding: PentestFinding) {
   return finding.data.title;

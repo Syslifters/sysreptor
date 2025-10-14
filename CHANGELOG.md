@@ -10,6 +10,7 @@
 * Markdown editor: Make insert finding reference searchable
 * Support generate accessible PDF/UA files via config `GENERATE_ACCESSIBLE_PDFS`
 * Improve warning location reporting during PDF rendering
+* Fix selected finding not highlighted in report sidebar
 
 
 ## v2025.83 - 2025-09-26
