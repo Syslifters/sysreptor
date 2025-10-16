@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vitest",
+    "test": "vitest run",
     "generate": "nuxt generate",
     "postinstall": "nuxt prepare"
   },
@@ -21,6 +21,6 @@
   "devDependencies": {
     "@nuxt/test-utils": "3.19.1",
     "vitest": "^3.0.4",
-    "happy-dom": "^17.0.0"
+    "happy-dom": "^20"
   }
 }

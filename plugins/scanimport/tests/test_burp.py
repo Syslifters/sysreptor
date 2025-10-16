@@ -74,8 +74,8 @@ class TestBurpImporter:
             </issue>
         </issues>
         """)])[0]
-        assert issue['issueBackground'] == 'This is `bold` and `italic` text.\n\n'
-        assert issue['issueDetail'] == '* Item 1\n* Item 2\n'
+        assert issue['issueBackground'] == 'This is `bold` and `italic` text.'
+        assert issue['issueDetail'] == '* Item 1\n* Item 2'
         assert issue['affected_components'] == ['https://example.com/test/path']
         assert issue['references'] == ['https://example.com/ref1', 'https://example.com/ref2']
 
