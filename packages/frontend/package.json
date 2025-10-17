@@ -40,7 +40,7 @@
     "@types/randomcolor": "^0.5.9",
     "eslint": "^9.0.0",
     "vitest": "^3.0.4",
-    "happy-dom": "^17.0.0",
+    "happy-dom": "^20.0.0",
     "vue-tsc": "^3.0.4",
     "@playwright/test": "1.56.0"
   },

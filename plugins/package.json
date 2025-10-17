@@ -8,5 +8,8 @@
   "devDependencies": {
     "license-checker-rseidelsohn": "^4.4.2",
     "sass-embedded": "^1.79.5"
+  },
+  "overrides": {
+    "happy-dom": "20.0.2"
   }
 }

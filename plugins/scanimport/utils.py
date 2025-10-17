@@ -4,8 +4,8 @@ from unittest import mock
 
 from django.template import Context, Engine
 from django.template.base import Token, TokenType
-from html_to_markdown import convert_to_markdown
 from lxml import etree
+from markdownify import markdownify
 from sysreptor.pentests.cvss.cvss2 import is_cvss2, parse_cvss2
 
 
@@ -62,15 +62,15 @@ def xml_to_dict(node, elements_str: list[str]|None = None) -> dict:
     return result
 
 
-def html_to_markdown(html: str, **kwargs) -> str:
-    return convert_to_markdown(
-        source=html, 
-        extract_metadata=False,
-        heading_style="atx",
-        bullets="*",
-        escape_misc=False,
-        preprocess_html=True,
-        **kwargs
+def html_to_markdown(html: str, map_tags: dict[str, str] = None) -> str:
+    if map_tags:
+        for ot, nt in map_tags.items():
+            html = re.sub(rf"<(/?){ot}(>|\s|$)", lambda m: f"<{m.group(1)}{nt}{m.group(2) or ''}", html)
+
+    return markdownify(
+        html=html,
+        heading_style='atx',
+        bullets='*',
     )
 
 
