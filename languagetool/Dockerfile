@@ -57,7 +57,10 @@ CMD ["/LanguageTool/start.sh"]
 
 
 FROM ${PROD_LANGUAGETOOL_IMAGE} AS languagetool-src
+USER 0
+ARG LANGUAGETOOL_VERSION
+RUN apk add --no-cache git
 RUN git clone https://github.com/languagetool-org/languagetool.git --depth 1 -b v${LANGUAGETOOL_VERSION} /languagetool-src
-
+USER 100
 
 FROM languagetool
