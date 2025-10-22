@@ -261,7 +261,7 @@ release-prod:
     - VERSION_NUMBER=$(python3 -c "from packaging.version import Version;print(Version('${VERSION_NUMBER_LEADING_ZEROS}'))")
     - RELEASE_NOTES=$(awk "/## v${VERSION_NUMBER}.*/{include=1; next} /## v.*/{include=0} include && NF" CHANGELOG.md)
     - TEST_CI_COMMIT_TAG=test-$VERSION_NUMBER_LEADING_ZEROS
-    - grep -vE "(^|^# *)SYSREPTOR_VERSION=" deploy/.env > deploy/.env
+    - sed -i '/^\(# *\)\?SYSREPTOR_VERSION=/d' deploy/.env
     - sed -i "1s/^/SYSREPTOR_VERSION=${VERSION_NUMBER}\n/" deploy/.env
 
     # Delete unnecessary files

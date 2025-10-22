@@ -1,6 +1,6 @@
 # Changelog
 
-## v2025.89 - 2025-10-22
+## v2025.90 - 2025-10-22
 * Fix remote notification disappearing after refetch
 * Improve finding grouping in design preview data
 * Add retest status indicator to finding list
