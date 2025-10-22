@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.89 - 2025-10-22
 * Fix remote notification disappearing after refetch
 * Improve finding grouping in design preview data
 * Add retest status indicator to finding list
@@ -8,7 +8,7 @@
 * Markdown editor: Improve scroll sync for nested lists
 * Markdown editor: Sticky header in nested fields
 * Markdown editor: Make insert finding reference searchable
-* Support generate accessible PDF/UA files via config `GENERATE_ACCESSIBLE_PDFS`
+* Support generating accessible PDF/UA files via config `GENERATE_ACCESSIBLE_PDFS`
 * Improve warning location reporting during PDF rendering
 * Fix selected finding not highlighted in report sidebar
 
@@ -18,7 +18,7 @@
 * Plugin `scanimport`: Prevent errors on incompatible finding field types
 * Prevent excalidraw update errors on delete note
 * Do not include pdfviewer in every plugin frontend build
-* Enforce read only flag for is_project_admin
+* Enforce read only flag for `is_project_admin`
 
 
 ## v2025.81 - 2025-09-24
