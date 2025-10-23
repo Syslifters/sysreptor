@@ -140,7 +140,7 @@ ARCHIVED_FILE_LOCATION="archivedfiles"
 ```
 
 ### Emails
-SysReptor sends emails for notifications and password resets. Configure the SMTP server to use for sending emails.
+SysReptor sends emails for password resets. Configure the SMTP server to use for sending emails.
 See https://docs.djangoproject.com/en/stable/ref/settings/#email-host
 
 ``` title="Email settings"
