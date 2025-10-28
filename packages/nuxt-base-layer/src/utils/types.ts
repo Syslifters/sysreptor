@@ -634,6 +634,7 @@ export type ShareInfo = BaseModel & {
   is_revoked: boolean;
   permissions_write: boolean;
   password: string|null;
+  comment: string|null;
 }
 
 export type ShareInfoPublic = BaseModel & {

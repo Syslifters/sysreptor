@@ -213,14 +213,11 @@
 
             <v-card-text>
               <!-- Bulk edit list items of list[string] -->
-              <v-textarea
+              <s-textarea
                 v-if="definition.items!.type === FieldDataType.STRING && bulkEditList"
                 :model-value="(formValue || []).join('\n')"
                 @update:model-value="emitInputStringList"
-                auto-grow
-                hide-details="auto"
                 spellcheck="false"
-                variant="outlined"
                 v-bind="fieldAttrs"
                 label="Enter one item per line"
                 class="mt-4"

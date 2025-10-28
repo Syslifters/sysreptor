@@ -66,6 +66,16 @@
           :error-messages="props.error?.is_revoked"
         />
       </v-col>
+      <v-col v-if="showField('comment')" cols="12">
+        <s-textarea
+          :model-value="modelValue.comment"
+          @update:model-value="updateProp('comment', $event)"
+          label="Comment (optional)"
+          rows="1"
+          :disabled="props.disabled"
+          :error-messages="props.error?.comment"
+        />
+      </v-col>
 
       <slot name="append-fields" />
     </v-row>

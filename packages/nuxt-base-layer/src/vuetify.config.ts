@@ -150,6 +150,14 @@ export default defineVuetifyConfiguration({
       variant: 'outlined',
       spellcheck: 'false',
     },
+    STextarea: {
+      persistentHint: true,
+      hideDetails: 'auto',
+      maxErrors: 100,
+      variant: 'outlined',
+      spellcheck: 'false',
+      autoGrow: true,
+    },
     SNumberInput: {
       precision: null,
       controlVariant: 'stacked',
@@ -208,6 +216,7 @@ export default defineVuetifyConfiguration({
     SBtnOther: 'VBtn',
     SBtnIcon: 'VBtn',
     STextField: 'VTextField',
+    STextarea: 'VTextarea',
     SNumberInput: 'VNumberInput',
     SCheckbox: 'VCheckbox',
     SSelect: 'VSelect',
