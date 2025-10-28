@@ -48,7 +48,7 @@ watch(theme, () => {
 const router = useRouter();
 watch(router.currentRoute, () => {
   // Reset browser-based spellcheck on navigation
-  if (!apiSettings.settings?.features.spellcheck) {
+  if (auth.loggedIn.value && apiSettings.settings && !apiSettings.settings.features.spellcheck) {
     localSettings.setAllSpellcheckSettings(false);
   }
 })
