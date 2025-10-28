@@ -273,22 +273,16 @@
 
               <template v-else-if="setupWizard.step === SetupWizardStep.VERIFY">
                 <v-card-text>
-                  <p>
-                    Please decrypt the following message with your private key to verify that you own it.<br>
-                    Copy the decrypted verification code below.
-                  </p>
-                  <p class="mb-0"><s-code>gpg --decrypt message.txt</s-code></p>
-                  <s-codeblock-field
-                    v-model="setupWizard.data.verification"
-                    readonly
-                  />
-
-                  <s-text-field
+                  <decrypt-form
                     v-model="setupWizard.form.verification"
-                    label="Verification"
-                    :error-messages="error || []"
-                    spellcheck="false"
-                  />
+                    :encrypted-data="setupWizard.data.verification"
+                    :error-messages="error"
+                  >
+                    <template #message>
+                      We need to verify that you own the private key for the provided public key.<br>
+                      Please decrypt the following message with your private key.
+                    </template>
+                  </decrypt-form>
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer />

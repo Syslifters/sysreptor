@@ -33,23 +33,17 @@
             </template>
             <template #default>
               <v-container v-if="restoreWizard.selectedParts.length > 0" fluid>
-                <p>
-                  Decrypt the following message with your private key <strong>{{ restoreWizard.selectedParts[0]!.public_key.name }}</strong>
-                  and copy the decrypted data into the text field below.
-                </p>
-                <p><s-code>gpg --decrypt message.txt</s-code></p>
-                <s-codeblock-field
-                  v-model="restoreWizard.selectedParts[0]!.encrypted_data"
-                  readonly
-                />
-
-                <s-text-field
+                <decrypt-form
                   v-model="restoreWizard.form.data"
-                  label="Decrypted data"
-                  :error-messages="restoreWizard.error || []"
-                  spellcheck="false"
-                  class="mt-4"
-                />
+                  :encrypted-data="restoreWizard.selectedParts[0]!.encrypted_data"
+                  :error-messages="restoreWizard.error"
+                >
+                  <template #message>
+                    Decrypt the following message with your private key <strong>{{ restoreWizard.selectedParts[0]!.public_key.name }}</strong>
+                    and copy the decrypted data into the text field below.
+                  </template>
+                </decrypt-form>
+
                 <btn-confirm
                   :action="decryptKeyPart"
                   :disabled="!restoreWizard.form.data"

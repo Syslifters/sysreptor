@@ -8,7 +8,7 @@
     autocomplete="off"
     class="textarea-codeblock"
   >
-    <template #label v-if="$slots.label"><slot name="label" /></template>
+    <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
   </v-textarea>
 </template>
 
