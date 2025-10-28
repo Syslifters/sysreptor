@@ -3,6 +3,7 @@
 ## Upcoming
 * Add comment to shared note/link
 * Add copy buttons for restoring archived projects
+* Fix Bitwarden auto-fill on login form
 
 
 ## v2025.90 - 2025-10-22
