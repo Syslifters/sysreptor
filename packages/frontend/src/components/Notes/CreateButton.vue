@@ -1,11 +1,14 @@
 <template>
-  <div class="split-button-container">
+  <v-btn-group 
+    divided
+    class="w-100 overflow-hidden"
+  >
     <s-btn-secondary
       @click="performCreate()"
       :disabled="props.disabled"
       :loading="actionInProgress"
       prepend-icon="mdi-plus"
-      class="split-button-main"
+      class="flex-grow-width"
       size="small"
       data-testid="create-note-button"
     >
@@ -15,8 +18,8 @@
     
     <s-btn-secondary
       :disabled="props.disabled"
-      class="split-button-menu"
       size="small"
+      class="split-button-menu"
     >
       <v-icon icon="mdi-menu-down" />
       
@@ -38,7 +41,7 @@
         </v-list>
       </v-menu>
     </s-btn-secondary>
-  </div>
+  </v-btn-group>
 </template>
 
 <script setup lang="ts">
@@ -71,24 +74,7 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-.split-button-container {
-  display: flex;
-  flex-direction: row;
-  
-  .split-button-main {
-    border-top-right-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
-    border-right: none;
-    flex-grow: 1;
-    min-width: 0;
-  }
-  
-  .split-button-menu {
-    border-top-left-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
-    min-width: 32px !important;
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-  }
+.split-button-menu {
+  min-width: 0;
 }
 </style>
