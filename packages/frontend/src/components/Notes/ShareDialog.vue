@@ -20,13 +20,13 @@
                 v-for="shareInfo in shareInfos"
                 :key="shareInfo.id"
                 :value="shareInfo.id"
+                :title="shareInfo.comment || undefined"
                 prepend-icon="mdi-share-variant"
+                lines="three"
                 class="pl-2"
               >
-                <template #title>
-                  <chip-created :value="shareInfo.created" />
-                </template>
                 <template #subtitle>
+                  <chip-created :value="shareInfo.created" />
                   <v-chip v-if="shareInfo.is_revoked" color="error" size="small">Revoked</v-chip>
                   <chip-expires :value="shareInfo.expire_date" />
                 </template>

@@ -7,6 +7,7 @@ from sysreptor.tests.mock import (
     create_project,
     create_projectnotebookpage,
     create_shareinfo,
+    create_user,
     update,
 )
 
@@ -96,6 +97,24 @@ class TestSharedPermissions:
         urlname = 'sharednote-image-by-name' if 'img' in filename else 'sharednote-file-by-name'
         res = self.client.get(reverse(urlname, kwargs={'shareinfo_pk': self.share_info.id, 'filename': filename}))
         assert res.status_code == (200 if expected else 403)
+
+    def test_comment(self):
+        user = create_user()
+        client_user = api_client(user=user)
+        self.project.members.create(user=user)
+
+        # Test authenticated access
+        comment_text = 'Initial comment'
+        client_user.patch(reverse('shareinfo-detail', kwargs={'project_pk': self.project.id, 'note_id': self.note_shared.note_id, 'pk': self.share_info.id}), data={
+            'comment': comment_text,
+        })
+        res_auth = client_user.get(reverse('shareinfo-detail', kwargs={'project_pk': self.project.id, 'note_id': self.note_shared.note_id, 'pk': self.share_info.id}))
+        assert res_auth.data['comment'] == comment_text
+
+        # Test unauthenticated access - comment field should NOT be present
+        res_public = self.client.get(reverse('publicshareinfo-detail', kwargs={'pk': self.share_info.id}))
+        assert res_public.status_code == 200
+        assert 'comment' not in res_public.data
 
 
 @pytest.mark.django_db()
