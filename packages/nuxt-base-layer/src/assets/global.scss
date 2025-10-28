@@ -43,6 +43,10 @@ body {
 .v-breadcrumbs-item--link:hover {
   color: rgb(var(--v-theme-primary));
 }
+.v-text-field input.v-field__input {
+  // opacity=0 prevents Bitwarden from auto-filling fields
+  opacity: 1;
+}
 
 
 // CodeMirror overrides
