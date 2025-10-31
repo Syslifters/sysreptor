@@ -5,6 +5,7 @@
 * Add copy buttons for restoring archived projects
 * Fix Bitwarden auto-fill on login form
 * Fix spellcheck disabled when settings are not loaded yet
+* Fix excalidraw notes content not copied when copying notes
 
 
 ## v2025.90 - 2025-10-22

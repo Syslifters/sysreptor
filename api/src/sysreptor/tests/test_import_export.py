@@ -629,7 +629,7 @@ class TestCopyModel:
     def test_copy_project(self):
         user = create_user()
         p = create_project(members=[user], comments=True, readonly=True, source=SourceEnum.IMPORTED)
-        create_projectnotebookpage(project=p, parent=p.notes.first())
+        create_projectnotebookpage(project=p, parent=p.notes.first(), type=NoteType.EXCALIDRAW)
         create_finding(project=p, template=create_template())
         cp = p.copy()
 
@@ -663,12 +663,14 @@ class TestCopyModel:
 
         for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id'), strict=False):
             assert p_n != cp_n
-            assertKeysEqual(p_n, cp_n, ['note_id', 'title', 'text', 'checked', 'icon_emoji', 'order'])
+            assertKeysEqual(p_n, cp_n, ['note_id', 'type', 'title', 'text', 'checked', 'icon_emoji', 'order', 'excalidraw_data'])
             if p_n.parent:
                 assert p_n.parent.note_id == cp_n.parent.note_id
                 assert p_n.parent != cp_n.parent
             else:
                 assert cp_n.parent is None
+            if p_n.type == NoteType.EXCALIDRAW:
+                assert p_n.excalidraw_file.pk != cp_n.excalidraw_file.pk
 
         for p_x, cp_x in zip(
             ProjectNotebookExcalidrawFile.objects.filter(linked_object__project=p).order_by('linked_object__note_id'),
@@ -712,23 +714,24 @@ class TestCopyModel:
     def test_copy_notes(self):
         p = create_project(notes_kwargs=[])
         n1 = create_projectnotebookpage(project=p, parent=None, order=1)
-        n1_1 = create_projectnotebookpage(project=p, parent=n1, order=1)
+        n1_1 = create_projectnotebookpage(project=p, parent=n1, order=1, type=NoteType.EXCALIDRAW)
         n2 = create_projectnotebookpage(project=p, parent=None, order=2)
         n2_1 = create_projectnotebookpage(project=p, parent=n2, order=1)
 
         # Note copied
         cp_n1 = n1.copy()
-        assertKeysEqual(cp_n1, n1, ['title', 'text', 'checked', 'icon_emoji'])
+        assertKeysEqual(cp_n1, n1, ['type', 'title', 'text', 'checked', 'icon_emoji', 'excalidraw_data'])
         assert cp_n1.id != n1.id
         assert cp_n1.note_id != n1.note_id
         assert cp_n1.order == n1.order + 1
 
         # Child-notes copied
         cp_n1_1 = p.notes.get(parent=cp_n1)
-        assertKeysEqual(cp_n1, n1, ['title', 'text', 'checked', 'icon_emoji'])
+        assertKeysEqual(cp_n1_1, n1_1, ['type', 'title', 'text', 'checked', 'icon_emoji', 'excalidraw_data'])
         assert cp_n1_1.id != n1_1.id
         assert cp_n1_1.note_id != n1_1.note_id
         assert cp_n1_1.order == n1_1.order
+        assert cp_n1_1.excalidraw_file.pk != n1_1.excalidraw_file.pk
 
         # Order updated
         n2.refresh_from_db()
