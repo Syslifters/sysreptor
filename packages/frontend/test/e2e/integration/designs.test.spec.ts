@@ -11,9 +11,9 @@ test('A User can create an Design with a Name', async ({ page }) => {
 
   // Create New Design Modal
   await page.getByTestId('create-button').click();
-  await page.getByTestId('copy-existing-design').locator('css=input[type=text]').fill(designName);
-  await page.locator('circle').nth(1).waitFor({state: 'hidden'});
-  await page.keyboard.press('Escape');
+  // await page.getByTestId('copy-existing-design').locator('css=input[type=text]').fill(designName);
+  // await page.locator('circle').nth(1).waitFor({state: 'hidden'});
+  // await page.keyboard.press('Escape');
   await page.getByTestId('submit-design').waitFor();
   await page.getByTestId('submit-design').click();
 

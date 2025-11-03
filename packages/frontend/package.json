@@ -20,7 +20,7 @@
     "pinia": "^3.0",
 
     "sass-embedded": "^1.79.5",
-    "@vueuse/nuxt": "^13.0.0",
+    "@vueuse/nuxt": "^14.0.0",
     "monaco-editor": "^0.54.0",
     "vuedraggable": "^4.1.0",
     "@he-tree/vue": "^2.9.4",
@@ -42,7 +42,7 @@
     "vitest": "^3.0.4",
     "happy-dom": "^20.0.0",
     "vue-tsc": "^3.0.4",
-    "@playwright/test": "1.56.0"
+    "@playwright/test": "1.56.1"
   },
   "overrides": {
     "vue": "latest"

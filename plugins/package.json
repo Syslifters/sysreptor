@@ -10,6 +10,6 @@
     "sass-embedded": "^1.79.5"
   },
   "overrides": {
-    "happy-dom": "20.0.2"
+    "happy-dom": "20.0.10"
   }
 }
