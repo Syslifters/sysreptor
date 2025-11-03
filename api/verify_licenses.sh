@@ -30,5 +30,6 @@ allow_only="$allow_only;MIT AND Python-2.0"
 
 ignore=""
 ignore="$ignore randomcolor"  # Has MIT license but py package listed as UNKNOWN
+ignore="$ignore wrapt"  # BSD-2-Clause
 
 pip-licenses --allow-only "$allow_only" --ignore-packages $ignore >/dev/null
