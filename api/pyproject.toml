@@ -14,13 +14,13 @@ dependencies = [
   "django-storages[s3] (~=1.13)",
   "drf-nested-routers (~=0.95)",
   "django-filter (~=25.1)",
-  "drf-spectacular[sidecar] (~=0.28)",
+  "drf-spectacular[sidecar] (~=0.29)",
   "django-simple-history (~=3.5)",
   "adrf (~=0.1)",
 
   "psycopg[binary,pool] (~=3.1)",
   "gunicorn (~=23.0)",
-  "uvicorn[standard] (~=0.36)",
+  "uvicorn[standard] (~=0.38)",
   "whitenoise (~=6.4)",
   "channels[daphne] (~=4.2)",
   "channels-redis (~=4.2)",
@@ -43,7 +43,7 @@ dependencies = [
   "randomcolor (~=0.4)",
   "zipstream-ng (~=1.6)",
   "playwright (~=1.53)",
-  "pikepdf (~=9.0)",
+  "pikepdf (~=10.0)",
   "celery (~=5.3)",
   "psutil (~=7.0)",
   "markdownify (~=1.2)",
@@ -57,7 +57,7 @@ dependencies = [
   "pytest-xdist (~=3.2)",
   "pytest-cov (~=7.0)",
 
-  "pip-licenses-cli (~=2.0)",
+  "pip-licenses-cli (~=3.0)",
   "ruff (~=0.14)",
 ]
 

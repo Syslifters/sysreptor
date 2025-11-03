@@ -106,16 +106,16 @@ function normalizeIndent(content: string, state: EditorState) {
   return space + content.slice(blank)
 }
 
-/// This command, when invoked in Markdown context with cursor
-/// selection(s), will create a new line with the markup for
-/// blockquotes and lists that were active on the old line. If the
-/// cursor was directly after the end of the markup for the old line,
-/// trailing whitespace and list markers are removed from that line.
-///
-/// The command does nothing in non-Markdown context, so it should
-/// not be used as the only binding for Enter (even in a Markdown
-/// document, HTML and code regions might use a different language).
-export const insertNewlineContinueMarkup: StateCommand = ({state, dispatch}) => {
+/// Returns a command like
+/// [`insertNewlineContinueMarkup`](#lang-markdown.insertNewlineContinueMarkup),
+/// allowing further configuration.
+export const insertNewlineContinueMarkupCommand = (config: {
+  /// By default, when pressing enter in a blank second item in a
+  /// tight (no blank lines between items) list, the command will
+  /// insert a blank line above that item, starting a non-tight list.
+  /// Set this to false to disable this behavior.
+  nonTightLists?: boolean
+} = {}): StateCommand => ({state, dispatch}) => {
   let tree = syntaxTree(state), {doc} = state
   let dont: {range: SelectionRange}|null = null, changes = state.changeByRange(range => {
     if (!range.empty || !markdownLanguage.isActiveAt(state, range.from, -1) && !markdownLanguage.isActiveAt(state, range.from, 1)) {
@@ -134,7 +134,9 @@ export const insertNewlineContinueMarkup: StateCommand = ({state, dispatch}) => 
       // let first = inner.node.firstChild, second = inner.node.getChild("listItem", "listItem")
       // // Not second item or blank line before: delete a level of markup
       // if (first.to >= pos || second && second.to < pos ||
-          // line.from > 0 && !/[^\s>]/.test(doc.lineAt(line.from - 1).text)) {
+      //     line.from > 0 && !/[^\s>]/.test(doc.lineAt(line.from - 1).text)) {
+      //     line.from > 0 && !/[^\s>]/.test(doc.lineAt(line.from - 1).text) ||
+      //     config.nonTightLists === false) {
       let next = context.length > 1 ? context[context.length - 2] : null
       let delTo, insert = ""
       if (next && next.item) { // Re-add marker for the list at the next level
@@ -196,6 +198,17 @@ export const insertNewlineContinueMarkup: StateCommand = ({state, dispatch}) => 
   dispatch(state.update(changes, {scrollIntoView: true, userEvent: "input"}))
   return true
 }
+
+/// This command, when invoked in Markdown context with cursor
+/// selection(s), will create a new line with the markup for
+/// blockquotes and lists that were active on the old line. If the
+/// cursor was directly after the end of the markup for the old line,
+/// trailing whitespace and list markers are removed from that line.
+///
+/// The command does nothing in non-Markdown context, so it should
+/// not be used as the only binding for Enter (even in a Markdown
+/// document, HTML and code regions might use a different language).
+export const insertNewlineContinueMarkup = insertNewlineContinueMarkupCommand()
 
 
 function nonTightList(node: SyntaxNode, doc: Text) {
