@@ -173,12 +173,13 @@ async function selectComment(comment: Comment|null, options?: { focus?: string }
     } else if (options?.focus === 'field') {
       const filedId = comment.path.split('.').slice(3).join('.').replaceAll('.[', '[');
       const elField = document.getElementById(filedId);
-      elField?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
       const elFieldInput = (elField?.querySelector('*[contenteditable]') || elField?.querySelector('input')) as HTMLInputElement|undefined;
+      const elCommentTextRange = document.getElementById(`comment-textrange-${comment.id}`);
+      
+      (elCommentTextRange ?? elField)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       elFieldInput?.focus({ preventScroll: true });
 
-      const elCommentTextRange = document.getElementById(`comment-textrange-${comment.id}`);
       if (elFieldInput && elCommentTextRange && comment.text_range) {
         const range = document.createRange();
         range.selectNode(elCommentTextRange);
