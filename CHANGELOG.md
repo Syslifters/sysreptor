@@ -1,5 +1,10 @@
 # Changelog
 
+## Upcoming
+* Fix error on navigate to shared sub-note via URL
+* Fix scroll to comment landing on offset position
+
+
 ## v2025.94 - 2025-11-12
 * Add comment to shared note/link
 * Add copy buttons for restoring archived projects
