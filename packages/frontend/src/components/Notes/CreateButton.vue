@@ -1,7 +1,7 @@
 <template>
   <v-btn-group 
     divided
-    class="w-100 overflow-hidden"
+    class="w-100 h-auto overflow-hidden"
   >
     <s-btn-secondary
       @click="performCreate()"
