@@ -1,5 +1,5 @@
 <template>
-  <split-menu v-model="localSettings.notebookInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
+  <split-menu v-if="shareInfo && notesCollab" v-model="localSettings.notebookInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
       <notes-menu
         title="Notes"
@@ -70,24 +70,24 @@ const shareInfo = await useAsyncDataE(async () => {
   }
 });
 
-const notesCollab = shareInfoStore.useNotesCollab({ shareInfo: shareInfo.value! });
+const notesCollab = shareInfo.value ? shareInfoStore.useNotesCollab({ shareInfo: shareInfo.value }) : null;
 const noteGroups = computed(() => shareInfoStore.noteGroups);
-const noteSearchResults = computed(() => searchNotes(shareInfoStore.notes, notesCollab.collabProps.value.search));
+const noteSearchResults = computed(() => searchNotes(shareInfoStore.notes, notesCollab?.collabProps.value.search));
 
 onMounted(async () => {
-  await notesCollab.connect();
+  await notesCollab?.connect();
   collabAwarenessSendNavigate();
 });
 onBeforeUnmount(async () => {
-  await notesCollab.disconnect();
+  await notesCollab?.disconnect();
 });
 watch(() => router.currentRoute.value, collabAwarenessSendNavigate);
 
 function collabAwarenessSendNavigate() {
   const noteId = router.currentRoute.value.params.noteId;
-  notesCollab.onCollabEvent({
+  notesCollab?.onCollabEvent({
     type: CollabEventType.AWARENESS,
-    path: collabSubpath(notesCollab.collabProps.value, noteId ? `notes.${noteId}` : null).path,
+    path: collabSubpath(notesCollab?.collabProps.value, noteId ? `notes.${noteId}` : null).path,
   });
 }
 
@@ -110,15 +110,15 @@ async function createNote(data?: Partial<NoteBase>) {
 }
 
 function updateNoteChecked(note: NoteBase) {
-  notesCollab.onCollabEvent({
+  notesCollab?.onCollabEvent({
     type: CollabEventType.UPDATE_KEY,
-    path: collabSubpath(notesCollab.collabProps.value, `notes.${note.id}.checked`).path,
+    path: collabSubpath(notesCollab?.collabProps.value, `notes.${note.id}.checked`).path,
     value: note.checked,
   });
 }
 
 useHeadExtended({
-  syncState: notesCollab.syncState,
+  syncState: notesCollab?.syncState,
 });
 
 </script>
