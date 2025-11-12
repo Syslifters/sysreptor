@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.94 - 2025-11-12
 * Add comment to shared note/link
 * Add copy buttons for restoring archived projects
 * Fix Bitwarden auto-fill on login form
