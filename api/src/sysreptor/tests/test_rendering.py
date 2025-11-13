@@ -126,6 +126,7 @@ class TestHtmlRendering:
         (html_load_script('https://example.com/external.js'), {'level': 'warning', 'message': 'Blocked request to external URL' }),
         (html_load_script('/assets/name/test.js'), {'level': 'info', 'message': 'Script loaded' }),
         ('<mermaid-diagram>graph TD; A-->[B;</mermaid-diagram>', {'level': 'warning', 'message': 'Mermaid error' }),
+        ('<qrcode value="content" :options="{ color: { dark: { invalid: `type` } } }" />', {'level': 'warning', 'message': 'QR code error' }),
     ])
     def test_error_messages(self, template, expected):
         self.project_type.report_template = template
@@ -370,6 +371,12 @@ class TestHtmlRendering:
         </mermaid-diagram>
         """)
         assert re.fullmatch(r'^\s*<div class="mermaid-diagram">\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="mermaid diagram">\s*</div>\s*$', html)
+
+    def test_qrcode_rendering(self):
+        html = self.render_html("""
+        <qrcode value="https://example.com" />
+        """)
+        assert re.fullmatch(r'^\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="https://example\.com">\s*$', html)
 
     @pytest.mark.parametrize(("password", "encrypted"), [
         ('password', True),

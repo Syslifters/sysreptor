@@ -11,6 +11,7 @@ import ListOfFigures from './components/ListOfFigures.vue';
 import ListOfTables from './components/ListOfTables.vue';
 import Chart from './components/ChartVue.vue';
 import MermaidDiagram from './components/MermaidDiagram.vue';
+import Qrcode from './components/Qrcode.vue';
 import Ref from './components/Ref.vue';
 import { callForTicks, getChildElementsRecursive, useRenderTask, pendingRenderTasks } from './utils';
 
@@ -86,7 +87,7 @@ if (!window.RENDERING_COMPLETED) {
   const app = createApp(defineComponent({
     name: 'root',
     render: RENDER_FUNCTION,
-    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, MermaidDiagram, Ref },
+    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, MermaidDiagram, Qrcode, Ref },
     setup() {
       // Data
       const data = REPORT_DATA;

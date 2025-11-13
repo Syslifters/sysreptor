@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming
+* Allow generating QR codes during PDF rendering (https://docs.sysreptor.com/designer/formatting-utils/#qr-codes)
 * Fix error on navigate to shared sub-note via URL
 * Fix scroll to comment landing on offset position
 * Plugin `customizetheme`: Allow customizing the header logo

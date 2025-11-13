@@ -29,7 +29,7 @@ const rehypeSanitizeSchema = merge({}, defaultSchema, {
   clobberPrefix: null,
   tagNames: [
     // Custom components
-    'footnote', 'template', 'ref', 'pagebreak', 'markdown', 'mermaid-diagram', 
+    'footnote', 'template', 'ref', 'pagebreak', 'markdown', 'mermaid-diagram', 'qrcode',
     // Regular HTML tags not included in default schema
     'figure', 'figcaption', 'caption', 'mark', 'u',
     'abbr', 'bdo', 'cite', 'dfn', 'time', 'var', 'wbr',
