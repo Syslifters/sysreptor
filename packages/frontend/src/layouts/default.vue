@@ -5,10 +5,7 @@
       <v-app-bar-nav-icon v-if="auth.loggedIn.value" @click="navigationDrawerVisible = !navigationDrawerVisible" :ripple="false">
         <svg-logo />
       </v-app-bar-nav-icon>
-      <div v-else class="menu-drawer-header border-0">
-        <svg-logo-text />
-        <span class="license-text">{{ licenseText }}</span>
-      </div>
+      <header-logo-text v-else class="menu-drawer-header border-0" />
       
       <v-spacer />
       <v-breadcrumbs v-if="breadcrumbs" :items="breadcrumbs as any" class="font-weight-medium">
@@ -41,10 +38,8 @@
     </v-app-bar>
 
     <v-navigation-drawer v-if="auth.loggedIn.value" v-bind="naviagtionDrawerProps" color="drawer" class="menu-drawer">
-      <div class="menu-drawer-header" @click="navigationDrawerVisible = !navigationDrawerVisible">
-        <svg-logo-text />
-        <span class="license-text">{{ licenseText }}</span>
-      </div>
+      <header-logo-text class="menu-drawer-header" @click="navigationDrawerVisible = !navigationDrawerVisible" />
+
       <v-list class="pt-0 menu-drawer-body">
         <v-list-item to="/projects/" title="Projects" prepend-icon="mdi-file-document" :active="route.path.startsWith('/projects')" data-testid="projects-tab"/>
         <v-list-item to="/templates/" title="Templates" prepend-icon="mdi-view-compact" :active="route.path.startsWith('/templates')" data-testid="templates-tab" />
@@ -158,14 +153,6 @@ const naviagtionDrawerProps = computed(() => ({
   })
 }));
 
-const licenseText = computed(() => {
-  const license = apiSettings.settings?.license?.type || 'community';
-  return {
-    community: '/CE',
-    professional: '/PRO',
-  }[license] || '';
-});
-
 // Breadcrumbs
 const breadcrumbs = ref<Breadcrumbs>();
 const syncState = ref<SyncState|undefined>();
@@ -265,13 +252,6 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
     height: 48px;
     background-color: rgb(var(--v-theme-header));
     color: rgb(var(--v-theme-on-header));
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex-grow: 0;
-    flex-shrink: 0;
-    padding-left: 0.7rem;
-    padding-right: 0.7rem;
     cursor: pointer;
     border-bottom-width: vuetify.$navigation-drawer-border-thin-width;
     border-bottom-style: vuetify.$navigation-drawer-border-style;
@@ -292,15 +272,5 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
     display: flex;
     flex-direction: column;
   }
-}
-
-.license-text {
-  height: 28px;
-  display: flex;
-  flex-direction: column-reverse;
-  font-weight: 900;
-  font-size: 1.3rem;
-  line-height: 1;
-  color: rgb(var(--v-theme-logo));
 }
 </style>

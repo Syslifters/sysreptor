@@ -2,10 +2,7 @@
   <div class="height-fullscreen">
     <nuxt-loading-indicator :height="2" :color="false" />
     <v-app-bar absolute height="48" elevation="0" color="header" class="menu-appbar">
-      <div class="menu-drawer-header border-0">
-        <svg-logo-text />
-        <span class="license-text">{{ licenseTextFull }}</span>
-      </div>
+      <header-logo-text license-text-variant="long" class="border-0" />
       <v-spacer />
       <user-info-menu-item />
     </v-app-bar>
@@ -15,18 +12,6 @@
     </v-main>
   </div>
 </template>
-
-<script setup lang="ts">
-const apiSettings = useApiSettings();
-
-const licenseTextFull = computed(() => {
-  const license = apiSettings.settings?.license?.type || 'community';
-  return {
-    community: '/Community Edition',
-    professional: '/PRO',
-  }[license] || '';
-});   
-</script>
 
 <style lang="scss" scoped>
 @use 'sass:map';
@@ -54,25 +39,5 @@ const licenseTextFull = computed(() => {
 }
 .v-app-bar-nav-icon:hover svg {
   fill: rgb(var(--v-theme-primary));
-}
-
-.menu-drawer-header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex-grow: 0;
-  flex-shrink: 0;
-  padding-left: 0.7rem;
-  padding-right: 0.7rem;
-}
-
-.license-text {
-  height: 28px;
-  display: flex;
-  flex-direction: column-reverse;
-  font-weight: 900;
-  font-size: 1.3rem;
-  line-height: 1;
-  color: rgb(var(--v-theme-logo));
 }
 </style>

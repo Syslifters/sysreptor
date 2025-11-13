@@ -35,16 +35,21 @@ You want to use the same colors for risk levels in the web UI as in the report P
 }
 ```
 
-### Headers in Corporate Colors
+### Header with Corporate Colors and Logo
 ```json
 {
   "all": {
     "colors": {
       "header": "#ff00ff"
+    },
+    "variables": {
+      "header-logo-url": "data:image/svg+xml;base64,..."
     }
   }
 }
 ```
+
+Note: `header-logo-url` is only applied in SysReptor Pro
 
 ### Matrix Dark Theme
 ```json
