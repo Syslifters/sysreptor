@@ -87,7 +87,7 @@
               <dynamic-input-field 
                 v-model="configurationValues[field.id]"
                 :definition="field"
-                :disabled="field.set_in_env || (plugin.professional_only && !apiSettings.isProfessionalLicense)"
+                :disabled="field.set_in_env || ((plugin.professional_only || field.professional_only) && !apiSettings.isProfessionalLicense)"
                 :error-messages="errorMessages?.[field.id]"
               >
                 <template #label>
