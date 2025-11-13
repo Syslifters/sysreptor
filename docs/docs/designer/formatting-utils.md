@@ -79,6 +79,24 @@ French: <comma-and-join and=" et ">...</comma-and-join>
 ```
 
 
+## QR Codes
+The `<qrcode>` component generates QR codes from text or URLs. `<qrcode>` produces an `<img>` element that can be styled via CSS or attributes.
+
+Examples:
+```html
+<qrcode value="content" />
+<qrcode value="https://example.com" :style="{ width: '10cm' }" />
+<!-- With custom options (see https://github.com/soldair/node-qrcode#qr-code-options) -->
+<qrcode 
+  value="https://example.com" 
+  :options="{ 
+    errorCorrectionLevel: 'H',
+    width: 300,
+    color: { dark: '#000000', light: '#FFFFFF' }
+  }" />
+```
+
+
 ## Helper Functions and Variables
 It is possible to define helper functions and variables inside the Vue template language to reuse logic.
 Defining variables and helper functions works by assigning a value to a variable in an inline JavaScript expression.

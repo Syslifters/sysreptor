@@ -17,7 +17,8 @@
     "chart.js": "^4",
     "chartjs-plugin-datalabels": "^2",
     "uuid": "^13",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.0",
@@ -26,6 +27,7 @@
     "patch-package": "^8.0.0",
 
     "vue-tsc": "^3.0.0",
-    "@vue/tsconfig": "^0.8.0"
+    "@vue/tsconfig": "^0.8.0",
+    "@types/qrcode": "^1.5.6"
   }
 }
