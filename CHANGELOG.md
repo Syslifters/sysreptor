@@ -5,6 +5,7 @@
 * Fix error on navigate to shared sub-note via URL
 * Fix scroll to comment landing on offset position
 * Plugin `customizetheme`: Allow customizing the header logo
+* Plugin `scanimport`: Fix sslyze import error if `scan_result` is `null`
 
 
 ## v2025.94 - 2025-11-12

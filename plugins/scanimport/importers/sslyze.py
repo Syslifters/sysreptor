@@ -312,9 +312,9 @@ class SslyzeImporter(BaseImporter):
         data = json.load(file)
         return isinstance(data, dict) and 'sslyze_version' in data
     
-    def get_protocols(self, scan_result):
+    def get_protocols(self, server_scan_result):
         protocols = []
-        for protocol, protocol_data in scan_result["scan_result"].items():
+        for protocol, protocol_data in (server_scan_result.get("scan_result") or {}).items():
             if (protocol_data.get("result") or {}).get("accepted_cipher_suites"):
                 if p_info := self.protocol_mapping.get(protocol):
                     protocols.append(p_info)
@@ -322,9 +322,9 @@ class SslyzeImporter(BaseImporter):
         protocols = sorted(protocols, key=lambda p: [m['id'] for m in self.protocol_mapping.values()].index(p['id']))
         return protocols
     
-    def get_ciphers(self, scan_result):
+    def get_ciphers(self, server_scan_result):
         ciphers = []
-        for protocol, protocol_data in scan_result["scan_result"].items():
+        for protocol, protocol_data in (server_scan_result.get("scan_result") or {}).items():
             for c in (protocol_data.get("result") or {}).get("accepted_cipher_suites", []):
                 c_name = c['cipher_suite']['openssl_name']
                 ciphers.append({
@@ -336,8 +336,8 @@ class SslyzeImporter(BaseImporter):
         ciphers = sorted(ciphers, key=lambda c: ([m['id'] for m in self.protocol_mapping.values()].index(c['protocol']['id']), c['is_insecure'] * -1, c['is_weak'] * -1))
         return ciphers
     
-    def get_certinfo(self, scan_result):
-        deployments = scan_result.get('scan_result', {}).get('certificate_info', {}).get('result', {}).get('certificate_deployments', [])
+    def get_certinfo(self, server_scan_result):
+        deployments = (server_scan_result.get('scan_result') or {}).get('certificate_info', {}).get('result', {}).get('certificate_deployments', [])
         path_validation_results = list(itertools.chain(*[d.get('path_validation_results', []) for d in deployments]))
 
         certinfo = {
@@ -348,19 +348,21 @@ class SslyzeImporter(BaseImporter):
         certinfo['has_cert_issues'] = bool(certinfo['certificate_untrusted'] or certinfo['has_sha1_in_certificate_chain'] or not certinfo['certificate_matches_hostname'])
         return certinfo
     
-    def get_vulnerabilities(self, scan_result):
+    def get_vulnerabilities(self, server_scan_result):
+        scan_result = server_scan_result.get('scan_result') or {}
         return {
-            'heartbleed': scan_result.get('scan_result', {}).get('heartbleed', {}).get('result', {}).get('is_vulnerable_to_heartbleed', False),
-            'openssl_ccs': scan_result.get('scan_result', {}).get('openssl_ccs_injection', {}).get('result', {}).get('is_vulnerable_to_ccs_injection', False),
-            'robot': 'NOT_VULNERABLE' not in scan_result.get('scan_result', {}).get('robot', {}).get('result', {}).get('robot_result', 'NOT_VULNERABLE'),
+            'heartbleed': scan_result.get('heartbleed', {}).get('result', {}).get('is_vulnerable_to_heartbleed', False),
+            'openssl_ccs': scan_result.get('openssl_ccs_injection', {}).get('result', {}).get('is_vulnerable_to_ccs_injection', False),
+            'robot': 'NOT_VULNERABLE' not in scan_result.get('robot', {}).get('result', {}).get('robot_result', 'NOT_VULNERABLE'),
         }
     
-    def get_misconfigurations(self, scan_result):
+    def get_misconfigurations(self, server_scan_result):
+        scan_result = server_scan_result.get('scan_result') or {}
         return {
-            'compression': scan_result.get('scan_result', {}).get('tls_compression', {}).get('result', {}).get('supports_compression', False),
-            'downgrade': not scan_result.get('scan_result', {}).get('tls_fallback_scsv', {}).get('result', {}).get('supports_fallback_scsv', True),
-            'client_renegotiation': scan_result.get('scan_result', {}).get('session_renegotiation', {}).get('result', {}).get('is_vulnerable_to_client_renegotiation_dos', False),
-            'no_secure_renegotiation': not scan_result.get('scan_result', {}).get('session_renegotiation', {}).get('result', {}).get('supports_secure_renegotiation', True),
+            'compression': scan_result.get('tls_compression', {}).get('result', {}).get('supports_compression', False),
+            'downgrade': not scan_result.get('tls_fallback_scsv', {}).get('result', {}).get('supports_fallback_scsv', True),
+            'client_renegotiation': scan_result.get('session_renegotiation', {}).get('result', {}).get('is_vulnerable_to_client_renegotiation_dos', False),
+            'no_secure_renegotiation': not scan_result.get('session_renegotiation', {}).get('result', {}).get('supports_secure_renegotiation', True),
         }
 
     def parse_sslyze_data(self, files):
@@ -368,13 +370,13 @@ class SslyzeImporter(BaseImporter):
         for file in files:
             file.seek(0)
         
-            for scan_result in json.load(file).get('server_scan_results', []):
-                target_data = scan_result['server_location'] | {
-                    'protocols': self.get_protocols(scan_result),
-                    'ciphers': self.get_ciphers(scan_result),
-                    'certinfo': self.get_certinfo(scan_result),
-                    'vulnerabilities': self.get_vulnerabilities(scan_result),
-                    'misconfigurations': self.get_misconfigurations(scan_result),
+            for server_scan_result in json.load(file).get('server_scan_results', []):
+                target_data = server_scan_result['server_location'] | {
+                    'protocols': self.get_protocols(server_scan_result),
+                    'ciphers': self.get_ciphers(server_scan_result),
+                    'certinfo': self.get_certinfo(server_scan_result),
+                    'vulnerabilities': self.get_vulnerabilities(server_scan_result),
+                    'misconfigurations': self.get_misconfigurations(server_scan_result),
                 }
                 finding_flags = {
                     'has_weak_protocols': any(p['is_weak'] for p in target_data['protocols']),
