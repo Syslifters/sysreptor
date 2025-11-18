@@ -424,6 +424,32 @@ class TestSslyzeImporter:
         assert len(self.importer.parse_notes([empty_file])) == 1  # Root note only
         assert len(self.importer.parse_findings([empty_file], self.project)) == 0
 
+    def test_null_scan_result_handling(self):
+        """Test handling of null scan_result in server scan results"""
+        null_scan_result_file = SimpleUploadedFile("null_scan_result.json", b'''{
+            "sslyze_version": "5.0.0",
+            "server_scan_results": [{
+                "server_location": {
+                    "hostname": "test.example.com",
+                    "port": 443,
+                    "ip_address": "192.168.1.1"
+                },
+                "scan_result": null
+            }]
+        }''')
+        
+        # Should handle gracefully and not crash
+        data = self.importer.parse_sslyze_data([null_scan_result_file])
+        assert len(data) == 0 or (len(data) == 1 and data[0]['flag_for_finding'] is False)
+        
+        # Should not crash when parsing notes
+        notes = self.importer.parse_notes([null_scan_result_file])
+        assert len(notes) >= 1  # At least root note
+        
+        # Should not create findings for null scan results
+        findings = self.importer.parse_findings([null_scan_result_file], self.project)
+        assert len(findings) == 0
+
     def test_multiple_files_processing(self):
         file1 = SimpleUploadedFile("test1.json", b'''{
             "sslyze_version": "5.0.0",
