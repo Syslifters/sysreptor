@@ -10,13 +10,7 @@ title: Keycloak OIDC Configuration
 2. Add the callback-url: https://`<your-installation>`/login/oidc/keycloak/callback
     * Add the hostname where your SysReptor installation can be accessed.
 
-## Cloud Setup
-:octicons-cloud-24: Cloud
-
-You are lucky. Just send the values from the previous steps to us and we'll take care :smiling_face_with_3_hearts:
-
-## Self-Hosted Setup
-:octicons-server-24: Self-Hosted
+## SysReptor Configuration
 
 Create your OIDC configuration for SysReptor...
 
@@ -36,11 +30,15 @@ Create your OIDC configuration for SysReptor...
 }
 ```
 
-...and add it to your `app.env`:
+...and add it to your [application settings](/setup/configuration/#single-sign-on-sso):
 
 ```env
 OIDC_AUTHLIB_OAUTH_CLIENTS='{"keycloak": {"label": "Keycloak",...}}'
 ```
+
+The OIDC client needs to be able to establish a network connection to Keycloak.
+Make sure to not block outgoing traffic.
+
 
 ## Limitations
 SysReptor reauthenticates users before critical actions. It therefore requires users to enter their authentication details (e.g. password and second factor, if configured).

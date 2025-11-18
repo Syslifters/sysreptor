@@ -66,17 +66,10 @@ You should now have the following values:
 * Client secret
 
 
-## Cloud Setup
-:octicons-cloud-24: Cloud
+## SysReptor Configuration
 
-You are lucky. Just send the values from the previous steps to us and we'll take care :smiling_face_with_3_hearts:
+The values from the previous steps need to be configured as [application settings](/setup/configuration/#single-sign-on-sso).
 
-
-## Self-Hosted Setup
-:octicons-server-24: Self-Hosted
-
-The values from the previous steps need to be passed as environment variables to the SysReptor docker container.
-You can add them to `<sysreptor-repository>/deploy/app.env`:
 ```env
 OIDC_GOOGLE_CLIENT_ID=<google client id>
 OIDC_GOOGLE_CLIENT_SECRET=<google client secret>
@@ -85,11 +78,6 @@ OIDC_GOOGLE_CLIENT_SECRET=<google client secret>
 The OIDC client needs to be able to establish a network connection to Google.
 Make sure to not block outgoing traffic.
 
-Restart the docker container by going to `sysreptor/deploy` and:
-
-```shell
-docker compose up -d
-```
 
 ## Limitations
 SysReptor reauthenticates users before critical actions. It therefore requires users to enter their authentication details (e.g. password and second factor, if configured).

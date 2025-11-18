@@ -16,8 +16,6 @@ Per-user dictionaries are not shared between users. When one user adds an unknow
 
 This is an installation-wide setting. It cannot be configured per user or project.
 
+Set the `SPELLCHECK_DICTIONARY_PER_USER=true` in your [application settings](/setup/configuration/#spell-check).
+
 PS: You can also configure the [spell check rules](../setup/configuration.md#spell-check).
-
-:octicons-cloud-24: Cloud · Please [contact us](../contact-us.md){ target=_blank } and we will reconfigure your installation.
-
-:octicons-server-24: Self-Hosted · Set the `SPELLCHECK_DICTIONARY_PER_USER` in your `app.env` to true.
