@@ -373,6 +373,20 @@ OIDC_AZURE_CLIENT_SECRET="azure-client-secret"
 
 OIDC_GOOGLE_CLIENT_ID="google-client-id"
 OIDC_GOOGLE_CLIENT_SECRET="google-client-secret"
+
+OIDC_AUTHLIB_OAUTH_CLIENTS='{
+    "keycloak": {
+        "label": "Keycloak",
+        "client_id": "<client-id>",
+        "client_secret": "<client-secret>",
+        "server_metadata_url": "https://keycloak.example.com/auth/realms/dev/.well-known/openid-configuration",
+        "client_kwargs": {
+            "scope": "openid email",
+            "code_challenge_method": "S256"
+        },
+        "reauth_supported": false
+    }
+}'
 ```
 
 If your reverse proxy enforces authentication and provides the username via a HTTP-Header, use following settings to enable SSO.

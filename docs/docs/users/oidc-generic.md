@@ -11,13 +11,7 @@ title: Generic OIDC Configuration
     * Add the hostname where your SysReptor installation can be accessed.
     * Choose a custom provider name (e. g. `keycloak`)
 
-## Cloud Setup
-:octicons-cloud-24: Cloud
-
-You are lucky. Just send the values from the previous steps to us and we'll take care :smiling_face_with_3_hearts:
-
-## Self-Hosted Setup
-:octicons-server-24: Self-Hosted
+## SysReptor Configuration
 
 Create your OIDC configuration for SysReptor...
 
@@ -35,8 +29,9 @@ Create your OIDC configuration for SysReptor...
         "reauth_supported": false
     }
 }
-
 ```
+
+...and add it to your [application settings](/setup/configuration/#single-sign-on-sso):
 
 ```env
 OIDC_AUTHLIB_OAUTH_CLIENTS='{"<your provider name>": {"label": "<human readable provider name>",...}}'

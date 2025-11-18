@@ -38,12 +38,8 @@ When all guest permissions are enabled, guest users are equivalent to regular us
 * delete projects (default: yes)
 * see all users (default: no) - see all users on the SysReptor instance or only users working in the same projects as guest users
 
-:octicons-cloud-24: Cloud · Please [contact us](../contact-us.md){ target=_blank } and we will reconfigure your installation.
-
-:octicons-server-24: Self-Hosted
-
-Configure your installation by adding the following settings to your `app.env`:
-```
+Configure your installation by adding the following settings to your [application settings](/setup/configuration/#guest-user-permissions):
+```env
 GUEST_USERS_CAN_CREATE_PROJECTS=True
 GUEST_USERS_CAN_IMPORT_PROJECTS=False
 GUEST_USERS_CAN_EDIT_PROJECTS=True
