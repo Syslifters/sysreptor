@@ -123,10 +123,11 @@ export function formatHistoryObjectFieldProps(options: {
 }) {
   const out = [] as DynamicInputFieldDiffProps[];
   for (const fieldId of (options.historic.definition?.map(f => f.id) || []).concat(options.current.definition?.map(f => f.id) || [])) {
-    if (!out.some(f => f.id === fieldId)) {
+    const id = options.id ? `${options.id}.${fieldId}` : fieldId;
+    if (!out.some(f => f.id === id)) {
       out.push({
         ...options.attrs,
-        id: options.id ? `${options.id}.${fieldId}` : fieldId,
+        id,
         historic: {
           ...options.historic.attrs,
           value: options.historic.value?.[fieldId],

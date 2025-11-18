@@ -354,33 +354,36 @@ def parse_field_definition(definition: list[dict]) -> FieldDefinition:
     return FieldDefinition(fields=[_parse_field_definition_entry(d) for d in definition])
 
 
-def _serialize_field_definition_entry(definition: list[BaseField]|Any, extra_info: bool|list[str] = False):
+def _serialize_field_definition_entry(definition: list[BaseField]|Any, extra_info: bool|list[str] = False, only_fields: list[str]|None = None) -> Any:
     if isinstance(definition, dict|frozendict):
-        return {k: _serialize_field_definition_entry(v, extra_info=extra_info) for k, v in definition.items()}
+        return {k: _serialize_field_definition_entry(v, extra_info=extra_info, only_fields=only_fields) for k, v in definition.items()}
     elif isinstance(definition, list|tuple):
-        return [_serialize_field_definition_entry(e, extra_info=extra_info) for e in definition]
+        return [_serialize_field_definition_entry(e, extra_info=extra_info, only_fields=only_fields) for e in definition]
     elif dataclasses.is_dataclass(definition):
         d = dataclasses.asdict(definition)
         if isinstance(definition, ListField):
-            d['items'] = _serialize_field_definition_entry(definition.items, extra_info=extra_info)
+            d['items'] = _serialize_field_definition_entry(definition.items, extra_info=extra_info, only_fields=only_fields)
         elif isinstance(definition, ObjectField):
-            d['properties'] = _serialize_field_definition_entry(definition.properties, extra_info=extra_info)
+            d['properties'] = _serialize_field_definition_entry(definition.properties, extra_info=extra_info, only_fields=only_fields)
         d_extra_info = d.pop('extra_info', {})
         if isinstance(extra_info, list|tuple):
             d |= copy_keys(d_extra_info, extra_info)
         elif extra_info:
             d |= d_extra_info
-        return _serialize_field_definition_entry(d, extra_info=extra_info)
+        return _serialize_field_definition_entry(d, extra_info=extra_info, only_fields=only_fields)
     elif isinstance(definition, enum.Enum):
         return definition.value
     elif isinstance(definition, date):
         return definition.isoformat()
     else:
-        return definition
+        if only_fields:
+            return copy_keys(definition, keys=only_fields)
+        else:
+            return definition
 
 
-def serialize_field_definition(definition: FieldDefinition, extra_info=False) -> list[dict]:
-    return _serialize_field_definition_entry(definition.fields, extra_info=extra_info)
+def serialize_field_definition(definition: FieldDefinition, **kwargs) -> list[dict]:
+    return _serialize_field_definition_entry(definition.fields, **kwargs)
 
 
 def parse_field_definition_legacy(field_dict: dict[str, dict], field_order: list[str]|None = None) -> FieldDefinition:

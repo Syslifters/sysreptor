@@ -18,6 +18,7 @@
         prepend-icon="mdi-undo"
         text="Close Version History"
       />
+      <chat-btn v-model="localSettings.reportingChatSidebarVisible" />
       <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="fieldAttrsCurrent.collab.comments" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
@@ -28,7 +29,6 @@
       :finding="finding"
       :current-url="currentUrl"
     />
-
     <comment-sidebar
       ref="commentSidebarRef"
       :project="fetchState.projectCurrent"

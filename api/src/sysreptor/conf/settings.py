@@ -30,6 +30,7 @@ from sysreptor.utils.fielddefinition.types import (
     FieldDefinition,
     JsonField,
     ListField,
+    MarkdownField,
     NumberField,
     ObjectField,
     StringField,
@@ -89,6 +90,7 @@ INSTALLED_APPS = [
     'sysreptor.tasks',
     'sysreptor.conf.admin.AdminConfig',
     'sysreptor.api_utils',
+    'sysreptor.ai',
 ]
 
 MIDDLEWARE = [
@@ -586,6 +588,12 @@ ENABLED_PLUGINS = config('ENABLED_PLUGINS', cast=Csv(post_process=remove_empty_i
 INSTALLED_APPS += load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
 
 
+# LLM
+AI_AGENT_MODEL = config('AI_AGENT_MODEL', default=None)
+# API keys, URLs and other settings are directly loaded by langchain from environment variables
+# e.g. OPENAI_API_KEY, OPENAI_API_BASE, ANTHROPIC_API_KEY, etc.
+
+
 # Elastic APM
 ELASTIC_APM_ENABLED = config('ELASTIC_APM_ENABLED', cast=bool, default=False)
 ELASTIC_APM = {
@@ -677,6 +685,11 @@ LOGGING = {
             'propagate': False,
         },
         'fontTools': {
+            'level': 'WARNING',
+            'handlers': logging_handlers,
+            'propagate': False,
+        },
+        'httpx': {
             'level': 'WARNING',
             'handlers': logging_handlers,
             'propagate': False,
@@ -923,6 +936,26 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         extra_info={'group': 'auth', 'professional_only': True},
         help_text='Enable/disable the forgot password feature to allow users to reset their password by email. '
                   'This feature requires an email server to be configured and LOCAL_USER_AUTH_ENABLED=True.'),
+
+
+    BooleanField(
+        id='AI_AGENT_ENABLED',
+        default=False,
+        extra_info={'group': 'ai_agent'},
+        help_text='Enable/disable the AI Agent feature globally.'
+                  'This feature requires an LLM model and API key to be configured.'),
+    StringField(
+        id='AI_AGENT_DISCLAIMER',
+        default='AI can make mistakes. Do not use without manual review.',
+        required=False,
+        extra_info={'group': 'ai_agent'},
+        help_text='Disclaimer text shown when using the AI Agent feature.'),
+    MarkdownField(
+        id='AI_AGENT_SYSTEM_PROMPT',
+        default='',
+        required=False,
+        extra_info={'group': 'ai_agent'},
+        help_text='System prompt used to prime the AI Agent.'),
 
 
     StringField(

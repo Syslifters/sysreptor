@@ -2,7 +2,11 @@
   <div>
     <!-- Rendered markdown gets sanitized in renderMarkdownToHtml -->
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <div ref="previewRef" v-html="renderedMarkdown" @click.stop class="preview" />
+    <div ref="previewRef" v-html="renderedMarkdown" v-show="isRendered" @click.stop class="preview" />
+    <div v-if="!isRendered" class="preview preview-placeholder">
+      <!-- Placeholder of raw text while markdown is initially rendered -->
+      <p>{{ props.value }}</p>
+    </div>
     <markdown-image-preview-dialog v-model="previewImageSrc" :images="previewImagesAll" />
   </div>
 </template>
@@ -26,12 +30,18 @@ const props = defineProps<{
   rewriteFileUrlMap?: Record<string, string>;
   referenceItems?: ReferenceItem[];
   cacheBuster?: string;
+  throttleMs?: number;
+}>();
+const emit = defineEmits<{
+  'rendered': [];
 }>();
 
 const cacheBusterFallback = uuidv4();
 const cacheBuster = computed(() => props.cacheBuster || cacheBusterFallback);
 const renderedMarkdown = ref('');
 const renderedMarkdownText = ref('');
+const isRendered = ref(false);
+const throttleMs = computed(() => props.throttleMs ?? 500);
 watchThrottled(() => props.value, async () => {
   const mdText = props.value || '';
   renderedMarkdown.value = await renderMarkdownToHtmlInWorker({
@@ -42,10 +52,11 @@ watchThrottled(() => props.value, async () => {
     cacheBuster: cacheBuster.value,
   });
   renderedMarkdownText.value = mdText;
+  isRendered.value = true;
 
   await nextTick();
   postProcessRenderedHtml();
-}, { throttle: 500, leading: true, immediate: true });
+}, { throttle: throttleMs, leading: true, immediate: true });
 
 const previewRef = useTemplateRef('previewRef');
 async function postProcessRenderedHtml() {
@@ -72,6 +83,8 @@ async function postProcessRenderedHtml() {
     // eslint-disable-next-line no-console
     console.error('Mermaid error: ' + e.message, e);
   }
+
+  emit('rendered');
 }
 whenever(previewRef, postProcessRenderedHtml, { immediate: true });
 
@@ -121,6 +134,10 @@ defineExpose({
   overflow: auto;
   word-wrap: break-word;
   padding: 4px 0.5em;
+}
+
+.preview-placeholder {
+  white-space: pre-wrap;
 }
 
 .preview > :deep(*:first-child) {

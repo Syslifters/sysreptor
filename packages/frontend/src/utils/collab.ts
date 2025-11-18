@@ -469,8 +469,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     const con = storeState.connection;
     if (con?.sendThrottled) {
       // Flush pending events
-      con.sendThrottled();
-      con.sendThrottled.flush();
+      flushEvents();
       con.sendThrottled = undefined;
     }
     await con?.disconnect();
@@ -663,9 +662,14 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     storeState.connection?.sendThrottled?.();
   }
 
+  function flushEvents() {
+    sendEventsThrottled();
+    storeState.connection?.sendThrottled?.flush();
+  }
+
   function sendEventsImmediately(...events: CollabEvent[]) {
     sendEventsThrottled(...events);
-    storeState.connection?.sendThrottled?.flush();
+    flushEvents();
   }
 
   function sendAwarenessThrottled() {
@@ -1068,6 +1072,7 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
     connect,
     connectTo,
     disconnect,
+    flushEvents,
     onCollabEvent,
     onReceiveMessage,
     storeState,

@@ -1,6 +1,6 @@
 <template>
   <s-btn-icon
-    @click="emit('update:modelValue', !props.modelValue)"
+    @click="modelValue = !modelValue"
   >
     <v-badge 
       v-if="numOpenComments > 0"
@@ -21,13 +21,9 @@
 <script setup lang="ts">
 import type { Comment } from '#imports';
 
+const modelValue = defineModel<boolean>();
 const props = defineProps<{
-  modelValue: boolean;
   comments: Comment[];
 }>();
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean];
-}>();
-
 const numOpenComments = computed(() => props.comments.filter(c => c.status === CommentStatus.OPEN).length);
 </script>

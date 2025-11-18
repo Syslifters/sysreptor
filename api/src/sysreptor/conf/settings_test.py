@@ -61,6 +61,14 @@ CONFIGURATION_DEFINITION_CORE['FORGOT_PASSWORD_ENABLED'].default = True
 CONFIGURATION_DEFINITION_CORE['INSTALLATION_ID'].default = 'dummy-installation-id-used-in-unit-test'
 
 
+# Disable LLM model calls
+from langchain import chat_models  # noqa: E402
+from langchain_core.language_models.fake_chat_models import GenericFakeChatModel  # noqa: E402
+
+chat_models.init_chat_model = lambda *args, **kwargs: GenericFakeChatModel(messages=iter([]))
+AI_AGENT_MODEL = 'test:fake-model'
+
+
 # Disable license check
 from sysreptor.conf import plugins  # noqa: E402
 from sysreptor.utils import license, mail  # noqa: E402

@@ -25,6 +25,15 @@
       <collab-loader :collab="reportingCollab">
         <nuxt-page />
       </collab-loader>
+
+      <chat-sidebar
+        :project="project"
+        :project-type="projectType"
+        :context="{ 
+          finding_id: route.params.findingId as string|undefined,
+          section_id: route.params.sectionId as string|undefined,
+        }"
+      />
     </template>
   </split-menu>
 </template>

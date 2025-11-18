@@ -142,6 +142,7 @@ export type ApiSettings = {
     readonly default: boolean;
   }[];
   readonly archiving_threshold?: number;
+  readonly ai_agent_disclaimer?: string;
   readonly features: {
     readonly websockets: boolean;
     readonly forgot_password: boolean;
@@ -152,6 +153,7 @@ export type ApiSettings = {
     readonly permissions?: boolean;
     readonly backup?: boolean;
     readonly sharing?: boolean;
+    readonly ai_agent?: boolean;
   };
   readonly permissions: {
     readonly guest_users_can_import_projects?: boolean;
