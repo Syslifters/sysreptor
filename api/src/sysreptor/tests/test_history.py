@@ -299,7 +299,7 @@ class TestTemplateHistory:
         t = create_template(translations_kwargs=[{'language': Language.GERMAN_DE, 'data': {'title': 'title'}}])
         tr = t.translations.get(language=Language.GERMAN_DE)
         tr_id = tr.id
-        ref_before_delete = self.client.get(reverse('findingtemplate-detail', kwargs={'pk': t.id})).data
+        res_before_delete = self.client.get(reverse('findingtemplate-detail', kwargs={'pk': t.id})).data
         tr.history.all().delete()
         tr.delete()
 
@@ -307,11 +307,11 @@ class TestTemplateHistory:
         timeline = self.client.get(reverse('findingtemplatetranslation-history-timeline', kwargs={'template_pk': t.id, 'pk': tr_id})).data['results']
         res_deleted = self.client.get(reverse('findingtemplatehistory-detail', kwargs={'template_pk': t.id, 'history_date': timeline[0]['history_date']}))
         assert res_deleted.status_code == 200
-        assert self.format_template(res_deleted.data) == self.format_template(ref_before_delete)
+        assert self.format_template(res_deleted.data) == self.format_template(res_before_delete)
 
         # Historic record after delete
         res_after_delete = self.client.get(reverse('findingtemplatehistory-detail', kwargs={'template_pk': t.id, 'history_date': timezone.now().isoformat()}))
-        assert self.format_template(res_after_delete.data) != self.format_template(res_after_delete)
+        assert self.format_template(res_after_delete.data) != self.format_template(res_before_delete)
         assert len(res_after_delete.data['translations']) == 1
 
 

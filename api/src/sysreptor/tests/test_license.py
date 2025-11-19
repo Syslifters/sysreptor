@@ -210,6 +210,7 @@ class TestCommunityLicenseRestrictions:
         assert_api_license_error(self.client.post(reverse('auth-login-oidc-begin', kwargs={'oidc_provider': 'azure'})))
         assert_api_license_error(self.client.post(reverse('auth-login-oidc-complete', kwargs={'oidc_provider': 'azure'})))
 
+    @override_configuration(AI_AGENT_ENABLED=True)
     def test_prevent_ai_agent(self):
         project = create_project(members=[self.user])
         assert_api_license_error(self.client.post(reverse('chatthread-list'), data={

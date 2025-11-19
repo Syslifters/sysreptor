@@ -32,7 +32,7 @@ class EventStreamRenderer(renderers.BaseRenderer):
 class ChatThreadPermissions(BasePermission):
     def has_permission(self, request, view):
         if not configuration.AI_AGENT_ENABLED:
-            raise PermissionDenied('AI agent feature is disabled')
+            raise PermissionDenied('AI agent chat is disabled in settings')
         if not settings.AI_AGENT_MODEL:
             raise PermissionDenied('No LLM model configured')
 

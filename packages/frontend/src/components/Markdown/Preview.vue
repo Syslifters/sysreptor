@@ -2,8 +2,8 @@
   <div>
     <!-- Rendered markdown gets sanitized in renderMarkdownToHtml -->
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <div ref="previewRef" v-html="renderedMarkdown" v-show="isRendered" @click.stop class="preview" />
-    <div v-if="!isRendered" class="preview preview-placeholder">
+    <div v-if="isRendered" ref="previewRef" v-html="renderedMarkdown" @click.stop class="preview" />
+    <div v-else class="preview preview-placeholder">
       <!-- Placeholder of raw text while markdown is initially rendered -->
       <p>{{ props.value }}</p>
     </div>
