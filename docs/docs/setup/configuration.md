@@ -439,8 +439,8 @@ GUEST_USERS_CAN_SEE_ALL_USERS=False
 
 ### Custom Statuses
 It is possible to define custom statuses for findings and sections. 
-In addition to the custom statuses the statuses "in-progress" and "finished" are always available.
-By default, the statuses "ready-for-review" and "needs-improvement" are also available.
+In addition to the custom statuses the statuses `in-progress` and `finished` are always available.
+By default, the statuses `ready-for-review` and `needs-improvement` are also available.
 
 ``` title="Example:"
 STATUS_DEFINITIONS='[
@@ -448,4 +448,24 @@ STATUS_DEFINITIONS='[
   {"id": "needs-improvement", "label": "Needs improvement", "icon": "mdi-exclamation-thick"},
 ]'
 ```
+
+It is possible to enforce specific status transition workflows by defining which statuses can follow each status.
+This is useful for implementing review processes where certain steps must be followed in order.
+
+Use the `allowed_next_statuses` field to specify which statuses can be set after the current status.
+When `allowed_next_statuses` is not defined or an empty list, any status transition is allowed.
+To define a terminal status where no further transitions are allowed, set `allowed_next_statuses` to the current status.
+Status transitions for built-in statuses (`in-progress`, `finished`) can also be restricted by defining them in `STATUS_DEFINITIONS`.
+Please note that `in-progress` is always the initial status and `finished` should be the last status.
+
+``` title="Example: Linear workflow"
+STATUS_DEFINITIONS='[
+  {"id": "in-progress", "label": "In progress", "icon": "mdi-pencil", "allowed_next_statuses": ["ready-for-review"]},  
+  {"id": "ready-for-review", "label": "Ready for review", "icon": "mdi-check", "allowed_next_statuses": ["needs-improvement", "finished"]},
+  {"id": "needs-improvement", "label": "Needs improvement", "icon": "mdi-exclamation-thick", "allowed_next_statuses": ["ready-for-review"]},
+  {"id": "finished", "label": "Finished", "icon": "mdi-check-all", "allowed_next_statuses": ["finished"]}
+]'
+```
+
+Note: `allowed_next_statuses` is not enforced for [superusers with enabled admin permissions](/users/user-permissions/#superuser). This is to allow administrators to fix incorrect status assignments if necessary.
 

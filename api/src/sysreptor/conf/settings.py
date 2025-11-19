@@ -721,6 +721,7 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
             StringField(id='id', required=True, pattern=r'^[a-zA-Z0-9_-]{1,50}$', help_text='Unique identifier for the status.'),
             StringField(id='label', required=True),
             StringField(id='icon', required=False, pattern=r'^mdi-[a-zA-Z0-9-_]+$', help_text='Status icon to display in UI. Available icons: https://pictogrammers.com/library/mdi/'),
+            ListField(id='allowed_next_statuses', items=StringField(), required=False, help_text='List of status IDs that can be transitioned to from this status. If empty or not specified, transitions to any status are allowed.'),
         ]),
         default=[
             {"id": "ready-for-review", "label": "Ready for review", "icon": "mdi-check"},

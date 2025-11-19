@@ -81,6 +81,7 @@ export type ReviewStatusDefinition = {
   id: string;
   label: string;
   icon?: string|null;
+  allowed_next_statuses?: string[]|null;
 }
 
 export enum AuthProviderType {

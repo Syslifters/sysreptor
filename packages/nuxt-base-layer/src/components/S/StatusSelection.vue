@@ -5,6 +5,7 @@
     label="Status"
     item-value="id"
     item-title="label"
+    item-props="props"
     hide-details="auto"
     :variant="props.variant"
     :density="props.density"
@@ -26,7 +27,7 @@
 
 <script setup lang="ts">
 import { VSelect } from "vuetify/lib/components/index.mjs";
-import { ReviewStatus } from "#imports";
+import { ReviewStatus, type ReviewStatusDefinition } from "#imports";
 
 const modelValue = defineModel<string|null>();
 const props = withDefaults(defineProps<{
@@ -40,21 +41,33 @@ const props = withDefaults(defineProps<{
 });
 
 const apiSettings = useApiSettings();
+const auth = useAuth();
+
 const previousStatuses = ref<string[]>([]);
 const statusItems = computed(() => {
-  const items = [];
-  items.push(...(apiSettings.settings?.statuses || []));
+  const allItems = [] as (ReviewStatusDefinition & { props?: any })[];
+  allItems.push(...(apiSettings.settings?.statuses || []));
   if (props.includeDeprecated) {
-    items.push(apiSettings.getStatusDefinition(ReviewStatus.DEPRECATED));
+    allItems.push(apiSettings.getStatusDefinition(ReviewStatus.DEPRECATED));
   }
 
-  // Include unknown statuses
+  // Include unknown statuses from previous values
   for (const s of previousStatuses.value) {
-    if (!items.some(item => item.id === s)) {
-      items.push(apiSettings.getStatusDefinition(s));
+    if (!allItems.some(item => item.id === s)) {
+      allItems.push(apiSettings.getStatusDefinition(s));
     }
   }
-  return items;
+
+  // Filter based on allowed transitions
+  const currentStatusDefinition = apiSettings.getStatusDefinition(modelValue.value);
+  if ((currentStatusDefinition.allowed_next_statuses?.length || 0) > 0 && !auth.permissions.value.admin) {
+    allItems.forEach(s => {
+      s.props = {
+        disabled: !(currentStatusDefinition.allowed_next_statuses?.includes(s.id) || s.id === currentStatusDefinition.id),
+      }
+    })
+  }
+  return allItems;
 });
 
 watch(() => modelValue, () => {
