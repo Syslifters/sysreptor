@@ -72,7 +72,7 @@ def create_png_file() -> bytes:
            b'IDAT\x08\xd7c`\x00\x00\x00\x02\x00\x01\xe2!\xbc3\x00\x00\x00\x00IEND\xaeB`\x82'
 
 
-def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, images_kwargs=None, files_kwargs=None, **kwargs) -> PentestUser:
+def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, images_kwargs=None, files_kwargs=None, admin_permissions_enabled=False, **kwargs) -> PentestUser:
     username = f'user_{get_random_string(8)}'
     user = PentestUser.objects.create_user(**{
         'username': username,
@@ -81,6 +81,8 @@ def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, 
         'first_name': 'Herbert',
         'last_name': 'Testinger',
     } | kwargs)
+    if admin_permissions_enabled:
+        user.admin_permissions_enabled = True
     if mfa:
         MFAMethod.objects.create_totp(user=user, is_primary=True)
         MFAMethod.objects.create_backup(user=user)

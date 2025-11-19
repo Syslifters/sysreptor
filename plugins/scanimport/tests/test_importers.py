@@ -233,13 +233,11 @@ class TestAPIPermissions:
         users = {
             'member': user_member,
             'guest': user_guest,
-            'admin': create_user(is_superuser=True),
+            'admin': create_user(is_superuser=True, admin_permissions_enabled=True),
             'unauthorized': create_user(),
             'anonymous': AnonymousUser(),
         }
         user = users[user_name]
-        if user.is_superuser:
-            user.admin_permissions_enabled = True
 
         projects = {
             'project': create_project(members=[user_member, user_guest]),

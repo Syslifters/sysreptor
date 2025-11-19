@@ -60,8 +60,7 @@ def create_demopluginmodel(**kwargs):
 class TestPluginLoading:
     @enable_demoplugin()
     def test_plugin_loading(self):
-        user = create_user(is_superuser=True)
-        user.admin_permissions_enabled = True
+        user = create_user(is_superuser=True, admin_permissions_enabled=True)
         client_admin = api_client(user)
 
         # Test django app of plugin is installed

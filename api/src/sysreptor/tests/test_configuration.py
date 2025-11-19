@@ -27,8 +27,7 @@ from sysreptor.utils.utils import copy_keys
 class TestConfiguration:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        user = create_user(is_superuser=True)
-        user.admin_permissions_enabled = True
+        user = create_user(is_superuser=True, admin_permissions_enabled=True)
         self.client = api_client(user)
 
         with override_settings(CONFIGURATION_DEFINITION_CORE=FieldDefinition(fields=[
