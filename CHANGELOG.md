@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.96 - 2025-11-19
 * Allow generating QR codes during PDF rendering (https://docs.sysreptor.com/designer/formatting-utils/#qr-codes)
 * Fix error on navigate to shared sub-note via URL
 * Fix scroll to comment landing on offset position
