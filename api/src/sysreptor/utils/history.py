@@ -205,14 +205,15 @@ def bulk_create_history(model, objs, history_type=None, history_date=None, histo
 
 
 @contextmanager
-def history_context(override_existing=False, history_date=None, **kwargs):
+def history_context(override_existing=False, history_date=None, set_history_date=True, **kwargs):
     """
     Set history context information such as history_date, history_change_reason, history_prevent_cleanup, etc.
     If override_existing is False, context information set in an outer history_context() call will not be overwritten and only new infos will be added.
     """
-    kwargs = {
-        'history_date': history_date or timezone.now(),
-    } | kwargs
+    if set_history_date:
+        kwargs = {
+            'history_date': history_date or timezone.now(),
+        } | kwargs
     restore_map = {}
     try:
         for k, v in kwargs.items():

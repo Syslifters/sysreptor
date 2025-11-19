@@ -9,6 +9,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerSplitVie
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
+from sysreptor.ai.views import ChatThreadViewSet
 from sysreptor.api_utils.views import (
     ConfigurationViewSet,
     HealthcheckApiView,
@@ -76,6 +77,7 @@ router.register('archivedprojects', ArchivedProjectViewSet, basename='archivedpr
 router.register('findingtemplates', FindingTemplateViewSet, basename='findingtemplate')
 router.register('utils', UtilsViewSet, basename='utils')
 router.register('utils/configuration', ConfigurationViewSet, basename='configuration')
+router.register('utils/chat', ChatThreadViewSet, basename='chatthread')
 router.register('auth', AuthViewSet, basename='auth')
 
 user_router = NestedSimpleRouter(router, 'pentestusers', lookup='pentestuser')

@@ -204,6 +204,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
             'statuses': ReviewStatus.get_definitions(),
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
             'archiving_threshold': int(configuration.ARCHIVING_THRESHOLD),
+            'ai_agent_disclaimer': configuration.AI_AGENT_DISCLAIMER,
             'features': public_settings['features'] | {
                 'private_designs': configuration.ENABLE_PRIVATE_DESIGNS,
                 'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
@@ -211,6 +212,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'permissions': license.is_professional(),
                 'backup': bool(settings.BACKUP_KEY and license.is_professional()),
                 'sharing': not configuration.DISABLE_SHARING,
+                'ai_agent': bool(configuration.AI_AGENT_ENABLED and settings.AI_AGENT_MODEL),
             },
             'permissions': public_settings['permissions'] | {
                 'guest_users_can_import_projects': configuration.GUEST_USERS_CAN_IMPORT_PROJECTS,

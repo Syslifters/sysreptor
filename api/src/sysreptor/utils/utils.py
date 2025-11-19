@@ -69,8 +69,18 @@ def copy_keys(d: dict|object, keys: Iterable[str]) -> dict:
 
 
 def omit_keys(d: dict, keys: Iterable[str]) -> dict:
-    keys = set(keys)
-    return dict(filter(lambda t: t[0] not in keys, d.items()))
+    out = dict(d)
+    for k in set(keys):
+        k_parts = k.split('.') if isinstance(k, str) else [k]
+        if k_parts[0] in out:
+            if len(k_parts) == 1:
+                out.pop(k_parts[0], None)
+            else:
+                sub_dict = out.get(k_parts[0], {})
+                if isinstance(sub_dict, dict):
+                    sub_out = omit_keys(sub_dict, ['.'.join(k_parts[1:])])
+                    out[k_parts[0]] = sub_out
+    return out
 
 
 def omit_items(l: Iterable, items: Iterable) -> list:

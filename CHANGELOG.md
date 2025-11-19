@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming
+* AI agent chat for report writing assistance
 * Allow configuring allowed status transitions (https://docs.sysreptor.com/designer/findings/#custom-statuses)
 
 

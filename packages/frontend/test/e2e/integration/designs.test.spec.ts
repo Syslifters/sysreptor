@@ -32,7 +32,7 @@ test('A User can create an Design with a Name', async ({ page }) => {
   // Open PDF Designer
   await page.getByText('Report Fields').click();
   await page.getByText('Executive Summary').click();
-  await page.getByText('**TODO: write executive').fill('This is a test executive summary');
+  await page.getByTestId('default-value').locator('.cm-content').fill('This is a test executive summary');
   await page.getByTestId('save-toolbar').click();
   await page.getByText('Everything saved').waitFor();
   await page.getByText('Finding Fields').click();

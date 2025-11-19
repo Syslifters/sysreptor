@@ -27,6 +27,7 @@
                 :definition="field"
                 :disabled="field.set_in_env || (field.professional_only && !apiSettings.isProfessionalLicense)"
                 :error-message="errorMessages?.[field.id]"
+                v-bind="fieldAttrs"
               >
                 <template #label>
                   <s-tooltip :disabled="!field.set_in_env">
@@ -89,6 +90,7 @@
                 :definition="field"
                 :disabled="field.set_in_env || ((plugin.professional_only || field.professional_only) && !apiSettings.isProfessionalLicense)"
                 :error-messages="errorMessages?.[field.id]"
+                v-bind="fieldAttrs"
               >
                 <template #label>
                   <s-tooltip :disabled="!field.set_in_env">
@@ -189,6 +191,11 @@ const coreConfigGroups = computed(() => {
       title: 'Permission Settings',
       professional_only: true,
     },
+    {
+      group: 'ai_agent',
+      title: 'AI Agent Settings',
+      professional_only: true,
+    },
   ]
 
   return coreGroups.map(group => ({
@@ -203,6 +210,14 @@ const { toolbarAttrs } = useLockEdit({
   data: configurationValues,
   performSave,
 })
+
+const markdownEditorMode = ref(MarkdownEditorMode.MARKDOWN);
+const fieldAttrs = computed(() => ({
+  lang: 'auto',
+  spellcheckSupported: false,
+  markdownEditorMode: markdownEditorMode.value,
+  'onUpdate:markdownEditorMode': (v: MarkdownEditorMode) => { markdownEditorMode.value = v; },
+}));
 
 const errorMessages = ref<any|null>(null);
 async function performSave(data: Record<string, any>) {

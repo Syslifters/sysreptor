@@ -6,7 +6,7 @@ from adrf.generics import GenericAPIView as AdrfAsyncGenericAPIView
 from adrf.viewsets import GenericViewSet as AdrfAsyncGenericViewSet
 from asgiref.sync import sync_to_async
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db.models import OrderBy, Q
 from django.http import FileResponse, Http404, StreamingHttpResponse
 from django.utils.functional import classproperty
@@ -232,7 +232,7 @@ def exception_handler(exc, context):
     Any unhandled exceptions may return `None`, which will cause a 500 error
     to be raised.
     """
-    if isinstance(exc, Http404):
+    if isinstance(exc, Http404 | ObjectDoesNotExist):
         exc = exceptions.NotFound(*(exc.args))
     elif isinstance(exc, PermissionDenied):
         exc = exceptions.PermissionDenied(*(exc.args))

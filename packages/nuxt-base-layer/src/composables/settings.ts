@@ -23,6 +23,8 @@ export const useLocalSettings = defineStore('settings', {
     defaultNotesDefinitionMenuSize: 15,
     reportingCommentSidebarVisible: false,
     reportingCommentStatusFilter: CommentStatus.OPEN as CommentStatus|'all',
+    reportingChatSidebarVisible: false,
+    reportingChatAgent: 'project_ask' as 'project_ask'|'project_agent',
     projectListOrdering: null as string|null,
     designListOrdering: null as string|null,
     templateListOrdering: null as string|null,

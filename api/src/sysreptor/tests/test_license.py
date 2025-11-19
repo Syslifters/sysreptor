@@ -210,6 +210,15 @@ class TestCommunityLicenseRestrictions:
         assert_api_license_error(self.client.post(reverse('auth-login-oidc-begin', kwargs={'oidc_provider': 'azure'})))
         assert_api_license_error(self.client.post(reverse('auth-login-oidc-complete', kwargs={'oidc_provider': 'azure'})))
 
+    @override_configuration(AI_AGENT_ENABLED=True)
+    def test_prevent_ai_agent(self):
+        project = create_project(members=[self.user])
+        assert_api_license_error(self.client.post(reverse('chatthread-list'), data={
+            'messages': ['Hi'],
+            'agent': 'project_agent',
+            'project': project.id,
+        }))
+
     def test_prevent_create_system_users(self):
         with pytest.raises(license.LicenseError):
             create_user(is_superuser=True, is_system_user=True)

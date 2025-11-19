@@ -75,7 +75,7 @@ const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
 
 const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
-  props: computed(() => ({ ...props, spellcheckSupported: true } as any)),
+  props: computed(() => props),
   emit,
   extensions: [
     ...markdownEditorDefaultExtensions(),
@@ -266,7 +266,6 @@ function getEditorMarkdownBlockForLine(codemirrorLine?: HTMLElement, editorPosit
   }
 
   const pos = editorPosition ?? editorView.value.posAtCoords(codemirrorLine.getBoundingClientRect(), false);
-  // TODO: at indent before listItem => sync to parent listItem
 
   // Get syntax tree node for current markdown block.
   // Use the sub-block (instead of top-level block) for nested elements (listItem, tableRow)
