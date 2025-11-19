@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Allow configuring allowed status transitions (https://docs.sysreptor.com/designer/findings/#custom-statuses)
+
+
 ## v2025.96 - 2025-11-19
 * Allow generating QR codes during PDF rendering (https://docs.sysreptor.com/designer/formatting-utils/#qr-codes)
 * Fix error on navigate to shared sub-note via URL

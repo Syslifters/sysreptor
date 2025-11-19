@@ -553,14 +553,12 @@ def test_api_requests(username, name, perform_request, options, expected):
             'designer': lambda: ApiRequestsAndPermissionsTestData.create_user(is_designer=True),
             'user_manager': lambda: ApiRequestsAndPermissionsTestData.create_user(is_user_manager=True),
             'project_admin': lambda: ApiRequestsAndPermissionsTestData.create_user(is_project_admin=True),
-            'superuser': lambda: ApiRequestsAndPermissionsTestData.create_user(is_superuser=True),
+            'superuser': lambda: ApiRequestsAndPermissionsTestData.create_user(is_superuser=True, admin_permissions_enabled=True),
         }
         user = user_map[username]()
         data = ApiRequestsAndPermissionsTestData(user)
         client = APIClient()
         if user:
-            if user.is_superuser:
-                user.admin_permissions_enabled = True
             client.force_authenticate(user)
             session = client.session
             session['authentication_info'] = {

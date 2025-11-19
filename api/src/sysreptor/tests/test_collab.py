@@ -1194,13 +1194,11 @@ class TestConsumerPermissions:
             users = {
                 'member': user_member,
                 'guest': user_guest,
-                'admin': create_user(is_superuser=True),
+                'admin': create_user(is_superuser=True, admin_permissions_enabled=True),
                 'unauthorized': create_user(),
                 'anonymous': AnonymousUser(),
             }
             user = users[user_name]
-            if user.is_superuser:
-                user.admin_permissions_enabled = True
 
             notes_kwargs = [{'type': NoteType.TEXT}, {'type': NoteType.EXCALIDRAW}]
             projects = {
@@ -1240,13 +1238,11 @@ class TestConsumerPermissions:
             user_notes = create_user()
             users = {
                 'self': user_notes,
-                'admin': create_user(is_superuser=True),
+                'admin': create_user(is_superuser=True, admin_permissions_enabled=True),
                 'unauthorized': create_user(),
                 'anonymous': AnonymousUser(),
             }
             user = users[user_name]
-            if user.is_superuser:
-                user.admin_permissions_enabled = True
             return user, user_notes
         user, user_notes = await sync_to_async(setup_db)()
         note_excalidraw = await user_notes.notes.filter(type=NoteType.EXCALIDRAW).afirst()
