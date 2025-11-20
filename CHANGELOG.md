@@ -3,6 +3,7 @@
 ## Upcoming
 * AI agent chat for report writing assistance
 * Allow configuring allowed status transitions (https://docs.sysreptor.com/designer/findings/#custom-statuses)
+* Plugin `customizetheme`: Allow customizing the header logo height
 
 
 ## v2025.96 - 2025-11-19
