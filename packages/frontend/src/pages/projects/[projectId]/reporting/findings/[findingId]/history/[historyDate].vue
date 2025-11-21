@@ -29,14 +29,6 @@
       :finding="finding"
       :current-url="currentUrl"
     />
-    <comment-sidebar
-      ref="commentSidebarRef"
-      :project="fetchState.projectCurrent"
-      :project-type="fetchState.projectTypeCurrent"
-      :finding-id="route.params.findingId as string"
-      :readonly="fieldAttrsCurrent.readonly"
-      :selectable-users="fieldAttrsCurrent.selectableUsers"
-    />
 
     <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
       <v-row class="mt-0">

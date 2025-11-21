@@ -1,12 +1,5 @@
 <template>
-  <v-navigation-drawer
-    v-if="localSettings.reportingCommentSidebarVisible"
-    absolute
-    permanent
-    location="right"
-    width="400"
-    class="comment-sidebar"
-  >
+  <div>
     <div class="sidebar-header">
       <v-list-item class="pt-0 pb-0">
         <v-list-item-title class="text-h6">
@@ -79,7 +72,7 @@
 
       <v-divider class="mt-2" />
     </v-list-item>
-  </v-navigation-drawer>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -100,7 +93,7 @@ const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 const eventBusBeforeApplySetValue = useEventBus('collab:beforeApplySetValue');
 
-const reportingCollab = projectStore.useReportingCollab({ project: props.project, findingId: props.findingId, sectionId: props.sectionId });
+const reportingCollab = projectStore.useReportingCollab({ project: props.project });
 const commentNew = ref<Comment|null>(null);
 const commentsAll = computedList<Comment>(() => {
   return projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId });
