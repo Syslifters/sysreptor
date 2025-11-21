@@ -1,6 +1,6 @@
 <template>
   <v-form ref="form" class="h-100">
-    <split-menu v-model="localSettings.defaultNotesDefinitionMenuSize" :content-props="{ class: 'pa-0 h-100' }">
+    <split-menu v-model="localSettings.defaultNotesDefinitionMenuSizePx" :content-props="{ class: 'pa-0 h-100' }">
       <template #menu>
         <notes-menu
           title="Initial Notes"

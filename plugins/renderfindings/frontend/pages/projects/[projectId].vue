@@ -120,7 +120,7 @@ const findings = computed(() => sortFindings({
 const selectedFindings = ref<PentestFinding[]>([]);
 const renderMode = ref<RenderFindingsMode>(RenderFindingsMode.COMBINED);
 
-const menuSize = ref(50);
+const menuSize = ref(window.innerWidth * 0.5);
 const pdfPreviewRef = useTemplateRef<InstanceType<typeof PdfPreview>>('pdfPreviewRef');
 const renderingInProgress = computed(() => pdfPreviewRef.value?.renderingInProgress);
 function refreshPdfPreview() {

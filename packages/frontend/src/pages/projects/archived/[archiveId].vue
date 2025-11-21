@@ -15,7 +15,7 @@
         <template #title>Restore Project</template>
 
         <template #default>
-          <split-menu :model-value="20">
+          <split-menu :model-value="200">
             <template #menu>
               <v-list
                 v-model:selected="restoreWizard.selectedParts"

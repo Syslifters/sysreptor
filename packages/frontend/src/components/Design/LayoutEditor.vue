@@ -1,6 +1,6 @@
 <template>
   <div v-intersect="onIntersect" class="h-100">
-    <split-menu :model-value="20">
+    <split-menu :model-value="400">
       <template #menu>
         <v-list density="compact">
           <div v-for="group in predefinedDesignerComponentGroups" :key="group.name">

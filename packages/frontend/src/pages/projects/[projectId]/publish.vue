@@ -221,7 +221,7 @@ const rules = {
   filename: [(v: string) => (Boolean(v) && /^[^/\\]+$/.test(v)) || 'Invalid filename'],
 }
 
-const menuSize = ref(66);
+const menuSize = ref(window.innerWidth * 0.6);
 const checksOrPreviewInProgress = computed(() => checkMessagesStatus.value === 'pending' || pdfPreviewRef.value?.renderingInProgress);
 const canGenerateFinalReport = computed(() => {
   return !hasErrors.value &&

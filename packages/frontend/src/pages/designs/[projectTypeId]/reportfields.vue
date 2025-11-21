@@ -1,6 +1,6 @@
 <template>
   <v-form ref="form" class="h-100">
-    <split-menu v-model="localSettings.reportFieldDefinitionMenuSize" :content-props="{ class: 'h-100 pa-0' }">
+    <split-menu v-model="localSettings.reportFieldDefinitionMenuSizePx" :content-props="{ class: 'h-100 pa-0' }">
       <template #menu>
         <v-list
           v-model:selected="currentItemSelection"
