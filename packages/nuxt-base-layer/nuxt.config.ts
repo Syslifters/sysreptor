@@ -62,7 +62,7 @@ export default defineNuxtConfig({
     },
     optimizeDeps: {
       include: [
-        'splitpanes', 'js-file-download', 'base64-arraybuffer', 'uuid', 'zxcvbn', 'emoji-mart-vue-fast/src',
+        'js-file-download', 'base64-arraybuffer', 'uuid', 'zxcvbn', 'emoji-mart-vue-fast/src',
         'vue-toastification', 'date-fns', 'lodash-es', 'url-join',
       ],
     },
