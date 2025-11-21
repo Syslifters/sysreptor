@@ -41,7 +41,7 @@
 </a>
 <a href="/assets/reports/ispsec-report-preview.pdf" target="_blank">
     <figure style="float:left;width:24%;margin:0.5em;">
-        <img alt="ISP Security Report" src="/assets/reports/ispsec-report-preview.png" style="border:1px solid;" />
+        <img alt="ISP Security: Internal" src="/assets/reports/ispsec-report-preview.png" style="border:1px solid;" />
         <figcaption><a href="https://ispsecurity.co/" target="_blank">ISP Security LLC</a></figcaption>
     </figure>
 </a>
