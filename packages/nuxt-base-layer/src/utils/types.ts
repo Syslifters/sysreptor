@@ -675,3 +675,10 @@ export type FilterValue = {
 
 export type DateRange = 'last24Hours' | 'last7Days' | 'last30Days' | 'last90Days' | 'last12Months' | 'last24Months' | 'last5Years';
 export type TimeRange = 'last15Min' | 'lastHour' | 'last3Hours' | 'last12Hours' | 'last24Hours' | 'last7Days' | 'last30Days';
+
+export enum ReportingSidebarType {
+  NONE = 'none',
+  COMMENTS = 'comments',
+  AICHAT = 'aichat',
+}
+

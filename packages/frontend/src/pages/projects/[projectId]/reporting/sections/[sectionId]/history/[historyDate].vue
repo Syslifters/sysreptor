@@ -18,8 +18,8 @@
         prepend-icon="mdi-undo"
         text="Close Version History"
       />
-      <chat-btn v-model="localSettings.reportingChatSidebarVisible" />
-      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="fieldAttrsCurrent.collab.comments" />
+      <chat-btn v-model="localSettings.reportingSidebarType" />
+      <btn-comments v-model="localSettings.reportingSidebarType" :comments="fieldAttrsCurrent.collab.comments" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
 

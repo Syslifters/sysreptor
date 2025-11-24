@@ -1,8 +1,8 @@
 <template>
   <split-menu 
     v-model="localSettings.reportInputMenuSizePx"
-    :sidebar-size="(localSettings.reportingChatSidebarVisible || localSettings.reportingCommentSidebarVisible) ? localSettings.reportingSidebarSizePx : undefined"
-    @update:sidebar-size="localSettings.reportingSidebarSizePx = $event!"
+    :sidebar-width="localSettings.reportingSidebarType !== ReportingSidebarType.NONE ? localSettings.reportingSidebarSizePx : undefined"
+    @update:sidebar-width="localSettings.reportingSidebarSizePx = $event!"
     :content-props="{ class: 'pa-0 h-100' }"
   >
     <template #menu>
@@ -34,14 +34,14 @@
 
     <template #sidebar>
       <comment-sidebar
-        v-if="localSettings.reportingCommentSidebarVisible"
+        v-if="localSettings.reportingSidebarType === ReportingSidebarType.COMMENTS"
         :project="project"
         :project-type="projectType"
         :finding-id="(router.currentRoute.value.params.findingId as string|undefined)"
         :section-id="(router.currentRoute.value.params.sectionId as string|undefined)"
       />
       <chat-sidebar
-        v-else-if="apiSettings.settings!.features?.ai_agent && localSettings.reportingChatSidebarVisible"
+        v-else-if="localSettings.reportingSidebarType === ReportingSidebarType.AICHAT && apiSettings.settings!.features?.ai_agent"
         :project="project"
         :project-type="projectType"
         :context="{ 

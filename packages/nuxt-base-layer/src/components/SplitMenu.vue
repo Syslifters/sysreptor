@@ -18,7 +18,7 @@
     </div>
 
     <resizable-navigation-drawer
-      v-if="$slots['sidebar']"
+      v-if="$slots['sidebar'] && sidebarWidth !== undefined"
       v-model="sidebarWidth"
       handle-location="right"
       class="h-100"

@@ -1,5 +1,5 @@
 import { CvssVersion } from "@base/utils/cvss/base";
-import { MarkdownEditorMode, CommentStatus, type FilterValue } from "#imports";
+import { ReportingSidebarType, MarkdownEditorMode, CommentStatus, type FilterValue } from "#imports";
 
 export const useLocalSettings = defineStore('settings', {
   state: () => ({
@@ -21,10 +21,9 @@ export const useLocalSettings = defineStore('settings', {
     reportFieldDefinitionMenuSizePx: 300,
     findingFieldDefinitionMenuSizePx: 300,
     defaultNotesDefinitionMenuSizePx: 300,
-    reportingCommentSidebarVisible: false,
+    reportingSidebarType: ReportingSidebarType.NONE,
     reportingSidebarSizePx: 300,
     reportingCommentStatusFilter: CommentStatus.OPEN as CommentStatus|'all',
-    reportingChatSidebarVisible: false,
     reportingChatAgent: 'project_ask' as 'project_ask'|'project_agent',
     projectListOrdering: null as string|null,
     designListOrdering: null as string|null,

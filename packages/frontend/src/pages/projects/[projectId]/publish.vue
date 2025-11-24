@@ -299,7 +299,7 @@ function messageLocationUrl(msg: ErrorMessage) {
 function onBeforeOpenMessageLocationUrl(msg: ErrorMessage) {
   if (msg.message.includes('comment')) {
     // Open comment sidebar
-    localSettings.reportingCommentSidebarVisible = true;
+    localSettings.reportingSidebarType = ReportingSidebarType.COMMENTS;
     localSettings.reportingCommentStatusFilter = CommentStatus.OPEN;
     localSettings.$persist();
   }

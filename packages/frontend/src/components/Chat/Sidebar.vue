@@ -16,7 +16,7 @@
             <s-tooltip activator="parent" text="New chat" />
           </s-btn-icon>
 
-          <v-btn icon variant="text" @click="localSettings.reportingChatSidebarVisible = false">
+          <v-btn icon variant="text" @click="localSettings.reportingSidebarType = ReportingSidebarType.NONE">
             <v-icon size="x-large" icon="mdi-close" />
           </v-btn>
         </template>
@@ -153,15 +153,6 @@ const agent = projectStore.useReportingAgent({ project: props.project });
 const messagesContainerRef = useTemplateRef('messagesContainerRef');
 const isScrolledToBottom = ref(true);
 
-whenever(() => localSettings.reportingChatSidebarVisible, async () => {
-  localSettings.reportingCommentSidebarVisible = false;
-  isScrolledToBottom.value = true;
-  await agent.loadHistory()
-}, { immediate: true });
-whenever(() => localSettings.reportingCommentSidebarVisible, () => {
-  localSettings.reportingChatSidebarVisible = false;
-});
-
 
 const form = ref({
   message: '',
@@ -175,7 +166,7 @@ async function sendMessage() {
   const promise = agent.submitMessage({ 
     message, 
     context: props.context,
-    agent: localSettings.reportingChatAgent 
+    agent: localSettings.reportingChatAgent,
   });
 
   // Always scroll to bottom when sending a new message
@@ -196,7 +187,10 @@ async function syncScroll(options?: { force?: boolean }) {
   await nextTick();
   messagesContainerRef.value!.scrollTop = messagesContainerRef.value!.scrollHeight;
 }
-onMounted(() => syncScroll({ force: true }));
+onMounted(async () => {
+  syncScroll({ force: true });
+  await agent.loadHistory();
+});
 const onScrollMessages = throttle(() => {
   if (!messagesContainerRef.value) {
     return;
