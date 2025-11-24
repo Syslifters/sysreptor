@@ -62,6 +62,7 @@
           spellcheck="false"
           autofocus
           class="textarea-message"
+          :class="{'generating': agent.inProgress.value}"
         >
           <template #append-inner>
             <s-btn-icon
@@ -161,18 +162,20 @@ async function sendMessage() {
   // Flush collab events such that the server/agent has the latest data
   await reportingCollab.flushEvents();
 
-  const message = form.value.message;
-  form.value.message = '';
   const promise = agent.submitMessage({ 
-    message, 
+    message: form.value.message, 
     context: props.context,
     agent: localSettings.reportingChatAgent,
   });
 
-  // Always scroll to bottom when sending a new message
+  // Always scroll to bottom when sending a new message (after adding message to UI)
   await syncScroll({ force: true });
 
-  await promise;
+  const res = await promise;
+  if (res === 'success') {
+    // Clear message input on success. Else keep it for retry.
+    form.value.message = '';
+  }
 }
 useKeyboardShortcut('ctrl+enter', () => sendMessage());
 
@@ -228,6 +231,11 @@ const onScrollMessages = throttle(() => {
   }
   .v-messages {
     display: none;
+  }
+}
+.textarea-message.generating:deep() {
+  textarea {
+    opacity: var(--v-disabled-opacity);
   }
 }
 

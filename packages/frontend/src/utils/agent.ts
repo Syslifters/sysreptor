@@ -330,8 +330,15 @@ export function useAiAgentChat(options: {
       options.storeState.currentRequest = { promise, abortController };
       const out = await promise;
       options.storeState.threadId = out.metadata.thread_id;
+
+      if (abortController.signal.aborted) {
+        return 'aborted';
+      } else {
+        return 'success';
+      }
     } catch (error) {
-      requestErrorToast({ error })
+      requestErrorToast({ error });
+      return 'error';
     } finally {
       options.storeState.currentRequest = null;
     }
