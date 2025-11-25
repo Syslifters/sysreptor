@@ -36,7 +36,7 @@ const licenseText = computed(() => {
 
 <style lang="scss" scoped>
 .header-logo-text {
-  --header-logo-height: 28px;
+  --header-logo-height: var(--v-header-logo-height, 28px);
   width: auto;
   display: flex;
   flex-direction: row;

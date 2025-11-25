@@ -36,6 +36,7 @@ const themeCommon = {
     'high-emphasis-opacity': 0.9,
     'medium-emphasis-opacity': 0.70,
     'disabled-opacity': 0.70,
+    'header-logo-height': '28px',
   },
 };
 const themeLight = merge({}, themeCommon, {
