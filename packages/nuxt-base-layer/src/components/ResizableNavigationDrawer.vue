@@ -176,6 +176,7 @@ useResizeObserver(parentElement, () => adjustDrawerWidthToFit());
   height: 100%;
   display: flex;
   flex-shrink: 0;
+  z-index: 2;
 }
 
 .resizable-drawer {
@@ -268,7 +269,7 @@ useResizeObserver(parentElement, () => adjustDrawerWidthToFit());
 /* Expand Button */
 .expand-button-wrapper {
   position: absolute;
-  z-index: 1;
+  z-index: 10;
   inset: 50% auto auto 50%;
   transform: translate(-50%, -50%);
   background-color: rgb(var(--v-theme-surface));
