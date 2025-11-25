@@ -1,5 +1,5 @@
 <template>
-  <split-menu v-if="shareInfo && notesCollab" v-model="localSettings.notebookInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
+  <split-menu v-if="shareInfo && notesCollab" v-model="localSettings.notebookInputMenuSizePx" :content-props="{ class: 'pa-0 h-100' }">
     <template #menu>
       <notes-menu
         title="Notes"

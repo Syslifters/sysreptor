@@ -1,6 +1,6 @@
 <template>
   <s-btn-icon
-    @click="modelValue = !modelValue"
+    @click="toggleCommentSidebar"
   >
     <v-badge 
       v-if="numOpenComments > 0"
@@ -19,11 +19,19 @@
 </template>
 
 <script setup lang="ts">
-import type { Comment } from '#imports';
+import { type Comment, ReportingSidebarType } from '#imports';
 
-const modelValue = defineModel<boolean>();
+const modelValue = defineModel<ReportingSidebarType>();
 const props = defineProps<{
   comments: Comment[];
 }>();
 const numOpenComments = computed(() => props.comments.filter(c => c.status === CommentStatus.OPEN).length);
+
+function toggleCommentSidebar() {
+  if (modelValue.value === ReportingSidebarType.COMMENTS) {
+    modelValue.value = ReportingSidebarType.NONE;
+  } else {
+    modelValue.value = ReportingSidebarType.COMMENTS;
+  }
+}
 </script>

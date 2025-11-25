@@ -19,7 +19,6 @@
     "@vueuse/nuxt": "^14.0.0",
 
     "emoji-mart-vue-fast": "^15.0.0",
-    "splitpanes": "^4.0.0",
     "vue-toastification": "^2.0.0-rc.5",
 
     "base64-arraybuffer": "^1.0.2",

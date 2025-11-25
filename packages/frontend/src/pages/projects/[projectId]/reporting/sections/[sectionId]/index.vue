@@ -16,8 +16,8 @@
         class="ml-1 mr-1"
       />
 
-      <chat-btn v-model="localSettings.reportingChatSidebarVisible" />
-      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="reportingCollab.collabProps.value.comments!" />
+      <chat-btn v-model="localSettings.reportingSidebarType" />
+      <btn-comments v-model="localSettings.reportingSidebarType" :comments="reportingCollab.collabProps.value.comments!" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
 
@@ -26,14 +26,6 @@
       :project="project"
       :section="section"
       :current-url="route.fullPath"
-    />
-    <comment-sidebar
-      ref="commentSidebarRef"
-      :project="project"
-      :project-type="projectType"
-      :section-id="route.params.sectionId as string"
-      :readonly="readonly"
-      :selectable-users="inputFieldAttrs.selectableUsers"
     />
 
     <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">

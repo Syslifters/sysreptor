@@ -23,9 +23,12 @@ from sysreptor.ai.agents.base import (
     to_yaml,
 )
 from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
+from sysreptor.pentests.fielddefinition.sort import sort_findings
 from sysreptor.pentests.models import PentestProject, ProjectNotebookPage, ReportSection
+from sysreptor.pentests.models.common import get_risk_score_from_data
 from sysreptor.pentests.models.template import FindingTemplate
 from sysreptor.pentests.permissions import ProjectSubresourcePermissions
+from sysreptor.pentests.rendering.entry import format_template_field_object
 from sysreptor.pentests.serializers.notes import ProjectNotebookPageSerializer
 from sysreptor.pentests.serializers.project import (
     PentestFindingFromTemplateSerializer,
@@ -62,20 +65,40 @@ def get_project(project_id: str, prefetch: bool = False) -> PentestProject:
     return qs.get()
 
 
+def format_risk_score(data: dict):
+    r = get_risk_score_from_data(data)
+    return (f' {r["score"]}' if r.get('score') is not None else '') + (r.get('level') or 'info')
+
+
 def format_project_info(project: PentestProject) -> str:
     project_info = {
         'id': str(project.id),
         'name': project.name,
         'language': project.get_language_display(),
         'sections': [f'id={s.section_id} label={json.dumps(s.section_label)} data=...' for s in project.sections.all()],
-        'findings': [f'id={f.finding_id} title={json.dumps(f.title)} data=...' for f in project.findings.all()],
+        'findings': [
+            f'id={f["id"]} title={json.dumps(f["title"])} risk={json.dumps(format_risk_score(f))} data=...'
+            for f in sort_findings(
+                findings=[
+                    format_template_field_object(
+                        value={'id': str(f.id), 'created': str(f.created), 'order': f.order, **f.data},
+                        definition=project.project_type.finding_fields_obj)
+                    for f in project.findings.all()
+                ],
+            project_type=project.project_type,
+            override_finding_order=project.override_finding_order,
+        )],
         'notes': [f'id={n.note_id} parent_id={n.parent.note_id if n.parent else None} title={json.dumps(n.title)}' for n in project.notes.all()],
     }
     return f'<project>{to_yaml(project_info)}</project>'
 
 
 def format_finding_data(finding) -> str:
-    data = PentestFindingSerializer(finding).data
+    r = get_risk_score_from_data(finding.data)
+    data = PentestFindingSerializer(finding).data | {
+        'risk_score': r.get('score'),
+        'risk_level': r.get('level'),
+    }
     return f'<finding path="findings.{finding.finding_id}">{to_yaml(data)}</finding>'
 
 

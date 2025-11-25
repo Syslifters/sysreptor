@@ -7,7 +7,7 @@
   >
     <template #title>Share Note</template>
     <template #default>
-      <split-menu :model-value="shareInfos.length > 0 ? 20 : 0" :expand-size="0">
+      <split-menu :model-value="shareInfos.length > 0 ? 200 : 0" :class="{'split-menu-noexpand': shareInfos.length === 0}">
         <template #menu>
           <v-list
             v-model:selected="currentShareInfoSelection"
@@ -216,5 +216,9 @@ async function createShareInfo() {
 }
 :deep(.v-list-item-subtitle) {
   opacity: 1;
+}
+
+.split-menu-noexpand:deep(.expand-button-wrapper) {
+  display: none;
 }
 </style>

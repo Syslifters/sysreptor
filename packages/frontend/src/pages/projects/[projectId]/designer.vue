@@ -76,7 +76,7 @@ const auth = useAuth();
 const projectStore = useProjectStore();
 
 const currentTab = ref(PdfDesignerTab.HTML);
-const previewSplitSize = ref(60);
+const previewSplitSize = ref(window.innerWidth * 0.55);
 
 const pdfPreviewRef = useTemplateRef<InstanceType<typeof PdfPreview>>('pdfPreviewRef');
 

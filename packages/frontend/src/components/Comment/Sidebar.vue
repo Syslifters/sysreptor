@@ -1,12 +1,5 @@
 <template>
-  <v-navigation-drawer
-    v-if="localSettings.reportingCommentSidebarVisible"
-    absolute
-    permanent
-    location="right"
-    width="400"
-    class="comment-sidebar"
-  >
+  <div>
     <div class="sidebar-header">
       <v-list-item class="pt-0 pb-0">
         <v-list-item-title class="text-h6">
@@ -33,7 +26,7 @@
             </v-menu>
           </s-btn-icon>
 
-          <v-btn icon variant="text" @click="localSettings.reportingCommentSidebarVisible = false">
+          <v-btn icon variant="text" @click="localSettings.reportingSidebarType = ReportingSidebarType.NONE">
             <v-icon size="x-large" icon="mdi-close" />
           </v-btn>
         </template>
@@ -79,12 +72,12 @@
 
       <v-divider class="mt-2" />
     </v-list-item>
-  </v-navigation-drawer>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { groupBy } from 'lodash-es';
-import { CollabEventType, CommentStatus, type Comment, type FieldDefinition } from '#imports';
+import { CollabEventType, CommentStatus, ReportingSidebarType, type Comment, type FieldDefinition } from '#imports';
 
 const props = defineProps<{
   project: PentestProject;
@@ -100,13 +93,13 @@ const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 const eventBusBeforeApplySetValue = useEventBus('collab:beforeApplySetValue');
 
-const reportingCollab = projectStore.useReportingCollab({ project: props.project, findingId: props.findingId, sectionId: props.sectionId });
+const reportingCollab = projectStore.useReportingCollab({ project: props.project });
 const commentNew = ref<Comment|null>(null);
 const commentsAll = computedList<Comment>(() => {
   return projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId });
 }, c => c.id);
 const commentsVisible = computed(() => {
-  const out = localSettings.reportingCommentSidebarVisible ?
+  const out = localSettings.reportingSidebarType === ReportingSidebarType.COMMENTS ?
     commentsAll.value.filter(c => localSettings.reportingCommentStatusFilter === 'all' ? true : c.status === localSettings.reportingCommentStatusFilter) :
     commentsAll.value.filter(c => c.status === CommentStatus.OPEN);
   if (commentNew.value && !out.some(c => c.id === commentNew.value?.id)) {
@@ -143,7 +136,7 @@ function prettyFieldLabel(path: string) {
   return pathLabels.join(' / ');
 }
 
-watch(() => localSettings.reportingCommentSidebarVisible, (value) => {
+watch(() => localSettings.reportingSidebarType === ReportingSidebarType.COMMENTS, (value) => {
   if (!value) {
     // Reset selected comment on sidebar close
     selectedComment.value = null;
@@ -227,7 +220,7 @@ async function createComment(comment: Partial<Comment>) {
 
 async function onCommentEvent(event: any) {
   if (event.openSidebar || event.type === 'create') {
-    localSettings.reportingCommentSidebarVisible = true;
+    localSettings.reportingSidebarType = ReportingSidebarType.COMMENTS;
     await nextTick();
   }
 

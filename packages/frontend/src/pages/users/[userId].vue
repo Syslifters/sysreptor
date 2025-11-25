@@ -1,5 +1,5 @@
 <template>
-  <split-menu :model-value="15">
+  <split-menu>
     <template #menu>
       <v-list nav density="compact">
         <v-list-item-title class="text-h6 pl-2 mb-2">{{ user.username }}</v-list-item-title>

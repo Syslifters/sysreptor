@@ -18,8 +18,8 @@
         prepend-icon="mdi-undo"
         text="Close Version History"
       />
-      <chat-btn v-model="localSettings.reportingChatSidebarVisible" />
-      <btn-comments v-model="localSettings.reportingCommentSidebarVisible" :comments="fieldAttrsCurrent.collab.comments" />
+      <chat-btn v-model="localSettings.reportingSidebarType" />
+      <btn-comments v-model="localSettings.reportingSidebarType" :comments="fieldAttrsCurrent.collab.comments" />
       <btn-history v-model="historyVisible" />
     </edit-toolbar>
 
@@ -28,14 +28,6 @@
       :project="fetchState.projectHistoric"
       :finding="finding"
       :current-url="currentUrl"
-    />
-    <comment-sidebar
-      ref="commentSidebarRef"
-      :project="fetchState.projectCurrent"
-      :project-type="fetchState.projectTypeCurrent"
-      :finding-id="route.params.findingId as string"
-      :readonly="fieldAttrsCurrent.readonly"
-      :selectable-users="fieldAttrsCurrent.selectableUsers"
     />
 
     <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">

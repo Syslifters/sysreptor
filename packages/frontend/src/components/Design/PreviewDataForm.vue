@@ -107,7 +107,7 @@ const emit = defineEmits<{
 const localSettings = useLocalSettings();
 const auth = useAuth();
 
-const menuSize = ref(20);
+const menuSize = ref(200);
 
 const findings = computed<PentestFinding[]>({
   get: () => {

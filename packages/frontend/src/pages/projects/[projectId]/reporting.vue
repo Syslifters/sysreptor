@@ -1,5 +1,10 @@
 <template>
-  <split-menu v-model="localSettings.reportInputMenuSize" :content-props="{ class: 'pa-0 h-100' }">
+  <split-menu 
+    v-model="localSettings.reportInputMenuSizePx"
+    :sidebar-width="localSettings.reportingSidebarType !== ReportingSidebarType.NONE ? localSettings.reportingSidebarSizePx : undefined"
+    @update:sidebar-width="localSettings.reportingSidebarSizePx = $event!"
+    :content-props="{ class: 'pa-0 h-100' }"
+  >
     <template #menu>
       <report-sidebar
         :sections="sections"
@@ -25,13 +30,23 @@
       <collab-loader :collab="reportingCollab">
         <nuxt-page />
       </collab-loader>
+    </template>
 
+    <template #sidebar>
+      <comment-sidebar
+        v-if="localSettings.reportingSidebarType === ReportingSidebarType.COMMENTS"
+        :project="project"
+        :project-type="projectType"
+        :finding-id="(router.currentRoute.value.params.findingId as string|undefined)"
+        :section-id="(router.currentRoute.value.params.sectionId as string|undefined)"
+      />
       <chat-sidebar
+        v-else-if="localSettings.reportingSidebarType === ReportingSidebarType.AICHAT && apiSettings.settings!.features?.ai_agent"
         :project="project"
         :project-type="projectType"
         :context="{ 
-          finding_id: route.params.findingId as string|undefined,
-          section_id: route.params.sectionId as string|undefined,
+          finding_id: router.currentRoute.value.params.findingId as string|undefined,
+          section_id: router.currentRoute.value.params.sectionId as string|undefined,
         }"
       />
     </template>
@@ -45,6 +60,7 @@ import type { CreateFindingDialog } from '#components';
 const route = useRoute();
 const router = useRouter();
 const auth = useAuth();
+const apiSettings = useApiSettings();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore()
 const projectTypeStore = useProjectTypeStore();
