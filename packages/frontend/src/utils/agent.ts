@@ -344,14 +344,14 @@ export function useAiAgentChat(options: {
     }
   }
 
-  function abort() {
+  function cancel() {
     options.storeState.currentRequest?.abortController?.abort();
     options.storeState.currentRequest = null;
   }
-  onUnmounted(() => abort());
+  onUnmounted(() => cancel());
 
   function reset() {
-    abort();
+    cancel();
     options.storeState.threadId = null;
     options.storeState.messageHistory = [];
   }
@@ -363,7 +363,7 @@ export function useAiAgentChat(options: {
     submitMessage,
     loadHistory,
     reset,
-    abort,
+    cancel,
   }
 }
 
