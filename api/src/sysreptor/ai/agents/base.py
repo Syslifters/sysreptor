@@ -34,6 +34,23 @@ def to_yaml(data: Any) -> str:
     return out
 
 
+def to_short_string(s) -> str:
+    """
+    Encode a string to a short representation suitable for LLM prompts.
+    """
+    if isinstance(s, None | int | float | bool):
+        return json.dumps(s)
+
+    enc = json.dumps(str(s))
+    if s and s == enc[1:-1] and not any(c in s for c in [' ']):
+        return s
+    return enc
+
+
+def to_inline_context(data: dict[str, Any]) -> str:
+    return ' '.join(f'{to_short_string(k)}={to_short_string(v)}' for k, v in data.items())
+
+
 def agent_tool(metadata=None, **kwargs):
     def decorator(func: Callable) -> Callable:
         if not asyncio.iscoroutinefunction(func):

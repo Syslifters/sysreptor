@@ -1,5 +1,5 @@
 import dataclasses
-import json
+import itertools
 import textwrap
 from typing import Any
 from uuid import UUID
@@ -20,10 +20,11 @@ from sysreptor.ai.agents.base import (
     agent_tool,
     fix_broken_tool_calls,
     init_chat_model,
+    to_inline_context,
     to_yaml,
 )
 from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
-from sysreptor.pentests.fielddefinition.sort import sort_findings
+from sysreptor.pentests.fielddefinition.sort import group_findings
 from sysreptor.pentests.models import PentestProject, ProjectNotebookPage, ReportSection
 from sysreptor.pentests.models.common import get_risk_score_from_data
 from sysreptor.pentests.models.template import FindingTemplate
@@ -67,28 +68,58 @@ def get_project(project_id: str, prefetch: bool = False) -> PentestProject:
 
 def format_risk_score(data: dict):
     r = get_risk_score_from_data(data)
-    return (f' {r["score"]}' if r.get('score') is not None else '') + (r.get('level') or 'info')
+    return (f'{r["score"]} ' if r.get('score') is not None else '') + (r.get('level') or 'info')
+
+
+def format_assignee(assignee: PentestUser|None) -> dict:
+    if not assignee:
+        return {}
+    return {
+        'assignee': f'@{assignee.username}' + (f'({assignee.name})' if assignee.name else ''),
+    }
 
 
 def format_project_info(project: PentestProject) -> str:
+    findings = [
+        format_template_field_object(
+            value={'id': str(f.id), 'created': str(f.created), 'order': f.order, **f.data},
+            definition=project.project_type.finding_fields_obj,
+        ) | {'_meta': {'status': f.status, 'assignee': f.assignee}} for f in project.findings.all()
+    ]
+    finding_groups = group_findings(
+        findings=findings,
+        project_type=project.project_type,
+        override_finding_order=project.override_finding_order,
+    )
+    findings_sorted = list(itertools.chain(*[map(lambda f: f | {'_group': g['label']}, g['findings']) for g in finding_groups]))
+    is_grouped = len(project.project_type.finding_grouping or []) > 0 and \
+        (len(finding_groups) > 1 or (len(finding_groups) == 1 and finding_groups[0]['label']))
+
     project_info = {
-        'id': str(project.id),
         'name': project.name,
         'language': project.get_language_display(),
-        'sections': [f'id={s.section_id} label={json.dumps(s.section_label)} data=...' for s in project.sections.all()],
-        'findings': [
-            f'id={f["id"]} title={json.dumps(f["title"])} risk={json.dumps(format_risk_score(f))} data=...'
-            for f in sort_findings(
-                findings=[
-                    format_template_field_object(
-                        value={'id': str(f.id), 'created': str(f.created), 'order': f.order, **f.data},
-                        definition=project.project_type.finding_fields_obj)
-                    for f in project.findings.all()
-                ],
-            project_type=project.project_type,
-            override_finding_order=project.override_finding_order,
-        )],
-        'notes': [f'id={n.note_id} parent_id={n.parent.note_id if n.parent else None} title={json.dumps(n.title)}' for n in project.notes.all()],
+        'sections': [to_inline_context({
+            'id': s.section_id,
+            'title': s.title,
+            'status': s.status,
+            **format_assignee(s.assignee),
+            'data': '...',
+        }) for s in project.sections.all()],
+        'findings': [to_inline_context({
+            'id': f['id'],
+            'title': f['title'],
+            'risk': format_risk_score(f),
+            **({'group': f.get('_group', '')} if is_grouped else {}),
+            'status': f['_meta']['status'],
+            **format_assignee(f['_meta']['assignee']),
+            'data': '...',
+        }) for f in findings_sorted],
+        'notes': [to_inline_context({
+            'id': n.note_id,
+            'parent_id': n.parent.note_id if n.parent else None,
+            'title': n.title,
+            **format_assignee(n.assignee),
+        }) for n in project.notes.all()],
     }
     return f'<project>{to_yaml(project_info)}</project>'
 
