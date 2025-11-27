@@ -165,7 +165,7 @@ def parse_id(value: str, prefix: str) -> str:
 
 
 @agent_tool(parse_docstring=True)
-def get_section_data(section_id: str, runtime: ToolRuntime[ProjectContext]) -> str:
+def get_section_data(runtime: ToolRuntime[ProjectContext], section_id: str) -> str:
     """
     Get data for a specific section by its section_id.
 
@@ -181,7 +181,7 @@ def get_section_data(section_id: str, runtime: ToolRuntime[ProjectContext]) -> s
 
 
 @agent_tool(parse_docstring=True)
-def get_finding_data(finding_id: str, runtime: ToolRuntime[ProjectContext]) -> str:
+def get_finding_data(runtime: ToolRuntime[ProjectContext], finding_id: str) -> str:
     """
     Get data for a specific finding by its finding_id.
 
@@ -197,7 +197,7 @@ def get_finding_data(finding_id: str, runtime: ToolRuntime[ProjectContext]) -> s
 
 
 @agent_tool(parse_docstring=True)
-def get_note_data(note_id: str, runtime: ToolRuntime[ProjectContext]) -> str:
+def get_note_data(runtime: ToolRuntime[ProjectContext], note_id: str) -> str:
     """
     Get data for a specific note by its note_id.
 
@@ -213,7 +213,7 @@ def get_note_data(note_id: str, runtime: ToolRuntime[ProjectContext]) -> str:
 
 
 @agent_tool(parse_docstring=True)
-def list_templates(search_terms: str|None, runtime: ToolRuntime[ProjectContext]) -> list[dict]:
+def list_templates(runtime: ToolRuntime[ProjectContext], search_terms: str|None = None) -> list[dict]:
     """
     Search for finding templates matching a query.
 
@@ -231,7 +231,7 @@ def list_templates(search_terms: str|None, runtime: ToolRuntime[ProjectContext])
 
     results = []
     for t in qs[:100]:
-        results.append(format_template_data(t, short=True))
+        results.append(f'<template>{format_template_data(t, short=True)}</template>')
     if results:
         return '\n'.join(results)
     else:
@@ -239,7 +239,7 @@ def list_templates(search_terms: str|None, runtime: ToolRuntime[ProjectContext])
 
 
 @agent_tool(parse_docstring=True)
-def get_template_data(template_id: str, runtime: ToolRuntime[ProjectContext]) -> str:
+def get_template_data(runtime: ToolRuntime[ProjectContext], template_id: str) -> str:
     """
     Get data for a specific finding template by its ID.
 
@@ -256,7 +256,7 @@ def get_template_data(template_id: str, runtime: ToolRuntime[ProjectContext]) ->
 
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})
-def create_finding(data: dict|None, template_id: str|None, template_language: str|None, runtime: ToolRuntime[ProjectContext]) -> str:
+def create_finding(runtime: ToolRuntime[ProjectContext], data: dict|None = None, template_id: str|None = None, template_language: str|None = None) -> str:
     """
     Create a new finding. Optionally based on a finding template.
 
@@ -351,7 +351,7 @@ def update_at_path(info: dict, value):
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})
 @transaction.atomic()
-def update_field_value(path: str, value: Any, runtime: ToolRuntime[ProjectContext]) -> None:
+def update_field_value(runtime: ToolRuntime[ProjectContext], path: str, value: Any) -> None:
     """
     Set a field in section or finding data.
 
@@ -366,7 +366,7 @@ def update_field_value(path: str, value: Any, runtime: ToolRuntime[ProjectContex
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})
 @transaction.atomic()
-def update_markdown_field(path: str, old_text: str, new_text: str, runtime: ToolRuntime[ProjectContext]) -> str:
+def update_markdown_field(runtime: ToolRuntime[ProjectContext], path: str, old_text: str, new_text: str) -> str:
     """
     Partially update a markdown field by replacing old_text with new_text.
     Use this tool for updating parts of large markdown texts. For short fields or non-markdown fields, use `update_field_value` instead.
