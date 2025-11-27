@@ -13,7 +13,7 @@
             density="compact"
           >
             <v-icon icon="mdi-plus-circle" />
-            <s-tooltip activator="parent" text="New chat" />
+            <s-tooltip activator="parent" text="New chat (Ctrl+L)" />
           </s-btn-icon>
 
           <v-btn icon variant="text" @click="localSettings.reportingSidebarType = ReportingSidebarType.NONE">
@@ -68,10 +68,14 @@
             <s-btn-icon
               v-if="!agent.inProgress.value"
               @click="sendMessage"
+              :disabled="!form.message.trim()"
               icon="mdi-send"
               size="small"
               density="compact"
-            />
+            >
+              <v-icon icon="mdi-send" />
+              <s-tooltip activator="parent" text="Send message (Ctrl+Enter)" />
+            </s-btn-icon>
             <div v-else class="btn-stop" style="position: relative; display: inline-flex;">
               <v-progress-circular
                 indeterminate
@@ -79,11 +83,12 @@
                 :width="2"
               />
               <s-btn-icon
-                @click="agent.abort()"
+                @click="agent.cancel()"
                 icon="mdi-stop"
                 size="small"
                 density="compact"
               />
+              <s-tooltip activator="parent" text="Cancel" />
             </div>
           </template>
           <template #details>
@@ -178,6 +183,7 @@ async function sendMessage() {
   }
 }
 useKeyboardShortcut('ctrl+enter', () => sendMessage());
+useKeyboardShortcut('ctrl+l', () => agent.reset());
 
 
 async function syncScroll(options?: { force?: boolean }) {

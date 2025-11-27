@@ -207,7 +207,7 @@ def format_message(m: AnyMessage) -> dict|None:
 
 async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None = None, **kwargs):
     try:
-        with history_context(history_user_id=thread.user_id, set_history_date=False):
+        with history_context(history_user=thread.user, set_history_date=False):
             yield {'type': 'metadata', 'content': {'thread_id': str(thread.id)}}
 
             async for stream_mode, chunk in agent.astream(

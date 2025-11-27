@@ -7,7 +7,7 @@ import pytest
 from asgiref.sync import async_to_sync
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
-from langchain.messages import AIMessage, AIMessageChunk, ToolCall
+from langchain.messages import AIMessage, AIMessageChunk, HumanMessage, ToolCall
 from langchain.tools import ToolRuntime
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
@@ -25,6 +25,7 @@ from sysreptor.ai.agents.project import (
     update_field_value,
     update_markdown_field,
 )
+from sysreptor.ai.models import ChatThread
 from sysreptor.tests.mock import api_client, create_project, create_template, create_user, override_configuration
 from sysreptor.utils.fielddefinition.utils import get_value_at_path
 from sysreptor.utils.utils import copy_keys, omit_keys
@@ -132,6 +133,9 @@ class TestProjectAgent:
         return parse_sse_events(res)
 
     def test_agent_flow(self):
+        executive_summary = self.project.sections.get(section_id='executive_summary')
+        executive_summary.history.all().delete()
+
         user_messages = [
             'Hi',
             "Update the executive summary to 'New executive summary'.",
@@ -160,10 +164,6 @@ class TestProjectAgent:
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}}),
             ])
 
-        # Verify that the section was updated
-        executive_summary = self.project.sections.get(section_id='executive_summary')
-        assert executive_summary.data['executive_summary'] == 'New executive summary'
-
         # Verify chat history
         res = self.client.get(reverse('chatthread-latest', query={'project': self.project.id}))
         assert res.status_code == 200
@@ -177,6 +177,17 @@ class TestProjectAgent:
             {'role': 'tool', 'tool_call': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'success', 'output': {}}},
             {'role': 'assistant', 'text': llm_messages[2].content},
         ]
+
+        # Verify that the section was updated
+        executive_summary.refresh_from_db()
+        assert executive_summary.data['executive_summary'] == 'New executive summary'
+
+        # Verify version history
+        assert executive_summary.history.count() == 1
+        history = executive_summary.history.first()
+        assert history.history_type == '~'
+        assert history.history_user == self.user
+        assert history.custom_fields == executive_summary.custom_fields
 
     def test_inject_context_middleware(self):
         def assert_injected_message(msg):
@@ -536,38 +547,58 @@ class TestAgentPermissions:
     ])
     @override_configuration(GUEST_USERS_CAN_EDIT_PROJECTS=False)
     def test_api_permissions(self, user_name, project_name, expected_read, expected_write):
-        user_member = create_user()
-        user_guest = create_user(is_guest=True)
         users = {
-            'member': user_member,
-            'guest': user_guest,
-            'admin': create_user(is_superuser=True),
+            'member': create_user(),
+            'guest': create_user(is_guest=True),
+            'admin': create_user(is_superuser=True, admin_permissions_enabled=True),
             'unauthorized': create_user(),
             'anonymous': AnonymousUser(),
         }
         user = users[user_name]
-        user.admin_permissions_enabled = True
+        client = api_client(user)
         project = {
-            'project': create_project(members=[user_member, user_guest]),
-            'readonly': create_project(members=[user_member, user_guest], readonly=True),
+            'project': create_project(members=[users['member'], users['guest']]),
+            'readonly': create_project(members=[users['member'], users['guest']], readonly=True),
         }[project_name]
 
-        with mock_llm_response(messages=[
-            AIMessage(content='dummy', tool_calls=[
-                ToolCall(id='tool_call_1', name='update_field_value', args={'path': 'sections.executive_summary.data.executive_summary', 'value': 'updated'}),
-            ]),
-            AIMessage(content='done'),
-        ]):
-            res = api_client(user).post(reverse('chatthread-list'), data={
-                'agent': 'project_agent',
-                'project': project.id,
-                'messages': ['dummy'],
-                'context': {},
-            })
-            if expected_read:
-                assert res.status_code == 200
-                events = parse_sse_events(res)
-                tool_status = next(e for e in events if e['type'] == 'tool_call_status')['content']['status']
-                assert tool_status == ('success' if expected_write else 'error')
-            else:
-                assert res.status_code in [400, 403]
+        thread = ChatThread.objects.create(
+            user=user if user.is_authenticated else users['member'],
+            project=project,
+        )
+        agent = get_agent('project_ask')
+        agent.update_state(config={'configurable': {'thread_id': str(thread.id)}}, values={
+            'messages': [
+                HumanMessage(content='request'),
+                AIMessage(content='response'),
+            ],
+        })
+
+        # Agent permissions
+        for thread_id in [None, thread.id]:
+            with mock_llm_response(messages=[
+                AIMessage(content='dummy', tool_calls=[
+                    ToolCall(id='tool_call_1', name='update_field_value', args={'path': 'sections.executive_summary.data.executive_summary', 'value': 'updated'}),
+                ]),
+                AIMessage(content='done'),
+            ]):
+                res = client.post(reverse('chatthread-list'), data={
+                    'id': thread_id,
+                    'agent': 'project_agent',
+                    'project': project.id,
+                    'messages': ['dummy'],
+                    'context': {},
+                })
+                if expected_read:
+                    assert res.status_code == 200
+                    events = parse_sse_events(res)
+                    tool_status = next(e for e in events if e['type'] == 'tool_call_status')['content']['status']
+                    assert tool_status == ('success' if expected_write else 'error')
+                else:
+                    assert res.status_code in [400, 403]
+
+        # ChatThread history permissions
+        res_thread = client.get(reverse('chatthread-detail', kwargs={'pk': thread.id}))
+        assert res_thread.status_code in ([200] if expected_read else [403, 404])
+
+        res_latest = client.get(reverse('chatthread-latest', query={'project': project.id}))
+        assert res_latest.status_code in ([200] if expected_read else [403, 404])
