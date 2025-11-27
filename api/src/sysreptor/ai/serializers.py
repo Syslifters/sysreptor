@@ -52,12 +52,13 @@ class LLMAgentSerializer(serializers.Serializer):
                 .filter(id=thread_id) \
                 .filter(user_id=self.context['request'].user.id) \
                 .filter(**thread_filters) \
+                .select_related('user', 'project') \
                 .first()
             if not attrs['thread']:
                 raise serializers.ValidationError('Invalid id')
         else:
             attrs['thread'] = ChatThread.objects.create(
-                user_id=self.context['request'].user.id,
+                user=self.context['request'].user,
                 **thread_filters,
             )
         return super().validate(attrs)

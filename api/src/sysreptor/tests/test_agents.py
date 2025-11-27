@@ -132,6 +132,9 @@ class TestProjectAgent:
         return parse_sse_events(res)
 
     def test_agent_flow(self):
+        executive_summary = self.project.sections.get(section_id='executive_summary')
+        executive_summary.history.all().delete()
+
         user_messages = [
             'Hi',
             "Update the executive summary to 'New executive summary'.",
@@ -160,10 +163,6 @@ class TestProjectAgent:
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}}),
             ])
 
-        # Verify that the section was updated
-        executive_summary = self.project.sections.get(section_id='executive_summary')
-        assert executive_summary.data['executive_summary'] == 'New executive summary'
-
         # Verify chat history
         res = self.client.get(reverse('chatthread-latest', query={'project': self.project.id}))
         assert res.status_code == 200
@@ -177,6 +176,17 @@ class TestProjectAgent:
             {'role': 'tool', 'tool_call': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'success', 'output': {}}},
             {'role': 'assistant', 'text': llm_messages[2].content},
         ]
+
+        # Verify that the section was updated
+        executive_summary.refresh_from_db()
+        assert executive_summary.data['executive_summary'] == 'New executive summary'
+
+        # Verify version history
+        assert executive_summary.history.count() == 1
+        history = executive_summary.history.first()
+        assert history.history_type == '~'
+        assert history.history_user == self.user
+        assert history.custom_fields == executive_summary.custom_fields
 
     def test_inject_context_middleware(self):
         def assert_injected_message(msg):
