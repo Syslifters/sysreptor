@@ -49,8 +49,8 @@ class LLMAgentSerializer(serializers.Serializer):
         # Validate thread_id exists and belongs to user
         if thread_id:
             attrs['thread'] = ChatThread.objects \
+                .only_permitted(self.context['request'].user) \
                 .filter(id=thread_id) \
-                .filter(user_id=self.context['request'].user.id) \
                 .filter(**thread_filters) \
                 .select_related('user', 'project') \
                 .first()

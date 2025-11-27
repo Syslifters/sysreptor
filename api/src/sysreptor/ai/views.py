@@ -47,7 +47,7 @@ class ChatThreadViewSet(viewsets.GenericViewSet, ViewSetAsync):
 
     def get_queryset(self):
         return ChatThread.objects \
-            .filter(user=self.request.user) \
+            .only_permitted(self.request.user) \
             .filter_has_checkpoints()
 
     def get_serializer_class(self):
