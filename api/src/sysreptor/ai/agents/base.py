@@ -168,7 +168,7 @@ class ClearOldInjectedContextEdit(ContextEdit):
 
 
 def init_chat_model():
-    return chat_models.init_chat_model(settings.AI_AGENT_MODEL)
+    return chat_models.init_chat_model()
 
 
 def format_message(m: AnyMessage) -> dict|None:
@@ -212,7 +212,12 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
 
             async for stream_mode, chunk in agent.astream(
                 stream_mode=["messages", "values", "updates"],
-                config={'configurable': {'thread_id': thread.id}},
+                config={
+                    'configurable': {
+                        'model': settings.AI_AGENT_MODEL,
+                        'thread_id': thread.id,
+                    },
+                },
                 context=agent.context_schema(**(context or {}) | {'user_id': thread.user_id, 'project_id': thread.project_id}),
                 **kwargs,
             ):
