@@ -1,6 +1,7 @@
 import contextlib
 import json
 import re
+from datetime import timedelta
 from unittest import mock
 
 import pytest
@@ -25,8 +26,17 @@ from sysreptor.ai.agents.project import (
     update_field_value,
     update_markdown_field,
 )
-from sysreptor.ai.models import ChatThread
-from sysreptor.tests.mock import api_client, create_project, create_template, create_user, override_configuration
+from sysreptor.ai.models import ChatThread, LangchainCheckpoint
+from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints
+from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
+from sysreptor.tests.mock import (
+    api_client,
+    create_project,
+    create_template,
+    create_user,
+    mock_time,
+    override_configuration,
+)
 from sysreptor.utils.fielddefinition.utils import get_value_at_path
 from sysreptor.utils.utils import copy_keys, omit_keys
 
@@ -602,3 +612,26 @@ class TestAgentPermissions:
 
         res_latest = client.get(reverse('chatthread-latest', query={'project': project.id}))
         assert res_latest.status_code in ([200] if expected_read else [403, 404])
+
+
+@pytest.mark.django_db()
+class TestAiCleanupTask:
+    def checkpoint_exists(self, checkpoint):
+        return LangchainCheckpoint.objects.filter(id=checkpoint.id).exists()
+
+    def test_cleanup_old_langchain_checkpoints(self):
+        with mock_time(before=timedelta(days=2)):
+            thread = ChatThread.objects.create(
+                user=create_user(),
+                project=create_project(),
+            )
+            old_checkpoint = LangchainCheckpoint.objects.create(thread=thread)
+            current_checkpoint = LangchainCheckpoint.objects.create(thread=thread)
+
+        async_to_sync(cleanup_old_langchain_checkpoints)(task_info=PeriodicTaskInfo(
+            spec=next(filter(lambda t: t.id == 'cleanup_old_langchain_checkpoints', periodic_task_registry.tasks)),
+            model=PeriodicTask(last_success=None),
+        ))
+        assert not self.checkpoint_exists(old_checkpoint)
+        assert self.checkpoint_exists(current_checkpoint)
+
