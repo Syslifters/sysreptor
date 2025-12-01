@@ -48,8 +48,6 @@
 </template>
 
 <script setup lang="ts">
-import type { CommentSidebar } from '#components';
-
 const localSettings = useLocalSettings();
 const route = useRoute();
 const projectStore = useProjectStore();
@@ -70,12 +68,10 @@ const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
     attrs: {
       ...fieldAttrsCurrent.value,
       collab: collabSubpath(fieldAttrsCurrent.value.collab, 'data'),
-      onComment: commentSidebarRef.value?.onCommentEvent,
     },
   },
 }));
 
-const commentSidebarRef = useTemplateRef<InstanceType<typeof CommentSidebar>>('commentSidebarRef');
 const historyVisible = ref(false);
 const currentUrl = computed(() => {
   if (section.value && projectStore.sections(section.value.project).map(s => s.id).includes(section.value.id)) {

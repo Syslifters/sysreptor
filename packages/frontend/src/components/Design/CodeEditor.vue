@@ -26,12 +26,13 @@ self.MonacoEnvironment = {
   },
 };
 
-monaco.languages.html.htmlDefaults.setOptions({
+monaco.html.htmlLanguageService.defaults.setOptions({
   format: {
+    ...monaco.html.htmlLanguageService.defaults.options.format!,
     preserveNewLines: true,
     contentUnformatted: 'markdown,mermaid-diagram', // Do not format content of <markdown> tags
     wrapLineLength: 100000000, // Disable max line length
-  } as any
+  }
 });
 monaco.editor.addKeybindingRules([
   {

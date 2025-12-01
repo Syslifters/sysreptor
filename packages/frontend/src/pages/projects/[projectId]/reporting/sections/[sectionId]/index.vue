@@ -34,7 +34,7 @@
         :model-value="section.data[fieldDefinition.id]"
         :collab="reportingCollab.collabSubpathProps.value[`data.${fieldDefinition.id}`]"
         @collab="reportingCollab.onCollabEvent"
-        @comment="commentSidebarRef?.onCommentEvent"
+        @comment="reportingCollab.onCommentEvent"
         @search="reportingCollab.search.value = $event"
         :readonly="readonly"
         :id="fieldDefinition.id"
@@ -46,7 +46,6 @@
 </template>
 
 <script setup lang="ts">
-import type { CommentSidebar } from '#components';
 import { collabSubpath } from '#imports';
 
 const route = useRoute();
@@ -74,7 +73,6 @@ const toolbarAttrs = computed(() => ({
     (!reportingCollab.hasLock.value ? 'This section is locked by another user. Upgrade to SysReptor Professional for lock-free collaborative editing.' : null),
 }));
 const historyVisible = ref(false);
-const commentSidebarRef = useTemplateRef<InstanceType<typeof CommentSidebar>>('commentSidebarRef');
 
 function updateKey(key: string, value: any) {
   reportingCollab.onCollabEvent({

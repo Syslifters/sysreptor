@@ -1,6 +1,6 @@
 import { orderBy, pick, set, isObject, isEqual, sortBy } from "lodash-es";
 import { groupNotes } from "@base/utils/notes";
-import { useCollabSubpaths, collabSubpath, type CollabPropType, type Comment, type CommentAnswer, type CommentStatus, type PentestFinding, type PentestProject, type ProjectNote, type ProjectType, type ReportSection, type AiAgentStoreState } from "#imports";
+import { useCollabSubpaths, collabSubpath, type CollabPropType, type Comment, type CommentAnswer, type CommentStatus, type PentestFinding, type PentestProject, type ProjectNote, type ProjectType, type ReportSection, type AiAgentStoreState, ReportingSidebarType } from "#imports";
 
 export function useFindingFieldValueSuggestions(findings: MaybeRefOrGetter<Record<string, PentestFinding>>, projectType: MaybeRefOrGetter<ProjectType>) {
   const findingsRef = toRef(findings);
@@ -477,6 +477,17 @@ export const useProjectStore = defineStore('project', {
         return await collab.connect();
       }
 
+      async function onCommentEvent(event: any) {
+        const localSettings = useLocalSettings();
+        if (event.openSidebar || event.type === 'create') {
+          localSettings.reportingSidebarType = ReportingSidebarType.COMMENTS;
+          await nextTick();
+        }
+
+        const eventBusComment = useEventBus('collab:commentEvent');
+        eventBusComment.emit(event);
+      }
+
       return {
         ...collab,
         collabProps,
@@ -484,6 +495,7 @@ export const useProjectStore = defineStore('project', {
         hasLock,
         readonly: computed(() => collab.readonly.value || !hasLock.value),
         connect,
+        onCommentEvent,
       };
     },
     useReportingAgent(options: { project: MaybeRefOrGetter<PentestProject> }) {

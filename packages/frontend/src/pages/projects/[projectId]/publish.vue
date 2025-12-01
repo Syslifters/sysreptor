@@ -300,7 +300,6 @@ function onBeforeOpenMessageLocationUrl(msg: ErrorMessage) {
   if (msg.message.includes('comment')) {
     // Open comment sidebar
     localSettings.reportingSidebarType = ReportingSidebarType.COMMENTS;
-    localSettings.reportingCommentStatusFilter = CommentStatus.OPEN;
     localSettings.$persist();
   }
 }
