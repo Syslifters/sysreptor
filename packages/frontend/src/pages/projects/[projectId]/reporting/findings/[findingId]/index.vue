@@ -57,7 +57,7 @@
         :model-value="finding.data[fieldDefinition.id]"
         :collab="reportingCollab.collabSubpathProps.value[`data.${fieldDefinition.id}`]"
         @collab="reportingCollab.onCollabEvent"
-        @comment="commentSidebarRef?.onCommentEvent"
+        @comment="reportingCollab.onCommentEvent"
         @search="reportingCollab.search.value = $event"
         :field-value-suggestions="findingFieldValueSuggestions"
         :readonly="readonly"
@@ -71,7 +71,6 @@
 </template>
 
 <script setup lang="ts">
-import type { CommentSidebar } from '#components';
 import { collabSubpath } from '#imports';
 
 const auth = useAuth();
@@ -105,7 +104,6 @@ const toolbarAttrs = computed(() => ({
   canDelete: !project.value.readonly,
 }));
 const historyVisible = ref(false);
-const commentSidebarRef = useTemplateRef<InstanceType<typeof CommentSidebar>>('commentSidebarRef');
 
 function updateKey(key: string, value: any) {
   reportingCollab.onCollabEvent({

@@ -49,8 +49,6 @@
 </template>
 
 <script setup lang="ts">
-import type { CommentSidebar } from '#components';
-
 const localSettings = useLocalSettings();
 const route = useRoute();
 const projectStore = useProjectStore();
@@ -65,8 +63,6 @@ const findingFieldValueSuggestions = useFindingFieldValueSuggestions(
   fetchState.value.projectTypeCurrent
 )
 
-const commentSidebarRef = useTemplateRef<InstanceType<typeof CommentSidebar>>('commentSidebarRef');
-
 const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
   historic: {
     value: fetchState.value.dataHistoric?.data,
@@ -79,7 +75,6 @@ const diffFieldProps = computed(() => formatHistoryObjectFieldProps({
     attrs: {
       ...fieldAttrsCurrent.value,
       collab: collabSubpath(fieldAttrsCurrent.value.collab, 'data'),
-      onComment: commentSidebarRef.value?.onCommentEvent,
       fieldValueSuggestions: findingFieldValueSuggestions.value,
     },
   },

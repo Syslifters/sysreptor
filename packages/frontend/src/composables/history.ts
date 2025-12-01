@@ -200,6 +200,7 @@ export async function useProjectHistory<T>(options: {
     readonly: collab.readonly.value || !dataCurrent.value, // no edit permission or viewing deleted object
     collab: collab.collabProps.value,
     onCollab: collab.onCollabEvent,
+    onComment: collab.onCommentEvent,
     onSearch: (value: string) => { collab.search.value = value },
   }));
   const fieldAttrsHistoric = computed(() => ({

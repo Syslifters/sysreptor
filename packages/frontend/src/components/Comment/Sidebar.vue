@@ -10,8 +10,8 @@
             <v-icon icon="mdi-filter-variant" />
             <v-menu activator="parent">
               <v-list 
-                :selected="[localSettings.reportingCommentStatusFilter]" 
-                @update:selected="localSettings.reportingCommentStatusFilter = $event?.[0] || 'all'"
+                :selected="[statusFilter]" 
+                @update:selected="statusFilter = $event?.[0] || 'all'"
                 mandatory
               >
                 <v-list-item 
@@ -40,7 +40,7 @@
       See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank" class="text-primary">https://docs.sysreptor.com/features-and-pricing/</a>
     </v-list-item>
     <v-list-item v-else-if="commentsVisible.length === 0">
-      <v-list-item-title v-if="localSettings.reportingCommentStatusFilter === 'open'">No open comments</v-list-item-title>
+      <v-list-item-title v-if="statusFilter === CommentStatus.OPEN">No open comments</v-list-item-title>
       <v-list-item-title v-else>No comments found</v-list-item-title>
     </v-list-item>
     <v-list-item v-else v-for="commentGroup, path in commentGroups" :key="path" class="pl-0 pr-0 pt-0">
@@ -98,9 +98,10 @@ const commentNew = ref<Comment|null>(null);
 const commentsAll = computedList<Comment>(() => {
   return projectStore.comments(props.project.id, { projectType: props.projectType, findingId: props.findingId, sectionId: props.sectionId });
 }, c => c.id);
+const statusFilter = ref<CommentStatus|'all'>(CommentStatus.OPEN);
 const commentsVisible = computed(() => {
   const out = localSettings.reportingSidebarType === ReportingSidebarType.COMMENTS ?
-    commentsAll.value.filter(c => localSettings.reportingCommentStatusFilter === 'all' ? true : c.status === localSettings.reportingCommentStatusFilter) :
+    commentsAll.value.filter(c => statusFilter.value === 'all' ? true : c.status === statusFilter.value) :
     commentsAll.value.filter(c => c.status === CommentStatus.OPEN);
   if (commentNew.value && !out.some(c => c.id === commentNew.value?.id)) {
     out.push(commentNew.value);
@@ -136,16 +137,6 @@ function prettyFieldLabel(path: string) {
   return pathLabels.join(' / ');
 }
 
-watch(() => localSettings.reportingSidebarType === ReportingSidebarType.COMMENTS, (value) => {
-  if (!value) {
-    // Reset selected comment on sidebar close
-    selectedComment.value = null;
-  } else {
-    // Reset show-all comments (incl. resolved)
-    localSettings.reportingCommentStatusFilter = CommentStatus.OPEN;
-  }
-});
-
 async function selectComment(comment: Comment|null, options?: { focus?: string }) {
   if (selectedComment.value?.id === comment?.id) {
     return;
@@ -161,7 +152,7 @@ async function selectComment(comment: Comment|null, options?: { focus?: string }
       const elComment = document.getElementById(`comment-${comment.id}`);
       elComment?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-      const elCommentInput = elComment?.querySelector('.comment-content textarea') as HTMLTextAreaElement|undefined;
+      const elCommentInput = elComment?.querySelector('.comment-content *[contenteditable="true"]') as HTMLDivElement|undefined;
       elCommentInput?.focus({ preventScroll: true });
     } else if (options?.focus === 'field') {
       const filedId = comment.path.split('.').slice(3).join('.').replaceAll('.[', '[');
@@ -219,11 +210,6 @@ async function createComment(comment: Partial<Comment>) {
 }
 
 async function onCommentEvent(event: any) {
-  if (event.openSidebar || event.type === 'create') {
-    localSettings.reportingSidebarType = ReportingSidebarType.COMMENTS;
-    await nextTick();
-  }
-
   if (event.type === 'create' && !props.readonly && apiSettings.isProfessionalLicense) {
     try {
       commentNew.value = await createComment(event.comment);
@@ -236,11 +222,8 @@ async function onCommentEvent(event: any) {
     await selectComment(event.comment, { focus: 'comment' });
   }
 }
-
-defineExpose({
-  onCommentEvent,
-});
-
+const eventBusComment = useEventBus('collab:commentEvent');
+eventBusComment.on(onCommentEvent);
 </script>
 
 <style lang="scss" scoped>
