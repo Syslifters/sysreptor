@@ -1,5 +1,4 @@
 import asyncio
-import dataclasses
 import json
 import logging
 from collections.abc import Callable
@@ -14,7 +13,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from langchain import chat_models
 from langchain.agents.middleware import AgentState, before_agent
-from langchain.agents.middleware.context_editing import DEFAULT_TOOL_PLACEHOLDER, ContextEdit
 from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
 from langgraph.runtime import Runtime
@@ -136,35 +134,6 @@ async def fix_broken_tool_calls(state: AgentState, runtime: Runtime):
     if has_fixes:
         state['messages'].clear()
         state['messages'].extend(messages_fixed)
-
-
-@dataclasses.dataclass
-class ClearOldInjectedContextEdit(ContextEdit):
-    trigger: int = 100_000
-    keep: int = 2
-    placeholder: str = DEFAULT_TOOL_PLACEHOLDER
-
-    def apply(self, messages, *, count_tokens):
-        tokens = count_tokens(messages)
-        if tokens <= self.trigger:
-            return
-
-        candidates = [
-            (idx, msg) for idx, msg in enumerate(messages)
-            if isinstance(msg, HumanMessage) and msg.additional_kwargs.get('injected_context') == 'working_context'
-        ]
-        for idx, msg in candidates[:-self.keep]:
-            if msg.response_metadata.get("context_editing", {}).get("cleared"):
-                continue
-            messages[idx] = msg.model_copy(
-                update={
-                    'artifact': None,
-                    'content': self.placeholder,
-                    'response_metadata': msg.response_metadata | {
-                        'context_editing': {'cleared': True},
-                    },
-                },
-            )
 
 
 def init_chat_model():

@@ -200,6 +200,8 @@ class TestProjectAgent:
         assert history.custom_fields == executive_summary.custom_fields
 
     def test_inject_context_middleware(self):
+        finding = self.project.findings.first()
+
         def assert_injected_message(msg):
             assert msg.type == 'human'
             assert str(self.project.id) in msg.content
@@ -221,26 +223,34 @@ class TestProjectAgent:
             res = self.send_message(user_messages[0], context={'section_id': 'executive_summary'})
             thread_id = res[0]['content']['thread_id']
             self.send_message(user_messages[1], context={'section_id': 'executive_summary'}, thread_id=thread_id)
+            self.send_message(user_messages[2], context={'finding_id': finding.finding_id}, thread_id=thread_id)
 
         # Context messages injected before the last human message
-        assert len(model.message_log) == 3
+        assert len(model.message_log) == 4
 
-        assert [m.type for m in model.message_log[0]['messages']] == ['system', 'human', 'human', 'human']
-        assert 'Project Context' in model.message_log[0]['messages'][1].content
-        assert_injected_message(model.message_log[0]['messages'][2])
-        assert model.message_log[0]['messages'][3].content == user_messages[0]
+        assert [m.type for m in model.message_log[0]['messages']] == ['system', 'human', 'human']
+        assert '<navigation target="sections.executive_summary">' in model.message_log[0]['messages'][1].content
+        assert_injected_message(model.message_log[0]['messages'][1])
+        assert model.message_log[0]['messages'][2].content == user_messages[0]
 
-        assert [m.type for m in model.message_log[1]['messages']] == ['system', 'human', 'human', 'human', 'ai', 'tool']
-        assert_injected_message(model.message_log[1]['messages'][2])
-        assert model.message_log[1]['messages'][3].content == user_messages[0]
+        assert [m.type for m in model.message_log[1]['messages']] == ['system', 'human', 'human', 'ai', 'tool']
+        assert_injected_message(model.message_log[1]['messages'][1])
+        assert model.message_log[1]['messages'][2].content == user_messages[0]
 
-        assert [m.type for m in model.message_log[2]['messages']] == ['system', 'human', 'human', 'human', 'ai', 'tool', 'ai', 'human']
-        assert_injected_message(model.message_log[2]['messages'][2])
-        assert model.message_log[2]['messages'][7].content == user_messages[1]
+        assert [m.type for m in model.message_log[2]['messages']] == ['system', 'human', 'human', 'ai', 'tool', 'ai', 'human']
+        assert_injected_message(model.message_log[2]['messages'][1])
+        assert model.message_log[2]['messages'][6].content == user_messages[1]
+
+        # Page switched to finding
+        assert [m.type for m in model.message_log[3]['messages']] == ['system', 'human', 'human', 'ai', 'tool', 'ai', 'human', 'ai', 'human', 'human']
+        assert f'<navigation target="findings.{finding.finding_id}">' in model.message_log[3]['messages'][8].content
+        assert finding.title in model.message_log[3]['messages'][8].content
+        assert yaml_indent(finding.data['description']) in model.message_log[3]['messages'][8].content
+        assert model.message_log[3]['messages'][9].content == user_messages[2]
 
         # Context messages not returned in chat history
         res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
-        assert [m['role'] for m in res.data['messages']] == ['user', 'assistant', 'tool', 'assistant', 'user', 'assistant']
+        assert [m['role'] for m in res.data['messages']] == ['user', 'assistant', 'tool', 'assistant', 'user', 'assistant', 'user', 'assistant']
 
     def test_fix_broken_tool_calls_middleware(self):
         with mock_llm_response(messages=[
@@ -255,8 +265,8 @@ class TestProjectAgent:
         # Create a broken state
         agent = get_agent('project_agent')
         state = agent.get_state(config={'configurable': {'thread_id': thread_id}})
-        state.values['messages'][2].tool_calls[0]['id'] = 'missing_tool_message'
-        state.values['messages'][3].tool_call_id = 'missing_tool_call'
+        state.values['messages'][1].tool_calls[0]['id'] = 'missing_tool_message'
+        state.values['messages'][2].tool_call_id = 'missing_tool_call'
 
         agent.update_state(config=state.config, values={
             'messages': state.values['messages'],
@@ -273,7 +283,7 @@ class TestProjectAgent:
 
         # Fixed in state/history
         state = agent.get_state(config={'configurable': {'thread_id': thread_id}})
-        assert [m.type for m in state.values['messages']] == ['human', 'human', 'ai', 'ai', 'human', 'ai']
+        assert [m.type for m in state.values['messages']] == ['human', 'ai', 'ai', 'human', 'ai']
 
 
 @pytest.mark.django_db()

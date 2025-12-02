@@ -1,6 +1,7 @@
 import dataclasses
 import itertools
 import textwrap
+from collections.abc import Callable
 from typing import Any
 from uuid import UUID
 
@@ -9,14 +10,20 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Prefetch
 from langchain.agents import create_agent
-from langchain.agents.middleware import AgentState, ClearToolUsesEdit, ContextEditingMiddleware, before_agent
-from langchain.messages import HumanMessage
+from langchain.agents.middleware import (
+    AgentMiddleware,
+    AgentState,
+    ClearToolUsesEdit,
+    ContextEditingMiddleware,
+    ModelRequest,
+    ModelResponse,
+)
+from langchain.messages import HumanMessage, SystemMessage
 from langchain.tools import ToolRuntime
 from langgraph.runtime import Runtime
 from rest_framework.filters import search_smart_split
 
 from sysreptor.ai.agents.base import (
-    ClearOldInjectedContextEdit,
     agent_tool,
     fix_broken_tool_calls,
     init_chat_model,
@@ -25,9 +32,14 @@ from sysreptor.ai.agents.base import (
 )
 from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
 from sysreptor.pentests.fielddefinition.sort import group_findings
-from sysreptor.pentests.models import PentestProject, ProjectNotebookPage, ReportSection
+from sysreptor.pentests.models import (
+    FindingTemplate,
+    PentestFinding,
+    PentestProject,
+    ProjectNotebookPage,
+    ReportSection,
+)
 from sysreptor.pentests.models.common import get_risk_score_from_data
-from sysreptor.pentests.models.template import FindingTemplate
 from sysreptor.pentests.permissions import ProjectSubresourcePermissions
 from sysreptor.pentests.rendering.entry import format_template_field_object
 from sysreptor.pentests.serializers.notes import ProjectNotebookPageSerializer
@@ -41,7 +53,7 @@ from sysreptor.users.models import PentestUser
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.fielddefinition.types import FieldDataType, FieldDefinition, serialize_field_definition
 from sysreptor.utils.fielddefinition.utils import get_field_value_and_definition, set_value_at_path
-from sysreptor.utils.utils import copy_keys
+from sysreptor.utils.utils import copy_keys, omit_keys
 
 
 @dataclasses.dataclass
@@ -62,7 +74,10 @@ def get_project(project_id: str, prefetch: bool = False) -> PentestProject:
         .filter(id=project_id) \
         .select_related('project_type')
     if prefetch:
-        qs = qs.prefetch_related('findings', 'sections', Prefetch('notes', ProjectNotebookPage.objects.select_related('parent')))
+        qs = qs.prefetch_related(
+            Prefetch('findings', PentestFinding.objects.select_related('assignee')),
+            Prefetch('sections', ReportSection.objects.select_related('assignee')),
+            Prefetch('notes', ProjectNotebookPage.objects.select_related('parent', 'assignee')))
     return qs.get()
 
 
@@ -79,10 +94,20 @@ def format_assignee(assignee: PentestUser|None) -> dict:
     }
 
 
+def format_section_info(s) -> str:
+    return to_inline_context({
+        'id': s.section_id,
+        'label': s.section_label,
+        'status': s.status,
+        **format_assignee(s.assignee),
+        'data': '...',
+    })
+
+
 def format_project_info(project: PentestProject) -> str:
     findings = [
         format_template_field_object(
-            value={'id': str(f.id), 'created': str(f.created), 'order': f.order, **f.data},
+            value={'id': str(f.finding_id), 'created': str(f.created), 'order': f.order, **f.data},
             definition=project.project_type.finding_fields_obj,
         ) | {'_meta': {'status': f.status, 'assignee': f.assignee}} for f in project.findings.all()
     ]
@@ -95,17 +120,15 @@ def format_project_info(project: PentestProject) -> str:
     is_grouped = len(project.project_type.finding_grouping or []) > 0 and \
         (len(finding_groups) > 1 or (len(finding_groups) == 1 and finding_groups[0]['label']))
 
-    project_info = {
-        'name': project.name,
-        'language': project.get_language_display(),
-        'sections': [to_inline_context({
-            'id': s.section_id,
-            'title': s.title,
-            'status': s.status,
-            **format_assignee(s.assignee),
-            'data': '...',
-        }) for s in project.sections.all()],
-        'findings': [to_inline_context({
+    return '<project>' + '\n'.join([
+        f'name: {project.name}',
+        f'language: {project.get_language_display()}',
+        '',
+        '## Sections',
+        *[format_section_info(s) for s in project.sections.all()],
+        '',
+        '## Findings',
+        *[to_inline_context({
             'id': f['id'],
             'title': f['title'],
             'risk': format_risk_score(f),
@@ -114,33 +137,55 @@ def format_project_info(project: PentestProject) -> str:
             **format_assignee(f['_meta']['assignee']),
             'data': '...',
         }) for f in findings_sorted],
-        'notes': [to_inline_context({
+        '',
+        '## Notes',
+        *[to_inline_context({
             'id': n.note_id,
             'parent_id': n.parent.note_id if n.parent else None,
             'title': n.title,
             **format_assignee(n.assignee),
         }) for n in project.notes.all()],
-    }
-    return f'<project>{to_yaml(project_info)}</project>'
+    ]) + '</project>'
 
 
 def format_finding_data(finding) -> str:
-    r = get_risk_score_from_data(finding.data)
-    data = PentestFindingSerializer(finding).data | {
-        'risk_score': r.get('score'),
-        'risk_level': r.get('level'),
+    metadata = PentestFindingSerializer(finding).data | {
+        'path': f'findings.{finding.finding_id}',
+        'risk': format_risk_score(finding.data),
+        **format_assignee(finding.assignee),
     }
-    return f'<finding path="findings.{finding.finding_id}">{to_yaml(data)}</finding>'
+    finding_data = metadata.pop('data')
+    return '<finding>' + '\n'.join([
+        '# Finding',
+        to_yaml(metadata),
+        f'## Data (path: findings.{finding.finding_id}.data)',
+        to_yaml(finding_data),
+    ]) + '</finding>'
 
 
 def format_section_data(section) -> str:
-    data = ReportSectionSerializer(section).data
-    return f'<section path="sections.{section.section_id}">{to_yaml(data)}</section>'
+    metadata = ReportSectionSerializer(section).data | {
+        'path': f'sections.{section.section_id}',
+        **format_assignee(section.assignee),
+    }
+    section_data = metadata.pop('data')
+    return '<section>' + '\n'.join([
+        '## Section',
+        to_yaml(metadata),
+        f'### Data (path: sections.{section.section_id}.data)',
+        to_yaml(section_data),
+    ]) + '</section>'
 
 
 def format_note_data(note: ProjectNotebookPage) -> str:
-    data = ProjectNotebookPageSerializer(note).data
-    return f'<note path="notes.{note.note_id}">{to_yaml(data)}</note>'
+    data = ProjectNotebookPageSerializer(note).data | {
+        'path': f'notes.{note.note_id}',
+        **format_assignee(note.assignee),
+    }
+    return '<note>' + '\n'.join([
+        '# Note',
+        to_yaml(data),
+    ]) + '</note>'
 
 
 def format_template_data(template: FindingTemplate, short=False) -> str:
@@ -148,7 +193,19 @@ def format_template_data(template: FindingTemplate, short=False) -> str:
         data = copy_keys(FindingTemplateShortSerializer(template, context={'request': None}).data, ['id', 'tags', 'translations'])
     else:
         data = FindingTemplateSerializer(template, context={'request': None}).data
-    return f'<template id="{template.id}">{to_yaml(data)}</template>'
+    return '<template>' + '\n'.join([
+        '# Template',
+        to_yaml({
+            'id': template.id,
+            'tags': ', '.join(data.get('tags', [])),
+        }),
+        *itertools.chain.from_iterable([
+            f'## Language {tr.get("language")}',
+            to_yaml(omit_keys(tr, ['id', 'created', 'updated', 'data'])),
+            '### Data',
+            to_yaml(tr.get("data", {})),
+        ] for tr in data.get('translations', {})),
+    ])
 
 
 def format_field_definition(definition: FieldDefinition):
@@ -231,7 +288,7 @@ def list_templates(runtime: ToolRuntime[ProjectContext], search_terms: str|None 
 
     results = []
     for t in qs[:100]:
-        results.append(f'<template>{format_template_data(t, short=True)}</template>')
+        results.append(format_template_data(t, short=True))
     if results:
         return '\n'.join(results)
     else:
@@ -402,88 +459,118 @@ def update_markdown_field(runtime: ToolRuntime[ProjectContext], path: str, old_t
     return 'Updated successfully'
 
 
-@before_agent
-@sync_to_async
-def inject_project_context(state: AgentState, runtime: Runtime):
+class InjectProjectContextMiddleware(AgentMiddleware):
     """
-    Inject current project context into the message history.
-    Project overview is added as the first message. It is updated whenever the project structure changes (e.g. new finding/note added).
-
-    Working context (current section/finding data) is added before the last user message.
-    Whenever the working context changes, a new message is injected. The old one is preserved in history.
+    Inject context about the current project and section/finding into the agent.
+    Ensure that the agent "sees" the same data as the user in the UI and
+    has access to the project structure and the current section/finding data.
+    The full data is not saved to history to avoid bloating the chat history.
     """
 
-    project = get_project(runtime.context.project_id, prefetch=True)
+    @sync_to_async()
+    def abefore_agent(self, state: AgentState, runtime: Runtime):
+        project = get_project(runtime.context.project_id, prefetch=True)
 
-    # section_definitions = [
-    #     f'<fielddefinition path="sections.{s.section_id}.data">{format_field_definition(definition=s.field_definition)}</fielddefinition>'
-    #     for s in project.sections.all()]
-    # f"""\
-    # Available findings field definitions:
-    # <fielddefinition path="findings.finding_id.data">{format_field_definition(project.project_type.finding_fields_obj)}</fielddefinition>
+        # Inject short info (ID, title) about the current section/finding
+        # Stored in history
+        page_id = None
+        if section_id := runtime.context.section_id:
+            section = next((s for s in project.sections.all() if str(s.section_id) == str(section_id)), None)
+            if section:
+                page_id = f'sections.{section_id}'
+                page_info = format_section_info(section)
+        elif finding_id := runtime.context.finding_id:
+            finding = next((f for f in project.findings.all() if str(f.finding_id) == str(finding_id)), None)
+            if finding:
+                page_id = f'findings.{finding_id}'
+                page_info = to_inline_context({
+                    'id': str(finding.finding_id),
+                    'title': finding.title,
+                    'risk': format_risk_score(finding.data),
+                    'status': finding.status,
+                    **format_assignee(finding.assignee),
+                    'data': '...',
+                })
+        if not page_id:
+            return
 
-    # Available sections field definitions:
-    # {'\n'.join(section_definitions)}
+        last_context_msg = next(filter(lambda m: m.additional_kwargs.get('injected_context'), reversed(state['messages'])), None)
+        if not last_context_msg or last_context_msg.additional_kwargs.get('injected_context') != page_id:
+            # Inject new context hint before last user message
+            hint_message = HumanMessage(content=textwrap.dedent(
+                f"""\
+                <navigation target="{page_id}">
+                You are now viewing "{page_id}":
+                {page_info}
+                </navigation>
+                """),
+                additional_kwargs={'injected_context': page_id},
+            )
+            if isinstance(state['messages'][-1], HumanMessage):
+                state['messages'].insert(-1, hint_message)
 
-    project_context_message = HumanMessage(content=textwrap.dedent(
-        """\
-        ## Current Project Context
-        {data}
+    async def awrap_model_call(self, request: ModelRequest, handler: Callable[[ModelRequest], ModelResponse]):
+        # Add hint about live context to system prompt
+        system_prompt = '\n'.join([
+            request.system_prompt,
+            '',
+            'The live context inside `<context>` is the page the user is looking at right now.',
+            'Always use the live context as source of truth.',
+            'Ignore any outdated information from the chat history if it contradicts the live data.',
+        ])
+        request = request.override(system_message=SystemMessage(content=system_prompt))
 
-        This is a overview of the project structure and field definitions.
-        Data of sections, findings and notes can be retrieved via tools.
-        """).format(data=format_project_info(project=project)),
-        additional_kwargs={'injected_context': 'project_overview'},
-    )
+        # Live context about current project and section/finding
+        project = await sync_to_async(get_project)(request.runtime.context.project_id, prefetch=True)
+        page_context = []
+        if section_id := request.runtime.context.section_id:
+            section = next((s for s in project.sections.all() if str(s.section_id) == str(section_id)), None)
+            if section:
+                page_context = [
+                    '## Current Active Section',
+                    'Here is the data content of the currently active section:',
+                    format_section_data(section=section),
+                ]
+        elif finding_id := request.runtime.context.finding_id:
+            finding = next((f for f in project.findings.all() if str(f.finding_id) == str(finding_id)), None)
+            if finding:
+                page_context = [
+                    '## Current Active Finding',
+                    'Here is the data content of the currently active finding:',
+                    format_finding_data(finding=finding),
+                ]
 
-    if (
-        len(state['messages']) > 0 and
-        state['messages'][0].additional_kwargs.get('injected_context') == 'project_overview'
-    ):
-        # Replace existing project context message
-        if state['messages'][0].content != project_context_message.content:
-            state['messages'][0] = project_context_message
-    else:
-        state['messages'].insert(0, project_context_message)
+        context_message = HumanMessage(content='\n'.join([
+            '<context>',
+            '## Current Project',
+            'Here is an overview of the current pentest project structure. Use tools to retrieve data content when needed.',
+            format_project_info(project=project),
+            '',
+            *page_context,
+            '</context>',
+        ]))
 
-    working_context_message = None
-    if section_id := runtime.context.section_id:
-        section = project.sections.filter(section_id=section_id).first()
-        if section:
-            working_context_message = textwrap.dedent(
-                """\
-                ## Current Working Context
-                You are working on this section:
-                {data}
-                """).format(data=format_section_data(section=section))
-    elif finding_id := runtime.context.finding_id:
-        finding = project.findings.filter(finding_id=finding_id).first()
-        if finding:
-            working_context_message = textwrap.dedent(
-                """\
-                ## Current Working Context
-                You are working on this finding:
-                {data}
-                """).format(data=format_finding_data(finding=finding))
+        # Inject into last context message (see abefore_agent) or at start
+        last_injected_context_idx = next(
+            (i for i in reversed(range(len(request.messages)))
+             if request.messages[i].additional_kwargs.get('injected_context')),
+            -1,
+        )
+        if last_injected_context_idx != -1:
+            context_message.content = request.messages[last_injected_context_idx].content + '\n\n' + context_message.content
+            request = request.override(messages=request.messages[:last_injected_context_idx] + [context_message] + request.messages[last_injected_context_idx + 1:])
+        else:
+            request = request.override(messages=[context_message] + request.messages)
 
-    if working_context_message:
-        current_context_msg = any(filter(
-            lambda m: m.additional_kwargs.get('injected_context') == 'working_context' and m.content == working_context_message,
-            state['messages']))
-        if not current_context_msg and isinstance(state['messages'][-1], HumanMessage):
-            state['messages'].insert(-1, HumanMessage(
-                content=working_context_message,
-                additional_kwargs={
-                    'injected_context': 'working_context',
-                    'cache_control': {'type': 'ephemeral'},
-                },
-            ))
+        return await handler(request)
 
 
 def init_agent_project_ask(additional_system_prompt: str = None, additional_tools: list = None):
-    system_prompt = textwrap.dedent("""\
+    system_prompt = textwrap.dedent(
+        """\
         You are SysReptor Copilot, a specialized AI agent designed to assist users in writing pentest reports.
         You have access to the current project's data including report sections, findings and notes.
+        Use Markdown formatting in your answers.
         """).replace('\n', ' ').strip()
     if additional_system_prompt:
         system_prompt += '\n\n' + additional_system_prompt
@@ -501,11 +588,8 @@ def init_agent_project_ask(additional_system_prompt: str = None, additional_tool
             get_template_data,
         ] + (additional_tools or []),
         middleware=[
-            ContextEditingMiddleware(edits=[
-                ClearToolUsesEdit(),
-                ClearOldInjectedContextEdit(),
-            ]),
-            inject_project_context,
+            InjectProjectContextMiddleware(),
+            ContextEditingMiddleware(edits=[ClearToolUsesEdit()]),
             fix_broken_tool_calls,
         ],
         system_prompt=system_prompt,
@@ -519,10 +603,8 @@ def init_agent_project_agent():
         additional_system_prompt=textwrap.dedent("""\
         IMPORTANT TOOL USAGE GUIDELINES:
         1. Always use the exact IDs shown in the project context when calling tools
-        2. For update_field_value, use only field paths that exist in the project structure
-        3. Before updating fields, retrieve the current data first to understand the structure
-        4. Field paths must follow the format: "<type>.<id>.data.<field_name>" (e.g., "sections.executive_summary.data.summary")
-        5. Do not invent or guess field names - only use fields you have seen in the context or retrieved data
+        2. Use only field paths that exist in the project structure
+        3. Do not invent or guess field names - only use fields you have seen in the context or retrieved data
         """).replace('\n', ' ').strip(),
         additional_tools=[
             update_field_value,
