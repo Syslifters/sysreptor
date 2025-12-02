@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest'
 import {
   EditorState, EditorSelection, EditorView,
   markdown,
-  toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
+  toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote, toggleCodeText,
   toggleListUnordered, toggleListOrdered, toggleTaskList, toggleBlockQuote,
   toggleLink, insertCodeBlock, insertTable, insertNewlineContinueMarkup
 } from '@sysreptor/markdown/editor';
@@ -45,6 +45,7 @@ for (const toggleSequenceOptions of [
   { name: 'toggleStrong', command: toggleStrong, sequence: '**' },
   { name: 'toggleEmphasis', command: toggleEmphasis, sequence: '_' },
   { name: 'toggleStrikethrough', command: toggleStrikethrough, sequence: '~~' },
+  { name: 'toggleCodeText', command: toggleCodeText, sequence: '`' },
 ]) {
   describe(toggleSequenceOptions.name, () => {
     const s = toggleSequenceOptions.sequence;

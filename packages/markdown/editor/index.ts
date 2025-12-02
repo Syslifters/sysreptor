@@ -14,7 +14,7 @@ export { createEditorExtensionToggler } from './utils';
 export { spellcheck, spellcheckTheme } from './spellcheck';
 export { highlightTodos } from './todos';
 export { 
-  toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote,
+  toggleStrong, toggleEmphasis, toggleStrikethrough, toggleFootnote, toggleCodeText,
   toggleListUnordered, toggleListOrdered, toggleTaskList, toggleBlockQuote,
   toggleLink, insertCodeBlock, insertTable, insertText,
   isTypeInSelection, isTaskListInSelection,
