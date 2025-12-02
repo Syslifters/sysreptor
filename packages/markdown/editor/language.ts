@@ -8,7 +8,7 @@ import { type Event } from 'micromark-util-types';
 
 import { markdownParser } from "..";
 import { micromarkEventsToTree, parseMicromarkEvents, type MicromarkTreeNode } from "./micromark-utils";
-import { insertNewlineContinueMarkup, deleteMarkupBackward, toggleStrong, toggleEmphasis } from "./commands";
+import { insertNewlineContinueMarkup, deleteMarkupBackward, toggleStrong, toggleEmphasis, toggleCodeText, toggleLink } from "./commands";
 import { linesInRange, type Range } from "./codemirror-utils";
 import { syntaxTree } from "@codemirror/language";
 
@@ -513,6 +513,8 @@ export function markdown() {
     keymap.of([
       {key: 'Mod-b', run: toggleStrong},
       {key: 'Mod-i', run: toggleEmphasis},
+      {key: 'Mod-e', run: toggleCodeText},
+      {key: 'Mod-k', run: toggleLink},
     ])
   ]);
 }

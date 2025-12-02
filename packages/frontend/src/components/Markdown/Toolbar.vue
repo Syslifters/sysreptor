@@ -5,7 +5,7 @@
       <markdown-toolbar-button @click="codemirrorAction(toggleEmphasis)" title="Italic (Ctrl+I)" icon="mdi-format-italic" :disabled="props.disabled" :active="activeActions.italic" />
       <markdown-toolbar-button @click="codemirrorAction(toggleStrikethrough)" title="Strikethrough" icon="mdi-format-strikethrough" :disabled="props.disabled" :active="activeActions.strikethrough" />
       <markdown-toolbar-button @click="codemirrorAction(toggleFootnote)" title="Footnote" icon="mdi-format-superscript" :disabled="props.disabled" :active="activeActions.footnote" />
-      <markdown-toolbar-button @click="codemirrorAction(toggleCodeText)" title="Inline Code" icon="mdi-code-tags" :disabled="props.disabled" :active="activeActions.codeText" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleCodeText)" title="Inline Code (Ctrl+E)" icon="mdi-code-tags" :disabled="props.disabled" :active="activeActions.codeText" />
       <span class="separator" />
       <markdown-toolbar-button @click="codemirrorAction(toggleListUnordered)" title="Bullet List" icon="mdi-format-list-bulleted" :disabled="props.disabled" :active="activeActions.listUnordered" />
       <markdown-toolbar-button @click="codemirrorAction(toggleListOrdered)" title="Numbered List" icon="mdi-format-list-numbered" :disabled="props.disabled" :active="activeActions.listOrdered" />
@@ -55,7 +55,7 @@
           </v-list>
         </template>
       </v-menu>
-      <markdown-toolbar-button @click="codemirrorAction(toggleLink)" title="Link" icon="mdi-link" :disabled="props.disabled" :active="activeActions.link" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleLink)" title="Link (Ctrl+K)" icon="mdi-link" :disabled="props.disabled" :active="activeActions.link" />
       <template v-if="props.uploadFiles">
         <markdown-toolbar-button @click="fileInput?.click()" title="Image" icon="mdi-image" :disabled="props.disabled || props.fileUploadInProgress" />
         <input ref="fileInput" type="file" multiple @change="e => onUploadFiles(e as InputEvent)" @click.stop :disabled="props.disabled || props.fileUploadInProgress" class="d-none" />
