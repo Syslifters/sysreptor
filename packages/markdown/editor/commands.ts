@@ -429,6 +429,15 @@ export function toggleFootnote({state, dispatch}: CommandArg) {
   });
 }
 
+export function toggleCodeText({state, dispatch}: CommandArg) {
+  return toggleMarkerType({state, dispatch}, {
+    type: 'codeText',
+    markerTypes: ['codeTextSequence'],
+    startMarker: '`',
+    endMarker: '`'
+  });
+}
+
 export function toggleListUnordered({state, dispatch}: CommandArg) {
   return toggleMarkdownAction({state, dispatch}, {
     isInSelection: n => n.name === 'listUnordered',

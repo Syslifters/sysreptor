@@ -5,12 +5,13 @@
       <markdown-toolbar-button @click="codemirrorAction(toggleEmphasis)" title="Italic (Ctrl+I)" icon="mdi-format-italic" :disabled="props.disabled" :active="activeActions.italic" />
       <markdown-toolbar-button @click="codemirrorAction(toggleStrikethrough)" title="Strikethrough" icon="mdi-format-strikethrough" :disabled="props.disabled" :active="activeActions.strikethrough" />
       <markdown-toolbar-button @click="codemirrorAction(toggleFootnote)" title="Footnote" icon="mdi-format-superscript" :disabled="props.disabled" :active="activeActions.footnote" />
+      <markdown-toolbar-button @click="codemirrorAction(toggleCodeText)" title="Inline Code" icon="mdi-code-tags" :disabled="props.disabled" :active="activeActions.codeText" />
       <span class="separator" />
       <markdown-toolbar-button @click="codemirrorAction(toggleListUnordered)" title="Bullet List" icon="mdi-format-list-bulleted" :disabled="props.disabled" :active="activeActions.listUnordered" />
       <markdown-toolbar-button @click="codemirrorAction(toggleListOrdered)" title="Numbered List" icon="mdi-format-list-numbered" :disabled="props.disabled" :active="activeActions.listOrdered" />
       <markdown-toolbar-button @click="codemirrorAction(toggleTaskList)" title="Checklist" icon="mdi-format-list-checkbox" :disabled="props.disabled" :active="activeActions.taskList" />
       <markdown-toolbar-button @click="codemirrorAction(toggleBlockQuote)" title="Blockquote" icon="mdi-format-quote-open" :disabled="props.disabled" :active="activeActions.blockquote" />
-      <markdown-toolbar-button @click="codemirrorAction(insertCodeBlock)" title="Code" icon="mdi-code-tags" :disabled="props.disabled" :active="activeActions.code" />
+      <markdown-toolbar-button @click="codemirrorAction(insertCodeBlock)" title="Code Block" icon="mdi-code-tags" :disabled="props.disabled" :active="activeActions.code" />
       <markdown-toolbar-button @click="codemirrorAction(insertTable)" title="Table" icon="mdi-table" :disabled="props.disabled" :active="activeActions.table" />
       <span class="separator" />
       <v-menu
@@ -148,6 +149,7 @@ import {
   toggleListUnordered,
   toggleStrikethrough,
   toggleStrong,
+  toggleCodeText,
   toggleTaskList,
   undo,
   undoDepth,
@@ -182,6 +184,7 @@ const activeActions = computedCached(() => ({
   italic: isTypeInSelection(editorState.value, 'italic'),
   strikethrough: isTypeInSelection(editorState.value, 'strikethrough'),
   footnote: isTypeInSelection(editorState.value, 'inlineFootnote'),
+  codeText: isTypeInSelection(editorState.value, 'codeText'),
   listUnordered: isTypeInSelection(editorState.value, 'listUnordered'),
   listOrdered: isTypeInSelection(editorState.value, 'listOrdered'),
   taskList: isTaskListInSelection(editorState.value),

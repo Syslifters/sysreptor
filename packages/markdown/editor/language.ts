@@ -63,7 +63,7 @@ enum MarkdownNodeType {
   strong, strongSequence,
   emphasis, emphasisSequence,
   strikethrough, strikethroughSequence,
-  codeText, codeFenced,
+  codeText, codeTextSequence, codeFenced,
   table, tableRow,
   blockQuote,
   heading1, heading2, heading3, heading4, heading5, heading6,
