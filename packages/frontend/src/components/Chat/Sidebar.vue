@@ -9,7 +9,7 @@
         </v-list-item-title>
         <template #append>
           <s-btn-icon
-            @click="agent.reset()"
+            @click="newChat"
             density="compact"
           >
             <v-icon icon="mdi-plus-circle" />
@@ -48,9 +48,11 @@
     </div>
     <div class="pa-2">
       <s-card density="compact" variant="tonal">
-        <v-textarea 
+        <v-textarea
+          ref="messageTextareaRef"
           v-model="form.message"
           :readonly="agent.inProgress.value"
+          @keypress="onKeyPress"
           placeholder="Type a message..."
           variant="solo"
           density="compact"
@@ -74,7 +76,7 @@
               density="compact"
             >
               <v-icon icon="mdi-send" />
-              <s-tooltip activator="parent" text="Send message (Ctrl+Enter)" />
+              <s-tooltip activator="parent" text="Send message (Enter)" />
             </s-btn-icon>
             <div v-else class="btn-stop" style="position: relative; display: inline-flex;">
               <v-progress-circular
@@ -182,9 +184,22 @@ async function sendMessage() {
     form.value.message = '';
   }
 }
-useKeyboardShortcut('ctrl+enter', () => sendMessage());
-useKeyboardShortcut('ctrl+l', () => agent.reset());
+useKeyboardShortcut('ctrl+l', newChat);
+function onKeyPress(e: KeyboardEvent) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    // Submit on Enter
+    // Newline on Shift+Enter
+    e.preventDefault();
+    sendMessage();
+  }
+}
 
+const messageTextareaRef = useTemplateRef('messageTextareaRef');
+async function newChat() {
+  agent.reset();
+  await nextTick();
+  messageTextareaRef.value?.focus();
+}
 
 async function syncScroll(options?: { force?: boolean }) {
   if (options?.force) {
