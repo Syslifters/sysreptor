@@ -8,7 +8,7 @@ requires-python = ">=3.12,<4.0"
 dependencies = [
   "django[argon2] (>=5.2,<5.3)",
   "djangorestframework (>=3.16,<3.17)",
-  "weasyprint (==66.0)",
+  "weasyprint (==67.0)",
 
   "django-csp (>=4.0,<5)",
   "django-storages[s3] (~=1.13)",

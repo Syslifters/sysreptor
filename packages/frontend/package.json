@@ -16,7 +16,7 @@
     "@sysreptor/markdown": "../markdown",
 
     "nuxt": "~4.1",
-    "vuetify": "~3.10",
+    "vuetify": "~3.11",
     "pinia": "^3.0",
 
     "sass-embedded": "^1.79.5",
