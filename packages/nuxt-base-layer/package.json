@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "nuxt": "~4.1",
-    "vuetify": "~3.10",
+    "vuetify": "~3.11",
     
     "@types/node": "^24",
     "@types/uuid": "^10.0.0",
@@ -43,7 +43,7 @@
   },
   "peerDependencies": {
     "nuxt": "~4.1",
-    "vuetify": "~3.10",
+    "vuetify": "~3.11",
     "pinia": "^3.0"
   }
 }
