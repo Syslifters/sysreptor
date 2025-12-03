@@ -18,7 +18,7 @@ from langchain.agents.middleware import (
     ModelRequest,
     ModelResponse,
 )
-from langchain.messages import HumanMessage, SystemMessage
+from langchain.messages import HumanMessage
 from langchain.tools import ToolRuntime
 from langgraph.runtime import Runtime
 from rest_framework.filters import search_smart_split
@@ -270,7 +270,7 @@ def get_note_data(runtime: ToolRuntime[ProjectContext], note_id: str) -> str:
 
 
 @agent_tool(parse_docstring=True)
-def list_templates(runtime: ToolRuntime[ProjectContext], search_terms: str|None = None) -> list[dict]:
+def list_templates(runtime: ToolRuntime[ProjectContext], search_terms: str|None = None) -> str:
     """
     Search for finding templates matching a query.
 
@@ -317,10 +317,17 @@ def create_finding(runtime: ToolRuntime[ProjectContext], data: dict|None = None,
     """
     Create a new finding. Optionally based on a finding template.
 
+    WORKFLOW:
+    1. Search for relevant template: list_templates("xss")
+    2. Get template details: get_template_data(template_id)
+    3. Create finding with template: create_finding(template_id=id, data={"title": "Custom Title"})
+    OR create blank finding:
+    1. create_finding(data={"title": "New Finding", "description": "..."})
+
     Args:
-        data: (Optional) Data for the new finding as a dictionary of fields. Fields not specified will be set to the template value or default value.
-        template_id: (Optional) The ID of the finding template to use as a base for the new finding.
-        template_language: (Optional) The language of the finding template to use. If not specified, the template's main translation will be used.
+        data: (Optional) Dictionary of fields to set. Data fields to override template defaults or set on blank findings
+        template_id: (Optional) Template ID from list_templates to base the finding on
+        template_language: (Optional) Language code (defaults to template's main language)
     """
 
     project = get_project(runtime.context.project_id)
@@ -385,7 +392,7 @@ def validate_path(path: str, runtime: ToolRuntime[ProjectContext]) -> dict:
         data_path, old_value, definition = get_field_value_and_definition(data=obj.data, definition=obj.field_definition, path=path_parts[3:])
     except (KeyError, AttributeError):
         # Provide helpful feedback about available fields
-        raise ValidationError(f'Field "{".".join(path_parts[3:])}" not found in {path_parts[0]}. Use get_{path_parts[0][:-1]}_data tool first to see available fields.') from None
+        raise ValidationError(f'Field "{".".join(path_parts[3:])}" not found in {path_parts[0]}. Use get_{path_parts[0][:-1]}_data to see the actual structure. Use exact field names from the returned data.') from None
 
     return {
         'path': path,
@@ -426,12 +433,14 @@ def update_field_value(runtime: ToolRuntime[ProjectContext], path: str, value: A
 def update_markdown_field(runtime: ToolRuntime[ProjectContext], path: str, old_text: str, new_text: str) -> str:
     """
     Partially update a markdown field by replacing old_text with new_text.
-    Use this tool for updating parts of large markdown texts. For short fields or non-markdown fields, use `update_field_value` instead.
+
+    Use this for partial updates to long markdown content.
+    For complete replacements or short fields, use update_field_value instead.
 
     Args:
-        path: The dot-separated path to the markdown field e.g. "findings.<finding_id>.data.description", "sections.<section_id>.data.executive_summary"
-        old_text: The text content to replace. If this doesn't match exactly, the update will fail..
-        new_text: The new text content to insert in place of old_text.
+        path: Dot-separated path to the markdown field e.g. "findings.<finding_id>.data.description", "sections.<section_id>.data.executive_summary"
+        old_text: The text to replace. Must match existing content (whitespace-sensitive).
+        new_text: The replacement text.
     """
     res = validate_path(path=path, runtime=runtime)
     if res['definition'].type != FieldDataType.MARKDOWN:
@@ -510,16 +519,6 @@ class InjectProjectContextMiddleware(AgentMiddleware):
                 state['messages'].insert(-1, hint_message)
 
     async def awrap_model_call(self, request: ModelRequest, handler: Callable[[ModelRequest], ModelResponse]):
-        # Add hint about live context to system prompt
-        system_prompt = '\n'.join([
-            request.system_prompt,
-            '',
-            'The live context inside `<context>` is the page the user is looking at right now.',
-            'Always use the live context as source of truth.',
-            'Ignore any outdated information from the chat history if it contradicts the live data.',
-        ])
-        request = request.override(system_message=SystemMessage(content=system_prompt))
-
         # Live context about current project and section/finding
         project = await sync_to_async(get_project)(request.runtime.context.project_id, prefetch=True)
         page_context = []
@@ -543,7 +542,8 @@ class InjectProjectContextMiddleware(AgentMiddleware):
         context_message = HumanMessage(content='\n'.join([
             '<context>',
             '## Current Project',
-            'Here is an overview of the current pentest project structure. Use tools to retrieve data content when needed.',
+            'Here is an overview of the current pentest project structure. It does not contain the actual content data.' +
+            'Use get_finding_data, get_section_data and get_note_data to retrieve data content when using findings/sections/notes.',
             format_project_info(project=project),
             '',
             *page_context,
@@ -568,10 +568,23 @@ class InjectProjectContextMiddleware(AgentMiddleware):
 def init_agent_project_ask(additional_system_prompt: str = None, additional_tools: list = None):
     system_prompt = textwrap.dedent(
         """\
-        You are SysReptor Copilot, a specialized AI agent designed to assist users in writing pentest reports.
-        You have access to the current project's data including report sections, findings and notes.
-        Use Markdown formatting in your answers.
-        """).replace('\n', ' ').strip()
+        You are SysReptor Copilot, a specialized AI assistant for pentest report writing.
+
+        # CONTEXT
+        1. <context> tags contain live data: Current state of the project and active page. Always up-to-date
+        2. <navigation> tags indicate what the user is currently viewing
+        3. Chat history may contain outdated data—prioritize live context when discrepancies arise
+
+        # CAPABILITIES
+        - Answer questions about project, findings, sections, and notes
+        - Review and provide feedback on finding and section content
+        - Retrieve detailed data about findings, sections, or notes when not in live context
+        - Search, recommend, and provide details about templates from the knowledge base
+        - Provide writing assistance using proper security terminology and report conventions
+        - Create new findings from templates or from scratch
+
+        Use Markdown formatting in chat answers. When providing code or data, use appropriate code blocks with four backticks and language identifiers.
+        """).strip()
     if additional_system_prompt:
         system_prompt += '\n\n' + additional_system_prompt
     if configuration.AI_AGENT_SYSTEM_PROMPT:
@@ -601,10 +614,7 @@ def init_agent_project_ask(additional_system_prompt: str = None, additional_tool
 def init_agent_project_agent():
     return init_agent_project_ask(
         additional_system_prompt=textwrap.dedent("""\
-        IMPORTANT TOOL USAGE GUIDELINES:
-        1. Always use the exact IDs shown in the project context when calling tools
-        2. Use only field paths that exist in the project structure
-        3. Do not invent or guess field names - only use fields you have seen in the context or retrieved data
+        You have write access to this project. You can create findings, update fields and modify content.
         """).replace('\n', ' ').strip(),
         additional_tools=[
             update_field_value,
