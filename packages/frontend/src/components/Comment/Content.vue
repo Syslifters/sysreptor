@@ -66,7 +66,7 @@
             size="small" 
           >
             Save
-            <s-tooltip activator="parent" text="Save comment (Ctrl+Enter)" />
+            <s-tooltip activator="parent" text="Save comment (Enter)" />
           </s-btn-other>
         </div>
       </div>

@@ -37,7 +37,7 @@ onMounted(() => {
       extensions: [
         history(),
         keymap.of([
-          { key: 'Ctrl-Enter', preventDefault: true, run: () => { emit('save'); return true; }},
+          { key: 'Enter', preventDefault: true, run: () => { emit('save'); return true; }},
           ...defaultKeymap,
           ...historyKeymap,
         ]),
