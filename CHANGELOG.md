@@ -1,9 +1,10 @@
 # Changelog
 
-## Upcoming
-* AI agent chat for report writing assistance
-* Allow configuring allowed status transitions (https://docs.sysreptor.com/designer/findings/#custom-statuses)
+## v2025.102 - 2025-12-04
+* AI agent chat for report writing assistance (https://docs.sysreptor.com/setup/configuration/#ai-agent)
+* Allow configuring allowed status transitions (https://docs.sysreptor.com/setup/configuration/#custom-statuses)
 * Fix setting headers of file and image responses
+* UI: Save comment texts with Enter, add newlines with Shift+Enter
 * Markdown editor: Add toolbar button for inline code
 * Plugin `customizetheme`: Allow customizing the header logo height
 

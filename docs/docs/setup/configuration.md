@@ -158,6 +158,32 @@ To test your email settings, you can run the following command:
 docker compose run --rm --no-TTY app python3 manage.py sendtestemail <your-email@example.com>
 ```
 
+### LLM Provider
+Configure LLM models for AI-assisted report writing and analysis. Enable the [AI Agent feature](#ai-agent-beta) in application settings to use LLM models.
+
+SysReptor uses [LangChain](https://docs.langchain.com/) to interface with different LLM providers.
+It is possible to use cloud-based LLM providers (e.g. OpenAI, Anthropic) as well as self-hosted LLMs (e.g. via VLLM).
+The quality of the output strongly depends on the chosen LLM model. Smaller (e.g. self-hosted) models might perform worse than larger (cloud-based) models.
+
+Specify which LLM to use for agents. Expected format: "provider:model-name"
+
+``` title="Example:"
+# OpenAI GPT-5
+AI_AGENT_MODEL="openai:gpt-5"
+OPENAI_API_KEY="..."
+
+# Anthropic Claude 4.5
+AI_AGENT_MODEL="anthropic:claude-haiku-4-5-20251001"
+ANTHROPIC_API_KEY="..."
+
+# Self-hosted model
+# Note: The langchain deepseek provider uses an OpenAI-compatible API format with an additional reasoning parser.
+#       The openai provider can also be used, but no reasoning output will be displayed in the web interface.
+AI_AGENT_MODEL="deepseek:gpt-oss-120b"
+DEEPSEEK_API_KEY="..."
+DEEPSEEK_API_BASE="https://llm.example.com:4000/"
+```
+
 
 ### Backup Key
 <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
@@ -436,6 +462,29 @@ GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=True
 GUEST_USERS_CAN_DELETE_PROJECTS=True
 GUEST_USERS_CAN_SEE_ALL_USERS=False
 ```
+
+
+### AI Agent
+Enable the AI Agent feature to assist with report writing and analysis. This feature requires an LLM model and API key to be configured (see [LLM Provider](#llm-provider) for server settings).
+
+The AI Agent can be enabled or disabled globally. When disabled, the AI Agent feature is not available to any users.
+
+``` title="Example:"
+AI_AGENT_ENABLED=true
+```
+
+Customize the disclaimer text shown to users when they use the AI Agent feature.
+``` title="Example:"
+AI_AGENT_DISCLAIMER="AI can make mistakes. Do not use without manual review."
+```
+
+Provide a custom system prompt to prime the AI Agent with specific instructions or context. This can be used to customize the behavior of the AI Agent for your organization's needs. This system prompt is appended to the default system prompt used by SysReptor.
+
+``` title="Example:"
+AI_AGENT_SYSTEM_PROMPT='Customized system prompt.'
+```
+
+
 
 ### Custom Statuses
 It is possible to define custom statuses for findings and sections. 
