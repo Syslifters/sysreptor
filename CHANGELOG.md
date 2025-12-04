@@ -3,6 +3,7 @@
 ## Upcoming
 * AI agent chat for report writing assistance
 * Allow configuring allowed status transitions (https://docs.sysreptor.com/designer/findings/#custom-statuses)
+* Fix setting headers of file and image responses
 * Markdown editor: Add toolbar button for inline code
 * Plugin `customizetheme`: Allow customizing the header logo height
 

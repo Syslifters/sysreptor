@@ -3,6 +3,7 @@ from datetime import timedelta
 from uuid import uuid4
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 
@@ -18,8 +19,10 @@ from sysreptor.pentests.models import (
     ReviewStatus,
     SourceEnum,
 )
+from sysreptor.pentests.models.files import UploadedImage, UploadedProjectFile
 from sysreptor.tests.mock import (
     api_client,
+    create_png_file,
     create_project,
     create_project_type,
     create_template,
@@ -674,3 +677,53 @@ class TestNotesApi:
         assert res.data['type'] == NoteType.EXCALIDRAW
         res = self.client.get(reverse('usernotebookpage-excalidraw', kwargs={'pentestuser_pk': 'self', 'id': note_id}))
         assert res.data == excalidraw_data
+
+
+@pytest.mark.django_db()
+class TestFileApi:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user()
+        self.client = api_client(self.user)
+        self.project = create_project(members=[self.user])
+
+    @pytest.mark.parametrize(('name', 'content_type'), [
+        ('image.png', 'image/png'),
+        ('image.jpg', 'image/jpeg'),
+        ('image.jpeg', 'image/jpeg'),
+        ('image.gif', 'image/gif'),
+        ('image.bmp', 'image/bmp'),
+        ('image.tiff', 'image/tiff'),
+        ('image.svg', 'application/octet-stream'),
+        ('document.pdf', 'application/octet-stream'),
+        ('archive.zip', 'application/octet-stream'),
+        ('file.html', 'application/octet-stream'),
+        ('script.js', 'application/octet-stream'),
+    ])
+    def test_image_download(self, name, content_type):
+        UploadedImage.objects.create(linked_object=self.project, name=name, file=SimpleUploadedFile(name=name, content=create_png_file()))
+
+        res = self.client.get(reverse('uploadedimage-retrieve-by-name', kwargs={'project_pk': self.project.pk, 'filename': name}))
+        assert res.status_code == 200
+        assert res.headers['Content-Type'] == content_type
+        assert res.headers['Content-Disposition'] == f'{"inline" if content_type.startswith("image/") else "attachment"}; filename="{name}"'
+        assert res.headers['Content-Security-Policy'] == "default-src 'none'"
+
+    @pytest.mark.parametrize('name', [
+        'file.txt',
+        'file.pdf',
+        'file.zip',
+        'file.svg',
+        'file.png',
+        'file.jpg',
+        'file.html',
+        'file.js',
+    ])
+    def test_file_download(self, name):
+        UploadedProjectFile.objects.create(linked_object=self.project, name=name, file=SimpleUploadedFile(name=name, content=b'File content'))
+
+        res = self.client.get(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': self.project.pk, 'filename': name}))
+        assert res.status_code == 200
+        assert res.headers['Content-Type'] == 'application/octet-stream'
+        assert res.headers['Content-Disposition'] == f'attachment; filename="{name}"'
+        assert res.headers['Content-Security-Policy'] == "default-src 'none'"
