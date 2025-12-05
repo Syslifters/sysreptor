@@ -176,13 +176,27 @@ OPENAI_API_KEY="..."
 AI_AGENT_MODEL="anthropic:claude-haiku-4-5-20251001"
 ANTHROPIC_API_KEY="..."
 
-# Self-hosted model
-# Note: The langchain deepseek provider uses an OpenAI-compatible API format with an additional reasoning parser.
-#       The openai provider can also be used, but no reasoning output will be displayed in the web interface.
+# Self-hosted model (with reasoning)
 AI_AGENT_MODEL="deepseek:gpt-oss-120b"
 DEEPSEEK_API_KEY="..."
 DEEPSEEK_API_BASE="https://llm.example.com:4000/"
+
+# Self-hosted model (without reasoning)
+AI_AGENT_MODEL="openai:gpt-oss-120b"
+OPENAI_API_KEY="..."
+OPENAI_API_BASE="https://llm.example.com:4000/"
 ```
+
+!!! note "Why use the deepseek provider instead of OpenAI?"
+
+    LangChain's "deepseek" provider supports OpenAI-compatible APIs and parses reasoning outputs (chain-of-thought from models like QwQ, DeepSeek-R1, or o1). This enables displaying reasoning steps in the web interface. The standard "openai" provider works but omits reasoning content. Provider name refers to API format capability, not the specific LLM vendor. The "deepseek" provider has nothing to do with the Deepseek LLM.
+
+To test your LLM settings, you can run the following command:
+
+```bash title="Send test email"
+docker compose run --rm app python3 manage.py aichat --agent=project_ask --user=<username> --project=<project-id>
+```
+
 
 
 ### Backup Key
