@@ -2,7 +2,6 @@ import dataclasses
 import itertools
 import textwrap
 from collections.abc import Callable
-from typing import Any
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
@@ -415,7 +414,7 @@ def update_at_path(info: dict, value):
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})
 @transaction.atomic()
-def update_field_value(runtime: ToolRuntime[ProjectContext], path: str, value: Any) -> None:
+def update_field_value(runtime: ToolRuntime[ProjectContext], path: str, value: str|int|float|bool|list|dict|None) -> None:
     """
     Set a field in section or finding data.
 
