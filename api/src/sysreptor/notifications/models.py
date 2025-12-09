@@ -18,13 +18,13 @@ class NotificationSpecBase(BaseModel):
     Base class for notification specifications.
     """
 
-    active_until = models.DateField(null=True, blank=True, db_index=True)
-    user_conditions = models.JSONField(default=dict, blank=True)
-    visible_for_days = models.IntegerField(null=True, blank=True)
+    title = models.CharField(max_length=255, help_text="Title of the notification displayed to users.")
+    text = models.TextField(help_text="Main notification message body displayed to users.")
+    link_url = models.TextField(null=True, blank=True, help_text="Optional URL where users can find more information or take action.")
 
-    title = models.CharField(max_length=255)
-    text = models.TextField()
-    link_url = models.TextField(null=True, blank=True)
+    active_until = models.DateField(null=True, blank=True, db_index=True, help_text="Date until which the notification remains active. Notifications are automatically hidden after this date.")
+    visible_for_days = models.IntegerField(null=True, blank=True, help_text="Number of days the notification remains visible after it is created for a user. When set, new users automatically receive this notification with the visibility period starting from their creation date.")
+    user_conditions = models.JSONField(default=dict, blank=True, help_text='User attribute conditions that determine who receives this notification. Supports filtering by permissions. Example: {"is_superuser": true} to target only superusers, or {"is_designer": false} for non-designers. Leave empty to target all users.')
 
     class Meta:
         abstract = True

@@ -25,3 +25,22 @@ Notifications are created for following events:
 * Project archived where you are a member
 * No backup created for more than 30 days
 * Remote notification e.g. SysReptor update available
+* Custom notifications created by superusers
+
+
+## Custom Notifications
+
+Superusers can create custom notifications through the Django admin interface at `/admin/notifications/customnotificationspec/` to inform users about announcements, maintenance windows, design changes, or other information.
+
+**Fields:**
+
+* **Title** (required): Notification title displayed to users
+* **Text** (required): Main notification message body
+* **Link URL** (optional): URL for more information or action
+* **Active Until** (optional): Date when notification automatically expires
+* **Visible For Days** (optional): Number of days notification remains visible per user. New users receive the notification with visibility starting from their creation date.
+* **User Conditions** (optional): JSON filter for targeting specific users, e.g. `{"is_superuser": true}` or `{"is_designer": false}`. Leave empty to target all users.
+
+When both `active_until` and `visible_for_days` are set, the notification expires at whichever date comes first.
+
+

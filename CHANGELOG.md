@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Duplicate fields in report/finding field editor
+* Allow creating custom notifications in django admin
 
 
 ## v2025.104 - 2025-12-10
