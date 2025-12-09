@@ -231,7 +231,7 @@
                   handle=".draggable-handle"
                 >
                   <template #item="{element: {value: entryVal}, index: entryIdx}">
-                    <v-list-item>
+                    <v-list-item class="pa-0">
                       <template #default>
                         <dynamic-input-field
                           :model-value="entryVal"
