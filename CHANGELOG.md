@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Fix AI agent responses without reasoning content not displayed correctly
+
+
 ## v2025.102 - 2025-12-04
 * AI agent chat for report writing assistance (https://docs.sysreptor.com/setup/configuration/#ai-agent)
 * Allow configuring allowed status transitions (https://docs.sysreptor.com/setup/configuration/#custom-statuses)

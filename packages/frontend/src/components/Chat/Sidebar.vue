@@ -31,7 +31,7 @@
     >
       <template v-for="msg in agent.messageHistory.value" :key="msg.id">
         <chat-ai-message
-          v-if="msg.role === MessageRole.ASSISTANT && msg.reasoning"
+          v-if="msg.role === MessageRole.ASSISTANT"
           :msg="msg"
         />
         <chat-tool-call
