@@ -82,7 +82,7 @@ def get_project(project_id: str, prefetch: bool = False) -> PentestProject:
 
 def format_risk_score(data: dict):
     r = get_risk_score_from_data(data)
-    return (f'{r["score"]} ' if r.get('score') is not None else '') + (r.get('level') or 'info')
+    return (f'{r["score"]} ' if r.get('score') is not None else '') + str(r.get('level') or 'info')
 
 
 def format_assignee(assignee: PentestUser|None) -> dict:
