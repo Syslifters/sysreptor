@@ -13,19 +13,21 @@ from sysreptor.utils.models import BaseModel
 from sysreptor.utils.utils import copy_keys, datetime_from_date
 
 
-class RemoteNotificationSpec(BaseModel):
+class NotificationSpecBase(BaseModel):
     """
-    Specification for a remote notification that gets assigned to users.
+    Base class for notification specifications.
     """
-    active_until = models.DateField(null=True, blank=True, db_index=True)
-    user_conditions = models.JSONField(default=dict, blank=True)
-    visible_for_days = models.IntegerField(null=True, blank=True)
 
-    title = models.CharField(max_length=255)
-    text = models.TextField()
-    link_url = models.TextField(null=True, blank=True)
+    title = models.CharField(max_length=255, help_text="Title of the notification displayed to users.")
+    text = models.TextField(help_text="Main notification message body displayed to users.")
+    link_url = models.TextField(null=True, blank=True, help_text="Optional URL where users can find more information or take action.")
 
-    objects = querysets.RemoteNotificationSpecManager()
+    active_until = models.DateField(null=True, blank=True, db_index=True, help_text="Date until which the notification remains active. Notifications are automatically hidden after this date.")
+    visible_for_days = models.IntegerField(null=True, blank=True, help_text="Number of days the notification remains visible after it is created for a user. When set, new users automatically receive this notification with the visibility period starting from their creation date.")
+    user_conditions = models.JSONField(default=dict, blank=True, help_text='User attribute conditions that determine who receives this notification. Supports filtering by permissions. Example: {"is_superuser": true} to target only superusers, or {"is_designer": false} for non-designers. Leave empty to target all users.')
+
+    class Meta:
+        abstract = True
 
     def __str__(self) -> str:
         return self.title
@@ -42,8 +44,24 @@ class RemoteNotificationSpec(BaseModel):
         return out
 
 
+
+class RemoteNotificationSpec(NotificationSpecBase):
+    """
+    Specification for a remote notification that gets assigned to users.
+    """
+    objects = querysets.RemoteNotificationSpecManager()
+
+
+class CustomNotificationSpec(NotificationSpecBase):
+    """
+    Specification for a custom, manual per-instance notification that gets assigned to users.
+    """
+    objects = querysets.CustomNotificationSpecManager()
+
+
 class NotificationType(models.TextChoices):
     REMOTE = 'remote'
+    CUSTOM = 'custom'
 
     MEMBER = 'member'
     FINISHED = 'finished'
@@ -70,6 +88,7 @@ class UserNotification(BaseModel):
 
     # Links to related objects
     remotenotificationspec = models.ForeignKey(to=RemoteNotificationSpec, on_delete=models.CASCADE, null=True, blank=True)
+    customnotificationspec = models.ForeignKey(to=CustomNotificationSpec, on_delete=models.CASCADE, null=True, blank=True)
     project = models.ForeignKey(to='pentests.PentestProject', on_delete=models.CASCADE, null=True, blank=True)
     finding = models.ForeignKey(to='pentests.PentestFinding', on_delete=models.CASCADE, null=True, blank=True)
     section = models.ForeignKey(to='pentests.ReportSection', on_delete=models.CASCADE, null=True, blank=True)
@@ -96,6 +115,8 @@ class UserNotification(BaseModel):
 
         if self.type == NotificationType.REMOTE and self.remotenotificationspec:
             content = copy_keys(self.remotenotificationspec, ['title', 'text', 'link_url'])
+        elif self.type == NotificationType.CUSTOM and self.customnotificationspec:
+            content = copy_keys(self.customnotificationspec, ['title', 'text', 'link_url'])
         elif self.type == NotificationType.MEMBER and self.project:
             content |= {
                 'title': 'Added as member',

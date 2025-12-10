@@ -50,7 +50,10 @@ class UserNotificationViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin
     def get_queryset(self):
         return self.get_user().notifications \
             .only_visible() \
-            .select_related('created_by', 'remotenotificationspec', 'project', 'finding', 'section', 'note', 'comment', 'comment__finding', 'comment__section')
+            .select_related(
+                'created_by', 'remotenotificationspec', 'customnotificationspec',
+                'project', 'finding', 'section', 'note', 'comment', 'comment__finding', 'comment__section',
+            )
 
     @extend_schema(request=Serializer, responses=Serializer)
     @action(detail=False, methods=['post'])

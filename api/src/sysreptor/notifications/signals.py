@@ -2,7 +2,12 @@ from django.db.models import signals
 from django.dispatch import receiver
 
 from sysreptor import signals as sysreptor_signals
-from sysreptor.notifications.models import NotificationType, RemoteNotificationSpec, UserNotification
+from sysreptor.notifications.models import (
+    CustomNotificationSpec,
+    NotificationType,
+    RemoteNotificationSpec,
+    UserNotification,
+)
 from sysreptor.pentests.models import (
     Comment,
     CommentAnswer,
@@ -22,10 +27,17 @@ def remotenotificationspec_created(sender, instance, *args, **kwargs):
     RemoteNotificationSpec.objects.assign_to_users(instance)
 
 
+@receiver(sysreptor_signals.post_create, sender=CustomNotificationSpec)
+@disable_for_loaddata
+def customnotificationspec_created(sender, instance, *args, **kwargs):
+    CustomNotificationSpec.objects.assign_to_users(instance)
+
+
 @receiver(sysreptor_signals.post_create, sender=PentestUser)
 @disable_for_loaddata
 def user_created(sender, instance, *args, **kwargs):
     RemoteNotificationSpec.objects.assign_to_notifications(instance)
+    CustomNotificationSpec.objects.assign_to_notifications(instance)
 
 
 @receiver(sysreptor_signals.post_create, sender=ProjectMemberInfo)

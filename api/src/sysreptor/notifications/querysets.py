@@ -1,51 +1,22 @@
 
-from django.conf import settings
 from django.db import models
 from django.db.models import signals
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from packaging import version
 
 from sysreptor.utils.history import HistoricalRecords
 
 
-class RemoteNotificationSpecQuerySet(models.QuerySet):
+class NotificationSpecQuerySet(models.QuerySet):
     def only_active(self):
         return self.filter(models.Q(active_until__isnull=True) | models.Q(active_until__gte=timezone.now()))
 
 
-class RemoteNotificationSpecManager(models.Manager.from_queryset(RemoteNotificationSpecQuerySet)):
-    def parse_version(self, version_str):
-        try:
-            return version.Version(version_str)
-        except (version.InvalidVersion, TypeError):
-            return None
+class NotificationSpecManagerBase(models.Manager.from_queryset(NotificationSpecQuerySet)):
+    def get_usernotification_kwargs(self, instance, **kwargs):
+        return kwargs
 
-    def check_version(self, version_condition):
-        current_version = self.parse_version(settings.VERSION)
-        if not current_version:
-            if settings.VERSION and version_condition and (version_condition == settings.VERSION or version_condition == f'=={settings.VERSION}'):
-                return True
-            return False
-
-        if version_condition.startswith('=='):
-            return current_version == self.parse_version(version_condition[2:])
-        elif version_condition.startswith('>='):
-            required_version = self.parse_version(version_condition[2:])
-            return required_version and current_version >= required_version
-        elif version_condition.startswith('<='):
-            required_version = self.parse_version(version_condition[2:])
-            return required_version and current_version <= required_version
-        elif version_condition.startswith('>'):
-            required_version = self.parse_version(version_condition[1:])
-            return required_version and current_version > required_version
-        elif version_condition.startswith('<'):
-            required_version = self.parse_version(version_condition[1:])
-            return required_version and current_version < required_version
-        else:
-            return current_version == self.parse_version(version_condition)
-
-    def users_for_remotenotificationspecs(self, notification):
+    def users_for_notificationspec(self, notification):
         from sysreptor.users.models import PentestUser
 
         if notification.active_until and notification.active_until < timezone.now().date():
@@ -59,10 +30,8 @@ class RemoteNotificationSpecManager(models.Manager.from_queryset(RemoteNotificat
 
         return users
 
-    def remotenotificationspecs_for_user(self, user):
-        from sysreptor.notifications.models import RemoteNotificationSpec
-
-        return RemoteNotificationSpec.objects \
+    def notificationspecs_for_user(self, user):
+        return self \
             .only_active() \
             .filter(models.Q(user_conditions__is_superuser__isnull=True) | models.Q(user_conditions__is_superuser=user.is_superuser)) \
             .filter(models.Q(user_conditions__is_desinger__isnull=True) | models.Q(user_conditions__is_designer=user.is_designer)) \
@@ -70,37 +39,63 @@ class RemoteNotificationSpecManager(models.Manager.from_queryset(RemoteNotificat
             .filter(models.Q(user_conditions__is_user_manager__isnull=True) | models.Q(user_conditions__is_user_manager=user.is_user_manager)) \
             .filter(models.Q(user_conditions__is_project_admin__isnull=True) | models.Q(user_conditions__is_project_admin=user.is_project_admin))
 
-    def assign_to_users(self, instance):
-        from sysreptor.notifications.models import NotificationType, UserNotification
-        users = self.users_for_remotenotificationspecs(instance) \
-            .exclude(notifications__remotenotificationspec=instance)
-
-        return UserNotification.objects.create_for_users(
-            users=users,
-            type=NotificationType.REMOTE,
-            remotenotificationspec=instance,
-            visible_until=instance.visible_until,
-        )
-
-    def assign_to_notifications(self, user):
-        from sysreptor.notifications.models import NotificationType, UserNotification
-        remotenotificationspecs = self.remotenotificationspecs_for_user(user)
-
-        notifications = []
-        for n in remotenotificationspecs:
-            notifications.append(UserNotification(
-                type=NotificationType.REMOTE,
-                user=user,
-                remotenotificationspec=n,
-                visible_until=n.visible_until,
-            ))
-        return UserNotification.objects.bulk_create(notifications)
-
     def bulk_create(self, *args, **kwargs):
         objs = super().bulk_create(*args, **kwargs)
         for o in objs:
             signals.post_save.send(sender=o.__class__, instance=o, created=True, raw=False, update_fields=None)
         return objs
+
+
+class RemoteNotificationSpecManager(NotificationSpecManagerBase):
+    def assign_to_notifications(self, user):
+        from sysreptor.notifications.models import NotificationType, UserNotification
+        specs = self.notificationspecs_for_user(user)
+        return UserNotification.objects.bulk_create([
+            UserNotification(
+                user=user,
+                visible_until=n.visible_until,
+                type=NotificationType.REMOTE,
+                remotenotificationspec=n,
+            ) for n in specs
+        ])
+
+    def assign_to_users(self, instance):
+        from sysreptor.notifications.models import NotificationType, UserNotification
+        users = self.users_for_notificationspec(instance) \
+            .exclude(notifications__remotenotificationspec=instance)
+
+        return UserNotification.objects.create_for_users(
+            users=users,
+            visible_until=instance.visible_until,
+            type=NotificationType.REMOTE,
+            remotenotificationspec=instance,
+        )
+
+
+class CustomNotificationSpecManager(NotificationSpecManagerBase):
+    def assign_to_notifications(self, user):
+        from sysreptor.notifications.models import NotificationType, UserNotification
+        specs = self.notificationspecs_for_user(user)
+        return UserNotification.objects.bulk_create([
+            UserNotification(
+                user=user,
+                visible_until=n.visible_until,
+                type=NotificationType.CUSTOM,
+                customnotificationspec=n,
+            ) for n in specs
+        ])
+
+    def assign_to_users(self, instance):
+        from sysreptor.notifications.models import NotificationType, UserNotification
+        users = self.users_for_notificationspec(instance) \
+            .exclude(notifications__customnotificationspec=instance)
+
+        return UserNotification.objects.create_for_users(
+            users=users,
+            visible_until=instance.visible_until,
+            type=NotificationType.CUSTOM,
+            customnotificationspec=instance,
+        )
 
 
 class UserNotificationQuerySet(models.QuerySet):

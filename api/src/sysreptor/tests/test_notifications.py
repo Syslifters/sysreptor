@@ -11,7 +11,12 @@ from django.urls import reverse
 from django.utils import timezone
 
 from sysreptor.api_utils.models import BackupLog, BackupLogType
-from sysreptor.notifications.models import NotificationType, RemoteNotificationSpec, UserNotification
+from sysreptor.notifications.models import (
+    CustomNotificationSpec,
+    NotificationType,
+    RemoteNotificationSpec,
+    UserNotification,
+)
 from sysreptor.notifications.tasks import create_notifications, fetch_notifications
 from sysreptor.pentests.import_export.import_export import export_projects, import_projects
 from sysreptor.pentests.models.project import CommentAnswer
@@ -40,7 +45,7 @@ def assert_notifications_created_since(expected, since):
 
 
 @pytest.mark.django_db()
-class TestRemoteNotifications:
+class TestNotificationAssignment:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user_regular = create_user(username='regular')
@@ -60,10 +65,19 @@ class TestRemoteNotifications:
         (RemoteNotificationSpec(user_conditions={'is_designer': True}), ['designer']),
         (RemoteNotificationSpec(user_conditions={'is_template_editor': True}), ['template_editor']),
         (RemoteNotificationSpec(user_conditions={'is_superuser': False, 'is_project_admin': False, 'is_user_manager': False, 'is_designer': False, 'is_template_editor': False}), ['regular']),
+        (CustomNotificationSpec(), ['regular', 'template_editor', 'designer', 'user_manager', 'project_admin', 'superuser']),
+        (CustomNotificationSpec(active_until=(timezone.now() - timedelta(days=10)).date()), []),
+        (CustomNotificationSpec(user_conditions={'is_superuser': True}), ['superuser']),
+        (CustomNotificationSpec(user_conditions={'is_superuser': False}), ['regular', 'template_editor', 'designer', 'user_manager', 'project_admin']),
+        (CustomNotificationSpec(user_conditions={'is_project_admin': True}), ['project_admin']),
+        (CustomNotificationSpec(user_conditions={'is_user_manager': True}), ['user_manager']),
+        (CustomNotificationSpec(user_conditions={'is_designer': True}), ['designer']),
+        (CustomNotificationSpec(user_conditions={'is_template_editor': True}), ['template_editor']),
+        (CustomNotificationSpec(user_conditions={'is_superuser': False, 'is_project_admin': False, 'is_user_manager': False, 'is_designer': False, 'is_template_editor': False}), ['regular']),
     ])
     def test_user_conditions(self, spec, expected_users):
         # Test queryset filter
-        assert set(RemoteNotificationSpec.objects.users_for_remotenotificationspecs(spec).values_list('username', flat=True)) == set(expected_users)
+        assert set(spec.__class__.objects.users_for_notificationspec(spec).values_list('username', flat=True)) == set(expected_users)
 
         # Assigned to correct users
         spec.save()
@@ -71,12 +85,18 @@ class TestRemoteNotifications:
 
         # Reverse filter
         for u in PentestUser.objects.filter(username__in=expected_users):
-            assert spec in RemoteNotificationSpec.objects.remotenotificationspecs_for_user(u)
+            assert spec in spec.__class__.objects.notificationspecs_for_user(u)
 
-    def test_visible_for(self):
-        assert RemoteNotificationSpec.objects.create(visible_for_days=10).usernotification_set.first().visible_until.date() == (timezone.now() + timedelta(days=10)).date()
-        assert RemoteNotificationSpec.objects.create(active_until=(timezone.now() + timedelta(days=10)).date()).usernotification_set.first().visible_until.date() == (timezone.now() + timedelta(days=10)).date()
-        assert RemoteNotificationSpec.objects.create(visible_for_days=None, active_until=None).usernotification_set.first().visible_until is None
+    @pytest.mark.parametrize(('notification_kwargs', 'expected'), [
+        ({'visible_for_days': 10}, (timezone.now() + timedelta(days=10)).date()),
+        ({'active_until': (timezone.now() + timedelta(days=10)).date()}, (timezone.now() + timedelta(days=10)).date()),
+        ({}, None),
+    ])
+    def test_visible_for(self, notification_kwargs, expected):
+        rn = RemoteNotificationSpec.objects.create(**notification_kwargs).usernotification_set.first().visible_until
+        assert (rn.date() if rn else None) == expected
+        cn = CustomNotificationSpec.objects.create(**notification_kwargs).usernotification_set.first().visible_until
+        assert (cn.date() if cn else None) == expected
 
 
 @pytest.mark.django_db()
@@ -318,6 +338,13 @@ class TestNotificationTriggers:
         with assert_notifications_created(notifications_delete):
             self.project.delete()
         assert UserNotification.objects.count() == len(notifications_delete)
+
+    def test_custom_notification_created(self):
+        with assert_notifications_created([
+            {'type': NotificationType.CUSTOM, 'user': self.user_other},
+            {'type': NotificationType.CUSTOM, 'user': self.user_self},
+        ]):
+            CustomNotificationSpec.objects.create(title='Test', text='Test', active_until=timezone.now().date() + timedelta(days=10))
 
 
 @pytest.mark.django_db()
