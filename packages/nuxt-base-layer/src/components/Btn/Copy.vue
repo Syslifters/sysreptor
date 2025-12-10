@@ -13,7 +13,7 @@
 import type { BtnConfirmVariant } from './Confirm.vue';
 
 const props = withDefaults(defineProps<{
-  copy: () => Promise<void>;
+  copy: () => Promise<void>|void;
   confirmText?: string;
   buttonVariant?: BtnConfirmVariant;
 }>(), {
@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<{
 });
 
 async function performCopy() {
-  await props.copy();
+  await Promise.resolve(props.copy());
   successToast('Duplicated successfully');
 }
 </script>

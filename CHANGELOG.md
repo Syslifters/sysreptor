@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Duplicate fields in report/finding field editor
+
+
 ## v2025.104 - 2025-12-10
 * Fix AI agent responses without reasoning content not displayed correctly
 * Use explicit types instead of "any" in AI agent tool definitions

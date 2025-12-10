@@ -108,7 +108,10 @@
               <design-input-field-definition
                 v-for="f, idx in findingFields" :key="idx"
                 :model-value="f" @update:model-value="updateField(f, $event)"
+                @duplicate="duplicateField(f)"
+                @delete="deleteField(f)"
                 :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
+                :can-change-structure-parent="true"
                 :readonly="readonly"
                 :sibling-field-ids="findingFields.filter(ff => ff !== f).map(f => f.id)"
                 v-bind="inputFieldAttrs"
@@ -117,7 +120,10 @@
             <design-input-field-definition
               v-else-if="currentField.type"
               :model-value="currentField" @update:model-value="updateField(currentField, $event)"
+              @duplicate="duplicateField(currentField)"
+              @delete="deleteField(currentField)"
               :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentField.origin as any)"
+              :can-change-structure-parent="true"
               :readonly="readonly"
               :sibling-field-ids="findingFields.filter(ff => ff !== currentField).map(f => f.id)"
               v-bind="inputFieldAttrs"
@@ -130,6 +136,7 @@
 </template>
 
 <script setup lang="ts">
+import { cloneDeep } from 'lodash-es';
 import Draggable from "vuedraggable";
 import type { VForm } from 'vuetify/components';
 import { FieldDataType, FieldOrigin, type FieldDefinition, uniqueName, useProjectTypeLockEditOptions } from "#imports";
@@ -196,6 +203,16 @@ function deleteField(field: FieldDefinition) {
   projectType.value.finding_ordering = projectType.value.finding_ordering.filter(f => f.field !== field.id);
   if (currentField.value === field) {
     currentField.value = null;
+  }
+}
+function duplicateField(field: FieldDefinition) {
+  const fieldCopy = cloneDeep(field);
+  fieldCopy.id = uniqueName(field.id, projectType.value.finding_fields.map(f => f.id));
+  fieldCopy.origin = FieldOrigin.CUSTOM;
+  const fieldIndex = projectType.value.finding_fields.indexOf(field);
+  projectType.value.finding_fields.splice(fieldIndex + 1, 0, fieldCopy);
+  if (currentField.value) {
+    currentField.value = fieldCopy;
   }
 }
 </script>
