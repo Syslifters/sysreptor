@@ -1,7 +1,8 @@
 # Changelog
 
-## Upcoming
+## v2025.104 - 2025-12-10
 * Fix AI agent responses without reasoning content not displayed correctly
+* Use explicit types instead of "any" in AI agent tool definitions
 
 
 ## v2025.102 - 2025-12-04
