@@ -176,16 +176,21 @@ OPENAI_API_KEY="..."
 AI_AGENT_MODEL="anthropic:claude-haiku-4-5-20251001"
 ANTHROPIC_API_KEY="..."
 
-# Self-hosted model (with reasoning)
+# Self-hosted model or providers with OpenAI-compatible APIs (with reasoning)
 AI_AGENT_MODEL="deepseek:gpt-oss-120b"
 DEEPSEEK_API_KEY="..."
 DEEPSEEK_API_BASE="https://llm.example.com:4000/"
 
-# Self-hosted model (without reasoning)
+# Self-hosted model or providers with OpenAI-compatible APIs (without reasoning)
 AI_AGENT_MODEL="openai:gpt-oss-120b"
 OPENAI_API_KEY="..."
 OPENAI_API_BASE="https://llm.example.com:4000/"
 ```
+
+!!! tip "OpenAI-compatible APIs"
+
+    Many LLM providers offer OpenAI-compatible APIs. Use the `openai` or `deepseek` provider for these services. The `deepseek` provider additionally supports parsing reasoning outputs (chain-of-thought) from models with reasoning capabilities.
+
 
 !!! note "Why use the deepseek provider instead of OpenAI?"
 
