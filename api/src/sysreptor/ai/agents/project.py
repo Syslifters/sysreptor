@@ -221,7 +221,7 @@ def parse_id(value: str, prefix: str) -> str:
 
 
 @agent_tool(parse_docstring=True)
-def get_section_data(runtime: ToolRuntime[ProjectContext], section_id: str) -> str:
+def get_section_data(runtime: ToolRuntime[ProjectContext], section_id: str) -> tuple[str, dict]:
     """
     Get data for a specific section by its section_id.
 
@@ -237,7 +237,7 @@ def get_section_data(runtime: ToolRuntime[ProjectContext], section_id: str) -> s
 
 
 @agent_tool(parse_docstring=True)
-def get_finding_data(runtime: ToolRuntime[ProjectContext], finding_id: str) -> str:
+def get_finding_data(runtime: ToolRuntime[ProjectContext], finding_id: str) -> tuple[str, dict]:
     """
     Get data for a specific finding by its finding_id.
 
@@ -253,7 +253,7 @@ def get_finding_data(runtime: ToolRuntime[ProjectContext], finding_id: str) -> s
 
 
 @agent_tool(parse_docstring=True)
-def get_note_data(runtime: ToolRuntime[ProjectContext], note_id: str) -> str:
+def get_note_data(runtime: ToolRuntime[ProjectContext], note_id: str) -> tuple[str, dict]:
     """
     Get data for a specific note by its note_id.
 
@@ -295,7 +295,7 @@ def list_templates(runtime: ToolRuntime[ProjectContext], search_terms: str|None 
 
 
 @agent_tool(parse_docstring=True)
-def get_template_data(runtime: ToolRuntime[ProjectContext], template_id: str) -> str:
+def get_template_data(runtime: ToolRuntime[ProjectContext], template_id: str) -> tuple[str, dict]:
     """
     Get data for a specific finding template by its ID.
 
@@ -312,7 +312,7 @@ def get_template_data(runtime: ToolRuntime[ProjectContext], template_id: str) ->
 
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})
-def create_finding(runtime: ToolRuntime[ProjectContext], data: dict|None = None, template_id: str|None = None, template_language: str|None = None) -> str:
+def create_finding(runtime: ToolRuntime[ProjectContext], data: dict|None = None, template_id: str|None = None, template_language: str|None = None) -> tuple[str, dict]:
     """
     Create a new finding. Optionally based on a finding template.
 
@@ -414,7 +414,7 @@ def update_at_path(info: dict, value):
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})
 @transaction.atomic()
-def update_field_value(runtime: ToolRuntime[ProjectContext], path: str, value: str|int|float|bool|list|dict|None) -> None:
+def update_field_value(runtime: ToolRuntime[ProjectContext], path: str, value: str|int|float|bool|list|dict|None) -> str:
     """
     Set a field in section or finding data.
 
