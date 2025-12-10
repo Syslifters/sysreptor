@@ -142,7 +142,10 @@
                 v-for="f, fIdx in currentItemSection!.fields" :key="fIdx"
                 :model-value="f"
                 @update:model-value="updateField(f, $event)"
+                @duplicate="duplicateField(currentItemSection!, f)"
+                @delete="deleteField(currentItemSection!, f)"
                 :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(f.origin as any)"
+                :can-change-structure-parent="true"
                 :readonly="readonly"
                 :sibling-field-ids="allReportFields.filter(rf => rf !== f).map(rf => rf.id)"
                 v-bind="inputFieldAttrs"
@@ -159,7 +162,10 @@
               <design-input-field-definition
                 :model-value="currentItemField!"
                 @update:model-value="updateField(currentItemField!, $event)"
+                @duplicate="duplicateField(currentSection!, currentItemField!)"
+                @delete="deleteField(currentSection!, currentItemField!)"
                 :can-change-structure="![FieldOrigin.CORE, FieldOrigin.PREDEFINED].includes(currentItemField!.origin as any)"
+                :can-change-structure-parent="true"
                 :readonly="readonly"
                 :sibling-field-ids="allReportFields.filter(rf => rf !== currentItemField!).map(rf => rf.id)"
                 v-bind="inputFieldAttrs"
@@ -173,6 +179,7 @@
 </template>
 
 <script setup lang="ts">
+import { cloneDeep } from 'lodash-es';
 import Draggable from "vuedraggable";
 import { VForm } from "vuetify/components";
 import { FieldOrigin, type ReportSectionDefinition, uniqueName } from "#imports";
@@ -204,6 +211,8 @@ const currentItemSelection = computed({
   get: () => currentItem.value ? [currentItem.value] : [],
   set: (val) => { currentItem.value = (val.length > 0) ? val[0]! : null; },
 });
+const currentSection = computed(() => currentItemSection.value || reportSections.value.find(s => s.fields.includes(currentItemField.value!)) || null);
+
 
 const rules = {
   sectionId: [
@@ -237,6 +246,16 @@ function addField(section: ReportSectionDefinition) {
 }
 function deleteField(section: ReportSectionDefinition, field: FieldDefinition) {
   section.fields = section.fields.filter(f => f !== field);
+}
+function duplicateField(section: ReportSectionDefinition, field: FieldDefinition) {
+  const fieldCopy = cloneDeep(field);
+  fieldCopy.id = uniqueName(field.id, allReportFields.value.map(f => f.id));
+  fieldCopy.origin = FieldOrigin.CUSTOM;
+  const fieldIndex = section.fields.indexOf(field);
+  section.fields.splice(fieldIndex + 1, 0, fieldCopy);
+  if (currentItemIsField.value) {
+    currentItem.value = fieldCopy;
+  }
 }
 function updateCurrentSection(sectionField: keyof ReportSectionDefinition, val: any) {
   if (!currentItemSection.value) {

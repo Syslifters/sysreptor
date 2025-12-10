@@ -1,5 +1,24 @@
 <template>
   <s-card class="mt-4" :class="{'field-highlight-nested1': props.nestingLevel % 2 === 0, 'field-highlight-nested2': props.nestingLevel % 2 === 1}">
+    <v-card-title v-if="!props.isListItem" class="d-flex align-center">
+      <span class="flex-grow-1">{{ props.modelValue.label || props.modelValue.id }}</span>
+      <s-btn-icon density="compact">
+        <v-icon icon="mdi-dots-vertical" />
+        <v-menu activator="parent" location="bottom left" :close-on-content-click="true">
+          <v-list density="compact">
+            <btn-copy
+              :copy="() => emit('duplicate')"
+              :disabled="props.readonly || !props.canChangeStructureParent"
+            />
+            <btn-delete
+              :delete="() => emit('delete')"
+              :disabled="props.readonly || !props.canChangeStructureParent || props.modelValue.origin === FieldOrigin.CORE"
+              button-variant="list-item"
+            />
+          </v-list>
+        </v-menu>
+      </s-btn-icon>
+    </v-card-title>
     <v-card-text>
       <v-row v-if="!props.isListItem">
         <v-col>
@@ -283,6 +302,7 @@
         :is-list-item="true"
         :nesting-level="props.nestingLevel + 1"
         :can-change-structure="props.canChangeStructure"
+        :can-change-structure-parent="false"
         :lang="props.lang"
         :readonly="props.readonly"
       />
@@ -293,8 +313,11 @@
             <design-input-field-definition
               :model-value="f"
               @update:model-value="updateObject('update', fIdx, $event)"
+              @duplicate="duplicateNestedField(fIdx)"
+              @delete="updateObject('delete', fIdx)"
               :nesting-level="props.nestingLevel + 1"
               :can-change-structure="props.canChangeStructure"
+              :can-change-structure-parent="props.canChangeStructure"
               :lang="props.lang"
               :readonly="props.readonly"
               :sibling-field-ids="props.modelValue.properties?.filter(p => p !== f).map(p => p.id)"
@@ -344,6 +367,7 @@
 </template>
 
 <script setup lang="ts">
+import { cloneDeep } from 'lodash-es';
 import Draggable from "vuedraggable";
 import { CvssVersion } from "@base/utils/cvss/base";
 import { FieldDataType, FieldOrigin } from "#imports";
@@ -351,6 +375,7 @@ import { FieldDataType, FieldOrigin } from "#imports";
 const props = withDefaults(defineProps<{
   modelValue: FieldDefinition;
   canChangeStructure?: boolean;
+  canChangeStructureParent?: boolean;
   isListItem?: boolean;
   readonly?: boolean;
   lang?: string|null;
@@ -367,6 +392,8 @@ const props = withDefaults(defineProps<{
 });
 const emit = defineEmits<{
   'update:modelValue': [FieldDefinition];
+  'duplicate': [];
+  'delete': [];
 }>();
 
 const localSettings = useLocalSettings();
@@ -495,6 +522,13 @@ function updateObject(action: string, fieldIdx?: number, val?: FieldDefinition|a
     const [moved] = newObj.properties.splice(fieldIdx!, 1);
     newObj.properties.splice(val!, 0, moved!);
   }
+  emit('update:modelValue', newObj);
+}
+function duplicateNestedField(fieldIdx: number) {
+  const newObj = { ...props.modelValue, properties: [...(props.modelValue.properties || [])] };
+  const fieldCopy = cloneDeep(newObj.properties[fieldIdx]!);
+  fieldCopy.id = uniqueName(fieldCopy.id, newObj.properties.map(f => f.id));
+  newObj.properties.splice(fieldIdx + 1, 0, fieldCopy);
   emit('update:modelValue', newObj);
 }
 
