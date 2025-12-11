@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.settings import api_settings
 
+from sysreptor.notifications.models import UserNotification
 from sysreptor.notifications.serializers import UserNotificationSerializer
 from sysreptor.users.views import UserSubresourceViewSetMixin
 from sysreptor.utils.api import CursorMultiPagination
@@ -44,6 +45,7 @@ class UserNotificationViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [UserNotificationPermissions]
     filter_backends = [DjangoFilterBackend, UserNotificationOrderingFilter]
     pagination_class = CursorMultiPagination
+    queryset = UserNotification.objects.none()
     filterset_fields = ['read']
     ordering = '-created'
 

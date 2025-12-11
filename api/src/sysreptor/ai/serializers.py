@@ -1,4 +1,5 @@
 from django.db.models import Prefetch
+from drf_spectacular.utils import OpenApiTypes, extend_schema_field
 from rest_framework import serializers
 
 from sysreptor.ai.agents import agent_stream, get_agent
@@ -7,6 +8,7 @@ from sysreptor.pentests.models import PentestProject, ProjectNotebookPage
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
 
 
+@extend_schema_field(OpenApiTypes.STR)
 class ProjectRelatedField(OptionalPrimaryKeyRelatedField):
     def get_queryset(self):
         return PentestProject.objects \

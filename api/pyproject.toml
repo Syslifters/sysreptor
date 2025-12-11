@@ -6,11 +6,10 @@ authors = []
 requires-python = ">=3.12,<4.0"
 
 dependencies = [
-  "django[argon2] (>=5.2,<5.3)",
+  "django[argon2] (>=6.0,<6.1)",
   "djangorestframework (>=3.16,<3.17)",
   "weasyprint (==67.0)",
 
-  "django-csp (>=4.0,<5)",
   "django-storages[s3] (~=1.13)",
   "drf-nested-routers (~=0.95)",
   "django-filter (~=25.1)",

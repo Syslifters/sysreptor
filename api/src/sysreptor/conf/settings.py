@@ -18,8 +18,8 @@ from datetime import timedelta
 from pathlib import Path
 
 import redis
-from csp.constants import NONCE, NONE, SELF, UNSAFE_INLINE
 from decouple import Csv, config
+from django.utils.csp import CSP
 from kombu import Queue
 
 from sysreptor.conf.plugins import load_plugins
@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sessions',
+    'django.contrib.postgres',
 
     'rest_framework',
     'django_filters',
@@ -107,7 +108,7 @@ MIDDLEWARE = [
     'sysreptor.utils.middleware.AdminSessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'csp.middleware.CSPMiddleware',
+    'django.middleware.csp.ContentSecurityPolicyMiddleware',
     'sysreptor.utils.middleware.PermissionsPolicyMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
@@ -399,34 +400,32 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
 SECURE_REFERRER_POLICY = 'same-origin'
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
-CONTENT_SECURITY_POLICY = {
-    'DIRECTIVES': {
-        'default-src': [NONE],
-        'img-src': [SELF, 'data:'],
-        'font-src': [SELF],
-        'worker-src': [SELF],
-        'connect-src': [SELF, 'data:', 'https://portal.sysreptor.com'],
-        'frame-ancestors': [SELF],
-        'form-action': [SELF],
-        # PDF.js in Firefox requires "blob:" for saving/downloading PDFs
-        'frame-src': [SELF, 'blob:'],
-        # nuxt, vuetify and markdown preview use inline styles
-        'style-src': [SELF, UNSAFE_INLINE],
-        'script-src': [SELF, NONCE],
-        # Trusted types are not compatible with django admin, django rest framework's browsable API, swagger UI and django debug toolbar
-        # 'require-trusted-types-for': ["'script'"],
-        # 'trusted-types': [
-        #     'default',  # required for vuetify, unhead, mermaid
-        #     'worker-url',  # load web workers via import URL
-        #     'vue',  # used by vue and markdown
-        #     'dompurify',  # used by mermaid
-        #     "'allow-duplicates'",  # dompurify is used twice as dependency
-        #     # monaco-editor policies
-        #     'defaultWorkerFactory', 'tokenizeToString', 'standaloneColorizer',
-        #     'editorViewLayer', 'domLineBreaksComputer', 'domLineBreaksComputer',
-        #     'diffEditorWidget', 'editorGhostText', 'diffReview', 'stickyScrollViewLayer',
-        # ],
-    },
+SECURE_CSP = {
+    'default-src': [CSP.NONE],
+    'img-src': [CSP.SELF, 'data:'],
+    'font-src': [CSP.SELF],
+    'worker-src': [CSP.SELF],
+    'connect-src': [CSP.SELF, 'data:', 'https://portal.sysreptor.com'],
+    'frame-ancestors': [CSP.SELF],
+    'form-action': [CSP.SELF],
+    # PDF.js in Firefox requires "blob:" for saving/downloading PDFs
+    'frame-src': [CSP.SELF, 'blob:'],
+    # nuxt, vuetify and markdown preview use inline styles
+    'style-src': [CSP.SELF, CSP.UNSAFE_INLINE],
+    'script-src': [CSP.SELF, CSP.NONCE],
+    # Trusted types are not compatible with django admin, django rest framework's browsable API, swagger UI and django debug toolbar
+    # 'require-trusted-types-for': ["'script'"],
+    # 'trusted-types': [
+    #     'default',  # required for vuetify, unhead, mermaid
+    #     'worker-url',  # load web workers via import URL
+    #     'vue',  # used by vue and markdown
+    #     'dompurify',  # used by mermaid
+    #     "'allow-duplicates'",  # dompurify is used twice as dependency
+    #     # monaco-editor policies
+    #     'defaultWorkerFactory', 'tokenizeToString', 'standaloneColorizer',
+    #     'editorViewLayer', 'domLineBreaksComputer', 'domLineBreaksComputer',
+    #     'diffEditorWidget', 'editorGhostText', 'diffReview', 'stickyScrollViewLayer',
+    # ],
 }
 
 PERMISSIONS_POLICY = {
@@ -617,7 +616,7 @@ ELASTIC_APM_RUM_CONFIG = {
     'serviceVersion': 'dev',
 }
 if ELASTIC_APM_RUM_ENABLED:
-    CONTENT_SECURITY_POLICY['DIRECTIVES']['connect-src'].append(ELASTIC_APM_RUM_CONFIG['serverUrl'])
+    SECURE_CSP['connect-src'].append(ELASTIC_APM_RUM_CONFIG['serverUrl'])
 
 
 if DEBUG:
