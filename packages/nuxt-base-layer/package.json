@@ -30,7 +30,7 @@
     "date-fns": "^4.1.0"
   },
   "devDependencies": {
-    "nuxt": "~4.1",
+    "nuxt": "~4.2",
     "vuetify": "~3.11",
     
     "@types/node": "^24",
@@ -42,7 +42,7 @@
     "vue-tsc": "^3.0.4"
   },
   "peerDependencies": {
-    "nuxt": "~4.1",
+    "nuxt": "~4.2",
     "vuetify": "~3.11",
     "pinia": "^3.0"
   }

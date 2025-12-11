@@ -7,8 +7,5 @@
   },
   "devDependencies": {
     "license-checker-rseidelsohn": "^4.4.2"
-  },
-  "overrides": {
-    "happy-dom": "20.0.10"
   }
 }
