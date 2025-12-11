@@ -82,7 +82,7 @@ def get_project(project_id: str, prefetch: bool = False) -> PentestProject:
 
 def format_risk_score(data: dict):
     r = get_risk_score_from_data(data)
-    return (f'{r["score"]} ' if r.get('score') is not None else '') + (r.get('level') or 'info')
+    return (f'{r["score"]} ' if r.get('score') is not None else '') + str(r.get('level') or 'info')
 
 
 def format_assignee(assignee: PentestUser|None) -> dict:
@@ -564,7 +564,7 @@ class InjectProjectContextMiddleware(AgentMiddleware):
         return await handler(request)
 
 
-def init_agent_project_ask(additional_system_prompt: str = None, additional_tools: list = None):
+def init_agent_project_base(additional_system_prompt: str = None, additional_tools: list = None):
     system_prompt = textwrap.dedent(
         """\
         You are SysReptor Copilot, a specialized AI assistant for pentest report writing.
@@ -610,11 +610,25 @@ def init_agent_project_ask(additional_system_prompt: str = None, additional_tool
     return agent
 
 
-def init_agent_project_agent():
-    return init_agent_project_ask(
+def init_agent_project_ask():
+    return init_agent_project_base(
         additional_system_prompt=textwrap.dedent("""\
-        You have write access to this project. You can create findings, update fields and modify content.
-        """).replace('\n', ' ').strip(),
+        ## Ask Mode
+        You are in "Ask" mode - a read-only information assistant.
+
+        You have read-only access to this project. You can view all data but cannot modify anything.
+        Your role is to provide information, answer questions, and offer insights through chat responses.
+        """).strip(),
+    )
+
+
+def init_agent_project_agent():
+    return init_agent_project_base(
+        additional_system_prompt=textwrap.dedent("""\
+        ## Agent Mode
+        You are in "Agent" mode - an active project assistant with write access.
+        You have full write access to this project.
+        """).strip(),
         additional_tools=[
             update_field_value,
             update_markdown_field,
