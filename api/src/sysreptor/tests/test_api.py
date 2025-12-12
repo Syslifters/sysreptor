@@ -218,6 +218,8 @@ def expect_result(urls, allowed_users, forbidden_users):
 
 def public_urls():
     return [
+        ('index', lambda s, c: c.get('/')),
+
         ('publicutils list', lambda s, c: c.get(reverse('publicutils-list'))),
         ('publicutils healthcheck', lambda s, c: c.get(reverse('publicutils-healthcheck'))),
         ('publicutils settings', lambda s, c: c.get(reverse('publicutils-settings'))),
@@ -570,7 +572,7 @@ def test_api_requests(username, name, perform_request, options, expected):
         if initialize_dependencies := (options or {}).get('initialize_dependencies'):
             initialize_dependencies(data)
         res = perform_request(data, client)
-        info = res.data if not isinstance(res, FileResponse|StreamingHttpResponse) else res
+        info = getattr(res, 'data', res.content) if not isinstance(res, FileResponse|StreamingHttpResponse) else res
         if expected:
             assert 200 <= res.status_code < 300, {'message': 'API request failed, but should have succeeded', 'info': info}
         else:
