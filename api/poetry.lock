@@ -203,51 +203,52 @@ cryptography = "*"
 
 [[package]]
 name = "autobahn"
-version = "25.11.1"
+version = "25.12.1"
 description = "WebSocket client & server library, WAMP real-time framework"
 optional = false
 python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "autobahn-25.11.1-cp311-cp311-manylinux1_x86_64.manylinux_2_34_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:8f5eedd658132c28a5bf3b60ecc8ea91f360a7e53f62ec9eb635bebfee30b58a"},
-    {file = "autobahn-25.11.1-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:792b9f4af41d7ae5b6f78fa3fda916bf3b0c8794bf0bb6bd6f2910761abd671c"},
-    {file = "autobahn-25.11.1-cp311-cp311-win_amd64.whl", hash = "sha256:601272f060e76c56518c3494e317d7e2e8878bd86ab782c14a0900e6a5fdacbe"},
-    {file = "autobahn-25.11.1-cp312-cp312-manylinux1_x86_64.manylinux_2_34_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:dbd316e9a630838bafadd007cf30159095e99483412cfd854fef984a22eafdec"},
-    {file = "autobahn-25.11.1-cp312-cp312-win_amd64.whl", hash = "sha256:b6bc5b056a9bfbbff217a9e888ee477f80b61ff5a4ce61b5330650df692a9a75"},
-    {file = "autobahn-25.11.1-cp313-cp313-macosx_15_0_arm64.whl", hash = "sha256:78910e9d8393198e7c87d072a4d22c52110422294aff90aa9ab5c253e336312f"},
-    {file = "autobahn-25.11.1-cp313-cp313-manylinux1_x86_64.manylinux_2_34_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:966bfd82669005c2b12872dfd556ac76e23d73438dc9193136b89263511d9245"},
-    {file = "autobahn-25.11.1-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:2d7e26d9f3bba13b2e3f5dcc422be603b913df5dfaef1758d78cd0fd04b36249"},
-    {file = "autobahn-25.11.1-cp313-cp313-win_amd64.whl", hash = "sha256:e6171e02ed7f70436c17cdfb12fc6ac9b20cd2a9c8e3993b192d1c9d891f5cc5"},
-    {file = "autobahn-25.11.1-cp314-cp314-macosx_15_0_arm64.whl", hash = "sha256:deeff103afc6ae8c9320ee0c022f8b63b5e6b8c308a0005ae189c1cd8c8ca77e"},
-    {file = "autobahn-25.11.1-cp314-cp314-manylinux1_x86_64.manylinux_2_34_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:b4e920e93525f4221a711948fbf93a5d790878d4f444b398c76bfdbe34f37e35"},
-    {file = "autobahn-25.11.1-cp314-cp314-win_amd64.whl", hash = "sha256:72ad51eb80a3fa210083eeca21d3a3b9b8827304c811dd5ab72f79deb8dc9be4"},
-    {file = "autobahn-25.11.1-pp311-pypy311_pp73-macosx_11_0_arm64.whl", hash = "sha256:182719b4162b4b5a78ab477324579e4d4c20d5ef09ef73eb7e5c8475aa355621"},
-    {file = "autobahn-25.11.1-pp311-pypy311_pp73-manylinux1_x86_64.manylinux_2_34_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:7af57b2b79c4b3ea421ad7ba9fdcb6d55403822e9f02f8a90fc087c8425e2566"},
-    {file = "autobahn-25.11.1-pp311-pypy311_pp73-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d17b678a51b8f0da273025f408952e4aa6110c0e00ed213f6c2c06d750ba20e8"},
-    {file = "autobahn-25.11.1-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:b078e6b0dc32dcb4994409aacc4cf790117637659d2b1300cb5d261214416b79"},
-    {file = "autobahn-25.11.1.tar.gz", hash = "sha256:52e62b9cc80c3e989b182952a60fd25c9a69afb00854a925a2b185f7b1f73cf1"},
+    {file = "autobahn-25.12.1-cp311-cp311-manylinux1_x86_64.manylinux_2_34_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:f9accd135d7fd69dac90b85a66a301d1c8384f9d0be6db1843f000dcb520988d"},
+    {file = "autobahn-25.12.1-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:5300e024ad223cbd5a57643eb0c36074bfa2b8d120da4fbacaa33eb482e871bd"},
+    {file = "autobahn-25.12.1-cp311-cp311-win_amd64.whl", hash = "sha256:f176bb582b593aa5513a6818fa5156aaf08e37d8ae07e3ba044bb11e773c95aa"},
+    {file = "autobahn-25.12.1-cp312-cp312-manylinux1_x86_64.manylinux_2_34_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:72f8f108f7a63199196105e91c7711e11d916533bc1ee5ab02cbc670a0967e84"},
+    {file = "autobahn-25.12.1-cp312-cp312-win_amd64.whl", hash = "sha256:133712e97ff0122b0e2eb4675ef889702fbd0f6fb06ecfd9e5a99512d1886d38"},
+    {file = "autobahn-25.12.1-cp313-cp313-macosx_15_0_arm64.whl", hash = "sha256:9daf8e3ae2eafcd9763e56405822274528df3ea08ed34fd8ef00d42b68c23027"},
+    {file = "autobahn-25.12.1-cp313-cp313-manylinux1_x86_64.manylinux_2_34_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:c546454801b61db36728675f933e9f333d8015a278ff451f60c4dd7a124eddf9"},
+    {file = "autobahn-25.12.1-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:c0f3f723e1aa44acef323a7c011b65add6226ead2faa283926680a2315e40655"},
+    {file = "autobahn-25.12.1-cp313-cp313-win_amd64.whl", hash = "sha256:de2fe7e19914b4133c67b12b4fae8010ae9c2db91ffcea7390f0af7a875b3f63"},
+    {file = "autobahn-25.12.1-cp314-cp314-macosx_15_0_arm64.whl", hash = "sha256:872f569272e569fa65f3d27c0c54291dc1607b9da590588f9ef234f2d5031735"},
+    {file = "autobahn-25.12.1-cp314-cp314-manylinux1_x86_64.manylinux_2_34_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:76cee7e4d818bf7428bb740698a7debba4a0f56f88ce2695786b05a4ac55aa6b"},
+    {file = "autobahn-25.12.1-cp314-cp314-win_amd64.whl", hash = "sha256:fdf5660e5287e33bea64fd1fa62e2c3355bd2a3681ae4a751b6925e6342f03dd"},
+    {file = "autobahn-25.12.1-pp311-pypy311_pp73-macosx_15_0_arm64.whl", hash = "sha256:55e6b57834a2a1136f05a4572c5bc037a565d562945f253cffcaad08b44eaeff"},
+    {file = "autobahn-25.12.1-pp311-pypy311_pp73-manylinux1_x86_64.manylinux_2_34_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:1a74a2aa3ec5e354a54266360c8f9a24710667a38f75f50cbaa6ae754feb156c"},
+    {file = "autobahn-25.12.1-pp311-pypy311_pp73-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:877e9f4004716fb7eba1a21b266abe51ad6b5a8705810e7c7a49c18f85387af9"},
+    {file = "autobahn-25.12.1-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:a91f855768b2f786b1eb141a724722bf430ff3532342a4f129df0385bc24ad9a"},
+    {file = "autobahn-25.12.1.tar.gz", hash = "sha256:a13e49f762e97a291136bb1c4e39e6b026c4275593fb1d9ef9b73e7ef22e559d"},
 ]
 
 [package.dependencies]
 cbor2 = ">=5.2.0"
+cffi = ">=2.0.0"
 cryptography = ">=3.4.6"
 hyperlink = ">=21.0.0"
 msgpack = {version = ">=1.0.2", markers = "platform_python_implementation == \"CPython\""}
 py-ubjson = ">=0.16.1"
-txaio = ">=25.9.2"
+txaio = ">=25.12.2"
 u-msgpack-python = {version = ">=2.1", markers = "platform_python_implementation != \"CPython\""}
 ujson = ">=4.0.2"
 
 [package.extras]
-all = ["autobahn[accelerate,compress,encryption,nvx,scram,serialization,twisted]"]
+all = ["argon2-cffi (>=20.1.0)", "attrs (>=20.3.0)", "base58 (>=2.1.1)", "brotli (>=1.0.0) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=1.0.0) ; platform_python_implementation != \"CPython\"", "ecdsa (>=0.19.1)", "passlib (>=1.7.4)", "pynacl (>=1.4.0)", "pyopenssl (>=20.0.1)", "pytrie (>=0.4.0)", "qrcode (>=7.3.1)", "service-identity (>=18.1.0)", "twisted (>=22.10.0)", "zope-interface (>=5.2.0)"]
 benchmark = ["humanize (>=4.0.0)", "jinja2 (>=3.0.0)", "vmprof (>=0.4.15) ; python_version >= \"3.11\"", "vmprof-flamegraph (>=0.0.1) ; python_version >= \"3.11\""]
 build-tools = ["auditwheel (>=5.0.0) ; sys_platform == \"linux\"", "build (>=1.0.0)", "wheel (>=0.36.2)"]
 compress = ["brotli (>=1.0.0) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=1.0.0) ; platform_python_implementation != \"CPython\""]
-dev = ["auditwheel (>=5.0.0) ; sys_platform == \"linux\"", "backports.tempfile (>=1.0)", "build (>=1.0.0)", "bumpversion (>=0.5.3)", "codecov (>=2.0.15)", "humanize (>=4.0.0)", "mypy (>=0.610) ; python_version >= \"3.4\" and platform_python_implementation != \"PyPy\"", "myst-parser (>=4.0.1)", "passlib", "pep8-naming (>=0.3.3)", "pyenchant (>=1.6.6)", "pyflakes (>=1.0.0)", "pyinstaller (>=4.2)", "pylint (>=1.9.2)", "pytest (>=3.4.2)", "pytest-aiohttp", "pytest-asyncio (>=0.14.0)", "pytest-runner (>=2.11.1)", "pyyaml (>=4.2b4)", "qualname (>=0.1.0)", "ruff (>=0.12.1)", "sphinx (>=1.7.1,<8)", "sphinx-autoapi (>=1.7.0)", "sphinx-rtd-theme (>=0.1.9)", "sphinxcontrib-images (>=0.9.1)", "twine (>=3.3.0)", "twisted (>=22.10.0)", "txaio (>=25.9.2)", "watchdog (>=0.8.3)", "wheel (>=0.36.2)", "yapf (==0.29.0)"]
+dev = ["auditwheel (>=5.0.0) ; sys_platform == \"linux\"", "backports-tempfile (>=1.0)", "build (>=1.0.0)", "bumpversion (>=0.5.3)", "codecov (>=2.0.15)", "humanize (>=4.0.0)", "myst-parser (>=4.0.1)", "passlib", "pep8-naming (>=0.3.3)", "pyenchant (>=1.6.6)", "pyflakes (>=1.0.0)", "pyinstaller (>=4.2)", "pylint (>=1.9.2)", "pytest (>=3.4.2)", "pytest-aiohttp", "pytest-asyncio (>=0.14.0)", "pytest-runner (>=2.11.1)", "pyyaml (>=4.2b4)", "qualname (>=0.1.0)", "ruff (>=0.12.1)", "scour (>=0.38)", "sphinx (>=1.7.1,<8)", "sphinx-autoapi (>=1.7.0)", "sphinx-rtd-theme (>=0.1.9)", "sphinxcontrib-images (>=0.9.1)", "twine (>=3.3.0)", "twisted (>=22.10.0)", "txaio (>=25.12.2)", "watchdog (>=0.8.3)", "wheel (>=0.36.2)", "yapf (==0.29.0)"]
+docs = ["furo (>=2024.7.0)", "linkify-it-py (>=2.0.0)", "myst-parser (>=2.0)", "pyenchant (>=3.2)", "scour (>=0.38)", "sphinx (>=8.2.3)", "sphinx-autoapi (>=2.1.0)", "sphinx-copybutton (>=0.5)", "sphinx-design (>=0.5)", "sphinxcontrib-images (>=0.9)", "sphinxcontrib-spelling (>=8.0)", "sphinxext-opengraph (>=0.9)"]
 encryption = ["base58 (>=2.1.1)", "ecdsa (>=0.19.1)", "pynacl (>=1.4.0)", "pyopenssl (>=20.0.1)", "pytrie (>=0.4.0)", "qrcode (>=7.3.1)", "service-identity (>=18.1.0)"]
-nvx = ["cffi (>=1.14.5)"]
-scram = ["argon2-cffi (>=20.1.0)", "cffi (>=1.14.5)", "passlib (>=1.7.4)"]
-twisted = ["attrs (>=20.3.0)", "twisted (>=22.10.0)", "zope.interface (>=5.2.0)"]
+scram = ["argon2-cffi (>=20.1.0)", "passlib (>=1.7.4)"]
+twisted = ["attrs (>=20.3.0)", "twisted (>=22.10.0)", "zope-interface (>=5.2.0)"]
 
 [[package]]
 name = "automat"
@@ -301,18 +302,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.42.5"
+version = "1.42.7"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "boto3-1.42.5-py3-none-any.whl", hash = "sha256:7d22cd102c77c37d552783308eeb01a088c0e3f6e707157dd6d1842b205ffce7"},
-    {file = "boto3-1.42.5.tar.gz", hash = "sha256:e3b7be255e5e29272b6424af4417005384f5a3f1caf6ca3352258ee1d9b8551a"},
+    {file = "boto3-1.42.7-py3-none-any.whl", hash = "sha256:c5cb2ada690c14e2dfa1e1c59ef7ef399c5e381f5514f1541d28310e35192300"},
+    {file = "boto3-1.42.7.tar.gz", hash = "sha256:eda49046c0f6a21ac159f9b2d609e5cc70d1dd019b7ac9618eec99285282b3db"},
 ]
 
 [package.dependencies]
-botocore = ">=1.42.5,<1.43.0"
+botocore = ">=1.42.7,<1.43.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.16.0,<0.17.0"
 
@@ -321,14 +322,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.42.5"
+version = "1.42.7"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "botocore-1.42.5-py3-none-any.whl", hash = "sha256:6aa487f1876c881e2143f6a186b7d8faaf042fc05e0ba7421d821f145356a0c9"},
-    {file = "botocore-1.42.5.tar.gz", hash = "sha256:37bfc487f14286d9795920807fcb8318b940835b18fff6bec5253449f377136f"},
+    {file = "botocore-1.42.7-py3-none-any.whl", hash = "sha256:92128d56654342f026d5c20a92bf0e8b546be1eb38df2c0efc7433e8bbc39045"},
+    {file = "botocore-1.42.7.tar.gz", hash = "sha256:cc401b4836eae2a781efa1d1df88b2e92f9245885a6ae1bf9a6b26bc97b3efd2"},
 ]
 
 [package.dependencies]
@@ -1188,42 +1189,42 @@ tests = ["black", "django", "flake8", "flake8-bugbear", "hypothesis", "mypy", "p
 
 [[package]]
 name = "debugpy"
-version = "1.8.17"
+version = "1.8.18"
 description = "An implementation of the Debug Adapter Protocol for Python"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "debugpy-1.8.17-cp310-cp310-macosx_15_0_x86_64.whl", hash = "sha256:c41d2ce8bbaddcc0009cc73f65318eedfa3dbc88a8298081deb05389f1ab5542"},
-    {file = "debugpy-1.8.17-cp310-cp310-manylinux_2_34_x86_64.whl", hash = "sha256:1440fd514e1b815edd5861ca394786f90eb24960eb26d6f7200994333b1d79e3"},
-    {file = "debugpy-1.8.17-cp310-cp310-win32.whl", hash = "sha256:3a32c0af575749083d7492dc79f6ab69f21b2d2ad4cd977a958a07d5865316e4"},
-    {file = "debugpy-1.8.17-cp310-cp310-win_amd64.whl", hash = "sha256:a3aad0537cf4d9c1996434be68c6c9a6d233ac6f76c2a482c7803295b4e4f99a"},
-    {file = "debugpy-1.8.17-cp311-cp311-macosx_15_0_universal2.whl", hash = "sha256:d3fce3f0e3de262a3b67e69916d001f3e767661c6e1ee42553009d445d1cd840"},
-    {file = "debugpy-1.8.17-cp311-cp311-manylinux_2_34_x86_64.whl", hash = "sha256:c6bdf134457ae0cac6fb68205776be635d31174eeac9541e1d0c062165c6461f"},
-    {file = "debugpy-1.8.17-cp311-cp311-win32.whl", hash = "sha256:e79a195f9e059edfe5d8bf6f3749b2599452d3e9380484cd261f6b7cd2c7c4da"},
-    {file = "debugpy-1.8.17-cp311-cp311-win_amd64.whl", hash = "sha256:b532282ad4eca958b1b2d7dbcb2b7218e02cb934165859b918e3b6ba7772d3f4"},
-    {file = "debugpy-1.8.17-cp312-cp312-macosx_15_0_universal2.whl", hash = "sha256:f14467edef672195c6f6b8e27ce5005313cb5d03c9239059bc7182b60c176e2d"},
-    {file = "debugpy-1.8.17-cp312-cp312-manylinux_2_34_x86_64.whl", hash = "sha256:24693179ef9dfa20dca8605905a42b392be56d410c333af82f1c5dff807a64cc"},
-    {file = "debugpy-1.8.17-cp312-cp312-win32.whl", hash = "sha256:6a4e9dacf2cbb60d2514ff7b04b4534b0139facbf2abdffe0639ddb6088e59cf"},
-    {file = "debugpy-1.8.17-cp312-cp312-win_amd64.whl", hash = "sha256:e8f8f61c518952fb15f74a302e068b48d9c4691768ade433e4adeea961993464"},
-    {file = "debugpy-1.8.17-cp313-cp313-macosx_15_0_universal2.whl", hash = "sha256:857c1dd5d70042502aef1c6d1c2801211f3ea7e56f75e9c335f434afb403e464"},
-    {file = "debugpy-1.8.17-cp313-cp313-manylinux_2_34_x86_64.whl", hash = "sha256:3bea3b0b12f3946e098cce9b43c3c46e317b567f79570c3f43f0b96d00788088"},
-    {file = "debugpy-1.8.17-cp313-cp313-win32.whl", hash = "sha256:e34ee844c2f17b18556b5bbe59e1e2ff4e86a00282d2a46edab73fd7f18f4a83"},
-    {file = "debugpy-1.8.17-cp313-cp313-win_amd64.whl", hash = "sha256:6c5cd6f009ad4fca8e33e5238210dc1e5f42db07d4b6ab21ac7ffa904a196420"},
-    {file = "debugpy-1.8.17-cp314-cp314-macosx_15_0_universal2.whl", hash = "sha256:045290c010bcd2d82bc97aa2daf6837443cd52f6328592698809b4549babcee1"},
-    {file = "debugpy-1.8.17-cp314-cp314-manylinux_2_34_x86_64.whl", hash = "sha256:b69b6bd9dba6a03632534cdf67c760625760a215ae289f7489a452af1031fe1f"},
-    {file = "debugpy-1.8.17-cp314-cp314-win32.whl", hash = "sha256:5c59b74aa5630f3a5194467100c3b3d1c77898f9ab27e3f7dc5d40fc2f122670"},
-    {file = "debugpy-1.8.17-cp314-cp314-win_amd64.whl", hash = "sha256:893cba7bb0f55161de4365584b025f7064e1f88913551bcd23be3260b231429c"},
-    {file = "debugpy-1.8.17-cp38-cp38-macosx_15_0_x86_64.whl", hash = "sha256:8deb4e31cd575c9f9370042876e078ca118117c1b5e1f22c32befcfbb6955f0c"},
-    {file = "debugpy-1.8.17-cp38-cp38-manylinux_2_34_x86_64.whl", hash = "sha256:b75868b675949a96ab51abc114c7163f40ff0d8f7d6d5fd63f8932fd38e9c6d7"},
-    {file = "debugpy-1.8.17-cp38-cp38-win32.whl", hash = "sha256:17e456da14848d618662354e1dccfd5e5fb75deec3d1d48dc0aa0baacda55860"},
-    {file = "debugpy-1.8.17-cp38-cp38-win_amd64.whl", hash = "sha256:e851beb536a427b5df8aa7d0c7835b29a13812f41e46292ff80b2ef77327355a"},
-    {file = "debugpy-1.8.17-cp39-cp39-macosx_15_0_x86_64.whl", hash = "sha256:f2ac8055a0c4a09b30b931100996ba49ef334c6947e7ae365cdd870416d7513e"},
-    {file = "debugpy-1.8.17-cp39-cp39-manylinux_2_34_x86_64.whl", hash = "sha256:eaa85bce251feca8e4c87ce3b954aba84b8c645b90f0e6a515c00394a9f5c0e7"},
-    {file = "debugpy-1.8.17-cp39-cp39-win32.whl", hash = "sha256:b13eea5587e44f27f6c48588b5ad56dcb74a4f3a5f89250443c94587f3eb2ea1"},
-    {file = "debugpy-1.8.17-cp39-cp39-win_amd64.whl", hash = "sha256:bb1bbf92317e1f35afcf3ef0450219efb3afe00be79d8664b250ac0933b9015f"},
-    {file = "debugpy-1.8.17-py2.py3-none-any.whl", hash = "sha256:60c7dca6571efe660ccb7a9508d73ca14b8796c4ed484c2002abba714226cfef"},
-    {file = "debugpy-1.8.17.tar.gz", hash = "sha256:fd723b47a8c08892b1a16b2c6239a8b96637c62a59b94bb5dab4bac592a58a8e"},
+    {file = "debugpy-1.8.18-cp310-cp310-macosx_15_0_x86_64.whl", hash = "sha256:d44e9c531f2519ec4b856ddde8f536615918f5b7886c658a81bf200c90315f77"},
+    {file = "debugpy-1.8.18-cp310-cp310-manylinux_2_34_x86_64.whl", hash = "sha256:a69ef7d6050e5d26cf8e0081c6b591a41383dc18db734c4acafdd49568bb7a6f"},
+    {file = "debugpy-1.8.18-cp310-cp310-win32.whl", hash = "sha256:971965e264faed48ae961ff1e1ad2ce32d8e0cc550a4baa7643a25f1782b7125"},
+    {file = "debugpy-1.8.18-cp310-cp310-win_amd64.whl", hash = "sha256:0701d83c4c1a74ed2c9abdabce102b1daf24cf81e1802421980871c9ee41f371"},
+    {file = "debugpy-1.8.18-cp311-cp311-macosx_15_0_universal2.whl", hash = "sha256:3dae1d65e581406a4d7c1bb44391f47e621b8c87c5639b6607e6007a5d823205"},
+    {file = "debugpy-1.8.18-cp311-cp311-manylinux_2_34_x86_64.whl", hash = "sha256:8804d1288e6006629a87d53eb44b7b66e695d428ac529ffd75bfc7d730a9c821"},
+    {file = "debugpy-1.8.18-cp311-cp311-win32.whl", hash = "sha256:ded8a5a413bd0a249b3c0be9f43128f437755180ac431222a6354c7d76a76a54"},
+    {file = "debugpy-1.8.18-cp311-cp311-win_amd64.whl", hash = "sha256:df6c1243dedcb6bf9a5dc1c5668009e2b5508b8525f27d9821be91da57827743"},
+    {file = "debugpy-1.8.18-cp312-cp312-macosx_15_0_universal2.whl", hash = "sha256:530c38114725505a7e4ea95328dbc24aabb9be708c6570623c8163412e6d1d6b"},
+    {file = "debugpy-1.8.18-cp312-cp312-manylinux_2_34_x86_64.whl", hash = "sha256:a114865099283cbed4c9330cb0c9cb7a04cfa92e803577843657302d526141ec"},
+    {file = "debugpy-1.8.18-cp312-cp312-win32.whl", hash = "sha256:4d26736dfabf404e9f3032015ec7b0189e7396d0664e29e5bdbe7ac453043c95"},
+    {file = "debugpy-1.8.18-cp312-cp312-win_amd64.whl", hash = "sha256:7e68ba950acbcf95ee862210133681f408cbb78d1c9badbb515230ec55ed6487"},
+    {file = "debugpy-1.8.18-cp313-cp313-macosx_15_0_universal2.whl", hash = "sha256:75d14dd04b617ee38e46786394ec0dd5e1ac5e3d10ffb034fd6c7b72111174c2"},
+    {file = "debugpy-1.8.18-cp313-cp313-manylinux_2_34_x86_64.whl", hash = "sha256:1b224887af5121fa702f9f542968170d104e3f9cac827d85fdefe89702dc235c"},
+    {file = "debugpy-1.8.18-cp313-cp313-win32.whl", hash = "sha256:636a5445a3336e4aba323a3545ca2bb373b04b0bc14084a4eb20c989db44429f"},
+    {file = "debugpy-1.8.18-cp313-cp313-win_amd64.whl", hash = "sha256:6da217ac8c1152d698b9809484d50c75bef9cc02fd6886a893a6df81ec952ff8"},
+    {file = "debugpy-1.8.18-cp314-cp314-macosx_15_0_universal2.whl", hash = "sha256:be7f622d250fe3429571e84572eb771023f1da22c754f28d2c60a10d74a4cc1b"},
+    {file = "debugpy-1.8.18-cp314-cp314-manylinux_2_34_x86_64.whl", hash = "sha256:df8bf7cd78019d5d155213bf5a1818b36403d0c3758d669e76827d4db026b840"},
+    {file = "debugpy-1.8.18-cp314-cp314-win32.whl", hash = "sha256:32dd56d50fe15c47d0f930a7f0b9d3e5eb8ed04770bc6c313fba6d226f87e1e8"},
+    {file = "debugpy-1.8.18-cp314-cp314-win_amd64.whl", hash = "sha256:714b61d753cfe3ed5e7bf0aad131506d750e271726ac86e3e265fd7eeebbe765"},
+    {file = "debugpy-1.8.18-cp38-cp38-macosx_15_0_x86_64.whl", hash = "sha256:e8431bc71a3903c6d7f39c91b550aed73f98f0e179967380f04f6f779b8171ee"},
+    {file = "debugpy-1.8.18-cp38-cp38-manylinux_2_34_x86_64.whl", hash = "sha256:6f97083b68f680b244a96c5923862a84aab32b486393c71deac152b1c001429b"},
+    {file = "debugpy-1.8.18-cp38-cp38-win32.whl", hash = "sha256:f312871f85a30522bc31be6f52343de0420474fe467e2bfe38d6d4a4029db194"},
+    {file = "debugpy-1.8.18-cp38-cp38-win_amd64.whl", hash = "sha256:df93f78d6d031b6d2aae72fee7b000985bc88f6496d8eec2bd1bbfe7b61aa20a"},
+    {file = "debugpy-1.8.18-cp39-cp39-macosx_15_0_x86_64.whl", hash = "sha256:63424eb602ccb2c158fbd40437404d29ce0da5f9552e8bab53fb265e19e686ee"},
+    {file = "debugpy-1.8.18-cp39-cp39-manylinux_2_34_x86_64.whl", hash = "sha256:46e4aa316f9c16fa7145f192bf0fd1c5c43effca13b8767270a99e7e7ac464f5"},
+    {file = "debugpy-1.8.18-cp39-cp39-win32.whl", hash = "sha256:2721237f9456394943f75c4b6f7cf2aed6ab9c59b7beca4bf553621d37000115"},
+    {file = "debugpy-1.8.18-cp39-cp39-win_amd64.whl", hash = "sha256:cab3abf0ee2328269c380f7a8a1c41ea1d80d6507404db9b005c8432bc6224a1"},
+    {file = "debugpy-1.8.18-py2.py3-none-any.whl", hash = "sha256:ab8cf0abe0fe2dfe1f7e65abc04b1db8740f9be80c1274acb625855c5c3ece6e"},
+    {file = "debugpy-1.8.18.tar.gz", hash = "sha256:02551b1b84a91faadd2db9bc4948873f2398190c95b3cc6f97dc706f43e8c433"},
 ]
 
 [[package]]
@@ -1258,47 +1259,25 @@ files = [
 
 [[package]]
 name = "django"
-version = "5.2.9"
+version = "6.0"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
-python-versions = ">=3.10"
+python-versions = ">=3.12"
 groups = ["main"]
 files = [
-    {file = "django-5.2.9-py3-none-any.whl", hash = "sha256:3a4ea88a70370557ab1930b332fd2887a9f48654261cdffda663fef5976bb00a"},
-    {file = "django-5.2.9.tar.gz", hash = "sha256:16b5ccfc5e8c27e6c0561af551d2ea32852d7352c67d452ae3e76b4f6b2ca495"},
+    {file = "django-6.0-py3-none-any.whl", hash = "sha256:1cc2c7344303bbfb7ba5070487c17f7fc0b7174bbb0a38cebf03c675f5f19b6d"},
+    {file = "django-6.0.tar.gz", hash = "sha256:7b0c1f50c0759bbe6331c6a39c89ae022a84672674aeda908784617ef47d8e26"},
 ]
 
 [package.dependencies]
-argon2-cffi = {version = ">=19.1.0", optional = true, markers = "extra == \"argon2\""}
-asgiref = ">=3.8.1"
-sqlparse = ">=0.3.1"
+argon2-cffi = {version = ">=23.1.0", optional = true, markers = "extra == \"argon2\""}
+asgiref = ">=3.9.1"
+sqlparse = ">=0.5.0"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
 [package.extras]
-argon2 = ["argon2-cffi (>=19.1.0)"]
-bcrypt = ["bcrypt"]
-
-[[package]]
-name = "django-csp"
-version = "4.0"
-description = "Django Content Security Policy support."
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "django_csp-4.0-py3-none-any.whl", hash = "sha256:d5a0a05463a6b75a4f1fc1828c58c89af8db9364d09fc6e12f122b4d7f3d00dc"},
-    {file = "django_csp-4.0.tar.gz", hash = "sha256:b27010bb702eb20a3dad329178df2b61a2b82d338b70fbdc13c3a3bd28712833"},
-]
-
-[package.dependencies]
-django = ">=4.2"
-packaging = "*"
-
-[package.extras]
-dev = ["django-stubs[compatible-mypy]", "jinja2 (>=2.9.6)", "mypy", "pre-commit", "pytest", "pytest-cov", "pytest-django", "pytest-ruff", "sphinx", "sphinx-rtd-theme", "tox", "tox-gh-actions", "types-setuptools"]
-jinja2 = ["jinja2 (>=2.9.6)"]
-tests = ["jinja2 (>=2.9.6)", "pytest", "pytest-cov", "pytest-django", "pytest-ruff"]
-typing = ["django-stubs[compatible-mypy]", "jinja2 (>=2.9.6)", "mypy", "pytest", "pytest-django", "types-setuptools"]
+argon2 = ["argon2-cffi (>=23.1.0)"]
+bcrypt = ["bcrypt (>=4.1.1)"]
 
 [[package]]
 name = "django-debug-toolbar"
@@ -2281,14 +2260,14 @@ pydantic = ">=2.7.4,<3.0.0"
 
 [[package]]
 name = "langchain-core"
-version = "1.1.2"
+version = "1.1.3"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0.0,>=3.10.0"
 groups = ["main"]
 files = [
-    {file = "langchain_core-1.1.2-py3-none-any.whl", hash = "sha256:74dfd4dcc10a290e3701a64e35e0bea3f68420f5b7527820ced9414f5b2dc281"},
-    {file = "langchain_core-1.1.2.tar.gz", hash = "sha256:75456c5cc10c3b53b80488bf5c6a4bcc3447b53e011533a8744bb0638b85dd78"},
+    {file = "langchain_core-1.1.3-py3-none-any.whl", hash = "sha256:e06efbf55bf7c7e4fcffc2f5b0a39a855176df16b02077add063534d7dabb740"},
+    {file = "langchain_core-1.1.3.tar.gz", hash = "sha256:ff0bc5e6e701c4d6fe00c73c4feae5c993a7a8e0b91f0a1d07015277d4634275"},
 ]
 
 [package.dependencies]
@@ -2404,14 +2383,14 @@ langgraph-checkpoint = ">=2.1.0,<4.0.0"
 
 [[package]]
 name = "langgraph-sdk"
-version = "0.2.14"
+version = "0.2.15"
 description = "SDK for interacting with LangGraph API"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "langgraph_sdk-0.2.14-py3-none-any.whl", hash = "sha256:e01ab9867d3b22d3b4ddd46fc0bab67b7684b25ab784a276684f331ca07efabf"},
-    {file = "langgraph_sdk-0.2.14.tar.gz", hash = "sha256:fab3dd713a9c7a9cc46dc4b2eb5e555bd0c07b185cfaf813d61b5356ee40886e"},
+    {file = "langgraph_sdk-0.2.15-py3-none-any.whl", hash = "sha256:746566a5d89aa47160eccc17d71682a78771c754126f6c235a68353d61ed7462"},
+    {file = "langgraph_sdk-0.2.15.tar.gz", hash = "sha256:8faaafe2c1193b89f782dd66c591060cd67862aa6aaf283749b7846f331d5334"},
 ]
 
 [package.dependencies]
@@ -2420,14 +2399,14 @@ orjson = ">=3.10.1"
 
 [[package]]
 name = "langsmith"
-version = "0.4.56"
+version = "0.4.59"
 description = "Client library to connect to the LangSmith Observability and Evaluation Platform."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "langsmith-0.4.56-py3-none-any.whl", hash = "sha256:f2c61d3f10210e78f16f77e3115f407d40f562ab00ac8c76927c7dd55b5c17b2"},
-    {file = "langsmith-0.4.56.tar.gz", hash = "sha256:c3dc53509972689dbbc24f9ac92a095dcce00f76bb0db03ae385815945572540"},
+    {file = "langsmith-0.4.59-py3-none-any.whl", hash = "sha256:97c26399286441a7b7b06b912e2801420fbbf3a049787e609d49dc975ab10bc5"},
+    {file = "langsmith-0.4.59.tar.gz", hash = "sha256:6b143214c2303dafb29ab12dcd05ac50bdfc60dac01c6e0450e50cee1d2415e0"},
 ]
 
 [package.dependencies]
@@ -3120,20 +3099,20 @@ docs = ["furo", "sphinx"]
 
 [[package]]
 name = "playwright"
-version = "1.56.0"
+version = "1.57.0"
 description = "A high-level API to automate web browsers"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "playwright-1.56.0-py3-none-macosx_10_13_x86_64.whl", hash = "sha256:b33eb89c516cbc6723f2e3523bada4a4eb0984a9c411325c02d7016a5d625e9c"},
-    {file = "playwright-1.56.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:b228b3395212b9472a4ee5f1afe40d376eef9568eb039fcb3e563de8f4f4657b"},
-    {file = "playwright-1.56.0-py3-none-macosx_11_0_universal2.whl", hash = "sha256:0ef7e6fd653267798a8a968ff7aa2dcac14398b7dd7440ef57524e01e0fbbd65"},
-    {file = "playwright-1.56.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:404be089b49d94bc4c1fe0dfb07664bda5ffe87789034a03bffb884489bdfb5c"},
-    {file = "playwright-1.56.0-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:64cda7cf4e51c0d35dab55190841bfcdfb5871685ec22cb722cd0ad2df183e34"},
-    {file = "playwright-1.56.0-py3-none-win32.whl", hash = "sha256:d87b79bcb082092d916a332c27ec9732e0418c319755d235d93cc6be13bdd721"},
-    {file = "playwright-1.56.0-py3-none-win_amd64.whl", hash = "sha256:3c7fc49bb9e673489bf2622855f9486d41c5101bbed964638552b864c4591f94"},
-    {file = "playwright-1.56.0-py3-none-win_arm64.whl", hash = "sha256:2745490ae8dd58d27e5ea4d9aa28402e8e2991eb84fb4b2fd5fbde2106716f6f"},
+    {file = "playwright-1.57.0-py3-none-macosx_10_13_x86_64.whl", hash = "sha256:9351c1ac3dfd9b3820fe7fc4340d96c0d3736bb68097b9b7a69bd45d25e9370c"},
+    {file = "playwright-1.57.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:a4a9d65027bce48eeba842408bcc1421502dfd7e41e28d207e94260fa93ca67e"},
+    {file = "playwright-1.57.0-py3-none-macosx_11_0_universal2.whl", hash = "sha256:99104771abc4eafee48f47dac2369e0015516dc1ce8c409807d2dd440828b9a4"},
+    {file = "playwright-1.57.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:284ed5a706b7c389a06caa431b2f0ba9ac4130113c3a779767dda758c2497bb1"},
+    {file = "playwright-1.57.0-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:38a1bae6c0a07839cdeaddbc0756b3b2b85e476c07945f64ece08f1f956a86f1"},
+    {file = "playwright-1.57.0-py3-none-win32.whl", hash = "sha256:1dd93b265688da46e91ecb0606d36f777f8eadcf7fbef12f6426b20bf0c9137c"},
+    {file = "playwright-1.57.0-py3-none-win_amd64.whl", hash = "sha256:6caefb08ed2c6f29d33b8088d05d09376946e49a73be19271c8cd5384b82b14c"},
+    {file = "playwright-1.57.0-py3-none-win_arm64.whl", hash = "sha256:5f065f5a133dbc15e6e7c71e7bc04f258195755b1c32a432b792e28338c8335e"},
 ]
 
 [package.dependencies]
@@ -5720,4 +5699,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "c2a39fd86deae555741024565bc14c883222dfce4b4f2f7938c54eb04266839d"
+content-hash = "cad21ee7cc71e34e164caa25a700e21d19b6515b174245d9335f97c8c5582b0a"
