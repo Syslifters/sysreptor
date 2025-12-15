@@ -166,7 +166,7 @@ def merge(*args):
     return out
 
 
-def groupby_to_dict(data: dict, key) -> dict:
+def groupby_to_dict(data: Iterable, key) -> dict:
     return dict(map(lambda t: (t[0], list(t[1])), groupby(sorted(data, key=key), key=key)))
 
 

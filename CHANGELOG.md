@@ -4,6 +4,7 @@
 * Duplicate fields in report/finding field editor
 * Allow creating custom notifications in django admin
 * Fix error when formatting risk score in AI agent
+* Refactor file handling for plugins
 
 
 ## v2025.104 - 2025-12-10

@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core import management
 from django.core.files.storage import FileSystemStorage, storages
 from django.db import connection
+from django.db.models.fields.files import FieldFile
 from django.test import override_settings
 from django.urls import reverse
 
@@ -311,21 +312,36 @@ class TestEncryptDataCommand:
         management.call_command(encryptdata.Command())
 
         p = PentestProject.objects.filter(id=self.project.id)
+        ph = PentestProject.history.filter(id=self.project.id)
         assert_db_field_encrypted(p.values('unknown_custom_fields'), True)
+        assert_db_field_encrypted(ph.values('unknown_custom_fields'), True)
+        # assert_db_field_encrypted(ph.values('history_change_reason'), True)
         for i in p.get().images.all():
             assert_db_field_encrypted(UploadedImage.objects.filter(id=i.id).values('name'), True)
             assert_storage_file_encrypted(i.file, True)
+            ih = UploadedImage.history.filter(id=i.id)
+            assert_db_field_encrypted(ih.values('name'), True)
+            assert_storage_file_encrypted(FieldFile(instance=ih.get(), field=UploadedImage._meta.get_field('file'), name=ih.get().file), True)
         for f in p.get().files.all():
             assert_db_field_encrypted(UploadedProjectFile.objects.filter(id=f.id).values('name'), True)
             assert_storage_file_encrypted(f.file, True)
+            fh = UploadedProjectFile.history.filter(id=f.id)
+            assert_db_field_encrypted(fh.values('name'), True)
+            assert_storage_file_encrypted(FieldFile(instance=fh.get(), field=UploadedProjectFile._meta.get_field('file'), name=fh.get().file), True)
 
         pt = ProjectType.objects.filter(id=self.project.project_type.id)
+        pth = ProjectType.history.filter(id=self.project.project_type.id)
         assert_db_field_encrypted(pt.values('report_template'), True)
         assert_db_field_encrypted(pt.values('report_styles'), True)
         assert_db_field_encrypted(pt.values('report_preview_data'), True)
+        assert_db_field_encrypted(pth.values('report_template'), True)
+        # assert_db_field_encrypted(pth.values('history_change_reason'), True)
         for a in pt.get().assets.all():
             assert_db_field_encrypted(UploadedAsset.objects.filter(id=a.id).values('name'), True)
             assert_storage_file_encrypted(a.file, True)
+            ah = UploadedAsset.history.filter(id=a.id)
+            assert_db_field_encrypted(ah.values('name'), True)
+            assert_storage_file_encrypted(FieldFile(instance=ah.get(), field=UploadedAsset._meta.get_field('file'), name=ah.get().file), True)
 
 
 @pytest.mark.django_db()
