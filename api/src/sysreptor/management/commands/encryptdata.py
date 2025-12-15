@@ -1,37 +1,15 @@
+import logging
 import warnings
 
+from django.apps import apps
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.test import override_settings
 
-from sysreptor.pentests import storages
-from sysreptor.pentests.models import (
-    ArchivedProjectKeyPart,
-    ArchivedProjectPublicKeyEncryptedKeyPart,
-    CollabEvent,
-    Comment,
-    CommentAnswer,
-    FindingTemplate,
-    FindingTemplateTranslation,
-    PentestFinding,
-    PentestProject,
-    ProjectMemberInfo,
-    ProjectNotebookExcalidrawFile,
-    ProjectNotebookPage,
-    ProjectType,
-    ReportSection,
-    ShareInfo,
-    UploadedAsset,
-    UploadedImage,
-    UploadedProjectFile,
-    UploadedTemplateImage,
-    UploadedUserNotebookFile,
-    UploadedUserNotebookImage,
-    UserNotebookExcalidrawFile,
-    UserNotebookPage,
-    UserPublicKey,
-)
-from sysreptor.users.models import MFAMethod, PentestUser, Session
+from sysreptor.utils.crypto.fields import EncryptedField
+from sysreptor.utils.crypto.storage import EncryptedStorageMixin
+from sysreptor.utils.files import get_all_file_fields
+from sysreptor.utils.utils import groupby_to_dict
 
 
 class Command(BaseCommand):
@@ -40,57 +18,44 @@ class Command(BaseCommand):
     def add_arguments(self, parser) -> None:
         parser.add_argument('--decrypt', action='store_true', help='Decrypt all data')
 
-    def encrypt_storage_files(self, storage, models):
-        file_name_map = {}
-        for model in models:
-            encrypted_db_fields = list({'name'}.intersection([f.name for f in model._meta.fields]))
-            data_list = list(model.objects.all().values('id', 'file', *encrypted_db_fields))
-            history_list = list(model.history.all().values('history_id', 'file', *encrypted_db_fields)) if hasattr(model, 'history') else []
-            for data in data_list + history_list:
-                if data['file'] not in file_name_map:
-                    with storage.open(data['file'], mode='rb') as old_file:
-                        file_name_map[data['file']] = storage.save(name='new', content=old_file)
-                        storage.delete(name=data['file'])
-                data['file'] = file_name_map[data['file']]
-            model.objects.bulk_update(map(lambda d: model(**d), data_list), ['file'] + encrypted_db_fields)
-            if hasattr(model, 'history'):
-                model.history.model.objects.bulk_update(map(lambda d: model.history.model(**d), history_list), ['file', 'history_change_reason'] + encrypted_db_fields)
-
-    def encrypt_db_fields(self, model, fields):
-        if fields:
-            model.objects.bulk_update(model.objects.all().iterator(), fields)
-        if hasattr(model, 'history'):
-            model.history.model.objects.bulk_update(model.history.model.objects.all().iterator(), fields + ['history_change_reason'])
-
     def encrypt_data(self):
         # Encrypt DB fields
-        self.encrypt_db_fields(PentestProject, ['unknown_custom_fields'])
-        self.encrypt_db_fields(ReportSection, ['custom_fields'])
-        self.encrypt_db_fields(PentestFinding, ['custom_fields', 'template_id'])
-        self.encrypt_db_fields(Comment, ['text', 'text_original'])
-        self.encrypt_db_fields(CommentAnswer, ['text'])
-        self.encrypt_db_fields(ProjectType, ['report_template', 'report_styles', 'report_preview_data'])
-        self.encrypt_db_fields(ProjectNotebookPage, ['title', 'text'])
-        self.encrypt_db_fields(UserNotebookPage, ['title', 'text'])
-        self.encrypt_db_fields(ShareInfo, ['password'])
-        self.encrypt_db_fields(PentestUser, ['password'])
-        self.encrypt_db_fields(Session, ['session_key', 'session_data'])
-        self.encrypt_db_fields(MFAMethod, ['data'])
-        self.encrypt_db_fields(UserPublicKey, ['public_key'])
-        self.encrypt_db_fields(ArchivedProjectKeyPart, ['key_part'])
-        self.encrypt_db_fields(ArchivedProjectPublicKeyEncryptedKeyPart, ['encrypted_data'])
-        self.encrypt_db_fields(CollabEvent, ['data'])
-        # Encrypt only history DB fields
-        self.encrypt_db_fields(ProjectMemberInfo, [])
-        self.encrypt_db_fields(FindingTemplate, [])
-        self.encrypt_db_fields(FindingTemplateTranslation, [])
+        logging.info('Encrypting DB fields')
+        for model in apps.get_models():
+            encrypted_fields = []
+            for field in model._meta.get_fields():
+                if isinstance(field, EncryptedField):
+                    encrypted_fields.append(field.name)
+            if encrypted_fields:
+                logging.info(f'  Encrypting DB fields for model {model._meta.label}: {", ".join(encrypted_fields)}')
+                model.objects.bulk_update(model.objects.all().iterator(), encrypted_fields)
 
         # Encrypt files and file DB fields
-        self.encrypt_storage_files(storages.get_uploaded_asset_storage(), [UploadedAsset])
-        self.encrypt_storage_files(storages.get_uploaded_image_storage(), [UploadedImage, UploadedTemplateImage, UploadedUserNotebookImage])
-        self.encrypt_storage_files(storages.get_uploaded_file_storage(), [
-            UploadedProjectFile, UploadedUserNotebookFile, ProjectNotebookExcalidrawFile, UserNotebookExcalidrawFile,
-        ])
+        for storage_name, fields in groupby_to_dict(get_all_file_fields(), key=lambda f: f['storage_name']).items():
+            storage = fields[0]['storage']
+            if not isinstance(storage, EncryptedStorageMixin):
+                continue
+            logging.info(f'Encrypting files for storage {storage_name}')
+            file_name_map = {}
+            for field_info in fields:
+                model = field_info['model']
+                field_name = field_info['field_name']
+                logging.info(f'  Encrypting file field {model._meta.label}.{field_name} in storage {storage_name}')
+                data_list = list(model.objects.all().values('pk', field_name))
+                history_list = list(model.history.all().values('pk', field_name)) if hasattr(model, 'history') else []
+                for data in data_list + history_list:
+                    if data[field_name] not in file_name_map:
+                        try:
+                            with storage.open(data[field_name], mode='rb') as old_file:
+                                file_name_map[data[field_name]] = storage.save(name='new', content=old_file)
+                                storage.delete(name=data[field_name])
+                        except (FileNotFoundError, OSError):
+                            file_name_map[data[field_name]] = data[field_name]
+                            logging.warning(f'    File "{data[field_name]}" not found in storage "{storage_name}". Skipping.')
+                    data[field_name] = file_name_map[data[field_name]]
+                model.objects.bulk_update(map(lambda d: model(**d), data_list), [field_name])
+                if hasattr(model, 'history'):
+                    model.history.model.objects.bulk_update(map(lambda d: model.history.model(**d), history_list), [field_name])
 
     def handle(self, decrypt, *args, **options):
         if not settings.ENCRYPTION_KEYS:

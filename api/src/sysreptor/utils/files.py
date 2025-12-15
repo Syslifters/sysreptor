@@ -3,7 +3,10 @@ import logging
 import string
 from pathlib import Path
 
+from django.apps import apps
 from django.core.files.base import ContentFile, File
+from django.core.files.storage import storages
+from django.db import models
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from sysreptor.utils.configuration import configuration
@@ -90,4 +93,21 @@ def compress_image(file, name=None):
             log.exception('Image compression error')
         file.seek(0)
         return file, name
+
+
+def get_all_file_fields():
+    storage_name_map = {storages[name]: name for name in storages.backends.keys()}
+
+    # Iterate through all models in all apps
+    for model in apps.get_models():
+        for field in model._meta.get_fields():
+            # Check if the field is a FileField or ImageField
+            if isinstance(field, models.FileField):
+                yield {
+                    'model': model,
+                    'field': field,
+                    'field_name': field.name,
+                    'storage': field.storage,
+                    'storage_name': storage_name_map.get(field.storage, ''),
+                }
 

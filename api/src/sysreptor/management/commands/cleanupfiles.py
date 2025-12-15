@@ -1,17 +1,9 @@
+import logging
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from sysreptor.pentests.models import (
-    ArchivedProject,
-    ProjectNotebookExcalidrawFile,
-    UploadedAsset,
-    UploadedImage,
-    UploadedProjectFile,
-    UploadedTemplateImage,
-    UploadedUserNotebookFile,
-    UploadedUserNotebookImage,
-    UserNotebookExcalidrawFile,
-)
+from sysreptor.utils.files import get_all_file_fields
 
 
 class Command(BaseCommand):
@@ -26,19 +18,18 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        models = [
-            UploadedAsset,
-            UploadedImage,
-            UploadedUserNotebookImage,
-            UploadedTemplateImage,
-            UploadedProjectFile,
-            UploadedUserNotebookFile,
-            ProjectNotebookExcalidrawFile,
-            UserNotebookExcalidrawFile,
-            ArchivedProject,
-        ]
-        for model in models:
-            model.objects \
-                .filter(pk__in=[o.pk for o in model.objects.iterator() if not self.file_exists(o.file)]) \
-                .delete()
+        for field_info in get_all_file_fields():
+            logging.info(f'Cleaning up {field_info["model"]._meta.label}.{field_info["field_name"]} in storage {field_info["storage_name"]}')
+            qs = field_info['model'].objects \
+                .filter(pk__in=[
+                    o.pk
+                    for o in field_info['model'].objects.iterator()
+                    if not self.file_exists(getattr(o, field_info['field_name']))
+                ])
+            if field_info['field'].null:
+                qs.update(**{field_info['field_name']: None})
+                logging.info(f'  Updated {qs.count()} entries')
+            else:
+                qs.delete()
+                logging.info(f'  Deleted {qs.count()} entries')
 

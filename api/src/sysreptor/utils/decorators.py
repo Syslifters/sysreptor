@@ -1,4 +1,6 @@
 import functools
+import itertools
+from collections.abc import Iterable
 
 from django.core.cache import cache as django_cache
 from frozendict import frozendict
@@ -62,3 +64,20 @@ def freeze_args(func):
         kwargs = {k: recursive_freeze(v) if isinstance(v, dict|list) else v for k, v in kwargs.items()}
         return func(*args, **kwargs)
     return wrapped
+
+
+def receiver_multiple(signals, senders, **kwargs):
+    """
+    Connect the decorated function to the given signal for multiple senders.
+    """
+    if not isinstance(signals, Iterable):
+        signals = [signals]
+    if not isinstance(senders, Iterable):
+        senders = [senders]
+
+    def _decorator(func):
+        for signal, sender in itertools.product(signals, senders):
+            signal.connect(func, sender=sender, **kwargs)
+        return func
+
+    return _decorator
