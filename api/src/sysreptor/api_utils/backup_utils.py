@@ -358,10 +358,20 @@ def restore_backup(z, keepfiles=True, skip_files=False, skip_database=False):
 
             # Apply migrations from backup
             logging.info('Begin running migrations from backup')
+            migration_loader = MigrationLoader(connection)
             if migrations is not None:
                 for m in migrations:
-                    if m['app_label'].startswith('plugin_') and not any(a for a in apps.get_app_configs() if a.label == m['app_label']):
-                        logging.warning(f'Cannot run migation "{m["migration_name"]}", because plugin "{m["app_label"]}" is not enabled. Plugin data will not be restored.')
+                    if not any(a for a in apps.get_app_configs() if a.label == m['app_label']):
+                        if m['app_label'].startswith('plugin_'):
+                            logging.warning(f'Cannot run migation "{m["migration_name"]}", because plugin "{m["app_label"]}" is not enabled. Plugin data will not be restored.')
+                        else:
+                            logging.warning(f'Cannot run migation "{m["migration_name"]}", because app "{m["app_label"]}" is not installed. Skipping')
+                        continue
+
+                    try:
+                        migration_loader.get_migration(m['app_label'], m['migration_name'])
+                    except KeyError:
+                        logging.warning(f'Cannot find migration "{m["migration_name"]}" for app "{m["app_label"]}". Skipping')
                         continue
 
                     call_command('migrate', app_label=m['app_label'], migration_name=m['migration_name'], interactive=False, verbosity=0)
