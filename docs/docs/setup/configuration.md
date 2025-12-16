@@ -159,42 +159,41 @@ docker compose run --rm --no-TTY app python3 manage.py sendtestemail <your-email
 ```
 
 ### LLM Provider
-Configure LLM models for AI-assisted report writing and analysis. Enable the [AI Agent feature](#ai-agent-beta) in application settings to use LLM models.
+Configure LLM models for AI-assisted report writing and analysis. Enable the [AI Agent feature](#ai-agent) in application settings to use LLM models.
 
 SysReptor uses [LangChain](https://docs.langchain.com/) to interface with different LLM providers.
 It is possible to use cloud-based LLM providers (e.g. OpenAI, Anthropic) as well as self-hosted LLMs (e.g. via VLLM).
 The quality of the output strongly depends on the chosen LLM model. Smaller (e.g. self-hosted) models might perform worse than larger (cloud-based) models.
 
-Specify which LLM to use for agents. Expected format: "provider:model-name"
+Specify which LLM to use for agents. Expected format: `<provider>:<model-name>`  
+Supported providers: `openai`, `deepseek`, `anthropic`, `ollama`
+
+!!! note "OpenAI-compatible providers"
+
+    Many LLM providers offer OpenAI-compatible APIs. You can use the `openai` or `deepseek` provider to connect to these APIs by setting the appropriate API base URL. The provider name refers to API format capability, not the specific LLM vendor.
+
+    LangChain's `deepseek` provider supports OpenAI-compatible APIs and parses reasoning outputs (chain-of-thought from models like QwQ, DeepSeek-R1, or o1). This enables displaying reasoning steps in the web interface. The standard `openai` also provider works but omits reasoning content. The `deepseek` provider has nothing to do with the Deepseek LLM.
+
 
 ``` title="Example:"
 # OpenAI GPT-5
 AI_AGENT_MODEL="openai:gpt-5"
 OPENAI_API_KEY="..."
 
-# Anthropic Claude 4.5
-AI_AGENT_MODEL="anthropic:claude-haiku-4-5-20251001"
-ANTHROPIC_API_KEY="..."
-
-# Self-hosted model or providers with OpenAI-compatible APIs (with reasoning)
+# OpenAI-compatible APIs with reasoning (e.g. LiteLLM, VLLM, OpenRouter, etc.)
 AI_AGENT_MODEL="deepseek:gpt-oss-120b"
 DEEPSEEK_API_KEY="..."
 DEEPSEEK_API_BASE="https://llm.example.com:4000/"
 
-# Self-hosted model or providers with OpenAI-compatible APIs (without reasoning)
+# OpenAI-compatible APIs without reasoning (e.g. LiteLLM, VLLM, OpenRouter, etc.)
 AI_AGENT_MODEL="openai:gpt-oss-120b"
 OPENAI_API_KEY="..."
 OPENAI_API_BASE="https://llm.example.com:4000/"
+
+# Anthropic Claude 4.5
+AI_AGENT_MODEL="anthropic:claude-haiku-4-5-20251001"
+ANTHROPIC_API_KEY="..."
 ```
-
-!!! tip "OpenAI-compatible APIs"
-
-    Many LLM providers offer OpenAI-compatible APIs. Use the `openai` or `deepseek` provider for these services. The `deepseek` provider additionally supports parsing reasoning outputs (chain-of-thought) from models with reasoning capabilities.
-
-
-!!! note "Why use the deepseek provider instead of OpenAI?"
-
-    LangChain's "deepseek" provider supports OpenAI-compatible APIs and parses reasoning outputs (chain-of-thought from models like QwQ, DeepSeek-R1, or o1). This enables displaying reasoning steps in the web interface. The standard "openai" provider works but omits reasoning content. Provider name refers to API format capability, not the specific LLM vendor. The "deepseek" provider has nothing to do with the Deepseek LLM.
 
 To test your LLM settings, you can run the following command:
 
