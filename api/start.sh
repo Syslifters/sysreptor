@@ -16,4 +16,5 @@ exec gunicorn --bind=:8000 \
               --max-requests=1000 \
               --max-requests-jitter=100 \
               --graceful-timeout=${SERVER_WORKER_RESTART_TIMEOUT:-3600} \
+              --timeout=${SERVER_WORKER_RESTART_TIMEOUT:-3600} \
               sysreptor.conf.asgi:application
