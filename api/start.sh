@@ -11,7 +11,7 @@ python3 /app/api/src/manage.py migrate
 python3 /app/api/src/manage.py collectstatic --noinput --no-post-process
 # Start web application
 exec gunicorn --bind=:8000 \
-              --worker-class=uvicorn.workers.UvicornWorker \
+              --worker-class=uvicorn_worker.UvicornWorker \
               --workers=${SERVER_WORKERS:-4} \
               --max-requests=1000 \
               --max-requests-jitter=100 \

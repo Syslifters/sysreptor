@@ -20,6 +20,7 @@ dependencies = [
   "psycopg[binary,pool] (~=3.1)",
   "gunicorn (~=23.0)",
   "uvicorn[standard] (~=0.38)",
+  "uvicorn-worker (~=0.4)",
   "whitenoise (~=6.4)",
   "channels[daphne] (~=4.2)",
   "channels-redis (~=4.2)",
