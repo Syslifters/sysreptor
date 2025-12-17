@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2025.108 - 2025-12-17
 * Duplicate fields in report/finding field editor
 * Allow creating custom notifications in django admin
 * Fix error when formatting risk score in AI agent
