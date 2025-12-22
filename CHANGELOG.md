@@ -1,5 +1,9 @@
 # Changelog
 
+## v2025.110 - 2025-12-22
+* Fix server worker timeout not respected after max requests were reached
+
+
 ## v2025.108 - 2025-12-17
 * Duplicate fields in report/finding field editor
 * Allow creating custom notifications in django admin
