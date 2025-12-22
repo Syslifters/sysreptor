@@ -188,6 +188,7 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                     },
                 },
                 context=agent.context_schema(**(context or {}) | {'user_id': thread.user_id, 'project_id': thread.project_id}),
+                durability='exit',
                 **kwargs,
             ):
                 if stream_mode == 'messages' and isinstance(chunk[0], AIMessage):
