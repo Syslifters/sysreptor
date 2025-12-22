@@ -38,7 +38,11 @@ class DjangoModelCheckpointer(BaseCheckpointSaver):
                     "checkpoint_id": str(checkpoint.parent_checkpoint_id),
                 },
             } if checkpoint.parent_checkpoint_id else None,
-            pending_writes=self.serde.loads_typed((checkpoint.pending_writes_type, checkpoint.pending_writes)) if checkpoint.pending_writes else [],
+            pending_writes=[
+                (pw.get('task_id'), c, v)
+                for pw in self.serde.loads_typed((checkpoint.pending_writes_type, checkpoint.pending_writes))
+                for (c, v) in pw.get('writes', [])
+            ] if checkpoint.pending_writes else [],
         )
 
     def get_tuple(self, config: RunnableConfig) -> CheckpointTuple | None:
