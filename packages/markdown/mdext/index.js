@@ -6,6 +6,7 @@ import remarkStringify from 'remark-stringify';
 import rehypeParse from 'rehype-parse';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
+import remarkMath from 'remark-math';
 import { defaultHandlers as defaultHandlersToMdast, defaultNodeHandlers as defaultNodeHandlersToMdast } from 'hast-util-to-mdast';
 import { merge } from 'lodash-es';
 
@@ -29,7 +30,7 @@ const rehypeSanitizeSchema = merge({}, defaultSchema, {
   clobberPrefix: null,
   tagNames: [
     // Custom components
-    'footnote', 'template', 'ref', 'pagebreak', 'markdown', 'mermaid-diagram', 'qrcode',
+    'footnote', 'template', 'ref', 'pagebreak', 'markdown', 'mermaid-diagram', 'math-latex', 'qrcode',
     // Regular HTML tags not included in default schema
     'figure', 'figcaption', 'caption', 'mark', 'u',
     'abbr', 'bdo', 'cite', 'dfn', 'time', 'var', 'wbr',
@@ -47,6 +48,7 @@ const rehypeSanitizeSchema = merge({}, defaultSchema, {
     'input': ['checked'].concat(defaultSchema.attributes['input']),
     'ref': ['to', ':to'],
     'markdown': ['text', ':text'],
+    'math-latex': ['display-mode', ':display-mode', 'text', ':text'],
   }
 });
 
@@ -62,7 +64,8 @@ export function markdownParser() {
     .use(remarkTemplateVariables)
     .use(remarkAttrs)
     .use(remarkFigure)
-    .use(remarkTodoMarker);
+    .use(remarkTodoMarker)
+    .use(remarkMath);
 }
 
 

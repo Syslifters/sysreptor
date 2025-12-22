@@ -172,6 +172,29 @@ sequenceDiagram
 ![Mermaid Diagram Example: Man in the Middle Attack](../images/md_mermaid_diagram_mitm.png)
 
 
+## Math Expressions
+You can include mathematical expressions and equations using LaTeX syntax.
+Math expressions are rendered using KaTeX for high-quality mathematical typesetting.
+
+For inline math expressions within text, wrap the LaTeX code with single dollar signs `$`.
+
+```md
+The quadratic formula is $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$ which solves quadratic equations.
+
+Einstein's famous equation is $E = mc^2$.
+```
+
+For larger equations or formulas that should be displayed on their own line, use double dollar signs `$$` to create a math block.
+
+```md
+The Gaussian integral:
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+```
+
+
 ## HTML Attributes
 This extension allows you to set HTML attributes from markdown.
 Place attributes in curly braces directly after the targeted element (without spaces between). 

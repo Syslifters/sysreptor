@@ -37,6 +37,8 @@ const markdownHighlighting = styleTags({
   "strikethrough/...": t.strikethrough,
   "codeText/...": tags.inlinecode,
   "codeFenced/...": tags.codeblock,
+  "mathText/...": tags.inlinecode,
+  "mathFlow/...": tags.codeblock,
   "table/...": tags.table,
   "blockQuote/...": t.quote,
   "heading1/...": t.heading1,
@@ -64,6 +66,7 @@ enum MarkdownNodeType {
   emphasis, emphasisSequence,
   strikethrough, strikethroughSequence,
   codeText, codeTextSequence, codeFenced,
+  mathText, mathTextSequence, mathFlow,
   table, tableRow,
   blockQuote,
   heading1, heading2, heading3, heading4, heading5, heading6,
@@ -491,7 +494,7 @@ export const markdownHighlightCodeBlocks = ViewPlugin.fromClass(class {
     let builder = new RangeSetBuilder<Decoration>();
     syntaxTree(view.state).iterate({
       enter: (n) => {
-        if (n.name === 'codeFenced') {
+        if (n.name === 'codeFenced' || n.name === 'mathFlow') {
           for (const l of linesInRange(view.state.doc, n)) {
             builder.add(l.from, l.from, Decoration.line({class: 'tok-codeblock'}));
           }    

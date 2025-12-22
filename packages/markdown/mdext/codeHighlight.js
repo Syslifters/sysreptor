@@ -1,9 +1,11 @@
 import { visit } from 'unist-util-visit';
 import { toString } from 'hast-util-to-string';
+import {fromHtmlIsomorphic} from 'hast-util-from-html-isomorphic';
 import { camelCase, omit } from 'lodash-es';
 import { createLowlight, all as lowlightGrammers } from 'lowlight';
 import { unified } from 'unified';
 import rehypeParse from 'rehype-parse';
+import katex from 'katex';
 import { addClass, removeClass } from './rehypePlugins';
 
 const lowlight = createLowlight(lowlightGrammers);
@@ -206,6 +208,60 @@ function splitIntoLines(tree) {
 }
 
 
+function formatMathLatex(node, { preview = false, displayMode = true }) {
+  const value = toString(node);
+
+  let result;
+  if (!preview) {
+    result = {
+      type: 'element',
+      tagName: 'math-latex',
+      properties: {
+        'display-mode': String(displayMode),
+      },
+      children: [{ type: 'text', value }],
+    };
+  } else {
+    try {
+      const htmlString = katex.renderToString(value, {
+        displayMode,
+        throwOnError: false,
+        strict: 'ignore',
+        output: 'html',
+      });
+      const hast = fromHtmlIsomorphic(htmlString, { fragment: true });
+      result = {
+        type: 'element',
+        tagName: displayMode ? 'div' : 'span',
+        properties: {
+          className: ['math-latex', 'language-math', displayMode ? 'math-display' : 'math-inline'],
+        },
+        children: hast.children,
+      };
+    } catch (error) {
+      result = {
+        type: 'element',
+        tagName: displayMode ? 'div' : 'span',
+        properties: {
+          className: ['math-latex', 'language-math', displayMode ? 'math-display' : 'math-inline', 'katex-error'],
+          style: 'color: #cc0000',
+          title: String(error)
+        },
+        children: [{type: 'text', value}]
+      }
+    }
+  }
+  Object.assign(node, { 
+    ...result,
+    properties: {
+      ...node.properties,
+      ...result.properties,
+      className: (node.properties?.className || []).concat(result.properties?.className || []),
+    },
+  });
+}
+
+
 export function rehypeHighlightCode({ preview = false } = {}) {
   return tree => visit(tree, 'element', (node, _index, parent) => {
     if (node.tagName === 'code' && parent.tagName === 'pre') {
@@ -239,9 +295,10 @@ export function rehypeHighlightCode({ preview = false } = {}) {
             children: [{type: 'text', value: meta.caption}],
           });
         }
-        
-
-        return;
+      }
+      // LaTeX math expressions
+      else if (language === 'math') {
+        formatMathLatex(parent, { preview, displayMode: true });
       }
       // Regular code block
       else {      
@@ -261,7 +318,12 @@ export function rehypeHighlightCode({ preview = false } = {}) {
         node.children = tree.children;
       }
     } else if (node.tagName === 'code') {
-      addClass(node, 'code-inline');
+      const language = getLanguage(node);
+      if (language === 'math') {
+        formatMathLatex(node, { preview, displayMode: false });
+      } else {
+        addClass(node, 'code-inline');
+      }
     }
   }); 
 }

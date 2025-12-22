@@ -127,6 +127,7 @@ class TestHtmlRendering:
         (html_load_script('/assets/name/test.js'), {'level': 'info', 'message': 'Script loaded' }),
         ('<mermaid-diagram>graph TD; A-->[B;</mermaid-diagram>', {'level': 'warning', 'message': 'Mermaid error' }),
         ('<qrcode value="content" :options="{ color: { dark: { invalid: `type` } } }" />', {'level': 'warning', 'message': 'QR code error' }),
+        ('<math-latex>\\invalid{1}{N}</math-latex>', {'level': 'warning', 'message': 'LaTeX math error' }),
     ])
     def test_error_messages(self, template, expected):
         self.project_type.report_template = template
@@ -377,6 +378,17 @@ class TestHtmlRendering:
         <qrcode value="https://example.com" />
         """)
         assert re.fullmatch(r'^\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="https://example\.com">\s*$', html)
+
+    def test_math_rendering(self):
+        html_inline = self.render_html("""Inline <math-latex display-mode="false">E=mc^2</math-latex> math""")
+        assert re.fullmatch(r'^\s*Inline <span class="math-latex language-math math-inline"><span class="katex">.*</span></span> math\s*$', html_inline)
+
+        html_block = self.render_html("""
+        <math-latex>
+            L(w,b)=-\\frac{1}{N}\\sum_{i=1}^{N}[y_ilog(p_i)+(1-y_i)log(1-p_i)]
+        </math-latex>
+        """)
+        assert re.fullmatch(r'^\s*<div class="math-latex language-math math-display"><span class="katex-display"><span class="katex">.*</span>\s*</span></div>\s*$', html_block, re.DOTALL)
 
     @pytest.mark.parametrize(("password", "encrypted"), [
         ('password', True),
