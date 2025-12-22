@@ -16,6 +16,7 @@ import { mermaid } from '@sysreptor/markdown';
 import { uuidv4 } from "@base/utils/helpers";
 import { renderMarkdownToHtmlInWorker, type ReferenceItem } from '~/composables/markdown';
 import 'highlight.js/styles/default.css';
+import 'katex/dist/katex.min.css';
 
 mermaid.initialize({
   startOnLoad: false,

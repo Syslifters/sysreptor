@@ -59,6 +59,10 @@ describe('Markdown extensions', () => {
     // Mermaid diagrams
     '```mermaid\ngraph LR A-->B\n```': '<figure><mermaid-diagram>graph LR A-->B\n</mermaid-diagram></figure>',
     '```mermaid width=50% caption="Example diagram"\ngraph LR A-->B\n```': '<figure><mermaid-diagram style="width:50%;">graph LR A-->B\n</mermaid-diagram><figcaption>Example diagram</figcaption></figure>',
+    // Math LaTeX
+    '```math\nE=mc^2\n```': '<math-latex display-mode="true" class="">E=mc^2\n</math-latex>',
+    '$$\nE=mc^2\n$$': '<math-latex display-mode="true" class="">E=mc^2</math-latex>',
+    'Inline $E=mc^2$ math': '<p>Inline <math-latex class="language-math math-inline" display-mode="false">E=mc^2</math-latex> math</p>',
     // Nested elements
     '![caption^[footnote [link](https://example.com)]](/img.png)': '<p></p><figure><img src="/img.png" alt="captionfootnote link"><figcaption>caption<footnote>footnote <a href="https://example.com" target="_blank" rel="nofollow noopener noreferrer">link</a></footnote></figcaption></figure><p></p>',
     '![caption^[footnote [partial]](/img.png)': {

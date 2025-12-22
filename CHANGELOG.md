@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Markdown editor: Support LaTeX math expressions (http://localhost:9090/reporting/markdown-features/#math-expressions)
+
+
 ## v2025.110 - 2025-12-22
 * Fix server worker timeout not respected after max requests were reached
 

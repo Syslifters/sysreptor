@@ -61,6 +61,7 @@ export default defineNuxtConfig({
         'mdast-util-gfm-table', 'hast-util-to-string', 'lowlight', 'html-void-elements', 'property-information', 
         'stringify-entities', 'micromark-factory-space', 'micromark-factory-whitespace', 'micromark-util-character', 
         'micromark-factory-destination', 'micromark-factory-label', 'micromark-factory-title', 'micromark-util-normalize-identifier',
+        'remark-math', 'katex', 'hast-util-from-html-isomorphic',
       ],
     },
     worker: {
@@ -88,9 +89,8 @@ export default defineNuxtConfig({
             const bypassPaths = [
               '/static/logo.svg', '/static/logo-text.svg', '/static/favicon.ico', 
               '/static/pdfviewer/', '/static/excalidraw/',
-            ]
-            if (bypassPaths.some(path => req.url!.startsWith(path))
-            ) {
+            ];
+            if (bypassPaths.some(path => req.url!.startsWith(path))) {
               return req.url;
             }
           },

@@ -1,6 +1,5 @@
-import { createApp, compile, computed, defineComponent, type RuntimeCompilerOptions, onBeforeUnmount, onMounted, ref } from 'vue';
+import { createApp, compile, computed, defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import { generateCodeFrame } from '@vue/shared';
-import { type CompilerOptions } from '@vue/compiler-core';
 import ChartJsPluginDataLabels from 'chartjs-plugin-datalabels';
 import lodash from 'lodash';
 import Pagebreak from './components/Pagebreak.vue';
@@ -12,6 +11,7 @@ import ListOfTables from './components/ListOfTables.vue';
 import Chart from './components/ChartVue.vue';
 import MermaidDiagram from './components/MermaidDiagram.vue';
 import Qrcode from './components/Qrcode.vue';
+import MathLatex from './components/MathLatex.vue';
 import Ref from './components/Ref.vue';
 import { callForTicks, getChildElementsRecursive, useRenderTask, pendingRenderTasks } from './utils';
 
@@ -64,13 +64,13 @@ const REPORT_TEMPLATE = '<div>' + (window.REPORT_TEMPLATE || '') + '</div>';
 const REPORT_DATA = window.REPORT_DATA || { report: {}, finding_groups: [], pentesters: [] };
 
 
-const templateCompilerOptions: CompilerOptions & RuntimeCompilerOptions = {
+const templateCompilerOptions = {
   whitespace: 'preserve',
-  isRawTextTag: (tag) => ['markdown', 'mermaid-diagram'].includes(tag),
-  isCustomElement: (tag) => ['footnote'].includes(tag),
+  isRawTextTag: (tag: string) => ['markdown', 'mermaid-diagram', 'math-latex'].includes(tag),
+  isCustomElement: (tag: string) => ['footnote'].includes(tag),
   comments: true,
   ssr: false,
-  onError: (err) => {
+  onError: (err: any) => {
     const error = {
       message: 'Template compilation error: ' + err.message,
       details: err.loc && generateCodeFrame(REPORT_TEMPLATE, err.loc.start.offset, err.loc.end.offset),
@@ -78,7 +78,7 @@ const templateCompilerOptions: CompilerOptions & RuntimeCompilerOptions = {
     console.error(error.message, error);
     window.RENDERING_COMPLETED = true;
   }
-};
+} as const;
 const RENDER_FUNCTION = compile(REPORT_TEMPLATE, templateCompilerOptions);
 
 
@@ -87,7 +87,7 @@ if (!window.RENDERING_COMPLETED) {
   const app = createApp(defineComponent({
     name: 'root',
     render: RENDER_FUNCTION,
-    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, MermaidDiagram, Qrcode, Ref },
+    components: { Pagebreak, Markdown, CommaAndJoin, TableOfContents, ListOfFigures, ListOfTables, Chart, MermaidDiagram, Qrcode, MathLatex, Ref },
     setup() {
       // Data
       const data = REPORT_DATA;
