@@ -15,7 +15,7 @@ def get_prompts(stdout):
     while True:
         try:
             prompt = input('> ')
-        except EOFError:
+        except (EOFError, KeyboardInterrupt):
             break
         if prompt:
             yield prompt
