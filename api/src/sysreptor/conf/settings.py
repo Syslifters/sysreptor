@@ -405,7 +405,7 @@ SECURE_CSP = {
     'img-src': [CSP.SELF, 'data:'],
     'font-src': [CSP.SELF],
     'worker-src': [CSP.SELF],
-    'connect-src': [CSP.SELF, 'data:', 'https://portal.sysreptor.com'],
+    'connect-src': [CSP.SELF, 'data:', 'https://sysreptor.com'],
     'frame-ancestors': [CSP.SELF],
     'form-action': [CSP.SELF],
     # PDF.js in Firefox requires "blob:" for saving/downloading PDFs
@@ -576,7 +576,7 @@ HEALTH_CHECKS = {
 # Notifications
 VERSION = config('VERSION', default='dev')
 INSTANCE_TAGS = config('INSTANCE_TAGS', cast=Csv(delimiter=';', post_process=remove_empty_items), default='on-premise')
-NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://portal.sysreptor.com/api/v1/notifications/')
+NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://sysreptor.com/api/v1/notifications/')
 
 # License
 LICENSE = config('LICENSE', default=None)

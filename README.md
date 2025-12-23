@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <a href="https://portal.sysreptor.com/demo">Playground</a> •
+  <a href="https://sysreptor.com/demo">Playground</a> •
   <a href="https://github.com/Syslifters/sysreptor/discussions/categories/ideas">Ideas</a> •
   <a href="https://github.com/Syslifters/sysreptor/discussions/categories/q-a">Questions</a> •
   <a href="https://docs.sysreptor.com/">Documentation</a> •
