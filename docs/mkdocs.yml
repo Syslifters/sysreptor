@@ -4,7 +4,6 @@ repo_url: https://github.com/syslifters/sysreptor/
 edit_uri: edit/main/docs/docs
 site_dir: ./site/ # Where to put the HTML files
 nav:
-  - Features and Pricing: features-and-pricing.md
   - Setup:
       - Installation: setup/installation.md
       - Configuration: setup/configuration.md
@@ -108,8 +107,8 @@ nav:
       - Archiving: insights/archiving.md
       - Security Considerations: insights/security-considerations.md
       - Vulnerabilities: https://github.com/Syslifters/sysreptor/security/advisories
-  - HTB Reporting: htb-reporting-with-sysreptor.md
   - Demo Reports: demo-reports.md
+  - Features and Pricing: https://sysreptor.com/pricing
   - Get Involved: get-involved.md
   - Contact Us: contact-us.md
 
@@ -177,8 +176,6 @@ plugins:
           - users/**.md
         Contact the SysReptor team:
           - contact-us.md
-        Features and pricing of SysReptor:
-          - features-and-pricing.md
         Hack the Box (HTB) reporting with SysReptor:
           - htb-reporting-with-sysreptor.md
         Offsec reporting with SysReptor:
@@ -237,6 +234,9 @@ plugins:
         "setup/network.md": "setup/configuration.md"
         "security.txt.md": "https://docs.syslifters.com/.well-known/security.txt"
         ".well-known/security.txt.md": "https://docs.syslifters.com/.well-known/security.txt"
+        "features-and-pricing.md": "https://sysreptor.com/pricing"
+        "assets/ToS_SysReptor_self-hosted.pdf.md": "https://sysreptor.com/api/v1/documents/latest?type=order-sh-tos"
+        "assets/ToS_SysReptor_cloud.pdf.md": "https://sysreptor.com/api/v1/documents/latest?type=order-cloud-tos"
 
 markdown_extensions:
   - attr_list

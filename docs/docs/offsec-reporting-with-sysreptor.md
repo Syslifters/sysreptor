@@ -2,12 +2,12 @@
 
 Our free cloud service to write your OffSec OSCP+, OSEP, OSWP, OSWA, OSWE, OSED, OSMR, OSEE, OSDA, OSIR, OSTH reports.
 
-💲 Free  
-📝 Write in markdown  
-⚙️ Render your report to PDF  
-🛡️ OSCP+, OSWP, OSEP, OSWA, OSWE, OSED, OSMR, OSEE, OSDA, OSIR, OSTH  
-🚀 Fully customizable  
-👌 No local software troubleshooting
+💲 Free.  
+💎 Including Pro features.  
+✍️ Write it in Markdown.  
+📄 Render the report for your certifiation.  
+👌 Zero setup required.  
+
 
 <br><div style="text-align:center">[:rocket: Sign Up (it's free)](https://offsec.sysreptor.com/oscp/signup/){ .md-button }</div>
 <br><div style="text-align:center">Already have an account? [Login here.](https://labs.sysre.pt){ target=_blank }</div>

@@ -2,12 +2,13 @@
 
 Our free cloud service to write your Hack The Box CPTS, CWES, CDSA, CWEE, CAPE or CJCA reports.
 
-💲 Free  
-📝 Write in markdown  
-⚙️ Render your report to PDF  
-🛡️ CPTS, CWES, CDSA, CWEE, CAPE, CJCA  
-🚀 Fully customizable  
-👌 No local software troubleshooting
+💲 Free.  
+💎 Including Pro features.  
+✍️ Write it in Markdown.  
+📄 Render the report for your certifiation.  
+👌 Zero setup required.  
+
+<br>
 
 <br><div style="text-align:center">[:rocket: Sign Up (it's free)](https://htb.sysreptor.com/htb/signup/){ .md-button }</div>
 <br><div style="text-align:center">Already have an account? [Login here.](https://labs.sysre.pt){ target=_blank }</div>

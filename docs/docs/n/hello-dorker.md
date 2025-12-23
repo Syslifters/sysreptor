@@ -34,7 +34,7 @@ search:
     <span style="color:red">❤</span>
 </div>
 
-<br><div style="text-align:center">[:rocket: Get it for Free](../features-and-pricing.md){ .md-button }</div>
+<br><div style="text-align:center">[:rocket: Get it for Free](../setup/installation.md){ .md-button }</div>
 
 <figure markdown>
   ![Create finding from template](../images/create_finding_from_template.gif)

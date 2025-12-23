@@ -1,25 +1,23 @@
-## Prerequisites
-### Server
 :octicons-server-24: Self-Hosted
 
-* Ubuntu[^1]
-* 8GB RAM
+??? info "System Requirements"
+    ### Server
+    :octicons-server-24: Self-Hosted
 
-[^1]: It may also run on [Kali](https://emvee-nl.github.io/posts/SysReptor/){ target=_blank }, [MacOS](https://alive-club-f8d.notion.site/Sysreptor-Install-M2-Studio-12e1fd44f31080a28acae6de346c6a30){ target=_blank }, RHEL, and more as long as you take care of all dependencies. Our install and update procedures, however, focus on Ubuntu.
+    * Ubuntu[^1]
+    * 8GB RAM
 
-### Client
-:octicons-cloud-24: Cloud · :octicons-server-24: Self-Hosted
+    [^1]: It may also run on [Kali](https://emvee-nl.github.io/posts/SysReptor/){ target=_blank }, [MacOS](https://alive-club-f8d.notion.site/Sysreptor-Install-M2-Studio-12e1fd44f31080a28acae6de346c6a30){ target=_blank }, RHEL, and more as long as you take care of all dependencies. Our install and update procedures, however, focus on Ubuntu.
 
-* Network connection to the server
-* Up-to-date desktop browser, one of:
-    * Chrome
-    * Edge
-    * Firefox
-    * Safari
+    ### Client
+    :octicons-cloud-24: Cloud · :octicons-server-24: Self-Hosted
 
-
-## Installation
-:octicons-server-24: Self-Hosted
+    * Network connection to the server
+    * Up-to-date desktop browser, one of:
+        * Chrome
+        * Edge
+        * Firefox
+        * Safari
 
 === "Easy Script Installation"
     

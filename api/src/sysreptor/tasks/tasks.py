@@ -20,7 +20,7 @@ def clear_sessions(task_info):
 async def activate_license_request(license_info):
     async with httpx.AsyncClient(timeout=10) as client:
         res = await client.post(
-            url='https://portal.sysreptor.com/api/v1/licenses/activate/',
+            url='https://sysreptor.com/api/v1/licenses/activate/',
             headers={'Content-Type': 'application/json'},
             content=json.dumps(license_info, cls=DjangoJSONEncoder).encode(),
         )
