@@ -1,8 +1,8 @@
 ---
-title: SysReptor Pentest Report Creator
+title: Pentest Reporting Easy as Pie
 ---
-<h1 style="text-align: center;font-weight:bold;">Pentest Reports<br>Easy As Pie.</h1>
-
+<br>
+<h1 style="text-align: center;font-weight:bold;">Pentest Reporting<br>Easy as Pie.</h1>
 <div style="overflow: hidden;">
   <img 
       style="display: block; 
@@ -91,7 +91,7 @@ title: SysReptor Pentest Report Creator
 
 </div>
 
-<br><div style="text-align:center">[:fire: Get Started](setup/installation.md){ .md-button target="_blank" }</div>
+<br><div style="text-align:center">[:fire: Set up now](setup/installation.md){ .md-button target="_blank" }</div>
 <br><div style="text-align:center">[:sauropod: Book a Demo](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ .md-button target="_blank" }</div>
 
 <br>
