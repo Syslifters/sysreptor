@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Markdown editor: Support LaTeX math expressions (http://localhost:9090/reporting/markdown-features/#math-expressions)
+* AI agent: Add Mistral AI provider
 
 
 ## v2025.110 - 2025-12-22
