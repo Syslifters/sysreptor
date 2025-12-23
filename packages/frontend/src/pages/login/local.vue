@@ -18,7 +18,7 @@
               <v-icon start color="error" icon="mdi-alert-decagram" />
               Software License Error: {{ apiSettings.settings!.license.error }}.<br>
               Falling back to a free Community license. Some features are disabled.<br>
-              See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank">https://docs.sysreptor.com/features-and-pricing/</a>
+              See <a href="https://sysreptor.com/pricing" target="_blank">https://sysreptor.com/pricing</a>
             </p>
           </template>
 

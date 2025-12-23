@@ -31,7 +31,7 @@
   <a href="https://github.com/Syslifters/sysreptor/discussions/categories/ideas">Ideas</a> •
   <a href="https://github.com/Syslifters/sysreptor/discussions/categories/q-a">Questions</a> •
   <a href="https://docs.sysreptor.com/">Documentation</a> •
-  <a href="https://docs.sysreptor.com/features-and-pricing/">Features and Pricing</a> •
+  <a href="https://sysreptor.com/pricing">Features and Pricing</a> •
   <a href="https://docs.sysreptor.com/setup/installation/">Installation</a> •
   <a href="https://portal.sysreptor.com/order/">Buy SysReptor</a>
 </p>

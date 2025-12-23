@@ -37,7 +37,7 @@
     <v-list-item v-if="!apiSettings.isProfessionalLicense">
       Comments are available<br>
       in SysReptor Professional.<br><br>
-      See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank" class="text-primary">https://docs.sysreptor.com/features-and-pricing/</a>
+      See <a href="https://sysreptor.com/pricing" target="_blank" class="text-primary">https://sysreptor.com/pricing</a>
     </v-list-item>
     <v-list-item v-else-if="commentsVisible.length === 0">
       <v-list-item-title v-if="statusFilter === CommentStatus.OPEN">No open comments</v-list-item-title>

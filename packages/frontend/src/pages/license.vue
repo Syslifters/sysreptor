@@ -6,7 +6,7 @@
       <v-icon start color="error" icon="mdi-alert-decagram" />
       License Error: {{ license.error }}<br>
       Falling back to a free community license. Some features are disabled.<br>
-      See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank" class="text-primary">https://docs.sysreptor.com/features-and-pricing/</a>
+      See <a href="https://sysreptor.com/pricing" target="_blank" class="text-primary">https://sysreptor.com/pricing</a>
     </p>
 
     <v-table class="table-key-value">

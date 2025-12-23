@@ -1,7 +1,7 @@
 <template>
   <a 
     v-if="!apiSettings.isProfessionalLicense" 
-    href="https://docs.sysreptor.com/features-and-pricing/"
+    href="https://sysreptor.com/pricing"
     target="_blank"
     class="pro-link"
   >

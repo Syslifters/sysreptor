@@ -33,7 +33,7 @@
       </v-timeline>
       <v-list-item v-else>
         Version history is available in SysReptor Professional.<br><br>
-        See <a href="https://docs.sysreptor.com/features-and-pricing/" target="_blank" class="text-primary">https://docs.sysreptor.com/features-and-pricing/</a>
+        See <a href="https://sysreptor.com/pricing" target="_blank" class="text-primary">https://sysreptor.com/pricing</a>
       </v-list-item>
     </template>
   </list-view>
