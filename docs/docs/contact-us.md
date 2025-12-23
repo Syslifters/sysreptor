@@ -35,7 +35,7 @@
     Discovered a security vulnerability? Report it responsibly through
     our vulnerability disclosure process.
 
-    [:octicons-arrow-right-24: Disclose responsibly](https://docs.syslifters.com/en/vulnerability-disclosure/){ target="_blank"}
+    [:octicons-arrow-right-24: Disclose responsibly](https://github.com/Syslifters/sysreptor/security){ target="_blank"}
 
 -   :material-chat:{ .lg .middle } __Contact us privately__
 
