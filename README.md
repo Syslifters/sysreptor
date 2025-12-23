@@ -18,7 +18,7 @@
 <a href="https://github.com/syslifters/sysreptor/releases/latest">
     <img src="https://img.shields.io/github/repo-size/syslifters/sysreptor?color=red&style=flat-square">
 </a>
-<a href="https://www.linkedin.com/company/syslifters/">
+<a href="https://www.linkedin.com/showcase/sysreptor/">
     <img src="https://img.shields.io/badge/-Linkedin-blue?style=flat-square&logo=linkedin">
 </a>
 <a href="https://twitter.com/intent/user?screen_name=sysreptor">
@@ -38,48 +38,26 @@
 
 ---
 
-SysReptor is a fully customizable pentest reporting platform designed for penetration testers, red teamers, and other cybersecurity professionals. Simplify, customize, and automate your pentest reports with ease. You can create designs based on simple HTML and CSS, write your reports in user-friendly Markdown and convert them to PDF with just a single click, in the cloud or self-hosted!
+SysReptor is a fully customizable pentest reporting platform designed for penetration testers, red teamers, and other cybersecurity professionals.<br><br>
 
-## Your Benefits
-
-📝 Write in markdown<br>
-✏️ Design in HTML/VueJS<br>
-⚙️ Render your report to PDF<br>
-🚀 Fully customizable<br>
-💻 Self-hosted or Cloud<br>
-🎉 No need for Word<br>
-
-
-## SysReptor Cloud
-You just want to start pentest reporting and save yourself all the effort of setting up, configuring and maintaining a dedicated server? Then SysReptor Cloud is the right choice for you! Get to know SysReptor on our [Playground](https://portal.sysreptor.com/demo) and if you like it, you can get your personal Cloud instance [here](https://portal.sysreptor.com/order/).
+🎨 Design your report in HTML.<br>
+✍️ Write it in Markdown.<br>
+📄 Render to PDF.<br>
+☁️ Self-hosted or Cloud.<br>
 
 <h3 align="center">
-    <a href="https://portal.sysreptor.com/demo"><img src="/docs/docs/assets/dino/sign_demo.svg" width="15%" alt="Demo"></a>
+    <a href="https://sysreptor.com/demo"><img src="/docs/docs/assets/dino/sign_demo.svg" width="15%" alt="Demo"></a>
 </h3>
-<h3 align="center">🦖 Try demo <a class="md-button" href="https://portal.sysreptor.com/demo/">here</a></h3>
-<h3 align="center">🚀 Sign up for SysReptor Cloud <a class="md-button" href="https://portal.sysreptor.com/order/">here</a></h3>
+<h3 align="center">🦖 Try the <a class="md-button" href="https://sysreptor.com/demo/">Playground</a></h3>
 
 <br>
 
-## SysReptor Self-Hosted
-You prefer self-hosting? That's fine! You will need:
-* Ubuntu
-* Latest [Docker](https://docs.docker.com/engine/install/ubuntu/) (with docker-compose-plugin)
+## Getting started
 
-You can then install SysReptor with via script:
-
-```bash
-bash <(curl -s https://docs.sysreptor.com/install.sh)
-```
-
-After successful installation, access your application at http://localhost:8000/.
-
-Get detailed installation instructions at [Installation](https://docs.sysreptor.com/setup/installation/).
-
-
-![Create finding from template](https://docs.sysreptor.com/images/create_finding_from_template.gif)
-
-![Export report as PDF](https://docs.sysreptor.com/images/export_project.gif)
+* [Install SysReptor](https://docs.sysreptor.com/setup/installation/)
+* [Check out some demo reports](https://docs.sysreptor.com/demo-reports/)
+* [Get involved](https://docs.sysreptor.com/get-involved/)
+* ⭐ Leave a star? 💚
 
 <br>
 The FFG is the central national funding organization and strengthens Austria's innovative power.<br>
