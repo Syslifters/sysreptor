@@ -1,4 +1,4 @@
-## Prerequisites
+:octicons-server-24: Self-Hosted
 
 ??? info "System Requirements"
     ### Server
@@ -18,10 +18,6 @@
         * Edge
         * Firefox
         * Safari
-
-
-## Installation
-:octicons-server-24: Self-Hosted
 
 === "Easy Script Installation"
     
