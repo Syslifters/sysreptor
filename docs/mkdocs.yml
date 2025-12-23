@@ -235,6 +235,8 @@ plugins:
         "security.txt.md": "https://docs.syslifters.com/.well-known/security.txt"
         ".well-known/security.txt.md": "https://docs.syslifters.com/.well-known/security.txt"
         "features-and-pricing.md": "https://sysreptor.com/pricing"
+        "assets/ToS_SysReptor_self-hosted.pdf.md": "https://sysreptor.com/api/v1/documents/latest?type=order-sh-tos"
+        "assets/ToS_SysReptor_cloud.pdf.md": "https://sysreptor.com/api/v1/documents/latest?type=order-cloud-tos"
 
 markdown_extensions:
   - attr_list
