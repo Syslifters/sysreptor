@@ -794,10 +794,10 @@ During the course of testing, TODO **YOUR_NAME** uncovered a total of TODO **num
 
 TODO: update table 
 
-| Finding Severity |            |         |           |           |
-| ---------------- | ---------- | ------- | --------- | --------- |
-| **Critical**         | **High** | **Medium** | **Low** | **Total** |
-| **0**            | **0**      | **0**   | **0**     | **0** |
+| Finding Severity |          |            |           |           |           |
+| ---------------- | -------- | ---------- | --------- | --------- | --------- |
+| **Critical**     | **High** | **Medium** | **Low**   | **Info**  | **Total** |
+| **0**            | **0**    | **0**      | **0**     | **0**     | **0**     |
 
 Below is a high-level overview of each finding identified during the course of testing. These findings are covered in depth in the [Technical Findings Details](#technical-findings-details) section of this report.
 
@@ -805,7 +805,7 @@ TODO: update table
 
 | Finding # | Severity Level | Finding Name                 |
 | --------- | -------------- | ---------------------------- |
-| 1.        | **Critical**       | _Command Injection_          |
+| 1.        | **Critical**   | _Command Injection_          |
 | 2.        | **Medium**     | _Username Enumeration_       |
 | 3.        | **Low**        | _Cookie Missing Secure Flag_ |
 
