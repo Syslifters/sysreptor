@@ -721,7 +721,7 @@ type = "markdown"
 label = "Executive Summary"
 origin = "custom"
 default = """
-TODO Royal Flush Ltd. ("RoyalFlush" herein), Secure Data Ltd. ("SecureData" herein), and Vita Medix Ltd. ("VitaMedix" herein) have invited 
+TODO Royal Flush Ltd. ("RoyalFlush" herein), Secure Data Ltd. ("SecureData" herein), and Vita Medix Ltd. ("VitaMedix" herein), have invited 
 TODO YOUR_NAME
 to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
 
@@ -744,9 +744,9 @@ default = """
 TODO YOUR_NAME performed testing under a mixture of "blackbox" and a "whitebox" approach from TODO START_DATE to TODO END_DATE, as follows:
 
 TODO: update approach
-* `RoyalFlush` A whitebox penetration test was carried against their targets, with access to their web applications' source code on `http://git.royalflush.htb/`.
+* `RoyalFlush` A whitebox penetration test was carried out against their targets, with access to their web applications' source code on `http://git.royalflush.htb/`.
 * `SecureData` A blackbox penetration test was performed, with no further details or access to their web applications.
-* `VitaMedix` A mixture of blackbox and whitebox was carried against all web applications under their sub-domains.
+* `VitaMedix` A mixture of blackbox and whitebox was carried out against all web applications under their sub-domains.
 
 Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
 
@@ -794,10 +794,10 @@ During the course of testing, TODO **YOUR_NAME** uncovered a total of TODO **num
 
 TODO: update table 
 
-| Finding Severity |            |         |           |
-| ---------------- | ---------- | ------- | --------- |
-| **High**         | **Medium** | **Low** | **Total** |
-| **0**            | **0**      | **0**   | **0**     |
+| Finding Severity |            |         |           |           |
+| ---------------- | ---------- | ------- | --------- | --------- |
+| **Critical**         | **High** | **Medium** | **Low** | **Total** |
+| **0**            | **0**      | **0**   | **0**     | **0** |
 
 Below is a high-level overview of each finding identified during the course of testing. These findings are covered in depth in the [Technical Findings Details](#technical-findings-details) section of this report.
 
@@ -805,7 +805,7 @@ TODO: update table
 
 | Finding # | Severity Level | Finding Name                 |
 | --------- | -------------- | ---------------------------- |
-| 1.        | **High**       | _Command Injection_          |
+| 1.        | **Critical**       | _Command Injection_          |
 | 2.        | **Medium**     | _Username Enumeration_       |
 | 3.        | **Low**        | _Cookie Missing Secure Flag_ |
 
@@ -815,7 +815,7 @@ required = true
 [[report_sections.fields]]
 id = "assessment_overview_and_recommendations"
 type = "markdown"
-label = "Assessment Overview and Recomendations"
+label = "Assessment Overview and Recommendations"
 origin = "custom"
 default = "TODO: 1 page summary of all identified vulnerabilities, as well as their respective recommended remediations."
 required = true
@@ -1044,7 +1044,7 @@ The contents of this document have been developed by Hack The Box. Hack The Box 
 The contents of this document do not constitute legal advice. Hack The Box's offer of services that relate to compliance, litigation or other legal interests are not intended as legal counsel and should not be taken as such. The assessment detailed herein is against a fictional company for training and examination purposes, and the vulnerabilities in no way affect Hack The Box external or internal infrastructure.
 """
 executive_summary = """
-TODO Royal Flush Ltd. ("RoyalFlush" herein), Secure Data Ltd. ("SecureData" herein), and Vita Medix Ltd. ("VitaMedix" herein) have invited 
+TODO Royal Flush Ltd. ("RoyalFlush" herein), Secure Data Ltd. ("SecureData" herein), and Vita Medix Ltd. ("VitaMedix" herein), have invited 
 TODO YOUR_NAME
 to perform a targeted Web Application Penetration Test of their web applications to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
 
@@ -1060,9 +1060,9 @@ approach = """
 TODO YOUR_NAME performed testing under a mixture of "blackbox" and a "whitebox" approach from TODO START_DATE to TODO END_DATE, as follows:
 
 TODO: update approach
-* `RoyalFlush` A whitebox penetration test was carried against their targets, with access to their web applications' source code on `http://git.royalflush.htb/`.
+* `RoyalFlush` A whitebox penetration test was carried out against their targets, with access to their web applications' source code on `http://git.royalflush.htb/`.
 * `SecureData` A blackbox penetration test was performed, with no further details or access to their web applications.
-* `VitaMedix` A mixture of blackbox and whitebox was carried against all web applications under their sub-domains.
+* `VitaMedix` A mixture of blackbox and whitebox was carried out against all web applications under their sub-domains.
 
 Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
 
