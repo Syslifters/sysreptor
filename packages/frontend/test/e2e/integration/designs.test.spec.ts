@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { DemoDataState, DemoDataType } from '../util/demo_data';
-import { createProject } from '../util/helpers';
+import { clickListItemLink, createProject } from '../util/helpers';
 
 const designName = 'My Test Design';
 test('A User can create an Design with a Name', async ({ page }) => {
@@ -48,7 +48,7 @@ test('Design Settings are reflected in a Project', async ({ page }) => {
   const testState = new DemoDataState();
   await createProject(page, { projectName: 'My Design Test Project', designId: testState.designs.at(testState.designs.length - 1)!, designName: designName });
   
-  await page.getByRole('link', { name: 'Executive Summary' }).click();
+  await clickListItemLink(page, 'Executive Summary');
   await page.getByLabel('Assignee', { exact: true }).waitFor();
   expect(await page.getByRole('textbox').getByText('This is a test executive summary').isVisible()).toBeTruthy();
   await page.getByTestId('create-finding-button').click();

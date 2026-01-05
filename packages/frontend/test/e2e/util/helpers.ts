@@ -20,3 +20,10 @@ export async function createProject(page: Page, options: { projectName: string, 
   // Create
   await page.getByTestId('submit-project').click();
 }
+
+
+export async function clickListItemLink(page: Page, name: string) {
+  await page.getByRole('link', { name }).first().waitFor();
+  await page.getByRole('link', { name }).first().click();
+}
+
