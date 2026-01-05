@@ -18,11 +18,11 @@ docker compose up -d
 Django server secret key (see https://docs.djangoproject.com/en/stable/ref/settings/#std-setting-SECRET_KEY).
 Make sure this key remains secret.
 
-``` title="Generate random secret key:"
+```shell title="Generate random secret key:"
 printf "SECRET_KEY=$(openssl rand -base64 64 | tr -d '\n=')\n"
 ```
 
-``` title="Example (regenerate this value!):"
+```shell title="Example (regenerate this value!):"
 SECRET_KEY="TODO-change-me-Z6cuMithzO0fMn3ZqJ7nTg0YJznoHiJXoJCNngQM4Kqzzd3fiYKdVx9ZidvTzqsm"
 ```
 
@@ -38,11 +38,11 @@ All specified keys are used for decrypting stored data.
 
 Note that the `DEFAULT_ENCRYPTION_KEY_ID` must be part of `ENCRYPTION_KEYS`.
 
-```  title="Generate random encryption keys:"
+```shell  title="Generate random encryption keys:"
 KEY_ID=$(uuidgen) && printf "ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32)\", \"cipher\": \"AES-GCM\", \"revoked\": false}]\nDEFAULT_ENCRYPTION_KEY_ID=\"${KEY_ID}\"\n"
 ```
 
-``` title="Example (regenerate these values!):"
+```shell title="Example (regenerate these values!):"
 ENCRYPTION_KEYS='[{"id": "TODO-change-me-unique-key-id-5cdda4c0-a16c-4ae2-8a16-aa2ff258530d", "key": "256 bit (32 byte) base64 encoded AES key", "cipher": "AES-GCM", "revoked": false}]'
 DEFAULT_ENCRYPTION_KEY_ID="TODO-change-me-unique-key-id-5cdda4c0-a16c-4ae2-8a16-aa2ff258530d"
 ```
@@ -51,7 +51,7 @@ DEFAULT_ENCRYPTION_KEY_ID="TODO-change-me-unique-key-id-5cdda4c0-a16c-4ae2-8a16-
 ### Debug mode
 Debug mode enables Django's debug toolbar and stack traces. Do not use debug mode in production environments.
 
-``` title="Example:"
+```shell title="Example:"
 DEBUG=off
 ```
 
@@ -59,7 +59,7 @@ DEBUG=off
 ### Allowed Hosts
 Comma-separated allowed hostnames/domain names for this installation.
 
-``` title="Example:"
+```shell title="Example:"
 ALLOWED_HOSTS="sysreptor.example.com,sysreptor.example.local"
 ```
 
@@ -67,7 +67,7 @@ ALLOWED_HOSTS="sysreptor.example.com,sysreptor.example.local"
 ### FIDO2/WebAuthn
 If you want to use FIDO2/WebAuthn for MFA, you have to define the hostname ([WebAuthn Relying Party ID](https://www.w3.org/TR/webauthn-2/#relying-party-identifier)) of your installation.
 
-``` title="Example:"
+```shell title="Example:"
 MFA_FIDO2_RP_ID="sysreptor.example.com"
 ```
 
@@ -77,7 +77,7 @@ MFA_FIDO2_RP_ID="sysreptor.example.com"
 
 License key for SysReptor Professional.
 
-``` title="Example:"
+```shell title="Example:"
 LICENSE="your-license-key"
 ```
 
@@ -88,7 +88,7 @@ Uploaded files and images can be stored in an S3 bucket. Files are stored on the
 `DEFAULT_S3_*` settings to apply to all file storages. It is possible to configure different settings per storage.
 
 
-``` title="Global storage configuration: store everything in S3 bucket"
+```shell title="Global storage configuration: store everything in S3 bucket"
 DEFAULT_STORAGE="s3"  # Default: "filesystem"
 DEFAULT_S3_ACCESS_KEY="access-key"
 DEFAULT_S3_SECRET_KEY="secret-key"
@@ -97,7 +97,7 @@ DEFAULT_S3_BUCKET_NAME="bucket-name"
 DEFAULT_S3_ENDPOINT_URL="endpoint-url"
 ```
 
-``` title="Uploaded file storage configuration"
+```shell title="Uploaded file storage configuration"
 UPLOADED_FILE_STORAGE="s3"  # Default: "filesystem"
 UPLOADED_FILE_S3_ACCESS_KEY="access-key"
 UPLOADED_FILE_S3_SECRET_KEY="secret-key"
@@ -107,7 +107,7 @@ UPLOADED_FILE_S3_ENDPOINT_URL="endpoint-url"
 UPLOADED_FILE_LOCATION="uploadedfiles"
 ```
 
-``` title="Uploaded image storage configuration"
+```shell title="Uploaded image storage configuration"
 UPLOADED_IMAGE_STORAGE="s3"  # Default: "filesystem"
 UPLOADED_IMAGE_S3_ACCESS_KEY="access-key"
 UPLOADED_IMAGE_S3_SECRET_KEY="secret-key"
@@ -117,7 +117,7 @@ UPLOADED_IMAGE_S3_ENDPOINT_URL="endpoint-url"
 UPLOADED_IMAGE_LOCATION="uploadedimages"
 ```
 
-``` title="Uploaded asset storage configuration"
+```shell title="Uploaded asset storage configuration"
 UPLOADED_ASSET_STORAGE="s3"  # Default: "filesystem"
 UPLOADED_ASSET_S3_ACCESS_KEY="access-key"
 UPLOADED_ASSET_S3_SECRET_KEY="secret-key"
@@ -129,7 +129,7 @@ UPLOADED_ASSET_LOCATION="uploadedasset"
 
 Archived project files can also be uploaded to an S3 bucket. Archives are stored on the filesystem in a docker volume by default.
 
-``` title="Archived file storage configuratio"
+```shell title="Archived file storage configuratio"
 ARCHIVED_FILE_STORAGE="s3"  # Default: "filesystem"
 ARCHIVED_FILE_S3_ACCESS_KEY="access-key"
 ARCHIVED_FILE_S3_SECRET_KEY="secret-key"
@@ -143,7 +143,7 @@ ARCHIVED_FILE_LOCATION="archivedfiles"
 SysReptor sends emails for password resets. Configure the SMTP server to use for sending emails.
 See https://docs.djangoproject.com/en/stable/ref/settings/#email-host
 
-``` title="Email settings"
+```shell title="Email settings"
 EMAIL_HOST=mail.example.com
 EMAIL_PORT=587
 EMAIL_USE_TLS=on
@@ -165,35 +165,45 @@ SysReptor uses [LangChain](https://docs.langchain.com/) to interface with differ
 It is possible to use cloud-based LLM providers (e.g. OpenAI, Anthropic) as well as self-hosted LLMs (e.g. via VLLM).
 The quality of the output strongly depends on the chosen LLM model. Smaller (e.g. self-hosted) models might perform worse than larger (cloud-based) models.
 
-Specify which LLM to use for agents. Expected format: `<provider>:<model-name>`  
-Supported providers: `openai`, `deepseek`, `anthropic`, `ollama`
+Specify which LLM to use for agents. Expected format: `<provider>:<model-name>`
 
-!!! note "OpenAI-compatible providers"
+Many LLM providers offer OpenAI-compatible APIs, which can be configured using the example below.  
+You can use the `openai` or `deepseek` provider to connect to OpenAI-compatible APIs by setting the appropriate API base URL. The provider name refers to API format capability, not the specific LLM vendor. LangChain's `deepseek` provider supports OpenAI-compatible APIs and parses reasoning outputs (chain-of-thought from models like QwQ, DeepSeek-R1, or o1). This enables displaying reasoning steps in the web interface. The standard `openai` also provider works but omits reasoning content. The `deepseek` provider has nothing to do with the Deepseek LLM.
 
-    Many LLM providers offer OpenAI-compatible APIs. You can use the `openai` or `deepseek` provider to connect to these APIs by setting the appropriate API base URL. The provider name refers to API format capability, not the specific LLM vendor.
-
-    LangChain's `deepseek` provider supports OpenAI-compatible APIs and parses reasoning outputs (chain-of-thought from models like QwQ, DeepSeek-R1, or o1). This enables displaying reasoning steps in the web interface. The standard `openai` also provider works but omits reasoning content. The `deepseek` provider has nothing to do with the Deepseek LLM.
-
-
-``` title="Example:"
-# OpenAI GPT-5
-AI_AGENT_MODEL="openai:gpt-5"
-OPENAI_API_KEY="..."
-
-# OpenAI-compatible APIs with reasoning (e.g. LiteLLM, VLLM, OpenRouter, etc.)
+```bash title="OpenAI-compatible APIs with reasoning (e.g. LiteLLM, VLLM, OpenRouter, TogetherAI, DeepSeek, etc.)"
 AI_AGENT_MODEL="deepseek:gpt-oss-120b"
 DEEPSEEK_API_KEY="..."
 DEEPSEEK_API_BASE="https://llm.example.com:4000/"
-
-# OpenAI-compatible APIs without reasoning (e.g. LiteLLM, VLLM, OpenRouter, etc.)
-AI_AGENT_MODEL="openai:gpt-oss-120b"
-OPENAI_API_KEY="..."
-OPENAI_API_BASE="https://llm.example.com:4000/"
-
-# Anthropic Claude 4.5
-AI_AGENT_MODEL="anthropic:claude-haiku-4-5-20251001"
-ANTHROPIC_API_KEY="..."
 ```
+
+
+??? note "Other LLM providers"
+
+    If your LLM provider does not support OpenAI-compatible APIs, refer to the examples below for configuring dedicated provider settings.
+
+    ```shell title="OpenAI"
+    AI_AGENT_MODEL="openai:gpt-5"
+    OPENAI_API_KEY="..."
+    ```
+
+    ```shell title="Anthropic"
+    AI_AGENT_MODEL="anthropic:claude-haiku-4-5-20251001"
+    ANTHROPIC_API_KEY="..."
+    ```
+
+    ```shell title="Mistral AI"
+    AI_AGENT_MODEL="mistralai:mistral-large-2512"
+    MISTRAL_API_KEY="..."
+    ```
+
+    ```shell title="ollama"
+    AI_AGENT_MODEL="ollama:llama3.1"
+    OLLAMA_API_KEY="..."
+    OLLAMA_API_URL="https://llm.example.com/"
+    ```
+
+    If your LLM provider is not listed above, you can use an LLM proxy like [LiteLLM](https://docs.litellm.ai/) or [OpenRouter](https://openrouter.ai/) that provides an OpenAI-compatible API. Configure the proxy to connect to your LLM provider, then use the `deepseek` provider (as shown in the example above) to connect SysReptor to the proxy. This approach works with any LLM that your proxy supports and enables reasoning output display when available.
+
 
 To test your LLM settings, you can run the following command:
 
@@ -209,17 +219,17 @@ docker compose run --rm app python3 manage.py aichat --agent=project_ask --user=
 The backup key is used for creating backups via the [web interface](backups.md#create-backups-via-web-interface) or the [REST API](backups.md#create-backups-via-api). The key should be random and must have 20 or more characters.  
 Make sure this key remains secret.
 
-``` title="Generate random backup key:"
+```shell title="Generate random backup key:"
 printf "BACKUP_KEY=$(openssl rand -base64 25 | tr -d '\n=')\n"
 ```
 
-``` title="Example (do not use this value!):"
+```shell title="Example (do not use this value!):"
 BACKUP_KEY="WfyqYzRVZAOFbCtltYEFN36XBzRz6Ys6ZA"
 ```
 
 Backup requests via the web interface or the REST API are long running requests that need to download a large backup file. These requests might be aborted when `gunicorn` server worker processes are restarted and the backup request exceeds the restart timeout. This timeout can be increased by setting the following value.
 
-``` title="Example:"
+```shell title="Example:"
 SERVER_WORKER_RESTART_TIMEOUT=3600  # 1 hour
 ```
 
@@ -228,21 +238,21 @@ SERVER_WORKER_RESTART_TIMEOUT=3600  # 1 hour
 Interpret `X-Forwarded-*` headers when SysReptor is behind a reverse proxy. 
 See also https://docs.djangoproject.com/en/stable/ref/settings/#use-x-forwarded-host
 
-```
+```shell
 USE_X_FORWARDED_HOST=on
 USE_X_FORWARDED_PORT=on
 ```
 
 When SysReptor is accessible via HTTPS (recommended), use following setting to redirect all HTTP requests to HTTPS.
 This flag also enables setting the `Secure` flag for cookies.
-```
+```shell
 SECURE_SSL_REDIRECT=on
 ```
 
 ### Proxy Server
 Set the proxy variables `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` to allow outbound connections using a proxy server.
 
-```bash title="Example:"
+```shell title="Example:"
 HTTP_PROXY="http://192.168.0.111:8080"
 HTTPS_PROXY="http://192.168.0.111:8080"
 ```
@@ -256,7 +266,7 @@ HTTPS_PROXY="http://192.168.0.111:8080"
 ### Custom CA Certificates
 If your SysReptor is behind a proxy with a custom certificate, you can use this setting to specify your custom CA certificates.
 
-```
+```shell
 CA_CERTIFICATES="-----BEGIN CERTIFICATE-----\nMIIDqDCCApCgAwIBAgIFAMjv7sswDQYJKoZIhv..."
 ```
 
@@ -265,7 +275,7 @@ Disable WebSockets and always use HTTP fallback for collaborative editing.
 This is not recommended because some features are only available with WebSockets and HTTP fallback has higher latency.
 This setting sould only be activated if WebSockets are blocked by a firewall or not supported by a reverse proxy.
 
-``` title="Example:"
+```shell title="Example:"
 DISABLE_WEBSOCKETS=true
 ```
 
@@ -273,7 +283,7 @@ DISABLE_WEBSOCKETS=true
 Extend the functionality of SysReptor by enabling plugins. Plugins are disabled by default and need to be explicitly enabled.
 `ENABLED_PLUGINS` is a comma separated list of plugin names or plugin IDs.
 
-``` title="Example:"
+```shell title="Example:"
 ENABLED_PLUGINS="cyberchef,graphqlvoyager,checkthehash"
 ```
 
@@ -297,7 +307,7 @@ Settings configured in `app.env` cannot be changed or overwridden via the web in
 ### Private Designs
 Users without Designer permission can create and edit private designs that cannot be read or used by other users. If a pentest project is created using a private design, a copy of the private design becomes accessible by project members. Use this setting to enable private designs.
 
-``` title="Example:"
+```shell title="Example:"
 ENABLE_PRIVATE_DESIGNS=true
 ```
 
@@ -305,7 +315,7 @@ ENABLE_PRIVATE_DESIGNS=true
 ### Compress Images
 Uploaded images are compressed to reduce file size, but to retain quality suitable for PDF files. Disable image compression using this setting.
 
-``` title="Example:"
+```shell title="Example:"
 COMPRESS_IMAGES=false
 ```
 
@@ -315,7 +325,7 @@ PDFs are compressed via `ghostscript` when generating the final report (not in p
 PDF compression reduces the file size, but can lead to quality loss of images and differences between the preview and the final PDF.
 PDF compression is enabled by default. Disable PDF compression using this setting.
 
-``` title="Example:"
+```shell title="Example:"
 COMPRESS_PDFS=false
 ```
 
@@ -323,14 +333,14 @@ It is possible to generate accessible PDFs in PDF/UA format.
 Accessible PDFs can be read by screen readers and are compliant with accessibility standards.
 Generating accessible PDFs is incompatible with PDF compression. If you enable accessible PDFs, PDF compression is automatically disabled.
 
-``` title="Example:"
+```shell title="Example:"
 GENERATE_ACCESSIBLE_PDFS=true
 ```
 
 SysReptor limits the rendering time a PDF can take. If the rendering time exceeds the limit, the PDF render task is aborted. The default limit is 300 seconds (5 minutes).
 If you experience slow PDF rendering, try to [optimize your design](../designer/debugging.md#slow-pdf-rendering) before increasing the limit.
 
-``` title="Example:"
+```shell title="Example:"
 PDF_RENDERING_TIME_LIMIT=300
 ```
 
@@ -344,7 +354,7 @@ All other languages are hidden.
 This setting also defines the order of languages in the selection.
 The first language is used as default.
 
-``` title="Example:"
+```shell title="Example:"
 PREFERRED_LANGUAGES="de-DE,en-US"
 ```
 
@@ -359,7 +369,7 @@ Words are added to a global spell check dictionary by default, which is availabl
 Using both global and personal dictionaries at the same time is not possible. Words of personal dictionaries are not shared between users. If one user adds an unknown word to their personal dictionary, the spell checker will still detect an error for other users, even when they are working in the same project or finding.
 
 
-``` title="Spell check dictionary configuration"
+```shell title="Spell check dictionary configuration"
 SPELLCHECK_DICTIONARY_PER_USER=false
 ```
 
@@ -369,7 +379,7 @@ It is also possible to selectively enable and disable rules or rule-categories b
 See https://languagetool.org/http-api/ for available options on the `/check` request.
 See https://community.languagetool.org/rule/list for available rules (note: rule IDs might differ for languages).
 
-``` title="Spell check rule configuration"
+```shell title="Spell check rule configuration"
 SPELLCHECK_MODE_PICKY=true
 SPELLCHECK_LANGUAGETOOL_CONFIG='{"disabledRules": "TODO,TO_DO_HYPHEN,PASSIVE_VOICE,PASSIVE_SENTENCE_DE"}'
 ```
@@ -383,7 +393,7 @@ By default two users are required, enforcing a 4-eye principle.
 If `ARCHIVING_THRESHOLD=1` every user is able to restore archived projects on their own, disabling the 4-eye principle.
 Changing this setting does not affect previously archived projects. 
 
-``` title="Example:"
+```shell title="Example:"
 ARCHIVING_THRESHOLD=2
 ```
 
@@ -391,13 +401,13 @@ If `PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS` is set to `true` (default), every proj
 Otherwise, only users with global archiver permission can archive/restore projects.
 This means that encryption happens with fewer encryption keys and it will be more difficult to keep up the quorum (`ARCHIVING_THRESHOLD`) for restoring projects (this could lead to availability problems).
 
-``` title="Example:"
+```shell title="Example:"
 PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=false
 ```
 
 The process of archiving finished projects and deleting old archives can be automated by following settings. The values are time spans in days.
 
-``` title="Example:"
+```shell title="Example:"
 # Automatically archive finished projects after 3 months
 AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=90
 # Automatically delete archived projects after 2 years
@@ -410,7 +420,7 @@ AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=730
 
 Configuration for SSO via OIDC. Find detailed instructions at https://docs.sysreptor.com/setup/oidc-setup/.
 
-``` title="OIDC example:"
+```shell title="OIDC example:"
 OIDC_AZURE_TENANT_ID="azure-tenant-id"
 OIDC_AZURE_CLIENT_ID="azure-client-id"
 OIDC_AZURE_CLIENT_SECRET="azure-client-secret"
@@ -435,7 +445,7 @@ OIDC_AUTHLIB_OAUTH_CLIENTS='{
 
 If your reverse proxy enforces authentication and provides the username via a HTTP-Header, use following settings to enable SSO.
 
-``` title="Remote-User example"
+```shell title="Remote-User example"
 REMOTE_USER_AUTH_ENABLED=true
 REMOTE_USER_AUTH_HEADER="Remote-User"
 ```
@@ -444,7 +454,7 @@ By default users can decide whether they want to log in via SSO or username/pass
 Make sure all users have SSO identities configured before enabling this option. Else they will not be able to log in anymore.
 It is also possible to disable username/password login for specific users via the user management.
 
-``` title="Disable username/password authentication example"
+```shell title="Disable username/password authentication example"
 LOCAL_USER_AUTH_ENABLED=false
 ```
 
@@ -453,7 +463,7 @@ This setting will redirect users to the default authentication provider, skippin
 
 Possible values: `azure`, `google`, `remoteuser`, `local` (username/password authentication)
 
-``` title="Default authentication provider example"
+```shell title="Default authentication provider example"
 DEFAULT_AUTH_PROVIDER="azure"
 DEFAULT_REAUTH_PROVIDER="local"
 ```
@@ -461,7 +471,7 @@ DEFAULT_REAUTH_PROVIDER="local"
 ### Local User Authentication
 Local user authentication via username/password is enabled by default. Disable local user authentication to force users to use SSO.
 
-``` title="Example:"
+```shell title="Example:"
 LOCAL_USER_AUTH_ENABLED=true
 FORGOT_PASSWORD_ENABLED=false
 ```
@@ -472,7 +482,7 @@ By enabling the `FORGOT_PASSWORD_ENABLED` option, users can reset their password
 ### Guest User Permissions
 Restrict capabilities of guest users.
 
-``` title="Example:"
+```shell title="Example:"
 GUEST_USERS_CAN_CREATE_PROJECTS=True
 GUEST_USERS_CAN_IMPORT_PROJECTS=False
 GUEST_USERS_CAN_EDIT_PROJECTS=True
@@ -487,18 +497,18 @@ Enable the AI Agent feature to assist with report writing and analysis. This fea
 
 The AI Agent can be enabled or disabled globally. When disabled, the AI Agent feature is not available to any users.
 
-``` title="Example:"
+```shell title="Example:"
 AI_AGENT_ENABLED=true
 ```
 
 Customize the disclaimer text shown to users when they use the AI Agent feature.
-``` title="Example:"
+```shell title="Example:"
 AI_AGENT_DISCLAIMER="AI can make mistakes. Do not use without manual review."
 ```
 
 Provide a custom system prompt to prime the AI Agent with specific instructions or context. This can be used to customize the behavior of the AI Agent for your organization's needs. This system prompt is appended to the default system prompt used by SysReptor.
 
-``` title="Example:"
+```shell title="Example:"
 AI_AGENT_SYSTEM_PROMPT='Customized system prompt.'
 ```
 
@@ -509,7 +519,7 @@ It is possible to define custom statuses for findings and sections.
 In addition to the custom statuses the statuses `in-progress` and `finished` are always available.
 By default, the statuses `ready-for-review` and `needs-improvement` are also available.
 
-``` title="Example:"
+```shell title="Example:"
 STATUS_DEFINITIONS='[
   {"id": "ready-for-review", "label": "Ready for review", "icon": "mdi-check"},
   {"id": "needs-improvement", "label": "Needs improvement", "icon": "mdi-exclamation-thick"},
@@ -525,7 +535,7 @@ To define a terminal status where no further transitions are allowed, set `allow
 Status transitions for built-in statuses (`in-progress`, `finished`) can also be restricted by defining them in `STATUS_DEFINITIONS`.
 Please note that `in-progress` is always the initial status and `finished` should be the last status.
 
-``` title="Example: Linear workflow"
+```shell title="Example: Linear workflow"
 STATUS_DEFINITIONS='[
   {"id": "in-progress", "label": "In progress", "icon": "mdi-pencil", "allowed_next_statuses": ["ready-for-review"]},  
   {"id": "ready-for-review", "label": "Ready for review", "icon": "mdi-check", "allowed_next_statuses": ["needs-improvement", "finished"]},
