@@ -2,18 +2,19 @@
 
 :root {
   /* Modern color palette */
-  --body-bg-color: #f5f5f7;
-  --main-color: #2c2c2e;
+  --body-bg-color: light-dark(#f5f5f7, #1e1e1e);
+  --main-color: light-dark(#2c2c2e, #f5f5f7);
   --accent-color: #aabb11;
   --accent-hover: #aabb11;
   --toolbar-height: 32px;
-  --toolbar-bg-color: rgba(255, 255, 255, 1);
+  --toolbar-bg-color: light-dark(rgba(255, 255, 255, 1), rgba(42, 42, 42, 1));
   --toolbar-border-color: rgba(0, 0, 0, 0.1);
-  --field-color: #2c2c2e;
+  --toolbar-icon-bg-color: light-dark(rgb(0 0 0), rgb(255 255 255));
+  --field-color: light-dark(#2c2c2e, #f5f5f7);
   --field-height: 24px;
-  --field-bg-color: rgba(240, 240, 245, 1);
-  --field-border-color: rgba(210, 210, 215, 1);
-  --hover-bg-color: rgba(235, 235, 240, 1);
+  --field-bg-color: light-dark(rgba(240, 240, 245, 1), rgba(60, 60, 65, 1));
+  --field-border-color: light-dark(rgba(210, 210, 215, 1), rgba(80, 80, 85, 1));
+  --hover-bg-color: light-dark(rgba(235, 235, 240, 1), rgba(75, 75, 80, 1));
   --sidebar-width: 250px;
 
   /* Transitions */
@@ -22,26 +23,6 @@
   /* Shadows */
   --toolbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   --button-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-html {
-  color-scheme: light dark;
-}
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark light;
-  }
-  
-  :root {
-    --body-bg-color: #1e1e1e;
-    --main-color: #f5f5f7;
-    --toolbar-bg-color: rgba(42, 42, 42, 1);
-    --field-color: var(--dark-main-color);
-    --field-bg-color: rgba(60, 60, 65, 1);
-    --field-border-color: rgba(80, 80, 85, 1);
-    --hover-bg-color: rgba(75, 75, 80, 1);
-    --button-bg-color: rgba(50, 50, 50, 0.8);
-  }
 }
 
 * {
@@ -347,57 +328,17 @@ body {
 }
 
 
-.treeWithDeepNesting > .treeItem,
-.treeItem > .treeItems {
-  margin-inline-start: 20px;
-}
-.treeItem > a {
-  text-decoration: none;
-  display: inline-block;
-  /* Subtract the right padding (left, in RTL mode) of the container: */
-  min-width: calc(100% - 4px);
-  height: auto;
-  margin-bottom: 1px;
-  padding: 2px 2px 4px;
-  border-radius: 2px;
-  color: var(--treeitem-color);
-  font-size: 14px;
-  line-height: 15px;
-  user-select: none;
-  white-space: normal;
-  cursor: pointer;
+#outlineView.treeView {
+  --treeitem-expanded-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg>');
+  --treeitem-collapsed-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z" /></svg>');
 
-  &:hover {
-    background-color: var(--hover-bg-color);
-  }
-}
-
-.treeItemToggler {
-  position: relative;
-  float: left;
-  height: 0;
-  width: 0;
-  color: rgb(255 255 255 / 0.5);
-  cursor: pointer;
-
-  &::before {
-    position: absolute;
-    display: inline-block;
+  &.withNesting .treeItemToggler::before {
     width: 20px;
     height: 20px;
-
-    content: "";
-    background-color: light-dark(black, white);
-    mask-size: cover;
     inset-inline-end: 0;
-
-    mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg>');
   }
 
-  &.treeItemsHidden::before {
-    mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z" /></svg>');
-  }
-  &.treeItemsHidden ~ .treeItems {
-    display: none;
+  .treeItem > a, .treeItemToggler {
+    cursor: pointer;
   }
 }
