@@ -6,6 +6,6 @@ export default defineVitestConfig({
     dir: 'test',
     include: ['**/*.test.ts'],
     reporters: ['default', 'junit'],
-    outputFile: '../test-reports/junit.xml',
+    outputFile: 'test-reports/junit.xml',
   },
 });

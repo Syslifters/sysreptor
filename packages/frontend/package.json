@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@nuxt/test-utils": "^3.21.0",
+    "@vue/test-utils": "^2.4.6",
     "@types/lodash-es": "^4.17.0",
     "@types/dompurify": "^3.0.5",
     "@types/randomcolor": "^0.5.9",
