@@ -1,4 +1,4 @@
-import { PDFDocumentProxy } from "pdfjs-dist";
+import { PDFDocumentProxy, stopEvent } from "pdfjs-dist";
 import { EventBus, PDFLinkService } from "pdfjs-dist/web/pdf_viewer.mjs";
 
 type PDFOutline = Awaited<ReturnType<PDFDocumentProxy['getOutline']>>;
@@ -32,10 +32,10 @@ export class PDFOutlineViewer {
     this.outline = null;
 
     // Remove the tree from the DOM.
-    this.options.container.textContent = "";
+    this.options.container.replaceChildren();
     // Ensure that the left (right in RTL locales) margin is always reset,
     // to prevent incorrect tree alignment if a new document is opened.
-    this.options.container.classList.remove("treeWithDeepNesting");
+    this.options.container.classList.remove("withNesting");
   }
 
   render() {
@@ -73,7 +73,19 @@ export class PDFOutlineViewer {
     }
 
     if (hasAnyNesting) {
-      this.options.container.classList.add("treeWithDeepNesting");
+      this.options.container.classList.add("withNesting");
+      this.options.container.addEventListener('click', e => {
+        const target = e.target as HTMLElement|null;
+        if (!target?.classList.contains("treeItemToggler")) {
+          return;
+        }
+        stopEvent(e);
+        target.classList.toggle("treeItemsHidden");
+        if (e.shiftKey) {
+          const shouldShowAll = !target.classList.contains("treeItemsHidden");
+          this._toggleTreeItem(this.options.container, shouldShowAll);
+        }
+      });
     }
     this.options.container.append(fragment);
   }
@@ -135,15 +147,6 @@ export class PDFOutlineViewer {
     if (hidden) {
       toggler.classList.add("treeItemsHidden");
     }
-    toggler.addEventListener('click', evt => {
-      evt.stopPropagation();
-      toggler.classList.toggle("treeItemsHidden");
-
-      if (evt.shiftKey) {
-        const shouldShowAll = !toggler.classList.contains("treeItemsHidden");
-        this._toggleTreeItem(div, shouldShowAll);
-      }
-    });
     div.prepend(toggler);
   }
 

@@ -251,11 +251,13 @@ class SidebarView {
 
   open() {
     this.isOpen = true;
-    this.viewer.config.sidebar.outerContainer.classList.add('sidebarOpen', 'sidebarMoving');
+    this.viewer.config.sidebar.sidebarContainer.hidden = false;
+    queueMicrotask(() => this.viewer.config.sidebar.outerContainer.classList.add('sidebarOpen', 'sidebarMoving'));
   }
 
   close() {
     this.isOpen = false;
+    this.viewer.config.sidebar.sidebarContainer.hidden = true;
     this.viewer.config.sidebar.outerContainer.classList.remove('sidebarOpen');
     this.viewer.config.sidebar.outerContainer.classList.add('sidebarMoving');
   }

@@ -1,5 +1,8 @@
 import { createProxyServer } from "httpxy"
 import type { IncomingMessage, ServerResponse } from "http";
+import { createReadStream, existsSync, statSync } from 'fs';
+import { join, extname } from 'path';
+import type { Plugin } from 'vite';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -101,6 +104,33 @@ export default defineNuxtConfig({
         },
       }
     },
+    plugins: [
+      {
+        name: 'raw-public-assets',
+        enforce: 'pre',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            const rawPaths = ['/static/pdfviewer/', '/static/excalidraw/'];
+            if (rawPaths.some(path => req.url?.startsWith(path))) {
+              const filePath = join(process.cwd(), 'src/public', req.url!);
+              if (existsSync(filePath) && statSync(filePath).isFile()) {
+                const ext = extname(filePath).toLowerCase();
+                const mimeTypes: Record<string, string> = {
+                  '.js': 'application/javascript; charset=utf-8',
+                  '.mjs': 'application/javascript; charset=utf-8',
+                  '.css': 'text/css; charset=utf-8',
+                  '.html': 'text/html; charset=utf-8',
+                };
+                res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+                createReadStream(filePath).on('error', next).pipe(res);
+                return;
+              }
+            }
+            next();
+          });
+        },
+      } as Plugin,
+    ],
   },
   hooks: {
     // Websocket proxy workaround: https://github.com/nuxt/cli/issues/107#issuecomment-1850751905
