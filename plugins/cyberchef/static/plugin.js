@@ -1,3 +1,5 @@
+const CYBERCHEF_VERSION = 'v10.19.4';
+
 export default function(options) {
   const routeConfig = {
     route: {
@@ -10,7 +12,7 @@ export default function(options) {
         localStorage.setItem('options', JSON.stringify(cyberchefOptions));
 
         return {
-          src: 'cyberchef/CyberChef_v10.19.2.html'
+          src: `cyberchef/CyberChef_${CYBERCHEF_VERSION}.html`
         };
       }),
     },
