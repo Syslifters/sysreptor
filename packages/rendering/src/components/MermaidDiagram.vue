@@ -78,8 +78,8 @@ onMounted(useRenderTask(async () => {
 
     // Then, render SVG from <img> to canvas
     // Only works with <img> tags and not <svg> directly, therefore we need the previous step
-    canvas.width = svgImg.width;
-    canvas.height = svgImg.height;
+    canvas.width = svgImg.width * 3;
+    canvas.height = svgImg.height * 3;
     canvas.getContext('2d')?.drawImage(svgImg, 0, 0, canvas.width, canvas.height);
   } catch (e: any) {
     console.error('mermaid error', { message: 'Mermaid error', details: e.message });

@@ -46,6 +46,7 @@ onMounted(useRenderTask(async () => {
       ...(props.config.options || {}),
       responsive: false,
       animation: false,
+      devicePixelRatio: 3,
     }
   });
   chartImageData.value = chart.toBase64Image();
