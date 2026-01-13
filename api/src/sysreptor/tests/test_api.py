@@ -138,7 +138,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('projectnotebookpage export', lambda s, c: c.post(reverse('projectnotebookpage-export', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
             ('projectnotebookpage export-all', lambda s, c: c.post(reverse('projectnotebookpage-export-all', kwargs={'project_pk': get_obj(s).pk}))),
             ('projectnotebookpage export-pdf', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
-            ('projectnotebookpage export-pdf-multiple', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf-multiple', kwargs={'project_pk': get_obj(s).pk}), data={'notes': [get_obj(s).notes.first().note_id]})),
+            ('projectnotebookpage export-pdf-multiple', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf-multiple', kwargs={'project_pk': get_obj(s).pk}), data={'notes': get_obj(s).notes.values_list('note_id', flat=True)})),
             ('projectnotebookpage excalidraw', lambda s, c: c.get(reverse('projectnotebookpage-excalidraw', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.filter(type=NoteType.EXCALIDRAW).first().note_id}))),
 
             ('pentestprojecthistory project', lambda s, c: c.get(reverse('pentestprojecthistory-detail', kwargs={'project_pk': get_obj(s).pk, 'history_date': s.history_date}))),
@@ -262,7 +262,7 @@ def guest_urls():
         ('usernotebookpage export', lambda s, c: c.post(reverse('usernotebookpage-export', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
         ('usernotebookpage export-all', lambda s, c: c.post(reverse('usernotebookpage-export-all', kwargs={'pentestuser_pk': 'self'}))),
         ('usernotebookpage export-pdf', lambda s, c: c.post(reverse('usernotebookpage-export-pdf', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}))),
-        ('usernotebookpage export-pdf-multiple', lambda s, c: c.post(reverse('usernotebookpage-export-pdf-multiple', kwargs={'pentestuser_pk': 'self'}), data={'notes': [s.current_user.notes.first().note_id] if s.current_user else []})),
+        ('usernotebookpage export-pdf-multiple', lambda s, c: c.post(reverse('usernotebookpage-export-pdf-multiple', kwargs={'pentestuser_pk': 'self'}), data={'notes': s.current_user.notes.values_list('note_id', flat=True) if s.current_user else []})),
         ('usernotebookpage import', lambda s, c: c.post(reverse('usernotebookpage-import', kwargs={'pentestuser_pk': 'self'}), data={'file': export_notes_archive(s.current_user)}, format='multipart')),
         ('usernotebookpage copy', lambda s, c: c.post(reverse('usernotebookpage-copy', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}), data={})),
         ('usernotebookpage excalidraw', lambda s, c: c.get(reverse('usernotebookpage-excalidraw', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.filter(type=NoteType.EXCALIDRAW).first().note_id if s.current_user else uuid4()}))),
