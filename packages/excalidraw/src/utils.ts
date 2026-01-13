@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { isInvisiblySmallElement } from "@excalidraw/excalidraw";
-import { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
+import { ExcalidrawElement, InitializedExcalidrawImageElement, OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 
 
 export function useTheme() {
@@ -43,5 +43,10 @@ export function isSyncableElement(element: OrderedExcalidrawElement): boolean {
     return false;
   }
   return !isInvisiblySmallElement(element);
+}
+
+
+export function isInitializedImageElement(element: ExcalidrawElement | null): element is InitializedExcalidrawImageElement {
+  return !!element && element.type === "image" && !!element.fileId;
 }
 

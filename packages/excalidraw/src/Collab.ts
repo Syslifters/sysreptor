@@ -9,10 +9,11 @@ import {
   restoreElements, 
   CaptureUpdateAction,
 } from "@excalidraw/excalidraw";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+import { BinaryFiles, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElement, OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
 import { isSyncableElement } from "./utils";
+import { FileManager } from "./files";
 
 
 const WS_THROTTLE_INTERVAL = 1_000;
@@ -192,9 +193,10 @@ export class HttpFallbackReadonlyConnection {
 
 interface CollabProps {
   excalidrawAPI: ExcalidrawImperativeAPI;
-    params: {
+  params: {
     apiUrl?: string|null;
     websocketUrl?: string|null;
+    imageApiBaseUrl?: string|null;
   };
   onConnectionChange?: (isConnected: boolean) => void;
   onReadonlyChange?: (isReadonly: boolean) => void;
@@ -206,6 +208,7 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
 
   clientId: string | null = null;
   connection: WebsocketConnection | HttpFallbackReadonlyConnection | null = null;
+  fileManager: FileManager | null = null;
   lastUpdateVersion: number = 0;
   lastSyncAllVersion: number = 0;
   broadcastedElementVersions = new Map<string, number>();
@@ -214,6 +217,12 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
     super(props);
     this.excalidrawAPI = props.excalidrawAPI;
     this.params = props.params;
+    if (this.params.imageApiBaseUrl) {
+      this.fileManager = new FileManager({
+        excalidrawAPI: this.excalidrawAPI,
+        imageApiBaseUrl: this.params.imageApiBaseUrl,
+      });
+    }
   }
 
   componentDidMount(): void {
@@ -223,7 +232,7 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
   componentWillUnmount(): void {
     this.syncElements({ syncAll: true });
     this.connection?.disconnect();
-    window.removeEventListener('visibilitychange', this.onLeavePage);
+    window.removeEventListener('visibilitychange', this.onLeavePage.bind(this));
   }
 
   private onLeavePage() {
@@ -244,6 +253,10 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
         !this.broadcastedElementVersions.has(element.id) ||
         element.version > this.broadcastedElementVersions.get(element.id)!)
       );
+    
+    // Upload new files
+    this.fileManager?.saveFiles();
+
     if (syncableElements.length === 0 || version === (options?.syncAll ? this.lastSyncAllVersion : this.lastUpdateVersion)) {
       // Already synced, no new changes
       return;
@@ -337,6 +350,7 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
         });
         return await wsConnection.connect();
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error connecting to websocket:', error);
       }
     }
@@ -363,9 +377,11 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
       elements: reconciledElements,
       captureUpdate: CaptureUpdateAction.NEVER,
     });
+    this.fileManager?.getFiles();
   }
 
   private handleCollabError(event: any, error: any) {
+    // eslint-disable-next-line no-console
     console.error('Error while processing collab event:', { 
       error, 
       event, 

@@ -62,6 +62,7 @@
         v-else-if="note.type === NoteType.EXCALIDRAW"
         :websocket-url="`/api/ws/pentestusers/self/notes/${route.params.noteId}/excalidraw/`"
         :api-url="`/api/v1/pentestusers/self/notes/${route.params.noteId}/excalidraw/`"
+        :image-api-base-url="`/api/v1/pentestusers/self/notes/images/`"
       />
     </template>
   </full-height-page>
