@@ -46,6 +46,7 @@
         v-else-if="note.type === NoteType.EXCALIDRAW"
         :websocket-url="`api/public/ws/shareinfos/${route.params.shareInfoId}/notes/${route.params.noteId}/excalidraw/`"
         :api-url="`api/public/shareinfos/${route.params.shareInfoId}/notes/${route.params.noteId}/excalidraw/`"
+        :image-api-base-url="`/api/public/shareinfos/${route.params.shareInfoId}/notes/images/`"
         :readonly="readonly"
       />
     </template>

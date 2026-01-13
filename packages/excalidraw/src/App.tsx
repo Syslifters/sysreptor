@@ -30,7 +30,9 @@ export default function App() {
   const params = {
     apiUrl: iframeParams.get('apiUrl'),
     websocketUrl: iframeParams.get('websocketUrl'),
-  }
+    imageApiBaseUrl: iframeParams.get('imageApiBaseUrl'),
+  };
+
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI|null>(null);
   const collabRef = useRef<ExcalidrawSysreptorCollab | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -51,6 +53,7 @@ export default function App() {
       ),
       scrollToContent: true,
     };
+    collabRef.current.fileManager?.getFiles();
     return res;
   }
   useEffect(() => {
@@ -98,7 +101,7 @@ export default function App() {
             changeViewBackgroundColor: false,
           },
           tools: {
-            image: false,
+            image: !!params.imageApiBaseUrl,
           },
         }}
       >

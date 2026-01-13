@@ -99,6 +99,7 @@
         v-else-if="note.type === NoteType.EXCALIDRAW"
         :websocket-url="`/api/ws/pentestprojects/${route.params.projectId}/notes/${route.params.noteId}/excalidraw/`"
         :api-url="`/api/v1/pentestprojects/${route.params.projectId}/notes/${route.params.noteId}/excalidraw/`"
+        :image-api-base-url="`/api/v1/pentestprojects/${route.params.projectId}/images/`"
         :readonly="readonly"
       />
     </template>

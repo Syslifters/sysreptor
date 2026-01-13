@@ -20,6 +20,7 @@
 const props = defineProps<{
   apiUrl: string;
   websocketUrl?: string;
+  imageApiBaseUrl?: string;
   readonly?: boolean;
 }>();
 
@@ -35,6 +36,7 @@ const iframeSrc = computed(() => `/static/excalidraw/dist/index.html?c=${runtime
   ...Object.fromEntries(new URLSearchParams(route.hash?.slice(1)).entries()),
   apiUrl: props.apiUrl,
   websocketUrl: (!props.readonly && apiSettings.settings!.features.websockets) ? props.websocketUrl : undefined,
+  imageApiBaseUrl: props.imageApiBaseUrl,
 }));
 
 

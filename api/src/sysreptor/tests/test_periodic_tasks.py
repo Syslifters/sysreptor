@@ -9,7 +9,7 @@ from django.test import override_settings
 from django.utils import timezone
 from pytest_django.asserts import assertNumQueries
 
-from sysreptor.pentests.models import ArchivedProject, CollabEvent, CollabEventType, PentestProject
+from sysreptor.pentests.models import ArchivedProject, CollabEvent, CollabEventType, NoteType, PentestProject
 from sysreptor.pentests.tasks import (
     automatically_archive_projects,
     automatically_delete_archived_projects,
@@ -252,6 +252,18 @@ class TestCleanupUnreferencedFiles:
         assert project.images.count() == 1
         assert project.files.count() == 1
 
+    def test_referenced_files_in_excalidraw_not_removed(self):
+        with mock_time(before=timedelta(days=10)):
+            project = create_project(
+                notes_kwargs=[{'type': NoteType.EXCALIDRAW, 'excalidraw_data': {'elements': [
+                    {'id': 'element1', 'type': 'image', 'fileId': 'image.png'},
+                ]}}],
+                images_kwargs=[{'name': 'image.png'}],
+                files_kwargs=[],
+            )
+        self.run_cleanup_project_files(num_queries=1 + 5)
+        assert project.images.count() == 1
+
     def test_referenced_files_in_user_notes_not_removed(self):
         with mock_time(before=timedelta(days=10)):
             user = create_user(
@@ -262,6 +274,18 @@ class TestCleanupUnreferencedFiles:
         self.run_cleanup_user_files(num_queries=1 + 3)
         assert user.images.count() == 1
         assert user.files.count() == 1
+
+    def test_referenced_files_in_user_excalidraw_not_removed(self):
+        with mock_time(before=timedelta(days=10)):
+            user = create_user(
+                notes_kwargs=[{'type': NoteType.EXCALIDRAW, 'excalidraw_data': {'elements': [
+                    {'id': 'element1', 'type': 'image', 'fileId': 'image.png'},
+                ]}}],
+                images_kwargs=[{'name': 'image.png'}],
+                files_kwargs=[],
+            )
+        self.run_cleanup_user_files(num_queries=1 + 3)
+        assert user.images.count() == 1
 
     def test_referenced_files_in_templates_not_removed(self):
         with mock_time(before=timedelta(days=10)):
