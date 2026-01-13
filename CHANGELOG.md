@@ -3,6 +3,7 @@
 ## Upcoming
 * Markdown editor: Support LaTeX math expressions (http://localhost:9090/reporting/markdown-features/#math-expressions)
 * AI agent: Add Mistral AI provider
+* Increase resolution of charts and mermaid diagrams in PDFs
 
 
 ## v2025.110 - 2025-12-22
