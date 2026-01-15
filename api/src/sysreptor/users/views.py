@@ -158,7 +158,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
             instance.delete()
         except ProtectedError as ex:
             raise serializers.ValidationError(
-                detail='Cannot delete user because it is a member of one or more projects.',
+                detail='Cannot delete user because some archived projects are encrypted with their public key.',
             ) from ex
 
 
