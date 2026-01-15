@@ -4,7 +4,7 @@ import tarfile
 
 import pytest
 from django.core.files.base import ContentFile
-from django.db.models import RestrictedError
+from django.db.models import ProtectedError, RestrictedError
 from django.test import override_settings
 from rest_framework.exceptions import ValidationError
 
@@ -31,6 +31,7 @@ from sysreptor.pentests.models import (
 )
 from sysreptor.pentests.models.files import ProjectNotebookExcalidrawFile
 from sysreptor.tests.mock import (
+    create_archived_project,
     create_comment,
     create_finding,
     create_png_file,
@@ -738,6 +739,39 @@ class TestCopyModel:
         assert n2.order == cp_n1.order + 1
         n2_1.refresh_from_db()
         assert n2_1.order == 1
+
+
+@pytest.mark.django_db()
+class TestDeleteUser:
+    def test_delete_member(self):
+        u = create_user()
+        p = create_project(members=[u])
+        p_updated = p.updated
+        member_info = {
+            'id': str(u.id),
+            'roles': p.members.get(user=u).roles,
+        } | copy_keys(u, ['username', 'email', 'name', 'first_name', 'last_name'])
+        u.delete()
+        p.refresh_from_db()
+        assert p.members.count() == 0
+        assert len(p.imported_members) == 1
+        assertKeysEqual(p.imported_members[0], member_info, member_info.keys())
+        assert p.updated == p_updated
+
+    def test_delete_non_member(self):
+        u = create_user()
+        u.delete()
+
+    def test_delete_user_archived_project_member(self):
+        u = create_user(public_key=True)
+        create_archived_project(create_project(members=[u], readonly=True))
+        with pytest.raises(ProtectedError):
+            u.delete()
+
+    def test_delete_user_unused_public_key(self):
+        u = create_user(public_key=True)
+        create_project(members=[u])
+        u.delete()
 
 
 @pytest.mark.parametrize(('original', 'cleaned'), [
