@@ -139,7 +139,7 @@ report_template = """
           <ref :to="finding.id" :class="'risk-' + finding.cvss.level">{{ lodash.capitalize(finding.cvss.level) }}</ref>
         </td>
         <td v-if="report.is_retest" align="center">
-          <ref :to="finding.id" :class="'finding-status-' + finding.retest_status.value">{{ finding.retest_status.label }}</ref>
+          <ref :to="finding.id" :class="'status-' + finding.retest_status.value">{{ finding.retest_status.label }}</ref>
         </td>
       </tr>
     </tbody>
@@ -153,7 +153,7 @@ report_template = """
     <h2 :id="finding.id" class="in-toc finding-title" :data-toc-title="finding.title + ' (' + capitalize(finding.cvss.level) + ')'">{{ finding.title }}</h2>
     <div>
       <template v-if="report.is_retest || finding.retest_status.value !== 'open'">
-        <strong>Remediation Status: </strong><span :class="'finding-status-' + finding.retest_status.value">{{ finding.retest_status.label }}</span><br>
+        <strong>Remediation Status: </strong><span :class="'status-' + finding.retest_status.value">{{ finding.retest_status.label }}</span><br>
       </template>
       <strong>Criticality: </strong><span :class="'risk-' + finding.cvss.level">{{ capitalize(finding.cvss.level) }}</span><br>
       <strong>CVSS-Score: </strong>
