@@ -57,7 +57,7 @@ DEBUG=off
 
 
 ### Allowed Hosts
-Comma-separated allowed hostnames/domain names for this installation.
+Comma-separated allowed hostnames/domain names for this installation. This setting might resolve issues with failing WebSocket connections.
 
 ``` title="Example:"
 ALLOWED_HOSTS="sysreptor.example.com,sysreptor.example.local"
