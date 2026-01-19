@@ -304,9 +304,8 @@ def create_projectnotebookpage(type=NoteType.TEXT, excalidraw_data=None, **kwarg
     return note
 
 
-def create_shareinfo(note, **kwargs):
+def create_shareinfo(**kwargs):
     return ShareInfo.objects.create(**{
-        'note': note,
         'expire_date': (timezone.now() + timedelta(days=30)).date(),
         'permissions_write': True,
     } | kwargs)

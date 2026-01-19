@@ -457,7 +457,7 @@ class ApiRequestsAndPermissionsTestData:
         image_name = p.images.all().first().name
         file_name = p.files.all().first().name
         note = update(p.notes.all().first(), text=f'![](/images/name/{image_name})\n![](/files/name/{file_name})')
-        create_shareinfo(note=note)
+        create_shareinfo(projectnote=note)
         create_projectnotebookpage(project=p, parent=note, type=NoteType.EXCALIDRAW)
         return p
 

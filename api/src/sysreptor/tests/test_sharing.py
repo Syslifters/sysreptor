@@ -26,7 +26,7 @@ class TestSharedPermissions:
 
         self.note_shared = create_projectnotebookpage(project=self.project, text='![](/images/name/img0.png)\n[file](/files/name/file0.txt)')
         self.childnote_shared = create_projectnotebookpage(project=self.project, parent=self.note_shared, text='![](/images/name/img1.png)\n[file](/files/name/file1.txt)')
-        self.share_info = create_shareinfo(note=self.note_shared)
+        self.share_info = create_shareinfo(projectnote=self.note_shared)
 
         self.note_not_shared = create_projectnotebookpage(project=self.project, text='![](/images/name/img2.png)\n[file](/files/name/file2.txt)')
         self.childnote_not_shared = create_projectnotebookpage(project=self.project, parent=self.note_not_shared)
@@ -124,7 +124,7 @@ class TestSharePasswordAuth:
         self.project = create_project(notes_kwargs=[{'text': 'text'}])
         self.note = self.project.notes.first()
         self.password = 'password'  # noqa: S105
-        self.share_info = create_shareinfo(note=self.note, password=self.password)
+        self.share_info = create_shareinfo(projectnote=self.note, password=self.password)
         self.client = api_client(user=None)
 
     def test_password_required(self):
@@ -150,7 +150,7 @@ class TestSharePasswordAuth:
         assert res.status_code == 200
 
         # Other share: no access
-        share_info_other = create_shareinfo(note=self.note, password=self.password + 'other')
+        share_info_other = create_shareinfo(projectnote=self.note, password=self.password + 'other')
         res = self.client.get(reverse('sharednote-detail', kwargs={'shareinfo_pk': share_info_other.id, 'id': self.note.note_id}))
         assert res.status_code == 403
 

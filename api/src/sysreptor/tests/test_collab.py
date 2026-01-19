@@ -1010,7 +1010,7 @@ class TestSharedProjectNotesDbSync:
             self.childnote_shared = create_projectnotebookpage(project=self.project, parent=self.note_shared, **note_kwargs)
             self.note_not_shared = create_projectnotebookpage(project=self.project, **note_kwargs)
             self.childnote_not_shared = create_projectnotebookpage(project=self.project, parent=self.note_not_shared, **note_kwargs)
-            self.share_info = create_shareinfo(note=self.note_shared)
+            self.share_info = create_shareinfo(projectnote=self.note_shared)
             self.childnote_shared_path_prefix = f'notes.{self.childnote_shared.note_id}'
 
             self.api_client_public = api_client()
@@ -1270,9 +1270,9 @@ class TestConsumerPermissions:
             project = create_project(notes_kwargs=[{'type': NoteType.TEXT}], **share_kwargs.pop('project', {}))
             note = project.notes.first()
             create_projectnotebookpage(project=project, parent=note, order=1, type=NoteType.EXCALIDRAW)
-            return create_shareinfo(note=note, **share_kwargs)
+            return create_shareinfo(projectnote=note, **share_kwargs)
         share_info = await sync_to_async(setup_db)()
-        note_excalidraw = await share_info.note.project.notes.filter(type=NoteType.EXCALIDRAW).aget()
+        note_excalidraw = await share_info.projectnote.project.notes.filter(type=NoteType.EXCALIDRAW).aget()
 
         assert await self.ws_connect(f'/api/public/ws/shareinfos/{share_info.id}/notes/', user=None) == (expected_read, expected_write)
         assert await self.ws_connect(f'/api/public/ws/shareinfos/{share_info.id}/notes/{note_excalidraw.note_id}/excalidraw/', user=None, event={'type': CollabEventType.UPDATE_EXCALIDRAW, 'elements': []}) == (expected_read, expected_write)
@@ -1286,7 +1286,7 @@ class TestConsumerPermissions:
 
         res = await sync_to_async(client.get)(reverse('sharednote-list', kwargs={'shareinfo_pk': share_info.id}))
         assert res.status_code in ([200] if expected_read else [403, 404])
-        res = await sync_to_async(client.patch)(reverse('sharednote-detail', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.note.note_id}), data={})
+        res = await sync_to_async(client.patch)(reverse('sharednote-detail', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.projectnote.note_id}), data={})
         assert res.status_code in ([200] if expected_write else [403, 404])
-        res = await sync_to_async(client.get)(reverse('sharednote-excalidraw', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.note.note_id}))
+        res = await sync_to_async(client.get)(reverse('sharednote-excalidraw', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.projectnote.note_id}))
         assert res.status_code in ([200] if expected_read else [403, 404])
