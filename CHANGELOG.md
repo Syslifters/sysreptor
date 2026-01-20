@@ -6,6 +6,7 @@
 * Increase resolution of charts and mermaid diagrams in PDFs
 * Support images in excalidraw notes
 * Allow deleting users who are project members
+* Fix missing space after references in weasyprint PDF rendering
 
 
 ## v2025.110 - 2025-12-22
