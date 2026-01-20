@@ -31,6 +31,13 @@
             />
           </div>
         </template>
+        <template #default>
+          <s-btn-icon @click="shareDialogVisible = true">
+            <v-icon icon="mdi-share-variant" />
+            <s-tooltip activator="parent" text="Share" />
+          </s-btn-icon>
+        </template>
+
         <template #context-menu>
           <btn-copy 
             :copy="performCopy"
@@ -50,6 +57,13 @@
       </edit-toolbar>
     </template>
     <template #default>
+      <notes-share-dialog
+        v-model="shareDialogVisible"
+        :user="auth.user.value!"
+        :note="note"
+        :readonly="!auth.permissions.value.share_user_notes"
+      />
+
       <markdown-page
         v-if="note.type === NoteType.TEXT"
         id="text"
@@ -63,6 +77,7 @@
         :websocket-url="`/api/ws/pentestusers/self/notes/${route.params.noteId}/excalidraw/`"
         :api-url="`/api/v1/pentestusers/self/notes/${route.params.noteId}/excalidraw/`"
         :image-api-base-url="`/api/v1/pentestusers/self/notes/images/`"
+        :readonly="notesCollab.readonly.value"
       />
     </template>
   </full-height-page>
@@ -72,6 +87,7 @@
 import { urlJoin } from "@base/utils/helpers";
 import { type MarkdownEditorMode, type UserNote, uploadFileHelper, collabSubpath } from "#imports";
 
+const auth = useAuth();
 const route = useRoute();
 const localSettings = useLocalSettings();
 const userNotesStore = useUserNotesStore();
@@ -135,7 +151,10 @@ const inputFieldAttrs = computed(() => ({
   'onUpdate:markdownEditorMode': (val: MarkdownEditorMode) => { localSettings.userNoteMarkdownEditorMode = val },
   uploadFile,
   rewriteFileUrlMap: rewriteFileUrlMap.value,
+  onSearch: (query: string) => { notesCollab.search.value = query }
 }));
+
+const shareDialogVisible = ref(false);
 
 // Autofocus input
 useAutofocus(note, 'text');

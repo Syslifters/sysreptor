@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { collabSubpath, type MarkdownEditorMode } from '#imports';
+import { collabSubpath, type MarkdownEditorMode, type NoteBase } from '#imports';
 
 definePageMeta({
   auth: false,
@@ -98,7 +98,7 @@ const toolbarAttrs = computed(() => ({
   errorMessage: 
     ((shareInfo.value?.permissions_write && !notesCollab.hasLock.value) ? 'This note is locked by another user. Upgrade to SysReptor Professional for lock-free collaborative editing.' : null),
   canDelete: shareInfo.value?.permissions_write && note.value?.id !== shareInfo.value?.note_id,
-  delete: async (note: ProjectNote) => {
+  delete: async (note: NoteBase) => {
     await shareInfoStore.deleteNote(shareInfo.value!, note);
     await navigateTo(`/shared/${shareInfo.value!.id}/notes/`);
   },
