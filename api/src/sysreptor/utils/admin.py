@@ -15,6 +15,20 @@ class BaseAdmin(admin.ModelAdmin):
         return tuple(readonly_fields) + tuple(set([f for f in dir(self) if f.startswith('link_')]).difference(readonly_fields))
 
 
+class BooleanSimpleListFilter(admin.SimpleListFilter):
+    def lookups(self, request, model_admin):
+        return [
+            ('true', 'Yes'),
+            ('false', 'No'),
+        ]
+
+    def value_bool(self):
+        value = self.value()
+        if value is None:
+            return None
+        return value.lower() == 'true'
+
+
 def admin_url(label, app_name, model_name, type_name, params=None, *args, **kwargs):
     admin_url_query = ''
     if params:
