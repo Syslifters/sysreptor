@@ -273,6 +273,7 @@ export function useMarkdownEditorBase(options: {
           ...defaultKeymap, 
           ...historyKeymap,
           { key: 'Ctrl-Alt-m', stopPropagation: true, preventDefault: true, run: createCommentShortcut },
+          { key: 'Ctrl-Alt-µ', stopPropagation: true, preventDefault: true, run: createCommentShortcut },
           { key: 'Ctrl-Alt-Shift-m', stopPropagation: true, preventDefault: true, run: createCommentShortcut },
           { key: 'Ctrl-Shift-f', stopPropagation: true, preventDefault: true, run: searchGlobalShortcut,  },
         ]),
