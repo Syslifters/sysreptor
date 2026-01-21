@@ -41,6 +41,7 @@ from sysreptor.tests.mock import (
     create_shareinfo,
     create_template,
     create_user,
+    create_usernotebookpage,
     override_configuration,
     update,
 )
@@ -125,7 +126,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
         *file_viewset_urls('uploadedprojectfile', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).files.first(), read=read, write=write),
         *viewset_urls('comment', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'pk': get_obj(s).findings.first().comments.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write),
         *viewset_urls('commentanswer', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'comment_pk': get_obj(s).findings.first().comments.first().id} | ({'pk': get_obj(s).findings.first().comments.first().answers.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write),
-        *viewset_urls('shareinfo', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'note_id': get_obj(s).notes.only_shared().first().note_id} | ({'pk': get_obj(s).notes.only_shared().first().shareinfos.first().pk} if detail else {}), list=read, retrieve=read, create=share, update=share, update_partial=share),
+        *viewset_urls('projectnoteshareinfo', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'note_id': get_obj(s).notes.only_shared().first().note_id} | ({'pk': get_obj(s).notes.only_shared().first().shareinfos.first().pk} if detail else {}), list=read, retrieve=read, create=share, update=share, update_partial=share),
     ]
     if read:
       out.extend([
@@ -226,7 +227,8 @@ def public_urls():
         ('publicutils openapi', lambda s, c: c.get(reverse('publicutils-openapi-schema'))),
 
         ('publicshareinfo retrieve', lambda s, c: c.get(reverse('publicshareinfo-detail', kwargs={'pk': s.project.notes.only_shared().first().shareinfos.first().pk}))),
-         *viewset_urls('sharednote', get_kwargs=lambda s, detail: {'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk} | ({'id': s.project.notes.only_shared().first().note_id} if detail else {}), list=True, retrieve=True, create=True, update=True, update_partial=True, create_data=lambda s: {'parent': s.project.notes.only_shared().first().note_id}),
+        *viewset_urls('sharednote', get_kwargs=lambda s, detail: {'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk} | ({'id': s.project.notes.only_shared().first().note_id} if detail else {}), list=True, retrieve=True, create=True, update=True, update_partial=True, create_data=lambda s: {'parent': s.project.notes.only_shared().first().note_id}),
+        *viewset_urls('sharednote', get_kwargs=lambda s, detail: {'shareinfo_pk': s.user_other.notes.only_shared().first().shareinfos.first().pk} | ({'id': s.user_other.notes.only_shared().first().note_id} if detail else {}), list=True, retrieve=True, create=True, update=True, update_partial=True, create_data=lambda s: {'parent': s.user_other.notes.only_shared().first().note_id}),
         ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-image-by-name', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.images.first().name}))),
         ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-file-by-name', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.files.first().name}))),
         ('sharednote upload-image-or-file', lambda s, c: c.post(reverse('sharednote-upload-image-or-file', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
@@ -266,6 +268,7 @@ def guest_urls():
         ('usernotebookpage import', lambda s, c: c.post(reverse('usernotebookpage-import', kwargs={'pentestuser_pk': 'self'}), data={'file': export_notes_archive(s.current_user)}, format='multipart')),
         ('usernotebookpage copy', lambda s, c: c.post(reverse('usernotebookpage-copy', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.first().note_id if s.current_user else uuid4()}), data={})),
         ('usernotebookpage excalidraw', lambda s, c: c.get(reverse('usernotebookpage-excalidraw', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.filter(type=NoteType.EXCALIDRAW).first().note_id if s.current_user else uuid4()}))),
+        *viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self', 'note_id': s.current_user.notes.only_shared().first().note_id if s.current_user else uuid4()} | ({'pk': s.current_user.notes.only_shared().first().shareinfos.first().pk if s.current_user else uuid4()} if detail else {}), list=True, retrieve=True),
 
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True, history_timeline=True),
@@ -295,6 +298,7 @@ def guest_urls():
 def regular_user_urls():
     return [
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, retrieve=True),
+        *viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self', 'note_id': s.current_user.notes.only_shared().first().note_id if s.current_user else uuid4()} | ({'pk': s.current_user.notes.only_shared().first().shareinfos.first().pk if s.current_user else uuid4()} if detail else {}), create=True, update=True, update_partial=True),
 
         *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, write=True, destroy=True, share=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, write=True),
@@ -434,7 +438,13 @@ class ApiRequestsAndPermissionsTestData:
 
     @classmethod
     def create_user(cls, is_superuser=False, **kwargs):
-        return create_user(mfa=True, apitoken=True, public_key=True, is_superuser=is_superuser, **kwargs)
+        u = create_user(mfa=True, apitoken=True, public_key=True, is_superuser=is_superuser, notes_kwargs=[{'type': NoteType.TEXT}], **kwargs)
+        image_name = u.images.all().first().name
+        file_name = u.files.all().first().name
+        note = update(u.notes.all().first(), text=f'![](/images/name/{image_name})\n![](/files/name/{file_name})')
+        create_shareinfo(usernote=note)
+        create_usernotebookpage(user=u, parent=note, type=NoteType.EXCALIDRAW)
+        return u
 
     @cached_property
     def user_other(self):
