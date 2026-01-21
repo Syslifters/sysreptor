@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2026.1 - 2026-01-21
 * Markdown editor: Support LaTeX math expressions (http://localhost:9090/reporting/markdown-features/#math-expressions)
 * AI agent: Add Mistral AI provider
 * Increase resolution of charts and mermaid diagrams in PDFs
