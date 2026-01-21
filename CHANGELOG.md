@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Support sharing personal notes
+* Markdown editor: Fix scroll sync not scrolling to preview position
 
 
 ## v2026.1 - 2026-01-21
