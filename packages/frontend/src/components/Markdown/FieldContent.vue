@@ -292,7 +292,7 @@ function getEditorMarkdownBlockForLine(codemirrorLine?: HTMLElement, editorPosit
   }
 }
 function getEditorLineForPosition(position: number): HTMLElement|null {
-  return (editorView.value as any)?.docView?.children
+  return (editorView.value as any)?.docView?.tile.children
     ?.find((c: any) => c.posAtStart <= position && position <= c.posAtEnd && c.dom?.classList.contains('cm-line'))
     ?.dom || null;
 }
