@@ -6,8 +6,7 @@ class DemoPluginConsumer(WebsocketConsumerBase):
     async def get_related_id(self):
         return self.scope['url_route']['kwargs']['project_pk']
 
-    @property
-    def group_name(self):
+    async def get_group_name(self):
         return f'hellowebsocket_{self.related_id}'
 
     def has_permission(self, action, **kwargs):
@@ -39,7 +38,7 @@ class DemoPluginConsumer(WebsocketConsumerBase):
                 await self.send_json(content)
             case 'broadcast':
                 # Broadcast the message to all consumers in the group
-                await self.channel_layer.group_send(self.group_name, content | {
+                await self.channel_layer.group_send(await self.get_group_name(), content | {
                     'client_id': self.client_id,
                 })
             case _:

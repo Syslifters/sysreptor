@@ -1,19 +1,19 @@
-import type { CollabPropType, ProjectNote, ShareInfoPublic } from "#imports";
+import type { CollabPropType, NoteBase, ShareInfoPublic } from "#imports";
 
 export const useShareInfoStore = defineStore('shareinfo', {
   state: () => {
     return {
       data: null as null|{
         shareInfo: ShareInfoPublic,
-        notesCollabState: CollabStoreState<{ notes: Record<string, ProjectNote>}>
+        notesCollabState: CollabStoreState<{ notes: Record<string, NoteBase>}>
       }
     };
   },
   getters: {
-    notes(): ProjectNote[] {
+    notes(): NoteBase[] {
       return Object.values(this.data?.notesCollabState.data.notes || {});
     },
-    noteGroups(): NoteGroup<ProjectNote> {
+    noteGroups(): NoteGroup<NoteBase> {
       return groupNotes(this.notes, { parentNoteId: this.notes.find(n => n.id === this.data?.shareInfo.note_id)?.parent || null });
     },
   },
@@ -25,17 +25,17 @@ export const useShareInfoStore = defineStore('shareinfo', {
           shareInfo,
           notesCollabState: makeCollabStoreState({
             apiPath: `/api/public/ws/shareinfos/${shareId}/notes/`,
-            initialData: { notes: {} as Record<string, ProjectNote> },
+            initialData: { notes: {} as Record<string, NoteBase> },
             initialPath: 'notes',
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
-                if (msgData.sort.some((sn: ProjectNote) => !Object.values(collabState.data.notes).map(dn => dn.id).includes(sn.id))) {
+                if (msgData.sort.some((sn: NoteBase) => !Object.values(collabState.data.notes).map(dn => dn.id).includes(sn.id))) {
                   // Non-shared note moved to shared note. Close and reopen WebSocket connection to get updated data.
                   collabState.connection?.disconnect();
                 }
 
-                for (const note of Object.values(collabState.data.notes) as UserNote[]) {
-                  const no = msgData.sort.find((n: UserNote) => n.id === note.id);
+                for (const note of Object.values(collabState.data.notes)) {
+                  const no = msgData.sort.find((n: NoteBase) => n.id === note.id);
                   note.parent = no?.parent || null;
                   note.order = no?.order || 0;
                 }
@@ -59,8 +59,8 @@ export const useShareInfoStore = defineStore('shareinfo', {
         return await this.fetchById(shareId);
       }
     },
-    async createNote(shareInfo: ShareInfoPublic, note: Partial<ProjectNote>) {
-      const newNote = await $fetch<ProjectNote>(`/api/public/shareinfos/${shareInfo.id}/notes/`, {
+    async createNote(shareInfo: ShareInfoPublic, note: Partial<NoteBase>) {
+      const newNote = await $fetch<NoteBase>(`/api/public/shareinfos/${shareInfo.id}/notes/`, {
         method: 'POST',
         body: note
       });
@@ -69,7 +69,7 @@ export const useShareInfoStore = defineStore('shareinfo', {
       }
       return newNote;
     },
-    async deleteNote(shareInfo: ShareInfoPublic, note: UserNote) {
+    async deleteNote(shareInfo: ShareInfoPublic, note: NoteBase) {
       await $fetch(`/api/public/shareinfos/${shareInfo.id}/notes/${note.id}/`, {
         method: 'DELETE'
       });
@@ -83,7 +83,7 @@ export const useShareInfoStore = defineStore('shareinfo', {
       }
 
       const collabState = this.data!.notesCollabState;
-      const collab = useCollab(collabState as CollabStoreState<{ notes: Record<string, ProjectNote> }>);
+      const collab = useCollab(collabState as CollabStoreState<{ notes: Record<string, NoteBase> }>);
       const collabProps = computed<CollabPropType>((oldValue) => collabSubpath(
         collab.collabProps.value, 
         options?.noteId ? `notes.${options.noteId}` : null,

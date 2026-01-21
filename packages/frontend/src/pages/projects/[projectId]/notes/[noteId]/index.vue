@@ -82,6 +82,7 @@
         v-model="shareDialogVisible"
         :project="project"
         :note="note"
+        :readonly="!auth.permissions.value.share_project_notes"
       />
 
       <markdown-page
@@ -110,6 +111,7 @@
 import { collabSubpath, type CollabPropType } from '#imports';
 import { urlJoin } from "@base/utils/helpers";
 
+const auth = useAuth();
 const route = useRoute();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();

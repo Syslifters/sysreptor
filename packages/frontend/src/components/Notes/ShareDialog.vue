@@ -37,7 +37,7 @@
               <v-list-item>
                 <s-btn-secondary
                   @click="openCreateForm"
-                  :disabled="!canShare"
+                  :disabled="props.readonly"
                   text="Share"
                   prepend-icon="mdi-share-variant"
                   size="small"
@@ -52,11 +52,11 @@
             <div v-if="currentShareInfo">
               <notes-share-info-form
                 v-model="currentShareInfo"
-                :disabled="!canShare"
+                :disabled="props.readonly"
               />
               <btn-confirm
                 :action="() => updateShareInfo(currentShareInfo!)"
-                :disabled="!canShare || (isEqual(currentShareInfo, shareInfos.find(si => si.id === currentShareInfo?.id)))"
+                :disabled="props.readonly || (isEqual(currentShareInfo, shareInfos.find(si => si.id === currentShareInfo?.id)))"
                 :confirm="false"
                 button-text="Update"
                 button-icon="mdi-content-save"
@@ -67,13 +67,13 @@
             <div v-else-if="createShareInfoForm">
               <notes-share-info-form
                 v-model="createShareInfoForm.data"
-                :disabled="createShareInfoForm.saveInProgress || !canShare"
+                :disabled="createShareInfoForm.saveInProgress || props.readonly"
                 :error="createShareInfoForm.error"
                 :hidden-fields="['is_revoked']"
               />
               <btn-confirm
                 :action="createShareInfo"
-                :disabled="!canShare"
+                :disabled="createShareInfoForm.saveInProgress || props.readonly"
                 :loading="createShareInfoForm.saveInProgress"
                 :confirm="false"
                 button-text="Share"
@@ -104,16 +104,16 @@
 import { isEqual } from 'lodash-es';
 import { addDays, formatISO9075 } from "date-fns";
 
-const auth = useAuth();
 const apiSettings = useApiSettings();
 const { mdAndDown } = useDisplay();
 
 const isVisible = defineModel<boolean>();
 const props = defineProps<{
-  project: PentestProject;
-  note: ProjectNote;
+  note: NoteBase;
+  project?: PentestProject;
+  user?: User;
+  readonly?: boolean;
 }>();
-const canShare = computed(() => auth.permissions.value.share_notes);
 
 const shareInfos = ref<ShareInfo[]>([]);
 const isListLoading = ref(false);
@@ -138,7 +138,12 @@ whenever(isVisible, updateShareInfoList);
 async function updateShareInfoList() {
   try {
     isListLoading.value = true;
-    shareInfos.value = await $fetch(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/`, { method: 'GET' });
+    if (props.project) {
+      shareInfos.value = await $fetch(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/`, { method: 'GET' });
+    } else if (props.user) {
+      shareInfos.value = await $fetch(`/api/v1/pentestusers/${props.user.id}/notes/${props.note.id}/shareinfos/`, { method: 'GET' });
+    }
+    // Automatically select the first share info
     if (shareInfos.value.length > 0) {
       currentShareInfo.value = shareInfos.value[0]!;
     } else {
@@ -151,10 +156,17 @@ async function updateShareInfoList() {
 
 async function updateShareInfo(shareInfo: ShareInfo) {
   try {
-    shareInfo = await $fetch<ShareInfo>(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/${shareInfo.id}/`, {
-      method: 'PATCH',
-      body: shareInfo,
-    });
+    if (props.project) {
+      shareInfo = await $fetch<ShareInfo>(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/${shareInfo.id}/`, {
+        method: 'PATCH',
+        body: shareInfo,
+      });
+    } else if (props.user) {
+      shareInfo = await $fetch<ShareInfo>(`/api/v1/pentestusers/${props.user.id}/notes/${props.note.id}/shareinfos/${shareInfo.id}/`, {
+        method: 'PATCH',
+        body: shareInfo,
+      });
+    }
     shareInfos.value = shareInfos.value.map(si => si.id === shareInfo.id ? shareInfo : si);
     currentShareInfo.value = shareInfo;
   } catch (error) {
@@ -168,7 +180,7 @@ const createShareInfoForm = ref<null|{
   saveInProgress: boolean;
 }>(null);
 function openCreateForm() {
-  if (!canShare.value) {
+  if (props.readonly) {
     return;
   }
   createShareInfoForm.value = {
@@ -179,7 +191,7 @@ function openCreateForm() {
       is_revoked: false,
       password: null,
       permissions_write: false,
-    } as unknown as ShareInfo,
+    } as ShareInfo,
     saveInProgress: false,
   }
   currentShareInfo.value = null;
@@ -190,10 +202,20 @@ async function createShareInfo() {
   }
   try {
     createShareInfoForm.value.saveInProgress = true;
-    const obj = await $fetch<ShareInfo>(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/`, {
-      method: 'POST',
-      body: createShareInfoForm.value.data,
-    });
+    let obj: ShareInfo;
+    if (props.project) {
+      obj = await $fetch<ShareInfo>(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/`, {
+        method: 'POST',
+        body: createShareInfoForm.value.data,
+      });
+    } else if (props.user) {
+      obj = await $fetch<ShareInfo>(`/api/v1/pentestusers/${props.user.id}/notes/${props.note.id}/shareinfos/`, {
+        method: 'POST',
+        body: createShareInfoForm.value.data,
+      });
+    } else {
+      return;
+    }
     shareInfos.value.unshift(obj);
     currentShareInfo.value = obj;
     createShareInfoForm.value = null;

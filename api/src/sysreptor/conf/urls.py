@@ -26,8 +26,8 @@ from sysreptor.pentests.consumers import (
     ProjectNoteExcalidrawConsumer,
     ProjectNotesConsumer,
     ProjectReportingConsumer,
-    SharedProjectNoteExcalidrawConsumer,
-    SharedProjectNotesPublicConsumer,
+    SharedNoteExcalidrawConsumer,
+    SharedNotesPublicConsumer,
     UserNoteExcalidrawConsumer,
     UserNotesConsumer,
 )
@@ -43,12 +43,12 @@ from sysreptor.pentests.views import (
     PentestProjectHistoryViewSet,
     PentestProjectViewSet,
     ProjectNotebookPageViewSet,
+    ProjectNoteShareInfoViewSet,
     ProjectTypeHistoryViewSet,
     ProjectTypeViewSet,
     ReportSectionViewSet,
-    SharedProjectNotePublicViewSet,
+    SharedNotePublicViewSet,
     ShareInfoPublicViewSet,
-    ShareInfoViewSet,
     UploadedAssetViewSet,
     UploadedImageViewSet,
     UploadedProjectFileViewSet,
@@ -56,6 +56,7 @@ from sysreptor.pentests.views import (
     UploadedUserNotebookFileViewSet,
     UploadedUserNotebookImageViewSet,
     UserNotebookPageViewSet,
+    UserNoteShareInfoViewSet,
     UserPublicKeyViewSet,
 )
 from sysreptor.users.views import (
@@ -91,6 +92,9 @@ user_router.register('notes/images', UploadedUserNotebookImageViewSet, basename=
 user_router.register('notes/files', UploadedUserNotebookFileViewSet, basename='uploadedusernotebookfile')
 user_router.register('notes', UserNotebookPageViewSet, basename='usernotebookpage')
 
+usernotes_router = NestedSimpleRouter(user_router, 'notes', lookup='note')
+usernotes_router.register('shareinfos', UserNoteShareInfoViewSet, basename='usernoteshareinfo')
+
 project_router = NestedSimpleRouter(router, 'pentestprojects', lookup='project')
 project_router.register('sections', ReportSectionViewSet, basename='section')
 project_router.register('findings', PentestFindingViewSet, basename='finding')
@@ -104,7 +108,7 @@ comment_router = NestedSimpleRouter(project_router, 'comments', lookup='comment'
 comment_router.register('answers', CommentAnswerViewSet, basename='commentanswer')
 
 projectnotes_router = NestedSimpleRouter(project_router, 'notes', lookup='note')
-projectnotes_router.register('shareinfos', ShareInfoViewSet, basename='shareinfo')
+projectnotes_router.register('shareinfos', ProjectNoteShareInfoViewSet, basename='projectnoteshareinfo')
 
 projecttype_router = NestedSimpleRouter(router, 'projecttypes', lookup='projecttype')
 projecttype_router.register('assets', UploadedAssetViewSet, basename='uploadedasset')
@@ -128,7 +132,7 @@ public_router.register('utils', PublicUtilsViewSet, basename='publicutils')
 public_router.register('shareinfos', ShareInfoPublicViewSet, basename='publicshareinfo')
 
 shareinfo_router = NestedSimpleRouter(public_router, 'shareinfos', lookup='shareinfo')
-shareinfo_router.register('notes', SharedProjectNotePublicViewSet, basename='sharednote')
+shareinfo_router.register('notes', SharedNotePublicViewSet, basename='sharednote')
 
 
 def index(request, *args, **kwargs):
@@ -146,6 +150,7 @@ urlpatterns = [
         path('', include(
             router.urls +
             user_router.urls +
+            usernotes_router.urls +
             project_router.urls +
             comment_router.urls +
             projectnotes_router.urls +
@@ -183,7 +188,7 @@ urlpatterns = [
     path('api/ws/pentestprojects/<uuid:project_pk>/reporting/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectReportingConsumer), name='projectreporting-fallback'),
     path('api/ws/pentestprojects/<uuid:project_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectNotesConsumer), name='projectnotebookpage-fallback'),
     path('api/ws/pentestusers/<str:pentestuser_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=UserNotesConsumer), name='usernotebookpage-fallback'),
-    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=SharedProjectNotesPublicConsumer), name='sharednote-fallback'),
+    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=SharedNotesPublicConsumer), name='sharednote-fallback'),
 
     # Static files
     path('robots.txt', lambda *args, **kwargs: HttpResponse("User-Agent: *\nDisallow: /\n", content_type="text/plain")),
@@ -200,8 +205,8 @@ websocket_urlpatterns = [
     path('api/ws/pentestprojects/<uuid:project_pk>/notes/<uuid:note_id>/excalidraw/', ProjectNoteExcalidrawConsumer.as_asgi(), name='projectnoteexcalidraw-ws'),
     path('api/ws/pentestusers/<str:pentestuser_pk>/notes/', UserNotesConsumer.as_asgi(), name='usernotebookpage-ws'),
     path('api/ws/pentestusers/<str:pentestuser_pk>/notes/<uuid:note_id>/excalidraw/', UserNoteExcalidrawConsumer.as_asgi(), name='usernoteexcalidraw-ws'),
-    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/', SharedProjectNotesPublicConsumer.as_asgi(), name='sharednote-ws'),
-    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/<uuid:note_id>/excalidraw/', SharedProjectNoteExcalidrawConsumer.as_asgi(), name='sharednoteexcalidraw-ws'),
+    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/', SharedNotesPublicConsumer.as_asgi(), name='sharednote-ws'),
+    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/<uuid:note_id>/excalidraw/', SharedNoteExcalidrawConsumer.as_asgi(), name='sharednoteexcalidraw-ws'),
 
     # Plugins
     *[path(f'api/plugins/{p.plugin_id}/ws/', URLRouter(p.websocket_urlpatterns)) for p in plugins.enabled_plugins],
