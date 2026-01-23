@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026.003 - 2026-01-23
+## v2026.4 - 2026-01-23
 * Support sharing personal notes
 * Markdown editor: Fix scroll sync not scrolling to preview position
 * Fix chart rendering in PDFs
