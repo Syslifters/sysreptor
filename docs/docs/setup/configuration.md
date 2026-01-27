@@ -55,6 +55,13 @@ Debug mode enables Django's debug toolbar and stack traces. Do not use debug mod
 DEBUG=off
 ```
 
+### Browsable API
+Enable the Django REST Framework browsable API interface for debugging and development purposes. The browsable API is enabled by default in debug mode.
+
+```shell title="Example:"
+ENABLE_BROWSABLE_API=off
+```
+
 
 ### Allowed Hosts
 Comma-separated allowed hostnames/domain names for this installation. This setting might resolve issues with failing WebSocket connections.

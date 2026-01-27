@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Disable browsable API by default
+
+
 ## v2026.4 - 2026-01-23
 * Support sharing personal notes
 * Markdown editor: Fix scroll sync not scrolling to preview position

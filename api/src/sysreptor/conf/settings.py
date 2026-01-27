@@ -134,6 +134,7 @@ TEMPLATES = [
     },
 ]
 
+ENABLE_BROWSABLE_API = config('ENABLE_BROWSABLE_API', cast=bool, default=DEBUG)
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
@@ -151,6 +152,10 @@ REST_FRAMEWORK = {
         'pdf': '3/10s',
         'pw': '10/1h',
     },
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        *(['rest_framework.renderers.BrowsableAPIRenderer'] if ENABLE_BROWSABLE_API else []),
+    ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'EXCEPTION_HANDLER': 'sysreptor.utils.api.exception_handler',
