@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Disable browsable API by default
+* Fix comment update error when list item gets deleted
 
 
 ## v2026.4 - 2026-01-23
