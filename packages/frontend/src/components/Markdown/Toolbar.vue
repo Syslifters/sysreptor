@@ -11,7 +11,7 @@
       <markdown-toolbar-button @click="codemirrorAction(toggleListOrdered)" title="Numbered List" icon="mdi-format-list-numbered" :disabled="props.disabled" :active="activeActions.listOrdered" />
       <markdown-toolbar-button @click="codemirrorAction(toggleTaskList)" title="Checklist" icon="mdi-format-list-checkbox" :disabled="props.disabled" :active="activeActions.taskList" />
       <markdown-toolbar-button @click="codemirrorAction(toggleBlockQuote)" title="Blockquote" icon="mdi-format-quote-open" :disabled="props.disabled" :active="activeActions.blockquote" />
-      <markdown-toolbar-button @click="codemirrorAction(insertCodeBlock)" title="Code Block" icon="mdi-code-tags" :disabled="props.disabled" :active="activeActions.code" />
+      <markdown-toolbar-button @click="codemirrorAction(insertCodeBlock)" title="Code Block" icon="mdi-code-block-tags" :disabled="props.disabled" :active="activeActions.code" />
       <markdown-toolbar-button @click="codemirrorAction(insertTable)" title="Table" icon="mdi-table" :disabled="props.disabled" :active="activeActions.table" />
       <span class="separator" />
       <v-menu

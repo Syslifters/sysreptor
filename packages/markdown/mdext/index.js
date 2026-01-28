@@ -5,10 +5,9 @@ import rehypeRemark from 'rehype-remark';
 import remarkStringify from 'remark-stringify';
 import rehypeParse from 'rehype-parse';
 import rehypeRaw from 'rehype-raw';
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
+import rehypeSanitize from 'rehype-sanitize';
 import remarkMath from 'remark-math';
 import { defaultHandlers as defaultHandlersToMdast, defaultNodeHandlers as defaultNodeHandlersToMdast } from 'hast-util-to-mdast';
-import { merge } from 'lodash-es';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, remarkToRehypeHandersFootnotesPreview, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './footnotes';
 import { remarkStrikethrough, remarkTaskListItem } from './gfm';
@@ -23,34 +22,7 @@ import { remarkTodoMarker } from './todo';
 import { rehypeHighlightCode } from './codeHighlight';
 import { modifiedCommonmarkFeatures } from './modified-commonmark';
 import { rehypeStringify } from './stringify';
-
-const allClasses = ['className', /^.*$/];
-const rehypeSanitizeSchema = merge({}, defaultSchema, {
-  allowComments: true,
-  clobberPrefix: null,
-  tagNames: [
-    // Custom components
-    'footnote', 'template', 'ref', 'pagebreak', 'markdown', 'mermaid-diagram', 'math-latex', 'qrcode',
-    // Regular HTML tags not included in default schema
-    'figure', 'figcaption', 'caption', 'mark', 'u',
-    'abbr', 'bdo', 'cite', 'dfn', 'time', 'var', 'wbr',
-  ].concat(defaultSchema.tagNames),
-  attributes: {
-    '*': ['className', 'style', 'data*', 'v-if', 'v-else-if', 'v-else', 'v-for', 'v-bind', 'v-on', 'v-show', 'v-pre', 'v-text'].concat(defaultSchema.attributes['*']),
-    'a': ['download', 'target', 'rel', allClasses].concat(defaultSchema.attributes['a']),
-    'img': ['loading'].concat(defaultSchema.attributes['img']),
-    'code': [allClasses].concat(defaultSchema.attributes['code']),
-    'h2': [allClasses].concat(defaultSchema.attributes['h2']),
-    'ul': [allClasses].concat(defaultSchema.attributes['ul']),
-    'ol': [allClasses].concat(defaultSchema.attributes['ol']),
-    'li': [allClasses].concat(defaultSchema.attributes['li']),
-    'section': [allClasses].concat(defaultSchema.attributes['section']),
-    'input': ['checked'].concat(defaultSchema.attributes['input']),
-    'ref': ['to', ':to'],
-    'markdown': ['text', ':text'],
-    'math-latex': ['display-mode', ':display-mode', 'text', ':text'],
-  }
-});
+import { rehypeSanitizeSchema } from './sanitize';
 
 
 export function markdownParser() {

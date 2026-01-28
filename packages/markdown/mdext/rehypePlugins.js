@@ -19,13 +19,19 @@ export function rehypeLinkTargetBlank() {
  */
 export function rehypeConvertAttrsToStyle() {
   const convertAttrs = {
-    'width': 'width', 
-    'height': 'height'
+    'img': {
+      'width': 'width', 
+      'height': 'height',
+    },
   };
 
   return tree => {
     visit(tree, 'element', node => {
-      for (const [attrName, styleName] of Object.entries(convertAttrs)) {
+      const attrMap = convertAttrs[node.tagName];
+      if (!attrMap) {
+        return;
+      }
+      for (const [attrName, styleName] of Object.entries(attrMap)) {
         if (node.properties[attrName]) {
           let style = (node.properties.style || '');
           if (style && style[style.length - 1] !== ';') {
