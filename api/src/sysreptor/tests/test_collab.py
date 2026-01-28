@@ -361,24 +361,37 @@ class TestCollaborativeTextEditing:
         with collab_context(prevent_events=True):
             comment_list_a = await sync_to_async(create_comment)(finding=self.finding, path='data.field_list.[0]')
             comment_list_c = await sync_to_async(create_comment)(finding=self.finding, path='data.field_list.[2]')
+            comment_list_d = await sync_to_async(create_comment)(finding=self.finding, path='data.field_list.[3]')
 
         # Delete list item
         event_delete = {'type': CollabEventType.DELETE, 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]'}
         await self.client1.send_json_to(event_delete | {'version': res2['version']})
-        res3 = await self.assert_event_received(event_delete | {'comments': [{'id': str(comment_list_c.id), 'path': None}]})
+        res3 = await self.assert_event_received(event_delete | {'comments': [
+            {'id': str(comment_list_c.id), 'path': None},
+            {'id': str(comment_list_d.id), 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]'},
+        ]})
 
+        # Item deleted
         await self.refresh_data()
         assert self.finding.data['field_list'] == ['A', 'B', 'D']
+        # List index of comment updated
+        await comment_list_d.arefresh_from_db()
+        assert comment_list_d.path == 'data.field_list.[2]'
 
         # Sort list
         event_update_key = {'type': CollabEventType.UPDATE_KEY, 'path': f'findings.{self.finding.finding_id}.data.field_list', 'value': ['B', 'D', 'A']}
         await self.client1.send_json_to(event_update_key | {'version': res3['version'], 'sort': [{'id': 0, 'order': 2}, {'id': 1, 'order': 0}, {'id': 2, 'order': 1}]})
-        await self.assert_event_received(event_update_key | {'comments': [{'id': str(comment_list_a.id), 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]', 'text_range': None}]})
+        await self.assert_event_received(event_update_key | {'comments': [
+            {'id': str(comment_list_a.id), 'path': f'findings.{self.finding.finding_id}.data.field_list.[2]', 'text_range': None},
+            {'id': str(comment_list_d.id), 'path': f'findings.{self.finding.finding_id}.data.field_list.[1]', 'text_range': None},
+        ]})
 
         await self.refresh_data()
-        await comment_list_a.arefresh_from_db()
         assert self.finding.data['field_list'] == ['B', 'D', 'A']
+        await comment_list_a.arefresh_from_db()
         assert comment_list_a.path == 'data.field_list.[2]'
+        await comment_list_d.arefresh_from_db()
+        assert comment_list_d.path == 'data.field_list.[1]'
 
     async def test_client_collab_info_lifecycle(self):
         async with ws_connect(path=f'/api/ws/pentestprojects/{self.project.id}/reporting/', user=self.user1, consume_init=False) as client:
