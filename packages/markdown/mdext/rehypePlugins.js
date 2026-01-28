@@ -18,11 +18,14 @@ export function rehypeLinkTargetBlank() {
  * Convert HTML attributes to inline CSS styles.
  */
 export function rehypeConvertAttrsToStyle() {
+  const convertWidthHeightToStyle = {
+    'width': 'width', 
+    'height': 'height',
+  }
   const convertAttrs = {
-    'img': {
-      'width': 'width', 
-      'height': 'height',
-    },
+    'img': convertWidthHeightToStyle,
+    'mermaid-diagram': convertWidthHeightToStyle,
+    'a': convertWidthHeightToStyle,
   };
 
   return tree => {
