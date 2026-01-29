@@ -3,7 +3,7 @@
     v-if="isVisible"
     v-model="isVisible"
     :min-width="mdAndDown ? '90vw' : '60vw'"
-    min-height="50vh"
+    height="80vh"
   >
     <template #title>Share Note</template>
     <template #default>
