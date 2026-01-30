@@ -72,7 +72,7 @@ async function performImport(files?: FileList|File[]|null) {
   } catch (error: any) {
     let message = 'Import failed';
     if (error?.status === 400 && error?.data?.format) {
-      message += ': ' + error.data.format[0];
+      message += ': ' + (Array.isArray(error.data.format) ? error.data.format[0] : error.data.format);
     }
     requestErrorToast({ error, message });
   } finally {
