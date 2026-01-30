@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Validator } from '@cfworker/json-schema';
-import { markdownToADF } from '../frontend/utils/md2adf';
+import { markdownToADF } from '../utils/md2adf';
 import adfSchema from './adf.schema.json';
 
 const adfValidator = new Validator(adfSchema);
@@ -111,12 +111,12 @@ describe('Test markdown to ADF', () => {
     // Tables
     '| Header1 | **Header2** |\n|----------|----------|\n| Cell 1   | `Cell2`   |': { type: 'table', content: [
       { type: 'tableRow', content: [
-        { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Header1' }]}] },
-        { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Header2', marks: [{ type: 'strong' }] }]}] },
+        { type: 'tableCell', attrs: {}, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Header1' }]}] },
+        { type: 'tableCell', attrs: {}, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Header2', marks: [{ type: 'strong' }] }]}] },
       ]},
       { type: 'tableRow', content: [
-        { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Cell 1' }]}] },
-        { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Cell2', marks: [{ type: 'code' }] }]}] },
+        { type: 'tableCell', attrs: {}, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Cell 1' }]}] },
+        { type: 'tableCell', attrs: {}, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Cell2', marks: [{ type: 'code' }] }]}] },
       ]},
     ]},
     // Unsupported features

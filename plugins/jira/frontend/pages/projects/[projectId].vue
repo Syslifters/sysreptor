@@ -115,11 +115,12 @@
       <template #default>
         <v-card-text>
           <v-alert
-            v-if="exportResults.success.length > 0"
+            v-if="successfulIssues.length > 0"
             type="success"
             class="mb-4"
           >
-            Successfully created {{ exportResults.success.length }} issue(s) in Jira
+            Successfully processed {{ successfulIssues.length }} issue(s):
+            <span v-if="exportResults.created.length > 0">{{ exportResults.created.length }} created</span><span v-if="exportResults.updated.length > 0 && exportResults.created.length > 0">, </span><span v-if="exportResults.updated.length > 0">{{ exportResults.updated.length }} updated</span><span v-if="exportResults.unchanged.length > 0 && (exportResults.created.length > 0 || exportResults.updated.length > 0)">, </span><span v-if="exportResults.unchanged.length > 0">{{ exportResults.unchanged.length }} unchanged</span>
           </v-alert>
 
           <v-alert
@@ -127,21 +128,31 @@
             type="error"
             class="mb-4"
           >
-            Failed to create {{ exportResults.failed.length }} issue(s)
+            Failed to process {{ exportResults.failed.length }} issue(s)
           </v-alert>
 
-          <div v-if="exportResults.success.length > 0">
-            <h3 class="text-subtitle-1 mb-2">Created Issues:</h3>
+          <div v-if="successfulIssues.length > 0">
+            <h3 class="text-subtitle-1 mb-2">Jira Issues:</h3>
             <v-list density="compact">
               <v-list-item
-                v-for="issue in exportResults.success"
+                v-for="issue in successfulIssues"
                 :key="issue.jira_key"
-                :title="getFindingTitle(issue.finding_id)"
+                :title="getFindingTitle(issue.finding)"
                 :subtitle="issue.jira_key"
                 :href="issue.jira_url"
                 target="_blank"
                 prepend-icon="mdi-open-in-new"
-              />
+              >
+                <template #append>
+                  <v-chip
+                    size="small"
+                    :color="getStatusColor(issue.status)"
+                    variant="flat"
+                  >
+                    {{ issue.status }}
+                  </v-chip>
+                </template>
+              </v-list-item>
             </v-list>
           </div>
 
@@ -150,8 +161,8 @@
             <v-list density="compact">
               <v-list-item
                 v-for="issue in exportResults.failed"
-                :key="issue.finding_id"
-                :title="getFindingTitle(issue.finding_id)"
+                :key="issue.finding"
+                :title="getFindingTitle(issue.finding)"
               >
                 <v-list-item-subtitle class="text-error">
                   {{ issue.error }}
@@ -175,20 +186,28 @@ import {
 import { getFindingRiskLevel, sortFindings } from '@base/utils/project';
 import { findingToADF } from '@/utils/finding2adf';
 
-interface JiraProject {
+type JiraProject = {
   id: string;
   key: string;
   name: string;
 }
 
-interface JiraIssueType {
+type JiraIssueType = {
   id: string;
   name: string;
 }
 
+type JiraExportResult = {
+  finding: string;
+  jira_key: string;
+  jira_url: string;
+}
+
 interface ExportResults {
-  success: Array<{ finding_id: string; jira_key: string; jira_url: string }>;
-  failed: Array<{ finding_id: string; error: string }>;
+  created: JiraExportResult[];
+  updated: JiraExportResult[];
+  unchanged: JiraExportResult[] ;
+  failed: { finding: string; error: string }[];
 }
 
 const route = useRoute();
@@ -225,7 +244,9 @@ const loadingIssueTypes = ref(false);
 const exporting = ref(false);
 const showResultsDialog = ref(false);
 const exportResults = ref<ExportResults>({
-  success: [],
+  created: [],
+  updated: [],
+  unchanged: [],
   failed: [],
 });
 
@@ -306,7 +327,7 @@ async function exportToJira() {
       const adfDescription = findingToADF(finding, projectType.value);
       
       return {
-        finding_id: finding.id,
+        finding: finding.id,
         summary: finding.data.title || 'Untitled Finding',
         description: adfDescription,
       };
@@ -327,11 +348,8 @@ async function exportToJira() {
 
     exportResults.value = response;
     showResultsDialog.value = true;
-
-    if (response.success.length > 0) {
-      successToast(
-        `Successfully exported ${response.success.length} finding(s) to Jira`
-      );
+    if (successfulIssues.value.length > 0) {
+      successToast(`Successfully exported ${successfulIssues.value.length} finding(s) to Jira`);
     }
   } catch (error: any) {
     errorToast(`Export failed: ${error.message || error}`);
@@ -347,6 +365,27 @@ function riskLevel(finding: PentestFinding) {
 function getFindingTitle(findingId: string): string {
   const finding = findings.value.find(f => f.id === findingId);
   return finding?.data?.title || findingId;
+}
+
+const successfulIssues = computed(() => {
+  return [
+    ...exportResults.value.created.map(issue => ({ ...issue, status: 'created' })),
+    ...exportResults.value.updated.map(issue => ({ ...issue, status: 'updated' })),
+    ...exportResults.value.unchanged.map(issue => ({ ...issue, status: 'unchanged' })),
+  ];
+});
+
+function getStatusColor(status: string): string {
+  switch (status) {
+    case 'created':
+      return 'success';
+    case 'updated':
+      return 'info';
+    case 'unchanged':
+      return 'default';
+    default:
+      return 'default';
+  }
 }
 </script>
 

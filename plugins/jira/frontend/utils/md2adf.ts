@@ -128,6 +128,7 @@ function convertNode(node: any, originalMarkdown?: string, blockContext: boolean
       
       return {
         type: 'tableCell',
+        attrs: {},
         content: wrappedContent,
       };
 
